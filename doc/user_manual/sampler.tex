@@ -50,17 +50,17 @@ XML node and the requirements for other attributes change:
       \begin{itemize}
          \item \xmlAttr{steps}, \xmlDesc{required integer attribute}, number
            of equally spaced/probable discretization steps.
-         \item \xmlAttr{upperBound}, \xmlDesc{required float attribute}, the
+         \item \xmlAttr{upperBound}, \xmlDesc{conditional float attribute}, the
            upper limit of the grid.
            \nb This attribute must be specified if the \xmlAttr{lowerBound}
            has not been defined.
-         \item \xmlAttr{lowerBound}, \xmlDesc{required float attribute}, the
+         \item \xmlAttr{lowerBound}, \xmlDesc{conditional float attribute}, the
            lower limit of the grid.
            \nb This attribute must be specified if the \xmlAttr{upperBound}
            has not been defined.
       \end{itemize}
       This construction type requires that the content of the \xmlNode{grid}
-      node represents the step size,$stepSize$ in the equations below, (either
+      node represents the step size,$stepSize$ in the expression below, (either
       in probability or value).
       The attributes \xmlAttr{lowerBound} and \xmlAttr{upperBound} are
       mutually exclusive (only one of them can be specified):
@@ -141,15 +141,15 @@ XML node and the requirements for other attributes change:
         \textbf{limit} must be performed.
         %
         \default{False}.
-      \item \xmlAttr{weight}, \xmlDesc{optional string attribute}, defines on
+      \item \xmlAttr{weight}, \xmlDesc{optional string attribute (case insensitive)}, defines on
         what the convergence check needs to be performed.
         \begin{itemize}
-          \item \xmlString{probability}, the convergence is checked in terms
+          \item \xmlString{CDF}, the convergence is checked in terms
             of probability (Cumulative Distribution Function).
-          \item \xmlString{none}, the convergence is checked on the 
+          \item \xmlString{value}, the convergence is checked on the 
             hyper-volume in terms of variable values.
         \end{itemize}
-        \default{probability}.
+        \default{CDF}.
       \item \xmlAttr{persistence}, \xmlDesc{optional integer attribute}, 
         offers an additional convergence check.
         %
@@ -157,11 +157,11 @@ XML node and the requirements for other attributes change:
         below the inputted tolerance before convergence is reported.
         %
         \default{0}.
-      \item \xmlAttr{subGridTol}, \xmlDesc{optional string attribute}, 
-        defines a tolerance for constructing a sub-grid on which the
-        acceleration ROM is going to be tested.
+     % \item \xmlAttr{subGridTol}, \xmlDesc{optional string attribute}, 
+      %  defines a tolerance for constructing a sub-grid on which the
+       % acceleration ROM is going to be tested.
         %
-        \default{None}.
+       % \default{None}.
     \end{itemize}
     In summary, this XML node contains the information that is needed in order
     to control this sampler's convergence criterion.
@@ -170,12 +170,12 @@ XML node and the requirements for other attributes change:
 \newcommand{\assemblerDescription}
 {
   \textbf{Assembler Objects} These objects are either required or optional
-    depending on the functionality of the Adaptive Sampler.
+    0 on the functionality of the Adaptive Sampler.
     %
     The objects must be listed with a rigorous syntax that, except for the XML
     node tag, is common among all the objects.
     %
-    Each of these nodes must contain 2 attributes that are used to map them
+    Each of these nodes must contain 2 attributes that are used to identify them
     within the simulation framework:
     \begin{itemize}
       \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
@@ -193,7 +193,7 @@ XML node and the requirements for other attributes change:
       \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
         body of this XML node must contain the name of a ROM defined in the
         \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}).
-      \item \xmlNode{Function}, \xmlDesc{string, required field}, if used, the
+      \item \xmlNode{Function}, \xmlDesc{string, required field},  the
         body of this XML block needs to contain the name of an external 
         function object defined within the \xmlNode{Functions} main block (see 
         Section~\ref{sec:functions}).
@@ -254,9 +254,9 @@ of view.
 The samplers, that are available in RAVEN, can be categorized into three main
 classes:
 \begin{itemize}
-\item \textbf{Once-through} (see Section~/ref{subsec:onceThroughSamplers})
-\item \textbf{Dynamic Event Tree (DET)} (see Section~/ref{subsec:DETSamplers})
-\item \textbf{Adaptive} (see Section~/ref{subsec:AdaptSamplers})
+\item \textbf{Once-through} (see Section~\ref{subsec:onceThroughSamplers})
+\item \textbf{Dynamic Event Tree (DET)} (see Section~\ref{subsec:DETSamplers})
+\item \textbf{Adaptive} (see Section~\ref{subsec:AdaptSamplers})
 \end{itemize}
 Before analyzing each sampler in detail, it is important to mention that each
 type has a similar syntax to input the variables to be ``sampled''.
@@ -301,7 +301,7 @@ developer of the ``code interface'' and is implemented in the interface only
 %\maljdan{Where does this type of input come from? Should the user care?}
 %\alfoa{Dan, this is an example (in this case, a YAML structure)}
 
-Example Input:
+Example YAML based Input:
 \begin{lstlisting}
 [I-Level]
   [./II-Level]
@@ -310,7 +310,7 @@ Example Input:
 []
 \end{lstlisting}
 
-Example XML block:
+Example XML block to define the variables and associated distributions:
 \begin{lstlisting}[style=XML]
 <variable name='I-Level|II-Level|variable'>
   <distribution>exampleDistribution</distribution>
@@ -320,7 +320,7 @@ Example XML block:
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Once-Through Samplers %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Once-through Samplers.}
+\subsection{Once-through Samplers}
 \label{subsec:onceThroughSamplers}
 The once-through sampler category collects all the strategies that perform the
 sampling of the input space without exploiting, through dynamic learning
@@ -341,13 +341,13 @@ are available:
 \end{itemize}
 
 From a practical point of view, these sampling strategies represent different
-ways to perturb the input space.
+ways to explore the input space.
 %
 In the following paragraphs, the input requirements and a small explanation of
 the different sampling methodologies are reported.
 
 %%% Once-Through Samplers: MonteCarlo
-\subsubsection{Monte Carlo.}
+\subsubsection{Monte Carlo}
 \label{subsubsubsec:MC}
 The \textbf{Monte-Carlo} sampling approach is one of the most well-known and
 widely used approaches to perform exploration of the input space.
@@ -429,7 +429,7 @@ Example:
 \end{lstlisting}
 
 %%% Once-Through Samplers: Grid
-\subsubsection{Grid.}
+\subsubsection{Grid}
 \label{subsubsubsec:Grid}
 The \textbf{Grid} sampling approach is probably the simplest exploration
 approach that can be employed to explore an uncertain domain.
@@ -508,7 +508,7 @@ Example:
 \end{lstlisting}
 
 %%% Once-Through Samplers: Sparse Grid Collocation
-\subsubsection{Sparse Grid Collocation.}
+\subsubsection{Sparse Grid Collocation}
 %\talbpaul{Work in progress.}
 %\senrs{Assembler section updated}
 \label{subsubsubsec:SparseGridCollocation}
@@ -516,7 +516,8 @@ Example:
 \begin{itemize}
 \itemsep0em
 \item \nameDescription
-\item \xmlAttr{parallel}, \xmlDesc{optional string attribute}, option to disable parallel construction of the sparse grid.  Because of increasing computational expense with increasing input space dimension, RAVEN will default to parallel construction of the sparse grid. \talbpaul{Is this what we want?} \default{True}
+\item \xmlAttr{parallel}, \xmlDesc{optional string attribute}, option to disable parallel construction of the sparse grid.  Because of increasing computational expense with increasing input space dimension, RAVEN will default to parallel construction of the sparse grid. %\talbpaul{Is this what we want?} 
+\default{True}
 \end{itemize}
 \variableIntro{SparseGridCollocation}
 \begin{itemize}
@@ -571,7 +572,7 @@ Example:
  \normalsize
  
 %%% Once-Through Samplers: Stratified
-\subsubsection{Stratified.}
+\subsubsection{Stratified}
 \label{subsubsubsec:Stratified}
 The \textbf{Stratified} sampling approach is a method for the exploration of the
 input space that consists of dividing the uncertain domain into subgroups before
@@ -664,7 +665,7 @@ This is possible by defining a global\_grid and associate such global grid to ea
 \end{lstlisting}
 
 %%% Once-Through Samplers: Response Surface Design
-\subsubsection{Response Surface Design.}
+\subsubsection{Response Surface Design}
 \label{subsubsubsec:RespSurfDOE}
 The \textbf{Response Surface Design}, or Response Surface Modeling (RSM), 
 approach is one of the most common Design of Experiment (DOE) methodologies
@@ -774,7 +775,7 @@ algorithm being used:
             number of center points to include in the box.
             If this parameter is not specified, then a pre-determined number of
             points are automatically included.
-            \default{None}.
+            \default{Automatic Generation}.
          \end{itemize}
          \nb In order to employ the ``Box-Behnken'' design, at least 3 variables
          must be used.
@@ -861,12 +862,12 @@ Example:
 \end{lstlisting}
 
 %%% Once-Through Samplers: Factorial Design
-\subsubsection{Factorial Design.}
+\subsubsection{Factorial Design}
 \label{subsubsubsec:FactorialDOE}
 The \textbf{Factorial Design} method is an important method to determine the
 effects of multiple variables on a response.
 %
-A factorial design can reduce the number of experiments one has to perform by
+A factorial design can reduce the number of samples one has to perform by
 studying multiple factors simultaneously.
 %
 Additionally, it can be used to find both main effects (from each independent
@@ -877,7 +878,7 @@ A factorial design tests all possible conditions.
 %
 Because factorial designs can lead to a large number of trials, which can
 become expensive and time-consuming, they are best used for small numbers of
-variables with only a few states (1 to 3).
+variables with only a few domain discretizations (1 to 3).
 %
 Factorial designs work well when interactions between variables are strong and
 important and where every variable contributes significantly.
@@ -1043,7 +1044,7 @@ Example:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Dynamic Event Tree Samplers %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Dynamic Event Tree (DET) Samplers.}
+\subsection{Dynamic Event Tree (DET) Samplers}
 \label{subsec:DETSamplers}
 The \textbf{Dynamic Event Tree} methodologies are designed to take the timing of
 events explicitly into account, which can become very important especially when
@@ -1072,7 +1073,7 @@ For this reason, its input requirements are reported in the Adaptive Samplers'
 section (\ref{subsec:AdaptSamplers}).
 
 %%%%%%%%% Dynamic Event Tree Samplers: Dynamic Event Tree
-\subsubsection{Dynamic Event Tree.}
+\subsubsection{Dynamic Event Tree}
 \label{subsubsubsec:DET}
 The \textbf{Dynamic Event Tree} sampling approach is a sampling strategy that is
 designed to take the timing of events, in transient/accident scenarios,
@@ -1090,7 +1091,7 @@ exceeded), a new set of simulations (branches) is spawned.
 Each branch carries its conditional probability.
 %
 In the RAVEN code, the triggers are defined by specifying a grid using a
-predefined discretization metric.
+predefined discretization metric in the mode input space.
 %
 RAVEN provides two discretization metrics: 1) CDF, and 2) value.
 %
@@ -1160,7 +1161,7 @@ Example:
 \end{lstlisting}
 
 %%%%%%%%% Dynamic Event Tree Samplers: Hybrid Dynamic Event Tree
-\subsubsection{Hybrid Dynamic Event Tree.}
+\subsubsection{Hybrid Dynamic Event Tree}
 \label{subsubsubsec:HDET}
 The \textbf{Hybrid Dynamic Event Tree} sampling approach is a sampling strategy
 that represents an evolution of the Dynamic Event Tree method for the
@@ -1183,7 +1184,7 @@ following strategies:
 \end{itemize}
 
 From a practical point of view, the user defines the parameters that need to be
-sampled by one or more different approach.
+sampled by one or more different approaches.
 %
 The HDET module samples those parameters creating an $N$-dimensional grid
 characterized by all the possible combinations of the input space coordinates
@@ -1192,8 +1193,8 @@ coming from the different sampling strategies.
 Each coordinate in the input space represents a separate and parallel standard
 DET exploration of the uncertain domain.
 %
-The HDET methodology allows the user to completely explore the uncertain domain
-employing one methodology.
+The HDET methodology allows the user to explore the uncertain domain
+employing the best approach for each variable kind.
 %
 The addition of a grid sampling strategy among the usable approaches allows the
 user to perform a discrete parametric study under aleatory and epistemic
@@ -1339,7 +1340,7 @@ Example:
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Adaptive Samplers %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Adaptive Samplers.}
+\subsection{Adaptive Samplers}
 \label{subsec:AdaptSamplers}
 The Adaptive Samplers' family provides the possibility to perform smart sampling
 (also known as adaptive sampling) as an alternative to classical “once-through”
@@ -1369,37 +1370,6 @@ small number of carefully selected sample points, limiting the number of
 expensive trials needed to understand features of the system space.
 %
 
-In the following, the specific use case of identifying the limit surface, i.e.
-the boundaries in the simulation space between system failure and system success
-(see Figure 4) is analyzed.
-
-For this scope two classes of algorithms are considered:
-\begin{itemize}
-  \item Model-based algorithms
-  \item Data-based algorithms
-\end{itemize}
-
-In the first class, the built ROM aims to approximate the real response function
-of the system as a function of the input parameters.
-%
-Once it is built, it is used to search for the points that are in the proximity
-of the limit surface using contour reconstruction based algorithms.
-%
-A response function can be built using Support Vector Machines or Kriging based
-interpolators.
-%
-On the other side, data-based algorithms do not build a response function based
-on a ROM but instead determine the location of the limit surface directly from
-a neighborhood graph constructed from the training data, without any
-dependencies on a particular prediction model.
-%
-These algorithms begin the search of the limit surface by directly building a
-neighborhood structure as the surrogate model on the initial training data.
-%
-It then creates a candidate set by first obtaining linearly interpolated points
-along spanning edges of the graph, and introducing a random perturbation along
-all dimensions to these points.
-
 Currently, RAVEN provides support for two adaptive algorithms:
 
 \begin{itemize}
@@ -1411,7 +1381,7 @@ In the following paragraphs, the input requirements and a small explanation of
 the different sampling methods are reported.
 
 %%% Adaptive Samplers: Adaptive Sampling for Limit Surface search
-\subsubsection{Adaptive Sampler.}
+\subsubsection{Adaptive Sampler}
 \label{subsubsubsec:AdaptiveSampling}
 The \textbf{Adaptive Sampler} approach is an advanced methodology that employs
 a smart sampling around transition zones that determine a change in the status
@@ -1460,7 +1430,7 @@ Example:
     <ROM class='Models' type='ROM'>ROMname</ROM>
     <Function class='Functions' type='External' >FunctionName</Function>
     <TargetEvaluation class='Datas' type='TimePointSet'>DataName</TargetEvaluation>
-    <Convergence limit='3000' subGridTol='0.001' forceIteration='False' weight='none' persistence='5'>
+    <Convergence limit='3000'  forceIteration='False' weight='none' persistence='5'>
       1e-2
     </Convergence>
     <variable name='var1'>
@@ -1487,7 +1457,7 @@ def __residuumSign(self):
 \end{lstlisting}
 
 %%% Adaptive Samplers: Adaptive Sampling for Limit Surface search
-\subsubsection{Adaptive Dynamic Event Tree.}
+\subsubsection{Adaptive Dynamic Event Tree}
 \label{subsubsubsec:ADET}
 The \textbf{Adaptive Dynamic Event Tree} approach is an advanced methodology 
 employing a smart sampling around transition zones that determine a change in
@@ -1501,7 +1471,7 @@ a limit surface perspective, is intrinsically adaptive.
 For this reason, it appears natural to use the DET approach to perform a
 goal-function oriented pre-sampling of the input space.
 
-To perform such sampling, RAVEN uses ROMs for predicting, in the input space,
+RAVEN uses ROMs for predicting, in the input space,
 the location(s) of these transitions, in order to accelerate the exploration of
 the input space in proximity of the limit surface.
 

@@ -23,7 +23,7 @@
 \end{lstlisting}
 
   The kwargs block is able to convert whatever string into a python type (for
-  example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
+  example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
   be converted into a dictionary, 
   \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
 }
@@ -111,7 +111,7 @@ Every module can project its outcomes into a \textit{Data} object.
 This provides the user with the capability to visualize/dump all the modules'
 results.
 %
-As already mentioned \TODO{put reference to the xml input section}, the RAVEN
+As already mentioned, the RAVEN
 framework input is based on the \textbf{E}xtensible \textbf{M}arkup
 \textbf{L}anguage (\textbf{XML}) format.
 %
@@ -143,7 +143,7 @@ at anytime during the calculation.
 Currently, the only available output is a \textbf{C}omma \textbf{S}eparated
 \textbf{V}alue (\textbf{CSV}) file.
 %
-In the near future, an XML formatted file option will be available.
+%In the near future, an XML formatted file option will be available.
 %
 This will facilitate the exchanging of results and provide the possibility to
 dump the solution of an analysis and ``restart'' another one constructing a
@@ -155,7 +155,7 @@ The XML code, that is reported below, shows different ways to request a
 The user needs to provide a name for each sub-block (XML attribute).
 %
 These names are then used in the \textit{Step} blocks to activate the Printing
-options at any time.
+keywords at any time.
 %
 As shown in the examples below, every \xmlNode{Print} block must contain, at
 least, the two required tags:
@@ -243,8 +243,7 @@ The user may request a plot not present among the supported ones, since the
 RAVEN Plotting system has the capability to construct on the fly the interface
 for a Plot, based on XML instructions.
 %
-This capability will be discussed in the
-sub-section~\ref{sec:Interpretedplotting}.
+%This capability will be discussed in the sub-section~\ref{sec:Interpretedplotting}.
 %
 %%%%%%%%%%%%%
 % Plot Input Strucutre sub-sub-section
@@ -269,14 +268,14 @@ In addition, the Plot block accepts the following attributes:
   \item \xmlAttr{interactive}, \xmlDesc{optional bool attribute}, specifies if
   the Plot needs to be interactively created (real-time screen visualization).
   %
-  \default(False)
+  \default{False}
   %
   \item \xmlAttr{overwrite}, \xmlDesc{optional bool attribute}, used when the
   plot needs to be dumped into picture file/s. This attribute determines whether
   the code needs to overwrite the image files every time a new plot (with the
   same name) is requested.
   %
-  \default(False)
+  \default{False}
   %
 \end{itemize}
 \vspace{-5mm}
@@ -345,10 +344,10 @@ In the following list, all the predefined ``actions'' are reported:
 </kwargs>
 \end{lstlisting}
 
-    The kwargs block is able to convert whatever string into a python type (for
-    example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
-    be converted into a dictionary, 
-    \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary, 
+  \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
     %
     For reference regarding the available kwargs, see
     ``matplotlib.pyplot.title'' method in~\cite{MatPlotLib}.
@@ -360,10 +359,18 @@ In the following list, all the predefined ``actions'' are reported:
   %
   In the body, a few other tags are available:
  \begin{itemize}
+     %
+    \item \xmlNode{axis}, \xmlDesc{string}, the axis where to apply the defined
+    format, `x,' `y,' or `both'.
+    %
+    \default{`both'}
+    %
+    \nb If this action will be used in a 3-D plot, the user can input `z' as
+    well and `both' will apply this format to all three axis.
     \item \xmlNode{style}, \xmlDesc{string}, the style of the number notation,
     `sci' or `scientific' for scientific, `plain' for plain notation.
     %
-    Default = scientific
+     \default{scientific}
     \item \xmlNode{scilimits}, \xmlDesc{tuple, (m, n), pair of integers}, if
     style is `sci', scientific notation will be used for numbers outside the
     range $10^m$ to $10^n$.
@@ -373,20 +380,12 @@ In the following list, all the predefined ``actions'' are reported:
     \nb The value for this keyword, needs to be specified between brackets [for
     example, (5,6)].
     %
-    Default = (0,0)
+     \default{(0,0)}
     \item \xmlNode{useOffset}, \xmlDesc{bool or double}, if True, the offset
     will be calculated as needed; if False, no offset will be used; if a numeric
     offset is specified, it will be used.
     %
     \default{False}
-    %
-    \item \xmlNode{axis}, \xmlDesc{string}, the axis where to apply the defined
-    format, `x,' `y,' or `both'.
-    %
-    \default{`both'}
-    %
-    \nb If this action will be used in a 3-D plot, the user can input `z' as
-    well and `both' will apply this format to all three axis.
     %
   \end{itemize}
 % FIGURE PROPERTIES
@@ -531,10 +530,10 @@ In the following list, all the predefined ``actions'' are reported:
 </kwargs>
 \end{lstlisting}
 
-    The kwargs block is able to convert whatever string into a python type (for
-    example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
-    be converted into a dictionary, 
-    \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary, 
+  \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
     %
     For reference regarding the available kwargs, see
     ``matplotlib.pyplot.axhline'' method in~\cite{MatPlotLib}.
@@ -573,10 +572,10 @@ In the following list, all the predefined ``actions'' are reported:
 </kwargs>
 \end{lstlisting}
 
-    The kwargs block is able to convert whatever string into a python type (for
-    example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
-    be converted into a dictionary, 
-    \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary, 
+  \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
     %
     For reference regarding the available kwargs, see
     ``matplotlib.pyplot.axvline'' method in~\cite{MatPlotLib}.
@@ -615,10 +614,10 @@ In the following list, all the predefined ``actions'' are reported:
 </kwargs>
 \end{lstlisting}
 
-    The kwargs block is able to convert whatever string into a python type (for
-    example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
-    be converted into a dictionary, 
-    \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary, 
+  \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
     %
     For reference regarding the available kwargs, see
     ``matplotlib.pyplot.axhspan'' method in~\cite{MatPlotLib}.
@@ -657,10 +656,10 @@ In the following list, all the predefined ``actions'' are reported:
 </kwargs>
 \end{lstlisting}
 
-    The kwargs block is able to convert whatever string into a python type (for
-    example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
-    be converted into a dictionary, 
-    \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary, 
+  \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
     %
     For reference regarding the available kwargs, see
     ``matplotlib.pyplot.axvspan'' method in~\cite{MatPlotLib}.
@@ -671,7 +670,7 @@ In the following list, all the predefined ``actions'' are reported:
 %AXES_BOX
   \item \xmlNode{axes\_box}, this keyword controls the axes' box.
   %
-  No body and its value can be `on' or `off'.
+  Its value can be `on' or `off'.
   %
   \item \xmlNode{axis\_properties}, this block is used to set axis properties.
   %
@@ -706,10 +705,10 @@ In the following list, all the predefined ``actions'' are reported:
 </kwargs>
 \end{lstlisting}
 
-    The kwargs block is able to convert whatever string into a python type (for
-    example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
-    be converted into a dictionary, 
-    \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary, 
+  \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
     %
   \end{itemize}
   \vspace{-5mm}
@@ -792,7 +791,13 @@ Considering the structure of ``Datas,'' the parameters are inputted as follows:
 
 If the ``variableName'' contains the symbol \texttt{|}, it must be surrounded by
 brackets:
+<<<<<<< HEAD
+\\ \texttt{[DataObjectName|Input(or)Output|(whatever|variableName)]}.
+=======
+
+
 \texttt{[DataObjectName|Input(or)Output|(whatever|variableName)]}.
+>>>>>>> 2c767ad3807792d28c2e5270ebde86fa63ddea92
 
 %%%%%%%%%%%%%
 %Predefined Plotting System block sub-sub-sub section
@@ -917,10 +922,20 @@ are reported.
 </kwargs>
 \end{lstlisting}
 
+<<<<<<< HEAD
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary, 
+  \xmlNode{param2}\texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
+=======
     The kwargs block is able to convert whatever string into a python type (for
-    example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
-    be converted into a dictionary, 
+    example 
+
+   \xmlNode{param1} \texttt{\{`1stKeyword':45\}}\xmlNode{/param1} 
+
+    will be converted into a dictionary, 
     \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+>>>>>>> 2c767ad3807792d28c2e5270ebde86fa63ddea92
     %
     For reference regarding the available kwargs, see
     ``matplotlib.pyplot.scatter'' method in~\cite{MatPlotLib}.
@@ -1030,10 +1045,20 @@ are reported.
 </kwargs>
 \end{lstlisting}
 
+<<<<<<< HEAD
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary, 
+  \xmlNode{param2}\texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
+=======
     The kwargs block is able to convert whatever string into a python type (for
-    example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
-    be converted into a dictionary, 
+    example 
+
+   \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} 
+
+    will be converted into a dictionary, 
     \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+>>>>>>> 2c767ad3807792d28c2e5270ebde86fa63ddea92
   %
   For reference regarding the available kwargs, see ``matplotlib.pyplot.hist''
   method in~\cite{MatPlotLib}.
@@ -1065,11 +1090,22 @@ are reported.
 </kwargs>
 \end{lstlisting}
 
+<<<<<<< HEAD
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary, 
+  \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
+=======
     The kwargs block is able to convert whatever string into a python type (for
-    example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
-    be converted into a dictionary, 
+    example 
+
+   \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} 
+
+    will be converted into a dictionary, 
     \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+>>>>>>> 2c767ad3807792d28c2e5270ebde86fa63ddea92
   %
+
   For reference regarding the available kwargs, see ``matplotlib.pyplot.stem''
   method in~\cite{MatPlotLib}.
   %
@@ -1096,10 +1132,20 @@ are reported.
 </kwargs>
 \end{lstlisting}
 
+<<<<<<< HEAD
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary, 
+  \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
+=======
     The kwargs block is able to convert whatever string into a python type (for
-    example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
-    be converted into a dictionary, 
+    example 
+
+    \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} 
+
+   will be converted into a dictionary, 
     \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+>>>>>>> 2c767ad3807792d28c2e5270ebde86fa63ddea92
     %
     For reference regarding the available kwargs, see ``matplotlib.pyplot.step''
     method in~\cite{MatPlotLib}.
@@ -1121,10 +1167,20 @@ are reported.
 </kwargs>
 \end{lstlisting}
 
+<<<<<<< HEAD
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary, 
+  \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
+=======
     The kwargs block is able to convert whatever string into a python type (for
-    example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
-    be converted into a dictionary, 
+    example 
+
+    \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} 
+   
+    will be converted into a dictionary, 
     \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+>>>>>>> 2c767ad3807792d28c2e5270ebde86fa63ddea92
     %
     For reference regarding the available kwargs, see 
     ``matplotlib.pyplot.pcolor'' method in~\cite{MatPlotLib}.
@@ -1157,10 +1213,20 @@ In order to customize the plot, the user can define the following XML sub-nodes:
 </kwargs>
 \end{lstlisting}
 
+<<<<<<< HEAD
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary, 
+  \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
+=======
     The kwargs block is able to convert whatever string into a python type (for
-    example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
-    be converted into a dictionary, 
+    example 
+   
+    \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} 
+
+    will be converted into a dictionary, 
     \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+>>>>>>> 2c767ad3807792d28c2e5270ebde86fa63ddea92
   %
   For reference regarding the available kwargs, see
   ``matplotlib.pyplot.contour'' method in~\cite{MatPlotLib}.
@@ -1191,9 +1257,6 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   \item \xmlNode{linewidth}, \xmlDesc{integer, optional field}, defines the 
   widths of lines rendered on the plot.
   %
-  Note that this is a tuple, and if you set the linewidths argument you must set
-  it as a sequence of floats. \maljdan{it is not a tuple it is an integer}
-  %
   \default{0}
   \item \interpolationDescription{linear}
   \item \interpXYDescription{x}
@@ -1209,9 +1272,9 @@ In order to customize the plot, the user can define the following XML sub-nodes:
 \end{lstlisting}
 
   The kwargs block is able to convert whatever string into a python type (for
-  example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
+  example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
   be converted into a dictionary, 
-  \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+  \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see
   ``matplotlib.pyplot.surface'' method in~\cite{MatPlotLib}.
@@ -1231,8 +1294,8 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   \default{1}
   \item \cmapDescription{None}
   %
-  \senrs {\xmlNode{cmap} is not applicable in the current version of MatPlotLib (1.4.0) for wireframe plots. 
-  However, if the colorMap option is set then a surface plot is plotted with a transparency of 0.4 on top of wireframe to give a visual colormap.}
+  \nb \xmlNode{cmap} is not applicable in the current version of MatPlotLib  for wireframe plots. 
+  However, if the colorMap option is set then a surface plot is plotted with a transparency of 0.4 on top of wireframe to give a visual colormap.
   \nb If \xmlNode{colorMap} is defined then the plot will always use a color set even if no \xmlNode{cmap} is given. 
   In such a case, if no \xmlNode{cmap} is given, then the default color set of  ``matplotlib.pyplot.surface'' method in~\cite{MatPlotLib} is used.
   If \xmlNode{colorMap} and \xmlNode{cmap} are both not defined then the plot is in solid color (\textit{default blue}) as defined with \xmlNode{color} in   \xmlNode{kwargs}.
@@ -1250,9 +1313,9 @@ In order to customize the plot, the user can define the following XML sub-nodes:
 \end{lstlisting}
 
   The kwargs block is able to convert whatever string into a python type (for
-  example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
+  example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
   be converted into a dictionary, 
-  \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+  \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see
   ``matplotlib.pyplot.wireframe'' method in~\cite{MatPlotLib}.
@@ -1285,9 +1348,9 @@ In order to customize the plot, the user can define the following XML sub-nodes:
 \end{lstlisting}
 
   The kwargs block is able to convert whatever string into a python type (for
-  example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
+  example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
   be converted into a dictionary, 
-  \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+  \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see
   ``matplotlib.pyplot.trisurface'' method in~\cite{MatPlotLib}.
@@ -1322,9 +1385,9 @@ nodes:
 \end{lstlisting}
 
   The kwargs block is able to convert whatever string into a python type (for
-  example \xmlNode{param1}\texttt{\{`1stKeyword':45\}}\xmlNode{/param1} will
+  example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
   be converted into a dictionary, 
-  \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
+  \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see
   ``matplotlib.pyplot.contour3d'' method in~\cite{MatPlotLib}.
