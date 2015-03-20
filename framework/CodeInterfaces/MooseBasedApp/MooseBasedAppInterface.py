@@ -44,7 +44,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       if inputFile.endswith(self.getInputExtension()):
-        found = True 
+        found = True
         break
     if not found: raise Exception('MOOSEBASEDAPP INTERFACE ERROR -> None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])

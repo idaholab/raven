@@ -635,11 +635,11 @@ class Code(Model):
     Kwargs['executable'] = self.executable
     found = False
     for index, inputFile in enumerate(currentInput):
-      if inputFile.endswith(self.code.getInputExtension()): 
+      if inputFile.endswith(self.code.getInputExtension()):
         found = True
-        break   
-    if not found: raise Exception(self.printTag+ ': ' +utils.returnPrintPostTag('Error') + 
-                                  '->  None of the input files has one of the extensions requested by code ' 
+        break
+    if not found: raise Exception(self.printTag+ ': ' +utils.returnPrintPostTag('Error') +
+                                  '->  None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
@@ -653,11 +653,11 @@ class Code(Model):
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1])
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
-      if inputFile.endswith(self.code.getInputExtension()): 
+      if inputFile.endswith(self.code.getInputExtension()):
         found = True
-        break   
-    if not found: raise Exception(self.printTag+ ': ' +utils.returnPrintPostTag('Error') + 
-                                  '->  None of the input files has one of the extensions requested by code ' 
+        break
+    if not found: raise Exception(self.printTag+ ': ' +utils.returnPrintPostTag('Error') +
+                                  '->  None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
     print(self.printTag+ ': ' +utils.returnPrintPostTag('Message') + '-> job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
 
