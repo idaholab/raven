@@ -28,7 +28,6 @@ from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
 import PostProcessors #import returnFilterInterface
-#import Samplers
 import CustomCommandExecuter
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
@@ -79,8 +78,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Sampler'][0]['class'       ] ='Samplers'
   validateDict['Sampler'][0]['required'    ] = False
   validateDict['Sampler'][0]['multiplicity'] = 1
-  #validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
-  #FIXME this is a temporary statick list assignment to fix circular references from importing Sampler here.
   validateDict['Sampler'][0]['type'] = ['MonteCarlo',
                                         'DynamicEventTree',
                                         'LHS',
