@@ -78,15 +78,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Sampler'][0]['class'       ] ='Samplers'
   validateDict['Sampler'][0]['required'    ] = False
   validateDict['Sampler'][0]['multiplicity'] = 1
-  validateDict['Sampler'][0]['type'] = ['MonteCarlo',
-                                        'DynamicEventTree',
-                                        'LHS',
-                                        'Grid',
-                                        'Adaptive',
-                                        'AdaptiveDynamicEventTree',
-                                        'FactorialDesign',
-                                        'ResponseSurfaceDesign',
-                                        'SparseGridCollocation']
+  validateDict['Sampler'][0]['type']         = ['MonteCarlo',
+                                                'DynamicEventTree',
+                                                'LHS',
+                                                'Grid',
+                                                'Adaptive',
+                                                'AdaptiveDynamicEventTree',
+                                                'FactorialDesign',
+                                                'ResponseSurfaceDesign',
+                                                'SparseGridCollocation']
 
   @classmethod
   def generateValidateDict(cls):
