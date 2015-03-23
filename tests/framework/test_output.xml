@@ -87,19 +87,20 @@
        <plot>
         <type>line</type>
         <x>stories|Output|time</x>
-        <y>stories|Output|pipe1_Hw</y>
-        <colorMap>stories|Output|time</colorMap>
+        <y>stories|Output|pump_mass_flow_rate</y>
         <kwargs>
-         <color>green</color>
+         <color>blue</color>
          <label>pipe1-Hw</label>
         </kwargs>
       </plot>
        <plot>
         <type>line</type>
         <x>stories|Output|time</x>
-        <y>stories|Output|pipe1_Hw</y>
+        <y>stories|Output|pump_mass_flow_rate</y>
+        <colorMap>stories|output|pump_mass_flow_rate</colorMap>
+        <cmap>summer</cmap>
         <kwargs>
-         <color>blue</color>
+         <color>red</color>
          <label>pipe1-Hw</label>
         </kwargs>
       </plot>
@@ -126,23 +127,6 @@
           <xscale>linear</xscale>
           <yscale>linear</yscale>
       </scale>
-      <autoscale>
-          <enable>t</enable>
-      </autoscale>
-      <horizontalLine>
-          <enable>t</enable>
-      </horizontalLine>
-      <verticalLine>
-          <enable>t</enable>
-      </verticalLine>
-      <horizontalRectangle>
-          <ymin>0.0</ymin>
-          <ymax>0.1</ymax>
-      </horizontalRectangle>
-      <verticalRectangle>
-          <xmin>0.0</xmin>
-          <xmax>0.1</xmax>
-      </verticalRectangle>
       <grid>
         <b>on</b>
       </grid>
@@ -151,13 +135,13 @@
       </addText>
       <title>
         <text> </text>
-      </title>
+      </title> -->
       <!-- custom action (not predefined in the code -->
       <arrow>
           <x>0.0</x>
           <y>0.0</y>
           <dx>0.1</dx>
-          <dy>0.1</dy>
+          <dy>0.3</dy>
       </arrow>
     </actions>
   </Plot>
@@ -168,9 +152,8 @@
               <x>stories|Output|time</x>
               <z>stories|Output|pump_mass_flow_rate</z>
               <y>stories|Output|pipe1_Hw</y>
-              <colorMap>stories|Output|time</colorMap>
               <kwargs>
-                  <color>green</color>
+                  <color>blue</color>
                   <label>pipe1-Hw</label>
               </kwargs>
           </plot>
@@ -179,8 +162,10 @@
               <x>stories|Output|time</x>
               <z>stories|Output|pump_mass_flow_rate</z>
               <y>stories|Output|pipe1_Hw</y>
-              <kwargs>
-                  <color>blue</color>
+              <colorMap>stories|Output|time</colorMap>
+	      <cmap>summer</cmap>
+             <kwargs>
+                  <color>green</color>
                   <label>pipe1-Hw</label>
               </kwargs>
           </plot>
@@ -204,20 +189,6 @@
           <grid>
               <b>off</b>
           </grid>
-          <horizontalLine>
-              <enable>t</enable>
-          </horizontalLine>
-          <verticalLine>
-              <enable>t</enable>
-          </verticalLine>
-          <horizontalRectangle>
-              <ymin>0.0</ymin>
-              <ymax>0.1</ymax>
-          </horizontalRectangle>
-          <verticalRectangle>
-              <xmin>0.0</xmin>
-              <xmax>0.1</xmax>
-          </verticalRectangle>
           <scale>
               <xscale>linear</xscale>
               <yscale>linear</yscale>
@@ -233,13 +204,6 @@
           <autoscale>
               <enable>f</enable>
           </autoscale>
-          <!-- custom action (not predefined in the code -->
-          <arrow>
-              <x>0.0</x>
-              <y>0.0</y>
-              <dx>0.1</dx>
-              <dy>0.1</dy>
-          </arrow>
       </actions>
   </Plot>
    <Plot debug = 'True' name='plot3' dim='2' overwrite='False'>
@@ -248,32 +212,21 @@
         <type>scatter</type>
         <x>stories|Output|time</x>
         <y>stories|Output|pump_mass_flow_rate</y>
-        <colorMap>stories|Output|time</colorMap>
         <kwargs>
-         <color>green</color>
          <label>pump mass flow rate</label>
         </kwargs>
       </plot>
-       <plot>
+      <plot>
         <type>scatter</type>
         <x>stories|Output|time</x>
         <y>stories|Output|pump_mass_flow_rate</y>
+        <colorMap>stories|Output|pipe1_Hw</colorMap> 
+        <cmap>summer</cmap> 
         <kwargs>
-         <color>blue</color>
+         <color>red</color>
          <label>pump mass flow rate</label>
         </kwargs>
-      </plot>
-      <!-- custom plot (aka not predefined...the code try to execute it on the fly
-      <plot>
-          <type>plot</type>
-          <x>stories|Output|time</x>
-          <y>stories|Output|pump_mass_flow_rate</y>
-          <kwargs>
-              <color>blue</color>
-              <label>pump mass flow rate</label>
-          </kwargs>
-      </plot>
-       -->
+      </plot> -->
       <xlabel>time [s]</xlabel>
       <ylabel>evolution</ylabel>
     </plotSettings>
@@ -291,9 +244,8 @@
               <x>stories|Output|time</x>
               <z>stories|Output|pump_mass_flow_rate</z>
               <y>stories|Output|pipe1_Hw</y>
-              <colorMap>stories|Output|time</colorMap>
               <kwargs>
-                  <color>green</color>
+                  <color>black</color>
                   <label>pump mass flow rate</label>
               </kwargs>
           </plot>
@@ -302,8 +254,9 @@
               <x>stories|Output|time</x>
               <z>stories|Output|pump_mass_flow_rate</z>
               <y>stories|Output|pipe1_Hw</y>
+              <colorMap>stories|Output|time</colorMap>
+              <cmap>summer</cmap>
               <kwargs>
-                  <color>blue</color>
                   <label>pump mass flow rate</label>
               </kwargs>
           </plot>
@@ -449,6 +402,7 @@
             <x>TimePointSets|Output|pipe1_Hw</x>
             <y>TimePointSets|Input|pipe1_Dh</y>
             <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <cmap>summer</cmap>
         </plot>
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
@@ -467,10 +421,10 @@
             <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
             <interpolationType>nearest</interpolationType>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+	    <cmap>summer</cmap> 
             <kwargs>
-                <color>green</color>
                 <label>pump mass flow rate</label>
             </kwargs>
         </plot>
@@ -481,7 +435,7 @@
             <y>TimePointSets|Input|pipe1_Dh</y>
             <interpolationType>nearest</interpolationType>
             <kwargs>
-                <color>blue</color>
+                <color>red</color>
                 <label>pump mass flow rate</label>
             </kwargs>
         </plot>
@@ -502,8 +456,10 @@
             <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
-            <interpolationType>nearest</interpolationType>
+            <interpolationType>nearest</interpolationType> 
+            <kwargs>
+                <label>pump mass flow rate</label>
+            </kwargs>
         </plot>
         <plot>
             <type>tri-surface</type>
@@ -511,7 +467,9 @@
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
             <interpolationType>nearest</interpolationType>
-        </plot>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+	    <cmap>summer</cmap> 
+        </plot> 
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
     </plotSettings>
@@ -529,7 +487,6 @@
             <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
             <interpolationType>nearest</interpolationType>
         </plot>
         <plot>
@@ -537,8 +494,13 @@
             <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <cmap>summer</cmap>
             <interpolationType>nearest</interpolationType>
-
+            <kwargs>
+                <color>red</color>
+                <label>pump mass flow rate</label>
+            </kwargs>
         </plot>
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
@@ -556,15 +518,17 @@
     <plotSettings>
         <plot>
             <type>contour</type>
-            <x>TimePointSets|Input|pipe1_Dh</x>
-            <y>TimePointSets|Output|pipe1_Hw</y>
+            <x>TimePointSets|Output|pipe1_Hw</x>
+            <y>TimePointSets|Input|pipe1_Dh</y>
             <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <interpolationType>nearest</interpolationType>
         </plot>
         <plot>
             <type>filledContour</type>
-            <x>TimePointSets|Input|pipe1_Dh</x>
+            <x>TimePointSets|Output|pipe1_Hw</x>
+            <y>TimePointSets|Input|pipe1_Dh</y>
             <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
-            <y>TimePointSets|Output|pipe1_Hw</y>
+            <interpolationType>nearest</interpolationType>
         </plot>
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
@@ -584,14 +548,15 @@
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
             <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
-            <interpolationType>nearest</interpolationType>
+           <interpolationType>nearest</interpolationType>
         </plot>
-        <plot>
+       <plot>
             <type>filledContour3D</type>
             <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
             <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <cmap>summer</cmap>
             <interpolationType>nearest</interpolationType>
         </plot>
         <xlabel>time [s]</xlabel>
