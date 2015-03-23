@@ -1,5 +1,5 @@
 \section{Installation}
-The installation of the RAVEN code is a straightforward procedure; depending on the usage purpose 
+The installation of the RAVEN code is a straightforward procedure; depending on the usage purpose
 and machine architecture, the installation process slightly differs. \\In the following sections, all the different
 installation procedures are reported.
 
@@ -29,7 +29,7 @@ the recommended minimum versions are:
 \item matplotlib-1.4.0
 \end{enumerate}
 
-Older versions may work, but it is highly recommended to use these minimum 
+Older versions may work, but it is highly recommended to use these minimum
 versions.
 %
 You may install these dependencies yourself, or by running the
@@ -76,6 +76,10 @@ At the end, there should be a line that looks similar to the output below:
 8 passed, 19 skipped, 0 pending, 0 failed
 \end{lstlisting}
 
+Normally there are skipped tests because either some of the codes are
+not available, or some of the test are not currently working.  The
+output will explain why each is skipped.
+
 \subsection{Ubuntu Framework Install}
 
 \subsubsection{Dependencies}
@@ -86,20 +90,21 @@ sudo apt-get install libtool python-dev swig g++ python3-dev \
  python-numpy python-sklearn python-h5py
 \end{lstlisting}
 
+%\maljdan{Somebody verify what \TeX packages are needed under Ubuntu
+%(These are what I manually installed according to my
+%\texttt{/var/lib/apt/extended\_states} file and things work fine).}
+% I verified it.  Josh
+
+Optionally, if you want to be able to edit and rebuild the manual, you can
+install \TeX~Live and its related packages:
+\begin{lstlisting}[language=bash]
+sudo apt-get install texlive-latex-base texlive-extra-utils \
+  texlive-latex-extra texlive-math-extra
+\end{lstlisting}
+
 \subsubsection{Installation}
 Untar the binary (if there is more than one version of the
 binary, the full filename will need to be used instead of *):
-
-\maljdan{Somebody verify what \TeX packages are needed under Ubuntu
-(These are what I manually installed according to my
-\texttt{/var/lib/apt/extended\_states} file and things work fine).}
-
-Optionally, if you want to be able to edit and rebuild the manual, you can 
-install \TeX~Live and its related packages:
-\begin{lstlisting}[language=bash]
-sudo apt-get install texlive-latex-base texlive-extra-utils
-\end{lstlisting}
-
 
 \begin{lstlisting}[language=bash]
 tar -xvzf raven_framework_*_ubuntu.tar.gz
@@ -120,6 +125,10 @@ At the end, there should be a line that looks similar to the output below:
 8 passed, 19 skipped, 0 pending, 0 failed
 \end{lstlisting}
 
+Normally there are skipped tests because either some of the codes are
+not available, or some of the test are not currently working.  The
+output will explain why each is skipped.
+
 \subsection{Fedora Framework Install}
 
 \subsubsection{Dependencies}
@@ -130,10 +139,11 @@ yum install swig libtool gcc-c++ python-devel python3-devel \
  numpy h5py scipy python-scikit-learn python-matplotlib-qt4
 \end{lstlisting}
 
-Optionally, if you want to be able to edit and rebuild the manual, you can 
+Optionally, if you want to be able to edit and rebuild the manual, you can
 install \TeX~Live and its related packages:
 \begin{lstlisting}[language=bash]
-yum install texlive texlive-subfigure texlive-stmaryrd texlive-titlesec texlive-preprint
+yum install texlive texlive-subfigure texlive-stmaryrd 
+  texlive-titlesec texlive-preprint
 \end{lstlisting}
 
 \subsubsection{Installation}
@@ -158,6 +168,10 @@ At the end, there should be a line that looks similar to the output below:
 \begin{lstlisting}[language=bash]
 8 passed, 19 skipped, 0 pending, 0 failed
 \end{lstlisting}
+
+Normally there are skipped tests because either some of the codes are
+not available, or some of the test are not currently working.  The
+output will explain why each is skipped.
 
 \subsection{OSX Framework Install}
 
@@ -185,6 +199,21 @@ Follow the RELAP-7 instructions available at \url{https://hpcgitlab.inl.gov/idah
 
 Ensure that MOOSE and RELAP-7 are installed in the same directory level.
 
+Once any proxy variables are setup (such as \texttt{http\_proxy} and
+\texttt{https\_proxy}) and the moose dependencies are setup, the
+commands are roughly:
+
+\begin{lstlisting}[language=bash]
+git clone https://github.com/idaholab/moose.git
+cd  moose/scripts
+./update_and_rebuild_libmesh.sh
+cd ../../
+git clone git@hpcgitlab.inl.gov:idaholab/relap-7.git
+cd relap-7
+git submodule update --init contrib/iapws
+cd ..
+\end{lstlisting}
+
 \subsubsection{Obtaining CROW and RAVEN}
 Then clone CROW and RAVEN:
 
@@ -194,10 +223,12 @@ git clone git@hpcgitlab.inl.gov:idaholab/raven.git
 \end{lstlisting}
 
 Install the RAVEN dependencies via one of the methods mentioned for
-the RAVEN framework (see Section \ref{raven_dependencies}).
+the RAVEN framework (see Section \ref{raven_dependencies}).  Some of
+the moose framework setup methods will already include the raven
+dependencies.
 
 \subsubsection{Compilation}
-%\maljdan{Do they need to build CROW first?} \alfoa{No.Crow is compiled and distributed in \texttt{raven\_libs\_framework\_and\_crow.dmg}}
+%\maljdan{Do they need to build CROW first?} \alfoa{No.Crow is compiled and distributed in \texttt{raven\_libs\_framework\_and\_crow.dmg}} \cogljj{No, crow is compiled when raven is}
 
 Then compile RAVEN:
 
@@ -205,6 +236,13 @@ Then compile RAVEN:
 cd raven
 make
 \end{lstlisting}
+
+Note that if there are multiple processors available, \texttt{make} can accept a \texttt{-j} option that specifies the number of processors to use, so if there are eight processors available the following will run faster:
+
+\begin{lstlisting}[language=bash]
+make -j8
+\end{lstlisting}
+
 
 \subsubsection{Running The Test Suite}
 Then run the tests:
@@ -219,3 +257,7 @@ At the end, there should be a line that looks similar to the output below:
 \begin{lstlisting}[language=bash]
 8 passed, 19 skipped, 0 pending, 0 failed
 \end{lstlisting}
+
+Normally there are skipped tests because either some of the codes are
+not available, or some of the test are not currently working.  The
+output will explain why each is skipped.

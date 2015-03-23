@@ -37,7 +37,10 @@
     </Normal>
 </Distributions>
 <Samplers>
-    <LatinHyperCube name='myLHS' initial_seed ='1'>
+    <LatinHyperCube name='myLHS'>
+      <sampler_init>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
       <variable name='BCs|freesurf_temp|value' >
         <distribution  >Gauss1</distribution>
         <grid type='CDF' construction='equal' lowerBound='0.01' steps='9'>0.1</grid>

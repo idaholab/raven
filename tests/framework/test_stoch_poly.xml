@@ -116,12 +116,7 @@
 
     <Models>
         <Dummy name="MyDummy" subType="" print="True"/>
-        <ExternalModel name='attenuation' subType='' ModuleToLoad = 'attenuation'>
-            <variable>x1</variable>
-            <variable>x2</variable>
-            <variable>ans</variable>
-        </ExternalModel>
-        <ExternalModel name='polynomial' subType='' ModuleToLoad = 'polynomial'>
+        <ExternalModel name='polynomial' subType='' ModuleToLoad = './StochasticPolyTest/polynomial'>
             <variable>x1</variable>
             <variable>x2</variable>
             <variable>ans</variable>
