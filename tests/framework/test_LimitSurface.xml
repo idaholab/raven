@@ -59,7 +59,10 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo name='MC_external'  limit='150' >
+    <MonteCarlo name='MC_external'>
+      <sampler_init>
+        <limit>150</limit>
+      </sampler_init>
       <variable name='x0' >
         <distribution >x0_distrib</distribution>
       </variable>

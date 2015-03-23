@@ -32,7 +32,10 @@
     </ROM>
 </Models>
 <Samplers>
-  <MonteCarlo     name='RAVENmc3'  limit='3'>
+  <MonteCarlo     name='RAVENmc3'>
+    <sampler_init>
+      <limit>3</limit>
+    </sampler_init>
     <variable name='DeltaTimeScramToAux'>
       <distribution  >auxbackup</distribution>
     </variable>
@@ -40,9 +43,16 @@
       <distribution >DG1backup</distribution>
     </variable>
   </MonteCarlo>
-  <MonteCarlo     name='RAVENmcCode3'  limit='3'>
+  <MonteCarlo     name='RAVENmcCode3'>
+      <sampler_init>
+          <limit>3</limit>
+      </sampler_init>
   </MonteCarlo>
-    <MonteCarlo     name='RAVENmcND'  limit='3' initial_seed='200286'>
+    <MonteCarlo     name='RAVENmcND'>
+        <sampler_init>
+            <limit>3</limit>
+            <initial_seed>200286</initial_seed>
+        </sampler_init>
         <variable name='DeltaTimeScramToAux'>
             <distribution  >auxbackup</distribution>
         </variable>

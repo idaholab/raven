@@ -46,6 +46,7 @@ class Assembler(object):
       for value  in val:
         if value[0] not in needDict.keys(): needDict[value[0]] = []
         needDict[value[0]].append((value[1],value[2]))
+    print(needDict)
     return needDict
 
   def generateAssembler(self,initDict):
@@ -62,7 +63,6 @@ class Assembler(object):
       self.assemblerDict[key] =  []
       for interface in value:
         self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
-
   def _readMoreXML(self,xmlNode):
     self.type = xmlNode.tag
     if 'name' in xmlNode.attrib: self.name = xmlNode.attrib['name']
