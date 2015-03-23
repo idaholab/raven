@@ -354,17 +354,3 @@ def find_interpolationND():
         raise ie
       import interpolationNDpy2
       return interpolationNDpy2
-
-
-
-
-
-
-
-
-
-
-
-
-
-
