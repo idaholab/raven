@@ -209,7 +209,8 @@ class OutStreamPlot(OutStreamManager):
           else:
             self.options[node.tag]['attributes'] = {}
             for subsub in subnode:
-              self.options[node.tag]['attributes'][subsub.tag] = subsub.text
+              try   : self.options[node.tag]['attributes'][subsub.tag] = ast.literal_eval(subsub.text)
+              except: self.options[node.tag]['attributes'][subsub.tag] = subsub.text
               if not subnode.text: raise IOError(self.printTag+': ERROR -> In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
       elif node.text:
         if node.text.strip(): self.options[node.tag][node.tag] = node.text
@@ -288,7 +289,6 @@ class OutStreamPlot(OutStreamManager):
           if self.colorMapCoordinates[pltindex] != None: self.colorMapValues[pltindex][cnt] = []
           for i in range(len(self.xCoordinates [pltindex])):
             xsplit = self.__splitVariableNames('x', (pltindex,i))
-            a = self.sourceData[pltindex].getParam(xsplit[1],cnt+1,nodeid='RecontructEnding')
             self.xValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(xsplit[1],cnt+1,nodeid='RecontructEnding')[xsplit[2]]))
           if self.yCoordinates :
             for i in range(len(self.yCoordinates [pltindex])):
@@ -610,7 +610,7 @@ class OutStreamPlot(OutStreamManager):
     self.plt = importlib.import_module("matplotlib.pyplot")
     if self.dim == 3: from mpl_toolkits.mplot3d import Axes3D
 
-  def addOutput(self,blockFigure=False):
+  def addOutput(self):
     '''
     Function to show and/or save a plot
     @ In,  None
