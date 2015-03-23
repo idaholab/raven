@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug="False">
+    <RunInfo>
+        <JobName>proj_mc</JobName>
+        <WorkingDir>projectile</WorkingDir>
+        <Files>SCromPK</Files>
+        <Sequence>mc,outmc</Sequence>
+        <!--Sequence>sc,trainROM,dumpSC</Sequence-->
+        <!--Sequence>mc,outmc,sc,trainROM,sampleROM,outsc</Sequence-->
+        <batchSize>8</batchSize>
+        <mode>mpi</mode>
+    </RunInfo>
+
+    <Distributions>
+        <Uniform name="mdist">
+            <low>0.0725</low>
+            <high>0.2175</high>
+        </Uniform>
+        <Uniform name="cdist">
+            <low>0.0</low>
+            <high>1.0</high>
+        </Uniform>
+        <Uniform name="rdist">
+            <low>0.03024</low>
+            <high>0.03696</high>
+        </Uniform>
+        <Uniform name="ddist">
+            <low>1.1</low>
+            <high>1.3</high>
+        </Uniform>
+        <Uniform name="ydist">
+            <low>0.0</low>
+            <high>2.0</high>
+        </Uniform>
+        <Uniform name="vdist">
+            <low>33</low>
+            <high>38</high>
+        </Uniform>
+        <Uniform name="adist">
+            <low>35</low>
+            <high>45</high>
+        </Uniform>
+        <Uniform name="gdist">
+            <low>9.7639</low>
+            <high>9.8337</high>
+        </Uniform>
+    </Distributions>
+
+    <Samplers>
+        <MonteCarlo name='mc' limit='10000'>
+            <variable name="m"><distribution>mdist</distribution></variable>
+            <variable name="c"><distribution>cdist</distribution></variable>
+            <variable name="r"><distribution>rdist</distribution></variable>
+            <variable name="d"><distribution>ddist</distribution></variable>
+            <variable name="y"><distribution>ydist</distribution></variable>
+            <variable name="v"><distribution>vdist</distribution></variable>
+            <variable name="a"><distribution>adist</distribution></variable>
+            <variable name="g"><distribution>gdist</distribution></variable>
+        </MonteCarlo>
+    </Samplers>
+
+    <Models>
+        <Dummy name="MyDummy" subType="" print="True"/>
+        <ExternalModel name='projectile' subType='' ModuleToLoad = 'proj'>
+            <variable>ans</variable>
+            <variable>m</variable>
+            <variable>c</variable>
+            <variable>r</variable>
+            <variable>d</variable>
+            <variable>y</variable>
+            <variable>v</variable>
+            <variable>a</variable>
+            <variable>g</variable>
+        </ExternalModel>
+        <PostProcessor name='stats' subType='BasicStatistics'>
+            <what>expectedValue,variance</what>
+            <parameters>ans</parameters>
+        </PostProcessor>
+    </Models>
+
+    <Steps>
+        <MultiRun name='mc' pauseAtEnd='False'>
+            <Sampler class='Samplers' type='MonteCarlo'   >mc</Sampler>
+            <Input   class='Datas'    type='TimePointSet' >dummyIN</Input>
+            <Model   class='Models'   type='ExternalModel'>projectile</Model>
+            <Output  class='Datas'    type='TimePointSet' >mcsolns</Output>
+        </MultiRun>
+        <IOStep name='outmc'>
+            <Input  class='Datas' type='TimePointSet'>mcsolns</Input>
+            <Output class='OutStreamManager' type='Print'>mcout</Output>
+            <Output class='DataBases' type='HDF5'>mcoutDB</Output>
+        </IOStep>
+    </Steps>
+
+    <DataBases>
+        <HDF5 name='mcoutDB'/>
+    </DataBases>
+
+    <Datas>
+        <TimePointSet name="dummyIN">
+            <Input>m,c,r,d,y,v,a,g</Input>
+            <Output>OutputPlaceHolder</Output>
+        </TimePointSet>
+        <TimePointSet name='mcsolns'>
+            <Input>m,c,r,d,y,v,a,g</Input>
+            <Output>ans</Output>
+        </TimePointSet>
+        <TimePointSet name='scsolns'>
+            <Input>m,c,r,d,y,v,a,g</Input>
+            <Output>ans</Output>
+        </TimePointSet>
+    </Datas>
+
+    <OutStreamManager>
+        <Print name='mcout'>
+            <type>csv</type>
+            <source>mcsolns</source>
+        </Print>
+    </OutStreamManager>
+</Simulation>
