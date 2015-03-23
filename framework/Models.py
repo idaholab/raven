@@ -589,7 +589,12 @@ class Code(Model):
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
         else: raise Exception (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
-      elif child.tag == 'flags': self.codeFlags = child.text
+      elif child.tag == 'clargs':
+        clargtype = child.attrib['type'] if 'type' in child.attrib.keys() else None
+        if clargtype == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "type" for clarg '+child.text+' not specified!')
+        self.codeFlags = child.text
+
+
       else: raise Exception (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> unknown tag within the definition of the code model '+str(self.name))
     if self.executable == '': raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)

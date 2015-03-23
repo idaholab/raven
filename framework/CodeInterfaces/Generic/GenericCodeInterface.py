@@ -35,14 +35,38 @@ class GenericCodeInterface(CodeInterfaceBase):
         self.execPostfix = ' '+str(child.text)
       elif child.tag == 'caseName':
         self.caseName = caseName
+      #<flags> are read in the code interface
 
   def generateComand(self,inputFiles,executable,flags=None):
     #inputFiles -> list of input files
+    #check all required input files are there
+    inFiles=inputFiles[:]
+    for flagtype in flags.keys():
+      if flagtype=='output':continue
+      for ext in list(flags[flagtype][i]['ext'] for i in flags[flagtype].keys()):
+        for inf in inputFiles:
+          if inf.endswith(ext):
+            inFiles.remove(inf)
+            break
+        #if not found
+        raise IOError(self.printTag+': ERROR -> input extension "'+ext+'" listed in input but not in inputFiles!')
+    #if any remaining, check them against valid inputs
+    for ext in list(flags['input'][i]['ext'] for i in flags['input'].keys()):
+      for inf in inputFiles:
+        if inf.endswith(ext):
+          inFiles.remove(inf)
+          break
+      raise IOError(self.printTag+': ERROR -> input extension "'+ext+'" listed in input but not in inputFiles!')
+
+
+
     found = False
+    validInpExt = self.inputExtensions[:]
     for index,inputFile in enumerate(inputFiles):
-      if inputFiles.endswith(tuple(self.inputExtensions)): #TODO fix with whatever Andrea calls it
-        #FIXME what about multiple input files?
-        found = True
+      validInpExt.append(inputFile.endswith(flags['input'][inp]['ext']))
+    for infile in inputFiles:
+      if infile.endswith( tuple(validInpExt)):
+        found=True
         break
     if not found: raise IOError('GENERIC INTERFACE ERROR -> No input file with '+str(self.inputExtensions)+' extension found!')
     if self.caseName == None: self.caseName=os.path.split(inputFiles[index])[1].split('.')[0]
