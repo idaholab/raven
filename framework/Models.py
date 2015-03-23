@@ -630,8 +630,14 @@ class Code(Model):
     ''' This function creates a new input
         It is called from a sampler to get the implementation specific for this model'''
     Kwargs['executable'] = self.executable
-    if currentInput[0].endswith('.i'): index = 0
-    else: index = 1
+    found = False
+    for index, inputFile in enumerate(currentInput):
+      if inputFile.endswith(self.code.getInputExtension()):
+        found = True
+        break
+    if not found: raise Exception(self.printTag+ ': ' +utils.returnPrintPostTag('Error') +
+                                  '->  None of the input files has one of the extensions requested by code '
+                                  + self.subType +': ' + ' '.join(self.getInputExtension()))
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
@@ -642,8 +648,14 @@ class Code(Model):
     executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.codeFlags)
     #executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1])
+    found = False
     for index, inputFile in enumerate(self.currentInputFiles):
-      if inputFile.endswith(('.i','.inp','.in')): break
+      if inputFile.endswith(self.code.getInputExtension()):
+        found = True
+        break
+    if not found: raise Exception(self.printTag+ ': ' +utils.returnPrintPostTag('Error') +
+                                  '->  None of the input files has one of the extensions requested by code '
+                                  + self.subType +': ' + ' '.join(self.getInputExtension()))
     print(self.printTag+ ': ' +utils.returnPrintPostTag('Message') + '-> job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
 
   def collectOutput(self,finisishedjob,output):

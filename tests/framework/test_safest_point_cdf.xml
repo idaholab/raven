@@ -111,7 +111,7 @@
         <Function         class = 'Functions' type = 'External'      >g_zr</Function>
         <TargetEvaluation class = 'Datas'     type = 'TimePointSet'  >nt_phy_dpt_dt</TargetEvaluation>
 <!--    </Assembler> -->
-    <Convergence limit = '3000' forceIteration = 'False' weight = 'none' persistence = '5'>1e-2</Convergence>
+    <Convergence limit = '3000' forceIteration = 'False' weight = 'value' persistence = '5'>1e-2</Convergence>
       <variable name = 'x1'>
         <distribution>x1_dst</distribution>
       </variable>
