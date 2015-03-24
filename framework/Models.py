@@ -624,6 +624,7 @@ class Code(Model):
     if os.path.exists(abspath):
       self.executable = abspath
     else: print(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found executable '+self.executable)
+    self.setInputExtension(self.clargs)
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType)
     self.code.readMoreXML(xmlNode)
 
@@ -656,6 +657,12 @@ class Code(Model):
     for i in range(len(inputFiles)): self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
     self.currentInputFiles        = None
     self.outFileRoot              = None
+
+  def setInputExtension(self,clargs):
+    self.inputExtensions=list(e for e in clargs['input'].values())
+
+  def getInputExtension(self):
+    return tuple(self.inputExtensions)
 
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     ''' This function creates a new input

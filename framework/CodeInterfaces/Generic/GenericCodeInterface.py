@@ -10,12 +10,12 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
-import utils
+from utils import returnPrintTag,returnPrintPostTag
 
 class GenericCodeInterface(CodeInterfaceBase):
   def __init__(self):
     CodeInterfaceBase.__init__(self) #I think this isn't implemented
-    self.printTag         = utils.returnPrintTag('GENERICCODEINTERFACE')
+    self.printTag         = returnPrintTag('GENERICCODEINTERFACE')
     self.inputExtensions  = [] #list of extensions for RAVEN to edit as inputs
     self.outputExtensions = [] #list of extensions for RAVEN to gather data from?
     self.execPrefix       = '' #executioner command prefix (e.g., 'python ')
@@ -27,7 +27,7 @@ class GenericCodeInterface(CodeInterfaceBase):
 
   def generateCommand(self,inputFiles,executable,clargs=None):
     if clargs==None:
-      raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> No input file was specified in clargs!')
+      raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> No input file was specified in clargs!')
     #check for duplicate extension use
     usedExt=[]
     for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()):
@@ -39,7 +39,6 @@ class GenericCodeInterface(CodeInterfaceBase):
     for exts in list(clargs['input'][flag] for flag in clargs['input'].keys()):
       for ext in exts:
         found=False
-        print('DEBUG ext',ext)
         for inf in inputFiles:
           if inf.endswith(ext):
             found=True
@@ -58,7 +57,6 @@ class GenericCodeInterface(CodeInterfaceBase):
       return index,inputFile
 
     #prepend
-    print('DEBUG clargs,',clargs.keys())
     todo = ''
     todo += clargs['pre']+' '
     todo += executable
@@ -87,6 +85,7 @@ class GenericCodeInterface(CodeInterfaceBase):
     todo+=' '+clargs['post']
     executeCommand = (todo)
     print('DEBUG command:',executeCommand)
+    import sys
     sys.exit()
     return executeCommand,outfile
 
@@ -103,8 +102,10 @@ class GenericCodeInterface(CodeInterfaceBase):
     parser.modifyInternalDictionary(**Kwargs['SampledVars'])
     temps = list(str(origInputFiles[i][:]) for i in indexes)
     newInFiles = copy.deepcopy(currentInputFiles)
+    print('DEBUG indexes',indexes)
     for i in indexes:
       newInFiles[i] = os.path.join(os.path.split(temps[i])[0],Kwargs['prefix']+'~'+os.path.split(temps[i])[1])
+    print('DEBUG new in files:',newInFiles)
     parser.writeNewInput(list(newInFiles[i] for i in indexes),list(origInputFiles[i] for i in indexes))
     #except TypeError: parser.writeNewInput(list(newInFiles[i] for i in indexes))
     return newInFiles
