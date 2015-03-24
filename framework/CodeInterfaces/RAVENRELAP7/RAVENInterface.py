@@ -40,10 +40,6 @@ class RAVENInterface(CodeInterfaceBase):
                       ' Outputs/ravenCSV/type=CSVRaven')
     return executeCommand,outputfile
 
-  def appendLoadFileExtension(self,fileRoot):
-    '''  '''
-    return fileRoot + '.csv'
-
   def finalizeCodeOutput(self,currentInputFiles,output,workingDir):
     ''' this method is called by the RAVEN code at the end of each run (if the method is present).
         It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
@@ -84,8 +80,7 @@ class RAVENInterface(CodeInterfaceBase):
     return newInputFiles
 
   def stochasticCollocationForRAVEN(self,**Kwargs):
-    if 'prefix' not in Kwargs['prefix']:
-      raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
+    if 'prefix' not in Kwargs['prefix']: raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
     listDict = []
     varValDict = Kwargs['vars'] #come in as a string of a list, need to re-list
     for key in varValDict.keys():

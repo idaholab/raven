@@ -73,3 +73,16 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
     @ return string, optional, present in case the root of the output file gets changed in this method.
     """
     return output
+  
+  def checkSpecialKeyForOutputFailure(self,output,workingDir):
+    """
+    this method is called by RAVEN at the end of each run.
+    This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
+    This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
+    This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
+    (e.g. in RELAP5 would be the keyword "********")
+    @ output, Input, the Output name root (string)
+    @ workingDir, Input, actual working dir (string)
+    @ return bool, required, True if the job is failed, False otherwise
+    """
+    return False

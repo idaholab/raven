@@ -37,8 +37,9 @@ class ExternalRunner:
   '''
   Class for running external codes
   '''
-  def __init__(self,command,workingDir,bufsize,output=None,metadata=None):
+  def __init__(self,command,workingDir,bufsize,output=None,metadata=None,codePointer=None):
     ''' Initialize command variable'''
+    self.codePointerFailed = None
     self.command    = command
     self.bufsize    = bufsize
     workingDirI     = None
@@ -73,6 +74,7 @@ class ExternalRunner:
     if workingDirI: self.__workingDir = workingDirI
     else          : self.__workingDir = workingDir
     self.__metadata   = metadata
+    self.codePointer  = codePointer
     # Initialize logger
     #self.logger     = self.createLogger(self.identifier)
     #self.addLoggerHandler(self.identifier, self.output, 100000, 1)
@@ -122,8 +124,17 @@ class ExternalRunner:
   def getReturnCode(self):
     '''
     Function to inquire the process to get the return code
+    If the self.codePointer is available (!= None), this method
+    inquires it to check if the process return code is a false negative (or positive).
+    The first time the codePointer is inquired, it calls the function and store the result
+    => sub-sequential calls to getReturnCode will not inquire the codePointer anymore but
+    just return the stored value
     '''
-    return self.__process.returncode
+    returnCode = self.__process.returncode
+    if self.codePointer != None and returnCode == 0:
+      if  self.codePointerFailed == None:  self.codePointerFailed = self.codePointer.checkSpecialKeyForOutputFailure(self.output,self.getWorkingDir())
+      if  self.codePointerFailed: returnCode = 1
+    return returnCode
 
   def returnEvaluation(self):
     '''
@@ -282,7 +293,16 @@ class JobHandler:
       if self.runInfoDict['NumMPI'] !=1: self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
       else                             : self.ppserver = None                                                        # we just use threading!
 
-  def addExternal(self,executeCommand,outputFile,workingDir,metadata=None):
+  def addExternal(self,executeCommand,outputFile,workingDir,metadata=None,codePointer=None):
+    """
+      Method to add an external runner (an external code) in the handler list
+      @ In, executeCommand, string, command to be executed
+      @ In, outputFile, string, output file name
+      @ In, workingDir, string, working directory
+      @ In, metadata, dict, optional, dictionary of metadata
+      @ In, codePointer, derived CodeInterfaceBaseClass object, optional, pointer to code interface
+      @ Out, None
+    """
     #probably something more for the PBS
     command = self.runInfoDict['precommand']
     if self.mpiCommand !='':
@@ -291,7 +311,7 @@ class JobHandler:
       command +=self.threadingCommand+' '
     command += executeCommand
     command += self.runInfoDict['postcommand']
-    self.__queue.put(ExternalRunner(command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata))
+    self.__queue.put(ExternalRunner(command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata,codePointer))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
