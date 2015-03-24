@@ -25,6 +25,17 @@ class GenericCodeInterface(CodeInterfaceBase):
   def _readMoreXML(self,xmlNode):
     pass
 
+  #def setInputExtension(self,clargs):
+  #  self.inputExtensions=[]
+  #  listexts = list(e for e in clargs['input'].values())
+  #  for l in listexts:
+  #    for e in l:
+  #      self.inputExtensions.append(e)
+
+  def addDefaultExtension(self):
+    '''The Generic code interface does not accept any default input types.'''
+    pass
+
   def generateCommand(self,inputFiles,executable,clargs=None):
     if clargs==None:
       raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> No input file was specified in clargs!')
@@ -84,9 +95,6 @@ class GenericCodeInterface(CodeInterfaceBase):
     #postpend
     todo+=' '+clargs['post']
     executeCommand = (todo)
-    print('DEBUG command:',executeCommand)
-    import sys
-    sys.exit()
     return executeCommand,outfile
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
@@ -102,10 +110,8 @@ class GenericCodeInterface(CodeInterfaceBase):
     parser.modifyInternalDictionary(**Kwargs['SampledVars'])
     temps = list(str(origInputFiles[i][:]) for i in indexes)
     newInFiles = copy.deepcopy(currentInputFiles)
-    print('DEBUG indexes',indexes)
     for i in indexes:
       newInFiles[i] = os.path.join(os.path.split(temps[i])[0],Kwargs['prefix']+'~'+os.path.split(temps[i])[1])
-    print('DEBUG new in files:',newInFiles)
     parser.writeNewInput(list(newInFiles[i] for i in indexes),list(origInputFiles[i] for i in indexes))
     #except TypeError: parser.writeNewInput(list(newInFiles[i] for i in indexes))
     return newInFiles

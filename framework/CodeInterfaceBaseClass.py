@@ -79,7 +79,32 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
       @ In , None
       @ Out, tuple, tuple of strings containing accepted input extension (e.g.[".i",".inp"]) for this code interface, default [".i",".inp",".in"]
     """
-    return (".i",".inp",".in")
+    return tuple(self.inputExtensions)
+
+  def setInputExtension(self,exts):
+    """
+      This method sets a list of extension the code interface accepts for the input files
+      @ In , exts, list or other array containing accepted input extension (e.g.[".i",".inp"])
+      @ Out, None
+    """
+    self.inputExtensions = exts[:]
+
+  def addInputExtension(self,exts):
+    """
+      This method adds a list of extension the code interface accepts for the input files
+      @ In , exts, list or other array containing accepted input extension (e.g.[".i",".inp"])
+      @ Out, None
+    """
+    for e in exts:self.inputExtensions.append(e)
+
+  def addDefaultExtension(self):
+    """
+      This method sets a list of default extensions a specific code interface accepts for the input files.
+      This method should be overwritten if these are not acceptable defaults.
+      @ In , None
+      @ Out, None
+    """
+    self.addInputExtension(['.i','.inp','.in'])
 
   def finalizeCodeOutput(self,currentInputFiles,output,workingDir):
     """

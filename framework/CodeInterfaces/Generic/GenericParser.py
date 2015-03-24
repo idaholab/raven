@@ -63,7 +63,7 @@ class GenericParser:
     newFileStrings={}
     for var in self.varPlaces.keys():
       for inputFile in self.segments.keys():
-        for place in self.varPlaces[var][inputFile]:
+        for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
           if var in moddict.keys(): self.segments[inputFile][place] = str(moddict[var])
           elif var in self.defaults.keys(): self.segments[inputFile][place] = self.defaults[var][inputFile]
           else: raise IOError('For variable '+var+' no distribution was sampled and no default given!')

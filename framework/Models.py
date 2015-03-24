@@ -336,7 +336,6 @@ class ROM(Dummy):
       if child.attrib:
         if child.tag not in self.initializationOptionDict.keys():
           self.initializationOptionDict[child.tag]={}
-        #print('DEBUG ROM',child.tag,child.text)
         #TODO this is hacked up to work for GaussPolynomialRoms right now
         self.initializationOptionDict[child.tag][child.text]=child.attrib
         #self.initializationOptionDict[child.tag].update(child.attrib)
@@ -621,9 +620,10 @@ class Code(Model):
     if os.path.exists(abspath):
       self.executable = abspath
     else: print(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found executable '+self.executable)
-    self.setInputExtension(self.clargs)
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType)
     self.code.readMoreXML(xmlNode)
+    self.code.setInputExtension(list(a for b in (c for c in self.clargs['input'].values()) for a in b))
+    self.code.addDefaultExtension()
 
   def addInitParams(self,tempDict):
     '''extension of addInitParams for the Code(model)'''
@@ -655,12 +655,6 @@ class Code(Model):
     self.currentInputFiles        = None
     self.outFileRoot              = None
 
-  def setInputExtension(self,clargs):
-    self.inputExtensions=list(e for e in clargs['input'].values())
-
-  def getInputExtension(self):
-    return tuple(self.inputExtensions)
-
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     ''' This function creates a new input
         It is called from a sampler to get the implementation specific for this model'''
@@ -672,10 +666,9 @@ class Code(Model):
         break
     if not found: raise Exception(self.printTag+ ': ' +utils.returnPrintPostTag('Error') +
                                   '->  None of the input files has one of the extensions requested by code '
-                                  + self.subType +': ' + ' '.join(self.getInputExtension()))
+                                  + self.subType +': ' + ' '.join(self.code.getInputExtension()))
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
-    print('DEBUG currentInput',self.printTag,currentInput,self.oriInputFiles)
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 
   def run(self,inputFiles,jobHandler):
