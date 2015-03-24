@@ -25,7 +25,12 @@
     </PostProcessor>
   </Models>
   <Samplers>
-    <MonteCarlo     name='RAVENmc3'  limit='1' initial_seed='1'></MonteCarlo>
+    <MonteCarlo     name='RAVENmc3'>
+        <sampler_init>
+            <limit>1</limit>
+            <initial_seed>1</initial_seed>
+        </sampler_init>
+    </MonteCarlo>
   </Samplers>
   <Steps>
     <IOStep name='test_read_in' fromDirectory='../input_for_test_cc'>

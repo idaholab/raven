@@ -182,7 +182,7 @@ else
 fi
 
 
-if $PYTHON_CMD -c 'import scipy'
+if $PYTHON_CMD -c 'import scipy,sys;sys.exit(not scipy.__version__ > "0.12")'
 then
     echo scipy module already built
 else

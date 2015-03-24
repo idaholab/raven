@@ -18,12 +18,12 @@ class Relap5(CodeInterfaceBase):
     '''seek which is which of the input files and generate According the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
-      if inputFile.endswith(('.i','.inp','.in')):
+      if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raise Exception('Relap5 INTERFACE ERROR -> None of the input files has one of the following extensions ".i", ".inp", or ".in"!')
+    if not found: raise Exception('Relap5 INTERFACE ERROR -> None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    if flags: addflags = flags
+    if flags: addflags = flags['text']
     else    : addflags = ''
     #executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[1] + '.o' + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '+ addflags
     executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[0] + outputfile + '.o' + ' -r ' + os.path.split(inputFiles[index])[0] + outputfile + '.r '+ addflags
@@ -55,13 +55,12 @@ class Relap5(CodeInterfaceBase):
     self._samplersDictionary['DynamicEventTree'     ] = self.DynamicEventTreeForRELAP5
     self._samplersDictionary['BnBDynamicEventTree'  ] = self.DynamicEventTreeForRELAP5
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
-    index = -1
-    for i in range(len(currentInputFiles)):
-      ''.lower()
-      if currentInputFiles[i].lower().endswith('.i') or currentInputFiles[i].lower().endswith('.inp') or currentInputFiles[i].lower().endswith('.in'):
-        index = i
+    found = False
+    for index, inputFile in enumerate(currentInputFiles):
+      if inputFile.endswith(self.getInputExtension()):
+        found = True
         break
-    if index < 0: raise IOError('ERROR! Relap5 interface did not find an input file. a Relap5 input file needs to have the following extensions: ".i,.inp,.in"!!')
+    if not found: raise IOError('Relap5 INTERFACE ERROR -> None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = RELAPparser.RELAPparser(currentInputFiles[index])
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,True)

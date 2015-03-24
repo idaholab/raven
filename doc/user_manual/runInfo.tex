@@ -123,7 +123,9 @@ used to run the external model (e.g., \texttt{mpiexec -n 8  ./externalModel.exe
 specifies the maximum size of the log file in bytes. Every time RAVEN drives a
 code/software, it creates a logfile of the code's screen output.
 %
-\default{$\infty$} \TODO{\nb This flag is not implemtend yet.}
+\default{$\infty$} 
+
+\TODO{\nb This flag is not implemtend yet.}
 
 %%%%%% deleteOutExtension
 \item \xmlNode{deleteOutExtension}, \xmlDesc{comma separated string, optional 
@@ -171,7 +173,7 @@ RAVEN currently supports two pre-defined ``modes'':
              to utilize the reserved resources (CPUs and nodes) to distribute
              the jobs, but will not generate a \texttt{qsub} command.
          \end{itemize}
-         \\ In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs, 
+         In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs,
          ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
            are run using a multi-threading approach (i.e. master processor, multiple parallel threads)
     \item \textbf{mpi}: this ``mode'' uses \texttt{mpiexec} to distribute the 
@@ -220,7 +222,7 @@ RAVEN currently supports two pre-defined ``modes'':
                   \texttt{PBS\_NODEFILE}.
            \end{itemize}
          \end{itemize}
-         \\ In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs, 
+         In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs,
          ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
            are run using a multi-threading approach (i.e. master processor, multiple parallel threads)
    \end{itemize}
@@ -349,7 +351,7 @@ block.
 This means that all the keywords defined here will be overridden by any values
 specified in the actual RAVEN input file.
 %
-\\ In section ~ref{subsec:runinfoModes}, it has been explained how RAVEN can
+\\ In section ~\ref{subsec:runinfoModes}, it is explained how RAVEN can
 handle the queue and parallel systems.
 %
 If the currently available ``modes'' are not suitable for the user's system
