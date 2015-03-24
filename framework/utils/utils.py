@@ -156,7 +156,8 @@ def importFromPath(filename, printImporting = True):
       (name, ext) = os.path.splitext(name)
       (file, filename, data) = imp.find_module(name, [path])
       importedModule = imp.load_module(name, file, filename, data)
-    except: importedModule = None
+    except Exception as ae:
+      raise Exception(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ '-> importing module '+ filename + 'failed with error '+str(ae))
     return importedModule
 
 def index(a, x):

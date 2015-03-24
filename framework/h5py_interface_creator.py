@@ -200,10 +200,7 @@ class hdf5Database(object):
           if gname == splgroup: raise IOError(self.printTag+": ERROR -> Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     if source['type'] == 'csv':
       # Source in CSV format
-      try: f = open(source['name'],'rb')
-      except:
-       print("IVAN error...Maybe RELAP7 did crash!!!!!")
-       return
+      f = open(source['name'],'rb')
       # Retrieve the headers of the CSV file
       firstRow = f.readline().strip(b"\r\n")
       #firstRow = f.readline().translate(None,"\r\n")
@@ -440,10 +437,7 @@ class hdf5Database(object):
         if gname == splgroup: raise IOError(self.printTag+": ERROR -> Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     if source['type'] == 'csv':
       # Source in CSV format
-      try: f = open(source['name'],'rb')
-      except:
-       print("IVAN error...Maybe RELAP7 did crash!!!!!")
-       return
+      f = open(source['name'],'rb')
       # Retrieve the headers of the CSV file
       # Retrieve the header of the CSV file
       headers = f.readline().split(b",")
