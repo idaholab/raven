@@ -75,17 +75,17 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
     """
     return (".i",".inp",".in")
 
-  def finalizeCodeOutput(self,currentInputFiles,output,workingDir):
+  def finalizeCodeOutput(self,command,output,workingDir):
     """
     this method is called by the RAVEN code at the end of each run (if the method is present).
     It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
-    @ currentInputFiles, currentInputFiles, list,  list of current input files (input files from last this method call)
+    @ command, Input, the command used to run the just ended job
     @ output, Input, the Output name root (string)
     @ workingDir, Input, actual working dir (string)
     @ return string, optional, present in case the root of the output file gets changed in this method.
     """
     return output
-  
+
   def checkSpecialKeyForOutputFailure(self,output,workingDir):
     """
     this method is called by RAVEN at the end of each run.

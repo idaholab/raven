@@ -159,6 +159,7 @@ class NewCode(CodeInterfaceBase):
                                 samplerType, **Kwargs)                           
   def finalizeCodeOutput(self, command, output, workingDir)
   def getInputExtension(self)
+  def checkSpecialKeyForOutputFailure(self, output, workingDir)
 \end{lstlisting} 
 In the following sub-sections all the methods are fully explained, providing examples
  (referring to the simple code used as example for the previous sections)
@@ -271,6 +272,28 @@ For the example referred in the previous section, this method would implemented 
 def finalizeCodeOutput(self, command, output, workingDir)
     outfile = os.path.join(workingDir,output+'.o')
     outputobj=convertOutputFileToCSV(outfile)
+ \end{lstlisting} 
+ 
+ \subsubsection{Method: \textit{checkSpecialKeyForOutputFailure(self, output, workingDir)}} 
+\label{subsubsec:checkSpecialKeyForOutputFailure}
+The \textbf{checkSpecialKeyForOutputFailure} function is an optional method. If present, it is called 
+by RAVEN code at the end of each run. This method needs to be implemented by the codes that, if a run fails, return a ``returncode'' = 0. 
+This can happen in those codes that record the failure of a run (e.g. not converged, etc.) as normal termination (returncode == 0)
+This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job  failed
+ (e.g. in RELAP5 would be the keyword "********"). This method MUST return a boolean (True if failed, False otherwise).
+\\RAVEN is going to call this function passing in the following arguments:
+\begin{itemize}
+  \item \textbf{\textit{output}}, data type = string,the Output name root;
+  \item  \textbf{\textit{workingDir}}, data type = string, current working directory.
+\end{itemize}
+For the example referred in the previous section, this method would implemented as follows:
+\newline
+\begin{lstlisting}[language=python]
+def finalizeCodeOutput(self, command, output, workingDir)
+    from  __builtin__ import any 
+    errorWord = "ERROR"
+    return any(errorWord in x for x in 
+      open(os.path.join(workingDir,output+'.o'),"r").readlines())
  \end{lstlisting} 
  
 
