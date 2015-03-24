@@ -47,5 +47,6 @@ def knownTypes(): return __knownTypes
 def returnCodeInterface(Type):
   '''this allow to the code(model) class to interact with a specific
      code for which the interface is present in the CodeInterfaces module'''
+  print('DEBUG',knownTypes())
   if Type not in knownTypes(): raise NameError('not known '+__base+' type '+Type)
   return __interFaceDict[Type]()

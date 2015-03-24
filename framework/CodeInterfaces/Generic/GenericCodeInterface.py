@@ -10,10 +10,12 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
+import utils
 
 class GenericCodeInterface(CodeInterfaceBase):
   def __init__(self):
     CodeInterfaceBase.__init__(self) #I think this isn't implemented
+    self.printTag         = utils.returnPrintTag('GENERICCODEINTERFACE')
     self.inputExtensions  = [] #list of extensions for RAVEN to edit as inputs
     self.outputExtensions = [] #list of extensions for RAVEN to gather data from?
     self.execPrefix       = '' #executioner command prefix (e.g., 'python ')
@@ -23,55 +25,86 @@ class GenericCodeInterface(CodeInterfaceBase):
   def _readMoreXML(self,xmlNode):
     pass
 
-  def generateComand(self,inputFiles,executable,clargs=None):
+  def generateCommand(self,inputFiles,executable,clargs=None):
+    if clargs==None:
+      raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> No input file was specified in clargs!')
     #check for duplicate extension use
     usedExt=[]
     for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()):
       if ext not in usedExt: usedExt.append(ext)
+      else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
 
     #check all required input files are there
     inFiles=inputFiles[:]
-    for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()):
-      for inf in inputFiles:
-        if inf.endswith(ext):
-          inFiles.remove(inf)
-          break
-      #if not found
-      raise IOError(self.printTag+': ERROR -> input extension "'+ext+'" listed in input but not in inputFiles!')
+    for exts in list(clargs['input'][flag] for flag in clargs['input'].keys()):
+      for ext in exts:
+        found=False
+        print('DEBUG ext',ext)
+        for inf in inputFiles:
+          if inf.endswith(ext):
+            found=True
+            inFiles.remove(inf)
+            break
+        if not found: raise IOError(self.printTag+': ERROR -> input extension "'+ext+'" listed in input but not in inputFiles!')
     #TODO if any remaining, check them against valid inputs
 
-    #PROBLEM this doesn't work, since we can't figure out which .xml goes to -i and which to -d, for example.
+    #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
+    def getFileWithExtension(fileList,ext):
+      for index,inputFile in enumerate(fileList):
+        if inputFile.endswith(ext):
+          found=True
+          break
+      if not found: raise IOError(self.printTag + ': No InputFile with extension '+ext+'found!')
+      return index,inputFile
 
-#TODO missing some stuff like "executable" here
-
-    outfile = 'out~'+self.caseName
+    #prepend
+    print('DEBUG clargs,',clargs.keys())
     todo = ''
-    todo += clargs['prepend']+' '
+    todo += clargs['pre']+' '
     todo += executable
+    index=None
+    #inputs
     for flag,exts in clargs['input'].items():
       if flag == 'noarg':
         for ext in exts:
-          todo+=' '+ext
+          idx,fname = getFileWithExtension(inputFiles,ext)
+          todo+=' '+fname
+          if index == None: index = idx
         continue
       todo += ' '+flag
       for ext in exts:
-        todo+' '+ext
-    executeCommand = (self.execPrefix+executable+self.execPostfix)
-    #TODO how to specify where the output is set?  -> for now, use special keyword $RAVEN-outFileName$
+        idx,fname = getFileWithExtension(inputFiles,ext)
+        todo+=' '+fname
+        if index == None: index = idx
+    #outputs
+    #FIXME I think if you give multiple output flags this could result in overwriting
+    self.caseName = os.path.split(inputFiles[index])[1].split('.')[0]
+    outfile = 'out~'+self.caseName
+    todo+=' '+clargs['output']+' '+outfile
+    #text flags
+    todo+=' '+clargs['text']
+    #postpend
+    todo+=' '+clargs['post']
+    executeCommand = (todo)
+    print('DEBUG command:',executeCommand)
+    sys.exit()
+    return executeCommand,outfile
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
     import GenericParser
     indexes=[]
     infiles=[]
-    for index,inputFile in enumerate(inputFiles):
+    #FIXME possible danger here from reading binary files
+    for index,inputFile in enumerate(currentInputFiles):
       if inputFile.endswith(self.getInputExtension()):
         indexes.append(index)
         infiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles) #TODO this is a list, so be careful
     parser.modifyInternalDictionary(**Kwargs['SampledVars'])
-    temps = list(str(oriInputFiles[i][:]) for i in indexes)
+    temps = list(str(origInputFiles[i][:]) for i in indexes)
     newInFiles = copy.deepcopy(currentInputFiles)
     for i in indexes:
-      newInFiles[i] = os.path.join(os.path.split(temp)[0],Kwargs['prefix']+'~'+os.path.split(temp)[1])
-    parser.writeNewInput(list(newInFiles[i] for i in indexes))
+      newInFiles[i] = os.path.join(os.path.split(temps[i])[0],Kwargs['prefix']+'~'+os.path.split(temps[i])[1])
+    parser.writeNewInput(list(newInFiles[i] for i in indexes),list(origInputFiles[i] for i in indexes))
+    #except TypeError: parser.writeNewInput(list(newInFiles[i] for i in indexes))
     return newInFiles
