@@ -20,57 +20,42 @@ class GenericCodeInterface(CodeInterfaceBase):
     self.execPostfix      = '' #executioner command postfix (e.g. -zcvf)
     self.caseName         = None #base label for outgoing files, should default to inputFileName
 
-
   def _readMoreXML(self,xmlNode):
-    for chid in xmlNode:
-      if child.tag == 'inputExtentions':
-        extdict = {'input':str(child.text).strip().split(',')}
-        self.setExtensions(extdict) #TODO fix with whatever Andrea calls it
-      elif child.tag == 'outputExtension':
-        extdict = {'output':str(child.text).strip()}
-        self.setExtensions(extdict) #TODO fix with whatever Andrea calls it
-      elif child.tag == 'executablePrefix':
-        self.execPrefix = str(child.text)+' '
-      elif child.tag == 'executablePostfix':
-        self.execPostfix = ' '+str(child.text)
-      elif child.tag == 'caseName':
-        self.caseName = caseName
-      #<flags> are read in the code interface
+    pass
 
-  def generateComand(self,inputFiles,executable,flags=None):
-    #inputFiles -> list of input files
+  def generateComand(self,inputFiles,executable,clargs=None):
+    #check for duplicate extension use
+    usedExt=[]
+    for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()):
+      if ext not in usedExt: usedExt.append(ext)
+
     #check all required input files are there
     inFiles=inputFiles[:]
-    for flagtype in flags.keys():
-      if flagtype=='output':continue
-      for ext in list(flags[flagtype][i]['ext'] for i in flags[flagtype].keys()):
-        for inf in inputFiles:
-          if inf.endswith(ext):
-            inFiles.remove(inf)
-            break
-        #if not found
-        raise IOError(self.printTag+': ERROR -> input extension "'+ext+'" listed in input but not in inputFiles!')
-    #if any remaining, check them against valid inputs
-    for ext in list(flags['input'][i]['ext'] for i in flags['input'].keys()):
+    for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()):
       for inf in inputFiles:
         if inf.endswith(ext):
           inFiles.remove(inf)
           break
+      #if not found
       raise IOError(self.printTag+': ERROR -> input extension "'+ext+'" listed in input but not in inputFiles!')
+    #TODO if any remaining, check them against valid inputs
 
+    #PROBLEM this doesn't work, since we can't figure out which .xml goes to -i and which to -d, for example.
 
+#TODO missing some stuff like "executable" here
 
-    found = False
-    validInpExt = self.inputExtensions[:]
-    for index,inputFile in enumerate(inputFiles):
-      validInpExt.append(inputFile.endswith(flags['input'][inp]['ext']))
-    for infile in inputFiles:
-      if infile.endswith( tuple(validInpExt)):
-        found=True
-        break
-    if not found: raise IOError('GENERIC INTERFACE ERROR -> No input file with '+str(self.inputExtensions)+' extension found!')
-    if self.caseName == None: self.caseName=os.path.split(inputFiles[index])[1].split('.')[0]
     outfile = 'out~'+self.caseName
+    todo = ''
+    todo += clargs['prepend']+' '
+    todo += executable
+    for flag,exts in clargs['input'].items():
+      if flag == 'noarg':
+        for ext in exts:
+          todo+=' '+ext
+        continue
+      todo += ' '+flag
+      for ext in exts:
+        todo+' '+ext
     executeCommand = (self.execPrefix+executable+self.execPostfix)
     #TODO how to specify where the output is set?  -> for now, use special keyword $RAVEN-outFileName$
 

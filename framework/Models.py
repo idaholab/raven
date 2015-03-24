@@ -582,6 +582,8 @@ class Code(Model):
     '''extension of info to be read for the Code(model)
     !!!!generate also the code interface for the proper type of code!!!!'''
     Model._readMoreXML(self, xmlNode)
+    #TODO consider: should clargs be an ordered dict?
+    self.clargs={'text':'', 'input':{'noarg':[]}, 'output':'', 'pre':{}, 'post':{}}
     for child in xmlNode:
       if child.tag =='executable':
         self.executable = str(child.text)
@@ -590,12 +592,32 @@ class Code(Model):
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
         else: raise Exception (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
       elif child.tag == 'clargs':
-        clargtype = child.attrib['type'] if 'type' in child.attrib.keys() else None
-        if clargtype == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "type" for clarg '+child.text+' not specified!')
-        self.codeFlags = child.text
-
-
-      else: raise Exception (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> unknown tag within the definition of the code model '+str(self.name))
+        argtype = child.attrib['type']      if 'type'      in child.attrib.keys() else None
+        arg     = child.attrib['arg']       if 'arg'       in child.attrib.keys() else None
+        ext     = child.attrib['extension'] if 'extension' in child.attrib.keys() else None
+        if argtype == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "type" for clarg '+child.text+' not specified!')
+        elif argtype == 'text':
+          if ext != None: print(self.printTag+': '+utils.returnPrintPostTag('WARNING')+'-> "text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if arg == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "arg" for clarg '+argtype+' not specified! Enter text to be used.')
+          self.clargs['text']=arg
+        elif argtype == 'input':
+          if ext == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "extension" for clarg '+argtype+' not specified! Enter filetype to be listed for this flag.')
+          if arg == None: self.clargs['input']['noarg'].append(ext)
+          else:
+            if not self.clargs['input'][arg]: self.clargs['input'][arg]=[]
+            self.clargs['input'][arg].append(ext)
+        elif argtype == 'output':
+          if ext == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "extension" for clarg '+argtype+' not specified! Enter flag for output file specification.')
+          self.clargs['output'] = ext
+        elif argtype == 'prepend':
+          if ext != None: print(self.printTag+': '+utils.returnPrintPostTag('WARNING')+'-> "prepend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if arg == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "arg" for clarg '+argtype+' not specified! Enter text to be used.')
+          self.clargs['prepend'] = arg
+        elif argtype == 'postpend':
+          if ext != None: print(self.printTag+': '+utils.returnPrintPostTag('WARNING')+'-> "postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if arg == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "arg" for clarg '+argtype+' not specified! Enter text to be used.')
+          self.clargs['postpend'] = arg
+        #any additional nodes should be read in code.readMoreXML
     if self.executable == '': raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
     abspath = os.path.abspath(self.executable)
