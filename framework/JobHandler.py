@@ -294,7 +294,7 @@ class JobHandler:
       self.ppserver     = pp.Server(ppservers=tuple(ppservers)) #,ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       #self.ppserver     = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']), ppservers=tuple(self.runInfoDict['Nodes']))
     else:
-      if self.runInfoDict['NumMPI'] !=0: self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
+      if self.runInfoDict['NumMPI'] > 1: self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
       else                             : self.ppserver = None        # we just use threading!
     self.initParallelPython = True
 
