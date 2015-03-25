@@ -755,7 +755,7 @@ class Server(object):
         self.logger.debug("Task %i ended",  job.tid)
         self.__scheduler()
 
-    def _run_remote(self, job, sfunc, sargs, rworker, pytpath):
+    def _run_remote(self, job, sfunc, sargs, rworker): #, pytpath):
         """Runs a job remotelly"""
         self.logger.debug("Task (remote) %i started",  job.tid)
 
