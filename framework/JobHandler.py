@@ -271,6 +271,14 @@ class JobHandler:
     self.__running = [None]*self.runInfoDict['batchSize']
 
   def __initializeParallelPython(self):
+    """
+      Internal method that is aimed to initialize the internal parallel system.
+      It initilizes the paralle python implementation (with socketing system) in case
+      RAVEN is run in a cluster with multiple nodes or the NumMPI > 1,
+      otherwise multi-threading is used.
+      @ In, None
+      @ Out, None
+    """
     # check if the list of unique nodes is present and, in case, initialize the socket
     if len(self.runInfoDict['Nodes']) > 0:
       # initialize the socketing system
@@ -407,5 +415,3 @@ class JobHandler:
     #clear out the queue
     while not self.__queue.empty(): self.__queue.get()
     for i in range(len(self.__running)): self.__running[i].kill()
-
-
