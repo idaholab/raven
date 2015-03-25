@@ -56,4 +56,36 @@ I think this may not be very useful because of the number of
 assumptions required and the shear amount of data that is required to
 get enough $y^i_e$ values.
 
+Comparison of means requiring linear regression of the experimental
+data. V\&V in SC, pg 508-510. This is where there are a set of $n$
+experimental measurements $(y^i_e,x_i)$.
+
+The linear regression function is:
+
+\begin{equation}
+  \bar{y}_e(x) = \theta_1 + x\theta_2+\epsilon
+\end{equation}
+
+The estimate interval for the true mean is:
+
+\begin{equation}
+  \mu(x) \sim (\bar{y}(x) - SCI(x),\bar{y}(x)+SCI(x))
+\end{equation}
+
+Where $SCI(x)$ is the width of the Scheff\'e confidence interval as a function of $x$ and is:
+
+\begin{equation}
+  SCI(x) = s\sqrt{[2F(2,n-2,1-\alpha)]\left [ \frac{1}{n}+\frac{(x-\bar{x})^2}{(n-1)s^2_x} \right ] }
+\end{equation}
+
+\begin{equation}
+  s = \sqrt{\frac{1}{n-1}\sum^n_{i=1}\left [ y^i_e-\bar{y}_e(x_i) \right ]^2}
+\end{equation}
+\begin{equation}
+  \bar{x} = \frac{1}{n}\sum^n_{i=1}x_i
+\end{equation}
+\begin{equation}
+  s^2_x=\frac{1}{n-1}\sum^n_{i=1}(x_i-\bar{x})^2
+\end{equation}
+
 \end{document}
