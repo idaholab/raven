@@ -680,6 +680,18 @@ class AdaptiveSampler(Sampler):
     #self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
     #self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
  
+#     # check hanging points
+#     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
+#     else                                                  : indexLast = -1
+#     #index of last set of point tested and ready to perform the function evaluation
+#     indexEnd  = len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])-1
+#     tempDict  = {}
+#     for myIndex in range(indexLast+1,indexEnd+1):
+#       for key, value in self.limitSurfacePP.getFunctionValue().items(): tempDict[key] = value[myIndex]
+#       if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
+
+
+    self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
     else                                                  : indexLast = -1
@@ -690,8 +702,6 @@ class AdaptiveSampler(Sampler):
       for key, value in self.limitSurfacePP.getFunctionValue().items(): tempDict[key] = value[myIndex]
       if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
 
-
-    self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
     self.persistenceMatrix   += self.limitSurfacePP.testMatrix
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Prediction finished')
     testError                 = np.sum(np.abs(np.subtract(self.limitSurfacePP.testMatrix,self.limitSurfacePP.oldTestMatrix)))#compute the error
