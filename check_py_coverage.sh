@@ -45,7 +45,7 @@ update_python_path
 
 cd $SCRIPT_DIR
 
-EXTRA='--rcfile=.coveragerc --source=../../framework -a --omit=../../framework/contrib/pyDOE/*'
+EXTRA='--rcfile=.coveragerc --source=../../framework -a --omit=../../framework/contrib/*'
 cd tests/framework
 #coverage help run
 

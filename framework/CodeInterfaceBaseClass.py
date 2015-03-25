@@ -63,6 +63,18 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
     """
     pass
 
+        ####################
+  ####### OPTIONAL METHODS #######
+        ####################
+
+  def getInputExtension(self):
+    """
+      This method returns a list of extension the code interface accepts for the input file (the main one)
+      @ In , None
+      @ Out, tuple, tuple of strings containing accepted input extension (e.g.[".i",".inp"]) for this code interface, default [".i",".inp",".in"]
+    """
+    return (".i",".inp",".in")
+
   def finalizeCodeOutput(self,currentInputFiles,output,workingDir):
     """
     this method is called by the RAVEN code at the end of each run (if the method is present).
