@@ -28,7 +28,6 @@ from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
 import PostProcessors #import returnFilterInterface
-#import Samplers
 import CustomCommandExecuter
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
@@ -79,17 +78,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Sampler'][0]['class'       ] ='Samplers'
   validateDict['Sampler'][0]['required'    ] = False
   validateDict['Sampler'][0]['multiplicity'] = 1
-  #validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
-  #FIXME this is a temporary statick list assignment to fix circular references from importing Sampler here.
-  validateDict['Sampler'][0]['type'] = ['MonteCarlo',
-                                        'DynamicEventTree',
-                                        'LHS',
-                                        'Grid',
-                                        'Adaptive',
-                                        'AdaptiveDynamicEventTree',
-                                        'FactorialDesign',
-                                        'ResponseSurfaceDesign',
-                                        'SparseGridCollocation']
+  validateDict['Sampler'][0]['type']         = ['MonteCarlo',
+                                                'DynamicEventTree',
+                                                'LHS',
+                                                'Grid',
+                                                'Adaptive',
+                                                'AdaptiveDynamicEventTree',
+                                                'FactorialDesign',
+                                                'ResponseSurfaceDesign',
+                                                'SparseGridCollocation']
 
   @classmethod
   def generateValidateDict(cls):
@@ -647,7 +644,7 @@ class Code(Model):
     self.currentInputFiles = inputFiles[0]
     executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.codeFlags)
     #executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
-    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1])
+    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
       if inputFile.endswith(self.code.getInputExtension()):
