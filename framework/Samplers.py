@@ -914,13 +914,16 @@ class MonteCarlo(Sampler):
 #     else:
 #       raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
 
-
-    if self.limit == None:
-      raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
+    if xmlNode.find('sampler_init')!= None:
+      if xmlNode.find('sampler_init').find('limit')!= None:
+        try: self.limit = int(xmlNode.find('sampler_init').find('limit').text)
+        except ValueError:
+          IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+      else:
+        raise IOError('Monte Carlo sampling needs the limit block (number of samples) in the sampler_init block')
     else:
-      try: self.limit = int(self.limit)
-      except ValueError:
-        IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+      raise IOError('Monte Carlo sampling needs the sampler_init block')
+
 
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
