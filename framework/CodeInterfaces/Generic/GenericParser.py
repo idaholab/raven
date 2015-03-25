@@ -69,7 +69,7 @@ class GenericParser:
   def modifyInternalDictionary(self,**Kwargs):
     '''
     Edits the parsed file stored in self.segments to enter new variable values preperatory to a new run.
-    @ In, moddict, the dictionary of variable:value to replace.
+    @ In, **Kwargs, dict including moddit (the dictionary of variable:value to replace) and additionalEdits.
     @Out, None.
     '''
     moddict = Kwargs['SampledVars']
