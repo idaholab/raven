@@ -1240,7 +1240,7 @@ class LimitSurface(BasePostProcessor):
   def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     if type(currentInp) == list: currentInput = currentInp[-1]
-    else                         : currentInput = currentInp
+    else                       : currentInput = currentInp
     if type(currentInp) == dict:
       if 'targets' in currentInput.keys(): return
     inputDict = {'targets':{},'metadata':{}}
@@ -1289,7 +1289,6 @@ class LimitSurface(BasePostProcessor):
     stepParam = lambda x: [stepLenght*(max(self.inputs[self.indexes].getParam(self.paramType[x],x))-min(self.inputs[self.indexes].getParam(self.paramType[x],x))),
                                        min(self.inputs[self.indexes].getParam(self.paramType[x],x)),
                                        max(self.inputs[self.indexes].getParam(self.paramType[x],x))]
-
     #moving forward building all the information set
     pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
     #building the grid point coordinates 
@@ -1375,7 +1374,16 @@ class LimitSurface(BasePostProcessor):
     if "tolerance" in dictIn.keys(): self.subGridTol = float(dictIn["tolerance"])
     if "side" in dictIn.keys(): self.lsSide = dictIn["side"]
     if self.lsSide not in ["negative","positive","both"]: raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> Computation side can be positive, negative, both only !!!!')
-    if "gridVector" in dictIn.keys(): self.gridVectors = dictIn["gridVector"]
+    if "gridVectors" in dictIn.keys(): self.gridVectors = dictIn["gridVectors"]
+    if "debug"       in dictIn.keys(): self.debug = dictIn["debug"]
+
+  def getFunctionValue(self):
+    """
+    Method to get a pointer to the dictionary self.functionValue
+    @ In, None
+    @ Out, dictionary, self.functionValue
+    """
+    return self.functionValue
 
   def _localReadMoreXML(self,xmlNode):
     """
@@ -1402,10 +1410,11 @@ class LimitSurface(BasePostProcessor):
       output.removeOutputValue(self.externalFunction.name)
       for value in limitSurf[1]: output.updateOutputValue(self.externalFunction.name,copy.copy(value))
 
-  def run(self, InputIn = None): # inObj,workingDir=None):
+  def run(self, InputIn = None, returnListSurfCoord = False): # inObj,workingDir=None):
     """
      Function to finalize the filter => execute the filtering
      @ In , dictionary       : dictionary of data to process
+     @ In , boolean          : True if listSurfaceCoordinate needs to be returned
      @ Out, dictionary       : Dictionary with results
     """
     if InputIn != None: self.initialize({'WorkingDir':self.__workingDir},[InputIn],{})
@@ -1458,7 +1467,9 @@ class LimitSurface(BasePostProcessor):
         self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
       evaluations = np.concatenate((-np.ones(nNegPoints),np.ones(nPosPoints)), axis=0)  
       #outputPlaceOrder[pointID] = pointID
-    return self.surfPoint,evaluations
+    if returnListSurfCoord: return self.surfPoint,evaluations,listsurfPoint
+    else                  : return self.surfPoint,evaluations
+    
 
   def __localLimitStateSearch__(self,toBeTested,sign):
     '''
