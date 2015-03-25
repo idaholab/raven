@@ -48,8 +48,9 @@ version = "1.6.4"
 
 
 def preprocess(msg):
-    fname, fsources, imports, pytpath = pickle.loads(msg)
-    print(pytpath)
+    # fname, fsources, imports, pytpath = pickle.loads(msg)
+    fname, fsources, imports = pickle.loads(msg)
+    # print(pytpath)
     fobjs = [compile(fsource, '<string>', 'exec') for fsource in fsources]
     for module in imports:
         try:
