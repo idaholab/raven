@@ -66,18 +66,31 @@ class GenericParser:
           seg+=line
       self.segments[infileName].append(toBytes(seg))
 
-  def modifyInternalDictionary(self,**moddict):
+  def modifyInternalDictionary(self,**Kwargs):
     '''
     Edits the parsed file stored in self.segments to enter new variable values preperatory to a new run.
     @ In, moddict, the dictionary of variable:value to replace.
     @Out, None.
     '''
+    moddict = Kwargs['SampledVars']
+    self.adldict = Kwargs['additionalEdits']
+    iovars = []
+    for key,value in self.adldict.items():
+      if type(value)==dict:
+        for k in value.keys():
+          iovars.append(k)
+      elif type(value)==list:
+        for v in value:
+          iovars.append(v)
+      else:
+        iovars.append(value)
     newFileStrings={}
     for var in self.varPlaces.keys():
       for inputFile in self.segments.keys():
         for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
           if var in moddict.keys(): self.segments[inputFile][place] = str(moddict[var])
           elif var in self.defaults.keys(): self.segments[inputFile][place] = self.defaults[var][inputFile]
+          elif var in iovars: continue #this gets handled in writeNewInput
           else: raise IOError('For variable '+var+' no distribution was sampled and no default given!')
 
   def writeNewInput(self,infileNames,origNames):
@@ -87,6 +100,38 @@ class GenericParser:
     @ In, origNames, the original list of filenames, used for key names
     @Out, None.
     '''
+    #get the right IO names put in #TODO is this the right place to do this?
+    case = 'out~'+os.path.split(infileNames[0])[1].split('.')[0]
+    def getFileWithExtension(fileList,ext):
+      '''
+      Just a script to get the file with extension ext from the fileList.
+      @ In, fileList, the string list of filenames to pick from.
+      @Out, ext, the string extension that the desired filename ends with.
+      '''
+      found=False
+      for index,inputFile in enumerate(fileList):
+        if inputFile.endswith(ext):
+          found=True
+          break
+      if not found: raise IOError('GENPARSE' + ': No InputFile with extension '+ext+' found!')
+      return index,inputFile
+
+    for var in self.varPlaces.keys():
+      for inputFile in self.segments.keys():
+        for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
+          for iotype,adlvar in self.adldict.items():
+            if iotype=='output':
+              if var==self.adldict[iotype]:
+                self.segments[inputFile][place] = case
+                break
+            elif iotype=='input':
+              if var in self.adldict[iotype].keys():
+                self.segments[inputFile][place] = getFileWithExtension(infileNames,self.adldict[iotype][var][0])[1]
+                break
+    #for var,place in self.varPlaces.items():
+      #for inputFile in self.segments.keys():
+        #for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
+    #now just write the files.
     for f,fileName in enumerate(infileNames):
       outfile = file(fileName,'w')
       outfile.writelines(toBytes(''.join(self.segments[justFile(origNames[f])])))

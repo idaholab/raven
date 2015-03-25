@@ -195,6 +195,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #if a addOutput is present in nameSpace of storeTo it is used
     if 'addOutput' in dir(storeTo): storeTo.addOutput(collectFrom)
     else                          : raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The place where to store the output has not a addOutput method')
+
+  def getAdditionalInputEdits(self,inputDict):
+    '''
+    Collects additional edits for the sampler to use when creating a new input.  By default does nothing.
+    @ In, inputDict, dictionary in which to add edits
+    @Out, None.
+    '''
+    pass
 #
 #
 #
@@ -581,7 +589,8 @@ class Code(Model):
     '''
     Model._readMoreXML(self, xmlNode)
     #TODO consider: should clargs be an ordered dict?
-    self.clargs={'text':'', 'input':{'noarg':[]}, 'output':'', 'pre':'', 'post':''}
+    self.clargs={'text':'', 'input':{'noarg':[]}, 'pre':'', 'post':''} #output:''
+    self.fargs={'input':{}, 'output':''}
     for child in xmlNode:
       if child.tag =='executable':
         self.executable = str(child.text)
@@ -593,7 +602,7 @@ class Code(Model):
         argtype = child.attrib['type']      if 'type'      in child.attrib.keys() else None
         arg     = child.attrib['arg']       if 'arg'       in child.attrib.keys() else None
         ext     = child.attrib['extension'] if 'extension' in child.attrib.keys() else None
-        if argtype == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "type" for clarg '+child.text+' not specified!')
+        if argtype == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "type" for clarg not specified!')
         elif argtype == 'text':
           if ext != None: print(self.printTag+': '+utils.returnPrintPostTag('WARNING')+'-> "text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
           if arg == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "arg" for clarg '+argtype+' not specified! Enter text to be used.')
@@ -615,7 +624,21 @@ class Code(Model):
           if ext != None: print(self.printTag+': '+utils.returnPrintPostTag('WARNING')+'-> "postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
           if arg == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "arg" for clarg '+argtype+' not specified! Enter text to be used.')
           self.clargs['post'] = arg
-        #any additional nodes should be read in code.readMoreXML
+        else: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> clarg type '+argtype+' not recognized!')
+      elif child.tag == 'fileargs':
+        argtype = child.attrib['type']      if 'type'      in child.attrib.keys() else None
+        arg     = child.attrib['arg']       if 'arg'       in child.attrib.keys() else None
+        ext     = child.attrib['extension'] if 'extension' in child.attrib.keys() else None
+        if argtype == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "type" for filearg not specified!')
+        elif argtype == 'input':
+          if arg == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> filearg type "input" requires the template variable be specified in "arg" attribute!')
+          if ext == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> filearg type "input" requires the auxiliary file extension be specified in "ext" attribute!')
+          self.fargs['input'][arg]=[ext]
+        elif argtype == 'output':
+          if self.fargs['output']!='': raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'->output fileargs already specified!  You can only specify one output fileargs node.')
+          if arg == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> filearg type "output" requires the template variable be specified in "arg" attribute!')
+          self.fargs['output']=arg
+        else: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> filearg type '+argtype+' not recognized!')
     if self.executable == '': raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
     abspath = os.path.abspath(self.executable)
@@ -625,6 +648,7 @@ class Code(Model):
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType)
     self.code.readMoreXML(xmlNode)
     self.code.setInputExtension(list(a for b in (c for c in self.clargs['input'].values()) for a in b))
+    self.code.addInputExtension(list(a for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
 
   def addInitParams(self,tempDict):
@@ -640,6 +664,14 @@ class Code(Model):
     originalDict['current output file root' ] = self.outFileRoot
     originalDict['current input file'       ] = self.currentInputFiles
     originalDict['original input file'      ] = self.oriInputFiles
+
+  def getAdditionalInputEdits(self,inputInfo):
+    '''
+    Adds input edits besides the sampledVars to the inputInfo dictionary. Called by the sampler.
+    @ In, inputInfo, dictionary object
+    @Out, None.
+    '''
+    inputInfo['additionalEdits']=self.fargs
 
   def initialize(self,runInfoDict,inputFiles,initDict=None):
     '''initialize some of the current setting for the runs and generate the working
@@ -676,7 +708,7 @@ class Code(Model):
   def run(self,inputFiles,jobHandler):
     '''append a run at the externalRunning list of the jobHandler'''
     self.currentInputFiles = inputFiles[0]
-    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs)
+    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs)
     #executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1])
     found = False

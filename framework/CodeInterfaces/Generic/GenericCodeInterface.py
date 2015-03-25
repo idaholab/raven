@@ -33,21 +33,24 @@ class GenericCodeInterface(CodeInterfaceBase):
     '''
     pass
 
-  def generateCommand(self,inputFiles,executable,clargs=None):
+  def generateCommand(self,inputFiles,executable,clargs=None, fargs=None):
     '''
     See base class.  Collects all the clargs and the executable to produce the command-line call.
     '''
     if clargs==None:
       raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> No input file was specified in clargs!')
+    #check for output either in clargs or fargs
+    if len(fargs['output'])<1 and 'output' not in clargs.keys():
+      raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> No output file was specified, either in clargs or fileargs!')
     #check for duplicate extension use
     usedExt=[]
-    for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()):
+    for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
       if ext not in usedExt: usedExt.append(ext)
       else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
 
     #check all required input files are there
     inFiles=inputFiles[:]
-    for exts in list(clargs['input'][flag] for flag in clargs['input'].keys()):
+    for exts in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
       for ext in exts:
         found=False
         for inf in inputFiles:
@@ -94,12 +97,14 @@ class GenericCodeInterface(CodeInterfaceBase):
     #FIXME I think if you give multiple output flags this could result in overwriting
     self.caseName = os.path.split(inputFiles[index])[1].split('.')[0]
     outfile = 'out~'+self.caseName
-    todo+=' '+clargs['output']+' '+outfile
+    if 'output' in clargs.keys():
+      todo+=' '+clargs['output']+' '+outfile
     #text flags
     todo+=' '+clargs['text']
     #postpend
     todo+=' '+clargs['post']
     executeCommand = (todo)
+    print(self.printTag+': '+'Execution Command:',executeCommand)
     return executeCommand,outfile
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
@@ -114,8 +119,8 @@ class GenericCodeInterface(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         indexes.append(index)
         infiles.append(inputFile)
-    parser = GenericParser.GenericParser(infiles) #TODO this is a list, so be careful
-    parser.modifyInternalDictionary(**Kwargs['SampledVars'])
+    parser = GenericParser.GenericParser(infiles)
+    parser.modifyInternalDictionary(**Kwargs)#['SampledVars'],**Kwargs['additionalEdits']) #TODO also need to send io vars (input, output filenames)
     temps = list(str(origInputFiles[i][:]) for i in indexes)
     newInFiles = copy.deepcopy(currentInputFiles)
     for i in indexes:
