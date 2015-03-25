@@ -157,7 +157,6 @@ class MPISimulationMode(SimulationMode):
       else:
         nodefile = self.__nodefile
       lines = open(nodefile,"r").readlines()
-      print(list(set(lines)))
       self.__simulation.runInfoDict['Nodes'] = list(lines)
       numMPI = self.__simulation.runInfoDict['NumMPI']
       oldBatchsize = self.__simulation.runInfoDict['batchSize']
@@ -605,5 +604,3 @@ class Simulation(object):
         if "finalize" in dir(output):
           output.finalize()
       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> ' + 2*'-'+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-')
-
-
