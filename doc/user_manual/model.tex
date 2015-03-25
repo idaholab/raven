@@ -765,6 +765,40 @@ to couple a new code.
   The execution command is combined in the order \xmlString{prepend},
   \xmlNode{executable}, \xmlString{input}, \xmlString{output}, \xmlString{text},
   \xmlString{postpend}.
+  %
+  \item \xmlNode{fileargs} \xmlDesc{string, optional field} like \xmlNode{clargs},
+  but allows editing of input files to specify the output filename and/or auxiliary
+  file names.  
+  %
+  The location in the input files to edit using these arguments are identified in
+  the input file using the prefix-postfix notation, which defaults to 
+  \texttt{\$RAVEN-var\$} for variable keyword \emph{var}.  The variable keyword
+  is then listed in the \xmlNode{fileargs} node in the attribute \xmlAttr{arg} to
+  couple it in Raven.
+  %
+  If the code interface specified in \xmlNode{Code} \xmlAttr{subType}
+  does not specify how to name the output file, that must be specified either through
+  \xmlNode{clargs} or \xmlNode{filargs}, with \xmlAttr{type} \xmlString{output}.  
+  The attributes required for \xmlNode{fileargs} are as follows:
+  \begin{itemize}
+    \item \xmlAttr{type} \xmlDesc{string, required field} specifies the type
+    of entry to replace in the file.  Possible values for \xmlNode{fileargs} 
+    \xmlAttr{type} are \xmlString{input} and \xmlString{output}.
+    %
+    \item \xmlAttr{arg} \xmlDesc{string, required field} specifies the Raven
+    variable with which to replace the file of interest.  This should match
+    the entry in the template input file; that is, if \texttt{\$RAVEN-auxinp\$}
+    is in the input file, the arg for the corresponding input file should be
+    \xmlString{auxinp}.
+    %
+    \item \xmlAttr{extension} \xmlDesc{string, optional field} specifies the
+    extension of the input file that should replace the Raven variable in
+    the input file.  This attribute is required for the \xmlString{input} \xmlAttr{type}
+    and ignored for the \xmlString{output} \xmlAttr{type}.
+    \nb{Currently, there can only be a one-to-one pairing between input files
+    and extensions; that is, multiple Raven-editable input files cannot have the
+    same extension.}
+  \end{itemize}
 \end{itemize}
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={subType,name,variable}]
@@ -780,6 +814,10 @@ to couple a new code.
       <alias variable='internal_variable_name2'>
          External_Code_Variable_Name_2
       </alias>
+      <clargs type='prepend' arg='python'/>
+      <clargs type='input' arg='-i' extension='.i'/>
+      <fileargs type='input' arg='aux' extension='.two'
+      <fileargs type='output' arg='out' />
     </Code>
     ...
   </Models>
