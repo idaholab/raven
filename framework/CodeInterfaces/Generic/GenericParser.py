@@ -25,7 +25,7 @@ class GenericParser:
     @ In, inputFiles, string list of input filenames that might need parsing.
     @ In, prefix, the string prefix to find input variables within the input files
     @ In, postfix, the string postfix signifying hte end of an input variable within an input file
-    @ In, defaultDelim, the string used between prefix and postfix to set default values 
+    @ In, defaultDelim, the string used between prefix and postfix to set default values
     @Out, None.
     '''
     self.inputFiles = inputFiles
