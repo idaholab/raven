@@ -470,11 +470,10 @@ class Server(object):
         sfunc = self.__dumpsfunc((func, ) + depfuncs, modules)
         sargs = cloudpickle.dumps(args, self.__pickle_proto)
         # add local directory and sys.path to PYTHONPATH
-        pythondirs = [os.getcwd()] + sys.path
-
-        pytpath = cloudpickle.dumps(os.environ["PYTHONPATH"])
+        # pythondirs = [os.getcwd()] + sys.path
+        # pytpath = cloudpickle.dumps(os.environ["PYTHONPATH"])
         self.__queue_lock.acquire()
-        self.__queue.append((task, sfunc, sargs, pytpath))
+        self.__queue.append((task, sfunc, sargs)) # , pytpath))
         self.__queue_lock.release()
 
         self.logger.debug("Task %i submited, function='%s'" %
