@@ -159,7 +159,7 @@ class NewCode(CodeInterfaceBase):
                                 samplerType, **Kwargs)                           
   def finalizeCodeOutput(self, command, output, workingDir)
   def getInputExtension(self)
-  def checkSpecialKeyForOutputFailure(self, output, workingDir)
+  def checkForOutputFailure(self, output, workingDir)
 \end{lstlisting} 
 In the following sub-sections all the methods are fully explained, providing examples
  (referring to the simple code used as example for the previous sections)
@@ -274,9 +274,9 @@ def finalizeCodeOutput(self, command, output, workingDir)
     outputobj=convertOutputFileToCSV(outfile)
  \end{lstlisting} 
  
- \subsubsection{Method: \textit{checkSpecialKeyForOutputFailure(self, output, workingDir)}} 
-\label{subsubsec:checkSpecialKeyForOutputFailure}
-The \textbf{checkSpecialKeyForOutputFailure} function is an optional method. If present, it is called 
+ \subsubsection{Method: \textit{checkForOutputFailure(self, output, workingDir)}} 
+\label{subsubsec:checkForOutputFailure}
+The \textbf{checkForOutputFailure} function is an optional method. If present, it is called 
 by RAVEN code at the end of each run. This method needs to be implemented by the codes that, if a run fails, return a ``returncode'' = 0. 
 This can happen in those codes that record the failure of a run (e.g. not converged, etc.) as normal termination (returncode == 0)
 This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job  failed
@@ -289,7 +289,7 @@ This method can be used, for example, to parse the outputfile looking for a spec
 For the example referred in the previous section, this method would implemented as follows:
 \newline
 \begin{lstlisting}[language=python]
-def finalizeCodeOutput(self, command, output, workingDir)
+def checkForOutputFailure(self, command, output, workingDir)
     from  __builtin__ import any 
     errorWord = "ERROR"
     return any(errorWord in x for x in 

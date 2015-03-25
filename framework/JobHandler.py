@@ -132,7 +132,7 @@ class ExternalRunner:
     '''
     returnCode = self.__process.returncode
     if self.codePointer != None and returnCode == 0:
-      if  self.codePointerFailed == None:  self.codePointerFailed = self.codePointer.checkSpecialKeyForOutputFailure(self.output,self.getWorkingDir())
+      if  self.codePointerFailed == None:  self.codePointerFailed = self.codePointer.checkForOutputFailure(self.output,self.getWorkingDir())
       if  self.codePointerFailed: returnCode = 1
     return returnCode
 

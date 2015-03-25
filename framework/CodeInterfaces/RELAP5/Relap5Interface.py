@@ -42,9 +42,9 @@ class Relap5(CodeInterfaceBase):
     if outputobj.hasAtLeastMinorData(): outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
     else: raise IOError('ERROR! Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
 
-  def checkSpecialKeyForOutputFailure(self,output,workingDir):
+  def checkForOutputFailure(self,output,workingDir):
     """
-    this method is called by the RAVEN code at the end of each run (if the method is present).
+    this method is called by the RAVEN code at the end of each run  if the return code is == 0.
     This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
     This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
     This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
