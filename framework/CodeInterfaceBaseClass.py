@@ -77,7 +77,7 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
     """
       This method returns a list of extension the code interface accepts for the input file (the main one)
       @ In , None
-      @ Out, tuple, tuple of strings containing accepted input extension (e.g.[".i",".inp"]) for this code interface, default [".i",".inp",".in"]
+      @ Out, tuple, tuple of strings containing accepted input extension (e.g.[".i",".inp"])
     """
     return tuple(self.inputExtensions)
 

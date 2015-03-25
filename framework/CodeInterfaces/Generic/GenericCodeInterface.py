@@ -14,7 +14,11 @@ from utils import returnPrintTag,returnPrintPostTag
 
 class GenericCodeInterface(CodeInterfaceBase):
   def __init__(self):
-    CodeInterfaceBase.__init__(self) #I think this isn't implemented
+    '''Initializes the GenericCode Interface.
+       @ In, None
+       @Out, None
+    '''
+    CodeInterfaceBase.__init__(self) #The base class doesn't actually implement this, but futureproofing.
     self.printTag         = returnPrintTag('GENERICCODEINTERFACE')
     self.inputExtensions  = [] #list of extensions for RAVEN to edit as inputs
     self.outputExtensions = [] #list of extensions for RAVEN to gather data from?
@@ -22,21 +26,17 @@ class GenericCodeInterface(CodeInterfaceBase):
     self.execPostfix      = '' #executioner command postfix (e.g. -zcvf)
     self.caseName         = None #base label for outgoing files, should default to inputFileName
 
-  def _readMoreXML(self,xmlNode):
-    pass
-
-  #def setInputExtension(self,clargs):
-  #  self.inputExtensions=[]
-  #  listexts = list(e for e in clargs['input'].values())
-  #  for l in listexts:
-  #    for e in l:
-  #      self.inputExtensions.append(e)
-
   def addDefaultExtension(self):
-    '''The Generic code interface does not accept any default input types.'''
+    '''The Generic code interface does not accept any default input types.
+    @ In, None
+    @Out, None
+    '''
     pass
 
   def generateCommand(self,inputFiles,executable,clargs=None):
+    '''
+    See base class.  Collects all the clargs and the executable to produce the command-line call.
+    '''
     if clargs==None:
       raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> No input file was specified in clargs!')
     #check for duplicate extension use
@@ -60,6 +60,11 @@ class GenericCodeInterface(CodeInterfaceBase):
 
     #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
     def getFileWithExtension(fileList,ext):
+      '''
+      Just a script to get the file with extension ext from the fileList.
+      @ In, fileList, the string list of filenames to pick from.
+      @Out, ext, the string extension that the desired filename ends with.
+      '''
       for index,inputFile in enumerate(fileList):
         if inputFile.endswith(ext):
           found=True
@@ -98,6 +103,9 @@ class GenericCodeInterface(CodeInterfaceBase):
     return executeCommand,outfile
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
+    '''
+    See base class.  Loops over all input files to edit as many as needed to cover the input variables.
+    '''
     import GenericParser
     indexes=[]
     infiles=[]

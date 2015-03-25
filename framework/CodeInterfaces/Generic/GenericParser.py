@@ -20,7 +20,14 @@ def justFile(fullfile):
 class GenericParser:
   '''import the user-edited input file, build list of strings with replacable parts'''
   def __init__(self,inputFiles,prefix='$RAVEN-',postfix='$',defaultDelim=':'):
-    '''Accept the input file and parse it by the prefix-postfix breaks.'''
+    '''
+    Accept the input file and parse it by the prefix-postfix breaks. Someday might be able to change prefix,postfix,defaultDelim from input file, but not yet.
+    @ In, inputFiles, string list of input filenames that might need parsing.
+    @ In, prefix, the string prefix to find input variables within the input files
+    @ In, postfix, the string postfix signifying hte end of an input variable within an input file
+    @ In, defaultDelim, the string used between prefix and postfix to set default values 
+    @Out, None.
+    '''
     self.inputFiles = inputFiles
     self.prefixKey=prefix
     self.postfixKey=postfix
@@ -60,6 +67,11 @@ class GenericParser:
       self.segments[infileName].append(toBytes(seg))
 
   def modifyInternalDictionary(self,**moddict):
+    '''
+    Edits the parsed file stored in self.segments to enter new variable values preperatory to a new run.
+    @ In, moddict, the dictionary of variable:value to replace.
+    @Out, None.
+    '''
     newFileStrings={}
     for var in self.varPlaces.keys():
       for inputFile in self.segments.keys():
@@ -69,6 +81,12 @@ class GenericParser:
           else: raise IOError('For variable '+var+' no distribution was sampled and no default given!')
 
   def writeNewInput(self,infileNames,origNames):
+    '''
+    Generates a new input file with the existing parsed dictionary.
+    @ In, infileNames, string list of names for new input files to return
+    @ In, origNames, the original list of filenames, used for key names
+    @Out, None.
+    '''
     for f,fileName in enumerate(infileNames):
       outfile = file(fileName,'w')
       outfile.writelines(toBytes(''.join(self.segments[justFile(origNames[f])])))

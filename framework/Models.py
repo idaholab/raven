@@ -575,8 +575,10 @@ class Code(Model):
     self.printTag = utils.returnPrintTag('MODEL CODE')
 
   def _readMoreXML(self,xmlNode):
-    '''extension of info to be read for the Code(model)
-    !!!!generate also the code interface for the proper type of code!!!!'''
+    '''extension of info to be read for the Code(model) as well as the code interface, and creates the interface.
+    @ In: xmlNode, node object
+    @ Out: None.
+    '''
     Model._readMoreXML(self, xmlNode)
     #TODO consider: should clargs be an ordered dict?
     self.clargs={'text':'', 'input':{'noarg':[]}, 'output':'', 'pre':'', 'post':''}
