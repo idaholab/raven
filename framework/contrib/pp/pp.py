@@ -470,11 +470,11 @@ class Server(object):
         sfunc = self.__dumpsfunc((func, ) + depfuncs, modules)
         sargs = cloudpickle.dumps(args, self.__pickle_proto)
         # add local directory and sys.path to PYTHONPATH
-        pythondirs = [os.getcwd()] + sys.path
+        # pythondirs = [os.getcwd()] + sys.path
 
-        pytpath = cloudpickle.dumps(os.environ["PYTHONPATH"])
+        # pytpath = cloudpickle.dumps(os.environ["PYTHONPATH"])
         self.__queue_lock.acquire()
-        self.__queue.append((task, sfunc, sargs, pytpath))
+        self.__queue.append((task, sfunc, sargs)) #, pytpath))
         self.__queue_lock.release()
 
         self.logger.debug("Task %i submited, function='%s'" %
@@ -755,7 +755,7 @@ class Server(object):
         self.logger.debug("Task %i ended",  job.tid)
         self.__scheduler()
 
-    def _run_remote(self, job, sfunc, sargs, rworker): #, pytpath):
+    def _run_remote(self, job, sfunc, sargs, rworker, pytpath):
         """Runs a job remotelly"""
         self.logger.debug("Task (remote) %i started",  job.tid)
 
