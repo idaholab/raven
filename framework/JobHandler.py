@@ -288,12 +288,12 @@ class JobHandler:
       localenv = dict(os.environ)
       #localenv['PYTHONPATH'] = ''
       ppservers = []
-      for nodeid in list(set(self.runInfoDict['Nodes'])):
+      for nodeid in [node.strip() for node in set(self.runInfoDict['Nodes'])]:
         outFile = open(nodeid.strip()+"_server_out.log",'w')
         # check how many processors are available in the node
         ntasks = self.runInfoDict['Nodes'].count(nodeid)
-        process = subprocess.Popen(['ssh', nodeid.strip().replace("\n", ""), ppserverScript,"-w",str(ntasks),"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
-        ppservers.append(nodeid.strip().replace("\n", ""))
+        process = subprocess.Popen(['ssh', nodeid, ppserverScript,"-w",str(ntasks),"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        ppservers.append(nodeid)
       #for nodeid in self.runInfoDict['Nodes']: subprocess.call(['ssh ', nodeid, ppserverScript])
       #for nodeid in self.runInfoDict['Nodes']: subprocess.Popen('ssh '+nodeid+' '+ ppserverScript , shell=True) #,env=localenv)
       # create the server handler
