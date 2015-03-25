@@ -272,21 +272,31 @@ class JobHandler:
 
   def __initializeParallelPython(self):
     # check if the list of unique nodes is present and, in case, initialize the socket
-    if len(self.runInfoDict['uniqueNodes']) > 0:
+    if len(self.runInfoDict['Nodes']) > 0:
       # initialize the socketing system
       #ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py -a")
       ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
       # create the servers in the reserved nodes
-      for nodeid in self.runInfoDict['uniqueNodes']: subprocess.call(['ssh ', nodeid, ppserverScript])
-      #for nodeid in self.runInfoDict['uniqueNodes']: subprocess.Popen('ssh '+nodeid+' '+ ppserverScript , shell=True) #,env=localenv)
+      localenv = dict(os.environ)
+      #localenv['PYTHONPATH'] = ''
+      ppservers = []
+      for nodeid in list(set(self.runInfoDict['Nodes'])):
+        outFile = open(nodeid.strip()+"_server_out.log",'w')
+        # check how many processors are available in the node
+        ntasks = self.runInfoDict['Nodes'].count(nodeid)
+        process = subprocess.Popen(['ssh', nodeid.strip().replace("\n", ""), ppserverScript,"-w",str(ntasks),"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        ppservers.append(nodeid.strip().replace("\n", ""))
+      #for nodeid in self.runInfoDict['Nodes']: subprocess.call(['ssh ', nodeid, ppserverScript])
+      #for nodeid in self.runInfoDict['Nodes']: subprocess.Popen('ssh '+nodeid+' '+ ppserverScript , shell=True) #,env=localenv)
       # create the server handler
       #ppservers=("*",)
-      ppservers = tuple(self.runInfoDict['uniqueNodes'])
-      self.ppserver     = pp.Server(ppservers=ppservers)
-      #self.ppserver     = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']), ppservers=tuple(self.runInfoDict['uniqueNodes']))
+      #ppservers = tuple(nodeid.split(".")[0])
+      self.ppserver     = pp.Server(ppservers=tuple(ppservers)) #,ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+      #self.ppserver     = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']), ppservers=tuple(self.runInfoDict['Nodes']))
     else:
-      if self.runInfoDict['NumMPI'] !=1: self.ppserver = pp.Server() # we use the parallel python
+      if self.runInfoDict['NumMPI'] !=0: self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
       else                             : self.ppserver = None        # we just use threading!
+    self.initParallelPython = True
 
   def addExternal(self,executeCommand,outputFile,workingDir,metadata=None):
     #probably something more for the PBS
