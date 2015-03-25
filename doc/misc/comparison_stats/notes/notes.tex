@@ -14,4 +14,46 @@ Comparison of mean values.  V\&V in SC, pg 485.  $L_1$ or $L_2$ vector norms usu
   \| S - E \|_p = \left(\frac{1}{N}\sum^N_{i=1} | S(x_i) - E(x_i)|^p \right)^\frac{1}{p}
 \end{equation}
 
+Comparison of mean with experimental mean and variance. V\&V in SC, pg
+493-497.  The goal is to determine the true error based on $\tilde{E}
+= y_m - \bar{y}_e$ where $y_m$ is the computed value, $\bar{y}_e$ is
+the experimental mean and $\tilde{E}$ is the estimated error.  The
+experimental mean is:
+
+\begin{equation}
+  \bar{y}_e = \frac{1}{n} \sum^n_{i=1} y^i_e
+\end{equation}
+
+The sample standard deviations is:
+
+\begin{equation}
+  s = \left[ \frac{1}{n-1} \sum^n_{i=1} (y^i_e - \bar{y}_e)^2 \right ]^\frac{1}{2}
+\end{equation}
+
+The interval containing the true error $E = y_m - \mu$ where the level of confidence is $100(1-\alpha)$\% is:
+
+\begin{equation}
+  \left ( \tilde{E}-t_{\alpha/2,v}\cdot\frac{s}{\sqrt{n}},\tilde{E}+t_{\alpha/2,v}\cdot\frac{s}{\sqrt{n}}  \right )
+\end{equation}
+
+Comparison of means using interpolation of experimental data. V\&V in
+SC, pg 500-501.  If there are multiple sets of experimental data that
+relate input variables to results, then the interpolation of the sets
+can be used for statistics.  The standard deviation can be calculated
+as (where the sets of interpolated experimental data are $y^i_e(x)$):
+
+\begin{equation}
+  s(x) \sim \left [ \frac{1}{n-1} \sum^n_{i=1}\left ( y^i_e(x) - \bar{y}_e(x) \right ) ^2 \right ] ^\frac{1}{2}
+\end{equation}
+
+The true error is in the interval:
+
+\begin{equation}
+  \left ( \tilde{E}(x)-t_{\alpha/2,v}\cdot\frac{s(x)}{\sqrt{n}},\tilde{E}(x)+t_{\alpha/2,v}\cdot\frac{s(x)}{\sqrt{n}}  \right )
+\end{equation}
+
+I think this may not be very useful because of the number of
+assumptions required and the shear amount of data that is required to
+get enough $y^i_e$ values.
+
 \end{document}
