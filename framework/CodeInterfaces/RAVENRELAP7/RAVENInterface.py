@@ -30,7 +30,7 @@ class RAVENInterface(CodeInterfaceBase):
     if not found: raise Exception('RAVEN INTERFACE ERROR ->  None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
 
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    if flags: precommand = executable + flags
+    if flags: precommand = executable + flags['text']
     else    : precommand = executable
     executeCommand = (precommand + ' -i '+os.path.split(inputFiles[index])[1] +
                       ' Outputs/file_base='+ outputfile +

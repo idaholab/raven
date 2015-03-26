@@ -39,6 +39,24 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
     if os.environ['RAVENinterfaceCheck'].lower() in stringsThatMeanTrue(): return '',outputfileroot
     return subcodeCommand,outputfileroot
 
+  def readMoreXML(self,xmlNode):
+    '''
+      Function to read the portion of the xml input that belongs to this class and
+      initialize some members based on inputs.
+      @ In, xmlNode, XML element node
+      @Out, None.
+    '''
+    self._readMoreXML(xmlNode)
+
+  def _readMoreXML(self,xmlNode):
+    '''
+      Function to read the portion of the xml input that belongs to this specialized class and
+      initialize some members based on inputs.
+      @ In, xmlNode, XML element node
+      @Out, None.
+    '''
+    pass #afaik, this is only used in GenericCodeInterface currently.
+
   @abc.abstractmethod
   def generateCommand(self,inputFiles,executable,flags=None):
     """
@@ -71,9 +89,34 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
     """
       This method returns a list of extension the code interface accepts for the input file (the main one)
       @ In , None
-      @ Out, tuple, tuple of strings containing accepted input extension (e.g.[".i",".inp"]) for this code interface, default [".i",".inp",".in"]
+      @ Out, tuple, tuple of strings containing accepted input extension (e.g.[".i",".inp"])
     """
-    return (".i",".inp",".in")
+    return tuple(self.inputExtensions)
+
+  def setInputExtension(self,exts):
+    """
+      This method sets a list of extension the code interface accepts for the input files
+      @ In , exts, list or other array containing accepted input extension (e.g.[".i",".inp"])
+      @ Out, None
+    """
+    self.inputExtensions = exts[:]
+
+  def addInputExtension(self,exts):
+    """
+      This method adds a list of extension the code interface accepts for the input files
+      @ In , exts, list or other array containing accepted input extension (e.g.[".i",".inp"])
+      @ Out, None
+    """
+    for e in exts:self.inputExtensions.append(e)
+
+  def addDefaultExtension(self):
+    """
+      This method sets a list of default extensions a specific code interface accepts for the input files.
+      This method should be overwritten if these are not acceptable defaults.
+      @ In , None
+      @ Out, None
+    """
+    self.addInputExtension(['.i','.inp','.in'])
 
   def finalizeCodeOutput(self,command,output,workingDir):
     """

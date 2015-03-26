@@ -741,6 +741,30 @@ to couple a new code.
   %
   \default{None}
   %
+  \item \xmlNode{clargs} \xmlDesc{string, optional field} allows addition of 
+  command-line arguments to the execution command.  If the code interface
+  specified in \xmlNode{Code} \xmlAttr{subType} does not specify how to 
+  determine the input file(s), this node must be used to specify them.
+  There are several types of \xmlNode{clargs}, based on the \xmlAttr{type}:
+  \begin{itemize}
+    \item \xmlAttr{type} \xmlDesc{string, required field} specifies the type of
+    command-line argument to add.  Options include \xmlString{input}, 
+    \xmlString{output}, \xmlString{prepend}, \xmlString{postpend}, and
+    \xmlString{text}.
+    %
+    \item \xmlAttr{arg} \xmlDesc{string, optional field} specifies the flag to
+    be used before the entry.  For example, \xmlAttr{arg=}\xmlString{-i} would
+    place a \texttt{-i} before the entry in the execution command.  Required for
+    the \xmlString{output} \xmlAttr{type}.
+    %
+    \item \xmlAttr{extension} \xmlDesc{string, optional field} specifies the type
+    of file extension to use (for example, \texttt{-i} or \texttt{-o}).  This links the
+    \xmlNode{Input} file in the \xmlNode{Step} to this location in the execution
+    command.  Required for \xmlString{input} \xmlAttr{type}.
+  \end{itemize}
+  The execution command is combined in the order \xmlString{prepend},
+  \xmlNode{executable}, \xmlString{input}, \xmlString{output}, \xmlString{text},
+  \xmlString{postpend}.
 \end{itemize}
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={subType,name,variable}]
@@ -933,7 +957,6 @@ Thus, it can only be trained from the outcomes of a grid sampling strategy.
 
 %%%%% ROM Model - GaussPolynomialRom  %%%%%%% 
 \subsubsection{GaussPolynomialRom}
-%\talbpaul{Work in progress.}
 \label{subsubsec:GaussPolynomialRom}
 The GaussPolynomialRom sub-type contains a single ROM type, based on a 
 characteristic Gaussian polynomial fitting scheme: generalized polynomial chaos
@@ -4357,3 +4380,4 @@ The following is a list of acceptable sub-nodes:
 %\paragraph{LoadCsvIntoInternalObject}
 %\label{LoadCsvIntoInternalObject}
 %TO BE MOVED TO STEP ``IOSTEP''
+%
