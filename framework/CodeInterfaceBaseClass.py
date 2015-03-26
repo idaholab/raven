@@ -40,9 +40,21 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
     return subcodeCommand,outputfileroot
 
   def readMoreXML(self,xmlNode):
+    '''
+      Function to read the portion of the xml input that belongs to this class and
+      initialize some members based on inputs.
+      @ In, xmlNode, XML element node
+      @Out, None.
+    '''
     self._readMoreXML(xmlNode)
 
   def _readMoreXML(self,xmlNode):
+    '''
+      Function to read the portion of the xml input that belongs to this specialized class and
+      initialize some members based on inputs.
+      @ In, xmlNode, XML element node
+      @Out, None.
+    '''
     pass #afaik, this is only used in GenericCodeInterface currently.
 
   @abc.abstractmethod
@@ -106,13 +118,26 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
     """
     self.addInputExtension(['.i','.inp','.in'])
 
-  def finalizeCodeOutput(self,currentInputFiles,output,workingDir):
+  def finalizeCodeOutput(self,command,output,workingDir):
     """
     this method is called by the RAVEN code at the end of each run (if the method is present).
     It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
-    @ currentInputFiles, currentInputFiles, list,  list of current input files (input files from last this method call)
+    @ command, Input, the command used to run the just ended job
     @ output, Input, the Output name root (string)
     @ workingDir, Input, actual working dir (string)
     @ return string, optional, present in case the root of the output file gets changed in this method.
     """
     return output
+
+  def checkForOutputFailure(self,output,workingDir):
+    """
+    this method is called by RAVEN at the end of each run if the return code is == 0.
+    This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
+    This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
+    This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
+    (e.g. in RELAP5 would be the keyword "********")
+    @ output, Input, the Output name root (string)
+    @ workingDir, Input, actual working dir (string)
+    @ return bool, required, True if the job is failed, False otherwise
+    """
+    return False

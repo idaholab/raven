@@ -538,12 +538,12 @@ class IOStep(Step):
         outputs[i].addGroupDatas({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
-        fileobj = open(outputs[i],'w+')
+        fileobj = open(outputs[i],'wb+')
         cloudpickle.dump(inDictionary['Input'][i],fileobj)
         fileobj.close()
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
-        fileobj = open(inDictionary['Input'][i],'r+')
+        fileobj = open(inDictionary['Input'][i],'rb+')
         unpickledObj = pickle.load(fileobj)
         outputs[i].train(unpickledObj)
         fileobj.close()

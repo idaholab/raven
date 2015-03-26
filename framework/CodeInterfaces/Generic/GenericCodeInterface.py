@@ -13,6 +13,12 @@ from CodeInterfaceBaseClass import CodeInterfaceBase
 from utils import returnPrintTag,returnPrintPostTag
 
 class GenericCodeInterface(CodeInterfaceBase):
+  '''This class is used as a generic code interface for Model.Code in Raven.  It expects
+     input paremeters to be specified by input file, input files be specified by either
+     command line or in a main input file, and produce a csv output.  It makes significant
+     use of the 'clargs', 'fileargs', 'prepend', 'text', and 'postpend' nodes in the input
+     XML file.  See base class for more details.
+  '''
   def __init__(self):
     '''Initializes the GenericCode Interface.
        @ In, None
