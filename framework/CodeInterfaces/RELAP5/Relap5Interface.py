@@ -14,7 +14,7 @@ from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Relap5(CodeInterfaceBase):
   '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
-  def generateCommand(self,inputFiles,executable,flags=None):
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     '''seek which is which of the input files and generate According the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
@@ -23,8 +23,8 @@ class Relap5(CodeInterfaceBase):
         break
     if not found: raise Exception('Relap5 INTERFACE ERROR -> None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    if flags: addflags = flags['text']
-    else    : addflags = ''
+    if clargs: addflags = clargs['text']
+    else     : addflags = ''
     #executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[1] + '.o' + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '+ addflags
     executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[0] + outputfile + '.o' + ' -r ' + os.path.split(inputFiles[index])[0] + outputfile + '.r '+ addflags
     return executeCommand,outputfile
