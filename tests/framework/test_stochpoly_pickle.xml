@@ -38,7 +38,7 @@
 
     <Models>
         <Dummy name="MyDummy" subType="" print="True"/>
-        <ExternalModel name='polynomial' subType='' ModuleToLoad = 'polynomial'>
+        <ExternalModel name='polynomial' subType='' ModuleToLoad = './StochasticPolyPickleTest/polynomial'>
             <variable>x1</variable>
             <variable>x2</variable>
             <variable>ans</variable>

@@ -358,6 +358,13 @@
   csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
  [../]
 
+ [./ND_external_MC]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_MC.xml'
+  output = 'ND_test_MC/testPrintTimePointSet_dump.csv ND_test_MC/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_MC/testPrintTimePointSet_dump.csv ND_test_MC/testPrintTimePointSet_dump.csv'
+ [../]
+
  [./stochPolyInterpTest]
   type = 'RavenFramework'
   input = 'test_stochpoly_interp.xml'
@@ -373,11 +380,39 @@
   test_interface_only = True
  [../]
 
+
+ [./ND_external_LHS]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_LHS.xml'
+  output = 'ND_test_LHS/testPrintTimePointSet_dump.csv ND_test_LHS/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_LHS/testPrintTimePointSet_dump.csv ND_test_LHS/testPrintTimePointSet_dump.csv'
+ [../]
+
+ [./ND_external_grid_value]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_grid_value.xml'
+  output = 'ND_test_Grid_value/testPrintTimePointSet_dump.csv ND_test_Grid_value/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_Grid_value/testPrintTimePointSet_dump.csv ND_test_Grid_value/testPrintTimePointSet_dump.csv'
+ [../]
+
+ [./ND_external_grid_cdf]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_grid_cdf.xml'
+  output = 'ND_test_Grid_cdf/testPrintTimePointSet_dump.csv ND_test_Grid_cdf/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_Grid_cdf/testPrintTimePointSet_dump.csv ND_test_Grid_cdf/testPrintTimePointSet_dump.csv'
+
  [./test_comparison_statistics]
    type = 'RavenFramework'
    input = 'test_cc_stats.xml'
    output = 'test_cc_stats/output.csv'
    csv = 'test_cc_stats/output_fullprint_timepointset_outputs_normal1_0.csv test_cc_stats/output_fullprint_timepointset_outputs_normal1_1.csv test_cc_stats/output_fullprint_timepointset_outputs_normal2_0.csv test_cc_stats/output_fullprint_timepointset_outputs_normal2_1.csv test_cc_stats/output_fullprint_timepointset_outputs_uniform1_fullprint_timepointset_outputs_uniform2p_0.csv test_cc_stats/output_fullprint_timepointset_outputs_uniform1_fullprint_timepointset_outputs_uniform2p_1.csv'
+ [../]
+
+ [./genericInterface]
+   type = 'RavenFramework'
+   input = 'test_generic_interface.xml'
+   output = 'GenericInterface/samples.xml'
+   csv = 'GenericInterface/samples.csv'
  [../]
 
 []

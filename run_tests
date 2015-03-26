@@ -33,9 +33,11 @@ try:
 except:
   sys.path.append(os.path.join("scripts","TestHarness","testers"))
   import RavenUtils
-  missing = RavenUtils.checkForMissingModules()
+  missing,too_old = RavenUtils.checkForMissingModules()
   if len(missing) > 0:
     print "No raven_libs found and missing modules "+",".join(missing)
+  if len(too_old) > 0:
+    print "No raven_libs found and old version modules "+",".join(too_old)
 coverage = False
 for i in sys.argv:
   if i == "--check_coverage": coverage = True

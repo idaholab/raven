@@ -362,15 +362,19 @@ class ComparisonStatistics(BasePostProcessor):
   def run(self, Input): # inObj,workingDir=None):
     """
      Function to finalize the filter => execute the filtering
-     @ Out, None      : Print of the CSV file
+     @ Out, None      : To add description
     """
-    for aInput in Input:
-      self.dataDict[aInput.name] = aInput
+    dataDict = {}
+    for aInput in Input: dataDict[aInput.name] = aInput
+    return dataDict
     #print("input",Input,"input name",Input.name,"input input",Input.getParametersValues('inputs'),
     #      "input output",Input.getParametersValues('outputs'))
 
   def collectOutput(self,finishedjob,output):
-    print("finishedjob",finishedjob,"output",output)
+    if self.debug: print("finishedjob",finishedjob,"output",output)
+    if finishedjob.returnEvaluation() == -1: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> no available output to collect.')
+    else: self.dataDict.update(finishedjob.returnEvaluation()[1])
+
     dataToProcess = []
     for compare_group in self.compare_groups:
       dataPulls = compare_group.dataPulls
