@@ -26,7 +26,7 @@ class Relap5(CodeInterfaceBase):
     if flags: addflags = flags
     else    : addflags = ''
     #executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[1] + '.o' + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '+ addflags
-    executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[0] + outputfile + '.o' + ' -r ' + os.path.split(inputFiles[index])[0] + outputfile + '.r '+ addflags
+    executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.join(os.path.split(inputFiles[index])[0],outputfile + '.o') + ' -r ' + os.path.join(os.path.split(inputFiles[index])[0], outputfile + '.r ') + addflags
     return executeCommand,outputfile
 
   def finalizeCodeOutput(self,command,output,workingDir):
