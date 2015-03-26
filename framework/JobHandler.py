@@ -256,20 +256,21 @@ class InternalRunner:
 
 class JobHandler:
   def __init__(self):
-    self.runInfoDict       = {}
-    self.mpiCommand        = ''
-    self.threadingCommand  = ''
-    self.submitDict = {}
+    self.runInfoDict            = {}
+    self.mpiCommand             = ''
+    self.threadingCommand       = ''
+    self.initParallelPython     = False
+    self.submitDict             = {}
     self.submitDict['External'] = self.addExternal
     self.submitDict['Internal'] = self.addInternal
     self.externalRunning        = []
     self.internalRunning        = []
-    self.__running = []
-    self.__queue = queue.Queue()
-    self.__nextId = 0
-    self.__numSubmitted = 0
-    self.__numFailed = 0
-    self.__failedJobs = []
+    self.__running              = []
+    self.__queue                = queue.Queue()
+    self.__nextId               = 0
+    self.__numSubmitted         = 0
+    self.__numFailed            = 0
+    self.__failedJobs           = []
 
   def initialize(self,runInfoDict):
     self.runInfoDict = runInfoDict
@@ -279,19 +280,42 @@ class JobHandler:
       self.threadingCommand = self.runInfoDict['ThreadingCommand'] +' '+str(self.runInfoDict['NumThreads'])
     #initialize PBS
     self.__running = [None]*self.runInfoDict['batchSize']
+
+  def __initializeParallelPython(self):
+    """
+      Internal method that is aimed to initialize the internal parallel system.
+      It initilizes the paralle python implementation (with socketing system) in case
+      RAVEN is run in a cluster with multiple nodes or the NumMPI > 1,
+      otherwise multi-threading is used.
+      @ In, None
+      @ Out, None
+    """
     # check if the list of unique nodes is present and, in case, initialize the socket
-    if len(self.runInfoDict['uniqueNodes']) > 0:
+    if len(self.runInfoDict['Nodes']) > 0:
       # initialize the socketing system
-      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py -a")
+      #ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py -a")
+      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
       # create the servers in the reserved nodes
-      for nodeid in self.runInfoDict['uniqueNodes']: subprocess.Popen('ssh '+nodeid+' '+ ppserverScript , shell=True) #,env=localenv)
+      localenv = dict(os.environ)
+      #localenv['PYTHONPATH'] = ''
+      ppservers = []
+      for nodeid in [node.strip() for node in set(self.runInfoDict['Nodes'])]:
+        outFile = open(nodeid.strip()+"_server_out.log",'w')
+        # check how many processors are available in the node
+        ntasks = self.runInfoDict['Nodes'].count(nodeid)
+        process = subprocess.Popen(['ssh', nodeid, ppserverScript,"-w",str(ntasks),"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        ppservers.append(nodeid)
+      #for nodeid in self.runInfoDict['Nodes']: subprocess.call(['ssh ', nodeid, ppserverScript])
+      #for nodeid in self.runInfoDict['Nodes']: subprocess.Popen('ssh '+nodeid+' '+ ppserverScript , shell=True) #,env=localenv)
       # create the server handler
-      ppservers=("*",)
-      self.ppserver     = pp.Server(ppservers=ppservers)
-      #self.ppserver     = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']), ppservers=tuple(self.runInfoDict['uniqueNodes']))
+      #ppservers=("*",)
+      #ppservers = tuple(nodeid.split(".")[0])
+      self.ppserver     = pp.Server(ppservers=tuple(ppservers)) #,ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+      #self.ppserver     = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']), ppservers=tuple(self.runInfoDict['Nodes']))
     else:
-      if self.runInfoDict['NumMPI'] !=1: self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
-      else                             : self.ppserver = None                                                        # we just use threading!
+      if self.runInfoDict['NumMPI'] > 1: self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
+      else                             : self.ppserver = None        # we just use threading!
+    self.initParallelPython = True
 
   def addExternal(self,executeCommand,outputFile,workingDir,metadata=None,codePointer=None):
     """
@@ -316,6 +340,8 @@ class JobHandler:
     if self.howManyFreeSpots()>0: self.addRuns()
 
   def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], globs = None):
+    #internal serve is initialized only in case an internal calc is requested
+    if not self.initParallelPython: self.__initializeParallelPython()
     self.__queue.put(InternalRunner(self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs, functionToSkip=[metaclass_insert(abc.ABCMeta,BaseType)]))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
@@ -409,5 +435,3 @@ class JobHandler:
     #clear out the queue
     while not self.__queue.empty(): self.__queue.get()
     for i in range(len(self.__running)): self.__running[i].kill()
-
-
