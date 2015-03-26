@@ -1233,6 +1233,7 @@ class LimitSurface(BasePostProcessor):
     self.externalFunction  = None             #Pointer to an external Function
     self.subGridTol        = 1.0e-4           #SubGrid tollerance
     self.gridVectors       = {}
+    self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
     self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = utils.returnPrintTag('POSTPROCESSOR LIMITSURFACE')
@@ -1260,6 +1261,12 @@ class LimitSurface(BasePostProcessor):
     return inputDict
 
   def _initializeLSpp(self, runInfo, inputs, initDict):
+    """
+     Method to initialize the LS post processor (create grid, etc.)
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
@@ -1291,10 +1298,10 @@ class LimitSurface(BasePostProcessor):
                                        max(self.inputs[self.indexes].getParam(self.paramType[x],x))]
     #moving forward building all the information set
     pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
-    #building the grid point coordinates 
+    #building the grid point coordinates
     for varId, varName in enumerate(self.parameters['targets']):
       self.axisName.append(varName)
-      if len(self.gridVectors.keys()) == 0:
+      if not self.gridFromOutside:
         [myStepLenght, start, end]  = stepParam(varName)
         if start == end:
           start = start - 0.001*start
@@ -1323,6 +1330,10 @@ class LimitSurface(BasePostProcessor):
       self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
 
   def _initializeLSppROM(self, inp):
+    """
+     Method to initialize the LS accellation rom
+     @ In, inp, Data(s) object, data object containing the training set
+    """
     print('Initiate training')
     self.functionValue.update(inp.getParametersValues('input'))
     self.functionValue.update(inp.getParametersValues('output'))
@@ -1364,17 +1375,31 @@ class LimitSurface(BasePostProcessor):
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training finished')
 
   def initialize(self, runInfo, inputs, initDict):
+    """
+     Method to initialize the LS pp.
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
     self._initializeLSpp(runInfo, inputs, initDict)
     self._initializeLSppROM(self.inputs[self.indexes])
-  
+
   def _initFromDict(self,dictIn):
+    """
+      Initialize the LS pp from a dictionary (not from xml input).
+      This is used when other objects initialize and use the LS pp for internal
+      calculations
+      @ In, dictIn, dict, dictionary of initialization options
+    """
     if "parameters" not in dictIn.keys(): raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> No Parameters specified in XML input!!!!')
     if type(dictIn["parameters"]) == list: self.parameters['targets'] = dictIn["parameters"]
     else                                 : self.parameters['targets'] = dictIn["parameters"].split(",")
     if "tolerance" in dictIn.keys(): self.subGridTol = float(dictIn["tolerance"])
     if "side" in dictIn.keys(): self.lsSide = dictIn["side"]
     if self.lsSide not in ["negative","positive","both"]: raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> Computation side can be positive, negative, both only !!!!')
-    if "gridVectors" in dictIn.keys(): self.gridVectors = dictIn["gridVectors"]
+    if "gridVectors" in dictIn.keys():
+      self.gridVectors     = dictIn["gridVectors"]
+      self.gridFromOutside = True
     if "debug"       in dictIn.keys(): self.debug = dictIn["debug"]
 
   def getFunctionValue(self):
@@ -1417,7 +1442,7 @@ class LimitSurface(BasePostProcessor):
      @ In , boolean          : True if listSurfaceCoordinate needs to be returned
      @ Out, dictionary       : Dictionary with results
     """
-    if InputIn != None: self.initialize({'WorkingDir':self.__workingDir},[InputIn],{})
+    #if InputIn != None: self.initialize({'WorkingDir':self.__workingDir},InputIn,{})
     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
@@ -1444,7 +1469,7 @@ class LimitSurface(BasePostProcessor):
     listsurfPointPositive = []
     if self.lsSide in ["negative","both"]:
       #it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
-      listsurfPointNegative=self.__localLimitStateSearch__(toBeTested,-1)         
+      listsurfPointNegative=self.__localLimitStateSearch__(toBeTested,-1)
       nNegPoints = len(listsurfPointNegative)
     if self.lsSide in ["positive","both"]:
       #it returns the list of points belonging to the limit state surface and resulting in a positive response by the ROM
@@ -1465,11 +1490,11 @@ class LimitSurface(BasePostProcessor):
       self.surfPoint = np.ndarray((len(listsurfPoint),self.nVar))
       for pointID, coordinate in enumerate(listsurfPoint):
         self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
-      evaluations = np.concatenate((-np.ones(nNegPoints),np.ones(nPosPoints)), axis=0)  
+      evaluations = np.concatenate((-np.ones(nNegPoints),np.ones(nPosPoints)), axis=0)
       #outputPlaceOrder[pointID] = pointID
     if returnListSurfCoord: return self.surfPoint,evaluations,listsurfPoint
     else                  : return self.surfPoint,evaluations
-    
+
 
   def __localLimitStateSearch__(self,toBeTested,sign):
     '''
