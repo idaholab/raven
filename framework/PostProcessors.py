@@ -1335,8 +1335,8 @@ class LimitSurface(BasePostProcessor):
      @ In, inp, Data(s) object, data object containing the training set
     """
     print('Initiate training')
-    self.functionValue.update(inp.getParametersValues('input'))
-    self.functionValue.update(inp.getParametersValues('output'))
+    self.functionValue.update(inp.getParametersValues('input',nodeid='RecontructEnding'))
+    self.functionValue.update(inp.getParametersValues('output',nodeid='RecontructEnding'))
     #recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name])-1
     else                                                      : indexLast = -1
@@ -1491,6 +1491,8 @@ class LimitSurface(BasePostProcessor):
       for pointID, coordinate in enumerate(listsurfPoint):
         self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
       evaluations = np.concatenate((-np.ones(nNegPoints),np.ones(nPosPoints)), axis=0)
+    else:
+      print(len(listsurfPoint))
       #outputPlaceOrder[pointID] = pointID
     if returnListSurfCoord: return self.surfPoint,evaluations,listsurfPoint
     else                  : return self.surfPoint,evaluations

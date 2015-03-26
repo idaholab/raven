@@ -528,6 +528,7 @@ class AdaptiveSampler(Sampler):
     #moving forward building all the information set
     pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
     #building the grid point coordinates
+    gridVectorsForLS = {}
     for varId, varName in enumerate(self.distDict.keys()):
       self.axisName.append(varName)
       [myStepLenght, start, end]  = stepParam(varName)
@@ -535,8 +536,9 @@ class AdaptiveSampler(Sampler):
       if self.toleranceWeight=='cdf'     : self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLenght)])
       elif self.toleranceWeight=='value' : self.gridVectors[varName] = np.arange(start,end,myStepLenght)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
+      gridVectorsForLS[varName.replace('<distribution>','')] = self.gridVectors[varName]
     # initialize LimitSurface PP
-    self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.distDict.keys()],"tolerance":self.subGridTol,"side":"both","gridVectors":self.gridVectors,"debug":self.debug})
+    self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.distDict.keys()],"tolerance":self.subGridTol,"side":"both","gridVectors":gridVectorsForLS,"debug":self.debug})
     self.limitSurfacePP.assemblerDict = self.assemblerDict
     self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{})
     self.persistenceMatrix        = np.zeros(tuple(pointByVar))      #matrix that for each point of the testing grid tracks the persistence of the limit surface position
