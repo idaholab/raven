@@ -23,7 +23,7 @@ class Relap5(CodeInterfaceBase):
         break
     if not found: raise Exception('Relap5 INTERFACE ERROR -> None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    if flags: addflags = flags
+    if flags: addflags = flags['text']
     else    : addflags = ''
     #executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[1] + '.o' + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '+ addflags
     executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[0] + outputfile + '.o' + ' -r ' + os.path.split(inputFiles[index])[0] + outputfile + '.r '+ addflags
