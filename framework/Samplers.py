@@ -536,7 +536,7 @@ class AdaptiveSampler(Sampler):
       elif self.toleranceWeight=='value' : self.gridVectors[varName] = np.arange(start,end,myStepLenght)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
     # initialize LimitSurface PP
-    self.limitSurfacePP._initFromDict({"parameters":self.distDict.keys(),"tolerance":self.subGridTol,"side":"both","gridVectors":self.gridVectors,"debug":self.debug})
+    self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.distDict.keys()],"tolerance":self.subGridTol,"side":"both","gridVectors":self.gridVectors,"debug":self.debug})
     self.limitSurfacePP.assemblerDict = self.assemblerDict
     self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{})
     self.persistenceMatrix        = np.zeros(tuple(pointByVar))      #matrix that for each point of the testing grid tracks the persistence of the limit surface position
