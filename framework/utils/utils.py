@@ -1,3 +1,8 @@
+from __future__ import print_function
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
+
 import numpy as np
 import bisect
 import sys, os
@@ -354,3 +359,9 @@ def find_interpolationND():
         raise ie
       import interpolationNDpy2
       return interpolationNDpy2
+
+def printCsv(csv,*args):
+    print(*args,file=csv,sep=',')
+
+def printCsvPart(csv,*args):
+    print(*args,file=csv,sep=',',end=',')
