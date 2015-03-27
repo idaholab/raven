@@ -55,8 +55,8 @@ class Relap5(CodeInterfaceBase):
     @ return bool, required, True if the job is failed, False otherwise
     """
     from  __builtin__ import any as b_any
-    errorWord = "********"
-    return b_any(errorWord in x for x in open(os.path.join(workingDir,output+'.o'),"r").readlines())
+    errorWord = "Transient terminated by end of time step cards"
+    return not b_any(errorWord in x.strip() for x in open(os.path.join(workingDir,output+'.o'),"r").readlines())
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''
