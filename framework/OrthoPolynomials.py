@@ -26,7 +26,7 @@ import Quadratures
 
 def factorial(x):
   if x==0: return 1
-  return gamma(x)
+  return gamma(x+1.)
 
 class OrthogonalPolynomial(object):
   '''Provides polynomial generators and evaluators for stochastic collocation.'''
@@ -290,19 +290,19 @@ class Jacobi(OrthogonalPolynomial):
   def norm(self,n):
     a=self.params[0]#+1
     b=self.params[1]#+1
-#    coeff=1.
-#    coeff*=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
-#    coeff*=np.sqrt(factorial(n)*factorial(n+a+b)/(factorial(n+a)*factorial(n+b)))
-#    coeff*=np.sqrt(2)
-#    #not sure why I need this factor, but it corrects all cases I tested
-#    #FIXME it might be wrong for n>1, though, it occurs to me...
-#    cof2 = 1
-#    cof2 *= 2.**(a+b)/(a+b+1.)
-#    cof2 *= factorial(a)*factorial(b)/factorial(a+b)
-#    coeff*=np.sqrt(cof2)
+    coeff=1.
+    coeff*=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
+    coeff*=np.sqrt(factorial(n)*factorial(n+a+b)/(factorial(n+a)*factorial(n+b)))
+    coeff*=np.sqrt(2)
+    #not sure why I need this factor, but it corrects all cases I tested
+    #FIXME it might be wrong for n>1, though, it occurs to me...
+    cof2 = 1
+    cof2 *= 2.**(a+b)/(a+b+1.)
+    cof2 *= factorial(a)*factorial(b)/factorial(a+b)
+    coeff*=np.sqrt(cof2)
     ###speedup attempt###
-    coeff=(2.0*n+a+b+1.0)/2.0
-    coeff*=factorial(n)*factorial(n+a+b)
+#    coeff=(2.0*n+a+b+1.0)/2.0
+#    coeff*=factorial(n)*factorial(n+a+b) TODO
     return coeff
 
 
