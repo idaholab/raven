@@ -28,7 +28,6 @@ from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
 import PostProcessors #import returnFilterInterface
-#import Samplers
 import CustomCommandExecuter
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
@@ -79,20 +78,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Sampler'][0]['class'       ] ='Samplers'
   validateDict['Sampler'][0]['required'    ] = False
   validateDict['Sampler'][0]['multiplicity'] = 1
-  #validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
-  #FIXME this is a temporary statick list assignment to fix the circular references
-  #    generated in SamplingROM from inheriting both Model and Sampler (Issue #13 on the wiki)
-  #FIXME MORE this isn't an issue since we scrapped SamplingROM, but circular references
-  #    are still a potential issue
-  validateDict['Sampler'][0]['type'] = ['MonteCarlo',
-                                        'DynamicEventTree',
-                                        'LHS',
-                                        'Grid',
-                                        'Adaptive',
-                                        'AdaptiveDynamicEventTree',
-                                        'FactorialDesign',
-                                        'ResponseSurfaceDesign',
-                                        'SparseGridCollocation']
+  validateDict['Sampler'][0]['type']         = ['MonteCarlo',
+                                                'DynamicEventTree',
+                                                'LHS',
+                                                'Grid',
+                                                'Adaptive',
+                                                'AdaptiveDynamicEventTree',
+                                                'FactorialDesign',
+                                                'ResponseSurfaceDesign',
+                                                'SparseGridCollocation']
 
   @classmethod
   def generateValidateDict(cls):
@@ -339,7 +333,6 @@ class ROM(Dummy):
       if child.attrib:
         if child.tag not in self.initializationOptionDict.keys():
           self.initializationOptionDict[child.tag]={}
-        #print('DEBUG ROM',child.tag,child.text)
         #TODO this is hacked up to work for GaussPolynomialRoms right now
         self.initializationOptionDict[child.tag][child.text]=child.attrib
         #self.initializationOptionDict[child.tag].update(child.attrib)
@@ -579,9 +572,13 @@ class Code(Model):
     self.printTag = utils.returnPrintTag('MODEL CODE')
 
   def _readMoreXML(self,xmlNode):
-    '''extension of info to be read for the Code(model)
-    !!!!generate also the code interface for the proper type of code!!!!'''
+    '''extension of info to be read for the Code(model) as well as the code interface, and creates the interface.
+    @ In: xmlNode, node object
+    @ Out: None.
+    '''
     Model._readMoreXML(self, xmlNode)
+    #TODO consider: should clargs be an ordered dict?
+    self.clargs={'text':'', 'input':{'noarg':[]}, 'output':'', 'pre':'', 'post':''}
     for child in xmlNode:
       if child.tag =='executable':
         self.executable = str(child.text)
@@ -589,8 +586,33 @@ class Code(Model):
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
         else: raise Exception (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
-      elif child.tag == 'flags': self.codeFlags = child.text
-      else: raise Exception (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> unknown tag within the definition of the code model '+str(self.name))
+      elif child.tag == 'clargs':
+        argtype = child.attrib['type']      if 'type'      in child.attrib.keys() else None
+        arg     = child.attrib['arg']       if 'arg'       in child.attrib.keys() else None
+        ext     = child.attrib['extension'] if 'extension' in child.attrib.keys() else None
+        if argtype == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "type" for clarg '+child.text+' not specified!')
+        elif argtype == 'text':
+          if ext != None: print(self.printTag+': '+utils.returnPrintPostTag('WARNING')+'-> "text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if arg == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "arg" for clarg '+argtype+' not specified! Enter text to be used.')
+          self.clargs['text']=arg
+        elif argtype == 'input':
+          if ext == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "extension" for clarg '+argtype+' not specified! Enter filetype to be listed for this flag.')
+          if arg == None: self.clargs['input']['noarg'].append(ext)
+          else:
+            if arg not in self.clargs['input'].keys(): self.clargs['input'][arg]=[]
+            self.clargs['input'][arg].append(ext)
+        elif argtype == 'output':
+          if arg == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "arg" for clarg '+argtype+' not specified! Enter flag for output file specification.')
+          self.clargs['output'] = arg
+        elif argtype == 'prepend':
+          if ext != None: print(self.printTag+': '+utils.returnPrintPostTag('WARNING')+'-> "prepend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if arg == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "arg" for clarg '+argtype+' not specified! Enter text to be used.')
+          self.clargs['pre'] = arg
+        elif argtype == 'postpend':
+          if ext != None: print(self.printTag+': '+utils.returnPrintPostTag('WARNING')+'-> "postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if arg == None: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> "arg" for clarg '+argtype+' not specified! Enter text to be used.')
+          self.clargs['post'] = arg
+        #any additional nodes should be read in code.readMoreXML
     if self.executable == '': raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
     abspath = os.path.abspath(self.executable)
@@ -598,6 +620,9 @@ class Code(Model):
       self.executable = abspath
     else: print(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found executable '+self.executable)
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType)
+    self.code.readMoreXML(xmlNode)
+    self.code.setInputExtension(list(a for b in (c for c in self.clargs['input'].values()) for a in b))
+    self.code.addDefaultExtension()
 
   def addInitParams(self,tempDict):
     '''extension of addInitParams for the Code(model)'''
@@ -633,8 +658,14 @@ class Code(Model):
     ''' This function creates a new input
         It is called from a sampler to get the implementation specific for this model'''
     Kwargs['executable'] = self.executable
-    if currentInput[0].endswith('.i'): index = 0
-    else: index = 1
+    found = False
+    for index, inputFile in enumerate(currentInput):
+      if inputFile.endswith(self.code.getInputExtension()):
+        found = True
+        break
+    if not found: raise Exception(self.printTag+ ': ' +utils.returnPrintPostTag('Error') +
+                                  '->  None of the input files has one of the extensions requested by code '
+                                  + self.subType +': ' + ' '.join(self.code.getInputExtension()))
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
@@ -642,11 +673,17 @@ class Code(Model):
   def run(self,inputFiles,jobHandler):
     '''append a run at the externalRunning list of the jobHandler'''
     self.currentInputFiles = inputFiles[0]
-    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.codeFlags)
+    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs)
     #executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
-    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1])
+    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
+    found = False
     for index, inputFile in enumerate(self.currentInputFiles):
-      if inputFile.endswith(('.i','.inp','.in')): break
+      if inputFile.endswith(self.code.getInputExtension()):
+        found = True
+        break
+    if not found: raise Exception(self.printTag+ ': ' +utils.returnPrintPostTag('Error') +
+                                  '->  None of the input files has one of the extensions requested by code '
+                                  + self.subType +': ' + ' '.join(self.getInputExtension()))
     print(self.printTag+ ': ' +utils.returnPrintPostTag('Message') + '-> job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
 
   def collectOutput(self,finisishedjob,output):
