@@ -503,13 +503,11 @@ class AdaptiveSampler(Sampler):
     ROM = None
     if 'Function' in self.assemblerDict.keys(): self.goalFunction = self.assemblerDict['Function'][0][3]
     if 'TargetEvaluation' in self.assemblerDict.keys(): self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
-    if 'ROM' in self.assemblerDict.keys(): ROM = self.assemblerDict['ROM'][0][3]
     self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
     # check if solutionExport is actually a "Datas" type "TimePointSet"
     if type(solutionExport).__name__ != "TimePointSet": raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
-    self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
     #self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
@@ -521,8 +519,6 @@ class AdaptiveSampler(Sampler):
     #if not goalFunction: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Gaol Function not provided!!')
     #set up the ROM for the acceleration
     #mySrting= ','.join(list(self.distDict.keys()))
-    if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})
-    else        : self.ROM = ROM
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
     if self.toleranceWeight=='value':
       for varName in self.distDict.keys():
@@ -557,79 +553,79 @@ class AdaptiveSampler(Sampler):
     self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{})
     self.persistenceMatrix        = np.zeros(tuple(pointByVar))      #matrix that for each point of the testing grid tracks the persistence of the limit surface position
 # from old sampler
-    self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
+    #self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
     self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
-    self.testMatrix               = np.zeros(self.gridShape)      #grid where the values of the goalfunction are stored
+    #self.testMatrix               = np.zeros(self.gridShape)      #grid where the values of the goalfunction are stored
     self.oldTestMatrix            = np.zeros(self.gridShape)      #swap matrix fro convergence test
-    self.gridCoorShape            = tuple(pointByVar+[self.nVar]) #shape of the matrix containing all coordinate of all points in the grid
-    self.gridCoord                = np.zeros(self.gridCoorShape)  #the matrix containing all coordinate of all points in the grid
+    #self.gridCoorShape            = tuple(pointByVar+[self.nVar]) #shape of the matrix containing all coordinate of all points in the grid
+    #self.gridCoord                = np.zeros(self.gridCoorShape)  #the matrix containing all coordinate of all points in the grid
     self.persistenceMatrix        = np.zeros(self.gridShape)      #matrix that for each point of the testing grid tracks the persistence of the limit surface position
     #filling the coordinate on the grid
-    myIterator = np.nditer(self.gridCoord,flags=['multi_index'])
-    while not myIterator.finished:
-      coordinateID  = myIterator.multi_index[-1]
-      axisName      = self.axisName[coordinateID]
-      valuePosition = myIterator.multi_index[coordinateID]
-      self.gridCoord[myIterator.multi_index] = self.gridVectors[axisName][valuePosition]
-      myIterator.iternext()
-    self.axisStepSize = {}
-    for varName in self.distDict.keys():
-      self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
-    #printing
-    if self.debug:
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> self.gridShape '+str(self.gridShape))
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> self.testGridLenght '+str(self.testGridLenght))
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> self.gridCoorShape '+str(self.gridCoorShape))
-      for key in self.gridVectors.keys():
-        print(self.printTag+': ' +returnPrintPostTag('Message') + '-> the variable '+key+' has coordinate: '+str(self.gridVectors[key]))
-      myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
-      while not myIterator.finished:
-        print (self.printTag+': ' +returnPrintPostTag('Message') + '-> Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
-        myIterator.iternext()
-    self.hangingPoints    = np.ndarray((0, self.nVar))
-    if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':','.join(self.axisName),'Target':self.goalFunction.name})
-    else        : self.ROM = ROM
+#     myIterator = np.nditer(self.gridCoord,flags=['multi_index'])
+#     while not myIterator.finished:
+#       coordinateID  = myIterator.multi_index[-1]
+#       axisName      = self.axisName[coordinateID]
+#       valuePosition = myIterator.multi_index[coordinateID]
+#       self.gridCoord[myIterator.multi_index] = self.gridVectors[axisName][valuePosition]
+#       myIterator.iternext()
+#     self.axisStepSize = {}
+#     for varName in self.distDict.keys():
+#       self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
+#     #printing
+#     if self.debug:
+#       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> self.gridShape '+str(self.gridShape))
+#       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> self.testGridLenght '+str(self.testGridLenght))
+#       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> self.gridCoorShape '+str(self.gridCoorShape))
+#       for key in self.gridVectors.keys():
+#         print(self.printTag+': ' +returnPrintPostTag('Message') + '-> the variable '+key+' has coordinate: '+str(self.gridVectors[key]))
+#       myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
+#       while not myIterator.finished:
+#         print (self.printTag+': ' +returnPrintPostTag('Message') + '-> Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
+#         myIterator.iternext()
+#     self.hangingPoints    = np.ndarray((0, self.nVar))
+#     if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':','.join(self.axisName),'Target':self.goalFunction.name})
+#     else        : self.ROM = ROM
 # end old sampler
     print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Initialization done')
 
-  def _trainingROM(self,lastOutput):
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Initiate training')
-    if type(lastOutput) == dict:
-      self.functionValue.update(lastOutput['inputs' ])
-      self.functionValue.update(lastOutput['outputs'])
-    else:
-      self.functionValue.update(lastOutput.getParametersValues('inputs',nodeid='RecontructEnding'))
-      self.functionValue.update(lastOutput.getParametersValues('outputs',nodeid='RecontructEnding'))
-    #recovery the index of the last function evaluation performed
-    if self.goalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.goalFunction.name])-1
-    else                                                  : indexLast = -1
-    #index of last set of point tested and ready to perform the function evaluation
-    indexEnd  = len(self.functionValue[self.axisName[0].replace('<distribution>','')])-1
-    tempDict  = {}
-    if self.goalFunction.name in self.functionValue.keys(): self.functionValue[self.goalFunction.name] = np.append( self.functionValue[self.goalFunction.name], np.zeros(indexEnd-indexLast))
-    else                                                  : self.functionValue[self.goalFunction.name] = np.zeros(indexEnd+1)
-    for myIndex in range(indexLast+1,indexEnd+1):
-      for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
-      if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
-      self.functionValue[self.goalFunction.name][myIndex] =  self.goalFunction.evaluate('residuumSign',tempDict)
-      if type(lastOutput) == dict:
-        # if a dictionary, the check must be outside!!!A.
-        if self.goalFunction.name not in lastOutput['outputs'].keys(): lastOutput['outputs'][self.goalFunction.name] = np.atleast_1d(self.functionValue[self.goalFunction.name][myIndex])
-        else                                                         : lastOutput['outputs'][self.goalFunction.name] = np.concatenate((lastOutput['outputs'][self.goalFunction.name],np.atleast_1d(self.functionValue[self.goalFunction.name][myIndex])))
-      else:
-        if self.goalFunction.name in lastOutput.getParaKeys('inputs') : lastOutput.updateInputValue (self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
-        if self.goalFunction.name in lastOutput.getParaKeys('outputs'): lastOutput.updateOutputValue(self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
-    #printing----------------------
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Mapping of the goal function evaluation done')
-    if self.debug:
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> already evaluated points and function value')
-      print(','.join(list(self.functionValue.keys())))
-      for index in range(indexEnd+1): print(','.join([str(self.functionValue[key][index]) for key in list(self.functionValue.keys())]))
-    #printing----------------------
-    tempDict = {}
-    for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = np.asarray(self.functionValue[name])
-    tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
-    self.ROM.train(tempDict)
+#   def _trainingROM(self,lastOutput):
+#     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Initiate training')
+#     if type(lastOutput) == dict:
+#       self.functionValue.update(lastOutput['inputs' ])
+#       self.functionValue.update(lastOutput['outputs'])
+#     else:
+#       self.functionValue.update(lastOutput.getParametersValues('inputs',nodeid='RecontructEnding'))
+#       self.functionValue.update(lastOutput.getParametersValues('outputs',nodeid='RecontructEnding'))
+#     #recovery the index of the last function evaluation performed
+#     if self.goalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.goalFunction.name])-1
+#     else                                                  : indexLast = -1
+#     #index of last set of point tested and ready to perform the function evaluation
+#     indexEnd  = len(self.functionValue[self.axisName[0].replace('<distribution>','')])-1
+#     tempDict  = {}
+#     if self.goalFunction.name in self.functionValue.keys(): self.functionValue[self.goalFunction.name] = np.append( self.functionValue[self.goalFunction.name], np.zeros(indexEnd-indexLast))
+#     else                                                  : self.functionValue[self.goalFunction.name] = np.zeros(indexEnd+1)
+#     for myIndex in range(indexLast+1,indexEnd+1):
+#       for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
+#       if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
+#       self.functionValue[self.goalFunction.name][myIndex] =  self.goalFunction.evaluate('residuumSign',tempDict)
+#       if type(lastOutput) == dict:
+#         # if a dictionary, the check must be outside!!!A.
+#         if self.goalFunction.name not in lastOutput['outputs'].keys(): lastOutput['outputs'][self.goalFunction.name] = np.atleast_1d(self.functionValue[self.goalFunction.name][myIndex])
+#         else                                                         : lastOutput['outputs'][self.goalFunction.name] = np.concatenate((lastOutput['outputs'][self.goalFunction.name],np.atleast_1d(self.functionValue[self.goalFunction.name][myIndex])))
+#       else:
+#         if self.goalFunction.name in lastOutput.getParaKeys('inputs') : lastOutput.updateInputValue (self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
+#         if self.goalFunction.name in lastOutput.getParaKeys('outputs'): lastOutput.updateOutputValue(self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
+#     #printing----------------------
+#     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Mapping of the goal function evaluation done')
+#     if self.debug:
+#       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> already evaluated points and function value')
+#       print(','.join(list(self.functionValue.keys())))
+#       for index in range(indexEnd+1): print(','.join([str(self.functionValue[key][index]) for key in list(self.functionValue.keys())]))
+#     #printing----------------------
+#     tempDict = {}
+#     for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = np.asarray(self.functionValue[name])
+#     tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
+#     self.ROM.train(tempDict)
 
   def localStillReady(self,ready): #,lastOutput=None
     '''

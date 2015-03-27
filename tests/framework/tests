@@ -20,7 +20,7 @@
  [./test_Adaptive_DynamicEventTreeRAVEN]
   type = 'RavenFramework'
   input = 'test_adaptive_det_simple.xml'
-  output = 'AdaptiveDET/adaptiveNoHierarchicalDump.csv AdaptiveDET/adaptiveNoHierarchicalDump.xml AdaptiveDET/AdaptiveDETsimpleDataBase.h5 AdaptiveDET/1-limitSurfDump_scatter.png'
+  output = 'AdaptiveDET/adaptiveNoHierarchicalDump.csv AdaptiveDET/adaptiveNoHierarchicalDump.xml AdaptiveDET/AdaptiveDETsimpleDataBase.h5'
   csv = 'AdaptiveDET/AdaptiveDETrunTest/out~AdaptiveDETsimple_1-1-1-1-2~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
   max_time = 400
