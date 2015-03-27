@@ -1502,6 +1502,7 @@ class LimitSurface(BasePostProcessor):
     #printing----------------------
 
     #if the number of point on the limit surface is > than zero than save it
+    evaluations = None
     if len(listsurfPoint)>0:
       self.surfPoint = np.ndarray((len(listsurfPoint),self.nVar))
       for pointID, coordinate in enumerate(listsurfPoint):
