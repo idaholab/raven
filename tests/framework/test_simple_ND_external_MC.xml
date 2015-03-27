@@ -25,22 +25,8 @@
 </Models>
 
 <Distributions>
-    <NDInverseWeight name='ND_InverseWeight_P'>
-        <p>3.0</p>
-        <data_filename type='PDF'>2DgaussianScatteredPDF.txt</data_filename>
-        <working_dir>ND_test_MC/</working_dir>
-    </NDInverseWeight>
-    <NDInverseWeight name='ND_InverseWeight_C'>
-        <p>2.5</p>
-        <data_filename type='CDF'>2DgaussianScatteredCDF.txt</data_filename>
-        <working_dir>ND_test_MC/</working_dir>
-    </NDInverseWeight>
     <NDCartesianSpline name='ND_CartesianSpline_P'>
         <data_filename type='PDF'>2DgaussianCartesianPDF.txt</data_filename>
-        <working_dir>ND_test_MC/</working_dir>
-    </NDCartesianSpline>
-    <NDCartesianSpline name='ND_CartesianSpline_C'>
-        <data_filename type='CDF'>2DgaussianCartesianCDF.txt</data_filename>
         <working_dir>ND_test_MC/</working_dir>
     </NDCartesianSpline>
     <Normal name='k0_distrib'>
@@ -52,11 +38,11 @@
 <Samplers>
     <MonteCarlo name='MC_external'>
         <sampler_init>
-            <limit>2</limit>
+            <limit>100</limit>
             <initial_seed>1234</initial_seed>
             <dist_init>
                 <distribution name= 'ND_CartesianSpline_P'>
-                    <initial_grid_disc>5</initial_grid_disc>
+                    <initial_grid_disc>10</initial_grid_disc>
                     <tolerance>0.2</tolerance>
                 </distribution>
             </dist_init>

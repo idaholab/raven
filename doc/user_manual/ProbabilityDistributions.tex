@@ -602,10 +602,11 @@ Example:
 The group of $N$-Dimensional distributions allow the user to model stochastic dependences between parameters. Thus instead of using $N$ distributions for $N$ parameters, the user can define a single distribution lying in a $N$-Dimensional space.
 The following $N$-Dimensional Probability Distributions are available within RAVEN:
 \begin{itemize}
+\item MultivariateNormal: Multivariate normal distribution (see Section~\ref{MultivariateNormal})
 \item NDInverseWeight: ND Inverse Weight interpolation distribution (see Section~\ref{NDInverseWeight})
 \item NDCartesianSpline: ND spline interpolation distribution (see Section~\ref{NDCartesianSpline})
 \end{itemize}
-For both distributions, the user provides the sampled values of either CDF or PDF of the distribution. The sampled values can be scattered distributed (for NDInverseWeight) or over a cartesian grid (for NDCartesianSpline).
+For NDInverseWeight and NDCartesianSpline distributions, the user provides the sampled values of either CDF or PDF of the distribution. The sampled values can be scattered distributed (for NDInverseWeight) or over a cartesian grid (for NDCartesianSpline).
 
 The user can initialize, for each $N$-Dimensional distribution, the parameters of the random number generator function:
 \begin{itemize}
@@ -613,6 +614,63 @@ The user can initialize, for each $N$-Dimensional distribution, the parameters o
 \item tolerance
 \end{itemize}
 in the $<dist\textunderscore init>$ block defined in sampler block $<sampler\textunderscore init>$ (see Section~\ref{sec:Samplers}). 
+
+\paragraph{MultivariateNormal Distribution}
+\label{MultivariateNormal}
+the multivariate normal distribution or multivariate Gaussian distribution, is a generalization of the one-dimensional (univariate) normal distribution to higher dimensions.
+The multivariate normal distribution is often used to describe, at least approximately, any set of (possibly) correlated real-valued random variables each of which clusters around a mean value.
+The multivariate normal distribution of a $k$-dimensional random vector $\mathbf{x} = [x_1, x_2, …, x_k]$  can be written in the following notation:
+$ \mathbf{x}\ \sim\ \mathcal{N}(\boldsymbol\mu,\, \boldsymbol\Sigma)$
+with with $k$-dimensional mean vector
+
+$\boldsymbol\mu= [E[x_1], E[x_2], …, E[x_k]]$
+
+and $k \times k$ covariance matrix
+
+$\boldsymbol\Sigma = [Cov[x_i,x_j]] , i=1,2,\ldots,k ; j=1,2,\ldots,k$
+
+The probability distribution function for this distribution is the following:
+
+$
+f_{\mathbf x}(x_1,\ldots,x_k) =
+\frac{1}{\sqrt{(2\pi)^k|\boldsymbol\Sigma|}}
+\exp\left(-\frac{1}{2}({\mathbf x}-{\boldsymbol\mu})^\mathrm{T}{\boldsymbol\Sigma}^{-1}({\mathbf x}-{\boldsymbol\mu})
+\right),
+$
+
+The specifications of this distribution must be defined within the xml block $<MultivariateNormal>$.  In RAVEN the MultivariateNormal distribution can be initialized through the following keywords:
+\begin{itemize}
+\item $<mu>$, list of mean values of each dimension
+\item $<data\textunderscore filename   type='...' >$, string, required parameter, name of the data file containing the covariance matrix (file type .txt).
+\item $<working\textunderscore dir>$, string, folder location of the data\textunderscore filename
+\end{itemize}
+
+\begin{lstlisting}[style=XML]
+----------------------------
+Example:
+----------------------------
+<Distributions>
+  ...
+    <MultivariateNormal name='MultivariateNormal_test'>
+        <data_filename>covMatrix.txt</data_filename>
+        <working_dir>ND_test_Grid_value_MVN/</working_dir>
+        <mu>0.0 60.0</mu>
+    </MultivariateNormal>
+  ...
+</Distributions>
+----------------------------
+\end{lstlisting}
+
+As an example, the following shows the data entries contained in data\textunderscore filename for a 2-dimensional covariance matrix
+
+\begin{lstlisting}
+----------------------------
+Example: covrainace matrix data file
+----------------------------
+1.0 0.7
+0.7 1.0
+----------------------------
+\end{lstlisting}
 
 \paragraph{NDInverseWeight Distribution}
 \label{NDInverseWeight}
