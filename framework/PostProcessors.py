@@ -1227,7 +1227,7 @@ class LimitSurface(BasePostProcessor):
     self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
-    self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
+    #self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.ROM               = None             #Pointer to a ROM
     self.externalFunction  = None             #Pointer to an external Function
@@ -1314,7 +1314,7 @@ class LimitSurface(BasePostProcessor):
     self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
     self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
     self.testMatrix               = np.zeros(self.gridShape)      #grid where the values of the goalfunction are stored
-    self.oldTestMatrix            = np.zeros(self.gridShape)      #swap matrix fro convergence test
+    #self.oldTestMatrix            = np.zeros(self.gridShape)      #swap matrix fro convergence test
     self.gridCoorShape            = tuple(pointByVar+[self.nVar]) #shape of the matrix containing all coordinate of all points in the grid
     self.gridCoord                = np.zeros(self.gridCoorShape)  #the matrix containing all coordinate of all points in the grid
     #filling the coordinate on the grid
@@ -1328,6 +1328,16 @@ class LimitSurface(BasePostProcessor):
     self.axisStepSize = {}
     for varName in self.parameters['targets']:
       self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
+    if self.debug:
+      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> self.gridShape '+str(self.gridShape))
+      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> self.testGridLenght '+str(self.testGridLenght))
+      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> self.gridCoorShape '+str(self.gridCoorShape))
+      for key in self.gridVectors.keys():
+        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> the variable '+key+' has coordinate: '+str(self.gridVectors[key]))
+      myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
+      while not myIterator.finished:
+        print (self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
+        myIterator.iternext()
 
   def _initializeLSppROM(self, inp):
     """
@@ -1335,8 +1345,14 @@ class LimitSurface(BasePostProcessor):
      @ In, inp, Data(s) object, data object containing the training set
     """
     print('Initiate training')
-    self.functionValue.update(inp.getParametersValues('input',nodeid='RecontructEnding'))
-    self.functionValue.update(inp.getParametersValues('output',nodeid='RecontructEnding'))
+    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Initiate training')
+    if type(inp) == dict:
+      self.functionValue.update(inp['inputs' ])
+      self.functionValue.update(inp['outputs'])
+    else:
+      self.functionValue.update(inp.getParametersValues('inputs',nodeid='RecontructEnding'))
+      self.functionValue.update(inp.getParametersValues('outputs',nodeid='RecontructEnding'))
+
     #recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name])-1
     else                                                      : indexLast = -1
@@ -1443,7 +1459,7 @@ class LimitSurface(BasePostProcessor):
      @ Out, dictionary       : Dictionary with results
     """
     #if InputIn != None: self.initialize({'WorkingDir':self.__workingDir},InputIn,{})
-    np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
+    #np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
     tempDict ={}
