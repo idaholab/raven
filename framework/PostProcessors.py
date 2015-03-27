@@ -1021,8 +1021,8 @@ class BasicStatistics(BasePostProcessor):
       Biased weighted covariance matrix,     weights is not None, bias is 1
       can be calcuated depending on the selection of the inputs.
       @Inputs  -> feature, weights, bias, rowvar
-      @Outputs -> covMatrix 
-      """  
+      @Outputs -> covMatrix
+      """
       X    = np.array(feature, ndmin=2, dtype=np.result_type(feature, np.float64))
       diff = np.zeros(feature.shape, dtype=np.result_type(feature, np.float64))
       if X.shape[0] == 1: rowvar = 1
@@ -1060,7 +1060,7 @@ class BasicStatistics(BasePostProcessor):
       except ValueError:  # scalar covariance
       # nan if incorrect value (nan, inf, 0), 1 otherwise
         return covM / covM
-      return covM / np.sqrt(np.multiply.outer(d, d))      
+      return covM / np.sqrt(np.multiply.outer(d, d))
 #
 #
 #
