@@ -25,7 +25,7 @@ import Quadratures
 #Internal Modules End--------------------------------------------------------------------------------
 
 def factorial(x):
-  if x==-1: return 1
+  #if x==-1: return 1
   return gamma(x+1.)
 
 class OrthogonalPolynomial(object):
