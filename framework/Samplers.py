@@ -298,6 +298,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         params = self.ND_sampling_params[distrib]
         temp = self.distributions2variablesMapping[distrib][0].keys()[0]
         self.distDict[temp].updateRNGParam(params)
+      else:
+        raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Distribution '+ str(distrib) +' specified in dist_init block of sampler ' + str(self.name) +' does not exist')
 
   def localInitialize(self):
     '''

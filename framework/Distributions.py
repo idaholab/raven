@@ -1481,6 +1481,16 @@ class MultivariateNormal(NDimensionalDistributions):
     for i in range(len(self.mu)):
       mu[i] = self.mu[i]
     self._distribution = distribution1D.BasicMultivariateNormal(str(self.data_filename), mu)
+    
+#     y = np.arange(50,65,1.0)
+#     x = -1
+#      
+#     for i in np.nditer(y):
+#       coordinate=np.zeros(2)
+#       coordinate[0]=x
+#       coordinate[1]=i
+#       value = self.cdf(coordinate)
+#       print(str(value))
 
   def cdf(self,x):
     coordinate = distribution1D.vectord_cxx(len(x))
