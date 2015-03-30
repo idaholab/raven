@@ -49,16 +49,16 @@ code instances, e.g. RELAP5-3D, that RAVEN will spawn at the same time).
 \default{1}
 
 %%%%%% Sequence
-\item \xmlNode{Sequence}, \xmlDesc{comma separated string, required field}, is 
-an ordered list of the step names that RAVEN will run (see 
+\item \xmlNode{Sequence}, \xmlDesc{comma separated string, required field}, is
+an ordered list of the step names that RAVEN will run (see
 Section~\ref{sec:steps}).
 
-%%%%%% JOBNAME 
+%%%%%% JOBNAME
 \item \xmlNode{JobName}, \xmlDesc{string, optional field}, specifies
 the name to use for the job when submitting to a pbs queue.  Acceptable characters
 include alphanumerics as well as ``-'' and ``\_''.  If more than 15
 characters are provided, RAVEN will truncate it using a hyphen between the first
-10 and last 4 character, i.e., ``1234567890abcdefgh'' will be truncated to 
+10 and last 4 character, i.e., ``1234567890abcdefgh'' will be truncated to
 ``1234567890-efgh''.
 %
 \default{raven\_qsub}
@@ -84,7 +84,7 @@ software.
 For example, if RAVEN is driving a code named ``FOO,'' and this code has MPI
 support, this block specifies how many MPI CPUs each instance of FOO should use
 (e.g. ``\texttt{mpiexec FOO -np N}'' where \texttt{N} is the number of CPUs).
-\\ In addition, this flag activates the parallel execution of internal Models (e.g. ROMs, 
+\\ In addition, this flag activates the parallel execution of internal Models (e.g. ROMs,
 ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
 are run using a multi-threading approach (i.e. single processor, multiple threads equal to the batchsize)
 %
@@ -131,12 +131,12 @@ used to run the external model (e.g., \texttt{mpiexec -n 8  ./externalModel.exe
 specifies the maximum size of the log file in bytes. Every time RAVEN drives a
 code/software, it creates a logfile of the code's screen output.
 %
-\default{$\infty$} 
+\default{$\infty$}
 
 \TODO{\nb This flag is not implemtend yet.}
 
 %%%%%% deleteOutExtension
-\item \xmlNode{deleteOutExtension}, \xmlDesc{comma separated string, optional 
+\item \xmlNode{deleteOutExtension}, \xmlDesc{comma separated string, optional
 field}, specifies, if a run of an external model has not failed, which output
 files should be deleted by their extension (e.g.,
 \xmlNode{deleteOutExtension}\texttt{txt,pdf}\xmlNode{/deleteOutExtension} will
@@ -164,37 +164,19 @@ system are reported.
 \item \xmlNode{mode}, \xmlDesc{string, optional field}, can specify which kind
 of protocol the parallel enviroment should use.
 %
-RAVEN currently supports two pre-defined ``modes'':
+RAVEN currently supports one pre-defined ``mode'':
   \begin{itemize}
-    \item \textbf{pbsdsh}: this ``mode'' uses the pbsdsh protocol to distribute
-      the program running; more information regarding this protocol can be found
-      in~\cite{PBS}. 
-      Mode ``pbsdsh'' automatically knows when it needs to generate a 
-      \texttt{qsub} command, by inquiring the machine enviroment:
-         \begin{itemize}
-           \item If RAVEN is executed in the HEAD node of an HPC system, RAVEN
-             generates a \texttt{qsub} command, and instantiates and submits 
-             itself to the queue system.
-           \item If the user decides to execute RAVEN from an ``interactive
-             node'' (a certain number of nodes that have been reserved in
-             interactive PBS mode), RAVEN, using the ``pbsdsh'' system, is going
-             to utilize the reserved resources (CPUs and nodes) to distribute
-             the jobs, but will not generate a \texttt{qsub} command.
-         \end{itemize}
-         In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs,
-         ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
-           are run using a multi-threading approach (i.e. master processor, multiple parallel threads)
-    \item \textbf{mpi}: this ``mode'' uses \texttt{mpiexec} to distribute the 
+    \item \textbf{mpi}: this ``mode'' uses \texttt{mpiexec} to distribute the
       running program; more information regarding this protocol can be found
-      in~\cite{MPI}.  
+      in~\cite{MPI}.
       Mode ``MPI''  can either generate a \texttt{qsub} command or can execute
       on selected nodes.
       In order to make the ``mpi'' mode generate a \texttt{qsub} command, an
       additional keyword (xml sub-node) needs to be specified:
          \begin{itemize}
-           \item If RAVEN is executed in the HEAD node of an HPC system, the
-             user needs to input a sub-node, \xmlNode{runQSUB}, right after
-             the specification of the mpi mode (i.e.\\
+         \item If RAVEN is executed in the HEAD node of an HPC system using
+           \cite{PBS}, the user needs to input a sub-node, \xmlNode{runQSUB},
+           right after the specification of the mpi mode (i.e.\\
              \xmlNode{mode}\texttt{mpi}\xmlNode{runQSUB/}\xmlNode{/mode}).
              If the keyword is provided, RAVEN generates a \texttt{qsub}
              command, instantiates itself, and submits itself to the queue
@@ -237,11 +219,6 @@ RAVEN currently supports two pre-defined ``modes'':
 
 %Both methods can submit a qsub command or can be run from an already submitted interactive qsub command:
 %     \begin{itemize}
-%        \item Mode ``pbsdsh'' automatically ``understands'' when it needs to generate the ``qsub'' command, inquiring the ``machine eviroment'':
-%         \begin{itemize}
-%           \item If RAVEN is executed in the HEAD node of an HPC system, RAVEN generates the ``qsub'' command, instantiates and submits itself to the queue system;
-%           \item If the user decides to execute RAVEN from an ``interactive node'' (a certain number of nodes that have been reserved in interactive PBS mode), RAVEN, using the ``pbsdsh'' system, is going to utilize the reserved resources (cpus and nodes) to distribute the jobs, but, obviously, it's not going to generate the ``qsub'' command.
-%         \end{itemize}
 %          \item Mode ``MPI'' needs an additional keyword (XML sub-node) in order to understand when it needs to generate the ``qsub'' commnad:
 %         \begin{itemize}
 %           \item If RAVEN is executed in the HEAD node of an HPC system, the user needs to input a sub-node, $<runQSUB/>$, right after the specification of the mpi mode (i.e. $<mode>mpi<runQSUB/></mode>$). If the keyword is provided, RAVEN generates the ``qsub'' command, instantiates and submits itself to the queue system;
@@ -273,7 +250,7 @@ PROFESSIONAL, etc.).
 
 %%%%%% EXPECTED TIME
 \item \xmlNode{expectedTime}, \xmlDesc{colum separated string, requested field
-(pbsdsh mode)}, specifies the time the whole calculation is expected to
+(mpi mode)}, specifies the time the whole calculation is expected to
 last.
 %
 The syntax of this node is \textit{hours:minutes:seconds} (e.g.
@@ -375,6 +352,10 @@ modifying the \xmlNode{RunInfo} block as follows:
     ...
 </RunInfo>
 \end{lstlisting}
+
+The file field can use \%BASE\_WORKING\_DIR\% and \%FRAMEWORK\_DIR\%
+to specify the location of the file with respect to the base working
+directory or the framework directory.
 
 The python file should define a class that inherits from
 \texttt{Simulation.SimulationMode} of the RAVEN framework and overrides the
