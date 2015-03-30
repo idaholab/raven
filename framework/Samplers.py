@@ -2527,55 +2527,21 @@ class SparseGridCollocation(Grid):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
 
-#    self.requiredAssObject = (True,(['TargetEvaluation','ROM'],['1','1']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
     self.requiredAssObject = (True,(['ROM'],['1']))                  # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def _localWhatDoINeed(self):
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
     return gridDict
-#    needDict = {}
-#    needDict['Distributions'] = [] # Every sampler requires Distributions
-#    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
-#    needDict['internal'] = [(None,'jobHandler')]
-#    return needDict
-
 
   def _localGenerateAssembler(self,initDict):
- #   availableDist = initDict['Distributions']
- #   self._generateDistributions(availableDist)
     Grid._localGenerateAssembler(self, initDict)
-#    for key, value in self.assemblerObjects.items():
-#      if   key in 'TargetEvaluation': self.lastOutput = initDict[value[0]][value[2]]
-#      elif key in 'ROM'             : self.ROM        = initDict[value[0]][value[2]]
     self.jobHandler = initDict['internal']['jobHandler']
-
-#  def _readMoreXML(self,xmlNode):
-#    Grid._readMoreXML(self,xmlNode)
-#    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
-#    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
-    #assembler node -> to be changed when Sonnet gets it in the base class
-#    assemblerNode = xmlNode.find('Assembler')
-#    if assemblerNode==None: raise IOError(self.printTag+' ERROR: no Assembler data specified in input!')
-#    targEvalCounter = 0
-#    romCounter      = 0
-#    for subNode in xmlNode:
-#      if subNode.tag in ['TargetEvaluation','ROM']:
-#        if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In adaptive sampler ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
-#        self.assemblerObjects[subNode.tag] = [[subNode.attrib['class'],subNode.attrib['type'],subNode.text]]
-#        if 'TargetEvaluation' in subNode.tag: targEvalCounter+=1
-#        if 'ROM'              in subNode.tag: romCounter+=1
-#      else:
-#        raise IOError(self.printTag+' ERROR: unrecognized option in input for assembler: '+subNode.tag)
-#    if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
-#    if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
-#    if romCounter      <  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No ROM object provided. Sampler received none!')
 
   def localInputAndChecks(self,xmlNode):
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
     self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
     for child in xmlNode:
-#      if   child.tag=='Assembler'   :continue
       if child.tag == 'Distribution':
         varName = '<distribution>'+child.attrib['name']
       elif child.tag == 'variable':
@@ -2584,11 +2550,6 @@ class SparseGridCollocation(Grid):
 
   def localInitialize(self):
     for key in self.assemblerDict.keys():
-#      if 'TargetEvaluation' in key:
-#        indice = 0
-#        for value in self.assemblerDict[key]:
-#          self.lastOutput = self.assemblerDict[key][indice][3]
-#          indice += 1
       if 'ROM' in key:
         indice = 0
         for value in self.assemblerDict[key]:
@@ -2660,7 +2621,7 @@ class SparseGridCollocation(Grid):
       self.polyDict[varName] = poly
 
       self.importanceDict[varName] = float(dat['weight'])
-    #print out the setup for each variable.   TODO should this always happen?
+    #print out the setup for each variable.
     if self.debug:
       print(self.printTag,'INTERPOLATION INFO:')
       print('    Variable | Distribution | Quadrature | Polynomials')
@@ -2704,6 +2665,160 @@ class SparseGridCollocation(Grid):
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 
+class Sobol(Grid):
+  def __init__(self):
+    Grid.__init__(self)
+    self.type           = 'SobolSampler'
+    self.printTag       = returnPrintTag(self.type)
+    self.assemblerObjects={}    #dict of external objects required for assembly
+    self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
+    self.sobolOrder     = None  #S, the order of the HDMR expansion (1,2,3)
+    self.indexSetType   = None  #TP, TD, or HC; the type of index set to use
+    self.polyDict       = {}    #varName-indexed dict of polynomial types
+    self.quadDict       = {}    #varName-indexed dict of quadrature types
+    self.importanceDict = {}    #varName-indexed dict of importance weights
+    self.solns          = None  #pointer to output datas object
+    self.ROMs           = []    #list of pointer to ROMs
+    self.jobHandler     = None  #pointer to job handler for parallel runs
+    self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
+
+    self.requiredAssObject = (True,(['TargetEvaluation','ROM'],['1','1']))                  # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+
+  def _localWhatDoINeed(self):
+    gridDict = Grid._localWhatDoINeed(self)
+    gridDict['internal'] = [(None,'jobHandler')]
+    return gridDict
+
+  def _localGenerateAssembler(self,initDict):
+    Grid._localGenerateAssembler(self, initDict)
+    self.jobHandler = initDict['internal']['jobHandler']
+
+  def localInputAndChecks(self,xmlNode):
+    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
+    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
+    for child in xmlNode:
+      if child.tag == 'Distribution':
+        varName = '<distribution>'+child.attrib['name']
+      elif child.tag == 'variable':
+        varName = child.attrib['name']
+        self.axisName.append(varName)
+
+  def localInitialize(self):
+    for key in self.assemblerDict.keys():
+      if 'ROM' in key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.ROM = self.assemblerDict[key][indice][3]
+          indice += 1
+    SVLs = self.ROM.SupervisedEngine.values()
+    SVL = SVLs[0] #often need only one
+    ROMdata = SVL.interpolationInfo() #they are all the same? -> yes, I think so
+    self.maxPolyOrder = SVL.maxPolyOrder
+    #check input space consistency
+    samVars=self.axisName[:]
+    romVars=SVL.features[:]
+    try:
+      for v in self.axisName:
+        samVars.remove(v)
+        romVars.remove(v)
+    except ValueError:
+      raise IOError(self.printTag+' | '+self.ROM.printTag+' variable '+v+' used in sampler but not ROM features! Collocation requires all vars in both.')
+    if len(romVars)>0:
+      raise IOError(self.printTag+' | '+self.ROM.printTag+' variables '+str(romVars)+' specified in ROM but not sampler! Collocation requires all vars in both.')
+    for v in ROMdata.keys():
+      if v not in self.axisName:
+        raise IOError(self.printTag+' | '+self.ROM.printTag+' variable '+v+' given interpolation rules but '+v+' not in sampler!')
+      else:
+        self.gridInfo[v] = ROMdata[v] #quad, poly, weight
+    #set defaults, then replace them if they're asked for
+    for v in self.axisName:
+      if v not in self.gridInfo.keys():
+        self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1','cdf':'False'}
+    #establish all the right names for the desired types
+    #FIXME this has grown gnarled, and should be simplified
+    for varName,dat in self.gridInfo.items():
+      #print('DEBUG dat',self.printTag,varName,dat)
+      if dat['cdf'].lower() in ['t','true','y','yes','1']:
+        quadType='CDF'
+        #TODO is Legendre the right default?
+        if dat['quad']=='DEFAULT': subType = 'Legendre'
+        else: subType = dat['quad']
+        if dat['poly']=='DEFAULT': polyType = 'Legendre'
+        else: polyType = dat['poly']
+      else: #not flagged as cdf by user
+        if dat['quad']=='DEFAULT': # FIXME-> consider checking names first, then setting subTypes
+          quadType = self.distDict[varName].preferredQuadrature
+          if quadType == 'CDF':
+            subType = 'Legendre'
+            if dat['poly']=='DEFAULT': polyType = 'Legendre'
+            else: polyType = dat['poly']
+          else:
+            if dat['poly']=='DEFAULT': polyType = self.distDict[varName].preferredPolynomials
+            else: polyType = dat['poly']
+            subType=None
+        else: #quad not default
+          quadType = dat['quad']
+          if dat['poly']=='DEFAULT': polyType = self.distDict[varName].preferredPolynomials
+          else: polyType = dat['poly']
+          subType=None
+      #build the distribution, quadrature, polynomial, importance weight
+      #TODO consistency checks between quads-polys-distros
+      distr = self.distDict[varName]
+      if quadType not in distr.compatibleQuadrature:
+        raise IOError(self.printTag+': Quad type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
+
+      quad = Quadratures.returnInstance(quadType,Subtype=subType)
+      quad.initialize(distr)
+      self.quadDict[varName]=quad
+
+      poly = OrthoPolynomials.returnInstance(polyType)
+      poly.initialize(quad)
+      self.polyDict[varName] = poly
+
+      self.importanceDict[varName] = float(dat['weight'])
+    #print out the setup for each variable.
+    if self.debug:
+      print(self.printTag,'INTERPOLATION INFO:')
+      print('    Variable | Distribution | Quadrature | Polynomials')
+      for v in self.quadDict.keys():
+        print('   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
+      print('    Polynomial Set Degree:',self.maxPolyOrder)
+      print('    Polynomial Set Type  :',SVL.indexSetType)
+
+    if self.debug: print(self.printTag,'Starting index set generation...')
+    self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
+    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+
+    if self.debug: print(self.printTag,'Starting sparse grid generation...')
+    self.sparseGrid = Quadratures.SparseQuad()
+    # NOTE this is the most expensive step thus far; try to do checks before here
+    self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
+
+    if self.writeOut != None:
+      msg=self.sparseGrid.__csv__()
+      outFile=file(self.writeOut,'w')
+      outFile.writelines(msg)
+      outFile.close()
+
+    self.limit=len(self.sparseGrid)
+    if self.debug: print(self.printTag,'Size of Sparse Grid  :',self.limit)
+    if self.debug: print(self.printTag,'Finished sampler generation.')
+    for SVL in self.ROM.SupervisedEngine.values():
+      SVL.initialize({'SG':self.sparseGrid,
+                      'dists':self.distDict,
+                      'quads':self.quadDict,
+                      'polys':self.polyDict,
+                      'iSet':self.indexSet})
+
+  def localGenerateInput(self,model,myInput):
+    '''Provide the next point in the sparse grid.'''
+    pt,weight = self.sparseGrid[self.counter-1]
+    for v,varName in enumerate(self.distDict.keys()):
+      self.values[varName] = pt[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight'] = weight
+    self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 #
 #
 #
