@@ -70,6 +70,34 @@ class SimulationMode:
     """
     pass
 
+def splitCommand(s):
+  """Splits the string s into a list that can be used for the command
+  So for example splitCommand("ab bc c 'el f' \"bar foo\" ") ->
+  ['ab', 'bc', 'c', 'el f', 'bar foo']
+  Bugs: Does not handle quoted strings with different kinds of quotes
+  """
+  n = 0
+  retList = []
+  in_quote = False
+  buffer = ""
+  while n < len(s):
+    current = s[n]
+    if current in string.whitespace and not in_quote:
+      if len(buffer) > 0: #found end of command
+        retList.append(buffer)
+        buffer = ""
+    elif current in "\"'":
+      if in_quote:
+        in_quote = False
+      else:
+        in_quote = True
+    else:
+      buffer = buffer + current
+    n += 1
+  if len(buffer) > 0:
+    retList.append(buffer)
+  return retList
+
 def createAndRunQSUB(simulation):
   """Generates a PBS qsub command to run the simulation"""
   # Check if the simulation has been run in PBS mode and, in case, construct the proper command
@@ -88,7 +116,9 @@ def createAndRunQSUB(simulation):
     jobName = jobName[:10]+'-'+jobName[-4:]
     print(returnPrintTag('SIMULATION->QSUB:'),'JobName is limited to 15 characters; truncating to',jobName)
   #Generate the qsub command needed to run input
-  command = ["qsub","-N",jobName,"-l",
+  command = ["qsub","-N",jobName]+\
+            simulation.runInfoDict["clusterParameters"]+\
+            ["-l",
              "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
              "-l","walltime="+simulation.runInfoDict["expectedTime"],
              "-l","place=free","-v",
@@ -301,6 +331,7 @@ class Simulation(object):
     self.runInfoDict['Nodes'             ] = []           # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
+    self.runInfoDict['clusterParameters' ] = []           # Extra parameters to use with the qsub command.
 
     #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
     #Theirs keywords in the dictionaries are the the user given names of data, sampler, etc.
@@ -497,6 +528,7 @@ class Simulation(object):
         if element.text.lower() in stringsThatMeanTrue(): self.runInfoDict['delSucLogFiles'    ] = True
         else                                            : self.runInfoDict['delSucLogFiles'    ] = False
       elif element.tag == 'logfileBuffer'      : self.runInfoDict['logfileBuffer'] = convertMultipleToBytes(element.text.lower())
+      elif element.tag == 'clusterParameters'  : self.runInfoDict['clusterParameters'] = splitCommand(element.text)
       elif element.tag == 'mode'              :
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment
