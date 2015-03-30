@@ -16,7 +16,8 @@ import copy
 import numpy as np
 import scipy
 import scipy.special as polys
-from scipy.misc import factorial
+#from scipy.misc import factorial
+from math import gamma
 import os
 #External Modules End--------------------------------------------------------------------------------
 
@@ -25,6 +26,9 @@ from BaseClasses import BaseType
 from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
 distribution1D = find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
+
+def factorial(x):
+  return gamma(x+1)
 
 stochasticEnv = distribution1D.DistributionContainer.Instance()
 
