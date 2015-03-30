@@ -406,13 +406,8 @@ class AdaptiveSampler(Sampler):
     self.axisName         = None             #this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
     self.gridVectors      = {}               # {'name of the variable':numpy.ndarray['the coordinate']}
     self.testGridLenght   = 0                #this the total number of point in the testing grid
-    self.testMatrix       = None             #This is the n-dimensional matrix representing the testing grid
     self.oldTestMatrix    = None             #This is the test matrix to use to store the old evaluation of the function
-    self.gridShape        = None             #tuple describing the shape of the grid matrix
-    self.gridCoorShape    = None             #tuple describing the shape of the grid containing also the coordinate
-    self.functionValue    = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.solutionExport   = None             #This is the data used to export the solution (it could also not be present)
-    self.gridCoord        = None             #this is the matrix that contains for each entry of the grid the coordinate
     self.nVar             = 0                #this is the number of the variable sampled
     self.surfPoint        = None             #coordinate of the points considered on the limit surface
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
@@ -420,9 +415,6 @@ class AdaptiveSampler(Sampler):
     self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface")
     self.printTag         = returnPrintTag('SAMPLER ADAPTIVE')
     self.requiredAssObject = (True,(['TargetEvaluation','ROM','Function'],['n','n','-n']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
-
-#  def _localGenerateAssembler(self,initDict):
-#    Sampler._localGenerateAssembler(self, initDict)
 
   def localInputAndChecks(self,xmlNode):
     if 'limit' in xmlNode.attrib.keys():
@@ -500,7 +492,6 @@ class AdaptiveSampler(Sampler):
       tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridVectors[varName])
 
   def localInitialize(self,solutionExport=None):
-    ROM = None
     if 'Function' in self.assemblerDict.keys(): self.goalFunction = self.assemblerDict['Function'][0][3]
     if 'TargetEvaluation' in self.assemblerDict.keys(): self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
     self.memoryStep        = 5               # number of step for which the memory is kept
@@ -509,16 +500,10 @@ class AdaptiveSampler(Sampler):
     if type(solutionExport).__name__ != "TimePointSet": raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
-    #self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    #self.surfPoint         = None
     if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Goal function name does not match solution export data output.')
     # set number of job requestable after a new evaluation
     self._endJobRunnable   = 1
-    #build a lambda function to masquerade the ROM <-> cKDTree presence
-    #if not goalFunction: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Gaol Function not provided!!')
-    #set up the ROM for the acceleration
-    #mySrting= ','.join(list(self.distDict.keys()))
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
     if self.toleranceWeight=='value':
       for varName in self.distDict.keys():
@@ -546,86 +531,16 @@ class AdaptiveSampler(Sampler):
       elif self.toleranceWeight=='value' : self.gridVectors[varName] = np.arange(start,end,myStepLenght)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
       gridVectorsForLS[varName.replace('<distribution>','')] = self.gridVectors[varName]
-    self.oldTestMatrix            = np.zeros(tuple(pointByVar)) 
+    self.oldTestMatrix            = np.zeros(tuple(pointByVar))
     # initialize LimitSurface PP
     self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.distDict.keys()],"tolerance":self.subGridTol,"side":"both","gridVectors":gridVectorsForLS,"debug":self.debug})
     self.limitSurfacePP.assemblerDict = self.assemblerDict
     self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{})
     self.persistenceMatrix        = np.zeros(tuple(pointByVar))      #matrix that for each point of the testing grid tracks the persistence of the limit surface position
-# from old sampler
-    #self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
     self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
-    #self.testMatrix               = np.zeros(self.gridShape)      #grid where the values of the goalfunction are stored
-    self.oldTestMatrix            = np.zeros(self.gridShape)      #swap matrix fro convergence test
-    #self.gridCoorShape            = tuple(pointByVar+[self.nVar]) #shape of the matrix containing all coordinate of all points in the grid
-    #self.gridCoord                = np.zeros(self.gridCoorShape)  #the matrix containing all coordinate of all points in the grid
-    self.persistenceMatrix        = np.zeros(self.gridShape)      #matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    #filling the coordinate on the grid
-#     myIterator = np.nditer(self.gridCoord,flags=['multi_index'])
-#     while not myIterator.finished:
-#       coordinateID  = myIterator.multi_index[-1]
-#       axisName      = self.axisName[coordinateID]
-#       valuePosition = myIterator.multi_index[coordinateID]
-#       self.gridCoord[myIterator.multi_index] = self.gridVectors[axisName][valuePosition]
-#       myIterator.iternext()
-#     self.axisStepSize = {}
-#     for varName in self.distDict.keys():
-#       self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
-#     #printing
-#     if self.debug:
-#       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> self.gridShape '+str(self.gridShape))
-#       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> self.testGridLenght '+str(self.testGridLenght))
-#       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> self.gridCoorShape '+str(self.gridCoorShape))
-#       for key in self.gridVectors.keys():
-#         print(self.printTag+': ' +returnPrintPostTag('Message') + '-> the variable '+key+' has coordinate: '+str(self.gridVectors[key]))
-#       myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
-#       while not myIterator.finished:
-#         print (self.printTag+': ' +returnPrintPostTag('Message') + '-> Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
-#         myIterator.iternext()
-#     self.hangingPoints    = np.ndarray((0, self.nVar))
-#     if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':','.join(self.axisName),'Target':self.goalFunction.name})
-#     else        : self.ROM = ROM
-# end old sampler
+    self.oldTestMatrix            = np.zeros(tuple(pointByVar))      #swap matrix fro convergence test
+    self.hangingPoints            = np.ndarray((0, self.nVar))
     print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Initialization done')
-
-#   def _trainingROM(self,lastOutput):
-#     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Initiate training')
-#     if type(lastOutput) == dict:
-#       self.functionValue.update(lastOutput['inputs' ])
-#       self.functionValue.update(lastOutput['outputs'])
-#     else:
-#       self.functionValue.update(lastOutput.getParametersValues('inputs',nodeid='RecontructEnding'))
-#       self.functionValue.update(lastOutput.getParametersValues('outputs',nodeid='RecontructEnding'))
-#     #recovery the index of the last function evaluation performed
-#     if self.goalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.goalFunction.name])-1
-#     else                                                  : indexLast = -1
-#     #index of last set of point tested and ready to perform the function evaluation
-#     indexEnd  = len(self.functionValue[self.axisName[0].replace('<distribution>','')])-1
-#     tempDict  = {}
-#     if self.goalFunction.name in self.functionValue.keys(): self.functionValue[self.goalFunction.name] = np.append( self.functionValue[self.goalFunction.name], np.zeros(indexEnd-indexLast))
-#     else                                                  : self.functionValue[self.goalFunction.name] = np.zeros(indexEnd+1)
-#     for myIndex in range(indexLast+1,indexEnd+1):
-#       for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
-#       if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
-#       self.functionValue[self.goalFunction.name][myIndex] =  self.goalFunction.evaluate('residuumSign',tempDict)
-#       if type(lastOutput) == dict:
-#         # if a dictionary, the check must be outside!!!A.
-#         if self.goalFunction.name not in lastOutput['outputs'].keys(): lastOutput['outputs'][self.goalFunction.name] = np.atleast_1d(self.functionValue[self.goalFunction.name][myIndex])
-#         else                                                         : lastOutput['outputs'][self.goalFunction.name] = np.concatenate((lastOutput['outputs'][self.goalFunction.name],np.atleast_1d(self.functionValue[self.goalFunction.name][myIndex])))
-#       else:
-#         if self.goalFunction.name in lastOutput.getParaKeys('inputs') : lastOutput.updateInputValue (self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
-#         if self.goalFunction.name in lastOutput.getParaKeys('outputs'): lastOutput.updateOutputValue(self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
-#     #printing----------------------
-#     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Mapping of the goal function evaluation done')
-#     if self.debug:
-#       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> already evaluated points and function value')
-#       print(','.join(list(self.functionValue.keys())))
-#       for index in range(indexEnd+1): print(','.join([str(self.functionValue[key][index]) for key in list(self.functionValue.keys())]))
-#     #printing----------------------
-#     tempDict = {}
-#     for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = np.asarray(self.functionValue[name])
-#     tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
-#     self.ROM.train(tempDict)
 
   def localStillReady(self,ready): #,lastOutput=None
     '''
@@ -649,25 +564,10 @@ class AdaptiveSampler(Sampler):
     else:
       if not self.lastOutput.isItEmpty(): self.limitSurfacePP._initializeLSppROM(self.lastOutput)
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Training finished')
-    np.copyto(self.oldTestMatrix,self.limitSurfacePP.testMatrix)    #copy the old solution (contained in the limit surface PP) for convergence check
-# old sampler
-
-    self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
-    self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
-    tempDict ={}
-    for  varId, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[varName] = self.gridCoord[:,varId]
-    self.testMatrix[:]        = self.limitSurfacePP.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
-    self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
-    self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
-    self.persistenceMatrix   += self.testMatrix
-
-# old sampler end    
-    
+    np.copyto(self.oldTestMatrix,self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
     self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
-    debuglistsurfPoint = copy.deepcopy(listsurfPoint)
-    debugsurfPoint     = copy.deepcopy(self.surfPoint)
-    
+
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Prediction finished')
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
@@ -678,41 +578,13 @@ class AdaptiveSampler(Sampler):
     for myIndex in range(indexLast+1,indexEnd+1):
       for key, value in self.limitSurfacePP.getFunctionValue().items(): tempDict[key] = value[myIndex]
       if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
-    self.persistenceMatrix += self.limitSurfacePP.testMatrix
+    self.persistenceMatrix += self.limitSurfacePP.getTestMatrix()
     # test error
-    testError = np.sum(np.abs(np.subtract(self.limitSurfacePP.testMatrix,self.oldTestMatrix))) # compute the error
+    testError = np.sum(np.abs(np.subtract(self.limitSurfacePP.getTestMatrix(),self.oldTestMatrix))) # compute the error
     if (testError > self.tolerance/self.subGridTol): ready, self.repetition = True, 0                         # we still have error
     else              : self.repetition +=1                                                                   # we are increasing persistence
     if self.persistence<self.repetition: ready =  False                                                       # we are done
     print(self.printTag+': ' +returnPrintPostTag('Message') + '-> counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
-
-# old sampler
-
-    toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
-    #printing----------------------
-    if self.debug:
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Limit surface candidate points')
-      for coordinate in np.rollaxis(toBeTested,0):
-        myStr = ''
-        for iVar, varnName in enumerate([key.replace('<distribution>','') for key in self.axisName]): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        print(myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
-    #printing----------------------
-    listsurfPoint=self.__localLimitStateSearch__(toBeTested,-1)         #it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
-    nNegPoints=len(listsurfPoint)
-    listsurfPoint.extend(self.__localLimitStateSearch__(toBeTested,1))  #it returns the list of points belonging to the limit state surface and resulting in a positive response by the ROM
-    nTotPoints=len(listsurfPoint)
-    #printing----------------------
-    if self.debug:
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Limit surface points')
-      for coordinate in listsurfPoint:
-        myStr = ''
-        for iVar, varnName in enumerate([key.replace('<distribution>','') for key in self.axisName]): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        print(myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
-
-
-# old sampler    
-    debuglistsurfPoint2 = copy.deepcopy(listsurfPoint)
-    debugsurfPoint2     = copy.deepcopy(self.surfPoint)
     #if the number of point on the limit surface is > than compute persistence
     if len(listsurfPoint)>0:
       self.invPointPersistence = np.ndarray(len(listsurfPoint))
@@ -731,30 +603,6 @@ class AdaptiveSampler(Sampler):
         for index in range(len(evaluations)): self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[index]))
     return ready
 
-  def __localLimitStateSearch__(self,toBeTested,sign):
-    '''
-    It returns the list of points belonging to the limit state surface and resulting in positive or negative responses by the ROM, depending on whether ''sign'' equals either -1 or 1, respectively.
-    '''
-    listsurfPoint=[]
-    myIdList= np.zeros(self.nVar)
-    for coordinate in np.rollaxis(toBeTested,0):
-      myIdList[:]=coordinate
-      if self.testMatrix[tuple(coordinate)]*sign>0:
-        for iVar in range(self.nVar):
-          if coordinate[iVar]+1<self.gridShape[iVar]:
-            myIdList[iVar]+=1
-            if self.testMatrix[tuple(myIdList)]*sign<=0:
-              listsurfPoint.append(copy.copy(coordinate))
-              break
-            myIdList[iVar]-=1
-            if coordinate[iVar]>0:
-              myIdList[iVar]-=1
-              if self.testMatrix[tuple(myIdList)]*sign<=0:
-                listsurfPoint.append(copy.copy(coordinate))
-                break
-              myIdList[iVar]+=1
-    return listsurfPoint
-
   def localGenerateInput(self,model,oldInput):
     #self.adaptAlgo.nextPoint(self.dataContainer,self.goalFunction,self.values,self.distDict)
     # create values dictionary
@@ -769,7 +617,6 @@ class AdaptiveSampler(Sampler):
       sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
       for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
       distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
-      tempDict = {}
       #the hanging point are added to the list of the already explored points so not to pick the same when in //
 #      lastPoint = [self.functionValue[name][-1] for name in [key.replace('<distribution>','') for key in self.axisName]]
 #      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
@@ -791,34 +638,6 @@ class AdaptiveSampler(Sampler):
         varSet=True
       else: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> np.max(distance)=0.0')
 
-# old sampler
-
-      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
-      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
-      distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
-      tempDict = {}
-      #the hanging point are added to the list of the already explored points so not to pick the same when in //
-#      lastPoint = [self.functionValue[name][-1] for name in [key.replace('<distribution>','') for key in self.axisName]]
-#      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
-      tempDict = {}
-      #distLast = np.zeros(self.surfPoint.shape[0])
-      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
-        tempDict[varName]     = self.surfPoint[:,varIndex]
-        #distLast[:] += np.square(tempDict[varName]-lastPoint[varIndex])
-        self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
-        self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
-      #distLast = np.sqrt(distLast)
-      distance, _ = distanceTree.query(self.surfPoint)
-      #distance = np.multiply(distance,distLast,self.invPointPersistence)
-      distance = np.multiply(distance,self.invPointPersistence)
-      if np.max(distance)>0.0:
-        for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
-          self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
-          self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-        varSet=True
-      else: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> np.max(distance)=0.0')
-
-# old sampler
     if not varSet:
       #here we are still generating the batch
       for key in self.distDict.keys():
@@ -833,7 +652,6 @@ class AdaptiveSampler(Sampler):
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
     self.inputInfo['ProbabilityWeight']         = 1.0
     self.hangingPoints                          = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
-    #print(self.hangingPoints)
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
     self.inputInfo['SamplerType'] = 'Adaptive'
     self.inputInfo['subGridTol' ] = self.subGridTol

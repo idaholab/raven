@@ -1426,6 +1426,14 @@ class LimitSurface(BasePostProcessor):
     """
     return self.functionValue
 
+  def getTestMatrix(self):
+    """
+    Method to get a pointer to the testMatrix object (evaluation grid)
+    @ In, None
+    @ Out, ndarray , self.testMatrix
+    """
+    return self.testMatrix
+
   def _localReadMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -1508,9 +1516,6 @@ class LimitSurface(BasePostProcessor):
       for pointID, coordinate in enumerate(listsurfPoint):
         self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
       evaluations = np.concatenate((-np.ones(nNegPoints),np.ones(nPosPoints)), axis=0)
-    else:
-      print(len(listsurfPoint))
-      #outputPlaceOrder[pointID] = pointID
     if returnListSurfCoord: return self.surfPoint,evaluations,listsurfPoint
     else                  : return self.surfPoint,evaluations
 
