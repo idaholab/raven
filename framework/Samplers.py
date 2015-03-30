@@ -398,7 +398,6 @@ class AdaptiveSampler(Sampler):
     self.goalFunction     = None             #this is the pointer to the function defining the goal
     self.tolerance        = None             #this is norm of the error threshold
     self.subGridTol       = None             #This is the tolerance used to construct the testing sub grid
-    self.ROM              = None             #This contains a pointer to the ROM instance
     self.toleranceWeight  = 'cdf'            #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
     self.persistence      = 5                #this is the number of times the error needs to fell below the tollerance before considering the sim converged
     self.repetition       = 0                #the actual number of time the error was below the requested threshold
