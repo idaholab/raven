@@ -1004,7 +1004,8 @@ two more nodes and can accept multiple entries of a third optional node.
       \ref{tab:gpcCompatible}, this ROM
       makes use of the uniform-like range of the distribution's CDF to apply quadrature that is
       suited uniform uncertainty (Legendre).  It converges more slowly than the four listed, but are
-      viable choices. 
+      viable choices.  Choosing polynomial type Legendre for any non-uniform distribution will
+      enable this formulation automatically.
     \item \xmlAttr{poly}, \xmlDesc{string,optional field},
       specifies the interpolating polynomial family to use for the polynomial expansion in this 
       dimension.  The default options depend on the quadrature type chosen, as shown in Table
@@ -1014,11 +1015,6 @@ two more nodes and can accept multiple entries of a third optional node.
       delineates the importance weighting of this dimension.  A larger importance weight will
       result in increased resolution for this dimension at the cost of resolution in lower-weighted
       dimensions.  The algorithm normalizes weights at run-time.\default{1}.
-    \item \xmlAttr{cdf}, \xmlDesc{boolean, option field},
-      indicates that the code should use the CDF of the distribution instead of the distribution
-      itself (see note for \xmlAttr{quad}).  Default is \xmlString{false} for the four distributions
-      in Table \ref{tab:gpcCompatible} and \xmlString{true} otherwise.
-      \default{``false'' if listed on Table \ref{tab:gpcCompatible}, ``true'' otherwise.}
   \end{itemize}
   %
 \end{itemize}
@@ -1043,7 +1039,22 @@ Also, this ROM must be referenced in the SparseGridCollocation sampler in order 
 accurately produce the necessary sparse grid points to train this ROM.
 
 \textbf{Example:}
+\footnotesize
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Samplers>
+  ...
+  <SparseGridCollocation name="mySG" parallel="0">
+    <variable name="x1">
+      <distribution>myDist1</distribution>
+    </variable>
+    <variable name="x2">
+      <distribution>myDist2</distribution>
+    </variable>
+    <ROM class = 'Models' type = 'ROM' >myROM</ROM>
+  </SparseGridCollocation>
+  ...
+</Samplers>
+...
 <Simulation>
   ...
   <Models>
@@ -1053,8 +1064,8 @@ accurately produce the necessary sparse grid points to train this ROM.
       <Features>x1,x2</Features>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>4</PolynomialOrder>
-      <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
-      <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2' cdf='False'>x2</Interpolation>
+      <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+      <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
     </ROM>
     ...
   </Models>

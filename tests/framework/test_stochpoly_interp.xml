@@ -38,7 +38,7 @@
             <IndexSet>TotalDegree</IndexSet>
             <PolynomialOrder>5</PolynomialOrder>
             <Interpolation quad='Hermite' poly='Hermite'>x1</Interpolation>
-            <Interpolation quad='Legendre' poly='Legendre' cdf='True'>x2</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre'>x2</Interpolation>
         </ROM>
     </Models>
 

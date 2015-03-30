@@ -61,24 +61,24 @@
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>4</PolynomialOrder>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
         <ROM name='TDROM' subType='GaussPolynomialRom' debug="True">
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TotalDegree</IndexSet>
             <PolynomialOrder>4</PolynomialOrder>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x1</Interpolation>
+            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
         <ROM name='HCROM' subType='GaussPolynomialRom' debug="True">
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>HyperbolicCross</IndexSet>
             <PolynomialOrder>4</PolynomialOrder>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x1</Interpolation>
+            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
     </Models>
 
