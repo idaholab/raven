@@ -123,7 +123,7 @@ class PBSDSHSimulationMode(SimulationMode):
       #Figure out number of nodes and use for batchsize
       nodefile = os.environ["PBS_NODEFILE"]
       lines = open(nodefile,"r").readlines()
-      self.__simulation.runInfoDict['uniqueNodes'] = list(set(lines))
+      self.__simulation.runInfoDict['Nodes'] = list(lines)
       oldBatchsize =  self.__simulation.runInfoDict['batchSize']
       newBatchsize = len(lines) #the batchsize is just the number of nodes
       # of which there are one per line in the nodefile
@@ -157,7 +157,7 @@ class MPISimulationMode(SimulationMode):
       else:
         nodefile = self.__nodefile
       lines = open(nodefile,"r").readlines()
-      self.__simulation.runInfoDict['uniqueNodes'] = list(set(lines))
+      self.__simulation.runInfoDict['Nodes'] = list(lines)
       numMPI = self.__simulation.runInfoDict['NumMPI']
       oldBatchsize = self.__simulation.runInfoDict['batchSize']
       #the batchsize is just the number of nodes of which there is one
@@ -298,7 +298,7 @@ class Simulation(object):
     self.runInfoDict['delSucLogFiles'    ] = False        # If a simulation (code run) has not failed, delete the relative log file (if True)
     self.runInfoDict['deleteOutExtension'] = []           # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
     self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only modes supported are pbsdsh and mpi
-    self.runInfoDict['uniqueNodes'       ] = []           # List of unique node IDs. Filled only in case RAVEN is run in a SMP machine
+    self.runInfoDict['Nodes'             ] = []           # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
 
@@ -416,13 +416,6 @@ class Simulation(object):
       else: raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
       raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> The step list: '+str(self.stepSequenceList)+' contains steps that have no bee declared: '+str(list(self.stepsDict.keys())))
-    # For StochasticPolynomials, the SamplingROM will act as both a Sampler and a Model, but is only initialized in the XML as a Sampler.
-    # Here, we add the SamplingROM to the Models dictionary under the same name so the step will be consistent and the user won't have to
-    # list it as a Model in the input.
-    for name,samplingROM in self.whichDict['Samplers'].items():
-      if samplingROM.type in ['StochasticPolynomials','AdaptiveStochasticPolynomials']:
-        self.whichDict['Models'][name] = samplingROM
-    # it's a ROM really.
 
   def initialize(self):
     '''check/created working directory, check/set up the parallel environment, call step consistency checker'''
@@ -611,5 +604,3 @@ class Simulation(object):
         if "finalize" in dir(output):
           output.finalize()
       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> ' + 2*'-'+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-')
-
-

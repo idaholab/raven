@@ -398,7 +398,7 @@ class AdaptiveSampler(Sampler):
     self.tolerance        = None             #this is norm of the error threshold
     self.subGridTol       = None             #This is the tolerance used to construct the testing sub grid
     self.ROM              = None             #This contains a pointer to the ROM instance
-    self.toleranceWeight  = 'probability'    #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
+    self.toleranceWeight  = 'cdf'            #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
     self.persistence      = 5                #this is the number of times the error needs to fell below the tollerance before considering the sim converged
     self.repetition       = 0                #the actual number of time the error was below the requested threshold
     self.forceIteration   = False            #this flag control if at least a self.limit number of iteration should be done
@@ -442,7 +442,7 @@ class AdaptiveSampler(Sampler):
       except: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Failed to convert the persistence value '+convergenceNode.attrib['persistence']+' to a meaningful number for the convergence')
     if 'weight'         in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('weight'))
-      try   : self.toleranceWeight = str(convergenceNode.attrib['weight'])
+      try   : self.toleranceWeight = str(convergenceNode.attrib['weight']).lower()
       except: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Failed to convert the weight type '+convergenceNode.attrib['weight']+' to a meaningful string for the convergence')
     if 'subGridTol'    in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('subGridTol'))
@@ -554,11 +554,11 @@ class AdaptiveSampler(Sampler):
     #if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})
     #else        : self.ROM = ROM
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
-    if self.toleranceWeight=='none':
+    if self.toleranceWeight=='value':
       for varName in self.distDict.keys():
         if not(self.distDict[varName].upperBoundUsed and self.distDict[varName].lowerBoundUsed):
           raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name)
-    elif self.toleranceWeight=='probability': pass
+    elif self.toleranceWeight=='cdf': pass
     else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown weight string descriptor: '+self.toleranceWeight)
     #setup the grid. The grid is build such as each element has a volume equal to the sub grid tolerance
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
@@ -566,7 +566,7 @@ class AdaptiveSampler(Sampler):
     stepLenght        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance
     self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
-    if self.toleranceWeight!='probability':
+    if self.toleranceWeight!='cdf':
       stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
     else:
       stepParam = lambda _: [stepLenght, 0.0, 1.0]
@@ -577,8 +577,8 @@ class AdaptiveSampler(Sampler):
       self.axisName.append(varName)
       [myStepLenght, start, end]  = stepParam(varName)
       start                      += 0.5*myStepLenght
-      if self.toleranceWeight=='probability': self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLenght)])
-      elif self.toleranceWeight=='none'     : self.gridVectors[varName] = np.arange(start,end,myStepLenght)
+      if self.toleranceWeight=='cdf': self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLenght)])
+      elif self.toleranceWeight=='value'     : self.gridVectors[varName] = np.arange(start,end,myStepLenght)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
     self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
     self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
@@ -797,7 +797,7 @@ class AdaptiveSampler(Sampler):
     if not varSet:
       #here we are still generating the batch
       for key in self.distDict.keys():
-        if self.toleranceWeight=='probability':
+        if self.toleranceWeight=='cdf':
           self.values[key]                      = self.distDict[key].ppf(float(Distributions.random()))
         else:
           self.values[key]                      = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
@@ -914,13 +914,16 @@ class MonteCarlo(Sampler):
 #     else:
 #       raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
 
-
-    if self.limit == None:
-      raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
+    if xmlNode.find('sampler_init')!= None:
+      if xmlNode.find('sampler_init').find('limit')!= None:
+        try: self.limit = int(xmlNode.find('sampler_init').find('limit').text)
+        except ValueError:
+          IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+      else:
+        raise IOError('Monte Carlo sampling needs the limit block (number of samples) in the sampler_init block')
     else:
-      try: self.limit = int(self.limit)
-      except ValueError:
-        IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+      raise IOError('Monte Carlo sampling needs the sampler_init block')
+
 
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''

@@ -114,7 +114,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     tempDict['Sleep time'  ] = str(self.sleepTime)
     tempDict['Initial seed'] = str(self.initSeed)
     for List in self.parList:
-      tempDict[List[0]] = 'Class: '+str(List[1])+' Type: '+str(List[2])+'  Global name: '+str(List[3])
+      tempDict[List[0]] = 'Class: '+str(List[1]) +' Type: '+str(List[2]) + '  Global name: '+str(List[3])
     self._localAddInitParams(tempDict)
 
   @abc.abstractmethod
@@ -207,10 +207,7 @@ class SingleRun(Step):
     '''this is the initialization for a generic step performing runs '''
     #Model initialization
     modelInitDict={}
-    if inDictionary['Model'].type=='StochasticPolynomials':
-      inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{},what='Model')
-    else:
-      inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{})
+    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{})
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
@@ -388,9 +385,8 @@ class RomTrainer(Step):
     if [item[0] for item in self.parList].count('Input')!=1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one Input and only one is allowed for a training step. Step name: '+str(self.name))
     if [item[0] for item in self.parList].count('Output')<1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> At least one Output is need in a training step. Step name: '+str(self.name))
     for item in self.parList:
-      if item[0]=='Output' and item[2] not in ['ROM','StochasticPolynomials']:
+      if item[0]=='Output' and item[2] not in ['ROM']:
         raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only ROM output class are allowed in a training step. Step name: '+str(self.name))
-      #FIXME ot everything that is a ROM explicitly is a ROM.
 
   def _localAddInitParams(self,tempDict):
     del tempDict['Initial seed'] #this entry in not meaningful for a training step
@@ -542,12 +538,12 @@ class IOStep(Step):
         outputs[i].addGroupDatas({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
-        fileobj = open(outputs[i],'w+')
+        fileobj = open(outputs[i],'wb+')
         cloudpickle.dump(inDictionary['Input'][i],fileobj)
         fileobj.close()
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
-        fileobj = open(inDictionary['Input'][i],'r+')
+        fileobj = open(inDictionary['Input'][i],'rb+')
         unpickledObj = pickle.load(fileobj)
         outputs[i].train(unpickledObj)
         fileobj.close()

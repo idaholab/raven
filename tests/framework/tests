@@ -408,4 +408,11 @@
    csv = 'test_cc_stats/output_fullprint_timepointset_outputs_normal1_0.csv test_cc_stats/output_fullprint_timepointset_outputs_normal1_1.csv test_cc_stats/output_fullprint_timepointset_outputs_normal2_0.csv test_cc_stats/output_fullprint_timepointset_outputs_normal2_1.csv test_cc_stats/output_fullprint_timepointset_outputs_uniform1_fullprint_timepointset_outputs_uniform2p_0.csv test_cc_stats/output_fullprint_timepointset_outputs_uniform1_fullprint_timepointset_outputs_uniform2p_1.csv'
  [../]
 
+ [./genericInterface]
+   type = 'RavenFramework'
+   input = 'test_generic_interface.xml'
+   output = 'GenericInterface/samples.xml'
+   csv = 'GenericInterface/samples.csv'
+ [../]
+
 []

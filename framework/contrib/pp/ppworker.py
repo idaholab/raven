@@ -31,6 +31,12 @@ forums
 """
 import sys
 import os
+import inspect
+#filepath = os.path.dirname(os.path.abspath(inspect.getsourcefile(lambda _: None)))
+#sys.path.append(os.path.abspath(os.path.join(filepath,'..'+os.path.sep+'..'+os.path.sep ,'utils')))
+#frameworkDir = os.path.abspath(os.path.join(filepath,'..'+os.path.sep+'..'+os.path.sep))
+#from utils import add_path_recursively
+#add_path_recursively(frameworkDir)
 import StringIO
 #import dill as pickle
 import cPickle as pickle
@@ -42,10 +48,12 @@ version = "1.6.4"
 
 
 def preprocess(msg):
+    # fname, fsources, imports, pytpath = pickle.loads(msg)
     fname, fsources, imports = pickle.loads(msg)
+    # print(pytpath)
     fobjs = [compile(fsource, '<string>', 'exec') for fsource in fsources]
     for module in imports:
-        try:            
+        try:
             if not module.startswith("from ") and not module.startswith("import "):
                 module = "import " + module
             exec module

@@ -1,4 +1,4 @@
-\section{Models \\ \vspace{2 mm} {\small }}
+\section{Models}
 \label{sec:models}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -40,7 +40,7 @@
 
   \xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{#2}/}.
   
-  In addition, several sub-nodes are available:
+   Several sub-nodes are available:
 }
 
 \newcommand{\skltype}[2]
@@ -611,7 +611,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-In RAVEN, \textbf{Models} are crucial entities.
+In RAVEN, \textbf{Models} are important entities.
 %
 A model is an object that employs a mathematical representation of a
 phenomenon, either of a physical or other nature (e.g. statistical operators,
@@ -741,6 +741,30 @@ to couple a new code.
   %
   \default{None}
   %
+  \item \xmlNode{clargs} \xmlDesc{string, optional field} allows addition of 
+  command-line arguments to the execution command.  If the code interface
+  specified in \xmlNode{Code} \xmlAttr{subType} does not specify how to 
+  determine the input file(s), this node must be used to specify them.
+  There are several types of \xmlNode{clargs}, based on the \xmlAttr{type}:
+  \begin{itemize}
+    \item \xmlAttr{type} \xmlDesc{string, required field} specifies the type of
+    command-line argument to add.  Options include \xmlString{input}, 
+    \xmlString{output}, \xmlString{prepend}, \xmlString{postpend}, and
+    \xmlString{text}.
+    %
+    \item \xmlAttr{arg} \xmlDesc{string, optional field} specifies the flag to
+    be used before the entry.  For example, \xmlAttr{arg=}\xmlString{-i} would
+    place a \texttt{-i} before the entry in the execution command.  Required for
+    the \xmlString{output} \xmlAttr{type}.
+    %
+    \item \xmlAttr{extension} \xmlDesc{string, optional field} specifies the type
+    of file extension to use (for example, \texttt{-i} or \texttt{-o}).  This links the
+    \xmlNode{Input} file in the \xmlNode{Step} to this location in the execution
+    command.  Required for \xmlString{input} \xmlAttr{type}.
+  \end{itemize}
+  The execution command is combined in the order \xmlString{prepend},
+  \xmlNode{executable}, \xmlString{input}, \xmlString{output}, \xmlString{text},
+  \xmlString{postpend}.
 \end{itemize}
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={subType,name,variable}]
@@ -862,24 +886,26 @@ In the \xmlNode{ROM} input block, the following XML sub-nodes are required,
 independent of the \xmlAttr{subType} specified:
 %
 \begin{itemize}
-  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field},
-  specifies the names of the features of this ROM.
+%  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field},
+%  specifies the names of the features of this ROM.
+%  %
+%  \nb These parameters will be requested for the training of this object (see
+%  Section~\ref{subsec:stepRomTrainer}).
+%  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field},
+%  contains a comma separated list of the targets of this ROM.
+%  %
+%  The parameters listed here represent the figures of merit this ROM is supposed
+%  to predict.
+%  %
+%  \nb These parameters are going to be requested for the training of this object
+%  (see Section~\ref{subsec:stepRomTrainer}).
   %
-  \nb These parameters will be requested for the training of this object (see
-  Section~\ref{subsec:stepRomTrainer}.
-  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field},
-  contains a comma separated list of the targets of this ROM.
-  %
-  The parameters listed here represent the figures of merit this ROM is supposed
-  to predict.
-  %
-  \nb These parameters are going to be requested for the training of this object
-  (see Section~\ref{subsec:stepRomTrainer}).
-  %
-   \item $<Features>$ \textbf{\textit{, comma separated string, required field.}}. In this node, the user needs to specify the names of the features of this ROM. NB. These parameters are going to be requested for the training of this object (see section \ref{subsec:stepTraining};
+   \item $<Features>$ \textbf{\textit{, comma separated string, required field.}}. In this node, the user needs to specify the names of the features of this ROM. NB. These parameters are going to be requested for the training of this object (see Section~\ref{subsec:stepRomTrainer};
     \item $<Target>$ \textbf{\textit{, comma separated string, required field.}}. This XML node contains a comma separated list of the targets of this ROM. By Instance, these parameters are the Figure of Merits this ROM is supposed to predict.
-    \\NB. These parameters are going to be requested for the training of this object (see section \ref{subsec:stepTraining}.
+    \\NB. These parameters are going to be requested for the training of this
+    object (see Section \ref{subsec:stepRomTrainer}.
     \item $<NormalizeData>$ \textbf{\textit{, boolean, optional field.}}. This XML node controls the normalization of data used for training the ROM. If True, the Training set is going to be normalized with respect to Average and Standard Deviation of the data set; no normalization is applied if this field is False. \textit{Default =  True}.
+
 \end{itemize}
 
 The types and meaning of the remaining sub-nodes depend on the sub-type
@@ -1095,13 +1121,8 @@ below).
   ...
 </Simulation>
 \end{lstlisting}
-%%%%% ROM Model - MicroSphere  %%%%%%%
-\subsubsection{MicroSphere}
-\label{subsubsec:microSphere}
-Not yet functional.
-%
-Its validity for prediction still needs to be assessed.
-%
+
+
 %%%%% ROM Model - SciKitLearn  %%%%%%%
 \subsubsection{SciKitLearn}
 \label{subsubsec:SciKitLearn}
@@ -1519,7 +1540,7 @@ regressor}{linear\_model|LassoLarsCV}
 
 The \textit{Lasso model fit with Lars using BIC or AIC for model selection} is
 a Lasso model fit with Lars using BIC or AIC for model selection.
-\maljdan{redundant}
+%\maljdan{redundant}
 The optimization objective for Lasso is:
 $(1 / (2 * n\_samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
 AIC is the Akaike information criterion and BIC is the Bayes information
@@ -2518,7 +2539,7 @@ using only the Gram matrix, X.T * X, and the product, X.T * y.
   If not None, overrides n\_nonzero\_coefs.
   %
   \item \xmlNode{norms\_squared}, \xmlDesc{array-like, shape(n\_targets)},
-  \maljdan{needs description}
+  %f\maljdan{needs description}
   %
 \end{itemize}
 
@@ -2792,8 +2813,8 @@ At prediction time, the classifiers are used to project new points in the class
 space and the class closest to the points is chosen.
 %
 The main advantage of these strategies is that the number of classifiers used
-can be controlled by the user, either for compressing the model ($0 < code_size
-< 1$) or for making the model more robust to errors ($code_size > 1$).
+can be controlled by the user, either for compressing the model ($0 < code\_
+size < 1$) or for making the model more robust to errors ($code\_ size > 1$).
 
 \skltype{Error-Correcting Output-Code multiclass classifier}{multiClass|OutputCodeClassifier}
 \begin{itemize}
@@ -3637,7 +3658,7 @@ Example XML:
        <variable>outcome</variable>
        <!--
           here we define other XML nodes RAVEN does not read automatically.
-          We need to implement, in the external module ``AnExtModule'' the readMoreXML method
+          We need to implement, in the external module 'AnExtModule' the readMoreXML method
         -->
         <newNodeWeNeedToRead>
             whatNeedsToBeRead
@@ -3656,11 +3677,13 @@ def _readMoreXML(self,xmlNode):
   # <newNodeWeNeedToRead> is unknown (in the RAVEN framework)
   # we have to read it on our own
   # get the node
-  ourNode = xmlNode.find(``newNodeWeNeedToRead'')
+  ourNode = xmlNode.find('newNodeWeNeedToRead')
   # get the information in the node
   self.ourNewVariable = ourNode.text
   # end function
 \end{lstlisting}
+
+
 \subsubsection{Method: \texttt{def initialize}}
 \label{subsubsec:externalInitialize}
 The \textbf{initialize} method can be implemented in the \textbf{External Model}
@@ -3726,6 +3749,8 @@ def initialize(self,runInfo,inputs):
   self.rho   = 28.0
   # end function
 \end{lstlisting}
+
+
 \subsubsection{Method: \texttt{def createNewInput}}
 \label{subsubsec:externalcreateNewInput}
 
@@ -3754,7 +3779,7 @@ that are generally needed to create a new input:
   perturbed by the sampler are reported.
 \end{itemize}
 \nb If the ``Step'' that is using this Model has as input(s) an object of main
-class type ``Datas'' (see section \ref{datas}), the internal ``createNewInput''
+class type ``Datas'' (see Section~\ref{sec:Datas}), the internal ``createNewInput''
 method is going to convert it in a dictionary of values.
 %
 
@@ -3763,11 +3788,11 @@ Here we present an example:
 def createNewInput(self,inputs,samplerType,**Kwargs):
   # in here the actual createNewInput of the
   # model is implemented
-  if samplerType == ``MonteCarlo'':
-    avariable = inputs[``something'']*inputs[``something2'']
+  if samplerType == 'MonteCarlo':
+    avariable = inputs['something']*inputs['something2']
   else:
-    avariable = inputs[``something'']/inputs[``something2'']
-  return avariable*Kwargs[``SampledVars''][``aSampledVar'']
+    avariable = inputs['something']/inputs['something2']
+  return avariable*Kwargs['SampledVars']['aSampledVar']
 \end{lstlisting}
 
 \subsubsection{Method: \texttt{def run}}
@@ -3830,8 +3855,8 @@ Currently, the following PPs are available in RAVEN:
   \item \textbf{LimitSurface}
   \item \textbf{External}
   \item \textbf{TopologicalDecomposition}
-  \item \textbf{PrintCSV}
-  \item \textbf{LoadCsvIntoInternalObject}
+  %\item \textbf{PrintCSV}
+  %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
 
 The specifications of these PPs must be defined within the XML block
@@ -4092,7 +4117,7 @@ At present only the ``equal'' grid type is available.
   distributions of the ``controllable'' and ''non-controllable'' variables.
   %
   These are \textbf{Assembler Objects}, each of these nodes must contain 2
-  attributes that are used to map those within the simulation framework:
+  attributes that are used to identify those within the simulation framework:
 	\begin{itemize}
     \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
     ``class'' the listed object is from.
@@ -4168,7 +4193,7 @@ zones that determine a change in the status of the system (Limit Surface).
   lists the parameters that define the uncertain domain and from which the LS
   needs to be computed.
   \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, sets the absolute
-  value of the convergence tolerance.
+  value (in CDF) of the convergence tolerance.
   %
   This value defines the coarseness of the evaluation grid.
   %
@@ -4249,7 +4274,8 @@ Section~\ref{sec:functions} for more details).
 
 \begin{itemize}
   \item \xmlNode{method}, \xmlAttr{comma separated string, required field},
-  lists the method names of an external Function that will be computed.
+  lists the method names of an external Function that will be computed (each
+  returning a post-processing value).
   \item \xmlNode{Assembler}, \xmlAttr{xml node, required field}, contains a 
   ``list'' of Functions where the \textit{methods} listed above are defined.
   %
@@ -4309,14 +4335,14 @@ The following is a list of acceptable sub-nodes:
     \item Beta Skeleton
     \item Relaxed Beta Skeleton
     \item Approximate KNN
-    \item Delaunay \textit{(disabled)}
+    %\item Delaunay \textit{(disabled)}
   \end{itemize}
   \default{Beta Skeleton}
   \item \xmlNode{gradient}, \xmlDesc{string, optional field}, specifies the 
   method used for estimating the gradient, available options are:
   \begin{itemize}
     \item Steepest
-    \item MaxFlow \textit{(disabled)}
+    %\item MaxFlow \textit{(disabled)}
   \end{itemize}
   \default{Steepest}
   \item \xmlNode{beta}, \xmlDesc{float, optional field}, is only used when the
@@ -4356,63 +4382,13 @@ The following is a list of acceptable sub-nodes:
   ...
 <Simulation>
 \end{lstlisting}
-%%%%% PP External %%%%%%%
-\paragraph{External.}
-\label{External}
-The \textbf{External} post-processor will execute an arbitrary python function
-defined externally using the \textit{Functions} interface (see 
-Section~\ref{sec:functions} for more details).
-\\In order to use the \textit{External} post-processor, the user needs to set 
-the \textit{subType} attribute to be ``External'': 
-\textit{$<$PostProcessor subType=``External''$>$}. 
-The following sub-nodes need to be specified:
-\begin{itemize}
-\item $<method>$ \textbf{\textit{, comma separated string, required field.}}.
-List of method names of an external Function that will be computed.
-\item $<Assembler>$\textbf{\textit{, xml node, required field.}} This xml node
-contains a ``list'' of Functions where the \textit{methods} listed above are
-defined. The objects must be listed with a rigorous syntax that, except for the
-xml node tag, is common among all the objects. 
-Each of these sub-nodes must contain 2 attributes that are used to map them
-within the simulation framework:
-   \begin{itemize}
-     \item \textbf{class}, \textit{required string attribute}, it is the main
-           ``class'' the listed object is from, the only acceptable class for
-           this post-processor is \textit{Functions};
-     \item \textbf{type},  \textit{required string attribute}, it is the object
-           identifier or sub-type, the only acceptable type for this 
-           post-processor is \textit{External}.
-    \end{itemize}
-\end{itemize}
-\textbf{Example:}
-\begin{lstlisting}[style=XML]
-----------------------------------------------
-<Simulation>
-  ...
-  <Models>
-    ...
-    <PostProcessor name="externalPP" subType='External' debug='True'>
-      <method>Delta,Sum</method>
-      <Assembler>
-        <Function class='Functions' type='External'>operators</Function> 
-          <!--Here, you can add a Function defined in the
-              Functions block. This should be present or
-              else RAVEN will not know where to find the
-              defined methods.
-            -->
-      </Assembler>
-    </PostProcessor>
-    ...
-  </Models>
-  ...
-</Simulation>
-----------------------------------------------
-\end{lstlisting}
+
 %%%%% PP PrintCSV %%%%%%%
-\paragraph{PrintCSV}
-\label{PrintCSV}
-TO BE MOVED TO STEP ``IOSTEP''
+%\paragraph{PrintCSV}
+%\label{PrintCSV}
+%TO BE MOVED TO STEP ``IOSTEP''
 %%%%% PP LoadCsvIntoInternalObject %%%%%%%
-\paragraph{LoadCsvIntoInternalObject}
-\label{LoadCsvIntoInternalObject}
-TO BE MOVED TO STEP ``IOSTEP''
+%\paragraph{LoadCsvIntoInternalObject}
+%\label{LoadCsvIntoInternalObject}
+%TO BE MOVED TO STEP ``IOSTEP''
+%

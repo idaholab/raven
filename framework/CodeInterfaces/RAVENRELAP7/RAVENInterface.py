@@ -24,12 +24,13 @@ class RAVENInterface(CodeInterfaceBase):
     '''seek which is which of the input files and generate According the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
-      if inputFile.endswith(('.i','.inp','.in')):
+      if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raise Exception('RAVEN INTERFACE ERROR -> None of the input files has one of the following extensions ".i", ".inp", or ".in"!')
+    if not found: raise Exception('RAVEN INTERFACE ERROR ->  None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    if flags: precommand = executable + flags
+    if flags: precommand = executable + flags['text']
     else    : precommand = executable
     executeCommand = (precommand + ' -i '+os.path.split(inputFiles[index])[1] +
                       ' Outputs/file_base='+ outputfile +
@@ -39,10 +40,6 @@ class RAVENInterface(CodeInterfaceBase):
                       ' Outputs/tail/type=ControlLogicBranchingInfo'+
                       ' Outputs/ravenCSV/type=CSVRaven')
     return executeCommand,outputfile
-
-  def appendLoadFileExtension(self,fileRoot):
-    '''  '''
-    return fileRoot + '.csv'
 
   def finalizeCodeOutput(self,currentInputFiles,output,workingDir):
     ''' this method is called by the RAVEN code at the end of each run (if the method is present).
@@ -67,8 +64,12 @@ class RAVENInterface(CodeInterfaceBase):
     self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRAVEN
     self._samplersDictionary['AdaptiveDynamicEventTree'] = self.adaptiveDynamicEventTreeForRAVEN
     self._samplersDictionary['StochasticCollocation'   ] = self.stochasticCollocationForRAVEN
-    if currentInputFiles[0].endswith('.i'): index = 0
-    else: index = 1
+    found = False
+    for index, inputFile in enumerate(currentInputFiles):
+      if inputFile.endswith(self.getInputExtension()):
+        found = True
+        break
+    if not found: raise Exception('RAVEN INTERFACE ERROR ->  None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
@@ -84,8 +85,7 @@ class RAVENInterface(CodeInterfaceBase):
     return newInputFiles
 
   def stochasticCollocationForRAVEN(self,**Kwargs):
-    if 'prefix' not in Kwargs['prefix']:
-      raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
+    if 'prefix' not in Kwargs['prefix']: raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
     listDict = []
     varValDict = Kwargs['vars'] #come in as a string of a list, need to re-list
     for key in varValDict.keys():
