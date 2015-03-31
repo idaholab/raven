@@ -755,7 +755,7 @@ class BasicStatistics(BasePostProcessor):
           self.what = self.what.split(',')
       if child.tag =="parameters"   : self.parameters['targets'] = child.text.split(',')
       if child.tag =="methodsToRun" : self.methodsToRun          = child.text.split(',')
-      if child.tag =="biased"       : 
+      if child.tag =="biased"       :
           if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
 
   def collectOutput(self,finishedjob,output):
