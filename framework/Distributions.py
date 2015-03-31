@@ -697,11 +697,19 @@ class Beta(BoostDistribution):
     else:
         if xmlNode.find('high') != None: self.hi = float(xmlNode.find('high').text)
     alpha_find = xmlNode.find('alpha')
-    if alpha_find != None: self.alpha = float(alpha_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> alpha value needed for Beta distribution')
     beta_find = xmlNode.find('beta')
-    if beta_find != None: self.beta = float(beta_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> beta value needed for Beta distribution')
+    peak_find = xmlNode.find('peakFactor')
+    if alpha_find != None and beta_find != None and peak_find == None:
+      self.alpha = float(alpha_find.text)
+      self.beta  = float(beta_find.text)
+    elif (alpha_find == None and beta_find == None) and peak_find != None:
+      peakFactor = float(peak_find.text)
+      if not 0 <= peakFactor <= 1: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'peakFactor must be from 0 to 1, inclusive!')
+      #this empirical formula is used to make it so factor->alpha: 0->1, 0.5~7.5, 1->99
+      self.alpha = 0.5*23.818**(5.*peakFactor/3.) + 0.5
+      self.beta = self.alpha
+    else:
+      raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'Either provide (alpha and beta) or peakFactor!')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
@@ -722,6 +730,7 @@ class Beta(BoostDistribution):
     self.convertToDistrDict['Jacobi'] = self.convertJacobiToBeta
     self.convertToQuadDict ['Jacobi'] = self.convertBetaToJacobi
     self.measureNormDict   ['Jacobi'] = self.stdProbabilityNorm
+    #this "if" section can only be called if distribution not generated using readMoreXML
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,self.low)
     else:
@@ -1031,10 +1040,8 @@ class Exponential(BoostDistribution):
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> lambda value needed for Exponential distribution')
     low  = xmlNode.find('low')
-    if low != None:
-      self.low = float(low.text)
-    else:
-      self.low = 0.0
+    if low != None: self.low = float(low.text)
+    else: self.low = 0.0
     # check if lower bound is set, otherwise default
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
@@ -1082,6 +1089,7 @@ class LogNormal(BoostDistribution):
     BoostDistribution.__init__(self)
     self.mean = 1.0
     self.sigma = 1.0
+    self.low = 0.0
     self.type = 'LogNormal'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
@@ -1096,6 +1104,7 @@ class LogNormal(BoostDistribution):
     retDict = Distribution.getCrowDistDict(self)
     retDict['mu'] = self.mean
     retDict['sigma'] = self.sigma
+    retDict['low'] = self.low
     return retDict
 
   def _readMoreXML(self,xmlNode):
@@ -1106,28 +1115,32 @@ class LogNormal(BoostDistribution):
     sigma_find = xmlNode.find('sigma')
     if sigma_find != None: self.sigma = float(sigma_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> sigma value needed for LogNormal distribution')
+    low_find = xmlNode.find('low')
+    if low_find != None: self.low = float(low_find.text)
+    else: self.low = 0.0
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['mean' ] = self.mean
     tempDict['sigma'] = self.sigma
+    tempDict['low'] = self.low
 
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma)
+      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low)
       self.lowerBound = -sys.float_info.max
       self.upperBound =  sys.float_info.max
     else:
       if self.lowerBoundUsed == False:
-        a = -sys.float_info.max
+        a = self.low #-sys.float_info.max
         self.lowerBound = a
       else:a = self.lowerBound
       if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
       else:b = self.upperBound
-      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,a,b)
+      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low,a,b)
 
 
 class Weibull(BoostDistribution):
@@ -1136,6 +1149,7 @@ class Weibull(BoostDistribution):
     self.lambda_var = 1.0
     self.k = 1.0
     self.type = 'Weibull'
+    self.low = 0.0
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -1149,6 +1163,7 @@ class Weibull(BoostDistribution):
     retDict = Distribution.getCrowDistDict(self)
     retDict['lambda'] = self.lambda_var
     retDict['k'] = self.k
+    retDict['low'] = self.low
     return retDict
 
   def _readMoreXML(self,xmlNode):
@@ -1159,6 +1174,9 @@ class Weibull(BoostDistribution):
     k_find = xmlNode.find('k')
     if k_find != None: self.k = float(k_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> k (shape) value needed for Weibull distribution')
+    low_find = xmlNode.find('low')
+    if low_find != None: self.low = float(low_find.text)
+    else: self.low = 0.0
     # check if lower  bound is set, otherwise default
     #if not self.lowerBoundUsed:
     #  self.lowerBoundUsed = True
@@ -1170,20 +1188,21 @@ class Weibull(BoostDistribution):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['lambda'] = self.lambda_var
     tempDict['k'     ] = self.k
+    tempDict['low'   ] = self.low
 
   def initializeDistribution(self):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False): # or self.lowerBound == 0.0:
-      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var)
+      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,self.low)
     else:
       if self.lowerBoundUsed == False:
-        a = 0.0
+        a = self.low
         self.lowerBound = a
       else:a = self.lowerBound
       if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
       else:b = self.upperBound
-      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b)
+      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b,self.low)
 
 
 
