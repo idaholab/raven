@@ -341,7 +341,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     translate={}
     for i in range(len(fvs)):
       translate[tuple(fvs[i])]=sgs[i]
-    #TODO can parallelize this! Worth it?
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
     #outFile=file('debugout.txt','w')
     #outFile.writelines(str(list(v for v in self.sparseGrid.varNames))+'\n')
@@ -365,42 +364,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     #do a few moments #TODO need a better solution for calling moment calculations, etc
     for r in range(5):
       print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
-
-    #print('DEBUG sparsegrid:\n'+str(self.sparseGrid))
-    #print('DEBUG scipy tests')
-    #for i in range(1,5):
-    #  print('DEBUG  ',self.quads.values()[0](i))
-    #import scipy
-    #print('DEBUG python',sys.version_info)
-    #print('DEBUG numpy ',np.__version__)
-    #print('DEBUG scipy ',scipy.__version__)
-    #local evals
-    #if len(self.features)==1:
-    #  tests=[(0),(0.2),(0.5),(0.7),(1.0)]
-    #elif len(self.features)==2:
-    # tests=[(0,0),(0,0.5),(0.5,0.5),(1.0,0.5),(1.0,1.0)]
-    #for i in tests:
-    #  print('DEBUG eval'+str(i)+':',self.__evaluateLocal__([i]))
-
-    #pk.dump(self,file('testROMdump.pk','w'))
-    #dud=pk.load(file('testROMdump.pk','r'))
-    #print('dud:',dud)
-    #print('pickle test:',dud==self.distDict)
-
-    #for r in range(5):
-    #  print('ROM moment',r,'= %1.16f' %dud.__evaluateMoment__(r))
-    # THESE members pickle ok now, and check out as equal
-    # - sparseGrid
-    # - quads
-    # - maxPolyOrder
-    # - polys
-    # - indexSet
-
-    # THESE members are problems still. TODO
-    # - distDict -> SWIG problems.
-
-    # UNTESTED
-    # SVL
 
   def printPolyDict(self,printZeros=False):
     '''Human-readable version of the polynomial chaos expansion.
@@ -444,11 +407,67 @@ class GaussPolynomialRom(NDinterpolatorRom):
              #'PolynomialOrder':self.maxPolyOrder,
              # 'Interpolation':interpolationInfo()}
 
-  #def __getstate__(self): #for pickling
-  #  pass
-#
-#  def __setstate__(self,state): #for unpickling
-#    pass
+class HDMRRom(NDinterpolatorRom):
+  def __init__(self,**kwargs):
+    superVisedLearning.__init__(self,**kwargs)
+    self.printTag      = returnPrintTag('HDMR_ROM('+self.target+')')
+    self.sobolOrder    = None #depth of HDMR/Sobol expansion
+    self.ROMs          = {}   #collection of subset ROMs
+    # stoch poly things
+    self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
+    self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
+    self.itpDict       = {}   #dict of quad,poly,weight choices keyed on varName
+    self.norm          = None #combined distribution normalization factors (product)
+    self.sparseGrid    = None #Quadratures.SparseGrid object, has points and weights
+    self.distDict      = None #dict{varName: Distribution object}, has point conversion methods based on quadrature
+    self.quads         = None #dict{varName: Quadrature object}, has keys for distribution's point conversion methods
+    self.polys         = None #dict{varName: OrthoPolynomial object}, has polynomials for evaluation
+    self.indexSet      = None #array of tuples, polynomial order combinations
+    self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
+    self.itpDict       = {}   #dict{varName: dict{attribName:value} }
+
+    for key,val in kwargs.items():
+      if key=='SobolOrder': self.sobolOrder = int(val)
+      if key=='IndexSet': self.indexSetType = val
+      if key=='PolynomialOrder': self.maxPolyOrder = val
+      if key=='Interpolation':
+        for var,val in val.items():
+          self.itpDict[var]={'poly'  :'DEFAULT',
+                             'quad'  :'DEFAULT',
+                             'weight':'1',
+                             'cdf'   :'False'}
+          for atrName,atrVal in val.items():
+            if atrName in ['poly','quad','weight','cdf']: self.itpDict[var][atrName]=atrVal
+            else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
+
+    if not self.indexSetType:
+      raise IOError(self.printTag+' No IndexSet specified!')
+    if not self.maxPolyOrder:
+      raise IOError(self.printTag+' No IndexSet specified!')
+    if self.maxPolyOrder < 1:
+      raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
+
+
+  def _localNormalizeData(self,values,names,feat):
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+
+  def interpolationInfo(self):
+    return dict(self.itpDict)
+
+  def initialize(self,idict):
+    for key,value in idict.items():
+      if   key == 'SG'   : self.sparseGrid = value
+      elif key == 'dists': self.distDict   = value
+      elif key == 'quads': self.quads      = value
+      elif key == 'polys': self.polys      = value
+      elif key == 'iSet' : self.indexSet   = value
+
+  def __evaluateMoment__(self,r,featureVals):
+    pass #TODO
+
+  def __evaluateLocal__(self,featureVals):
+    pass #TODO
+
 #
 #
 #
