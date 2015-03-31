@@ -1466,8 +1466,6 @@ class LimitSurface(BasePostProcessor):
      @ In , boolean          : True if listSurfaceCoordinate needs to be returned
      @ Out, dictionary       : Dictionary with results
     """
-    #if InputIn != None: self.initialize({'WorkingDir':self.__workingDir},InputIn,{})
-    #np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
     tempDict ={}
