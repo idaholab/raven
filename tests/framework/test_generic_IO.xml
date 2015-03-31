@@ -4,7 +4,7 @@
     <JobName>testGenericCodeInterface</JobName>
     <Files>gen.one,gen.two</Files>
     <Sequence>sample</Sequence>
-    <WorkingDir>GenericInterface</WorkingDir>
+    <WorkingDir>GenericInterfaceIO</WorkingDir>
     <batchSize>1</batchSize>
     <!--mode>mpi<runQSUB/></mode>
     <NumMPI>24</NumMPI>
@@ -13,11 +13,11 @@
 
   <Models>
     <Code name="poly" subType="GenericCode">
-      <executable>GenericInterface/poly_inp.py</executable>
-      <clargs type='prepend' arg='python'/>
-      <clargs type='input' arg='-i' extension='.one'/>
-      <clargs type='input' arg='-a' extension='.two'/>
-      <clargs type='output' arg='-o'/>
+      <executable>GenericInterfaceIO/poly_inp_io.py</executable>
+      <clargs   type='prepend' arg='python'/>
+      <clargs   type='input'   arg='-i'     extension='.one'/>
+      <fileargs type='input'   arg='aux'    extension='.two'/>
+      <fileargs type='output'  arg='output'                 />
       <prepend>python</prepend>
     </Code>
   </Models>

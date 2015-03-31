@@ -415,4 +415,10 @@
    csv = 'GenericInterface/samples.csv'
  [../]
 
+ [./genericInterfaceIO]
+   type = 'RavenFramework'
+   input = 'test_generic_IO.xml'
+   output = 'GenericInterfaceIO/samples.xml'
+   csv = 'GenericInterfaceIO/samples.csv'
+ [../]
 []
