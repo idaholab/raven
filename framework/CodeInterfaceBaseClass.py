@@ -24,7 +24,7 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
         of a newer code interface can decide to avoid to inherit from this class if he does not want
         to exploit the automatic checking of the code interface's functionalities
   """
-  def genCommand(self,inputFiles,executable,flags=None):
+  def genCommand(self,inputFiles,executable,flags=None, fileargs=None):
     """
       This method is used to retrieve the command (in string format) needed to launch the Code.
       This method checks a bolean enviroment variable called 'RAVENinterfaceCheck':
@@ -35,9 +35,27 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
       @ In , flags, string, a string containing the flags the user can specify in the input (e.g. under the node <Code> <executable> <flags>-u -r</flags> </executable> </Code>)
       @ Out, string, string containing the full command that the internal JobHandler is going to use to run the Code this interface refers to
     """
-    subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,flags)
+    subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileargs)
     if os.environ['RAVENinterfaceCheck'].lower() in stringsThatMeanTrue(): return '',outputfileroot
     return subcodeCommand,outputfileroot
+
+  def readMoreXML(self,xmlNode):
+    '''
+      Function to read the portion of the xml input that belongs to this class and
+      initialize some members based on inputs.
+      @ In, xmlNode, XML element node
+      @Out, None.
+    '''
+    self._readMoreXML(xmlNode)
+
+  def _readMoreXML(self,xmlNode):
+    '''
+      Function to read the portion of the xml input that belongs to this specialized class and
+      initialize some members based on inputs.
+      @ In, xmlNode, XML element node
+      @Out, None.
+    '''
+    pass #afaik, this is only used in GenericCodeInterface currently.
 
   @abc.abstractmethod
   def generateCommand(self,inputFiles,executable,flags=None):
@@ -71,17 +89,55 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
     """
       This method returns a list of extension the code interface accepts for the input file (the main one)
       @ In , None
-      @ Out, tuple, tuple of strings containing accepted input extension (e.g.[".i",".inp"]) for this code interface, default [".i",".inp",".in"]
+      @ Out, tuple, tuple of strings containing accepted input extension (e.g.[".i",".inp"])
     """
-    return (".i",".inp",".in")
+    return tuple(self.inputExtensions)
 
-  def finalizeCodeOutput(self,currentInputFiles,output,workingDir):
+  def setInputExtension(self,exts):
+    """
+      This method sets a list of extension the code interface accepts for the input files
+      @ In , exts, list or other array containing accepted input extension (e.g.[".i",".inp"])
+      @ Out, None
+    """
+    self.inputExtensions = exts[:]
+
+  def addInputExtension(self,exts):
+    """
+      This method adds a list of extension the code interface accepts for the input files
+      @ In , exts, list or other array containing accepted input extension (e.g.[".i",".inp"])
+      @ Out, None
+    """
+    for e in exts:self.inputExtensions.append(e)
+
+  def addDefaultExtension(self):
+    """
+      This method sets a list of default extensions a specific code interface accepts for the input files.
+      This method should be overwritten if these are not acceptable defaults.
+      @ In , None
+      @ Out, None
+    """
+    self.addInputExtension(['.i','.inp','.in'])
+
+  def finalizeCodeOutput(self,command,output,workingDir):
     """
     this method is called by the RAVEN code at the end of each run (if the method is present).
     It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
-    @ currentInputFiles, currentInputFiles, list,  list of current input files (input files from last this method call)
+    @ command, Input, the command used to run the just ended job
     @ output, Input, the Output name root (string)
     @ workingDir, Input, actual working dir (string)
     @ return string, optional, present in case the root of the output file gets changed in this method.
     """
     return output
+
+  def checkForOutputFailure(self,output,workingDir):
+    """
+    this method is called by RAVEN at the end of each run if the return code is == 0.
+    This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
+    This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
+    This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
+    (e.g. in RELAP5 would be the keyword "********")
+    @ output, Input, the Output name root (string)
+    @ workingDir, Input, actual working dir (string)
+    @ return bool, required, True if the job is failed, False otherwise
+    """
+    return False

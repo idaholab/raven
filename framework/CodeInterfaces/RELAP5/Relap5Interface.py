@@ -14,7 +14,7 @@ from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Relap5(CodeInterfaceBase):
   '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
-  def generateCommand(self,inputFiles,executable,flags=None):
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     '''seek which is which of the input files and generate According the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
@@ -23,8 +23,8 @@ class Relap5(CodeInterfaceBase):
         break
     if not found: raise Exception('Relap5 INTERFACE ERROR -> None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    if flags: addflags = flags
-    else    : addflags = ''
+    if clargs: addflags = clargs['text']
+    else     : addflags = ''
     #executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[1] + '.o' + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '+ addflags
     executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.join(os.path.split(inputFiles[index])[0],outputfile + '.o') + ' -r ' + os.path.join(os.path.split(inputFiles[index])[0], outputfile + '.r ') + addflags
     return executeCommand,outputfile
@@ -41,6 +41,22 @@ class Relap5(CodeInterfaceBase):
     outputobj=relapdata.relapdata(outfile)
     if outputobj.hasAtLeastMinorData(): outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
     else: raise IOError('ERROR! Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
+
+  def checkForOutputFailure(self,output,workingDir):
+    """
+    this method is called by the RAVEN code at the end of each run  if the return code is == 0.
+    This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
+    This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
+    This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
+    (e.g. in RELAP5 would be the keyword "********")
+    @ currentInputFiles, currentInputFiles, list,  list of current input files (input files from last this method call)
+    @ output, Input, the Output name root (string)
+    @ workingDir, Input, actual working dir (string)
+    @ return bool, required, True if the job is failed, False otherwise
+    """
+    from  __builtin__ import any as b_any
+    errorWord = "Transient terminated by end of time step cards"
+    return not b_any(errorWord in x.strip() for x in open(os.path.join(workingDir,output+'.o'),"r").readlines())
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''

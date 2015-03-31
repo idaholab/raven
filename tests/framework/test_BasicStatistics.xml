@@ -33,6 +33,7 @@
     </PostProcessor>
     <PostProcessor name="NotCorrellatedTest" subType='BasicStatistics' debug='true'>
         <what>all</what>
+        <biased>true</biased>
         <parameters>y01,y02</parameters>
     </PostProcessor>
     <PostProcessor name="InverseCorrelatedTest" subType='BasicStatistics'  debug='true'>

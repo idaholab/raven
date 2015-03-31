@@ -6,6 +6,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import xml.etree.ElementTree as ET
 import sys, os
 import pickle as pk
+import numpy as np
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.append(os.path.join(frameworkDir,'utils'))
 
@@ -24,12 +25,11 @@ def createElement(tag,attrib={},text={}):
 
 results = {"pass":0,"fail":0}
 
-def floatNotEqual(a,b):
-  return abs(a - b) > 1e-10
+#def floatNotEqual(a,b):
+#  return abs(a - b) > 1e-10
 
-
-def checkAnswer(comment,value,expected):
-  if floatNotEqual(value, expected):
+def checkAnswer(comment,value,expected,tol=1e-10):
+  if abs(value - expected) > tol:
     print(comment,value,"!=",expected)
     results["fail"] += 1
   else:
@@ -42,6 +42,12 @@ def checkCrowDist(comment,dist,expected_crow_dist):
     results["fail"] += 1
   else:
     results["pass"] += 1
+
+def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
+  xs=np.linspace(low,high,numpts)
+  dx = (high-low)/float(numpts)
+  tot = sum(dist.pdf(x)*dx for x in xs)
+  checkAnswer(name+' unity integration',tot,1,tol)
 
 #Test module methods
 print(Distributions.knownTypes())
@@ -67,6 +73,8 @@ puniform=pk.load(file('testDistrDump.pk','rb'))
 
 checkCrowDist("uniform",uniform,{'xMin': 1.0, 'type': 'UniformDistribution', 'xMax': 3.0})
 checkCrowDist("puniform",puniform,{'xMin': 1.0, 'type': 'UniformDistribution', 'xMax': 3.0})
+
+checkIntegral("uniform",uniform,1,3)
 
 checkAnswer("uniform cdf(1.0)",uniform.cdf(1.0),0.0)
 checkAnswer("uniform cdf(2.0)",uniform.cdf(2.0),0.5)
@@ -95,8 +103,6 @@ for _ in range(10): Distributions.randomIntegers(0,1)
 
 Distributions.randomIntegers(2,1)
 
-
-
 #Test Normal
 mean=1.0
 sigma=2.0
@@ -114,6 +120,8 @@ pnormal=pk.load(file('testDistrDump.pk','rb'))
 
 checkCrowDist("normal",normal,{'mu': 1.0, 'sigma': 2.0, 'type': 'NormalDistribution'})
 checkCrowDist("pnormal",pnormal,{'mu': 1.0, 'sigma': 2.0, 'type': 'NormalDistribution'})
+
+checkIntegral("normal",normal,mean-5.*sigma,mean+5.*sigma)
 
 checkAnswer("normal cdf(0.0)",normal.cdf(0.0),0.308537538726)
 checkAnswer("normal cdf(1.0)",normal.cdf(1.0),0.5)
@@ -157,6 +165,8 @@ ptruncNormal=pk.load(file('testDistrDump.pk','rb'))
 
 checkCrowDist("truncNormal",truncNormal,{'xMin': -1.0, 'mu': 1.0, 'type': 'NormalDistribution', 'sigma': 2.0, 'xMax': 3.0})
 checkCrowDist("ptruncNormal",ptruncNormal,{'xMin': -1.0, 'mu': 1.0, 'type': 'NormalDistribution', 'sigma': 2.0, 'xMax': 3.0})
+
+checkIntegral("truncNormal",truncNormal,-1.,3.)
 
 checkAnswer("truncNormal cdf(0.0)",truncNormal.cdf(0.0),0.219546787406)
 checkAnswer("truncNormal cdf(1.0)",truncNormal.cdf(1.0),0.5)
@@ -209,6 +219,8 @@ pgamma=pk.load(file('testDistrDump.pk','rb'))
 checkCrowDist("gamma",gamma,{'xMin': 0.0, 'theta': 2.0, 'k': 1.0, 'type': 'GammaDistribution', 'low': 0.0})
 checkCrowDist("pgamma",pgamma,{'xMin': 0.0, 'theta': 2.0, 'k': 1.0, 'type': 'GammaDistribution', 'low': 0.0})
 
+checkIntegral("gamma",gamma,0.,50.,numpts=1e5)
+
 checkAnswer("gamma cdf(0.0)",gamma.cdf(0.0),0.0)
 checkAnswer("gamma cdf(1.0)",gamma.cdf(1.0),0.393469340287)
 checkAnswer("gamma cdf(10.0)",gamma.cdf(10.0),0.993262053001)
@@ -223,7 +235,6 @@ checkAnswer("pgamma ppf(0.1)",pgamma.ppf(0.1),0.210721031316)
 checkAnswer("pgamma ppf(0.5)",pgamma.ppf(0.5),1.38629436112)
 checkAnswer("pgamma ppf(0.9)",pgamma.ppf(0.9),4.60517018599)
 
-# TODO FIXME what does this actually test? - pwt
 nobeta_gammaElement = ET.Element("nobeta_gamma")
 nobeta_gammaElement.append(createElement("alpha",text="1.0"))
 nobeta_gammaElement.append(createElement("low",text="0.0"))
@@ -232,7 +243,32 @@ nobeta_gamma = Distributions.Gamma()
 nobeta_gamma._readMoreXML(nobeta_gammaElement)
 nobeta_gamma.initializeDistribution()
 
-#print(gamma.rvs(5),gamma.rvs())
+print(gamma.rvs(5),gamma.rvs())
+
+# shifted gamma
+gammaElement = ET.Element("gamma")
+gammaElement.append(createElement("low",text="10.0"))
+gammaElement.append(createElement("alpha",text="1.0"))
+gammaElement.append(createElement("beta",text="0.5"))
+
+gamma = Distributions.Gamma()
+gamma._readMoreXML(gammaElement)
+gamma.initializeDistribution()
+
+gamma.addInitParams({})
+
+checkCrowDist("shifted gamma",gamma,{'xMin': 10.0, 'theta': 2.0, 'k': 1.0, 'type': 'GammaDistribution', 'low': 10.0})
+
+checkIntegral("shifted gamma",gamma,10.,60.,numpts=1e5)
+
+checkAnswer("shifted gamma cdf(10.0)",gamma.cdf(10.0),0.0)
+checkAnswer("shifted gamma cdf(11.0)",gamma.cdf(11.0),0.393469340287)
+checkAnswer("shifted gamma cdf(20.0)",gamma.cdf(20.0),0.993262053001)
+
+checkAnswer("shifted gamma ppf(0.1)",gamma.ppf(0.1),10.210721031316)
+checkAnswer("shifted gamma ppf(0.5)",gamma.ppf(0.5),11.38629436112)
+checkAnswer("shifted gamma ppf(0.9)",gamma.ppf(0.9),14.60517018599)
+
 
 #Test Beta
 
@@ -252,6 +288,8 @@ pbeta=pk.load(file('testDistrDump.pk','rb'))
 
 checkCrowDist("beta",beta,{'scale': 1.0, 'beta': 2.0, 'low':0.0, 'xMax': 1.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
 checkCrowDist("pbeta",pbeta,{'scale': 1.0, 'beta': 2.0, 'low':0.0, 'xMax': 1.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
+
+checkIntegral("beta",beta,0.0,1.0)
 
 checkAnswer("beta cdf(0.1)",beta.cdf(0.1),5.5e-05)
 checkAnswer("beta cdf(0.5)",beta.cdf(0.5),0.109375)
@@ -298,6 +336,8 @@ beta.initializeDistribution()
 
 checkCrowDist("scaled beta",beta,{'scale': 4.0, 'beta': 1.0, 'low':0.0, 'xMax': 4.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
 
+checkIntegral("scaled beta",beta,0.0,4.0)
+
 checkAnswer("scaled beta cdf(0.1)",beta.cdf(0.1),9.765625e-09)
 checkAnswer("scaled beta cdf(0.5)",beta.cdf(0.5),3.0517578125e-05)
 checkAnswer("scaled beta cdf(0.9)",beta.cdf(0.9),0.000576650390625)
@@ -322,6 +362,8 @@ beta.initializeDistribution()
 
 checkCrowDist("shifted beta",beta,{'scale': 6.0, 'beta': 2.0, 'low':-1.0, 'xMax': 5.0, 'xMin': -1.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
 
+checkIntegral("shifted beta",beta,-1.0,5.0)
+
 checkAnswer("shifted beta cdf(-0.5)",beta.cdf(-0.5),2.2438164437585733882e-5)
 checkAnswer("shifted beta cdf( 0.5)",beta.cdf( 0.5),4.638671875e-3)
 checkAnswer("shifted beta cdf( 3.5)",beta.cdf( 3.5),5.33935546875e-1)
@@ -331,6 +373,34 @@ checkAnswer("shifted beta ppf(0.5)",beta.ppf(0.5),3.41330010023)
 checkAnswer("shifted beta ppf(0.9)",beta.ppf(0.9),4.44442844652)
 
 print(beta.rvs(5),beta.rvs())
+
+#Test Truncated-Normal-Like Beta
+betanElement = ET.Element("beta")
+betanElement.append(createElement("low",text="1.0"))
+betanElement.append(createElement("hi",text="5.0"))
+betanElement.append(createElement("peakFactor",text="0.5"))
+
+betan = Distributions.Beta()
+betan._readMoreXML(betanElement)
+
+checkCrowDist("truncnormal beta",betan,{'scale': 4.0, 'beta': 7.520872400521023, 'low':1.0, 'xMax': 5.0, 'xMin': 1.0, 'alpha': 7.520872400521023, 'type': 'BetaDistribution'})
+
+#do an integral
+checkIntegral("truncnormal beta",betan,1.0,5.0)
+#for i in range(6):
+#  print('DEBUG',i,betan.pdf(i))
+
+checkAnswer("truncnormal beta cdf(1.0)",betan.cdf(1.0),0)
+checkAnswer("truncnormal beta cdf(2.0)",betan.cdf(2.0),0.020339936921)
+checkAnswer("truncnormal beta cdf(3.0)",betan.cdf(3.0),0.5)
+checkAnswer("truncnormal beta cdf(4.0)",betan.cdf(4.0),0.979660063079)
+checkAnswer("truncnormal beta cdf(5.0)",betan.cdf(5.0),1)
+
+checkAnswer("truncnormal ppf(0.1)",betan.ppf(0.1),2.34668338772)
+checkAnswer("truncnormal ppf(0.5)",betan.ppf(0.5),3.0)
+checkAnswer("truncnormal ppf(0.9)",betan.ppf(0.9),3.65331661228)
+
+print(betan.rvs(5),betan.rvs())
 
 #Test Triangular
 
@@ -350,6 +420,8 @@ ptriangular=pk.load(file('testDistrDump.pk','rb'))
 checkCrowDist("triangular",triangular,{'lowerBound': 0.0, 'type': 'TriangularDistribution', 'upperBound': 4.0, 'xMax': 4.0, 'xMin': 0.0, 'xPeak': 3.0})
 checkCrowDist("ptriangular",ptriangular,{'lowerBound': 0.0, 'type': 'TriangularDistribution', 'upperBound': 4.0, 'xMax': 4.0, 'xMin': 0.0, 'xPeak': 3.0})
 
+checkIntegral("triangular",triangular,0.0,4.0)
+
 checkAnswer("triangular cdf(0.25)",triangular.cdf(0.25),0.00520833333333)
 checkAnswer("triangular cdf(3.0)",triangular.cdf(3.0),0.75)
 checkAnswer("triangular cdf(3.5)",triangular.cdf(3.5),0.9375)
@@ -366,6 +438,29 @@ checkAnswer("ptriangular ppf(0.9)",ptriangular.ppf(0.9),3.36754446797)
 
 print(triangular.rvs(5),triangular.rvs())
 print(ptriangular.rvs(5),ptriangular.rvs())
+
+#Shift Triangular
+
+triangularElement = ET.Element("triangular")
+triangularElement.append(createElement("min",text="5.0"))
+triangularElement.append(createElement("apex",text="8.0"))
+triangularElement.append(createElement("max",text="9.0"))
+
+triangular = Distributions.Triangular()
+triangular._readMoreXML(triangularElement)
+triangular.initializeDistribution()
+
+checkCrowDist("shift triangular",triangular,{'lowerBound': 5.0, 'type': 'TriangularDistribution', 'upperBound': 9.0, 'xMax': 9.0, 'xMin': 5.0, 'xPeak': 8.0})
+
+checkIntegral("shift triangular",triangular,5.0,9.0)
+
+checkAnswer("shift triangular cdf(0.25)",triangular.cdf(5.25),0.00520833333333)
+checkAnswer("shift triangular cdf(3.0)",triangular.cdf(8.0),0.75)
+checkAnswer("shift triangular cdf(3.5)",triangular.cdf(8.5),0.9375)
+
+checkAnswer("shift triangular ppf(0.1)",triangular.ppf(0.1),6.09544511501)
+checkAnswer("shift triangular ppf(0.5)",triangular.ppf(0.5),7.44948974278)
+checkAnswer("shift triangular ppf(0.9)",triangular.ppf(0.9),8.36754446797)
 
 #Test Poisson
 
@@ -384,6 +479,8 @@ ppoisson=pk.load(file('testDistrDump.pk','rb'))
 
 checkCrowDist("poisson",poisson,{'mu': 4.0, 'type': 'PoissonDistribution'})
 checkCrowDist("ppoisson",ppoisson,{'mu': 4.0, 'type': 'PoissonDistribution'})
+
+checkIntegral("poisson",poisson,0.0,1000.0, numpts=1000)
 
 checkAnswer("poisson cdf(1.0)",poisson.cdf(1.0),0.0915781944437)
 checkAnswer("poisson cdf(5.0)",poisson.cdf(5.0),0.7851303870304052)
@@ -421,6 +518,8 @@ pbinomial=pk.load(file('testDistrDump.pk','rb'))
 checkCrowDist("binomial",binomial,{'p': 0.25, 'type': 'BinomialDistribution', 'n': 10.0})
 checkCrowDist("pbinomial",pbinomial,{'p': 0.25, 'type': 'BinomialDistribution', 'n': 10.0})
 
+checkIntegral("binomial",binomial,0.0,10.0,numpts=100,tol=3e-2) #TODO why is this so hard to integrate?
+
 checkAnswer("binomial cdf(1)",binomial.cdf(1),0.244025230408)
 checkAnswer("binomial cdf(2)",binomial.cdf(2),0.525592803955)
 checkAnswer("binomial cdf(5)",binomial.cdf(5),0.980272293091)
@@ -452,6 +551,8 @@ pbernoulli=pk.load(file('testDistrDump.pk','rb'))
 
 checkCrowDist("bernoulli",bernoulli,{'p': 0.4, 'type': 'BernoulliDistribution'})
 checkCrowDist("pbernoulli",pbernoulli,{'p': 0.4, 'type': 'BernoulliDistribution'})
+
+#checkIntegral("bernoulli",bernoulli,0.0,1.0,numpts=2) #why does this integrate to 0.5?
 
 checkAnswer("bernoulli cdf(0)",bernoulli.cdf(0),0.6)
 checkAnswer("bernoulli cdf(1)",bernoulli.cdf(1),1.0)
@@ -485,6 +586,8 @@ plogistic=pk.load(file('testDistrDump.pk','rb'))
 
 checkCrowDist("logistic",logistic,{'scale': 1.0, 'type': 'LogisticDistribution', 'location': 4.0})
 checkCrowDist("plogistic",plogistic,{'scale': 1.0, 'type': 'LogisticDistribution', 'location': 4.0})
+
+checkIntegral("logistic",logistic,-5.0,13.0)
 
 checkAnswer("logistic cdf(0)",logistic.cdf(0.0),0.0179862099621)
 checkAnswer("logistic cdf(4)",logistic.cdf(4.0),0.5)
@@ -533,6 +636,8 @@ pexponential=pk.load(file('testDistrDump.pk','rb'))
 checkCrowDist("exponential",exponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'lambda': 5.0, 'low':0.0})
 checkCrowDist("pexponential",pexponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'lambda': 5.0, 'low':0.0})
 
+checkIntegral("exponential",exponential,0.0,1.5)
+
 checkAnswer("exponential cdf(0.3)",exponential.cdf(0.3),0.7768698399)
 checkAnswer("exponential cdf(1.0)",exponential.cdf(1.0),0.993262053001)
 checkAnswer("exponential cdf(3.0)",exponential.cdf(3.0),0.999999694098)
@@ -572,6 +677,8 @@ truncExponential.initializeDistribution()
 
 checkCrowDist("truncExponential",truncExponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'xMax': 10.0, 'lambda': 5.0, 'low':0.0})
 
+checkIntegral("truncExponential",truncExponential,0.0,1.5) #TODO this doesn't actually test anything new.  This truncation is way out past the effective pdf.
+
 checkAnswer("truncExponential cdf(0.1)",truncExponential.cdf(0.1),0.393469340287)
 checkAnswer("truncExponential cdf(5.0)",truncExponential.cdf(5.0),0.999999999986)
 checkAnswer("truncExponential cdf(9.9)",truncExponential.cdf(9.9),1.0)
@@ -580,6 +687,29 @@ checkAnswer("truncExponential cdf(9.9)",truncExponential.cdf(9.9),1.0)
 checkAnswer("truncExponential ppf(0.1)",truncExponential.ppf(0.1),0.0210721031316)
 checkAnswer("truncExponential ppf(0.5)",truncExponential.ppf(0.5),0.138629436112)
 checkAnswer("truncExponential ppf(0.9)",truncExponential.ppf(0.9),0.460517018599)
+
+#Shift Exponential
+
+exponentialElement = ET.Element("exponential")
+exponentialElement.append(createElement("lambda",text="5.0"))
+exponentialElement.append(createElement("low",text="10.0"))
+
+exponential = Distributions.Exponential()
+exponential._readMoreXML(exponentialElement)
+exponential.initializeDistribution()
+
+checkCrowDist("shifted exponential",exponential,{'xMin': 10.0, 'type': 'ExponentialDistribution', 'lambda': 5.0, 'low':10.0})
+
+checkIntegral("shifted exponential",exponential,10.0,11.5)
+
+checkAnswer("shifted exponential cdf(0.3)",exponential.cdf(10.3),0.7768698399)
+checkAnswer("shifted exponential cdf(1.0)",exponential.cdf(11.0),0.993262053001)
+checkAnswer("shifted exponential cdf(3.0)",exponential.cdf(13.0),0.999999694098)
+
+checkAnswer("shifted exponential ppf(0.7768698399)",exponential.ppf(0.7768698399),10.3)
+checkAnswer("shifted exponential ppf(0.2)",exponential.ppf(0.2),10.0446287102628)
+checkAnswer("shifted exponential ppf(0.5)",exponential.ppf(0.5),10.138629436112)
+
 
 #Test log normal
 
@@ -597,8 +727,10 @@ logNormal.addInitParams({})
 pk.dump(logNormal,file('testDistrDump.pk','wb'))
 plogNormal=pk.load(file('testDistrDump.pk','rb'))
 
-checkCrowDist("logNormal",logNormal,{'mu': 3.0, 'sigma': 2.0, 'type': 'LogNormalDistribution'})
-checkCrowDist("plogNormal",plogNormal,{'mu': 3.0, 'sigma': 2.0, 'type': 'LogNormalDistribution'})
+checkCrowDist("logNormal",logNormal,{'mu': 3.0, 'sigma': 2.0, 'type': 'LogNormalDistribution', 'low': 0.0})
+checkCrowDist("plogNormal",plogNormal,{'mu': 3.0, 'sigma': 2.0, 'type': 'LogNormalDistribution', 'low': 0.0})
+
+checkIntegral("logNormal",logNormal,0.0,10000.0,numpts=1e5,tol=3e-3)
 
 checkAnswer("logNormal cdf(2.0)",logNormal.cdf(2.0),0.124367703363)
 checkAnswer("logNormal cdf(1.0)",logNormal.cdf(1.0),0.0668072012689)
@@ -630,6 +762,31 @@ uplogNormal = Distributions.LogNormal()
 uplogNormal._readMoreXML(uplogNormalElement)
 uplogNormal.initializeDistribution()
 
+#shift log normal
+
+logNormalElement = ET.Element("logNormal")
+logNormalElement.append(createElement("mean",text="3.0"))
+logNormalElement.append(createElement("sigma",text="2.0"))
+logNormalElement.append(createElement("low",text="10.0"))
+
+logNormal = Distributions.LogNormal()
+logNormal._readMoreXML(logNormalElement)
+logNormal.initializeDistribution()
+
+logNormal.addInitParams({})
+
+checkCrowDist("shift logNormal",logNormal,{'mu': 3.0, 'sigma': 2.0, 'type': 'LogNormalDistribution', 'low': 10.0})
+
+checkIntegral("shift logNormal",logNormal,10.0,10010.0,numpts=1e5,tol=3e-3)
+
+checkAnswer("shift logNormal cdf(2.0)",logNormal.cdf(12.0),0.124367703363)
+checkAnswer("shift logNormal cdf(1.0)",logNormal.cdf(11.0),0.0668072012689)
+checkAnswer("shift logNormal cdf(3.0)",logNormal.cdf(13.0),0.170879904093)
+
+checkAnswer("shift logNormal ppf(0.1243677033)",logNormal.ppf(0.124367703363),12.0)
+checkAnswer("shift logNormal ppf(0.1)",logNormal.ppf(0.1),11.54789643258)
+checkAnswer("shift logNormal ppf(0.5)",logNormal.ppf(0.5),30.0855369232)
+
 #Test log normal with low mean
 
 logNormalLowMeanElement = ET.Element("logNormal")
@@ -640,7 +797,9 @@ logNormalLowMean = Distributions.LogNormal()
 logNormalLowMean._readMoreXML(logNormalLowMeanElement)
 logNormalLowMean.initializeDistribution()
 
-checkCrowDist("logNormalLowMean",logNormalLowMean,{'mu': -2e-5, 'sigma': 0.2, 'type': 'LogNormalDistribution'})
+checkCrowDist("logNormalLowMean",logNormalLowMean,{'mu': -2e-5, 'sigma': 0.2, 'type': 'LogNormalDistribution', 'low': 0.0})
+
+checkIntegral("logNormalLowMean",logNormalLowMean,0.0,1000.0)
 
 checkAnswer("logNormalLowMean cdf(2.0)",logNormalLowMean.cdf(2.0),0.999735707106)
 checkAnswer("logNormalLowMean cdf(1.0)",logNormalLowMean.cdf(1.0),0.500039894228)
@@ -666,8 +825,10 @@ weibull.addInitParams({})
 pk.dump(weibull,file('testDistrDump.pk','wb'))
 pweibull=pk.load(file('testDistrDump.pk','rb'))
 
-checkCrowDist("weibull",weibull,{'k': 1.5, 'type': 'WeibullDistribution', 'lambda': 1.0})
-checkCrowDist("pweibull",pweibull,{'k': 1.5, 'type': 'WeibullDistribution', 'lambda': 1.0})
+checkCrowDist("weibull",weibull,{'k': 1.5, 'type': 'WeibullDistribution', 'lambda': 1.0, 'low': 0.0})
+checkCrowDist("pweibull",pweibull,{'k': 1.5, 'type': 'WeibullDistribution', 'lambda': 1.0, 'low': 0.0})
+
+checkIntegral("weibull",weibull,0.0,100.0)
 
 checkAnswer("weibull cdf(0.5)",weibull.cdf(0.5),0.29781149863)
 checkAnswer("weibull cdf(0.2)",weibull.cdf(0.2),0.0855593563928)
@@ -682,6 +843,31 @@ checkAnswer("weibull ppf(0.9)",weibull.ppf(0.9),1.7437215136)
 checkAnswer("pweibull ppf(0.29781149863)",pweibull.ppf(0.29781149863),0.5)
 checkAnswer("pweibull ppf(0.1)",pweibull.ppf(0.1),0.223075525637)
 checkAnswer("pweibull ppf(0.9)",pweibull.ppf(0.9),1.7437215136)
+
+#shift Weibull
+
+weibullElement = ET.Element("weibull")
+weibullElement.append(createElement("k", text="1.5"))
+weibullElement.append(createElement("lambda", text="1.0"))
+weibullElement.append(createElement("low", text="10.0"))
+
+weibull = Distributions.Weibull()
+weibull._readMoreXML(weibullElement)
+weibull.initializeDistribution()
+
+weibull.addInitParams({})
+
+checkCrowDist("shift weibull",weibull,{'k': 1.5, 'type': 'WeibullDistribution', 'lambda': 1.0, 'low':10.0})
+
+checkIntegral("shift weibull",weibull,10.0,110.0)
+
+checkAnswer("shift weibull cdf(0.5)",weibull.cdf(10.5),0.29781149863)
+checkAnswer("shift weibull cdf(0.2)",weibull.cdf(10.2),0.0855593563928)
+checkAnswer("shift weibull cdf(2.0)",weibull.cdf(12.0),0.940894253438)
+
+checkAnswer("shift weibull ppf(0.29781149863)",weibull.ppf(0.29781149863),10.5)
+checkAnswer("shift weibull ppf(0.1)",weibull.ppf(0.1),10.223075525637)
+checkAnswer("shift weibull ppf(0.9)",weibull.ppf(0.9),11.7437215136)
 
 lowWeibullElement = ET.Element("lowweibull")
 lowWeibullElement.append(createElement("k", text="1.5"))
