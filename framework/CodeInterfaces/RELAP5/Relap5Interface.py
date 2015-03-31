@@ -23,10 +23,10 @@ class Relap5(CodeInterfaceBase):
         break
     if not found: raise Exception('Relap5 INTERFACE ERROR -> None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    if flags: addflags = flags
+    if flags: addflags = flags['text']
     else    : addflags = ''
     #executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[1] + '.o' + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '+ addflags
-    executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[0] + outputfile + '.o' + ' -r ' + os.path.split(inputFiles[index])[0] + outputfile + '.r '+ addflags
+    executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.join(os.path.split(inputFiles[index])[0],outputfile + '.o') + ' -r ' + os.path.join(os.path.split(inputFiles[index])[0], outputfile + '.r ') + addflags
     return executeCommand,outputfile
 
   def finalizeCodeOutput(self,command,output,workingDir):
@@ -55,8 +55,8 @@ class Relap5(CodeInterfaceBase):
     @ return bool, required, True if the job is failed, False otherwise
     """
     from  __builtin__ import any as b_any
-    errorWord = "********"
-    return b_any(errorWord in x for x in open(os.path.join(workingDir,output+'.o'),"r").readlines())
+    errorWord = "Transient terminated by end of time step cards"
+    return not b_any(errorWord in x.strip() for x in open(os.path.join(workingDir,output+'.o'),"r").readlines())
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''

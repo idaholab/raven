@@ -340,8 +340,8 @@
  [./stochPolyTest]
   type = 'RavenFramework'
   input = 'test_stoch_poly.xml'
-  output = 'StochasticPolyTest/Udump.xml StochasticPolyTest/UCdump.xml StochasticPolyTest/Ndump.xml StochasticPolyTest/Gdump.xml StochasticPolyTest/Bdump.xml StochasticPolyTest/Tdump.xml StochasticPolyTest/Edump.xml'
-  csv = 'StochasticPolyTest/Udump.csv StochasticPolyTest/UCdump.csv StochasticPolyTest/Ndump.csv StochasticPolyTest/Gdump.csv StochasticPolyTest/Bdump.csv StochasticPolyTest/Tdump.csv StochasticPolyTest/Edump.csv'
+  output = 'StochasticPolyTest/Udump.xml StochasticPolyTest/UCdump.xml StochasticPolyTest/Ndump.xml StochasticPolyTest/Gdump.xml StochasticPolyTest/Bdump.xml StochasticPolyTest/BNdump.xml StochasticPolyTest/Tdump.xml StochasticPolyTest/Edump.xml'
+  csv = 'StochasticPolyTest/Udump.csv StochasticPolyTest/UCdump.csv StochasticPolyTest/Ndump.csv StochasticPolyTest/Gdump.csv StochasticPolyTest/Bdump.csv StochasticPolyTest/BNdump.csv StochasticPolyTest/Tdump.csv StochasticPolyTest/Edump.csv'
  [../]
 
  [./indexSetTest]
@@ -406,6 +406,13 @@
    input = 'test_cc_stats.xml'
    output = 'test_cc_stats/output.csv'
    csv = 'test_cc_stats/output_fullprint_timepointset_outputs_normal1_0.csv test_cc_stats/output_fullprint_timepointset_outputs_normal1_1.csv test_cc_stats/output_fullprint_timepointset_outputs_normal2_0.csv test_cc_stats/output_fullprint_timepointset_outputs_normal2_1.csv test_cc_stats/output_fullprint_timepointset_outputs_uniform1_fullprint_timepointset_outputs_uniform2p_0.csv test_cc_stats/output_fullprint_timepointset_outputs_uniform1_fullprint_timepointset_outputs_uniform2p_1.csv'
+ [../]
+
+ [./genericInterface]
+   type = 'RavenFramework'
+   input = 'test_generic_interface.xml'
+   output = 'GenericInterface/samples.xml'
+   csv = 'GenericInterface/samples.csv'
  [../]
 
 []
