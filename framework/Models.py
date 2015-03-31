@@ -193,10 +193,10 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if 'addOutput' in dir(storeTo): storeTo.addOutput(collectFrom)
     else                          : raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The place where to store the output has not a addOutput method')
 
-  def getAdditionalInputEdits(self,inputDict):
+  def getAdditionalInputEdits(self,inputInfo):
     '''
     Collects additional edits for the sampler to use when creating a new input.  By default does nothing.
-    @ In, inputDict, dictionary in which to add edits
+    @ In, inputInfo, dictionary in which to add edits
     @Out, None.
     '''
     pass
