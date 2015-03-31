@@ -700,12 +700,13 @@ class BasicStatistics(BasePostProcessor):
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.parameters        = {}                                                                                                      #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = ['covariance','weightedCovariance','NormalizedSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtosis','median','percentile']  # accepted calculation parameters
+    self.acceptedCalcParam = ['covariance','NormalizedSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtosis','median','percentile']  # accepted calculation parameters
     self.what              = self.acceptedCalcParam                                                                                  # what needs to be computed... default...all
     self.methodsToRun      = []                                                                                                      # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction  = []
-    self.printTag = utils.returnPrintTag('POSTPROCESSOR BASIC STATISTIC')
+    self.printTag          = utils.returnPrintTag('POSTPROCESSOR BASIC STATISTIC')
     self.requiredAssObject = (True,(['Function'],[-1]))
+    self.biased            = False
 
   def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
@@ -754,6 +755,8 @@ class BasicStatistics(BasePostProcessor):
           self.what = self.what.split(',')
       if child.tag =="parameters"   : self.parameters['targets'] = child.text.split(',')
       if child.tag =="methodsToRun" : self.methodsToRun          = child.text.split(',')
+      if child.tag =="biased"       : 
+          if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
 
   def collectOutput(self,finishedjob,output):
     #output
@@ -784,12 +787,12 @@ class BasicStatistics(BasePostProcessor):
           basicStatdump.write('Variable'+ separator + targetP +'\n')
           basicStatdump.write('--------'+ separator +'-'*len(targetP)+'\n')
           for what in outputDict.keys():
-            if what not in ['covariance','weightedCovariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
+            if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
               if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
               basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+'\n')
         maxLenght = max(len(max(parameterSet, key=len))+5,16)
         for what in outputDict.keys():
-          if what in ['covariance','weightedCovariance','pearson','NormalizedSensitivity','sensitivity']:
+          if what in ['covariance','pearson','NormalizedSensitivity','sensitivity']:
             if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing parameter matrix '+ what )
             basicStatdump.write(what+' \n')
             if outputextension != 'csv': basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet])+'\n')
@@ -808,7 +811,7 @@ class BasicStatistics(BasePostProcessor):
     elif output.type == 'Datas':
       if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping output in data object named ' + output.name)
       for what in outputDict.keys():
-        if what not in ['covariance','weightedCovariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
+        if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
           for targetP in parameterSet:
             if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping variable '+ targetP + '. Parameter: '+ what + '. Metadata name = '+ targetP+'|'+what)
             output.updateMetadata(targetP+'|'+what,outputDict[what][targetP])
@@ -841,7 +844,7 @@ class BasicStatistics(BasePostProcessor):
         outputDict[what] = self.externalFunction.evaluate(what,Input['targets'])
         # check if "what" corresponds to an internal method
         if what in self.acceptedCalcParam:
-          if what not in ['pearson','covariance','weightedCovariance','NormalizedSensitivity','sensitivity']:
+          if what not in ['pearson','covariance','NormalizedSensitivity','sensitivity']:
             if type(outputDict[what]) != dict: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a dictionary!!')
           else:
             if type(outputDict[what]) != np.ndarray: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a numpy.ndarray!!')
@@ -916,17 +919,12 @@ class BasicStatistics(BasePostProcessor):
       if what == 'covariance':
         feat = np.zeros((len(Input['targets'].keys()),utils.first(Input['targets'].values()).size))
         for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]
-        outputDict[what] = self.covariance(feat, weights=None)
-      #weighted cov matrix
-      if what == 'weightedCovariance':
-        feat = np.zeros((len(Input['targets'].keys()),utils.first(Input['targets'].values()).size))
-        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]
         outputDict[what] = self.covariance(feat, weights=pbweights)
       #pearson matrix
       if what == 'pearson':
         feat = np.zeros((len(Input['targets'].keys()),utils.first(Input['targets'].values()).size))
         for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]
-        outputDict[what] = self.corrCoeff(feat, weights=pbweights, bias=0) #np.corrcoef(feat)
+        outputDict[what] = self.corrCoeff(feat, weights=pbweights) #np.corrcoef(feat)
       #sensitivity matrix
       if what == 'sensitivity':
         feat = np.zeros((len(Input['targets'].keys()),utils.first(Input['targets'].values()).size))
@@ -958,27 +956,19 @@ class BasicStatistics(BasePostProcessor):
       print('        * Variable * '+ targetP +'  *')
       print('        *************'+'*'*len(targetP)+'***')
       for what in outputDict.keys():
-        if what not in ['covariance','weightedCovariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
+        if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
           print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
           print('              ','* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *')
           print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
     maxLenght = max(len(max(parameterSet, key=len))+5,16)
     if 'covariance' in outputDict.keys():
       print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*   unWeighted Covariance   *')
+      print(' '*maxLenght,'*         Covariance        *')
       print(' '*maxLenght,'*****************************')
 
       print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
       for index in range(len(parameterSet)):
         print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['covariance'][index]]))
-    if 'weightedCovariance' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*    Weighted Covariance    *')
-      print(' '*maxLenght,'*****************************')
-
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
-      for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['weightedCovariance'][index]]))
     if 'pearson' in outputDict.keys():
       print(' '*maxLenght,'*****************************')
       print(' '*maxLenght,'*    Pearson/Correlation    *')
@@ -1012,7 +1002,7 @@ class BasicStatistics(BasePostProcessor):
           print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
     return outputDict
 
-  def covariance(self, feature, weights=None, bias=0, rowvar=1):
+  def covariance(self, feature, weights=None, rowvar=1):
       """
       This method calculates the covariance Matrix for the given data.
       Unbiased unweighted covariance matrix, weights is None, bias is 0 (default)
@@ -1039,11 +1029,11 @@ class BasicStatistics(BasePostProcessor):
       else:
           diff = X - np.mean(X, axis=1-axis, keepdims=True)
       if weights != None:
-          if bias == 0: fact = sumWeights/(sumWeights*sumWeights - sumSquareWeights)
-          else:         fact = 1/sumWeights
+          if not self.biased: fact = sumWeights/(sumWeights*sumWeights - sumSquareWeights)
+          else:               fact = 1/sumWeights
       else:
-          if bias == 0: fact = float(1.0/(N-1))
-          else:         fact = flaot(1.0/N)
+          if not self.biased: fact = float(1.0/(N-1))
+          else:               fact = float(1.0/N)
       if fact <= 0:
           warnings.warn("Degrees of freedom <= 0", RuntimeWarning)
           fact = 0.0
@@ -1053,8 +1043,8 @@ class BasicStatistics(BasePostProcessor):
           covMatrix = (np.dot(diff, diff.T.conj())*fact).squeeze()
       return covMatrix
 
-  def corrCoeff(self, feature, weights=None, bias=0, rowvar=1):
-      covM = self.covariance(feature, weights, bias, rowvar)
+  def corrCoeff(self, feature, weights=None, rowvar=1):
+      covM = self.covariance(feature, weights, rowvar)
       try:
         d = np.diag(covM)
       except ValueError:  # scalar covariance

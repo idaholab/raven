@@ -45,12 +45,12 @@ def convertMultipleToBytes(sizeString):
     except: raise IOError(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
 
 def stringsThatMeanTrue():
-  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin)'''
-  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','etiam'])
+  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish)'''
+  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','etiam', 'evet', 'dogru'])
 
 def stringsThatMeanFalse():
-  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin)'''
-  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus'])
+  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish)'''
+  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis'])
 
 def compare(s1,s2):
   sig_fig=6
