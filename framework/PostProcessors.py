@@ -373,6 +373,8 @@ class ComparisonStatistics(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     if self.debug: print("finishedjob",finishedjob,"output",output)
+    #XXX We only handle the case where output is a filename.  We don't handle
+    # it being a datas or hdf5 etc.
     if finishedjob.returnEvaluation() == -1: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> no available output to collect.')
     else: self.dataDict.update(finishedjob.returnEvaluation()[1])
 
