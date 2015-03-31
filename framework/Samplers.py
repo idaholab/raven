@@ -336,6 +336,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.auxcnt  +=1
     if self.reseedAtEachIteration: Distributions.randomSeed(self.auxcnt-1)
     self.inputInfo['prefix'] = str(self.counter)
+    model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 

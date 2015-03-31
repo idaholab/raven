@@ -33,11 +33,44 @@ Example:
       <executable>GenericInterface/poly_inp.py</executable>
       <inputExtentions>.one,.two</inputExtentions>
       <clargs type='prepend' arg='python'/>
-      <clargs type='input' arg='-i' extension='.one'/>
-      <clargs type='input' arg='-a' extension='.two'/>
-      <clargs type='output' arg='-o'/>
+      <clargs type='input'   arg='-i' extension='.one'/>
+      <clargs type='input'   arg='-a' extension='.two'/>
+      <clargs type='output'  arg='-o'/>
       <prepend>python</prepend>
     </Code>
+\end{lstlisting}
+
+If a code doesn't accept necessary Raven-editable auxiliary input files 
+or output filenames through the command line, the GenericCode interface
+can also edit the input files and insert the filenames there.  For example,
+in the previous example, say instead of \texttt{-a gen.two} and \texttt{-o myOut}
+in the command line, \texttt{gen.one} has the following lines:
+\begin{lstlisting}[language=python]
+...
+auxfile = gen.two
+case = myOut
+...
+\end{lstlisting}
+Then, our example XML for the code would be
+
+Example:
+\begin{lstlisting}[style=XML]
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterface/poly_inp.py</executable>
+      <inputExtentions>.one,.two</inputExtentions>
+      <clargs   type='prepend' arg='python'/>
+      <clargs   type='input'   arg='-i'  extension='.one'/>
+      <fileargs type='input'   arg='two' extension='.two'/>
+      <fileargs type='output'  arg='out'/>
+      <prepend>python</prepend>
+    </Code>
+\end{lstlisting}
+and the corresponding template input file lines would be changed to read
+\begin{lstlisting}[language=python]
+...
+auxfile = $RAVEN-two$
+case = $RAVEN-out$
+...
 \end{lstlisting}
 
 \subsection{RELAP5 Interface}
