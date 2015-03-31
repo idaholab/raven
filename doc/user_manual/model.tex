@@ -4239,10 +4239,14 @@ zones that determine a change in the status of the system (Limit Surface).
   needs to be computed.
   \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, sets the absolute
   value (in CDF) of the convergence tolerance.
+  \item \xmlNode{side}, \xmlDesc{string, optional field}, in this node the user can specify
+  which side of the limit surface needs to be computed. Three options are available: 
+  \\ \textit{negative},  Limit Surface corresponding to the goal function value of ``-1'';
+  \\ \textit{positive}, Limit Surface corresponding to the goal function value of ``1'';
+  \\ \textit{both}, either positive and negative Limit Surface is going to be computed.
   %
-  This value defines the coarseness of the evaluation grid.
   %
-  \textit{Default= 1.e-4}
+\default{negative}
   % Assembler Objects
   \item \textbf{Assembler Objects} These objects are either required or optional
   depending on the functionality of the Adaptive Sampler.
