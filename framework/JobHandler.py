@@ -155,7 +155,6 @@ class ExternalRunner:
     oldDir = os.getcwd()
     os.chdir(self.__workingDir)
     localenv = dict(os.environ)
-    localenv['PYTHONPATH'] = ''
     outFile = open(self.output,'w', self.bufsize)
     self.__process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
     os.chdir(oldDir)
