@@ -1190,14 +1190,14 @@ class LimitSurface(BasePostProcessor):
     for varId, varName in enumerate(self.parameters['targets']):
       self.axisName.append(varName)
       if not self.gridFromOutside:
-        [myStepLenght, start, end]  = stepParam(varName)
+        [myStepLength, start, end]  = stepParam(varName)
         if start == end:
           start = start - 0.001*start
           end   = end   + 0.001*end
-          myStepLenght = stepLenght*(end - start)
+          myStepLength = stepLenght*(end - start)
         stepLenght
-        start                      += 0.5*myStepLenght
-        self.gridVectors[varName]   = np.arange(start,end,myStepLenght)
+        start                      += 0.5*stepLenght
+        self.gridVectors[varName]   = np.arange(start,end,stepLenght)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
     self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
     self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid

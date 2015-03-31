@@ -525,10 +525,10 @@ class AdaptiveSampler(Sampler):
     gridVectorsForLS = {}
     for varId, varName in enumerate(self.distDict.keys()):
       self.axisName.append(varName)
-      [myStepLenght, start, end]  = stepParam(varName)
-      start                      += 0.5*myStepLenght
-      if self.toleranceWeight=='cdf'     : self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLenght)])
-      elif self.toleranceWeight=='value' : self.gridVectors[varName] = np.arange(start,end,myStepLenght)
+      [myStepLength, start, end]  = stepParam(varName)
+      start                      += 0.5*myStepLength
+      if self.toleranceWeight=='cdf'     : self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLength)])
+      elif self.toleranceWeight=='value' : self.gridVectors[varName] = np.arange(start,end,myStepLength)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
       gridVectorsForLS[varName.replace('<distribution>','')] = self.gridVectors[varName]
     self.oldTestMatrix            = np.zeros(tuple(pointByVar))
