@@ -8,13 +8,11 @@ data from csv files
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
+if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
-import csv
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -303,22 +301,16 @@ class CsvLoader:
 
     time_float = []
 
-    if 'all' in outParam:
-      self.all_out_param  = True
-    else:
-      self.all_out_param = False
+    if 'all' in outParam: self.all_out_param  = True
+    else                : self.all_out_param = False
 
     if time:
-      if 'all' in time:
-        time_all = True
+      if 'all' in time: time_all = True
       else:
         time_all = False
         time_float = [float(x) for x in time]
-    else:
-      # WE HAVE TO TAKE A DECISION REGARDING THE FILTERING
+    else: time_all = True
 
-      time_all = True
-      #time_float[0] = -1.0
     if inputTs: ints = int(inputTs)
     else: ints = 0
     if ints > data[:,0].size-1  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in file '+ str(filein) + '!')
