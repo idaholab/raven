@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation debug="False">
 <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>
     <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py</Files>
@@ -13,19 +13,19 @@
        <variable>x0</variable>
        <variable>y0</variable>
     </ExternalModel>
-    <PostProcessor name="computeLimitSurfacePositive" subType='LimitSurface' debug='True'>
+    <PostProcessor name="computeLimitSurfacePositive" subType='LimitSurface' debug='False'>
         <parameters>x0,y0</parameters>
         <side>positive</side>
         <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
         <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
     </PostProcessor>
-    <PostProcessor name="computeLimitSurfaceNegative" subType='LimitSurface' debug='True'>
+    <PostProcessor name="computeLimitSurfaceNegative" subType='LimitSurface' debug='False'>
         <parameters>x0,y0</parameters>
         <side>negative</side>
         <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
         <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
     </PostProcessor>
-    <PostProcessor name="computeLimitSurfacePositiveNegative" subType='LimitSurface' debug='True'>
+    <PostProcessor name="computeLimitSurfacePositiveNegative" subType='LimitSurface' debug='False'>
         <parameters>x0,y0</parameters>
         <side>both</side>
         <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
