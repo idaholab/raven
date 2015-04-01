@@ -72,7 +72,7 @@
             <Input   class='Datas'            type='TimePointSet'    >LimitSurfSimple</Input>
             <Input   class='Datas'            type='Histories'       >adaptiveOutHistorieSimple</Input>
             <Output  class='OutStreamManager' type='Print'           >adaptiveNoHierarchicalDump</Output>
-            <Output  class='OutStreamManager' type='Plot'            >limitSurfDump</Output>
+            <!-- <Output  class='OutStreamManager' type='Plot'            >limitSurfDump</Output> -->
             <Output  class='OutStreamManager' type='Print'           >adaptiveNoHierarchicalDump</Output>
             <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier</Output>
             <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier_selective_Output</Output>
@@ -132,7 +132,7 @@
             <source>adaptiveOutsimple</source>
             <variables>Output|systemFailed</variables>
         </Print>
-        
+        <!--
         <Plot debug = 'True' name='limitSurfDump' dim='2' overwrite='False'>
             <plotSettings>
                 <plot>
@@ -149,6 +149,7 @@
                 </title>
             </actions>
         </Plot>
+         -->
     </OutStreamManager>
     <Datas>
         <Histories name='AdaptiveDEThistories' inputTs='-1'>
