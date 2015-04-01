@@ -52,6 +52,23 @@ def stringsThatMeanFalse():
   '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish)'''
   return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis'])
 
+def interpretBoolean(inarg):
+  """
+   Utility method to convert an inarg into a boolean.
+   The inarg can be either a string or integer
+   @ In, object, object to convert (
+  """
+  if type(inarg).__name__ == "bool": return inarg
+  elif type(inarg).__name__ == "integer":
+    if inarg == 0: return False
+    else         : return True
+  elif type(inarg).__name__ in ['str','bytes','unicode']:
+      if inarg.lower().strip() in stringsThatMeanTrue()   : return True
+      elif inarg.lower().strip() in stringsThatMeanFalse(): return False
+      else                                                : raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
+  else: raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inarg).__name__)
+
+
 def compare(s1,s2):
   sig_fig=6
   w1 = partialEval(s1)

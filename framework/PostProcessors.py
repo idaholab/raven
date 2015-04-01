@@ -1304,11 +1304,7 @@ class LimitSurface(BasePostProcessor):
     if "gridVectors" in dictIn.keys():
       self.gridVectors     = dictIn["gridVectors"]
       self.gridFromOutside = True
-    if "debug"       in dictIn.keys():
-      dictIn["debug"] = dictIn["debug"].lower().strip()
-      if dictIn["debug"] in utils.stringsThatMeanTrue()   : self.debug = True
-      elif dictIn["debug"] in utils.stringsThatMeanFalse(): self.debug = False
-      else                                                : raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> Debug option not recognized !!!!')
+    if "debug"       in dictIn.keys(): self.debug = utils.interpretBoolean(dictIn["debug"])
 
   def getFunctionValue(self):
     """
