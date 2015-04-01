@@ -533,10 +533,17 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       if typeVar.lower() in ['input','inputs']:
 #        if keyword in self._dataContainer['inputs'].keys(): return convertArr(self._dataContainer['inputs'][keyword])
+        returnDict = {}
         if keyword in self._dataContainer['inputs'].keys():
+            returnDict[keyword] = {}
             if self.type == 'Histories':
-                for key in self._dataContainer['inputs'][keyword].keys(): self._dataContainer['inputs'][keyword][key] = np.resize(self._dataContainer['inputs'][keyword][key],len(self._dataContainer['outputs'][keyword].values()[0]))
-            return convertArr(self._dataContainer['inputs'][keyword])
+                for key in self._dataContainer['inputs'][keyword].keys(): returnDict[keyword][key] = np.resize(self._dataContainer['inputs'][keyword][key],len(self._dataContainer['outputs'][keyword].values()[0]))
+                return convertArr(returnDict[keyword])
+            elif self.type == 'History':
+                returnDict[keyword] = np.resize(self._dataContainer['inputs'][keyword],len(self._dataContainer['outputs'].values()[0]))
+                return convertArr(returnDict[keyword])
+            else:
+                return convertArr(self._dataContainer['inputs'][keyword])
         else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> parameter ' + str(keyword) + ' not found in inpParametersValues dictionary. Available keys are '+str(self._dataContainer['inputs'].keys())+'.Function: Data.getParam')
       elif typeVar.lower() in ['output','outputs']:
         if keyword in self._dataContainer['outputs'].keys(): return convertArr(self._dataContainer['outputs'][keyword])
