@@ -279,7 +279,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
           self.itpDict[var]={'poly'  :'DEFAULT',
                              'quad'  :'DEFAULT',
                              'weight':'1'}
-                             #'cdf'   :'False'}
           for atrName,atrVal in val.items():
             if atrName in ['poly','quad','weight']: self.itpDict[var][atrName]=atrVal
             else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
@@ -329,7 +328,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     sgs = self.sparseGrid.points()[:]
     fvs=sorted(fvs,key=itemgetter(*range(len(fvs[0]))))
     sgs=sorted(sgs,key=itemgetter(*range(len(sgs[0]))))
-    #print('DEBUG fvs | sgs:')
     #for i in range(len(fvs)):
     #  print('  ',fvs[i],' | ',sgs[i])
     if not np.allclose(fvs,sgs,rtol=1e-15):
@@ -440,16 +438,15 @@ class HDMRRom(NDinterpolatorRom):
         for var,val in val.items():
           self.itpDict[var]={'poly'  :'DEFAULT',
                              'quad'  :'DEFAULT',
-                             'weight':'1',
-                             'cdf'   :'False'}
+                             'weight':'1'}
           for atrName,atrVal in val.items():
-            if atrName in ['poly','quad','weight','cdf']: self.itpDict[var][atrName]=atrVal
+            if atrName in ['poly','quad','weight']: self.itpDict[var][atrName]=atrVal
             else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
 
-    if not self.indexSetType:
+    if self.indexSetType==None:
       raise IOError(self.printTag+' No IndexSet specified!')
-    if not self.maxPolyOrder:
-      raise IOError(self.printTag+' No IndexSet specified!')
+    if self.maxPolyOrder==None:
+      raise IOError(self.printTag+' No maxPolyOrder specified!')
     if self.maxPolyOrder < 1:
       raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
 
