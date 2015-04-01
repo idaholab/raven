@@ -595,9 +595,9 @@
       <plot>
       <type>scatter</type>
       <x>stories|Output|time</x>
-      <y>stories|Output|pump_mass_flow_rate</y>
-      <z>stories|Output|pipe1_Hw</z> 
-      <colorMap>stories|Input|pipe1_Dh</colorMap> 
+      <y>stories|Input|pipe1_Dh</y>
+      <z>stories|Output|pump_mass_flow_rate</z> 
+      <colorMap>stories|Output|pipe1_Hw</colorMap> 
       <cmap>hot</cmap>
       </plot>
       <xlabel>Time (s)</xlabel>
