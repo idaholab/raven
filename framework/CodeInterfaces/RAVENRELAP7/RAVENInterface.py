@@ -20,7 +20,7 @@ from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class RAVENInterface(CodeInterfaceBase):
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
-  def generateCommand(self,inputFiles,executable,flags=None):
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     '''seek which is which of the input files and generate According the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
@@ -30,8 +30,8 @@ class RAVENInterface(CodeInterfaceBase):
     if not found: raise Exception('RAVEN INTERFACE ERROR ->  None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
 
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    if flags: precommand = executable + flags['text']
-    else    : precommand = executable
+    if clargs: precommand = executable + clargs['text']
+    else     : precommand = executable
     executeCommand = (precommand + ' -i '+os.path.split(inputFiles[index])[1] +
                       ' Outputs/file_base='+ outputfile +
                       ' Outputs/interval=1'+

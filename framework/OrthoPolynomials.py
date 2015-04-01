@@ -12,7 +12,8 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import scipy.special as polys
-from scipy.misc import factorial
+#from scipy.misc import factorial
+from math import gamma
 import xml.etree.ElementTree as ET
 #External Modules End--------------------------------------------------------------------------------
 
@@ -218,7 +219,8 @@ class Hermite(OrthogonalPolynomial):
     return normal
 
   def norm(self,n):
-    return 1.0/np.sqrt(factorial(n))
+    #if n==0:return 1
+    return 1.0/np.sqrt(gamma(1.0+n))
 
 
 
@@ -251,7 +253,9 @@ class Laguerre(OrthogonalPolynomial):
     return gamma
 
   def norm(self,order):
-    return np.sqrt(factorial(order)/factorial(order+self.params[0]))
+    #if order==0 and self.params[0]==0: return 1
+    #if order==0: return np.sqrt(1.0/gamma(1.0+self.params[0]))
+    return np.sqrt(gamma(1.0+order)/gamma(1.0+order+self.params[0]))
 
 
 
@@ -282,17 +286,24 @@ class Jacobi(OrthogonalPolynomial):
   def norm(self,n):
     a=self.params[0]#+1
     b=self.params[1]#+1
-    coeff=1.
-    coeff*=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
-    coeff*=np.sqrt(factorial(n)*factorial(n+a+b)/(factorial(n+a)*factorial(n+b)))
-    coeff*=np.sqrt(2)
-    #not sure why I need this factor, but it corrects all cases I tested
-    #FIXME it might be wrong for n>1, though, it occurs to me...
-    cof2 = 1
-    cof2 *= 2.**(a+b)/(a+b+1.)
-    cof2 *= factorial(a)*factorial(b)/factorial(a+b)
-    coeff*=np.sqrt(cof2)
-    return coeff
+#    coeff=1.
+#    coeff*=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
+#    coeff*=np.sqrt(gamma(1.0+n)*gamma(1.0+n+a+b)/(gamma(1.0+n+a)*gamma(1.0+n+b)))
+#    coeff*=np.sqrt(2)
+#    #not sure why I need this factor, but it corrects all cases I tested
+#    #FIXME it might be wrong for n>1, though, it occurs to me...
+#    cof2 = 1
+#    cof2 *= 2.**(a+b)/(a+b+1.)
+#    cof2 *= gamma(1.0+a)*gamma(1.0+b)/gamma(1.0+a+b)
+#    coeff*=np.sqrt(cof2)
+    ###speedup attempt###
+#    coeff=(2.0*n+a+b+1.0)*\
+#          gamma(1.0+n)*gamma(1.0+n+a+b)/(gamma(1.0+n+a)*gamma(1.0+n+b))*gamma(1.0+a)*gamma(1.0+b)/gamma(1.0+a+b+1.0)
+    ###speedup attempt 2###
+    coeff=(2.0*n+a+b+1.0)*\
+          gamma(n+1)*gamma(n+a+b+1)/(gamma(n+a+1)*gamma(n+b+1))*\
+          gamma(a+1)*gamma(b+1)/gamma(a+b+2.0)
+    return np.sqrt(coeff)
 
 
 

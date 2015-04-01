@@ -118,6 +118,14 @@ used to run the external model (e.g., \texttt{mpiexec -n 8  ./externalModel.exe
 %
 \default{None}
 
+%%%%%% clusterParameters
+\item \xmlNode{clusterParameters}, \xmlDesc{string, optional field},
+  specifies extra parameters to be used with the cluster submission
+  command.  For example, if qsub is used to submit a command, then these
+  parameters will be used as extra parameters with the qsub command.
+%
+\default{None}
+
 %%%%%% MaxLogFileSize
 \item \xmlNode{MaxLogFileSize}, \xmlDesc{integer, optional field}.
 specifies the maximum size of the log file in bytes. Every time RAVEN drives a

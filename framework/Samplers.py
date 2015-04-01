@@ -336,6 +336,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.auxcnt  +=1
     if self.reseedAtEachIteration: Distributions.randomSeed(self.auxcnt-1)
     self.inputInfo['prefix'] = str(self.counter)
+    model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 
@@ -2617,39 +2618,26 @@ class SparseGridCollocation(Grid):
     #set defaults, then replace them if they're asked for
     for v in self.axisName:
       if v not in self.gridInfo.keys():
-        self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1','cdf':'False'}
+        self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1'}
     #establish all the right names for the desired types
-    #FIXME this has grown gnarled, and should be simplified
     for varName,dat in self.gridInfo.items():
-      #print('DEBUG dat',self.printTag,varName,dat)
-      if dat['cdf'].lower() in ['t','true','y','yes','1']:
-        quadType='CDF'
-        #TODO is Legendre the right default?
-        if dat['quad']=='DEFAULT': subType = 'Legendre'
-        else: subType = dat['quad']
-        if dat['poly']=='DEFAULT': polyType = 'Legendre'
-        else: polyType = dat['poly']
-      else: #not flagged as cdf by user
-        if dat['quad']=='DEFAULT': # FIXME-> consider checking names first, then setting subTypes
-          quadType = self.distDict[varName].preferredQuadrature
-          if quadType == 'CDF':
-            subType = 'Legendre'
-            if dat['poly']=='DEFAULT': polyType = 'Legendre'
-            else: polyType = dat['poly']
-          else:
-            if dat['poly']=='DEFAULT': polyType = self.distDict[varName].preferredPolynomials
-            else: polyType = dat['poly']
-            subType=None
-        else: #quad not default
-          quadType = dat['quad']
-          if dat['poly']=='DEFAULT': polyType = self.distDict[varName].preferredPolynomials
-          else: polyType = dat['poly']
-          subType=None
-      #build the distribution, quadrature, polynomial, importance weight
-      #TODO consistency checks between quads-polys-distros
+      if dat['poly'] == 'DEFAULT': dat['poly'] = self.distDict[varName].preferredPolynomials
+      if dat['quad'] == 'DEFAULT': dat['quad'] = self.distDict[varName].preferredQuadrature
+      polyType=dat['poly']
+      subType = None
       distr = self.distDict[varName]
+      if polyType == 'Legendre':
+        if distr.type == 'Uniform':
+          quadType=dat['quad']
+        else:
+          quadType='CDF'
+          subType=dat['quad']
+          if subType not in ['Legendre','ClenshawCurtis']:
+            raise IOError(self.printTag + ': Quadrature '+subType+' not compatible with Legendre polys for '+distr.type+' for variable '+varName+'!')
+      else:
+        quadType=dat['quad']
       if quadType not in distr.compatibleQuadrature:
-        raise IOError(self.printTag+': Quad type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
+        raise IOError(self.printTag+': Quadrature type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
 
       quad = Quadratures.returnInstance(quadType,Subtype=subType)
       quad.initialize(distr)
