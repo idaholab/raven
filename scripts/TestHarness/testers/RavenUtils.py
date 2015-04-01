@@ -11,7 +11,7 @@ def checkForMissingModules():
             ("h5py",'',''),
             ("scipy",'scipy.__version__',"0.12"),
             ("sklearn",'sklearn.__version__',"0.14"),
-            ("matplotlib",'matplotlib.__version__',"1.4")]
+            ("matplotlib",'matplotlib.__version__',"1.3")]
   for i,fv,ev in to_try:
     if len(fv) > 0:
       check = ';import sys; sys.exit(not '+fv+' >= "'+ev+'")'
