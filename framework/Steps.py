@@ -1,7 +1,7 @@
-'''
+"""
 Module containing the different type of step allowed
 Step is called by simulation
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -28,7 +28,7 @@ from Datas import Data
 
 #----------------------------------------------------------------------------------------------------
 class Step(metaclass_insert(abc.ABCMeta,BaseType)):
-  '''
+  """
   This class implement one step of the simulation pattern.
   Usage:
   myInstance = Step()                                !Generate the instance
@@ -56,7 +56,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   self._localAddInitParams(tempDict)      : used to add the local parameters and values to be printed
   self._localInitializeStep(inDictionary) : called after this call the step should be able the accept the call self.takeAstep(inDictionary):
   self._localTakeAstepRun(inDictionary)   : this is where the step happens, after this call the output is ready
-  '''
+  """
 
   def __init__(self):
     self.FIXME = False
@@ -73,11 +73,11 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     self.printTag = returnPrintTag('STEPS')
 
   def _readMoreXML(self,xmlNode):
-    '''
+    """
     Handles the reading of all the XML describing the step
     Since step are not reused there will not be changes in the parameter describing the step after this reading
     @in xmlNode: xml.etree.ElementTree.Element containing the input to construct the step
-    '''
+    """
     printString = self.printTag+': ' +returnPrintPostTag('ERROR') + '-> For step of type {0:15} and name {1:15} the attribute {3:10} has been assigned to a not understandable value {2:10}'
     if self.FIXME: print(self.printTag+': FIXME -> move this tests to base class when it is ready for all the classes')
     if not set(xmlNode.attrib.keys()).issubset(set(self._knownAttribute)):
@@ -102,15 +102,15 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
 
   @abc.abstractmethod
   def _localInputAndChecks(self,xmlNode):
-    '''
+    """
     Place here specialized reading, input consistency check and
     initialization of what will not change during the whole life of the object
     @in xmlNode: xml.etree.ElementTree.Element containing the input to construct the step
-    '''
+    """
     pass
 
   def addInitParams(self,tempDict):
-    '''Export to tempDict the information that will stay constant during the existence of the instance of this class. Overloaded from BaseType'''
+    """Export to tempDict the information that will stay constant during the existence of the instance of this class. Overloaded from BaseType"""
     tempDict['Sleep time'  ] = str(self.sleepTime)
     tempDict['Initial seed'] = str(self.initSeed)
     for List in self.parList:
@@ -119,47 +119,47 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
 
   @abc.abstractmethod
   def _localAddInitParams(self,tempDict):
-    '''
+    """
     Place here a specialization of the exporting of what in the step is added to the initial parameters
     the printing format of tempDict is key: tempDict[key]
-    '''
+    """
     pass
 
   def _initializeStep(self,inDictionary):
-    '''the job handler is restarted and re-seeding action are performed'''
+    """the job handler is restarted and re-seeding action are performed"""
     inDictionary['jobHandler'].startingNewStep()
     if self.debug: print('jobHandler initialized')
     self._localInitializeStep(inDictionary)
 
   @abc.abstractmethod
   def _localInitializeStep(self,inDictionary):
-    '''
+    """
     This is the API for the local initialization of the children classes of step
     The inDictionary contains the for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
     The role of _localInitializeStep is to call the initialize method instance if needed
     Remember after each initialization to put:
     if self.debug: print('for the role "+key+" the item of class '+inDictionary['key'].type+' and name '+inDictionary['key'].name+' has been initialized')
     or in general after any action put a communication conditional to the debug flag
-    '''
+    """
     pass
 
   @abc.abstractmethod
   def _localTakeAstepRun(self,inDictionary):
-    '''this is the API for the local run of a step for the children classes'''
+    """this is the API for the local run of a step for the children classes"""
     pass
 
   def _endStepActions(self,inDictionary):
-    '''This method is intended for performing actions at the end of a step'''
+    """This method is intended for performing actions at the end of a step"""
     if self.pauseEndStep:
       for i in range(len(inDictionary['Output'])):
         if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
           if inDictionary['Output'][i].type in ['OutStreamPlot']: inDictionary['Output'][i].endInstructions('interactive')
 
   def takeAstep(self,inDictionary):
-    '''
+    """
     This should work for everybody just split the step in an initialization and the run itself
     inDictionary[role]=instance or list of instance
-    '''
+    """
     print(self.printTag+               ': ' +returnPrintPostTag('MESSAGE') + '***  Beginning initialization ***')
     self._initializeStep(inDictionary)
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('MESSAGE') + '***    Initialization done    ***')
@@ -173,7 +173,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
 #
 #
 class SingleRun(Step):
-  '''This is the step that will perform just one evaluation'''
+  """This is the step that will perform just one evaluation"""
   def __init__(self):
     Step.__init__(self)
     self.printTag = returnPrintTag('STEP SINGLERUN')
@@ -204,7 +204,7 @@ class SingleRun(Step):
     if 'Output' not in roles: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->  It is not possible a run without an Output!!!')
 
   def _localInitializeStep(self,inDictionary):
-    '''this is the initialization for a generic step performing runs '''
+    """this is the initialization for a generic step performing runs """
     #Model initialization
     modelInitDict={}
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{})
@@ -217,7 +217,7 @@ class SingleRun(Step):
         if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
 
   def _localTakeAstepRun(self,inDictionary):
-    '''main driver for a step'''
+    """main driver for a step"""
     jobHandler = inDictionary['jobHandler']
     model      = inDictionary['Model'     ]
     inputs     = inDictionary['Input'     ]
@@ -243,7 +243,7 @@ class SingleRun(Step):
 #
 #
 class MultiRun(SingleRun):
-  '''this class implement one step of the simulation pattern' where several runs are needed without being adaptive'''
+  """this class implement one step of the simulation pattern' where several runs are needed without being adaptive"""
   def __init__(self):
     SingleRun.__init__(self)
     self._samplerInitDict = {} #this is a dictionary that gets sent as key-worded list to the initialization of the sampler
@@ -313,12 +313,12 @@ class MultiRun(SingleRun):
 #
 #
 # class Adaptive(MultiRun):
-#   '''this class implement one step of the simulation pattern' where several runs are needed in an adaptive scheme'''
+#   """this class implement one step of the simulation pattern' where several runs are needed in an adaptive scheme"""
 #   def __init__(self):
 #     MultiRun.__init__(self)
 #     self.printTag = returnPrintTag('STEP ADAPTIVE')
 #   def _localInputAndChecks(self,xmlNode):
-#     '''we check coherence of Sampler, Functions and Solution Output'''
+#     """we check coherence of Sampler, Functions and Solution Output"""
 #     #test sampler information:
 #     if self.FIXME: print(self.printTag+': FIXME ->  all these test should be done at the beginning in a static fashion being careful since not all goes to the model')
 #     foundSampler     = False
@@ -363,7 +363,7 @@ class MultiRun(SingleRun):
 #     if ROMCounter      >1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one ROM defined in the step '                                          +self.name)
 #
 #   def _localInitializeStep(self,inDictionary):
-#     '''this is the initialization for a generic step performing runs '''
+#     """this is the initialization for a generic step performing runs """
 #     #self._samplerInitDict['goalFunction'] = inDictionary['Function']
 #     if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
 #     #if 'ROM'            in inDictionary.keys():
@@ -374,9 +374,9 @@ class MultiRun(SingleRun):
 #
 #
 class RomTrainer(Step):
-  '''This step type is used only to train a ROM
+  """This step type is used only to train a ROM
     @Input, DataBase (for example, HDF5)
-  '''
+  """
   def __init__(self):
     Step.__init__(self)
     self.printTag = returnPrintTag('STEP ROM TRAINER')
@@ -400,7 +400,7 @@ class RomTrainer(Step):
 #
 #
 # class PostProcess(SingleRun):
-#   '''this class implements a PostProcessing (PP) strategy. The driver of this PP action is the model that MUST be of type FILTER'''
+#   """this class implements a PostProcessing (PP) strategy. The driver of this PP action is the model that MUST be of type FILTER"""
 #   def __init__(self):
 #     SingleRun.__init__(self)
 #     self.foundFunction   = False
@@ -461,10 +461,10 @@ class RomTrainer(Step):
 #
 #
 class IOStep(Step):
-  '''
+  """
   This step is used to extract or push information from/into a Database,
   or from a directory, or print out the data to an OutStream
-  '''
+  """
   def __init__(self):
     Step.__init__(self)
     self.printTag = returnPrintTag('STEP IOCOMBINED')

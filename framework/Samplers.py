@@ -1,6 +1,6 @@
-'''
+"""
 Module where the base class and the specialization of different type of sampler are
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -119,7 +119,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.assemblerDict     = {}  # {'class':[['subtype','name',instance]]}
 
   def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method '''
+    """ see generateAssembler method """
     availableDist = initDict['Distributions']
     self._generateDistributions(availableDist)
 
@@ -137,14 +137,14 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     return needDict
 
   def _readMoreXML(self,xmlNode):
-    '''
+    """
     Function to read the portion of the xml input that belongs to this specialized class
     and initialize some stuff based on the inputs got
     @ In, xmlNode    : Xml element node
     @ Out, None
     The text i supposed to contain the info where and which variable to change.
     In case of a code the syntax is specified by the code interface itself
-    '''
+    """
 
     Assembler._readMoreXML(self,xmlNode)
 
@@ -205,24 +205,20 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       else:
         self.distributions2variablesMapping[distName]=[list_element]
 
-
     for key in self.variables2distributionsMapping.keys():
       dist = self.variables2distributionsMapping[key]['name']
       maxDim=1
-      list = self.distributions2variablesMapping[dist]
-      for var in list:
+      listvar = self.distributions2variablesMapping[dist]
+      for var in listvar:
         if var.values()[0] > maxDim:
           maxDim = var.values()[0]
-      #print(str(key) +': ' + str(maxDim))
       self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
-
-
     self.localInputAndChecks(xmlNode)
 
   def endJobRunnable(self): return self._endJobRunnable
 
   def localInputAndChecks(self,xmlNode):
-    '''place here the additional reading, remember to add initial parameters in the method localAddInitParams'''
+    """place here the additional reading, remember to add initial parameters in the method localAddInitParams"""
     pass
 
   def addInitParams(self,tempDict):
@@ -301,38 +297,38 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.distDict[temp].updateRNGParam(params)
 
   def localInitialize(self):
-    '''
+    """
     use this function to add initialization features to the derived class
     it is call at the beginning of each step
-    '''
+    """
     pass
 
   def amIreadyToProvideAnInput(self): #inLastOutput=None):
-    '''
+    """
     This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
     This method act as a "traffic light" for generating a new input.
     Reason for not being ready could be for example: exceeding number of samples, waiting for other simulation for providing more information etc. etc.
     @ In, None, None
     @ Out, ready, Boolean
-    '''
+    """
     if(self.counter < self.limit): ready = True
     else                         : ready = False
     ready = self.localStillReady(ready)
     return ready
 
   def localStillReady(self,ready): #,lastOutput=None
-    '''Use this function to change the ready status'''
+    """Use this function to change the ready status"""
     return ready
 
   def generateInput(self,model,oldInput):
-    '''
+    """
     This method have to be overwrote to provide the specialization for the specific sampler
     The model instance in might be needed since, especially for external codes,
     only the code interface possesses the dictionary for reading the variable definition syntax
     @in model   : it is the instance of a model
     @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
     @return     : [] containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the intput the model
-    '''
+    """
     self.counter +=1                              #since we are creating the input for the next run we increase the counter and global counter
     self.auxcnt  +=1
     if self.reseedAtEachIteration: Distributions.randomSeed(self.auxcnt-1)
@@ -343,23 +339,23 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   @abc.abstractmethod
   def localGenerateInput(self,model,oldInput):
-    '''
+    """
     This class need to be overwritten since it is here that the magic of the sampler happens.
     After this method call the self.inputInfo should be ready to be sent to the model
     @in model   : it is the instance of a model
     @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-    '''
+    """
     pass
 
   def generateInputBatch(self,myInput,model,batchSize,projector=None): #,lastOutput=None
-    '''
+    """
     this function provide a mask to create several inputs at the same time
     It call the generateInput function as many time as needed
     @in myInput: [] list containing one input set
     @in model: instance of a model
     @in batchSize: integer the number of input sets required
     @in projector used for adaptive sampling to provide the projection of the solution on the success metric
-    @return newInputs: [[]] list of the list of input sets'''
+    @return newInputs: [[]] list of the list of input sets"""
     newInputs = []
     #inlastO = None
     #if lastOutput:
@@ -372,11 +368,11 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
 
   def finalizeActualSampling(self,jobObject,model,myInput):
-    '''just an API'''
+    """just an API"""
     self.localFinalizeActualSampling(jobObject,model,myInput)
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
-    '''
+    """
     Overwrite only if you need something special at the end of each run....
     This function is used by samplers that need to collect information from the just ended run
     For example, for a Dynamic Event Tree case, this function can be used to retrieve
@@ -386,13 +382,13 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     @in jobObject: an instance of a JobHandler
     @in model    : an instance of a model
     @in myInput  : the generating input
-    '''
+    """
     pass
 
 #
 #
 class AdaptiveSampler(Sampler):
-  '''This is a general adaptive sampler'''
+  """This is a general adaptive sampler"""
   def __init__(self):
     Sampler.__init__(self)
 #    self.assemblerObjects = {}               #this dictionary contains information about the object needed by the adaptive sampler in order to work (ROM,targetEvaluation, etc)
@@ -448,7 +444,7 @@ class AdaptiveSampler(Sampler):
       elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
       else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
     #assembler node: Hidden from User
-    '''
+    """
     targEvalNode = xmlNode.find('TargetEvaluation')
     if targEvalNode == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> TargetEvaluation object is required. Not found in Sampler '+self.name + '!')
     self.assemblerObjects[targEvalNode.tag] = [[targEvalNode.attrib['class'],targEvalNode.attrib['type'],targEvalNode.text]]
@@ -470,7 +466,7 @@ class AdaptiveSampler(Sampler):
     if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
     if functionCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One Function object is required. Sampler '+self.name + ' got '+str(functionCounter) + '!')
     if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
-    '''
+    """
     # set subgrid
     if self.subGridTol == None: self.subGridTol = self.tolerance
     if self.subGridTol > self.tolerance: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The sub grid tolerance '+str(self.subGridTol)+' must be smaller than the tolerance: '+str(self.tolerance))
@@ -494,7 +490,7 @@ class AdaptiveSampler(Sampler):
   def localInitialize(self,solutionExport=None):
     if 'Function' in self.assemblerDict.keys(): self.goalFunction = self.assemblerDict['Function'][0][3]
     if 'TargetEvaluation' in self.assemblerDict.keys(): self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
-    self.memoryStep        = 5               # number of step for which the memory is kept
+    #self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
     # check if solutionExport is actually a "Datas" type "TimePointSet"
     if type(solutionExport).__name__ != "TimePointSet": raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
@@ -513,9 +509,9 @@ class AdaptiveSampler(Sampler):
     else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown weight string descriptor: '+self.toleranceWeight)
     #setup the grid. The grid is build such as each element has a volume equal to the sub grid tolerance
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
-    self.nVar        = len(self.distDict.keys())               #Total number of variables
-    stepLenght        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance
-    self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
+    self.nVar         = len(self.distDict.keys())              # Total number of variables
+    stepLenght        = self.subGridTol**(1./float(self.nVar)) # build the step size in 0-1 range such as the differential volume is equal to the tolerance
+    self.axisName     = []                                     # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
     if self.toleranceWeight!='cdf': stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
     else                          : stepParam = lambda _: [stepLenght, 0.0, 1.0]
@@ -543,13 +539,13 @@ class AdaptiveSampler(Sampler):
     print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Initialization done')
 
   def localStillReady(self,ready): #,lastOutput=None
-    '''
+    """
     first perform some check to understand what it needs to be done possibly perform an early return
     ready is returned
     lastOutput should be present when the next point should be chosen on previous iteration and convergence checked
     lastOutput it is not considered to be present during the test performed for generating an input batch
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
-    '''
+    """
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> From method localStillReady...')
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
@@ -606,8 +602,8 @@ class AdaptiveSampler(Sampler):
   def localGenerateInput(self,model,oldInput):
     #self.adaptAlgo.nextPoint(self.dataContainer,self.goalFunction,self.values,self.distDict)
     # create values dictionary
-    '''compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
-     check the points where the derivative probability is the lowest'''
+    """compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
+     check the points where the derivative probability is the lowest"""
 
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
@@ -737,13 +733,13 @@ class AdaptiveSampler(Sampler):
 
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
-    '''generate representation of goal function'''
+    """generate representation of goal function"""
     pass
 #
 #
 #
 class MonteCarlo(Sampler):
-  '''MONTE CARLO Sampler'''
+  """MONTE CARLO Sampler"""
   def __init__(self):
     Sampler.__init__(self)
     self.printTag = returnPrintTag('SAMPLER MONTECARLO')
@@ -769,7 +765,7 @@ class MonteCarlo(Sampler):
 
 
   def localGenerateInput(self,model,myInput):
-    '''set up self.inputInfo before being sent to the model'''
+    """set up self.inputInfo before being sent to the model"""
     # create values dictionary
 
     #print("self.variables2distributionsMapping: " + str(self.variables2distributionsMapping))
@@ -811,9 +807,9 @@ class MonteCarlo(Sampler):
 #
 #
 class Grid(Sampler):
-  '''
+  """
   Samples the model on a given (by input) set of points
-  '''
+  """
   def __init__(self):
     Sampler.__init__(self)
     self.printTag = returnPrintTag('SAMPLER GRID')
@@ -826,11 +822,11 @@ class Grid(Sampler):
 
 
   def localInputAndChecks(self,xmlNode):
-    '''reading and construction of the grid'''
+    """reading and construction of the grid"""
     if 'limit' in xmlNode.attrib.keys(): raise IOError('limit is not used in Grid sampler')
     self.limit = 1
     if not self.axisName: self.axisName = []
-    '''
+    """
     for child in xmlNode:
       if child.tag == "Distribution":
         #Add <distribution> to name so we know it is not a direct variable
@@ -857,7 +853,7 @@ class Grid(Sampler):
               self.gridInfo[varName][2].sort()
             else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
-    '''
+    """
 
     for child in xmlNode:
       if child.tag == "Distribution":
@@ -903,10 +899,10 @@ class Grid(Sampler):
       tempDict['coordinate '+var+' has value'] = value
 
   def localInitialize(self):
-    '''
+    """
     This is used to check if the points and bounds are compatible with the distribution provided.
     It could not have been done earlier since the distribution might not have been initialized first
-    '''
+    """
     for varName in self.gridInfo.keys():
       #print('DEBUG',self.printTag,varName,self.gridInfo[varName])
       if self.gridInfo[varName][0]=='value':
@@ -1075,9 +1071,9 @@ class Grid(Sampler):
 #
 #
 class LHS(Grid):
-  '''
+  """
   Latin hyper Cube based sampler. Currently no special filling method are implemented
-  '''
+  """
   def __init__(self):
     Grid.__init__(self)
     self.sampledCoordinate    = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
@@ -1086,23 +1082,21 @@ class LHS(Grid):
 
   def localInputAndChecks(self,xmlNode):
     Grid.localInputAndChecks(self,xmlNode)
-
     for child in xmlNode:
       if child.tag == "Distribution":
         #Add <distribution> to name so we know it is not a direct variable
         varName = "<distribution>"+child.attrib['name']
-
       elif child.tag == "global_grid":
-         for childChild in child:
-           if childChild.tag =='grid':
-             globalGridName = childChild.attrib['name']
-             constrType = childChild.attrib['construction']
-             if constrType == 'custom':
+        for childChild in child:
+          if childChild.tag =='grid':
+            globalGridName = childChild.attrib['name']
+            constrType = childChild.attrib['construction']
+            if constrType == 'custom':
               tempList = [float(i) for i in childChild.text.split()]
               tempList.sort()
               self.globalGrid[globalGridName] = (tempList)
               self.limit = len(tempList)*self.limit
-             elif constrType == 'equal':
+            elif constrType == 'equal':
               self.limit = self.limit*(int(childChild.attrib['steps'])+1)
               if   'lowerBound' in childChild.attrib.keys():
                 self.globalGrid[globalGridName] = ([float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
@@ -1111,8 +1105,8 @@ class LHS(Grid):
                 self.globalGrid[globalGridName] = ([float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
                 self.globalGrid[globalGridName].sort()
               else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
-           else:
-             raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
+          else:
+            raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
 
     #print('self.gridInfo: ' + str(self.gridInfo))
     #print('self.globalGrid: ' + str(self.globalGrid))
@@ -1131,10 +1125,10 @@ class LHS(Grid):
     self.limit = (self.pointByVar-1)
 
   def localInitialize(self):
-    '''
+    """
     the local initialize is used to generate test the box being within the distribution upper/lower bound
     and filling mapping of the hyper cube.
-    '''
+    """
     Grid.localInitialize(self)
     tempFillingCheck = [None]*len(self.axisName) #for all variables
     for i in range(len(tempFillingCheck)):
@@ -1146,7 +1140,7 @@ class LHS(Grid):
       self.sampledCoordinate[i][:] = [tempFillingCheck[j][i] for j in range(len(tempFillingCheck))]
 
   def localGenerateInput(self,model,myInput):
-    '''
+    """
     j=0
     #self.inputInfo['distributionInfo'] = {}
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
@@ -1184,7 +1178,7 @@ class LHS(Grid):
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
-    '''
+    """
 
     j=0
     #self.inputInfo['distributionInfo'] = {}
@@ -1262,9 +1256,9 @@ class LHS(Grid):
 #
 #
 class DynamicEventTree(Grid):
-  '''
+  """
   DYNAMIC EVENT TREE Sampler - "ANalysis of Dynamic REactor Accident evolution" module (DET      ) :D
-  '''
+  """
   def __init__(self):
     Grid.__init__(self)
     # Working directory (Path of the directory in which all the outputs,etc. are stored)
@@ -1329,11 +1323,11 @@ class DynamicEventTree(Grid):
     return needDict
 
   def localStillReady(self, ready): #,lastOutput=None
-    '''
+    """
     Function that inquires if there is at least an input the in the queue that needs to be run
     @ In, None
     @ Out, boolean
-    '''
+    """
     if(len(self.RunQueue['queue']) != 0 or self.counter == 0): ready = True
     else:
       if self.print_end_xml:
@@ -1349,7 +1343,7 @@ class DynamicEventTree(Grid):
     return parentNode
 
   def localFinalizeActualSampling(self,jobObject,model,myInput,genRunQueue=True):
-    '''
+    """
     General function (available to all samplers) that finalize the sampling calculation just ended
     In this case (DET), The function reads the information from the ended calculation, updates the
     working variables, and creates the new inputs for the next branches
@@ -1358,7 +1352,7 @@ class DynamicEventTree(Grid):
     @ In, myInput      : List of the original input files
     @ In, genRunQueue  : bool, generated Running queue at the end of the finalization?
     @ Out, None
-    '''
+    """
     self.workingDir = model.workingDir
 
 #     returnBranchInfo = self.__readBranchInfo(jobObject.output)
@@ -1395,7 +1389,7 @@ class DynamicEventTree(Grid):
         # unchanged_pb = probability (not conditional probability yet) that the event does not occur
         unchanged_pb = 0.0
         try:
-          # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha' '''
+          # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha' """
           for pb in xrange(len(endInfo['branch_changed_params'][key]['associated_pb'])): unchanged_pb = unchanged_pb + endInfo['branch_changed_params'][key]['associated_pb'][pb]
         except KeyError: pass
         if(unchanged_pb <= 1): endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0-unchanged_pb
@@ -1428,11 +1422,11 @@ class DynamicEventTree(Grid):
     return True
 
   def computeConditionalProbability(self,index=None):
-    '''
+    """
     Function to compute Conditional probability of the branches that are going to be run.
     The conditional probabilities are stored in the self.endInfo object
     @ In, index: position in the self.endInfo list (optional). Default = 0
-    '''
+    """
     if not index: index = len(self.endInfo)-1
     # parent_cond_pb = associated conditional probability of the Parent branch
     #parent_cond_pb = 0.0
@@ -1452,14 +1446,14 @@ class DynamicEventTree(Grid):
     return
 
   def __readBranchInfo(self,out_base=None):
-    '''
+    """
     Function to read the Branching info that comes from a Model
     The branching info (for example, distribution that triggered, parameters must be changed, etc)
     are supposed to be in a xml format
     @ In, out_base: is the output root that, if present, is used to construct the file name the function is going
                     to try reading.
     @ Out, boolean: true if the info are present (a set of new branches need to be run), false if the actual parent calculation reached an end point
-    '''
+    """
     # Remove all the elements from the info container
     del self.actualBranchInfo
     branch_present = False
@@ -1674,12 +1668,12 @@ class DynamicEventTree(Grid):
       del branchedLevel
 
   def _createRunningQueue(self,model,myInput):
-    '''
+    """
     Function to create and append new inputs to the queue. It uses all the containers have been updated by the previous functions
     @ In, model  : Model instance. It can be a Code type, ROM, etc.
     @ In, myInput: List of the original inputs
     @ Out, None
-    '''
+    """
     if self.counter >= 1:
       # The first DET calculation branch has already been run
       # Start the manipulation:
@@ -1691,11 +1685,11 @@ class DynamicEventTree(Grid):
     return
 
   def __getQueueElement(self):
-    '''
+    """
     Function to get an input from the internal queue system
     @ In, None
     @ Out, jobInput: First input in the queue
-    '''
+    """
     # Pop out the first input in queue
     jobInput  = self.RunQueue['queue'      ].pop(0)
     jobId     = self.RunQueue['identifiers'].pop(0)
@@ -1715,12 +1709,12 @@ class DynamicEventTree(Grid):
     return jobInput
 
   def generateInput(self,model,oldInput):
-    '''
+    """
     This method needs to be overwritten by the Dynamic Event Tree Sampler, since the input creation strategy is completely different with the respect the other samplers
     @in model   : it is the instance of a model
     @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
     @return     : [] containing the new inputs -in reality it is the model that returns this, the Sampler generates the values to be placed in the model input
-    '''
+    """
     return self.localGenerateInput(model, oldInput)
 
   def localGenerateInput(self,model,myInput):
@@ -1858,22 +1852,22 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
   def _checkCompleteHistory(treeValues): return treeValues['completedHistory']
 
   def _localWhatDoINeed(self):
-    '''
+    """
     This method is a local mirrow of the general whatDoINeed method.
     It is implmented by the samplers that need to request special objects
     @ In , None, None
     @ Out, needDict, list of objects needed
-    '''
+    """
     adaptNeed = AdaptiveSampler._localWhatDoINeed(self)
     DETNeed   = DynamicEventTree._localWhatDoINeed(self)
     return dict(adaptNeed.items()+ DETNeed.items())
 
   def _checkIfStartAdaptive(self):
-    '''
+    """
     Function that checks if the adaptive needs to be started (mode 1)
     @ In, None
     @ Out, None
-    '''
+    """
     if not self.startAdaptive:
       self.startAdaptive = True
       for treer in self.TreeInfo.values():
@@ -1883,11 +1877,11 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
         if not self.startAdaptive: break
 
   def _checkClosestBranch(self):
-    '''
+    """
     Function that checks the closest branch already evaluated
     @ In, None
     @ Out, dict, key:gridPosition
-    '''
+    """
     # compute cdf of sampled vars
     lowerCdfValues = {}
     cdfValues         = {}
@@ -1950,11 +1944,11 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
 
 
   def _retrieveBranchInfo(self,branch):
-    '''
+    """
      Function that retrieves the key information from a branch to start a newer calculation
      @ In, branch
      @ Out, dictionary with those information
-    '''
+    """
     info = branch.getValues()
     info['actualBranchOnLevel'] = branch.numberBranches()
     info['parent_node']         = branch
@@ -2045,11 +2039,11 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     return
 
   def localStillReady(self,ready): #, lastOutput= None
-    '''
+    """
     Function that inquires if there is at least an input the in the queue that needs to be run
     @ In, None
     @ Out, boolean
-    '''
+    """
     if(self.counter == 0): return True
     if len(self.RunQueue['queue']) != 0: detReady = True
     else: detReady = False
@@ -2177,9 +2171,9 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
 #
 #
 class FactorialDesign(Grid):
-  '''
+  """
   Samples the model on a given (by input) set of points
-  '''
+  """
   def __init__(self):
     Grid.__init__(self)
     self.printTag = returnPrintTag('SAMPLER FACTORIAL DESIGN')
@@ -2189,7 +2183,7 @@ class FactorialDesign(Grid):
     self.designMatrix  = None                        # matrix container
 
   def localInputAndChecks(self,xmlNode):
-    '''reading and construction of the grid'''
+    """reading and construction of the grid"""
     Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("FactorialSettings")
     if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'FactorialSettings xml node not found!!!')
@@ -2231,9 +2225,9 @@ class FactorialDesign(Grid):
         for kk,val in value.items(): tempDict['Factorial options '+kk] = val
 
   def localInitialize(self):
-    '''
+    """
     This method initialize the factorial matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
-    '''
+    """
     Grid.localInitialize(self)
     if   self.factOpt['algorithm_type'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
     elif self.factOpt['algorithm_type'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
@@ -2253,9 +2247,9 @@ class FactorialDesign(Grid):
 #
 #
 class ResponseSurfaceDesign(Grid):
-  '''
+  """
   Samples the model on a given (by input) set of points
-  '''
+  """
   def __init__(self):
     Grid.__init__(self)
     self.limit    = 1
@@ -2270,7 +2264,7 @@ class ResponseSurfaceDesign(Grid):
                             'centralcomposite':['centers','alpha','face']}
 
   def localInputAndChecks(self,xmlNode):
-    '''reading and construction of the grid'''
+    """reading and construction of the grid"""
     # here we call the input reader of the grid, even if the grid is definded in a different way, just to collect the variable names
     # Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("ResponseSurfaceDesignSettings")
@@ -2332,9 +2326,9 @@ class ResponseSurfaceDesign(Grid):
         for kk,val in value.items(): tempDict['Response Design options '+kk] = val
 
   def localInitialize(self):
-    '''
+    """
     This method initialize the response matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
-    '''
+    """
     if   self.respOpt['algorithm_type'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
     elif self.respOpt['algorithm_type'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
     for cnt, varName in enumerate(self.axisName):
@@ -2525,7 +2519,7 @@ class SparseGridCollocation(Grid):
                       'iSet':self.indexSet})
 
   def localGenerateInput(self,model,myInput):
-    '''Provide the next point in the sparse grid.'''
+    """Provide the next point in the sparse grid."""
     pt,weight = self.sparseGrid[self.counter-1]
     for v,varName in enumerate(self.distDict.keys()):
       self.values[varName] = pt[v]
@@ -2538,9 +2532,9 @@ class SparseGridCollocation(Grid):
 #
 #
 #
-'''
+"""
  Interface Dictionary (factory) (private)
-'''
+"""
 __base = 'Sampler'
 __interFaceDict = {}
 __interFaceDict['MonteCarlo'              ] = MonteCarlo
@@ -2567,11 +2561,11 @@ def addKnownTypes(newDict):
     __knownTypes.append(name)
 
 def returnInstance(Type):
-  '''
+  """
   function used to generate a Sampler class
   @ In, Type : Sampler type
   @ Out,Instance of the Specialized Sampler class
-  '''
+  """
   try: return __interFaceDict[Type]()
   except KeyError: raise NameError('not known '+__base+' type '+Type)
 

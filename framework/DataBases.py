@@ -1,8 +1,8 @@
-'''
+"""
 Created on April 9, 2013
 
 @author: alfoa
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -24,15 +24,15 @@ from utils import toBytes,keyIn,returnPrintTag,returnPrintPostTag
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DateBase(BaseType):
-  '''
+  """
   class to handle database,
   to add and to retrieve attributes and values from it
-  '''
+  """
 
   def __init__(self):
-    '''
+    """
     Constructor
-    '''
+    """
     # Base Class
     BaseType.__init__(self)
     # Database object
@@ -42,55 +42,55 @@ class DateBase(BaseType):
     self.printTag = returnPrintTag('DATABASE')
 
   def _readMoreXML(self,xmlNode):
-    '''
+    """
     Function to read the portion of the xml input that belongs to this class
     and initialize some stuff based on the inputs got
     @ In, xmlNode    : Xml element node
     @ Out, None
-    '''
+    """
     # Check if a directory has been provided
     if 'directory' in xmlNode.attrib.keys(): self.databaseDir = copy.copy(xmlNode.attrib['directory'])
     else:                                    self.databaseDir = copy.copy(os.path.join(os.getcwd(),'DataBaseStorage'))
 
   def addInitParams(self,tempDict):
-    '''
+    """
     Function that adds the initial parameter in a temporary dictionary
     @ In, tempDict
     @ Out, tempDict
-    '''
+    """
     return tempDict
 
   @abc.abstractmethod
   def addGroup(self,attributes,loadFrom):
-    '''
+    """
     Function used to add group to the database
     @ In, attributes : options
     @ In, loadFrom   : source of the data
-    '''
+    """
     pass
   @abc.abstractmethod
   def retrieveData(self,attributes):
-    '''
+    """
     Function used to retrieve data from the database
     @ In, attributes : options
     @ Out, data      : the requested data
-    '''
+    """
     pass
-'''
+"""
   *************************s
   *  HDF5 DATABASE CLASS  *
   *************************
-'''
+"""
 class HDF5(DateBase):
-  '''
+  """
   class to handle h5py (hdf5) database,
   to add and to retrieve attributes and values from it
-  '''
+  """
 
   def __init__(self):
-    '''
+    """
     Constructor
-    '''
+    """
     DateBase.__init__(self)
     self.subtype  = None
     self.exist    = False
@@ -120,12 +120,12 @@ class HDF5(DateBase):
     self.exist    = True
 
   def _readMoreXML(self,xmlNode):
-    '''
+    """
     Function to read the portion of the xml input that belongs to this specialized class
     and initialize some stuff based on the inputs got
     @ In, xmlNode    : Xml element node
     @ Out, None
-    '''
+    """
     DateBase._readMoreXML(self, xmlNode)
     # Check if database directory exist, otherwise create it
     if '~' in self.databaseDir: self.databaseDir = copy.copy(os.path.expanduser(self.databaseDir))
@@ -144,38 +144,38 @@ class HDF5(DateBase):
       self.exist     = False
 
   def addInitParams(self,tempDict):
-    '''
+    """
     Function that adds the initial parameter in a temporary dictionary
     @ In, tempDict
     @ Out, tempDict
-    '''
+    """
     tempDict = DateBase.addInitParams(self,tempDict)
     tempDict['exist'] = self.exist
     return tempDict
 
   def getEndingGroupPaths(self):
-    '''
+    """
     Function to retrieve all the groups' paths of the ending groups
     @ In, None
     @ Out, List of the ending groups' paths
-    '''
+    """
     return self.database.retrieveAllHistoryPaths()
 
   def getEndingGroupNames(self):
-    '''
+    """
     Function to retrieve all the groups' names of the ending groups
     @ In, None
     @ Out, List of the ending groups' names
-    '''
+    """
     return self.database.retrieveAllHistoryNames()
 
   def addGroup(self,attributes,loadFrom,upGroup=False):
-    '''
+    """
     Function to add a group in the HDF5 database
     @ In, attributes : dictionary of attributes (metadata and options)
     @ In, loadFrom   : source of the data (for example, a csv file)
     @ Out, None
-    '''
+    """
     if 'metadata' in attributes.keys(): attributes['group'] = attributes['metadata']['prefix']
     elif 'prefix' in attributes.keys(): attributes['group'] = attributes['prefix']
     else                              : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  addGroup function needs a prefix (ID) for adding a new group to a database!')
@@ -184,12 +184,12 @@ class HDF5(DateBase):
 
   def addGroupDatas(self,attributes,loadFrom,upGroup=False):
     #### TODO: this function and the function above can be merged together (Andrea)
-    '''
+    """
     Function to add a group in the HDF5 database
     @ In, attributes : dictionary of attributes (metadata and options)
     @ In, loadFrom   : source of the data (must be a data(s) or a dictionary)
     @ Out, None
-    '''
+    """
     source = {}
     if type(loadFrom) != dict:
       if not loadFrom.type in ['TimePoint','TimePointSet','History','Histories']: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  addGroupDatas function needs to have a Data(s) as input source')
@@ -199,37 +199,37 @@ class HDF5(DateBase):
     self.built = True
 
   def initialize(self,gname,attributes=None,upGroup=False):
-    '''
+    """
     Function to add an initial root group into the data base...
     This group will not contain a dataset but, eventually, only
     metadata
     @ In, gname      : name of the root group
     @ Out, attributes: metadata muste be appended to the root group
-    '''
+    """
     self.database.addGroupInit(gname,attributes,upGroup)
 
   def returnHistory(self,attributes):
-    '''
+    """
     Function to retrieve a history from the HDF5 database
     @ In, attributes : dictionary of attributes (metadata, history name and options)
     @ Out, tupleVar  : tuple in which the first position is a numpy aray and the second is a dictionary of the metadata
     Note:
     # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
     # MC  => The History named ['group'] (one run)
-    '''
+    """
     if (not self.exist) and (not self.built): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  Can not retrieve an History from data set' + self.name + '.It has not built yet.')
     if 'filter' in attributes.keys(): tupleVar = self.database.retrieveHistory(attributes['history'],attributes['filter'])
     else:                             tupleVar = self.database.retrieveHistory(attributes['history'])
     return tupleVar
 
   def __retrieveDataTimePoint(self,attributes):
-    '''
+    """
     Function to retrieve a TimePoint from the HDF5 database
     @ In, attributes : dictionary of attributes (variables must be retrieved)
     @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable)
     and the second is a dictionary of the numpy arrays (output variables).
     Note: This function retrieve a TimePoint from an HDF5 database
-    '''
+    """
     # Firstly, retrieve the history from which the TimePoint must be extracted
     histVar = self.returnHistory(attributes)
     # Check the outParam variables and the time filters
@@ -349,13 +349,13 @@ class HDF5(DateBase):
     return (copy.copy(inDict),copy.copy(outDict),copy.copy(metaDict))
 
   def __retrieveDataTimePointSet(self,attributes):
-    '''
+    """
     Function to retrieve a TimePointSet from the HDF5 database
     @ In, attributes : dictionary of attributes (variables must be retrieved)
     @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable)
     and the second is a dictionary of the numpy arrays (output variables).
     Note: This function retrieve a TimePointSet from an HDF5 database
-    '''
+    """
     # Check the outParam variables and the time filters
     if attributes['outParam'] == 'all': all_out_param  = True
     else: all_out_param = False
@@ -487,13 +487,13 @@ class HDF5(DateBase):
     return (copy.copy(inDict),copy.copy(outDict),copy.copy(metaDict))
 
   def __retrieveDataHistory(self,attributes):
-    '''
+    """
     Function to retrieve a History from the HDF5 database
     @ In, attributes : dictionary of attributes (variables and history name must be retrieved)
     @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable)
     and the second is a dictionary of the numpy arrays (output variables).
     Note: This function retrieve a History from an HDF5 database
-    '''
+    """
     # Check the outParam variables and the time filters
     if attributes['outParam'] == 'all': all_out_param  = True
     else:  all_out_param = False
@@ -567,13 +567,13 @@ class HDF5(DateBase):
     return (copy.copy(inDict),copy.copy(outDict),copy.copy(metaDict))
 
   def retrieveData(self,attributes):
-    '''
+    """
     Function interface for retrieving a TimePoint or TimePointSet or History from the HDF5 database
     @ In, attributes : dictionary of attributes (variables, history name,metadata must be retrieved)
     @ Out, data     : tuple in which the first position is a dictionary of numpy arays (input variable)
     and the second is a dictionary of the numpy arrays (output variables).
     Note: Interface function
-    '''
+    """
     if attributes['type'] == 'TimePoint':      data = self.__retrieveDataTimePoint(attributes)
     elif attributes['type'] == 'TimePointSet': data = self.__retrieveDataTimePointSet(attributes)
     elif attributes['type'] == 'History':      data = self.__retrieveDataHistory(attributes)
@@ -605,11 +605,11 @@ def knownTypes():
   return __knownTypes
 
 def returnInstance(Type):
-  '''
+  """
   Function interface for creating an instance to a database specialized class (for example, HDF5)
   @ In, type                : class type (string)
   @ Out, class Instance     : instance to that class
   Note: Interface function
-  '''
+  """
   try: return __interFaceDict[Type]()
   except KeyError: raise NameError('not known '+__base+' type '+Type)

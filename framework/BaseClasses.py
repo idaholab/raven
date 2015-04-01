@@ -1,7 +1,7 @@
-'''
+"""
 Created on Mar 16, 2013
 @author: crisr
-'''
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -17,7 +17,7 @@ from utils    import returnPrintTag, metaclass_insert, stringsThatMeanTrue, stri
 #from utils    import returnPrintTag
 
 class BaseType(object):
-  '''this is the base class for each general type used by the simulation'''
+  """this is the base class for each general type used by the simulation"""
   def __init__(self):
     self.name             = ''      # name of this istance (alias)
     self.type             = ''      # specific type within this class
@@ -28,10 +28,10 @@ class BaseType(object):
     self.printTag         = returnPrintTag('BaseType')
 
   def readXML(self,xmlNode,debug=False,globalAttributes=None):
-    '''
+    """
     provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
     that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag)
-    '''
+    """
     if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
     else: raise IOError(self.printTag+':not found name for a '+self.__class__.__name__)
     self.type     = xmlNode.tag
@@ -47,13 +47,13 @@ class BaseType(object):
       self.printMe()
 
   def _readMoreXML(self,xmlNode):
-    '''method to be overloaded to collect the additional input'''
+    """method to be overloaded to collect the additional input"""
     pass
 
   #def _addOrModifyGlobalAttribute(self,name,value): self.globalAttributes[name] = value
 
   def whoAreYou(self):
-    '''This is a generic interface that will return the type and name of any class that inherits this base class plus all the inherited classes'''
+    """This is a generic interface that will return the type and name of any class that inherits this base class plus all the inherited classes"""
     tempDict          = {}
     tempDict['Class'] = '{0:15}'.format(self.__class__.__name__) +' from '+' '.join([str(base) for base in self.__class__.__bases__])
     tempDict['Type' ] = self.type
@@ -61,36 +61,36 @@ class BaseType(object):
     return tempDict
 
   def myInitializzationParams(self):
-    '''
+    """
     this is a generic interface that will return the name and value of the initialization parameters of any class that inherits this base class.
     In reality it is just empty and will fill the dictionary calling addInitParams that is the function to be overloaded used as API
-    '''
+    """
     tempDict = {}
     self.addInitParams(tempDict)
     return tempDict
 
   def addInitParams(self,originalDict):
-    '''function to be overloaded to inject the name and values of the initial parameters'''
+    """function to be overloaded to inject the name and values of the initial parameters"""
     pass
 
   def myCurrentSetting(self):
-    '''
+    """
     this is a generic interface that will return the name and value of the parameters that change during the simulation of any class that inherits this base class.
     In reality it is just empty and will fill the dictionary calling addCurrentSetting that is the function to be overloaded used as API
-    '''
+    """
     tempDict = {}
     self.addCurrentSetting(tempDict)
     return tempDict
 
   def addCurrentSetting(self,originalDict):
-    '''function to be overloaded to inject the name and values of the parameters that might change during the simulation'''
+    """function to be overloaded to inject the name and values of the parameters that might change during the simulation"""
     pass
 
   def printMe(self):
-    '''
+    """
     This is a generic interface that will print all the info for
     the instance of an object that inherit this class
-    '''
+    """
     tempDict = self.whoAreYou()
     for key in tempDict.keys(): print('{0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myInitializzationParams()
@@ -105,27 +105,27 @@ class BaseType(object):
 #
 #
 #class Assembler(metaclass_insert(abc.ABCMeta,object)):
-#  '''
+#  """
 #  Assembler class is used as base class for all the objects that need, for initialization purposes,
 #  to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
-#  '''
+#  """
 #  @abc.abstractmethod
 #  def whatDoINeed(self):
-#    '''
+#    """
 #    This method is used mainly by the Simulation class at the Step construction stage.
 #    It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
 #    be initialize. It is an abstract method -> It must be implemented in the derived class!
 #    @ In , None, None
 #    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
-#    '''
+#    """
 #    pass
 #  @abc.abstractmethod
 #  def generateAssembler(self,initDict):
-#    '''
+#    """
 #    This method is used mainly by the Simulation class at the Step construction stage.
 #    It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
 #    It is an abstract method -> It must be implemented in the derived class!
 #    @ In , initDict, dictionary ({'mainClassName(e.g., DataBases):{specializedObjectName(e.g.,DataBaseForSystemCodeNamedWolf):ObjectInstance}'})
 #    @ Out, None, None
-#    '''
+#    """
 #    pass

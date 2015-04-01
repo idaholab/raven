@@ -1,8 +1,8 @@
-'''
+"""
 Created on July 10, 2013
 
 @author: alfoa
-'''
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -32,11 +32,11 @@ import SupervisedLearning
 #def error(*objs):
 #  print("ERROR: ", *objs, file=sys.stderr)
 
-'''
+"""
   ***************************************
   *  SPECIALIZED PostProcessor CLASSES  *
   ***************************************
-'''
+"""
 
 class BasePostProcessor(Assembler):
   """"This is the base class for postprocessors"""
@@ -58,9 +58,9 @@ class BasePostProcessor(Assembler):
   def run(self, Input): pass
 
 class SafestPoint(BasePostProcessor):
-  '''
+  """
   It searches for the probability-weighted safest point inside the space of the system controllable variables
-  '''
+  """
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.controllableDist = {}                                    #dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
@@ -77,7 +77,7 @@ class SafestPoint(BasePostProcessor):
     self.printTag = utils.returnPrintTag('POSTPROCESSOR SAFESTPOINT')
 
   def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method '''
+    """ see generateAssembler method """
     for varName, distName in self.controllableDist.items():
       if distName not in initDict['Distributions'].keys():
         raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> distribution ' +distName+ ' not found.')
@@ -1090,7 +1090,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     #output
-    '''collect the output file in the output object'''
+    """collect the output file in the output object"""
     for index,csvFile in enumerate(self.listOfCsvFiles):
 
       attributes={"prefix":str(index),"input_file":self.name,"type":"csv","name":os.path.join(self.sourceDirectory,csvFile)}
@@ -1408,9 +1408,9 @@ class LimitSurface(BasePostProcessor):
 
 
   def __localLimitStateSearch__(self,toBeTested,sign):
-    '''
+    """
     It returns the list of points belonging to the limit state surface and resulting in positive or negative responses by the ROM, depending on whether ''sign'' equals either -1 or 1, respectively.
-    '''
+    """
     listsurfPoint=[]
     myIdList= np.zeros(self.nVar)
     for coordinate in np.rollaxis(toBeTested,0):
@@ -1442,9 +1442,9 @@ class ExternalPostProcessor(BasePostProcessor):
     have no idea what happens if the function produces multiple outputs.
   """
   def __init__(self):
-    '''
+    """
       Initialization.
-    '''
+    """
     BasePostProcessor.__init__(self)
     self.methodsToRun = []              # A list of strings specifying what
                                         # methods the user wants to compute from
@@ -1731,9 +1731,9 @@ class ExternalPostProcessor(BasePostProcessor):
 
     return outputDict
 
-'''
+"""
  Interface Dictionary (factory) (private)
-'''
+"""
 __base                                       = 'PostProcessor'
 __interFaceDict                              = {}
 __interFaceDict['SafestPoint'              ] = SafestPoint

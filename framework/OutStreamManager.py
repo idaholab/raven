@@ -1,8 +1,8 @@
-'''
+"""
 Created on Nov 14, 2013
 
 @author: alfoa
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -39,18 +39,18 @@ else:
 #  return X[~np.isnan(X).any(1)]
 
 class OutStreamManager(BaseType):
-  '''
+  """
   ********************************************************************
   *                          OUTSTREAM CLASS                         *
   ********************************************************************
   *  This class is a general base class for outstream action classes *
   *  For example, a matplotlib interface class or Print class, etc.  *
   ********************************************************************
-  '''
+  """
   def __init__(self):
-    '''
+    """
       Init of Base class
-    '''
+    """
     BaseType.__init__(self)
     # outstreaming options
     self.options = {}
@@ -65,12 +65,12 @@ class OutStreamManager(BaseType):
     self.printTag = returnPrintTag('OUTSTREAM MANAGER')
 
   def _readMoreXML(self,xmlNode):
-    '''
+    """
     Function to read the portion of the xml input that belongs to this specialized class
     and initialize some stuff based on the got inputs
     @ In, xmlNode    : Xml element node
     @ Out, None
-    '''
+    """
     #BaseType._readMoreXML(self,xmlNode)
     #if self.globalAttributes:
     #  if 'online' in self.globalAttributes.keys():
@@ -82,11 +82,11 @@ class OutStreamManager(BaseType):
     self.localReadXML(xmlNode)
 
   def addInitParams(self,tempDict):
-    '''
+    """
     Function adds the initial parameter in a temporary dictionary
     @ In, tempDict
     @ Out, tempDict
-    '''
+    """
     tempDict[                     'Global Class Type                 '] = 'OutStreamManager'
     tempDict[                     'Specialized Class Type            '] = self.type
     if self.overwrite:   tempDict['Overwrite output everytime called '] = 'True'
@@ -96,19 +96,19 @@ class OutStreamManager(BaseType):
     return tempDict
 
   def addOutput(self):
-    '''
+    """
     Function to add a new output source (for example a CSV file or a HDF5 object)
     @ In, toLoadFrom, source object
     @ Out, None
-    '''
+    """
     raise NotImplementedError(self.printTag+': ERROR -> method addOutput must be implemented by derived classes!!!!')
 
   def initialize(self,inDict):
-    '''
+    """
     Function to initialize the OutStream. It basically looks for the "data" object and link it to the system
     @ In, inDict, dictionary, It contains all the Object are going to be used in the current step. The sources are searched into this.
     @ Out, None
-    '''
+    """
     self.sourceData   = []
     for agrosindex in range(self.numberAggregatedOS):
       foundData = False
@@ -172,11 +172,11 @@ class OutStreamPlot(OutStreamManager):
   #####################
 
   def __splitVariableNames(self,what,where):
-    '''
+    """
       Function to split the variable names
       @ In, what => x,y,z or colorMap
       @ In, where, tuple => pos 0 = plotIndex, pos 1 = variable Index
-    '''
+    """
     if   what == 'x'                : var = self.xCoordinates [where[0]][where[1]]
     elif what == 'y'                : var = self.yCoordinates [where[0]][where[1]]
     elif what == 'z'                : var = self.zCoordinates [where[0]][where[1]]
@@ -195,10 +195,10 @@ class OutStreamPlot(OutStreamManager):
     return result
 
   def __readPlotActions(self,snode):
-    '''
+    """
       Function to read, from the xml input, the actions that are required to be performed on the Plot
       @ In, snode => xml node
-    '''
+    """
     for node in snode:
       self.options[node.tag] = {}
       if len(node):
@@ -217,11 +217,11 @@ class OutStreamPlot(OutStreamManager):
     if 'how' not in self.options.keys(): self.options['how']={'how':'screen'}
 
   def __fillCoordinatesFromSource(self):
-    '''
+    """
       Function to retrieve the pointers of the data values (x,y,z)
       @ In, None
       @ Out, boolean, true if the data are filled, false otherwise
-    '''
+    """
     self.xValues = []
     if self.yCoordinates : self.yValues = []
     if self.zCoordinates : self.zValues = []
@@ -337,10 +337,10 @@ class OutStreamPlot(OutStreamManager):
     return True
 
   def __executeActions(self):
-    '''
+    """
       Function to execute the actions must be performed on the Plot(for example, set the x,y,z axis ranges, etc)
       @ In, None
-    '''
+    """
     if 'labelFormat' not in self.options.keys():
       if self.dim == 2:
         self.plt.gca().yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
@@ -489,11 +489,11 @@ class OutStreamPlot(OutStreamManager):
   #  PUBLIC METHODS  #
   ####################
   def localAddInitParams(self,tempDict):
-    '''
+    """
       This method is called from the base function. It adds the initial characteristic intial params that need to be seen by the whole enviroment
       @ In, tempDict
       @ Out, tempDict
-    '''
+    """
     tempDict['Plot is '] = str(self.dim)+'D'
     for index in range(len(self.sourceName)): tempDict['Source Name '+str(index)+' :'] = self.sourceName[index]
 
@@ -503,11 +503,11 @@ class OutStreamPlot(OutStreamManager):
       self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
 
   def initialize(self,inDict):
-    '''
+    """
     Function called to initialize the OutStream, linking it to the proper Data
     @ In, inDict -> Dictionary that contains all the instantiaced classes needed for the actual step
                     In this dictionary the data are looked for
-    '''
+    """
     self.xCoordinates  = []
     self.sourceName    = []
     if 'figureProperties' in self.options.keys():
@@ -559,11 +559,11 @@ class OutStreamPlot(OutStreamManager):
     self.__executeActions()
 
   def localReadXML(self,xmlNode):
-    '''
+    """
       This Function is called from the base class, It reads the parameters that belong to a plot block
       @ In, xmlNode
       @ Out, filled data structure (self)
-    '''
+    """
     if not 'dim' in xmlNode.attrib.keys(): self.dim = 2
     else:                                  self.dim = int(xmlNode.attrib['dim'])
     if self.dim not in [2,3]: raise IOError(self.printTag+': ERROR -> Wrong dimension... 2D or 3D only!!! Got '+ str(self.dim)+'D')
@@ -611,11 +611,11 @@ class OutStreamPlot(OutStreamManager):
     if self.dim == 3: from mpl_toolkits.mplot3d import Axes3D
 
   def addOutput(self):
-    '''
+    """
     Function to show and/or save a plot
     @ In,  None
     @ Out, None (Plot on the screen or on file/s)
-    '''
+    """
     # reactivate the figure
     self.fig = self.plt.figure(self.name)
     # fill the x_values,y_values,z_values dictionaries
@@ -1169,9 +1169,9 @@ class OutStreamPrint(OutStreamManager):
     for index in range(len(self.sourceName)):
       if not self.sourceData[index].isItEmpty(): self.sourceData[index].printCSV(dictOptions)
 
-'''
+"""
  Interface Dictionary (factory) (private)
-'''
+"""
 __base                     = 'OutStreamManager'
 __interFaceDict            = {}
 __interFaceDict['Plot'   ] = OutStreamPlot
@@ -1182,10 +1182,10 @@ def knownTypes():
   return __knownTypes
 
 def returnInstance(Type):
-  '''
+  """
   function used to generate a OutStream class
   @ In, Type : OutStream type
   @ Out,Instance of the Specialized OutStream class
-  '''
+  """
   try: return __interFaceDict[Type]()
   except KeyError: raise NameError('not known '+__base+' type '+Type)

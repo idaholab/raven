@@ -1,6 +1,6 @@
-'''
+"""
 Module that contains the driver for the whole the simulation flow (Simulation Class)
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -255,7 +255,7 @@ class MPISimulationMode(SimulationMode):
 
 #-----------------------------------------------------------------------------------------------------
 class Simulation(object):
-  '''
+  """
   This is a class that contain all the object needed to run the simulation
   Usage:
   myInstance = Simulation()                          !Generate the instance
@@ -298,7 +298,7 @@ class Simulation(object):
   type: distribution, type: triangular,  name: myTriDist
 
   Using the attribute in the xml node <MyType> type discouraged to avoid confusion
-  '''
+  """
 
   def __init__(self,frameworkDir,debug=False):
     self.FIXME          = False
@@ -391,27 +391,27 @@ class Simulation(object):
     self.printTag = returnPrintTag('SIMULATION')
 
   def setInputFiles(self,inputFiles):
-    '''Can be used to set the input files that the program received.
+    """Can be used to set the input files that the program received.
     These are currently used for cluster running where the program
-    needs to be restarted on a different node.'''
+    needs to be restarted on a different node."""
     self.runInfoDict['SimulationFiles'   ] = inputFiles
 
   def getDefaultInputFile(self):
-    '''Returns the default input file to read'''
+    """Returns the default input file to read"""
     return self.runInfoDict['DefaultInputFile']
 
   def __createAbsPath(self,filein):
-    '''assuming that the file in is already in the self.filesDict it places, as value, the absolute path'''
+    """assuming that the file in is already in the self.filesDict it places, as value, the absolute path"""
     if '~' in filein : filein = os.path.expanduser(filein)
     if not os.path.isabs(filein):
       self.filesDict[filein] = os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein))
 
   def __checkExistPath(self,filein):
-    '''assuming that the file in is already in the self.filesDict it checks the existence'''
+    """assuming that the file in is already in the self.filesDict it checks the existence"""
     if not os.path.exists(self.filesDict[filein]): raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> The file '+ filein +' has not been found')
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
-    '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
+    """parses the xml input file, instances the classes need to represent all objects in the simulation"""
     if 'debug' in xmlNode.attrib.keys():
       if xmlNode.attrib['debug'].lower()   in stringsThatMeanTrue() : self.debug=True
       elif xmlNode.attrib['debug'].lower() in stringsThatMeanFalse(): self.debug=False
@@ -449,7 +449,7 @@ class Simulation(object):
       raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> The step list: '+str(self.stepSequenceList)+' contains steps that have no bee declared: '+str(list(self.stepsDict.keys())))
 
   def initialize(self):
-    '''check/created working directory, check/set up the parallel environment, call step consistency checker'''
+    """check/created working directory, check/set up the parallel environment, call step consistency checker"""
     #check/generate the existence of the working directory
     #print(self.runInfoDict['WorkingDir'])
     if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
@@ -476,7 +476,7 @@ class Simulation(object):
       self.checkStep(stepInstance,stepName)
 
   def checkStep(self,stepInstance,stepName):
-    '''This method checks the coherence of the simulation step by step'''
+    """This method checks the coherence of the simulation step by step"""
     for [role,myClass,objectType,name] in stepInstance.parList:
       if myClass!= 'Step' and myClass not in list(self.whichDict.keys()):
         raise IOError (self.printTag+': ' + returnPrintPostTag('ERROR') + '-> For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
@@ -495,7 +495,7 @@ class Simulation(object):
 
 
   def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
-    '''reads the xml input file for the RunInfo block'''
+    """reads the xml input file for the RunInfo block"""
     for element in xmlNode:
       if element.tag in runInfoSkip:
         print(self.printTag+": " +returnPrintPostTag('Warning') + " -> Skipped element ",element.tag)
@@ -562,9 +562,9 @@ class Simulation(object):
         print(self.printTag+": " +returnPrintPostTag('Warning') + " -> Unhandled element ",element.tag)
 
   def printDicts(self):
-    '''utility function capable to print a summary of the dictionaries'''
+    """utility function capable to print a summary of the dictionaries"""
     def __prntDict(Dict):
-      '''utility function capable to print a dictionary'''
+      """utility function capable to print a dictionary"""
       for key in Dict:
         print(key+'= '+str(Dict[key]))
     __prntDict(self.runInfoDict)
@@ -580,7 +580,7 @@ class Simulation(object):
     __prntDict(self.whichDict)
 
   def run(self):
-    '''run the simulation'''
+    """run the simulation"""
     #to do list
     #can we remove the check on the esistence of the file, it might make more sense just to check in case they are input and before the step they are used
     #

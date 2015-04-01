@@ -1,8 +1,8 @@
-'''
+"""
 Created on Mar 8, 2013
 
 @author: crisr
-'''
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -11,9 +11,9 @@ from BaseClasses import BaseType
 
 
 class Test(BaseType):
-  '''
+  """
   a genral class containing the distributions
-  '''
+  """
   def __init__(self):
     BaseType.__init__(self)
     self.toBeTested  = []
@@ -56,9 +56,9 @@ class Sigma(Test):
 class Integral(Test):
   pass
 
-'''
+"""
  Interface Dictionary (factory) (private)
-'''
+"""
 __base                      = 'Data'
 __interFaceDict             = {}
 __interFaceDict['Sigma'   ] = Sigma
@@ -69,7 +69,7 @@ def knownTypes():
   return __knownTypes
 
 def returnInstance(Type):
-  '''return one instance of Type'''
+  """return one instance of Type"""
   try: return __interFaceDict[Type]()
   except KeyError: raise NameError('not known '+__base+' type '+Type)
 
