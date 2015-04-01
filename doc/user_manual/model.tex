@@ -765,6 +765,40 @@ to couple a new code.
   The execution command is combined in the order \xmlString{prepend},
   \xmlNode{executable}, \xmlString{input}, \xmlString{output}, \xmlString{text},
   \xmlString{postpend}.
+  %
+  \item \xmlNode{fileargs} \xmlDesc{string, optional field} like \xmlNode{clargs},
+  but allows editing of input files to specify the output filename and/or auxiliary
+  file names.  
+  %
+  The location in the input files to edit using these arguments are identified in
+  the input file using the prefix-postfix notation, which defaults to 
+  \texttt{\$RAVEN-var\$} for variable keyword \emph{var}.  The variable keyword
+  is then listed in the \xmlNode{fileargs} node in the attribute \xmlAttr{arg} to
+  couple it in Raven.
+  %
+  If the code interface specified in \xmlNode{Code} \xmlAttr{subType}
+  does not specify how to name the output file, that must be specified either through
+  \xmlNode{clargs} or \xmlNode{filargs}, with \xmlAttr{type} \xmlString{output}.  
+  The attributes required for \xmlNode{fileargs} are as follows:
+  \begin{itemize}
+    \item \xmlAttr{type} \xmlDesc{string, required field} specifies the type
+    of entry to replace in the file.  Possible values for \xmlNode{fileargs} 
+    \xmlAttr{type} are \xmlString{input} and \xmlString{output}.
+    %
+    \item \xmlAttr{arg} \xmlDesc{string, required field} specifies the Raven
+    variable with which to replace the file of interest.  This should match
+    the entry in the template input file; that is, if \texttt{\$RAVEN-auxinp\$}
+    is in the input file, the arg for the corresponding input file should be
+    \xmlString{auxinp}.
+    %
+    \item \xmlAttr{extension} \xmlDesc{string, optional field} specifies the
+    extension of the input file that should replace the Raven variable in
+    the input file.  This attribute is required for the \xmlString{input} \xmlAttr{type}
+    and ignored for the \xmlString{output} \xmlAttr{type}.
+    \nb{Currently, there can only be a one-to-one pairing between input files
+    and extensions; that is, multiple Raven-editable input files cannot have the
+    same extension.}
+  \end{itemize}
 \end{itemize}
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={subType,name,variable}]
@@ -780,6 +814,10 @@ to couple a new code.
       <alias variable='internal_variable_name2'>
          External_Code_Variable_Name_2
       </alias>
+      <clargs type='prepend' arg='python'/>
+      <clargs type='input' arg='-i' extension='.i'/>
+      <fileargs type='input' arg='aux' extension='.two'
+      <fileargs type='output' arg='out' />
     </Code>
     ...
   </Models>
@@ -1004,7 +1042,8 @@ two more nodes and can accept multiple entries of a third optional node.
       \ref{tab:gpcCompatible}, this ROM
       makes use of the uniform-like range of the distribution's CDF to apply quadrature that is
       suited uniform uncertainty (Legendre).  It converges more slowly than the four listed, but are
-      viable choices. 
+      viable choices.  Choosing polynomial type Legendre for any non-uniform distribution will
+      enable this formulation automatically.
     \item \xmlAttr{poly}, \xmlDesc{string,optional field},
       specifies the interpolating polynomial family to use for the polynomial expansion in this 
       dimension.  The default options depend on the quadrature type chosen, as shown in Table
@@ -1014,11 +1053,6 @@ two more nodes and can accept multiple entries of a third optional node.
       delineates the importance weighting of this dimension.  A larger importance weight will
       result in increased resolution for this dimension at the cost of resolution in lower-weighted
       dimensions.  The algorithm normalizes weights at run-time.\default{1}.
-    \item \xmlAttr{cdf}, \xmlDesc{boolean, option field},
-      indicates that the code should use the CDF of the distribution instead of the distribution
-      itself (see note for \xmlAttr{quad}).  Default is \xmlString{false} for the four distributions
-      in Table \ref{tab:gpcCompatible} and \xmlString{true} otherwise.
-      \default{``false'' if listed on Table \ref{tab:gpcCompatible}, ``true'' otherwise.}
   \end{itemize}
   %
 \end{itemize}
@@ -1043,7 +1077,22 @@ Also, this ROM must be referenced in the SparseGridCollocation sampler in order 
 accurately produce the necessary sparse grid points to train this ROM.
 
 \textbf{Example:}
+\footnotesize
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Samplers>
+  ...
+  <SparseGridCollocation name="mySG" parallel="0">
+    <variable name="x1">
+      <distribution>myDist1</distribution>
+    </variable>
+    <variable name="x2">
+      <distribution>myDist2</distribution>
+    </variable>
+    <ROM class = 'Models' type = 'ROM' >myROM</ROM>
+  </SparseGridCollocation>
+  ...
+</Samplers>
+...
 <Simulation>
   ...
   <Models>
@@ -1053,8 +1102,8 @@ accurately produce the necessary sparse grid points to train this ROM.
       <Features>x1,x2</Features>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>4</PolynomialOrder>
-      <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
-      <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2' cdf='False'>x2</Interpolation>
+      <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+      <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
     </ROM>
     ...
   </Models>
@@ -3905,8 +3954,15 @@ to compute many of the most important statistical quantities.
     \item \textbf{percentile} -- 95 percentile
     %
   \end{itemize}
-  If all the quantities need to be computed, the user can input in the body of
+   %
+  \nb If the weights are present in the system then weighted quantities are calcuated automatically.
+  \\
+  \\  If all the quantities need to be computed, the user can input in the body of
   \xmlNode{what} the string ``all.''
+  %
+  \item \xmlNode{biased}, \xmlDesc{string (boolean), optional field}, if \textit{True} biased 
+  covariance and correlation coefficient matrix calucated, if \textit{False} unbiased.
+  \default{False}
   %
   \item \xmlNode{parameters}, \xmlDesc{comma separated string, required field},
   lists the parameters on which the previous operations need to be applied
@@ -4183,10 +4239,18 @@ zones that determine a change in the status of the system (Limit Surface).
   needs to be computed.
   \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, sets the absolute
   value (in CDF) of the convergence tolerance.
-  %
+ %
   This value defines the coarseness of the evaluation grid.
+ % 
+ \default{1.0e-4}
+  \item \xmlNode{side}, \xmlDesc{string, optional field}, in this node the user can specify
+  which side of the limit surface needs to be computed. Three options are available: 
+  \\ \textit{negative},  Limit Surface corresponding to the goal function value of ``-1'';
+  \\ \textit{positive}, Limit Surface corresponding to the goal function value of ``1'';
+  \\ \textit{both}, either positive and negative Limit Surface is going to be computed.
   %
-  \textit{Default= 1.e-4}
+  %
+\default{negative}
   % Assembler Objects
   \item \textbf{Assembler Objects} These objects are either required or optional
   depending on the functionality of the Adaptive Sampler.

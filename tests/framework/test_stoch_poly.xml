@@ -110,31 +110,31 @@
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
         <ROM name='UCROM' subType='GaussPolynomialRom'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x1</Interpolation>
+            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
         <ROM name='NROM' subType='GaussPolynomialRom'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='Hermite' poly='Hermite' weight='1'>x1</Interpolation>
+            <Interpolation quad='Hermite' poly='Hermite' weight='1'>x2</Interpolation>
         </ROM>
         <ROM name='GROM' subType='GaussPolynomialRom'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Laguerre' poly='Laguerre' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Laguerre' poly='Laguerre'>x1</Interpolation>
             <Interpolation quad='Laguerre' poly='Laguerre' weight='1' >x2</Interpolation>
         </ROM>
         <ROM name='BROM' subType='GaussPolynomialRom'>
@@ -142,32 +142,32 @@
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Jacobi' poly='Jacobi' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Jacobi' poly='Jacobi' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='Jacobi' poly='Jacobi' weight='1'>x1</Interpolation>
+            <Interpolation quad='Jacobi' poly='Jacobi' weight='1'>x2</Interpolation>
         </ROM>
         <ROM name='BNROM' subType='GaussPolynomialRom'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Jacobi' poly='Jacobi' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Jacobi' poly='Jacobi' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='Jacobi' poly='Jacobi' weight='1'>x1</Interpolation>
+            <Interpolation quad='Jacobi' poly='Jacobi' weight='1'>x2</Interpolation>
         </ROM>
         <ROM name='TROM' subType='GaussPolynomialRom'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='1'>x1</Interpolation>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='1'>x2</Interpolation>
+            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x1</Interpolation>
+            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
         <ROM name='EROM' subType='GaussPolynomialRom'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='1'>x1</Interpolation>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='1'>x2</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
     </Models>
 

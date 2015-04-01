@@ -278,16 +278,16 @@ class GaussPolynomialRom(NDinterpolatorRom):
         for var,val in val.items():
           self.itpDict[var]={'poly'  :'DEFAULT',
                              'quad'  :'DEFAULT',
-                             'weight':'1',
-                             'cdf'   :'False'}
+                             'weight':'1'}
+                             #'cdf'   :'False'}
           for atrName,atrVal in val.items():
-            if atrName in ['poly','quad','weight','cdf']: self.itpDict[var][atrName]=atrVal
+            if atrName in ['poly','quad','weight']: self.itpDict[var][atrName]=atrVal
             else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
 
     if not self.indexSetType:
       raise IOError(self.printTag+' No IndexSet specified!')
     if not self.maxPolyOrder:
-      raise IOError(self.printTag+' No IndexSet specified!')
+      raise IOError(self.printTag+' No maxPolyOrder specified!')
     if self.maxPolyOrder < 1:
       raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
 
