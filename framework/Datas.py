@@ -532,7 +532,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       else: return self.getHierParam(typeVar.lower(),nodeid,keyword,serialize)
     else:
       if typeVar.lower() in ['input','inputs']:
-#        if keyword in self._dataContainer['inputs'].keys(): return convertArr(self._dataContainer['inputs'][keyword])
         if keyword in self._dataContainer['inputs'].keys():
             if self.type == 'Histories':
                 for key in self._dataContainer['inputs'][keyword].keys(): self._dataContainer['inputs'][keyword][key] = np.resize(self._dataContainer['inputs'][keyword][key],len(self._dataContainer['outputs'][keyword].values()[0]))
