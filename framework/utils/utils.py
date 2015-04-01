@@ -6,7 +6,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
 import bisect
 import sys, os
-from scipy.interpolate import Rbf,griddata
+from scipy.interpolate import Rbf, griddata
 import copy
 import inspect
 
@@ -51,6 +51,23 @@ def stringsThatMeanTrue():
 def stringsThatMeanFalse():
   '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish)'''
   return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis'])
+
+def interpretBoolean(inarg):
+  """
+   Utility method to convert an inarg into a boolean.
+   The inarg can be either a string or integer
+   @ In, object, object to convert (
+  """
+  if type(inarg).__name__ == "bool": return inarg
+  elif type(inarg).__name__ == "integer":
+    if inarg == 0: return False
+    else         : return True
+  elif type(inarg).__name__ in ['str','bytes','unicode']:
+      if inarg.lower().strip() in stringsThatMeanTrue()   : return True
+      elif inarg.lower().strip() in stringsThatMeanFalse(): return False
+      else                                                : raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
+  else: raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inarg).__name__)
+
 
 def compare(s1,s2):
   sig_fig=6
@@ -161,7 +178,8 @@ def importFromPath(filename, printImporting = True):
       (name, ext) = os.path.splitext(name)
       (file, filename, data) = imp.find_module(name, [path])
       importedModule = imp.load_module(name, file, filename, data)
-    except: importedModule = None
+    except Exception as ae:
+      raise Exception(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ '-> importing module '+ filename + 'failed with error '+str(ae))
     return importedModule
 
 def index(a, x):
