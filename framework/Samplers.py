@@ -34,6 +34,7 @@ import SupervisedLearning
 import pyDOE as doe
 import Quadratures
 import OrthoPolynomials
+import SupervisedLearning
 import IndexSets
 from utils import find_distribution1D
 distribution1D = find_distribution1D()
@@ -2702,6 +2703,8 @@ class Sobol(Grid):
       elif child.tag == 'variable':
         varName = child.attrib['name']
         self.axisName.append(varName)
+      elif child.tag == 'SobolOrder':
+        self.sobolOrder = int(child.text)
 
   def localInitialize(self):
     for key in self.assemblerDict.keys():
@@ -2711,10 +2714,56 @@ class Sobol(Grid):
           self.ROM = self.assemblerDict[key][indice][3]
           indice += 1
       elif 'TargetEvaluation' in key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.solns = self.assemblerDict[key][indice][3]
+          indice += 1
+    #make combination of ROMs that we need
+    SVLs = self.ROM.SupervisedEngine.values()
+    SVL = SVLs[0]
+    varis = SVL.features
+    needCombos = itertools.chain.from_iterable(itertools.combinations(varis,r) for r in range(self.sobolOrder+1))
+    self.SQs={}
+    self.ROMs={}
+    for combo in needCombos:
+      distDict={}
+      quadDict={}
+      polyDict={}
+      for c in combo:
+        distDict[c]=self.distDict[c]
+        quadDict[c]=self.quadDict[c]
+        polyDict[c]=self.polyDict[c]
+      self.SQs[combo] = Quadratures.SparseQuad()
+      self.SQs[combo].initialize(SVL.indexSet,SVL.maxPolyOrder,distDict,quadDict,polyDict,self.jobHandler)
+      initDict={'IndexSet':SVL.indexSet, 'PolynomialOrder':SVL.maxPoly, 'Interpolation':SVL.itpDict}
+      self.ROMs[combo] = SupervisedLearning.GaussPolynomialRom(initDict)
+      initDict={'SG':self.SQs[combo].SG, 'dists':distDict, 'quads':quadDict, 'polys':polyDict, 'iSet':SVL.indexSet}
+      self.ROMs[combo].initialize(initDict)
+    #make combined sparse grids
+    std = distDict.keys()
+    references={}
+    for var,dist in self.distDict.items():
+      references[var]=dist.untruncatedMean()
+    self.pointsToRun=[]
+    for combo,rom in self.ROMs.items():
+      SG = rom.sparseGrid
+      for pt,wt in SG:
+        newpt = np.zeros(len(std))
+        for v,var in enumerate(std):
+          if var in combo: newpt[v] = pt[combo.index(var)]
+          else: newpt[v] = references[var]
+        if pt not in self.pointsToRun: self.pointsToRun.append(pt)
 
   def localGenerateInput(self,model,myInput):
     '''Provide the next point in the sparse grid.'''
-    pass # TODO
+    pt = self.pointsToRun[self.counter-1]
+    for v,varName in enumerate(self.distDict.keys()):
+      self.values[varName] = pt[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    #self.inputInfo['ProbabilityWeight'] =  N/A
+    self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
+    
 #
 #
 #
@@ -2733,6 +2782,7 @@ __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
 __interFaceDict['FactorialDesign'         ] = FactorialDesign
 __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
 __interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
+__interFaceDict['Sobol'                   ] = Sobol
 __knownTypes = list(__interFaceDict.keys())
 
 def addKnownTypes(newDict):

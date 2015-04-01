@@ -408,6 +408,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
              # 'Interpolation':interpolationInfo()}
 
 class HDMRRom(NDinterpolatorRom):
+  def __confidenceLocal__(self,edict):pass #TODO
+
+  def __resetLocal__(self):pass #TODO
+
+  def __returnCurrentSettingLocal__(self):pass #TODO
+
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
     self.printTag      = returnPrintTag('HDMR_ROM('+self.target+')')
@@ -666,7 +672,8 @@ __interfaceDict['NDspline'            ] = NDsplineRom
 __interfaceDict['NDinvDistWeigth'     ] = NDinvDistWeigth
 __interfaceDict['microSphere'         ] = NDmicroSphere
 __interfaceDict['SciKitLearn'         ] = SciKitLearn
-__interfaceDict['GaussPolynomialRom'] = GaussPolynomialRom
+__interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
+__interfaceDict['HDMRRom'             ] = HDMRRom
 __base                                  = 'superVisedLearning'
 
 def addToInterfaceDict(newDict):
