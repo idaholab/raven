@@ -231,7 +231,6 @@ class Dummy(Model):
   def _inputToInternal(self,dataIN,full=False):
     '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('FIXME') + '-> wondering if a dictionary compatibility should be kept')
-    print ('ANNENI', self, dataIN, full)
     if  type(dataIN)!=dict:
       if dataIN.type not in self.admittedData: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type '+dataIN.type+' is not compatible with the ROM '+self.name)
     if full==True:  length = 0
