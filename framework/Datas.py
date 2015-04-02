@@ -223,7 +223,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     pass
 
   def __getVariablesToPrint(self,var,inOrOut):
-    """ Returns a list of variables to print.
+    """
+    Returns a list of variables to print.
     Takes the variable and either 'input' or 'output'
     """
     variables_to_print = []
@@ -288,7 +289,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     raise Exception("specializedLoadXML_CSV not implemented "+str(self))
 
   def _createXMLFile(self,filenameLocal,fileType,inpKeys,outKeys):
+<<<<<<< HEAD
     """Creates an XML file to contain the input and output data list
+=======
+    """
+    Creates an XML file to contain the input and output data list
+>>>>>>> dbceaad0a86d21f077d82c1a0bf6614aa97108fb
     and the type.
     @ In, filenameLocal, file name
     @ In, fileType, file type (csv, xml)
@@ -515,6 +521,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if self.type == 'Histories':
       acceptedType = ['str','unicode','bytes','int']
       convertArr = lambda x: x
+      #convertArr = lambda x: np.asarray(x)
     else                       :
       acceptedType = ['str','unicode','bytes']
       convertArr = lambda x: np.asarray(x)
@@ -529,7 +536,17 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       else: return self.getHierParam(typeVar.lower(),nodeid,keyword,serialize)
     else:
       if typeVar.lower() in ['input','inputs']:
-        if keyword in self._dataContainer['inputs'].keys(): return convertArr(self._dataContainer['inputs'][keyword])
+        returnDict = {}
+        if keyword in self._dataContainer['inputs'].keys():
+            returnDict[keyword] = {}
+            if self.type == 'Histories':
+                for key in self._dataContainer['inputs'][keyword].keys(): returnDict[keyword][key] = np.resize(self._dataContainer['inputs'][keyword][key],len(self._dataContainer['outputs'][keyword].values()[0]))
+                return convertArr(returnDict[keyword])
+            elif self.type == 'History':
+                returnDict[keyword] = np.resize(self._dataContainer['inputs'][keyword],len(self._dataContainer['outputs'].values()[0]))
+                return convertArr(returnDict[keyword])
+            else:
+                return convertArr(self._dataContainer['inputs'][keyword])
         else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> parameter ' + str(keyword) + ' not found in inpParametersValues dictionary. Available keys are '+str(self._dataContainer['inputs'].keys())+'.Function: Data.getParam')
       elif typeVar.lower() in ['output','outputs']:
         if keyword in self._dataContainer['outputs'].keys(): return convertArr(self._dataContainer['outputs'][keyword])
