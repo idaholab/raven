@@ -410,7 +410,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                 else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> unknown type for metadata adding process. Relevant type = '+ str(elem))
 
         else:
-          print('FIXME: This if statement is for back Compatibility... Remove it whitin end of July')
+          #print('FIXME: This if statement is for back Compatibility... Remove it whitin end of July')
           if tupleVar[2][hist]: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> unknown type for metadata adding process. Relevant type = '+ str(type(tupleVar[2][hist])))
     self.checkConsistency()
     return
