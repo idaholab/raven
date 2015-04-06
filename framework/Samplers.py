@@ -26,15 +26,25 @@ from sklearn import neighbors
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import metaclass_insert,find_le,index,find_le_index,returnPrintTag,returnPrintPostTag,stringsThatMeanTrue
-from BaseClasses import BaseType, Assembler
+from BaseClasses import BaseType
+from Assembler import Assembler
 import Distributions
 import TreeStructure as ETS
 import SupervisedLearning
 import pyDOE as doe
+import Quadratures
+import OrthoPolynomials
+import IndexSets
+import PostProcessors
+from utils import find_distribution1D
+distribution1D = find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
+#Internal Submodules---------------------------------------------------------------------------------
+#Internal Submodules End--------------------------------------------------------------------------------
+
 class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
-  '''
+  """
   This is the base class for samplers
   Samplers own the sampling strategy (Type) and they generate the
   input values using the associate distribution. They do not have distributions inside!!!!
@@ -75,7 +85,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   self.localInitialize()
   self.localStillReady(ready)
   self.localFinalizeActualSampling(jobObject,model,myInput)
-  '''
+  """
 
   def __init__(self):
     BaseType.__init__(self)
@@ -91,34 +101,40 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.inputInfo['SampledVarsPb'   ] = {}                        # this is the location where to get the probability of the sampled variables
     self.inputInfo['PointProbability'] = None                      # this is the location where the point wise probability is stored (probability associated to a sampled point)
     self.inputInfo['crowDist']         = {}                        # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
-    self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is perfermed after a new reseeding
+    self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = returnPrintTag(self.type) # prefix for all prints (sampler type)
+
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
-  def whatDoINeed(self):
-    '''
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for inquiring the Sampler about the kind of objects the Sampler needs to
-    be initialize. It is an abstract method that comes from the base class Assembler(see BaseClasses.py)
-    @ In , None, None
-    @ Out, needDict, dictionary of objects needed (class:list(tuple(object type{if None, Simulation does not check the type}, object name))). (eg. {'Distributions':[(type1,distname1),(type2,distname2)]} )
-    '''
-    # call the local method for getting additional needed objects
-    needDict = self._localWhatDoINeed()
-    # the distributions are the common things that are needed by each sampler
-    if 'Distributions' not in needDict.keys(): needDict['Distributions'] = []
-    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
-    return needDict
+    ######
+    self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; totDim = total dimensionality of its associated distribution
+    self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
+    self.ND_sampling_params             = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initial_grid_disc' and 'tolerance')
+    ######
+
+    self.assemblerObjects  = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
+    self.requiredAssObject = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for objects;
+                                                      # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
+    self.assemblerDict     = {}  # {'class':[['subtype','name',instance]]}
+
+  def _localGenerateAssembler(self,initDict):
+    ''' see generateAssembler method '''
+    availableDist = initDict['Distributions']
+    self._generateDistributions(availableDist)
+
 
   def _localWhatDoINeed(self):
-    '''
+    """
     This method is a local mirror of the general whatDoINeed method.
     It is implemented by the samplers that need to request special objects
     @ In , None, None
     @ Out, needDict, list of objects needed
-    '''
-    return {}
+    """
+    needDict = {}
+    needDict['Distributions'] = [] # Every sampler requires Distributions
+    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
+    return needDict
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -129,19 +145,78 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     The text i supposed to contain the info where and which variable to change.
     In case of a code the syntax is specified by the code interface itself
     '''
-    try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
-    except KeyError: self.initSeed = Distributions.randomIntegers(0,2**31)
-    if 'reseedAtEachIteration' in xmlNode.attrib.keys():
-      if xmlNode.attrib['reseedAtEachIteration'].lower() in stringsThatMeanTrue(): self.reseedAtEachIteration = True
+
+    Assembler._readMoreXML(self,xmlNode)
+
     for child in xmlNode:
-      for childChild in child:
-        if childChild.tag =='distribution':
-          if child.tag == 'Distribution':
-            #Add <distribution> to name so we know it is not the direct variable
-            self.toBeSampled["<distribution>"+child.attrib['name']] = childChild.text
-          elif child.tag == 'variable': self.toBeSampled[child.attrib['name']] = childChild.text
-          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
-          if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
+      prefix = ""
+      if child.tag == 'Distribution':
+        for childChild in child:
+          if childChild.tag =='distribution':
+            prefix = "<distribution>"
+            tobesampled = childChild.text
+        self.toBeSampled[prefix+child.attrib['name']] = tobesampled
+      elif child.tag == 'variable':
+        for childChild in child:
+          if childChild.tag =='distribution':
+            tobesampled = childChild.text
+            varData={}
+            varData['name']=childChild.text
+            if childChild.get('dim') == None:
+              dim=1
+            else:
+              dim=childChild.attrib['dim']
+            varData['dim']=int(dim)
+            self.variables2distributionsMapping[child.attrib['name']] = varData
+        self.toBeSampled[prefix+child.attrib['name']] = tobesampled
+      elif child.tag == "sampler_init":
+        self.initSeed = Distributions.randomIntegers(0,2**31)
+        for childChild in child:
+          if childChild.tag == "limit":
+            self.limit = childChild.text
+          elif childChild.tag == "initial_seed":
+            self.initSeed = int(childChild.text)
+          elif childChild.tag == "reseed_at_each_iteration":
+            if childChild.text.lower() in stringsThatMeanTrue(): self.reseedAtEachIteration = True
+          elif childChild.tag == "dist_init":
+            for childChildChild in childChild:
+              NDdistData = {}
+              for childChildChildChild in childChildChild:
+                if childChildChildChild.tag == 'initial_grid_disc':
+                  NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
+                elif childChildChildChild.tag == 'tolerance':
+                  NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
+                else:
+                  raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+childChildChildChild.tag+' .Available are: initial_grid_disc and tolerance!')
+              self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
+          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')
+
+    if self.initSeed == None:
+      self.initSeed = Distributions.randomIntegers(0,2**31)
+
+    # Creation of the self.distributions2variablesMapping dictionary: {'dist_name': ({'variable_name1': dim1}, {'variable_name2': dim2})}
+    for variable in self.variables2distributionsMapping.keys():
+      distName = self.variables2distributionsMapping[variable]['name']
+      dim      = self.variables2distributionsMapping[variable]['dim']
+      list_element={}
+      list_element[variable] = dim
+      if (distName in self.distributions2variablesMapping.keys()):
+        self.distributions2variablesMapping[distName].append(list_element)
+      else:
+        self.distributions2variablesMapping[distName]=[list_element]
+
+
+    for key in self.variables2distributionsMapping.keys():
+      dist = self.variables2distributionsMapping[key]['name']
+      maxDim=1
+      list = self.distributions2variablesMapping[dist]
+      for var in list:
+        if var.values()[0] > maxDim:
+          maxDim = var.values()[0]
+      #print(str(key) +': ' + str(maxDim))
+      self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
+
+
     self.localInputAndChecks(xmlNode)
 
   def endJobRunnable(self): return self._endJobRunnable
@@ -151,12 +226,12 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     pass
 
   def addInitParams(self,tempDict):
-    '''
+    """
     This function is called from the base class to print some of the information inside the class.
     Whatever is permanent in the class and not inherited from the parent class should be mentioned here
     The information is passed back in the dictionary. No information about values that change during the simulation are allowed
     @ In/Out tempDict: {'attribute name':value}
-    '''
+    """
     for variable in self.toBeSampled.items():
       tempDict[variable[0]] = 'is sampled using the distribution ' +variable[1]
     tempDict['limit' ]        = self.limit
@@ -164,17 +239,17 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localAddInitParams(tempDict)
 
   def localAddInitParams(self,tempDict):
-    '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
+    """use this function to export to the printer in the base class the additional PERMANENT your local class have"""
 
   def addCurrentSetting(self,tempDict):
-    '''
+    """
     This function is called from the base class to print some of the information inside the class.
     Whatever is a temporary value in the class and not inherited from the parent class should be mentioned here
     The information is passed back in the dictionary
     Function adds the current settings in a temporary dictionary
     @ In, tempDict
     @ Out, tempDict
-    '''
+    """
     tempDict['counter'       ] = self.counter
     tempDict['initial seed'  ] = self.initSeed
     for key in self.inputInfo:
@@ -184,22 +259,15 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localAddCurrentSetting(tempDict)
 
   def localAddCurrentSetting(self,tempDict):
-    '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
+    """use this function to export to the printer in the base class the additional PERMANENT your local class have"""
     pass
 
-  def generateAssembler(self,initDict):
-    availableDist = initDict['Distributions']
-    self._generateDistributions(availableDist)
-    self._localGenerateAssembler(initDict)
-
-  def _localGenerateAssembler(self,initDict): pass
-
   def _generateDistributions(self,availableDist):
-    '''
+    """
     here the needed distribution are made available to the step as also the initialization
     of the seeding (the siding could be overriden by the step by calling the initialize method
     @in availableDist: {'distribution name':instance}
-    '''
+    """
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
     for key in self.toBeSampled.keys():
@@ -208,10 +276,10 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
 
   def initialize(self,externalSeeding=None,solutionExport=None):
-    '''
+    """
     This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
     @in solutionExport: in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrains)
-    '''
+    """
     self.counter = 0
     if   not externalSeeding          :
       Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed
@@ -220,10 +288,17 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else                              :
       Distributions.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
-    for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution()   #now we can initialize the distributions
+    #for key in self.toBeSampled.keys():
+    #    self.distDict[key].initializeDistribution()   #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
     else                      : self.localInitialize()
+
+    for distrib in self.ND_sampling_params:
+      if distrib in self.distributions2variablesMapping:
+        params = self.ND_sampling_params[distrib]
+        temp = self.distributions2variablesMapping[distrib][0].keys()[0]
+        self.distDict[temp].updateRNGParam(params)
 
   def localInitialize(self):
     '''
@@ -262,6 +337,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.auxcnt  +=1
     if self.reseedAtEachIteration: Distributions.randomSeed(self.auxcnt-1)
     self.inputInfo['prefix'] = str(self.counter)
+    model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 
@@ -312,59 +388,33 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     @in myInput  : the generating input
     '''
     pass
-#
+
 #
 #
 class AdaptiveSampler(Sampler):
   '''This is a general adaptive sampler'''
   def __init__(self):
     Sampler.__init__(self)
-    self.assemblerObjects = {}               #this dictionary contains information about the object needed by the adaptive sampler in order to work (ROM,targetEvaluation, etc)
+#    self.assemblerObjects = {}               #this dictionary contains information about the object needed by the adaptive sampler in order to work (ROM,targetEvaluation, etc)
     self.goalFunction     = None             #this is the pointer to the function defining the goal
     self.tolerance        = None             #this is norm of the error threshold
     self.subGridTol       = None             #This is the tolerance used to construct the testing sub grid
-    self.ROM              = None             #This contains a pointer to the ROM instance
-    self.toleranceWeight  = 'probability'    #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
+    self.toleranceWeight  = 'cdf'            #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
     self.persistence      = 5                #this is the number of times the error needs to fell below the tollerance before considering the sim converged
     self.repetition       = 0                #the actual number of time the error was below the requested threshold
     self.forceIteration   = False            #this flag control if at least a self.limit number of iteration should be done
     self.axisName         = None             #this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
     self.gridVectors      = {}               # {'name of the variable':numpy.ndarray['the coordinate']}
     self.testGridLenght   = 0                #this the total number of point in the testing grid
-    self.testMatrix       = None             #This is the n-dimensional matrix representing the testing grid
     self.oldTestMatrix    = None             #This is the test matrix to use to store the old evaluation of the function
-    self.gridShape        = None             #tuple describing the shape of the grid matrix
-    self.gridCoorShape    = None             #tuple describing the shape of the grid containing also the coordinate
-    self.functionValue    = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.solutionExport   = None             #This is the data used to export the solution (it could also not be present)
-    self.gridCoord        = None             #this is the matrix that contains for each entry of the grid the coordinate
     self.nVar             = 0                #this is the number of the variable sampled
     self.surfPoint        = None             #coordinate of the points considered on the limit surface
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
+    # postprocessor to compute the limit surface
+    self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface")
     self.printTag         = returnPrintTag('SAMPLER ADAPTIVE')
-
-  def _localWhatDoINeed(self):
-    '''
-    This method is a local mirrow of the general whatDoINeed method.
-    It is implmented by the samplers that need to request special objects
-    @ In , None, None
-    @ Out, needDict, list of objects needed
-    '''
-    needDict = {}
-    for value in self.assemblerObjects.values():
-      if value[0] not in needDict.keys(): needDict[value[0]] = []
-      needDict[value[0]].append((value[1],value[2]))
-    return needDict
-
-  def _localGenerateAssembler(self,initDict):
-    for key, value in self.assemblerObjects.items():
-      if key in 'TargetEvaluation' : self.lastOutput = initDict[value[0]][value[2]]
-      if key in 'ROM'              : self.ROM = initDict[value[0]][value[2]]
-      if key in 'Function'         : self.goalFunction = initDict[value[0]][value[2]]
-    if self.ROM==None:
-      mySrting= ','.join(list(self.distDict.keys()))
-      self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})
-    self.ROM.reset()
+    self.requiredAssObject = (True,(['TargetEvaluation','ROM','Function'],['n','n','-n']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def localInputAndChecks(self,xmlNode):
     if 'limit' in xmlNode.attrib.keys():
@@ -386,7 +436,7 @@ class AdaptiveSampler(Sampler):
       except: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Failed to convert the persistence value '+convergenceNode.attrib['persistence']+' to a meaningful number for the convergence')
     if 'weight'         in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('weight'))
-      try   : self.toleranceWeight = str(convergenceNode.attrib['weight'])
+      try   : self.toleranceWeight = str(convergenceNode.attrib['weight']).lower()
       except: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Failed to convert the weight type '+convergenceNode.attrib['weight']+' to a meaningful string for the convergence')
     if 'subGridTol'    in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('subGridTol'))
@@ -398,14 +448,15 @@ class AdaptiveSampler(Sampler):
       elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
       else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
     #assembler node: Hidden from User
+    '''
     targEvalNode = xmlNode.find('TargetEvaluation')
     if targEvalNode == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> TargetEvaluation object is required. Not found in Sampler '+self.name + '!')
-    self.assemblerObjects[targEvalNode.tag] = [targEvalNode.attrib['class'],targEvalNode.attrib['type'],targEvalNode.text]
+    self.assemblerObjects[targEvalNode.tag] = [[targEvalNode.attrib['class'],targEvalNode.attrib['type'],targEvalNode.text]]
     functionNode = xmlNode.find('Function')
     if functionNode == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Function object is required. Not Found in Sampler '+self.name + '!')
-    self.assemblerObjects[functionNode.tag] = [functionNode.attrib['class'],functionNode.attrib['type'],functionNode.text]
+    self.assemblerObjects[functionNode.tag] = [[functionNode.attrib['class'],functionNode.attrib['type'],functionNode.text]]
     romNode = xmlNode.find('ROM')
-    if romNode != None: self.assemblerObjects[romNode.tag] = [romNode.attrib['class'],romNode.attrib['type'],romNode.text]
+    if romNode != None: self.assemblerObjects[romNode.tag] = [[romNode.attrib['class'],romNode.attrib['type'],romNode.text]]
     targEvalCounter  = 0
     romCounter       = 0
     functionCounter  = 0
@@ -419,9 +470,10 @@ class AdaptiveSampler(Sampler):
     if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
     if functionCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One Function object is required. Sampler '+self.name + ' got '+str(functionCounter) + '!')
     if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
+    '''
     # set subgrid
     if self.subGridTol == None: self.subGridTol = self.tolerance
-    if self.subGridTol> self.tolerance: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The sub grid tolerance '+str(self.subGridTol)+' must be smaller than the tolerance: '+str(self.tolerance))
+    if self.subGridTol > self.tolerance: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The sub grid tolerance '+str(self.subGridTol)+' must be smaller than the tolerance: '+str(self.tolerance))
     if len(attribList)>0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> There are unknown keywords in the convergence specifications: '+str(attribList))
 
   def localAddInitParams(self,tempDict):
@@ -440,30 +492,24 @@ class AdaptiveSampler(Sampler):
       tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridVectors[varName])
 
   def localInitialize(self,solutionExport=None):
+    if 'Function' in self.assemblerDict.keys(): self.goalFunction = self.assemblerDict['Function'][0][3]
+    if 'TargetEvaluation' in self.assemblerDict.keys(): self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
     self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
     # check if solutionExport is actually a "Datas" type "TimePointSet"
     if type(solutionExport).__name__ != "TimePointSet": raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
-    self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
-    self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    self.surfPoint         = None
     if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Goal function name does not match solution export data output.')
+    # set number of job requestable after a new evaluation
     self._endJobRunnable   = 1
-    #build a lambda function to masquerade the ROM <-> cKDTree presence
-    #if not goalFunction: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Gaol Function not provided!!')
-    #set up the ROM for the acceleration
-    #mySrting= ','.join(list(self.distDict.keys()))
-    #if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})
-    #else        : self.ROM = ROM
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
-    if self.toleranceWeight=='none':
+    if self.toleranceWeight=='value':
       for varName in self.distDict.keys():
         if not(self.distDict[varName].upperBoundUsed and self.distDict[varName].lowerBoundUsed):
           raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name)
-    elif self.toleranceWeight=='probability': pass
+    elif self.toleranceWeight=='cdf': pass
     else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown weight string descriptor: '+self.toleranceWeight)
     #setup the grid. The grid is build such as each element has a volume equal to the sub grid tolerance
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
@@ -471,92 +517,30 @@ class AdaptiveSampler(Sampler):
     stepLenght        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance
     self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
-    if self.toleranceWeight!='probability':
-      stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
-    else:
-      stepParam = lambda _: [stepLenght, 0.0, 1.0]
+    if self.toleranceWeight!='cdf': stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
+    else                          : stepParam = lambda _: [stepLenght, 0.0, 1.0]
     #moving forward building all the information set
     pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
     #building the grid point coordinates
+    gridVectorsForLS = {}
     for varId, varName in enumerate(self.distDict.keys()):
       self.axisName.append(varName)
-      [myStepLenght, start, end]  = stepParam(varName)
-      start                      += 0.5*myStepLenght
-      if self.toleranceWeight=='probability': self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLenght)])
-      elif self.toleranceWeight=='none'     : self.gridVectors[varName] = np.arange(start,end,myStepLenght)
+      [myStepLength, start, end]  = stepParam(varName)
+      start                      += 0.5*myStepLength
+      if self.toleranceWeight=='cdf'     : self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLength)])
+      elif self.toleranceWeight=='value' : self.gridVectors[varName] = np.arange(start,end,myStepLength)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
-    self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
+      gridVectorsForLS[varName.replace('<distribution>','')] = self.gridVectors[varName]
+    self.oldTestMatrix            = np.zeros(tuple(pointByVar))
+    # initialize LimitSurface PP
+    self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.distDict.keys()],"tolerance":self.subGridTol,"side":"both","gridVectors":gridVectorsForLS,"debug":self.debug})
+    self.limitSurfacePP.assemblerDict = self.assemblerDict
+    self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{})
+    self.persistenceMatrix        = np.zeros(tuple(pointByVar))      #matrix that for each point of the testing grid tracks the persistence of the limit surface position
     self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
-    self.testMatrix               = np.zeros(self.gridShape)      #grid where the values of the goalfunction are stored
-    self.oldTestMatrix            = np.zeros(self.gridShape)      #swap matrix fro convergence test
-    self.gridCoorShape            = tuple(pointByVar+[self.nVar]) #shape of the matrix containing all coordinate of all points in the grid
-    self.gridCoord                = np.zeros(self.gridCoorShape)  #the matrix containing all coordinate of all points in the grid
-    self.persistenceMatrix        = np.zeros(self.gridShape)      #matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    #filling the coordinate on the grid
-    myIterator = np.nditer(self.gridCoord,flags=['multi_index'])
-    while not myIterator.finished:
-      coordinateID  = myIterator.multi_index[-1]
-      axisName      = self.axisName[coordinateID]
-      valuePosition = myIterator.multi_index[coordinateID]
-      self.gridCoord[myIterator.multi_index] = self.gridVectors[axisName][valuePosition]
-      myIterator.iternext()
-    self.axisStepSize = {}
-    for varName in self.distDict.keys():
-      self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
-    #printing
-    if self.debug:
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> self.gridShape '+str(self.gridShape))
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> self.testGridLenght '+str(self.testGridLenght))
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> self.gridCoorShape '+str(self.gridCoorShape))
-      for key in self.gridVectors.keys():
-        print(self.printTag+': ' +returnPrintPostTag('Message') + '-> the variable '+key+' has coordinate: '+str(self.gridVectors[key]))
-      myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
-      while not myIterator.finished:
-        print (self.printTag+': ' +returnPrintPostTag('Message') + '-> Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
-        myIterator.iternext()
-    self.hangingPoints    = np.ndarray((0, self.nVar))
-    #if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':','.join(self.axisName),'Target':self.goalFunction.name})
-    #else        : self.ROM = ROM
+    self.oldTestMatrix            = np.zeros(tuple(pointByVar))      #swap matrix fro convergence test
+    self.hangingPoints            = np.ndarray((0, self.nVar))
     print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Initialization done')
-
-  def _trainingROM(self,lastOutput):
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Initiate training')
-    if type(lastOutput) == dict:
-      self.functionValue.update(lastOutput['inputs' ])
-      self.functionValue.update(lastOutput['outputs'])
-    else:
-      self.functionValue.update(lastOutput.getParametersValues('inputs',nodeid='RecontructEnding'))
-      self.functionValue.update(lastOutput.getParametersValues('outputs',nodeid='RecontructEnding'))
-    #recovery the index of the last function evaluation performed
-    if self.goalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.goalFunction.name])-1
-    else                                                  : indexLast = -1
-    #index of last set of point tested and ready to perform the function evaluation
-    indexEnd  = len(self.functionValue[self.axisName[0].replace('<distribution>','')])-1
-    tempDict  = {}
-    if self.goalFunction.name in self.functionValue.keys(): self.functionValue[self.goalFunction.name] = np.append( self.functionValue[self.goalFunction.name], np.zeros(indexEnd-indexLast))
-    else                                                  : self.functionValue[self.goalFunction.name] = np.zeros(indexEnd+1)
-    for myIndex in range(indexLast+1,indexEnd+1):
-      for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
-      if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
-      self.functionValue[self.goalFunction.name][myIndex] =  self.goalFunction.evaluate('residuumSign',tempDict)
-      if type(lastOutput) == dict:
-        # if a dictionary, the check must be outside!!!A.
-        if self.goalFunction.name not in lastOutput['outputs'].keys(): lastOutput['outputs'][self.goalFunction.name] = np.atleast_1d(self.functionValue[self.goalFunction.name][myIndex])
-        else                                                         : lastOutput['outputs'][self.goalFunction.name] = np.concatenate((lastOutput['outputs'][self.goalFunction.name],np.atleast_1d(self.functionValue[self.goalFunction.name][myIndex])))
-      else:
-        if self.goalFunction.name in lastOutput.getParaKeys('inputs') : lastOutput.updateInputValue (self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
-        if self.goalFunction.name in lastOutput.getParaKeys('outputs'): lastOutput.updateOutputValue(self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
-    #printing----------------------
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Mapping of the goal function evaluation done')
-    if self.debug:
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> already evaluated points and function value')
-      print(','.join(list(self.functionValue.keys())))
-      for index in range(indexEnd+1): print(','.join([str(self.functionValue[key][index]) for key in list(self.functionValue.keys())]))
-    #printing----------------------
-    tempDict = {}
-    for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = self.functionValue[name]
-    tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
-    self.ROM.train(tempDict)
 
   def localStillReady(self,ready): #,lastOutput=None
     '''
@@ -566,63 +550,45 @@ class AdaptiveSampler(Sampler):
     lastOutput it is not considered to be present during the test performed for generating an input batch
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
     '''
-
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> From method localStillReady...')
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
-      if self.lastOutput == None and self.ROM.amITrained==False: return ready
+      if self.lastOutput == None and self.limitSurfacePP.ROM.amITrained==False: return ready
     else:
-      if self.lastOutput.isItEmpty() and self.ROM.amITrained==False: return ready #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
+      #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
+      if self.lastOutput.isItEmpty() and self.limitSurfacePP.ROM.amITrained==False: return ready
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
     if type(self.lastOutput) == dict:
-      if self.lastOutput != None: self._trainingROM(self.lastOutput)
+      if self.lastOutput != None: self.limitSurfacePP._initializeLSppROM(self.lastOutput)
     else:
-      if not self.lastOutput.isItEmpty(): self._trainingROM(self.lastOutput)
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Training finished')           #happy thinking :)
-    np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
-    self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
-    self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
-    tempDict ={}
-    for  varId, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[varName] = self.gridCoord[:,varId]
-    self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
-    self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
-    self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
-    self.persistenceMatrix   += self.testMatrix
+      if not self.lastOutput.isItEmpty(): self.limitSurfacePP._initializeLSppROM(self.lastOutput)
+    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Training finished')
+    np.copyto(self.oldTestMatrix,self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
+    # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
+    self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
+
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Prediction finished')
-    testError                 = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))#compute the error
-    if (testError > self.tolerance/self.subGridTol): ready, self.repetition = True, 0                        #we still have error
-    else              : self.repetition +=1                                     #we are increasing persistence
-    if self.persistence<self.repetition: ready =  False                         #we are done
+    # check hanging points
+    if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
+    else                                                                      : indexLast = -1
+    #index of last set of point tested and ready to perform the function evaluation
+    indexEnd  = len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])-1
+    tempDict  = {}
+    for myIndex in range(indexLast+1,indexEnd+1):
+      for key, value in self.limitSurfacePP.getFunctionValue().items(): tempDict[key] = value[myIndex]
+      if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
+    self.persistenceMatrix += self.limitSurfacePP.getTestMatrix()
+    # test error
+    testError = np.sum(np.abs(np.subtract(self.limitSurfacePP.getTestMatrix(),self.oldTestMatrix))) # compute the error
+    if (testError > self.tolerance/self.subGridTol): ready, self.repetition = True, 0                         # we still have error
+    else              : self.repetition +=1                                                                   # we are increasing persistence
+    if self.persistence<self.repetition: ready =  False                                                       # we are done
     print(self.printTag+': ' +returnPrintPostTag('Message') + '-> counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
-    #here next the points that are close to any change are detected by a gradient (it is a pre-screener)
-    toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
-    #printing----------------------
-    if self.debug:
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Limit surface candidate points')
-      for coordinate in np.rollaxis(toBeTested,0):
-        myStr = ''
-        for iVar, varnName in enumerate([key.replace('<distribution>','') for key in self.axisName]): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        print(myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
-    #printing----------------------
-    listsurfPoint=self.__localLimitStateSearch__(toBeTested,-1)         #it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
-    nNegPoints=len(listsurfPoint)
-    listsurfPoint.extend(self.__localLimitStateSearch__(toBeTested,1))  #it returns the list of points belonging to the limit state surface and resulting in a positive response by the ROM
-    nTotPoints=len(listsurfPoint)
-    #printing----------------------
-    if self.debug:
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Limit surface points')
-      for coordinate in listsurfPoint:
-        myStr = ''
-        for iVar, varnName in enumerate([key.replace('<distribution>','') for key in self.axisName]): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        print(myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
-    #printing----------------------
-    #if the number of point on the limit surface is > than zero than save it
+    #if the number of point on the limit surface is > than compute persistence
     if len(listsurfPoint)>0:
-      self.surfPoint = np.ndarray((len(listsurfPoint),self.nVar))
       self.invPointPersistence = np.ndarray(len(listsurfPoint))
       for pointID, coordinate in enumerate(listsurfPoint):
-        self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
         self.invPointPersistence[pointID]=abs(self.persistenceMatrix[tuple(coordinate)])
       maxPers = np.max(self.invPointPersistence)
       self.invPointPersistence = (maxPers-self.invPointPersistence)/maxPers
@@ -632,36 +598,10 @@ class AdaptiveSampler(Sampler):
             if varName == [key.replace('<distribution>','') for key in self.axisName][varIndex]:
               self.solutionExport.removeInputValue(varName)
               for value in self.surfPoint[:,varIndex]: self.solutionExport.updateInputValue(varName,copy.copy(value))
-        evaluations=np.concatenate((-np.ones(nNegPoints),np.ones(nTotPoints-nNegPoints)), axis=0)
         # to be fixed
         self.solutionExport.removeOutputValue(self.goalFunction.name)
-        for index in range(len(evaluations)):
-          self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[index]))
+        for index in range(len(evaluations)): self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[index]))
     return ready
-
-  def __localLimitStateSearch__(self,toBeTested,sign):
-    '''
-    It returns the list of points belonging to the limit state surface and resulting in positive or negative responses by the ROM, depending on whether ''sign'' equals either -1 or 1, respectively.
-    '''
-    listsurfPoint=[]
-    myIdList= np.zeros(self.nVar)
-    for coordinate in np.rollaxis(toBeTested,0):
-      myIdList[:]=coordinate
-      if self.testMatrix[tuple(coordinate)]*sign>0:
-        for iVar in range(self.nVar):
-          if coordinate[iVar]+1<self.gridShape[iVar]:
-            myIdList[iVar]+=1
-            if self.testMatrix[tuple(myIdList)]*sign<=0:
-              listsurfPoint.append(copy.copy(coordinate))
-              break
-            myIdList[iVar]-=1
-            if coordinate[iVar]>0:
-              myIdList[iVar]-=1
-              if self.testMatrix[tuple(myIdList)]*sign<=0:
-                listsurfPoint.append(copy.copy(coordinate))
-                break
-              myIdList[iVar]+=1
-    return listsurfPoint
 
   def localGenerateInput(self,model,oldInput):
     #self.adaptAlgo.nextPoint(self.dataContainer,self.goalFunction,self.values,self.distDict)
@@ -674,11 +614,9 @@ class AdaptiveSampler(Sampler):
     if self.debug: print('generating input')
     varSet=False
     if self.surfPoint!=None and len(self.surfPoint)>0:
-
-      sampledMatrix = np.zeros((len(self.functionValue[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
-      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
+      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
+      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
       distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
-      tempDict = {}
       #the hanging point are added to the list of the already explored points so not to pick the same when in //
 #      lastPoint = [self.functionValue[name][-1] for name in [key.replace('<distribution>','') for key in self.axisName]]
 #      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
@@ -699,10 +637,11 @@ class AdaptiveSampler(Sampler):
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
       else: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> np.max(distance)=0.0')
+
     if not varSet:
       #here we are still generating the batch
       for key in self.distDict.keys():
-        if self.toleranceWeight=='probability':
+        if self.toleranceWeight=='cdf':
           self.values[key]                      = self.distDict[key].ppf(float(Distributions.random()))
         else:
           self.values[key]                      = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
@@ -713,7 +652,6 @@ class AdaptiveSampler(Sampler):
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
     self.inputInfo['ProbabilityWeight']         = 1.0
     self.hangingPoints                          = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
-    #print(self.hangingPoints)
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
     self.inputInfo['SamplerType'] = 'Adaptive'
     self.inputInfo['subGridTol' ] = self.subGridTol
@@ -811,25 +749,60 @@ class MonteCarlo(Sampler):
     self.printTag = returnPrintTag('SAMPLER MONTECARLO')
 
   def localInputAndChecks(self,xmlNode):
-    if 'limit' in xmlNode.attrib.keys():
-      try: self.limit = int(xmlNode.attrib['limit'])
-      except ValueError:
-        IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+
+#     if 'limit' in xmlNode.attrib.keys():
+#       try: self.limit = int(xmlNode.attrib['limit'])
+#       except ValueError:
+#         IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+#     else:
+#       raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
+
+    if xmlNode.find('sampler_init')!= None:
+      if xmlNode.find('sampler_init').find('limit')!= None:
+        try: self.limit = int(xmlNode.find('sampler_init').find('limit').text)
+        except ValueError:
+          IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+      else:
+        raise IOError('Monte Carlo sampling needs the limit block (number of samples) in the sampler_init block')
     else:
-      raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
+      raise IOError('Monte Carlo sampling needs the sampler_init block')
+
 
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
+
+    #print("self.variables2distributionsMapping: " + str(self.variables2distributionsMapping))
+    #print("self.distributions2variablesMapping: " + str(self.distributions2variablesMapping))
+
+    #print('self.distDict:' + str(self.distDict))
+
     for key in self.distDict:
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-      rvsnum = self.distDict[key].rvs()
-      for kkey in key.strip().split(','):
-        self.values[kkey] = rvsnum
-        self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
-      #self.values[key] = self.distDict[key].rvs()
-      #self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
+      #if key in self.ND_sampling_params.keys():
+
+      dim    = self.variables2distributionsMapping[key]['dim']
+      totDim = self.variables2distributionsMapping[key]['totDim']
+      dist   = self.variables2distributionsMapping[key]['name']
+
+      if dim == 1:
+        rvsnum = self.distDict[key].rvs()
+        for var in self.distributions2variablesMapping[dist]:
+          varID  = var.keys()[0]
+          varDim = var[varID]
+          for kkey in varID.strip().split(','):
+            self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
+            if totDim > 1 and dim == 1:
+              coordinate=[];
+              for i in range(totDim):
+                coordinate.append(np.atleast_1d(rvsnum)[i])
+              self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(coordinate)
+            elif totDim == 1:
+              self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
+            else:
+              self.inputInfo['SampledVarsPb'][kkey] = 1.0
+
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
@@ -846,15 +819,18 @@ class Grid(Sampler):
     self.printTag = returnPrintTag('SAMPLER GRID')
     self.gridCoordinate       = []    # the grid point to be used for each distribution (changes at each step)
     self.axisName             = []    # the name of each axis (variable)
-    self.gridInfo             = {}    # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal
+    self.gridInfo             = {}    # {'name of the variable':('Type','Construction',[values])}  --> Type: Probability/Value; Construction:Custom/Equal
     self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
+
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
+
 
   def localInputAndChecks(self,xmlNode):
     '''reading and construction of the grid'''
     if 'limit' in xmlNode.attrib.keys(): raise IOError('limit is not used in Grid sampler')
     self.limit = 1
     if not self.axisName: self.axisName = []
+    '''
     for child in xmlNode:
       if child.tag == "Distribution":
         #Add <distribution> to name so we know it is not a direct variable
@@ -881,7 +857,40 @@ class Grid(Sampler):
               self.gridInfo[varName][2].sort()
             else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
-    if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
+    '''
+
+    for child in xmlNode:
+      if child.tag == "Distribution":
+        #Add <distribution> to name so we know it is not a direct variable
+        varName = "<distribution>"+child.attrib['name']
+      elif child.tag == "variable":
+        varName = child.attrib['name']
+      for childChild in child:
+        if (childChild.tag =='grid' and child.tag == "variable") or (childChild.tag =='grid' and child.tag == "Distribution"):
+          self.axisName.append(varName)
+          if childChild.attrib['type'] == 'global_grid':
+            self.gridInfo[varName] = ('CDF','global_grid',childChild.text)
+          else:
+            constrType = childChild.attrib['construction']
+            if constrType == 'custom':
+              tempList = [float(i) for i in childChild.text.split()]
+              tempList.sort()
+              self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
+              if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
+              self.limit = len(tempList)*self.limit
+            elif constrType == 'equal':
+              self.limit = self.limit*(int(childChild.attrib['steps'])+1)
+              if   'lowerBound' in childChild.attrib.keys():
+                self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+                self.gridInfo[varName][2].sort()
+              elif 'upperBound' in childChild.attrib.keys():
+                self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+                self.gridInfo[varName][2].sort()
+              else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
+            else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
+
+    if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()):
+      raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
 
   def localAddInitParams(self,tempDict):
@@ -899,6 +908,7 @@ class Grid(Sampler):
     It could not have been done earlier since the distribution might not have been initialized first
     '''
     for varName in self.gridInfo.keys():
+      #print('DEBUG',self.printTag,varName,self.gridInfo[varName])
       if self.gridInfo[varName][0]=='value':
         valueMax, indexMax = max(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(max(self.gridInfo[varName][2]))
         valueMin, indexMin = min(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(min(self.gridInfo[varName][2]))
@@ -920,7 +930,50 @@ class Grid(Sampler):
     #self.inputInfo['distributionInfo'] = {}
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+
+#     weight = 1.0
+#     for i in range(len(self.gridCoordinate)):
+#       varName = self.axisName[i]
+#       if not self.externalgGridCoord:
+#         stride = stride // len(self.gridInfo[varName][2])
+#         #index is the index into the array self.gridInfo[varName][2]
+#         index, remainder = divmod(remainder, stride )
+#         self.gridCoordinate[i] = index
+#
+#       # check if the varName is a comma separated list of strings
+#       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+#       for kkey in varName.strip().split(','):
+#         self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+#         self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
+#         if self.gridInfo[varName][0]=='CDF':
+#           self.values[kkey] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
+#           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+#         elif self.gridInfo[varName][0]=='value':
+#           self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
+#           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+#         else: raise IOError (self.gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
+#
+#       if self.gridInfo[varName][0]=='CDF':
+#         if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+#         if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(0))/2.0)
+#         if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+#       else:
+#         if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+#         if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0)
+#         if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+#     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+#     self.inputInfo['ProbabilityWeight'] = weight
+#     self.inputInfo['SamplerType'] = 'Grid'
+
+    #print('self.gridInfo: '       + str(self.gridInfo))
+    #print('self.inputInfo: '      + str(self.inputInfo))
+    #print('self.gridCoordinate: ' + str(self.gridCoordinate))
+    #print('self.axisName: '       + str(self.axisName))
+    #print('self.variables2distributionsMapping: '       + str(self.variables2distributionsMapping))
+    #print('self.distributions2variablesMapping: '       + str(self.distributions2variablesMapping))
+
     weight = 1.0
+
     for i in range(len(self.gridCoordinate)):
       varName = self.axisName[i]
       if not self.externalgGridCoord:
@@ -928,29 +981,95 @@ class Grid(Sampler):
         #index is the index into the array self.gridInfo[varName][2]
         index, remainder = divmod(remainder, stride )
         self.gridCoordinate[i] = index
+
       # check if the varName is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-      for kkey in varName.strip().split(','):
-        self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
-        self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
+      for key in varName.strip().split(','):
+        self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
+        self.inputInfo['distributionType'][key] = self.distDict[varName].type
+
         if self.gridInfo[varName][0]=='CDF':
-          self.values[kkey] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
-          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+          if self.distDict[varName].getDimensionality()==1:
+            self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
+          else:
+            location = self.variables2distributionsMapping[varName]['dim']
+            #print('location: ' + str(location))
+            self.values[key] = self.distDict[varName].inverseMarginalDistribution(self.gridInfo[varName][2][self.gridCoordinate[i]],location-1)
+            #print('self.values[key]: ' + str(self.values[key]))
+
         elif self.gridInfo[varName][0]=='value':
-          self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
-          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+          self.values[key] = self.gridInfo[varName][2][self.gridCoordinate[i]]
+
         else: raise IOError (self.gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
-      if self.gridInfo[varName][0]=='CDF':
-        if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
-        if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(0))/2.0)
-        if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+
+    #print('self.values: ' + str(self.values))
+
+    remainder = self.counter - 1 #used to keep track as we get to smaller strides
+    stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
+
+    for i in range(len(self.gridCoordinate)):
+      varName = self.axisName[i]
+      if not self.externalgGridCoord:
+        stride = stride // len(self.gridInfo[varName][2])
+        index, remainder = divmod(remainder, stride )
+        self.gridCoordinate[i] = index
+
+      for key in varName.strip().split(','):
+        self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
+        self.inputInfo['distributionType'][key] = self.distDict[varName].type
+
+        #print('varName ' + str(varName))
+        if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
+          self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
+        else:
+          dist_name = self.variables2distributionsMapping[varName]['name']
+          #NDcoordinate=np.zeros(len(self.distributions2variablesMapping[dist_name]))
+          NDcoordinate=[]
+          for i in range(len(self.distributions2variablesMapping[dist_name])):
+            NDcoordinate.append(0)
+          for var in self.distributions2variablesMapping[dist_name]:
+            variable = var.keys()[0]
+            position = var.values()[0]
+            NDcoordinate[position-1] = self.values[variable.strip().split(',')[0]]
+          self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(NDcoordinate)
+
+      # 1D variable
+      if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
+        if self.gridInfo[varName][0]=='CDF':
+          if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:
+            weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+          if self.gridCoordinate[i] == 0:
+            weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
+          if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1:
+            weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+        else:   # Value
+          if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:
+            weight *= self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+          if self.gridCoordinate[i] == 0:
+            weight *= self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
+          if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1:
+            weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+      # ND variable
       else:
-        if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
-        if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0)
-        if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
-    self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight'] = weight
-    self.inputInfo['SamplerType'] = 'Grid'
+        if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
+          dist_name = self.variables2distributionsMapping[varName]['name']
+          NDcoordinate=np.zeros(len(self.distributions2variablesMapping[dist_name]))
+          dxs=np.zeros(len(self.distributions2variablesMapping[dist_name]))
+          for var in self.distributions2variablesMapping[dist_name]:
+            variable = var.keys()[0]
+            position = var.values()[0]
+            NDcoordinate[position-1] = self.values[variable.strip().split(',')[0]]
+            if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:
+              dxs[position-1] = (self.gridInfo[variable][2][self.gridCoordinate[i]+1] - self.gridInfo[variable][2][self.gridCoordinate[i]-1]) / 2.0
+            if self.gridCoordinate[i] == 0:
+              dxs[position-1] = self.gridInfo[variable][2][self.gridCoordinate[i]+1] - self.gridInfo[variable][2][self.gridCoordinate[i]]
+            if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1:
+              dxs[position-1] = self.gridInfo[variable][2][self.gridCoordinate[i]] - self.gridInfo[variable][2][self.gridCoordinate[i]-1]
+          weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)
+
+      self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+      self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
+      self.inputInfo['SamplerType'] = 'Grid'
 #
 #
 #
@@ -963,8 +1082,47 @@ class LHS(Grid):
     Grid.__init__(self)
     self.sampledCoordinate    = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
     self.printTag = returnPrintTag('SAMPLER LHS')
+    self.globalGrid          = {}    # Dictionary for the global_grid. These grids are used only for LHS for ND distributions.
+
   def localInputAndChecks(self,xmlNode):
     Grid.localInputAndChecks(self,xmlNode)
+
+    for child in xmlNode:
+      if child.tag == "Distribution":
+        #Add <distribution> to name so we know it is not a direct variable
+        varName = "<distribution>"+child.attrib['name']
+
+      elif child.tag == "global_grid":
+         for childChild in child:
+           if childChild.tag =='grid':
+             globalGridName = childChild.attrib['name']
+             constrType = childChild.attrib['construction']
+             if constrType == 'custom':
+              tempList = [float(i) for i in childChild.text.split()]
+              tempList.sort()
+              self.globalGrid[globalGridName] = (tempList)
+              self.limit = len(tempList)*self.limit
+             elif constrType == 'equal':
+              self.limit = self.limit*(int(childChild.attrib['steps'])+1)
+              if   'lowerBound' in childChild.attrib.keys():
+                self.globalGrid[globalGridName] = ([float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+                self.globalGrid[globalGridName].sort()
+              elif 'upperBound' in childChild.attrib.keys():
+                self.globalGrid[globalGridName] = ([float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+                self.globalGrid[globalGridName].sort()
+              else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
+           else:
+             raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
+
+    #print('self.gridInfo: ' + str(self.gridInfo))
+    #print('self.globalGrid: ' + str(self.globalGrid))
+    for variable in self.gridInfo.keys():
+      if self.gridInfo[variable][1] == 'global_grid':
+        lst=list(self.gridInfo[variable])
+        lst[2] = self.globalGrid[self.gridInfo[variable][2]]
+        self.gridInfo[variable] = tuple(lst)
+    #print('self.gridInfo: ' + str(self.gridInfo))
+
     pointByVar  = [len(self.gridInfo[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the latin Hyper Cube requires the same number of point in each dimension')
     self.pointByVar = pointByVar[0]
@@ -988,6 +1146,7 @@ class LHS(Grid):
       self.sampledCoordinate[i][:] = [tempFillingCheck[j][i] for j in range(len(tempFillingCheck))]
 
   def localGenerateInput(self,model,myInput):
+    '''
     j=0
     #self.inputInfo['distributionInfo'] = {}
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
@@ -1021,6 +1180,80 @@ class LHS(Grid):
           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
       if self.gridInfo[varName][0] =='CDF': weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
       else: weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
+
+    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight' ] = weight
+    self.inputInfo['SamplerType'] = 'Stratified'
+    '''
+
+    j=0
+    #self.inputInfo['distributionInfo'] = {}
+    self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
+    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+    weight = 1.0
+
+    #print('self.variables2distributionsMapping: ' + str(self.variables2distributionsMapping))
+    #print('self.distributions2variablesMapping: ' + str(self.distributions2variablesMapping))
+    #print('self.axisName: ' + str(self.axisName))
+    #print('self.distDict: ' + str(self.distDict))
+    #print('self.inputInfo: ' + str(self.inputInfo))
+
+    for varName in self.axisName:
+
+      if not "<distribution>" in varName:
+        if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['dim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
+          upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
+          lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
+          j += 1
+          intervalFraction = Distributions.random()
+          coordinate = lower + (upper-lower)*intervalFraction
+          gridCoordinate =  self.distDict[varName].ppf(coordinate)
+          distName = self.variables2distributionsMapping[varName]['name']
+          for distVarName in self.distributions2variablesMapping[distName]:
+            for kkey in distVarName.keys()[0].strip().split(','):
+              self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+              self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
+              self.values[kkey] = np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
+              #self.inputInfo['upper'][kkey] = ppfupper
+              #self.inputInfo['lower'][kkey] = ppflower
+              self.inputInfo['SampledVarsPb'][varName] = coordinate
+
+          weight *= upper - lower
+
+      if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:   # 1D variable
+        upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
+        lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
+        j +=1
+        intervalFraction = Distributions.random()
+        coordinate = lower + (upper-lower)*intervalFraction
+        # check if the varName is a comma separated list of strings
+        # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+        if self.gridInfo[varName][0] =='CDF':
+          ppfvalue = self.distDict[varName].ppf(coordinate)
+          ppflower = self.distDict[varName].ppf(min(upper,lower))
+          ppfupper = self.distDict[varName].ppf(max(upper,lower))
+        for kkey in varName.strip().split(','):
+          self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+          self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
+          if self.gridInfo[varName][0] =='CDF':
+            self.values[kkey] = ppfvalue
+            self.inputInfo['upper'][kkey] = ppfupper
+            self.inputInfo['lower'][kkey] = ppflower
+            self.inputInfo['SampledVarsPb'][varName] = coordinate
+            weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
+          elif self.gridInfo[varName][0]=='value':
+            self.values[varName] = coordinate
+            self.inputInfo['upper'][kkey] = max(upper,lower)
+            self.inputInfo['lower'][kkey] = min(upper,lower)
+            self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+        if self.gridInfo[varName][0] =='CDF':
+          weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
+        else:
+          weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
+
+      #else:
+      #  raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> error in the generagtion of LHS sample')
+
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
@@ -1087,7 +1320,7 @@ class DynamicEventTree(Grid):
     self.printTag = returnPrintTag('SAMPLER DYNAMIC ET')
 
   def _localWhatDoINeed(self):
-    needDict = {}
+    needDict = Sampler._localWhatDoINeed(self)
     for preconditioner in self.preconditionerToApply.values():
       preneedDict = preconditioner.whatDoINeed()
       for key,value in preneedDict.items():
@@ -1281,7 +1514,7 @@ class DynamicEventTree(Grid):
     self.inputInfo['ValueThreshold'            ] = []
     self.inputInfo['branch_changed_param'      ] = [b'None']
     self.inputInfo['branch_changed_param_value'] = [b'None']
-    self.inputInfo['start_time'                ] = b'Initial'
+    self.inputInfo['start_time'                ] = -sys.float_info.max
     self.inputInfo['end_ts'                    ] = 0
     self.inputInfo['parent_id'                 ] = 'root'
     self.inputInfo['conditional_prb'           ] = [1.0]
@@ -1960,11 +2193,11 @@ class FactorialDesign(Grid):
     Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("FactorialSettings")
     if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'FactorialSettings xml node not found!!!')
-    facttype = factsettings.find("type")
-    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "type" not found in FactorialSettings xml node!!!')
+    facttype = factsettings.find("algorithm_type")
+    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "algorithm_type" not found in FactorialSettings xml node!!!')
     elif not facttype.text.lower() in self.acceptedTypes:raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedTypes))
-    self.factOpt['type'] = facttype.text.lower()
-    if self.factOpt['type'] == '2levelfract':
+    self.factOpt['algorithm_type'] = facttype.text.lower()
+    if self.factOpt['algorithm_type'] == '2levelfract':
       self.factOpt['options'] = {}
       self.factOpt['options']['gen'] = factsettings.find("gen")
       self.factOpt['options']['genMap'] = factsettings.find("genMap")
@@ -1981,12 +2214,12 @@ class FactorialDesign(Grid):
         if var not in self.gridInfo.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' variable "'+var+'" defined in genMap block not among the inputted variables!')
         rightOrder[self.axisName.index(var)] = self.factOpt['options']['gen'][ii]
       self.factOpt['options']['orderedGen'] = rightOrder
-    if self.factOpt['type'] != 'full':
+    if self.factOpt['algorithm_type'] != 'full':
       self.externalgGridCoord = True
       for varname in self.gridInfo.keys():
         if len(self.gridInfo[varname][2]) != 2:
           raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' The number of levels for type '+
-                        self.factOpt['type'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
+                        self.factOpt['algorithm_type'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
                         str(len(self.gridInfo[varname][2])))
     else: self.externalgGridCoord = False
 
@@ -2002,8 +2235,8 @@ class FactorialDesign(Grid):
     This method initialize the factorial matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
     '''
     Grid.localInitialize(self)
-    if   self.factOpt['type'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
-    elif self.factOpt['type'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
+    if   self.factOpt['algorithm_type'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
+    elif self.factOpt['algorithm_type'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
     if self.designMatrix != None:
       # convert all -1 in 0 => we can access to the grid info directly
       self.designMatrix[self.designMatrix == -1] = 0
@@ -2011,7 +2244,7 @@ class FactorialDesign(Grid):
       self.limit = self.designMatrix.shape[0]
 
   def localGenerateInput(self,model,myInput):
-    if self.factOpt['type'] == 'full':  Grid.localGenerateInput(self,model, myInput)
+    if self.factOpt['algorithm_type'] == 'full':  Grid.localGenerateInput(self,model, myInput)
     else:
       self.gridCoordinate = self.designMatrix[self.counter - 1][:].tolist()
       Grid.localGenerateInput(self,model, myInput)
@@ -2042,20 +2275,20 @@ class ResponseSurfaceDesign(Grid):
     # Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("ResponseSurfaceDesignSettings")
     if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'ResponseSurfaceDesignSettings xml node not found!!!')
-    facttype = factsettings.find("type")
-    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "type" not found in ResponseSurfaceDesignSettings xml node!!!')
+    facttype = factsettings.find("algorithm_type")
+    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "algorithm_type" not found in ResponseSurfaceDesignSettings xml node!!!')
     elif not facttype.text.lower() in self.acceptedOptions.keys():raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedOptions.keys()))
-    self.respOpt['type'] = facttype.text.lower()
+    self.respOpt['algorithm_type'] = facttype.text.lower()
     # set defaults
-    if self.respOpt['type'] == 'boxbehnken': self.respOpt['options'] = {'ncenters':None}
+    if self.respOpt['algorithm_type'] == 'boxbehnken': self.respOpt['options'] = {'ncenters':None}
     else                                   : self.respOpt['options'] = {'centers':(4,4),'alpha':'orthogonal','face':'circumscribed'}
     for child in factsettings:
-      if child.tag not in 'type': self.respOpt['options'][child.tag] = child.text.lower()
+      if child.tag not in 'algorithm_type': self.respOpt['options'][child.tag] = child.text.lower()
     # start checking
     for key,value in self.respOpt['options'].items():
       if key not in self.acceptedOptions[facttype.text.lower()]:
         raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
-      if self.respOpt['type'] == 'boxbehnken':
+      if self.respOpt['algorithm_type'] == 'boxbehnken':
         if key == 'ncenters':
           try   : self.respOpt['options'][key] = int(value)
           except: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'"'+key+'" is not an integer!')
@@ -2088,7 +2321,7 @@ class ResponseSurfaceDesign(Grid):
           except: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> node "upper" or "lower" must be float')
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
-    if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['type']]: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
+    if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['algorithm_type']]: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
     self.externalgGridCoord = True
 
   def localAddInitParams(self,tempDict):
@@ -2102,8 +2335,8 @@ class ResponseSurfaceDesign(Grid):
     '''
     This method initialize the response matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
     '''
-    if   self.respOpt['type'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
-    elif self.respOpt['type'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
+    if   self.respOpt['algorithm_type'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
+    elif self.respOpt['algorithm_type'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
     for cnt, varName in enumerate(self.axisName):
       column = np.unique(self.designMatrix[:,cnt])
       yi = np.array([self.bounds[varName][0], self.bounds[varName][1]])
@@ -2118,6 +2351,189 @@ class ResponseSurfaceDesign(Grid):
     gridcoordinate = self.designMatrix[self.counter - 1][:].tolist()
     for cnt, varName in enumerate(self.axisName): self.gridCoordinate[cnt] = self.mapping[varName].index(gridcoordinate[cnt])
     Grid.localGenerateInput(self,model, myInput)
+
+class SparseGridCollocation(Grid):
+  def __init__(self):
+    Grid.__init__(self)
+    self.type           = 'SparseGridCollocationSampler'
+    self.printTag       = returnPrintTag(self.type)
+    self.assemblerObjects={}    #dict of external objects required for assembly
+    self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
+    self.indexSetType   = None  #TP, TD, or HC; the type of index set to use
+    self.adaptive       = False #TODO
+    self.polyDict       = {}    #varName-indexed dict of polynomial types
+    self.quadDict       = {}    #varName-indexed dict of quadrature types
+    self.importanceDict = {}    #varName-indexed dict of importance weights
+    self.maxPolyOrder   = None  #integer, relative maximum polynomial order to be used in any one dimension
+    self.lastOutput     = None  #pointer to output datas object
+    self.ROM            = None  #pointer to ROM
+    self.jobHandler     = None  #pointer to job handler for parallel runs
+    self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
+
+#    self.requiredAssObject = (True,(['TargetEvaluation','ROM'],['1','1']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+    self.requiredAssObject = (True,(['ROM'],['1']))                  # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+
+  def _localWhatDoINeed(self):
+    gridDict = Grid._localWhatDoINeed(self)
+    gridDict['internal'] = [(None,'jobHandler')]
+    return gridDict
+#    needDict = {}
+#    needDict['Distributions'] = [] # Every sampler requires Distributions
+#    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
+#    needDict['internal'] = [(None,'jobHandler')]
+#    return needDict
+
+
+  def _localGenerateAssembler(self,initDict):
+ #   availableDist = initDict['Distributions']
+ #   self._generateDistributions(availableDist)
+    Grid._localGenerateAssembler(self, initDict)
+#    for key, value in self.assemblerObjects.items():
+#      if   key in 'TargetEvaluation': self.lastOutput = initDict[value[0]][value[2]]
+#      elif key in 'ROM'             : self.ROM        = initDict[value[0]][value[2]]
+    self.jobHandler = initDict['internal']['jobHandler']
+
+#  def _readMoreXML(self,xmlNode):
+#    Grid._readMoreXML(self,xmlNode)
+#    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
+#    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
+    #assembler node -> to be changed when Sonnet gets it in the base class
+#    assemblerNode = xmlNode.find('Assembler')
+#    if assemblerNode==None: raise IOError(self.printTag+' ERROR: no Assembler data specified in input!')
+#    targEvalCounter = 0
+#    romCounter      = 0
+#    for subNode in xmlNode:
+#      if subNode.tag in ['TargetEvaluation','ROM']:
+#        if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In adaptive sampler ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+#        self.assemblerObjects[subNode.tag] = [[subNode.attrib['class'],subNode.attrib['type'],subNode.text]]
+#        if 'TargetEvaluation' in subNode.tag: targEvalCounter+=1
+#        if 'ROM'              in subNode.tag: romCounter+=1
+#      else:
+#        raise IOError(self.printTag+' ERROR: unrecognized option in input for assembler: '+subNode.tag)
+#    if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
+#    if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
+#    if romCounter      <  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No ROM object provided. Sampler received none!')
+
+  def localInputAndChecks(self,xmlNode):
+    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
+    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
+    for child in xmlNode:
+#      if   child.tag=='Assembler'   :continue
+      if child.tag == 'Distribution':
+        varName = '<distribution>'+child.attrib['name']
+      elif child.tag == 'variable':
+        varName = child.attrib['name']
+        self.axisName.append(varName)
+
+  def localInitialize(self):
+    for key in self.assemblerDict.keys():
+#      if 'TargetEvaluation' in key:
+#        indice = 0
+#        for value in self.assemblerDict[key]:
+#          self.lastOutput = self.assemblerDict[key][indice][3]
+#          indice += 1
+      if 'ROM' in key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.ROM = self.assemblerDict[key][indice][3]
+          indice += 1
+    SVLs = self.ROM.SupervisedEngine.values()
+    SVL = SVLs[0] #often need only one
+    ROMdata = SVL.interpolationInfo() #they are all the same? -> yes, I think so
+    self.maxPolyOrder = SVL.maxPolyOrder
+    #check input space consistency
+    samVars=self.axisName[:]
+    romVars=SVL.features[:]
+    try:
+      for v in self.axisName:
+        samVars.remove(v)
+        romVars.remove(v)
+    except ValueError:
+      raise IOError(self.printTag+' | '+self.ROM.printTag+' variable '+v+' used in sampler but not ROM features! Collocation requires all vars in both.')
+    if len(romVars)>0:
+      raise IOError(self.printTag+' | '+self.ROM.printTag+' variables '+str(romVars)+' specified in ROM but not sampler! Collocation requires all vars in both.')
+    for v in ROMdata.keys():
+      if v not in self.axisName:
+        raise IOError(self.printTag+' | '+self.ROM.printTag+' variable '+v+' given interpolation rules but '+v+' not in sampler!')
+      else:
+        self.gridInfo[v] = ROMdata[v] #quad, poly, weight
+    #set defaults, then replace them if they're asked for
+    for v in self.axisName:
+      if v not in self.gridInfo.keys():
+        self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1'}
+    #establish all the right names for the desired types
+    for varName,dat in self.gridInfo.items():
+      if dat['poly'] == 'DEFAULT': dat['poly'] = self.distDict[varName].preferredPolynomials
+      if dat['quad'] == 'DEFAULT': dat['quad'] = self.distDict[varName].preferredQuadrature
+      polyType=dat['poly']
+      subType = None
+      distr = self.distDict[varName]
+      if polyType == 'Legendre':
+        if distr.type == 'Uniform':
+          quadType=dat['quad']
+        else:
+          quadType='CDF'
+          subType=dat['quad']
+          if subType not in ['Legendre','ClenshawCurtis']:
+            raise IOError(self.printTag + ': Quadrature '+subType+' not compatible with Legendre polys for '+distr.type+' for variable '+varName+'!')
+      else:
+        quadType=dat['quad']
+      if quadType not in distr.compatibleQuadrature:
+        raise IOError(self.printTag+': Quadrature type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
+
+      quad = Quadratures.returnInstance(quadType,Subtype=subType)
+      quad.initialize(distr)
+      self.quadDict[varName]=quad
+
+      poly = OrthoPolynomials.returnInstance(polyType)
+      poly.initialize(quad)
+      self.polyDict[varName] = poly
+
+      self.importanceDict[varName] = float(dat['weight'])
+    #print out the setup for each variable.   TODO should this always happen?
+    if self.debug:
+      print(self.printTag,'INTERPOLATION INFO:')
+      print('    Variable | Distribution | Quadrature | Polynomials')
+      for v in self.quadDict.keys():
+        print('   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
+      print('    Polynomial Set Degree:',self.maxPolyOrder)
+      print('    Polynomial Set Type  :',SVL.indexSetType)
+
+    if self.debug: print(self.printTag,'Starting index set generation...')
+    self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
+    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+
+    if self.debug: print(self.printTag,'Starting sparse grid generation...')
+    self.sparseGrid = Quadratures.SparseQuad()
+    # NOTE this is the most expensive step thus far; try to do checks before here
+    self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
+
+    if self.writeOut != None:
+      msg=self.sparseGrid.__csv__()
+      outFile=file(self.writeOut,'w')
+      outFile.writelines(msg)
+      outFile.close()
+
+    self.limit=len(self.sparseGrid)
+    if self.debug: print(self.printTag,'Size of Sparse Grid  :',self.limit)
+    if self.debug: print(self.printTag,'Finished sampler generation.')
+    for SVL in self.ROM.SupervisedEngine.values():
+      SVL.initialize({'SG':self.sparseGrid,
+                      'dists':self.distDict,
+                      'quads':self.quadDict,
+                      'polys':self.polyDict,
+                      'iSet':self.indexSet})
+
+  def localGenerateInput(self,model,myInput):
+    '''Provide the next point in the sparse grid.'''
+    pt,weight = self.sparseGrid[self.counter-1]
+    for v,varName in enumerate(self.distDict.keys()):
+      self.values[varName] = pt[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight'] = weight
+    self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
+
 #
 #
 #
@@ -2135,10 +2551,20 @@ __interFaceDict['Adaptive'                ] = AdaptiveSampler
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
 __interFaceDict['FactorialDesign'         ] = FactorialDesign
 __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
+__interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
 __knownTypes = list(__interFaceDict.keys())
+
+def addKnownTypes(newDict):
+  for name, value in newDict.items():
+    __interFaceDict[name]=value
 
 def knownTypes():
   return __knownTypes
+
+def addKnownTypes(newDict):
+  for name, value in newDict.items():
+    __interFaceDict[name]=value
+    __knownTypes.append(name)
 
 def returnInstance(Type):
   '''

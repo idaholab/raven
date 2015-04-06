@@ -12,7 +12,9 @@ if not 'xrange' in dir(__builtins__): xrange = range
 #External Modules------------------------------------------------------------------------------------
 import time
 import abc
-import pickle
+import cPickle as pickle
+#import pickle as cloudpickle
+from serialization import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -60,7 +62,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     self.FIXME = False
     BaseType.__init__(self)
     self.parList    = []   # List of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
-    self.sleepTime  = 0.025  # Waiting time before checking if a run is finished
+    self.sleepTime  = 0.005  # Waiting time before checking if a run is finished
     #If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
     #  re-seeding = a number to be used as a new seed
     #  re-seeding = 'continue' the use the already present random environment
@@ -112,7 +114,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     tempDict['Sleep time'  ] = str(self.sleepTime)
     tempDict['Initial seed'] = str(self.initSeed)
     for List in self.parList:
-      tempDict[List[0]] = 'Class: '+str(List[1])+' Type: '+str(List[2])+'  Global name: '+str(List[3])
+      tempDict[List[0]] = 'Class: '+str(List[1]) +' Type: '+str(List[2]) + '  Global name: '+str(List[3])
     self._localAddInitParams(tempDict)
 
   @abc.abstractmethod
@@ -204,6 +206,7 @@ class SingleRun(Step):
   def _localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
     #Model initialization
+    modelInitDict={}
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{})
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
     #HDF5 initialization
@@ -253,6 +256,7 @@ class MultiRun(SingleRun):
 
   def _initializeSampler(self,inDictionary):
     if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
+
     inDictionary['Sampler'].initialize(**self._samplerInitDict)
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role of sampler the item of class '+inDictionary['Sampler'].type+' and name '+inDictionary['Sampler'].name+' has been initialized')
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Sampler initialization dictionary: '+str(self._samplerInitDict))
@@ -381,7 +385,8 @@ class RomTrainer(Step):
     if [item[0] for item in self.parList].count('Input')!=1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one Input and only one is allowed for a training step. Step name: '+str(self.name))
     if [item[0] for item in self.parList].count('Output')<1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> At least one Output is need in a training step. Step name: '+str(self.name))
     for item in self.parList:
-      if item[0]=='Output' and item[2]!='ROM': raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only ROM output class are allowed in a training step. Step name: '+str(self.name))
+      if item[0]=='Output' and item[2] not in ['ROM']:
+        raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only ROM output class are allowed in a training step. Step name: '+str(self.name))
 
   def _localAddInitParams(self,tempDict):
     del tempDict['Initial seed'] #this entry in not meaningful for a training step
@@ -533,12 +538,12 @@ class IOStep(Step):
         outputs[i].addGroupDatas({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
-        fileobj = open(outputs[i],'w+')
-        pickle.dump(inDictionary['Input'][i],fileobj)
+        fileobj = open(outputs[i],'wb+')
+        cloudpickle.dump(inDictionary['Input'][i],fileobj)
         fileobj.close()
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
-        fileobj = open(inDictionary['Input'][i],'r+')
+        fileobj = open(inDictionary['Input'][i],'rb+')
         unpickledObj = pickle.load(fileobj)
         outputs[i].train(unpickledObj)
         fileobj.close()

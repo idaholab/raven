@@ -4,7 +4,7 @@
 <RunInfo>
     <WorkingDir>Factorial</WorkingDir>
     <Sequence>2levelFractFactorialStep,pbFactorialStep,fullFactStep</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>
@@ -38,7 +38,7 @@
 <Samplers>
     <FactorialDesign name='fullFactorial'>
         <FactorialSettings>
-            <type>full</type>
+            <algorithm_type>full</algorithm_type>
         </FactorialSettings>
         <variable name='VarGauss1' >
             <distribution >Gauss1</distribution>
@@ -55,7 +55,7 @@
     </FactorialDesign>
     <FactorialDesign name='2levelFractFactorial'>
         <FactorialSettings>
-            <type>2levelFract</type>
+            <algorithm_type>2levelFract</algorithm_type>
             <gen>a,b,ab</gen>
             <genMap>VarGauss1,VarGauss2,VarTri1</genMap>
         </FactorialSettings>
@@ -73,7 +73,7 @@
         </variable>
     </FactorialDesign>
     <FactorialDesign name='pbFactorial'>
-        <FactorialSettings><type>pb</type></FactorialSettings>
+        <FactorialSettings><algorithm_type>pb</algorithm_type></FactorialSettings>
         <variable name='VarGauss1' >
             <distribution >Gauss1</distribution>
             <grid         type='value' construction='custom' >0.02 0.5</grid>

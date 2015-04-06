@@ -25,6 +25,7 @@ from BaseClasses import BaseType
 from Csv_loader import CsvLoader as ld
 import utils
 import TreeStructure as TS
+from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
 
 # Custom exceptions
@@ -32,12 +33,12 @@ class NotConsistentData(Exception): pass
 class ConstructError(Exception)   : pass
 
 class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
-  '''
+  """
   The Data object is the base class for constructing derived data object classes.
   It provides the common interfaces to access and to add data values into the RAVEN internal object format.
   This object is "understood" by all the "active" modules (e.g. postprocessors, models, etc) and represents the way
   RAVEN shares the information among the framework
-  '''
+  """
   def __init__(self):
     BaseType.__init__(self)
     self._dataParameters                 = {}                         # in here we store all the data parameters (inputs params, output params,etc)
@@ -50,15 +51,24 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.metaExclXml                     = ['probability']            # list of metadata keys that are excluded from xml outputter, and included in the CSV one
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
     self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
-    self.metatype  = [float,bool,int,np.ndarray,np.float16,np.float32,np.float64,np.float128,np.int16,np.int32,np.int64,np.bool8]
+    # This is a list of metadata types that are CSV-compatible...we build the list this way to catch when a python implementation doesn't
+    #   have some type or another (ie. Windows doesn't have np.float128, but does have np.float96)
+    self.metatype = []
+    for typeString in ["float","bool","int","np.ndarray","np.float16","np.float32","np.float64","np.float96","np.float128",
+                       "np.int16","np.int32","np.int64","np.bool8"]:
+      try:
+        self.metatype.append(eval(typeString))  # eval turns the string into the internal type
+      except AttributeError:
+        # Catches the type not being defined somewhere
+        pass
     self.type = self.__class__.__name__
     self.printTag  = utils.returnPrintTag('DATAS')
 
   def _readMoreXML(self,xmlNode):
-    '''
+    """
     Function to read the xml input block.
     @ In, xmlNode, xml node
-    '''
+    """
     # retrieve input/outputs parameters' keywords
     self._dataParameters['inParam']  = xmlNode.find('Input' ).text.strip().split(',')
     self._dataParameters['outParam'] = xmlNode.find('Output').text.strip().split(',')
@@ -103,10 +113,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else: self._dataParameters['hierarchical'] = False
 
   def addInitParams(self,tempDict):
-    '''
+    """
     Function to get the input params that belong to this class
     @ In, tempDict, temporary dictionary
-    '''
+    """
     for i in range(len(self._dataParameters['inParam' ])):  tempDict['Input_'+str(i)]  = self._dataParameters['inParam' ][i]
     for i in range(len(self._dataParameters['outParam'])):  tempDict['Output_'+str(i)] = self._dataParameters['outParam'][i]
     tempDict['Time'                       ] = self._dataParameters['time']
@@ -115,10 +125,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     return tempDict
 
   def removeInputValue(self,name):
-    '''
+    """
     Function to remove a value from the dictionary inpParametersValues
     @ In, name, parameter name
-    '''
+    """
     if self._dataParameters['hierarchical']:
       for TSData in self.TSData.values():
         for node in list(TSData.iter('*')):
@@ -127,10 +137,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if name in self._dataContainer['inputs'].keys(): self._dataContainer['inputs'].pop(name)
 
   def removeOutputValue(self,name):
-    '''
+    """
     Function to remove a value from the dictionary outParametersValues
     @ In, name, parameter name
-    '''
+    """
     if self._dataParameters['hierarchical']:
       for TSData in self.TSData.values():
         for node in list(TSData.iter('*')):
@@ -139,40 +149,40 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if name in self._dataContainer['outputs'].keys(): self._dataContainer['outputs'].pop(name)
 
   def updateInputValue(self,name,value,options=None):
-    '''
+    """
     Function to update a value from the input dictionary
     @ In, name, parameter name
     @ In, value, the new value
     @ In, parent_id, optional, parent identifier in case Hierarchical fashion has been requested
-    '''
+    """
     self._updateSpecializedInputValue(name,value,options)
 
   def updateOutputValue(self,name,value,options=None):
-    '''
+    """
     Function to update a value from the output dictionary
     @ In, name, parameter name
     @ In, value, the new value
     @ In, parent_id, optional, parent identifier in case Hierarchical fashion has been requested
-    '''
+    """
     self._updateSpecializedOutputValue(name,value,options)
 
   def updateMetadata(self,name,value,options=None):
-    '''
+    """
     Function to update a value from the dictionary metadata
     @ In, name, parameter name
     @ In, value, the new value
     @ In, parent_id, optional, parent identifier in case Hierarchical fashion has been requested
-    '''
+    """
     self._updateSpecializedMetadata(name,value,options)
 
   def getMetadata(self,keyword,nodeid=None,serialize=False):
-    '''
+    """
     Function to get a value from the dictionary metadata
     @ In, keyword, parameter name
     @ In, nodeid, optional, id of the node if hierarchical
     @ In, serialize, optional, serialize the tree if in hierarchical mode
     @ Out, return the metadata
-    '''
+    """
     if self._dataParameters['hierarchical']:
       if type(keyword) == int: return list(self.getHierParam('metadata',nodeid,None,serialize).values())[keyword-1]
       else: return self.getHierParam('metadata',nodeid,keyword,serialize)
@@ -181,41 +191,42 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> parameter ' + str(keyword) + ' not found in metadata dictionary. Available keys are '+str(self._dataContainer['metadata'].keys())+'.Function: Data.getMetadata')
 
   def getAllMetadata(self,nodeid=None,serialize=False):
-    '''
+    """
     Function to get all the metadata
     @ In, nodeid, optional, id of the node if hierarchical
     @ In, serialize, optional, serialize the tree if in hierarchical mode
     @ Out, return the metadata (s)
-    '''
+    """
     if self._dataParameters['hierarchical']: return self.getHierParam('metadata',nodeid,None,serialize)
     else                                   : return self._dataContainer['metadata']
 
   @abc.abstractmethod
   def addSpecializedReadingSettings(self):
-    '''
+    """
       This function is used to add specialized attributes to the data in order to retrieve the data properly.
       Every specialized data needs to overwrite it!!!!!!!!
-    '''
+    """
     pass
 
   @abc.abstractmethod
   def checkConsistency(self):
-    '''
+    """
       This function checks the consistency of the data structure... every specialized data needs to overwrite it!!!!!
-    '''
+    """
     pass
 
   @abc.abstractmethod
   def acceptHierarchical(self):
-    '''
+    """
       This function returns a boolean. True if the specialized Data accepts the hierarchical structure
-    '''
+    """
     pass
 
   def __getVariablesToPrint(self,var,inOrOut):
-    ''' Returns a list of variables to print.
+    """
+    Returns a list of variables to print.
     Takes the variable and either 'input' or 'output'
-    '''
+    """
     variables_to_print = []
     lvar = var.lower()
     if type(list(self._dataContainer[inOrOut+'s'].values())[0]) == dict: varKeys = list(self._dataContainer[inOrOut+'s'].values())[0].keys()
@@ -230,12 +241,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     return variables_to_print
 
   def printCSV(self,options=None):
-    '''
+    """
     Function used to dump the data into a csv file
     Every class must implement the specializedPrintCSV method
     that is going to be called from here
     @ In, OPTIONAL, options, dictionary of options... it can contain the filename to be used, the parameters need to be printed....
-    '''
+    """
     options_int = {}
     # print content of data in a .csv format
     if self.debug:
@@ -260,31 +271,32 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.specializedPrintCSV(filenameLocal,options_int)
 
   def loadXML_CSV(self,filenameRoot,options=None):
-    '''
+    """
     Function to load the xml additional file of the csv for data
     (it contains metadata, etc)
     @ In, filenameRoot, file name
     @ In, options, optional, dictionary -> options for loading
-    '''
+    """
     self._specializedLoadXML_CSV(filenameRoot,options)
 
   def _specializedLoadXML_CSV(self,filenameRoot,options):
-    '''
+    """
     Function to load the xml additional file of the csv for data
     (it contains metadata, etc). It must be implemented by the specialized classes
     @ In, filenameRoot, file name
     @ In, options, optional, dictionary -> options for loading
-    '''
+    """
     raise Exception("specializedLoadXML_CSV not implemented "+str(self))
 
   def _createXMLFile(self,filenameLocal,fileType,inpKeys,outKeys):
-    '''Creates an XML file to contain the input and output data list
+    """
+    Creates an XML file to contain the input and output data list
     and the type.
     @ In, filenameLocal, file name
     @ In, fileType, file type (csv, xml)
     @ In, inpKeys, list, input keys
     @ In, outKeys, list, output keys
-    '''
+    """
     myXMLFile = open(filenameLocal + '.xml', 'w')
     root = ET.Element('data',{'name':filenameLocal,'type':fileType})
     inputNode = ET.SubElement(root,'input')
@@ -306,11 +318,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     myXMLFile.close()
 
   def _loadXMLFile(self, filenameLocal):
-    '''
+    """
     Function to load the xml additional file of the csv for data
     (it contains metadata, etc). It must be implemented by the specialized classes
     @ In, filenameRoot, file name
-    '''
+    """
     myXMLFile = open(filenameLocal + '.xml', 'r')
     root = ET.fromstring(myXMLFile.read())
     myXMLFile.close()
@@ -336,12 +348,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     return retDict
 
   def addOutput(self,toLoadFrom,options=None):
-    '''
+    """
       Function to construct a data from a source
       @ In, toLoadFrom, loading source, it can be an HDF5 database, a csv file and in the future a xml file
       @ In, options, it's a dictionary of options. For example useful for metadata storing or,
                      in case an hierarchical fashion has been requested, it must contain the parent_id and the name of the actual 'branch'
-    '''
+    """
     self._toLoadFromList.append(toLoadFrom)
     self.addSpecializedReadingSettings()
 
@@ -404,51 +416,51 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     return
 
   def getParametersValues(self,typeVar,nodeid=None, serialize=False):
-    '''
+    """
     Functions to get the parameter values
     @ In, variable type (input or output)
-    '''
+    """
     if    typeVar.lower() in 'inputs' : return self.getInpParametersValues(nodeid,serialize)
     elif  typeVar.lower() in 'outputs': return self.getOutParametersValues(nodeid,serialize)
     else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typeVar + ' is not a valid type. Function: Data.getParametersValues')
 
   #Insert bird joke here...
   def getParaKeys(self,typePara):
-    '''
+    """
     Functions to get the parameter keys
     @ In, typePara, variable type (input or output)
-    '''
+    """
     if   typePara.lower() in 'inputs' : return self._dataParameters['inParam' ]
     elif typePara.lower() in 'outputs': return self._dataParameters['outParam']
     else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
 
   def isItEmpty(self):
-    '''
-    Functions to check if the data is empty
+    """
+    Function to check if the data is empty
     @ In, None
-    '''
+    """
     if len(self.getInpParametersValues().keys()) == 0 and len(self.getOutParametersValues()) == 0: return True
     else:                                                                                          return False
 
   def __len__(self):
-    '''
+    """
     Overriding of the __len__ method for data.
     len(dataobject) is going to return the size of the first output element found in the self._dataParameters['outParams']
     @ In, None
     @ Out, integer, size of first output element
-    '''
+    """
     if len(self._dataParameters['outParam']) == 0: return 0
     else: return self.sizeData('output',keyword=self._dataParameters['outParam'][0])[self._dataParameters['outParam'][0]]
 
   def sizeData(self,typeVar,keyword=None,nodeid=None,serialize=False):
-    '''
+    """
     Function to get the size of the Data.
     @ In, typeVar, string, required, variable type (input/inputs, output/outputs, metadata)
     @ In, keyword, string, optional, variable keyword. If None, the sizes of each variables are returned
     @ In, nodeid, string, optional, id of the node if hierarchical
     @ In, serialize, string, optional, serialize the tree if in hierarchical mode
     @ Out, dictionary, keyword:size
-    '''
+    """
     outcome   = {}
     emptyData = False
     if self.isItEmpty(): emptyData = True
@@ -472,38 +484,43 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     return outcome
 
   def getInpParametersValues(self,nodeid=None,serialize=False):
-    '''
+    """
     Function to get a reference to the input parameter dictionary
     @, In, nodeid, optional, in hierarchical mode, if nodeid is provided, the data for that node is returned,
                              otherwise check explanation for getHierParam
     @, In, serialize, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
                                 PLEASE check explanation for getHierParam
     @, Out, Reference to self._dataContainer['inputs'] or something else in hierarchical
-    '''
+    """
     if self._dataParameters['hierarchical']: return self.getHierParam('inputs',nodeid,serialize=serialize)
     else:                                    return self._dataContainer['inputs']
 
   def getOutParametersValues(self,nodeid=None,serialize=False):
-    '''
+    """
     Function to get a reference to the output parameter dictionary
     @, In, nodeid, optional, in hierarchical mode, if nodeid is provided, the data for that node is returned,
                              otherwise check explanation for getHierParam
     @, In, serialize, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
                                 PLEASE check explanation for getHierParam
     @, Out, Reference to self._dataContainer['outputs'] or something else in hierarchical
-    '''
+    """
     if self._dataParameters['hierarchical']: return self.getHierParam('outputs',nodeid,serialize=serialize)
     else:                                    return self._dataContainer['outputs']
 
   def getParam(self,typeVar,keyword,nodeid=None,serialize=False):
-    '''
+    """
     Function to get a reference to an output or input parameter
     @ In, typeVar, input or output
     @ In, keyword, keyword
     @ Out, Reference to the parameter
-    '''
-    if self.type == 'Histories': acceptedType = ['str','unicode','bytes','int']
-    else                       : acceptedType = ['str','unicode','bytes']
+    """
+    if self.type == 'Histories':
+      acceptedType = ['str','unicode','bytes','int']
+      convertArr = lambda x: x
+      #convertArr = lambda x: np.asarray(x)
+    else                       :
+      acceptedType = ['str','unicode','bytes']
+      convertArr = lambda x: np.asarray(x)
     if type(typeVar).__name__ not in ['str','unicode','bytes'] : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter typeVar needs to be a string. Function: Data.getParam')
     if type(keyword).__name__ not in acceptedType        : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
     if nodeid:
@@ -515,14 +532,24 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       else: return self.getHierParam(typeVar.lower(),nodeid,keyword,serialize)
     else:
       if typeVar.lower() in ['input','inputs']:
-        if keyword in self._dataContainer['inputs'].keys(): return self._dataContainer['inputs'][keyword]
+        returnDict = {}
+        if keyword in self._dataContainer['inputs'].keys():
+            returnDict[keyword] = {}
+            if self.type == 'Histories':
+                for key in self._dataContainer['inputs'][keyword].keys(): returnDict[keyword][key] = np.resize(self._dataContainer['inputs'][keyword][key],len(self._dataContainer['outputs'][keyword].values()[0]))
+                return convertArr(returnDict[keyword])
+            elif self.type == 'History':
+                returnDict[keyword] = np.resize(self._dataContainer['inputs'][keyword],len(self._dataContainer['outputs'].values()[0]))
+                return convertArr(returnDict[keyword])
+            else:
+                return convertArr(self._dataContainer['inputs'][keyword])
         else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> parameter ' + str(keyword) + ' not found in inpParametersValues dictionary. Available keys are '+str(self._dataContainer['inputs'].keys())+'.Function: Data.getParam')
       elif typeVar.lower() in ['output','outputs']:
-        if keyword in self._dataContainer['outputs'].keys(): return self._dataContainer['outputs'][keyword]
+        if keyword in self._dataContainer['outputs'].keys(): return convertArr(self._dataContainer['outputs'][keyword])
         else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> parameter ' + str(keyword) + ' not found in outParametersValues dictionary. Available keys are '+str(self._dataContainer['outputs'].keys())+'.Function: Data.getParam')
 
   def extractValue(self,varTyp,varName,varID=None,stepID=None,nodeid='root'):
-    '''
+    """
     this a method that is used to extract a value (both array or scalar) attempting an implicit conversion for scalars
     the value is returned without link to the original
     @in varType is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
@@ -538,7 +565,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
           if stepID=(int,None) the slicing is [stepID[0]:]
     @in nodeid , in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
-    '''
+    """
 
     myType=self.type
     if   varName in self._dataParameters['inParam' ]: inOutType = 'input'
@@ -548,13 +575,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   @abc.abstractmethod
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
-    '''
+    """
       this method has to be override to implement the specialization of extractValue for each data class
-    '''
+    """
     pass
 
   def getHierParam(self,typeVar,nodeid,keyword=None,serialize=False):
-    '''
+    """
       This function get a parameter when we are in hierarchical mode
       @ In,  typeVar,  string, it's the variable type... input,output, or inout
       @ In,  nodeid,   string, it's the node name... if == None or *, a dictionary of of data is returned, otherwise the actual node data is returned in a dict as well (see serialize attribute)
@@ -562,7 +589,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, serialize, bool  , if true a sequence of TimePointSet is generated (a dictionary where the keys are the 'ending' branches and the values are a sorted list of _dataContainers (from first branch to the ending ones)
                                if false see explanation for nodeid
       @ Out, a dictionary of data (see above)
-    '''
+    """
     if type(keyword).__name__ in ['str','unicode','bytes']:
       if keyword == 'none': keyword = None
     nodesDict = {}
@@ -579,9 +606,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
               elif typeVar in ['inputs','input']   and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
               elif typeVar in ['output','outputs'] and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
               elif typeVar in 'metadata'           and not keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'])
-              elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
-              elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword])
-              elif typeVar in 'metadata'           and     keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'][keyword])
+              elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name].append( np.asarray(se.get('dataContainer')['inputs'  ][keyword]))
+              elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name].append( np.asarray(se.get('dataContainer')['outputs' ][keyword]))
+              elif typeVar in 'metadata'           and     keyword: nodesDict[node.name].append( np.asarray(se.get('dataContainer')['metadata'][keyword]))
       else:
         for TSData in self.TSData.values():
           for node in TSData.iter():
@@ -589,9 +616,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             elif typeVar in ['inputs','input']   and not keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ]
             elif typeVar in ['output','outputs'] and not keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ]
             elif typeVar in 'metadata'           and not keyword: nodesDict[node.name] = node.get('dataContainer')['metadata']
-            elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ][keyword]
-            elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ][keyword]
-            elif typeVar in 'metadata'           and     keyword: nodesDict[node.name] = node.get('dataContainer')['metadata'][keyword]
+            elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['inputs'  ][keyword])
+            elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['outputs' ][keyword])
+            elif typeVar in 'metadata'           and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['metadata'][keyword])
     elif nodeid == 'ending':
       for TSDat in self.TSData.values():
         for ending in TSDat.iterEnding():
@@ -599,9 +626,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           elif typeVar in ['inputs','input']   and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['inputs'  ]
           elif typeVar in ['output','outputs'] and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['outputs' ]
           elif typeVar in 'metadata'           and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['metadata']
-          elif typeVar in ['inputs','input']   and     keyword: nodesDict[ending.name] = ending.get('dataContainer')['inputs'  ][keyword]
-          elif typeVar in ['output','outputs'] and     keyword: nodesDict[ending.name] = ending.get('dataContainer')['outputs' ][keyword]
-          elif typeVar in 'metadata'           and     keyword: nodesDict[ending.name] = ending.get('dataContainer')['metadata'][keyword]
+          elif typeVar in ['inputs','input']   and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['inputs'  ][keyword])
+          elif typeVar in ['output','outputs'] and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['outputs' ][keyword])
+          elif typeVar in 'metadata'           and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['metadata'][keyword])
     elif nodeid == 'RecontructEnding':
       # if history, reconstruct the history... if timepoint set take the last one (see below)
       backTrace = {}
@@ -614,9 +641,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
               elif typeVar in ['inputs','input']   and not keyword: backTrace[node.name].append( se.get('dataContainer')['inputs'  ])
               elif typeVar in ['output','outputs'] and not keyword: backTrace[node.name].append( se.get('dataContainer')['outputs' ])
               elif typeVar in 'metadata'           and not keyword: backTrace[node.name].append( se.get('dataContainer')['metadata'])
-              elif typeVar in ['inputs','input']   and     keyword: backTrace[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
-              elif typeVar in ['output','outputs'] and     keyword: backTrace[node.name].append( se.get('dataContainer')['outputs' ][keyword])
-              elif typeVar in 'metadata'           and     keyword: backTrace[node.name].append( se.get('dataContainer')['metadata'][keyword])
+              elif typeVar in ['inputs','input']   and     keyword: backTrace[node.name].append( np.asarray(se.get('dataContainer')['inputs'  ][keyword]))
+              elif typeVar in ['output','outputs'] and     keyword: backTrace[node.name].append( np.asarray(se.get('dataContainer')['outputs' ][keyword]))
+              elif typeVar in 'metadata'           and     keyword: backTrace[node.name].append( np.asarray(se.get('dataContainer')['metadata'][keyword]))
             #reconstruct history
             nodesDict[node.name] = None
             for element in backTrace[node.name]:
@@ -642,9 +669,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             elif typeVar in ['inputs','input']   and not keyword: backTrace[node.name] = node.get('dataContainer')['inputs'  ]
             elif typeVar in ['output','outputs'] and not keyword: backTrace[node.name] = node.get('dataContainer')['outputs' ]
             elif typeVar in 'metadata'           and not keyword: backTrace[node.name] = node.get('dataContainer')['metadata']
-            elif typeVar in ['inputs','input']   and     keyword: backTrace[node.name] = node.get('dataContainer')['inputs'  ][keyword]
-            elif typeVar in ['output','outputs'] and     keyword: backTrace[node.name] = node.get('dataContainer')['outputs' ][keyword]
-            elif typeVar in 'metadata'           and     keyword: backTrace[node.name] = node.get('dataContainer')['metadata'][keyword]
+            elif typeVar in ['inputs','input']   and     keyword: backTrace[node.name] = np.asarray(node.get('dataContainer')['inputs'  ][keyword])
+            elif typeVar in ['output','outputs'] and     keyword: backTrace[node.name] = np.asarray(node.get('dataContainer')['outputs' ][keyword])
+            elif typeVar in 'metadata'           and     keyword: backTrace[node.name] = np.asarray(node.get('dataContainer')['metadata'][keyword])
             if type(backTrace[node.name]) == dict:
               for innerkey in backTrace[node.name].keys():
                 if type(backTrace[node.name][innerkey]) == dict:
@@ -685,27 +712,27 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           elif typeVar in ['inputs','input'] and not keyword  : nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
           elif typeVar in ['output','outputs'] and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
           elif typeVar in 'metadata' and not keyword          : nodesDict[node.name].append( se.get('dataContainer')['metadata'])
-          elif typeVar in ['inputs','input'] and keyword      : nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
-          elif typeVar in ['output','outputs'] and keyword    : nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword])
-          elif typeVar in 'metadata' and keyword              : nodesDict[node.name].append( se.get('dataContainer')['metadata'][keyword])
+          elif typeVar in ['inputs','input'] and keyword      : nodesDict[node.name].append( np.asarray(se.get('dataContainer')['inputs'  ][keyword]))
+          elif typeVar in ['output','outputs'] and keyword    : nodesDict[node.name].append( np.asarray(se.get('dataContainer')['outputs' ][keyword]))
+          elif typeVar in 'metadata' and keyword              : nodesDict[node.name].append( np.asarray(se.get('dataContainer')['metadata'][keyword]))
       else:
         if typeVar   in 'inout'              and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')
         elif typeVar in ['inputs','input']   and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['inputs'  ]
         elif typeVar in ['output','outputs'] and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['outputs' ]
         elif typeVar in 'metadata'           and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['metadata']
-        elif typeVar in ['inputs','input']   and     keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['inputs'  ][keyword]
-        elif typeVar in ['output','outputs'] and     keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['outputs' ][keyword]
-        elif typeVar in 'metadata'           and     keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['metadata'][keyword]
+        elif typeVar in ['inputs','input']   and     keyword: nodesDict[nodeid] = np.asarray(nodelist[-1].get('dataContainer')['inputs'  ][keyword])
+        elif typeVar in ['output','outputs'] and     keyword: nodesDict[nodeid] = np.asarray(nodelist[-1].get('dataContainer')['outputs' ][keyword])
+        elif typeVar in 'metadata'           and     keyword: nodesDict[nodeid] = np.asarray(nodelist[-1].get('dataContainer')['metadata'][keyword])
     return nodesDict
 
   def retrieveNodeInTreeMode(self,nodeName,parentName=None):
-    '''
+    """
       This Method is used to retrieve a node (a list...) when the hierarchical mode is requested
       If the node has not been found, Create a new one
       @ In, nodeName, string, is the node we want to retrieve
       @ In, parentName, string, optional, is the parent name... It's possible that multiple nodes have the same name.
                                           With the parentName, it's possible to perform a double check
-    '''
+    """
     if not self.TSData: # there is no tree yet
       self.TSData = {nodeName:TS.NodeTree(TS.Node(nodeName))}
       return self.TSData[nodeName].getrootnode()
@@ -727,12 +754,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           else: return(foundNodes[0])
 
   def addNodeInTreeMode(self,tsnode,options):
-    '''
+    """
       This Method is used to add a node into the tree when the hierarchical mode is requested
       If the node has not been found, Create a new one
       @ In, tsnode, the node
       @ In, options, dict, parent_id must be present if newer node
-    '''
+    """
     if not tsnode.getParentName():
       parent_id = None
       if 'metadata' in options.keys():
@@ -741,7 +768,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if 'parent_id' in options.keys(): parent_id = options['parent_id']
       if not parent_id: raise ConstructError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> the parent_id must be provided if a new node needs to be appended')
       self.retrieveNodeInTreeMode(parent_id).appendBranch(tsnode)
-
+#
+#
+#
+#
 class TimePoint(Data):
   '''
   TimePoint is an object that stores a set of inputs and outputs for a particular point in time!
@@ -757,7 +787,8 @@ class TimePoint(Data):
       @ Out, None
     '''
     self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
-    try: sourceType = self._toLoadFromList[0].type
+    #The source is the last item we added, so use [-1]
+    try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
       if(not self._dataParameters['history']): raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
@@ -786,7 +817,7 @@ class TimePoint(Data):
     if name in self._dataContainer['inputs'].keys():
       self._dataContainer['inputs'].pop(name)
     if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-    self._dataContainer['inputs'][name] = np.atleast_1d(np.array(value))
+    self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(value))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     '''
@@ -807,7 +838,7 @@ class TimePoint(Data):
     if name in self._dataContainer['inputs'].keys():
       self._dataContainer['outputs'].pop(name)
     if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
-    self._dataContainer['outputs'][name] = np.atleast_1d(np.array(value))
+    self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(value))
 
   def specializedPrintCSV(self,filenameLocal,options):
     '''
@@ -917,16 +948,22 @@ class TimePointSet(Data):
     if self._dataParameters['hierarchical']: self._dataParameters['type'] = 'TimePoint'
     # store the type into the _dataParameters dictionary
     else:                                   self._dataParameters['type'] = self.type
-    try: sourceType = self._toLoadFromList[0].type
+    try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
-      self._dataParameters['histories'] = self._toLoadFromList[0].getEndingGroupNames()
+      self._dataParameters['histories'] = self._toLoadFromList[-1].getEndingGroupNames()
       self._dataParameters['filter'   ] = 'whole'
 
   def checkConsistency(self):
     '''
       Here we perform the consistency check for the structured data TimePointSet
     '''
+    #The lenMustHave is a counter of the histories contained in the
+    #toLoadFromList list. Since this list can contain either CSVfiles
+    #and HDF5, we can not use "len(_toLoadFromList)" anymore. For
+    #example, if that list contains 10 csvs and 1 HDF5 (with 20
+    #histories), len(toLoadFromList) = 11 but the number of histories
+    #is actually 30.
     lenMustHave = 0
     try:   sourceType = self._toLoadFromList[-1].type
     except AttributeError:sourceType = None
@@ -937,13 +974,13 @@ class TimePointSet(Data):
       else: lenMustHave += 1
 
     if('HDF5' == sourceType):
-      eg = self._toLoadFromList[0].getEndingGroupNames()
+      #eg = self._toLoadFromList[-1].getEndingGroupNames()
       for key in self._dataContainer['inputs'].keys():
-        if (self._dataContainer['inputs'][key].size) != len(eg):
-          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+        if (self._dataContainer['inputs'][key].size) != lenMustHave:
+          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
       for key in self._dataContainer['outputs'].keys():
-        if (self._dataContainer['outputs'][key].size) != len(eg):
-          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
+        if (self._dataContainer['outputs'][key].size) != lenMustHave:
+          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
     else:
       if self._dataParameters['hierarchical']:
         for key in self._dataContainer['inputs'].keys():
@@ -986,15 +1023,16 @@ class TimePointSet(Data):
       if name in self._dataContainer['inputs'].keys():
         self._dataContainer['inputs'].pop(name)
       if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-      self._dataContainer['inputs'][name] = np.atleast_1d(np.atleast_1d(value)[-1])
+      self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['inputs'].keys():
-        popped = self._dataContainer['inputs'].pop(name)
-        self._dataContainer['inputs'][name] = copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
+        #popped = self._dataContainer['inputs'].pop(name)
+        self._dataContainer['inputs'][name].append(np.atleast_1d(np.atleast_1d(value)[-1]))
+        #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-        self._dataContainer['inputs'][name] = np.atleast_1d(np.atleast_1d(value)[-1])
+        self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     '''
@@ -1021,12 +1059,12 @@ class TimePointSet(Data):
         self._dataContainer = tsnode.get('dataContainer')
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
-      else                                             : self._dataContainer['metadata'][name] = np.atleast_1d(value)
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
+      else                                             : self._dataContainer['metadata'][name] = c1darray(values=np.atleast_1d(value),dtype=type(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
-      else                                             : self._dataContainer['metadata'][name] = np.atleast_1d(value)
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
+      else                                             : self._dataContainer['metadata'][name] = c1darray(values=np.atleast_1d(value),dtype=type(value))
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     '''
@@ -1055,16 +1093,16 @@ class TimePointSet(Data):
         self._dataContainer = tsnode.get('dataContainer')
       if name in self._dataContainer['outputs'].keys():
         self._dataContainer['outputs'].pop(name)
-      if name not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(name)
-      self._dataContainer['outputs'][name] = np.atleast_1d(np.atleast_1d(value)[-1])
+      if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
+      self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(value)) #np.atleast_1d(np.atleast_1d(value)[-1])
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['outputs'].keys():
-        popped = self._dataContainer['outputs'].pop(name)
-        self._dataContainer['outputs'][name] = copy.copy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
+        #popped = self._dataContainer['outputs'].pop(name)
+        self._dataContainer['outputs'][name].append(np.atleast_1d(value)[-1])   #= copy.copy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
-        self._dataContainer['outputs'][name] = np.atleast_1d(np.atleast_1d(value)[-1])
+        self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) # np.atleast_1d(np.atleast_1d(value)[-1])
 
   def specializedPrintCSV(self,filenameLocal,options):
     '''
@@ -1265,7 +1303,7 @@ class History(Data):
       This function adds in the _dataParameters dict the options needed for reading and constructing this class
     '''
     self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
-    try: sourceType = self._toLoadFromList[0].type
+    try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
       if(not self._dataParameters['history']): raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> In order to create a History data, history name must be provided')
@@ -1294,7 +1332,7 @@ class History(Data):
     if name in self._dataContainer['inputs'].keys():
       self._dataContainer['inputs'].pop(name)
     if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-    self._dataContainer['inputs'][name] = np.atleast_1d(np.array(value))
+    self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(value))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     '''
@@ -1316,7 +1354,7 @@ class History(Data):
     if name in self._dataContainer['outputs'].keys():
       self._dataContainer['outputs'].pop(name)
     if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
-    self._dataContainer['outputs'][name] = np.atleast_1d(np.array(value))
+    self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(value))
 
   def specializedPrintCSV(self,filenameLocal,options):
     '''
@@ -1461,7 +1499,7 @@ class Histories(Data):
     '''
     if self._dataParameters['hierarchical']: self._dataParameters['type'] = 'History'
     else: self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
-    try: sourceType = self._toLoadFromList[0].type
+    try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
       self._dataParameters['filter'   ] = 'whole'
@@ -1474,6 +1512,11 @@ class Histories(Data):
     '''
     try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
+    lenMustHave = 0
+    for sourceLoad in self._toLoadFromList:
+      if not type(sourceLoad) == type(""):
+        if('HDF5' == sourceLoad.type):  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
+      else: lenMustHave += 1
 
     if self._dataParameters['hierarchical']:
       for key in self._dataContainer['inputs'].keys():
@@ -1484,9 +1527,9 @@ class Histories(Data):
           raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
     else:
       if('HDF5' == sourceType):
-        eg = self._toLoadFromList[0].getEndingGroupNames()
-        if(len(eg) != len(self._dataContainer['inputs'].keys())):
-          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(eg)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
+        #eg = self._toLoadFromList[-1].getEndingGroupNames()
+        if(lenMustHave != len(self._dataContainer['inputs'].keys())):
+          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       else:
         if(len(self._toLoadFromList) != len(self._dataContainer['inputs'].keys())):
           raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(self._toLoadFromList)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
@@ -1543,7 +1586,7 @@ class Histories(Data):
       if namep in self._dataContainer['inputs'].keys():
         self._dataContainer['inputs'].pop(name)
       if namep not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(namep)
-      self._dataContainer['inputs'][namep] = np.atleast_1d(np.array(value))
+      self._dataContainer['inputs'][namep] = c1darray(values=np.atleast_1d(value)) # np.atleast_1d(np.array(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if type(name) == list:
@@ -1552,19 +1595,19 @@ class Histories(Data):
           gethistory = self._dataContainer['inputs'].pop(name[0])
           popped = gethistory[name[1]]
           if name[1] in popped.keys():
-            gethistory[name[1]] = np.atleast_1d(np.array(value))
+            gethistory[name[1]] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) #np.atleast_1d(np.array(value))
             self._dataContainer['inputs'][name[0]] = gethistory
         else:
-          self._dataContainer['inputs'][name[0]] = {name[1]:np.atleast_1d(np.array(value))}
+          self._dataContainer['inputs'][name[0]] = {name[1]:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))}
       else:
         # no info regarding the history number => use internal counter
-        if len(self._dataContainer['inputs'].keys()) == 0: self._dataContainer['inputs'][1] = {name:np.atleast_1d(np.array(value))}
+        if len(self._dataContainer['inputs'].keys()) == 0: self._dataContainer['inputs'][1] = {name:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))}
         else:
           hisn = max(self._dataContainer['inputs'].keys())
           if name in list(self._dataContainer['inputs'].values())[-1]:
             hisn += 1
             self._dataContainer['inputs'][hisn] = {}
-          self._dataContainer['inputs'][hisn][name] = np.atleast_1d(np.array(value))
+          self._dataContainer['inputs'][hisn][name] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) # np.atleast_1d(np.array(value))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     '''
@@ -1604,13 +1647,13 @@ class Histories(Data):
         self._dataContainer = tsnode.get('dataContainer')
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
-      else                                             : self._dataContainer['metadata'][name] = copy.copy(np.atleast_1d(value))
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(np.array(value))) #= copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      else                                             : self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value)),dtype=type(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['metadata'].keys():
-        self._dataContainer['metadata'][name] = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
-      else                                             : self._dataContainer['metadata'][name] = copy.copy(np.atleast_1d(value))
+        self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      else                                             : self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value)),dtype=type(value)))
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     '''
@@ -1650,10 +1693,9 @@ class Histories(Data):
       if not self._dataContainer:
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
         self._dataContainer = tsnode.get('dataContainer')
-      if namep in self._dataContainer['outputs'].keys():
-        self._dataContainer['outputs'].pop(namep)
+      if namep in self._dataContainer['outputs'].keys(): self._dataContainer['outputs'].pop(namep)
       if namep not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(namep)
-      self._dataContainer['outputs'][namep] = np.atleast_1d(np.array(value))
+      self._dataContainer['outputs'][namep] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) #np.atleast_1d(np.array(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if type(name) == list:
@@ -1665,16 +1707,16 @@ class Histories(Data):
             gethistory[name[1]] = np.atleast_1d(np.array(value))
             self._dataContainer['outputs'][name[0]] =gethistory
         else:
-          self._dataContainer['outputs'][name[0]] = {name[1]:np.atleast_1d(np.array(value))}
+          self._dataContainer['outputs'][name[0]] = {name[1]:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))} #np.atleast_1d(np.array(value))}
       else:
         # no info regarding the history number => use internal counter
-        if len(self._dataContainer['outputs'].keys()) == 0: self._dataContainer['outputs'][1] = {name:np.atleast_1d(np.array(value))}
+        if len(self._dataContainer['outputs'].keys()) == 0: self._dataContainer['outputs'][1] = {name:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))} #np.atleast_1d(np.array(value))}
         else:
           hisn = max(self._dataContainer['outputs'].keys())
           if name in list(self._dataContainer['outputs'].values())[-1]:
             hisn += 1
             self._dataContainer['outputs'][hisn] = {}
-          self._dataContainer['outputs'][hisn][name] = copy.copy(np.atleast_1d(np.array(value)))
+          self._dataContainer['outputs'][hisn][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value,dtype=float)))) #np.atleast_1d(np.array(value)))
 
   def specializedPrintCSV(self,filenameLocal,options):
     '''

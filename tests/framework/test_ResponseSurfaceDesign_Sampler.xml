@@ -4,7 +4,7 @@
 <RunInfo>
     <WorkingDir>ResponseDesign</WorkingDir>
     <Sequence>BoxBehnkenRespDesignStep,CentralCompositeRespDesignStep</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 <Models>
     <Dummy name='MyDummy1' subType='' print='True'/>
@@ -36,7 +36,7 @@
 <Samplers>
     <ResponseSurfaceDesign name='BoxBehnkenRespDesign'>
         <ResponseSurfaceDesignSettings>
-            <type>BoxBehnken</type>
+            <algorithm_type>BoxBehnken</algorithm_type>
             <ncenters>1</ncenters>
         </ResponseSurfaceDesignSettings>
         <variable name='VarGauss1' >
@@ -63,7 +63,7 @@
     </ResponseSurfaceDesign>
     <ResponseSurfaceDesign name='CentralCompositeRespDesign'>
         <ResponseSurfaceDesignSettings>
-            <type>CentralComposite</type>
+            <algorithm_type>CentralComposite</algorithm_type>
             <centers>1,2</centers>
             <alpha>orthogonal</alpha>
             <face>circumscribed</face>

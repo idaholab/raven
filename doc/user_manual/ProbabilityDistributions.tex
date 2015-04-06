@@ -1,430 +1,643 @@
-\section{Distributions \\ \vspace{2 mm}}
+\section{Distributions}
 \label{sec:distributions}
 \newcommand{\distname}[1]{\textbf{#1}}
 \newcommand{\distattrib}[1]{\textit{#1}}
-RAVEN provides support for several probability distributions. Currently, the user can choose among all the most important 1-Dimensional distributions and N-Dimensional ones, either custom or Multi-Variate.  
-\\ The user needs to specify the probability distributions, that need to be used during the simulation, within the $<Distributions>$ xml block:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% If you are confused by the input of this document, please make sure you see
+% these defined commands first. There is no point writing the same thing over
+% and over and over and over and over again, so these will help us reduce typos,
+% by just editing a template sentence.
+\newcommand{\nameDescription}{\xmlAttr{name},
+  \xmlDesc{required string attribute}, user-defined name of this distribution.
+  %
+  \nb As with other objects, this identifier can be used to reference this
+  specific entity from other input blocks in the XML.}
+\newcommand{\specBlock}[2]{The specifications of this distribution must be
+  defined within #1 \xmlNode{#2} XML block.}
+\newcommand{\attrIntro}{This XML node accepts one attribute:}
+\newcommand{\attrsIntro}{This XML node accepts the following attributes:}
+\newcommand{\subnodeIntro}{This distribution can be initialized with the
+  following child node:}
+\newcommand{\subnodesIntro}{This distribution can be initialized with the
+  following children nodes:}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\maljdan{Do we want to provide the equations of each distribution?}
+%\alfoa{TBH I do not think so. It is not a theory manual... I put few equations in the ROM section just to explain better the meaning of some parameters.}
+
+RAVEN provides support for several probability distributions.
+%
+Currently, the user can choose among all of the most important 1-dimensional
+distributions and $N$-dimensional ones, either custom or multidimensional normal.
+
+The user will specify the probability distributions, that need to be used during
+the simulation, within the \xmlNode{Distributions} XML block:
 \begin{lstlisting}[style=XML]
 <Simulation>
    ...
   <Distributions>
-    <!-- here all the distributions, that need to be used, are listed -->
+    <!-- All the necessary distributions will be listed here -->
   </Distributions>
   ...
 </Simulation>
 \end{lstlisting}
-In the following two sub-sections, the input requirements for all of them are reported.
+
+In the next two sub-sections, the input requirements for all of the
+distributions are reported.
+
 %%%%%% 1-Dimensional Probability distributions
 \subsection{1-Dimensional Probability Distributions}
 \label{subsec:1dDist}
-
-This sub-section is organized in two different parts: 1) Continuous 1-D distributions; 2) Discrete 1-D distributions. These two chapters cover all the  requirements for using the different distribution entities. 
+This sub-section is organized in two different parts: 1) continuous 1-D
+distributions and 2) discrete 1-D distributions.
+%
+These two paragraphs cover all the requirements for using the different
+distribution entities.
+%
 %%%%%% paragraph 1-Dimensional Continuous Distributions.
-\subsubsection{1-Dimensional Continuous Distributions.}
+\subsubsection{1-Dimensional Continuous Distributions}
 \label{subsubsec:1DContinuous}
+In this paragraph all the 1-D distributions currently available in RAVEN are
+reported.
 
-In this paragraph all the 1-D distributions', currently available in RAVEN, are reported.
-\\ Firstly, all the probability distributions functions in the code can be truncated by the following keywords:
+Firstly, all the probability distributions functions in the code can be
+truncated by using the following keywords:
 \begin{lstlisting}[style=XML]
-<lowerBound>***</lowerBound>
-<upperBound>***</upperBound>
+<lowerBound>aFloatValue</lowerBound>
+<upperBound>aFloatValue</upperBound>
 \end{lstlisting}
-Obviously, each distribution already defines its validity domain (e.g. Normal distribution, [-inf,+inf]).
-\\ RAVEN currently provides support for 12 1-Dimensional distributions.  In the following paragraphs, all the input requirements are reported and commented.
+Obviously, each distribution already defines its valid domain (e.g. Normal
+distribution, $[-\infty,+\infty]$).
+%
+RAVEN currently provides support for 12 1-Dimensional distributions.
+%
+In the following paragraphs, all the input requirements are reported and
+commented.
 
 %%%%%% Beta
 \paragraph{Beta Distribution}
 \label{Beta}
-The \distname{Beta} distribution is a continuous distribution  defined on the interval $[0, 1]$ parametrized by two positive shape parameters, denoted by $\alpha$ and $\beta$, that appear as exponents of the random variable and control the shape of the distribution. The distribution domain  can be changed,specifying new boundaries, to fit the user needs.  Its support is $x \in (0, 1)$.
-\\ The specifications of this distribution must be defined within the xml block $<Beta>$. This xml-node needs to contain the attribute:
+The \distname{Beta} distribution is defined, by default, on the
+interval $[0,1]$ parameterized by two positive shape parameters, denoted by
+$\alpha$ and $\beta$, that appear as exponents of the random variable.
+%
+The distribution domain can be changed, specifying new boundaries, to fit the
+user's needs.
+%
+Its support is $x \in (0, 1)$.
+%
+The user can specify a \distname{Beta} distribution in two ways.  The standard
+is to provide the parameters \xmlNode{low}, \xmlNode{high}, \xmlNode{alpha},
+and \xmlNode{beta}.  Alternatively, to approximate a normal 
+distribution that falls to 0 at the endpoints, the user may provide 
+the parameters \xmlNode{low}, \xmlNode{high}, and \xmlNode{peakFactor}. The
+peak factor is a value between 0 and 1 that determines the peakedness of the
+distribution.  At 0 it is dome-like ($\alpha=\beta=4$) and at 1 it is very
+strongly peaked around the mean ($\alpha=\beta=100$).  A reasonable approximation
+to a Gaussian normal is a peak factor of 0.5.
+
+\specBlock{a}{Beta}
+%
+\attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-This distribution can be initialized through the following keyword/s:
+\subnodesIntro
 \begin{itemize}
-\item $<alpha>$, float, required parameter, first shape parameter;
-\item $<beta>$, float, required parameter, second shape parameter;
-\item $<low>$, float, optional parameter,  lower domain boundary;  
-\item $<high>$, float, required parameter, upper domain boundary.
+  \item \xmlNode{alpha}, \xmlDesc{float, required parameter}, first shape
+  parameter.  If specified, \xmlNode{beta} must also be specified and
+  \xmlNode{peakFactor} must not be specified.
+  %
+  \item \xmlNode{beta}, \xmlDesc{float, required parameter}, second shape
+  parameter.  If specified, \xmlNode{alpha} must also be specified and
+  \xmlNode{peakFactor} must not be specified.
+  %
+  \item \xmlNode{peakFactor}, \xmlDesc{float, optional parameter}, alternative
+  to specifying \xmlNode{alpha} and \xmlNode{beta}.  Acceptable values range from
+  0 to 1.
+  %
+  \item \xmlNode{low}, \xmlDesc{float, required parameter}, lower domain
+  boundary.
+  %
+  \item \xmlNode{high}, \xmlDesc{float, optional parameter}, upper domain,
+  boundary. \default{1.0}
+  %
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
-  <Beta name='...'>
-     <low>***</low>
-     <high>***</high>
-     <alpha>***</alpha>
-     <beta>***</beta>
+  <Beta name='aUserDefinedName'>
+     <low>aFloatValue</low>
+     <high>aFloatValue</high>
+     <alpha>aFloatValue</alpha>
+     <beta>aFloatValue</beta>
   </Beta>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
-
-
 
 %%%%%% Exponential
 \paragraph{Exponential Distribution}
 \label{Exponential}
-The \distname{Exponential} distribution is a continuous distribution that can be used to model the time between independent events that
-happen at a constant average time.  Its support is $x \in [0, +\inf)$.
-\\ The specifications of this distribution must be defined within the xml block $<Exponential>$. This xml-node needs to contain the attribute:
+The \distname{Exponential} distribution support is $x \in [0, +\infty)$.
+
+\specBlock{an}{Exponential}
+%
+\attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-This distribution can be initialized through the following keyword/s:
+\subnodeIntro
 \begin{itemize}
-\item $<lambda>$, float, required parameter,  rate parameter.
+  \item \xmlNode{lambda}, \xmlDesc{float, required parameter}, rate parameter.
+  %
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
-  <Exponential name='...'>
-    <lambda>***</lambda>
+  <Exponential name='aUserDefinedName'>
+    <lambda>aFloatValue</lambda>
   </Exponential>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 %%%%%% Gamma
 \paragraph{Gamma Distribution}
 \label{Gamma}
-The \distname{Gamma} distribution is a two-parameter family of continuous probability distributions. The common exponential distribution and chi-squared distribution are special cases of the gamma distribution.  Its support is $x \in (0,+\inf)$.
-\\ The specifications of this distribution must be defined within the xml block $<Gamma>$. This xml-node needs to contain the attribute:
+The \distname{Gamma} distribution is a two-parameter family of continuous
+probability distributions.
+%
+The common exponential distribution and $\chi$-squared distribution are special
+cases of the gamma distribution.
+%
+Its support is $x \in (0,+\infty)$.
+
+\specBlock{a}{Gamma}
+%
+\attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-This distribution can be initialized through the following keyword/s:
+\subnodesIntro
 \begin{itemize}
-\item $<alpha>$, float, required parameter, shape parameter;
-\item $<beta>$, float, required parameter, 1/scale or the inverse scale parameter;
-\item $<low>$, float, optional parameter,  lower domain boundary.
+  \item \xmlNode{alpha}, \xmlDesc{float, required parameter}, shape parameter.
+  %
+  \item \xmlNode{beta}, \xmlDesc{float, required parameter}, 1/scale or the
+  inverse scale parameter;
+  \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain
+  boundary. \default{0.0}
+  %
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
-  <Gamma name='...'>
-    <alpha>***</alpha>
-    <beta>***</beta>
-    <low>***</low>
+  <Gamma name='aUserDefinedName'>
+    <alpha>aFloatValue</alpha>
+    <beta>aFloatValue</beta>
+    <low>aFloatValue</low>
   </Gamma>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 %%%%%% Logistic
 \paragraph{Logistic Distribution}
 \label{Logistic}
-The \distname{Logistic} distribution is a continuous distribution
-similar to the normal distribution with a CDF that is an instance of a
-logistic function. It resembles the normal distribution in shape but has heavier tails (higher kurtosis). Its support is $x \in (-\inf,+\inf)$.
-\\ The specifications of this distribution must be defined within the xml block $<Logistic>$. This xml-node needs to contain the attribute:
+The \distname{Logistic} distribution is similar to the
+normal distribution with a CDF that is an instance of a logistic function ($Cdf(x) = \frac{1}{1+e^{-\frac{(x-location)}{scale})}}$).
+%
+It resembles the normal distribution in shape but has heavier tails (higher
+kurtosis).
+%
+Its support is $x \in (-\infty,+\infty)$.
+
+\specBlock{a}{Logistic}
+%
+\attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-This distribution can be initialized through the following keyword/s:
+\subnodesIntro
 \begin{itemize}
-\item $<location>$, float, required parameter, it is the distribution mean;
-\item $<scale>$, float, required parameter, scale parameter that is proportional to the standard deviation.
+  \item \xmlNode{location}, \xmlDesc{float, required parameter}, the
+  distribution
+  mean.
+  %
+  \item \xmlNode{scale}, \xmlDesc{float, required parameter}, scale parameter
+  that
+  is proportional to the standard deviation ($\sigma ^{2}=\frac{1}{3}\pi^{2}scale^{2} $).
+  %
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
-  <Logistic name='...'>
-    <location>***</location>
-    <scale>***</scale>
+  <Logistic name='aUserDefinedName'>
+    <location>aFloatValue</location>
+    <scale>aFloatValue</scale>
   </Logistic>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
- 
 
 %%%%%% LogNormal
 \paragraph{LogNormal Distribution}
 \label{LogNormal}
-The \distname{LogNormal} distribution is a continuous distribution
-with the logarithm of the random variable being normally distributed. Its support is $x \in (0, +\inf)$.
-\\ The specifications of this distribution must be defined within the xml block $<LogNormal>$. This xml-node needs to contain the attribute:
+The \distname{LogNormal} distribution is a distribution with the
+logarithm of the random variable being normally distributed.
+%
+Its support is $x \in (0, +\infty)$.
+
+\specBlock{a}{LogNormal}
+%
+\attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-This distribution can be initialized through the following keyword/s:
+\subnodesIntro
 \begin{itemize}
-\item $<mean>$, float, required parameter, it is the distribution mean or expected value (in log-scale);
-\item $<sigma>$, float, required parameter, standard deviation.
+  \item \xmlNode{mean}, \xmlDesc{float, required parameter}, the distribution
+  mean or expected value (in log-scale).
+  %
+  \item \xmlNode{sigma}, \xmlDesc{float, required parameter}, standard
+  deviation.
+  %
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
-  <LogNormal name='...'>
-    <mean>***</mean>
-    <sigma>***</sigma>
+  <LogNormal name='aUserDefinedName'>
+    <mean>aFloatValue</mean>
+    <sigma>aFloatValue</sigma>
   </LogNormal>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 %%%%%% Normal
 \paragraph{Normal Distribution}
 \label{Normal}
-The \distname{Normal} distribution (or Gaussian) distribution is a
-continuous distribution. It is extremely useful because of the central limit theorem, which states that, under mild conditions, the mean of many random variables independently drawn from the same distribution is distributed approximately normally, irrespective of the form of the original distribution. Its support is $x \in (-\inf, +\inf)$.
-\\ The specifications of this distribution must be defined within the xml block $<Normal>$. This xml-node needs to contain the attribute:
+The \distname{Normal} distribution is an extremely
+useful continuous distribution.
+%
+Its utility is due to the central limit theorem, which states that, under mild
+conditions, the mean of many random variables independently drawn from the same
+distribution is distributed approximately normally, irrespective of the form of
+the original distribution.
+%
+Its support is $x \in (-\infty, +\infty)$.
+
+\specBlock{a}{Normal}
+%
+\attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-This distribution can be initialized through the following keyword/s:
+\subnodesIntro
 \begin{itemize}
-\item $<mean>$, float, required parameter, it is the distribution mean or expected value;
-\item $<sigma>$, float, required parameter, standard deviation.
+  \item \xmlNode{mean}, \xmlDesc{float, required parameter}, the distribution
+  mean
+  or expected value.
+  %
+  \item \xmlNode{sigma}, \xmlDesc{float, required parameter}, the standard
+  deviation.
+  %
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
-  <Normal name='...'>
-    <mean>***</mean>
-    <sigma>***</sigma>
+  <Normal name='aUserDefinedName'>
+    <mean>aFloatValue</mean>
+    <sigma>aFloatValue</sigma>
   </Normal>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
-
-
-
 
 %%%%%% Triangular
 \paragraph{Triangular Distribution}
 \label{Triangular}
-The \distname{Triangular} distribution is a continuous distribution that has a triangular shape for the Pdf. It is often used where the distribution is only vaguely known, but, like the uniform distribution, upper and lower limits are ``known'', but a ``best guess'', the mode or center point, is also added. It has been recommended as a ``proxy'' for the beta distribution. Its support is $lower \le x \le upper$.
-\\ The specifications of this distribution must be defined within the xml block $<Triangular>$. This xml-node needs to contain the attribute:
+The \distname{Triangular} distribution is a continuous distribution that has a
+triangular shape for its PDF.
+%
+%It is often used where the distribution is only vaguely known.
+%
+Like the uniform distribution, upper and lower limits are ``known,'' but a
+``best guess,'' of the mode or center point is also added.
+%
+It has been recommended as a ``proxy'' for the beta distribution.
+%
+Its support is $min \le x \le max$.
+
+\specBlock{a}{Triangular}
+%
+\attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-This distribution can be initialized through the following keyword/s:
+\subnodesIntro
 \begin{itemize}
-\item $<apex>$, float, required parameter, ``best guess'', also called, peak factor;
-\item $<min>$, float, required parameter, domain lower boundary;
-\item $<max>$, float, required parameter, domain upper boundary.
+  \item \xmlNode{apex}, \xmlDesc{float, required parameter}, peak location
+  %``best guess'', also called, peak factor.
+  %
+  \item \xmlNode{min}, \xmlDesc{float, required parameter}, domain lower
+  boundary.
+  %
+  \item \xmlNode{max}, \xmlDesc{float, required parameter}, domain upper
+  boundary.
+  %
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
-  <Triangular name='...'>
-    <apex>***</apex>
-    <min>***</min>
-    <max>***</max>
+  <Triangular name='aUserDefinedName'>
+    <apex>aFloatValue</apex>
+    <min>aFloatValue</min>
+    <max>aFloatValue</max>
   </Triangular>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 %%%%%% Uniform
 \paragraph{Uniform Distribution}
 \label{Uniform}
-The \distname{Uniform} distribution is a continuous distribution with a rectangular shaped Pdf. It is often used where the distribution is only vaguely known, but upper and lower limits are ``known''. Its support is $lower \le x \le upper$.
-\\ The specifications of this distribution must be defined within the xml block $<Uniform>$. This xml-node needs to contain the attribute:
+The \distname{Uniform} distribution is a continuous distribution with a
+rectangular-shaped PDF.
+%
+It is often used where the distribution is only vaguely known, but upper and
+lower limits are known.
+%
+Its support is $lower \le x \le upper$.
+
+\specBlock{a}{Uniform}
+%
+\attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-This distribution can be initialized through the following keyword/s:
+\subnodesIntro
 \begin{itemize}
-\item $<low>$, float, required parameter, domain lower boundary;
-\item $<high>$, float, required parameter, domain upper boundary.
+  \item \xmlNode{low}, \xmlDesc{float, required parameter}, domain lower
+  boundary.
+  %
+  \item \xmlNode{high}, \xmlDesc{float, required parameter}, domain upper
+  boundary.
+  %
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
-  <Uniform name='...'>
-    <low>***</low>
-    <high>***</high>
+  <Uniform name='aUserDefinedName'>
+    <low>aFloatValue</low>
+    <high>aFloatValue</high>
   </Uniform>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 %%%%%% Weibull
 \paragraph{Weibull Distribution}
 \label{Weibull}
-The \distname{Weibull} distribution is a continuous distribution that is often used in the field of failure analysis; in particular it can mimic distributions where the failure rate varies over time. If the failure rate is:
+The \distname{Weibull} distribution is a continuous distribution that is often
+used in the field of failure analysis; in particular, it can mimic distributions
+where the failure rate varies over time.
+%
+If the failure rate is:
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item constant over time, then $k = 1$, suggests that items are failing from random events;   
-\item decreases over time, then $k < 1$, suggesting ``infant mortality''; 
-\item increases over time, then $k > 1$, suggesting ``wear out'' - more likely to fail as time goes by.
+  \itemsep0em
+  \item constant over time, then $k = 1$, suggests that items are failing from
+  random events;
+  \item decreases over time, then $k < 1$, suggesting ``infant mortality'';
+  \item increases over time, then $k > 1$, suggesting ``wear out'' - more likely
+  to fail as time goes by.
+  %
 \end{itemize}
 \vspace{-5mm}
- Its support is $x \in [0, +\inf)$.
-\\ The specifications of this distribution must be defined within the xml block $<Weibull>$. This xml-node needs to contain the attribute:
+Its support is $x \in [0, +\infty)$.
+
+\specBlock{a}{Weibull}
+%
+\attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-This distribution can be initialized through the following keyword/s:
+\subnodesIntro
 \begin{itemize}
-\item $<k>$, float, required parameter, shape parameter;
-\item $<lambda>$, float, required parameter, scale parameter.
+  \item \xmlNode{k}, \xmlDesc{float, required parameter}, shape parameter.
+  %
+  \item \xmlNode{lambda}, \xmlDesc{float, required parameter}, scale parameter.
+  %
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
-  <Weibull name='...'>
-    <lambda>***</lambda>
-    <k>***</k>
+  <Weibull name='aUserDefinedName'>
+    <lambda>aFloatValue</lambda>
+    <k>aFloatValue</k>
   </Weibull>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 %%%%%% paragraph 1-Dimensional Discrete Distributions.
 \subsubsection{1-Dimensional Discrete Distributions.}
 \label{subsubsec:1DDiscrete}
-RAVEN currently supports 3 discrete distributions. In the following paragraphs, the input requirements are reported.
+RAVEN currently supports 3 discrete distributions.
+%
+In the following paragraphs, the input requirements are reported.
+
 %%%%%% Bernoulli
 \paragraph{Bernoulli Distribution}
 \label{Bernoulli}
-The \distname{Bernoulli} distribution is a discrete distribution of the outcome of a single trial with only two results, 0 (failure) or 1 (success), with a probability of success \distattrib{p}. It is the simplest building block on which other discrete distributions of sequences of independent Bernoulli trials can be based. Basically, it is the binomial distribution (k = 1, \distattrib{p}) with only one trial.  Its support is $k \in {0, 1}$.
-\\ The specifications of this distribution must be defined within the xml block $<Bernoulli>$. This xml-node needs to contain the attribute:
+The \distname{Bernoulli} distribution is a discrete distribution of the outcome
+of a single trial with only two results, 0 (failure) or 1 (success), with a
+probability of success \distattrib{p}.
+%
+It is the simplest building block on which other discrete distributions of
+sequences of independent Bernoulli trials can be based.
+%
+Basically, it is the binomial distribution (k = 1, \distattrib{p}) with only
+one trial.
+%
+Its support is $k \in {0, 1}$.
+
+\specBlock{a}{Bernoulli}
+%
+\attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required integer attribute}, Name of this distribution. As for the other objects, this is the name that can be used to refer to this specific entity in other input blocks (xml).   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-This distribution can be initialized through the following keyword/s:
+\subnodeIntro
 \begin{itemize}
-\item $<p>$, float, required parameter, probability of success.
+  \item \xmlNode{p}, \xmlDesc{float, required parameter}, probability of
+  success.
+  %
  \end{itemize}
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
-  <Bernoulli name='...'>
-    <p>***</p>
+  <Bernoulli name='aUserDefinedName'>
+    <p>aFloatValue</p>
   </Bernoulli>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 %%%%%% Binomial
 \paragraph{Binomial Distribution}
 \label{Binomial}
-The \distname{Binomial} distribution is the discrete probability distribution of the number of successes in a sequence of \distattrib{n} independent yes/no experiments, each of which yields success with probability \distattrib{p}. Its support is $k \in {0, 1, 2, ..., n}$.
-\\ The specifications of this distribution must be defined within the xml block $<Binomial>$. This xml-node needs to contain the attribute:
+The \distname{Binomial} distribution is the discrete probability distribution of
+the number of successes in a sequence of \distattrib{n} independent yes/no
+experiments, each of which yields success with probability \distattrib{p}.
+%
+Its support is $k \in {0, 1, 2, ..., n}$.
+
+\specBlock{a}{Binomial}
+%
+\attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-This distribution can be initialized through the following keyword/s:
+\subnodesIntro
 \begin{itemize}
-\item $<p>$, float, required parameter,  probability of success;
-\item $<n>$, integer, required parameter, number of experiment.
+  \item \xmlNode{p}, \xmlDesc{float, required parameter}, probability of
+  success.
+  %
+  \item \xmlNode{n}, \xmlDesc{integer, required parameter}, number of
+  experiments.
+  %
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
-  <Binomial name='...'>
-    <n>***</n>
-    <p>***</p>
+  <Binomial name='aUserDefinedName'>
+    <n>aFloatValue</n>
+    <p>aFloatValue</p>
   </Binomial>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 %%%%%% Poisson
 \paragraph{Poisson Distribution}
 \label{Poisson}
-The \distname{Poisson} distribution is a discrete probability distribution that expresses the probability of a given number of events occurring in a fixed interval of time and/or space if these events occur with a known average rate and independently of the time since the last event. Its support is $k \in {1, 2, 3, 4, ...}$.
-\\ The specifications of this distribution must be defined within the xml block $<Poisson>$. This xml-node needs to contain the attribute:
+The \distname{Poisson} distribution is a discrete probability distribution that
+expresses the probability of a given number of events occurring in a fixed
+interval of time and/or space if these events occur with a known average rate
+and independently of the time since the last event.
+%
+Its support is $k \in {1, 2, 3, 4, ...}$.
+
+\specBlock{a}{Poisson}
+%
+\attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-This distribution can be initialized through the following keyword/s:
+\subnodeIntro
 \begin{itemize}
-\item $<mu>$, float, required parameter, mean rate of events/time.
+  \item \xmlNode{mu}, \xmlDesc{float, required parameter}, mean rate of
+  events/time.
+  %
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML]
+<Distributions>
+  ...
+  <Poisson name='aUserDefinedName'>
+    <mu>aFloatValue</mu>
+  </Poisson>
+  ...
+</Distributions>
+\end{lstlisting}
+
+%%%%%% N-Dimensional Probability distributions
+\subsection{N-Dimensional Probability Distributions}
+\label{subsec:NdDist}
+The group of $N$-Dimensional distributions allow the user to model stochastic dependences between parameters. Thus instead of using $N$ distributions for $N$ parameters, the user can define a single distribution lying in a $N$-Dimensional space.
+The following $N$-Dimensional Probability Distributions are available within RAVEN:
+\begin{itemize}
+\item NDInverseWeight: ND Inverse Weight interpolation distribution (see Section~\ref{NDInverseWeight})
+\item NDCartesianSpline: ND spline interpolation distribution (see Section~\ref{NDCartesianSpline})
+\end{itemize}
+For both distributions, the user provides the sampled values of either CDF or PDF of the distribution. The sampled values can be scattered distributed (for NDInverseWeight) or over a cartesian grid (for NDCartesianSpline).
+
+The user can initialize, for each $N$-Dimensional distribution, the parameters of the random number generator function:
+\begin{itemize}
+\item initial\textunderscore grid\textunderscore disc 
+\item tolerance
+\end{itemize}
+in the $<dist\textunderscore init>$ block defined in sampler block $<sampler\textunderscore init>$ (see Section~\ref{sec:Samplers}). 
+
+\paragraph{NDInverseWeight Distribution}
+\label{NDInverseWeight}
+
+The specifications of this distribution must be defined within the xml block $<NDInverseWeight>$.  In RAVEN the NDInverseWeight distribution can be initialized through the following keywords:
+\begin{itemize}
+\item $<p>$, float, required parameter, power parameter. Greater values of p assign greater influence to values closest to the interpolated point.
+\item $<data\textunderscore filename   type='...' >$, string,  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
+\item $<working\textunderscore dir>$, string, folder location of the data file
 \end{itemize}
 
 \begin{lstlisting}[style=XML]
@@ -433,17 +646,97 @@ Example:
 ----------------------------
 <Distributions>
   ...
-  <Poisson name='...'>
-    <mu>***</mu>
-  </Poisson>
+  <NDInverseWeight name='...'>
+        <p>...</p>
+        <data_filename type='...'>...</data_filename>
+        <working_dir></working_dir>
+  </NDInverseWeight>
   ...
 </Distributions>
 ----------------------------
 \end{lstlisting}
 
-%%%%%% N-Dimensional Probability distributions
-\subsection{N-Dimensional Probability Distributions}
-\label{subsec:NdDist}
-We have the MultiVariate Normal distributions and 3 different type of user-input ND distribution. These types depend on the type of interpolation scheme that the user request. The inputs requirements are explained in the following:
-\\Diego I choose you!
+Each data entry contained in data\textunderscore filename is listed row by row and must be listed as follows:
+\begin{itemize}
+\item number of dimensions
+\item number of sampled points
+\item ND coordinate of each sampled point
+\item value of each sampled point
+\end{itemize}
 
+As an example, the following shows the data entries contained in data\textunderscore filename for a 3-dimensional data set that contained two sampled CDF values: ([0.0,0.0,0.0], 0.1) and ([1.0, 1.0,0.0], 0.8)
+
+\begin{lstlisting}
+----------------------------
+Example: scattered data file
+----------------------------
+3
+2
+0.0
+0.0
+0.0
+1.0
+1.0
+0.0
+0.1
+0.8
+----------------------------
+\end{lstlisting}
+
+\paragraph{NDCartesianSpline Distribution}
+\label{NDCartesianSpline}
+The specifications of this distribution must be defined within the xml block $<NDCartesianSpline>$.  In RAVEN NDCartesianSpline distribution can be initialized through the following keywords:
+\begin{itemize}
+\item $<data_filename   type='...' >$, string,  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
+\item $<working_dir>$, string, folder location of the data file
+\end{itemize}
+
+\begin{lstlisting}[style=XML]
+----------------------------
+Example:
+----------------------------
+<Distributions>
+  ...
+  <NDCartesianSpline name='...'>
+        <data_filename type='...'>...</data_filename>
+        <working_dir></working_dir>
+  </NDCartesianSpline>
+  ...
+</Distributions>
+----------------------------
+\end{lstlisting}
+
+Each data entry contained in data \textunderscore filename is listed row by row and must be listed as follows:
+\begin{itemize}
+\item number of dimensions
+\item number of discretization for each dimension
+\item discretization values for each dimension
+\item value of each sampled point
+\end{itemize}
+
+As an example, the following shows the data entries contained in data \textunderscore filename for a 2-dimensional CDF data set on the following grid $(x,y)$:
+\begin{itemize}
+\item first dimension (x): -0.5, 0.5
+\item first dimension (y): 1.0 2.0 3.0
+\end{itemize}
+
+\begin{lstlisting}
+----------------------------
+Example: scattered data file
+----------------------------
+2
+2
+3
+-0.5
+0.5
+1.0 
+2.0 
+3.0
+CDF value of (-0.5,1.0)
+CDF value of (+0.5,1.0)
+CDF value of (-0.5,2.0)
+CDF value of (+0.5,2.0)
+CDF value of (-0.5,3.0)
+CDF value of (+0.5,3.0)
+----------------------------
+\end{lstlisting}

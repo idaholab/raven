@@ -13,14 +13,14 @@ from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class MooseBasedAppInterface(CodeInterfaceBase):
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
-  def generateCommand(self,inputFiles,executable,flags=None):
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     '''seek which is which of the input files and generate According the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
-      if inputFile.endswith(('.i','.inp','.in')):
+      if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raise Exception('MOOSEBASEDAPP INTERFACE ERROR -> None of the input files has one of the following extensions ".i", ".inp", or ".in"!')
+    if not found: raise Exception('MOOSEBASEDAPP INTERFACE ERROR -> None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
                         ' Outputs/file_base='+ outputfile +
@@ -40,8 +40,13 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     self._samplersDictionary['FactorialDesign'      ] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
-    if currentInputFiles[0].endswith('.i'): index = 0
-    else: index = 1
+    self._samplersDictionary['SparseGridCollocation'] = self.pointSamplerForMooseBasedApp
+    found = False
+    for index, inputFile in enumerate(currentInputFiles):
+      if inputFile.endswith(self.getInputExtension()):
+        found = True
+        break
+    if not found: raise Exception('MOOSEBASEDAPP INTERFACE ERROR -> None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)

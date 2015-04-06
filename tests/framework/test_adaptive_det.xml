@@ -1,3 +1,4 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation debug="True">
     <RunInfo>
@@ -56,7 +57,7 @@
     </Distributions>
     <Samplers>
         <AdaptiveDynamicEventTree name='AdaptiveDET' print_end_xml='yes' maxSimulationTime='2500.0'>
-            <Convergence limit='1600' forceIteration='False' weight='probability' persistence='20'>0.0001</Convergence>
+            <Convergence limit='1600' forceIteration='False' weight='CDF' persistence='20'>0.0001</Convergence>
             <Distribution name='DG1recoveryTime'>
                 <distribution >crew1DG1</distribution>
                 <grid type='CDF' construction='custom'>0.1 0.9</grid>

@@ -4,7 +4,7 @@
     <WorkingDir>RELAP5interfaceTest</WorkingDir>
     <Files>snc01.i,tpfh2o</Files>
     <Sequence>testDummyStep</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>
@@ -28,12 +28,15 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo     name='MC_samp'  limit='5'>
+    <MonteCarlo     name='MC_samp'>
+     <sampler_init>
+       <limit>5</limit>
+     </sampler_init>
      <variable name='9890201:2'>
-      <distribution>Prim_Pres</distribution>
+       <distribution>Prim_Pres</distribution>
      </variable>
      <variable name='20290000:4'>
-      <distribution>Core_Power</distribution>
+       <distribution>Core_Power</distribution>
      </variable>
     </MonteCarlo>
 </Samplers>

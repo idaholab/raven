@@ -115,6 +115,7 @@ clean::
           $(RAVEN_DIR)/src/postprocessors/amsc_wrap.cxx \
           $(RAVEN_DIR)/src/postprocessors/amsc.py \
           $(RAVEN_DIR)/control_modules/*.so*
+	@find $(RAVEN_DIR)/framework  -name '*.pyc' -exec rm '{}' \;
 
 clobber::
 	@rm -f $(RAVEN_DIR)/control_modules/_distribution1D.so \

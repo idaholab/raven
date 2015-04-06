@@ -38,7 +38,7 @@
     </Distributions>
     <Samplers>
         <AdaptiveDynamicEventTree name='AdaptiveDETsimple' print_end_xml='yes' maxSimulationTime='5.0'>
-            <Convergence limit='1600' forceIteration='False' weight='probability' persistence='7'>0.05</Convergence>
+            <Convergence limit='1600' forceIteration='False' weight='CDF' persistence='7'>0.05</Convergence>
             <ROM               class='Models'           type='ROM'         >Acc</ROM>
             <Function          class='Functions'        type='External'    >relapFunctionSimple</Function>
             <TargetEvaluation  class='Datas'            type='TimePointSet'>adaptiveOutsimple</TargetEvaluation>
@@ -72,7 +72,7 @@
             <Input   class='Datas'            type='TimePointSet'    >LimitSurfSimple</Input>
             <Input   class='Datas'            type='Histories'       >adaptiveOutHistorieSimple</Input>
             <Output  class='OutStreamManager' type='Print'           >adaptiveNoHierarchicalDump</Output>
-            <Output  class='OutStreamManager' type='Plot'            >limitSurfDump</Output>
+            <!-- <Output  class='OutStreamManager' type='Plot'            >limitSurfDump</Output> -->
             <Output  class='OutStreamManager' type='Print'           >adaptiveNoHierarchicalDump</Output>
             <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier</Output>
             <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier_selective_Output</Output>
@@ -132,7 +132,7 @@
             <source>adaptiveOutsimple</source>
             <variables>Output|systemFailed</variables>
         </Print>
-        
+        <!--
         <Plot debug = 'True' name='limitSurfDump' dim='2' overwrite='False'>
             <plotSettings>
                 <plot>
@@ -149,6 +149,7 @@
                 </title>
             </actions>
         </Plot>
+         -->
     </OutStreamManager>
     <Datas>
         <Histories name='AdaptiveDEThistories' inputTs='-1'>

@@ -18,12 +18,18 @@ import subprocess
 import os
 import signal
 import copy
+import sys
+import abc
 #import logging, logging.handlers
 import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import returnPrintTag, returnPrintPostTag
+from utils import returnPrintTag, returnPrintPostTag, metaclass_insert
+from BaseClasses import BaseType
+# for internal parallel
+import pp
+import ppserver
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -31,8 +37,9 @@ class ExternalRunner:
   '''
   Class for running external codes
   '''
-  def __init__(self,command,workingDir,bufsize,output=None,metadata=None):
+  def __init__(self,command,workingDir,bufsize,output=None,metadata=None,codePointer=None):
     ''' Initialize command variable'''
+    self.codePointerFailed = None
     self.command    = command
     self.bufsize    = bufsize
     workingDirI     = None
@@ -67,6 +74,7 @@ class ExternalRunner:
     if workingDirI: self.__workingDir = workingDirI
     else          : self.__workingDir = workingDir
     self.__metadata   = metadata
+    self.codePointer  = codePointer
     # Initialize logger
     #self.logger     = self.createLogger(self.identifier)
     #self.addLoggerHandler(self.identifier, self.output, 100000, 1)
@@ -116,8 +124,17 @@ class ExternalRunner:
   def getReturnCode(self):
     '''
     Function to inquire the process to get the return code
+    If the self.codePointer is available (!= None), this method
+    inquires it to check if the process return code is a false negative (or positive).
+    The first time the codePointer is inquired, it calls the function and store the result
+    => sub-sequential calls to getReturnCode will not inquire the codePointer anymore but
+    just return the stored value
     '''
-    return self.__process.returncode
+    returnCode = self.__process.returncode
+    if self.codePointer != None and returnCode == 0:
+      if  self.codePointerFailed == None:  self.codePointerFailed = self.codePointer.checkForOutputFailure(self.output,self.getWorkingDir())
+      if  self.codePointerFailed: returnCode = 1
+    return returnCode
 
   def returnEvaluation(self):
     '''
@@ -138,7 +155,6 @@ class ExternalRunner:
     oldDir = os.getcwd()
     os.chdir(self.__workingDir)
     localenv = dict(os.environ)
-    localenv['PYTHONPATH'] = ''
     outFile = open(self.output,'w', self.bufsize)
     self.__process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
     os.chdir(oldDir)
@@ -172,67 +188,88 @@ class ExternalRunner:
 #
 class InternalRunner:
   #import multiprocessing as multip
-  def __init__(self,Input,functionToRun,identifier=None,metadata=None):
+  def __init__(self,ppserver, Input,functionToRun, frameworkModules = [], identifier=None,metadata=None, globs = None, functionToSkip = None):
     # we keep the command here, in order to have the hook for running exec code into internal models
-    self.command = "internal"
+    self.command  = "internal"
+    self.ppserver = ppserver
+    self.__thread = None
     if    identifier!=None:
       if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
       else                : self.identifier =  str(identifier)
     else: self.identifier = 'generalOut'
-    if type(Input) != tuple: raise IOError(returnPrintTag('JOB HADLER') + ": " +returnPrintPostTag('ERROR') + "-> The input for InternalRunner needs to be a tuple!!!!")
+    if type(Input) != tuple: raise IOError(returnPrintTag('JOB HANDLER') + ": " +returnPrintPostTag('ERROR') + "-> The input for InternalRunner needs to be a tuple!!!!")
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
-    self.subque          = queue.Queue()
+    if self.ppserver == None: self.subque = queue.Queue()
     self.functionToRun   = functionToRun
-    if len(Input) == 1: self.__thread = threading.Thread(target = lambda q,  arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
-    else              : self.__thread = threading.Thread(target = lambda q, *arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
-    self.__thread.daemon = True
     self.__runReturn     = None
     self.__hasBeenAdded  = False
-    self.__input         = copy.copy(Input[0])
+    self.__input         = copy.copy(Input)
     self.__metadata      = copy.copy(metadata)
+    self.__globals       = copy.copy(globs)
+    self.__frameworkMods = copy.copy(frameworkModules)
+    self._functionToSkip = functionToSkip
     self.retcode         = 0
 
+  def start_pp(self):
+    if self.ppserver != None:
+      if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
+      else                     : self.__thread = self.ppserver.submit(self.functionToRun, args= self.__input, depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
+    else:
+      if len(self.__input) == 1: self.__thread = threading.Thread(target = lambda q,  arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,self.__input[0]))
+      else                     : self.__thread = threading.Thread(target = lambda q, *arg : q.put(self.functionToRun(*arg)), name = self.identifier, args=(self.subque,)+tuple(self.__input))
+      self.__thread.daemon = True
+      self.__thread.start()
+
   def isDone(self):
-    return not self.__thread.is_alive()
+    if self.__thread == None: return True
+    else:
+      if self.ppserver != None: return self.__thread.finished
+      else:                     return not self.__thread.is_alive()
 
   def getReturnCode(self): return self.retcode
 
   def returnEvaluation(self):
     if self.isDone():
       if not self.__hasBeenAdded:
-        self.__runReturn = self.subque.get(timeout=1)
+        if self.ppserver != None: self.__runReturn = self.__thread()
+        else                    : self.__runReturn = self.subque.get(timeout=1)
         self.__hasBeenAdded = True
-      return (self.__input,self.__runReturn)
+        if self.__runReturn == None:
+          self.retcode = -1
+          return self.retcode
+      return (self.__input[0],self.__runReturn)
     else: return -1 #control return code
 
   def returnMetadata(self): return self.__metadata
 
   def start(self):
-    try: self.__thread.start()
+    try: self.start_pp()
     except Exception as ae:
-      print(returnPrintTag('JOB HADLER')+"ERROR -> InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !")
+      print(returnPrintTag('JOB HANDLER')+"ERROR -> InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !")
       self.retcode = -1
 
   def kill(self):
-    print(returnPrintTag('JOB HADLER')+": Terminating ",self.__thread.ident(), " Identifier " + self.identifier)
-    os.kill(self.__thread.ident(),signal.SIGTERM)
+    print(returnPrintTag('JOB HANDLER')+": Terminating ",self.__thread.pid, " Identifier " + self.identifier)
+    if self.ppserver != None: os.kill(self.__thread.tid,signal.SIGTERM)
+    else: os.kill(self.__thread.pid,signal.SIGTERM)
 
 class JobHandler:
   def __init__(self):
-    self.runInfoDict       = {}
-    self.mpiCommand        = ''
-    self.threadingCommand  = ''
-    self.submitDict = {}
+    self.runInfoDict            = {}
+    self.mpiCommand             = ''
+    self.threadingCommand       = ''
+    self.initParallelPython     = False
+    self.submitDict             = {}
     self.submitDict['External'] = self.addExternal
     self.submitDict['Internal'] = self.addInternal
     self.externalRunning        = []
     self.internalRunning        = []
-    self.__running = []
-    self.__queue = queue.Queue()
-    self.__nextId = 0
-    self.__numSubmitted = 0
-    self.__numFailed = 0
-    self.__failedJobs = []
+    self.__running              = []
+    self.__queue                = queue.Queue()
+    self.__nextId               = 0
+    self.__numSubmitted         = 0
+    self.__numFailed            = 0
+    self.__failedJobs           = []
 
   def initialize(self,runInfoDict):
     self.runInfoDict = runInfoDict
@@ -243,7 +280,52 @@ class JobHandler:
     #initialize PBS
     self.__running = [None]*self.runInfoDict['batchSize']
 
-  def addExternal(self,executeCommand,outputFile,workingDir,metadata=None):
+  def __initializeParallelPython(self):
+    """
+      Internal method that is aimed to initialize the internal parallel system.
+      It initilizes the paralle python implementation (with socketing system) in case
+      RAVEN is run in a cluster with multiple nodes or the NumMPI > 1,
+      otherwise multi-threading is used.
+      @ In, None
+      @ Out, None
+    """
+    # check if the list of unique nodes is present and, in case, initialize the socket
+    if len(self.runInfoDict['Nodes']) > 0:
+      # initialize the socketing system
+      #ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py -a")
+      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+      # create the servers in the reserved nodes
+      localenv = dict(os.environ)
+      #localenv['PYTHONPATH'] = ''
+      ppservers = []
+      for nodeid in [node.strip() for node in set(self.runInfoDict['Nodes'])]:
+        outFile = open(nodeid.strip()+"_server_out.log",'w')
+        # check how many processors are available in the node
+        ntasks = self.runInfoDict['Nodes'].count(nodeid)
+        process = subprocess.Popen(['ssh', nodeid, ppserverScript,"-w",str(ntasks),"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        ppservers.append(nodeid)
+      #for nodeid in self.runInfoDict['Nodes']: subprocess.call(['ssh ', nodeid, ppserverScript])
+      #for nodeid in self.runInfoDict['Nodes']: subprocess.Popen('ssh '+nodeid+' '+ ppserverScript , shell=True) #,env=localenv)
+      # create the server handler
+      #ppservers=("*",)
+      #ppservers = tuple(nodeid.split(".")[0])
+      self.ppserver     = pp.Server(ppservers=tuple(ppservers)) #,ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+      #self.ppserver     = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']), ppservers=tuple(self.runInfoDict['Nodes']))
+    else:
+      if self.runInfoDict['NumMPI'] > 1: self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
+      else                             : self.ppserver = None        # we just use threading!
+    self.initParallelPython = True
+
+  def addExternal(self,executeCommand,outputFile,workingDir,metadata=None,codePointer=None):
+    """
+      Method to add an external runner (an external code) in the handler list
+      @ In, executeCommand, string, command to be executed
+      @ In, outputFile, string, output file name
+      @ In, workingDir, string, working directory
+      @ In, metadata, dict, optional, dictionary of metadata
+      @ In, codePointer, derived CodeInterfaceBaseClass object, optional, pointer to code interface
+      @ Out, None
+    """
     #probably something more for the PBS
     command = self.runInfoDict['precommand']
     if self.mpiCommand !='':
@@ -252,12 +334,14 @@ class JobHandler:
       command +=self.threadingCommand+' '
     command += executeCommand
     command += self.runInfoDict['postcommand']
-    self.__queue.put(ExternalRunner(command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata))
+    self.__queue.put(ExternalRunner(command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata,codePointer))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
-  def addInternal(self,Input,functionToRun,identifier,metadata=None):
-    self.__queue.put(InternalRunner(Input,functionToRun,identifier,metadata))
+  def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], globs = None):
+    #internal serve is initialized only in case an internal calc is requested
+    if not self.initParallelPython: self.__initializeParallelPython()
+    self.__queue.put(InternalRunner(self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs, functionToSkip=[metaclass_insert(abc.ABCMeta,BaseType)]))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
@@ -296,14 +380,13 @@ class JobHandler:
           running = self.__running[i]
           returncode = running.getReturnCode()
           if returncode != 0:
-            print(returnPrintTag('JOB HADLER')+": Process Failed ",running,running.command," returncode",returncode)
+            print(returnPrintTag('JOB HANDLER')+": Process Failed ",running,running.command," returncode",returncode)
             self.__numFailed += 1
             self.__failedJobs.append(running.identifier)
-            outputFilename = running.getOutputFilename()
-            if os.path.exists(outputFilename):
-              print(open(outputFilename,"r").read())
-            else:
-              print(returnPrintTag('JOB HADLER')+" No output ",outputFilename)
+            if type(running).__name__ == "External":
+              outputFilename = running.getOutputFilename()
+              if os.path.exists(outputFilename): print(open(outputFilename,"r").read())
+              else: print(returnPrintTag('JOB HANDLER')+" No output ",outputFilename)
           else:
             if self.runInfoDict['delSucLogFiles'] and running.__class__.__name__ != 'InternalRunner':
               print(returnPrintTag('JOB HANDLER') + ': Run "' +running.identifier+'" ended smoothly, removing log file!')
@@ -351,5 +434,3 @@ class JobHandler:
     #clear out the queue
     while not self.__queue.empty(): self.__queue.get()
     for i in range(len(self.__running)): self.__running[i].kill()
-
-
