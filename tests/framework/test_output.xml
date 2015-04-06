@@ -569,6 +569,64 @@
         </title>
     </actions>
 </Plot>
+  <Plot debug='True' name='plot18' dim='2' overwrite='False'>
+    <actions>
+      <how>png</how>
+    </actions>
+    <plotSettings>
+      <plot>
+      <type>scatter</type>
+      <x>stories|Output|time</x>
+      <y>stories|Output|pump_mass_flow_rate</y>
+      <colorMap>stories|Input|pipe1_Dh</colorMap> 
+      <cmap>hot</cmap>
+      </plot>
+      <xlabel>Time (s)</xlabel>
+      <ylabel>Mass Flow Rate</ylabel>
+      <kwargs>
+      </kwargs>
+    </plotSettings>
+  </Plot>
+  <Plot debug='True' name='plot19' dim='3' overwrite='False'>
+    <actions>
+      <how>png</how>
+    </actions>
+    <plotSettings>
+      <plot>
+      <type>scatter</type>
+      <x>stories|Output|time</x>
+      <y>stories|Input|pipe1_Dh</y>
+      <z>stories|Output|pump_mass_flow_rate</z> 
+      <colorMap>stories|Output|pipe1_Hw</colorMap> 
+      <cmap>hot</cmap>
+      </plot>
+      <xlabel>Time (s)</xlabel>
+      <ylabel>Hydraulic Diameter</ylabel>
+      <zlabel>Mass Flow Rate</zlabel>
+      <kwargs>
+      </kwargs>
+    </plotSettings>
+  </Plot>
+  <Plot debug='True' name='plot20' dim='3' overwrite='False'>
+    <actions>
+      <how>png</how>
+    </actions>
+    <plotSettings>
+      <plot>
+      <type>scatter</type>
+      <x>Historyy|Output|time</x>
+      <y>Historyy|Input|pipe1_Dh</y>
+      <z>Historyy|Output|pump_mass_flow_rate</z> 
+      <colorMap>Historyy|Output|pipe1_Hw</colorMap> 
+      <cmap>hot</cmap>
+      </plot>
+      <xlabel>Time (s)</xlabel>
+      <ylabel>Hydraulic Diameter</ylabel>
+      <zlabel>Mass Flow Rate</zlabel>
+      <kwargs>
+      </kwargs>
+    </plotSettings>
+  </Plot>
  <Plot debug = 'True' name='2DHistoryPlot' dim='2' overwrite='False'>
     <plotSettings>
         <plot>
@@ -642,6 +700,9 @@
         <Output    class='OutStreamManager' type='Plot'         >plot15</Output>
         <Output    class='OutStreamManager' type='Plot'         >plot16</Output>
         <Output    class='OutStreamManager' type='Plot'         >plot17</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot18</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot19</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot20</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist1</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist2</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist3</Output>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+  <RunInfo>
+    <JobName>testGenericCodeInterface</JobName>
+    <Files>gen.one,gen.two</Files>
+    <Sequence>sample</Sequence>
+    <WorkingDir>GenericInterfaceIO</WorkingDir>
+    <batchSize>1</batchSize>
+    <!--mode>mpi<runQSUB/></mode>
+    <NumMPI>24</NumMPI>
+    <expectedTime>8:48:00</expectedTime-->
+  </RunInfo>
+
+  <Models>
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterfaceIO/poly_inp_io.py</executable>
+      <clargs   type='prepend' arg='python'/>
+      <clargs   type='input'   arg='-i'     extension='.one'/>
+      <fileargs type='input'   arg='aux'    extension='.two'/>
+      <fileargs type='output'  arg='output'                 />
+      <prepend>python</prepend>
+    </Code>
+  </Models>
+
+  <Distributions>
+      <Uniform name='xd'><low>0.0</low><hi>1.0</hi></Uniform>
+      <Uniform name='yd'><low>1.0</low><hi>2.0</hi></Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name='grid'>
+      <variable name="x"><distribution>xd</distribution><grid type='CDF' construction='equal' lowerBound='0.3' steps='1'>0.4</grid></variable>
+      <variable name="y"><distribution>yd</distribution><grid type='CDF' construction='equal' lowerBound='0.3' steps='1'>0.4</grid></variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input   class="Files"     type=""            >gen.one</Input>
+      <Input   class="Files"     type=""            >gen.two</Input>
+      <Sampler class="Samplers"  type="Grid"        >grid</Sampler>
+      <Model   class="Models"    type="Code"        >poly</Model>
+      <Output  class='Datas'     type='TimePointSet'>samples</Output>
+      <Output  class='OutStreamManager' type='Print'>samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <Datas>
+    <TimePointSet name="samples">
+      <Input>x,y</Input>
+      <Output>poly</Output>
+    </TimePointSet>
+  </Datas>
+
+  <OutStreamManager>
+      <Print name='samples'>
+          <type>csv</type>
+          <source>samples</source>
+      </Print>
+  </OutStreamManager>
+</Simulation>

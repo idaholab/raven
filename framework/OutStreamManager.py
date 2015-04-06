@@ -559,11 +559,11 @@ class OutStreamPlot(OutStreamManager):
     self.__executeActions()
 
   def localReadXML(self,xmlNode):
-    '''
+    """
       This Function is called from the base class, It reads the parameters that belong to a plot block
       @ In, xmlNode
       @ Out, filled data structure (self)
-    '''
+    """
     if not 'dim' in xmlNode.attrib.keys(): self.dim = 2
     else:                                  self.dim = int(xmlNode.attrib['dim'])
     if self.dim not in [2,3]: raise IOError(self.printTag+': ERROR -> Wrong dimension... 2D or 3D only!!! Got '+ str(self.dim)+'D')
@@ -611,11 +611,11 @@ class OutStreamPlot(OutStreamManager):
     if self.dim == 3: from mpl_toolkits.mplot3d import Axes3D
 
   def addOutput(self):
-    '''
+    """
     Function to show and/or save a plot
     @ In,  None
     @ Out, None (Plot on the screen or on file/s)
-    '''
+    """
     # reactivate the figure
     self.fig = self.plt.figure(self.name)
     # fill the x_values,y_values,z_values dictionaries

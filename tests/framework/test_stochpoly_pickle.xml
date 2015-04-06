@@ -48,16 +48,16 @@
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
         <ROM name='pROM' subType='GaussPolynomialRom'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
     </Models>
 
