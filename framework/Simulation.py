@@ -622,7 +622,7 @@ class Simulation(object):
       #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
       for [key,b,c,d] in stepInstance.parList:
         #Only for input and output we allow more than one object passed to the step, so for those we build a list
-        if key == 'Input' or key == 'Output': 
+        if key == 'Input' or key == 'Output':
             if b == 'OutStreamManager': stepInputDict[key].append(self.whichDict[b][c][d])
             else:                       stepInputDict[key].append(self.whichDict[b][d])
         else: stepInputDict[key] = self.whichDict[b][d]
