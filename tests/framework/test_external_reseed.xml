@@ -2,13 +2,13 @@
 <Simulation debug='True'>
 <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
-    <Files>lorentzAttractor.py</Files>
+    <Files>Functions.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
 </RunInfo>
 
 <Models>
-    <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/lorentzAttractor'>  
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/Functions'>  
        <variable>sigma</variable>
        <variable>rho</variable>
        <variable>beta</variable>
@@ -58,7 +58,7 @@
 
 <Steps>
     <MultiRun name='FirstMRun'  re-seeding='200286'>
-        <Input   class='Files'     type=''               >lorentzAttractor.py</Input>
+        <Input   class='Files'     type=''               >Functions.py</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
         <Output  class='Datas'     type='Histories'      >testPrintHistories</Output>
