@@ -491,7 +491,7 @@ class ExternalModel(Dummy):
         else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The path provided for the external model does not exist!!! Got: ' + abspath)
     else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
-    self.sim=__import__(self.ModuleToLoad)
+    self.sim = utils.importFromPath(str(xmlNode.attrib['ModuleToLoad']))
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':
