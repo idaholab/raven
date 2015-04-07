@@ -32,7 +32,7 @@
 </Samplers>
 
 <OutStreamManager>
-  <Print name='testprint'>
+  <Print name='test'>
     <type>csv</type>
     <source>stories</source>
   </Print>
@@ -82,7 +82,7 @@
       <type>csv</type>
       <source>TimePointSets</source>
     </Print>
-   <Plot debug = 'True' name='plot1' dim='2' overwrite='False'>
+   <Plot debug = 'True' name='test' dim='2' overwrite='False'>
     <plotSettings>
        <plot>
         <type>line</type>
@@ -680,10 +680,10 @@
         <Input    class='Datas'            type='TimePoint'    >TimePointt</Input>
         <Input    class='Datas'            type='History'      >Historyy</Input>
         <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot</Output>
-        <Output    class='OutStreamManager' type='Print'        >testprint</Output>
+        <Output    class='OutStreamManager' type='Print'        >test</Output>
         <Output    class='OutStreamManager' type='Print'        >fullprint_timepointset</Output>
         <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot2</Output>
-        <Output    class='OutStreamManager' type='Plot'         >plot1</Output>
+        <Output    class='OutStreamManager' type='Plot'         >test</Output>
         <Output    class='OutStreamManager' type='Plot'         >plot2</Output>
         <Output    class='OutStreamManager' type='Plot'         >plot3</Output>
         <Output    class='OutStreamManager' type='Plot'         >plot4</Output>
