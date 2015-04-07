@@ -34,11 +34,11 @@ import utils
 
 #class Model(BaseType):
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
-  '''
+  """
   A model is something that given an input will return an output reproducing some physical model
   it could as complex as a stand alone code, a reduced order model trained somehow or something
   externally build and imported by the user
-  '''
+  """
   validateDict                  = {}
   validateDict['Input'  ]       = []
   validateDict['Output' ]       = []
@@ -205,10 +205,10 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 #
 #
 class Dummy(Model):
-  '''
+  """
   this is a dummy model that just return the effect of the sampler. The values reported as input in the output
   are the output of the sampler and the output is the counter of the performed sampling
-  '''
+  """
   def __init__(self):
     Model.__init__(self)
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
@@ -452,23 +452,23 @@ class ExternalModel(Dummy):
     self.initExtSelf              = utils.Object()                                                                                           # object used as "self" for external module imported at runtime
 
   def initialize(self,runInfo,inputs,initDict=None):
-    '''
+    """
     Initialize method for the model
     @ In, runInfo is the run info from the jobHandler
     @ In, inputs is a list containing whatever is passed with an input role in the step
     @ In, initDict, optional, dictionary of all objects available in the step is using this model
-    '''
+    """
     if 'initialize' in dir(self.sim): self.sim.initialize(self.initExtSelf,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.sim)))
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
-    '''
+    """
     Function to create a new input, through the info contained in Kwargs
     @ In, myInput, list of original inputs
     @ In, samplerType, string, sampler type (e.g. MonteCarlo, DET, etc.)
     @ In, Kwargs, dictionary containing information useful for creation of a newer input (e.g. sampled variables, etc.)
-    '''
+    """
     modelVariableValues ={}
     for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
     if 'createNewInput' in dir(self.sim):
@@ -492,7 +492,7 @@ class ExternalModel(Dummy):
         else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The path provided for the external model does not exist!!! Got: ' + abspath)
     else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
-    self.sim=__import__(self.ModuleToLoad)
+    self.sim = utils.importFromPath(str(xmlNode.attrib['ModuleToLoad']))
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':
