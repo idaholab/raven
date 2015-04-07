@@ -290,7 +290,7 @@ class Simulation(object):
     self.runInfoDict['postcommand'       ] = ''           # Added after the command that is run.
     self.runInfoDict['delSucLogFiles'    ] = False        # If a simulation (code run) has not failed, delete the relative log file (if True)
     self.runInfoDict['deleteOutExtension'] = []           # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
-    self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only modes supported are pbsdsh and mpi
+    self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only mode supported is mpi but others can be added with custom modes.
     self.runInfoDict['Nodes'             ] = []           # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
@@ -318,7 +318,6 @@ class Simulation(object):
 
     #Dictionary of mode handlers for the
     self.__modeHandlerDict           = {}
-    #self.__modeHandlerDict['pbsdsh'] = PBSDSHSimulationMode
     self.__modeHandlerDict['mpi']    = MPISimulationMode
 
     #this dictionary contain the static factory that return the instance of one of the allowed entities in the simulation
