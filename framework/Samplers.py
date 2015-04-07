@@ -2516,12 +2516,13 @@ class Sobol(SparseGridCollocation):
     self.polyDict       = {}    #varName-indexed dict of polynomial types
     self.quadDict       = {}    #varName-indexed dict of quadrature types
     self.importanceDict = {}    #varName-indexed dict of importance weights
+    self.references     = {}    #reference (mean) values for distributions, by var
     self.solns          = None  #pointer to output datas object
     self.ROM            = None  #pointer to sobol ROM
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
 
-    self.requiredAssObject = (True,(['TargetEvaluation','ROM'],['1','1']))                  # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+    self.requiredAssObject = (True,(['ROM'],['1']))                  # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def _localWhatDoINeed(self):
     gridDict = Grid._localWhatDoINeed(self)
@@ -2541,8 +2542,9 @@ class Sobol(SparseGridCollocation):
       elif child.tag == 'variable':
         varName = child.attrib['name']
         self.axisName.append(varName)
-      elif child.tag == 'SobolOrder':
-        self.sobolOrder = int(child.text)
+      #elif child.tag == 'SobolOrder':
+      #  self.sobolOrder = int(child.text)
+      #  print(self.sobolOrder)
 
   def localInitialize(self):
     for key in self.assemblerDict.keys():
@@ -2551,17 +2553,15 @@ class Sobol(SparseGridCollocation):
         for value in self.assemblerDict[key]:
           self.ROM = self.assemblerDict[key][indice][3]
           indice += 1
-      elif 'TargetEvaluation' in key:
-        indice = 0
-        for value in self.assemblerDict[key]:
-          self.solns = self.assemblerDict[key][indice][3]
-          indice += 1
     #make combination of ROMs that we need
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0]
+    self.sobolOrder = SVL.sobolOrder
+    print('DEBUG sobol',self.sobolOrder)
     self._generateQuadsAndPolys(SVL)
     varis = SVL.features
     needCombos = itertools.chain.from_iterable(itertools.combinations(varis,r) for r in range(self.sobolOrder+1))
+    #print('DEBUG needCombos',self.printTag,list(needCombos))
     self.SQs={}
     self.ROMs={}
     for combo in needCombos:
@@ -2585,30 +2585,39 @@ class Sobol(SparseGridCollocation):
       initDict['Features']=','.join(combo)
       initDict['Target']=SVL.target #TODO make it work for multitarget
       self.ROMs[combo] = SupervisedLearning.GaussPolynomialRom(**initDict)
-      initDict={'SG':self.SQs[combo], 'dists':distDict, 'quads':quadDict, 'polys':polyDict, 'iSet':SVL.indexSet}
+      initDict={'SG':self.SQs[combo], 'dists':distDict, 'quads':quadDict, 'polys':polyDict, 'iSet':iset}
       self.ROMs[combo].initialize(initDict)
     #make combined sparse grids
-    references={}
+    self.references={}
     for var,dist in self.distDict.items():
-      references[var]=dist.untruncatedMean()
+      self.references[var]=dist.untruncatedMean()
     std = self.distDict.keys()
     self.pointsToRun=[]
+    #make sure reference case gets in there
+    newpt = np.zeros(len(self.distDict))
+    for v,var in enumerate(self.distDict.keys()):
+      newpt[v] = self.references[var]
+    self.pointsToRun.append(tuple(newpt))
+    #now do the rest
     for combo,rom in self.ROMs.items():
-      if len(combo)==0:
-        newpt = np.zeros(len(self.distDict))
-        for v,var in enumerate(self.distDict.keys()):
-          newpt[v] = references[var]
-        self.pointsToRun.append(tuple(newpt))
       SG = rom.sparseGrid
+      SG._remap(combo)
       for l in range(len(SG)):
         pt,wt = SG[l]
         newpt = np.zeros(len(std))
         for v,var in enumerate(std):
           if var in combo: newpt[v] = pt[combo.index(var)]
-          else: newpt[v] = references[var]
+          else: newpt[v] = self.references[var]
         newpt=tuple(newpt)
         if newpt not in self.pointsToRun: self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
+    initdict={'ROMs':self.ROMs,
+              'SG':self.SQs,
+              'dists':self.distDict,
+              'quads':self.quadDict,
+              'polys':self.polyDict,
+              'refs':self.references}
+    self.ROM.SupervisedEngine.values()[0].initialize(initdict)
 
   def localGenerateInput(self,model,myInput):
     '''Provide the next point in the sparse grid.'''

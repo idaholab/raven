@@ -36,7 +36,6 @@
             <variable name="x5"><distribution>UniDist</distribution></variable>
             <variable name="x6"><distribution>UniDist</distribution></variable>
             <ROM class = 'Models' type = 'ROM'>rom</ROM>
-            <TargetEvaluation class = 'Datas' type = 'TimePointSet'>solns</TargetEvaluation>
         </Sobol>
     </Samplers>
 
