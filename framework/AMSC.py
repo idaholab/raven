@@ -23,10 +23,11 @@ import scipy.stats
 ##Let's see what statsmodels weighted linear regression does
 #import statsmodels.api as sm
 
-""" A wrapper class for the C++ approximate Morse-Smale complex Object that also
-    communicates with the UI via Qt's signal interface
-"""
 class AMSC_Object(PySide.QtCore.QObject):
+  """ A wrapper class for the C++ approximate Morse-Smale complex Object that
+      also communicates with the UI via Qt's signal interface
+  """
+
   ## Paul Tol's colorblind safe colors
   colorList = ['#88CCEE', '#DDCC77', '#AA4499', '#117733', '#332288', '#999933',
                '#44AA99', '#882255', '#CC6677']
@@ -53,43 +54,43 @@ class AMSC_Object(PySide.QtCore.QObject):
   sigModelsChanged = PySide.QtCore.Signal()
   sigWeightsChanged = PySide.QtCore.Signal()
 
-  """ Initialization method that takes at minimum a set of input points and 
-      corresponding output responses.
-      @ In, X, an m-by-n array of values specifying m n-dimensional samples
-      @ In, Y, a m vector of values specifying the output responses corresponding
-        to the m samples specified by X
-      @ In, w, an optional m vector of values specifying the weights associated
-        to each of the m samples used. Default of None means all points will be
-        equally weighted
-      @ In, names, an optional list of strings that specify the names to
-        associate to the n input dimensions and 1 output dimension. Default of
-        None means input variables will be x0,x1...,x(n-1) and the output will
-        be y
-      @ In, graph, an optional string specifying the type of neighborhood graph
-        to use. Default is 'beta skeleton,' but other valid types are:
-        'delaunay', 'relaxed beta skeleton', or 'approximate knn'
-      @ In, gradient, an optional string specifying the type of gradient
-        estimator
-        to use. Currently the only available option is 'steepest'
-      @ In, knn, an optional integer value specifying the maximum number of
-        k-nearest neighbors used to begin a neighborhood search. In the case of
-        graph='[relaxed] beta skeleton', we will begin with the specified
-        approximate knn graph and prune edges that do not satisfy the empty
-        region criteria.
-      @ In, beta, an optional floating point value between 0 and 2. This value is
-        only used when graph='[relaxed] beta skeleton' and specifies the radius
-        for the empty region graph computation (1=Gabriel graph, 2=Relative
-        neighbor graph)
-      @ In, normalization, an optional string specifying whether the
-        inputs/output should be scaled before computing. Currently, two modes
-        are supported 'zscore' and 'feature'. 'zscore' will ensure the data has
-        a mean of zero and a standard deviation of 1 by subtracting the mean and
-        dividing by the variance. 'feature' scales the data into the unit
-        hypercube.
-  """
   def __init__(self, X, Y, w=None, names=None, graph='beta skeleton',
                gradient='steepest', knn=-1, beta=1.0, normalization=None,
                debug=False):
+    """ Initialization method that takes at minimum a set of input points and 
+        corresponding output responses.
+        @ In, X, an m-by-n array of values specifying m n-dimensional samples
+        @ In, Y, a m vector of values specifying the output responses
+          corresponding to the m samples specified by X
+        @ In, w, an optional m vector of values specifying the weights
+          associated to each of the m samples used. Default of None means all
+          points will be equally weighted
+        @ In, names, an optional list of strings that specify the names to
+          associate to the n input dimensions and 1 output dimension. Default of
+          None means input variables will be x0,x1...,x(n-1) and the output will
+          be y
+        @ In, graph, an optional string specifying the type of neighborhood
+          graph to use. Default is 'beta skeleton,' but other valid types are:
+          'delaunay,' 'relaxed beta skeleton,' or 'approximate knn'
+        @ In, gradient, an optional string specifying the type of gradient
+          estimator
+          to use. Currently the only available option is 'steepest'
+        @ In, knn, an optional integer value specifying the maximum number of
+          k-nearest neighbors used to begin a neighborhood search. In the case
+          of graph='[relaxed] beta skeleton', we will begin with the specified
+          approximate knn graph and prune edges that do not satisfy the empty
+          region criteria.
+        @ In, beta, an optional floating point value between 0 and 2. This
+          value is only used when graph='[relaxed] beta skeleton' and specifies
+          the radius for the empty region graph computation (1=Gabriel graph,
+          2=Relative neighbor graph)
+        @ In, normalization, an optional string specifying whether the
+          inputs/output should be scaled before computing. Currently, two modes
+          are supported 'zscore' and 'feature'. 'zscore' will ensure the data
+          has a mean of zero and a standard deviation of 1 by subtracting the
+          mean and dividing by the variance. 'feature' scales the data into the
+          unit hypercube.
+    """
     super(AMSC_Object,self).__init__()
 
     self.persistence = 0.
@@ -195,11 +196,11 @@ class AMSC_Object(PySide.QtCore.QObject):
 
         self.mergeSequence[dyingIndex] = (parentIndex,p)
 
-  """ Sets the weights associated to the m input samples
-      @ In, w, optional m vector specifying the new weights to use for the data
-        points. Default is None and resets the weights to be uniform.
-  """
   def SetWeights(self, w=None):
+    """ Sets the weights associated to the m input samples
+        @ In, w, optional m vector specifying the new weights to use for the
+          data points. Default is None and resets the weights to be uniform.
+    """
     if w is not None:
       self.w = np.array(w)
     else:
@@ -209,25 +210,25 @@ class AMSC_Object(PySide.QtCore.QObject):
       self.BuildModels()
     self.sigWeightsChanged.emit()
 
-  """ Returns a data structure holding the ordered merge sequence of extrema
-      simplification
-      @ Out, a dictionary of tuples where the key is the dying extrema and the
-        tuple is the parent index and the persistence associated to the dying
-        index, in that order.
-  """
   def GetMergeSequence(self):
+    """ Returns a data structure holding the ordered merge sequence of extrema
+        simplification
+        @ Out, a dictionary of tuples where the key is the dying extrema and the
+          tuple is the parent index and the persistence associated to the dying
+          index, in that order.
+    """
     return self.mergeSequence
 
-  """ Returns the partitioned data based on a specified persistence level.
-      @ In, persistence, a floating point value specifying the size of the
-        smallest feature we want to track. Default = None means consider all
-        features.
-      @ Out, a dictionary lists where each key is a min-max tuple specifying the
-        index of the minimum and maximum, respectively. Each entry will hold a
-        list of indices specifying points that are associated to this min-max
-        pair.
-  """
   def Partitions(self,persistence=None):
+    """ Returns the partitioned data based on a specified persistence level.
+        @ In, persistence, a floating point value specifying the size of the
+          smallest feature we want to track. Default = None means consider all
+          features.
+        @ Out, a dictionary lists where each key is a min-max tuple specifying
+          the index of the minimum and maximum, respectively. Each entry will
+          hold a list of indices specifying points that are associated to this
+          min-max pair.
+    """
     if persistence is None:
       persistence = self.persistence
     partitions = self.__amsc.GetPartitions(persistence)
@@ -237,9 +238,14 @@ class AMSC_Object(PySide.QtCore.QObject):
       tupleKeyedPartitions[minMax] = indices
     return tupleKeyedPartitions
 
-  """
-  """
   def SegmentFitCoefficients(self):
+    """ Returns a dictionary keyed off the min-max index pairs defining
+        Morse-Smale segments where the values are the linear coefficients of
+        the input dimensions sorted in the same order as the input data.
+        @ Out, a dictionary with tuples as keys specifying a pair of integers
+          denoting minimum and maximum indices. The values associated to the
+          dictionary keys are the linear coefficients fit for each min-max pair.
+    """
     if self.segmentFits is None or len(self.segmentFits) == 0:
       self.BuildModels(self.persistence)
     coefficients = {}
@@ -248,9 +254,15 @@ class AMSC_Object(PySide.QtCore.QObject):
       # coefficients[key] = fit[:]
     return coefficients
 
-  """
-  """
   def SegmentFitnesses(self):
+    """ Returns a dictionary keyed off the min-max index pairs defining
+        Morse-Smale segments where the values are the R^2 metrics of the linear
+        fits for each Morse-Smale segment.
+        @ Out, a dictionary with tuples as keys specifying a pair of integers
+          denoting minimum and maximum indices. The values associated to the
+          dictionary keys are the R^2 values for each linear fit of the
+          Morse-Smale segments defined by the min-max pair of integers.
+    """
     if self.segmentFits is None or len(self.segmentFits) == 0:
       self.BuildModels(self.persistence)
     rSquared = {}
@@ -258,9 +270,16 @@ class AMSC_Object(PySide.QtCore.QObject):
       rSquared[key] = fitness
     return rSquared
 
-  """
-  """
   def SegmentPearsonCoefficients(self):
+    """ Returns a dictionary keyed off the min-max index pairs defining
+        Morse-Smale segments where the values are the Pearson correlation
+        coefficients of the input dimensions sorted in the same order as the
+        input data.
+        @ Out, a dictionary with tuples as keys specifying a pair of integers
+          denoting minimum and maximum indices. The values associated to the
+          dictionary keys are the Pearson correlation coefficients associated
+          to each subset of the data.
+    """
     if self.segmentFits is None or len(self.segmentFits) == 0:
       self.BuildModels(self.persistence)
     pearson = {}
@@ -268,9 +287,16 @@ class AMSC_Object(PySide.QtCore.QObject):
       pearson[key] = fit[:]
     return pearson
 
-  """
-  """
   def SegmentSpearmanCoefficients(self):
+    """ Returns a dictionary keyed off the min-max index pairs defining
+        Morse-Smale segments where the values are the Spearman rank correlation
+        coefficients of the input dimensions sorted in the same order as the
+        input data.
+        @ Out, a dictionary with tuples as keys specifying a pair of integers
+          denoting minimum and maximum indices. The values associated to the
+          dictionary keys are the Spearman rank correlation coefficients
+          associated to each subset of the data.
+    """
     if self.segmentFits is None or len(self.segmentFits) == 0:
       self.BuildModels(self.persistence)
     spearman = {}
@@ -278,9 +304,14 @@ class AMSC_Object(PySide.QtCore.QObject):
       spearman[key] = fit[:]
     return spearman
 
-  """
-  """
   def GetMask(self,indices=None):
+    """ Applies all data filters to the input data and returns a list of
+        filtered indices that specifies the rows of data that satisfy all
+        conditions.
+        @ Out, a 1-dimensional array of integer indices that is a subset of
+          the input data row indices specifying rows that satisfy every set
+          filter criterion.
+    """
     if indices is None:
       indices = list(xrange(0,self.GetSampleSize()))
 
@@ -293,30 +324,40 @@ class AMSC_Object(PySide.QtCore.QObject):
         elif idx == len(self.names)-1:
           vals = self.Y[indices]
       elif header == 'Predicted from Linear Fit':
-        vals = self.PredictY(indices,fit='linear',applyFilters=False)
+        vals = self.PredictY(indices, fit='linear', applyFilters=False)
       elif header == 'Predicted from Maximum Fit':
-        vals = self.PredictY(indices,fit='maximum',applyFilters=False)
+        vals = self.PredictY(indices, fit='maximum', applyFilters=False)
       elif header == 'Predicted from Minimum Fit':
-        vals = self.PredictY(indices,fit='minimum',applyFilters=False)
+        vals = self.PredictY(indices, fit='minimum', applyFilters=False)
       elif header == 'Residual from Linear Fit':
-        vals = self.Residuals(indices,fit='linear',applyFilters=False)
+        vals = self.Residuals(indices, fit='linear', applyFilters=False)
       elif header == 'Residual from Maximum Fit':
-        vals = self.Residuals(indices,fit='maximum',applyFilters=False)
+        vals = self.Residuals(indices, fit='maximum', applyFilters=False)
       elif header == 'Residual from Minimum Fit':
-        vals = self.Residuals(indices,fit='minimum',applyFilters=False)
+        vals = self.Residuals(indices, fit='minimum', applyFilters=False)
       elif header == 'Probability':
         vals = self.w[indices]
-
-
       mask = np.logical_and(mask, bounds[0] <= vals)
       mask = np.logical_and(mask, vals < bounds[1])
+
     indices = np.array(indices)[mask]
     indices = np.array(sorted(list(set(indices))))
     return indices
 
-  """
-  """
   def ComputePerDimensionFitErrors(self,key):
+    """ Heuristically builds lower-dimensional linear patches for a Morse-Smale
+        segment specified by a tuple of integers, key. The heuristic is to sort
+        the set of linear coefficients by magnitude and progressively refit the
+        data using more and more dimensions and computing R^2 values for each
+        lower dimensional fit until we arrive at the full dimensional linear fit
+        @ Out, a tuple of three equal sized lists that specify the index order
+          of the dimensions added where the indices match the input data's
+          order, the R^2 values for each progressively finer fit, and the
+          F-statistic for each progressively finer fit. Thus, an index order of
+          [2,3,1,0] would imply the first fit uses only dimension 2, and
+          the next fit uses dimension 2 and 3, and the next fit uses 2, 3, and
+          1, and the final fit uses dimensions 2, 1, 3, and 0.
+    """
     partitions = self.Partitions(self.persistence)
     if key not in self.segmentFits or key not in partitions:
       return None
@@ -384,9 +425,13 @@ class AMSC_Object(PySide.QtCore.QObject):
 
     return (indexOrder,rSquared,fStatistic)
 
-  """
-  """
   def Persistence(self, p=None):
+    """ Sets or returns the persistence simplfication level to be used for
+        representing this Morse-Smale complex
+        @ In, p, a floating point value that will set the persistence value,
+          if this value is set to None, then this function will return the
+          current persistence leve.
+    """
     if p is None:
       return self.persistence
     self.persistence = p
@@ -396,9 +441,14 @@ class AMSC_Object(PySide.QtCore.QObject):
     self.extremumFitnesses = {}
     self.sigPersistenceChanged.emit()
 
-  """
-  """
   def BuildModels(self,persistence=None):
+    """ Forces the construction of linear fits per Morse-Smale segment and
+        Gaussian fits per stable/unstable manifold for the user-specified
+        persistence level.
+        @ In, persistence, a floating point value specifying the simplification
+          level to use, if this value is None, then we will build models based
+          on the internally set persistence level for this Morse-Smale object.
+    """
     self.segmentFits = {}
     self.extremumFits = {}
     self.segmentFitnesses = {}
@@ -410,9 +460,12 @@ class AMSC_Object(PySide.QtCore.QObject):
     self.ComputeStatisticalSensitivity()
     self.sigModelsChanged.emit()
 
-  """
-  """
   def BuildLinearModels(self, persistence=None):
+    """ Forces the construction of linear fits per Morse-Smale segment.
+        @ In, persistence, a floating point value specifying the simplification
+          level to use, if this value is None, then we will build models based
+          on the internally set persistence level for this Morse-Smale object.
+    """
     partitions = self.Partitions(persistence)
 
     for key,items in partitions.iteritems():
@@ -444,32 +497,41 @@ class AMSC_Object(PySide.QtCore.QObject):
 
       self.segmentFitnesses[key] = linearModel.score(X,y)
 
-  """
-  """
-  def BuildPolynomialModels(self, persistence=None):
-    partitions = self.Partitions(persistence)
-    for extType in [0,1]:
-      count = 0
-      extFlowSet = {}
-      for key,items in partitions.iteritems():
-        extIdx = key[extType]
-        if extIdx not in extFlowSet.keys():
-          extFlowSet[extIdx] = []
-        for idx in items:
-          extFlowSet[extIdx].append(idx)
+## Not actually implemented yet
+#  def BuildPolynomialModels(self, persistence=None):
+#    """ Forces the construction of a polynomial fit per stable/unstable manifold
+#        for the user-specified persistence level.
+#        @ In, persistence, a floating point value specifying the simplification
+#          level to use, if this value is None, then we will build models based
+#          on the internally set persistence level for this Morse-Smale object.
+#    """
+#    partitions = self.Partitions(persistence)
+#    for extType in [0,1]:
+#      count = 0
+#      extFlowSet = {}
+#      for key,items in partitions.iteritems():
+#        extIdx = key[extType]
+#        if extIdx not in extFlowSet.keys():
+#          extFlowSet[extIdx] = []
+#        for idx in items:
+#          extFlowSet[extIdx].append(idx)
 
-      for extIdx,indices in extFlowSet.iteritems():
-        X = self.Xnorm[np.array(indices),:]
-        Y = self.Y[np.array(indices)]
-        self.extremumFits[extIdx] = np.polyfit(X,Y,2)
-        yHat = np.zeros(X.shape[0])
-        for i in xrange(X.shape[0]):
-          yHat[i] = 0 #FIXME
-        self.extremumFitnesses[extIdx] = 1 - np.sum((yHat - Y)**2)/np.sum((Y - np.mean(Y))**2)
+#      for extIdx,indices in extFlowSet.iteritems():
+#        X = self.Xnorm[np.array(indices),:]
+#        Y = self.Y[np.array(indices)]
+#        self.extremumFits[extIdx] = np.polyfit(X,Y,2)
+#        yHat = np.zeros(X.shape[0])
+#        for i in xrange(X.shape[0]):
+#          yHat[i] = 0 #FIXME
+#        self.extremumFitnesses[extIdx] = 1 - np.sum((yHat - Y)**2)/np.sum((Y - np.mean(Y))**2)
 
-  """
-  """
   def BuildGaussianModels(self, persistence=None):
+    """ Forces the construction of Gaussian fits per stable/unstable manifold
+        for the user-specified persistence level.
+        @ In, persistence, a floating point value specifying the simplification
+          level to use, if this value is None, then we will build models based
+          on the internally set persistence level for this Morse-Smale object.
+    """
     dimCount = len(self.names)-1
     # For now, if we are doing anything more than a moderate amount of
     # dimensions, use a constrained Gaussian
@@ -611,14 +673,16 @@ class AMSC_Object(PySide.QtCore.QObject):
         self.extremumFits[extIdx] = (mu,c,a,A)
         self.extremumFitnesses[extIdx] = rSquared
 
-  """
-  """
   def GetNames(self):
+    """ Returns the names of the input and output dimensions in the order they
+        appear in the input data.
+        @ Out, a list of strings specifying the input + output variable names.
+    """
     return self.names
 
-  """
-  """
   def GetNormedX(self,rows=None,cols=None,applyFilters=False):
+    """
+    """
     if rows is None:
       rows = list(xrange(0,self.GetSampleSize()))
     if cols is None:
@@ -629,9 +693,9 @@ class AMSC_Object(PySide.QtCore.QObject):
     retValue = self.Xnorm[rows,:]
     return retValue[:,cols]
 
-  """
-  """
   def GetX(self,rows=None,cols=None,applyFilters=False):
+    """
+    """
     if rows is None:
       rows = list(xrange(0,self.GetSampleSize()))
     if cols is None:
@@ -647,9 +711,9 @@ class AMSC_Object(PySide.QtCore.QObject):
     return retValue[:,cols]
     # return self.X[rows,cols]
 
-  """
-  """
   def GetY(self,indices=None, applyFilters=False):
+    """
+    """
     if indices is None:
       indices = list(xrange(0,self.GetSampleSize()))
     else:
@@ -661,9 +725,9 @@ class AMSC_Object(PySide.QtCore.QObject):
       return []
     return self.Y[indices]
 
-  """
-  """
   def GetWeights(self,indices=None, applyFilters=False):
+    """
+    """
     if indices is None:
       indices = list(xrange(0,self.GetSampleSize()))
     else:
@@ -676,9 +740,9 @@ class AMSC_Object(PySide.QtCore.QObject):
       return []
     return self.w[indices]
 
-  """
-  """
   def PredictY(self,indices=None, fit='linear',applyFilters=False):
+    """
+    """
     partitions = self.Partitions(self.persistence)
     
     predictedY = np.zeros(self.GetSampleSize())
@@ -712,9 +776,10 @@ class AMSC_Object(PySide.QtCore.QObject):
     indices = np.array(sorted(list(set(indices))))
     return predictedY[indices]
 
-  """
-  """
-  def Residuals(self,indices=None, fit='linear', signed=False, applyFilters=False):
+  def Residuals(self,indices=None, fit='linear', signed=False,
+                applyFilters=False):
+    """
+    """
     if indices is None:
       indices = list(xrange(0,self.GetSampleSize()))
     else:
@@ -739,9 +804,9 @@ class AMSC_Object(PySide.QtCore.QObject):
 
     return residuals
 
-  """
-  """
   def GetColors(self):
+    """
+    """
     partitions = self.Partitions(self.persistence)
     partColors = {}
     for i,key in enumerate(partitions.keys()):
@@ -757,24 +822,24 @@ class AMSC_Object(PySide.QtCore.QObject):
 
     return partColors
 
-  """
-  """
   def GetSelectedExtrema(self):
+    """
+    """
     return self.selectedExtrema
 
-  """
-  """
   def GetSelectedSegments(self):
+    """
+    """
     return self.selectedSegments
 
-  """
-  """
   def FitsSynced(self):
+    """
+    """
     return self.SegmentFitsSynced() and self.ExtremumFitsSynced()
 
-  """
-  """
   def SegmentFitsSynced(self):
+    """
+    """
     fitKeys = self.segmentFits.keys()
     rSquaredKeys = self.segmentFitnesses.keys()
 
@@ -785,9 +850,9 @@ class AMSC_Object(PySide.QtCore.QObject):
 
     return True
 
-  """
-  """
   def ExtremumFitsSynced(self):
+    """
+    """
     extIdxs = []
     for extPair in self.GetCurrentLabels():
       extIdxs.extend(list(extPair))
@@ -803,19 +868,19 @@ class AMSC_Object(PySide.QtCore.QObject):
 
     return True
 
-  """
-  """
   def GetCurrentLabels(self):
+    """
+    """
     partitions = self.Partitions(self.persistence)
     return partitions.keys()
 
-  """ Sets the currently selected items of this instance
-      selectionList - a mixed list of 2-tuples and integers representing
-                      min-max index pairs and extremum indices, respectively
-      cross_inclusion - This will ensure if you select all of the segments
-                        attached to an extermum get selected and vice versa
-  """
   def SetSelection(self, selectionList, cross_inclusion=False):
+    """ Sets the currently selected items of this instance
+        selectionList - a mixed list of 2-tuples and integers representing
+                        min-max index pairs and extremum indices, respectively
+        cross_inclusion - This will ensure if you select all of the segments
+                          attached to an extermum get selected and vice versa
+    """
     partitions = self.Partitions(self.persistence)
 
     self.selectedSegments = []
@@ -845,15 +910,15 @@ class AMSC_Object(PySide.QtCore.QObject):
 
     self.sigSelectionChanged.emit()
 
-  """
-  """
   def ClearFilter(self):
+    """
+    """
     self.filters = {}
     self.sigSelectionChanged.emit()
 
-  """
-  """
   def SetFilter(self,name,bounds):
+    """
+    """
     if bounds is None:
       self.filters.pop(name,None)
     else:
@@ -861,17 +926,17 @@ class AMSC_Object(PySide.QtCore.QObject):
       print(name, bounds)
     self.sigSelectionChanged.emit()
 
-  """
-  """
   def GetFilter(self,name):
+    """
+    """
     if name in self.filters.keys():
       return self.filters[name]
     else:
       return None
 
-  """
-  """
   def Select(self, idx):
+    """
+    """
     if isinstance(idx,int):
       if idx not in self.selectedExtrema:
         self.selectedExtrema.append(idx)
@@ -881,9 +946,9 @@ class AMSC_Object(PySide.QtCore.QObject):
 
       self.sigSelectionChanged.emit()
 
-  """
-  """
   def Deselect(self, idx):
+    """
+    """
     if isinstance(idx,int):
       if idx in self.selectedExtrema:
         self.selectedExtrema.remove(idx)
@@ -893,16 +958,16 @@ class AMSC_Object(PySide.QtCore.QObject):
 
       self.sigSelectionChanged.emit()
 
-  """
-  """
   def ClearSelection(self):
+    """
+    """
     self.selectedSegments = []
     self.selectedExtrema = []
     self.sigSelectionChanged.emit()
 
-  """
-  """
   def GetSelectedIndices(self,segmentsOnly=True):
+    """
+    """
     partitions = self.Partitions(self.persistence)
     indices = []
     for extPair,indexSet in partitions.iteritems():
@@ -914,19 +979,19 @@ class AMSC_Object(PySide.QtCore.QObject):
     indices = self.GetMask(indices)   
     return list(indices)
 
-  """
-  """
   def GetSampleSize(self):
+    """
+    """
     return len(self.Y)
 
-  """
-  """
   def GetDimensionality(self):
+    """
+    """
     return self.X.shape[1]
 
-  """
-  """
   def ComputeExtremaShapeDescriptors(self):
+    """
+    """
     self.derivatives = {}
     for ext,fit in self.extremumFits.iteritems():
       (mu,c,a,A) = fit
@@ -958,27 +1023,46 @@ class AMSC_Object(PySide.QtCore.QObject):
           ## You are a big dum dum, Dan, all you had to do was this:
           self.derivatives[int(ext)][m,n] = -2*a*A[m,n]
 
-  """
-  """
   def GetSecondOrderDerivatives(self,key):
+    """
+    """
     return self.derivatives[key]
 
-  """
-  """
   def GetConcentrationMatrix(self,key):
+    """ Returns only the concentraion matrix solution for the nonlinear least
+        squares fitting about a specified local minimum or local maximum given
+        by key.
+        @ In, key, a non-negative integer less than the input sample size
+          corresponding to an input sample that is either a local minimum or a
+          local maximum that has a local fit built.
+        @ Out, a matrix representing the solution of the concentration matrix
+          for the specified fit.
+    """
     (mu,c,a,A) = self.extremumFits[key]
     # covariance = np.linalg.inv(A)
     return A
 
-  """
-  """
   def GetExtremumFitCoefficients(self,key):
+    """ Returns the solution coefficients for the nonlinear least squares
+        fitting about a specified local minimum or local maximum given by key.
+        @ In, key, a non-negative integer less than the input sample size
+          corresponding to an input sample that is either a local minimum or a
+          local maximum that has a local fit built.
+        @ Out, a tuple representing all of the solution coefficients including
+          the mean vector, the scalar offset, the scalar amplitude, and the
+          concentration matrix, in that order.
+    """
     (mu,c,a,A) = self.extremumFits[key]
     return (mu,c,a,A)
 
-  """
-  """
   def GetClassification(self,idx):
+    """ Given an index, this function will report whether that sample is a local
+        minimum, a local maximum, or a regular point.
+        @ In, idx, a non-negative integer less than the sample size of the input
+        data.
+        @ Out, a string specifying the classification type of the input sample:
+          will be 'maximum,' 'minimum,' or 'regular.'
+    """
     partitions = self.Partitions(0)
     for minMaxPair in partitions.keys():
       if idx == minMaxPair[0]:
@@ -987,9 +1071,10 @@ class AMSC_Object(PySide.QtCore.QObject):
         return 'maximum'
     return 'regular'
 
-  """
-  """
   def ComputeStatisticalSensitivity(self):
+    """ Computes the per segment Pearson correlation coefficients and the 
+        Spearman rank correlation coefficients and stores them internally.
+    """
     partitions = self.Partitions()
 
     self.pearson = {}
@@ -997,33 +1082,26 @@ class AMSC_Object(PySide.QtCore.QObject):
     for key,items in partitions.iteritems():
       X = self.Xnorm[np.array(items),:]
       y = self.Y[np.array(items)]
-      w = self.w[np.array(items)]
-
-      # betaHat = self.segmentFits[key][1:]
-      # betaHat = self.segmentFits[key][:]
-
-      sigmaY = np.std(y)
+#      w = self.w[np.array(items)]
 
       self.pearson[key] = []
       self.spearman[key] = []
       for col in xrange(0,X.shape[1]):
         sigmaXcol = np.std(X[:,col])
-        rcol = scipy.stats.pearsonr(X[:,col], y)[0]
-        rcol2 = np.cov(X[:,col],y)[1,0]/(sigmaY*sigmaXcol)
-        ## Alternative formula for determining the Pearson correlation
-        # rcol3 = sigmaXcol/sigmaY * betaHat[col]
-        # print(rcol,rcol2,rcol3)
-        self.pearson[key].append(rcol)
+        self.pearson[key].append(scipy.stats.pearsonr(X[:,col], y)[0])
         self.spearman[key].append(scipy.stats.spearmanr(X[:,col], y)[0])
-    print('Pearson',self.pearson)
-    print('Spearman',self.spearman)
 
-  """
-  """
   def XMLFormattedHierarchy(self):
+    """ Writes the complete Morse-Smale merge hierarchy to an xml formatted
+        string.
+        @ Out, a string object storing the entire merge hierarchy of all minima
+          and maxima in xml format.
+    """
     return self.__amsc.XMLFormattedHierarchy()
 
-  """
-  """
   def PrintHierarchy(self):
+    """ Writes the complete Morse-Smale merge hierarchy to a string object.
+        @ Out, a string object storing the entire merge hierarchy of all minima
+          and maxima.
+    """
     return self.__amsc.PrintHierarchy()

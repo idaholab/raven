@@ -1737,11 +1737,11 @@ class ExternalPostProcessor(BasePostProcessor):
 #
 #
 class TopologicalDecomposition(BasePostProcessor):
-  '''
+  """
     TopologicalDecomposition class - Computes an approximated hierarchical
     Morse-Smale decomposition from an input point cloud consisting of an
     arbitrary number of input parameters and a response value per input point
-  '''
+  """
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.acceptedGraphParam = ['approximate knn','delaunay','beta skeleton',\
