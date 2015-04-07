@@ -359,6 +359,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
         wt = self.sparseGrid.weights(translate[tuple(pt)])
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
+    self.amITrained=True
     #outFile.close()
     #self.printPolyDict()
     #do a few moments #TODO need a better solution for calling moment calculations, etc
@@ -500,6 +501,7 @@ class HDMRRom(GaussPolynomialRom):
       subtdict[self.target] = tvals
       #print('DEBUG     subtdict\n',subtdict)
       rom.train(subtdict)
+      print('DEBUG',self.printTag,'trained',combo)
       #rom.__trainLocal__(fvals,tvals)
 
     #make ordered list of combos for use later
@@ -586,6 +588,8 @@ class HDMRRom(GaussPolynomialRom):
     return tot
 
   def __evaluateLocal__(self,featureVals):
+    #am I trained?
+    if not self.amITrained: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> Cannot evaluate, as ROM is not trained!')
     fvals=dict(zip(self.features,featureVals[0]))
     vals={}
     for i,c in enumerate(self.combos):
@@ -593,6 +597,9 @@ class HDMRRom(GaussPolynomialRom):
       for combo in c:
         myVals = [list(featureVals[0][self.features.index(j)] for j in combo)]
         rom = self.ROMs[combo] #FIXME does this include the reference case?
+        #check if rom is trained
+        print('DEBUG',self.printTag,combo)
+        if not rom.amITrained: raise IOError('ROM for subset %s is not trained!' %combo)
         vals[combo] = rom.__evaluateLocal__(myVals)
         for cl in range(i):
           #vals[combo] -= self.refSoln
@@ -611,7 +618,7 @@ class HDMRRom(GaussPolynomialRom):
       @ Out, dict, dict of dictionaries of sensitivity indices, as indices[int level][tuple variable combination]
     '''
     if kind.lower().strip() not in ['mean','variance']:
-      raise IOError(self.printTag+': '+returnPrintPostTag('ERROR'),'-> Requested sensitivity benchmakr is %s, but expected "mean" or "variance".' %kind)
+      raise IOError(self.printTag+': '+returnPrintPostTag('ERROR'),'-> Requested sensitivity benchmark is %s, but expected "mean" or "variance".' %kind)
     avail = max(list(len(combo) for combo in self.ROMs.keys()))
     if maxLevel==None: maxLevel = avail
     else:

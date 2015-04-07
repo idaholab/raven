@@ -28,7 +28,6 @@
 
     <Samplers>
         <Sobol name="sobol">
-            <SobolOrder>2</SobolOrder>
             <variable name="x1"><distribution>UniDist</distribution></variable>
             <variable name="x2"><distribution>UniDist</distribution></variable>
             <variable name="x3"><distribution>UniDist</distribution></variable>
@@ -42,7 +41,7 @@
     <Models>
         <Dummy name="MyDummy" subType="" print="True"/>
         <ROM name='rom' subType='HDMRRom'>
-            <SobolOrder>3</SobolOrder>
+            <SobolOrder>2</SobolOrder>
             <Target>ans</Target>
             <Features>x1,x2,x3,x4,x5,x6</Features>
             <IndexSet>TensorProduct</IndexSet>
