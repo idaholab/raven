@@ -172,11 +172,11 @@ class OutStreamPlot(OutStreamManager):
   #####################
 
   def __splitVariableNames(self,what,where):
-    '''
+    """
       Function to split the variable names
       @ In, what => x,y,z or colorMap
       @ In, where, tuple => pos 0 = plotIndex, pos 1 = variable Index
-    '''
+    """
     if   what == 'x'                : var = self.xCoordinates [where[0]][where[1]]
     elif what == 'y'                : var = self.yCoordinates [where[0]][where[1]]
     elif what == 'z'                : var = self.zCoordinates [where[0]][where[1]]
@@ -195,10 +195,10 @@ class OutStreamPlot(OutStreamManager):
     return result
 
   def __readPlotActions(self,snode):
-    '''
+    """
       Function to read, from the xml input, the actions that are required to be performed on the Plot
       @ In, snode => xml node
-    '''
+    """
     for node in snode:
       self.options[node.tag] = {}
       if len(node):
@@ -217,11 +217,11 @@ class OutStreamPlot(OutStreamManager):
     if 'how' not in self.options.keys(): self.options['how']={'how':'screen'}
 
   def __fillCoordinatesFromSource(self):
-    '''
+    """
       Function to retrieve the pointers of the data values (x,y,z)
       @ In, None
       @ Out, boolean, true if the data are filled, false otherwise
-    '''
+    """
     self.xValues = []
     if self.yCoordinates : self.yValues = []
     if self.zCoordinates : self.zValues = []
@@ -337,10 +337,10 @@ class OutStreamPlot(OutStreamManager):
     return True
 
   def __executeActions(self):
-    '''
+    """
       Function to execute the actions must be performed on the Plot(for example, set the x,y,z axis ranges, etc)
       @ In, None
-    '''
+    """
     if 'labelFormat' not in self.options.keys():
       if self.dim == 2:
         self.plt.gca().yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
@@ -489,11 +489,11 @@ class OutStreamPlot(OutStreamManager):
   #  PUBLIC METHODS  #
   ####################
   def localAddInitParams(self,tempDict):
-    '''
+    """
       This method is called from the base function. It adds the initial characteristic intial params that need to be seen by the whole enviroment
       @ In, tempDict
       @ Out, tempDict
-    '''
+    """
     tempDict['Plot is '] = str(self.dim)+'D'
     for index in range(len(self.sourceName)): tempDict['Source Name '+str(index)+' :'] = self.sourceName[index]
 
@@ -503,11 +503,11 @@ class OutStreamPlot(OutStreamManager):
       self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
 
   def initialize(self,inDict):
-    '''
+    """
     Function called to initialize the OutStream, linking it to the proper Data
     @ In, inDict -> Dictionary that contains all the instantiaced classes needed for the actual step
                     In this dictionary the data are looked for
-    '''
+    """
     self.xCoordinates  = []
     self.sourceName    = []
     if 'figureProperties' in self.options.keys():
