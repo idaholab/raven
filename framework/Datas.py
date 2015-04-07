@@ -289,13 +289,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     raise Exception("specializedLoadXML_CSV not implemented "+str(self))
 
   def _createXMLFile(self,filenameLocal,fileType,inpKeys,outKeys):
-<<<<<<< HEAD
-    """Creates an XML file to contain the input and output data list
-=======
     """
     Creates an XML file to contain the input and output data list
->>>>>>> dbceaad0a86d21f077d82c1a0bf6614aa97108fb
-    and the type.
     @ In, filenameLocal, file name
     @ In, fileType, file type (csv, xml)
     @ In, inpKeys, list, input keys
