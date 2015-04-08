@@ -215,10 +215,10 @@ XML node and the requirements for other attributes change:
         ``TimePointSet'' only.
     \end{itemize}
 }
-\newcommand{\assemblerROMDescription}
+\newcommand{\assemblerROMDescription}[1]
 {
   \textbf{Assembler Objects} These objects are either required or optional
-    depending on the functionality of the SparseGridCollocation Sampler.
+    depending on the functionality of the #1 sampler.
     %
     The objects must be listed with a rigorous syntax that, except for the XML
     node tag, is common among all the objects.
@@ -235,11 +235,11 @@ XML node and the requirements for other attributes change:
         %
         For example, it can be \xmlString{ROM}, \xmlString{External}, etc.
     \end{itemize}
-    The \textbf{SparseGridCollocation Sampler} approach requires  the
+    The \textbf{#1 sampler} requires  the
     following object types:
     \begin{itemize}
-      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
-        body of this XML node must contain the name of a ROM defined in the
+      \item \xmlNode{ROM}, \xmlDesc{string, required field}, the
+        body of this XML node must contain the name of an appropriate ROM defined in the
         \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}).
     \end{itemize}
 }
@@ -530,7 +530,7 @@ Because of the tight coupling between the Sampler and the ROM in stochastic coll
 \begin{itemize}
 
   % Assembler Objects
-  \item \assemblerROMDescription
+  \item \assemblerROMDescription{SparseGridCollocation}
 
 \end{itemize}
 \footnotesize
@@ -547,6 +547,50 @@ Example:
     </variable>
     <ROM class = 'Models' type = 'ROM' >SCROM</ROM>
   </SparseGridCollocation>
+  ...
+</Samplers>
+\end{lstlisting}
+ \normalsize
+ 
+ %%% Once-Through Samplers: Sobol
+\subsubsection{Sobol}
+%\senrs{Assembler section updated}
+\label{subsubsubsec:SobolSampler}
+The \textbf{Sobol} sampler uses high-density model reduction (HDMR) a.k.a. Sobol decomposition to approximate a function as the sum of increasing-complexity interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.  This Sobol sampler uses the associated HDMRRom (see \ref{subsubsec:HDMRRom}) to determine at what points the input space need be evaluated.
+\begin{itemize}
+\itemsep0em
+\item \nameDescription
+\item \xmlAttr{parallel}, \xmlDesc{optional string attribute}, option to disable parallel construction of the sparse grid.  Because of increasing computational expense with increasing input space dimension, RAVEN will default to parallel construction of the sparse grid.
+\default{True}
+\end{itemize}
+\variableIntro{Sobol}
+\begin{itemize}
+\item \variableDescription
+ In the variable node, the following xml-node needs to be specified:
+ \begin{itemize}
+    \item \distributionDescription
+ \end{itemize} \end{itemize}
+Because of the tight coupling between the Sobol sampler and the HDMRRom, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, Sobol order, and importance weights to use in each dimension (see \ref{subsubsec:HDMRRom}).  
+\begin{itemize}
+
+  % Assembler Objects
+  \item \assemblerROMDescription{Sobol}
+
+\end{itemize}
+\footnotesize
+\begin{lstlisting}[style=XML]
+Example:
+<Samplers>
+  ...
+  <Sobol name="mySobol" parallel="0">
+    <variable name="x1">
+      <distribution>myDist1</distribution>
+    </variable>
+    <variable name="x2">
+      <distribution>myDist2</distribution>
+    </variable>
+    <ROM class = 'Models' type = 'ROM' >myHDMR</ROM>
+  </Sobol>
   ...
 </Samplers>
 \end{lstlisting}
