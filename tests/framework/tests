@@ -358,6 +358,13 @@
   csv = 'SobolSampler/dump.csv'
  [../]
 
+ [./sobolRomTest]
+  type = 'RavenFramework'
+  input = 'test_sobol_rom.xml'
+  output = 'SobolRom/dump.xml'
+  csv = 'SobolRom/dump.csv'
+ [../]
+
  [./stochPolyPickleTest]
   type = 'RavenFramework'
   input = 'test_stochpoly_pickle.xml'
