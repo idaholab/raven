@@ -2655,7 +2655,7 @@ class Sobol(SparseGridCollocation):
     self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     #self.inputInfo['ProbabilityWeight'] =  N/A
     self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
-    
+
 #
 #
 #
