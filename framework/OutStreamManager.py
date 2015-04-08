@@ -1120,7 +1120,7 @@ class OutStreamPrint(OutStreamManager):
     OutStreamManager.__init__(self)
     self.type = 'OutStreamPrint'
     self.printTag = returnPrintTag('OUTSTREAM PRINT')
-    self.availableOutStreamTypes = ['csv']
+    self.availableOutStreamTypes = ['csv','xml']
     OutStreamManager.__init__(self)
     self.sourceName   = []
     self.sourceData   = None
@@ -1147,7 +1147,14 @@ class OutStreamPrint(OutStreamManager):
     if self.variables: dictOptions = {'filenameroot':self.name,'variables':self.variables}
     else             : dictOptions = {'filenameroot':self.name}
     for index in range(len(self.sourceName)):
-      if not self.sourceData[index].isItEmpty(): self.sourceData[index].printCSV(dictOptions)
+      if self.options['type']=='csv':
+        if not self.sourceData[index].isItEmpty():
+          try: self.sourceData[index].printCSV(dictOptions)
+          except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type'+type(self.sourceData[index])+' and output type "csv"!')
+      elif self.options['type']=='xml':
+        if not self.sourceData[index].isItEmpty():
+          try: self.sourceData[index].printXML(dictOptions)
+          except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type'+type(self.sourceData[index])+' and output type "xml"!')
 
 '''
  Interface Dictionary (factory) (private)
