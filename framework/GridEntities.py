@@ -3,16 +3,33 @@ Created on Mar 30, 2015
 
 @author: alfoa
 '''
-import TreeStructure as TS
+
+#External Modules------------------------------------------------------------------------------------
 import itertools
 import numpy as np
+from scipy.interpolate import interp1d
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
 from utils import returnPrintTag,returnPrintPostTag
+import TreeStructure as TS
+#Internal Modules End--------------------------------------------------------------------------------
+
 
 class GridEntity(object):
   """
   Class that defines a Grid in the phase space. This class should be used by all the Classes that need a Grid entity.
   It provides all the methods to create, modify, and handle a grid in the phase space.
   """
+  @staticmethod
+  def transformationMethodFromCustom(x):
+    """
+    Static method to create a transformationFunction from a set of points. Those points are going to be "transformed" in 0-1 space
+    @ In, x, array-like, set of points
+    @ Out, transformFunction, instance of the transformation method (callable like f(newPoint))
+    """
+    return interp1d(x, np.linspace(0.0, 1.0, len(x)-1), kind='nearest') 
+    
   def __init__(self):
     self.printTag                               = returnPrintTag("GRID ENTITY")
     self.gridContainer                          = {}                 # dictionary that contains all the key feature of the grid
@@ -65,12 +82,6 @@ class GridEntity(object):
       stepLenght = []
       for dimName in self.gridContainer['dimensionNames']: stepLenght.append(initDict["stepLenght"][dimName])
       self.volumetricRatio = np.sum(stepLenght)**(1/self.nVar) # in this case it is an average => it "represents" the average volumentric ratio...not too much sense. Andrea
-      
-    
-    
-    
-    
-    
     #here we build lambda function to return the coordinate of the grid point
     stepParam                                    = lambda x: [stepLenght[self.gridContainer['dimensionNames'].index(x)]*(self.gridContainer['bounds']["upperBounds" ][x]-self.gridContainer['bounds']["lowerBounds"][x]), 
                                                                           self.gridContainer['bounds']["lowerBounds"][x], self.gridContainer['bounds']["upperBounds" ][x]]
