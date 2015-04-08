@@ -681,7 +681,16 @@ class AMSC_Object(PySide.QtCore.QObject):
     return self.names
 
   def GetNormedX(self,rows=None,cols=None,applyFilters=False):
-    """
+    """ Returns the normalized input data requested by the user
+        @ In, rows, a list of non-negative integers specifying the row indices
+          to return
+        @ In, cols, a list of non-negative integers specifying the column
+          indices to return
+        @ In, applyFilters, a boolean specifying whether data filters should be
+          used to prune the results
+        @ Out, a matrix of floating point values specifying the normalized data
+          values used in internal computations filtered by the three input
+          parameters.
     """
     if rows is None:
       rows = list(xrange(0,self.GetSampleSize()))
@@ -694,7 +703,15 @@ class AMSC_Object(PySide.QtCore.QObject):
     return retValue[:,cols]
 
   def GetX(self,rows=None,cols=None,applyFilters=False):
-    """
+    """ Returns the input data requested by the user
+        @ In, rows, a list of non-negative integers specifying the row indices
+          to return
+        @ In, cols, a list of non-negative integers specifying the column
+          indices to return
+        @ In, applyFilters, a boolean specifying whether data filters should be
+          used to prune the results
+        @ Out, a matrix of floating point values specifying the input data
+          values filtered by the three input parameters.
     """
     if rows is None:
       rows = list(xrange(0,self.GetSampleSize()))
@@ -711,8 +728,14 @@ class AMSC_Object(PySide.QtCore.QObject):
     return retValue[:,cols]
     # return self.X[rows,cols]
 
-  def GetY(self,indices=None, applyFilters=False):
-    """
+  def GetY(self, indices=None, applyFilters=False):
+    """ Returns the output data requested by the user
+        @ In, indices, a list of non-negative integers specifying the
+          row indices to return
+        @ In, applyFilters, a boolean specifying whether data filters should be
+          used to prune the results
+        @ Out, a list of floating point values specifying the output data
+          values filtered by the two input parameters.
     """
     if indices is None:
       indices = list(xrange(0,self.GetSampleSize()))
@@ -725,8 +748,14 @@ class AMSC_Object(PySide.QtCore.QObject):
       return []
     return self.Y[indices]
 
-  def GetWeights(self,indices=None, applyFilters=False):
-    """
+  def GetWeights(self, indices=None, applyFilters=False):
+    """ Returns the weights requested by the user
+        @ In, indices, a list of non-negative integers specifying the
+          row indices to return
+        @ In, applyFilters, a boolean specifying whether data filters should be
+          used to prune the results
+        @ Out, a list of floating point values specifying the weights associated
+          to the input data rows filtered by the two input parameters.
     """
     if indices is None:
       indices = list(xrange(0,self.GetSampleSize()))
@@ -741,7 +770,16 @@ class AMSC_Object(PySide.QtCore.QObject):
     return self.w[indices]
 
   def PredictY(self,indices=None, fit='linear',applyFilters=False):
-    """
+    """ Returns the predicted output values requested by the user
+        @ In, indices, a list of non-negative integers specifying the
+          row indices to predict
+        @ In, fit, an optional string specifying which fit should be used to 
+          predict each location, 'linear' = Morse-Smale segment, 'maxima' =
+          descending/stable manifold, 'minima' = ascending/unstable manifold
+        @ In, applyFilters, a boolean specifying whether data filters should be
+          used to prune the results
+        @ Out, a list of floating point values specifying the predicted output
+          values filtered by the three input parameters.
     """
     partitions = self.Partitions(self.persistence)
     
@@ -778,7 +816,18 @@ class AMSC_Object(PySide.QtCore.QObject):
 
   def Residuals(self,indices=None, fit='linear', signed=False,
                 applyFilters=False):
-    """
+    """ Returns the residual between the output data and the predicted output
+        values requested by the user
+        @ In, indices, a list of non-negative integers specifying the
+          row indices for which to compute residuals
+        @ In, fit, an optional string specifying which fit should be used to 
+          predict each location, 'linear' = Morse-Smale segment, 'maxima' =
+          descending/stable manifold, 'minima' = ascending/unstable manifold
+        @ In, applyFilters, a boolean specifying whether data filters should be
+          used to prune the results
+        @ Out, a list of floating point values specifying the signed difference
+          between the predicted output values and the original output data
+          filtered by the three input parameters.
     """
     if indices is None:
       indices = list(xrange(0,self.GetSampleSize()))
@@ -805,7 +854,13 @@ class AMSC_Object(PySide.QtCore.QObject):
     return residuals
 
   def GetColors(self):
-    """
+    """ Returns a dictionary of colors where the keys specify Morse-Smale
+        segment min-max integer index pairs, unstable/ascending manifold minima
+        integer indices, and stable/descending manifold maxima integer indices.
+        The values are hex strings specifying unique colors for each different
+        type of segment.
+        @ Out, a dictionary specifying unique colors for each Morse-Smale
+          segment, stable/descending manifold, and unstable/ascending manifold.
     """
     partitions = self.Partitions(self.persistence)
     partColors = {}
@@ -823,22 +878,33 @@ class AMSC_Object(PySide.QtCore.QObject):
     return partColors
 
   def GetSelectedExtrema(self):
-    """
+    """ Returns the extrema highlighted as being selected in an attached UI
+        @ Out, a list of non-negative integer indices specifying the extrema
+          selected.
     """
     return self.selectedExtrema
 
   def GetSelectedSegments(self):
-    """
+    """ Returns the Morse-Smale segments highlighted as being selected in an
+        attached UI
+        @ Out, a list of non-negative integer index pairs specifying the min-max
+          pairs associated to the selected Morse-Smale segments.
     """
     return self.selectedSegments
 
   def FitsSynced(self):
-    """
+    """ Returns whether the segment and extremum fits are built for the
+        currently selected level of persistence.
+        @ Out, a boolean that reports True if everything is synced and False,
+          otherwise.
     """
     return self.SegmentFitsSynced() and self.ExtremumFitsSynced()
 
   def SegmentFitsSynced(self):
-    """
+    """ Returns whether the segment fits are built for the currently selected
+        level of persistence.
+        @ Out, a boolean that reports True if all of the linear fits are
+          constructed and False, otherwise.
     """
     fitKeys = self.segmentFits.keys()
     rSquaredKeys = self.segmentFitnesses.keys()
@@ -851,7 +917,10 @@ class AMSC_Object(PySide.QtCore.QObject):
     return True
 
   def ExtremumFitsSynced(self):
-    """
+    """ Returns whether the extremum fits are built for the currently selected
+        level of persistence.
+        @ Out, a boolean that reports True if all of the Gaussian fits are
+          constructed and False, otherwise.
     """
     extIdxs = []
     for extPair in self.GetCurrentLabels():
@@ -869,17 +938,21 @@ class AMSC_Object(PySide.QtCore.QObject):
     return True
 
   def GetCurrentLabels(self):
-    """
+    """ Returns a list of tuples that specifies the min-max index labels
+        associated to each input sample
+        @ Out, a list of tuples that are each a pair of non-negative integers
+          specifying the min-flow and max-flow indices associated to each input
+          sample at the current level of persistence
     """
     partitions = self.Partitions(self.persistence)
     return partitions.keys()
 
   def SetSelection(self, selectionList, cross_inclusion=False):
     """ Sets the currently selected items of this instance
-        selectionList - a mixed list of 2-tuples and integers representing
-                        min-max index pairs and extremum indices, respectively
-        cross_inclusion - This will ensure if you select all of the segments
-                          attached to an extermum get selected and vice versa
+        @ In, selectionList, a mixed list of 2-tuples and integers representing
+          min-max index pairs and extremum indices, respectively
+        @ In, cross_inclusion, a boolean that will ensure if you select all of
+          the segments attached to an extermum get selected and vice versa
     """
     partitions = self.Partitions(self.persistence)
 
@@ -911,13 +984,17 @@ class AMSC_Object(PySide.QtCore.QObject):
     self.sigSelectionChanged.emit()
 
   def ClearFilter(self):
-    """
+    """ Erases all currently set filters on any dimension.
     """
     self.filters = {}
     self.sigSelectionChanged.emit()
 
   def SetFilter(self,name,bounds):
-    """
+    """ Sets the bounds of the selected dimension as a filter
+        @ In, name, a string denoting the variable to which this filter will be
+          applied.
+        @ In, bounds, a list of two values specifying a lower and upper bound on
+          the dimension specified by name.
     """
     if bounds is None:
       self.filters.pop(name,None)
@@ -927,7 +1004,9 @@ class AMSC_Object(PySide.QtCore.QObject):
     self.sigSelectionChanged.emit()
 
   def GetFilter(self,name):
-    """
+    """ Returns the currently set filter for a particular dimension specified.
+        @ In, name, a string denoting the variable for which one wants to
+          retrieve filtered information.
     """
     if name in self.filters.keys():
       return self.filters[name]
