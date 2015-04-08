@@ -2506,6 +2506,11 @@ class SparseGridCollocation(Grid):
 
 class Sobol(SparseGridCollocation):
   def __init__(self):
+    '''
+      Initializes members to be used in the sampler.
+      @ In, None
+      @ Out, None
+    '''
     Grid.__init__(self)
     self.type           = 'SobolSampler'
     self.printTag       = returnPrintTag(self.type)
@@ -2525,15 +2530,30 @@ class Sobol(SparseGridCollocation):
     self.requiredAssObject = (True,(['ROM'],['1']))                  # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def _localWhatDoINeed(self):
+    '''
+      Used to obtain necessary objects.  See base class.
+      @ In, None
+      @ Out, None
+    '''
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
     return gridDict
 
   def _localGenerateAssembler(self,initDict):
+    '''
+      Used to obtain necessary objects.  See base class.
+      @ In, initDict, dictionary of objects required to initialize
+      @ Out, None
+    '''
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
 
   def localInputAndChecks(self,xmlNode):
+    '''
+      Extended readMoreXML after other objects are instantiated
+      @ In, xmlNode, xmlNode object whose head should be Sobol under Sampler.
+      @ Out, None
+    '''
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
     self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
     for child in xmlNode:
@@ -2547,6 +2567,12 @@ class Sobol(SparseGridCollocation):
       #  print(self.sobolOrder)
 
   def localInitialize(self):
+    '''
+      Initializes Sampler, including building sub-ROMs for Sobol decomposition.  Note that re-using this
+      sampler will destroy any ROM trained and attached to this sampler, and can be retrained after sampling.
+      @ In, None
+      @ Out, None
+    '''
     for key in self.assemblerDict.keys():
       if 'ROM' in key:
         indice = 0
@@ -2619,7 +2645,9 @@ class Sobol(SparseGridCollocation):
     self.ROM.SupervisedEngine.values()[0].initialize(initdict)
 
   def localGenerateInput(self,model,myInput):
-    '''Provide the next point in the sparse grid.'''
+    '''Provide the next point in the sparse grid.  Note that this sampler cannot assign probabilty
+       weights to individual points, as several sub-ROMs will use them with different weights.
+       See base class.'''
     pt = self.pointsToRun[self.counter-1]
     for v,varName in enumerate(self.distDict.keys()):
       self.values[varName] = pt[v]
