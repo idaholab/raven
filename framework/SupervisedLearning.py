@@ -421,6 +421,7 @@ class HDMRRom(GaussPolynomialRom):
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   def __init__(self,**kwargs):
+    '''Initializes SupervisedEngine. See base class.'''
     superVisedLearning.__init__(self,**kwargs)
     self.printTag      = returnPrintTag('HDMR_ROM('+self.target+')')
     self.sobolOrder    = None #depth of HDMR/Sobol expansion
@@ -458,12 +459,15 @@ class HDMRRom(GaussPolynomialRom):
       raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
 
   def _localNormalizeData(self,values,names,feat):
+    '''Overwrite normalization. See base class.'''
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   def interpolationInfo(self):
+    '''See base class.'''
     return dict(self.itpDict)
 
   def initialize(self,idict):
+    '''Called by sampler to pass necessary information along.  See base class.'''
     for key,value in idict.items():
       if   key == 'ROMs' : self.ROMs       = value
       #elif key == 'SG'   : self.sparseGrid = value
@@ -518,7 +522,7 @@ class HDMRRom(GaussPolynomialRom):
     self.amITrained = True
 
     #do a couple moments, for kicks
-    #if self.debug: #TODO HDMRRom doesn't have debug??
+    #if self.debug: #TODO SupervisedEngine doesn't have debug??
     print('\n| SOBOL Decomposition for '+self.target+' using inputs '+str(self.features)+': ')
     print('|\n| Moments')
     print('|   Mean     = %f' %self.__mean__())
@@ -551,6 +555,13 @@ class HDMRRom(GaussPolynomialRom):
     print('|   f(1,1,1) =',self.__evaluateLocal__([[1,1,1]]))
 
   def __fillPointWithRef(self,combo,pt):
+    '''Given a "combo" subset of the full input space and a partially-filled
+       point within that space, fills the rest of space with the reference
+       cut values.
+       @ In, combo, tuple of strings, names of subset dimensions
+       @ In, pt, list of floats, values of points in subset dimension
+       @ Out, newpt, full point in input dimension space on cut-hypervolume
+    '''
     newpt=np.zeros(len(self.features))
     for v,var in enumerate(self.features):
       if var in combo:
@@ -560,6 +571,7 @@ class HDMRRom(GaussPolynomialRom):
     return newpt
 
   def __mean__(self):
+    '''The Cut-HDMR approximation can return its mean easily.'''
     vals={'':self.refSoln}
     for i,c in enumerate(self.combos):
       for combo in c:
@@ -573,6 +585,7 @@ class HDMRRom(GaussPolynomialRom):
     return tot
 
   def __variance__(self):
+    '''The Cut-HDMR approximation can return its variance easily.'''
     vals={}
     for i,c in enumerate(self.combos):
       for combo in c:
@@ -587,6 +600,7 @@ class HDMRRom(GaussPolynomialRom):
     return tot
 
   def __evaluateLocal__(self,featureVals):
+    '''Evaluates ROM at given points.  See base class.'''
     #am I trained?
     if not self.amITrained: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> Cannot evaluate, as ROM is not trained!')
     fvals=dict(zip(self.features,featureVals[0]))
@@ -611,7 +625,6 @@ class HDMRRom(GaussPolynomialRom):
       Optionally the moment (r) to get sensitivity indices of can be requested.
       @ In, levels, list, levels to obtain indices for. Defaults to all available.
       @ In, kind, string, the metric to use when calculating sensitivity indices. Defaults to variance.
-      @ Out, dict, dict of dictionaries of sensitivity indices, as indices[int level][tuple variable combination]
     '''
     if kind.lower().strip() not in ['mean','variance']:
       raise IOError(self.printTag+': '+returnPrintPostTag('ERROR'),'-> Requested sensitivity benchmark is %s, but expected "mean" or "variance".' %kind)
@@ -635,6 +648,13 @@ class HDMRRom(GaussPolynomialRom):
               self.sdx[i][combo]-=self.sdx[cl][doneCombo]
 
   def getPercentSensitivities(self,variance=None,returnTotal=False):
+    '''Calculates percent sensitivities.
+    If variance specified, uses it as the bnechmark variance, otherwise uses ROM to calculate total variance approximately.
+    If returnTotal specified, also returns percent of total variance and the total variance value.
+    @ In, variance, float to represent user-provided total variance
+    @ In, returnTotal, boolean to turn on returning total percent and total variance
+    @ Out, pcts, percent=based Sobol sensitivity indices
+    '''
     if self.sdx == None or len(self.sdx)<1:
       self.getSensitivities()
     if variance==None or variance==0:
