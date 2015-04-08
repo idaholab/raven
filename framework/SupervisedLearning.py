@@ -252,7 +252,8 @@ class NDinterpolatorRom(superVisedLearning):
 class GaussPolynomialRom(NDinterpolatorRom):
   def __confidenceLocal__(self,edict):pass #TODO
 
-  def __resetLocal__(self):pass #TODO
+  def __resetLocal__(self):
+    pass
 
   def __returnCurrentSettingLocal__(self):pass #TODO
 
@@ -411,9 +412,13 @@ class GaussPolynomialRom(NDinterpolatorRom):
 class HDMRRom(GaussPolynomialRom):
   def __confidenceLocal__(self,edict):pass #TODO
 
-  def __resetLocal__(self):pass #TODO
+  def __resetLocal__(self):
+    pass
 
   def __returnCurrentSettingLocal__(self):pass #TODO
+
+  def _localNormalizeData(self,values,names,feat):
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
@@ -451,7 +456,6 @@ class HDMRRom(GaussPolynomialRom):
       raise IOError(self.printTag+' No maxPolyOrder specified!')
     if self.maxPolyOrder < 1:
       raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
-
 
   def _localNormalizeData(self,values,names,feat):
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
@@ -501,7 +505,6 @@ class HDMRRom(GaussPolynomialRom):
       subtdict[self.target] = tvals
       #print('DEBUG     subtdict\n',subtdict)
       rom.train(subtdict)
-      print('DEBUG',self.printTag,'trained',combo)
       #rom.__trainLocal__(fvals,tvals)
 
     #make ordered list of combos for use later
@@ -518,10 +521,9 @@ class HDMRRom(GaussPolynomialRom):
     #if self.debug: #TODO HDMRRom doesn't have debug??
     print('\n| SOBOL Decomposition for '+self.target+' using inputs '+str(self.features)+': ')
     print('|\n| Moments')
-    for r in range(4):
-      print('|   Moment %i = %f' %(r,self.__evaluateMoment__(r)))
+    print('|   Mean     = %f' %self.__mean__())
+    print('|   Variance = %f' %self.__variance__())
     #try the variance
-    print('|\n| variance:',self.__variance__())
     #try sensitivities
     print('|\n| Absolute Sensitivities')
     self.getSensitivities()
@@ -557,15 +559,12 @@ class HDMRRom(GaussPolynomialRom):
         newpt[v] = self.references[var]
     return newpt
 
-  def __evaluateMoment__(self,r):
-    #TODO is this accurate? I think it is, because of orthogonality of ROMs
-    #However, the numbers don't support this -> I don't think this is accurate, anymore.
-    #It does, however, work for the mean only.
-    vals={}
+  def __mean__(self):
+    vals={'':self.refSoln}
     for i,c in enumerate(self.combos):
       for combo in c:
         rom = self.ROMs[combo]
-        vals[combo] = rom.__evaluateMoment__(r)
+        vals[combo] = rom.__evaluateMoment__(1) - vals['']
         for cl in range(i):
           for doneCombo in self.combos[cl]:
             if set(doneCombo).issubset(set(combo)):
@@ -591,22 +590,19 @@ class HDMRRom(GaussPolynomialRom):
     #am I trained?
     if not self.amITrained: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> Cannot evaluate, as ROM is not trained!')
     fvals=dict(zip(self.features,featureVals[0]))
-    vals={}
+    vals={'':self.refSoln}
     for i,c in enumerate(self.combos):
-      #vals{()} = self.refSoln #FIXME is this ok to just omit?
       for combo in c:
         myVals = [list(featureVals[0][self.features.index(j)] for j in combo)]
-        rom = self.ROMs[combo] #FIXME does this include the reference case?
+        rom = self.ROMs[combo]
         #check if rom is trained
-        print('DEBUG',self.printTag,combo)
         if not rom.amITrained: raise IOError('ROM for subset %s is not trained!' %combo)
-        vals[combo] = rom.__evaluateLocal__(myVals)
+        vals[combo] = rom.__evaluateLocal__(myVals) - vals['']
         for cl in range(i):
-          #vals[combo] -= self.refSoln
           for doneCombo in self.combos[cl]:
             if set(doneCombo).issubset(set(combo)):
               vals[combo] -= vals[doneCombo]
-      tot = sum(vals.values())
+    tot = sum(vals.values())
     return tot
 
   def getSensitivities(self,maxLevel=None,kind='variance'):
@@ -624,10 +620,6 @@ class HDMRRom(GaussPolynomialRom):
     else:
       if maxLevels>avail: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> Requested level %i for sensitivity analyis, but this composition is at most %i order!' %(maxLevel,avail) )
 
-    totmean = self.__evaluateMoment__(1)
-    #if kind=='variance':
-    #  totvar = self.__variance__()# - totmean*totmean
-    #  print('totalvar',totvar)
     self.sdx = {}
     for l in range(maxLevel+1):
       self.sdx[l]={}
@@ -636,12 +628,8 @@ class HDMRRom(GaussPolynomialRom):
       for combo in c:
         rom = self.ROMs[combo]
         mean = rom.__evaluateMoment__(1)
-        if kind=='mean':
-          self.sdx[i][combo] = mean
-        elif kind=='variance':
-          self.sdx[i][combo] = rom.__evaluateMoment__(2) - mean*mean
+        self.sdx[i][combo] = rom.__evaluateMoment__(2) - mean*mean
         for cl in range(i):
-          if kind=='mean': self.sdx[i][combo]-=self.refSoln
           for doneCombo in self.combos[cl]:
             if set(doneCombo).issubset(set(combo)):
               self.sdx[i][combo]-=self.sdx[cl][doneCombo]

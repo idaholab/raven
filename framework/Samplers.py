@@ -2557,7 +2557,6 @@ class Sobol(SparseGridCollocation):
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0]
     self.sobolOrder = SVL.sobolOrder
-    print('DEBUG sobol',self.sobolOrder)
     self._generateQuadsAndPolys(SVL)
     varis = SVL.features
     needCombos = itertools.chain.from_iterable(itertools.combinations(varis,r) for r in range(self.sobolOrder+1))
