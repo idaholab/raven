@@ -1,3 +1,39 @@
+ ##############################################################################
+ # Software License Agreement (BSD License)                                   #
+ #                                                                            #
+ # Copyright 2014 University of Utah                                          #
+ # Scientific Computing and Imaging Institute                                 #
+ # 72 S Central Campus Drive, Room 3750                                       #
+ # Salt Lake City, UT 84112                                                   #
+ #                                                                            #
+ # THE BSD LICENSE                                                            #
+ #                                                                            #
+ # Redistribution and use in source and binary forms, with or without         #
+ # modification, are permitted provided that the following conditions         #
+ # are met:                                                                   #
+ #                                                                            #
+ # 1. Redistributions of source code must retain the above copyright          #
+ #    notice, this list of conditions and the following disclaimer.           #
+ # 2. Redistributions in binary form must reproduce the above copyright       #
+ #    notice, this list of conditions and the following disclaimer in the     #
+ #    documentation and/or other materials provided with the distribution.    #
+ # 3. Neither the name of the copyright holder nor the names of its           #
+ #    contributors may be used to endorse or promote products derived         #
+ #    from this software without specific prior written permission.           #
+ #                                                                            #
+ # THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR       #
+ # IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES  #
+ # OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.    #
+ # IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,           #
+ # INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT   #
+ # NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,  #
+ # DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY      #
+ # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT        #
+ # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF   #
+ # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.          #
+ ##############################################################################
+
+
 import sys
 import numpy as np
 
@@ -8,7 +44,7 @@ import time
 # There is probably a better way to do this
 myPath = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(myPath+'/../src/postprocessors/')
-from amsc import *
+import amsc
 ####################################################
 
 import PySide.QtCore
@@ -175,10 +211,11 @@ class AMSC_Object(PySide.QtCore.QObject):
       sys.stderr.write('Decomposition: ')
       start = time.clock()
 
-    self.__amsc = AMSCFloat(vectorFloat(self.Xnorm.flatten()),
-                            vectorFloat(self.Y), vectorString(self.names),
-                            str(graph), str(gradient), int(knn), float(beta),
-                            vectorInt(edgesToPrune))
+    self.__amsc = amsc.AMSCFloat(amsc.vectorFloat(self.Xnorm.flatten()),
+                                 amsc.vectorFloat(self.Y),
+                                 amsc.vectorString(self.names), str(graph),
+                                 str(gradient), int(knn), float(beta),
+                                 amsc.vectorInt(edgesToPrune))
 
     if debug:
       end = time.clock()
@@ -1014,7 +1051,9 @@ class AMSC_Object(PySide.QtCore.QObject):
       return None
 
   def Select(self, idx):
-    """
+    """ Add a segment or extremum to the list of currently selected items
+        @ In, either an non-negative integer or a 2-tuple of non-negative
+          integers specifying the index of an extremum or a min-max index pair.
     """
     if isinstance(idx,int):
       if idx not in self.selectedExtrema:
@@ -1026,7 +1065,9 @@ class AMSC_Object(PySide.QtCore.QObject):
       self.sigSelectionChanged.emit()
 
   def Deselect(self, idx):
-    """
+    """ Remove a segment or extremum from the list of currently selected items
+        @ In, either an non-negative integer or a 2-tuple of non-negative
+          integers specifying the index of an extremum or a min-max index pair.
     """
     if isinstance(idx,int):
       if idx in self.selectedExtrema:
@@ -1038,14 +1079,19 @@ class AMSC_Object(PySide.QtCore.QObject):
       self.sigSelectionChanged.emit()
 
   def ClearSelection(self):
-    """
+    """ Empties the list of selected items.
     """
     self.selectedSegments = []
     self.selectedExtrema = []
     self.sigSelectionChanged.emit()
 
   def GetSelectedIndices(self,segmentsOnly=True):
-    """
+    """ Returns a mixed list of extremum indices and min-max index pairs
+        specifying all of the segments selected.
+        @ In, segmentsOnly, a boolean variable that will filter the results to
+          only return min-max index pairs.
+        @ Out, a list of non-negative integers and 2-tuples consisting of
+          non-negative integers.
     """
     partitions = self.Partitions(self.persistence)
     indices = []
@@ -1059,17 +1105,20 @@ class AMSC_Object(PySide.QtCore.QObject):
     return list(indices)
 
   def GetSampleSize(self):
-    """
+    """ Returns the number of samples in the input data
+        @ Out, an integer specifying the number of samples.
     """
     return len(self.Y)
 
   def GetDimensionality(self):
-    """
+    """ Returns the dimensionality of the input space of the input data
+        @ Out, an integer specifying the dimensionality of the input samples.
     """
     return self.X.shape[1]
 
   def ComputeExtremaShapeDescriptors(self):
-    """
+    """ Computes and internally stores the second order derivative information
+        computed at each extrema using the Gaussian fit around each extremum.
     """
     self.derivatives = {}
     for ext,fit in self.extremumFits.iteritems():
@@ -1103,7 +1152,13 @@ class AMSC_Object(PySide.QtCore.QObject):
           self.derivatives[int(ext)][m,n] = -2*a*A[m,n]
 
   def GetSecondOrderDerivatives(self,key):
-    """
+    """ Returns the computed second order derivative information at the
+        specified extremum using its associated Gaussian fit.
+        @ In, key, a non-negative integer specifying the index of an extrema for
+          the currently selected persistence level.
+        @ Out, a matrix of values specifying the second order derivatives at
+          the specified extremum where the order represents the same dimensional
+          ordering of the input data.
     """
     return self.derivatives[key]
 
