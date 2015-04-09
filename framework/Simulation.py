@@ -131,43 +131,6 @@ def createAndRunQSUB(simulation):
   subprocess.call(command)
 
 
-#-----------------------------------------------------------------------------------------------------
-class PBSDSHSimulationMode(SimulationMode):
-
-  def __init__(self,simulation):
-    self.__simulation = simulation
-    #Check if in pbs by seeing if environmental variable exists
-    self.__in_pbs = "PBS_NODEFILE" in os.environ
-    self.printTag = returnPrintTag('PBSDSH SIMULATION MODE')
-  def doOverrideRun(self):
-    # Check if the simulation has been run in PBS mode and, in case, construct the proper command
-    return not self.__in_pbs
-
-  def runOverride(self):
-    #Check and see if this is being accidently run
-    assert self.__simulation.runInfoDict['mode'] == 'pbsdsh' and not self.__in_pbs
-    createAndRunQSUB(self.__simulation)
-
-  def modifySimulation(self):
-    if self.__in_pbs:
-      #Figure out number of nodes and use for batchsize
-      nodefile = os.environ["PBS_NODEFILE"]
-      lines = open(nodefile,"r").readlines()
-      self.__simulation.runInfoDict['Nodes'] = list(lines)
-      oldBatchsize =  self.__simulation.runInfoDict['batchSize']
-      newBatchsize = len(lines) #the batchsize is just the number of nodes
-      # of which there are one per line in the nodefile
-      if newBatchsize != oldBatchsize:
-        self.__simulation.runInfoDict['batchSize'] = newBatchsize
-        print(self.printTag+": " +returnPrintPostTag('Warning') + " -> changing batchsize from",oldBatchsize,"to",newBatchsize)
-      print(self.printTag+": Message -> Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
-      #Add pbsdsh command to run.  pbsdsh runs a command remotely with pbs
-      print('DEBUG precommand',self.printTag,self.__simulation.runInfoDict['precommand'])
-      self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+ str(self.__simulation.runInfoDict['logfileBuffer'])+" "+self.__simulation.runInfoDict['precommand']
-      self.__simulation.runInfoDict['logfilePBS'] = 'out_%CURRENT_ID%'
-      if(self.__simulation.runInfoDict['NumThreads'] > 1):
-        #Add the MOOSE --n-threads command afterwards
-        self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
 #----------------------------------------------------------------------
 
 class MPISimulationMode(SimulationMode):
@@ -327,7 +290,7 @@ class Simulation(object):
     self.runInfoDict['postcommand'       ] = ''           # Added after the command that is run.
     self.runInfoDict['delSucLogFiles'    ] = False        # If a simulation (code run) has not failed, delete the relative log file (if True)
     self.runInfoDict['deleteOutExtension'] = []           # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
-    self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only modes supported are pbsdsh and mpi
+    self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only mode supported is mpi but others can be added with custom modes.
     self.runInfoDict['Nodes'             ] = []           # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
@@ -356,7 +319,6 @@ class Simulation(object):
 
     #Dictionary of mode handlers for the
     self.__modeHandlerDict           = {}
-    self.__modeHandlerDict['pbsdsh'] = PBSDSHSimulationMode
     self.__modeHandlerDict['mpi']    = MPISimulationMode
 
     #this dictionary contain the static factory that return the instance of one of the allowed entities in the simulation
@@ -569,7 +531,13 @@ class Simulation(object):
         modeName = element.text.strip()
         modeClass = element.attrib["class"]
         modeFile = element.attrib["file"]
+        #XXX This depends on if the working directory has been set yet.
+        # So switching the order of WorkingDir and CustomMode can
+        # cause different results.
+        modeFile = modeFile.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
+        modeFile = modeFile.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
         modeDir, modeFilename = os.path.split(modeFile)
+        #print("cwd",os.getcwd(),"modeDir",modeDir,"modeFilename",modeFilename)
         if modeFilename.endswith(".py"):
           modeModulename = modeFilename[:-3]
         else:
