@@ -5,12 +5,15 @@
   <WorkingDir>topologyPP</WorkingDir>
   <Sequence>
     loadData,
-    decompose
+    decompose1,
+    decompose2,
+    decompose3,
+    decompose4
   </Sequence>
 </RunInfo>
 <Models>
 <!-- The definition of the topological partition and all of its parameters -->
-  <PostProcessor name='AMSC' subType='TopologicalDecomposition' debug='true'>
+  <PostProcessor name='AMSC1' subType='TopologicalDecomposition' debug='true'>
     <graph>Beta Skeleton</graph>
     <gradient>steepest</gradient>
     <beta>1</beta>
@@ -18,6 +21,36 @@
     <normalization>None</normalization>
     <parameters>X,Y</parameters>
     <response>Z</response>
+  </PostProcessor>
+  <PostProcessor name='AMSC2' subType='TopologicalDecomposition' debug='true'>
+    <graph>Beta Skeleton</graph>
+    <gradient>steepest</gradient>
+    <beta>1</beta>
+    <knn>8</knn>
+    <normalization>None</normalization>
+    <parameters>X,Y</parameters>
+    <response>Z</response>
+    <persistence>0.005</persistence>
+  </PostProcessor>
+  <PostProcessor name='AMSC3' subType='TopologicalDecomposition' debug='true'>
+    <graph>Beta Skeleton</graph>
+    <gradient>steepest</gradient>
+    <beta>1</beta>
+    <knn>8</knn>
+    <normalization>None</normalization>
+    <parameters>X,Y</parameters>
+    <response>Z</response>
+    <persistence>0.04</persistence>
+  </PostProcessor>
+  <PostProcessor name='AMSC4' subType='TopologicalDecomposition' debug='true'>
+    <graph>Beta Skeleton</graph>
+    <gradient>steepest</gradient>
+    <beta>1</beta>
+    <knn>8</knn>
+    <normalization>None</normalization>
+    <parameters>X,Y</parameters>
+    <response>Z</response>
+    <persistence>0.1</persistence>
   </PostProcessor>
 </Models>
 <Steps>
@@ -27,19 +60,49 @@
       <Output   class='DataBases' type='HDF5'   >myDB</Output>
     </IOStep> 
 <!-- Perform the topological decomposition -->
-    <PostProcess name='decompose'>
+    <PostProcess name='decompose1'>
         <Input   class='Datas'    type='TimePointSet'>testData</Input>
-        <Model   class='Models'   type='PostProcessor'>AMSC</Model>
-        <Output  class='Datas'    type='TimePointSet'>outTPS</Output>
-        <Output  class='OutStreamManager' type='Print'>myDump</Output>
+        <Model   class='Models'   type='PostProcessor'>AMSC1</Model>
+        <Output  class='Datas'    type='TimePointSet'>outTPS1</Output>
+        <Output  class='OutStreamManager' type='Print'>myDump1</Output>
+    </PostProcess>
+    <PostProcess name='decompose2'>
+        <Input   class='Datas'    type='TimePointSet'>testData</Input>
+        <Model   class='Models'   type='PostProcessor'>AMSC2</Model>
+        <Output  class='Datas'    type='TimePointSet'>outTPS2</Output>
+        <Output  class='OutStreamManager' type='Print'>myDump2</Output>
+    </PostProcess>
+    <PostProcess name='decompose3'>
+        <Input   class='Datas'    type='TimePointSet'>testData</Input>
+        <Model   class='Models'   type='PostProcessor'>AMSC3</Model>
+        <Output  class='Datas'    type='TimePointSet'>outTPS3</Output>
+        <Output  class='OutStreamManager' type='Print'>myDump3</Output>
+    </PostProcess>
+    <PostProcess name='decompose4'>
+        <Input   class='Datas'    type='TimePointSet'>testData</Input>
+        <Model   class='Models'   type='PostProcessor'>AMSC4</Model>
+        <Output  class='Datas'    type='TimePointSet'>outTPS4</Output>
+        <Output  class='OutStreamManager' type='Print'>myDump4</Output>
     </PostProcess>
 </Steps>
 
 <OutStreamManager>
 <!-- A csv file containing the output of the example -->
-  <Print name='myDump'>
+  <Print name='myDump1'>
     <type>csv</type>
-    <source>outTPS</source>
+    <source>outTPS1</source>
+  </Print>
+  <Print name='myDump2'>
+    <type>csv</type>
+    <source>outTPS2</source>
+  </Print>
+  <Print name='myDump3'>
+    <type>csv</type>
+    <source>outTPS3</source>
+  </Print>
+  <Print name='myDump4'>
+    <type>csv</type>
+    <source>outTPS4</source>
   </Print>
 </OutStreamManager>
 
@@ -48,13 +111,25 @@
   <HDF5 name="myDB"/> 
 </DataBases>
 <Datas>
-<!-- The input TimePointSet objects -->
+<!-- The input TimePointSet object -->
   <TimePointSet name='testData'>
     <Input>X,Y</Input>
     <Output>Z</Output>
   </TimePointSet>
 <!-- The output TimePointSet objects -->
-  <TimePointSet name='outTPS'>
+  <TimePointSet name='outTPS1'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+  <TimePointSet name='outTPS2'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+  <TimePointSet name='outTPS3'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+  <TimePointSet name='outTPS4'>
     <Input>X,Y</Input>
     <Output>Z</Output>
   </TimePointSet>

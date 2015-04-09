@@ -323,6 +323,13 @@
   output = 'externalPostProcessor/myDump.xml'
  [../]
 
+ [./TopologyPostProcessor]
+  type = 'RavenFramework'
+  input = 'test_topology.xml'
+  csv = 'topologyPP/myDump1.csv topologyPP/myDump2.csv topologyPP/myDump3.csv topologyPP/myDump4.csv'
+  output = 'topologyPP/myDump1.xml topologyPP/myDump2.xml topologyPP/myDump3.xml topologyPP/myDump4.xml'
+ [../]
+
  [./io_ROM_pickle]
   type = 'RavenFramework'
   input = 'test_io_ROM_pickle.xml'

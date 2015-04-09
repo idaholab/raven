@@ -1992,8 +1992,8 @@ class TopologicalDecomposition(BasePostProcessor):
       rSquared = linearFitnesses[key]
       print('\t' + u"\u03B2\u0302: " + str(coefficients))
       print('\t' + u"R\u00B2: " + str(rSquared) + '\n')
-      outputDict['coefficients_%d,%d' % (key[0],key[1])] = coefficients
-      outputDict['R2_%d,%d' % (key[0],key[1])] = rSquared
+      outputDict['coefficients_%d_%d' % (key[0],key[1])] = coefficients
+      outputDict['R2_%d_%d' % (key[0],key[1])] = rSquared
 
 #    print('RMSD  = %f' % (self.linearNRMSD))
     print('========== Gaussian Fits: ==========')
