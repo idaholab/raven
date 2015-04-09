@@ -10,7 +10,7 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils    import returnPrintTag, metaclass_insert, stringsThatMeanTrue, stringsThatMeanFalse
+from utils    import raiseAnError, returnPrintTag, metaclass_insert, stringsThatMeanTrue, stringsThatMeanFalse
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -33,13 +33,13 @@ class BaseType(object):
     that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag)
     '''
     if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
-    else: raise IOError(self.printTag+':not found name for a '+self.__class__.__name__)
+    else: raiseAnError(IOError,self,'not found name for a '+self.__class__.__name__)
     self.type     = xmlNode.tag
     if self.globalAttributes!= None: self.globalAttributes = globalAttributes
     if 'debug' in xmlNode.attrib:
       if   xmlNode.attrib['debug'].lower() in stringsThatMeanTrue() : self.debug = True
       elif xmlNode.attrib['debug'].lower() in stringsThatMeanFalse(): self.debug = False
-      else                                   : raise IOError('For the attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
+      else                                   : raiseAnError(IOError,self,'For the attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
     else                                     : self.debug = debug
     self._readMoreXML(xmlNode)
     if self.debug:
