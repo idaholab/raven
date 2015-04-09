@@ -27,6 +27,7 @@ import abc
 import ast
 import pickle as pk
 from operator import itemgetter
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -94,7 +95,7 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the training set')
-      else:
+      else: #FIXME this "else" seems redundant, as you exit with error otherwise
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
         if values[names.index(feat)].size != featureValues[:,0].size: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
@@ -251,7 +252,8 @@ class NDinterpolatorRom(superVisedLearning):
 class GaussPolynomialRom(NDinterpolatorRom):
   def __confidenceLocal__(self,edict):pass #TODO
 
-  def __resetLocal__(self):pass #TODO
+  def __resetLocal__(self):
+    pass
 
   def __returnCurrentSettingLocal__(self):pass #TODO
 
@@ -279,7 +281,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
           self.itpDict[var]={'poly'  :'DEFAULT',
                              'quad'  :'DEFAULT',
                              'weight':'1'}
-                             #'cdf'   :'False'}
           for atrName,atrVal in val.items():
             if atrName in ['poly','quad','weight']: self.itpDict[var][atrName]=atrVal
             else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
@@ -323,17 +324,17 @@ class GaussPolynomialRom(NDinterpolatorRom):
     if len(featureVals)!=len(self.sparseGrid):
       raise IOError(self.printTag+' ERROR: ROM requires '+str(len(self.sparseGrid))+' points, but only '+str(len(featureVals))+' provided!')
     #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
+    #print('DEBUG features',self.printTag,self.features)
     self.sparseGrid._remap(self.features)
     #check equality of point space
     fvs = featureVals[:]
     sgs = self.sparseGrid.points()[:]
     fvs=sorted(fvs,key=itemgetter(*range(len(fvs[0]))))
     sgs=sorted(sgs,key=itemgetter(*range(len(sgs[0]))))
-    #print('DEBUG fvs | sgs:')
     #for i in range(len(fvs)):
     #  print('  ',fvs[i],' | ',sgs[i])
     if not np.allclose(fvs,sgs,rtol=1e-15):
-      print('DEBUG fvs | sgs:')
+      print('DEBUG featureVals | sparseGridVals:')
       for i in range(len(fvs)):
         print('  ',fvs[i],' | ',sgs[i])
       raise IOError(self.printTag+' ERROR: input values do not match required values!')
@@ -341,7 +342,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     translate={}
     for i in range(len(fvs)):
       translate[tuple(fvs[i])]=sgs[i]
-    #TODO can parallelize this! Worth it?
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
     #outFile=file('debugout.txt','w')
     #outFile.writelines(str(list(v for v in self.sparseGrid.varNames))+'\n')
@@ -360,47 +360,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
         wt = self.sparseGrid.weights(translate[tuple(pt)])
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
+    self.amITrained=True
     #outFile.close()
-    self.printPolyDict()
+    #self.printPolyDict()
     #do a few moments #TODO need a better solution for calling moment calculations, etc
-    for r in range(5):
-      print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
-
-    #print('DEBUG sparsegrid:\n'+str(self.sparseGrid))
-    #print('DEBUG scipy tests')
-    #for i in range(1,5):
-    #  print('DEBUG  ',self.quads.values()[0](i))
-    #import scipy
-    #print('DEBUG python',sys.version_info)
-    #print('DEBUG numpy ',np.__version__)
-    #print('DEBUG scipy ',scipy.__version__)
-    #local evals
-    #if len(self.features)==1:
-    #  tests=[(0),(0.2),(0.5),(0.7),(1.0)]
-    #elif len(self.features)==2:
-    # tests=[(0,0),(0,0.5),(0.5,0.5),(1.0,0.5),(1.0,1.0)]
-    #for i in tests:
-    #  print('DEBUG eval'+str(i)+':',self.__evaluateLocal__([i]))
-
-    #pk.dump(self,file('testROMdump.pk','w'))
-    #dud=pk.load(file('testROMdump.pk','r'))
-    #print('dud:',dud)
-    #print('pickle test:',dud==self.distDict)
-
     #for r in range(5):
-    #  print('ROM moment',r,'= %1.16f' %dud.__evaluateMoment__(r))
-    # THESE members pickle ok now, and check out as equal
-    # - sparseGrid
-    # - quads
-    # - maxPolyOrder
-    # - polys
-    # - indexSet
-
-    # THESE members are problems still. TODO
-    # - distDict -> SWIG problems.
-
-    # UNTESTED
-    # SVL
+    #  print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
 
   def printPolyDict(self,printZeros=False):
     '''Human-readable version of the polynomial chaos expansion.
@@ -412,7 +377,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
       if val > 1e-14 or printZeros:
         data.append([idx,val])
     data.sort()
-    print('polyDict for '+self.target+': ')
+    print('polyDict for ['+self.target+'] with inputs '+str(self.features)+': ')
     for idx,val in data:
       print('    ',idx,val)
 
@@ -444,11 +409,271 @@ class GaussPolynomialRom(NDinterpolatorRom):
              #'PolynomialOrder':self.maxPolyOrder,
              # 'Interpolation':interpolationInfo()}
 
-  #def __getstate__(self): #for pickling
-  #  pass
-#
-#  def __setstate__(self,state): #for unpickling
-#    pass
+class HDMRRom(GaussPolynomialRom):
+  def __confidenceLocal__(self,edict):pass #TODO
+
+  def __resetLocal__(self):
+    pass
+
+  def __returnCurrentSettingLocal__(self):pass #TODO
+
+  def _localNormalizeData(self,values,names,feat):
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+
+  def __init__(self,**kwargs):
+    '''Initializes SupervisedEngine. See base class.'''
+    superVisedLearning.__init__(self,**kwargs)
+    self.printTag      = returnPrintTag('HDMR_ROM('+self.target+')')
+    self.sobolOrder    = None #depth of HDMR/Sobol expansion
+    self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
+    self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
+    self.itpDict       = {}   #dict of quad,poly,weight choices keyed on varName
+    self.ROMs          = {}   #dict of GaussPolyROM objects keyed by combination of vars that make them up
+    self.sparseGrid    = None #Quadratures.SparseGrid object, has points and weights
+    self.distDict      = None #dict{varName: Distribution object}, has point conversion methods based on quadrature
+    self.quads         = None #dict{varName: Quadrature object}, has keys for distribution's point conversion methods
+    self.polys         = None #dict{varName: OrthoPolynomial object}, has polynomials for evaluation
+    self.indexSet      = None #array of tuples, polynomial order combinations
+    self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
+    self.itpDict       = {}   #dict{varName: dict{attribName:value} }
+    self.sdx           = None #dict of sobol sensitivity coeffs, keyed on order and tuple(varnames)
+
+    for key,val in kwargs.items():
+      if key=='SobolOrder': self.sobolOrder = int(val)
+      if key=='IndexSet': self.indexSetType = val
+      if key=='PolynomialOrder': self.maxPolyOrder = val
+      if key=='Interpolation':
+        for var,val in val.items():
+          self.itpDict[var]={'poly'  :'DEFAULT',
+                             'quad'  :'DEFAULT',
+                             'weight':'1'}
+          for atrName,atrVal in val.items():
+            if atrName in ['poly','quad','weight']: self.itpDict[var][atrName]=atrVal
+            else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
+
+    if self.indexSetType==None:
+      raise IOError(self.printTag+' No IndexSet specified!')
+    if self.maxPolyOrder==None:
+      raise IOError(self.printTag+' No maxPolyOrder specified!')
+    if self.maxPolyOrder < 1:
+      raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
+
+  def _localNormalizeData(self,values,names,feat):
+    '''Overwrite normalization. See base class.'''
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+
+  def interpolationInfo(self):
+    '''See base class.'''
+    return dict(self.itpDict)
+
+  def initialize(self,idict):
+    '''Called by sampler to pass necessary information along.  See base class.'''
+    for key,value in idict.items():
+      if   key == 'ROMs' : self.ROMs       = value
+      #elif key == 'SG'   : self.sparseGrid = value
+      elif key == 'dists': self.distDict   = value
+      elif key == 'quads': self.quads      = value
+      elif key == 'polys': self.polys      = value
+      elif key == 'refs' : self.references = value
+
+  def __trainLocal__(self,featureVals,targetVals):
+    '''
+      Because HDMR rom is a collection of sub-roms, we call sub-rom "train" to do what we need it do.
+      @ In, tdict, training dictionary
+      @ Out, None
+    '''
+    ft={}
+    for i in range(len(featureVals)):
+      ft[tuple(featureVals[i])]=targetVals[i]
+    #get the reference case
+    self.refpt = tuple(self.__fillPointWithRef((),[]))
+    self.refSoln = ft[tuple(self.refpt)]
+    #print('DEBUG features',self.printTag,self.features)
+    #print('DEBUG featureVals',featureVals)
+    for combo,rom in self.ROMs.items():
+      #print('\nDEBUG     combo:',combo)
+      subtdict={}
+      for c in combo: subtdict[c]=[]
+      subtdict[self.target]=[]
+      SG = rom.sparseGrid
+      fvals=np.zeros([len(SG),len(combo)])
+      tvals=np.zeros(len(SG))
+      for i in range(len(SG)):
+        getpt=tuple(self.__fillPointWithRef(combo,SG[i][0]))
+        tvals[i] = ft[getpt]
+        for fp,fpt in enumerate(SG[i][0]):
+          fvals[i][fp] = fpt
+      #print('DEBUG     lenfvals',len(fvals),len(fvals[0]))
+      for i,c in enumerate(combo):
+        subtdict[c] = fvals[:,i]
+      subtdict[self.target] = tvals
+      #print('DEBUG     subtdict\n',subtdict)
+      rom.train(subtdict)
+      #rom.__trainLocal__(fvals,tvals)
+
+    #make ordered list of combos for use later
+    maxLevel = max(list(len(combo) for combo in self.ROMs.keys()))
+    self.combos = []
+    for i in range(maxLevel+1):
+      self.combos.append([])
+    for combo in self.ROMs.keys():
+      self.combos[len(combo)].append(combo)
+
+    self.amITrained = True
+
+    #do a couple moments, for kicks
+    #if self.debug: #TODO SupervisedEngine doesn't have debug??
+    print('\n| SOBOL Decomposition for '+self.target+' using inputs '+str(self.features)+': ')
+    print('|\n| Moments')
+    print('|   Mean     = %f' %self.__mean__())
+    print('|   Variance = %f' %self.__variance__())
+    #try the variance
+    #try sensitivities
+    print('|\n| Absolute Sensitivities')
+    self.getSensitivities()
+    insig=[]
+    for combo in self.ROMs.keys():
+      if abs(self.sdx[len(combo)][combo])>1e-12:
+        print('|   Index %s = %f' %(combo,self.sdx[len(combo)][combo]))
+      else:
+        insig.append(combo)
+    if len(insig)>0: print('|   Contributes less than 1e-12:',insig)
+    # percent sensitivities
+    print('|\n| Percent Sensitivities')
+    pcts,totpct,totvar = self.getPercentSensitivities(returnTotal=True)
+    #pcts,totpct,totvar = self.getPercentSensitivities(variance=1.604468e-4,returnTotal=True)
+    insig=[]
+    for combo,val in pcts.items():
+      if abs(val)>1e-12:
+        print('|   Index %s = %f' %(combo,val))
+      else: insig.append(combo)
+    if len(insig)>0: print('|   Contributes less than 1e-12:',insig)
+    print('| Total:',totvar,'(',totpct*100,'%)')
+    # evaluations
+    print('|\n| SOBOL evaluations')
+    print('|   f(0.5,3,2) =',self.__evaluateLocal__([[0.5,3,2]]))
+    print('|   f(1,1,1) =',self.__evaluateLocal__([[1,1,1]]))
+
+  def __fillPointWithRef(self,combo,pt):
+    '''Given a "combo" subset of the full input space and a partially-filled
+       point within that space, fills the rest of space with the reference
+       cut values.
+       @ In, combo, tuple of strings, names of subset dimensions
+       @ In, pt, list of floats, values of points in subset dimension
+       @ Out, newpt, full point in input dimension space on cut-hypervolume
+    '''
+    newpt=np.zeros(len(self.features))
+    for v,var in enumerate(self.features):
+      if var in combo:
+        newpt[v] = pt[combo.index(var)]
+      else:
+        newpt[v] = self.references[var]
+    return newpt
+
+  def __mean__(self):
+    '''The Cut-HDMR approximation can return its mean easily.'''
+    vals={'':self.refSoln}
+    for i,c in enumerate(self.combos):
+      for combo in c:
+        rom = self.ROMs[combo]
+        vals[combo] = rom.__evaluateMoment__(1) - vals['']
+        for cl in range(i):
+          for doneCombo in self.combos[cl]:
+            if set(doneCombo).issubset(set(combo)):
+              vals[combo] -= vals[doneCombo]
+    tot = sum(vals.values())
+    return tot
+
+  def __variance__(self):
+    '''The Cut-HDMR approximation can return its variance easily.'''
+    vals={}
+    for i,c in enumerate(self.combos):
+      for combo in c:
+        rom = self.ROMs[combo]
+        mean = rom.__evaluateMoment__(1)
+        vals[combo] = rom.__evaluateMoment__(2) - mean*mean
+        for cl in range(i):
+          for doneCombo in self.combos[cl]:
+            if set(doneCombo).issubset(set(combo)):
+              vals[combo] -= vals[doneCombo]
+    tot = sum(vals.values())
+    return tot
+
+  def __evaluateLocal__(self,featureVals):
+    '''Evaluates ROM at given points.  See base class.'''
+    #am I trained?
+    if not self.amITrained: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> Cannot evaluate, as ROM is not trained!')
+    fvals=dict(zip(self.features,featureVals[0]))
+    vals={'':self.refSoln}
+    for i,c in enumerate(self.combos):
+      for combo in c:
+        myVals = [list(featureVals[0][self.features.index(j)] for j in combo)]
+        rom = self.ROMs[combo]
+        #check if rom is trained
+        if not rom.amITrained: raise IOError('ROM for subset %s is not trained!' %combo)
+        vals[combo] = rom.__evaluateLocal__(myVals) - vals['']
+        for cl in range(i):
+          for doneCombo in self.combos[cl]:
+            if set(doneCombo).issubset(set(combo)):
+              vals[combo] -= vals[doneCombo]
+    tot = sum(vals.values())
+    return tot
+
+  def getSensitivities(self,maxLevel=None,kind='variance'):
+    '''
+      Generates dictionary of Sobol indices for the requested levels.
+      Optionally the moment (r) to get sensitivity indices of can be requested.
+      @ In, levels, list, levels to obtain indices for. Defaults to all available.
+      @ In, kind, string, the metric to use when calculating sensitivity indices. Defaults to variance.
+    '''
+    if kind.lower().strip() not in ['mean','variance']:
+      raise IOError(self.printTag+': '+returnPrintPostTag('ERROR'),'-> Requested sensitivity benchmark is %s, but expected "mean" or "variance".' %kind)
+    avail = max(list(len(combo) for combo in self.ROMs.keys()))
+    if maxLevel==None: maxLevel = avail
+    else:
+      if maxLevels>avail: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> Requested level %i for sensitivity analyis, but this composition is at most %i order!' %(maxLevel,avail) )
+
+    self.sdx = {}
+    for l in range(maxLevel+1):
+      self.sdx[l]={}
+    #put basic metric in
+    for i,c in enumerate(self.combos):
+      for combo in c:
+        rom = self.ROMs[combo]
+        mean = rom.__evaluateMoment__(1)
+        self.sdx[i][combo] = rom.__evaluateMoment__(2) - mean*mean
+        for cl in range(i):
+          for doneCombo in self.combos[cl]:
+            if set(doneCombo).issubset(set(combo)):
+              self.sdx[i][combo]-=self.sdx[cl][doneCombo]
+
+  def getPercentSensitivities(self,variance=None,returnTotal=False):
+    '''Calculates percent sensitivities.
+    If variance specified, uses it as the bnechmark variance, otherwise uses ROM to calculate total variance approximately.
+    If returnTotal specified, also returns percent of total variance and the total variance value.
+    @ In, variance, float to represent user-provided total variance
+    @ In, returnTotal, boolean to turn on returning total percent and total variance
+    @ Out, pcts, percent=based Sobol sensitivity indices
+    '''
+    if self.sdx == None or len(self.sdx)<1:
+      self.getSensitivities()
+    if variance==None or variance==0:
+      variance = self.__variance__()
+      variance = 0.0
+      for c,combos in self.sdx.items():
+        for combo in combos:
+          variance+=self.sdx[c][combo]
+    tot=0.0
+    totvar=0.0
+    pcts={}
+    for c,combos in self.sdx.items():
+      for combo in combos:
+        totvar+=self.sdx[c][combo]
+        pcts[combo]=self.sdx[c][combo]/variance
+        tot+=pcts[combo]
+    if returnTotal: return pcts,tot,totvar
+    else: return pcts
+
 #
 #
 #
@@ -663,7 +888,8 @@ __interfaceDict['NDspline'            ] = NDsplineRom
 __interfaceDict['NDinvDistWeigth'     ] = NDinvDistWeigth
 __interfaceDict['microSphere'         ] = NDmicroSphere
 __interfaceDict['SciKitLearn'         ] = SciKitLearn
-__interfaceDict['GaussPolynomialRom'] = GaussPolynomialRom
+__interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
+__interfaceDict['HDMRRom'             ] = HDMRRom
 __base                                  = 'superVisedLearning'
 
 def addToInterfaceDict(newDict):
