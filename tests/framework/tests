@@ -305,7 +305,7 @@
  [./adaptive_sampler_ext_model]
   type = 'RavenFramework'
   input = 'test_adaptive_sampler.xml'
-  output = ‘Adapt/limitSurfaceDump.csv'
+  output = 'Adapt/limitSurfaceDump.csv'
   csv = 'Adapt/limitSurfaceDump.csv'
  [../]
 
