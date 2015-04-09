@@ -4029,7 +4029,7 @@ for comparing two different datas.  This is an experimental
 post-processor, and it will definitely change as it is further
 developed.
 
-There are three nodes that are used in the post-processor.
+There are four nodes that are used in the post-processor.
 
 \begin{itemize}
 \item \xmlNode{kind}: specifies information to use for comparing the
@@ -4059,6 +4059,9 @@ There are three nodes that are used in the post-processor.
 \item \xmlNode{fz}: If the text is true, then extra comparison
   statistics for using the $f_z$ function are generated.  These take
   extra time, so are not on by default.
+\item \xmlNode{interpolation}: This switches the interpolation used
+  for the cdf and the pdf functions between the default of quadratic
+  or linear.
 \end{itemize}
 
 The \textbf{ComparisonStatistics} post-processor generates a variety
