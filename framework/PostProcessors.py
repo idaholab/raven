@@ -1958,7 +1958,7 @@ class TopologicalDecomposition(BasePostProcessor):
     names = self.params + [self.response]
 
     self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=None,
-                              names=names, graph=self.graph, 
+                              names=names, graph=self.graph,
                               gradient=self.gradient, knn=self.knn,
                               beta=self.beta, normalization=self.normalization,
                               debug=True)

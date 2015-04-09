@@ -93,7 +93,7 @@ class AMSC_Object(PySide.QtCore.QObject):
   def __init__(self, X, Y, w=None, names=None, graph='beta skeleton',
                gradient='steepest', knn=-1, beta=1.0, normalization=None,
                debug=False):
-    """ Initialization method that takes at minimum a set of input points and 
+    """ Initialization method that takes at minimum a set of input points and
         corresponding output responses.
         @ In, X, an m-by-n array of values specifying m n-dimensional samples
         @ In, Y, a m vector of values specifying the output responses
@@ -199,7 +199,7 @@ class AMSC_Object(PySide.QtCore.QObject):
     # As seen here:
     #  http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
     seen = set()
-    pairs = [ x for x in pairs if not (x in seen or x[::-1] in seen 
+    pairs = [ x for x in pairs if not (x in seen or x[::-1] in seen
                                        or seen.add(x))]
 
     for edge in pairs:
@@ -810,7 +810,7 @@ class AMSC_Object(PySide.QtCore.QObject):
     """ Returns the predicted output values requested by the user
         @ In, indices, a list of non-negative integers specifying the
           row indices to predict
-        @ In, fit, an optional string specifying which fit should be used to 
+        @ In, fit, an optional string specifying which fit should be used to
           predict each location, 'linear' = Morse-Smale segment, 'maxima' =
           descending/stable manifold, 'minima' = ascending/unstable manifold
         @ In, applyFilters, a boolean specifying whether data filters should be
@@ -819,7 +819,7 @@ class AMSC_Object(PySide.QtCore.QObject):
           values filtered by the three input parameters.
     """
     partitions = self.Partitions(self.persistence)
-    
+
     predictedY = np.zeros(self.GetSampleSize())
     if fit == 'linear':
       for key,items in partitions.iteritems():
@@ -857,7 +857,7 @@ class AMSC_Object(PySide.QtCore.QObject):
         values requested by the user
         @ In, indices, a list of non-negative integers specifying the
           row indices for which to compute residuals
-        @ In, fit, an optional string specifying which fit should be used to 
+        @ In, fit, an optional string specifying which fit should be used to
           predict each location, 'linear' = Morse-Smale segment, 'maxima' =
           descending/stable manifold, 'minima' = ascending/unstable manifold
         @ In, applyFilters, a boolean specifying whether data filters should be
@@ -1101,7 +1101,7 @@ class AMSC_Object(PySide.QtCore.QObject):
       or extPair[1] in self.selectedExtrema:
         indices.extend(indexSet)
 
-    indices = self.GetMask(indices)   
+    indices = self.GetMask(indices)
     return list(indices)
 
   def GetSampleSize(self):
@@ -1123,7 +1123,7 @@ class AMSC_Object(PySide.QtCore.QObject):
     self.derivatives = {}
     for ext,fit in self.extremumFits.iteritems():
       (mu,c,a,A) = fit
-      
+
       # def dfdu(x):
       #   v = x - mu
       #   C = a
@@ -1206,7 +1206,7 @@ class AMSC_Object(PySide.QtCore.QObject):
     return 'regular'
 
   def ComputeStatisticalSensitivity(self):
-    """ Computes the per segment Pearson correlation coefficients and the 
+    """ Computes the per segment Pearson correlation coefficients and the
         Spearman rank correlation coefficients and stores them internally.
     """
     partitions = self.Partitions()
