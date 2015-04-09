@@ -2609,7 +2609,7 @@ class Sobol(SparseGridCollocation):
       initDict={'IndexSet':iset, 'PolynomialOrder':SVL.maxPolyOrder, 'Interpolation':SVL.itpDict}
       initDict['Features']=','.join(combo)
       initDict['Target']=SVL.target #TODO make it work for multitarget
-      self.ROMs[combo] = SupervisedLearning.GaussPolynomialRom(**initDict)
+      self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',**initDict)
       initDict={'SG':self.SQs[combo], 'dists':distDict, 'quads':quadDict, 'polys':polyDict, 'iSet':iset}
       self.ROMs[combo].initialize(initDict)
     #make combined sparse grids
