@@ -329,6 +329,7 @@ class ComparisonStatistics(BasePostProcessor):
     #self.dataPulls = [] #List of data references that will be used
     #self.referenceData = [] #List of reference (experimental) data
     self.methodInfo = {} #Information on what stuff to do.
+    self.f_z_stats = False
 
   def inputToInternal(self,currentInput):
     return [(currentInput)]
@@ -358,6 +359,9 @@ class ComparisonStatistics(BasePostProcessor):
           self.methodInfo['num_bins'] = int(outer.attrib['num_bins'])
         if 'bin_method' in outer.attrib:
           self.methodInfo['bin_method'] = outer.attrib['bin_method'].lower()
+      if outer.tag == 'fz':
+        self.f_z_stats =  (outer.text.lower() in utils.stringsThatMeanTrue())
+
 
 
   def run(self, Input): # inObj,workingDir=None):
@@ -373,6 +377,8 @@ class ComparisonStatistics(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     if self.debug: print("finishedjob",finishedjob,"output",output)
+    #XXX We only handle the case where output is a filename.  We don't handle
+    # it being a datas or hdf5 etc.
     if finishedjob.returnEvaluation() == -1: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> no available output to collect.')
     else: self.dataDict.update(finishedjob.returnEvaluation()[1])
 
@@ -445,7 +451,7 @@ class ComparisonStatistics(BasePostProcessor):
           utils.printCsv(csv,'"'+key+'"',dataStats[key])
         print("data_stats",dataStats)
         graphData.append((dataStats, cdfFunc, pdfFunc,str(dataPull)))
-      mathUtils.printGraphs(csv, graphData)
+      mathUtils.printGraphs(csv, graphData, self.f_z_stats)
       for i in range(len(graphData)):
         dataStat = graphData[i][0]
         def delist(l):
@@ -1195,9 +1201,8 @@ class LimitSurface(BasePostProcessor):
           start = start - 0.001*start
           end   = end   + 0.001*end
           myStepLength = stepLenght*(end - start)
-        stepLenght
-        start                      += 0.5*stepLenght
-        self.gridVectors[varName]   = np.arange(start,end,stepLenght)
+        start                      += 0.5*myStepLength
+        self.gridVectors[varName]   = np.arange(start,end,myStepLength)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
     self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
     self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
@@ -1227,10 +1232,11 @@ class LimitSurface(BasePostProcessor):
         print (self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
 
-  def _initializeLSppROM(self, inp):
+  def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
     """
      Method to initialize the LS accellation rom
      @ In, inp, Data(s) object, data object containing the training set
+     @ In, raiseErrorIfNotFound, bool, raise an error if the limit surface is not found
     """
     print('Initiate training')
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Initiate training')
@@ -1260,8 +1266,8 @@ class LimitSurface(BasePostProcessor):
       if self.externalFunction.name in inp.getParaKeys('inputs'): inp.self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
       if self.externalFunction.name in inp.getParaKeys('output'): inp.self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
-      raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
-
+      if raiseErrorIfNotFound: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
+      else                   : print(self.printTag+': ' +utils.returnPrintPostTag("Warning") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
     #printing----------------------
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
     if self.debug:
@@ -1389,7 +1395,7 @@ class LimitSurface(BasePostProcessor):
     listsurfPoint = listsurfPointNegative + listsurfPointPositive
 #     #printing----------------------
     if self.debug:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Limit surface points:')
+      if len(listsurfPoint) > 0: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Limit surface points:')
       for coordinate in listsurfPoint:
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
@@ -1450,7 +1456,7 @@ class ExternalPostProcessor(BasePostProcessor):
                                         # methods the user wants to compute from
                                         # the external interfaces
 
-    self.externalInterfaces = []          # A list of Function objects that
+    self.externalInterfaces = []        # A list of Function objects that
                                         # hopefully contain definitions for all
                                         # of the methods the user wants
 

@@ -599,7 +599,22 @@ class SciKitLearn(superVisedLearning):
       except: pass
     self.ROM.set_params(**self.initOptionDict)
 
-  def _readdressEvaluate(self,edict): return self.myNumber
+  def _readdressEvaluateConstResponse(self,edict):
+    """
+    Method to re-address the evaluate base class method in order to avoid wasting time
+    in case the training set has an unique response (e.g. if 10 points in the training set,
+    and the 10 outcomes are all == to 1, this method returns one without the need of an
+    evaluation)
+    @ In, prediction request, Not used in this method (kept the consistency with evaluate method)
+    """
+    return self.myNumber
+
+  def _readdressEvaluateRomResponse(self,edict):
+    """
+    Method to re-address the evaluate base class method to its original method
+    @ In, prediction request, used in this method (kept the consistency with evaluate method)
+    """
+    return self.__class__.evaluate(self,edict)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -613,14 +628,15 @@ class SciKitLearn(superVisedLearning):
     targetVals : array, shape = [n_samples]
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
-    print(self.ROM.__dict__)
-    print(self.ROM)
+    #print(self.ROM.__dict__)
+    #print(self.ROM)
     if len(np.unique(targetVals))>1:
       self.ROM.fit(featureVals,targetVals)
+      self.evaluate = self._readdressEvaluateRomResponse
       #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
     else:
       self.myNumber = np.unique(targetVals)[0]
-      self.evaluate = self._readdressEvaluate
+      self.evaluate = self._readdressEvaluateConstResponse
 
   def __confidenceLocal__(self,edict):
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)

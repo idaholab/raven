@@ -52,7 +52,7 @@ def simpson(f, a, b, n):
 
   return sum * h / 3.0
 
-def printGraphs(csv, functions):
+def printGraphs(csv, functions, f_z_stats = False):
   """prints graphs of the functions.
   The functions are a list of (data_stats_dict, cdf_function, pdf_function,name)
   """
@@ -113,7 +113,7 @@ def printGraphs(csv, functions):
   printCsv(csv,'"pdf_common_area"',pdfCommonArea)
   dataStats[0]["cdf_area_difference"] = cdfAreaDifference
   dataStats[0]["pdf_common_area"] = pdfCommonArea
-  if False:
+  if f_z_stats:
     sumFunctionDiff = simpson(fZ, lowZ, highZ, 1000)
     firstMomentFunctionDiff = firstMomentSimpson(fZ, lowZ,highZ, 1000)
     varianceFunctionDiff = simpson(lambda x:((x-firstMomentFunctionDiff)**2)*fZ(x),lowZ,highZ, 1000)

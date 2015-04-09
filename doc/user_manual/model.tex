@@ -4029,7 +4029,7 @@ for comparing two different datas.  This is an experimental
 post-processor, and it will definitely change as it is further
 developed.
 
-There are two nodes that are used in the post-processor.
+There are three nodes that are used in the post-processor.
 
 \begin{itemize}
 \item \xmlNode{kind}: specifies information to use for comparing the
@@ -4056,6 +4056,9 @@ There are two nodes that are used in the post-processor.
       distribution.
     \end{itemize}
   \end{itemize}
+\item \xmlNode{fz}: If the text is true, then extra comparison
+  statistics for using the $f_z$ function are generated.  These take
+  extra time, so are not on by default.
 \end{itemize}
 
 The \textbf{ComparisonStatistics} post-processor generates a variety
@@ -4085,21 +4088,29 @@ The difference pdf between the two pdfs is calculated.  This is calculated as:
   f_Z(z) = \int_{-\infty}^{\infty}f_X(x)f_Y(x-z)dx
 \end{equation}
 This produces a pdf that contains information about the difference
-between the two pdfs.  The mean can be calculated as:
+between the two pdfs.  The mean can be calculated as (and will be
+calculated only if fz is true):
 \begin{equation}
   \bar{z} = \int_{-\infty}^{\infty}{z f_Z(z)dz}
 \end{equation}
 The mean can be used to get an signed difference between the pdfs,
 which shows how their means compare.
 
-The variance of the difference pdf can be calculated as:
+The variance of the difference pdf can be calculated as (and will be
+calculated only if fz is true):
 \begin{equation}
   var = \int_{-\infty}^{\infty}{(z-\bar{z})^2 f_Z(z)dz}
 \end{equation}
 
+The sum of the difference function is calculated if fz is true, and is:
+\begin{equation}
+  sum = \int_{-\infty}^{\infty}{f_z(z)dz}
+\end{equation}
+This should be 1.0, and if it is different that
+points to approximations in the calculation.
 
-\textbf{Example:}
-----------------------------------------------
+
+\textbf{Example:} ----------------------------------------------
 \begin{lstlisting}[style=XML]
 <Simulation>
    ...
