@@ -20,7 +20,7 @@ os.environ["MV2_ENABLE_AFFINITY"]="0"
 
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.append(os.path.join(frameworkDir,'utils'))
-from utils import returnPrintTag, returnPrintPostTag, find_crow, add_path_recursively
+from utils import raiseAnError,returnPrintTag, returnPrintPostTag, find_crow, add_path_recursively
 find_crow(frameworkDir)
 add_path_recursively(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
@@ -90,10 +90,10 @@ if __name__ == '__main__':
   #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out
   for inputFile in inputFiles:
     tree = ET.parse(inputFile)
-    #except?  raise IOError('not possible to parse (xml based) the input file '+inputFile)
+    #except?  raisea IOError('not possible to parse (xml based) the input file '+inputFile)
     if debug: print('opened file '+inputFile)
     root = tree.getroot()
-    if root.tag != 'Simulation': raise IOError (returnPrintTag('DRIVER') +': ' +returnPrintPostTag('ERROR') + '-> The outermost block of the input file '+inputFile+' it is not Simulation')
+    if root.tag != 'Simulation': raiseAnError(IOError,'DRIVER','The outermost block of the input file '+inputFile+' it is not Simulation')
     #generate all the components of the simulation
 
     #Call the function to read and construct each single module of the simulation
