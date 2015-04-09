@@ -1196,8 +1196,8 @@ class LimitSurface(BasePostProcessor):
           end   = end   + 0.001*end
           myStepLength = stepLenght*(end - start)
         stepLenght
-        start                      += 0.5*stepLenght
-        self.gridVectors[varName]   = np.arange(start,end,stepLenght)
+        start                      += 0.5*myStepLength
+        self.gridVectors[varName]   = np.arange(start,end,myStepLength)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
     self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
     self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
@@ -1262,7 +1262,7 @@ class LimitSurface(BasePostProcessor):
       if self.externalFunction.name in inp.getParaKeys('output'): inp.self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
       if raiseErrorIfNotFound: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
-      else                   : print(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
+      else                   : print(self.printTag+': ' +utils.returnPrintPostTag("Warning") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
     #printing----------------------
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
     if self.debug:
@@ -1390,7 +1390,7 @@ class LimitSurface(BasePostProcessor):
     listsurfPoint = listsurfPointNegative + listsurfPointPositive
 #     #printing----------------------
     if self.debug:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Limit surface points:')
+      if len(listsurfPoint) > 0: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Limit surface points:')
       for coordinate in listsurfPoint:
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
@@ -1451,7 +1451,7 @@ class ExternalPostProcessor(BasePostProcessor):
                                         # methods the user wants to compute from
                                         # the external interfaces
 
-    self.externalInterfaces = []          # A list of Function objects that
+    self.externalInterfaces = []        # A list of Function objects that
                                         # hopefully contain definitions for all
                                         # of the methods the user wants
 

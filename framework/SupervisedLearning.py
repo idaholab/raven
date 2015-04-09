@@ -599,7 +599,8 @@ class SciKitLearn(superVisedLearning):
       except: pass
     self.ROM.set_params(**self.initOptionDict)
 
-  def _readdressEvaluate(self,edict): return self.myNumber
+  def _readdressEvaluateConstResponse(self,edict): return self.myNumber
+  def _readdressEvaluateRomResponse(self,edict): return self.__class__.evaluate(self,edict)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -613,14 +614,15 @@ class SciKitLearn(superVisedLearning):
     targetVals : array, shape = [n_samples]
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
-    print(self.ROM.__dict__)
-    print(self.ROM)
+    #print(self.ROM.__dict__)
+    #print(self.ROM)
     if len(np.unique(targetVals))>1:
       self.ROM.fit(featureVals,targetVals)
+      self.evaluate = self._readdressEvaluateRomResponse
       #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
     else:
       self.myNumber = np.unique(targetVals)[0]
-      self.evaluate = self._readdressEvaluate
+      self.evaluate = self._readdressEvaluateConstResponse
 
   def __confidenceLocal__(self,edict):
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)
