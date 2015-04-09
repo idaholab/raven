@@ -1195,7 +1195,6 @@ class LimitSurface(BasePostProcessor):
           start = start - 0.001*start
           end   = end   + 0.001*end
           myStepLength = stepLenght*(end - start)
-        stepLenght
         start                      += 0.5*myStepLength
         self.gridVectors[varName]   = np.arange(start,end,myStepLength)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
