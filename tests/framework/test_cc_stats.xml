@@ -22,6 +22,7 @@
         <data>fullprint_timepointset|outputs|uniform1</data>
         <data>fullprint_timepointset|outputs|uniform2p</data>
       </compare>
+      <!-- <fz>True</fz> -->
     </PostProcessor>
   </Models>
   <Samplers>
