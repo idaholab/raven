@@ -1743,6 +1743,9 @@ class TopologicalDecomposition(BasePostProcessor):
     arbitrary number of input parameters and a response value per input point
   """
   def __init__(self):
+    """
+      Initialization method
+    """
     BasePostProcessor.__init__(self)
     self.acceptedGraphParam = ['approximate knn','delaunay','beta skeleton',\
                                'relaxed beta skeleton']
@@ -1758,9 +1761,11 @@ class TopologicalDecomposition(BasePostProcessor):
     self.normalization = None
 
   def inputToInternal(self,currentInp):
-    # each post processor knows how to handle the coming inputs. The
-    # TopologicalDecomposition postprocessor accepts all the input types:
-    # (files (csv only), hdf5, and datas
+    """
+      Function to convert the incoming input into a usable format
+      @ In, currentInp : The input object to process
+      @ Out, None
+    """
     if type(currentInp) == list:
       currentInput = currentInp [-1]
     else:
@@ -1799,12 +1804,12 @@ class TopologicalDecomposition(BasePostProcessor):
     return inputDict
 
   def _localReadMoreXML(self,xmlNode):
-    '''
+    """
       Function to grab the names of the methods this post-processor will be
       using
       @ In, xmlNode    : Xml element node
       @ Out, None
-    '''
+    """
     for child in xmlNode:
       if child.tag =="graph":
         self.graph = child.text.encode('ascii').lower()
@@ -1843,13 +1848,13 @@ class TopologicalDecomposition(BasePostProcessor):
                                     + str(self.acceptedGradientParam)))
 
   def collectOutput(self,finishedJob,output):
-    '''
+    """
       Function to place all of the computed data into the output object
       @ In, finishedJob: A JobHandler object that is in charge of running this
                          post-processor
       @ In, output: The object where we want to place our computed results
       @ Out, None
-    '''
+    """
     if finishedJob.returnEvaluation() == -1:
       #TODO This does not feel right
       raise Exception(self.errorString('No available Output to collect (Run '
@@ -1926,11 +1931,11 @@ class TopologicalDecomposition(BasePostProcessor):
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
   def run(self, InputIn):
-    '''
+    """
      Function to finalize the filter => execute the filtering
      @ In , dictionary       : dictionary of data to process
      @ Out, dictionary       : Dictionary with results
-    '''
+    """
     Input  = self.inputToInternal(InputIn)
     outputDict = {}
 
@@ -2023,9 +2028,9 @@ class TopologicalDecomposition(BasePostProcessor):
 
     return outputDict
 
-'''
+"""
  Interface Dictionary (factory) (private)
-'''
+"""
 __base                                       = 'PostProcessor'
 __interFaceDict                              = {}
 __interFaceDict['SafestPoint'              ] = SafestPoint

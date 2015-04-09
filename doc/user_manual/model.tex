@@ -4385,25 +4385,25 @@ The following is a list of acceptable sub-nodes:
   \item \xmlNode{graph} \xmlDesc{, string, optional field}, specifies the type
   of neighborhood graph used in the algorithm, available options are:
   \begin{itemize}
-    \item Beta Skeleton
-    \item Relaxed Beta Skeleton
-    \item Approximate KNN
+    \item \xmlString{beta skeleton}
+    \item \xmlString{relaxed beta skeleton}
+    \item \xmlString{approximate knn}
     %\item Delaunay \textit{(disabled)}
   \end{itemize}
-  \default{Beta Skeleton}
+  \default{\xmlString{beta skeleton}}
   \item \xmlNode{gradient}, \xmlDesc{string, optional field}, specifies the 
   method used for estimating the gradient, available options are:
   \begin{itemize}
-    \item Steepest
-    %\item MaxFlow \textit{(disabled)}
+    \item \xmlString{steepest}
+    %\item \xmlString{maxflow} \textit{(disabled)}
   \end{itemize}
-  \default{Steepest}
+  \default{\xmlString{steepest}}
   \item \xmlNode{beta}, \xmlDesc{float, optional field}, is only used when the
-  \texttt{graph} is set to \textit{Beta Skeleton} or \textit{Relaxed Beta
-  Skeleton}.
+  \texttt{graph} is set to \xmlString{beta skeleton} or \xmlString{relaxed beta
+  skeleton}.
   \default{1.0}
   \item \xmlNode{knn}, \xmlDesc{integer, optional field}, is the number of
-  neighbors when using the \textit{Approximate KNN} for the \texttt{graph}
+  neighbors when using the \xmlString{approximate knn} for the \xmlNode{graph}
   sub-node and used to speed up the computation of other graphs by using the
   approximate knn graph as a starting point for pruning. -1 means use a fully
   connected graph.
