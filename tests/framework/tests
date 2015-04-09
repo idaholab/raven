@@ -331,11 +331,11 @@
   output = 'externalPostProcessor/myDump.xml'
  [../]
 
- [./TopologyPostProcessor]
+ [./topologyPostProcessor]
   type = 'RavenFramework'
   input = 'test_topology.xml'
-  csv = 'topologyPP/myDump1.csv topologyPP/myDump2.csv topologyPP/myDump3.csv topologyPP/myDump4.csv'
-  output = 'topologyPP/myDump1.xml topologyPP/myDump2.xml topologyPP/myDump3.xml topologyPP/myDump4.xml'
+  csv = 'topologyPostProcessor/myDump1.csv topologyPostProcessor/myDump2.csv topologyPostProcessor/myDump3.csv topologyPostProcessor/myDump4.csv'
+  output = 'topologyPostProcessor/myDump1.xml topologyPostProcessor/myDump2.xml topologyPostProcessor/myDump3.xml topologyPostProcessor/myDump4.xml'
  [../]
 
  [./io_ROM_pickle]

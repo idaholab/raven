@@ -2,7 +2,7 @@
 <!-- A Simple Example of the Approximate Morse-Smale Complex Interface -->
 <Simulation>
 <RunInfo>
-  <WorkingDir>topologyPP</WorkingDir>
+  <WorkingDir>topologyPostProcessor</WorkingDir>
   <Sequence>
     loadData,
     decompose1,

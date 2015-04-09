@@ -2001,15 +2001,19 @@ class TopologicalDecomposition(BasePostProcessor):
       print(key)
       coefficients = linearFits[key]
       rSquared = linearFitnesses[key]
-      print('\t' + u"\u03B2\u0302: " + str(coefficients))
-      print('\t' + u"R\u00B2: " + str(rSquared) + '\n')
+#      print('\t' + u"\u03B2\u0302: " + str(coefficients))
+#      print('\t' + u"R\u00B2: " + str(rSquared) + '\n')
+      print('\t' + "beta: " + str(coefficients))
+      print('\t' + "R^2: " + str(rSquared) + '\n')
       outputDict['coefficients_%d_%d' % (key[0],key[1])] = coefficients
       outputDict['R2_%d_%d' % (key[0],key[1])] = rSquared
 
 #    print('RMSD  = %f' % (self.linearNRMSD))
     print('========== Gaussian Fits: ==========')
-    print(u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - ' +
-          u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)')
+#    print(u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - '
+#          + u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)')
+    print('a/sqrt(2*(pi)^d|M|)*e^(-(x-mu)TM(x-mu)) + c - a'
+          + '\t(mu & c are fixed, M and a are estimated)')
 
     exts = linearFits.keys()
     exts = [int(item) for sublist in exts for item in sublist]
@@ -2018,10 +2022,12 @@ class TopologicalDecomposition(BasePostProcessor):
     for key in exts:
       print(str(key) + ':')
       (mu,c,a,A) = self.__amsc.GetExtremumFitCoefficients(key)
-      print(u':\t\u03BC=' + str(mu))
+#      print(u':\t\u03BC=' + str(mu))
+      print(u':\tmu=' + str(mu))
       print('\tc=' + str(c))
       print('\ta=' + str(a))
-      print('\t\u03A3=\n' + str(A)+'\n')
+      print('\tM=\n' + str(A)+'\n')
+#      print('\t\u03A3=\n' + str(A)+'\n')
 #      print('\t' + u"R\u00B2: " + str(rSquared) + '\n')
 
       outputDict['mu_' + str(key)] = mu
