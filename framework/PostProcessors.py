@@ -329,6 +329,7 @@ class ComparisonStatistics(BasePostProcessor):
     #self.dataPulls = [] #List of data references that will be used
     #self.referenceData = [] #List of reference (experimental) data
     self.methodInfo = {} #Information on what stuff to do.
+    self.f_z_stats = False
 
   def inputToInternal(self,currentInput):
     return [(currentInput)]
@@ -358,6 +359,9 @@ class ComparisonStatistics(BasePostProcessor):
           self.methodInfo['num_bins'] = int(outer.attrib['num_bins'])
         if 'bin_method' in outer.attrib:
           self.methodInfo['bin_method'] = outer.attrib['bin_method'].lower()
+      if outer.tag == 'fz':
+        self.f_z_stats =  (outer.text.lower() in utils.stringsThatMeanTrue())
+
 
 
   def run(self, Input): # inObj,workingDir=None):
@@ -373,6 +377,8 @@ class ComparisonStatistics(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     if self.debug: print("finishedjob",finishedjob,"output",output)
+    #XXX We only handle the case where output is a filename.  We don't handle
+    # it being a datas or hdf5 etc.
     if finishedjob.returnEvaluation() == -1: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> no available output to collect.')
     else: self.dataDict.update(finishedjob.returnEvaluation()[1])
 
@@ -445,7 +451,7 @@ class ComparisonStatistics(BasePostProcessor):
           utils.printCsv(csv,'"'+key+'"',dataStats[key])
         print("data_stats",dataStats)
         graphData.append((dataStats, cdfFunc, pdfFunc,str(dataPull)))
-      mathUtils.printGraphs(csv, graphData)
+      mathUtils.printGraphs(csv, graphData, self.f_z_stats)
       for i in range(len(graphData)):
         dataStat = graphData[i][0]
         def delist(l):
