@@ -560,9 +560,9 @@ class AdaptiveSampler(Sampler):
       if self.lastOutput.isItEmpty() and self.limitSurfacePP.ROM.amITrained==False: return ready
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
     if type(self.lastOutput) == dict:
-      if self.lastOutput != None: self.limitSurfacePP._initializeLSppROM(self.lastOutput)
+      if self.lastOutput != None: self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     else:
-      if not self.lastOutput.isItEmpty(): self.limitSurfacePP._initializeLSppROM(self.lastOutput)
+      if not self.lastOutput.isItEmpty(): self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Training finished')
     np.copyto(self.oldTestMatrix,self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
