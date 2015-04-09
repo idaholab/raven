@@ -601,7 +601,7 @@ class SciKitLearn(superVisedLearning):
 
   def _readdressEvaluateConstResponse(self,edict):
     """
-    Method to re-address the evaluate base class method in order to avoid to waste time
+    Method to re-address the evaluate base class method in order to avoid wasting time
     in case the training set has an unique response (e.g. if 10 points in the training set,
     and the 10 outcomes are all == to 1, this method returns one without the need of an
     evaluation)
