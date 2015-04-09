@@ -330,6 +330,7 @@ class ComparisonStatistics(BasePostProcessor):
     #self.referenceData = [] #List of reference (experimental) data
     self.methodInfo = {} #Information on what stuff to do.
     self.f_z_stats = False
+    self.interpolation = "quadratic"
 
   def inputToInternal(self,currentInput):
     return [(currentInput)]
@@ -361,6 +362,15 @@ class ComparisonStatistics(BasePostProcessor):
           self.methodInfo['bin_method'] = outer.attrib['bin_method'].lower()
       if outer.tag == 'fz':
         self.f_z_stats =  (outer.text.lower() in utils.stringsThatMeanTrue())
+      if outer.tag == 'interpolation':
+        interpolation = outer.text.lower()
+        if interpolation == 'linear':
+          self.interpolation = 'linear'
+        elif interpolation == 'quadratic':
+          self.interpolation = 'quadratic'
+        else:
+          print(self.printTag+': ' +utils.returnPrintPostTag('Warning')+' unexpected interpolation method '+interpolation)
+          self.interpolation = interpolation
 
 
 
@@ -426,7 +436,7 @@ class ComparisonStatistics(BasePostProcessor):
           cdfSum += f_0
           cdf[i] = cdfSum
           midpoints[i] = (binBoundaries[i]+binBoundaries[i+1])/2.0
-        cdfFunc = mathUtils.createInterp(midpoints,cdf,0.0,1.0,'quadratic')
+        cdfFunc = mathUtils.createInterp(midpoints,cdf,0.0,1.0,self.interpolation)
         fPrimeData = [0.0]*len(counts)
         for i in range(len(counts)):
           h = binBoundaries[i+1] - binBoundaries[i]
@@ -440,12 +450,14 @@ class ComparisonStatistics(BasePostProcessor):
             f_2 = cdf[i+2]
           else:
             f_2 = 1.0
-          #f_prime = (f_1 - f_0)/h
           #print(f_0,f_1,f_2,h,f_prime)
-          fPrime = (-1.5*f_0 + 2.0*f_1 + -0.5*f_2)/h
+          if self.interpolation == 'linear':
+            fPrime = (f_1 - f_0)/h
+          else:
+            fPrime = (-1.5*f_0 + 2.0*f_1 + -0.5*f_2)/h
           fPrimeData[i] = fPrime
           utils.printCsv(csv,binBoundaries[i+1],midpoints[i],counts[i],nCount,fPrime,cdf[i])
-        pdfFunc = mathUtils.createInterp(midpoints,fPrimeData,0.0,0.0,'linear')
+        pdfFunc = mathUtils.createInterp(midpoints,fPrimeData,0.0,0.0,self.interpolation)
         dataKeys -= set({'num_bins','counts','bins'})
         for key in dataKeys:
           utils.printCsv(csv,'"'+key+'"',dataStats[key])
