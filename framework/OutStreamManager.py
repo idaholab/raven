@@ -24,6 +24,7 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 import Datas
+import Models
 from utils import returnPrintTag, returnPrintPostTag, interpolateFunction
 from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
@@ -122,6 +123,9 @@ class OutStreamManager(BaseType):
             if inp.name.strip()==self.sourceName[agrosindex] and inp.type in Datas.knownTypes():
               self.sourceData.append(inp)
               foundData = True
+            elif type(inp)==Models.ROM:
+              self.sourceData.append(inp)
+              foundData = True #good enough
       if not foundData and 'TargetEvaluation' in inDict.keys():
         if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in Datas.knownTypes():
           self.sourceData.append(inDict['TargetEvaluation'])
@@ -1139,22 +1143,51 @@ class OutStreamPrint(OutStreamManager):
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:
       if subnode.tag == 'source': self.sourceName = subnode.text.split(',')
+      elif subnode.tag == 'call':
+        if not 'method' in subnode.attrib.keys(): raise IOError(self.printTag+': ERROR -> "call" node requires "method" attribute!')
+        method = subnode.attrib['method']
+        if 'call' not in self.options.keys(): self.options['call']={}
+        if method not in self.options['call'].keys(): self.options['call'][method]=[]
+        newcall={'args':[], 'kwargs':{}}
+        for anode in subnode:
+          print('DEBUG anode',anode.tag)
+          if anode.tag=='arg':
+            print('DEBUG found arg')
+            val = anode.text
+            if 'type' in anode.attrib.keys():
+              try: exec('val = '+anode.attrib['type']+'(val)')
+              except (NameError,TypeError):
+                raise IOError(self.printTag+': ERROR (but run continuing) -> Python type conversion to type '+anode.attrib['Type']+' failed!')
+            if 'kwarg' in anode.attrib.keys():
+              newcall['kwargs'][anode.text]=val
+            else:
+              newcall['args'].append(val)
+        self.options['call'][method].append(newcall)
       else:self.options[subnode.tag] = subnode.text
-    if 'type' not in self.options.keys(): raise(self.printTag+': ERROR -> type tag not present in Print block called '+ self.name)
+    if 'type' not in self.options.keys(): raise IOError(self.printTag+': ERROR -> type tag not present in Print block called '+ self.name)
     if self.options['type'] not in self.availableOutStreamTypes : raise(self.printTag+': ERROR -> Print type ' + self.options['type'] + ' not available yet. ')
     if 'variables' in self.options.keys(): self.variables = self.options['variables']
+    print('DEBUG options',self.printTag,self.options)
+
   def addOutput(self):
     if self.variables: dictOptions = {'filenameroot':self.name,'variables':self.variables}
     else             : dictOptions = {'filenameroot':self.name}
+    if 'call' in self.options.keys(): dictOptions['call']=self.options['call']
     for index in range(len(self.sourceName)):
       if self.options['type']=='csv':
-        if not self.sourceData[index].isItEmpty():
+        if type(self.sourceData[index])==Datas.Data: empty = self.sourceData[index].isItEmpty()
+        else: empty=False
+        if not empty:
           try: self.sourceData[index].printCSV(dictOptions)
-          except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type'+type(self.sourceData[index])+' and output type "csv"!')
+          except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type '+str(type(self.sourceData[index]))+' and output type "csv"!')
       elif self.options['type']=='xml':
-        if not self.sourceData[index].isItEmpty():
-          try: self.sourceData[index].printXML(dictOptions)
-          except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type'+type(self.sourceData[index])+' and output type "xml"!')
+        if type(self.sourceData[index])==Datas.Data: empty = self.sourceData[index].isItEmpty()
+        else: empty=False
+        if not empty:
+          self.sourceData[index].printXML(dictOptions)
+          #FIXME put back to try-except after implementing
+          #try: self.sourceData[index].printXML(dictOptions)
+          #except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type '+str(type(self.sourceData[index]))+' and output type "xml"!')
 
 '''
  Interface Dictionary (factory) (private)

@@ -360,7 +360,7 @@ class ROM(Dummy):
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
 
-  def printCSV(self,options=None):
+  def printXML(self,options=None):
     '''
       Called by the OutStreamPrint object to cause the ROM to print itself to file.
       @ In, options, the options to use in printing, including filename, things to print, etc.
@@ -368,11 +368,13 @@ class ROM(Dummy):
     if options:
       if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
       else: filenameLocal = self.name + '_dump'
-    tree=self._localBuildPrintTree(options)
+    treedict=self._localBuildPrintTree(options)
 
   def _localBuildPrintTree(self,options=None):
-    print('DEBUG dir',self.printTag)
-    print(dir(self))
+    #TODO working
+    treedict = {self.type:{}}
+    for targetName,target in self.SupervisedEngine.items():
+      treedict[self.type][targetName] = target.printXML(options)
 
   def reset(self):
     '''

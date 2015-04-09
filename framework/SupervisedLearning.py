@@ -173,6 +173,39 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     '''return the set of parameters of the ROM that can change during simulation'''
     return dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
 
+  def printXML(self,options=None):
+    '''
+      Allows the SVE to put whatever it wants into an XML to print to file.
+      @ In, options, dict of string-based options to use, including filename, things to print, etc
+      @ Out, treedict, dict of strings to be printed
+    '''
+    treedict = self._localPrintXML(options)
+    print('DEBUG treedict',self.printTag,treedict)
+
+  def _localPrintXML(self,options=None):
+    '''
+      Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
+      @ In, options, dict of string-based options to use, including filename, things to print, etc
+      @ Out, treedict, dict of strings to be printed
+    '''
+    treedict={}
+    print('DEBUG local options',options)
+    if 'call' in options.keys():
+      for methodName,listofcalls in options['call'].items():
+        treedict[methodName]={}
+        for argdict in listofcalls:
+          args = argdict['args'] if 'args' in argdict.keys() else []
+          kwargs = argdict['kwargs'] if 'kwargs' in argdict.keys() else {}
+          method =  getattr(self,methodName)
+          res = method(*args,**kwargs)
+          treedict[methodName][str(argdict)]=str(res)
+        #TODO FIXME
+        #try: res = getattr(self,methodName)(self,*args,**kwargs)
+        #except TypeError as e:
+        #  print(self.printTag+': ERROR (but continuing run) -> '+str(e))
+    if treedict=={}: treedict={'PrintOptions':'ROM of type '+str(self.printTag.strip())+' has no special output options.'}
+    return treedict
+
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
     '''@ In, featureVals, 2-D numpy array [n_samples,n_features]'''
@@ -422,6 +455,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ Out, float, evaluation of moment
     '''
     #TODO is there a faster way still to do this?
+    print('DEBUG eval',self.printTag,self,r)
     tot=0
     for pt,wt in self.sparseGrid:
       tot+=self.__evaluateLocal__([pt])**r*wt
