@@ -599,8 +599,21 @@ class SciKitLearn(superVisedLearning):
       except: pass
     self.ROM.set_params(**self.initOptionDict)
 
-  def _readdressEvaluateConstResponse(self,edict): return self.myNumber
-  def _readdressEvaluateRomResponse(self,edict): return self.__class__.evaluate(self,edict)
+  def _readdressEvaluateConstResponse(self,edict):
+    """
+    Method to re-address the evaluate base class method in order to avoid to waste time
+    in case the training set has an unique response (e.g. if 10 points in the training set,
+    and the 10 outcomes are all == to 1, this method returns one without the need of an 
+    evaluation)
+    @ In, prediction request, Not used in this method (kept the consistency with evaluate method)
+    """
+    return self.myNumber
+  def _readdressEvaluateRomResponse(self,edict):
+      """
+    Method to re-address the evaluate base class method to its original method
+    @ In, prediction request, used in this method (kept the consistency with evaluate method)
+    """
+    return self.__class__.evaluate(self,edict)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
