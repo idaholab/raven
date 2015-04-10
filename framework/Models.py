@@ -30,7 +30,7 @@ import SupervisedLearning
 import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
-from utils import raiseAnError
+from utils import raiseAnError,raiseAWarning
 #Internal Modules End--------------------------------------------------------------------------------
 
 #class Model(BaseType):
@@ -599,7 +599,7 @@ class Code(Model):
         ext     = child.attrib['extension'] if 'extension' in child.attrib.keys() else None
         if argtype == None: raiseAnError(IOError,self,'"type" for clarg not specified!')
         elif argtype == 'text':
-          if ext != None: print(self.printTag+': '+utils.returnPrintPostTag('WARNING')+'-> "text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if ext != None: raiseAWArning(self,'"text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
           if arg == None: raiseAnError(IOError,self,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
           self.clargs['text']=arg
         elif argtype == 'input':
@@ -612,11 +612,11 @@ class Code(Model):
           if arg == None: raiseAnError(IOError,self,'"arg" for clarg '+argtype+' not specified! Enter flag for output file specification.')
           self.clargs['output'] = arg
         elif argtype == 'prepend':
-          if ext != None: print(self.printTag+': '+utils.returnPrintPostTag('WARNING')+'-> "prepend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if ext != None: raiseAWarning(self,'"prepend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
           if arg == None: raiseAnError(IOError,self,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
           self.clargs['pre'] = arg
         elif argtype == 'postpend':
-          if ext != None: print(self.printTag+': '+utils.returnPrintPostTag('WARNING')+'-> "postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if ext != None: raiseAWarning(self,'"postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
           if arg == None: raiseAnError(IOError,self,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
           self.clargs['post'] = arg
         else: raiseAnError(IOError,self,'clarg type '+argtype+' not recognized!')
@@ -674,7 +674,7 @@ class Code(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except OSError: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except OSError: raiseAWarning(self,'current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> original input files copied in the current working dir: '+self.workingDir)
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> files copied:')
@@ -757,7 +757,7 @@ class Projector(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try:                   os.mkdir(self.workingDir)
-    except AttributeError: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except AttributeError: raiseAWarning(self,'current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
 
   def run(self,inObj,outObj):

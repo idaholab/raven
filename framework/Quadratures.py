@@ -23,7 +23,7 @@ import inspect
 #Internal Modules
 from BaseClasses import BaseType
 from JobHandler import JobHandler
-from utils import raiseAnError,returnPrintTag, returnPrintPostTag, find_distribution1D
+from utils import raiseAWarning,raiseAnError,returnPrintTag, returnPrintPostTag, find_distribution1D
 #Internal Modules End-----------------------------------------------------------------
 
 
@@ -335,21 +335,6 @@ class SparseQuad(object):
     else:
       try: return self.SG[tuple(n)]
       except TypeError:  return self.SG.values()[n]
-
-#  def serialMakeCoeffs(self):
-#    '''Brute force method to create coefficients for each index set in the sparse grid approximation.
-#      This particular implementation is faster for 2 dimensions, but slower for
-#      more than 2 dimensions, than the smarterMakeCeoffs.'''
-#    #TODO FIXME or just remove me.
-#    print('WARNING: serialMakeCoeffs may be broken.  smarterMakeCoeffs is better.')
-#    self.c=np.zeros(len(self.indexSet))
-#    jIter = itertools.product([0,1],repeat=self.N) #all possible combinations in the sum
-#    for jx in jIter: #from here down goes in the paralellized bit
-#      for i,ix in enumerate(self.indexSet):
-#        ix = np.array(ix)
-#        comb = tuple(jx+ix)
-#        if comb in self.indexSet:
-#          self.c[i]+=(-1)**sum(jx)
 
   def smarterMakeCoeffs(self):
     '''Somewhat optimized method to create coefficients for each index set in the sparse grid approximation.

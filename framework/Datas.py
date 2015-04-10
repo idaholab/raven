@@ -24,7 +24,7 @@ import xml.etree.ElementTree as ET
 from BaseClasses import BaseType
 from Csv_loader import CsvLoader as ld
 import utils
-from utils import raiseAnError
+from utils import raiseAnError,raiseAWarning
 import TreeStructure as TS
 from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if xmlNode.attrib['hierarchical'].lower() in utils.stringsThatMeanTrue(): self._dataParameters['hierarchical'] = True
       else: self._dataParameters['hierarchical'] = False
       if self._dataParameters['hierarchical'] and not self.acceptHierarchical():
-        print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> hierarchical fashion is not available (No Sense) for Data named '+ self.name + 'of type ' + self.type + '!!!')
+        raiseAWarning(self,'hierarchical fashion is not available (No Sense) for Data named '+ self.name + 'of type ' + self.type + '!!!')
         self._dataParameters['hierarchical'] = False
       else:
         self.TSData = None
@@ -375,7 +375,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         else:
           if 'parent_id' in options.keys(): parent_id = options['parent_id']
         if parent_id and self._dataParameters['hierarchical']:
-          print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
+          raiseAWarning(self,'-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
     else: tupleVar = ld().csvLoadData([toLoadFrom],self._dataParameters)
 
@@ -871,7 +871,7 @@ class TimePoint(Data):
               raiseAnError(NotConsistentData,self,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(var.split('|')[1])
             inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+          else: raiseAWarning(self,'metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
@@ -1212,7 +1212,7 @@ class TimePointSet(Data):
               inpKeys.append(var.split('|')[1])
               if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
               else: inpValues.append(np.atleast_1d(self._dataContainer['metadata'][var.split('|')[1]]))
-            else: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+            else: printAWarning(self,'metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
       else:
         inpKeys   = self._dataContainer['inputs'].keys()
         inpValues = self._dataContainer['inputs'].values()
@@ -1388,7 +1388,7 @@ class History(Data):
               raiseAnError(NotConsistentData,self,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(var.split('|')[1])
             inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+          else: raiseAWArning(self,'metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()

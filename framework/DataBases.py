@@ -20,7 +20,7 @@ import gc
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
-from utils import toBytes,keyIn,raiseAnError,returnPrintTag,returnPrintPostTag
+from utils import toBytes,keyIn,raiseAnError,raiseAWarning,returnPrintTag,returnPrintPostTag
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DateBase(BaseType):

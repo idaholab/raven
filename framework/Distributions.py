@@ -23,7 +23,7 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import raiseAnError,returnPrintTag, returnPrintPostTag, find_distribution1D
+from utils import raiseAnError,raiseAWarning,returnPrintTag, returnPrintPostTag, find_distribution1D
 distribution1D = find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 

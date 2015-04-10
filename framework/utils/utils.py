@@ -42,9 +42,14 @@ def raiseAnError(etype,obj,msg):
     else: tag = str(obj.printTag)
   raise etype(returnPrintTag(tag)+': '+returnPrintPostTag('ERROR')+' -> '+str(msg))
 
-def raiseAWarning(etype,printTag,msg):
-  print(etype,printTag,msg)
-  raise etype(str(printTag)+': '+returnPrintPostTag('ERROR')+' -> '+str(msg))
+def raiseAWarning(printTag,msg,wtag='WARNING'):
+  if type(obj) in [str,unicode]:
+    tag = obj
+  else:
+    try: obj.printTag
+    except AttributeError: tag = str(obj)
+    else: tag = str(obj.printTag)
+  print(returnPrintTag(tag)+': '+returnPrintPostTag(str(wtag))+' -> '+str(msg))
 
 def convertMultipleToBytes(sizeString):
   '''

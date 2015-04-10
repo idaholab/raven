@@ -12,7 +12,7 @@ if not 'xrange' in dir(__builtins__):
 import xml.etree.ElementTree as ET
 import os
 import copy
-from utils import raiseAnError,toBytes, toStrish, compare
+from utils import raiseAWarning,raiseAnError,toBytes, toStrish, compare
 
 def justFile(fullfile):
   return fullfile.split('/')[-1]
@@ -51,7 +51,7 @@ class GenericParser:
           var = line[start+len(self.prefixKey):end]
           if defaultDelim in var:
             var,defval = var.split(defaultDelim)
-            if var in self.defaults.keys(): print('Parser WARNING: multiple default values given for variable',var)
+            if var in self.defaults.keys(): raiseAWarning(self,'multiple default values given for variable',var)
             #TODO allow the user to specify take-last or take-first?
             if var not in self.defaults.keys(): self.defaults[var]={}
             self.defaults[var][infileName]=defval

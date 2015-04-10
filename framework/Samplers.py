@@ -21,12 +21,12 @@ from scipy import spatial
 from scipy.interpolate import InterpolatedUnivariateSpline
 import xml.etree.ElementTree as ET
 import itertools
-from sklearn import neighbors
+from sklearn import neighbora
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import metaclass_insert,find_le,index,find_le_index,returnPrintTag,returnPrintPostTag,stringsThatMeanTrue
-from utils import find_distribution1D, raiseAnError
+from utils import find_distribution1D, raiseAnError,raiseAWarning
 from BaseClasses import BaseType
 from Assembler import Assembler
 import Distributions
@@ -1765,18 +1765,18 @@ class DynamicEventTree(Grid):
         self.branchProbabilities[self.toBeSampled[keyk]] = self.gridInfo[keyk][2]
         self.branchProbabilities[self.toBeSampled[keyk]].sort(key=float)
         if max(self.branchProbabilities[self.toBeSampled[keyk]]) > 1:
-          print(self.printTag+":WARNING ERROR -> One of the Thresholds for distribution " + str(self.gridInfo[keyk][2]) + " is > 1")
+          raiseAWarning(self,"One of the Thresholds for distribution " + str(self.gridInfo[keyk][2]) + " is > 1")
           error_found = True
           for index in range(len(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float))):
             if sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float).count(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index]) > 1:
-              print(self.printTag+":WARNING ERROR -> In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
+              raiseAWarning(self,"In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
               error_found = True
       else:
         self.branchValues[self.toBeSampled[keyk]] = self.gridInfo[keyk][2]
         self.branchValues[self.toBeSampled[keyk]].sort(key=float)
         for index in range(len(sorted(self.branchValues[self.toBeSampled[keyk]], key=float))):
           if sorted(self.branchValues[self.toBeSampled[keyk]], key=float).count(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index]) > 1:
-            print(self.printTag+":WARNING ERROR -> In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
+            raiseAWarning(self,"In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
             error_found = True
     if error_found: raiseAnError(IOError,self,"In sampler named " + self.name+' Errors have been found!' )
     # Append the branchedLevel dictionary in the proper list
@@ -2074,7 +2074,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
             for key in histdict['outputs'].keys():
               if key not in lastOutDict['outputs'].keys(): lastOutDict['outputs'][key] = np.atleast_1d(histdict['outputs'][key])
               else                                       : lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),np.atleast_1d(histdict['outputs'][key])))
-        else: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> No Completed histories! No possible to start an adaptive search! Something went wrongly!')
+        else: raiseAWarning(self,'No Completed histories! No possible to start an adaptive search! Something went wrongly!')
       if len(completedHistNames) > self.completedHistCnt:
         self.actualLastOutput = self.lastOutput
         self.lastOutput       = self.actualLastOutput

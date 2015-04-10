@@ -27,7 +27,7 @@ import DataBases
 import Functions
 import OutStreamManager
 from JobHandler import JobHandler
-from utils import raiseAnError,returnPrintTag,returnPrintPostTag,convertMultipleToBytes,stringsThatMeanTrue,stringsThatMeanFalse
+from utils import raiseAnError,raiseAWarning,returnPrintTag,returnPrintPostTag,convertMultipleToBytes,stringsThatMeanTrue,stringsThatMeanFalse
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ class SimulationMode:
     import multiprocessing
     try:
       if multiprocessing.cpu_count() < self.__simulation.runInfoDict['batchSize']:
-        print(self.printTag+": " +returnPrintPostTag('Warning') + " -> cpu_count",multiprocessing.cpu_count()," < batchSize ",self.__simulation.runInfoDict['batchSize'])
+        raiseAWarning(self,"cpu_count",multiprocessing.cpu_count()," < batchSize ",self.__simulation.runInfoDict['batchSize'])
     except NotImplementedError:
       pass
 
@@ -159,7 +159,7 @@ class MPISimulationMode(SimulationMode):
       newBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
       if newBatchsize != oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = newBatchsize
-        print(self.printTag+": " +returnPrintPostTag('Warning') + " -> changing batchsize from",oldBatchsize,"to",newBatchsize)
+        raiseAWarning(self,"changing batchsize from",oldBatchsize,"to",newBatchsize)
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = self.__simulation.runInfoDict['WorkingDir']
@@ -439,7 +439,7 @@ class Simulation(object):
       #This is used to reserve some cores
       self.runInfoDict['totalNumCoresUsed'] = oldTotalNumCoresUsed
     elif oldTotalNumCoresUsed > 1: #If 1, probably just default
-      print(self.printTag+": " +returnPrintPostTag('Warning') + " -> overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
+      runAWarning(self,"overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
     #transform all files in absolute path
     for key in self.filesDict.keys(): self.__createAbsPath(key)
     #Let the mode handler do any modification here
@@ -481,7 +481,7 @@ class Simulation(object):
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
       if element.tag in runInfoSkip:
-        print(self.printTag+": " +returnPrintPostTag('Warning') + " -> Skipped element ",element.tag)
+        runAWarning(self,"Skipped element ",element.tag)
       elif   element.tag == 'WorkingDir'        :
         temp_name = element.text
         if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
@@ -545,10 +545,10 @@ class Simulation(object):
         os.sys.path.append(modeDir)
         module = __import__(modeModulename)
         if modeName in self.__modeHandlerDict:
-          print(self.printTag+": " +returnPrintPostTag('Warning') + " -> duplicate mode definition",modeName)
+          runAWarning(self,"duplicate mode definition",modeName)
         self.__modeHandlerDict[modeName] = module.__dict__[modeClass]
       else:
-        print(self.printTag+": " +returnPrintPostTag('Warning') + " -> Unhandled element ",element.tag)
+        runAWarning(self,"Unhandled element ",element.tag)
 
   def printDicts(self):
     '''utility function capable to print a summary of the dictionaries'''

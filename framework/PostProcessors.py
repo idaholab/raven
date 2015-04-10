@@ -23,7 +23,7 @@ import math
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
-from utils import raiseAnError
+from utils import raiseAnError, raiseAWarning
 import mathUtils
 #from utils import utils.toString, utils.toBytes, utils.first, utils.returnPrintTag, utils.returnPrintPostTag
 from Assembler import Assembler
@@ -554,7 +554,7 @@ class PrintCSV(BasePostProcessor):
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     runInfo['TempWorkingDir']     = self.workingDir
     try:                            os.mkdir(self.workingDir)
-    except:                         print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '->current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except:                         raiseAWarning(self,'current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     #if type(inputs[-1]).__name__ == "HDF5" : self.inObj = inputs[-1]      # this should go in run return but if HDF5, it is not pickable
 
   def _localReadMoreXML(self,xmlNode):
@@ -777,7 +777,7 @@ class BasicStatistics(BasePostProcessor):
       availextens = ['csv','txt']
       outputextension = output.split('.')[-1].lower()
       if outputextension not in availextens:
-        print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '->BasicStatistics postprocessor output extension you input is '+outputextension)
+        raiseAWarning(self,'BasicStatistics postprocessor output extension you input is '+outputextension)
         print('                     Available are '+str(availextens)+ '. Convertint extension to '+str(availextens[0])+'!')
         outputextension = availextens[0]
       if outputextension != 'csv': separator = ' '
@@ -833,7 +833,7 @@ class BasicStatistics(BasePostProcessor):
           if what not in self.acceptedCalcParam:
             output.updateMetadata(what,outputDict[what])
             if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping External Function parameter '+ what)
-    elif output.type == 'HDF5' : print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '->BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
+    elif output.type == 'HDF5' : raiseAWarning(self,'BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: raiseAnError(IOError,self,'BasicStatistics postprocessor: Output type '+ str(output.type) + ' unknown.')
 
   def run(self, InputIn):
@@ -864,8 +864,8 @@ class BasicStatistics(BasePostProcessor):
 
     if 'ProbabilityWeight' not in Input['metadata'].keys():
       if Input['metadata'].keys().count('SamplerType') > 0:
-        if Input['metadata']['SamplerType'][0] != 'MC' : print('POSTPROC: Warning -> BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      else: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '->BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+        if Input['metadata']['SamplerType'][0] != 'MC' : raiseAWarning(self,'BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+      else: raiseAWarning(self,'BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbweights    = np.zeros(len(Input['targets'][self.parameters['targets'][0]]),dtype=np.float)
       pbweights[:] = 1.0/pbweights.size # it was an Integer Division (1/integer) => 0!!!!!!!! Andrea
     else: pbweights       = Input['metadata']['ProbabilityWeight']
@@ -1268,7 +1268,7 @@ class LimitSurface(BasePostProcessor):
       if self.externalFunction.name in inp.getParaKeys('output'): inp.self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
       if raiseErrorIfNotFound: raiseAnError(ValueError,self,'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
-      else                   : print(self.printTag+': ' +utils.returnPrintPostTag("Warning") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
+      else                   : raiseAWarning(self,'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
     #printing----------------------
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
     if self.debug:
@@ -1464,38 +1464,39 @@ class ExternalPostProcessor(BasePostProcessor):
     self.printTag = utils.returnPrintTag('POSTPROCESSOR EXTERNAL FUNCTION')
     self.requiredAssObject = (True,(['Function'],['n']))
 
-  def errorString(self,message):
-    """
-      Function to format an error string for printing.
-      @ In, message: A string describing the error
-      @ Out, A formatted string with the appropriate tags listed
-    """
-    # This function can be promoted for printing error functions more easily and
-    # consistently.
-    return (self.printTag + ': ' + utils.returnPrintPostTag('ERROR') + '-> '
-           + self.__class__.__name__ + ': ' + message)
-
-  def warningString(self,message):
-    """
-      Function to format a warning string for printing.
-      @ In, message: A string describing the warning
-      @ Out, A formatted string with the appropriate tags listed
-    """
-    # This function can be promoted for printing error functions more easily and
-    # consistently.
-    return (self.printTag + ': ' + utils.returnPrintPostTag('Warning') + '-> '
-           + self.__class__.__name__ + ': ' + message)
-
-  def messageString(self,message):
-    """
-      Function to format a message string for printing.
-      @ In, message: A string describing the message
-      @ Out, A formatted string with the appropriate tags listed
-    """
-    # This function can be promoted for printing error functions more easily and
-    # consistently.
-    return (self.printTag + ': ' + utils.returnPrintPostTag('Message') + '-> '
-           + self.__class__.__name__ + ': ' + message)
+  #THESE are being deprecated for the similary functions in utils.
+#  def errorString(self,message):
+#    """
+#      Function to format an error string for printing.
+#      @ In, message: A string describing the error
+#      @ Out, A formatted string with the appropriate tags listed
+#    """
+#    # This function can be promoted for printing error functions more easily and
+#    # consistently.
+#    return (self.printTag + ': ' + utils.returnPrintPostTag('ERROR') + '-> '
+#           + self.__class__.__name__ + ': ' + message)
+#
+#  def warningString(self,message):
+#    """
+#      Function to format a warning string for printing.
+#      @ In, message: A string describing the warning
+#      @ Out, A formatted string with the appropriate tags listed
+#    """
+#    # This function can be promoted for printing error functions more easily and
+#    # consistently.
+#    return (self.printTag + ': ' + utils.returnPrintPostTag('Warning') + '-> '
+#           + self.__class__.__name__ + ': ' + message)
+#
+#  def messageString(self,message):
+#    """
+#      Function to format a message string for printing.
+#      @ In, message: A string describing the message
+#      @ Out, A formatted string with the appropriate tags listed
+#    """
+#    # This function can be promoted for printing error functions more easily and
+#    # consistently.
+#    return (self.printTag + ': ' + utils.returnPrintPostTag('Message') + '-> '
+#           + self.__class__.__name__ + ': ' + message)
 
   def inputToInternal(self,currentInp):
     """
@@ -1526,17 +1527,17 @@ class ExternalPostProcessor(BasePostProcessor):
         inType = "list"
 
       if inType not in ['file','HDF5','TimePointSet','list']:
-        print(self.warningString('Input type ' + type(item).__name__ + ' not'
-                               + ' recognized. I am going to skip it.'))
+        raiseAWarning(self,'Input type ' + type(item).__name__ + ' not'
+                               + ' recognized. I am going to skip it.')
       elif inType == 'file':
         if currentInput.endswith('csv'):
           # TODO
-          print(self.warningString('Input type ' + inType + ' not yet '
-                                 + 'implemented. I am going to skip it.'))
+          raiseAWarning(self,'Input type ' + inType + ' not yet '
+                                 + 'implemented. I am going to skip it.')
       elif inType == 'HDF5':
         # TODO
-          print(self.warningString('Input type ' + inType + ' not yet '
-                                 + 'implemented. I am going to skip it.'))
+          raiseAWarning(self,'Input type ' + inType + ' not yet '
+                                 + 'implemented. I am going to skip it.')
       elif inType == 'TimePointSet':
         for param in item.getParaKeys('input'):
           inputDict['targets'][param] = item.getParam('input', param)
@@ -1601,14 +1602,14 @@ class ExternalPostProcessor(BasePostProcessor):
     outputDict = finishedJob.returnEvaluation()[1]
 
     if type(output).__name__ in ["str","unicode","bytes"]:
-      print(self.warningString('Output type ' + type(output).__name__ + ' not'
-                               + ' yet implemented. I am going to skip it.'))
+      raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
+                               + ' yet implemented. I am going to skip it.')
     elif output.type == 'Datas':
-      print(self.warningString('Output type ' + type(output).__name__ + ' not'
-                               + ' yet implemented. I am going to skip it.'))
+      raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
+                               + ' yet implemented. I am going to skip it.')
     elif output.type == 'HDF5':
-      print(self.warningString('Output type ' + type(output).__name__ + ' not'
-                               + ' yet implemented. I am going to skip it.'))
+      raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
+                               + ' yet implemented. I am going to skip it.')
     elif output.type == 'TimePointSet':
       requestedInput = output.getParaKeys('input')
       requestedOutput = output.getParaKeys('output')
@@ -1670,10 +1671,10 @@ class ExternalPostProcessor(BasePostProcessor):
         if dataLength is None:
           dataLength = myLength
         elif dataLength != myLength:
-          print(self.warningString('Requested output for ' + key + ' has a'
+          raiseAWarning(self,'Requested output for ' + key + ' has a'
                                     + ' non-conformant data size ('
                                     + str(dataLength) + ' vs ' + str(myLength)
-                                    + '), it is being placed in the metadata.'))
+                                    + '), it is being placed in the metadata.')
           storeInOutput = False
 
         ## Finally, no matter what, place the requested data somewhere
@@ -1718,7 +1719,7 @@ class ExternalPostProcessor(BasePostProcessor):
 
 
       if len(matchingInterfaces) == 0:
-        print(self.warningString(method + ' not found. I will skip it.'))
+        raiseAWarning(self,method + ' not found. I will skip it.')
       elif len(matchingInterfaces) == 1:
         methodMap[method] = (matchingInterfaces[0],method)
       else:

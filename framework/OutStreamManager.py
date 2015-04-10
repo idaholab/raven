@@ -24,7 +24,7 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 import Datas
-from utils import raiseAnError,returnPrintTag, returnPrintPostTag, interpolateFunction
+from utils import raiseAnError,raiseAWarning,returnPrintTag, returnPrintPostTag, interpolateFunction
 from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -368,10 +368,10 @@ class OutStreamPlot(OutStreamManager):
           if 'ymin' in self.options[key].keys(): self.plt3D.set_ylim3d(ymin = ast.literal_eval(self.options[key]['ymin']))
           if 'ymax' in self.options[key].keys(): self.plt3D.set_ylim3d(ymax = ast.literal_eval(self.options[key]['ymax']))
           if 'zmin' in self.options[key].keys():
-            if 'zmax' not in self.options[key].keys(): print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> zmin inputted but not zmax. zmin ignored! ')
+            if 'zmax' not in self.options[key].keys(): raiseAWarning(self,'zmin inputted but not zmax. zmin ignored! ')
             else:self.plt3D.set_zlim(ast.literal_eval(self.options[key]['zmin']),ast.literal_eval(self.options[key]['zmax']))
           if 'zmax' in self.options[key].keys():
-            if 'zmin' not in self.options[key].keys(): print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> zmax inputted but not zmin. zmax ignored! ')
+            if 'zmin' not in self.options[key].keys(): raiseAWarning(self,'zmax inputted but not zmin. zmax ignored! ')
             else:self.plt3D.set_zlim(ast.literal_eval(self.options[key]['zmin']),ast.literal_eval(self.options[key]['zmax']))
       elif key == 'labelFormat':
         if 'style' not in self.options[key].keys(): self.options[key]['style'        ]   = 'sci'
@@ -381,7 +381,7 @@ class OutStreamPlot(OutStreamManager):
         if self.dim == 2:  self.plt.ticklabel_format(**{'style':self.options[key]['style'],'scilimits':ast.literal_eval(self.options[key]['limits']),'useOffset':ast.literal_eval(self.options[key]['useOffset']),'axis':self.options[key]['axis']})
         elif self.dim == 3:self.plt3D.ticklabel_format(**{'style':self.options[key]['style'],'scilimits':ast.literal_eval(self.options[key]['limits']),'useOffset':ast.literal_eval(self.options[key]['useOffset']),'axis':self.options[key]['axis']})
       elif key == 'camera':
-        if self.dim == 2: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> 2D plots have not a camera attribute... They are 2D!!!!')
+        if self.dim == 2: raiseAWarning(self,'2D plots have not a camera attribute... They are 2D!!!!')
         elif self.dim == 3:
           if 'elevation' in self.options[key].keys() and 'azimuth' in self.options[key].keys():       self.plt3D.view_init(elev = float(self.options[key]['elevation']),azim = float(self.options[key]['azimuth']))
           elif 'elevation' in self.options[key].keys() and 'azimuth' not in self.options[key].keys(): self.plt3D.view_init(elev = float(self.options[key]['elevation']),azim = None)
@@ -423,7 +423,7 @@ class OutStreamPlot(OutStreamManager):
           if self.dim == 2  : self.plt.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
           elif self.dim == 3: self.plt3D.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
       elif key == 'horizontalLine':
-        if self.dim == 3: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> horizontal_line not available in 3-D plots!!')
+        if self.dim == 3: raiseAWarning(self,'horizontal_line not available in 3-D plots!!')
         elif self.dim == 2:
           if 'y' not in self.options[key].keys(): self.options[key]['y'] = '0'
           if 'xmin' not in self.options[key].keys()  : self.options[key]['xmin'] = '0'
@@ -431,7 +431,7 @@ class OutStreamPlot(OutStreamManager):
           if 'hold' not in self.options[key].keys() : self.options[key]['hold'] = 'None'
           self.plt.axhline(y=ast.literal_eval(self.options[key]['y']), xmin=ast.literal_eval(self.options[key]['xmin']), xmax=ast.literal_eval(self.options[key]['xmax']), hold=ast.literal_eval(self.options[key]['hold']),**self.options[key].get('attributes',{}))
       elif key == 'verticalLine':
-        if self.dim == 3: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> vertical_line not available in 3-D plots!!')
+        if self.dim == 3: raiseAWarning(self,'vertical_line not available in 3-D plots!!')
         elif self.dim == 2:
           if 'x' not in self.options[key].keys(): self.options[key]['x'] = '0'
           if 'ymin' not in self.options[key].keys()  : self.options[key]['ymin'] = '0'
@@ -439,7 +439,7 @@ class OutStreamPlot(OutStreamManager):
           if 'hold' not in self.options[key].keys() : self.options[key]['hold'] = 'None'
           self.plt.axvline(x=ast.literal_eval(self.options[key]['x']), ymin=ast.literal_eval(self.options[key]['ymin']), ymax=ast.literal_eval(self.options[key]['ymax']), hold=ast.literal_eval(self.options[key]['hold']),**self.options[key].get('attributes',{}))
       elif key == 'horizontalRectangle':
-        if self.dim == 3: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> horizontal_rectangle not available in 3-D plots!!')
+        if self.dim == 3: raiseAWarning(self,'horizontal_rectangle not available in 3-D plots!!')
         elif self.dim == 2:
           if 'ymin' not in self.options[key].keys(): raiseAnError(IOError,self,'ymin parameter is needed for function horizontal_rectangle!!')
           if 'ymax' not in self.options[key].keys(): raiseAnError(IOError,self,'ymax parameter is needed for function horizontal_rectangle!!')
@@ -447,7 +447,7 @@ class OutStreamPlot(OutStreamManager):
           if 'xmax' not in self.options[key].keys() : self.options[key]['xmax'] = '1'
           self.plt.axhspan(ast.literal_eval(self.options[key]['ymin']),ast.literal_eval(self.options[key]['ymax']), xmin=ast.literal_eval(self.options[key]['xmin']), xmax=ast.literal_eval(self.options[key]['xmax']),**self.options[key].get('attributes',{}))
       elif key == 'verticalRectangle':
-        if self.dim == 3: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> vertical_rectangle not available in 3-D plots!!')
+        if self.dim == 3: raiseAWarning(self,'vertical_rectangle not available in 3-D plots!!')
         elif self.dim == 2:
           if 'xmin' not in self.options[key].keys(): raiseAnError(IOError,self,'xmin parameter is needed for function vertical_rectangle!!')
           if 'xmax' not in self.options[key].keys(): raiseAnError(IOError,self,'xmax parameter is needed for function vertical_rectangle!!')
@@ -455,7 +455,7 @@ class OutStreamPlot(OutStreamManager):
           if 'ymax' not in self.options[key].keys() : self.options[key]['ymax'] = '1'
           self.plt.axvspan(ast.literal_eval(self.options[key]['xmin']),ast.literal_eval(self.options[key]['xmax']), ymin=ast.literal_eval(self.options[key]['ymin']), ymax=ast.literal_eval(self.options[key]['ymax']),**self.options[key].get('attributes',{}))
       elif key == 'axesBox':
-        if   self.dim == 3: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> axes_box not available in 3-D plots!!')
+        if   self.dim == 3: raiseAWarning(self,'axes_box not available in 3-D plots!!')
         elif self.dim == 2: self.plt.box(self.options[key][key])
       elif key == 'grid':
         if 'b' not in self.options[key].keys()  : self.options[key]['b'] = 'off'
@@ -468,7 +468,7 @@ class OutStreamPlot(OutStreamManager):
         elif self.dim == 3:
           self.plt3D.grid(b=self.options[key]['b'],**self.options[key].get('attributes',{}))
       else:
-        print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> Try to perform not-predifined action ' + key +'. If it does not work check manual and/or relavite matplotlib method specification.')
+        raiseAWarning(self,'Try to perform not-predifined action ' + key +'. If it does not work check manual and/or relavite matplotlib method specification.')
         command_args = ' '
         import CustomCommandExecuter as execcommand
         for kk in self.options[key]:
@@ -620,7 +620,7 @@ class OutStreamPlot(OutStreamManager):
     self.fig = self.plt.figure(self.name)
     # fill the x_values,y_values,z_values dictionaries
     if not self.__fillCoordinatesFromSource():
-      print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> Nothing to Plot Yet... Returning!!!!')
+      raiseAWarning(self,'Nothing to Plot Yet... Returning!!!!')
       return
     self.counter += 1
     if self.counter > 1:
@@ -647,7 +647,7 @@ class OutStreamPlot(OutStreamManager):
         if self.dim == 2  : self.plt.ylabel(self.options['plotSettings']['ylabel'])
         elif self.dim == 3: self.plt3D.set_ylabel(self.options['plotSettings']['ylabel'])
       if 'zlabel' in self.options['plotSettings'].keys():
-        if self.dim == 2  : print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> zlabel keyword does not make sense in 2-D Plots!')
+        if self.dim == 2  : raiseAWarning(self,'zlabel keyword does not make sense in 2-D Plots!')
         elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel(self.options['plotSettings']['zlabel'])
       elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel('z')
       # Let's start plotting
@@ -854,7 +854,7 @@ class OutStreamPlot(OutStreamManager):
                 yi = interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex])
                 self.actPlot = self.plt.step(xi,yi,where=self.options['plotSettings']['plot'][pltindex]['where'],**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
         elif self.dim == 3:
-          print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> step Plot not available in 3D')
+          raiseAWarning(self,'step Plot not available in 3D')
           return
       ########################
       #    PSEUDOCOLOR PLOT  #
@@ -880,14 +880,14 @@ class OutStreamPlot(OutStreamManager):
                   actcm = self.fig.colorbar(m)
                   actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
         elif self.dim == 3:
-          print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> pseudocolor Plot is considered a 2D plot, not a 3D!')
+          raiseAWarning(self,'pseudocolor Plot is considered a 2D plot, not a 3D!')
           return
       ########################
       #     SURFACE PLOT     #
       ########################
       elif self.outStreamTypes[pltindex] == 'surface':
         if self.dim == 2:
-          print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> surface Plot is NOT available for 2D plots, IT IS A 3D!')
+          raiseAWarning(self,'surface Plot is NOT available for 2D plots, IT IS A 3D!')
           return
         elif self.dim == 3:
           if 'rstride' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['rstride'] = '1'
@@ -929,7 +929,7 @@ class OutStreamPlot(OutStreamManager):
       ########################
       elif self.outStreamTypes[pltindex] == 'tri-surface':
         if self.dim == 2:
-          print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> TRI-surface Plot is NOT available for 2D plots, IT IS A 3D!')
+          raiseAWarning(self,'TRI-surface Plot is NOT available for 2D plots, it is 3D!')
           return
         elif self.dim == 3:
           if 'color' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['color'] = 'b'
@@ -972,7 +972,7 @@ class OutStreamPlot(OutStreamManager):
       ########################
       elif self.outStreamTypes[pltindex] == 'wireframe':
         if self.dim == 2:
-          print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> wireframe Plot is NOT available for 2D plots, IT IS A 3D!')
+          raiseAWarning(self,'wireframe Plot is NOT available for 2D plots, IT IS A 3D!')
           return
         elif self.dim == 3:
           if 'rstride' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['rstride'] = '1'
@@ -985,7 +985,7 @@ class OutStreamPlot(OutStreamManager):
                   if self.colorMapCoordinates[pltindex] != None: xig, yig, Ci = interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex],z = self.colorMapValues[pltindex][key][z_index],returnCoordinate=True)
                   xig, yig, zi = interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex],z = self.zValues[pltindex][key][z_index],returnCoordinate=True)
                   if self.colorMapCoordinates[pltindex] != None:
-                    print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> Currently, ax.plot_wireframe() in MatPlotLib version: '+self.mpl.__version__+' does not support a colormap! Wireframe plotted on a surface plot...')
+                    raiseAWarning(self,'Currently, ax.plot_wireframe() in MatPlotLib version: '+self.mpl.__version__+' does not support a colormap! Wireframe plotted on a surface plot...')
                     if self.actcm: first = False
                     else         : first = True
                     if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
@@ -1018,7 +1018,7 @@ class OutStreamPlot(OutStreamManager):
           else: nbins = 5
           for key in self.xValues[pltindex].keys():
             if not self.colorMapCoordinates:
-              print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> ' +self.outStreamTypes[pltindex]+' Plot needs coordinates for color map... Returning without plotting')
+              raiseAWarning(self,self.outStreamTypes[pltindex]+' Plot needs coordinates for color map... Returning without plotting')
               return
             for x_index in range(len(self.xValues[pltindex][key])):
               for y_index in range(len(self.yValues[pltindex][key])):
@@ -1046,11 +1046,11 @@ class OutStreamPlot(OutStreamManager):
                       self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
                       self.actcm.draw_all()
         elif self.dim == 3:
-          print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n               contour3D/filledContour3D are 3-D! ')
+          raiseAWarning(self,'contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n               contour3D/filledContour3D are 3-D! ')
           return
       elif self.outStreamTypes[pltindex] == 'contour3D' or self.outStreamTypes[pltindex] == 'filledContour3D':
         if self.dim == 2:
-          print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> contour3D/filledContour3D Plot is NOT available for 2D plots, IT IS A 2D! Check "contour/filledContour"!')
+          raiseAWarning(self,'contour3D/filledContour3D Plot is NOT available for 2D plots, IT IS A 2D! Check "contour/filledContour"!')
           return
         elif self.dim == 3:
           if 'number_bins' in self.options['plotSettings']['plot'][pltindex].keys(): nbins = int(self.options['plotSettings']['plot'][pltindex]['number_bins'])
@@ -1085,7 +1085,7 @@ class OutStreamPlot(OutStreamManager):
                       self.actcm.draw_all()
       else:
         # Let's try to "write" the code for the plot on the fly
-        print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> Try to create a not-predifined plot of type ' + self.outStreamTypes[pltindex] +'. If it does not work check manual and/or relavite matplotlib method specification.')
+        raiseAWarning(self,'Try to create a not-predifined plot of type ' + self.outStreamTypes[pltindex] +'. If it does not work check manual and/or relavite matplotlib method specification.')
         command_args = ' '
         import CustomCommandExecuter as execcommand
         for kk in self.options['plotSettings']['plot'][pltindex]:

@@ -20,7 +20,7 @@ os.environ["MV2_ENABLE_AFFINITY"]="0"
 
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.append(os.path.join(frameworkDir,'utils'))
-from utils import raiseAnError,returnPrintTag, returnPrintPostTag, find_crow, add_path_recursively
+from utils import raiseAnError,raiseAWarning,returnPrintTag, returnPrintPostTag, find_crow, add_path_recursively
 find_crow(frameworkDir)
 add_path_recursively(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
       simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]),xmlFilename=configFile)
     else:
-      print(returnPrintTag('DRIVER') +': ' +returnPrintPostTag('Warning') + '-> ',configFile,' should only have Simulation and inside it RunInfo')
+      raiseAWarning('DRIVER',str(configFile)+' should only have Simulation and inside it RunInfo')
 
   # Find the XML input file
   if len(sys.argv) == 1:

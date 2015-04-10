@@ -12,7 +12,7 @@ import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils    import returnPrintTag, metaclass_insert, stringsThatMeanTrue
+from utils    import raiseAWarning,raiseAnError,returnPrintTag, metaclass_insert, stringsThatMeanTrue
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
