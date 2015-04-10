@@ -5,14 +5,14 @@ Created on Mar 30, 2015
 '''
 
 #External Modules------------------------------------------------------------------------------------
-import itertools
+#import itertools
 import numpy as np
 from scipy.interpolate import interp1d
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import returnPrintTag,returnPrintPostTag
-import TreeStructure as TS
+#import TreeStructure as TS
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -120,6 +120,23 @@ class GridEntity(object):
     """
     if parameterName not in self.gridContainer.keys(): raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> parameter '+parameterName+'unknown among ones in GridEntity class.')
     return self.gridContainer[parameterName]
+
+  def updateParameter(self,parameterName, newValue):
+    """
+    Method to update one of the initialization parameters
+    @ In, string, parameterName, name of the parameter to be updated 
+    @ Out, None
+    """
+    self.gridContainer[parameterName] = newValue
+
+  def addCustomParameter(self,parameterName, Value):
+    """
+    Method to add a new parameter in the Grid Entity
+    @ In, string, parameterName, name of the parameter to be added 
+    @ Out, None
+    """
+    if parameterName in self.gridContainer.keys(): raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> parameter '+parameterName+'already present in GridEntity!') 
+    self.updateParameter(parameterName, Value)
   
   def resetIterator(self):
     """
@@ -165,3 +182,15 @@ class GridEntity(object):
 #     self.grid = TS.NodeTree(TS.Node("Level-0-grid"))
 
 
+__base                             = 'GridEntities'
+__interFaceDict                    = {}
+__interFaceDict['GridEntity'     ] = GridEntity
+__interFaceDict['MultiGridEntity'] = GridEntity
+__knownTypes                       = __interFaceDict.keys()
+
+def knownTypes():
+  return __knownTypes
+
+def returnInstance(Type):
+  try: return __interFaceDict[Type]()
+  except KeyError: raise NameError('not known '+__base+' type '+Type)

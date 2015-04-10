@@ -37,7 +37,7 @@ import OrthoPolynomials
 import SupervisedLearning
 import IndexSets
 import PostProcessors
-from GridEntities import GridEntity as GridBase
+import GridEntities
 from utils import find_distribution1D
 distribution1D = find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
@@ -821,14 +821,18 @@ class Grid(Sampler):
     self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
     #GridBase
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
-
+    self.gridEntity           = GridEntities.returnInstance('GridEntity')
 
   def localInputAndChecks(self,xmlNode):
     """reading and construction of the grid"""
     if 'limit' in xmlNode.attrib.keys(): raise IOError('limit is not used in Grid sampler')
     self.limit = 1
     if not self.axisName: self.axisName = []
-
+    gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'transformationMethods':{},'stepLenght':{}}
+    self.gridEntity.addCustomParameter("gridInfo",{})
+    
+    gridInfo = {}
+    
     for child in xmlNode:
       if child.tag == "Distribution":
         #Add <distribution> to name so we know it is not a direct variable
@@ -838,15 +842,19 @@ class Grid(Sampler):
       for childChild in child:
         if (childChild.tag =='grid' and child.tag == "variable") or (childChild.tag =='grid' and child.tag == "Distribution"):
           self.axisName.append(varName)
+          # new grid
+          gridInitDict['dimensionNames'].append(varName)
           if childChild.attrib['type'] == 'global_grid':
             self.gridInfo[varName] = ('CDF','global_grid',childChild.text)
+            gridInfo[varName] = ('CDF','global_grid',childChild.text)
           else:
             constrType = childChild.attrib['construction']
             if constrType == 'custom':
               tempList = [float(i) for i in childChild.text.split()]
               tempList.sort()
               self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
-              if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
+              gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
+              if gridInfo[varName][0]!='value' and gridInfo[varName][0]!='CDF': raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
               self.limit = len(tempList)*self.limit
             elif constrType == 'equal':
               self.limit = self.limit*(int(childChild.attrib['steps'])+1)
@@ -862,6 +870,13 @@ class Grid(Sampler):
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()):
       raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
+    
+    
+    
+    
+    self.gridEntity.initialize({'dimensionNames':})
+    
+    
 
   def localAddInitParams(self,tempDict):
     for variable in self.gridInfo.items():
