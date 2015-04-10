@@ -49,7 +49,7 @@ class CsvLoader:
     # read the field names
     head = myFile.readline().decode()
     self.all_field_names = head.split(',')
-    for index in range(len(self.all_field_names)): self.all_field_names[index] = self.all_field_names[index].replace("\n", "")
+    for index in range(len(self.all_field_names)): self.all_field_names[index] = self.all_field_names[index].strip()
     # load the table data (from the csv file) into a numpy nd array
     data = np.loadtxt(myFile,dtype='float',delimiter=',',ndmin=2)
     # close file

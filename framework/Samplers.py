@@ -35,6 +35,7 @@ import SupervisedLearning
 import pyDOE as doe
 import Quadratures
 import OrthoPolynomials
+import SupervisedLearning
 import IndexSets
 import PostProcessors
 distribution1D = find_distribution1D()
@@ -908,7 +909,6 @@ class Grid(Sampler):
     It could not have been done earlier since the distribution might not have been initialized first
     '''
     for varName in self.gridInfo.keys():
-      #print('DEBUG',self.printTag,varName,self.gridInfo[varName])
       if self.gridInfo[varName][0]=='value':
         valueMax, indexMax = max(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(max(self.gridInfo[varName][2]))
         valueMin, indexMin = min(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(min(self.gridInfo[varName][2]))
@@ -2377,7 +2377,6 @@ class SparseGridCollocation(Grid):
     gridDict['internal'] = [(None,'jobHandler')]
     return gridDict
 
-
   def _localGenerateAssembler(self,initDict):
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
@@ -2386,7 +2385,6 @@ class SparseGridCollocation(Grid):
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
     self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
     for child in xmlNode:
-#      if   child.tag=='Assembler'   :continue
       if child.tag == 'Distribution':
         varName = '<distribution>'+child.attrib['name']
       elif child.tag == 'variable':
@@ -2402,6 +2400,48 @@ class SparseGridCollocation(Grid):
           indice += 1
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #often need only one
+    self._generateQuadsAndPolys(SVL)
+    #print out the setup for each variable.
+    if self.debug:
+      print(self.printTag,'INTERPOLATION INFO:')
+      print('    Variable | Distribution | Quadrature | Polynomials')
+      for v in self.quadDict.keys():
+        print('   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
+      print('    Polynomial Set Degree:',self.maxPolyOrder)
+      print('    Polynomial Set Type  :',SVL.indexSetType)
+
+    if self.debug: print(self.printTag,'Starting index set generation...')
+    self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
+    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+
+    if self.debug: print(self.printTag,'Starting sparse grid generation...')
+    self.sparseGrid = Quadratures.SparseQuad()
+    # NOTE this is the most expensive step thus far; try to do checks before here
+    self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
+
+    if self.writeOut != None:
+      msg=self.sparseGrid.__csv__()
+      outFile=file(self.writeOut,'w')
+      outFile.writelines(msg)
+      outFile.close()
+
+    self.limit=len(self.sparseGrid)
+    if self.debug: print(self.printTag,'Size of Sparse Grid  :',self.limit)
+    if self.debug: print(self.printTag,'Finished sampler generation.')
+    for SVL in self.ROM.SupervisedEngine.values():
+      SVL.initialize({'SG':self.sparseGrid,
+                      'dists':self.distDict,
+                      'quads':self.quadDict,
+                      'polys':self.polyDict,
+                      'iSet':self.indexSet})
+
+  def _generateQuadsAndPolys(self,SVL):
+    '''
+      Builds the quadrature objects, polynomial objects, and importance weights for all
+      the distributed variables.  Also sets maxPolyOrder.
+      @ In, SVL, one of the SupervisedEngine objects from the ROM
+      @ Out, None
+    '''
     ROMdata = SVL.interpolationInfo() #they are all the same? -> yes, I think so
     self.maxPolyOrder = SVL.maxPolyOrder
     #check input space consistency
@@ -2453,39 +2493,6 @@ class SparseGridCollocation(Grid):
       self.polyDict[varName] = poly
 
       self.importanceDict[varName] = float(dat['weight'])
-    #print out the setup for each variable.   TODO should this always happen?
-    if self.debug:
-      print(self.printTag,'INTERPOLATION INFO:')
-      print('    Variable | Distribution | Quadrature | Polynomials')
-      for v in self.quadDict.keys():
-        print('   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
-      print('    Polynomial Set Degree:',self.maxPolyOrder)
-      print('    Polynomial Set Type  :',SVL.indexSetType)
-
-    if self.debug: print(self.printTag,'Starting index set generation...')
-    self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
-    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
-
-    if self.debug: print(self.printTag,'Starting sparse grid generation...')
-    self.sparseGrid = Quadratures.SparseQuad()
-    # NOTE this is the most expensive step thus far; try to do checks before here
-    self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
-
-    if self.writeOut != None:
-      msg=self.sparseGrid.__csv__()
-      outFile=file(self.writeOut,'w')
-      outFile.writelines(msg)
-      outFile.close()
-
-    self.limit=len(self.sparseGrid)
-    if self.debug: print(self.printTag,'Size of Sparse Grid  :',self.limit)
-    if self.debug: print(self.printTag,'Finished sampler generation.')
-    for SVL in self.ROM.SupervisedEngine.values():
-      SVL.initialize({'SG':self.sparseGrid,
-                      'dists':self.distDict,
-                      'quads':self.quadDict,
-                      'polys':self.polyDict,
-                      'iSet':self.indexSet})
 
   def localGenerateInput(self,model,myInput):
     '''Provide the next point in the sparse grid.'''
@@ -2496,6 +2503,158 @@ class SparseGridCollocation(Grid):
     self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
+
+class Sobol(SparseGridCollocation):
+  def __init__(self):
+    '''
+      Initializes members to be used in the sampler.
+      @ In, None
+      @ Out, None
+    '''
+    Grid.__init__(self)
+    self.type           = 'SobolSampler'
+    self.printTag       = returnPrintTag(self.type)
+    self.assemblerObjects={}    #dict of external objects required for assembly
+    self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
+    self.sobolOrder     = None  #S, the order of the HDMR expansion (1,2,3), queried from the sobol ROM
+    self.indexSetType   = None  #TP, TD, or HC; the type of index set to use, queried from the sobol ROM
+    self.polyDict       = {}    #varName-indexed dict of polynomial types
+    self.quadDict       = {}    #varName-indexed dict of quadrature types
+    self.importanceDict = {}    #varName-indexed dict of importance weights
+    self.references     = {}    #reference (mean) values for distributions, by var
+    self.solns          = None  #pointer to output datas object
+    self.ROM            = None  #pointer to sobol ROM
+    self.jobHandler     = None  #pointer to job handler for parallel runs
+    self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
+
+    self.requiredAssObject = (True,(['ROM'],['1']))                  # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+
+  def _localWhatDoINeed(self):
+    '''
+      Used to obtain necessary objects.  See base class.
+      @ In, None
+      @ Out, None
+    '''
+    gridDict = Grid._localWhatDoINeed(self)
+    gridDict['internal'] = [(None,'jobHandler')]
+    return gridDict
+
+  def _localGenerateAssembler(self,initDict):
+    '''
+      Used to obtain necessary objects.  See base class.
+      @ In, initDict, dictionary of objects required to initialize
+      @ Out, None
+    '''
+    Grid._localGenerateAssembler(self, initDict)
+    self.jobHandler = initDict['internal']['jobHandler']
+
+  def localInputAndChecks(self,xmlNode):
+    '''
+      Extended readMoreXML after other objects are instantiated
+      @ In, xmlNode, xmlNode object whose head should be Sobol under Sampler.
+      @ Out, None
+    '''
+    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
+    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
+    for child in xmlNode:
+      if child.tag == 'Distribution':
+        varName = '<distribution>'+child.attrib['name']
+      elif child.tag == 'variable':
+        varName = child.attrib['name']
+        self.axisName.append(varName)
+      #elif child.tag == 'SobolOrder':
+      #  self.sobolOrder = int(child.text)
+      #  print(self.sobolOrder)
+
+  def localInitialize(self):
+    '''
+      Initializes Sampler, including building sub-ROMs for Sobol decomposition.  Note that re-using this
+      sampler will destroy any ROM trained and attached to this sampler, and can be retrained after sampling.
+      @ In, None
+      @ Out, None
+    '''
+    for key in self.assemblerDict.keys():
+      if 'ROM' in key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.ROM = self.assemblerDict[key][indice][3]
+          indice += 1
+    #make combination of ROMs that we need
+    SVLs = self.ROM.SupervisedEngine.values()
+    SVL = SVLs[0]
+    self.sobolOrder = SVL.sobolOrder
+    self._generateQuadsAndPolys(SVL)
+    varis = SVL.features
+    needCombos = itertools.chain.from_iterable(itertools.combinations(varis,r) for r in range(self.sobolOrder+1))
+    #print('DEBUG needCombos',self.printTag,list(needCombos))
+    self.SQs={}
+    self.ROMs={}
+    for combo in needCombos:
+      if len(combo)==0:
+        continue
+      distDict={}
+      quadDict={}
+      polyDict={}
+      imptDict={}
+      limit=0
+      for c in combo:
+        distDict[c]=self.distDict[c]
+        quadDict[c]=self.quadDict[c]
+        polyDict[c]=self.polyDict[c]
+        imptDict[c]=self.importanceDict[c]
+      iset=IndexSets.returnInstance(SVL.indexSetType)
+      iset.initialize(distDict,imptDict,SVL.maxPolyOrder)
+      self.SQs[combo] = Quadratures.SparseQuad()
+      self.SQs[combo].initialize(iset,SVL.maxPolyOrder,distDict,quadDict,polyDict,self.jobHandler)
+      initDict={'IndexSet':iset, 'PolynomialOrder':SVL.maxPolyOrder, 'Interpolation':SVL.itpDict}
+      initDict['Features']=','.join(combo)
+      initDict['Target']=SVL.target #TODO make it work for multitarget
+      self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',**initDict)
+      initDict={'SG':self.SQs[combo], 'dists':distDict, 'quads':quadDict, 'polys':polyDict, 'iSet':iset}
+      self.ROMs[combo].initialize(initDict)
+    #make combined sparse grids
+    self.references={}
+    for var,dist in self.distDict.items():
+      self.references[var]=dist.untruncatedMean()
+    std = self.distDict.keys()
+    self.pointsToRun=[]
+    #make sure reference case gets in there
+    newpt = np.zeros(len(self.distDict))
+    for v,var in enumerate(self.distDict.keys()):
+      newpt[v] = self.references[var]
+    self.pointsToRun.append(tuple(newpt))
+    #now do the rest
+    for combo,rom in self.ROMs.items():
+      SG = rom.sparseGrid
+      SG._remap(combo)
+      for l in range(len(SG)):
+        pt,wt = SG[l]
+        newpt = np.zeros(len(std))
+        for v,var in enumerate(std):
+          if var in combo: newpt[v] = pt[combo.index(var)]
+          else: newpt[v] = self.references[var]
+        newpt=tuple(newpt)
+        if newpt not in self.pointsToRun: self.pointsToRun.append(newpt)
+    self.limit = len(self.pointsToRun)
+    initdict={'ROMs':self.ROMs,
+              'SG':self.SQs,
+              'dists':self.distDict,
+              'quads':self.quadDict,
+              'polys':self.polyDict,
+              'refs':self.references}
+    self.ROM.SupervisedEngine.values()[0].initialize(initdict)
+
+  def localGenerateInput(self,model,myInput):
+    '''Provide the next point in the sparse grid.  Note that this sampler cannot assign probabilty
+       weights to individual points, as several sub-ROMs will use them with different weights.
+       See base class.'''
+    pt = self.pointsToRun[self.counter-1]
+    for v,varName in enumerate(self.distDict.keys()):
+      self.values[varName] = pt[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    #self.inputInfo['ProbabilityWeight'] =  N/A
+    self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
 
 #
 #
@@ -2515,6 +2674,7 @@ __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
 __interFaceDict['FactorialDesign'         ] = FactorialDesign
 __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
 __interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
+__interFaceDict['Sobol'                   ] = Sobol
 __knownTypes = list(__interFaceDict.keys())
 
 def addKnownTypes(newDict):
