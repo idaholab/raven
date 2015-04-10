@@ -21,7 +21,7 @@ import inspect
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
-from utils import raiseAnError,raiseAWwarning
+from utils import raiseAnError,raiseAWarning
 #Internal Modules End--------------------------------------------------------------------------------
 
 __moduleInterfaceList = []

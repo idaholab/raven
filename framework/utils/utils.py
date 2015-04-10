@@ -42,7 +42,7 @@ def raiseAnError(etype,obj,msg):
     else: tag = str(obj.printTag)
   raise etype(returnPrintTag(tag)+': '+returnPrintPostTag('ERROR')+' -> '+str(msg))
 
-def raiseAWarning(printTag,msg,wtag='WARNING'):
+def raiseAWarning(obj,msg,wtag='WARNING'):
   if type(obj) in [str,unicode]:
     tag = obj
   else:
