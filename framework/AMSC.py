@@ -33,15 +33,13 @@
  # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.          #
  ##############################################################################
 
-
 import sys
 import numpy as np
-
-import os
 import time
 
 ####################################################
 # There is probably a better way to do this
+import os
 myPath = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(myPath+'/../src/postprocessors/')
 import amsc

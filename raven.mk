@@ -53,7 +53,7 @@ else
   RAVEN_plugin_deps :=
 endif
 
-all:: $(RAVEN_LIB)
+all:: $(RAVEN_LIB) amsc
 
 $(RAVEN_LIB): $(RAVEN_objects) $(RAVEN_plugin_deps)
 	@echo "Linking "$@"..."
@@ -65,12 +65,10 @@ $(RAVEN_LIB): $(RAVEN_objects) $(RAVEN_plugin_deps)
 sa:: $(RAVEN_analyzer)
 
 ################################################################################
-# Swig for Approximate Morse-Smale Complex (AMSC)
-# source files
-AMSC_srcfiles    := $(shell find $(RAVEN_DIR)/src/postprocessors -name "*.cpp" -not -name main.C)
+## Swig for Approximate Morse-Smale Complex (AMSC)
+## source files
+AMSC_srcfiles := $(shell find $(RAVEN_DIR)/src/postprocessors -name "*.cpp" -not -name main.C)
 
-## The compiler should be a variable here (not hard-coded as g++, this was failing on a Macbook Pro because it was mixing clang++ and g++)
-## also the python libraries are incompatible on the Macbook, it is using a different version of python than what the command line uses
 amsc:: $(RAVEN_DIR)/src/postprocessors/amsc.i $(AMSC_srcfiles)
 	@echo "Building "$@"..."
 	swig -c++ -python $(SWIG_PY_FLAGS)  -I$(RAVEN_DIR)/include/postprocessors/ $(RAVEN_DIR)/src/postprocessors/amsc.i
@@ -82,7 +80,7 @@ amsc:: $(RAVEN_DIR)/src/postprocessors/amsc.i $(AMSC_srcfiles)
 
 # how to build RAVEN application
 ifeq ($(APPLICATION_NAME),RAVEN)
-all:: RAVEN
+all:: RAVEN amsc
 
 RAVEN: $(RAVEN_APP) $(CONTROL_MODULES) $(CROW_MODULES)
 
@@ -111,9 +109,12 @@ clean::
           $(RAVEN_DIR)/control_modules/distribution1D.py \
           $(RAVEN_DIR)/control_modules/libdistribution1D.* \
           $(RAVEN_DIR)/control_modules/raventools.py \
-          $(RAVEN_DIR)/src/postprocessors/_amsc.so \
-          $(RAVEN_DIR)/src/postprocessors/amsc_wrap.cxx \
-          $(RAVEN_DIR)/src/postprocessors/amsc.py \
+          $(RAVEN_DIR)/control_modules/_amsc.so \
+          $(RAVEN_DIR)/control_modules/amsc_wrap.cxx \
+          $(RAVEN_DIR)/control_modules/amsc.py \
+#          $(RAVEN_DIR)/src/postprocessors/_amsc.so \
+#          $(RAVEN_DIR)/src/postprocessors/amsc_wrap.cxx \
+#          $(RAVEN_DIR)/src/postprocessors/amsc.py \
           $(RAVEN_DIR)/control_modules/*.so*
 	@find $(RAVEN_DIR)/framework  -name '*.pyc' -exec rm '{}' \;
 
