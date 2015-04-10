@@ -86,7 +86,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                                 'AdaptiveDynamicEventTree',
                                                 'FactorialDesign',
                                                 'ResponseSurfaceDesign',
-                                                'SparseGridCollocation']
+                                                'SparseGridCollocation',
+                                                'Sobol']
 
   @classmethod
   def generateValidateDict(cls):
