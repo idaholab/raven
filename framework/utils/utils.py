@@ -34,6 +34,13 @@ def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTag
 def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
 
 def raiseAnError(etype,obj,msg):
+  '''
+    Standardized error raising.
+    @ In, etype, the error type to raise
+    @ In, obj, either a string or a class instance to determine the label for the error
+    @ In, msg, the error message to display
+    @ Out, None
+  '''
   if type(obj) in [str,unicode]:
     tag = obj
   else:
@@ -43,6 +50,13 @@ def raiseAnError(etype,obj,msg):
   raise etype(returnPrintTag(tag)+': '+returnPrintPostTag('ERROR')+' -> '+str(msg))
 
 def raiseAWarning(obj,msg,wtag='WARNING'):
+  '''
+    Standardized warning printing.
+    @ In, obj, either a string or a class instance to determine the label for the error
+    @ In, msg, the error message to display
+    @ In, wtag, optional, the type of warning to display (default "WARNING")
+    @ Out, None
+  '''
   if type(obj) in [str,unicode]:
     tag = obj
   else:
