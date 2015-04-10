@@ -1,4 +1,5 @@
 from __future__ import print_function
+# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
@@ -31,6 +32,19 @@ def getPrintTagLenght(): return 25
 def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
 
 def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
+
+def raiseAnError(etype,obj,msg):
+  if type(obj) in [str,unicode]:
+    tag = obj
+  else:
+    try: obj.printTag
+    except AttributeError: tag = str(obj)
+    else: tag = str(obj.printTag)
+  raise etype(returnPrintTag(tag)+': '+returnPrintPostTag('ERROR')+' -> '+str(msg))
+
+def raiseAWarning(etype,printTag,msg):
+  print(etype,printTag,msg)
+  raise etype(str(printTag)+': '+returnPrintPostTag('ERROR')+' -> '+str(msg))
 
 def convertMultipleToBytes(sizeString):
   '''

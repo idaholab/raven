@@ -30,7 +30,7 @@ from operator import itemgetter
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import metaclass_insert, returnPrintTag, returnPrintPostTag, find_interpolationND,stringsThatMeanFalse
+from utils import metaclass_insert, raiseAnError, returnPrintTag, returnPrintPostTag, find_interpolationND,stringsThatMeanFalse
 interpolationND = find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -59,13 +59,13 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
-    if 'Features' not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Feature names not provided')
-    if 'Target'   not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Target name not provided')
+    if 'Features' not in self.initOptionDict.keys(): raiseAnError(IOError,self,'Feature names not provided')
+    if 'Target'   not in self.initOptionDict.keys(): raiseAnError(IOError,self,'Target name not provided')
     self.features = self.initOptionDict['Features'].split(',')
     self.target   = self.initOptionDict['Target'  ]
     self.initOptionDict.pop('Target')
     self.initOptionDict.pop('Features')
-    if self.features.count(self.target) > 0: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The target and one of the features have the same name!!!!')
+    if self.features.count(self.target) > 0: raiseAnError(IOError,self,'The target and one of the features have the same name!')
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}
@@ -83,21 +83,21 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
       @ In, tdict, training dictionary
       @ Out, None
     '''
-    if type(tdict) != dict: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    if type(tdict) != dict: raiseAnError(TypeError,self,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
     if self.target in names: targetValues = values[names.index(self.target)]
-    else                   : raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The output sought '+self.target+' is not in the training set')
+    else                   : raiseAnError(IOError,self,'The output sought '+self.target+' is not in the training set')
     # check if the targetValues are consistent with the expected structure
     resp = self.checkArrayConsistency(targetValues)
-    if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for target '+self.target+':'+resp[1])
+    if not resp[0]: raiseAnError(IOError,self,'In training set for target '+self.target+':'+resp[1])
     # construct the evaluation matrixes
     featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the training set')
+      if feat not in names: raiseAnError(IOError,self,'The feature sought '+feat+' is not in the training set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
-        if values[names.index(feat)].size != featureValues[:,0].size: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
+        if not resp[0]: raiseAnError(IOError,self,'In training set for feature '+feat+':'+resp[1])
+        if values[names.index(feat)].size != featureValues[:,0].size: raiseAnError(IOError,self,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
@@ -121,17 +121,17 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     This call is used to get an estimate of the confidence in the prediction.
     The base class self.confidence will translate a dictionary into numpy array, then call the local confidence
     '''
-    if type(edict) != dict: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    if type(edict) != dict: raiseAnError(IOError,self,'method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values   = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index])
-      if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In evaluate request for feature '+names[index]+':'+resp[1])
+      if not resp[0]: raiseAnError(IOError,self,'In evaluate request for feature '+names[index]+':'+resp[1])
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the evaluate set')
+      if feat not in names: raiseAnError(IOError,self,'The feature sought '+feat+' is not in the evaluate set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
+        if not resp[0]: raiseAnError(IOError,self,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = values[names.index(feat)]
     return self.__confidenceLocal__(featureValues)
 
@@ -143,18 +143,18 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     @ In, tdict, evaluation dictionary
     @ Out, numpy array of evaluated points
     '''
-    if type(edict) != dict: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    if type(edict) != dict: raiseAnError(IOError,self,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values  = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index])
-      if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In evaluate request for feature '+names[index]+':'+resp[1])
+      if not resp[0]: raiseAnError(IOError,self,'In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the evaluate set')
+      if feat not in names: raiseAnError(IOError,self,'The feature sought '+feat+' is not in the evaluate set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
+        if not resp[0]: raiseAnError(IOError,self,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     return self.__evaluateLocal__(featureValues)
 
@@ -224,7 +224,7 @@ class NDinterpolatorRom(superVisedLearning):
     self.interpolator.fit(featv,targv)
 
   def __confidenceLocal__(self,featureVals):
-    raise NotImplemented('NDinterpRom   : __confidenceLocal__ method must be implemented!!!!!')
+    raiseAnError(NotImplementedError,self,'NDinterpRom   : __confidenceLocal__ method must be implemented!')
 
   def __evaluateLocal__(self,featureVals):
     '''
@@ -246,7 +246,7 @@ class NDinterpolatorRom(superVisedLearning):
     return localInitParam
 
   def __returnCurrentSettingLocal__(self):
-    raise NotImplemented('NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!!!!!')
+    raiseAnError(NotImplementedError,self,'NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!')
 
 class GaussPolynomialRom(NDinterpolatorRom):
   def __confidenceLocal__(self,edict):pass #TODO
@@ -282,14 +282,14 @@ class GaussPolynomialRom(NDinterpolatorRom):
                              #'cdf'   :'False'}
           for atrName,atrVal in val.items():
             if atrName in ['poly','quad','weight']: self.itpDict[var][atrName]=atrVal
-            else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
+            else: raiseAnError(IOError,self,'Unrecognized option: '+atrName)
 
     if not self.indexSetType:
-      raise IOError(self.printTag+' No IndexSet specified!')
+      raiseAnError(IOError,self,'No IndexSet specified!')
     if not self.maxPolyOrder:
-      raise IOError(self.printTag+' No maxPolyOrder specified!')
+      raiseAnError(IOError,self,'No maxPolyOrder specified!')
     if self.maxPolyOrder < 1:
-      raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
+      raiseAnError(IOError,self,'Polynomial order cannot be less than 1 currently.')
 
   def _localNormalizeData(self,values,names,feat):
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
@@ -321,7 +321,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polyCoeffDict={}
     #check consistency of featureVals
     if len(featureVals)!=len(self.sparseGrid):
-      raise IOError(self.printTag+' ERROR: ROM requires '+str(len(self.sparseGrid))+' points, but only '+str(len(featureVals))+' provided!')
+      raiseAnError(IOError,self,'ROM requires '+str(len(self.sparseGrid))+' points, but '+str(len(featureVals))+' provided!')
     #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
     self.sparseGrid._remap(self.features)
     #check equality of point space
@@ -336,7 +336,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
       print('DEBUG fvs | sgs:')
       for i in range(len(fvs)):
         print('  ',fvs[i],' | ',sgs[i])
-      raise IOError(self.printTag+' ERROR: input values do not match required values!')
+      raiseAnError(IOError,self,'input values do not match required values!')
     #make translation matrix between lists
     translate={}
     for i in range(len(fvs)):
@@ -470,7 +470,7 @@ class NDinvDistWeigth(NDinterpolatorRom):
   def __init__(self,**kwargs):
     NDinterpolatorRom.__init__(self,**kwargs)
     self.printTag = returnPrintTag('ND-INVERSEWEIGHT ROM')
-    if not 'p' in self.initOptionDict.keys(): raise IOError (self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
+    if not 'p' in self.initOptionDict.keys(): raiseAnError(IOError,self,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
     self.interpolator = interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p']))
 
   def __resetLocal__(self):
@@ -484,8 +484,8 @@ class NDmicroSphere(NDinterpolatorRom):
   def __init__(self,**kwargs):
     NDinterpolatorRom.__init__(self,**kwargs)
     self.printTag = returnPrintTag('ND-MICROSPHERE ROM')
-    if not 'p' in self.initOptionDict.keys(): raise IOError (self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> the <p> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
-    if not 'precision' in self.initOptionDict.keys(): raise IOError (self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> the <precision> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
+    if not 'p' in self.initOptionDict.keys(): raiseAnError(IOError,self,'the <p> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
+    if not 'precision' in self.initOptionDict.keys(): raiseAnError(IOError,self,'the <precision> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
     self.interpolator = interpolationND.microSphere(float(self.initOptionDict['p']),int(self.initOptionDict['precision']))
 
   def __resetLocal__(self):
@@ -586,11 +586,11 @@ class SciKitLearn(superVisedLearning):
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
     self.printTag = returnPrintTag('SCIKITLEARN')
-    if 'SKLtype' not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.name+')')
+    if 'SKLtype' not in self.initOptionDict.keys(): raiseAnError(IOError,self,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.name+')')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.initOptionDict.pop('SKLtype')
-    if not SKLtype in self.__class__.availImpl.keys(): raise IOError (self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> not known SKLtype ' + SKLtype +'(from ROM '+self.name+')')
-    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): raise IOError (self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> not known SKLsubType ' + SKLsubType +'(from ROM '+self.name+')')
+    if not SKLtype in self.__class__.availImpl.keys(): raiseAnError(IOError,self,'not known SKLtype ' + SKLtype +'(from ROM '+self.name+')')
+    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): raiseAnError(IOError,self,'not known SKLsubType ' + SKLsubType +'(from ROM '+self.name+')')
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
     self.ROM                      = self.__class__.availImpl[SKLtype][SKLsubType][0]()
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
@@ -640,7 +640,7 @@ class SciKitLearn(superVisedLearning):
 
   def __confidenceLocal__(self,edict):
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)
-    else            : raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
+    else            : raiseAnError(IOError,self,'the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
 
   def __evaluateLocal__(self,featureVals):
     return self.ROM.predict(featureVals)
@@ -673,9 +673,9 @@ def addToInterfaceDict(newDict):
 def returnInstance(ROMclass,**kwargs):
   '''This function return an instance of the request model type'''
   try: return __interfaceDict[ROMclass](**kwargs)
-  except KeyError: raise NameError('not known '+__base+' type '+str(ROMclass))
+  except KeyError: raiseAnError(NameError,'SUPERVISEDLEARNING','not known '+__base+' type '+str(ROMclass))
 
 def returnClass(ROMclass):
   '''This function return an instance of the request model type'''
   try: return __interfaceDict[ROMclass]
-  except KeyError: raise NameError('not known '+__base+' type '+ROMclass)
+  except KeyError: raiseAnError(NameError,'SUPERVISEDLEARNING','not known '+__base+' type '+ROMclass)

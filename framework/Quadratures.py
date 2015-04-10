@@ -23,7 +23,7 @@ import inspect
 #Internal Modules
 from BaseClasses import BaseType
 from JobHandler import JobHandler
-from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
+from utils import raiseAnError,returnPrintTag, returnPrintPostTag, find_distribution1D
 #Internal Modules End-----------------------------------------------------------------
 
 
@@ -172,9 +172,9 @@ class SparseQuad(object):
     #TODO optimize me!~~
     oldNames = self.varNames[:]
     #check consistency
-    if len(oldNames)!=len(newNames): raise KeyError('SPARSEGRID: Remap mismatch! Dimensions are not the same!')
+    if len(oldNames)!=len(newNames): raiseAnError(KeyError,'SPARSEGRID','Remap mismatch! Dimensions are not the same!')
     for name in oldNames:
-      if name not in newNames: raise KeyError('SPARSEGRID: Remap mismatch! '+name+' not found in original variables!')
+      if name not in newNames: raiseAnError(KeyError,'SPARSEGRID','Remap mismatch! '+name+' not found in original variables!')
     wts = self.weights()
     #split by columns (dim) instead of rows (points)
     oldlists = self._xy()
@@ -509,7 +509,7 @@ class Laguerre(QuadratureSet):
     if distr.type=='Gamma':
       self.params=[distr.alpha-1]
     else:
-      raise IOError('No implementation for Laguerre quadrature on '+distr.type+' distribution!')
+      raiseAnError(IOError,'QUADRATURES','No implementation for Laguerre quadrature on '+distr.type+' distribution!')
 
 class Jacobi(QuadratureSet):
   def initialize(self,distr):
@@ -522,7 +522,7 @@ class Jacobi(QuadratureSet):
     #for Beta distribution, it's  x^(alpha-1) * (1-x)^(beta-1)
     #for Jacobi measure, it's (1+x)^alpha * (1-x)^beta
     else:
-      raise IOError('No implementation for Jacobi quadrature on '+distr.type+' distribution!')
+      raiseAnError(IOError,'QUADRATURES','No implementation for Jacobi quadrature on '+distr.type+' distribution!')
 
 class ClenshawCurtis(QuadratureSet):
   def initialize(self,distr):
@@ -622,5 +622,5 @@ def returnInstance(Type,**kwargs):
     if   kwargs['Subtype']=='Legendre'      : return __interFaceDict['CDFLegendre']()
     elif kwargs['Subtype']=='ClenshawCurtis': return __interFaceDict['CDFClenshawCurtis']()
   if Type in knownTypes(): return __interFaceDict[Type]()
-  else: raise NameError('not known '+__base+' type '+Type)
+  else: raiseAnError(NameError,'QUADRATURES','not known '+__base+' type '+Type)
 

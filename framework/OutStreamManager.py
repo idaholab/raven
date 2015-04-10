@@ -24,7 +24,7 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 import Datas
-from utils import returnPrintTag, returnPrintPostTag, interpolateFunction
+from utils import raiseAnError,returnPrintTag, returnPrintPostTag, interpolateFunction
 from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -101,7 +101,7 @@ class OutStreamManager(BaseType):
     @ In, toLoadFrom, source object
     @ Out, None
     '''
-    raise NotImplementedError(self.printTag+': ERROR -> method addOutput must be implemented by derived classes!!!!')
+    raiseAnError(NotImplementedError,self,'method addOutput must be implemented by derived classes!!!!')
 
   def initialize(self,inDict):
     '''
@@ -130,7 +130,7 @@ class OutStreamManager(BaseType):
         if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in Datas.knownTypes():
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
-      if not foundData: raise IOError(self.printTag+': ERROR -> the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
+      if not foundData: raiseAnError(IOError,self,'the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
 #
 #
 #
@@ -186,12 +186,12 @@ class OutStreamPlot(OutStreamManager):
     # or it can look like DataName|Input|variableName
     if var:
       if '(' in var and ')' in var:
-        if var.count('(') > 1: raise IOError(self.printTag+': ERROR -> In Plot ' +self.name +'.Only a couple of () is allowed in variable names!!!!!!')
+        if var.count('(') > 1: raiseAnError(IOError,self,'In Plot ' +self.name +'.Only a couple of () is allowed in variable names!!!!!!')
         result = var.split('|(')[0].split('|')
         result.append(var.split('(')[1].replace(")", ""))
       else:  result = var.split('|')
     else: result = None
-    if len(result) != 3: raise IOError(self.printTag+': ERROR -> In Plot ' +self.name +'.Only three level variables are accepted !!!!!')
+    if len(result) != 3: raiseAnError(IOError,self,'In Plot ' +self.name +'.Only three level variables are accepted !!!!!')
     return result
 
   def __readPlotActions(self,snode):
@@ -205,13 +205,13 @@ class OutStreamPlot(OutStreamManager):
         for subnode in node:
           if subnode.tag != 'kwargs':
             self.options[node.tag][subnode.tag] = subnode.text
-            if not subnode.text: raise IOError(self.printTag+': ERROR -> In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
+            if not subnode.text: raiseAnError(IOError,self,'In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
           else:
             self.options[node.tag]['attributes'] = {}
             for subsub in subnode:
               try   : self.options[node.tag]['attributes'][subsub.tag] = ast.literal_eval(subsub.text)
               except: self.options[node.tag]['attributes'][subsub.tag] = subsub.text
-              if not subnode.text: raise IOError(self.printTag+': ERROR -> In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
+              if not subnode.text: raiseAnError(IOError,self,'In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
       elif node.text:
         if node.text.strip(): self.options[node.tag][node.tag] = node.text
     if 'how' not in self.options.keys(): self.options['how']={'how':'screen'}
@@ -409,7 +409,7 @@ class OutStreamPlot(OutStreamManager):
           try:
             self.options[key]['fontdict'] = ast.literal_eval(self.options[key]['fontdict'])
             self.options[key]['fontdict'] = str(self.options[key]['fontdict'])
-          except AttributeError: raise Exception(self.printTag+': ERROR -> In ' + key +' tag: can not convert the string "' + self.options[key]['fontdict'] + '" to a dictionary! Check syntax for python function ast.literal_eval')
+          except AttributeError: raiseAnError(TypeError,self,'In ' + key +' tag: can not convert the string "' + self.options[key]['fontdict'] + '" to a dictionary! Check syntax for python function ast.literal_eval')
         if self.dim == 2 :
           self.plt.text(float(self.options[key]['position'].split(',')[0]),float(self.options[key]['position'].split(',')[1]),self.options[key]['text'],fontdict=ast.literal_eval(self.options[key]['fontdict']),**self.options[key].get('attributes',{}))
         elif self.dim ==3:
@@ -441,16 +441,16 @@ class OutStreamPlot(OutStreamManager):
       elif key == 'horizontalRectangle':
         if self.dim == 3: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> horizontal_rectangle not available in 3-D plots!!')
         elif self.dim == 2:
-          if 'ymin' not in self.options[key].keys(): raise Exception(self.printTag+': ERROR -> ymin parameter is needed for function horizontal_rectangle!!')
-          if 'ymax' not in self.options[key].keys(): raise Exception(self.printTag+': ERROR -> ymax parameter is needed for function horizontal_rectangle!!')
+          if 'ymin' not in self.options[key].keys(): raiseAnError(IOError,self,'ymin parameter is needed for function horizontal_rectangle!!')
+          if 'ymax' not in self.options[key].keys(): raiseAnError(IOError,self,'ymax parameter is needed for function horizontal_rectangle!!')
           if 'xmin' not in self.options[key].keys()  : self.options[key]['xmin'] = '0'
           if 'xmax' not in self.options[key].keys() : self.options[key]['xmax'] = '1'
           self.plt.axhspan(ast.literal_eval(self.options[key]['ymin']),ast.literal_eval(self.options[key]['ymax']), xmin=ast.literal_eval(self.options[key]['xmin']), xmax=ast.literal_eval(self.options[key]['xmax']),**self.options[key].get('attributes',{}))
       elif key == 'verticalRectangle':
         if self.dim == 3: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> vertical_rectangle not available in 3-D plots!!')
         elif self.dim == 2:
-          if 'xmin' not in self.options[key].keys(): raise Exception(self.printTag+': ERROR -> xmin parameter is needed for function vertical_rectangle!!')
-          if 'xmax' not in self.options[key].keys(): raise Exception(self.printTag+': ERROR -> xmax parameter is needed for function vertical_rectangle!!')
+          if 'xmin' not in self.options[key].keys(): raiseAnError(IOError,self,'xmin parameter is needed for function vertical_rectangle!!')
+          if 'xmax' not in self.options[key].keys(): raiseAnError(IOError,self,'xmax parameter is needed for function vertical_rectangle!!')
           if 'ymin' not in self.options[key].keys()  : self.options[key]['ymin'] = '0'
           if 'ymax' not in self.options[key].keys() : self.options[key]['ymax'] = '1'
           self.plt.axvspan(ast.literal_eval(self.options[key]['xmin']),ast.literal_eval(self.options[key]['xmax']), ymin=ast.literal_eval(self.options[key]['ymin']), ymax=ast.literal_eval(self.options[key]['ymax']),**self.options[key].get('attributes',{}))
@@ -483,7 +483,7 @@ class OutStreamPlot(OutStreamManager):
           #if self.dim == 2:  exec('self.plt.' + key + '(' + command_args + ')')
           #elif self.dim == 3:exec('self.plt3D.' + key + '(' + command_args + ')')
         except ValueError as ae:
-          raise Exception(self.printTag+': ERROR -> <'+str(ae)+'> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag+': ERROR -> command has been called in the following way: ' + 'self.plt.' + key + '(' + command_args + ')')
+          raiseAnError(RuntimeError,self,'<'+str(ae)+'> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag+' command has been called in the following way: ' + 'self.plt.' + key + '(' + command_args + ')')
 
   ####################
   #  PUBLIC METHODS  #
@@ -532,26 +532,26 @@ class OutStreamPlot(OutStreamManager):
       self.sourceName.append(self.xCoordinates [pltindex][0].split('|')[0].strip())
       if 'y' in self.options['plotSettings']['plot'][pltindex].keys():
         self.yCoordinates .append(self.options['plotSettings']['plot'][pltindex]['y'].split(','))
-        if self.yCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError(self.printTag+': ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got y_cord source is' + self.yCoordinates [pltindex][0].split('|')[0])
+        if self.yCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: raiseAnError(IOError,self,'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got y_cord source is' + self.yCoordinates [pltindex][0].split('|')[0])
       if 'z' in self.options['plotSettings']['plot'][pltindex].keys():
         self.zCoordinates .append(self.options['plotSettings']['plot'][pltindex]['z'].split(','))
-        if self.zCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError(self.printTag+': ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got z_cord source is' + self.zCoordinates [pltindex][0].split('|')[0])
+        if self.zCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: raiseAnError(IOError,self,'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got z_cord source is' + self.zCoordinates [pltindex][0].split('|')[0])
       if 'colorMap' in self.options['plotSettings']['plot'][pltindex].keys():
         self.colorMapCoordinates[pltindex]=self.options['plotSettings']['plot'][pltindex]['colorMap'].split(',')
         #self.colorMapCoordinates.append(self.options['plotSettings']['plot'][pltindex]['colorMap'].split(','))
-        if self.colorMapCoordinates[pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError(self.printTag+': ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got colorMap_coordinates source is' + self.colorMapCoordinates[pltindex][0].split('|')[0])
+        if self.colorMapCoordinates[pltindex][0].split('|')[0] != self.sourceName[pltindex]: raiseAnError(IOError,self,'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got colorMap_coordinates source is' + self.colorMapCoordinates[pltindex][0].split('|')[0])
       for pltindex in range(len(self.options['plotSettings']['plot'])):
         if 'interpPointsY' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpPointsY'] = '20'
         if 'interpPointsX' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpPointsX'] = '20'
         if 'interpolationType' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpolationType'] = 'linear'
-        elif self.options['plotSettings']['plot'][pltindex]['interpolationType'] not in self.interpAvail: raise IOError(self.printTag+': ERROR -> surface interpolation unknown. Available are :' + str(self.interpAvail))
+        elif self.options['plotSettings']['plot'][pltindex]['interpolationType'] not in self.interpAvail: raiseAnError(IOError,self,'surface interpolation unknown. Available are :' + str(self.interpAvail))
         if 'epsilon' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['epsilon'] = '2'
         if 'smooth' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['smooth'] = '0.0'
         if 'cmap' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['cmap'] = 'None'
 #            else:             self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
         elif self.options['plotSettings']['plot'][pltindex]['cmap'] is not 'None' and self.options['plotSettings']['plot'][pltindex]['cmap'] not in self.mpl.cm.datad.keys(): raise('ERROR. The colorMap you specified does not exist... Available are ' + str(self.mpl.cm.datad.keys()))
         if 'interpolationTypeBackUp' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] = 'nearest'
-        elif self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] not in self.interpAvail: raise IOError(self.printTag+': ERROR -> surface interpolation (BackUp) unknown. Available are :' + str(self.interpAvail))
+        elif self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] not in self.interpAvail: raiseAnError(IOError,self,'surface interpolation (BackUp) unknown. Available are :' + str(self.interpAvail))
     self.numberAggregatedOS = len(self.options['plotSettings']['plot'])
     # initialize here the base class
     OutStreamManager.initialize(self,inDict)
@@ -566,7 +566,7 @@ class OutStreamPlot(OutStreamManager):
     """
     if not 'dim' in xmlNode.attrib.keys(): self.dim = 2
     else:                                  self.dim = int(xmlNode.attrib['dim'])
-    if self.dim not in [2,3]: raise IOError(self.printTag+': ERROR -> Wrong dimension... 2D or 3D only!!! Got '+ str(self.dim)+'D')
+    if self.dim not in [2,3]: raiseAnError(IOError,self,'Wrong dimension... 2D or 3D only!!! Got '+ str(self.dim)+'D')
     foundPlot = False
     for subnode in xmlNode:
       # if actions, read actions block
@@ -594,11 +594,11 @@ class OutStreamPlot(OutStreamManager):
         self.options[subnode.tag] = {}
         for subsub in subnode: self.options[subnode.tag][subsub.tag] = subsub.text.strip()
     self.type = 'OutStreamPlot'
-    if not 'plotSettings' in self.options.keys(): raise IOError(self.printTag+': ERROR -> For plot named ' + self.name + ' the plotSettings block IS REQUIRED!!')
-    if not foundPlot: raise IOError(self.printTag+': ERROR -> For plot named'+ self.name + ', No plot section has been found in the plotSettings block!')
+    if not 'plotSettings' in self.options.keys(): raiseAnError(IOError,self,'For plot named ' + self.name + ' the plotSettings block is required.')
+    if not foundPlot: raiseAnError(IOError,self,'For plot named'+ self.name + ', No plot section has been found in the plotSettings block!')
     self.outStreamTypes = []
     for pltindex in range(len(self.options['plotSettings']['plot'])):
-      if not 'type' in self.options['plotSettings']['plot'][pltindex].keys(): raise IOError(self.printTag+': ERROR -> For plot named'+ self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
+      if not 'type' in self.options['plotSettings']['plot'][pltindex].keys(): raiseAnError(IOError,self,'For plot named'+ self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
       else:
         if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0: print(self.printTag+': ERROR -> For plot named'+ self.name + ', type '+self.options['plotSettings']['plot'][pltindex]['type']+' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!!!')
         self.outStreamTypes.append(self.options['plotSettings']['plot'][pltindex]['type'])
@@ -1098,7 +1098,7 @@ class OutStreamPlot(OutStreamManager):
           if self.dim == 2:  execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')',self)
           elif self.dim == 3:execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')',self)
         except ValueError as ae:
-          raise Exception(self.printTag+': ERROR -> <'+str(ae)+'> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
+          raiseAnError(RuntimeError,self,'<'+str(ae)+'> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
     # SHOW THE PICTURE
     self.plt.draw()
     #self.plt3D.draw(self.fig.canvas.renderer)
@@ -1169,4 +1169,4 @@ def returnInstance(Type):
   @ Out,Instance of the Specialized OutStream class
   '''
   try: return __interFaceDict[Type]()
-  except KeyError: raise NameError('not known '+__base+' type '+Type)
+  except KeyError: raiseAnError(NameError,'OUTSTREAMMANAGER','not known '+__base+' type '+Type)

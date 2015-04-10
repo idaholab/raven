@@ -25,7 +25,7 @@ import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import returnPrintTag, returnPrintPostTag, metaclass_insert
+from utils import raiseAnError, returnPrintTag, returnPrintPostTag, metaclass_insert
 from BaseClasses import BaseType
 # for internal parallel
 import pp
@@ -197,7 +197,7 @@ class InternalRunner:
       if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
       else                : self.identifier =  str(identifier)
     else: self.identifier = 'generalOut'
-    if type(Input) != tuple: raise IOError(returnPrintTag('JOB HANDLER') + ": " +returnPrintPostTag('ERROR') + "-> The input for InternalRunner needs to be a tuple!!!!")
+    if type(Input) != tuple: raiseAnError(IOError,'JOB HANDLER',"The input for InternalRunner needs to be a tuple!!!!")
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
     if self.ppserver == None: self.subque = queue.Queue()
     self.functionToRun   = functionToRun

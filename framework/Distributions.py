@@ -1452,13 +1452,13 @@ class NDScatteredMS(NDimensionalDistributions):
   def untruncatedHazard(self, x):
     raiseAnError(NotImplementedError,self,'untruncatedHazard not yet implemented for ' + self.type)
 
-  def untruncatedMean(self,:
+  def untruncatedMean(self, x):
     raiseAnError(NotImplementedError,self,'untruncatedMean not yet implemented for ' + self.type)
 
-  def untruncatedMedian(self,:
+  def untruncatedMedian(self, x):
     raiseAnError(NotImplementedError,self,'untruncatedMedian not yet implemented for ' + self.type)
 
-  def untruncatedMode(self,:
+  def untruncatedMode(self, x):
     raiseAnError(NotImplementedError,self,'untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
@@ -1530,13 +1530,13 @@ class MultivariateNormal(NDimensionalDistributions):
   def untruncatedHazard(self, x):
     raiseAnError(NotImplementedError,self,'untruncatedHazard not yet implemented for ' + self.type)
 
-  def untruncatedMean(self,:
+  def untruncatedMean(self, x):
     raiseAnError(NotImplementedError,self,'untruncatedMean not yet implemented for ' + self.type)
 
-  def untruncatedMedian(self,:
+  def untruncatedMedian(self, x):
     raiseAnError(NotImplementedError,self,'untruncatedMedian not yet implemented for ' + self.type)
 
-  def untruncatedMode(self,:
+  def untruncatedMode(self, x):
     raiseAnError(NotImplementedError,self,'untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
