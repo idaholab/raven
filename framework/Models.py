@@ -677,7 +677,10 @@ class Code(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except OSError: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except OSError:
+      print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+      if utils.checkIfPathAreAccessedByAnotherProgram(self.workingDir,3.0): raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') +
+                                                                                            '-> directory '+ self.workingDir + ' is used by another program!!! ')
     for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> original input files copied in the current working dir: '+self.workingDir)
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> files copied:')
