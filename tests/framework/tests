@@ -10,8 +10,8 @@
  [./test_output]
   type = 'RavenFramework'
   input = 'test_output.xml'
-  output = 'output_check/1-2DHistoryPlot2_histogram.png output_check/1-2DHistoryPlot_histogram.png output_check/1-plot1_line-line.png output_check/1-plot2_line-line.png output_check/1-plot4_scatter-scatter.png output_check/1-plot3_scatter-scatter.png output_check/1-plot9_stem.png output_check/1-plot8_stem.png output_check/1-plot7_stem.png output_check/1-plot6_histogram.png output_check/1-plot5_histogram.png output_check/1-plot11_step.png output_check/1-plot10_stem.png output_check/1-plot14_tri-surface-tri-surface.png output_check/1-plot13_surface-surface.png output_check/1-plot12_pseudocolor.png output_check/1-plot17_contour3D-filledContour3D.png output_check/1-plot16_contour-filledContour.png output_check/1-plot15_wireframe-wireframe.png output_check/1-plot18_scatter.png output_check/1-plot19_scatter.png output_check/fullprint_history.csv output_check/fullprint_timepointset.csv output_check/fullprint_timepoint.csv output_check/testprint_selective_history.csv output_check/testprint_selective_timepoint.csv'
-  csv = 'output_check/fullprint_histories_2.csv output_check/testprint_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_hist2_4.csv output_check/testprint_selective_hist3_4.csv output_check/testprint_selective_timepointset.csv'
+  output = 'output_check/1-2DHistoryPlot2_histogram.png output_check/1-2DHistoryPlot_histogram.png output_check/1-test_line-line.png output_check/1-plot2_line-line.png output_check/1-plot4_scatter-scatter.png output_check/1-plot3_scatter-scatter.png output_check/1-plot9_stem.png output_check/1-plot8_stem.png output_check/1-plot7_stem.png output_check/1-plot6_histogram.png output_check/1-plot5_histogram.png output_check/1-plot11_step.png output_check/1-plot10_stem.png output_check/1-plot14_tri-surface-tri-surface.png output_check/1-plot13_surface-surface.png output_check/1-plot12_pseudocolor.png output_check/1-plot17_contour3D-filledContour3D.png output_check/1-plot16_contour-filledContour.png output_check/1-plot15_wireframe-wireframe.png output_check/1-plot18_scatter.png output_check/1-plot19_scatter.png output_check/1-plot20_scatter.png output_check/fullprint_history.csv output_check/fullprint_timepointset.csv output_check/fullprint_timepoint.csv output_check/testprint_selective_history.csv output_check/testprint_selective_timepoint.csv'
+  csv = 'output_check/fullprint_histories_2.csv output_check/test_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_hist2_4.csv output_check/testprint_selective_hist3_4.csv output_check/testprint_selective_timepointset.csv'
 #  skip = 'Cannot run headless'
   #skip = 'Problem with output system filenames'
    required_executable = '../../RAVEN-%METHOD%'
@@ -20,7 +20,7 @@
  [./test_Adaptive_DynamicEventTreeRAVEN]
   type = 'RavenFramework'
   input = 'test_adaptive_det_simple.xml'
-  output = 'AdaptiveDET/adaptiveNoHierarchicalDump.csv AdaptiveDET/adaptiveNoHierarchicalDump.xml AdaptiveDET/AdaptiveDETsimpleDataBase.h5 AdaptiveDET/1-limitSurfDump_scatter.png'
+  output = 'AdaptiveDET/adaptiveNoHierarchicalDump.csv AdaptiveDET/adaptiveNoHierarchicalDump.xml AdaptiveDET/AdaptiveDETsimpleDataBase.h5'
   csv = 'AdaptiveDET/AdaptiveDETrunTest/out~AdaptiveDETsimple_1-1-1-1-2~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
   max_time = 400
@@ -253,8 +253,8 @@
  [./testLimitSurfacePostProcessor]
   type = 'RavenFramework'
   input = 'test_LimitSurface.xml'
-  output = 'limitSurface/LimitSurface_dump.csv'
-  csv = 'limitSurface/LimitSurface_dump.csv'
+  output = 'limitSurface/LimitSurfaceNegative_dump.csv limitSurface/LimitSurfacePositiveNegative_dump.csv limitSurface/LimitSurfacePositive_dump.csv'
+  csv = 'limitSurface/LimitSurfaceNegative_dump.csv limitSurface/LimitSurfacePositiveNegative_dump.csv limitSurface/LimitSurfacePositive_dump.csv'
   max_time = 300
   rel_err = 0.0001
   #skip = ‘need to be fixed’
@@ -302,12 +302,20 @@
    prereq = test_output
  [../]
 
+ [./adaptive_sampler_ext_model]
+  type = 'RavenFramework'
+  input = 'test_adaptive_sampler.xml'
+  output = 'Adapt/limitSurfaceDump.csv'
+  csv = 'Adapt/limitSurfaceDump.csv'
+ [../]
+
  [./safest_point_pp]
   type = 'RavenFramework'
   input = 'test_safest_point.xml'
   output = 'SafestPointPP/sfs_pnt_dmp.csv SafestPointPP/lmt_srf_dmp.csv'
   csv = 'SafestPointPP/sfs_pnt_dmp.csv SafestPointPP/lmt_srf_dmp.csv'
  [../]
+
 
  [./safest_point_cdf_pp]
   type = 'RavenFramework'
@@ -351,6 +359,20 @@
   csv = 'IndexSetTest/TPdump.csv IndexSetTest/TDdump.csv IndexSetTest/HCdump.csv'
  [../]
 
+ [./sobolSamplerTest]
+  type = 'RavenFramework'
+  input = 'test_sobol_sampler.xml'
+  output = 'SobolSampler/dump.xml'
+  csv = 'SobolSampler/dump.csv'
+ [../]
+
+ [./sobolRomTest]
+  type = 'RavenFramework'
+  input = 'test_sobol_rom.xml'
+  output = 'SobolRom/dump.xml'
+  csv = 'SobolRom/dump.csv'
+ [../]
+
  [./stochPolyPickleTest]
   type = 'RavenFramework'
   input = 'test_stochpoly_pickle.xml'
@@ -379,7 +401,6 @@
   csv = 'RELAP5interfaceTest/testDummyStep/out~1~snc01.csv RELAP5interfaceTest/testDummyStep/out~2~snc01.csv RELAP5interfaceTest/testDummyStep/out~3~snc01.csv RELAP5interfaceTest/testDummyStep/out~4~snc01.csv RELAP5interfaceTest/testDummyStep/out~5~snc01.csv'
   test_interface_only = True
  [../]
-
 
  [./ND_external_LHS]
   type = 'RavenFramework'

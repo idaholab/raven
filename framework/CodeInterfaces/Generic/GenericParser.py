@@ -14,9 +14,6 @@ import os
 import copy
 from utils import toBytes, toStrish, compare
 
-def justFile(fullfile):
-  return fullfile.split('/')[-1]
-
 class GenericParser:
   '''import the user-edited input file, build list of strings with replacable parts'''
   def __init__(self,inputFiles,prefix='$RAVEN-',postfix='$',defaultDelim=':'):
@@ -35,7 +32,7 @@ class GenericParser:
     self.defaults = {}  # defaults[var][inputFile]
     self.segments = {}  # segments[inputFile]
     for inputFile in self.inputFiles:
-      infileName = justFile(inputFile)
+      infileName = os.path.basename(inputFile)
       self.segments[infileName] = []
       if not os.path.exists(inputFile): raise IOError('Input file not found: '+inputFile)
       IOfile = open(inputFile,'rb')
@@ -134,5 +131,5 @@ class GenericParser:
     #now just write the files.
     for f,fileName in enumerate(infileNames):
       outfile = file(fileName,'w')
-      outfile.writelines(toBytes(''.join(self.segments[justFile(origNames[f])])))
+      outfile.writelines(toBytes(''.join(self.segments[os.path.basename(origNames[f])])))
       outfile.close()

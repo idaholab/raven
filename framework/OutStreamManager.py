@@ -172,11 +172,11 @@ class OutStreamPlot(OutStreamManager):
   #####################
 
   def __splitVariableNames(self,what,where):
-    '''
+    """
       Function to split the variable names
       @ In, what => x,y,z or colorMap
       @ In, where, tuple => pos 0 = plotIndex, pos 1 = variable Index
-    '''
+    """
     if   what == 'x'                : var = self.xCoordinates [where[0]][where[1]]
     elif what == 'y'                : var = self.yCoordinates [where[0]][where[1]]
     elif what == 'z'                : var = self.zCoordinates [where[0]][where[1]]
@@ -195,10 +195,10 @@ class OutStreamPlot(OutStreamManager):
     return result
 
   def __readPlotActions(self,snode):
-    '''
+    """
       Function to read, from the xml input, the actions that are required to be performed on the Plot
       @ In, snode => xml node
-    '''
+    """
     for node in snode:
       self.options[node.tag] = {}
       if len(node):
@@ -217,11 +217,11 @@ class OutStreamPlot(OutStreamManager):
     if 'how' not in self.options.keys(): self.options['how']={'how':'screen'}
 
   def __fillCoordinatesFromSource(self):
-    '''
+    """
       Function to retrieve the pointers of the data values (x,y,z)
       @ In, None
       @ Out, boolean, true if the data are filled, false otherwise
-    '''
+    """
     self.xValues = []
     if self.yCoordinates : self.yValues = []
     if self.zCoordinates : self.zValues = []
@@ -337,10 +337,10 @@ class OutStreamPlot(OutStreamManager):
     return True
 
   def __executeActions(self):
-    '''
+    """
       Function to execute the actions must be performed on the Plot(for example, set the x,y,z axis ranges, etc)
       @ In, None
-    '''
+    """
     if 'labelFormat' not in self.options.keys():
       if self.dim == 2:
         self.plt.gca().yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
@@ -489,11 +489,11 @@ class OutStreamPlot(OutStreamManager):
   #  PUBLIC METHODS  #
   ####################
   def localAddInitParams(self,tempDict):
-    '''
+    """
       This method is called from the base function. It adds the initial characteristic intial params that need to be seen by the whole enviroment
       @ In, tempDict
       @ Out, tempDict
-    '''
+    """
     tempDict['Plot is '] = str(self.dim)+'D'
     for index in range(len(self.sourceName)): tempDict['Source Name '+str(index)+' :'] = self.sourceName[index]
 
@@ -503,11 +503,11 @@ class OutStreamPlot(OutStreamManager):
       self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
 
   def initialize(self,inDict):
-    '''
+    """
     Function called to initialize the OutStream, linking it to the proper Data
     @ In, inDict -> Dictionary that contains all the instantiaced classes needed for the actual step
                     In this dictionary the data are looked for
-    '''
+    """
     self.xCoordinates  = []
     self.sourceName    = []
     if 'figureProperties' in self.options.keys():
@@ -559,11 +559,11 @@ class OutStreamPlot(OutStreamManager):
     self.__executeActions()
 
   def localReadXML(self,xmlNode):
-    '''
+    """
       This Function is called from the base class, It reads the parameters that belong to a plot block
       @ In, xmlNode
       @ Out, filled data structure (self)
-    '''
+    """
     if not 'dim' in xmlNode.attrib.keys(): self.dim = 2
     else:                                  self.dim = int(xmlNode.attrib['dim'])
     if self.dim not in [2,3]: raise IOError(self.printTag+': ERROR -> Wrong dimension... 2D or 3D only!!! Got '+ str(self.dim)+'D')
@@ -611,11 +611,11 @@ class OutStreamPlot(OutStreamManager):
     if self.dim == 3: from mpl_toolkits.mplot3d import Axes3D
 
   def addOutput(self):
-    '''
+    """
     Function to show and/or save a plot
     @ In,  None
     @ Out, None (Plot on the screen or on file/s)
-    '''
+    """
     # reactivate the figure
     self.fig = self.plt.figure(self.name)
     # fill the x_values,y_values,z_values dictionaries
@@ -668,12 +668,7 @@ class OutStreamPlot(OutStreamManager):
                 if self.colorMapCoordinates[pltindex] != None:
                   if self.actcm: first = False
                   else         : first = True
-                  if len(self.colorMapValues[pltindex][key]) == 1:
-                      if type(self.colorMapValues[pltindex][key][0]).__name__ != 'ndarray' or self.colorMapValues[pltindex][key][0].size == 1:
-                          colorMapReplicate = [self.colorMapValues[pltindex][key][0]]*len(self.xValues[pltindex][key][x_index])
-                      else: colorMapReplicate = self.colorMapValues[pltindex][key]
-                  else: colorMapReplicate = self.colorMapValues[pltindex][key]
-                  self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=colorMapReplicate,marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                  self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=self.colorMapValues[pltindex][key],marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
                       if first:
                           m = self.mpl.cm.ScalarMappable(norm=self.actPlot.norm)
@@ -700,13 +695,8 @@ class OutStreamPlot(OutStreamManager):
                   if self.colorMapCoordinates[pltindex] != None:
                     if self.actcm: first = False
                     else         : first = True
-                    if len(self.colorMapValues[pltindex][key]) == 1:
-                        if type(self.colorMapValues[pltindex][key][0]).__name__ != 'ndarray' or self.colorMapValues[pltindex][key][0].size == 1:
-                            colorMapReplicate = [self.colorMapValues[pltindex][key][0]]*len(self.xValues[pltindex][key][x_index])
-                        else: colorMapReplicate = self.colorMapValues[pltindex][key]
-                    else: colorMapReplicate = self.colorMapValues[pltindex][key]
                     if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
-                        self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],rasterized= True,s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=colorMapReplicate,marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                        self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],rasterized= True,s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=self.colorMapValues[pltindex][key],marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                         if first:
                             m = self.mpl.cm.ScalarMappable(norm=self.actPlot.norm)
                             m.set_array(self.colorMapValues[pltindex][key])
@@ -716,7 +706,7 @@ class OutStreamPlot(OutStreamManager):
                             self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
                             self.actcm.draw_all()
                     else:
-                        self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],rasterized= True,s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=colorMapReplicate,marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                        self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],rasterized= True,s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=self.colorMapValues[pltindex][key],marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                         if first:
                             self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
                             m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
@@ -743,12 +733,7 @@ class OutStreamPlot(OutStreamManager):
                   # if a color map has been added, we use a scattered plot instead...
                   if self.actcm: first = False
                   else         : first = True
-                  if len(self.colorMapValues[pltindex][key]) == 1:
-                      if type(self.colorMapValues[pltindex][key][0]).__name__ != 'ndarray' or self.colorMapValues[pltindex][key][0].size == 1:
-                          colorMapReplicate = [self.colorMapValues[pltindex][key][0]]*len(self.xValues[pltindex][key][x_index])
-                      else: colorMapReplicate = self.colorMapValues[pltindex][key]
-                  else: colorMapReplicate = self.colorMapValues[pltindex][key]
-                  self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],c=colorMapReplicate,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                  self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],c=self.colorMapValues[pltindex][key],**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
                       if first:
                           m = self.mpl.cm.ScalarMappable(norm=self.actPlot.norm)
@@ -776,12 +761,7 @@ class OutStreamPlot(OutStreamManager):
                     # if a color map has been added, we use a scattered plot instead...
                     if self.actcm: first = False
                     else         : first = True
-                    if len(self.colorMapValues[pltindex][key]) == 1:
-                        if type(self.colorMapValues[pltindex][key][0]).__name__ != 'ndarray' or self.colorMapValues[pltindex][key][0].size == 1:
-                            colorMapReplicate = [self.colorMapValues[pltindex][key][0]]*len(self.xValues[pltindex][key][x_index])
-                        else: colorMapReplicate = self.colorMapValues[pltindex][key]
-                    else: colorMapReplicate = self.colorMapValues[pltindex][key]
-                    self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],c=colorMapReplicate,marker='_')
+                    self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],c=self.colorMapValues[pltindex][key],marker='_')
                     if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
                         if first:
                             m = self.mpl.cm.ScalarMappable(norm=self.actPlot.norm)
@@ -1163,6 +1143,7 @@ class OutStreamPrint(OutStreamManager):
     if 'type' not in self.options.keys(): raise(self.printTag+': ERROR -> type tag not present in Print block called '+ self.name)
     if self.options['type'] not in self.availableOutStreamTypes : raise(self.printTag+': ERROR -> Print type ' + self.options['type'] + ' not available yet. ')
     if 'variables' in self.options.keys(): self.variables = self.options['variables']
+
   def addOutput(self):
     if self.variables: dictOptions = {'filenameroot':self.name,'variables':self.variables}
     else             : dictOptions = {'filenameroot':self.name}
