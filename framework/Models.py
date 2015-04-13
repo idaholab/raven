@@ -30,6 +30,7 @@ import SupervisedLearning
 import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
+import TreeStructure
 #Internal Modules End--------------------------------------------------------------------------------
 
 #class Model(BaseType):
@@ -366,11 +367,26 @@ class ROM(Dummy):
     if options:
       if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
       else: filenameLocal = self.name + '_dump'
-    treedict=self._localBuildPrintTree(options)
+    else: options={}
+    tree=self._localBuildPrintTree(options)
+    msg=tree.stringNodeTree()
+    file(filenameLocal,'w').writelines(msg)
+    #print(msg)
 
   def _localBuildPrintTree(self,options=None):
-    for target in self.SupervisedEngines.values():
-      addToDict = target.printXML(options)
+    node = TreeStructure.Node('ReducedOrderModel')
+    tree = TreeStructure.NodeTree(node)
+    #tree._setrootnode(node)
+    if 'target' in options.keys():
+      targets = options['target'].split(',')
+    else:
+      targets = 'all'
+    if 'all' in targets:
+      targets = list(key for key in self.SupervisedEngine.keys())
+    for key,target in self.SupervisedEngine.items():
+      if key in targets:
+        target.printXML(node,options)
+    return tree
 
   def reset(self):
     '''

@@ -1152,7 +1152,8 @@ class OutStreamPrint(OutStreamManager):
   def addOutput(self):
     if self.variables: dictOptions = {'filenameroot':self.name,'variables':self.variables}
     else             : dictOptions = {'filenameroot':self.name}
-    if 'call' in self.options.keys(): dictOptions['call']=self.options['call']
+    if 'what' in self.options.keys(): dictOptions['what']=self.options['what']
+    if 'target' in self.options.keys(): dictOptions['target']=self.options['target']
     for index in range(len(self.sourceName)):
       if self.options['type']=='csv':
         if type(self.sourceData[index])==Datas.Data: empty = self.sourceData[index].isItEmpty()

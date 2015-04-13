@@ -32,6 +32,7 @@ from collections import OrderedDict
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import TreeStructure
 interpolationND = utils.find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -174,38 +175,24 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta)):
     '''return the set of parameters of the ROM that can change during simulation'''
     return dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
 
-  def printXML(self,options=None):
+  def printXML(self,rootnode,options=None):
     '''
       Allows the SVE to put whatever it wants into an XML to print to file.
       @ In, options, dict of string-based options to use, including filename, things to print, etc
       @ Out, treedict, dict of strings to be printed
     '''
-    treedict = self._localPrintXML(options)
-    print('DEBUG treedict',self.printTag,treedict)
+    node = TreeStructure.Node(self.target)
+    rootnode.appendBranch(node)
+    self._localPrintXML(node,options)
 
-  def _localPrintXML(self,options=None):
+  def _localPrintXML(self,node,options=None):
     '''
       Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
       @ In, options, dict of string-based options to use, including filename, things to print, etc
       @ Out, treedict, dict of strings to be printed
     '''
-    treedict={}
-    print('DEBUG local options',options)
-    if 'call' in options.keys():
-      for methodName,listofcalls in options['call'].items():
-        treedict[methodName]={}
-        for argdict in listofcalls:
-          args = argdict['args'] if 'args' in argdict.keys() else []
-          kwargs = argdict['kwargs'] if 'kwargs' in argdict.keys() else {}
-          method =  getattr(self,methodName)
-          res = method(*args,**kwargs)
-          treedict[methodName][str(argdict)]=str(res)
-        #TODO FIXME
-        #try: res = getattr(self,methodName)(self,*args,**kwargs)
-        #except TypeError as e:
-        #  print(self.printTag+': ERROR (but continuing run) -> '+str(e))
-    if treedict=={}: treedict={'PrintOptions':'ROM of type '+str(self.printTag.strip())+' has no special output options.'}
-    return treedict
+    #if treedict=={}: treedict={'PrintOptions':'ROM of type '+str(self.printTag.strip())+' has no special output options.'}
+    node.addText('ROM of type '+str(self.printTag.strip())+' has no special output options.')
 
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
@@ -325,6 +312,22 @@ class GaussPolynomialRom(NDinterpolatorRom):
     if self.maxPolyOrder < 1:
       utils.raiseAnError(IOError,self,'Polynomial order cannot be less than 1 currently.')
 
+  def _localPrintXML(self,node,options=None):
+    mean=None
+    if 'what' in options.keys():
+      for request in options['what'].split(','):
+        newnode = TreeStructure.Node(request)
+        if   request.lower() in ['mean','expectedvalue']:
+          if mean == None: mean = self.__evaluateMoment__(1)
+          newnode.setText(mean)
+        elif request.lower() in ['variance']:
+          if mean == None: mean = self.__evaluateMoment__(1)
+          newnode.setText(self.__evaluateMoment__(2) - mean*mean)
+        else:
+          utils.raiseAWarning(self,'ROM does not know how to return '+request)
+          newnode.setText('not found')
+        node.appendBranch(newnode)
+
   def _localNormalizeData(self,values,names,feat):
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
@@ -357,7 +360,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     if len(featureVals)!=len(self.sparseGrid):
       utils.raiseAnError(IOError,self,'ROM requires '+str(len(self.sparseGrid))+' points, but '+str(len(featureVals))+' provided!')
     #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
-    #print('DEBUG features',self.printTag,self.features)
     self.sparseGrid._remap(self.features)
     #check equality of point space
     fvs = featureVals[:]
@@ -367,10 +369,10 @@ class GaussPolynomialRom(NDinterpolatorRom):
     #for i in range(len(fvs)):
     #  print('  ',fvs[i],' | ',sgs[i])
     if not np.allclose(fvs,sgs,rtol=1e-15):
-      print('DEBUG featureVals | sparseGridVals:')
+      msg=' featureVals | sparseGridVals:\n'
       for i in range(len(fvs)):
-        print('  ',fvs[i],' | ',sgs[i])
-      utils.raiseAnError(IOError,self,'input values do not match required values!')
+        msg+='  '+str(fvs[i])+' | '+str(sgs[i])+'\n'
+      utils.raiseAnError(IOError,self,'input values do not match required values!\n'+msg)
     #make translation matrix between lists
     translate={}
     for i in range(len(fvs)):
@@ -387,7 +389,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
         for i,p in enumerate(pt):
           varName = self.sparseGrid.varNames[i]
           stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type,p)
-        #outFile.writelines('DEBUG pt,stdpt\n')
         #outFile.writelines('  '+str(pt)+'\n')
         #outFile.writelines('  '+str(stdPt)+'\n')
         wt = self.sparseGrid.weights(translate[tuple(pt)])
@@ -420,7 +421,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ Out, float, evaluation of moment
     '''
     #TODO is there a faster way still to do this?
-    print('DEBUG eval',self.printTag,self,r)
     tot=0
     for pt,wt in self.sparseGrid:
       tot+=self.__evaluateLocal__([pt])**r*wt
@@ -522,10 +522,7 @@ class HDMRRom(GaussPolynomialRom):
     #get the reference case
     self.refpt = tuple(self.__fillPointWithRef((),[]))
     self.refSoln = ft[tuple(self.refpt)]
-    #print('DEBUG features',self.printTag,self.features)
-    #print('DEBUG featureVals',featureVals)
     for combo,rom in self.ROMs.items():
-      #print('\nDEBUG     combo:',combo)
       subtdict={}
       for c in combo: subtdict[c]=[]
       subtdict[self.target]=[]
@@ -537,11 +534,9 @@ class HDMRRom(GaussPolynomialRom):
         tvals[i] = ft[getpt]
         for fp,fpt in enumerate(SG[i][0]):
           fvals[i][fp] = fpt
-      #print('DEBUG     lenfvals',len(fvals),len(fvals[0]))
       for i,c in enumerate(combo):
         subtdict[c] = fvals[:,i]
       subtdict[self.target] = tvals
-      #print('DEBUG     subtdict\n',subtdict)
       rom.train(subtdict)
       #rom.__trainLocal__(fvals,tvals)
 

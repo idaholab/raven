@@ -7,11 +7,12 @@ TreeStructure. 2 classes Node, NodeTree
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
+import utils
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 class Node(object):
-  def __init__(self, name, valuesin={}):
+  def __init__(self, name, valuesin={}, text=''):
     '''
       Initialize Tree,
       @ In, name, String, is the node name
@@ -20,6 +21,7 @@ class Node(object):
     values         = valuesin.copy()
     self.name      = name
     self.values    = values
+    self.text      = text
     self._branches = []
     self.parentname= None
     self.parent    = None
@@ -218,17 +220,31 @@ class Node(object):
     if ego.parentname == 'root': result.insert (0, ego)
     return result
 
+  def setText(self,entry):
+    self.text = str(entry)
+
   def writeNode(self,dumpFileObj):
     '''
       This method is used to write the content of the node into a file (it recorsevely prints all the sub-nodes and sub-sub-nodes, etc)
       @ In, dumpFileObj, file instance, file instance(opened file)
     '''
-    dumpFileObj.write(' '+'  '*self.depth + '<branch name="' + self.name + '" parent_name="' + self.parentname + '"'+ 'n_branches="'+str(self.numberBranches())+'" >\n')
+    dumpFileObj.write(' '+'  '*self.depth + '<branch name="' + self.name + '" parent_name="' + self.parentname + '"'+ ' n_branches="'+str(self.numberBranches())+'" >\n')
     if len(self.values.keys()) >0: dumpFileObj.write(' '+'  '*self.depth +'  <attributes>\n')
     for key,value in self.values.items(): dumpFileObj.write(' '+'  '*self.depth+'    <'+ key +'>' + str(value) + '</'+key+'>\n')
     if len(self.values.keys()) >0: dumpFileObj.write(' '+'  '*self.depth +'  </attributes>\n')
     for e in self._branches: e.writeNode(dumpFileObj)
     if self.numberBranches()>0: dumpFileObj.write(' '+'  '*self.depth + '</branch>\n')
+
+  def stringNode(self,msg):
+    msg+=''+'  '*self.depth + '<' + self.name + '>'+self.text
+    if self.numberBranches()==0:msg+='</'+self.name+'>'
+    msg+='\n'
+    if len(self.values.keys()) >0: msg+=''+'  '*self.depth +'  <attributes>\n'
+    for key,value in self.values.items(): msg+=' '+'  '*self.depth+'    <'+ key +'>' + str(value) + '</'+key+'>\n'
+    if len(self.values.keys()) >0: msg+=''+'  '*self.depth +'  </attributes>\n'
+    for e in self._branches: msg=e.stringNode(msg)
+    if self.numberBranches()>0: msg+=''+'  '*self.depth + '</'+self.name+'>\n'
+    return msg
 
 #################
 #   NODE TREE   #
@@ -320,6 +336,11 @@ class NodeTree(object):
     self._rootnode.writeNode(myFile)
     myFile.write('</NodeTree>\n')
     if type(dumpFile) in [str,unicode,bytes]: myFile.close()
+
+  def stringNodeTree(self,msg=''):
+    msg=str(msg)
+    msg=self._rootnode.stringNode(msg)
+    return msg
 
 ####################
 #  NodePath Class  #
