@@ -35,7 +35,7 @@ def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(get
 
 def raiseAnError(etype,obj,msg):
   '''
-    Standardized error raising.
+    Standardized error raising. Currently halts code.
     @ In, etype, the error type to raise
     @ In, obj, either a string or a class instance to determine the label for the error
     @ In, msg, the error message to display
@@ -52,11 +52,28 @@ def raiseAnError(etype,obj,msg):
 def raiseAWarning(obj,msg,wtag='WARNING'):
   '''
     Standardized warning printing.
-    @ In, obj, either a string or a class instance to determine the label for the error
-    @ In, msg, the error message to display
+    @ In, obj, either a string or a class instance to determine the label for the warning
+    @ In, msg, the warning message to display
     @ In, wtag, optional, the type of warning to display (default "WARNING")
     @ Out, None
   '''
+  if type(obj) in [str,unicode]:
+    tag = obj
+  else:
+    try: obj.printTag
+    except AttributeError: tag = str(obj)
+    else: tag = str(obj.printTag)
+  print(returnPrintTag(tag)+': '+returnPrintPostTag(str(wtag))+' -> '+str(msg))
+
+def raiseAMessage(obj,msg,wtag='Message'):
+  '''
+    Standardized message printing.
+    @ In, obj, either a string or a class instance to determine the label for the message
+    @ In, msg, the message to display
+    @ In, wtag, optional, the type of warning to display (default "Message")
+    @ Out, None
+  '''
+  #TODO this hasn't been propagated through code
   if type(obj) in [str,unicode]:
     tag = obj
   else:
