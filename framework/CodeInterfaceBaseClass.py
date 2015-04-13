@@ -12,10 +12,10 @@ import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils    import raiseAWarning,raiseAnError,returnPrintTag, metaclass_insert, stringsThatMeanTrue
+import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
+class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
   """
   Code Interface base class. This class should be the base class for all the code interfaces.
   In this way some methods are forced to be implemented and some automatic checking features
@@ -36,7 +36,7 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
       @ Out, string, string containing the full command that the internal JobHandler is going to use to run the Code this interface refers to
     """
     subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileargs)
-    if os.environ['RAVENinterfaceCheck'].lower() in stringsThatMeanTrue(): return '',outputfileroot
+    if os.environ['RAVENinterfaceCheck'].lower() in utils.stringsThatMeanTrue(): return '',outputfileroot
     return subcodeCommand,outputfileroot
 
   def readMoreXML(self,xmlNode):

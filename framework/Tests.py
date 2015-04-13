@@ -8,7 +8,7 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 from BaseClasses import BaseType
-from utils import raiseAnError
+import utils
 
 
 class Test(BaseType):
@@ -72,5 +72,5 @@ def knownTypes():
 def returnInstance(Type):
   '''return one instance of Type'''
   try: return __interFaceDict[Type]()
-  except KeyError: raiseAnError(NameError,'TESTS','not known '+__base+' type '+Type)
+  except KeyError: utils.raiseAnError(NameError,'TESTS','not known '+__base+' type '+Type)
 

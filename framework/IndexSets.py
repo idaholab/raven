@@ -6,7 +6,7 @@ import numpy as np
 from itertools import product
 import sys
 
-from utils import raiseAnError
+import utils
 
 class IndexSet(object):
   """In stochastic collocation for generalised polynomial chaos, the Index Set
@@ -203,4 +203,4 @@ def returnInstance(Type):
   if Type in knownTypes():
     return __interFaceDict[Type]()
   else:
-    raiseAnError(NameError,'INDEX SETS','not known '+__base+' type '+Type)
+    utils.raiseAnError(NameError,'INDEX SETS','not known '+__base+' type '+Type)

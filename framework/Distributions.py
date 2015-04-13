@@ -23,8 +23,8 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import raiseAnError,raiseAWarning,returnPrintTag, returnPrintPostTag, find_distribution1D
-distribution1D = find_distribution1D()
+import utils
+distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
 def factorial(x):
@@ -65,7 +65,7 @@ class Distribution(BaseType):
     self.lowerBound           = 0.0  # Left bound
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
-    self.printTag             = returnPrintTag('DISTRIBUTIONS')
+    self.printTag             = utils.returnPrintTag('DISTRIBUTIONS')
     self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
     self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
     self.compatibleQuadrature = [] #list of compatible quadratures
@@ -394,12 +394,12 @@ class Uniform(BoostDistribution):
     BoostDistribution._readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
-    else: raiseAnError(IOError,self,'low value needed for uniform distribution')
+    else: utils.raiseAnError(IOError,self,'low value needed for uniform distribution')
     hi_find = xmlNode.find('hi')
     high_find = xmlNode.find('high')
     if hi_find != None: self.hi = float(hi_find.text)
     elif high_find != None: self.hi = float(high_find.text)
-    else: raiseAnError(IOError,self,'hi or high value needed for uniform distribution')
+    else: utils.raiseAnError(IOError,self,'hi or high value needed for uniform distribution')
     self.range=self.hi-self.low
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
@@ -475,10 +475,10 @@ class Normal(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     mean_find = xmlNode.find('mean' )
     if mean_find != None: self.mean  = float(mean_find.text)
-    else: raiseAnError(IOError,self,'mean value needed for normal distribution')
+    else: utils.raiseAnError(IOError,self,'mean value needed for normal distribution')
     sigma_find = xmlNode.find('sigma')
     if sigma_find != None: self.sigma = float(sigma_find.text)
-    else: raiseAnError(IOError,self,'sigma value needed for normal distribution')
+    else: utils.raiseAnError(IOError,self,'sigma value needed for normal distribution')
     self.initializeDistribution() #FIXME no other distros have this...needed?
 
   def addInitParams(self,tempDict):
@@ -596,7 +596,7 @@ class Gamma(BoostDistribution):
     if low_find != None: self.low = float(low_find.text)
     alpha_find = xmlNode.find('alpha')
     if alpha_find != None: self.alpha = float(alpha_find.text)
-    else: raiseAnError(IOError,self,'alpha value needed for Gamma distribution')
+    else: utils.raiseAnError(IOError,self,'alpha value needed for Gamma distribution')
     beta_find = xmlNode.find('beta')
     if beta_find != None: self.beta = float(beta_find.text)
     else: self.beta=1.0
@@ -704,12 +704,12 @@ class Beta(BoostDistribution):
       self.beta  = float(beta_find.text)
     elif (alpha_find == None and beta_find == None) and peak_find != None:
       peakFactor = float(peak_find.text)
-      if not 0 <= peakFactor <= 1: raiseAnError(IOError,self,'peakFactor must be from 0 to 1, inclusive!')
+      if not 0 <= peakFactor <= 1: utils.raiseAnError(IOError,self,'peakFactor must be from 0 to 1, inclusive!')
       #this empirical formula is used to make it so factor->alpha: 0->1, 0.5~7.5, 1->99
       self.alpha = 0.5*23.818**(5.*peakFactor/3.) + 0.5
       self.beta = self.alpha
     else:
-      raiseAnError(IOError,self,'Either provide (alpha and beta) or peakFactor!')
+      utils.raiseAnError(IOError,self,'Either provide (alpha and beta) or peakFactor!')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
@@ -799,13 +799,13 @@ class Triangular(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     apex_find = xmlNode.find('apex')
     if apex_find != None: self.apex = float(apex_find.text)
-    else: raiseAnError(IOError,self,'apex value needed for normal distribution')
+    else: utils.raiseAnError(IOError,self,'apex value needed for normal distribution')
     min_find = xmlNode.find('min')
     if min_find != None: self.min = float(min_find.text)
-    else: raiseAnError(IOError,self,'min value needed for normal distribution')
+    else: utils.raiseAnError(IOError,self,'min value needed for normal distribution')
     max_find = xmlNode.find('max')
     if max_find != None: self.max = float(max_find.text)
-    else: raiseAnError(IOError,self,'max value needed for normal distribution')
+    else: utils.raiseAnError(IOError,self,'max value needed for normal distribution')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
@@ -825,7 +825,7 @@ class Triangular(BoostDistribution):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or (self.min == self.lowerBound and self.max == self.upperBound):
       self._distribution = distribution1D.BasicTriangularDistribution(self.apex,self.min,self.max)
     else:
-      raiseAnError(IOError,self,'Truncated triangular not yet implemented')
+      utils.raiseAnError(IOError,self,'Truncated triangular not yet implemented')
 
 
 
@@ -852,7 +852,7 @@ class Poisson(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     mu_find = xmlNode.find('mu')
     if mu_find != None: self.mu = float(mu_find.text)
-    else: raiseAnError(IOError,self,'mu value needed for poisson distribution')
+    else: utils.raiseAnError(IOError,self,'mu value needed for poisson distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -865,7 +865,7 @@ class Poisson(BoostDistribution):
       self.lowerBound = 0.0
       self.upperBound = sys.float_info.max
     else:
-      raiseAnError(IOError,self,'Truncated poisson not yet implemented')
+      utils.raiseAnError(IOError,self,'Truncated poisson not yet implemented')
 
 
 class Binomial(BoostDistribution):
@@ -894,10 +894,10 @@ class Binomial(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     n_find = xmlNode.find('n')
     if n_find != None: self.n = float(n_find.text)
-    else: raiseAnError(IOError,self,'n value needed for Binomial distribution')
+    else: utils.raiseAnError(IOError,self,'n value needed for Binomial distribution')
     p_find = xmlNode.find('p')
     if p_find != None: self.p = float(p_find.text)
-    else: raiseAnError(IOError,self,'p value needed for Binomial distribution')
+    else: utils.raiseAnError(IOError,self,'p value needed for Binomial distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -908,7 +908,7 @@ class Binomial(BoostDistribution):
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicBinomialDistribution(self.n,self.p)
-    else: raiseAnError(IOError,self,'Truncated Binomial not yet implemented')
+    else: utils.raiseAnError(IOError,self,'Truncated Binomial not yet implemented')
 #
 #
 #
@@ -936,7 +936,7 @@ class Bernoulli(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     p_find = xmlNode.find('p')
     if p_find != None: self.p = float(p_find.text)
-    else: raiseAnError(IOError,self,'p value needed for Bernoulli distribution')
+    else: utils.raiseAnError(IOError,self,'p value needed for Bernoulli distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -946,7 +946,7 @@ class Bernoulli(BoostDistribution):
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
-    else:  raiseAnError(IOError,self,'Truncated Bernoulli not yet implemented')
+    else:  utils.raiseAnError(IOError,self,'Truncated Bernoulli not yet implemented')
 
   def cdf(self,x):
     if x <= 0.5: return self._distribution.Cdf(self.lowerBound)
@@ -991,10 +991,10 @@ class Logistic(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     location_find = xmlNode.find('location')
     if location_find != None: self.location = float(location_find.text)
-    else: raiseAnError(IOError,self,'location value needed for Logistic distribution')
+    else: utils.raiseAnError(IOError,self,'location value needed for Logistic distribution')
     scale_find = xmlNode.find('scale')
     if scale_find != None: self.scale = float(scale_find.text)
-    else: raiseAnError(IOError,self,'scale value needed for Logistic distribution')
+    else: utils.raiseAnError(IOError,self,'scale value needed for Logistic distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -1038,7 +1038,7 @@ class Exponential(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     lambda_find = xmlNode.find('lambda')
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
-    else: raiseAnError(IOError,self,'lambda value needed for Exponential distribution')
+    else: utils.raiseAnError(IOError,self,'lambda value needed for Exponential distribution')
     low  = xmlNode.find('low')
     if low != None: self.low = float(low.text)
     else: self.low = 0.0
@@ -1111,10 +1111,10 @@ class LogNormal(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     mean_find = xmlNode.find('mean')
     if mean_find != None: self.mean = float(mean_find.text)
-    else: raiseAnError(IOError,self,'mean value needed for LogNormal distribution')
+    else: utils.raiseAnError(IOError,self,'mean value needed for LogNormal distribution')
     sigma_find = xmlNode.find('sigma')
     if sigma_find != None: self.sigma = float(sigma_find.text)
-    else: raiseAnError(IOError,self,'sigma value needed for LogNormal distribution')
+    else: utils.raiseAnError(IOError,self,'sigma value needed for LogNormal distribution')
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
     else: self.low = 0.0
@@ -1170,10 +1170,10 @@ class Weibull(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     lambda_find = xmlNode.find('lambda')
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
-    else: raiseAnError(IOError,self,'lambda (scale) value needed for Weibull distribution')
+    else: utils.raiseAnError(IOError,self,'lambda (scale) value needed for Weibull distribution')
     k_find = xmlNode.find('k')
     if k_find != None: self.k = float(k_find.text)
-    else: raiseAnError(IOError,self,'k (shape) value needed for Weibull distribution')
+    else: utils.raiseAnError(IOError,self,'k (shape) value needed for Weibull distribution')
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
     else: self.low = 0.0
@@ -1225,13 +1225,13 @@ class NDimensionalDistributions(Distribution):
     '''
     data_filename = xmlNode.find('data_filename')
     if data_filename != None: self.data_filename = self.working_dir+data_filename.text
-    else: raisea Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <data_filename> parameter needed for MultiDimensional Distributions!!!!')
+    else: raisea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> <data_filename> parameter needed for MultiDimensional Distributions!!!!')
 
     function_type = xmlNode.find('function_type')
     if not function_type: self.function_type = 'CDF'
     else:
       self.function_type = function_type.upper()
-      if self.function_type not in ['CDF','PDF']:  raisea Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <function_type> parameter needs to be either CDF or PDF in MultiDimensional Distributions!!!!')
+      if self.function_type not in ['CDF','PDF']:  raisea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> <function_type> parameter needs to be either CDF or PDF in MultiDimensional Distributions!!!!')
     '''
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
@@ -1264,15 +1264,15 @@ class NDInverseWeight(NDimensionalDistributions):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
     p_find = xmlNode.find('p')
     if p_find != None: self.p = float(p_find.text)
-    else: raiseAnError(IOError,self,'Minkowski distance parameter <p> not found in NDInverseWeight distribution')
+    else: utils.raiseAnError(IOError,self,'Minkowski distance parameter <p> not found in NDInverseWeight distribution')
 
     data_filename = xmlNode.find('data_filename')
     if data_filename != None: self.data_filename = os.path.join(self.working_dir,data_filename.text)
-    else: raiseAnError(IOError,self,'<data_filename> parameter needed for MultiDimensional Distributions!!!!')
+    else: utils.raiseAnError(IOError,self,'<data_filename> parameter needed for MultiDimensional Distributions!!!!')
 
     function_type = data_filename.attrib['type']
     if function_type != None: self.function_type = function_type
-    else: raiseAnError(IOError,self,'<function_type> parameter needed for MultiDimensional Distributions!!!!')
+    else: utils.raiseAnError(IOError,self,'<function_type> parameter needed for MultiDimensional Distributions!!!!')
 
     self.initializeDistribution()
 
@@ -1313,22 +1313,22 @@ class NDInverseWeight(NDimensionalDistributions):
     if (x>0.0) and (x<1.0):
       return self._distribution.inverseMarginal(x, variable)
     else:
-      raiseAnError(ValueError,self,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
+      utils.raiseAnError(ValueError,self,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
 
   def untruncatedCdfComplement(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedCdfComplement not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedCdfComplement not yet implemented for ' + self.type)
 
   def untruncatedHazard(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedHazard not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedHazard not yet implemented for ' + self.type)
 
   def untruncatedMean(self):
-    raiseAnError(NotImplementedError,self,'untruncatedMean not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedMean not yet implemented for ' + self.type)
 
   def untruncatedMedian(self):
-    raiseAnError(NotImplementedError,self,'untruncatedMedian not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedMedian not yet implemented for ' + self.type)
 
   def untruncatedMode(self):
-    raiseAnError(NotImplementedError,self,'untruncatedMode not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
     return self._distribution.InverseCdf(random(),random())
@@ -1344,11 +1344,11 @@ class NDCartesianSpline(NDimensionalDistributions):
 
     data_filename = xmlNode.find('data_filename')
     if data_filename != None: self.data_filename = os.path.join(self.working_dir,data_filename.text)
-    else: raiseAnError(IOError,self,'<data_filename> parameter needed for MultiDimensional Distributions!!!!')
+    else: utils.raiseAnError(IOError,self,'<data_filename> parameter needed for MultiDimensional Distributions!!!!')
 
     function_type = data_filename.attrib['type']
     if function_type != None: self.function_type = function_type
-    else: raiseAnError(IOError,self,'<function_type> parameter needed for MultiDimensional Distributions!!!!')
+    else: utils.raiseAnError(IOError,self,'<function_type> parameter needed for MultiDimensional Distributions!!!!')
 
     self.initializeDistribution()
 
@@ -1391,22 +1391,22 @@ class NDCartesianSpline(NDimensionalDistributions):
     if (x>=0.0) and (x<=1.0):
       return self._distribution.inverseMarginal(x, variable)
     else:
-      raiseAnError(ValueError,self,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
+      utils.raiseAnError(ValueError,self,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
 
   def untruncatedCdfComplement(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedCdfComplement not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedCdfComplement not yet implemented for ' + self.type)
 
   def untruncatedHazard(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedHazard not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedHazard not yet implemented for ' + self.type)
 
   def untruncatedMean(self):
-    raiseAnError(NotImplementedError,self,'untruncatedMean not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedMean not yet implemented for ' + self.type)
 
   def untruncatedMedian(self):
-    raiseAnError(NotImplementedError,self,'untruncatedMedian not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedMedian not yet implemented for ' + self.type)
 
   def untruncatedMode(self):
-    raiseAnError(NotImplementedError,self,'untruncatedMode not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
     return self._distribution.InverseCdf(random(),random())
@@ -1422,10 +1422,10 @@ class NDScatteredMS(NDimensionalDistributions):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
     p_find = xmlNode.find('p')
     if p_find != None: self.p = float(p_find.text)
-    else: raiseAnError(IOError,self,'Minkowski distance parameter <p> not found in NDScatteredMS distribution')
+    else: utils.raiseAnError(IOError,self,'Minkowski distance parameter <p> not found in NDScatteredMS distribution')
     precision_find = xmlNode.find('precision')
     if precision_find != None: self.precision = int(precision_find.text)
-    else: raiseAnError(IOError,self,'precision parameter <precision> not found in NDScatteredMS distribution')
+    else: utils.raiseAnError(IOError,self,'precision parameter <precision> not found in NDScatteredMS distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -1447,22 +1447,22 @@ class NDScatteredMS(NDimensionalDistributions):
     return self._distribution.Pdf(x)
 
   def untruncatedCdfComplement(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedCdfComplement not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedCdfComplement not yet implemented for ' + self.type)
 
   def untruncatedHazard(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedHazard not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedHazard not yet implemented for ' + self.type)
 
   def untruncatedMean(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedMean not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedMean not yet implemented for ' + self.type)
 
   def untruncatedMedian(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedMedian not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedMedian not yet implemented for ' + self.type)
 
   def untruncatedMode(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedMode not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    raiseAnError(NotImplementedError,self,'rvs not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'rvs not yet implemented for ' + self.type)
 
 
 class MultivariateNormal(NDimensionalDistributions):
@@ -1477,11 +1477,11 @@ class MultivariateNormal(NDimensionalDistributions):
 
     data_filename = xmlNode.find('data_filename')
     if data_filename != None: self.data_filename = self.working_dir+data_filename.text
-    else: raiseAnError(IOError,self,'<data_filename> parameter needed for MultivariateNormal Distributions!!!!')
+    else: utils.raiseAnError(IOError,self,'<data_filename> parameter needed for MultivariateNormal Distributions!!!!')
 
     mu = xmlNode.find('mu')
     if data_filename != None: self.mu = [float(i) for i in mu.text.split()]
-    else: raiseAnError(IOError,self,'<mu> parameter needed for MultivariateNormal Distributions!!!!')
+    else: utils.raiseAnError(IOError,self,'<mu> parameter needed for MultivariateNormal Distributions!!!!')
 
     self.initializeDistribution()
 
@@ -1522,22 +1522,22 @@ class MultivariateNormal(NDimensionalDistributions):
     if (x>0.0) and (x<1.0):
       return self._distribution.inverseMarginal(x, variable)
     else:
-      raiseAnError(ValueError,self,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
+      utils.raiseAnError(ValueError,self,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
 
   def untruncatedCdfComplement(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedCdfComplement not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedCdfComplement not yet implemented for ' + self.type)
 
   def untruncatedHazard(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedHazard not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedHazard not yet implemented for ' + self.type)
 
   def untruncatedMean(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedMean not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedMean not yet implemented for ' + self.type)
 
   def untruncatedMedian(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedMedian not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedMedian not yet implemented for ' + self.type)
 
   def untruncatedMode(self, x):
-    raiseAnError(NotImplementedError,self,'untruncatedMode not yet implemented for ' + self.type)
+    utils.raiseAnError(NotImplementedError,self,'untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
     return self._distribution.InverseCdf(random(),random())
@@ -1568,4 +1568,4 @@ def knownTypes():
 
 def returnInstance(Type):
   try: return __interFaceDict[Type]()
-  except KeyError: raiseAnError(NameError,'DISTRIBUTIONS','not known '+__base+' type '+Type)
+  except KeyError: utils.raiseAnError(NameError,'DISTRIBUTIONS','not known '+__base+' type '+Type)

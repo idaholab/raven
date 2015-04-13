@@ -25,8 +25,7 @@ from sklearn import neighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import metaclass_insert,find_le,index,find_le_index,returnPrintTag,returnPrintPostTag,stringsThatMeanTrue
-from utils import find_distribution1D, raiseAnError,raiseAWarning
+import utils
 from BaseClasses import BaseType
 from Assembler import Assembler
 import Distributions
@@ -38,13 +37,13 @@ import OrthoPolynomials
 import SupervisedLearning
 import IndexSets
 import PostProcessors
-distribution1D = find_distribution1D()
+distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
 #Internal Submodules---------------------------------------------------------------------------------
 #Internal Submodules End--------------------------------------------------------------------------------
 
-class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
+class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   """
   This is the base class for samplers
   Samplers own the sampling strategy (Type) and they generate the
@@ -104,7 +103,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.inputInfo['crowDist']         = {}                        # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
     self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
-    self.printTag                      = returnPrintTag(self.type) # prefix for all prints (sampler type)
+    self.printTag                      = utils.returnPrintTag(self.type) # prefix for all prints (sampler type)
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
@@ -178,7 +177,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           elif childChild.tag == "initial_seed":
             self.initSeed = int(childChild.text)
           elif childChild.tag == "reseed_at_each_iteration":
-            if childChild.text.lower() in stringsThatMeanTrue(): self.reseedAtEachIteration = True
+            if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
           elif childChild.tag == "dist_init":
             for childChildChild in childChild:
               NDdistData = {}
@@ -188,9 +187,9 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                 elif childChildChildChild.tag == 'tolerance':
                   NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
                 else:
-                  raiseAnError(IOError,self,'Unknown tag '+childChildChildChild.tag+' .Available are: initial_grid_disc and tolerance!')
+                  utils.raiseAnError(IOError,self,'Unknown tag '+childChildChildChild.tag+' .Available are: initial_grid_disc and tolerance!')
               self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
-          else: raiseAnError(IOError,self,'Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')
+          else: utils.raiseAnError(IOError,self,'Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')
 
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31)
@@ -272,7 +271,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
     for key in self.toBeSampled.keys():
-      if self.toBeSampled[key] not in availableDist.keys(): IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!!!')
+      if self.toBeSampled[key] not in availableDist.keys(): IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!!!')
       self.distDict[key] = availableDist[self.toBeSampled[key]]
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
 
@@ -414,47 +413,47 @@ class AdaptiveSampler(Sampler):
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
     # postprocessor to compute the limit surface
     self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface")
-    self.printTag         = returnPrintTag('SAMPLER ADAPTIVE')
+    self.printTag         = utils.returnPrintTag('SAMPLER ADAPTIVE')
     self.requiredAssObject = (True,(['TargetEvaluation','ROM','Function'],['n','n','-n']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def localInputAndChecks(self,xmlNode):
     if 'limit' in xmlNode.attrib.keys():
       try: self.limit = int(xmlNode.attrib['limit'])
-      except ValueError: raiseAnError(IOError,self,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+      except ValueError: utils.raiseAnError(IOError,self,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
     # convergence Node
     convergenceNode = xmlNode.find('Convergence')
-    if convergenceNode==None:raiseAnError(IOError,self,'the node Convergence was missed in the definition of the adaptive sampler '+self.name)
+    if convergenceNode==None:utils.raiseAnError(IOError,self,'the node Convergence was missed in the definition of the adaptive sampler '+self.name)
     try   : self.tolerance=float(convergenceNode.text)
-    except: raiseAnError(IOError,self,'Failed to convert '+convergenceNode.text+' to a meaningful number for the convergence')
+    except: utils.raiseAnError(IOError,self,'Failed to convert '+convergenceNode.text+' to a meaningful number for the convergence')
     attribList = list(convergenceNode.attrib.keys())
     if 'limit'          in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('limit'))
       try   : self.limit = int (convergenceNode.attrib['limit'])
-      except: raiseAnError(IOError,self,'Failed to convert the limit value '+convergenceNode.attrib['limit']+' to a meaningful number for the convergence')
+      except: utils.raiseAnError(IOError,self,'Failed to convert the limit value '+convergenceNode.attrib['limit']+' to a meaningful number for the convergence')
     if 'persistence'    in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('persistence'))
       try   : self.persistence = int (convergenceNode.attrib['persistence'])
-      except: raiseAnError(IOError,self,'Failed to convert the persistence value '+convergenceNode.attrib['persistence']+' to a meaningful number for the convergence')
+      except: utils.raiseAnError(IOError,self,'Failed to convert the persistence value '+convergenceNode.attrib['persistence']+' to a meaningful number for the convergence')
     if 'weight'         in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('weight'))
       try   : self.toleranceWeight = str(convergenceNode.attrib['weight']).lower()
-      except: raiseAnError(IOError,self,'Failed to convert the weight type '+convergenceNode.attrib['weight']+' to a meaningful string for the convergence')
+      except: utils.raiseAnError(IOError,self,'Failed to convert the weight type '+convergenceNode.attrib['weight']+' to a meaningful string for the convergence')
     if 'subGridTol'    in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('subGridTol'))
       try   : self.subGridTol = float (convergenceNode.attrib['subGridTol'])
-      except: raiseAnError(IOError,self,'Failed to convert the subGridTol '+convergenceNode.attrib['subGridTol']+' to a meaningful float for the convergence')
+      except: utils.raiseAnError(IOError,self,'Failed to convert the subGridTol '+convergenceNode.attrib['subGridTol']+' to a meaningful float for the convergence')
     if 'forceIteration' in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('forceIteration'))
       if   convergenceNode.attrib['forceIteration']=='True' : self.forceIteration   = True
       elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
-      else: raiseAnError(RuntimeError,self,'Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
+      else: utils.raiseAnError(RuntimeError,self,'Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
     #assembler node: Hidden from User
     '''
     targEvalNode = xmlNode.find('TargetEvaluation')
-    if targEvalNode == None: raisea IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> TargetEvaluation object is required. Not found in Sampler '+self.name + '!')
+    if targEvalNode == None: raisea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> TargetEvaluation object is required. Not found in Sampler '+self.name + '!')
     self.assemblerObjects[targEvalNode.tag] = [[targEvalNode.attrib['class'],targEvalNode.attrib['type'],targEvalNode.text]]
     functionNode = xmlNode.find('Function')
-    if functionNode == None: raisea IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Function object is required. Not Found in Sampler '+self.name + '!')
+    if functionNode == None: raisea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Function object is required. Not Found in Sampler '+self.name + '!')
     self.assemblerObjects[functionNode.tag] = [[functionNode.attrib['class'],functionNode.attrib['type'],functionNode.text]]
     romNode = xmlNode.find('ROM')
     if romNode != None: self.assemblerObjects[romNode.tag] = [[romNode.attrib['class'],romNode.attrib['type'],romNode.text]]
@@ -468,14 +467,14 @@ class AdaptiveSampler(Sampler):
         romCounter += 1
       if 'Function'         in subNode.tag:
         functionCounter += 1
-    if targEvalCounter != 1: raisea IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
-    if functionCounter != 1: raisea IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One Function object is required. Sampler '+self.name + ' got '+str(functionCounter) + '!')
-    if romCounter      >  1: raisea IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
+    if targEvalCounter != 1: raisea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
+    if functionCounter != 1: raisea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> One Function object is required. Sampler '+self.name + ' got '+str(functionCounter) + '!')
+    if romCounter      >  1: raisea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
     '''
     # set subgrid
     if self.subGridTol == None: self.subGridTol = self.tolerance
-    if self.subGridTol > self.tolerance: raiseAnError(IOError,self,'The sub grid tolerance '+str(self.subGridTol)+' must be smaller than the tolerance: '+str(self.tolerance))
-    if len(attribList)>0: raiseAnError(IOError,self,'There are unknown keywords in the convergence specifications: '+str(attribList))
+    if self.subGridTol > self.tolerance: utils.raiseAnError(IOError,self,'The sub grid tolerance '+str(self.subGridTol)+' must be smaller than the tolerance: '+str(self.tolerance))
+    if len(attribList)>0: utils.raiseAnError(IOError,self,'There are unknown keywords in the convergence specifications: '+str(attribList))
 
   def localAddInitParams(self,tempDict):
     tempDict['Iter. forced'    ] = str(self.forceIteration)
@@ -498,20 +497,20 @@ class AdaptiveSampler(Sampler):
     self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
     # check if solutionExport is actually a "Datas" type "TimePointSet"
-    if type(solutionExport).__name__ != "TimePointSet": raiseAnError(IOError,self,'solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
+    if type(solutionExport).__name__ != "TimePointSet": utils.raiseAnError(IOError,self,'solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
     self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): raiseAnError(IOError,self,'Goal function name does not match solution export data output.')
+    if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): utils.raiseAnError(IOError,self,'Goal function name does not match solution export data output.')
     # set number of job requestable after a new evaluation
     self._endJobRunnable   = 1
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
     if self.toleranceWeight=='value':
       for varName in self.distDict.keys():
         if not(self.distDict[varName].upperBoundUsed and self.distDict[varName].lowerBoundUsed):
-          raiseAnError(TypeError,self,'It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name)
+          utils.raiseAnError(TypeError,self,'It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name)
     elif self.toleranceWeight=='cdf': pass
-    else: raiseAnError(IOError,self,'Unknown weight string descriptor: '+self.toleranceWeight)
+    else: utils.raiseAnError(IOError,self,'Unknown weight string descriptor: '+self.toleranceWeight)
     #setup the grid. The grid is build such as each element has a volume equal to the sub grid tolerance
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
     self.nVar        = len(self.distDict.keys())               #Total number of variables
@@ -541,7 +540,7 @@ class AdaptiveSampler(Sampler):
     self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
     self.oldTestMatrix            = np.zeros(tuple(pointByVar))      #swap matrix fro convergence test
     self.hangingPoints            = np.ndarray((0, self.nVar))
-    print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Initialization done')
+    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Initialization done')
 
   def localStillReady(self,ready): #,lastOutput=None
     '''
@@ -551,7 +550,7 @@ class AdaptiveSampler(Sampler):
     lastOutput it is not considered to be present during the test performed for generating an input batch
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
     '''
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> From method localStillReady...')
+    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> From method localStillReady...')
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
@@ -564,12 +563,12 @@ class AdaptiveSampler(Sampler):
       if self.lastOutput != None: self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     else:
       if not self.lastOutput.isItEmpty(): self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Training finished')
+    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Training finished')
     np.copyto(self.oldTestMatrix,self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
     self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
 
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Prediction finished')
+    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Prediction finished')
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
     else                                                                      : indexLast = -1
@@ -585,7 +584,7 @@ class AdaptiveSampler(Sampler):
     if (testError > self.tolerance/self.subGridTol): ready, self.repetition = True, 0                         # we still have error
     else              : self.repetition +=1                                                                   # we are increasing persistence
     if self.persistence<self.repetition: ready =  False                                                       # we are done
-    print(self.printTag+': ' +returnPrintPostTag('Message') + '-> counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
+    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
     #if the number of point on the limit surface is > than compute persistence
     if len(listsurfPoint)>0:
       self.invPointPersistence = np.ndarray(len(listsurfPoint))
@@ -637,7 +636,7 @@ class AdaptiveSampler(Sampler):
           self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
-      else: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> np.max(distance)=0.0')
+      else: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> np.max(distance)=0.0')
 
     if not varSet:
       #here we are still generating the batch
@@ -653,7 +652,7 @@ class AdaptiveSampler(Sampler):
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
     self.inputInfo['ProbabilityWeight']         = 1.0
     self.hangingPoints                          = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
+    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
     self.inputInfo['SamplerType'] = 'Adaptive'
     self.inputInfo['subGridTol' ] = self.subGridTol
 
@@ -747,14 +746,14 @@ class MonteCarlo(Sampler):
   '''MONTE CARLO Sampler'''
   def __init__(self):
     Sampler.__init__(self)
-    self.printTag = returnPrintTag('SAMPLER MONTECARLO')
+    self.printTag = utils.returnPrintTag('SAMPLER MONTECARLO')
 
   def localInputAndChecks(self,xmlNode):
 
 #     if 'limit' in xmlNode.attrib.keys():
 #       try: self.limit = int(xmlNode.attrib['limit'])
 #       except ValueError:
-#         IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+#         IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
 #     else:
 #       raisea IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
 
@@ -762,11 +761,11 @@ class MonteCarlo(Sampler):
       if xmlNode.find('sampler_init').find('limit')!= None:
         try: self.limit = int(xmlNode.find('sampler_init').find('limit').text)
         except ValueError:
-          IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+          IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
       else:
-        raiseAnError(IOError,self,'Monte Carlo sampling needs the limit block (number of samples) in the sampler_init block')
+        utils.raiseAnError(IOError,self,'Monte Carlo sampling needs the limit block (number of samples) in the sampler_init block')
     else:
-      raiseAnError(IOError,self,'Monte Carlo sampling needs the sampler_init block')
+      utils.raiseAnError(IOError,self,'Monte Carlo sampling needs the sampler_init block')
 
 
   def localGenerateInput(self,model,myInput):
@@ -817,7 +816,7 @@ class Grid(Sampler):
   '''
   def __init__(self):
     Sampler.__init__(self)
-    self.printTag = returnPrintTag('SAMPLER GRID')
+    self.printTag = utils.returnPrintTag('SAMPLER GRID')
     self.gridCoordinate       = []    # the grid point to be used for each distribution (changes at each step)
     self.axisName             = []    # the name of each axis (variable)
     self.gridInfo             = {}    # {'name of the variable':('Type','Construction',[values])}  --> Type: Probability/Value; Construction:Custom/Equal
@@ -828,7 +827,7 @@ class Grid(Sampler):
 
   def localInputAndChecks(self,xmlNode):
     '''reading and construction of the grid'''
-    if 'limit' in xmlNode.attrib.keys(): raiseAnError(IOError,self,'limit is not used in Grid sampler')
+    if 'limit' in xmlNode.attrib.keys(): utils.raiseAnError(IOError,self,'limit is not used in Grid sampler')
     self.limit = 1
     if not self.axisName: self.axisName = []
     '''
@@ -846,7 +845,7 @@ class Grid(Sampler):
             tempList = [float(i) for i in childChild.text.split()]
             tempList.sort()
             self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
-            if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': raisea IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
+            if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': raisea IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
             self.limit = len(tempList)*self.limit
           elif constrType == 'equal':
             self.limit = self.limit*(int(childChild.attrib['steps'])+1)
@@ -856,8 +855,8 @@ class Grid(Sampler):
             elif 'upperBound' in childChild.attrib.keys():
               self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
               self.gridInfo[varName][2].sort()
-            else: raisea IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
-          else: raisea IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
+            else: raisea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
+          else: raisea IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
     '''
 
     for child in xmlNode:
@@ -877,7 +876,7 @@ class Grid(Sampler):
               tempList = [float(i) for i in childChild.text.split()]
               tempList.sort()
               self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
-              if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': raiseAnError(IOError,self,'The type of grid is neither value nor CDF')
+              if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': utils.raiseAnError(IOError,self,'The type of grid is neither value nor CDF')
               self.limit = len(tempList)*self.limit
             elif constrType == 'equal':
               self.limit = self.limit*(int(childChild.attrib['steps'])+1)
@@ -887,11 +886,11 @@ class Grid(Sampler):
               elif 'upperBound' in childChild.attrib.keys():
                 self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
                 self.gridInfo[varName][2].sort()
-              else: raiseAnError(IOError,self,'no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
-            else: raiseAnError(IOError,self,'not specified the grid construction type')
+              else: utils.raiseAnError(IOError,self,'no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
+            else: utils.raiseAnError(IOError,self,'not specified the grid construction type')
 
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()):
-      raiseAnError(IOError,self,'inconsistency between number of variables and grid specification')
+      utils.raiseAnError(IOError,self,'inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
 
   def localAddInitParams(self,tempDict):
@@ -914,12 +913,12 @@ class Grid(Sampler):
         valueMin, indexMin = min(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(min(self.gridInfo[varName][2]))
         if self.distDict[varName].upperBoundUsed:
           if valueMax>self.distDict[varName].upperBound and valueMax-2.0*np.finfo(valueMax).eps>self.distDict[varName].upperBound:
-            raiseAnError(TypeError,self,'the variable '+varName+'can not be sampled at '+str(valueMax)+' since outside the upper bound of the chosen distribution,Distripution Upper Bound = '+ str(self.distDict[varName].upperBound))
+            utils.raiseAnError(TypeError,self,'the variable '+varName+'can not be sampled at '+str(valueMax)+' since outside the upper bound of the chosen distribution,Distripution Upper Bound = '+ str(self.distDict[varName].upperBound))
           if valueMax>self.distDict[varName].upperBound and valueMax-2.0*np.finfo(valueMax).eps<=self.distDict[varName].upperBound:
             valueMax = valueMax-2.0*np.finfo(valueMax).eps
         if self.distDict[varName].lowerBoundUsed:
           if valueMin<self.distDict[varName].lowerBound and valueMin+2.0*np.finfo(valueMin).eps<self.distDict[varName].lowerBound:
-            raiseAnError(TypeError,self,'the variable '+varName+'can not be sampled at '+str(valueMin)+' since outside the lower bound of the chosen distribution,Distripution Lower Bound = '+str(self.distDict[varName].lowerBound))
+            utils.raiseAnError(TypeError,self,'the variable '+varName+'can not be sampled at '+str(valueMin)+' since outside the lower bound of the chosen distribution,Distripution Lower Bound = '+str(self.distDict[varName].lowerBound))
           if valueMin<self.distDict[varName].lowerBound and valueMin+2.0*np.finfo(valueMax).eps>=self.distDict[varName].lowerBound:
             valueMin = valueMin-2.0*np.finfo(valueMin).eps
         self.gridInfo[varName][2][indexMax], self.gridInfo[varName][2][indexMin] = valueMax, valueMin
@@ -1000,7 +999,7 @@ class Grid(Sampler):
         elif self.gridInfo[varName][0]=='value':
           self.values[key] = self.gridInfo[varName][2][self.gridCoordinate[i]]
 
-        else: raiseAnError(IOError,self,gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
+        else: utils.raiseAnError(IOError,self,gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
 
     #print('self.values: ' + str(self.values))
 
@@ -1081,7 +1080,7 @@ class LHS(Grid):
   def __init__(self):
     Grid.__init__(self)
     self.sampledCoordinate    = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
-    self.printTag = returnPrintTag('SAMPLER LHS')
+    self.printTag = utils.returnPrintTag('SAMPLER LHS')
     self.globalGrid          = {}    # Dictionary for the global_grid. These grids are used only for LHS for ND distributions.
 
   def localInputAndChecks(self,xmlNode):
@@ -1110,9 +1109,9 @@ class LHS(Grid):
               elif 'upperBound' in childChild.attrib.keys():
                 self.globalGrid[globalGridName] = ([float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
                 self.globalGrid[globalGridName].sort()
-              else: raiseAnError(IOError,self,'no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
+              else: utils.raiseAnError(IOError,self,'no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
            else:
-             raiseAnError(IOError,self,'The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
+             utils.raiseAnError(IOError,self,'The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
 
     #print('self.gridInfo: ' + str(self.gridInfo))
     #print('self.globalGrid: ' + str(self.globalGrid))
@@ -1124,7 +1123,7 @@ class LHS(Grid):
     #print('self.gridInfo: ' + str(self.gridInfo))
 
     pointByVar  = [len(self.gridInfo[variable][2]) for variable in self.gridInfo.keys()]
-    if len(set(pointByVar))!=1: raiseAnError(IOError,self,'the latin Hyper Cube requires the same number of point in each dimension')
+    if len(set(pointByVar))!=1: utils.raiseAnError(IOError,self,'the latin Hyper Cube requires the same number of point in each dimension')
     self.pointByVar = pointByVar[0]
     self.inputInfo['upper'] = {}
     self.inputInfo['lower'] = {}
@@ -1252,7 +1251,7 @@ class LHS(Grid):
           weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
 
       #else:
-      #  raisea IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> error in the generagtion of LHS sample')
+      #  raisea IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> error in the generagtion of LHS sample')
 
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
@@ -1317,7 +1316,7 @@ class DynamicEventTree(Grid):
     self.preconditionerToApply             = {}
     # total number of preconditioner samples (combination of all different preconditioner strategy)
     self.precNumberSamplers                = 0
-    self.printTag = returnPrintTag('SAMPLER DYNAMIC ET')
+    self.printTag = utils.returnPrintTag('SAMPLER DYNAMIC ET')
 
   def _localWhatDoINeed(self):
     needDict = Sampler._localWhatDoINeed(self)
@@ -1384,8 +1383,8 @@ class DynamicEventTree(Grid):
     endInfo['parent_node'] = parentNode
     # get the branchedLevel dictionary
     branchedLevel = {}
-    for distk, distpb in zip(endInfo['parent_node'].get('initiator_distribution'),endInfo['parent_node'].get('PbThreshold')): branchedLevel[distk] = index(self.branchProbabilities[distk],distpb)
-    if not branchedLevel: raiseAnError(RuntimeError,self,'branchedLevel of node '+jobObject.identifier+'not found!')
+    for distk, distpb in zip(endInfo['parent_node'].get('initiator_distribution'),endInfo['parent_node'].get('PbThreshold')): branchedLevel[distk] = utils.index(self.branchProbabilities[distk],distpb)
+    if not branchedLevel: utils.raiseAnError(RuntimeError,self,'branchedLevel of node '+jobObject.identifier+'not found!')
     # Loop of the parameters that have been changed after a trigger gets activated
     for key in endInfo['branch_changed_params']:
       endInfo['n_branches'] = 1 + int(len(endInfo['branch_changed_params'][key]['actual_value']))
@@ -1469,12 +1468,12 @@ class DynamicEventTree(Grid):
     else: filename = "actual_branch_info.xml"
     if not os.path.isabs(filename): filename = os.path.join(self.workingDir,filename)
     if not os.path.exists(filename):
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> branch info file ' + os.path.basename(filename) +' has not been found. => No Branching.')
+      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> branch info file ' + os.path.basename(filename) +' has not been found. => No Branching.')
       return branch_present
     # Parse the file and create the xml element tree object
     #try:
     branch_info_tree = ET.parse(filename)
-    print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Done parsing '+filename)
+    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Done parsing '+filename)
     #except? raisea IOError ('not able to parse ' + filename)
     root = branch_info_tree.getroot()
     # Check if end_time and end_ts (time step)  are present... In case store them in the relative working vars
@@ -1565,8 +1564,8 @@ class DynamicEventTree(Grid):
     # In case we create a number of branches = endInfo['n_branches'] - 1 => the branch in
     # which the event did not occur is not going to be tracked
     if branchedLevelParent[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist'])
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
+      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist'])
+      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
       self.branchCountOnLevel = 1
       n_branches = endInfo['n_branches'] - 1
 
@@ -1731,7 +1730,7 @@ class DynamicEventTree(Grid):
     newerinput = self.__getQueueElement()
     if not newerinput:
       # If no inputs are present in the queue => a branch is finished
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> A Branch ended!!!!')
+      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> A Branch ended!!!!')
     return newerinput
 
   def _generateDistributions(self,availableDist):
@@ -1742,16 +1741,16 @@ class DynamicEventTree(Grid):
     Grid.localInputAndChecks(self,xmlNode)
     self.limit = sys.maxsize
     if 'print_end_xml' in xmlNode.attrib.keys():
-      if xmlNode.attrib['print_end_xml'].lower() in stringsThatMeanTrue(): self.print_end_xml = True
+      if xmlNode.attrib['print_end_xml'].lower() in utils.stringsThatMeanTrue(): self.print_end_xml = True
       else: self.print_end_xml = False
     if 'maxSimulationTime' in xmlNode.attrib.keys():
       try:    self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
-      except (KeyError,NameError): raiseAnError(IOError,self,'Can not convert maxSimulationTime in float number!!!')
+      except (KeyError,NameError): utils.raiseAnError(IOError,self,'Can not convert maxSimulationTime in float number!!!')
     for child in xmlNode:
       if child.tag == 'PreconditionerSampler':
-        if not 'type' in child.attrib.keys()                          : raiseAnError(IOError,self,'Not found attribute type in PreconditionerSampler block!')
-        if child.attrib['type'] in self.preconditionerToApply.keys()  : raiseAnError(IOError,self,'PreconditionerSampler type '+child.attrib['type'] + ' already inputted!')
-        if child.attrib['type'] not in self.preconditionerAvail.keys(): raiseAnError(IOError,self,'PreconditionerSampler type' +child.attrib['type'] + 'unknown. Available are '+ str(self.preconditionerAvail.keys()).replace("[","").replace("]",""))
+        if not 'type' in child.attrib.keys()                          : utils.raiseAnError(IOError,self,'Not found attribute type in PreconditionerSampler block!')
+        if child.attrib['type'] in self.preconditionerToApply.keys()  : utils.raiseAnError(IOError,self,'PreconditionerSampler type '+child.attrib['type'] + ' already inputted!')
+        if child.attrib['type'] not in self.preconditionerAvail.keys(): utils.raiseAnError(IOError,self,'PreconditionerSampler type' +child.attrib['type'] + 'unknown. Available are '+ str(self.preconditionerAvail.keys()).replace("[","").replace("]",""))
         self.precNumberSamplers = 1
         # the user can decided how to preconditionate
         self.preconditionerToApply[child.attrib['type']] = self.preconditionerAvail[child.attrib['type']]()
@@ -1765,20 +1764,20 @@ class DynamicEventTree(Grid):
         self.branchProbabilities[self.toBeSampled[keyk]] = self.gridInfo[keyk][2]
         self.branchProbabilities[self.toBeSampled[keyk]].sort(key=float)
         if max(self.branchProbabilities[self.toBeSampled[keyk]]) > 1:
-          raiseAWarning(self,"One of the Thresholds for distribution " + str(self.gridInfo[keyk][2]) + " is > 1")
+          utils.raiseAWarning(self,"One of the Thresholds for distribution " + str(self.gridInfo[keyk][2]) + " is > 1")
           error_found = True
           for index in range(len(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float))):
             if sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float).count(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index]) > 1:
-              raiseAWarning(self,"In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
+              utils.raiseAWarning(self,"In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
               error_found = True
       else:
         self.branchValues[self.toBeSampled[keyk]] = self.gridInfo[keyk][2]
         self.branchValues[self.toBeSampled[keyk]].sort(key=float)
         for index in range(len(sorted(self.branchValues[self.toBeSampled[keyk]], key=float))):
           if sorted(self.branchValues[self.toBeSampled[keyk]], key=float).count(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index]) > 1:
-            raiseAWarning(self,"In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
+            utils.raiseAWarning(self,"In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
             error_found = True
-    if error_found: raiseAnError(IOError,self,"In sampler named " + self.name+' Errors have been found!' )
+    if error_found: utils.raiseAnError(IOError,self,"In sampler named " + self.name+' Errors have been found!' )
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)
 
@@ -1802,7 +1801,7 @@ class DynamicEventTree(Grid):
         preconditioner.inputInfo['prefix'] = preconditioner.counter
         precondlistoflist[cnt].append(copy.deepcopy(preconditioner.inputInfo))
     if self.precNumberSamplers > 0:
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Number of Preconditioner Samples are ' + str(self.precNumberSamplers) + '!')
+      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Number of Preconditioner Samples are ' + str(self.precNumberSamplers) + '!')
       precNumber = self.precNumberSamplers
       combinations = list(itertools.product(*precondlistoflist))
     else: precNumber = 1
@@ -1845,7 +1844,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     self.noTransitionStrategy = 1    # Strategy in case no transitions have been found by DET (1 = 'Probability MC', 2 = Increase the grid exploration)
     self.insertAdaptBPb       = True # Add Probabability THs requested by adaptive in the initial grid (default = False)
     self.startAdaptive = False
-    self.printTag = returnPrintTag('SAMPLER ADAPTIVE DET')
+    self.printTag = utils.returnPrintTag('SAMPLER ADAPTIVE DET')
     self.adaptiveReady = False
     self.investigatedPoints = []
     self.completedHistCnt   = 1
@@ -1893,12 +1892,12 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     cdfValues         = {}
     for key,value in self.values.items():
       cdfValues[key] = self.distDict[key].cdf(value)
-      lowerCdfValues[key] = find_le(self.branchProbabilities[self.toBeSampled[key]],cdfValues[key])[0]
+      lowerCdfValues[key] = utils.find_le(self.branchProbabilities[self.toBeSampled[key]],cdfValues[key])[0]
       if self.debug:
-        print(self.printTag+': ' +returnPrintPostTag('Message') + '-> ' + str(self.toBeSampled[key]))
-        print(self.printTag+': ' +returnPrintPostTag('Message') + '-> ' + str(value))
-        print(self.printTag+': ' +returnPrintPostTag('Message') + '-> ' + str(cdfValues[key]))
-        print(self.printTag+': ' +returnPrintPostTag('Message') + '-> ' + str(lowerCdfValues[key]))
+        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> ' + str(self.toBeSampled[key]))
+        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> ' + str(value))
+        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> ' + str(cdfValues[key]))
+        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> ' + str(lowerCdfValues[key]))
     # check if in the adaptive points already explored (if not pushed into the grid)
     if not self.insertAdaptBPb:
       candidatesBranch = []
@@ -2074,7 +2073,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
             for key in histdict['outputs'].keys():
               if key not in lastOutDict['outputs'].keys(): lastOutDict['outputs'][key] = np.atleast_1d(histdict['outputs'][key])
               else                                       : lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),np.atleast_1d(histdict['outputs'][key])))
-        else: raiseAWarning(self,'No Completed histories! No possible to start an adaptive search! Something went wrongly!')
+        else: utils.raiseAWarning(self,'No Completed histories! No possible to start an adaptive search! Something went wrongly!')
       if len(completedHistNames) > self.completedHistCnt:
         self.actualLastOutput = self.lastOutput
         self.lastOutput       = self.actualLastOutput
@@ -2092,18 +2091,18 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
       #the adaptive sampler created the next point sampled vars
       #find the closest branch
       closestBranch, cdfValues = self._checkClosestBranch()
-      if closestBranch == None: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> An usable branch for next candidate has not been found => create a parallel branch!')
+      if closestBranch == None: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> An usable branch for next candidate has not been found => create a parallel branch!')
       # add pbthresholds in the grid
       investigatedPoint = {}
       for key,value in cdfValues.items():
 #         if self.insertAdaptBPb:
-#           ind = find_le_index(self.branchProbabilities[self.toBeSampled[key]],value)
+#           ind = utils.find_le_index(self.branchProbabilities[self.toBeSampled[key]],value)
 #           if not ind: ind = 0
 #           if value not in self.branchProbabilities[self.toBeSampled[key]]:
 #             self.branchProbabilities[self.toBeSampled[key]].insert(ind,value)
 #             self.branchValues[self.toBeSampled[key]].insert(ind,self.distDict[key].ppf(value))
 
-        ind = find_le_index(self.branchProbabilities[self.toBeSampled[key]],value)
+        ind = utils.find_le_index(self.branchProbabilities[self.toBeSampled[key]],value)
         if not ind: ind = 0
         if value not in self.branchProbabilities[self.toBeSampled[key]]:
           self.branchProbabilities[self.toBeSampled[key]].insert(ind,value)
@@ -2130,7 +2129,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
         elm.add('completedHistory', False)
         branchedLevel = {}
         for key,value in cdfValues.items():
-          branchedLevel[self.toBeSampled[key]] = index(self.branchProbabilities[self.toBeSampled[key]],value)
+          branchedLevel[self.toBeSampled[key]] = utils.index(self.branchProbabilities[self.toBeSampled[key]],value)
         # The dictionary branchedLevel is stored in the xml tree too. That's because
         # the advancement of the thresholds must follow the tree structure
         elm.add('branchedLevel', branchedLevel)
@@ -2148,13 +2147,13 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     if 'mode' in xmlNode.attrib.keys():
       if xmlNode.attrib['mode'].lower() == 'online': self.detAdaptMode = 2
       elif xmlNode.attrib['mode'].lower() == 'post': self.detAdaptMode = 1
-      else:  raiseAnError(IOError,self,'unknown mode '+xmlNode.attrib['mode']+'. Available are "online" and "post"!')
+      else:  utils.raiseAnError(IOError,self,'unknown mode '+xmlNode.attrib['mode']+'. Available are "online" and "post"!')
     if 'noTransitionStrategy' in xmlNode.attrib.keys():
       if xmlNode.attrib['noTransitionStrategy'].lower() == 'mc'    : self.noTransitionStrategy = 1
       elif xmlNode.attrib['noTransitionStrategy'].lower() == 'grid': self.noTransitionStrategy = 2
-      else:  raiseAnError(IOError,self,'unknown noTransitionStrategy '+xmlNode.attrib['noTransitionStrategy']+'. Available are "mc" and "grid"!')
+      else:  utils.raiseAnError(IOError,self,'unknown noTransitionStrategy '+xmlNode.attrib['noTransitionStrategy']+'. Available are "mc" and "grid"!')
     if 'updateGrid' in xmlNode.attrib.keys():
-      if xmlNode.attrib['updateGrid'].lower() in stringsThatMeanTrue(): self.insertAdaptBPb = True
+      if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue(): self.insertAdaptBPb = True
 
   def _generateDistributions(self,availableDist):
     DynamicEventTree._generateDistributions(self,availableDist)
@@ -2182,7 +2181,7 @@ class FactorialDesign(Grid):
   '''
   def __init__(self):
     Grid.__init__(self)
-    self.printTag = returnPrintTag('SAMPLER FACTORIAL DESIGN')
+    self.printTag = utils.returnPrintTag('SAMPLER FACTORIAL DESIGN')
     # accepted types. full = full factorial, 2levelfract = 2-level fracional factorial, pb = Plackett-Burman design. NB. full factorial is equivalent to Grid sampling
     self.acceptedTypes = ['full','2levelfract','pb'] # accepted factorial types
     self.factOpt       = {}                          # factorial options (type,etc)
@@ -2192,33 +2191,33 @@ class FactorialDesign(Grid):
     '''reading and construction of the grid'''
     Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("FactorialSettings")
-    if factsettings == None: raiseAnError(IOError,self,'FactorialSettings xml node not found!')
+    if factsettings == None: utils.raiseAnError(IOError,self,'FactorialSettings xml node not found!')
     facttype = factsettings.find("algorithm_type")
-    if facttype == None: raiseAnError(IOError,self,'node "algorithm_type" not found in FactorialSettings xml node!!!')
-    elif not facttype.text.lower() in self.acceptedTypes:raiseAnError(IOError,self,' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedTypes))
+    if facttype == None: utils.raiseAnError(IOError,self,'node "algorithm_type" not found in FactorialSettings xml node!!!')
+    elif not facttype.text.lower() in self.acceptedTypes:utils.raiseAnError(IOError,self,' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedTypes))
     self.factOpt['algorithm_type'] = facttype.text.lower()
     if self.factOpt['algorithm_type'] == '2levelfract':
       self.factOpt['options'] = {}
       self.factOpt['options']['gen'] = factsettings.find("gen")
       self.factOpt['options']['genMap'] = factsettings.find("genMap")
-      if self.factOpt['options']['gen'] == None: raiseAnError(IOError,self,'node "gen" not found in FactorialSettings xml node!!!')
-      if self.factOpt['options']['genMap'] == None: raiseAnError(IOError,self,'node "genMap" not found in FactorialSettings xml node!!!')
+      if self.factOpt['options']['gen'] == None: utils.raiseAnError(IOError,self,'node "gen" not found in FactorialSettings xml node!!!')
+      if self.factOpt['options']['genMap'] == None: utils.raiseAnError(IOError,self,'node "genMap" not found in FactorialSettings xml node!!!')
       self.factOpt['options']['gen'] = self.factOpt['options']['gen'].text.split(',')
       self.factOpt['options']['genMap'] = self.factOpt['options']['genMap'].text.split(',')
-      if len(self.factOpt['options']['genMap']) != len(self.gridInfo.keys()): raiseAnError(IOError,self,'number of variable in genMap != number of variables !!!')
-      if len(self.factOpt['options']['gen']) != len(self.gridInfo.keys())   : raiseAnError(IOError,self,'number of variable in gen != number of variables !!!')
+      if len(self.factOpt['options']['genMap']) != len(self.gridInfo.keys()): utils.raiseAnError(IOError,self,'number of variable in genMap != number of variables !!!')
+      if len(self.factOpt['options']['gen']) != len(self.gridInfo.keys())   : utils.raiseAnError(IOError,self,'number of variable in gen != number of variables !!!')
       rightOrder = [None]*len(self.gridInfo.keys())
-      if len(self.factOpt['options']['genMap']) != len(self.factOpt['options']['gen']): raiseAnError(IOError,self,'gen and genMap different size!')
-      if len(self.factOpt['options']['genMap']) != len(self.gridInfo.keys()): raiseAnError(IOError,self,'number of gen attributes and variables different!')
+      if len(self.factOpt['options']['genMap']) != len(self.factOpt['options']['gen']): utils.raiseAnError(IOError,self,'gen and genMap different size!')
+      if len(self.factOpt['options']['genMap']) != len(self.gridInfo.keys()): utils.raiseAnError(IOError,self,'number of gen attributes and variables different!')
       for ii,var in enumerate(self.factOpt['options']['genMap']):
-        if var not in self.gridInfo.keys(): raiseAnError(IOError,self,' variable "'+var+'" defined in genMap block not among the inputted variables!')
+        if var not in self.gridInfo.keys(): utils.raiseAnError(IOError,self,' variable "'+var+'" defined in genMap block not among the inputted variables!')
         rightOrder[self.axisName.index(var)] = self.factOpt['options']['gen'][ii]
       self.factOpt['options']['orderedGen'] = rightOrder
     if self.factOpt['algorithm_type'] != 'full':
       self.externalgGridCoord = True
       for varname in self.gridInfo.keys():
         if len(self.gridInfo[varname][2]) != 2:
-          raiseAnError(IOError,self,'The number of levels for type '+
+          utils.raiseAnError(IOError,self,'The number of levels for type '+
                         self.factOpt['algorithm_type'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
                         str(len(self.gridInfo[varname][2])))
     else: self.externalgGridCoord = False
@@ -2259,7 +2258,7 @@ class ResponseSurfaceDesign(Grid):
   def __init__(self):
     Grid.__init__(self)
     self.limit    = 1
-    self.printTag = returnPrintTag('SAMPLER RESPONSE SURF DESIGN')
+    self.printTag = utils.returnPrintTag('SAMPLER RESPONSE SURF DESIGN')
     self.respOpt         = {}                                    # response surface design options (type,etc)
     self.designMatrix    = None                                  # matrix container
     self.bounds          = {}                                    # dictionary of lower and upper
@@ -2274,10 +2273,10 @@ class ResponseSurfaceDesign(Grid):
     # here we call the input reader of the grid, even if the grid is definded in a different way, just to collect the variable names
     # Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("ResponseSurfaceDesignSettings")
-    if factsettings == None: raiseAnError(IOError,self,'ResponseSurfaceDesignSettings xml node not found!')
+    if factsettings == None: utils.raiseAnError(IOError,self,'ResponseSurfaceDesignSettings xml node not found!')
     facttype = factsettings.find("algorithm_type")
-    if facttype == None: raiseAnError(IOError,self,'node "algorithm_type" not found in ResponseSurfaceDesignSettings xml node!!!')
-    elif not facttype.text.lower() in self.acceptedOptions.keys():raiseAnError(IOError,self,'"type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedOptions.keys()))
+    if facttype == None: utils.raiseAnError(IOError,self,'node "algorithm_type" not found in ResponseSurfaceDesignSettings xml node!!!')
+    elif not facttype.text.lower() in self.acceptedOptions.keys():utils.raiseAnError(IOError,self,'"type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedOptions.keys()))
     self.respOpt['algorithm_type'] = facttype.text.lower()
     # set defaults
     if self.respOpt['algorithm_type'] == 'boxbehnken': self.respOpt['options'] = {'ncenters':None}
@@ -2287,23 +2286,23 @@ class ResponseSurfaceDesign(Grid):
     # start checking
     for key,value in self.respOpt['options'].items():
       if key not in self.acceptedOptions[facttype.text.lower()]:
-        raiseAnError(IOError,self,'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
+        utils.raiseAnError(IOError,self,'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
       if self.respOpt['algorithm_type'] == 'boxbehnken':
         if key == 'ncenters':
           try   : self.respOpt['options'][key] = int(value)
-          except: raiseAnError(IOError,self,'"'+key+'" is not an integer!')
+          except: utils.raiseAnError(IOError,self,'"'+key+'" is not an integer!')
       else:
         if key == 'centers':
-          if len(value.split(',')) != 2: raiseAnError(IOError,self,'"'+key+'" must be a comma separated string of 2 values only!')
+          if len(value.split(',')) != 2: utils.raiseAnError(IOError,self,'"'+key+'" must be a comma separated string of 2 values only!')
           centers = value.split(',')
           try: self.respOpt['options'][key] = (int(centers[0]),int(centers[1]))
-          except: raiseAnError(IOError,self,'"'+key+'" values must be integers!!')
+          except: utils.raiseAnError(IOError,self,'"'+key+'" values must be integers!!')
         if key == 'alpha':
-          if value not in ['orthogonal','rotatable']: raiseAnError(IOError,self,'Not recognized options for node ' +'"'+key+'". Available are "orthogonal","rotatable"!')
+          if value not in ['orthogonal','rotatable']: utils.raiseAnError(IOError,self,'Not recognized options for node ' +'"'+key+'". Available are "orthogonal","rotatable"!')
         if key == 'face':
-          if value not in ['circumscribed','faced','inscribed']: raiseAnError(IOError,self,'Not recognized options for node ' +'"'+key+'". Available are "circumscribed","faced","inscribed"!')
+          if value not in ['circumscribed','faced','inscribed']: utils.raiseAnError(IOError,self,'Not recognized options for node ' +'"'+key+'". Available are "circumscribed","faced","inscribed"!')
     # fill in the grid
-    if 'limit' in xmlNode.attrib.keys(): raiseAnError(IOError,self,'limit is not used in' +self.type+' sampler!')
+    if 'limit' in xmlNode.attrib.keys(): utils.raiseAnError(IOError,self,'limit is not used in' +self.type+' sampler!')
     if not self.axisName: self.axisName = []
     for child in xmlNode:
       if child.tag == "Distribution": varName = "<distribution>"+child.attrib['name']
@@ -2311,17 +2310,17 @@ class ResponseSurfaceDesign(Grid):
       for childChild in child:
         if childChild.tag =='boundaries':
           self.axisName.append(varName)
-          if 'type' not in childChild.attrib.keys(): raiseAnError(IOError,self,'in block '+ childChild.tag + ' attribute type not found!')
+          if 'type' not in childChild.attrib.keys(): utils.raiseAnError(IOError,self,'in block '+ childChild.tag + ' attribute type not found!')
           self.gridInfo[varName] = [childChild.attrib['type'],'custom',[]]
           lower = childChild.find("lower")
           upper = childChild.find("upper")
-          if lower == None: raiseAnError(IOError,self,'node "lower" not found in '+childChild.tag+' block!')
-          if upper == None: raiseAnError(IOError,self,'node "upper" not found in '+childChild.tag+' block!')
+          if lower == None: utils.raiseAnError(IOError,self,'node "lower" not found in '+childChild.tag+' block!')
+          if upper == None: utils.raiseAnError(IOError,self,'node "upper" not found in '+childChild.tag+' block!')
           try: self.bounds[varName] = (float(lower.text),float(upper.text))
-          except: raiseAnError(IOError,self,'node "upper" or "lower" must be float')
-    if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raiseAnError(IOError,self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
+          except: utils.raiseAnError(IOError,self,'node "upper" or "lower" must be float')
+    if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): utils.raiseAnError(IOError,self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
-    if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['algorithm_type']]: raiseAnError(IOError,self,'minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
+    if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['algorithm_type']]: utils.raiseAnError(IOError,self,'minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
     self.externalgGridCoord = True
 
   def localAddInitParams(self,tempDict):
@@ -2356,7 +2355,7 @@ class SparseGridCollocation(Grid):
   def __init__(self):
     Grid.__init__(self)
     self.type           = 'SparseGridCollocationSampler'
-    self.printTag       = returnPrintTag(self.type)
+    self.printTag       = utils.returnPrintTag(self.type)
     self.assemblerObjects={}    #dict of external objects required for assembly
     self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
     self.indexSetType   = None  #TP, TD, or HC; the type of index set to use
@@ -2452,12 +2451,12 @@ class SparseGridCollocation(Grid):
         samVars.remove(v)
         romVars.remove(v)
     except ValueError:
-      raiseAnError(IOError,self,'variable '+v+' used in sampler but not ROM features! Collocation requires all vars in both.')
+      utils.raiseAnError(IOError,self,'variable '+v+' used in sampler but not ROM features! Collocation requires all vars in both.')
     if len(romVars)>0:
-      raiseAnError(IOError,self,'variables '+str(romVars)+' specified in ROM but not sampler! Collocation requires all vars in both.')
+      utils.raiseAnError(IOError,self,'variables '+str(romVars)+' specified in ROM but not sampler! Collocation requires all vars in both.')
     for v in ROMdata.keys():
       if v not in self.axisName:
-        raiseAnError(IOError,self,'variable '+v+' given interpolation rules but '+v+' not in sampler!')
+        utils.raiseAnError(IOError,self,'variable '+v+' given interpolation rules but '+v+' not in sampler!')
       else:
         self.gridInfo[v] = ROMdata[v] #quad, poly, weight
     #set defaults, then replace them if they're asked for
@@ -2478,11 +2477,11 @@ class SparseGridCollocation(Grid):
           quadType='CDF'
           subType=dat['quad']
           if subType not in ['Legendre','ClenshawCurtis']:
-            raiseAnError(IOError,self,'Quadrature '+subType+' not compatible with Legendre polys for '+distr.type+' for variable '+varName+'!')
+            utils.raiseAnError(IOError,self,'Quadrature '+subType+' not compatible with Legendre polys for '+distr.type+' for variable '+varName+'!')
       else:
         quadType=dat['quad']
       if quadType not in distr.compatibleQuadrature:
-        raiseAnError(IOError,self,' Quadrature type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
+        utils.raiseAnError(IOError,self,' Quadrature type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
 
       quad = Quadratures.returnInstance(quadType,Subtype=subType)
       quad.initialize(distr)
@@ -2513,7 +2512,7 @@ class Sobol(SparseGridCollocation):
     '''
     Grid.__init__(self)
     self.type           = 'SobolSampler'
-    self.printTag       = returnPrintTag(self.type)
+    self.printTag       = utils.returnPrintTag(self.type)
     self.assemblerObjects={}    #dict of external objects required for assembly
     self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
     self.sobolOrder     = None  #S, the order of the HDMR expansion (1,2,3), queried from the sobol ROM
@@ -2696,7 +2695,7 @@ def returnInstance(Type):
   @ Out,Instance of the Specialized Sampler class
   '''
   try: return __interFaceDict[Type]()
-  except KeyError: raiseAnError(NameError,'SAMPLERS','not known '+__base+' type '+Type)
+  except KeyError: utils.raiseAnError(NameError,'SAMPLERS','not known '+__base+' type '+Type)
 
 def optionalInputs(Type):
   pass

@@ -23,7 +23,6 @@ import math
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
-from utils import raiseAnError, raiseAWarning
 import mathUtils
 #from utils import utils.toString, utils.toBytes, utils.first, utils.returnPrintTag, utils.returnPrintPostTag
 from Assembler import Assembler
@@ -81,11 +80,11 @@ class SafestPoint(BasePostProcessor):
     ''' see generateAssembler method '''
     for varName, distName in self.controllableDist.items():
       if distName not in initDict['Distributions'].keys():
-        raiseAnError(IOError,self,'distribution ' +distName+ ' not found.')
+        utils.raiseAnError(IOError,self,'distribution ' +distName+ ' not found.')
       self.controllableDist[varName] = initDict['Distributions'][distName]
     for varName, distName in self.nonControllableDist.items():
       if distName not in initDict['Distributions'].keys():
-        raiseAnError(IOError,self,'distribution ' +distName+ ' not found.')
+        utils.raiseAnError(IOError,self,'distribution ' +distName+ ' not found.')
       self.nonControllableDist[varName] = initDict['Distributions'][distName]
 
   def _localReadMoreXML(self,xmlNode):
@@ -102,13 +101,13 @@ class SafestPoint(BasePostProcessor):
                   if 'steps' in childChildChild.attrib.keys():
                     self.controllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
                   else:
-                    raiseAnError(NameError,self,'number of steps missing after the grid call.')
+                    utils.raiseAnError(NameError,self,'number of steps missing after the grid call.')
                 else:
-                  raiseAnError(NameError,self,'grid type missing after the grid call.')
+                  utils.raiseAnError(NameError,self,'grid type missing after the grid call.')
               else:
-                raiseAnError(NameError,self,'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
+                utils.raiseAnError(NameError,self,'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
           else:
-            raiseAnError(NameError,self,'invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
+            utils.raiseAnError(NameError,self,'invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
       elif child.tag == 'non-controllable':
         for childChild in child:
           if childChild.tag == 'variable':
@@ -121,13 +120,13 @@ class SafestPoint(BasePostProcessor):
                   if 'steps' in childChildChild.attrib.keys():
                     self.nonControllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
                   else:
-                    raiseAnError(NameError,self,'number of steps missing after the grid call.')
+                    utils.raiseAnError(NameError,self,'number of steps missing after the grid call.')
                 else:
-                  raiseAnError(NameError,self,'grid type missing after the grid call.')
+                  utils.raiseAnError(NameError,self,'grid type missing after the grid call.')
               else:
-                raiseAnError(NameError,self,'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
+                utils.raiseAnError(NameError,self,'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
           else:
-            raiseAnError(NameError,self,'invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
+            utils.raiseAnError(NameError,self,'invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
       #else:
       #  if child.tag != 'Assembler': raisea NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> invalid or missing labels after the post-processor call. Only "controllable", "non-controllable" and "Assembler" are accepted.')
     if self.debug:
@@ -169,7 +168,7 @@ class SafestPoint(BasePostProcessor):
         self.__stepError__(0,1,self.controllableGrid[varName][1],self.controllableGrid[varName][2],varName)
         self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [self.controllableGrid[varName][2]*i for i in range(self.controllableGrid[varName][1]+1)])
       else:
-        raiseAnError(NameError,self,'inserted invalid grid type. Only "value" and "CDF" are accepted.')
+        utils.raiseAnError(NameError,self,'inserted invalid grid type. Only "value" and "CDF" are accepted.')
     for varName in self.nonControllableGrid.keys():
       if self.nonControllableGrid[varName][0] == 'value':
         self.__stepError__(float(self.nonControllableDist[varName].lowerBound),float(self.nonControllableDist[varName].upperBound),self.nonControllableGrid[varName][1],self.nonControllableGrid[varName][2],varName)
@@ -178,11 +177,11 @@ class SafestPoint(BasePostProcessor):
         self.__stepError__(0,1,self.nonControllableGrid[varName][1],self.nonControllableGrid[varName][2],varName)
         self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [self.nonControllableGrid[varName][2]*i for i in range(self.nonControllableGrid[varName][1]+1)])
       else:
-        raiseAnError(NameError,self,'inserted invalid grid type. Only "value" and "CDF" are accepted.')
+        utils.raiseAnError(NameError,self,'inserted invalid grid type. Only "value" and "CDF" are accepted.')
 
   def __stepError__(self,lowerBound,upperBound,steps,tol,varName):
     if upperBound-lowerBound<steps*tol:
-      raiseAnError(IOError,self,'inserted number of steps or tolerance for variable ' +varName+ ' exceeds its limit.')
+      utils.raiseAnError(IOError,self,'inserted number of steps or tolerance for variable ' +varName+ ' exceeds its limit.')
 
   def __gridGeneration__(self):
     NotchesByVar = [None]*len(self.controllableGrid.keys())
@@ -264,7 +263,7 @@ class SafestPoint(BasePostProcessor):
           distList.append(np.sqrt(np.sum(np.power(queryPointsMatrix[index,0:self.controllableSpace.shape[-1]]-surfTree.data[nearestPointsInd[index],0:self.controllableSpace.shape[-1]],2))))
           indexList.append(index)
       if distList == []:
-        raiseAnError(ValueError,self,'no safest point found for the current set of non-controllable variables: ' +str(self.nonControllableSpace[ncLine,:])+ '.')
+        utils.raiseAnError(ValueError,self,'no safest point found for the current set of non-controllable variables: ' +str(self.nonControllableSpace[ncLine,:])+ '.')
       else:
         for cVarIndex in range(len(self.controllableOrd)):
           dataCollector.updateInputValue(self.controllableOrd[cVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],cVarIndex]))
@@ -297,14 +296,14 @@ class SafestPoint(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     if finishedjob.returnEvaluation() == -1:
-      raiseAnError(RuntimeError,self,'no available output to collect (the run is likely not over yet).')
+      utils.raiseAnError(RuntimeError,self,'no available output to collect (the run is likely not over yet).')
     else:
       dataCollector = finishedjob.returnEvaluation()[1]
       if output.type != 'TimePointSet':
-        raiseAnError(TypeError,self,'output item type must be "TimePointSet".')
+        utils.raiseAnError(TypeError,self,'output item type must be "TimePointSet".')
       else:
         if not output.isItEmpty():
-          raiseAnError(ValueError,self,'output item must be empty.')
+          utils.raiseAnError(ValueError,self,'output item must be empty.')
         else:
           for key,value in dataCollector.getParametersValues('input').items():
             for val in value: output.updateInputValue(key, val)
@@ -390,7 +389,7 @@ class ComparisonStatistics(BasePostProcessor):
     if self.debug: print("finishedjob",finishedjob,"output",output)
     #XXX We only handle the case where output is a filename.  We don't handle
     # it being a datas or hdf5 etc.
-    if finishedjob.returnEvaluation() == -1: raiseAnError(RuntimeError,self,'no available output to collect.')
+    if finishedjob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,'no available output to collect.')
     else: self.dataDict.update(finishedjob.returnEvaluation()[1])
 
     dataToProcess = []
@@ -566,7 +565,7 @@ class PrintCSV(BasePostProcessor):
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     runInfo['TempWorkingDir']     = self.workingDir
     try:                            os.mkdir(self.workingDir)
-    except:                         raiseAWarning(self,'current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except:                         utils.raiseAWarning(self,'current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     #if type(inputs[-1]).__name__ == "HDF5" : self.inObj = inputs[-1]      # this should go in run return but if HDF5, it is not pickable
 
   def _localReadMoreXML(self,xmlNode):
@@ -584,7 +583,7 @@ class PrintCSV(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     # Check the input type
-    if finishedjob.returnEvaluation() == -1: raiseAnError(RuntimeError,self,'No available Output to collect (Run probabably is not finished yet)')
+    if finishedjob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,'No available Output to collect (Run probabably is not finished yet)')
     self.inObj = finishedjob.returnEvaluation()[1]
     if(self.inObj.type == "HDF5"):
       #  Input source is a database (HDF5)
@@ -703,7 +702,7 @@ class PrintCSV(BasePostProcessor):
 #                 addcsvfile.write(b'#Probability threshold,\n')
 #                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
           addcsvfile.write(b' \n')
-    else: raiseAnError(NotImplementedError,self,'for input type ' + self.inObj.type + ' not yet implemented.')
+    else: utils.raiseAnError(NotImplementedError,self,'for input type ' + self.inObj.type + ' not yet implemented.')
 
   def run(self, Input): # inObj,workingDir=None):
     """
@@ -738,8 +737,8 @@ class BasicStatistics(BasePostProcessor):
     except:
       if type(currentInput) in [str,bytes,unicode]: inType = "file"
       elif type(currentInput) in [list]: inType = "list"
-      else: raiseAnError(IOError,self,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
-    if inType not in ['file','HDF5','TimePointSet','list']: raiseAnError(IOError,self,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(inType) + '!!!!')
+      else: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
+    if inType not in ['file','HDF5','TimePointSet','list']: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(inType) + '!!!!')
     if inType == 'file':
       if currentInput.endswith('csv'): pass
     if inType == 'HDF5': pass # to be implemented
@@ -770,7 +769,7 @@ class BasicStatistics(BasePostProcessor):
         if self.what == 'all': self.what = self.acceptedCalcParam
         else:
           for whatc in self.what.split(','):
-            if whatc not in self.acceptedCalcParam: raiseAnError(IOError,self,'BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available '+str(self.acceptedCalcParam))
+            if whatc not in self.acceptedCalcParam: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available '+str(self.acceptedCalcParam))
           self.what = self.what.split(',')
       if child.tag =="parameters"   : self.parameters['targets'] = child.text.split(',')
       if child.tag =="methodsToRun" : self.methodsToRun          = child.text.split(',')
@@ -780,7 +779,7 @@ class BasicStatistics(BasePostProcessor):
   def collectOutput(self,finishedjob,output):
     #output
     parameterSet = list(set(list(self.parameters['targets'])))
-    if finishedjob.returnEvaluation() == -1: raiseAnError(RuntimeError,self,' No available Output to collect (Run probabably is not finished yet)')
+    if finishedjob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,' No available Output to collect (Run probabably is not finished yet)')
     outputDict = finishedjob.returnEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
@@ -789,7 +788,7 @@ class BasicStatistics(BasePostProcessor):
       availextens = ['csv','txt']
       outputextension = output.split('.')[-1].lower()
       if outputextension not in availextens:
-        raiseAWarning(self,'BasicStatistics postprocessor output extension you input is '+outputextension)
+        utils.raiseAWarning(self,'BasicStatistics postprocessor output extension you input is '+outputextension)
         print('                     Available are '+str(availextens)+ '. Convertint extension to '+str(availextens[0])+'!')
         outputextension = availextens[0]
       if outputextension != 'csv': separator = ' '
@@ -845,8 +844,8 @@ class BasicStatistics(BasePostProcessor):
           if what not in self.acceptedCalcParam:
             output.updateMetadata(what,outputDict[what])
             if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping External Function parameter '+ what)
-    elif output.type == 'HDF5' : raiseAWarning(self,'BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
-    else: raiseAnError(IOError,self,'BasicStatistics postprocessor: Output type '+ str(output.type) + ' unknown.')
+    elif output.type == 'HDF5' : utils.raiseAWarning(self,'BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
+    else: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor: Output type '+ str(output.type) + ' unknown.')
 
   def run(self, InputIn):
     """
@@ -864,10 +863,10 @@ class BasicStatistics(BasePostProcessor):
         # check if "what" corresponds to an internal method
         if what in self.acceptedCalcParam:
           if what not in ['pearson','covariance','NormalizedSensitivity','sensitivity']:
-            if type(outputDict[what]) != dict: raiseAnError(IOError,self,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a dictionary!!')
+            if type(outputDict[what]) != dict: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a dictionary!!')
           else:
-            if type(outputDict[what]) != np.ndarray: raiseAnError(IOError,self,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a numpy.ndarray!!')
-            if len(outputDict[what].shape) != 2:     raiseAnError(IOError,self,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a 2D numpy.ndarray!!')
+            if type(outputDict[what]) != np.ndarray: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a numpy.ndarray!!')
+            if len(outputDict[what].shape) != 2:     utils.raiseAnError(IOError,self,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a 2D numpy.ndarray!!')
 
     #setting some convenience values
     parameterSet = list(set(list(self.parameters['targets'])))  #@Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
@@ -876,8 +875,8 @@ class BasicStatistics(BasePostProcessor):
 
     if 'ProbabilityWeight' not in Input['metadata'].keys():
       if Input['metadata'].keys().count('SamplerType') > 0:
-        if Input['metadata']['SamplerType'][0] != 'MC' : raiseAWarning(self,'BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      else: raiseAWarning(self,'BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+        if Input['metadata']['SamplerType'][0] != 'MC' : utils.raiseAWarning(self,'BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+      else: utils.raiseAWarning(self,'BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbweights    = np.zeros(len(Input['targets'][self.parameters['targets'][0]]),dtype=np.float)
       pbweights[:] = 1.0/pbweights.size # it was an Integer Division (1/integer) => 0!!!!!!!! Andrea
     else: pbweights       = Input['metadata']['ProbabilityWeight']
@@ -1089,9 +1088,9 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     self.__workingDir = runInfo['WorkingDir']
     if '~' in self.sourceDirectory               : self.sourceDirectory = os.path.expanduser(self.sourceDirectory)
     if not os.path.isabs(self.sourceDirectory)   : self.sourceDirectory = os.path.normpath(os.path.join(self.__workingDir,self.sourceDirectory))
-    if not os.path.exists(self.sourceDirectory)  : raiseAnError(IOError,self,"The directory indicated for PostProcessor "+ self.name + "does not exist. Path: "+self.sourceDirectory)
+    if not os.path.exists(self.sourceDirectory)  : utils.raiseAnError(IOError,self,"The directory indicated for PostProcessor "+ self.name + "does not exist. Path: "+self.sourceDirectory)
     for _dir,_,_ in os.walk(self.sourceDirectory): self.listOfCsvFiles.extend(glob(os.path.join(_dir,"*.csv")))
-    if len(self.listOfCsvFiles) == 0             : raiseAnError(IOError,self,"The directory indicated for PostProcessor "+ self.name + "does not contain any csv file. Path: "+self.sourceDirectory)
+    if len(self.listOfCsvFiles) == 0             : utils.raiseAnError(IOError,self,"The directory indicated for PostProcessor "+ self.name + "does not contain any csv file. Path: "+self.sourceDirectory)
     self.listOfCsvFiles.sort()
 
   def inputToInternal(self,currentInput): return self.listOfCsvFiles
@@ -1105,7 +1104,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     """
     for child in xmlNode:
       if child.tag =="directory": self.sourceDirectory = child.text
-    if not self.sourceDirectory: raiseAnError(IOError,self,"The PostProcessor "+ self.name + "needs a directory for loading the csv files!")
+    if not self.sourceDirectory: utils.raiseAnError(IOError,self,"The PostProcessor "+ self.name + "needs a directory for loading the csv files!")
 
   def collectOutput(self,finishedjob,output):
     #output
@@ -1155,7 +1154,7 @@ class LimitSurface(BasePostProcessor):
     try: inType = currentInput.type
     except:
       if type(currentInput) in [str,bytes,unicode]: inType = "file"
-      else: raiseAnError(IOError,self,'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
+      else: utils.raiseAnError(IOError,self,'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
     if inType == 'file':
       if currentInput.endswith('csv'): pass
     if inType == 'HDF5': pass # to be implemented
@@ -1184,16 +1183,16 @@ class LimitSurface(BasePostProcessor):
     self.__workingDir = runInfo['WorkingDir']
     self.indexes = -1
     for index,inp in enumerate(self.inputs):
-      if type(inp) in [str,bytes,unicode]: raiseAnError(IOError,self,'LimitSurface PostProcessor only accepts Data(s) as inputs!')
+      if type(inp) in [str,bytes,unicode]: utils.raiseAnError(IOError,self,'LimitSurface PostProcessor only accepts Data(s) as inputs!')
       if inp.type in ['TimePointSet','TimePoint']: self.indexes = index
-    if self.indexes == -1: raiseAnError(IOError,self,'LimitSurface PostProcessor needs a TimePoint or TimePointSet as INPUT!!!!!!')
+    if self.indexes == -1: utils.raiseAnError(IOError,self,'LimitSurface PostProcessor needs a TimePoint or TimePointSet as INPUT!!!!!!')
     else:
       # check if parameters are contained in the data
       inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
       outKeys = self.inputs[self.indexes].getParaKeys("outputs")
       self.paramType ={}
       for param in self.parameters['targets']:
-        if param not in inpKeys+outKeys: raiseAnError(IOError,self,'LimitSurface PostProcessor: The param '+ param+' not contained in Data '+self.inputs[self.indexes].name +' !')
+        if param not in inpKeys+outKeys: utils.raiseAnError(IOError,self,'LimitSurface PostProcessor: The param '+ param+' not contained in Data '+self.inputs[self.indexes].name +' !')
         if param in inpKeys: self.paramType[param] = 'inputs'
         else:                self.paramType[param] = 'outputs'
     self.nVar        = len(self.parameters['targets'])         #Total number of variables
@@ -1275,12 +1274,12 @@ class LimitSurface(BasePostProcessor):
       for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
       #self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
       self.functionValue[self.externalFunction.name][myIndex] =  self.externalFunction.evaluate('residuumSign',tempDict)
-      if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raiseAnError(IOError,self,'LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
+      if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: utils.raiseAnError(IOError,self,'LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
       if self.externalFunction.name in inp.getParaKeys('inputs'): inp.self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
       if self.externalFunction.name in inp.getParaKeys('output'): inp.self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
-      if raiseErrorIfNotFound: raiseAnError(ValueError,self,'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
-      else                   : raiseAWarning(self,'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
+      if raiseErrorIfNotFound: utils.raiseAnError(ValueError,self,'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
+      else                   : utils.raiseAWarning(self,'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
     #printing----------------------
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
     if self.debug:
@@ -1314,12 +1313,12 @@ class LimitSurface(BasePostProcessor):
       calculations
       @ In, dictIn, dict, dictionary of initialization options
     """
-    if "parameters" not in dictIn.keys(): raiseAnError(IOError,self,'No Parameters specified in XML input!!!!')
+    if "parameters" not in dictIn.keys(): utils.raiseAnError(IOError,self,'No Parameters specified in XML input!!!!')
     if type(dictIn["parameters"]) == list: self.parameters['targets'] = dictIn["parameters"]
     else                                 : self.parameters['targets'] = dictIn["parameters"].split(",")
     if "tolerance" in dictIn.keys(): self.subGridTol = float(dictIn["tolerance"])
     if "side" in dictIn.keys(): self.lsSide = dictIn["side"]
-    if self.lsSide not in ["negative","positive","both"]: raiseAnError(IOError,self,'Computation side can be positive, negative, both only !!!!')
+    if self.lsSide not in ["negative","positive","both"]: utils.raiseAnError(IOError,self,'Computation side can be positive, negative, both only !!!!')
     if "gridVectors" in dictIn.keys():
       self.gridVectors     = dictIn["gridVectors"]
       self.gridFromOutside = True
@@ -1355,7 +1354,7 @@ class LimitSurface(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     #output
-    if finishedjob.returnEvaluation() == -1: raiseAnError(RuntimeError,self,'No available Output to collect (Run probabably is not finished yet)')
+    if finishedjob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,'No available Output to collect (Run probabably is not finished yet)')
     print(finishedjob.returnEvaluation())
     limitSurf = finishedjob.returnEvaluation()[1]
     if limitSurf[0]!=None:
@@ -1539,16 +1538,16 @@ class ExternalPostProcessor(BasePostProcessor):
         inType = "list"
 
       if inType not in ['file','HDF5','TimePointSet','list']:
-        raiseAWarning(self,'Input type ' + type(item).__name__ + ' not'
+        utils.raiseAWarning(self,'Input type ' + type(item).__name__ + ' not'
                                + ' recognized. I am going to skip it.')
       elif inType == 'file':
         if currentInput.endswith('csv'):
           # TODO
-          raiseAWarning(self,'Input type ' + inType + ' not yet '
+          utils.raiseAWarning(self,'Input type ' + inType + ' not yet '
                                  + 'implemented. I am going to skip it.')
       elif inType == 'HDF5':
         # TODO
-          raiseAWarning(self,'Input type ' + inType + ' not yet '
+          utils.raiseAWarning(self,'Input type ' + inType + ' not yet '
                                  + 'implemented. I am going to skip it.')
       elif inType == 'TimePointSet':
         for param in item.getParaKeys('input'):
@@ -1560,14 +1559,14 @@ class ExternalPostProcessor(BasePostProcessor):
       #Not sure if we need it, but keep a copy of every inputs metadata
       inputDict['metadata'] = metadata
 
-    if len(inputDict['targets'].keys()) == 0: raiseAnError(IOError,self,"No input variables have been found in the input objects!")
+    if len(inputDict['targets'].keys()) == 0: utils.raiseAnError(IOError,self,"No input variables have been found in the input objects!")
     for interface in self.externalInterfaces:
       for method in self.methodsToRun:
         # The function should reference self and use the same variable names
         # as the xml file
         for param in interface.parameterNames():
           if param not in inputDict['targets']:
-            raiseAnError(IOError,self,'variable \"' + param + '\" unknown.'
+            utils.raiseAnError(IOError,self,'variable \"' + param + '\" unknown.'
                                           + ' Please verify your external'
                                           + ' script ('
                                           + interface.functionFile
@@ -1608,19 +1607,19 @@ class ExternalPostProcessor(BasePostProcessor):
     """
     if finishedJob.returnEvaluation() == -1:
       ##TODO This does not feel right
-      raiseAnError(RuntimeError,self,'No available Output to collect (Run '
+      utils.raiseAnError(RuntimeError,self,'No available Output to collect (Run '
                                        + 'probably did not finish yet)')
     inputList = finishedJob.returnEvaluation()[0]
     outputDict = finishedJob.returnEvaluation()[1]
 
     if type(output).__name__ in ["str","unicode","bytes"]:
-      raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
+      utils.raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
                                + ' yet implemented. I am going to skip it.')
     elif output.type == 'Datas':
-      raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
+      utils.raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
                                + ' yet implemented. I am going to skip it.')
     elif output.type == 'HDF5':
-      raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
+      utils.raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
                                + ' yet implemented. I am going to skip it.')
     elif output.type == 'TimePointSet':
       requestedInput = output.getParaKeys('input')
@@ -1666,11 +1665,11 @@ class ExternalPostProcessor(BasePostProcessor):
                   foundCount += 1
 
           if foundCount == 0:
-            raiseAnError(IOError,self,key + ' not found in the input '
+            utils.raiseAnError(IOError,self,key + ' not found in the input '
                                             + 'object or the computed output '
                                             + 'object.')
           elif foundCount > 1:
-            raiseAnError(IOError,self,key + ' is ambiguous since it occurs'
+            utils.raiseAnError(IOError,self,key + ' is ambiguous since it occurs'
                                             + ' in multiple input objects.')
 
         ## We need the size to ensure the data size is consistent, but there
@@ -1683,7 +1682,7 @@ class ExternalPostProcessor(BasePostProcessor):
         if dataLength is None:
           dataLength = myLength
         elif dataLength != myLength:
-          raiseAWarning(self,'Requested output for ' + key + ' has a'
+          utils.raiseAWarning(self,'Requested output for ' + key + ' has a'
                                     + ' non-conformant data size ('
                                     + str(dataLength) + ' vs ' + str(myLength)
                                     + '), it is being placed in the metadata.')
@@ -1705,7 +1704,7 @@ class ExternalPostProcessor(BasePostProcessor):
             output.updateMetadata(key, val)
 
     else:
-      raiseAnError(IOError,self,'Unknown output type: ' + str(output.type))
+      utils.raiseAnError(IOError,self,'Unknown output type: ' + str(output.type))
 
   def run(self, InputIn):
     """
@@ -1731,7 +1730,7 @@ class ExternalPostProcessor(BasePostProcessor):
 
 
       if len(matchingInterfaces) == 0:
-        raiseAWarning(self,method + ' not found. I will skip it.')
+        utils.raiseAWarning(self,method + ' not found. I will skip it.')
       elif len(matchingInterfaces) == 1:
         methodMap[method] = (matchingInterfaces[0],method)
       else:
@@ -1775,4 +1774,4 @@ def returnInstance(Type):
     @ Out,Instance of the Specialized Filter class
   """
   try: return __interFaceDict[Type]()
-  except KeyError: raiseAnError(NameError,'POSTPROCESSORS','not known '+__base+' type '+Type)
+  except KeyError: utils.raiseAnError(NameError,'POSTPROCESSORS','not known '+__base+' type '+Type)
