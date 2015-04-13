@@ -371,10 +371,8 @@ class ROM(Dummy):
     treedict=self._localBuildPrintTree(options)
 
   def _localBuildPrintTree(self,options=None):
-    #TODO working
-    treedict = {self.type:{}}
-    for targetName,target in self.SupervisedEngine.items():
-      treedict[self.type][targetName] = target.printXML(options)
+    for target in self.SupervisedEngines.values():
+      addToDict = target.printXML(options)
 
   def reset(self):
     '''

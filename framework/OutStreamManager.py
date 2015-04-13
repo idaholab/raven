@@ -1143,26 +1143,6 @@ class OutStreamPrint(OutStreamManager):
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:
       if subnode.tag == 'source': self.sourceName = subnode.text.split(',')
-      elif subnode.tag == 'call':
-        if not 'method' in subnode.attrib.keys(): raise IOError(self.printTag+': ERROR -> "call" node requires "method" attribute!')
-        method = subnode.attrib['method']
-        if 'call' not in self.options.keys(): self.options['call']={}
-        if method not in self.options['call'].keys(): self.options['call'][method]=[]
-        newcall={'args':[], 'kwargs':{}}
-        for anode in subnode:
-          print('DEBUG anode',anode.tag)
-          if anode.tag=='arg':
-            print('DEBUG found arg')
-            val = anode.text
-            if 'type' in anode.attrib.keys():
-              try: exec('val = '+anode.attrib['type']+'(val)')
-              except (NameError,TypeError):
-                raise IOError(self.printTag+': ERROR (but run continuing) -> Python type conversion to type '+anode.attrib['Type']+' failed!')
-            if 'kwarg' in anode.attrib.keys():
-              newcall['kwargs'][anode.text]=val
-            else:
-              newcall['args'].append(val)
-        self.options['call'][method].append(newcall)
       else:self.options[subnode.tag] = subnode.text
     if 'type' not in self.options.keys(): raise IOError(self.printTag+': ERROR -> type tag not present in Print block called '+ self.name)
     if self.options['type'] not in self.availableOutStreamTypes : raise(self.printTag+': ERROR -> Print type ' + self.options['type'] + ' not available yet. ')
