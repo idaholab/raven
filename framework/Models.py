@@ -371,6 +371,7 @@ class ROM(Dummy):
     tree=self._localBuildPrintTree(options)
     msg=tree.stringNodeTree()
     file(filenameLocal,'w').writelines(msg)
+    utils.raiseAMessage(self,'ROM XML printed to "'+filenameLocal+'"')
     #print(msg)
 
   def _localBuildPrintTree(self,options=None):
