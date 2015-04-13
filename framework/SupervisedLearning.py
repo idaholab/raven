@@ -27,15 +27,15 @@ import abc
 import ast
 import pickle as pk
 from operator import itemgetter
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import metaclass_insert, returnPrintTag, returnPrintPostTag, find_interpolationND,stringsThatMeanFalse
 import utils
-interpolationND = find_interpolationND()
+interpolationND = utils.find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
-class superVisedLearning(metaclass_insert(abc.ABCMeta)):
+class superVisedLearning(utils.metaclass_insert(abc.ABCMeta)):
   '''
   This is the general interface to any superVisedLearning learning method.
   Essentially it contains a train, and evaluate methods
@@ -56,17 +56,17 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     return (True,'')
 
   def __init__(self,**kwargs):
-    self.printTag = returnPrintTag('SuperVised')
+    self.printTag = utils.returnPrintTag('SuperVised')
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
-    if 'Features' not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Feature names not provided')
-    if 'Target'   not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Target name not provided')
+    if 'Features' not in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'Feature names not provided')
+    if 'Target'   not in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'Target name not provided')
     self.features = self.initOptionDict['Features'].split(',')
     self.target   = self.initOptionDict['Target'  ]
     self.initOptionDict.pop('Target')
     self.initOptionDict.pop('Features')
-    if self.features.count(self.target) > 0: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The target and one of the features have the same name!!!!')
+    if self.features.count(self.target) > 0: utils.raiseAnError(IOError,self,'The target and one of the features have the same name!')
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}
@@ -84,21 +84,21 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
       @ In, tdict, training dictionary
       @ Out, None
     '''
-    if type(tdict) != dict: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    if type(tdict) != dict: utils.raiseAnError(TypeError,self,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
     if self.target in names: targetValues = values[names.index(self.target)]
-    else                   : raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The output sought '+self.target+' is not in the training set')
+    else                   : utils.raiseAnError(IOError,self,'The output sought '+self.target+' is not in the training set')
     # check if the targetValues are consistent with the expected structure
     resp = self.checkArrayConsistency(targetValues)
-    if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for target '+self.target+':'+resp[1])
+    if not resp[0]: utils.raiseAnError(IOError,self,'In training set for target '+self.target+':'+resp[1])
     # construct the evaluation matrixes
     featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the training set')
+      if feat not in names: utils.raiseAnError(IOError,self,'The feature sought '+feat+' is not in the training set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
-        if values[names.index(feat)].size != featureValues[:,0].size: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
+        if not resp[0]: utils.raiseAnError(IOError,self,'In training set for feature '+feat+':'+resp[1])
+        if values[names.index(feat)].size != featureValues[:,0].size: utils.raiseAnError(IOError,self,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
@@ -122,17 +122,17 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     This call is used to get an estimate of the confidence in the prediction.
     The base class self.confidence will translate a dictionary into numpy array, then call the local confidence
     '''
-    if type(edict) != dict: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    if type(edict) != dict: utils.raiseAnError(IOError,self,'method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values   = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index])
-      if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In evaluate request for feature '+names[index]+':'+resp[1])
+      if not resp[0]: utils.raiseAnError(IOError,self,'In evaluate request for feature '+names[index]+':'+resp[1])
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the evaluate set')
+      if feat not in names: utils.raiseAnError(IOError,self,'The feature sought '+feat+' is not in the evaluate set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
+        if not resp[0]: utils.raiseAnError(IOError,self,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = values[names.index(feat)]
     return self.__confidenceLocal__(featureValues)
 
@@ -144,18 +144,18 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     @ In, tdict, evaluation dictionary
     @ Out, numpy array of evaluated points
     '''
-    if type(edict) != dict: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    if type(edict) != dict: utils.raiseAnError(IOError,self,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values  = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index])
-      if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In evaluate request for feature '+names[index]+':'+resp[1])
+      if not resp[0]: utils.raiseAnError(IOError,self,'In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the evaluate set')
+      if feat not in names: utils.raiseAnError(IOError,self,'The feature sought '+feat+' is not in the evaluate set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
+        if not resp[0]: utils.raiseAnError(IOError,self,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     return self.__evaluateLocal__(featureValues)
 
@@ -244,7 +244,7 @@ class NDinterpolatorRom(superVisedLearning):
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
     self.interpolator = None
-    self.printTag = returnPrintTag('ND Interpolation ROM')
+    self.printTag = utils.returnPrintTag('ND Interpolation ROM')
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -258,7 +258,7 @@ class NDinterpolatorRom(superVisedLearning):
     self.interpolator.fit(featv,targv)
 
   def __confidenceLocal__(self,featureVals):
-    raise NotImplemented('NDinterpRom   : __confidenceLocal__ method must be implemented!!!!!')
+    utils.raiseAnError(NotImplementedError,self,'NDinterpRom   : __confidenceLocal__ method must be implemented!')
 
   def __evaluateLocal__(self,featureVals):
     '''
@@ -280,19 +280,20 @@ class NDinterpolatorRom(superVisedLearning):
     return localInitParam
 
   def __returnCurrentSettingLocal__(self):
-    raise NotImplemented('NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!!!!!')
+    utils.raiseAnError(NotImplementedError,self,'NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!')
 
 class GaussPolynomialRom(NDinterpolatorRom):
   def __confidenceLocal__(self,edict):pass #TODO
 
-  def __resetLocal__(self):pass #TODO
+  def __resetLocal__(self):
+    pass
 
   def __returnCurrentSettingLocal__(self):pass #TODO
 
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
     self.interpolator  = None #FIXME what's this?
-    self.printTag      = returnPrintTag('GAUSSgpcROM('+self.target+')')
+    self.printTag      = utils.returnPrintTag('GAUSSgpcROM('+self.target+')')
     self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
     self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
     self.itpDict       = {}   #dict of quad,poly,weight choices keyed on varName
@@ -313,17 +314,16 @@ class GaussPolynomialRom(NDinterpolatorRom):
           self.itpDict[var]={'poly'  :'DEFAULT',
                              'quad'  :'DEFAULT',
                              'weight':'1'}
-                             #'cdf'   :'False'}
           for atrName,atrVal in val.items():
             if atrName in ['poly','quad','weight']: self.itpDict[var][atrName]=atrVal
-            else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
+            else: utils.raiseAnError(IOError,self,'Unrecognized option: '+atrName)
 
     if not self.indexSetType:
-      raise IOError(self.printTag+' No IndexSet specified!')
+      utils.raiseAnError(IOError,self,'No IndexSet specified!')
     if not self.maxPolyOrder:
-      raise IOError(self.printTag+' No maxPolyOrder specified!')
+      utils.raiseAnError(IOError,self,'No maxPolyOrder specified!')
     if self.maxPolyOrder < 1:
-      raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
+      utils.raiseAnError(IOError,self,'Polynomial order cannot be less than 1 currently.')
 
   def _localNormalizeData(self,values,names,feat):
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
@@ -355,27 +355,26 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polyCoeffDict={}
     #check consistency of featureVals
     if len(featureVals)!=len(self.sparseGrid):
-      raise IOError(self.printTag+' ERROR: ROM requires '+str(len(self.sparseGrid))+' points, but only '+str(len(featureVals))+' provided!')
+      utils.raiseAnError(IOError,self,'ROM requires '+str(len(self.sparseGrid))+' points, but '+str(len(featureVals))+' provided!')
     #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
+    #print('DEBUG features',self.printTag,self.features)
     self.sparseGrid._remap(self.features)
     #check equality of point space
     fvs = featureVals[:]
     sgs = self.sparseGrid.points()[:]
     fvs=sorted(fvs,key=itemgetter(*range(len(fvs[0]))))
     sgs=sorted(sgs,key=itemgetter(*range(len(sgs[0]))))
-    #print('DEBUG fvs | sgs:')
     #for i in range(len(fvs)):
     #  print('  ',fvs[i],' | ',sgs[i])
     if not np.allclose(fvs,sgs,rtol=1e-15):
-      print('DEBUG fvs | sgs:')
+      print('DEBUG featureVals | sparseGridVals:')
       for i in range(len(fvs)):
         print('  ',fvs[i],' | ',sgs[i])
-      raise IOError(self.printTag+' ERROR: input values do not match required values!')
+      utils.raiseAnError(IOError,self,'input values do not match required values!')
     #make translation matrix between lists
     translate={}
     for i in range(len(fvs)):
       translate[tuple(fvs[i])]=sgs[i]
-    #TODO can parallelize this! Worth it?
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
     #outFile=file('debugout.txt','w')
     #outFile.writelines(str(list(v for v in self.sparseGrid.varNames))+'\n')
@@ -394,47 +393,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
         wt = self.sparseGrid.weights(translate[tuple(pt)])
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
+    self.amITrained=True
     #outFile.close()
-    self.printPolyDict()
+    #self.printPolyDict()
     #do a few moments #TODO need a better solution for calling moment calculations, etc
-    for r in range(5):
-      print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
-
-    #print('DEBUG sparsegrid:\n'+str(self.sparseGrid))
-    #print('DEBUG scipy tests')
-    #for i in range(1,5):
-    #  print('DEBUG  ',self.quads.values()[0](i))
-    #import scipy
-    #print('DEBUG python',sys.version_info)
-    #print('DEBUG numpy ',np.__version__)
-    #print('DEBUG scipy ',scipy.__version__)
-    #local evals
-    #if len(self.features)==1:
-    #  tests=[(0),(0.2),(0.5),(0.7),(1.0)]
-    #elif len(self.features)==2:
-    # tests=[(0,0),(0,0.5),(0.5,0.5),(1.0,0.5),(1.0,1.0)]
-    #for i in tests:
-    #  print('DEBUG eval'+str(i)+':',self.__evaluateLocal__([i]))
-
-    #pk.dump(self,file('testROMdump.pk','w'))
-    #dud=pk.load(file('testROMdump.pk','r'))
-    #print('dud:',dud)
-    #print('pickle test:',dud==self.distDict)
-
     #for r in range(5):
-    #  print('ROM moment',r,'= %1.16f' %dud.__evaluateMoment__(r))
-    # THESE members pickle ok now, and check out as equal
-    # - sparseGrid
-    # - quads
-    # - maxPolyOrder
-    # - polys
-    # - indexSet
-
-    # THESE members are problems still. TODO
-    # - distDict -> SWIG problems.
-
-    # UNTESTED
-    # SVL
+    #  print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
 
   def printPolyDict(self,printZeros=False):
     '''Human-readable version of the polynomial chaos expansion.
@@ -446,7 +410,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
       if val > 1e-14 or printZeros:
         data.append([idx,val])
     data.sort()
-    print('polyDict for '+self.target+': ')
+    print('polyDict for ['+self.target+'] with inputs '+str(self.features)+': ')
     for idx,val in data:
       print('    ',idx,val)
 
@@ -479,11 +443,271 @@ class GaussPolynomialRom(NDinterpolatorRom):
              #'PolynomialOrder':self.maxPolyOrder,
              # 'Interpolation':interpolationInfo()}
 
-  #def __getstate__(self): #for pickling
-  #  pass
-#
-#  def __setstate__(self,state): #for unpickling
-#    pass
+class HDMRRom(GaussPolynomialRom):
+  def __confidenceLocal__(self,edict):pass #TODO
+
+  def __resetLocal__(self):
+    pass
+
+  def __returnCurrentSettingLocal__(self):pass #TODO
+
+  def _localNormalizeData(self,values,names,feat):
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+
+  def __init__(self,**kwargs):
+    '''Initializes SupervisedEngine. See base class.'''
+    superVisedLearning.__init__(self,**kwargs)
+    self.printTag      = utils.returnPrintTag('HDMR_ROM('+self.target+')')
+    self.sobolOrder    = None #depth of HDMR/Sobol expansion
+    self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
+    self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
+    self.itpDict       = {}   #dict of quad,poly,weight choices keyed on varName
+    self.ROMs          = {}   #dict of GaussPolyROM objects keyed by combination of vars that make them up
+    self.sparseGrid    = None #Quadratures.SparseGrid object, has points and weights
+    self.distDict      = None #dict{varName: Distribution object}, has point conversion methods based on quadrature
+    self.quads         = None #dict{varName: Quadrature object}, has keys for distribution's point conversion methods
+    self.polys         = None #dict{varName: OrthoPolynomial object}, has polynomials for evaluation
+    self.indexSet      = None #array of tuples, polynomial order combinations
+    self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
+    self.itpDict       = {}   #dict{varName: dict{attribName:value} }
+    self.sdx           = None #dict of sobol sensitivity coeffs, keyed on order and tuple(varnames)
+
+    for key,val in kwargs.items():
+      if key=='SobolOrder': self.sobolOrder = int(val)
+      if key=='IndexSet': self.indexSetType = val
+      if key=='PolynomialOrder': self.maxPolyOrder = val
+      if key=='Interpolation':
+        for var,val in val.items():
+          self.itpDict[var]={'poly'  :'DEFAULT',
+                             'quad'  :'DEFAULT',
+                             'weight':'1'}
+          for atrName,atrVal in val.items():
+            if atrName in ['poly','quad','weight']: self.itpDict[var][atrName]=atrVal
+            else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
+
+    if self.indexSetType==None:
+      raise IOError(self.printTag+' No IndexSet specified!')
+    if self.maxPolyOrder==None:
+      raise IOError(self.printTag+' No maxPolyOrder specified!')
+    if self.maxPolyOrder < 1:
+      raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
+
+  def _localNormalizeData(self,values,names,feat):
+    '''Overwrite normalization. See base class.'''
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+
+  def interpolationInfo(self):
+    '''See base class.'''
+    return dict(self.itpDict)
+
+  def initialize(self,idict):
+    '''Called by sampler to pass necessary information along.  See base class.'''
+    for key,value in idict.items():
+      if   key == 'ROMs' : self.ROMs       = value
+      #elif key == 'SG'   : self.sparseGrid = value
+      elif key == 'dists': self.distDict   = value
+      elif key == 'quads': self.quads      = value
+      elif key == 'polys': self.polys      = value
+      elif key == 'refs' : self.references = value
+
+  def __trainLocal__(self,featureVals,targetVals):
+    '''
+      Because HDMR rom is a collection of sub-roms, we call sub-rom "train" to do what we need it do.
+      @ In, tdict, training dictionary
+      @ Out, None
+    '''
+    ft={}
+    for i in range(len(featureVals)):
+      ft[tuple(featureVals[i])]=targetVals[i]
+    #get the reference case
+    self.refpt = tuple(self.__fillPointWithRef((),[]))
+    self.refSoln = ft[tuple(self.refpt)]
+    #print('DEBUG features',self.printTag,self.features)
+    #print('DEBUG featureVals',featureVals)
+    for combo,rom in self.ROMs.items():
+      #print('\nDEBUG     combo:',combo)
+      subtdict={}
+      for c in combo: subtdict[c]=[]
+      subtdict[self.target]=[]
+      SG = rom.sparseGrid
+      fvals=np.zeros([len(SG),len(combo)])
+      tvals=np.zeros(len(SG))
+      for i in range(len(SG)):
+        getpt=tuple(self.__fillPointWithRef(combo,SG[i][0]))
+        tvals[i] = ft[getpt]
+        for fp,fpt in enumerate(SG[i][0]):
+          fvals[i][fp] = fpt
+      #print('DEBUG     lenfvals',len(fvals),len(fvals[0]))
+      for i,c in enumerate(combo):
+        subtdict[c] = fvals[:,i]
+      subtdict[self.target] = tvals
+      #print('DEBUG     subtdict\n',subtdict)
+      rom.train(subtdict)
+      #rom.__trainLocal__(fvals,tvals)
+
+    #make ordered list of combos for use later
+    maxLevel = max(list(len(combo) for combo in self.ROMs.keys()))
+    self.combos = []
+    for i in range(maxLevel+1):
+      self.combos.append([])
+    for combo in self.ROMs.keys():
+      self.combos[len(combo)].append(combo)
+
+    self.amITrained = True
+
+    #do a couple moments, for kicks
+    #if self.debug: #TODO SupervisedEngine doesn't have debug??
+    print('\n| SOBOL Decomposition for '+self.target+' using inputs '+str(self.features)+': ')
+    print('|\n| Moments')
+    print('|   Mean     = %f' %self.__mean__())
+    print('|   Variance = %f' %self.__variance__())
+    #try the variance
+    #try sensitivities
+    print('|\n| Absolute Sensitivities')
+    self.getSensitivities()
+    insig=[]
+    for combo in self.ROMs.keys():
+      if abs(self.sdx[len(combo)][combo])>1e-12:
+        print('|   Index %s = %f' %(combo,self.sdx[len(combo)][combo]))
+      else:
+        insig.append(combo)
+    if len(insig)>0: print('|   Contributes less than 1e-12:',insig)
+    # percent sensitivities
+    print('|\n| Percent Sensitivities')
+    pcts,totpct,totvar = self.getPercentSensitivities(returnTotal=True)
+    #pcts,totpct,totvar = self.getPercentSensitivities(variance=1.604468e-4,returnTotal=True)
+    insig=[]
+    for combo,val in pcts.items():
+      if abs(val)>1e-12:
+        print('|   Index %s = %f' %(combo,val))
+      else: insig.append(combo)
+    if len(insig)>0: print('|   Contributes less than 1e-12:',insig)
+    print('| Total:',totvar,'(',totpct*100,'%)')
+    # evaluations
+    print('|\n| SOBOL evaluations')
+    print('|   f(0.5,3,2) =',self.__evaluateLocal__([[0.5,3,2]]))
+    print('|   f(1,1,1) =',self.__evaluateLocal__([[1,1,1]]))
+
+  def __fillPointWithRef(self,combo,pt):
+    '''Given a "combo" subset of the full input space and a partially-filled
+       point within that space, fills the rest of space with the reference
+       cut values.
+       @ In, combo, tuple of strings, names of subset dimensions
+       @ In, pt, list of floats, values of points in subset dimension
+       @ Out, newpt, full point in input dimension space on cut-hypervolume
+    '''
+    newpt=np.zeros(len(self.features))
+    for v,var in enumerate(self.features):
+      if var in combo:
+        newpt[v] = pt[combo.index(var)]
+      else:
+        newpt[v] = self.references[var]
+    return newpt
+
+  def __mean__(self):
+    '''The Cut-HDMR approximation can return its mean easily.'''
+    vals={'':self.refSoln}
+    for i,c in enumerate(self.combos):
+      for combo in c:
+        rom = self.ROMs[combo]
+        vals[combo] = rom.__evaluateMoment__(1) - vals['']
+        for cl in range(i):
+          for doneCombo in self.combos[cl]:
+            if set(doneCombo).issubset(set(combo)):
+              vals[combo] -= vals[doneCombo]
+    tot = sum(vals.values())
+    return tot
+
+  def __variance__(self):
+    '''The Cut-HDMR approximation can return its variance easily.'''
+    vals={}
+    for i,c in enumerate(self.combos):
+      for combo in c:
+        rom = self.ROMs[combo]
+        mean = rom.__evaluateMoment__(1)
+        vals[combo] = rom.__evaluateMoment__(2) - mean*mean
+        for cl in range(i):
+          for doneCombo in self.combos[cl]:
+            if set(doneCombo).issubset(set(combo)):
+              vals[combo] -= vals[doneCombo]
+    tot = sum(vals.values())
+    return tot
+
+  def __evaluateLocal__(self,featureVals):
+    '''Evaluates ROM at given points.  See base class.'''
+    #am I trained?
+    if not self.amITrained: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> Cannot evaluate, as ROM is not trained!')
+    fvals=dict(zip(self.features,featureVals[0]))
+    vals={'':self.refSoln}
+    for i,c in enumerate(self.combos):
+      for combo in c:
+        myVals = [list(featureVals[0][self.features.index(j)] for j in combo)]
+        rom = self.ROMs[combo]
+        #check if rom is trained
+        if not rom.amITrained: raise IOError('ROM for subset %s is not trained!' %combo)
+        vals[combo] = rom.__evaluateLocal__(myVals) - vals['']
+        for cl in range(i):
+          for doneCombo in self.combos[cl]:
+            if set(doneCombo).issubset(set(combo)):
+              vals[combo] -= vals[doneCombo]
+    tot = sum(vals.values())
+    return tot
+
+  def getSensitivities(self,maxLevel=None,kind='variance'):
+    '''
+      Generates dictionary of Sobol indices for the requested levels.
+      Optionally the moment (r) to get sensitivity indices of can be requested.
+      @ In, levels, list, levels to obtain indices for. Defaults to all available.
+      @ In, kind, string, the metric to use when calculating sensitivity indices. Defaults to variance.
+    '''
+    if kind.lower().strip() not in ['mean','variance']:
+      raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR'),'-> Requested sensitivity benchmark is %s, but expected "mean" or "variance".' %kind)
+    avail = max(list(len(combo) for combo in self.ROMs.keys()))
+    if maxLevel==None: maxLevel = avail
+    else:
+      if maxLevels>avail: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> Requested level %i for sensitivity analyis, but this composition is at most %i order!' %(maxLevel,avail) )
+
+    self.sdx = {}
+    for l in range(maxLevel+1):
+      self.sdx[l]={}
+    #put basic metric in
+    for i,c in enumerate(self.combos):
+      for combo in c:
+        rom = self.ROMs[combo]
+        mean = rom.__evaluateMoment__(1)
+        self.sdx[i][combo] = rom.__evaluateMoment__(2) - mean*mean
+        for cl in range(i):
+          for doneCombo in self.combos[cl]:
+            if set(doneCombo).issubset(set(combo)):
+              self.sdx[i][combo]-=self.sdx[cl][doneCombo]
+
+  def getPercentSensitivities(self,variance=None,returnTotal=False):
+    '''Calculates percent sensitivities.
+    If variance specified, uses it as the bnechmark variance, otherwise uses ROM to calculate total variance approximately.
+    If returnTotal specified, also returns percent of total variance and the total variance value.
+    @ In, variance, float to represent user-provided total variance
+    @ In, returnTotal, boolean to turn on returning total percent and total variance
+    @ Out, pcts, percent=based Sobol sensitivity indices
+    '''
+    if self.sdx == None or len(self.sdx)<1:
+      self.getSensitivities()
+    if variance==None or variance==0:
+      variance = self.__variance__()
+      variance = 0.0
+      for c,combos in self.sdx.items():
+        for combo in combos:
+          variance+=self.sdx[c][combo]
+    tot=0.0
+    totvar=0.0
+    pcts={}
+    for c,combos in self.sdx.items():
+      for combo in combos:
+        totvar+=self.sdx[c][combo]
+        pcts[combo]=self.sdx[c][combo]/variance
+        tot+=pcts[combo]
+    if returnTotal: return pcts,tot,totvar
+    else: return pcts
+
 #
 #
 #
@@ -491,7 +715,7 @@ class NDsplineRom(NDinterpolatorRom):
   ROMtype         = 'NDsplineRom'
   def __init__(self,**kwargs):
     NDinterpolatorRom.__init__(self,**kwargs)
-    self.printTag = returnPrintTag('ND-SPLINE ROM')
+    self.printTag = utils.returnPrintTag('ND-SPLINE ROM')
     self.interpolator = interpolationND.NDspline()
 
   def __resetLocal__(self):
@@ -504,8 +728,8 @@ class NDinvDistWeigth(NDinterpolatorRom):
   ROMtype         = 'NDinvDistWeigth'
   def __init__(self,**kwargs):
     NDinterpolatorRom.__init__(self,**kwargs)
-    self.printTag = returnPrintTag('ND-INVERSEWEIGHT ROM')
-    if not 'p' in self.initOptionDict.keys(): raise IOError (self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
+    self.printTag = utils.returnPrintTag('ND-INVERSEWEIGHT ROM')
+    if not 'p' in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
     self.interpolator = interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p']))
 
   def __resetLocal__(self):
@@ -518,9 +742,9 @@ class NDmicroSphere(NDinterpolatorRom):
   ROMtype         = 'NDmicroSphere'
   def __init__(self,**kwargs):
     NDinterpolatorRom.__init__(self,**kwargs)
-    self.printTag = returnPrintTag('ND-MICROSPHERE ROM')
-    if not 'p' in self.initOptionDict.keys(): raise IOError (self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> the <p> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
-    if not 'precision' in self.initOptionDict.keys(): raise IOError (self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> the <precision> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
+    self.printTag = utils.returnPrintTag('ND-MICROSPHERE ROM')
+    if not 'p' in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'the <p> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
+    if not 'precision' in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'the <precision> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
     self.interpolator = interpolationND.microSphere(float(self.initOptionDict['p']),int(self.initOptionDict['precision']))
 
   def __resetLocal__(self):
@@ -620,12 +844,12 @@ class SciKitLearn(superVisedLearning):
 
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
-    self.printTag = returnPrintTag('SCIKITLEARN')
-    if 'SKLtype' not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.name+')')
+    self.printTag = utils.returnPrintTag('SCIKITLEARN')
+    if 'SKLtype' not in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.name+')')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.initOptionDict.pop('SKLtype')
-    if not SKLtype in self.__class__.availImpl.keys(): raise IOError (self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> not known SKLtype ' + SKLtype +'(from ROM '+self.name+')')
-    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): raise IOError (self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> not known SKLsubType ' + SKLsubType +'(from ROM '+self.name+')')
+    if not SKLtype in self.__class__.availImpl.keys(): utils.raiseAnError(IOError,self,'not known SKLtype ' + SKLtype +'(from ROM '+self.name+')')
+    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): utils.raiseAnError(IOError,self,'not known SKLsubType ' + SKLsubType +'(from ROM '+self.name+')')
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
     self.ROM                      = self.__class__.availImpl[SKLtype][SKLsubType][0]()
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
@@ -634,7 +858,22 @@ class SciKitLearn(superVisedLearning):
       except: pass
     self.ROM.set_params(**self.initOptionDict)
 
-  def _readdressEvaluate(self,edict): return self.myNumber
+  def _readdressEvaluateConstResponse(self,edict):
+    """
+    Method to re-address the evaluate base class method in order to avoid wasting time
+    in case the training set has an unique response (e.g. if 10 points in the training set,
+    and the 10 outcomes are all == to 1, this method returns one without the need of an
+    evaluation)
+    @ In, prediction request, Not used in this method (kept the consistency with evaluate method)
+    """
+    return self.myNumber
+
+  def _readdressEvaluateRomResponse(self,edict):
+    """
+    Method to re-address the evaluate base class method to its original method
+    @ In, prediction request, used in this method (kept the consistency with evaluate method)
+    """
+    return self.__class__.evaluate(self,edict)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -648,18 +887,19 @@ class SciKitLearn(superVisedLearning):
     targetVals : array, shape = [n_samples]
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
-    print(self.ROM.__dict__)
-    print(self.ROM)
+    #print(self.ROM.__dict__)
+    #print(self.ROM)
     if len(np.unique(targetVals))>1:
       self.ROM.fit(featureVals,targetVals)
+      self.evaluate = self._readdressEvaluateRomResponse
       #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
     else:
       self.myNumber = np.unique(targetVals)[0]
-      self.evaluate = self._readdressEvaluate
+      self.evaluate = self._readdressEvaluateConstResponse
 
   def __confidenceLocal__(self,edict):
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)
-    else            : raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
+    else            : utils.raiseAnError(IOError,self,'the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
 
   def __evaluateLocal__(self,featureVals):
     return self.ROM.predict(featureVals)
@@ -682,7 +922,8 @@ __interfaceDict['NDspline'            ] = NDsplineRom
 __interfaceDict['NDinvDistWeigth'     ] = NDinvDistWeigth
 __interfaceDict['microSphere'         ] = NDmicroSphere
 __interfaceDict['SciKitLearn'         ] = SciKitLearn
-__interfaceDict['GaussPolynomialRom'] = GaussPolynomialRom
+__interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
+__interfaceDict['HDMRRom'             ] = HDMRRom
 __base                                  = 'superVisedLearning'
 
 def addToInterfaceDict(newDict):
@@ -692,9 +933,9 @@ def addToInterfaceDict(newDict):
 def returnInstance(ROMclass,**kwargs):
   '''This function return an instance of the request model type'''
   try: return __interfaceDict[ROMclass](**kwargs)
-  except KeyError: raise NameError('not known '+__base+' type '+str(ROMclass))
+  except KeyError: utils.raiseAnError(NameError,'SUPERVISEDLEARNING','not known '+__base+' type '+str(ROMclass))
 
 def returnClass(ROMclass):
   '''This function return an instance of the request model type'''
   try: return __interfaceDict[ROMclass]
-  except KeyError: raise NameError('not known '+__base+' type '+ROMclass)
+  except KeyError: utils.raiseAnError(NameError,'SUPERVISEDLEARNING','not known '+__base+' type '+ROMclass)

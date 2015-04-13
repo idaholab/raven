@@ -1,4 +1,5 @@
 from __future__ import print_function
+# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
@@ -31,6 +32,38 @@ def getPrintTagLenght(): return 25
 def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
 
 def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
+
+def raiseAnError(etype,obj,msg):
+  '''
+    Standardized error raising.
+    @ In, etype, the error type to raise
+    @ In, obj, either a string or a class instance to determine the label for the error
+    @ In, msg, the error message to display
+    @ Out, None
+  '''
+  if type(obj) in [str,unicode]:
+    tag = obj
+  else:
+    try: obj.printTag
+    except AttributeError: tag = str(obj)
+    else: tag = str(obj.printTag)
+  raise etype(returnPrintTag(tag)+': '+returnPrintPostTag('ERROR')+' -> '+str(msg))
+
+def raiseAWarning(obj,msg,wtag='WARNING'):
+  '''
+    Standardized warning printing.
+    @ In, obj, either a string or a class instance to determine the label for the error
+    @ In, msg, the error message to display
+    @ In, wtag, optional, the type of warning to display (default "WARNING")
+    @ Out, None
+  '''
+  if type(obj) in [str,unicode]:
+    tag = obj
+  else:
+    try: obj.printTag
+    except AttributeError: tag = str(obj)
+    else: tag = str(obj.printTag)
+  print(returnPrintTag(tag)+': '+returnPrintPostTag(str(wtag))+' -> '+str(msg))
 
 def convertMultipleToBytes(sizeString):
   '''
