@@ -72,6 +72,7 @@ def printGraphs(csv, functions, f_z_stats = False):
   n = int(math.ceil((high-low)/minBinSize))
   interval = (high - low)/n
 
+  #Print the cdfs and pdfs of the data to be compared.
   printCsvPart(csv,'"x"')
   for name in names:
     printCsvPart(csv,'"'+name+'_cdf"','"'+name+'_pdf"')
@@ -92,6 +93,8 @@ def printGraphs(csv, functions, f_z_stats = False):
   midZ = means[0]-means[1]
   lowZ = midZ - 3.0*max(stddevs[0],stddevs[1])
   highZ = midZ + 3.0*max(stddevs[0],stddevs[1])
+
+  #print the difference function table.
   printCsv(csv,'"z"','"f_z(z)"')
   zN = 20
   intervalZ = (highZ - lowZ)/zN
@@ -103,6 +106,7 @@ def printGraphs(csv, functions, f_z_stats = False):
   def firstMomentSimpson(f, a, b, n):
     return simpson(lambda x:x*f(x), a, b, n)
 
+  #print a bunch of comparison statistics
   pdfCommonArea = simpson(lambda x:min(pdfs[0](x),pdfs[1](x)),
                             lowLow,highHigh,100000)
   for i in range(len(pdfs)):
