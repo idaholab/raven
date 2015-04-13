@@ -38,7 +38,7 @@
 <Samplers>
     <MonteCarlo name='MC_external'>
         <sampler_init>
-            <limit>300</limit>
+            <limit>3</limit>
             <initial_seed>1234</initial_seed>
             <dist_init>
                 <distribution name= 'ND_CartesianSpline_P'>

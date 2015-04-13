@@ -403,11 +403,11 @@
   csv = 'ND_test_Grid_cdf/testPrintTimePointSet_dump.csv ND_test_Grid_cdf/testPrintTimePointSet_dump.csv'
  [../]
 
- [./ND_test_Grid_value_MVN]
+ [./ND_test_MC_MVN]
   type = 'RavenFramework'
-  input = 'test_simple_ND_external_grid_value_MVN.xml'
-  output = 'ND_test_Grid_value_MVN/testPrintTimePointSet_dump.csv ND_test_Grid_value_MVN/testPrintTimePointSet_dump.csv'
-  csv = 'ND_test_Grid_value_MVN/testPrintTimePointSet_dump.csv ND_test_Grid_value_MVN/testPrintTimePointSet_dump.csv'
+  input = 'test_simple_ND_external_MC_MVN.xml'
+  output = 'ND_test_MC_MVN/testPrintTimePointSet_dump.csv ND_test_MC_MVN/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_MC_MVN/testPrintTimePointSet_dump.csv ND_test_MC_MVN/testPrintTimePointSet_dump.csv'
  [../]
 
  [./test_comparison_statistics]
