@@ -100,7 +100,7 @@ class hdf5Database(object):
     self.allGroupEnds  = {}
     if not self.fileOpen: self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'a')
     self.h5_file_w.visititems(self.__isGroup)
-    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
+    utils.raiseAMessage(self,'TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
 
   def __isGroup(self,name,obj):
     '''
@@ -111,7 +111,7 @@ class hdf5Database(object):
     '''
     if isinstance(obj,h5.Group):
       self.allGroupPaths.append(name)
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Accessing group named ' +name)
+      utils.raiseAMessage(self,'Accessing group named ' +name)
       if "EndGroup" in obj.attrs:
         self.allGroupEnds[name]  = obj.attrs["EndGroup"]
       else:
@@ -205,7 +205,6 @@ class hdf5Database(object):
       firstRow = f.readline().strip(b"\r\n")
       #firstRow = f.readline().translate(None,"\r\n")
       headers = firstRow.split(b",")
-      #print(repr(headers))
       # Load the csv into a numpy array(n time steps, n parameters)
       data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
       # First parent group is the root name
@@ -223,7 +222,7 @@ class hdf5Database(object):
       else:
         if upGroup: grp = self.h5_file_w.require_group(gname)
         else:       grp = self.h5_file_w.create_group(gname)
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+      utils.raiseAMessage(self,'Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
       # Create dataset in this newly added group
       grp.create_dataset(gname+"_data", dtype="float", data=data)
       # Add metadata
@@ -466,10 +465,8 @@ class hdf5Database(object):
       # The parent group is not the endgroup for this branch
       self.allGroupEnds[parent_group_name] = False
       grp.attrs["EndGroup"]   = False
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+      utils.raiseAMessage(self,'Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
       # Create the sub-group
-      #print(self.allGroupEnds.keys())
-      #print(gname)
       sgrp = grp.create_group(gname)
       # Create data set in this new group
       sgrp.create_dataset(gname+"_data", dtype="float", data=data)

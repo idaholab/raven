@@ -45,7 +45,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Sampler']       = []
   testDict                      = {}
   testDict                      = {'class':'','type':[''],'multiplicity':0,'required':False}
-  print('FIXME: a multiplicity value is needed to control role that can have different class')
+  utils.raiseAMessage('MODELS','FIXME: a multiplicity value is needed to control role that can have different class')
   #the possible inputs
   validateDict['Input'].append(testDict.copy())
   validateDict['Input'  ][0]['class'       ] = 'Datas'
@@ -141,7 +141,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def _readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['subType']
     except KeyError:
-      print(self.printTag+": " +utils.returnPrintPostTag('ERROR') + "-> Failed in Node: ",xmlNode)
+      utils.raiseAModel(self," Failed in Node: "+str(xmlNode),'DEBUG')
       utils.raiseAnError(IOError,self,'missed subType for the model '+self.name)
     del(xmlNode.attrib['subType'])
 
@@ -231,7 +231,7 @@ class Dummy(Model):
 
   def _inputToInternal(self,dataIN,full=False):
     '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('FIXME') + '-> wondering if a dictionary compatibility should be kept')
+    if self.debug: utils.raiseAMessage(self,'wondering if a dictionary compatibility should be kept','FIXME')
     if  type(dataIN)!=dict:
       if dataIN.type not in self.admittedData: utils.raiseAnError(IOError,self,'type '+dataIN.type+' is not compatible with the ROM '+self.name)
     if full==True:  length = 0
@@ -391,7 +391,7 @@ class ROM(Dummy):
       for instrom in self.SupervisedEngine.values():
         instrom.train(self.trainingSet)
         self.aimITrained = self.amITrained and instrom.amITrained
-      if self.debug:print('FIXME: add self.amITrained to currentParamters')
+      if self.debug:utils.raiseAMessage(self,'add self.amITrained to currentParamters','FIXME')
 
   def confidence(self,request,target = None):
     '''
@@ -432,7 +432,7 @@ class ExternalModel(Dummy):
   @classmethod
   def specializeValidateDict(cls):
     #one data is needed for the input
-    print('FIXME: think about how to import the roles to allowed class for the external model. For the moment we have just all')
+    utils.raiseAMessage('EXTERNAL_MODEL','think about how to import the roles to allowed class for the external model. For the moment we have just all','FIXME')
   def __init__(self):
     '''
     Constructor
@@ -520,9 +520,9 @@ class ExternalModel(Dummy):
       for key in self.modelVariableType.keys():
         self.modelVariableType[key] = type(modelVariableValues[key]).__name__
         if self.modelVariableType[key] not in self._availableVariableTypes:
-          if not errorfound: print(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Unsupported type found. Available ones are: '+ str(self._availableVariableTypes).replace('[','').replace(']', ''))
+          if not errorfound: utils.raiseAMessage(self,'Unsupported type found. Available ones are: '+ str(self._availableVariableTypes).replace('[','').replace(']', ''),'DEBUG')
           errorfound = True
-          print(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key])
+          utils.raiseAMessage(self,'variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],'DEBUG')
       if errorfound: utils.raiseAnError(RuntimeError,self,'Errors detected. See above!!')
     return copy.copy(modelVariableValues),self
 
@@ -561,7 +561,7 @@ class Code(Model):
   CodeInterfaces = importlib.import_module("CodeInterfaces")
   @classmethod
   def specializeValidateDict(cls):
-    print('think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable')
+    utils.raiseAMessage('CODE','think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable')
     cls.validateDict['Input'] = [cls.validateDict['Input'][1]]
 
   def __init__(self):
@@ -639,7 +639,7 @@ class Code(Model):
     abspath = os.path.abspath(self.executable)
     if os.path.exists(abspath):
       self.executable = abspath
-    else: print(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found executable '+self.executable)
+    else: utils.raiseAMessage(self,'not found executable '+self.executable,'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType)
     self.code.readMoreXML(xmlNode)
     self.code.setInputExtension(list(a for b in (c for c in self.clargs['input'].values()) for a in b))
@@ -676,9 +676,9 @@ class Code(Model):
     try: os.mkdir(self.workingDir)
     except OSError: utils.raiseAWarning(self,'current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> original input files copied in the current working dir: '+self.workingDir)
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> files copied:')
-    if self.debug: print(inputFiles)
+    if self.debug: utils.raiseAMessage(self,'original input files copied in the current working dir: '+self.workingDir)
+    if self.debug: utils.raiseAMessage(self,'files copied:')
+    if self.debug: utils.raiseAMessage(self, '  '+str(inputFiles))
     self.oriInputFiles = []
     for i in range(len(inputFiles)): self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
     self.currentInputFiles        = None
@@ -712,7 +712,7 @@ class Code(Model):
         break
     if not found: utils.raiseAnError(IOError,self,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
-    print(self.printTag+ ': ' +utils.returnPrintPostTag('Message') + '-> job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
+    utils.raiseAMessage(self,'job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
 
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
@@ -735,7 +735,7 @@ class Projector(Model):
   '''Projector is a data manipulator'''
   @classmethod
   def specializeValidateDict(cls):
-    print('Remember to add the data type supported the class filter')
+    utils.raiseAMessage('PROJECTOR','Remember to add the data type supported the class filter')
 
   def __init__(self):
     Model.__init__(self)

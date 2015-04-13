@@ -117,7 +117,7 @@ class Function(BaseType):
     for key in self.__inputVariables:
       #exec('self.'+key+'=inputData.extractValue(myType,key)')
       ##### TEMPORARY FIXXXXXXXX - ALIAS NEEDED#######
-      print('FIXME: Alias are already in place why we have still the fixme (once done see also if the loop should contain the myType???')
+      utils.raiseAMessage(self,'Alias are already in place why we have still the fixme (once done see also if the loop should contain the myType?','FIXME')
       foundperfectly = False
       for index in range(len(inputData.dataParameters['inParam'])):
         if key == inputData.dataParameters['inParam'][index]: foundperfectly = True

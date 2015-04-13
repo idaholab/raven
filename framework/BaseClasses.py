@@ -43,7 +43,7 @@ class BaseType(object):
     else                                     : self.debug = debug
     self._readMoreXML(xmlNode)
     if self.debug:
-      print(self.printTag+'------Reading Completed for:')
+      utils.raiseAMessage(self,'------Reading Completed for:')
       self.printMe()
 
   def _readMoreXML(self,xmlNode):
@@ -92,14 +92,14 @@ class BaseType(object):
     the instance of an object that inherit this class
     '''
     tempDict = self.whoAreYou()
-    for key in tempDict.keys(): print('{0:15}: {1}'.format(key,str(tempDict[key])))
+    msg=''
+    for key in tempDict.keys(): utils.raiseAMessage('BASECLASSES','{0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myInitializzationParams()
-    print(self.printTag+'Initialization Parameters:')
-    for key in tempDict.keys(): print('{0:15}: {1}'.format(key,str(tempDict[key])))
+    utils.raiseAMessage(self,'Initialization Parameters:')
+    for key in tempDict.keys(): utils.raiseAMessage('BASECLASSES','{0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myCurrentSetting()
-    print(self.printTag+'Current Setting:')
-    for key in tempDict.keys(): print('{0:15}: {1}'.format(key,str(tempDict[key])))
-    print('\n')
+    utils.raiseAMessage(self,'Current Setting:')
+    for key in tempDict.keys(): utils.raiseAMessage('BASECLASSES','{0:15}: {1}'.format(key,str(tempDict[key])))
 #
 #
 #

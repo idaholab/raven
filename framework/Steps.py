@@ -79,7 +79,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @in xmlNode: xml.etree.ElementTree.Element containing the input to construct the step
     '''
     printString = self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> For step of type {0:15} and name {1:15} the attribute {3:10} has been assigned to a not understandable value {2:10}'
-    if self.FIXME: print(self.printTag+': FIXME -> move this tests to base class when it is ready for all the classes')
+    if self.FIXME: utils.raiseAMessage(self,'move this tests to base class when it is ready for all the classes','FIXME')
     if not set(xmlNode.attrib.keys()).issubset(set(self._knownAttribute)):
       utils.raiseAnError(IOError,self,'IN step of type {0:15} and name {1:15} there are unknown attributes {2:100}'.format(self.type,self.name,str(xmlNode.attrib.keys())))
     if 're-seeding' in xmlNode.attrib.keys():
@@ -128,7 +128,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def _initializeStep(self,inDictionary):
     '''the job handler is restarted and re-seeding action are performed'''
     inDictionary['jobHandler'].startingNewStep()
-    if self.debug: print('jobHandler initialized')
+    if self.debug: utils.raiseAMessage(self,'jobHandler initialized')
     self._localInitializeStep(inDictionary)
 
   @abc.abstractmethod
@@ -138,7 +138,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     The inDictionary contains the for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
     The role of _localInitializeStep is to call the initialize method instance if needed
     Remember after each initialization to put:
-    if self.debug: print('for the role "+key+" the item of class '+inDictionary['key'].type+' and name '+inDictionary['key'].name+' has been initialized')
+    if self.debug: utils.raiseAMessage(self,'for the role "+key+" the item of class '+inDictionary['key'].type+' and name '+inDictionary['key'].name+' has been initialized')
     or in general after any action put a communication conditional to the debug flag
     '''
     pass
@@ -160,15 +160,15 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     This should work for everybody just split the step in an initialization and the run itself
     inDictionary[role]=instance or list of instance
     '''
-    print(self.printTag+               ': ' +utils.returnPrintPostTag('MESSAGE') + '***  Beginning initialization ***')
+    utils.raiseAMessage(self,'***  Beginning initialization ***')
     self._initializeStep(inDictionary)
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('MESSAGE') + '***    Initialization done    ***')
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('MESSAGE') + '***       Beginning run       ***')
+    if self.debug: utils.raiseAMessage(self,'***    Initialization done    ***')
+    if self.debug: utils.raiseAMessage(self,'***       Beginning run       ***')
     self._localTakeAstepRun(inDictionary)
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('MESSAGE') + '***       Run finished        ***')
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('MESSAGE') + '***     Closing the step      ***')
+    if self.debug: utils.raiseAMessage(self,'***       Run finished        ***')
+    if self.debug: utils.raiseAMessage(self,'***     Closing the step      ***')
     self._endStepActions(inDictionary)
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('MESSAGE') + '***        Step closed        ***')
+    if self.debug: utils.raiseAMessage(self,'***        Step closed        ***')
 #
 #
 #
@@ -179,7 +179,7 @@ class SingleRun(Step):
     self.printTag = utils.returnPrintTag('STEP SINGLERUN')
 
   def _localInputAndChecks(self,xmlNode):
-    if self.FIXME:print(self.printTag+': FIXME -> the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below')
+    if self.FIXME: utils.raiseAMessage(self,'the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below','FIXME')
     found     = 0
     rolesItem = []
     for index, parameter in enumerate(self.parList):
@@ -199,8 +199,7 @@ class SingleRun(Step):
     for role in roles:
       if role not in self._excludeFromModelValidation:
         Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
-    if self.FIXME: print(self.printTag+': ' +utils.returnPrintPostTag('FIXME') + '-> reactivate check on Input as soon as loadCsv gets out from the PostProcessor models!!!!')
-    #if 'Input'  not in roles: raisea IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->  It is not possible a run without an Input!!!')
+    if self.FIXME: utils.raiseAMessage(self,'reactivate check on Input as soon as loadCsv gets out from the PostProcessor models!','FIXME')
     if 'Output' not in roles: utils.raiseAnError(IOError,self,'It is not possible a run without an Output!!!')
 
   def _localInitializeStep(self,inDictionary):
@@ -208,13 +207,13 @@ class SingleRun(Step):
     #Model initialization
     modelInitDict={}
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{})
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
+    if self.debug: utils.raiseAMessage(self,'for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
       if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
-        if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
+        if self.debug: utils.raiseAMessage(self,'for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
 
   def _localTakeAstepRun(self,inDictionary):
     '''main driver for a step'''
@@ -234,8 +233,8 @@ class SingleRun(Step):
               elif output.type in   ['OutStreamPlot','OutStreamPrint']: output.addOutput()
             else: model.collectOutput(finishedJob,output)
         else:
-          print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> the failed jobs are tracked in the JobHandler... we can retrieve and treat them separately. Andrea')
-          print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> a job failed... call the handler for this situation')
+          utils.raiseAMessage(self,'the failed jobs are tracked in the JobHandler... we can retrieve and treat them separately. Andrea','AndreaAcceptedError')
+          utils.raiseAMessage(self,'a job failed... call the handler for this situation','AndreaAcceptedError')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
       time.sleep(self.sleepTime)
   def _localAddInitParams(self,tempDict): pass
@@ -258,8 +257,8 @@ class MultiRun(SingleRun):
     if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
 
     inDictionary['Sampler'].initialize(**self._samplerInitDict)
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> for the role of sampler the item of class '+inDictionary['Sampler'].type+' and name '+inDictionary['Sampler'].name+' has been initialized')
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Sampler initialization dictionary: '+str(self._samplerInitDict))
+    if self.debug: utils.raiseAMessage(self,'for the role of sampler the item of class '+inDictionary['Sampler'].type+' and name '+inDictionary['Sampler'].name+' has been initialized')
+    if self.debug: utils.raiseAMessage(self,utils.returnPrintPostTag('Message') + '-> Sampler initialization dictionary: '+str(self._samplerInitDict))
 
   def _localInitializeStep(self,inDictionary):
     SingleRun._localInitializeStep(self,inDictionary)
@@ -273,14 +272,14 @@ class MultiRun(SingleRun):
         if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name: self._outputCollectionLambda.append((lambda x:None, outIndex))
         else: self._outputCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex) )
       else: self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
-    if self.debug:print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
+    if self.debug: utils.raiseAMessage(self,'Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     newInputs = []
     for _ in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
       if inDictionary['Sampler'].amIreadyToProvideAnInput(): newInputs.append(inDictionary['Sampler'].generateInput(inDictionary["Model"],inDictionary['Input']))
     #newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize']) #,lastOutput=self.targetOutput
     for inputIndex, newInput in enumerate(newInputs):
       inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
-      if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Submitted input '+str(inputIndex+1))
+      if self.debug: utils.raiseAMessage(self,'Submitted input '+str(inputIndex+1))
 
   def _localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
@@ -296,17 +295,17 @@ class MultiRun(SingleRun):
         if finishedJob.getReturnCode() == 0:
           for myLambda, outIndex in self._outputCollectionLambda:
             myLambda([finishedJob,outputs[outIndex]])
-            if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
+            if self.debug: utils.raiseAMessage(self,'Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
         else:
-          print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> the job failed... call the handler for this situation... not yet implemented...')
-          print(self.printTag+": " +utils.returnPrintPostTag('Message') + '-> the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
+          utils.raiseAMessage(self,'the job failed... call the handler for this situation... not yet implemented...','AndreaAcceptedError')
+          utils.raiseAMessage(self,'the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea','AndreaAcceptedError')
         for _ in range(min(jobHandler.howManyFreeSpots(),sampler.endJobRunnable())): # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
-          if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Testing the sampler if it is ready to generate a new input')
+          if self.debug: utils.raiseAMessage(self,'Testing the sampler if it is ready to generate a new input')
           #if sampler.amIreadyToProvideAnInput(inLastOutput=self.targetOutput):
           if sampler.amIreadyToProvideAnInput():
             newInput =sampler.generateInput(model,inputs)
             model.run(newInput,jobHandler)
-            if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> New input generated')
+            if self.debug: utils.raiseAMessage(self,'New input generated')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
       time.sleep(self.sleepTime)
 #
@@ -320,7 +319,6 @@ class MultiRun(SingleRun):
 #   def _localInputAndChecks(self,xmlNode):
 #     '''we check coherence of Sampler, Functions and Solution Output'''
 #     #test sampler information:
-#     if self.FIXME: print(self.printTag+': FIXME ->  all these test should be done at the beginning in a static fashion being careful since not all goes to the model')
 #     foundSampler     = False
 #     samplCounter     = 0
 #     foundTargEval    = False
@@ -447,13 +445,11 @@ class RomTrainer(Step):
 #     if self.foundROM: ROMExt = inDictionary['ROM']
 #     initDict = {'externalFunction':functionExt,'ROM':ROMExt}
 #     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],initDict)
-#     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
 #     #HDF5 initialization
 #     for i in range(len(inDictionary['Output'])):
 #       if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
 #         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
 #         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
-#         if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
 #
 #   def _localTakeAstepRun(self,inDictionary):
 #     SingleRun._localTakeAstepRun(self, inDictionary)
@@ -512,7 +508,7 @@ class IOStep(Step):
           if outputs[i].name not in databases:
             databases.add(outputs[i].name)
             outputs[i].initialize(self.name)
-            if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(outputs[i].type,outputs[i].name))
+            if self.debug: utils.raiseAMessage(self,'for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(outputs[i].type,outputs[i].name))
 
     #if have a fromDirectory and are a DATAS-*, need to load data
     if self.fromDirectory:
@@ -525,7 +521,7 @@ class IOStep(Step):
     for output in inDictionary['Output']:
       if type(output).__name__ in ['OutStreamPrint','OutStreamPlot']:
         output.initialize(inDictionary)
-        if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
+        if self.debug: utils.raiseAMessage(self,'for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
 
   def _localTakeAstepRun(self,inDictionary):
     outputs = self.__getOutputs(inDictionary)
