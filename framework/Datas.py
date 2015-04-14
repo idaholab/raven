@@ -250,9 +250,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     options_int = {}
     # print content of data in a .csv format
     if self.debug:
-      print(' '*len(self.printTag)+':=======================')
-      print(' '*len(self.printTag)+':DATAS: print on file(s)')
-      print(' '*len(self.printTag)+':=======================')
+      utils.raiseAMessage(self,' '*len(self.printTag)+':=======================')
+      utils.raiseAMessage(self,' '*len(self.printTag)+':DATAS: print on file(s)')
+      utils.raiseAMessage(self,' '*len(self.printTag)+':=======================')
     if options:
       if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
       else: filenameLocal = self.name + '_dump'
@@ -329,7 +329,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     assert(root.tag == 'data')
     retDict = {}
     retDict["fileType"] = root.attrib['type']
-    #print(root.tag,retDict)
     inputNode = root.find("input")
     outputNode = root.find("output")
     filenameNode = root.find("input_filename")
@@ -344,7 +343,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         value = child.text
         metadataDict[key] = value
       retDict["metadata"] = metadataDict
-    #print(inputNode,outputNode,retDict)
     return retDict
 
   def addOutput(self,toLoadFrom,options=None):
@@ -358,12 +356,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.addSpecializedReadingSettings()
 
     sourceType = None
-    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Constructing data type ' +self.type +' named '+ self.name + ' from:')
+    utils.raiseAMessage(self,'Constructing data type ' +self.type +' named '+ self.name + ' from:')
     try:
       sourceType =  self._toLoadFromList[-1].type
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Object type ' + self._toLoadFromList[-1].type + ' named "' + self._toLoadFromList[-1].name+'"')
+      utils.raiseAMessage(self,'Object type ' + self._toLoadFromList[-1].type + ' named "' + self._toLoadFromList[-1].name+'"')
     except AttributeError:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Object type' +' CSV named "' + toLoadFrom+'"')
+      utils.raiseAMessage(self,'Object type' +' CSV named "' + toLoadFrom+'"')
 
     if(sourceType == 'HDF5'):
       tupleVar = self._toLoadFromList[-1].retrieveData(self._dataParameters)
@@ -410,7 +408,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                 else: utils.raiseAnError(IOError,self,'unknown type for metadata adding process. Relevant type = '+ str(elem))
 
         else:
-          #print('FIXME: This if statement is for back Compatibility... Remove it whitin end of July')
           if tupleVar[2][hist]: utils.raiseAnError(IOError,self,'unknown type for metadata adding process. Relevant type = '+ str(type(tupleVar[2][hist])))
     self.checkConsistency()
     return
@@ -903,7 +900,6 @@ class TimePoint(Data):
     #values.
     filenameLocal = os.path.join(filenameRoot,self.name)
     xmlData = self._loadXMLFile(filenameLocal)
-    #print(xmlData)
     assert(xmlData["fileType"] == "timepoint")
     if "metadata" in xmlData:
       self._dataContainer['metadata'] = xmlData["metadata"]
@@ -1254,10 +1250,8 @@ class TimePointSet(Data):
     header = myFile.readline().rstrip()
     inoutKeys = header.split(",")
     inoutValues = [[] for a in range(len(inoutKeys))]
-    #print(inoutKeys)
     for line in myFile.readlines():
       line_list = line.rstrip().split(",")
-      #print(line_list)
       for i in range(len(inoutKeys)):
         inoutValues[i].append(utils.partialEval(line_list[i]))
     self._dataContainer['inputs'] = {}
@@ -1269,7 +1263,6 @@ class TimePointSet(Data):
       self._dataContainer["inputs"][key] = np.array(inoutDict[key])
     for key in xmlData["outKeys"]:
       self._dataContainer["outputs"][key] = np.array(inoutDict[key])
-    #print(inoutKeys,inoutValues)
 
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
@@ -1435,7 +1428,6 @@ class History(Data):
 
     filenameLocal = os.path.join(filenameRoot,self.name)
     xmlData = self._loadXMLFile(filenameLocal)
-    #print(xmlData)
     assert(xmlData["fileType"] == "history")
     if "metadata" in xmlData:
       self._dataContainer['metadata'] = xmlData["metadata"]
@@ -1447,24 +1439,20 @@ class History(Data):
     inpKeys = header.split(",")[:-1]
     subCSVFilename = os.path.join(filenameRoot,firstLine.split(",")[-1])
     inpValues = [utils.partialEval(a) for a in firstLine.split(",")[:-1]]
-    #print(inpKeys,subCSVFilename,inpValues)
     myDataFile = open(subCSVFilename, "rU")
     header = myDataFile.readline().rstrip()
     outKeys = header.split(",")
     outValues = [[] for a in range(len(outKeys))]
-    #print(outKeys)
     for line in myDataFile.readlines():
       line_list = line.rstrip().split(",")
       for i in range(len(outKeys)):
         outValues[i].append(utils.partialEval(line_list[i]))
-    #print(outValues)
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     for key,value in zip(inpKeys,inpValues):
       self._dataContainer['inputs'][key] = [value]*len(outValues[0])
     for key,value in zip(outKeys,outValues):
       self._dataContainer['outputs'][key] = np.array(value)
-    #print(self._dataContainer['inputs'],self._dataContainer['outputs'])
 
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
@@ -1797,7 +1785,6 @@ class Histories(Data):
       #data line in the first CSV and they are named with the
       #filename.  They have the output names for a header, a column
       #for time, and the rest of the file is data for different times.
-      #print("inputs",self._dataContainer['inputs'],"outputs",self._dataContainer['outputs'])
       inpValues = list(self._dataContainer['inputs'].values())
       outKeys   = self._dataContainer['outputs'].keys()
       outValues = list(self._dataContainer['outputs'].values())
@@ -1870,7 +1857,6 @@ class Histories(Data):
       inpValues_h = [utils.partialEval(a) for a in mainLineList[:-1]]
       inpValues.append(inpValues_h)
       dataFilename = mainLineList[-1]
-      #print(inpValues_h,dataFilename)
       subCSVFilename = os.path.join(filenameRoot,dataFilename)
       myDataFile = open(subCSVFilename, "rU")
       header = myDataFile.readline().rstrip()
@@ -1883,7 +1869,6 @@ class Histories(Data):
       myDataFile.close()
       outKeys.append(outKeys_h)
       outValues.append(outValues_h)
-      #print(outKeys_h,outValues_h)
     self._dataContainer['inputs'] = {} #XXX these are indexed by 1,2,...
     self._dataContainer['outputs'] = {} #XXX these are indexed by 1,2,...
     for i in range(len(inpValues)):
@@ -1896,8 +1881,6 @@ class Histories(Data):
         subOutput[key] = np.array(value)
       self._dataContainer['inputs'][mainKey] = subInput
       self._dataContainer['outputs'][mainKey] = subOutput
-    #print("inpKeys",inpKeys,"inpValues",inpValues,"outKeys",outKeys,"outValues",outValues)
-    #print("inputs",self._dataContainer['inputs'],"outputs",self._dataContainer['outputs'])
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''

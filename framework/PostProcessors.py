@@ -29,9 +29,6 @@ from Assembler import Assembler
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
-#def error(*objs):
-#  print("ERROR: ", *objs, file=sys.stderr)
-
 '''
   ***************************************
   *  SPECIALIZED PostProcessor CLASSES  *
@@ -130,14 +127,14 @@ class SafestPoint(BasePostProcessor):
       #else:
       #  if child.tag != 'Assembler': raisea NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> invalid or missing labels after the post-processor call. Only "controllable", "non-controllable" and "Assembler" are accepted.')
     if self.debug:
-      print('CONTROLLABLE DISTRIBUTIONS:')
-      print(self.controllableDist)
-      print('CONTROLLABLE GRID:')
-      print(self.controllableGrid)
-      print('NON-CONTROLLABLE DISTRIBUTIONS:')
-      print(self.nonControllableDist)
-      print('NON-CONTROLLABLE GRID:')
-      print(self.nonControllableGrid)
+      utils.raiseAMessage(self,'CONTROLLABLE DISTRIBUTIONS:')
+      utils.raiseAMessage(self,self.controllableDist)
+      utils.raiseAMessage(self,'CONTROLLABLE GRID:')
+      utils.raiseAMessage(self,self.controllableGrid)
+      utils.raiseAMessage(self,'NON-CONTROLLABLE DISTRIBUTIONS:')
+      utils.raiseAMessage(self,self.nonControllableDist)
+      utils.raiseAMessage(self,'NON-CONTROLLABLE GRID:')
+      utils.raiseAMessage(self,self.nonControllableGrid)
 
   def initialize(self,runInfo,inputs,initDict):
     self.__gridSetting__()
@@ -146,18 +143,18 @@ class SafestPoint(BasePostProcessor):
     self.stat.parameters['targets'] = self.controllableOrd
     self.stat.initialize(runInfo,inputs,initDict)
     if self.debug:
-      print('GRID INFO:')
-      print(self.gridInfo)
-      print('N-DIMENSIONAL CONTROLLABLE SPACE:')
-      print(self.controllableSpace)
-      print('N-DIMENSIONAL NON-CONTROLLABLE SPACE:')
-      print(self.nonControllableSpace)
-      print('CONTROLLABLE VARIABLES ORDER:')
-      print(self.controllableOrd)
-      print('NON-CONTROLLABLE VARIABLES ORDER:')
-      print(self.nonControllableOrd)
-      print('SURFACE POINTS MATRIX:')
-      print(self.surfPointsMatrix)
+      utils.raiseAMessage(self,'GRID INFO:')
+      utils.raiseAMessage(self,self.gridInfo)
+      utils.raiseAMessage(self,'N-DIMENSIONAL CONTROLLABLE SPACE:')
+      utils.raiseAMessage(self,self.controllableSpace)
+      utils.raiseAMessage(self,'N-DIMENSIONAL NON-CONTROLLABLE SPACE:')
+      utils.raiseAMessage(self,self.nonControllableSpace)
+      utils.raiseAMessage(self,'CONTROLLABLE VARIABLES ORDER:')
+      utils.raiseAMessage(self,self.controllableOrd)
+      utils.raiseAMessage(self,'NON-CONTROLLABLE VARIABLES ORDER:')
+      utils.raiseAMessage(self,self.nonControllableOrd)
+      utils.raiseAMessage(self,'SURFACE POINTS MATRIX:')
+      utils.raiseAMessage(self,self.surfPointsMatrix)
 
   def __gridSetting__(self,constrType='equal'):
     for varName in self.controllableGrid.keys():
@@ -246,14 +243,14 @@ class SafestPoint(BasePostProcessor):
     self.controllableSpace.shape = (np.prod(self.controllableSpace.shape[0:len(self.controllableSpace.shape)-1]),self.controllableSpace.shape[-1])
     self.nonControllableSpace.shape = (np.prod(self.nonControllableSpace.shape[0:len(self.nonControllableSpace.shape)-1]),self.nonControllableSpace.shape[-1])
     if self.debug:
-      print('RESHAPED CONTROLLABLE SPACE:')
-      print(self.controllableSpace)
-      print('RESHAPED NON-CONTROLLABLE SPACE:')
-      print(self.nonControllableSpace)
+      utils.raiseAMessage(self,'RESHAPED CONTROLLABLE SPACE:')
+      utils.raiseAMessage(self,self.controllableSpace)
+      utils.raiseAMessage(self,'RESHAPED NON-CONTROLLABLE SPACE:')
+      utils.raiseAMessage(self,self.nonControllableSpace)
     for ncLine in range(self.nonControllableSpace.shape[0]):
       queryPointsMatrix = np.append(self.controllableSpace,np.tile(self.nonControllableSpace[ncLine,:],(self.controllableSpace.shape[0],1)),axis=1)
-      print('QUERIED POINTS MATRIX:')
-      print(queryPointsMatrix)
+      utils.raiseAMessage(self,'QUERIED POINTS MATRIX:')
+      utils.raiseAMessage(self,queryPointsMatrix)
       nearestPointsInd = surfTree.query(queryPointsMatrix)[-1]
       distList = []
       indexList = []
@@ -289,9 +286,9 @@ class SafestPoint(BasePostProcessor):
       dataCollector.updateMetadata('ProbabilityWeight',np.prod(probList))
     dataCollector.updateMetadata('ExpectedSafestPointCoordinates',self.stat.run(dataCollector)['expectedValue'])
     if self.debug:
-      print(dataCollector.getParametersValues('input'))
-      print(dataCollector.getParametersValues('output'))
-      print(dataCollector.getMetadata('ExpectedSafestPointCoordinates'))
+      utils.raiseAMessage(self,dataCollector.getParametersValues('input'))
+      utils.raiseAMessage(self,dataCollector.getParametersValues('output'))
+      utils.raiseAMessage(self,dataCollector.getMetadata('ExpectedSafestPointCoordinates'))
     return dataCollector
 
   def collectOutput(self,finishedjob,output):
@@ -337,7 +334,6 @@ class ComparisonStatistics(BasePostProcessor):
 
   def initialize(self, runInfo, inputs, initDict):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    #print("runInfo",runInfo,"inputs",inputs,"initDict",initDict)
 
   def _localReadMoreXML(self,xmlNode):
     for outer in xmlNode:
@@ -350,7 +346,6 @@ class ComparisonStatistics(BasePostProcessor):
             name, kind = splitName[:2]
             rest = splitName[2:]
             compareGroup.dataPulls.append([name, kind, rest])
-            #print("xml dataName",dataName,self.dataPulls[-1])
           elif child.tag == 'reference':
             compareGroup.referenceData = dict(child.attrib)
         self.compareGroups.append(compareGroup)
@@ -369,7 +364,7 @@ class ComparisonStatistics(BasePostProcessor):
         elif interpolation == 'quadratic':
           self.interpolation = 'quadratic'
         else:
-          print(self.printTag+': ' +utils.returnPrintPostTag('Warning')+' unexpected interpolation method '+interpolation)
+          utils.raiseAMessage(self,'unexpected interpolation method '+interpolation)
           self.interpolation = interpolation
 
 
@@ -382,11 +377,9 @@ class ComparisonStatistics(BasePostProcessor):
     dataDict = {}
     for aInput in Input: dataDict[aInput.name] = aInput
     return dataDict
-    #print("input",Input,"input name",Input.name,"input input",Input.getParametersValues('inputs'),
-    #      "input output",Input.getParametersValues('outputs'))
 
   def collectOutput(self,finishedjob,output):
-    if self.debug: print("finishedjob",finishedjob,"output",output)
+    if self.debug: utils.raiseAMessage(self,"finishedjob: "+finishedjob+", output "+output)
     #XXX We only handle the case where output is a filename.  We don't handle
     # it being a datas or hdf5 etc.
     if finishedjob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,'no available output to collect.')
@@ -399,16 +392,10 @@ class ComparisonStatistics(BasePostProcessor):
       foundDatas = []
       for name, kind, rest in dataPulls:
         data = self.dataDict[name].getParametersValues(kind)
-        #print("dataPull",dataPull) #("result",self.dataDict[name].getParametersValues(kind))
         if len(rest) == 1:
-          #print("dataPart",data[rest[0]])
-          #print(data.keys())
           foundDatas.append(data[rest[0]])
       dataToProcess.append((dataPulls,foundDatas,reference))
-    #print("dataToProcess",dataToProcess)
     csv = open(output,"w")
-#    def printCsv(*args):
-#      print(*args,file=csv,sep=',')
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "mean" in reference:
@@ -450,7 +437,6 @@ class ComparisonStatistics(BasePostProcessor):
             f_2 = cdf[i+2]
           else:
             f_2 = 1.0
-          #print(f_0,f_1,f_2,h,f_prime)
           if self.interpolation == 'linear':
             fPrime = (f_1 - f_0)/h
           else:
@@ -461,7 +447,7 @@ class ComparisonStatistics(BasePostProcessor):
         dataKeys -= set({'num_bins','counts','bins'})
         for key in dataKeys:
           utils.printCsv(csv,'"'+key+'"',dataStats[key])
-        print("data_stats",dataStats)
+        utils.raiseAMessage(self,"data_stats: "+str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc,str(dataPull)))
       mathUtils.printGraphs(csv, graphData, self.f_z_stats)
       for i in range(len(graphData)):
@@ -472,7 +458,6 @@ class ComparisonStatistics(BasePostProcessor):
           else:
             return str(l)
         newFileName = output[:-4]+"_"+delist(dataPulls)+"_"+str(i)+".csv"
-        #print("data_stat",type(data_stat),data_stat.__sizeof__,data_stat)
         if type(dataStat).__name__ != 'dict':
           assert(False)
           continue
@@ -487,7 +472,6 @@ class ComparisonStatistics(BasePostProcessor):
         extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
         extraCsv.write("\n")
         extraCsv.close()
-        #print(new_filename,"data_pairs",data_pairs)
       utils.printCsv(csv)
 
   def processData(self,dataPull, data, methodInfo):
@@ -500,10 +484,8 @@ class ComparisonStatistics(BasePostProcessor):
       low = sortedData[0]
       high = sortedData[-1]
       dataRange = high - low
-      #print("data",dataPull,"average",sum(data)/len(data))
       ret['low'] = low
       ret['high'] = high
-      #print("low",low,"high",high,end=' ')
       if not 'bin_method' in methodInfo:
         numBins = methodInfo.get("num_bins",10)
       else:
@@ -514,10 +496,9 @@ class ComparisonStatistics(BasePostProcessor):
         elif binMethod == 'sturges':
           numBins = int(math.ceil(mathUtils.log2(dataN)+1))
         else:
-          print(returnPrintPostTag('ERROR')+"Unknown bin_method "+binMethod)
+          utils.raiseAMessage(self,"Unknown bin_method "+binMethod,'ExceptedError')
           numBins = 5
       ret['num_bins'] = numBins
-      #print("num_bins",num_bins)
       kind = methodInfo.get("kind","uniform_bins")
       if kind == "uniform_bins":
         bins = [low+x*dataRange/numBins for x in range(1,numBins)]
@@ -545,7 +526,6 @@ class ComparisonStatistics(BasePostProcessor):
       ret['alpha'] = alpha
       ret['omega'] = omega
       ret['xi'] = xi
-      #print("bins",bins,"counts",counts)
       return ret
 
 class PrintCSV(BasePostProcessor):
@@ -789,61 +769,61 @@ class BasicStatistics(BasePostProcessor):
       outputextension = output.split('.')[-1].lower()
       if outputextension not in availextens:
         utils.raiseAWarning(self,'BasicStatistics postprocessor output extension you input is '+outputextension)
-        print('                     Available are '+str(availextens)+ '. Convertint extension to '+str(availextens[0])+'!')
+        utils.raiseAWarning(self,'Available are '+str(availextens)+ '. Convertint extension to '+str(availextens[0])+'!')
         outputextension = availextens[0]
       if outputextension != 'csv': separator = ' '
       else                       : separator = ','
       basicStatFilename = os.path.join(self.__workingDir,output[:output.rfind('.')]+'.'+outputextension)
       if self.debug:
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '->' + "workingDir",self.__workingDir,"output",output.split('.'))
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping output in file named ' + basicStatFilename)
+        utils.raiseAMessage(self,"workingDir",self.__workingDir+" output "+str(output.split('.')))
+        utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping output in file named ' + basicStatFilename)
       with open(basicStatFilename, 'wb') as basicStatdump:
         basicStatdump.write('BasicStatistics '+separator+str(self.name)+'\n')
         basicStatdump.write('----------------'+separator+'-'*len(str(self.name))+'\n')
         for targetP in parameterSet:
-          if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing variable '+ targetP)
+          if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: writing variable '+ targetP)
           basicStatdump.write('Variable'+ separator + targetP +'\n')
           basicStatdump.write('--------'+ separator +'-'*len(targetP)+'\n')
           for what in outputDict.keys():
             if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
-              if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
+              if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
               basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+'\n')
-        maxLenght = max(len(max(parameterSet, key=len))+5,16)
+        maxLength = max(len(max(parameterSet, key=len))+5,16)
         for what in outputDict.keys():
           if what in ['covariance','pearson','NormalizedSensitivity','sensitivity']:
-            if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing parameter matrix '+ what )
+            if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: writing parameter matrix '+ what )
             basicStatdump.write(what+' \n')
-            if outputextension != 'csv': basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet])+'\n')
+            if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])+'\n')
             else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in parameterSet])+'\n')
             for index in range(len(parameterSet)):
-              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict[what][index]])+'\n')
+              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+'\n')
               else                       : basicStatdump.write(parameterSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+'\n')
         if self.externalFunction:
-          if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing External Function results')
+          if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: writing External Function results')
           basicStatdump.write('\n' +'EXT FUNCTION \n')
           basicStatdump.write('------------ \n')
           for what in self.methodsToRun:
             if what not in self.acceptedCalcParam:
-              if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing External Function parameter '+ what )
+              if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: writing External Function parameter '+ what )
               basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+'\n')
     elif output.type == 'Datas':
-      if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping output in data object named ' + output.name)
+      if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping output in data object named ' + output.name)
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
           for targetP in parameterSet:
-            if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping variable '+ targetP + '. Parameter: '+ what + '. Metadata name = '+ targetP+'|'+what)
+            if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping variable '+ targetP + '. Parameter: '+ what + '. Metadata name = '+ targetP+'|'+what)
             output.updateMetadata(targetP+'|'+what,outputDict[what][targetP])
         else:
           if what not in methodToTest:
-            if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping matrix '+ what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets|'+what)
+            if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping matrix '+ what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets|'+what)
             output.updateMetadata('targets|'+what,parameterSet)
             output.updateMetadata(what,outputDict[what])
       if self.externalFunction:
-        if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping External Function results')
+        if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping External Function results')
         for what in self.methodsToRun:
           if what not in self.acceptedCalcParam:
             output.updateMetadata(what,outputDict[what])
-            if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping External Function parameter '+ what)
+            if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping External Function parameter '+ what)
     elif output.type == 'HDF5' : utils.raiseAWarning(self,'BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor: Output type '+ str(output.type) + ' unknown.')
 
@@ -965,59 +945,61 @@ class BasicStatistics(BasePostProcessor):
           outputDict[what][myIndex] = ((covMatrix[myIndex,:]/variance)*expValues)/expValues[myIndex]
 
     # print on screen
-    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics '+str(self.name)+'pp outputs')
+    utils.raiseAMessage(self,'BasicStatistics '+str(self.name)+'pp outputs')
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
+    msg='\n'
     for targetP in parameterSet:
-      print('        *************'+'*'*len(targetP)+'***')
-      print('        * Variable * '+ targetP +'  *')
-      print('        *************'+'*'*len(targetP)+'***')
+      msg+='        *************'+'*'*len(targetP)+'***'
+      msg+='        * Variable * '+ targetP +'  *'
+      msg+='        *************'+'*'*len(targetP)+'***'
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
-          print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
-          print('              ','* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *')
-          print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
-    maxLenght = max(len(max(parameterSet, key=len))+5,16)
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *'
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+    maxLength = max(len(max(parameterSet, key=len))+5,16)
     if 'covariance' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*         Covariance        *')
-      print(' '*maxLenght,'*****************************')
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*         Covariance        *'
+      msg+=' '*maxLength+'*****************************'
 
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['covariance'][index]]))
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])
     if 'pearson' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*    Pearson/Correlation    *')
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*    Pearson/Correlation    *'
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]]))
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])
     if 'sensitivity' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*        Sensitivity        *')
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*        Sensitivity        *'
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['sensitivity'][index]]))
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]])
     if 'NormalizedSensitivity' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*   Normalized Sensitivity  *')
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*   Normalized Sensitivity  *'
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['NormalizedSensitivity'][index]]))
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])
 
     if self.externalFunction:
-      print(' '*maxLenght,'+++++++++++++++++++++++++++++')
-      print(' '*maxLenght,'+ OUTCOME FROM EXT FUNCTION +')
-      print(' '*maxLenght,'+++++++++++++++++++++++++++++')
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
+      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +'
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
       for what in self.methodsToRun:
         if what not in self.acceptedCalcParam:
-          print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
-          print('              ','* '+what+' * ' + '%.8E' % outputDict[what]+'  *')
-          print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *'
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+    utils.raiseAMessage(self,msg)
     return outputDict
 
   def covariance(self, feature, weights=None, rowvar=1):
@@ -1196,10 +1178,10 @@ class LimitSurface(BasePostProcessor):
         if param in inpKeys: self.paramType[param] = 'inputs'
         else:                self.paramType[param] = 'outputs'
     self.nVar        = len(self.parameters['targets'])         #Total number of variables
-    stepLenght        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance
+    stepLength        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance
     self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
-    stepParam = lambda x: [stepLenght*(max(self.inputs[self.indexes].getParam(self.paramType[x],x))-min(self.inputs[self.indexes].getParam(self.paramType[x],x))),
+    stepParam = lambda x: [stepLength*(max(self.inputs[self.indexes].getParam(self.paramType[x],x))-min(self.inputs[self.indexes].getParam(self.paramType[x],x))),
                                        min(self.inputs[self.indexes].getParam(self.paramType[x],x)),
                                        max(self.inputs[self.indexes].getParam(self.paramType[x],x))]
     #moving forward building all the information set
@@ -1212,12 +1194,12 @@ class LimitSurface(BasePostProcessor):
         if start == end:
           start = start - 0.001*start
           end   = end   + 0.001*end
-          myStepLength = stepLenght*(end - start)
+          myStepLength = stepLength*(end - start)
         start                      += 0.5*myStepLength
         self.gridVectors[varName]   = np.arange(start,end,myStepLength)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
     self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
-    self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
+    self.testGridLength           = np.prod (pointByVar)          #total number of point on the grid
     self.testMatrix               = np.zeros(self.gridShape)      #grid where the values of the goalfunction are stored
     #self.oldTestMatrix            = np.zeros(self.gridShape)      #swap matrix fro convergence test
     self.gridCoorShape            = tuple(pointByVar+[self.nVar]) #shape of the matrix containing all coordinate of all points in the grid
@@ -1234,14 +1216,14 @@ class LimitSurface(BasePostProcessor):
     for varName in self.parameters['targets']:
       self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
     if self.debug:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> self.gridShape '+str(self.gridShape))
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> self.testGridLenght '+str(self.testGridLenght))
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> self.gridCoorShape '+str(self.gridCoorShape))
+      utils.raiseAMessage(self,'self.gridShape '+str(self.gridShape))
+      utils.raiseAMessage(self,'self.testGridLength '+str(self.testGridLength))
+      utils.raiseAMessage(self,'self.gridCoorShape '+str(self.gridCoorShape))
       for key in self.gridVectors.keys():
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> the variable '+key+' has coordinate: '+str(self.gridVectors[key]))
+        utils.raiseAMessage(self,'the variable '+key+' has coordinate: '+str(self.gridVectors[key]))
       myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
       while not myIterator.finished:
-        print (self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
+        utils.raiseAMessage(self,'Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
 
   def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
@@ -1250,8 +1232,8 @@ class LimitSurface(BasePostProcessor):
      @ In, inp, Data(s) object, data object containing the training set
      @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
     """
-    print('Initiate training')
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Initiate training')
+    utils.raiseAMessage(self,'Initiate training')
+    if self.debug: utils.raiseAMessage(self,'Initiate training')
     if type(inp) == dict:
       self.functionValue.update(inp['inputs' ])
       self.functionValue.update(inp['outputs'])
@@ -1281,20 +1263,20 @@ class LimitSurface(BasePostProcessor):
       if raiseErrorIfNotFound: utils.raiseAnError(ValueError,self,'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
       else                   : utils.raiseAWarning(self,'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
     #printing----------------------
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
+    if self.debug: utils.raiseAMessage(self,'LimitSurface: Mapping of the goal function evaluation performed')
     if self.debug:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Already evaluated points and function values:')
+      utils.raiseAMessage(self,'LimitSurface: Already evaluated points and function values:')
       keyList = list(self.functionValue.keys())
-      print(','.join(keyList))
+      utils.raiseAMessage(self,','.join(keyList))
       for index in range(indexEnd+1):
-        print(','.join([str(self.functionValue[key][index]) for key in keyList]))
+        utils.raiseAMessage(self,','.join([str(self.functionValue[key][index]) for key in keyList]))
     #printing----------------------
     tempDict = {}
     for name in self.axisName: tempDict[name] = np.asarray(self.functionValue[name])
     tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
     self.ROM.train(tempDict)
-    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training performed')
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training finished')
+    utils.raiseAMessage(self,'LimitSurface: Training performed')
+    if self.debug: utils.raiseAMessage(self,'LimitSurface: Training finished')
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -1355,7 +1337,7 @@ class LimitSurface(BasePostProcessor):
   def collectOutput(self,finishedjob,output):
     #output
     if finishedjob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,'No available Output to collect (Run probabably is not finished yet)')
-    print(finishedjob.returnEvaluation())
+    utils.raiseAMessage(self,str(finishedjob.returnEvaluation()))
     limitSurf = finishedjob.returnEvaluation()[1]
     if limitSurf[0]!=None:
       for varName in output.getParaKeys('inputs'):
@@ -1373,23 +1355,23 @@ class LimitSurface(BasePostProcessor):
      @ In , boolean          : True if listSurfaceCoordinate needs to be returned
      @ Out, dictionary       : Dictionary with results
     """
-    self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
-    self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
+    self.testMatrix.shape     = (self.testGridLength)                            #rearrange the grid matrix such as is an array of values
+    self.gridCoord.shape      = (self.testGridLength,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
     tempDict ={}
     for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
     self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
     self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
     self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Prediction performed')
+    if self.debug: utils.raiseAMessage(self,'LimitSurface: Prediction performed')
     #here next the points that are close to any change are detected by a gradient (it is a pre-screener)
     toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
     #printing----------------------
     if self.debug:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface:  Limit surface candidate points')
+      utils.raiseAMessage(self,'LimitSurface:  Limit surface candidate points')
       for coordinate in np.rollaxis(toBeTested,0):
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
+        utils.raiseAMessage(self,'LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
     #check which one of the preselected points is really on the limit surface
     nNegPoints = 0
@@ -1407,11 +1389,11 @@ class LimitSurface(BasePostProcessor):
     listsurfPoint = listsurfPointNegative + listsurfPointPositive
 #     #printing----------------------
     if self.debug:
-      if len(listsurfPoint) > 0: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Limit surface points:')
+      if len(listsurfPoint) > 0: utils.raiseAMessage(self,'LimitSurface: Limit surface points:')
       for coordinate in listsurfPoint:
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
+        utils.raiseAMessage(self,'LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
 
     #if the number of point on the limit surface is > than zero than save it

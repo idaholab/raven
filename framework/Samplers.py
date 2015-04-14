@@ -213,7 +213,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       for var in list:
         if var.values()[0] > maxDim:
           maxDim = var.values()[0]
-      #print(str(key) +': ' + str(maxDim))
       self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
 
 
@@ -540,7 +539,7 @@ class AdaptiveSampler(Sampler):
     self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
     self.oldTestMatrix            = np.zeros(tuple(pointByVar))      #swap matrix fro convergence test
     self.hangingPoints            = np.ndarray((0, self.nVar))
-    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Initialization done')
+    utils.raiseAMessage(self,'Initialization done')
 
   def localStillReady(self,ready): #,lastOutput=None
     '''
@@ -550,7 +549,7 @@ class AdaptiveSampler(Sampler):
     lastOutput it is not considered to be present during the test performed for generating an input batch
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
     '''
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> From method localStillReady...')
+    if self.debug: utils.raiseAMessage(self,'From method localStillReady...')
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
@@ -563,12 +562,12 @@ class AdaptiveSampler(Sampler):
       if self.lastOutput != None: self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     else:
       if not self.lastOutput.isItEmpty(): self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Training finished')
+    if self.debug: utils.raiseAMessage(self,'Training finished')
     np.copyto(self.oldTestMatrix,self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
     self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
 
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Prediction finished')
+    if self.debug: utils.raiseAMessage(self,'Prediction finished')
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
     else                                                                      : indexLast = -1
@@ -584,7 +583,7 @@ class AdaptiveSampler(Sampler):
     if (testError > self.tolerance/self.subGridTol): ready, self.repetition = True, 0                         # we still have error
     else              : self.repetition +=1                                                                   # we are increasing persistence
     if self.persistence<self.repetition: ready =  False                                                       # we are done
-    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
+    utils.raiseAMessage(self,'counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
     #if the number of point on the limit surface is > than compute persistence
     if len(listsurfPoint)>0:
       self.invPointPersistence = np.ndarray(len(listsurfPoint))
@@ -611,7 +610,7 @@ class AdaptiveSampler(Sampler):
 
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
-    if self.debug: print('generating input')
+    if self.debug: utils.raiseAMessage(self,'generating input')
     varSet=False
     if self.surfPoint!=None and len(self.surfPoint)>0:
       sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
@@ -636,7 +635,7 @@ class AdaptiveSampler(Sampler):
           self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
-      else: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> np.max(distance)=0.0')
+      else: utils.raiseAMessage(self,'np.max(distance)=0.0')
 
     if not varSet:
       #here we are still generating the batch
@@ -652,7 +651,7 @@ class AdaptiveSampler(Sampler):
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
     self.inputInfo['ProbabilityWeight']         = 1.0
     self.hangingPoints                          = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
+    if self.debug: utils.raiseAMessage(self,'At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
     self.inputInfo['SamplerType'] = 'Adaptive'
     self.inputInfo['subGridTol' ] = self.subGridTol
 
@@ -667,13 +666,11 @@ class AdaptiveSampler(Sampler):
 #          temp[varIndex] += 2.*np.max(self.axisStepSize[varName])
 #          pbMapPointCoord[pointIndex,varIndex+self.nVar,:] = temp
 #          temp[varIndex] -= np.max(self.axisStepSize[varName])
-#      print('Indexing of close point to the limit surface done')
 #      #getting the coordinate ready to be evaluated by the ROM
 #      pbMapPointCoord.shape = (len(self.surfPoint)*(self.nVar*2+1),self.nVar)
 #      tempDict = {}
 #      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
 #        tempDict[varName] = pbMapPointCoord.T[varIndex,:]
-#      print('ready to request pb')
 #      #acquiring Pb evaluation
 #      pbPoint       = self.ROM.confidence(tempDict)
 #      pbPoint.shape = (len(self.surfPoint),self.nVar*2+1,2)
@@ -695,8 +692,6 @@ class AdaptiveSampler(Sampler):
 #          modGrad[pointIndex] += d1Avg**2
 #        modGrad[pointIndex] = np.sqrt(modGrad[pointIndex])*np.abs(sum)/sum
 #        #concavityPb[pointIndex] = concavityPb[pointIndex]/float(self.nVar)
-#      print('concavity computed')
-#      print([key.replace('<distribution>','') for key in self.axisName])
 #      for pointIndex, point in enumerate(self.surfPoint):
 #        myStr  = ''
 #        myStr  += '['
@@ -713,13 +708,9 @@ class AdaptiveSampler(Sampler):
 #          myStr += '{:+6.4f}'.format(gradVect[pointIndex,varIndex])+'  '
 #        myStr += ']'
 #        myStr += '    Module '+'{:+6.4f}'.format(modGrad[pointIndex])
-#        print(myStr)
-#      print('probability acquired')
 #
 #      minIndex = np.argmin(np.abs(modGrad))
-#      print('index on the limit surface of the smallest gradient '+ str(minIndex)+'corresponding gradient module '+str(modGrad[minIndex])+' and probability '+str(pbPoint[minIndex,2*self.nVar][0]))
 #      pdDist = self.sign*(pbPoint[minIndex,2*self.nVar][0]-0.5-10*self.tolerance)/modGrad[minIndex]
-#      print('extrapolation length' +str(pdDist))
 #      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
 #        self.values[varName] = copy.copy(float(pbMapPointCoord[minIndex,2*self.nVar,varIndex]+pdDist*gradVect[minIndex,varIndex]))
 #      gradVect = np.ndarray(self.nVar)
@@ -771,11 +762,6 @@ class MonteCarlo(Sampler):
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
-
-    #print("self.variables2distributionsMapping: " + str(self.variables2distributionsMapping))
-    #print("self.distributions2variablesMapping: " + str(self.distributions2variablesMapping))
-
-    #print('self.distDict:' + str(self.distDict))
 
     for key in self.distDict:
       # check if the key is a comma separated list of strings
@@ -964,13 +950,6 @@ class Grid(Sampler):
 #     self.inputInfo['ProbabilityWeight'] = weight
 #     self.inputInfo['SamplerType'] = 'Grid'
 
-    #print('self.gridInfo: '       + str(self.gridInfo))
-    #print('self.inputInfo: '      + str(self.inputInfo))
-    #print('self.gridCoordinate: ' + str(self.gridCoordinate))
-    #print('self.axisName: '       + str(self.axisName))
-    #print('self.variables2distributionsMapping: '       + str(self.variables2distributionsMapping))
-    #print('self.distributions2variablesMapping: '       + str(self.distributions2variablesMapping))
-
     weight = 1.0
 
     for i in range(len(self.gridCoordinate)):
@@ -992,16 +971,13 @@ class Grid(Sampler):
             self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
           else:
             location = self.variables2distributionsMapping[varName]['dim']
-            #print('location: ' + str(location))
             self.values[key] = self.distDict[varName].inverseMarginalDistribution(self.gridInfo[varName][2][self.gridCoordinate[i]],location-1)
-            #print('self.values[key]: ' + str(self.values[key]))
 
         elif self.gridInfo[varName][0]=='value':
           self.values[key] = self.gridInfo[varName][2][self.gridCoordinate[i]]
 
         else: utils.raiseAnError(IOError,self,gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
 
-    #print('self.values: ' + str(self.values))
 
     remainder = self.counter - 1 #used to keep track as we get to smaller strides
     stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
@@ -1017,7 +993,6 @@ class Grid(Sampler):
         self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
         self.inputInfo['distributionType'][key] = self.distDict[varName].type
 
-        #print('varName ' + str(varName))
         if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
           self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
         else:
@@ -1113,14 +1088,11 @@ class LHS(Grid):
            else:
              utils.raiseAnError(IOError,self,'The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
 
-    #print('self.gridInfo: ' + str(self.gridInfo))
-    #print('self.globalGrid: ' + str(self.globalGrid))
     for variable in self.gridInfo.keys():
       if self.gridInfo[variable][1] == 'global_grid':
         lst=list(self.gridInfo[variable])
         lst[2] = self.globalGrid[self.gridInfo[variable][2]]
         self.gridInfo[variable] = tuple(lst)
-    #print('self.gridInfo: ' + str(self.gridInfo))
 
     pointByVar  = [len(self.gridInfo[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1: utils.raiseAnError(IOError,self,'the latin Hyper Cube requires the same number of point in each dimension')
@@ -1191,12 +1163,6 @@ class LHS(Grid):
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     weight = 1.0
 
-    #print('self.variables2distributionsMapping: ' + str(self.variables2distributionsMapping))
-    #print('self.distributions2variablesMapping: ' + str(self.distributions2variablesMapping))
-    #print('self.axisName: ' + str(self.axisName))
-    #print('self.distDict: ' + str(self.distDict))
-    #print('self.inputInfo: ' + str(self.inputInfo))
-
     for varName in self.axisName:
 
       if not "<distribution>" in varName:
@@ -1249,9 +1215,6 @@ class LHS(Grid):
           weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
         else:
           weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
-
-      #else:
-      #  raisea IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> error in the generagtion of LHS sample')
 
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
@@ -1468,12 +1431,12 @@ class DynamicEventTree(Grid):
     else: filename = "actual_branch_info.xml"
     if not os.path.isabs(filename): filename = os.path.join(self.workingDir,filename)
     if not os.path.exists(filename):
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> branch info file ' + os.path.basename(filename) +' has not been found. => No Branching.')
+      utils.raiseAMessage(self,'branch info file ' + os.path.basename(filename) +' has not been found. => No Branching.')
       return branch_present
     # Parse the file and create the xml element tree object
     #try:
     branch_info_tree = ET.parse(filename)
-    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Done parsing '+filename)
+    utils.raiseAMessage(self,'Done parsing '+filename)
     #except? raisea IOError ('not able to parse ' + filename)
     root = branch_info_tree.getroot()
     # Check if end_time and end_ts (time step)  are present... In case store them in the relative working vars
@@ -1564,8 +1527,8 @@ class DynamicEventTree(Grid):
     # In case we create a number of branches = endInfo['n_branches'] - 1 => the branch in
     # which the event did not occur is not going to be tracked
     if branchedLevelParent[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist'])
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
+      utils.raiseAMessage(self,'Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist'])
+      utils.raiseAMessage(self,'Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
       self.branchCountOnLevel = 1
       n_branches = endInfo['n_branches'] - 1
 
@@ -1730,7 +1693,7 @@ class DynamicEventTree(Grid):
     newerinput = self.__getQueueElement()
     if not newerinput:
       # If no inputs are present in the queue => a branch is finished
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> A Branch ended!!!!')
+      utils.raiseAMessage(self,'A Branch ended!')
     return newerinput
 
   def _generateDistributions(self,availableDist):
@@ -1801,7 +1764,7 @@ class DynamicEventTree(Grid):
         preconditioner.inputInfo['prefix'] = preconditioner.counter
         precondlistoflist[cnt].append(copy.deepcopy(preconditioner.inputInfo))
     if self.precNumberSamplers > 0:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Number of Preconditioner Samples are ' + str(self.precNumberSamplers) + '!')
+      utils.raiseAMessage(self,'Number of Preconditioner Samples are ' + str(self.precNumberSamplers) + '!')
       precNumber = self.precNumberSamplers
       combinations = list(itertools.product(*precondlistoflist))
     else: precNumber = 1
@@ -1894,10 +1857,10 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
       cdfValues[key] = self.distDict[key].cdf(value)
       lowerCdfValues[key] = utils.find_le(self.branchProbabilities[self.toBeSampled[key]],cdfValues[key])[0]
       if self.debug:
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> ' + str(self.toBeSampled[key]))
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> ' + str(value))
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> ' + str(cdfValues[key]))
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> ' + str(lowerCdfValues[key]))
+        utils.raiseAMessage(self,str(self.toBeSampled[key]))
+        utils.raiseAMessage(self,str(value))
+        utils.raiseAMessage(self,str(cdfValues[key]))
+        utils.raiseAMessage(self,str(lowerCdfValues[key]))
     # check if in the adaptive points already explored (if not pushed into the grid)
     if not self.insertAdaptBPb:
       candidatesBranch = []
@@ -1969,7 +1932,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
     rname = info['parent_node'].get('name') + '-' + str(self.branchCountOnLevel)
     info['parent_node'].add('completedHistory', False)
-    print(rname)
+    utils.raiseAMessage(self,str(rname))
     bcnt = self.branchCountOnLevel
     while info['parent_node'].isAnActualBranch(rname):
       bcnt += 1
@@ -1978,7 +1941,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     subGroup = ETS.Node(rname)
     subGroup.add('parent', info['parent_node'].get('name'))
     subGroup.add('name', rname)
-    print('cond pb = '+str(info['parent_node'].get('conditional_pb')))
+    utils.raiseAMessage(self,'cond pb = '+str(info['parent_node'].get('conditional_pb')))
     cond_pb_c  = float(info['parent_node'].get('conditional_pb'))
 
     # Loop over  branch_changed_params (events) and start storing information,
@@ -2091,7 +2054,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
       #the adaptive sampler created the next point sampled vars
       #find the closest branch
       closestBranch, cdfValues = self._checkClosestBranch()
-      if closestBranch == None: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> An usable branch for next candidate has not been found => create a parallel branch!')
+      if closestBranch == None: utils.raiseAMessage(self,'An usable branch for next candidate has not been found => create a parallel branch!')
       # add pbthresholds in the grid
       investigatedPoint = {}
       for key,value in cdfValues.items():
@@ -2402,18 +2365,19 @@ class SparseGridCollocation(Grid):
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
     if self.debug:
-      print(self.printTag,'INTERPOLATION INFO:')
-      print('    Variable | Distribution | Quadrature | Polynomials')
+      msg=self.printTag,'INTERPOLATION INFO:\n'
+      msg+='    Variable | Distribution | Quadrature | Polynomials\n'
       for v in self.quadDict.keys():
-        print('   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
-      print('    Polynomial Set Degree:',self.maxPolyOrder)
-      print('    Polynomial Set Type  :',SVL.indexSetType)
+        msg+='   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type])+'\n'
+      msg+='    Polynomial Set Degree: '+str(self.maxPolyOrder)+'\n'
+      msg+='    Polynomial Set Type  : '+str(SVL.indexSetType)+'\n'
+      utils.raiseAMessage(self,msg)
 
-    if self.debug: print(self.printTag,'Starting index set generation...')
+    if self.debug: utils.raiseAMessage(self,'Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
     self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
 
-    if self.debug: print(self.printTag,'Starting sparse grid generation...')
+    if self.debug: utils.raiseAMessage(self,'Starting sparse grid generation...')
     self.sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
     self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
@@ -2425,8 +2389,8 @@ class SparseGridCollocation(Grid):
       outFile.close()
 
     self.limit=len(self.sparseGrid)
-    if self.debug: print(self.printTag,'Size of Sparse Grid  :',self.limit)
-    if self.debug: print(self.printTag,'Finished sampler generation.')
+    if self.debug: utils.raiseAMessage(self,'Size of Sparse Grid  :'+str(self.limit))
+    if self.debug: utils.raiseAMessage(self,'Finished sampler generation.')
     for SVL in self.ROM.SupervisedEngine.values():
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.distDict,
@@ -2561,9 +2525,6 @@ class Sobol(SparseGridCollocation):
       elif child.tag == 'variable':
         varName = child.attrib['name']
         self.axisName.append(varName)
-      #elif child.tag == 'SobolOrder':
-      #  self.sobolOrder = int(child.text)
-      #  print(self.sobolOrder)
 
   def localInitialize(self):
     '''
@@ -2585,7 +2546,6 @@ class Sobol(SparseGridCollocation):
     self._generateQuadsAndPolys(SVL)
     varis = SVL.features
     needCombos = itertools.chain.from_iterable(itertools.combinations(varis,r) for r in range(self.sobolOrder+1))
-    #print('DEBUG needCombos',self.printTag,list(needCombos))
     self.SQs={}
     self.ROMs={}
     for combo in needCombos:

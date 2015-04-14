@@ -114,7 +114,7 @@ def createAndRunQSUB(simulation):
   #check jobName for length
   if len(jobName) > 15:
     jobName = jobName[:10]+'-'+jobName[-4:]
-    print(utils.returnPrintTag('SIMULATION->QSUB:'),'JobName is limited to 15 characters; truncating to',jobName)
+    utils.raiseAMessage('SIMULATION->QSUB','JobName is limited to 15 characters; truncating to '+jobName)
   #Generate the qsub command needed to run input
   command = ["qsub","-N",jobName]+\
             simulation.runInfoDict["clusterParameters"]+\
@@ -127,7 +127,7 @@ def createAndRunQSUB(simulation):
              os.path.join(frameworkDir,"raven_qsub_command.py")]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
-  print(os.getcwd(),command)
+  utils.raiseAMessage('SIMULATION->QSUB',os.getcwd()+' '+command)
   subprocess.call(command)
 
 
@@ -190,7 +190,7 @@ class MPISimulationMode(SimulationMode):
     if(self.__simulation.runInfoDict['NumThreads'] > 1):
       #add number of threads to the post command.
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
-    print("precommand",self.__simulation.runInfoDict['precommand'],"postcommand",self.__simulation.runInfoDict['postcommand'])
+    utils.raiseAMessage('SIMULATION',"precommand: "+self.__simulation.runInfoDict['precommand']+", postcommand: "+self.__simulation.runInfoDict['postcommand'])
 
   def doOverrideRun(self):
     # Check if the simulation has been run in PBS mode and if run QSUB
@@ -212,7 +212,7 @@ class MPISimulationMode(SimulationMode):
       elif child.tag.lower() == "runqsub":
         self.__runQsub = True
       else:
-        print(self.printTag+": Message -> We should do something with child",child)
+        utils.raiseAMessage(self,"We should do something with child "+str(child))
     return
 
 
@@ -388,7 +388,7 @@ class Simulation(object):
     self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
     for child in xmlNode:
       if child.tag in list(self.whichDict.keys()):
-        if self.debug: print('\n' + self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> ' +2*'-'+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
+        if self.debug: utils.raiseAMessage(self,'-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
         if len(child.attrib.keys()) == 0: globalAttributes = {}
         else:
@@ -402,7 +402,7 @@ class Simulation(object):
             subType = childChild.tag
             if 'name' in childChild.attrib.keys():
               name = childChild.attrib['name']
-              if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Reading type '+str(childChild.tag)+' with name '+name)
+              if self.debug: utils.raiseAMessage(self,'Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
 #              if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
@@ -425,7 +425,6 @@ class Simulation(object):
   def initialize(self):
     '''check/created working directory, check/set up the parallel environment, call step consistency checker'''
     #check/generate the existence of the working directory
-    #print(self.runInfoDict['WorkingDir'])
     if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
     #move the full simulation environment in the working directory
     os.chdir(self.runInfoDict['WorkingDir'])
@@ -456,15 +455,15 @@ class Simulation(object):
         utils.raiseAnError(IOError,self,'For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
       if myClass != 'OutStreamManager':
           if name not in list(self.whichDict[myClass].keys()):
-            print('name:',name)
-            print('list:',list(self.whichDict[myClass].keys()))
-            print(self.whichDict[myClass])
+            utils.raiseAMessage(self,'name: '+name,'DEBUG')
+            utils.raiseAMessage(self,'list: '+str(list(self.whichDict[myClass].keys())),'DEBUG')
+            utils.raiseAMessage(self,str(self.whichDict[myClass]),'DEBUG')
             utils.raiseAnError(IOError,self,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
       else:
           if name not in list(self.whichDict[myClass][objectType].keys()):
-            print('name:',name)
-            print('list:',list(self.whichDict[myClass][objectType].keys()))
-            print(self.whichDict[myClass][objectType])
+            utils.raiseAMessage(self,'name: '+name,'DEBUG')
+            utils.raiseAMessage(self,'list: '+str(list(self.whichDict[myClass][objectType].keys())),'DEBUG')
+            utils.raiseAMessage(self,str(self.whichDict[myClass][objectType]),'DEBUG')
             utils.raiseAnError(IOError,self,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
 
       if myClass != 'Files':  # check if object type is consistent
@@ -472,7 +471,6 @@ class Simulation(object):
         else:                             objtype = self.whichDict[myClass][objectType][name].type
         if objectType != objtype.replace("OutStream",""):
           objtype = self.whichDict[myClass][name].type
-          print('DEBUG',objtype, objectType, myClass, name)
           utils.raiseAnError(IOError,self,'In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
 
 
@@ -537,7 +535,6 @@ class Simulation(object):
         modeFile = modeFile.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
         modeFile = modeFile.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
         modeDir, modeFilename = os.path.split(modeFile)
-        #print("cwd",os.getcwd(),"modeDir",modeDir,"modeFilename",modeFilename)
         if modeFilename.endswith(".py"):
           modeModulename = modeFilename[:-3]
         else:
@@ -552,29 +549,31 @@ class Simulation(object):
 
   def printDicts(self):
     '''utility function capable to print a summary of the dictionaries'''
-    def __prntDict(Dict):
+    def __prntDict(Dict,msg):
       '''utility function capable to print a dictionary'''
+      msg=''
       for key in Dict:
-        print(key+'= '+str(Dict[key]))
-    __prntDict(self.runInfoDict)
-    __prntDict(self.stepsDict)
-    __prntDict(self.dataDict)
-    __prntDict(self.samplersDict)
-    __prntDict(self.modelsDict)
-    __prntDict(self.testsDict)
-    __prntDict(self.filesDict)
-    __prntDict(self.dataBasesDict)
-    __prntDict(self.OutStreamManagerPlotDict)
-    __prntDict(self.OutStreamManagerPrintDict)
-    __prntDict(self.addWhatDict)
-    __prntDict(self.whichDict)
+        msg+=key+'= '+str(Dict[key])+'\n'
+      msg=__prntDict(self.runInfoDict,msg)
+      msg=__prntDict(self.stepsDict,msg)
+      msg=__prntDict(self.dataDict,msg)
+      msg=__prntDict(self.samplersDict,msg)
+      msg=__prntDict(self.modelsDict,msg)
+      msg=__prntDict(self.testsDict,msg)
+      msg=__prntDict(self.filesDict,msg)
+      msg=__prntDict(self.dataBasesDict,msg)
+      msg=__prntDict(self.OutStreamManagerPlotDict,msg)
+      msg=__prntDict(self.OutStreamManagerPrintDict,msg)
+      msg=__prntDict(self.addWhatDict,msg)
+      msg=__prntDict(self.whichDict,msg)
+      utils.raiseAMessage(self,msg)
 
   def run(self):
     '''run the simulation'''
     #to do list
     #can we remove the check on the esistence of the file, it might make more sense just to check in case they are input and before the step they are used
     #
-    if self.debug: print('SIMULATION    : entering in the run')
+    if self.debug: utils.raiseAMessage(self,'entering the run')
     #controlling the PBS environment
     if self.__modeHandler.doOverrideRun():
       self.__modeHandler.runOverride()
@@ -582,7 +581,7 @@ class Simulation(object):
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:
       stepInstance                     = self.stepsDict[stepName]   #retrieve the instance of the step
-      print('\n'+ self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> '+2*'-'+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')
+      utils.raiseAMessage(self,'-'*2+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')
       self.runInfoDict['stepName']     = stepName                   #provide the name of the step to runInfoDict
       stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!!
       stepInputDict['Input' ]          = []                         #set the Input to an empty list
@@ -624,7 +623,7 @@ class Simulation(object):
       stepInstance.takeAstep(stepInputDict)
       #---------------here what is going on? Please add comments-----------------
       for output in stepInputDict['Output']:
-        if self.FIXME: print(self.printTag+': FIXME -> This is for the filter, it needs to go when the filtering strategy is done')
+        if self.FIXME: utils.raiseAMessage(self,'This is for the filter, it needs to go when the filtering strategy is done','FIXME')
         if "finalize" in dir(output):
           output.finalize()
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> ' + 2*'-'+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-')
+      utils.raiseAMessage(self,'-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-')

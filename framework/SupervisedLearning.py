@@ -258,7 +258,7 @@ class NDinterpolatorRom(superVisedLearning):
     for n_sample in range(featureVals.shape[0]):
       featv = interpolationND.vectd(featureVals[n_sample][:])
       prediction[n_sample] = self.interpolator.interpolateAt(featv)
-      print('NDinterpRom   : Prediction by ' + self.__class__.ROMtype + '. Predicted value is ' + str(prediction[n_sample]))
+      utils.raiseAMessage(self,'NDinterpRom   : Prediction by ' + self.__class__.ROMtype + '. Predicted value is ' + str(prediction[n_sample]))
     return prediction
 
   def __returnInitialParametersLocal__(self):
@@ -366,20 +366,18 @@ class GaussPolynomialRom(NDinterpolatorRom):
     sgs = self.sparseGrid.points()[:]
     fvs=sorted(fvs,key=itemgetter(*range(len(fvs[0]))))
     sgs=sorted(sgs,key=itemgetter(*range(len(sgs[0]))))
-    #for i in range(len(fvs)):
-    #  print('  ',fvs[i],' | ',sgs[i])
+    msg='\n'
     if not np.allclose(fvs,sgs,rtol=1e-15):
-      msg=' featureVals | sparseGridVals:\n'
+      msg+='DEBUG featureVals | sparseGridVals:\n'
       for i in range(len(fvs)):
         msg+='  '+str(fvs[i])+' | '+str(sgs[i])+'\n'
-      utils.raiseAnError(IOError,self,'input values do not match required values!\n'+msg)
+      utils.raiseAWarning(self,msg)
+      utils.raiseAnError(IOError,self,'input values do not match required values!')
     #make translation matrix between lists
     translate={}
     for i in range(len(fvs)):
       translate[tuple(fvs[i])]=sgs[i]
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
-    #outFile=file('debugout.txt','w')
-    #outFile.writelines(str(list(v for v in self.sparseGrid.varNames))+'\n')
     for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
@@ -389,17 +387,11 @@ class GaussPolynomialRom(NDinterpolatorRom):
         for i,p in enumerate(pt):
           varName = self.sparseGrid.varNames[i]
           stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type,p)
-        #outFile.writelines('  '+str(pt)+'\n')
-        #outFile.writelines('  '+str(stdPt)+'\n')
         wt = self.sparseGrid.weights(translate[tuple(pt)])
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
     self.amITrained=True
-    #outFile.close()
     #self.printPolyDict()
-    #do a few moments #TODO need a better solution for calling moment calculations, etc
-    #for r in range(5):
-    #  print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
 
   def printPolyDict(self,printZeros=False):
     '''Human-readable version of the polynomial chaos expansion.
@@ -411,9 +403,10 @@ class GaussPolynomialRom(NDinterpolatorRom):
       if val > 1e-14 or printZeros:
         data.append([idx,val])
     data.sort()
-    print('polyDict for ['+self.target+'] with inputs '+str(self.features)+': ')
+    msg='polyDict for ['+self.target+'] with inputs '+str(self.features)+': \n'
     for idx,val in data:
-      print('    ',idx,val)
+      msg+='    '+str(idx)+' '+str(val)+'\n'
+    utils.raiseAMessage(msg)
 
   def __evaluateMoment__(self,r):
     '''Use the ROM's built-in method to calculate moments.
@@ -550,38 +543,38 @@ class HDMRRom(GaussPolynomialRom):
 
     self.amITrained = True
 
-    #do a couple moments, for kicks
+    #do a couple moments, for kicks -> TODO this should all go into ROM calls
     #if self.debug: #TODO SupervisedEngine doesn't have debug??
-    print('\n| SOBOL Decomposition for '+self.target+' using inputs '+str(self.features)+': ')
-    print('|\n| Moments')
-    print('|   Mean     = %f' %self.__mean__())
-    print('|   Variance = %f' %self.__variance__())
-    #try the variance
-    #try sensitivities
-    print('|\n| Absolute Sensitivities')
-    self.getSensitivities()
-    insig=[]
-    for combo in self.ROMs.keys():
-      if abs(self.sdx[len(combo)][combo])>1e-12:
-        print('|   Index %s = %f' %(combo,self.sdx[len(combo)][combo]))
-      else:
-        insig.append(combo)
-    if len(insig)>0: print('|   Contributes less than 1e-12:',insig)
-    # percent sensitivities
-    print('|\n| Percent Sensitivities')
-    pcts,totpct,totvar = self.getPercentSensitivities(returnTotal=True)
-    #pcts,totpct,totvar = self.getPercentSensitivities(variance=1.604468e-4,returnTotal=True)
-    insig=[]
-    for combo,val in pcts.items():
-      if abs(val)>1e-12:
-        print('|   Index %s = %f' %(combo,val))
-      else: insig.append(combo)
-    if len(insig)>0: print('|   Contributes less than 1e-12:',insig)
-    print('| Total:',totvar,'(',totpct*100,'%)')
-    # evaluations
-    print('|\n| SOBOL evaluations')
-    print('|   f(0.5,3,2) =',self.__evaluateLocal__([[0.5,3,2]]))
-    print('|   f(1,1,1) =',self.__evaluateLocal__([[1,1,1]]))
+#    prt('\n| SOBOL Decomposition for '+self.target+' using inputs '+str(self.features)+': ')
+#    prt('|\n| Moments')
+#    prt('|   Mean     = %f' %self.__mean__())
+#    prt('|   Variance = %f' %self.__variance__())
+#    #try the variance
+#    #try sensitivities
+#    prt('|\n| Absolute Sensitivities')
+#    self.getSensitivities()
+#    insig=[]
+#    for combo in self.ROMs.keys():
+#      if abs(self.sdx[len(combo)][combo])>1e-12:
+#        prt('|   Index %s = %f' %(combo,self.sdx[len(combo)][combo]))
+#      else:
+#        insig.append(combo)
+#    if len(insig)>0: prt('|   Contributes less than 1e-12:',insig)
+#    # percent sensitivities
+#    prt('|\n| Percent Sensitivities')
+#    pcts,totpct,totvar = self.getPercentSensitivities(returnTotal=True)
+#    #pcts,totpct,totvar = self.getPercentSensitivities(variance=1.604468e-4,returnTotal=True)
+#    insig=[]
+#    for combo,val in pcts.items():
+#      if abs(val)>1e-12:
+#        prt('|   Index %s = %f' %(combo,val))
+#      else: insig.append(combo)
+#    if len(insig)>0: prt('|   Contributes less than 1e-12:',insig)
+#    prt('| Total:',totvar,'(',totpct*100,'%)')
+#    # evaluations
+#    prt('|\n| SOBOL evaluations')
+#    prt('|   f(0.5,3,2) =',self.__evaluateLocal__([[0.5,3,2]]))
+#    prt('|   f(1,1,1) =',self.__evaluateLocal__([[1,1,1]]))
 
   def __fillPointWithRef(self,combo,pt):
     '''Given a "combo" subset of the full input space and a partially-filled
@@ -882,8 +875,6 @@ class SciKitLearn(superVisedLearning):
     targetVals : array, shape = [n_samples]
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
-    #print(self.ROM.__dict__)
-    #print(self.ROM)
     if len(np.unique(targetVals))>1:
       self.ROM.fit(featureVals,targetVals)
       self.evaluate = self._readdressEvaluateRomResponse
@@ -906,7 +897,7 @@ class SciKitLearn(superVisedLearning):
     return self.ROM.get_params()
 
   def __returnCurrentSettingLocal__(self):
-    print(self.printTag + ': FIXME -> here we need to collect some info on the ROM status')
+    utils.raiseAMessage(self,'here we need to collect some info on the ROM status','FIXME')
     localInitParam = {}
     return localInitParam
 #

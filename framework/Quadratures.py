@@ -294,7 +294,7 @@ class SparseQuad(object):
             else:
               self.SG[newpt] = newwt
         else:
-          print(self.printTag+': Sparse quad generation (tensor)',job.identifier,'failed...')
+          utils.raiseAMessage(self,'Sparse quad generation (tensor) '+job.identifier+' failed...')
       if j<numRunsNeeded-1:
         for k in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
           j+=1
@@ -368,7 +368,7 @@ class SparseQuad(object):
         if job.getReturnCode() == 0:
           self.c[int(str(job.identifier).replace("_makeSingleCoeff", ""))]=job.returnEvaluation()[1]
         else:
-          print(self.printTag+': Sparse grid index',job.identifier,'failed...')
+          utils.raiseAMessage(self,'Sparse grid index '+job.identifier+' failed...')
       if i<N-1: #load new inputs, up to 100 at a time
         for k in range(min(handler.howManyFreeSpots(),N-1-i)):
           i+=1
@@ -415,9 +415,6 @@ class SparseQuad(object):
     weights= list(itertools.product(*weightLists))
     for k,wtset in enumerate(weights):
       weights[k]=np.product(wtset)
-    #print('DEBUG idx',idx)
-    #for p,pt in enumerate(points):
-    #  print('DEBUG  ',pt,weights[p])
     return points,weights
 
 

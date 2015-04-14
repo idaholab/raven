@@ -91,7 +91,7 @@ if __name__ == '__main__':
   for inputFile in inputFiles:
     tree = ET.parse(inputFile)
     #except?  raisea IOError('not possible to parse (xml based) the input file '+inputFile)
-    if debug: print('opened file '+inputFile)
+    if debug: utils.raiseAMessage('DRIVER','opened file '+inputFile)
     root = tree.getroot()
     if root.tag != 'Simulation': utils.raiseAnError(IOError,'DRIVER','The outermost block of the input file '+inputFile+' it is not Simulation')
     #generate all the components of the simulation

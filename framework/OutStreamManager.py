@@ -604,12 +604,12 @@ class OutStreamPlot(OutStreamManager):
     for pltindex in range(len(self.options['plotSettings']['plot'])):
       if not 'type' in self.options['plotSettings']['plot'][pltindex].keys(): utils.raiseAnError(IOError,self,'For plot named'+ self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
       else:
-        if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0: print(self.printTag+': ERROR -> For plot named'+ self.name + ', type '+self.options['plotSettings']['plot'][pltindex]['type']+' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!!!')
+        if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0: utils.raiseAMessage(self,'For plot named'+ self.name + ', type '+self.options['plotSettings']['plot'][pltindex]['type']+' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!','ExceptedError')
         self.outStreamTypes.append(self.options['plotSettings']['plot'][pltindex]['type'])
     self.mpl = importlib.import_module("matplotlib")
     #exec('self.mpl =  importlib.import_module("matplotlib")')
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> matplotlib version is ' + str(self.mpl.__version__))
-    if self.dim not in [2,3]: raise(self.printTag+': ERROR -> This Plot interface is able to handle 2D-3D plot only')
+    if self.debug: utils.raiseAMessage(self,'matplotlib version is ' + str(self.mpl.__version__))
+    if self.dim not in [2,3]: utils.raiseAnError(TypeError,self,'This Plot interface is able to handle 2D-3D plot only')
     if not disAvail: self.mpl.use('Agg')
     self.plt = importlib.import_module("matplotlib.pyplot")
     if self.dim == 3: from mpl_toolkits.mplot3d import Axes3D
@@ -658,7 +658,7 @@ class OutStreamPlot(OutStreamManager):
       #################
       #  SCATTER PLOT #
       #################
-      if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> creating plot'+ self.name)
+      if self.debug: utils.raiseAMessage(self,'creating plot'+ self.name)
       if self.outStreamTypes[pltindex] == 'scatter':
         if 's' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['s'] = '20'
         if 'c' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['c'] = 'b'
@@ -869,7 +869,7 @@ class OutStreamPlot(OutStreamManager):
             for x_index in range(len(self.xValues[pltindex][key])):
               for y_index in range(len(self.yValues[pltindex][key])):
                 if not self.colorMapCoordinates:
-                  print('STREAM MANAGER: pseudocolor Plot needs coordinates for color map... Returning without plotting')
+                  utils.raiseAMessage(self,'STREAM MANAGER: pseudocolor Plot needs coordinates for color map... Returning without plotting')
                   return
                 for z_index in range(len(self.colorMapValues[pltindex][key])):
                   if self.colorMapValues[pltindex][key][z_index].size <= 3: return
@@ -1109,7 +1109,7 @@ class OutStreamPlot(OutStreamManager):
     if 'screen' in self.options['how']['how'].split(',') and disAvail:
       def handle_close(event):
         self.fig.canvas.stop_event_loop()
-        print('Closed Figure')
+        utils.raiseAMessage(self,'Closed Figure')
       self.fig.canvas.mpl_connect('close_event',handle_close)
       self.fig.show()
       #if blockFigure: self.fig.ginput(n=-1, timeout=-1, show_clicks=False)

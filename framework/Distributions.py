@@ -266,7 +266,7 @@ def randomIntegers(low,high):
   raw_num = low + random()*int_range
   raw_int = int(round(raw_num))
   if raw_int < low or raw_int > high:
-    print("Random int out of range")
+    utils.raiseAMessage('DISTRIBUTIONS',"Random int out of range")
     raw_int = max(low,min(raw_int,high))
   return raw_int
 
@@ -536,32 +536,6 @@ class Normal(BoostDistribution):
     @ Out float/array of floats, converted points
     '''
     return self.sigma*x+self.untruncatedMean()
-
-#  def _constructBeta(self,numStdDev=5):
-#    '''Using data from normal distribution and the number of standard deviations
-#    to include, constructs a Beta distribution with the same mean, variance, and
-#    skewness as the initial normal distribution.  Effectively simulates a truncated
-#    Gaussian.'''
-#    L = self.mean-numStdDev*self.sigma
-#    R = self.mean+numStdDev*self.sigma
-#    d = R-L
-#    a = d*d/8./(self.sigma*self.sigma) - 0.5 #comes from forcing equivalent total variance
-#    b = a
-#    print('L %f, R %f, d %f, ab %f, u %f' %(L,R,d,a,0.5*(L+R)))
-#    def createElement(tag,attrib={},text={}):
-#      element = ET.Element(tag,attrib)
-#      element.text = text
-#      return element
-#    betaElement = ET.Element("beta")
-#    betaElement.append(createElement("low"  ,text="%f" %L))
-#    betaElement.append(createElement("hi"   ,text="%f" %R))
-#    betaElement.append(createElement("alpha",text="%f" %a))
-#    betaElement.append(createElement("beta" ,text="%f" %b))
-#    beta = Beta()
-#    beta._readMoreXML(betaElement)
-#    beta.initializeDistribution()
-#    return beta
-
 
 
 
@@ -1356,7 +1330,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     NDimensionalDistributions.addInitParams(self, tempDict)
 
   def initializeDistribution(self):
-    print('====== BasicMultiDimensional NDCartesianSpline initialize Distribution ======')
+    utils.raiseAMessage(self,'====== BasicMultiDimensional NDCartesianSpline initialize Distribution ======')
     if self.function_type == 'CDF':
       self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.data_filename),True)
     else:
@@ -1382,9 +1356,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     dxs        = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)):
       coordinate[i] = x[i]
-      #print(coordinate[i])
       dxs[i]=dx[i]
-      #print(dx[i])
     return self._distribution.cellIntegral(coordinate,dxs)
 
   def inverseMarginalDistribution (self, x, variable):
@@ -1489,7 +1461,7 @@ class MultivariateNormal(NDimensionalDistributions):
     NDimensionalDistributions.addInitParams(self, tempDict)
 
   def initializeDistribution(self):
-    print('====== BasicMultiDimensional MultivariateNormal initialize distribution ======')
+    utils.raiseAMessage(self,'====== BasicMultiDimensional MultivariateNormal initialize distribution ======')
     mu = distribution1D.vectord_cxx(len(self.mu))
     for i in range(len(self.mu)):
       mu[i] = self.mu[i]
