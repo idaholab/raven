@@ -1147,7 +1147,6 @@ class OutStreamPrint(OutStreamManager):
     if 'type' not in self.options.keys(): raise IOError(self.printTag+': ERROR -> type tag not present in Print block called '+ self.name)
     if self.options['type'] not in self.availableOutStreamTypes : raise(self.printTag+': ERROR -> Print type ' + self.options['type'] + ' not available yet. ')
     if 'variables' in self.options.keys(): self.variables = self.options['variables']
-    print('DEBUG options',self.printTag,self.options)
 
   def addOutput(self):
     if self.variables: dictOptions = {'filenameroot':self.name,'variables':self.variables}

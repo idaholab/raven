@@ -370,9 +370,8 @@ class ROM(Dummy):
     else: options={}
     tree=self._localBuildPrintTree(options)
     msg=tree.stringNodeTree()
-    file(filenameLocal,'w').writelines(msg)
+    file(filenameLocal+'.xml','w').writelines(msg)
     utils.raiseAMessage(self,'ROM XML printed to "'+filenameLocal+'"')
-    #print(msg)
 
   def _localBuildPrintTree(self,options=None):
     node = TreeStructure.Node('ReducedOrderModel')

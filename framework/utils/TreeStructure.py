@@ -64,8 +64,15 @@ class Node(object):
     '''
     node.parentname = self.name
     node.parent     = self
-    node.depth      = self.depth + 1
+    node.updateDepth()
+    #node.depth      = self.depth + 1
     self._branches.append(node)
+
+  def updateDepth(self):
+    if self.parent=='root': self.depth=0
+    else: self.depth = self.parent.depth+1
+    for node in self._branches:
+      node.updateDepth()
 
   def extendBranch(self, nodes):
     '''

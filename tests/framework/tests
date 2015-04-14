@@ -348,7 +348,7 @@
  [./stochPolyTest]
   type = 'RavenFramework'
   input = 'test_stoch_poly.xml'
-  output = 'StochasticPolyTest/Udump.xml StochasticPolyTest/UCdump.xml StochasticPolyTest/Ndump.xml StochasticPolyTest/Gdump.xml StochasticPolyTest/Bdump.xml StochasticPolyTest/BNdump.xml StochasticPolyTest/Tdump.xml StochasticPolyTest/Edump.xml'
+  output = 'StochasticPolyTest/Udumprom.xml StochasticPolyTest/UCdumprom.xml StochasticPolyTest/Ndumprom.xml StochasticPolyTest/Gdumprom.xml StochasticPolyTest/Bdumprom.xml StochasticPolyTest/BNdumprom.xml StochasticPolyTest/Tdumprom.xml StochasticPolyTest/Edumprom.xml'
   csv = 'StochasticPolyTest/Udump.csv StochasticPolyTest/UCdump.csv StochasticPolyTest/Ndump.csv StochasticPolyTest/Gdump.csv StochasticPolyTest/Bdump.csv StochasticPolyTest/BNdump.csv StochasticPolyTest/Tdump.csv StochasticPolyTest/Edump.csv'
  [../]
 
@@ -369,7 +369,7 @@
  [./sobolRomTest]
   type = 'RavenFramework'
   input = 'test_sobol_rom.xml'
-  output = 'SobolRom/dump.xml'
+  output = 'SobolRom/dump.xml SobolRom/dumprom.xml'
   csv = 'SobolRom/dump.csv'
  [../]
 
