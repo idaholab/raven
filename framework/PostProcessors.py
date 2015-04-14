@@ -463,7 +463,15 @@ class ComparisonStatistics(BasePostProcessor):
           utils.printCsv(csv,'"'+key+'"',dataStats[key])
         print("data_stats",dataStats)
         graphData.append((dataStats, cdfFunc, pdfFunc,str(dataPull)))
-      mathUtils.printGraphs(csv, graphData, self.f_z_stats)
+      graph_data = mathUtils.getGraphs(graphData, self.f_z_stats)
+      for key in graph_data:
+        value = graph_data[key]
+        if type(value).__name__ == 'list':
+          utils.printCsv(csv,*(['"' + l[0] + '"' for l in value]))
+          for i in range(1,len(value[0])):
+            utils.printCsv(csv,*([l[i] for l in value]))
+        else:
+          utils.printCsv(csv,'"'+key+'"',value)
       for i in range(len(graphData)):
         dataStat = graphData[i][0]
         def delist(l):
