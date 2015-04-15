@@ -2331,8 +2331,8 @@ class SparseGridCollocation(Grid):
     self.ROM            = None  #pointer to ROM
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
-
-    self.requiredAssObject = (True,(['ROM'],['1']))                  # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+    self.restartData    = None  #timepointset with possible points to restart from
+    self.requiredAssObject = (True,(['ROM','Restart'],['1','n']),) # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def _localWhatDoINeed(self):
     gridDict = Grid._localWhatDoINeed(self)
@@ -2360,6 +2360,7 @@ class SparseGridCollocation(Grid):
         for value in self.assemblerDict[key]:
           self.ROM = self.assemblerDict[key][indice][3]
           indice += 1
+    if 'Restart' in self.assemblerDict.keys(): self.restartData = self.assemblerDict['Restart'][0][3]
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #often need only one
     self._generateQuadsAndPolys(SVL)
@@ -2388,9 +2389,25 @@ class SparseGridCollocation(Grid):
       outFile.writelines(msg)
       outFile.close()
 
-    self.limit=len(self.sparseGrid)
-    if self.debug: utils.raiseAMessage(self,'Size of Sparse Grid  :'+str(self.limit))
+    #if restart, figure out what runs we need; else, all of them
+    if self.restartData != None:
+      inps = self.restartData.getInpParametersValues()
+      existing = zip(*list(v for v in inps.values()))
+      key = inps.keys()
+      if not key==self.distDict.keys(): utils.raiseAnError(ValueError,self,'Restart vars do not match sparse grid vars!')
+    else:
+      existing=[]
+    self.neededPoints=[]
+    for p in range(len(self.sparseGrid)):
+      pt,wt = self.sparseGrid[p]
+      if pt not in existing:
+        self.neededPoints.append((pt,wt))
+
+    self.limit=len(self.neededPoints)
+    if self.debug: utils.raiseAMessage(self,'Size of Sparse Grid   :'+str(len(self.sparseGrid)))
+    if self.debug: utils.raiseAMessage(self,'Number of Runs Needed :'+str(self.limit))
     if self.debug: utils.raiseAMessage(self,'Finished sampler generation.')
+
     for SVL in self.ROM.SupervisedEngine.values():
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.distDict,
@@ -2459,8 +2476,7 @@ class SparseGridCollocation(Grid):
 
   def localGenerateInput(self,model,myInput):
     '''Provide the next point in the sparse grid.'''
-    pt,weight = self.sparseGrid[self.counter-1]
-    if self.debug: utils.raiseAMessage(self,'Point,weight: '+str(pt)+' | '+str(weight),'DEBUG')
+    pt,weight = self.neededPoints[self.counter-1]
     for v,varName in enumerate(self.distDict.keys()):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
