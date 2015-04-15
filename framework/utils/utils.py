@@ -73,14 +73,7 @@ def raiseAMessage(obj,msg,wtag='Message'):
     @ In, wtag, optional, the type of warning to display (default "Message")
     @ Out, None
   '''
-  #TODO this hasn't been propagated through code
-  if type(obj) in [str,unicode]:
-    tag = obj
-  else:
-    try: obj.printTag
-    except AttributeError: tag = str(obj)
-    else: tag = str(obj.printTag)
-  print(returnPrintTag(tag)+': '+returnPrintPostTag(str(wtag))+' -> '+str(msg))
+  raiseAWarning(obj,msg,wtag)
 
 def convertMultipleToBytes(sizeString):
   '''
