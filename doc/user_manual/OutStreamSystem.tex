@@ -98,7 +98,7 @@ Actually, two different OutStream types are available:
   %
 \end{itemize}
 \vspace{-5mm}
-Both the types listed above only accept as ``input'' a \textit{Data} object
+Both the types listed above accept as ``input'' a \textit{Data} object
 type.
 %
 This choice is due to the ``\textit{Datas}'' system (see
@@ -111,8 +111,11 @@ Every module can project its outcomes into a \textit{Data} object.
 This provides the user with the capability to visualize/dump all the modules'
 results.
 %
+Additionally, the \textbf{Print} system can accept a ROM and inquire some of its
+specialized methods.
+%
 As already mentioned, the RAVEN
-framework input is based on the \textbf{E}xtensible \textbf{M}arkup
+framework input is based on the e\textbf{X}tensible \textbf{M}arkup
 \textbf{L}anguage (\textbf{XML}) format.
 %
 Thus, in order to activate the ``\textit{OutStream}'' system, the input needs to
@@ -140,17 +143,23 @@ The Printing system has been created in order to let the user dump the data,
 contained in the internal data objects (see Section~\ref{sec:Datas}), out
 at anytime during the calculation.
 %
+Additionally, the user can inquire special methods of a \textbf{ROM} after training it,
+through a printing step.
+%
 Currently, the only available output is a \textbf{C}omma \textbf{S}eparated
-\textbf{V}alue (\textbf{CSV}) file.
+\textbf{V}alue (\textbf{CSV}) file for \textbf{Datas} objects, and \textbf{XML}
+for \textbf{ROM} objects.
 %
 %In the near future, an XML formatted file option will be available.
 %
 This will facilitate the exchanging of results and provide the possibility to
 dump the solution of an analysis and ``restart'' another one constructing a
-\textit{Data} from scratch.
+\textit{Data} from scratch, as well as access advanced features of particular
+reduced order models.
 %
+\subsubsection{\textbf{Datas} Printing}
 The XML code, that is reported below, shows different ways to request a
-\textit{Print} OutStream.
+\textit{Print} OutStream for \textbf{Datas} objects.
 %
 The user needs to provide a name for each sub-block (XML attribute).
 %
@@ -164,7 +173,7 @@ least, the two required tags:
   \itemsep0em
   \item \xmlNode{type}, the output file type (csv or xml).
   %
-  \nb Only \textbf{csv} is currently available
+  \nb Only \textbf{csv} is currently available for Datas objects
   \item \xmlNode{source}, the \textit{Data} name (one of the \textit{Data} 
   defined in the \xmlNode{Datas} block.
 \end{itemize}
@@ -217,6 +226,62 @@ The available options, for the \xmlNode{variables} sub-block, are listed below:
 \end{itemize}
 \vspace{-5mm}
 Note all of the XML tags are case-sensitive but not their content.
+
+\subsubsection{\textbf{ROM} Printing}
+While all \textbf{ROM}s in RAVEN are designed to be used as a surrogate model,
+some \textbf{ROM}s additionally offer information about the original model that
+isn't accessible through another means.  For instance, \textbf{HDMRRom} objects
+can calculate sensitivity coefficients for subsets of the input domain.
+%
+The XML code shown below demonstrates the methods to request these features
+from a \textbf{ROM}.
+%
+The user needs to provide a \xmlNode{name} for each sub-block (XML attribute).
+%
+These names are then used in the \textit{Step} blocks to activate the Printing keywords
+at any time.
+%
+As shown in the examples below, every \xmlNode{Print} block for ROMs must contain, at least, the
+three required tags
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \xmlNode{type}, the output file type (csv or xml).
+  %
+  \nb Only \textbf{xml} is currently available for ROMs
+  \item \xmlNode{source}, the \textit{Rom} name (one of the \textit{ROM} 
+  defined in the \xmlNode{Models} block.
+    %
+  \item \xmlNode{what}, the comma-separated list of desired metrics.
+  The list of metrics available in each ROM is listed under that ROM
+  type in Section \ref{subsec:models_ROM}.  Alternatively, the
+  keyward \xmlString{all} can be provided to request all available metrics, if any.
+\end{itemize}
+\vspace{-5mm}
+Addtionally, when printing ROMs one optional nodes are available,
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \xmlNode{target}, the ROM target for which to inquire data
+
+\end{itemize}
+\vspace{-5mm}
+ROM printing uses the same naming conventions as Datas printing.
+Examples:
+\begin{lstlisting}[style=XML]
+<OutStreamManager>
+  <Print name='first-ROM-example'>
+    <type>xml</type>
+    <source>mySobolRom</source>
+    <what>all</what>
+  </Print>
+  <Print name='second-ROM-example'>
+    <type>xml</type>
+    <source>myGaussPolyRom</source>
+    <what>mean,variance</what>
+  </Print>
+</OutStreamManager>
+\end{lstlisting}
 %
 %%%%%%%%%
 % PLOTTING SYSTEM
