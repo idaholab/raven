@@ -10,11 +10,11 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils    import returnPrintTag, metaclass_insert, stringsThatMeanTrue, stringsThatMeanFalse
+import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-#from utils    import returnPrintTag
+#from utils    import utils.returnPrintTag
 
 class BaseType(object):
   """this is the base class for each general type used by the simulation"""
@@ -25,7 +25,7 @@ class BaseType(object):
     self.globalAttributes = {}      #this is a dictionary that contains parameters that are set at the level of the base classes defining the types
     self._knownAttribute  = []      #this is a list of strings representing the allowed attribute in the xml input for the class
     self._knownAttribute += ['name','debug']
-    self.printTag         = returnPrintTag('BaseType')
+    self.printTag         = utils.returnPrintTag('BaseType')
 
   def readXML(self,xmlNode,debug=False,globalAttributes=None):
     """
@@ -33,17 +33,17 @@ class BaseType(object):
     that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag)
     """
     if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
-    else: raise IOError(self.printTag+':not found name for a '+self.__class__.__name__)
+    else: utils.raiseAnError(IOError,self,'not found name for a '+self.__class__.__name__)
     self.type     = xmlNode.tag
     if self.globalAttributes!= None: self.globalAttributes = globalAttributes
     if 'debug' in xmlNode.attrib:
-      if   xmlNode.attrib['debug'].lower() in stringsThatMeanTrue() : self.debug = True
-      elif xmlNode.attrib['debug'].lower() in stringsThatMeanFalse(): self.debug = False
-      else                                   : raise IOError('For the attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
+      if   xmlNode.attrib['debug'].lower() in utils.stringsThatMeanTrue() : self.debug = True
+      elif xmlNode.attrib['debug'].lower() in utils.stringsThatMeanFalse(): self.debug = False
+      else                                   : utils.raiseAnError(IOError,self,'For the attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
     else                                     : self.debug = debug
     self._readMoreXML(xmlNode)
     if self.debug:
-      print(self.printTag+'------Reading Completed for:')
+      utils.raiseAMessage(self,'------Reading Completed for:')
       self.printMe()
 
   def _readMoreXML(self,xmlNode):
@@ -92,14 +92,14 @@ class BaseType(object):
     the instance of an object that inherit this class
     """
     tempDict = self.whoAreYou()
-    for key in tempDict.keys(): print('{0:15}: {1}'.format(key,str(tempDict[key])))
+    msg=''
+    for key in tempDict.keys(): utils.raiseAMessage('BASECLASSES','{0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myInitializzationParams()
-    print(self.printTag+'Initialization Parameters:')
-    for key in tempDict.keys(): print('{0:15}: {1}'.format(key,str(tempDict[key])))
+    utils.raiseAMessage(self,'Initialization Parameters:')
+    for key in tempDict.keys(): utils.raiseAMessage('BASECLASSES','{0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myCurrentSetting()
-    print(self.printTag+'Current Setting:')
-    for key in tempDict.keys(): print('{0:15}: {1}'.format(key,str(tempDict[key])))
-    print('\n')
+    utils.raiseAMessage(self,'Current Setting:')
+    for key in tempDict.keys(): utils.raiseAMessage('BASECLASSES','{0:15}: {1}'.format(key,str(tempDict[key])))
 #
 #
 #

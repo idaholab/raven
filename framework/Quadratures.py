@@ -23,7 +23,7 @@ import inspect
 #Internal Modules
 from BaseClasses import BaseType
 from JobHandler import JobHandler
-from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
+import utils
 #Internal Modules End-----------------------------------------------------------------
 
 
@@ -172,9 +172,9 @@ class SparseQuad(object):
     #TODO optimize me!~~
     oldNames = self.varNames[:]
     #check consistency
-    if len(oldNames)!=len(newNames): raise KeyError('SPARSEGRID: Remap mismatch! Dimensions are not the same!')
+    if len(oldNames)!=len(newNames): utils.raiseAnError(KeyError,'SPARSEGRID','Remap mismatch! Dimensions are not the same!')
     for name in oldNames:
-      if name not in newNames: raise KeyError('SPARSEGRID: Remap mismatch! '+name+' not found in original variables!')
+      if name not in newNames: utils.raiseAnError(KeyError,'SPARSEGRID','Remap mismatch! '+name+' not found in original variables!')
     wts = self.weights()
     #split by columns (dim) instead of rows (points)
     oldlists = self._xy()
@@ -294,7 +294,7 @@ class SparseQuad(object):
             else:
               self.SG[newpt] = newwt
         else:
-          print(self.printTag+': Sparse quad generation (tensor)',job.identifier,'failed...')
+          utils.raiseAMessage(self,'Sparse quad generation (tensor) '+job.identifier+' failed...')
       if j<numRunsNeeded-1:
         for k in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
           j+=1
@@ -336,21 +336,6 @@ class SparseQuad(object):
       try: return self.SG[tuple(n)]
       except TypeError:  return self.SG.values()[n]
 
-#  def serialMakeCoeffs(self):
-#    """Brute force method to create coefficients for each index set in the sparse grid approximation.
-#      This particular implementation is faster for 2 dimensions, but slower for
-#      more than 2 dimensions, than the smarterMakeCeoffs."""
-#    #TODO FIXME or just remove me.
-#    print('WARNING: serialMakeCoeffs may be broken.  smarterMakeCoeffs is better.')
-#    self.c=np.zeros(len(self.indexSet))
-#    jIter = itertools.product([0,1],repeat=self.N) #all possible combinations in the sum
-#    for jx in jIter: #from here down goes in the paralellized bit
-#      for i,ix in enumerate(self.indexSet):
-#        ix = np.array(ix)
-#        comb = tuple(jx+ix)
-#        if comb in self.indexSet:
-#          self.c[i]+=(-1)**sum(jx)
-
   def smarterMakeCoeffs(self):
     """Somewhat optimized method to create coefficients for each index set in the sparse grid approximation.
        This particular implementation is faster for any more than 2 dimensions in comparison with the
@@ -383,7 +368,7 @@ class SparseQuad(object):
         if job.getReturnCode() == 0:
           self.c[int(str(job.identifier).replace("_makeSingleCoeff", ""))]=job.returnEvaluation()[1]
         else:
-          print(self.printTag+': Sparse grid index',job.identifier,'failed...')
+          utils.raiseAMessage(self,'Sparse grid index '+job.identifier+' failed...')
       if i<N-1: #load new inputs, up to 100 at a time
         for k in range(min(handler.howManyFreeSpots(),N-1-i)):
           i+=1
@@ -430,9 +415,6 @@ class SparseQuad(object):
     weights= list(itertools.product(*weightLists))
     for k,wtset in enumerate(weights):
       weights[k]=np.product(wtset)
-    #print('DEBUG idx',idx)
-    #for p,pt in enumerate(points):
-    #  print('DEBUG  ',pt,weights[p])
     return points,weights
 
 
@@ -509,7 +491,7 @@ class Laguerre(QuadratureSet):
     if distr.type=='Gamma':
       self.params=[distr.alpha-1]
     else:
-      raise IOError('No implementation for Laguerre quadrature on '+distr.type+' distribution!')
+      utils.raiseAnError(IOError,'QUADRATURES','No implementation for Laguerre quadrature on '+distr.type+' distribution!')
 
 class Jacobi(QuadratureSet):
   def initialize(self,distr):
@@ -522,7 +504,7 @@ class Jacobi(QuadratureSet):
     #for Beta distribution, it's  x^(alpha-1) * (1-x)^(beta-1)
     #for Jacobi measure, it's (1+x)^alpha * (1-x)^beta
     else:
-      raise IOError('No implementation for Jacobi quadrature on '+distr.type+' distribution!')
+      utils.raiseAnError(IOError,'QUADRATURES','No implementation for Jacobi quadrature on '+distr.type+' distribution!')
 
 class ClenshawCurtis(QuadratureSet):
   def initialize(self,distr):
@@ -622,5 +604,5 @@ def returnInstance(Type,**kwargs):
     if   kwargs['Subtype']=='Legendre'      : return __interFaceDict['CDFLegendre']()
     elif kwargs['Subtype']=='ClenshawCurtis': return __interFaceDict['CDFClenshawCurtis']()
   if Type in knownTypes(): return __interFaceDict[Type]()
-  else: raise NameError('not known '+__base+' type '+Type)
+  else: utils.raiseAnError(NameError,'QUADRATURES','not known '+__base+' type '+Type)
 
