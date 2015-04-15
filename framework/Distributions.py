@@ -1600,6 +1600,7 @@ __interFaceDict['Triangular'       ] = Triangular
 __interFaceDict['Poisson'          ] = Poisson
 __interFaceDict['Binomial'         ] = Binomial
 __interFaceDict['Bernoulli'        ] = Bernoulli
+__interFaceDict['Categorical'      ] = Categorical
 __interFaceDict['Logistic'         ] = Logistic
 __interFaceDict['Exponential'      ] = Exponential
 __interFaceDict['LogNormal'        ] = LogNormal

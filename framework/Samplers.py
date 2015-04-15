@@ -1011,7 +1011,6 @@ class Grid(Sampler):
       if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
         if self.distDict[varName].getDisttype() == 'Discrete':
            weight *= self.distDict[varName].pdf(self.gridCoordinate[i])
-           #print(str(self.gridCoordinate[i]) + ' ; ' + str(self.distDict[varName].pdf(self.gridCoordinate[i])))
         else: # self.distDict[varName].getDistype() == 'Continuous'
           if self.gridInfo[varName][0]=='CDF':
             if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:
