@@ -11,10 +11,10 @@ import os
 import sys
 import copy
 import utils
+from utils import raiseAnError,toString
 import xml.etree.ElementTree as ET
 import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
-from utils import toString
 import Distributions
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
@@ -27,7 +27,7 @@ class RAVENInterface(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raise Exception('RAVEN INTERFACE ERROR ->  None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not found: raiseAnError(IOError,'RAVEN INTERFACE ERROR','None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
 
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     if clargs: precommand = executable + clargs['text']
@@ -69,7 +69,7 @@ class RAVENInterface(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raise Exception('RAVEN INTERFACE ERROR ->  None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not found: raiseAnError(IOError,'RAVEN INTERFACE','None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
@@ -85,7 +85,7 @@ class RAVENInterface(CodeInterfaceBase):
     return newInputFiles
 
   def stochasticCollocationForRAVEN(self,**Kwargs):
-    if 'prefix' not in Kwargs['prefix']: raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
+    if 'prefix' not in Kwargs['prefix']: raiseAnError(IOError,'RAVEN INTERFACE','a counter is (currently) needed for the StochColl sampler for RAVEN')
     listDict = []
     varValDict = Kwargs['vars'] #come in as a string of a list, need to re-list
     for key in varValDict.keys():
@@ -99,7 +99,7 @@ class RAVENInterface(CodeInterfaceBase):
 
   def monteCarloForRAVEN(self,**Kwargs):
     if 'prefix' in Kwargs: counter = Kwargs['prefix']
-    else: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
+    else: raiseAnError(IOError,'RAVEN INTERFACE','a counter is needed for the Monte Carlo sampler for RAVEN')
     if 'initial_seed' in Kwargs: init_seed = Kwargs['initial_seed']
     else                       : init_seed = 1
     _,listDict = self.__genBasePointSampler(**Kwargs)

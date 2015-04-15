@@ -12,10 +12,7 @@ if not 'xrange' in dir(__builtins__):
 import xml.etree.ElementTree as ET
 import os
 import copy
-from utils import toBytes, toStrish, compare
-
-def justFile(fullfile):
-  return fullfile.split('/')[-1]
+from utils import raiseAWarning,raiseAnError,toBytes, toStrish, compare
 
 class GenericParser:
   '''import the user-edited input file, build list of strings with replacable parts'''
@@ -34,10 +31,11 @@ class GenericParser:
     self.varPlaces = {} #varPlaces[var][inputFile]
     self.defaults = {}  # defaults[var][inputFile]
     self.segments = {}  # segments[inputFile]
+    self.printTag = 'GENERIC_PARSER'
     for inputFile in self.inputFiles:
-      infileName = justFile(inputFile)
+      infileName = os.path.basename(inputFile)
       self.segments[infileName] = []
-      if not os.path.exists(inputFile): raise IOError('Input file not found: '+inputFile)
+      if not os.path.exists(inputFile): raiseAnError(IOError,self,'Input file not found: '+inputFile)
       IOfile = open(inputFile,'rb')
       foundSome = False
       seg = ''
@@ -50,7 +48,7 @@ class GenericParser:
           var = line[start+len(self.prefixKey):end]
           if defaultDelim in var:
             var,defval = var.split(defaultDelim)
-            if var in self.defaults.keys(): print('Parser WARNING: multiple default values given for variable',var)
+            if var in self.defaults.keys(): raiseAWarning(self,'multiple default values given for variable',var)
             #TODO allow the user to specify take-last or take-first?
             if var not in self.defaults.keys(): self.defaults[var]={}
             self.defaults[var][infileName]=defval
@@ -91,7 +89,7 @@ class GenericParser:
           if var in moddict.keys(): self.segments[inputFile][place] = str(moddict[var])
           elif var in self.defaults.keys(): self.segments[inputFile][place] = self.defaults[var][inputFile]
           elif var in iovars: continue #this gets handled in writeNewInput
-          else: raise IOError('For variable '+var+' no distribution was sampled and no default given!')
+          else: raiseAnError(IOError,self,'For variable '+var+' no distribution was sampled and no default given!')
 
   def writeNewInput(self,infileNames,origNames):
     '''
@@ -113,7 +111,7 @@ class GenericParser:
         if inputFile.endswith(ext):
           found=True
           break
-      if not found: raise IOError('GENPARSE' + ': No InputFile with extension '+ext+' found!')
+      if not found: raiseAnError(IOError,self,'No InputFile with extension '+ext+' found!')
       return index,inputFile
 
     for var in self.varPlaces.keys():
@@ -134,5 +132,5 @@ class GenericParser:
     #now just write the files.
     for f,fileName in enumerate(infileNames):
       outfile = file(fileName,'w')
-      outfile.writelines(toBytes(''.join(self.segments[justFile(origNames[f])])))
+      outfile.writelines(toBytes(''.join(self.segments[os.path.basename(origNames[f])])))
       outfile.close()
