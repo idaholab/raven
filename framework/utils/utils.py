@@ -25,7 +25,7 @@ def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   import time
   mode = os.stat(pathname).st_mode
   if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)): raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  path '+pathname+ ' is neither a file nor a dir!')
-  return abs(os.stat(pathname).st_mtime - time().time()) < timelapse
+  return abs(os.stat(pathname).st_mtime - time.time()) < timelapse
 
 def returnImportModuleString(obj,moduleOnly=False):
   mods = []
