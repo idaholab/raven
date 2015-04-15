@@ -1,4 +1,5 @@
 from __future__ import print_function
+# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
@@ -27,6 +28,20 @@ def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)): raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  path '+pathname+ ' is neither a file nor a dir!')
   return abs(os.stat(pathname).st_mtime - time.time()) < timelapse
 
+def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
+  """
+  Method to check if a path (directory) contains an hidden raven file 
+  @ In, pathname, string containing the path
+  @ In, filename, string containing the file name 
+  @ Out, boolean, True if it is present, False otherwise
+  """
+  import fcntl
+  finm = os.path.join(pathname,filename)
+  fp = open(finm, 'w')
+  try           : fcntl.lockf(fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
+  except IOError: return False
+  return True
+
 def returnImportModuleString(obj,moduleOnly=False):
   mods = []
   globs = dict(inspect.getmembers(obj))
@@ -46,6 +61,48 @@ def getPrintTagLenght(): return 25
 def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
 
 def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
+
+def raiseAnError(etype,obj,msg):
+  '''
+    Standardized error raising. Currently halts code.
+    @ In, etype, the error type to raise
+    @ In, obj, either a string or a class instance to determine the label for the error
+    @ In, msg, the error message to display
+    @ Out, None
+  '''
+  if type(obj) in [str,unicode]:
+    tag = obj
+  else:
+    try: obj.printTag
+    except AttributeError: tag = str(obj)
+    else: tag = str(obj.printTag)
+  raise etype(returnPrintTag(tag)+': '+returnPrintPostTag('ERROR')+' -> '+str(msg))
+
+def raiseAWarning(obj,msg,wtag='WARNING'):
+  '''
+    Standardized warning printing.
+    @ In, obj, either a string or a class instance to determine the label for the warning
+    @ In, msg, the warning message to display
+    @ In, wtag, optional, the type of warning to display (default "WARNING")
+    @ Out, None
+  '''
+  if type(obj) in [str,unicode]:
+    tag = obj
+  else:
+    try: obj.printTag
+    except AttributeError: tag = str(obj)
+    else: tag = str(obj.printTag)
+  print(returnPrintTag(tag)+': '+returnPrintPostTag(str(wtag))+' -> '+str(msg))
+
+def raiseAMessage(obj,msg,wtag='Message'):
+  '''
+    Standardized message printing.
+    @ In, obj, either a string or a class instance to determine the label for the message
+    @ In, msg, the message to display
+    @ In, wtag, optional, the type of warning to display (default "Message")
+    @ Out, None
+  '''
+  raiseAWarning(obj,msg,wtag)
 
 def convertMultipleToBytes(sizeString):
   '''
