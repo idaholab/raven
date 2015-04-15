@@ -12,13 +12,14 @@ if not 'xrange' in dir(__builtins__):
 import xml.etree.ElementTree as ET
 import os
 import copy
-from utils import toBytes, toStrish, compare
+from utils import raiseAnError,toBytes, toStrish, compare
 
 class MOOSEparser:
   '''import the MOOSE input as xml tree, provide methods to add/change entries and print it back'''
 
   def __init__(self,inputFile):
-    if not os.path.exists(inputFile): raise IOError('not found MOOSE input file')
+    self.printTag = 'MOOSE_PARSER'
+    if not os.path.exists(inputFile): raiseAnError(IOError,self,'not found MOOSE input file')
     IOfile = open(inputFile,'rb')
     self.inputfile = inputFile
     lines = IOfile.readlines()
