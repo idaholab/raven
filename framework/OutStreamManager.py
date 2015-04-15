@@ -1144,8 +1144,8 @@ class OutStreamPrint(OutStreamManager):
     for subnode in xmlNode:
       if subnode.tag == 'source': self.sourceName = subnode.text.split(',')
       else:self.options[subnode.tag] = subnode.text
-    if 'type' not in self.options.keys(): raise IOError(self.printTag+': ERROR -> type tag not present in Print block called '+ self.name)
-    if self.options['type'] not in self.availableOutStreamTypes : raise(self.printTag+': ERROR -> Print type ' + self.options['type'] + ' not available yet. ')
+    if 'type' not in self.options.keys(): utils.raiseAnError(IOError,self,'type tag not present in Print block called '+ self.name)
+    if self.options['type'] not in self.availableOutStreamTypes : utils.raiseAnError(TypeError,self,'Print type ' + self.options['type'] + ' not available yet. ')
     if 'variables' in self.options.keys(): self.variables = self.options['variables']
 
   def addOutput(self):
@@ -1159,7 +1159,7 @@ class OutStreamPrint(OutStreamManager):
         else: empty=False
         if not empty:
           try: self.sourceData[index].printCSV(dictOptions)
-          except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type '+str(type(self.sourceData[index]))+' and output type "csv"!')
+          except AttributeError: utils.raiseAnError(IOError,self,'no implementation for source type '+str(type(self.sourceData[index]))+' and output type "csv"!')
       elif self.options['type']=='xml':
         if type(self.sourceData[index])==Datas.Data: empty = self.sourceData[index].isItEmpty()
         else: empty=False
