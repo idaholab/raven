@@ -11,12 +11,13 @@ from scipy.interpolate import interp1d
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import returnPrintTag,returnPrintPostTag
+from utils import returnPrintTag,returnPrintPostTag,partialEval
+from BaseClasses import BaseType
 #import TreeStructure as TS
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class GridEntity(object):
+class GridEntity(BaseType):
   """
   Class that defines a Grid in the phase space. This class should be used by all the Classes that need a Grid entity.
   It provides all the methods to create, modify, and handle a grid in the phase space.
@@ -45,6 +46,63 @@ class GridEntity(object):
     self.gridContainer['transformationMethods'] = None               # Dictionary of methods to transform the coordinate from 0-1 values to something else. These methods are pointed and passed into the initialize method. {varName:method}
     self.uniqueCellNumber                       = 0                  # number of unique cells
     self.gridIterator                           = None               # the grid iterator
+
+  def _readMoreXml(self,xmlNode,dimensionTags=None):
+    """
+     XML reader for the grid statement. 
+     @ In, ETree object, xml node from where the info need to be retrieved 
+     @ In, dimensionTag, optional, list, names of the tag that represents the grid dimensions
+     @ Out, None
+    """
+    self.gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'transformationMethods':{},'stepLenght':{}}
+    gridInfo = {}
+    for child in xmlNode:
+      dimName = None
+      if dimensionTags != None:
+        if child.tag in dimensionTags: dimName = child.attrib['name']    
+      if child.tag == "grid":
+        if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
+        gridStruct, gridName = self._fillGrid(child)
+        if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
+        else: 
+          if gridName == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> grid defined in global_grid block must have the attribute "name"!')
+          dimName = child.tag + ':' + gridName
+        gridInfo[dimName] = gridStruct
+      for childChild in child:
+        if childChild.tag =='grid':
+          gridStruct, gridName = self._fillGrid(childChild)
+          if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
+          if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
+          else: 
+            if gridName == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> grid defined in global_grid block must have the attribute "name"!')
+            dimName = child.tag + ':' + gridName
+          gridInfo[dimName] = gridStruct
+    #check for global_grid type of structure
+    for key in gridInfo.keys():
+      gridInfo.pop()
+    
+    
+    
+    
+              
+
+
+
+
+  def _fillGrid(self,child):    
+    constrType = child.attrib['construction']
+    nameGrid = None
+    if child.attrib['construction'] in ['custom','equal']:
+      bounds = [partialEval(element) for element in child.text.split()]
+      bounds.sort()
+      lower, upper = min(bounds), max(bounds)
+      if 'name' in child.attrib.keys(): nameGrid = child.attrib['name']
+    if child.attrib['construction'] == 'custom': return (child.attrib['type'],constrType,bounds),nameGrid
+    elif child.attrib['construction'] == 'equal':
+      if len(bounds) != 2: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> body of grid XML node needs to contain 2 values (lower and upper bounds)!')
+      return (child.attrib['type'],constrType,np.concatenate(np.arange(lower,upper,(lower-upper)/partialEval(child.attrib['steps'])),np.array(upper))),nameGrid
+    elif child.attrib['construction'] == 'global_grid': return (child.attrib['type'],constrType,child.text),nameGrid
+    else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> construction type unknown! Got: ' + str(constrType))
 
   def initialize(self,initDict):
     """
