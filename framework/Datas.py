@@ -74,12 +74,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataParameters['outParam'] = xmlNode.find('Output').text.strip().split(',')
     #test for keywords not allowed
     if len(set(xmlNode.find('Input' ).text.strip().split(','))&set(self.notAllowedInputs))!=0:
-      raise IOError('the keyword '+str(set(xmlNode.find('Input' ).text.strip().split(','))&set(self.notAllowedInputs))+' is not allowed among inputs')
+      utils.raiseAnError(IOError,self,'the keyword '+str(set(xmlNode.find('Input' ).text.strip().split(','))&set(self.notAllowedInputs))+' is not allowed among inputs')
     if len(set(xmlNode.find('Output' ).text.strip().split(','))&set(self.notAllowedOutputs))!=0:
-      raise IOError('the keyword '+str(set(xmlNode.find('Output' ).text.strip().split(','))&set(self.notAllowedOutputs))+' is not allowed among inputs')
+      utils.raiseAnError(IOError,self,'the keyword '+str(set(xmlNode.find('Output' ).text.strip().split(','))&set(self.notAllowedOutputs))+' is not allowed among inputs')
     #test for same input/output variables name
     if len(set(xmlNode.find('Input' ).text.strip().split(','))&set(xmlNode.find('Output' ).text.strip().split(',')))!=0:
-      raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
+      utils.raiseAnError(IOError,self,'It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
     #
     # retrieve history name if present
     try:   self._dataParameters['history'] = xmlNode.find('Input' ).attrib['name']
@@ -95,7 +95,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if 'operator' in xmlNode.attrib.keys():
       # check if time information are present... in case, store it
       self._dataParameters['operator'] = xmlNode.attrib['operator'].lower()
-      if self._dataParameters['operator'] not in ['min','max','average']: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->Only operation available are '+str(['min','max','average'])+' .Data named '+ self.name + 'of type ' + self.type  )
+      if self._dataParameters['operator'] not in ['min','max','average']: utils.raiseAnError(IOError,self,'Only operation available are '+str(['min','max','average'])+' .Data named '+ self.name + 'of type ' + self.type  )
 
     # check if inputTs is provided => the time step that the inputs refer to
     try: self._dataParameters['inputTs'] = int(xmlNode.attrib['inputTs'])
@@ -105,7 +105,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if xmlNode.attrib['hierarchical'].lower() in utils.stringsThatMeanTrue(): self._dataParameters['hierarchical'] = True
       else: self._dataParameters['hierarchical'] = False
       if self._dataParameters['hierarchical'] and not self.acceptHierarchical():
-        print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> hierarchical fashion is not available (No Sense) for Data named '+ self.name + 'of type ' + self.type + '!!!')
+        utils.raiseAWarning(self,'hierarchical fashion is not available (No Sense) for Data named '+ self.name + 'of type ' + self.type + '!!!')
         self._dataParameters['hierarchical'] = False
       else:
         self.TSData = None
@@ -188,7 +188,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       else: return self.getHierParam('metadata',nodeid,keyword,serialize)
     else:
       if keyword in self._dataContainer['metadata'].keys(): return self._dataContainer ['metadata'][keyword]
-      else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> parameter ' + str(keyword) + ' not found in metadata dictionary. Available keys are '+str(self._dataContainer['metadata'].keys())+'.Function: Data.getMetadata')
+      else: utils.raiseAnError(RuntimeError,self,'parameter ' + str(keyword) + ' not found in metadata dictionary. Available keys are '+str(self._dataContainer['metadata'].keys())+'.Function: Data.getMetadata')
 
   def getAllMetadata(self,nodeid=None,serialize=False):
     """
@@ -235,9 +235,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       for invar in varKeys: variables_to_print.append(inOrOut+'|'+str(invar))
     elif '|' in var and lvar.startswith(inOrOut+'|'):
       varName = var.split('|')[1]
-      if varName not in varKeys: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> variable ' + varName + ' is not present among the '+inOrOut+'s of Data ' + self.name)
+      if varName not in varKeys: utils.raiseAnError(RuntimeError,self,'variable ' + varName + ' is not present among the '+inOrOut+'s of Data ' + self.name)
       else: variables_to_print.append(inOrOut+'|'+str(varName))
-    else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> unexpected variable '+ var)
+    else: utils.raiseAnError(RuntimeError,self,'unexpected variable '+ var)
     return variables_to_print
 
   def printCSV(self,options=None):
@@ -250,9 +250,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     options_int = {}
     # print content of data in a .csv format
     if self.debug:
-      print(' '*len(self.printTag)+':=======================')
-      print(' '*len(self.printTag)+':DATAS: print on file(s)')
-      print(' '*len(self.printTag)+':=======================')
+      utils.raiseAMessage(self,' '*len(self.printTag)+':=======================')
+      utils.raiseAMessage(self,' '*len(self.printTag)+':DATAS: print on file(s)')
+      utils.raiseAMessage(self,' '*len(self.printTag)+':=======================')
     if options:
       if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
       else: filenameLocal = self.name + '_dump'
@@ -264,7 +264,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             variables_to_print.extend(self.__getVariablesToPrint(var,'input'))
           elif lvar.startswith('output'):
             variables_to_print.extend(self.__getVariablesToPrint(var,'output'))
-          else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
+          else: utils.raiseAnError(RuntimeError,self,'variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
         options_int['variables'] = variables_to_print
     else:   filenameLocal = self.name + '_dump'
 
@@ -286,7 +286,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, filenameRoot, file name
     @ In, options, optional, dictionary -> options for loading
     """
-    raise Exception("specializedLoadXML_CSV not implemented "+str(self))
+    utils.raiseAnError(RuntimeError,self,"specializedLoadXML_CSV not implemented "+str(self))
 
   def _createXMLFile(self,filenameLocal,fileType,inpKeys,outKeys):
     """
@@ -329,7 +329,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     assert(root.tag == 'data')
     retDict = {}
     retDict["fileType"] = root.attrib['type']
-    #print(root.tag,retDict)
     inputNode = root.find("input")
     outputNode = root.find("output")
     filenameNode = root.find("input_filename")
@@ -344,7 +343,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         value = child.text
         metadataDict[key] = value
       retDict["metadata"] = metadataDict
-    #print(inputNode,outputNode,retDict)
     return retDict
 
   def addOutput(self,toLoadFrom,options=None):
@@ -358,12 +356,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.addSpecializedReadingSettings()
 
     sourceType = None
-    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Constructing data type ' +self.type +' named '+ self.name + ' from:')
+    utils.raiseAMessage(self,'Constructing data type ' +self.type +' named '+ self.name + ' from:')
     try:
       sourceType =  self._toLoadFromList[-1].type
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Object type ' + self._toLoadFromList[-1].type + ' named "' + self._toLoadFromList[-1].name+'"')
+      utils.raiseAMessage(self,'Object type ' + self._toLoadFromList[-1].type + ' named "' + self._toLoadFromList[-1].name+'"')
     except AttributeError:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Object type' +' CSV named "' + toLoadFrom+'"')
+      utils.raiseAMessage(self,'Object type' +' CSV named "' + toLoadFrom+'"')
 
     if(sourceType == 'HDF5'):
       tupleVar = self._toLoadFromList[-1].retrieveData(self._dataParameters)
@@ -374,7 +372,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         else:
           if 'parent_id' in options.keys(): parent_id = options['parent_id']
         if parent_id and self._dataParameters['hierarchical']:
-          print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
+          utils.raiseAWarning(self,'-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
     else: tupleVar = ld().csvLoadData([toLoadFrom],self._dataParameters)
 
@@ -407,11 +405,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                 if type(elem) == dict:
                   for ke ,val  in elem.items():
                     self.updateMetadata(ke, val, options)
-                else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> unknown type for metadata adding process. Relevant type = '+ str(elem))
+                else: utils.raiseAnError(IOError,self,'unknown type for metadata adding process. Relevant type = '+ str(elem))
 
         else:
-          #print('FIXME: This if statement is for back Compatibility... Remove it whitin end of July')
-          if tupleVar[2][hist]: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> unknown type for metadata adding process. Relevant type = '+ str(type(tupleVar[2][hist])))
+          if tupleVar[2][hist]: utils.raiseAnError(IOError,self,'unknown type for metadata adding process. Relevant type = '+ str(type(tupleVar[2][hist])))
     self.checkConsistency()
     return
 
@@ -422,7 +419,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     if    typeVar.lower() in 'inputs' : return self.getInpParametersValues(nodeid,serialize)
     elif  typeVar.lower() in 'outputs': return self.getOutParametersValues(nodeid,serialize)
-    else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typeVar + ' is not a valid type. Function: Data.getParametersValues')
+    else: utils.raiseAnError(RuntimeError,self,'type ' + typeVar + ' is not a valid type. Function: Data.getParametersValues')
 
   #Insert bird joke here...
   def getParaKeys(self,typePara):
@@ -432,7 +429,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     if   typePara.lower() in 'inputs' : return self._dataParameters['inParam' ]
     elif typePara.lower() in 'outputs': return self._dataParameters['outParam']
-    else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
+    else: utils.raiseAnError(RuntimeError,self,'type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
 
   def isItEmpty(self):
     """
@@ -480,7 +477,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         for key,value in self.getAllMetadata(nodeid,serialize):
           if not emptyData: outcome[key] = len(value)
           else            : outcome[key] = 0
-    else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typeVar + ' is not a valid type. Function: Data.sizeData')
+    else: utils.raiseAnError(RuntimeError,self,'type ' + typeVar + ' is not a valid type. Function: Data.sizeData')
     return outcome
 
   def getInpParametersValues(self,nodeid=None,serialize=False):
@@ -521,11 +518,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else                       :
       acceptedType = ['str','unicode','bytes']
       convertArr = lambda x: np.asarray(x)
-    if type(typeVar).__name__ not in ['str','unicode','bytes'] : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter typeVar needs to be a string. Function: Data.getParam')
-    if type(keyword).__name__ not in acceptedType        : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
+    if type(typeVar).__name__ not in ['str','unicode','bytes'] : utils.raiseAnError(RuntimeError,self,'type of parameter typeVar needs to be a string. Function: Data.getParam')
+    if type(keyword).__name__ not in acceptedType        : utils.raiseAnError(RuntimeError,self,'type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
     if nodeid:
-      if type(nodeid).__name__ not in ['str','unicode','bytes']  : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter nodeid needs to be a string. Function: Data.getParam')
-    if typeVar.lower() not in ['input','inout','inputs','output','outputs']: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typeVar + ' is not a valid type. Function: Data.getParam')
+      if type(nodeid).__name__ not in ['str','unicode','bytes']  : utils.raiseAnError(RuntimeError,self,'type of parameter nodeid needs to be a string. Function: Data.getParam')
+    if typeVar.lower() not in ['input','inout','inputs','output','outputs']: utils.raiseAnError(RuntimeError,self,'type ' + typeVar + ' is not a valid type. Function: Data.getParam')
     if self._dataParameters['hierarchical']:
       if type(keyword) == int:
         return list(self.getHierParam(typeVar.lower(),nodeid,None,serialize).values())[keyword-1]
@@ -543,10 +540,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                 return convertArr(returnDict[keyword])
             else:
                 return convertArr(self._dataContainer['inputs'][keyword])
-        else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> parameter ' + str(keyword) + ' not found in inpParametersValues dictionary. Available keys are '+str(self._dataContainer['inputs'].keys())+'.Function: Data.getParam')
+        else: utils.raiseAnError(RuntimeError,self,'parameter ' + str(keyword) + ' not found in inpParametersValues dictionary. Available keys are '+str(self._dataContainer['inputs'].keys())+'.Function: Data.getParam')
       elif typeVar.lower() in ['output','outputs']:
         if keyword in self._dataContainer['outputs'].keys(): return convertArr(self._dataContainer['outputs'][keyword])
-        else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> parameter ' + str(keyword) + ' not found in outParametersValues dictionary. Available keys are '+str(self._dataContainer['outputs'].keys())+'.Function: Data.getParam')
+        else: utils.raiseAnError(RuntimeError,self,'parameter ' + str(keyword) + ' not found in outParametersValues dictionary. Available keys are '+str(self._dataContainer['outputs'].keys())+'.Function: Data.getParam')
 
   def extractValue(self,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """
@@ -570,7 +567,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     myType=self.type
     if   varName in self._dataParameters['inParam' ]: inOutType = 'input'
     elif varName in self._dataParameters['outParam']: inOutType = 'output'
-    else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->the variable named '+varName+' was not found in the data: '+self.name)
+    else: utils.raiseAnError(RuntimeError,self,'the variable named '+varName+' was not found in the data: '+self.name)
     return self.__extractValueLocal__(myType,inOutType,varTyp,varName,varID,stepID,nodeid)
 
   @abc.abstractmethod
@@ -703,7 +700,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if len(nodelist) > 0:
           found = True
           break
-      if not found: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Starting node called '+ nodeid+ ' not found!')
+      if not found: utils.raiseAnError(RuntimeError,self,'Starting node called '+ nodeid+ ' not found!')
       if serialize:
         # we want a particular node and serialize it
         nodesDict[nodeid] = []
@@ -750,7 +747,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           if parentName:
             for node in foundNodes:
               if node.getParentName() == parentName: return node
-            raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> the node ' + nodeName + 'has been found but no one has a parent named '+ parentName)
+            utils.raiseAnError(RuntimeError,self,'the node ' + nodeName + 'has been found but no one has a parent named '+ parentName)
           else: return(foundNodes[0])
 
   def addNodeInTreeMode(self,tsnode,options):
@@ -766,7 +763,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
       else:
         if 'parent_id' in options.keys(): parent_id = options['parent_id']
-      if not parent_id: raise ConstructError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> the parent_id must be provided if a new node needs to be appended')
+      if not parent_id: utils.raiseAnError(ConstructError,self,'the parent_id must be provided if a new node needs to be appended')
       self.retrieveNodeInTreeMode(parent_id).appendBranch(tsnode)
 #
 #
@@ -791,7 +788,7 @@ class TimePoint(Data):
     try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
-      if(not self._dataParameters['history']): raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
+      if(not self._dataParameters['history']): utils.raiseAnError(IOError,self,'DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
       self._dataParameters['filter'] = 'whole'
 
   def checkConsistency(self):
@@ -802,10 +799,10 @@ class TimePoint(Data):
     '''
     for key in self._dataContainer['inputs'].keys():
       if (self._dataContainer['inputs'][key].size) != 1:
-        raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+        utils.raiseAnError(NotConsistentData,self,'The input parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
     for key in self._dataContainer['outputs'].keys():
       if (self._dataContainer['outputs'][key].size) != 1:
-        raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
+        utils.raiseAnError(NotConsistentData,self,'The output parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
 
   def _updateSpecializedInputValue(self,name,value,options=None):
     '''
@@ -867,10 +864,10 @@ class TimePoint(Data):
         if var.split('|')[0] == 'metadata':
           if var.split('|')[1] in self.metaExclXml:
             if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
-              raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+              utils.raiseAnError(NotConsistentData,self,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(var.split('|')[1])
             inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+          else: utils.raiseAWarning(self,'metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
@@ -881,7 +878,7 @@ class TimePoint(Data):
         for key,value in self._dataContainer['metadata'].items():
           if key in self.metaExclXml:
             if type(value) not in self.metatype:
-              raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+              utils.raiseAnError(NotConsistentData,self,'metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(key)
             inpValues.append(np.atleast_1d(np.float(value)))
     if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
@@ -903,7 +900,6 @@ class TimePoint(Data):
     #values.
     filenameLocal = os.path.join(filenameRoot,self.name)
     xmlData = self._loadXMLFile(filenameLocal)
-    #print(xmlData)
     assert(xmlData["fileType"] == "timepoint")
     if "metadata" in xmlData:
       self._dataContainer['metadata'] = xmlData["metadata"]
@@ -927,7 +923,7 @@ class TimePoint(Data):
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class Datas'''
-    if varID!=None or stepID!=None: raise Exception('seeking to extract a slice from a TimePoint type of data is not possible. Data name: '+self.name+' variable: '+varName)
+    if varID!=None or stepID!=None: utils.raiseAnError(RuntimeError,self,'seeking to extract a slice from a TimePoint type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':exec ('return '+varTyp+'(self.getParam(inOutType,varName)[0])')
     else: return self.getParam(inOutType,varName)
 
@@ -977,25 +973,25 @@ class TimePointSet(Data):
       #eg = self._toLoadFromList[-1].getEndingGroupNames()
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != lenMustHave:
-          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+          utils.raiseAnError(NotConsistentData,self,'The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
       for key in self._dataContainer['outputs'].keys():
         if (self._dataContainer['outputs'][key].size) != lenMustHave:
-          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
+          utils.raiseAnError(NotConsistentData,self,'The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
     else:
       if self._dataParameters['hierarchical']:
         for key in self._dataContainer['inputs'].keys():
           if (self._dataContainer['inputs'][key].size) != 1:
-            raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+            utils.raiseAnError(NotConsistentData,self,'The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
         for key in self._dataContainer['outputs'].keys():
           if (self._dataContainer['outputs'][key].size) != 1:
-            raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
+            utils.raiseAnError(NotConsistentData,self,'The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
       else:
         for key in self._dataContainer['inputs'].keys():
           if (self._dataContainer['inputs'][key].size) != lenMustHave:
-            raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+            utils.raiseAnError(NotConsistentData,self,'The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
         for key in self._dataContainer['outputs'].keys():
           if (self._dataContainer['outputs'][key].size) != lenMustHave:
-            raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
+            utils.raiseAnError(NotConsistentData,self,'The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
 
 
   def _updateSpecializedInputValue(self,name,value,options=None):
@@ -1139,7 +1135,7 @@ class TimePointSet(Data):
             if var.split('|')[0] == 'metadata':
               if var.split('|')[1] in self.metaExclXml:
                 if type(O_o[key][index]['metadata'][var.split('|')[1]]) not in self.metatype:
-                  raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> metadata '+var.split('|')[1] +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
+                  utils.raiseAnError(NotConsistentData,self,'metadata '+var.split('|')[1] +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
                 inpKeys[-1].append(var.split('|')[1])
                 axa = np.zeros(len(O_o[key]))
                 for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][var.split('|')[1]]))[0]
@@ -1160,7 +1156,7 @@ class TimePointSet(Data):
             for metaname,value in O_o[key][0]['metadata'].items():
               if metaname in self.metaExclXml:
                 if type(value) not in self.metatype:
-                  raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> metadata '+metaname+' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
+                  utils.raiseAnError(NotConsistentData,self,'metadata '+metaname+' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
                 inpKeys[-1].append(metaname)
                 axa = np.zeros(len(O_o[key]))
                 for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][metaname]))[0]
@@ -1207,11 +1203,11 @@ class TimePointSet(Data):
           if var.split('|')[0] == 'metadata':
             if var.split('|')[1] in self.metaExclXml:
               if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
-                raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+                utils.raiseAnError(NotConsistentData,self,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
               inpKeys.append(var.split('|')[1])
               if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
               else: inpValues.append(np.atleast_1d(self._dataContainer['metadata'][var.split('|')[1]]))
-            else: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+            else: printAWarning(self,'metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
       else:
         inpKeys   = self._dataContainer['inputs'].keys()
         inpValues = self._dataContainer['inputs'].values()
@@ -1222,7 +1218,7 @@ class TimePointSet(Data):
           for key,value in self._dataContainer['metadata'].items():
             if key in self.metaExclXml:
               if type(value) not in self.metatype:
-                raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+                utils.raiseAnError(NotConsistentData,self,'metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
               inpKeys.append(key)
               if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(value)))
               else: inpValues.append(np.atleast_1d(value))
@@ -1254,10 +1250,8 @@ class TimePointSet(Data):
     header = myFile.readline().rstrip()
     inoutKeys = header.split(",")
     inoutValues = [[] for a in range(len(inoutKeys))]
-    #print(inoutKeys)
     for line in myFile.readlines():
       line_list = line.rstrip().split(",")
-      #print(line_list)
       for i in range(len(inoutKeys)):
         inoutValues[i].append(utils.partialEval(line_list[i]))
     self._dataContainer['inputs'] = {}
@@ -1269,19 +1263,18 @@ class TimePointSet(Data):
       self._dataContainer["inputs"][key] = np.array(inoutDict[key])
     for key in xmlData["outKeys"]:
       self._dataContainer["outputs"][key] = np.array(inoutDict[key])
-    #print(inoutKeys,inoutValues)
 
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class Datas'''
-    if stepID!=None: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
+    if stepID!=None: utils.raiseAnError(RuntimeError,self,'seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':
       if varID!=None:
         if self._dataParameters['hierarchical']: exec('extractedValue ='+varTyp +'(self.getHierParam(inOutType,nodeid,varName,serialize=False)[nodeid])')
         else: exec('extractedValue ='+varTyp +'(self.getParam(inOutType,varName)[varID])')
         return extractedValue
       #if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID])')
-      else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> trying to extract a scalar value from a time point set without an index')
+      else: utils.raiseAnError(RuntimeError,self,'trying to extract a scalar value from a time point set without an index')
     else:
       if self._dataParameters['hierarchical']:
         paramss = self.getHierParam(inOutType,nodeid,varName,serialize=True)
@@ -1306,7 +1299,7 @@ class History(Data):
     try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
-      if(not self._dataParameters['history']): raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> In order to create a History data, history name must be provided')
+      if(not self._dataParameters['history']): utils.raiseAnError(IOError,self,'In order to create a History data, history name must be provided')
       self._dataParameters['filter'] = 'whole'
 
   def checkConsistency(self):
@@ -1317,10 +1310,10 @@ class History(Data):
     '''
     for key in self._dataContainer['inputs'].keys():
       if (self._dataContainer['inputs'][key].size) != 1:
-        raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key])))
+        utils.raiseAnError(NotConsistentData,self,'The input parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key])))
     for key in self._dataContainer['outputs'].keys():
       if (self._dataContainer['outputs'][key].ndim) != 1:
-        raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
+        utils.raiseAnError(NotConsistentData,self,'The output parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
 
   def _updateSpecializedInputValue(self,name,value,options=None):
     '''
@@ -1384,10 +1377,10 @@ class History(Data):
         if var.split('|')[0] == 'metadata':
           if var.split('|')[1] in self.metaExclXml:
             if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
-              raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+              utils.raiseAnError(NotConsistentData,self,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(var.split('|')[1])
             inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+          else: raiseAWArning(self,'metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
@@ -1398,7 +1391,7 @@ class History(Data):
         for key,value in self._dataContainer['metadata'].items():
           if key in self.metaExclXml:
             if type(value) not in self.metatype:
-              raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+              utils.raiseAnError(NotConsistentData,self,'metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(key)
             inpValues.append(np.atleast_1d(np.float(value)))
 
@@ -1435,7 +1428,6 @@ class History(Data):
 
     filenameLocal = os.path.join(filenameRoot,self.name)
     xmlData = self._loadXMLFile(filenameLocal)
-    #print(xmlData)
     assert(xmlData["fileType"] == "history")
     if "metadata" in xmlData:
       self._dataContainer['metadata'] = xmlData["metadata"]
@@ -1447,38 +1439,34 @@ class History(Data):
     inpKeys = header.split(",")[:-1]
     subCSVFilename = os.path.join(filenameRoot,firstLine.split(",")[-1])
     inpValues = [utils.partialEval(a) for a in firstLine.split(",")[:-1]]
-    #print(inpKeys,subCSVFilename,inpValues)
     myDataFile = open(subCSVFilename, "rU")
     header = myDataFile.readline().rstrip()
     outKeys = header.split(",")
     outValues = [[] for a in range(len(outKeys))]
-    #print(outKeys)
     for line in myDataFile.readlines():
       line_list = line.rstrip().split(",")
       for i in range(len(outKeys)):
         outValues[i].append(utils.partialEval(line_list[i]))
-    #print(outValues)
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     for key,value in zip(inpKeys,inpValues):
       self._dataContainer['inputs'][key] = [value]*len(outValues[0])
     for key,value in zip(outKeys,outValues):
       self._dataContainer['outputs'][key] = np.array(value)
-    #print(self._dataContainer['inputs'],self._dataContainer['outputs'])
 
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class Datas'''
-    if varID!=None: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->seeking to extract a slice over number of parameters an History type of data is not possible. Data name: '+self.name+' variable: '+varName)
+    if varID!=None: utils.raiseAnError(RuntimeError,self,'seeking to extract a slice over number of parameters an History type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':
       if varName in self._dataParameters['inParam']: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[0])')
       else:
         if stepID!=None and type(stepID)!=tuple: exec ('return self.getParam('+inOutType+','+varName+')['+str(stepID)+']')
-        else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->To extract a scalar from an history a step id is needed. Variable: '+varName+', Data: '+self.name)
+        else: utils.raiseAnError(RuntimeError,self,'To extract a scalar from an history a step id is needed. Variable: '+varName+', Data: '+self.name)
     else:
       if stepID==None : return self.getParam(inOutType,varName)
       elif stepID!=None and type(stepID)==tuple: return self.getParam(inOutType,varName)[stepID[0]:stepID[1]]
-      else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->trying to extract variable '+varName+' from '+self.name+' the id coordinate seems to be incoherent: stepID='+str(stepID))
+      else: utils.raiseAnError(RuntimeError,self,'trying to extract variable '+varName+' from '+self.name+' the id coordinate seems to be incoherent: stepID='+str(stepID))
 
 
 class Histories(Data):
@@ -1521,26 +1509,26 @@ class Histories(Data):
     if self._dataParameters['hierarchical']:
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != 1:
-          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key])))
+          utils.raiseAnError(NotConsistentData,self,'The input parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key])))
       for key in self._dataContainer['outputs'].keys():
         if (self._dataContainer['outputs'][key].ndim) != 1:
-          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
+          utils.raiseAnError(NotConsistentData,self,'The output parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
     else:
       if('HDF5' == sourceType):
         #eg = self._toLoadFromList[-1].getEndingGroupNames()
         if(lenMustHave != len(self._dataContainer['inputs'].keys())):
-          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
+          utils.raiseAnError(NotConsistentData,self,'Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       else:
         if(len(self._toLoadFromList) != len(self._dataContainer['inputs'].keys())):
-          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(self._toLoadFromList)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
+          utils.raiseAnError(NotConsistentData,self,'Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(self._toLoadFromList)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       for key in self._dataContainer['inputs'].keys():
         for key2 in self._dataContainer['inputs'][key].keys():
           if (self._dataContainer['inputs'][key][key2].size) != 1:
-            raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be a single value.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key][key2])))
+            utils.raiseAnError(NotConsistentData,self,'The input parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be a single value.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key][key2])))
       for key in self._dataContainer['outputs'].keys():
         for key2 in self._dataContainer['outputs'][key].keys():
           if (self._dataContainer['outputs'][key][key2].ndim) != 1:
-            raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key][key2].ndim))
+            utils.raiseAnError(NotConsistentData,self,'The output parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key][key2].ndim))
 
   def _updateSpecializedInputValue(self,name,value,options=None):
     '''
@@ -1552,9 +1540,9 @@ class Histories(Data):
       @ Out, None
     '''
     if (not isinstance(value,(float,int,bool,np.ndarray))):
-      raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Histories Data accepts only a numpy array (dim 1) or a single value for method <_updateSpecializedInputValue>. Got type ' + str(type(value)))
+      utils.raiseAnError(NotConsistentData,self,'Histories Data accepts only a numpy array (dim 1) or a single value for method <_updateSpecializedInputValue>. Got type ' + str(type(value)))
     if isinstance(value,np.ndarray):
-      if value.size != 1: raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Histories Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
+      if value.size != 1: utils.raiseAnError(NotConsistentData,self,'Histories Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
 
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'History' has been stored
@@ -1664,7 +1652,7 @@ class Histories(Data):
       @ Out, None
     '''
     if not isinstance(value,np.ndarray):
-        raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Histories Data accepts only numpy array as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
+        utils.raiseAnError(NotConsistentData,self,'Histories Data accepts only numpy array as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
 
     if options and self._dataParameters['hierarchical']:
       parent_id = None
@@ -1797,7 +1785,6 @@ class Histories(Data):
       #data line in the first CSV and they are named with the
       #filename.  They have the output names for a header, a column
       #for time, and the rest of the file is data for different times.
-      #print("inputs",self._dataContainer['inputs'],"outputs",self._dataContainer['outputs'])
       inpValues = list(self._dataContainer['inputs'].values())
       outKeys   = self._dataContainer['outputs'].keys()
       outValues = list(self._dataContainer['outputs'].values())
@@ -1870,7 +1857,6 @@ class Histories(Data):
       inpValues_h = [utils.partialEval(a) for a in mainLineList[:-1]]
       inpValues.append(inpValues_h)
       dataFilename = mainLineList[-1]
-      #print(inpValues_h,dataFilename)
       subCSVFilename = os.path.join(filenameRoot,dataFilename)
       myDataFile = open(subCSVFilename, "rU")
       header = myDataFile.readline().rstrip()
@@ -1883,7 +1869,6 @@ class Histories(Data):
       myDataFile.close()
       outKeys.append(outKeys_h)
       outValues.append(outValues_h)
-      #print(outKeys_h,outValues_h)
     self._dataContainer['inputs'] = {} #XXX these are indexed by 1,2,...
     self._dataContainer['outputs'] = {} #XXX these are indexed by 1,2,...
     for i in range(len(inpValues)):
@@ -1896,8 +1881,6 @@ class Histories(Data):
         subOutput[key] = np.array(value)
       self._dataContainer['inputs'][mainKey] = subInput
       self._dataContainer['outputs'][mainKey] = subOutput
-    #print("inpKeys",inpKeys,"inpValues",inpValues,"outKeys",outKeys,"outValues",outValues)
-    #print("inputs",self._dataContainer['inputs'],"outputs",self._dataContainer['outputs'])
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''
@@ -1909,12 +1892,12 @@ class Histories(Data):
     if varTyp!='numpy.ndarray':
       if varName in self._dataParameters['inParam']:
         if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName]')
-        else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)')
+        else: utils.raiseAnError(RuntimeError,self,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)')
       else:
         if varID!=None:
           if stepID!=None and type(stepID)!=tuple: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName][stepID]')
-          else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)')
-        else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)')
+          else: utils.raiseAnError(RuntimeError,self,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)')
+        else: utils.raiseAnError(RuntimeError,self,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)')
     else:
       if varName in self._dataParameters['inParam']:
         myOut=np.zeros(len(self.getInpParametersValues().keys()))
@@ -1930,13 +1913,13 @@ class Histories(Data):
             else: return self.getParam(inOutType,varID)[varName][stepID[0]:stepID[1]]
           else: return self.getParam(inOutType,varID)[varName][stepID]
         else:
-          if stepID==None: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->more info needed trying to extract '+varName+' from data '+self.name)
+          if stepID==None: utils.raiseAnError(RuntimeError,self,'more info needed trying to extract '+varName+' from data '+self.name)
           elif type(stepID)==tuple:
             if stepID[1]!=None:
               myOut=np.zeros((len(self.getOutParametersValues().keys()),stepID[1]-stepID[0]))
               for key in self.getOutParametersValues().keys():
                 myOut[int(key),:]=self.getParam(inOutType,key)[varName][stepID[0]:stepID[1]]
-            else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->more info needed trying to extract '+varName+' from data '+self.name)
+            else: utils.raiseAnError(RuntimeError,self,'more info needed trying to extract '+varName+' from data '+self.name)
           else:
             myOut=np.zeros(len(self.getOutParametersValues().keys()))
             for key in self.getOutParametersValues().keys():
@@ -1959,4 +1942,4 @@ def knownTypes():
 
 def returnInstance(Type):
   try: return __interFaceDict[Type]()
-  except KeyError: raise NameError('not known '+__base+' type '+Type)
+  except KeyError: utils.raiseAnError(NameError,'DATAS','not known '+__base+' type '+Type)

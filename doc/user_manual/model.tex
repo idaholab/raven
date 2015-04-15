@@ -1111,6 +1111,66 @@ accurately produce the necessary sparse grid points to train this ROM.
 </Simulation>
 \end{lstlisting}
 
+%%%%% ROM Model - HDMRRom  %%%%%%% 
+\subsubsection{HDMRRom}
+\label{subsubsec:HDMRRom}
+The HDMRRom sub-type contains a single ROM type, based on a Sobol decomposition scheme.
+%
+In Sobol decomposition, also known as high-density model reduction (HDMR, specifically Cut-HDMR),
+a model is approximated as as the sum of increasing-complexity interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.
+%
+In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+be \xmlString{HDMRRom} (see the example below).
+%
+In addition to the common \xmlNode{Target} and \xmlNode{Features}, this ROM requires
+the same nodes as the GaussPolynomialRom (see \ref{subsubsec:GaussPolynomialRom}.
+Additionally, this ROM requires the \xmlNode{SobolOrder} node.
+\begin{itemize}
+  \item \xmlNode{SobolOrder}, \xmlDesc{integer, required field},
+  indicates the maximum cardinality of the input space used in the subset functionals.  For example, order 1
+  includes only functionals of each independent dimension separately, while order 2 considers pair-wise
+  interactions.  
+  %
+\end{itemize}
+\nb This ROM type must be trained from a Sobol decomposition training set.
+%
+Thus, it can only be trained from the outcomes of a Sobol sampler.
+Also, this ROM must be referenced in the Sobol sampler in order to
+accurately produce the necessary sparse grid points to train this ROM.
+Experience has shown order 2 Sobol decompositions to include the great majority of
+  uncertainty in most models.
+
+\textbf{Example:}
+\footnotesize
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+  <Samplers>
+    ...
+    <Sobol name="mySobol" parallel="0">
+      <variable name="x1">
+        <distribution>myDist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>myDist2</distribution>
+      </variable>
+      <ROM class = 'Models' type = 'ROM' >myHDMR</ROM>
+    </Sobol>
+    ...
+  </Samplers>
+  ...
+  <Models>
+    ...
+    <ROM name='myHDMR' subType='HDMRRom'>
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <SobolOrder>2</SobolOrder>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>4</PolynomialOrder>
+      <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+      <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
+    </ROM>
+    ...
+  </Models>
+\end{lstlisting}
 
 %%%%% ROM Model - NDinvDistWeigth  %%%%%%%
 \subsubsection{NDinvDistWeigth}
@@ -3769,8 +3829,8 @@ that are generally needed to perform a initialization:
     \item \texttt{deleteOutExtension} -- if a simulation (code run) has not
     failed, delete the relative output files with the listed extension (comma
     separated list, for example: `e,r,txt')
-    \item \texttt{mode} -- running mode, curently the only modes supported are
-    pbsdsh and mpi
+    \item \texttt{mode} -- running mode, curently the only mode supported is
+      mpi (but custom modes can be created)
     \item \textit{expectedTime} -- how long the complete input is expected to
     run
     \item \textit{logfileBuffer} -- logfile buffer size in bytes
@@ -4029,7 +4089,7 @@ for comparing two different datas.  This is an experimental
 post-processor, and it will definitely change as it is further
 developed.
 
-There are two nodes that are used in the post-processor.
+There are four nodes that are used in the post-processor.
 
 \begin{itemize}
 \item \xmlNode{kind}: specifies information to use for comparing the
@@ -4056,6 +4116,12 @@ There are two nodes that are used in the post-processor.
       distribution.
     \end{itemize}
   \end{itemize}
+\item \xmlNode{fz}: If the text is true, then extra comparison
+  statistics for using the $f_z$ function are generated.  These take
+  extra time, so are not on by default.
+\item \xmlNode{interpolation}: This switches the interpolation used
+  for the cdf and the pdf functions between the default of quadratic
+  or linear.
 \end{itemize}
 
 The \textbf{ComparisonStatistics} post-processor generates a variety
@@ -4085,21 +4151,29 @@ The difference pdf between the two pdfs is calculated.  This is calculated as:
   f_Z(z) = \int_{-\infty}^{\infty}f_X(x)f_Y(x-z)dx
 \end{equation}
 This produces a pdf that contains information about the difference
-between the two pdfs.  The mean can be calculated as:
+between the two pdfs.  The mean can be calculated as (and will be
+calculated only if fz is true):
 \begin{equation}
   \bar{z} = \int_{-\infty}^{\infty}{z f_Z(z)dz}
 \end{equation}
 The mean can be used to get an signed difference between the pdfs,
 which shows how their means compare.
 
-The variance of the difference pdf can be calculated as:
+The variance of the difference pdf can be calculated as (and will be
+calculated only if fz is true):
 \begin{equation}
   var = \int_{-\infty}^{\infty}{(z-\bar{z})^2 f_Z(z)dz}
 \end{equation}
 
+The sum of the difference function is calculated if fz is true, and is:
+\begin{equation}
+  sum = \int_{-\infty}^{\infty}{f_z(z)dz}
+\end{equation}
+This should be 1.0, and if it is different that
+points to approximations in the calculation.
 
-\textbf{Example:}
-----------------------------------------------
+
+\textbf{Example:} ----------------------------------------------
 \begin{lstlisting}[style=XML]
 <Simulation>
    ...

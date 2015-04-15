@@ -25,7 +25,7 @@ import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import returnPrintTag, returnPrintPostTag, metaclass_insert
+import utils
 from BaseClasses import BaseType
 # for internal parallel
 import pp
@@ -168,7 +168,7 @@ class ExternalRunner:
     Function to kill the subprocess of the driven code
     '''
     #In python 2.6 this could be self.process.terminate()
-    print(returnPrintTag('JOB HANDLER')+ ": Terminating ",self.__process.pid,self.command)
+    utils.raiseAMessage(self,"Terminating "+self.__process.pid+' '+self.command)
     os.kill(self.__process.pid,signal.SIGTERM)
 
   def getWorkingDir(self):
@@ -197,7 +197,7 @@ class InternalRunner:
       if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
       else                : self.identifier =  str(identifier)
     else: self.identifier = 'generalOut'
-    if type(Input) != tuple: raise IOError(returnPrintTag('JOB HANDLER') + ": " +returnPrintPostTag('ERROR') + "-> The input for InternalRunner needs to be a tuple!!!!")
+    if type(Input) != tuple: utils.raiseAnError(IOError,'JOB HANDLER',"The input for InternalRunner needs to be a tuple!!!!")
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
     if self.ppserver == None: self.subque = queue.Queue()
     self.functionToRun   = functionToRun
@@ -245,11 +245,11 @@ class InternalRunner:
   def start(self):
     try: self.start_pp()
     except Exception as ae:
-      print(returnPrintTag('JOB HANDLER')+"ERROR -> InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !")
+      utils.raiseAMessage(self,"InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.retcode = -1
 
   def kill(self):
-    print(returnPrintTag('JOB HANDLER')+": Terminating ",self.__thread.pid, " Identifier " + self.identifier)
+    utils.raiseAMessage(self,"Terminating "+self.__thread.pid+ " Identifier " + self.identifier)
     if self.ppserver != None: os.kill(self.__thread.tid,signal.SIGTERM)
     else: os.kill(self.__thread.pid,signal.SIGTERM)
 
@@ -341,7 +341,7 @@ class JobHandler:
   def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], globs = None):
     #internal serve is initialized only in case an internal calc is requested
     if not self.initParallelPython: self.__initializeParallelPython()
-    self.__queue.put(InternalRunner(self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs, functionToSkip=[metaclass_insert(abc.ABCMeta,BaseType)]))
+    self.__queue.put(InternalRunner(self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs, functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)]))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
@@ -371,7 +371,6 @@ class JobHandler:
     return cnt_free_spots
 
   def getFinished(self, removeFinished=True):
-    #print("getFinished "+str(self.__running)+" "+str(self.__queue.qsize()))
     finished = []
     for i in range(len(self.__running)):
       if self.__running[i] and self.__running[i].isDone():
@@ -380,16 +379,16 @@ class JobHandler:
           running = self.__running[i]
           returncode = running.getReturnCode()
           if returncode != 0:
-            print(returnPrintTag('JOB HANDLER')+": Process Failed ",running,running.command," returncode",returncode)
+            utils.raiseAMessage(self," Process Failed "+running+' '+running.command+" returncode "+returncode)
             self.__numFailed += 1
             self.__failedJobs.append(running.identifier)
             if type(running).__name__ == "External":
               outputFilename = running.getOutputFilename()
-              if os.path.exists(outputFilename): print(open(outputFilename,"r").read())
-              else: print(returnPrintTag('JOB HANDLER')+" No output ",outputFilename)
+              if os.path.exists(outputFilename): utils.raiseAMessage(self,open(outputFilename,"r").read())
+              else: utils.raiseAMessage(self," No output "+outputFilename)
           else:
             if self.runInfoDict['delSucLogFiles'] and running.__class__.__name__ != 'InternalRunner':
-              print(returnPrintTag('JOB HANDLER') + ': Run "' +running.identifier+'" ended smoothly, removing log file!')
+              utils.raiseAMessage(self,' Run "' +running.identifier+'" ended smoothly, removing log file!')
               if os.path.exists(running.getOutputFilename()): os.remove(running.getOutputFilename())
             if len(self.runInfoDict['deleteOutExtension']) >= 1 and running.__class__.__name__ != 'InternalRunner':
               for fileExt in self.runInfoDict['deleteOutExtension']:
