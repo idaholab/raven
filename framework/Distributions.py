@@ -984,7 +984,7 @@ class Bernoulli(BoostDistribution):
 
 class Categorical(Distribution):
   def __init__(self):
-    BoostDistribution.__init__(self)
+    Distribution.__init__(self)
     self.mapping = []
     self.values = set()
     self.type     = 'Categorical'
@@ -998,46 +998,46 @@ class Categorical(Distribution):
     for child in xmlNode:
       dic={child.tag:child.text}     
       self.mapping.append(dic)
-      self.values.add(child.tag)
+      self.values.add(float(child.tag))
     
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):
-    BoostDistribution.addInitParams(self, tempDict)
-    tempDict['p'  ] = self.p
+    Distribution.addInitParams(self, tempDict)
+    tempDict['mapping'] = self.mapping
+    tempDict['values'] = self.values
 
   def initializeDistribution(self):
-    totPsum = 0.0
-    
+    totPsum = 0.0    
     for element in self.mapping:
-      totPsum += element.get(element.keys()[0])
-        
+      totPsum += float(element.get(element.keys()[0]))
     if totPsum!=1.0:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
    
   def pdf(self,x):
-    if str(x) in self.value:
+    if x in self.values:
       for element in self.mapping:
-        if element.keys()[0] == x:
-          return element.get(element.keys()[0])
+        if element.keys()[0] == str(x):
+          return float(element.get(element.keys()[0]))
     else:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate pdf for ' + str(x))
      
   def cdf(self,x): 
-    if str(x) in self.value:
+    if x in self.values:
       cumulative=0.0
       for element in self.mapping:
-        cumulative += element.get(element.keys()[0])
-        if element.keys()[0] == x:
+        cumulative += float(element.get(element.keys()[0]))
+        if element.keys()[0] == str(x):
           return cumulative
     else:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate cdf for ' + str(x))
          
   def ppf(self,x):
+    cumulative=0.0
     for element in self.mapping:
-      cumulative += element.get(element.keys()[0])
-      if x >= cumulative:
-        return element.keys()[0]
+      cumulative += float(element.get(element.keys()[0]))
+      if cumulative >= x:
+        return float(element.keys()[0])
              
   def rvs(self):
     return self.ppf(random())
