@@ -53,6 +53,9 @@ tests/framework/PreconditionedDynamicEventTree/PreconditionedDETrunTest/
 .project
 .cproject
 
+#osx
+.DS_Store
+
 # python
 *.pyc
 *~

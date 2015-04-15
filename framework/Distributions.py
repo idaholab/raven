@@ -1325,9 +1325,9 @@ class NDCartesianSpline(NDimensionalDistributions):
     else: utils.raiseAnError(IOError,self,'<function_type> parameter needed for MultiDimensional Distributions!!!!')
 
     self.initializeDistribution()
-    
+
 #     y=np.arange(40,79,5)
-#     
+#
 #     for i in np.nditer(y):
 #       coordinate = np.zeros(2)
 #       coordinate[0] = -0.1
@@ -1474,10 +1474,10 @@ class MultivariateNormal(NDimensionalDistributions):
     for i in range(len(self.mu)):
       mu[i] = self.mu[i]
     self._distribution = distribution1D.BasicMultivariateNormal(str(self.data_filename), mu)
-    
+
 #     y = np.arange(50,65,1.0)
 #     x = -1
-#      
+#
 #     for i in np.nditer(y):
 #       coordinate=np.zeros(2)
 #       coordinate[0]=x
