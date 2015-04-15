@@ -88,12 +88,24 @@ def convertMultipleToBytes(sizeString):
     except: raise IOError(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
 
 def stringsThatMeanTrue():
-  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish)'''
-  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','etiam', 'evet', 'dogru'])
+  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
+  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','etiam', 'evet', 'dogru', '1'])
 
 def stringsThatMeanFalse():
-  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish)'''
-  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis'])
+  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
+  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0'])
+
+def stringsThatMeanSilent():
+  '''return list of strings that indicate a verbosity of the lowest level (just errors). You linguists add what you wish.'''
+  return list(['0','silent','false','f','n','no','none'])
+
+def stringsThatMeanPartiallyVerbose():
+  '''return list of strings that indicate a verbosity of the medium level (errors and warnings). You linguists add what you wish.'''
+  return list(['1','quiet','some'])
+
+def stringsThatMeanVerbose():
+  '''return list of strings that indicate full verbosity (errors warnings, messages). You linguists add what you wish.'''
+  return list(['2','loud','true','t','y','yes','all'])
 
 def interpretBoolean(inarg):
   """

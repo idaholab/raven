@@ -379,10 +379,16 @@ class Simulation(object):
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
+    if 'verbosity' in xmlNode.attrib.keys():
+      if   xmlNode.attrib['verbosity'].strip().lower() in utils.stringsThatMeanSilent()           : self.verbosity = 0
+      elif xmlNode.attrib['verbosity'].strip().lower() in utils.stringsThatMeanPartiallyVerbose() : self.verbosity = 1
+      elif xmlNode.attrib['verbosity'].strip().lower() in utils.stringsThatMeanVerbose()          : self.verbosity = 2
+    else: self.verbosity = 2
     if 'debug' in xmlNode.attrib.keys():
-      if xmlNode.attrib['debug'].lower()   in utils.stringsThatMeanTrue() : self.debug=True
+      if   xmlNode.attrib['debug'].lower() in utils.stringsThatMeanTrue() : self.debug=True
       elif xmlNode.attrib['debug'].lower() in utils.stringsThatMeanFalse(): self.debug=False
       else                                 : utils.raiseAnError(IOError,self,'Not understandable keyword to set up the debug level: '+str(xmlNode.attrib['debug']))
+    if self.verbosity == 2 and self.debug: self.verbosity = 3
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: utils.raiseAnError(IOError,self,'The run info node is mandatory')
     self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
@@ -397,6 +403,10 @@ class Simulation(object):
             if   globalAttributes['debug'].lower() in utils.stringsThatMeanFalse(): globalAttributes['debug'] = False
             elif globalAttributes['debug'].lower() in utils.stringsThatMeanTrue() : globalAttributes['debug'] = True
             else: utils.raiseAnError(IOError,self,'For the global attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
+          if 'verbosity' in globalAttributes.keys():
+            if   globalAttributes['verbosity'].strip().lower() in utils.stringsThatMeanSilent()           : self.verbosity = 0
+            elif globalAttributes['verbosity'].strip().lower() in utils.stringsThatMeanPartiallyVerbose() : self.verbosity = 1
+            elif globalAttributes['verbosity'].strip().lower() in utils.stringsThatMeanVerbose()          : self.verbosity = 2
         if Class != 'RunInfo':
           for childChild in child:
             subType = childChild.tag
@@ -415,7 +425,9 @@ class Simulation(object):
               #now we can read the info for this object
               if globalAttributes and 'debug' in globalAttributes.keys(): localDebug = globalAttributes['debug']
               else                                                      : localDebug = self.debug
-              if Class != 'OutStreamManager': self.whichDict[Class][name].readXML(childChild, debug=localDebug, globalAttributes=globalAttributes)
+              if localDebug: localVerbosity = 3
+              else: localVerbosity = self.verbosity
+              if Class != 'OutStreamManager': self.whichDict[Class][name].readXML(childChild, debug=localDebug, globalAttributes=globalAttributes,verbosity=localVerbosity)
               else: self.whichDict[Class][subType][name].readXML(childChild, debug=localDebug, globalAttributes=globalAttributes)
             else: utils.raiseAnError(IOError,self,'not found name attribute for one '+Class)
       else: utils.raiseAnError(IOError,self,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))

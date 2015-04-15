@@ -27,7 +27,7 @@ class BaseType(object):
     self._knownAttribute += ['name','debug']
     self.printTag         = utils.returnPrintTag('BaseType')
 
-  def readXML(self,xmlNode,debug=False,globalAttributes=None):
+  def readXML(self,xmlNode,debug=False,globalAttributes=None,verbosity=2):
     '''
     provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
     that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag)
@@ -41,6 +41,8 @@ class BaseType(object):
       elif xmlNode.attrib['debug'].lower() in utils.stringsThatMeanFalse(): self.debug = False
       else                                   : utils.raiseAnError(IOError,self,'For the attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
     else                                     : self.debug = debug
+    if 'verbosity' in xmlNode.attrib.keys():
+      if   xmlNode.attrib['verbosity'].strip().lower() in ['0','silent','false']
     self._readMoreXML(xmlNode)
     if self.debug:
       utils.raiseAMessage(self,'------Reading Completed for:')
