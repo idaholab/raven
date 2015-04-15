@@ -2365,10 +2365,10 @@ class SparseGridCollocation(Grid):
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
     if self.debug:
-      msg=self.printTag,'INTERPOLATION INFO:\n'
+      msg=self.printTag+' INTERPOLATION INFO:\n'
       msg+='    Variable | Distribution | Quadrature | Polynomials\n'
       for v in self.quadDict.keys():
-        msg+='   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type])+'\n'
+        msg+='   '+' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type])+'\n'
       msg+='    Polynomial Set Degree: '+str(self.maxPolyOrder)+'\n'
       msg+='    Polynomial Set Type  : '+str(SVL.indexSetType)+'\n'
       utils.raiseAMessage(self,msg)
@@ -2460,6 +2460,7 @@ class SparseGridCollocation(Grid):
   def localGenerateInput(self,model,myInput):
     '''Provide the next point in the sparse grid.'''
     pt,weight = self.sparseGrid[self.counter-1]
+    if self.debug: utils.raiseAMessage(self,'Point,weight: '+str(pt)+' | '+str(weight),'DEBUG')
     for v,varName in enumerate(self.distDict.keys()):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
