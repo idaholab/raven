@@ -65,6 +65,7 @@ class Distribution(BaseType):
     self.lowerBound           = 0.0  # Left bound
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
+    self.disttype             = None # distribution type (continuous or discrete)
     self.printTag             = returnPrintTag('DISTRIBUTIONS')
     self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
     self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
@@ -237,6 +238,9 @@ class Distribution(BaseType):
 
   def getDimensionality(self):
     return self.dimensionality
+  
+  def getDisttype(self):
+    return self.disttype
 
 
 def random():
@@ -295,7 +299,7 @@ class BoostDistribution(Distribution):
     '''
     Function to get the cdf at a provided coordinate
     @ In, x, float -> value to get the cdf at
-    @ Out, flaot, requested cdf
+    @ Out, float, requested cdf
     '''
     return self._distribution.Cdf(x)
 
@@ -303,7 +307,7 @@ class BoostDistribution(Distribution):
     '''
     Function to get the inverse cdf at a provided coordinate
     @ In, x, float -> value to get the inverse cdf at
-    @ Out, flaot, requested inverse cdf
+    @ Out, float, requested inverse cdf
     '''
     return self._distribution.InverseCdf(x)
 
@@ -311,9 +315,14 @@ class BoostDistribution(Distribution):
     '''
     Function to get the pdf at a provided coordinate
     @ In, x, float -> value to get the pdf at
-    @ Out, flaot, requested pdf
+    @ Out, float, requested pdf
     '''
-    return self._distribution.Pdf(x)
+    value = 0.0
+    for i in str(x).strip().split(','):
+      value +=  self._distribution.Pdf(float(i))
+    
+    return value
+    #return self._distribution.Pdf(x)
 
   def untruncatedCdfComplement(self, x):
     '''
@@ -327,7 +336,7 @@ class BoostDistribution(Distribution):
     '''
     Function to get the untruncated  Hazard  at a provided coordinate
     @ In, x, float -> value to get the untruncated  Hazard   at
-    @ Out, flaot, requested untruncated  Hazard
+    @ Out, float, requested untruncated  Hazard
     '''
     return self._distribution.untrHazard(x)
 
@@ -335,7 +344,7 @@ class BoostDistribution(Distribution):
     '''
     Function to get the untruncated  Mean
     @ In, None
-    @ Out, flaot, requested Mean
+    @ Out, float, requested Mean
     '''
     return self._distribution.untrMean()
 
@@ -343,7 +352,7 @@ class BoostDistribution(Distribution):
     '''
     Function to get the untruncated  Median
     @ In, None
-    @ Out, flaot, requested Median
+    @ Out, float, requested Median
     '''
     return self._distribution.untrMedian()
 
@@ -351,7 +360,7 @@ class BoostDistribution(Distribution):
     '''
     Function to get the untruncated  Mode
     @ In, None
-    @ Out, flaot, requested Mode
+    @ Out, float, requested Mode
     '''
     return self._distribution.untrMode()
 
@@ -360,7 +369,7 @@ class BoostDistribution(Distribution):
     '''
     Function to get random numbers
     @ In, args, dictionary, args
-    @ Out, flaot or list, requested random number or numbers
+    @ Out, float or list, requested random number or numbers
     '''
     if len(args) == 0: return self.ppf(random())
     else             : return [self.rvs() for _ in range(args[0])]
@@ -373,6 +382,7 @@ class Uniform(BoostDistribution):
     self.hi = 0.0
     self.range = 0.0
     self.type = 'Uniform'
+    self.disttype = 'Continuous'
     self.compatibleQuadrature.append('Legendre')
     self.compatibleQuadrature.append('ClenshawCurtis')
     self.compatibleQuadrature.append('CDF')
@@ -455,6 +465,7 @@ class Normal(BoostDistribution):
     self.sigma = 0.0
     self.hasInfiniteBound = True
     self.type = 'Normal'
+    self.disttype = 'Continuous'
     self.compatibleQuadrature.append('Hermite')
     self.compatibleQuadrature.append('CDF')
     #THESE get set in initializeDistribution, since it depends on truncation
@@ -572,6 +583,7 @@ class Gamma(BoostDistribution):
     self.alpha = 0.0
     self.beta = 1.0
     self.type = 'Gamma'
+    self.disttype = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('Laguerre')
     self.compatibleQuadrature.append('CDF')
@@ -666,6 +678,7 @@ class Beta(BoostDistribution):
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
+    self.disttype = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('Jacobi')
     self.compatibleQuadrature.append('CDF')
@@ -779,6 +792,7 @@ class Triangular(BoostDistribution):
     self.min  = 0.0
     self.max  = 0.0
     self.type = 'Triangular'
+    self.disttype = 'Continuous'
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -835,6 +849,7 @@ class Poisson(BoostDistribution):
     self.mu  = 0.0
     self.type = 'Poisson'
     self.hasInfiniteBound = True
+    self.disttype = 'Discrete'
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -875,7 +890,7 @@ class Binomial(BoostDistribution):
     self.p       = 0.0
     self.type     = 'Binomial'
     self.hasInfiniteBound = True
-    self.disttype = 'Descrete'
+    self.disttype = 'Discrete'
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -917,7 +932,7 @@ class Bernoulli(BoostDistribution):
     BoostDistribution.__init__(self)
     self.p        = 0.0
     self.type     = 'Bernoulli'
-    self.disttype = 'Descrete'
+    self.disttype = 'Discrete'
     self.lowerBound = 0.0
     self.upperBound = 1.0
     self.compatibleQuadrature.append('CDF')
@@ -948,30 +963,92 @@ class Bernoulli(BoostDistribution):
       self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
     else:  raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Truncated Bernoulli not yet implemented')
 
-  def cdf(self,x):
-    if x <= 0.5: return self._distribution.Cdf(self.lowerBound)
-    else       : return self._distribution.Cdf(self.upperBound)
+#   def cdf(self,x):
+#     if x <= 0.5: return self._distribution.Cdf(self.lowerBound)
+#     else       : return self._distribution.Cdf(self.upperBound)
+# 
+#   def pdf(self,x):
+#     if x <= 0.5: return self._distribution.Pdf(self.lowerBound)
+#     else       : return self._distribution.Pdf(self.upperBound)
+# 
+#   def untruncatedCdfComplement(self, x):
+#     if x <= 0.5: return self._distribution.untrCdfComplement(self.lowerBound)
+#     else       : return self._distribution.untrCdfComplement(self.upperBound)
+# 
+#   def untruncatedHazard(self, x):
+#     if x <= 0.5: return self._distribution.untrHazard(self.lowerBound)
+#     else       : return self._distribution.untrHazard(self.upperBound)
+#
+#
+#
 
+class Categorical(Distribution):
+  def __init__(self):
+    BoostDistribution.__init__(self)
+    self.mapping = []
+    self.values = set()
+    self.type     = 'Categorical'
+    self.disttype = 'Discrete'
+    #self.compatibleQuadrature.append('CDF')
+    #self.preferredQuadrature  = 'CDF'
+    #self.preferredPolynomials = 'CDF'
+
+  def _readMoreXML(self,xmlNode):
+    Distribution._readMoreXML(self, xmlNode)
+    for child in xmlNode:
+      dic={child.tag:child.text}     
+      self.mapping.append(dic)
+      self.values.add(child.tag)
+    
+    self.initializeDistribution()
+    
+  def addInitParams(self,tempDict):
+    BoostDistribution.addInitParams(self, tempDict)
+    tempDict['p'  ] = self.p
+
+  def initializeDistribution(self):
+    totPsum = 0.0
+    
+    for element in self.mapping:
+      totPsum += element.get(element.keys()[0])
+        
+    if totPsum!=1.0:
+      raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
+   
   def pdf(self,x):
-    if x <= 0.5: return self._distribution.Pdf(self.lowerBound)
-    else       : return self._distribution.Pdf(self.upperBound)
-
-  def untruncatedCdfComplement(self, x):
-    if x <= 0.5: return self._distribution.untrCdfComplement(self.lowerBound)
-    else       : return self._distribution.untrCdfComplement(self.upperBound)
-
-  def untruncatedHazard(self, x):
-    if x <= 0.5: return self._distribution.untrHazard(self.lowerBound)
-    else       : return self._distribution.untrHazard(self.upperBound)
-#
-#
-#
+    if str(x) in self.value:
+      for element in self.mapping:
+        if element.keys()[0] == x:
+          return element.get(element.keys()[0])
+    else:
+      raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate pdf for ' + str(x))
+     
+  def cdf(self,x): 
+    if str(x) in self.value:
+      cumulative=0.0
+      for element in self.mapping:
+        cumulative += element.get(element.keys()[0])
+        if element.keys()[0] == x:
+          return cumulative
+    else:
+      raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate cdf for ' + str(x))
+         
+  def ppf(self,x):
+    for element in self.mapping:
+      cumulative += element.get(element.keys()[0])
+      if x >= cumulative:
+        return element.keys()[0]
+             
+  def rvs(self):
+    return self.ppf(random())
+    
 class Logistic(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Logistic'
+    self.disttype = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -981,11 +1058,6 @@ class Logistic(BoostDistribution):
     self.location = pdict.pop('location')
     self.scale    = pdict.pop('scale'   )
 
-  def getCrowDistDict(self):
-    retDict = Distribution.getCrowDistDict(self)
-    retDict['scale'] = self.scale
-    retDict['location'] = self.location
-    return retDict
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -1019,6 +1091,7 @@ class Exponential(BoostDistribution):
     self.lambda_var = 1.0
     self.low        = 0.0
     self.type = 'Exponential'
+    self.disttype = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -1091,6 +1164,7 @@ class LogNormal(BoostDistribution):
     self.sigma = 1.0
     self.low = 0.0
     self.type = 'LogNormal'
+    self.disttype = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -1149,6 +1223,7 @@ class Weibull(BoostDistribution):
     self.lambda_var = 1.0
     self.k = 1.0
     self.type = 'Weibull'
+    self.disttype = 'Continuous'
     self.low = 0.0
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')

@@ -922,6 +922,42 @@ ndCartesianSpline.addInitParams({})
 checkCrowDist("NDCartesianSpline",ndCartesianSpline,{'type': 'NDCartesianSplineDistribution'})
 
 
+#Test Categorical
+
+CategoricalElement = ET.Element("Categorical")
+CategoricalElement.append(createElement("10",text="0.4"))
+CategoricalElement.append(createElement("20",text="0.4"))
+CategoricalElement.append(createElement("A", text="0.4"))
+CategoricalElement.append(createElement("c", text="0.4"))
+CategoricalElement.append(createElement(",", text="0.4"))
+
+Categorical = Distributions.Categorical()
+Categorical._readMoreXML(CategoricalElement)
+Categorical.initializeDistribution()
+
+Categorical.addInitParams({})
+
+#check picklling
+pk.dump(Categorical,file('testDistrDump.pk','wb'))
+pCategorical=pk.load(file('testDistrDump.pk','rb'))
+
+checkCrowDist("Categorical",Categorical,{'p': 0.4, 'type': 'CategoricalDistribution'})
+checkCrowDist("pCategorical",pCategorical,{'p': 0.4, 'type': 'CategoricalDistribution'})
+
+checkAnswer("Categorical  cdf(0)",Categorical.cdf(0),0.6)
+checkAnswer("Categorical  cdf(1)",Categorical.cdf(1),1.0)
+checkAnswer("pCategorical cdf(0)",pCategorical.cdf(0),0.6)
+checkAnswer("pCategorical cdf(1)",pCategorical.cdf(1),1.0)
+
+checkAnswer("Categorical ppf(0.1)" ,Categorical.ppf(0.1),0.0)
+checkAnswer("Categorical ppf(0.3)" ,Categorical.ppf(0.3),0.0)
+checkAnswer("Categorical ppf(0.8)" ,Categorical.ppf(0.8),1.0)
+checkAnswer("Categorical ppf(0.9)" ,Categorical.ppf(0.9),1.0)
+checkAnswer("pCategorical ppf(0.1)",pCategorical.ppf(0.1),0.0)
+checkAnswer("pCategorical ppf(0.3)",pCategorical.ppf(0.3),0.0)
+checkAnswer("pCategorical ppf(0.8)",pCategorical.ppf(0.8),1.0)
+checkAnswer("pCategorical ppf(0.9)",pCategorical.ppf(0.9),1.0)
+
 print(results)
 
 sys.exit(results["fail"])
