@@ -30,7 +30,7 @@ results = {"pass":0,"fail":0}
 
 def checkAnswer(comment,value,expected,tol=1e-10):
   if abs(value - expected) > tol:
-    print(comment,value,"!=",expected)
+    print("checking answer",comment,value,"!=",expected)
     results["fail"] += 1
   else:
     results["pass"] += 1
@@ -38,7 +38,6 @@ def checkAnswer(comment,value,expected,tol=1e-10):
 def checkCrowDist(comment,dist,expected_crow_dist):
   crow_dist = dist.getCrowDistDict()
   if crow_dist != expected_crow_dist:
-    print(comment,'\n',crow_dist,'\n',expected_crow_dist)
     results["fail"] += 1
   else:
     results["pass"] += 1

@@ -1032,6 +1032,11 @@ class Logistic(BoostDistribution):
     self.location = pdict.pop('location')
     self.scale    = pdict.pop('scale'   )
 
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['scale'] = self.scale
+    retDict['location'] = self.location
+    return retDict
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
