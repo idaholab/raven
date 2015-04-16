@@ -200,15 +200,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ Out, None.
     """
     pass
-
-  def finalizeModelTask(self):
-    """
-    Method that lets the Model to finalize its task, in case particular actions need to be performed at the end of a step
-    @ In, None
-    @ Out, None
-    """
-    pass
-
 #
 #
 #
@@ -698,14 +689,6 @@ class Code(Model):
     for i in range(len(inputFiles)): self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
     self.currentInputFiles        = None
     self.outFileRoot              = None
-
-  def finalizeModelTask(self):
-    """
-    See base class for general descritpion.
-    Specialization here. The Model removes the locked file that is used to check if multiple instances of RAVEN are
-    writing and manipulating files in the same working directory
-    """
-    os.remove(os.path.join(self.workingDir,self.lockedFileName))
 
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     """ This function creates a new input
