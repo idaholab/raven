@@ -11,7 +11,7 @@ from scipy.interpolate import interp1d
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import returnPrintTag,returnPrintPostTag,partialEval
+from utils import returnPrintTag,returnPrintPostTag,partialEval, raiseAnError
 from BaseClasses import BaseType
 #import TreeStructure as TS
 #Internal Modules End--------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ class GridEntity(BaseType):
     @ In, x, array-like, set of points
     @ Out, transformFunction, instance of the transformation method (callable like f(newPoint))
     """
-    return interp1d(x, np.linspace(0.0, 1.0, len(x)-1), kind='nearest') 
+    return interp1d(x, np.linspace(0.0, 1.0, len(x)), kind='nearest') 
     
   def __init__(self):
     self.printTag                               = returnPrintTag("GRID ENTITY")
@@ -65,43 +65,60 @@ class GridEntity(BaseType):
         gridStruct, gridName = self._fillGrid(child)
         if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
         else: 
-          if gridName == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> grid defined in global_grid block must have the attribute "name"!')
+          if gridName == None: raiseAnError(IOError,self,'grid defined in global_grid block must have the attribute "name"!')
           dimName = child.tag + ':' + gridName
         gridInfo[dimName] = gridStruct
+      # to be removed when better strategy for NDimensional is found
+      readGrid = True
       for childChild in child:
-        if childChild.tag =='grid':
+        if 'dim' in childChild.attrib.keys():
+          readGrid = False
+          if partialEval(childChild.attrib['dim']) == 1: readGrid = True
+          break
+      # end to be removed
+      for childChild in child:
+        if childChild.tag =='grid' and readGrid:
           gridStruct, gridName = self._fillGrid(childChild)
           if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
           if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
           else: 
-            if gridName == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> grid defined in global_grid block must have the attribute "name"!')
+            if gridName == None: raiseAnError(IOError,self,'grid defined in global_grid block must have the attribute "name"!')
             dimName = child.tag + ':' + gridName
           gridInfo[dimName] = gridStruct
     #check for global_grid type of structure
+    globalGrids = {}
+    gridInfoKeys = gridInfo.keys()
+    for key in gridInfoKeys:
+      splitted = key.split(":")
+      if splitted[0].strip() == 'global_grid': globalGrids[splitted[1]] = gridInfo.pop(key)
     for key in gridInfo.keys():
-      gridInfo.pop()
-    
-    
-    
-    
+      if gridInfo[key][0].strip() == 'global_grid':
+        if gridInfo[key][-1].strip() not in globalGrids.keys(): raiseAnError(IOError,self,'global grid for dimension named '+key+'has not been found!')
+        gridInfo[key] = globalGrids[gridInfo[key][-1].strip()]
+      self.gridInitDict['lowerBounds'           ][key] = min(gridInfo[key][-1])
+      self.gridInitDict['upperBounds'           ][key] = max(gridInfo[key][-1])
+      self.gridInitDict['stepLenght'            ][key] = 
+      self.gridInitDict['transformationMethods' ][key] = GridEntity.transformationMethodFromCustom(gridInfo[key][-1])
+      
               
 
 
 
 
-  def _fillGrid(self,child):    
-    constrType = child.attrib['construction']
+  def _fillGrid(self,child):
+    constrType = None  
+    if 'construction' in child.attrib.keys(): constrType = child.attrib['construction']
     nameGrid = None
-    if child.attrib['construction'] in ['custom','equal']:
+    if constrType in ['custom','equal']:
       bounds = [partialEval(element) for element in child.text.split()]
       bounds.sort()
       lower, upper = min(bounds), max(bounds)
       if 'name' in child.attrib.keys(): nameGrid = child.attrib['name']
-    if child.attrib['construction'] == 'custom': return (child.attrib['type'],constrType,bounds),nameGrid
-    elif child.attrib['construction'] == 'equal':
+    if constrType == 'custom': return (child.attrib['type'],constrType,bounds),nameGrid
+    elif constrType == 'equal':
       if len(bounds) != 2: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> body of grid XML node needs to contain 2 values (lower and upper bounds)!')
-      return (child.attrib['type'],constrType,np.concatenate(np.arange(lower,upper,(lower-upper)/partialEval(child.attrib['steps'])),np.array(upper))),nameGrid
-    elif child.attrib['construction'] == 'global_grid': return (child.attrib['type'],constrType,child.text),nameGrid
+      return (child.attrib['type'],constrType,np.linspace(lower,upper,partialEval(child.attrib['steps']))),nameGrid
+    elif child.attrib['type'] == 'global_grid': return (child.attrib['type'],constrType,child.text),nameGrid
     else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> construction type unknown! Got: ' + str(constrType))
 
   def initialize(self,initDict):
