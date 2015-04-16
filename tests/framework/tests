@@ -383,8 +383,8 @@
  [./stochPolyRestartTest]
   type = 'RavenFramework'
   input = 'test_stochpoly_restart.xml'
-  output = 'StochasticPolyRestartTest/dump1.xml StochasticPolyRestartTest/dump2.xml StochasticPolyRestartTest/dump3.xml'
-  csv = 'StochasticPolyRestartTest/dump1.csv StochasticPolyRestartTest/dump2.csv StochasticPolyRestartTest/dump3.csv'
+  output = 'StochasticPolyRestart/dump1.xml StochasticPolyRestart/dump2.xml StochasticPolyRestart/dump3.xml'
+  csv = 'StochasticPolyRestart/dump1.csv StochasticPolyRestart/dump2.csv StochasticPolyRestart/dump3.csv'
  [../]
 
  [./ND_external_MC]
