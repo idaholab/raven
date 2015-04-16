@@ -1014,7 +1014,7 @@ class OutStreamPlot(OutStreamManager):
       ########################
       elif self.outStreamTypes[pltindex] == 'contour' or self.outStreamTypes[pltindex] == 'filledContour':
         if self.dim == 2:
-          if 'number_bins' in self.options['plotSettings']['plot'][pltindex].keys(): nbins = int(self.options['plotSettings']['plot'][pltindex]['number_bins'])
+          if 'numberBins' in self.options['plotSettings']['plot'][pltindex].keys(): nbins = int(self.options['plotSettings']['plot'][pltindex]['numberBins'])
           else: nbins = 5
           for key in self.xValues[pltindex].keys():
             if not self.colorMapCoordinates:
@@ -1053,7 +1053,7 @@ class OutStreamPlot(OutStreamManager):
           utils.raiseAWarning(self,'contour3D/filledContour3D Plot is NOT available for 2D plots, IT IS A 2D! Check "contour/filledContour"!')
           return
         elif self.dim == 3:
-          if 'number_bins' in self.options['plotSettings']['plot'][pltindex].keys(): nbins = int(self.options['plotSettings']['plot'][pltindex]['number_bins'])
+          if 'numberBins' in self.options['plotSettings']['plot'][pltindex].keys(): nbins = int(self.options['plotSettings']['plot'][pltindex]['numberBins'])
           else: nbins = 5
           if 'extend3D' in self.options['plotSettings']['plot'][pltindex].keys(): ext3D = bool(self.options['plotSettings']['plot'][pltindex]['extend3D'])
           else: ext3D = False
