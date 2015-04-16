@@ -154,7 +154,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       for i in range(len(inDictionary['Output'])):
         if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
           if inDictionary['Output'][i].type in ['OutStreamPlot']: inDictionary['Output'][i].endInstructions('interactive')
-    
+
     if 'Model' in inDictionary.keys(): inDictionary['Model'].finalizeModelTask()
 
   def takeAstep(self,inDictionary):

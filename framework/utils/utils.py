@@ -30,9 +30,9 @@ def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
 
 def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
   """
-  Method to check if a path (directory) contains an hidden raven file 
+  Method to check if a path (directory) contains an hidden raven file
   @ In, pathname, string containing the path
-  @ In, filename, string containing the file name 
+  @ In, filename, string containing the file name
   @ Out, boolean, True if it is present, False otherwise
   """
   import fcntl

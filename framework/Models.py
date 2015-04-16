@@ -208,7 +208,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ Out, None
     """
     pass
-  
+
 #
 #
 #
@@ -680,7 +680,7 @@ class Code(Model):
   def initialize(self,runInfoDict,inputFiles,initDict=None):
     """initialize some of the current setting for the runs and generate the working
        directory with the starting input files"""
-    
+
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
@@ -689,7 +689,7 @@ class Code(Model):
       if utils.checkIfPathAreAccessedByAnotherProgram(self.workingDir,3.0): utils.raiseAWarning(self,'directory '+ self.workingDir + ' is likely used by another program!!! ')
       if utils.checkIfLockedRavenFileIsPresent(self.workingDir,self.lockedFileName): utils.raiseAnError(Exception, self, "another instance of RAVEN is running in the working directory "+ self.workingDir+". Please check your input!")
     # register function to remove the locked file at the end of execution
-    atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName)) 
+    atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
     for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
     if self.debug: utils.raiseAMessage(self,'original input files copied in the current working dir: '+self.workingDir)
     if self.debug: utils.raiseAMessage(self,'files copied:')
@@ -698,15 +698,15 @@ class Code(Model):
     for i in range(len(inputFiles)): self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
     self.currentInputFiles        = None
     self.outFileRoot              = None
-  
-  def finalizeModelTask(self): 
+
+  def finalizeModelTask(self):
     """
     See base class for general descritpion.
-    Specialization here. The Model removes the locked file that is used to check if multiple instances of RAVEN are 
+    Specialization here. The Model removes the locked file that is used to check if multiple instances of RAVEN are
     writing and manipulating files in the same working directory
     """
     os.remove(os.path.join(self.workingDir,self.lockedFileName))
-  
+
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     """ This function creates a new input
         It is called from a sampler to get the implementation specific for this model"""
