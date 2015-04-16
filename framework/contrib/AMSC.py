@@ -41,7 +41,7 @@ import time
 # There is probably a better way to do this
 import os
 myPath = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(myPath+'/../src/postprocessors/')
+sys.path.append(myPath+'/../src/contrib/')
 import amsc
 ####################################################
 
