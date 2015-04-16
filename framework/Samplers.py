@@ -2394,6 +2394,7 @@ class SparseGridCollocation(Grid):
       inps = self.restartData.getInpParametersValues()
       existing = zip(*list(v for v in inps.values()))
       key = inps.keys()
+      if not key==self.distDict.keys(): self.sparseGrid._remap(key)
       if not key==self.distDict.keys(): utils.raiseAnError(ValueError,self,'Restart vars do not match sparse grid vars!')
     else:
       existing=[]
@@ -2477,7 +2478,7 @@ class SparseGridCollocation(Grid):
   def localGenerateInput(self,model,myInput):
     '''Provide the next point in the sparse grid.'''
     pt,weight = self.neededPoints[self.counter-1]
-    for v,varName in enumerate(self.distDict.keys()):
+    for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
     self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
