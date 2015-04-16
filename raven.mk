@@ -102,26 +102,13 @@ endif
 delete_list := $(RAVEN_APP) $(RAVEN_LIB) $(RAVEN_DIR)/libRAVEN-$(METHOD).*
 
 clean::
-	@rm -f $(RAVEN_DIR)/control_modules/_distribution1D.so \
-          $(RAVEN_DIR)/control_modules/_raventools.so \
-          $(RAVEN_DIR)/control_modules/distribution1D_wrap.cxx \
-          $(RAVEN_DIR)/control_modules/raventools_wrap.cxx \
-          $(RAVEN_DIR)/control_modules/distribution1D.py \
-          $(RAVEN_DIR)/control_modules/libdistribution1D.* \
-          $(RAVEN_DIR)/control_modules/raventools.py \
-          $(RAVEN_DIR)/control_modules/_amsc.so \
-          $(RAVEN_DIR)/control_modules/amsc_wrap.cxx \
-          $(RAVEN_DIR)/control_modules/amsc.py \
-#          $(RAVEN_DIR)/src/postprocessors/_amsc.so \
-#          $(RAVEN_DIR)/src/postprocessors/amsc_wrap.cxx \
-#          $(RAVEN_DIR)/src/postprocessors/amsc.py \
-          $(RAVEN_DIR)/control_modules/*.so*
+	@rm -f $(RAVEN_DIR)/src/contrib/_amsc.so \
+          $(RAVEN_DIR)/src/contrib/amsc_wrap.cxx \
+          $(RAVEN_DIR)/src/contrib/amsc.py \
+          $(RAVEN_objects) \
+          $(RAVEN_APP) \
+          $(RAVEN_plugins)
 	@find $(RAVEN_DIR)/framework  -name '*.pyc' -exec rm '{}' \;
-
-clobber::
-	@rm -f $(RAVEN_DIR)/control_modules/_distribution1D.so \
-          $(RAVEN_DIR)/control_modules/distribution1D_wrap.cxx \
-          $(RAVEN_DIR)/control_modules/distribution1D.py
 
 cleanall::
 	make -C $(RAVEN_DIR) clean

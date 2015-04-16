@@ -41,7 +41,7 @@ import time
 # There is probably a better way to do this
 import os
 myPath = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(myPath+'/../src/contrib/')
+sys.path.append(myPath+'/../../src/contrib/')
 import amsc
 ####################################################
 
@@ -268,7 +268,9 @@ class AMSC_Object(PySide.QtCore.QObject):
       persistence = self.persistence
     partitions = self.__amsc.GetPartitions(persistence)
     tupleKeyedPartitions = {}
-    for strMinMax,indices in partitions.iteritems():
+    minMaxKeys = partitions.keys()
+    for strMinMax in minMaxKeys:
+      indices = partitions[strMinMax]
       minMax = tuple(map(int,strMinMax.split(',')))
       tupleKeyedPartitions[minMax] = indices
     return tupleKeyedPartitions
