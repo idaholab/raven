@@ -39,8 +39,8 @@ def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
   finm = os.path.join(pathname,filename)
   fp = open(finm, 'w')
   try           : fcntl.lockf(fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
-  except IOError: return False
-  return True
+  except IOError: return True
+  return False
 
 def returnImportModuleString(obj,moduleOnly=False):
   mods = []
