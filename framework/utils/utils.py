@@ -426,3 +426,26 @@ def printCsv(csv,*args):
 
 def printCsvPart(csv,*args):
     print(*args,file=csv,sep=',',end=',')
+
+def numpyNearestMatch(array,val):
+  idx = (np.abs(array-val)).argmin()
+  return idx,array[idx]
+
+def NDInArray(array,val,tol=1e-12):
+  '''
+    checks a numpy array of numpy arrays for a near match, then returns info.
+    @ In, array, numpy array of numpy arrays (both arrays can be any length)
+    @ In, val, tuple/list/numpy array, entry to for in array
+    @ In, tol, float, tolerance to check match within
+    @ Out, (bool,idx,val) -> (found/not found, index where found or None, array entry or None)
+  '''
+  loc = np.where(np.all(np.abs(array-val)<tol,axis=1)==1)
+  if len(loc[0])>0:
+    found = True
+    idx = loc[0][0]
+    val = array[idx]
+  else:
+    found = False
+    idx = val = None
+  return found,idx,val
+

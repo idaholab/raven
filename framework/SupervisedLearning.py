@@ -362,20 +362,32 @@ class GaussPolynomialRom(NDinterpolatorRom):
   def __trainLocal__(self,featureVals,targetVals):
     self.polyCoeffDict={}
     #check consistency of featureVals
-    if len(featureVals)!=len(self.sparseGrid):
-      utils.raiseAnError(IOError,self,'ROM requires '+str(len(self.sparseGrid))+' points, but '+str(len(featureVals))+' provided!')
+    #there might be more points than we need, so don't error on this
+    #if len(featureVals)!=len(self.sparseGrid):
+    #  utils.raiseAnError(IOError,self,'ROM requires '+str(len(self.sparseGrid))+' points, but '+str(len(featureVals))+' provided!')
     #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
     self.sparseGrid._remap(self.features)
+    utils.raiseAMessage(self,'types: '+str(type(self.sparseGrid.points()))+' | '+str(type(featureVals)))
     #check equality of point space
-    fvs = featureVals[:]
+    #fvs=sorted(fvs,key=itemgetter(*range(len(fvs[0]))))
+    #sgs=sorted(sgs,key=itemgetter(*range(len(sgs[0]))))
+    fvs = []
+    tvs=[]
     sgs = self.sparseGrid.points()[:]
-    fvs=sorted(fvs,key=itemgetter(*range(len(fvs[0]))))
-    sgs=sorted(sgs,key=itemgetter(*range(len(sgs[0]))))
-    msg='\n'
-    if not np.allclose(fvs,sgs,rtol=1e-15):
-      msg+='DEBUG featureVals | sparseGridVals:\n'
-      for i in range(len(fvs)):
-        msg+='  '+str(fvs[i])+' | '+str(sgs[i])+'\n'
+    missing=[]
+    for pt in sgs:
+      found,idx,point = utils.NDInArray(featureVals,pt)
+      if found:
+        fvs.append(point)
+        tvs.append(targetVals[idx])
+      else:
+        missing.append(pt)
+    if len(missing)>0:
+      msg='\n'
+      #if not np.allclose(fvs,sgs,rtol=1e-15):
+      msg+='DEBUG missing feature vals:\n'
+      for i in missing:
+        msg+='  '+str(i)+'\n'
       utils.raiseAWarning(self,msg)
       utils.raiseAnError(IOError,self,'input values do not match required values!')
     #make translation matrix between lists
@@ -387,7 +399,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
       wtsum=0
-      for pt,soln in zip(featureVals,targetVals):
+      for pt,soln in zip(fvs,tvs):
         stdPt = np.zeros(len(pt))
         for i,p in enumerate(pt):
           varName = self.sparseGrid.varNames[i]
