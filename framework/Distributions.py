@@ -404,8 +404,6 @@ class Uniform(BoostDistribution):
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self,tempDict)
-    tempDict['low'] = self.low
-    tempDict['hi'] = self.hi
     tempDict['range'] = self.range
     # no other additional parameters required
 
