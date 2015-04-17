@@ -21,8 +21,8 @@
 
     <Distributions>
         <Uniform name="UniDist">
-            <lowerBound>1</low>
-            <upperBound>5</high>
+            <lowerBound>1</lowerBound>
+            <upperBound>5</upperBound>
         </Uniform>
     </Distributions>
 
