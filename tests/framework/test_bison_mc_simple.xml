@@ -27,12 +27,12 @@
 
 <Distributions>
     <Uniform name='FlatHeat1'>
-      <low>0.8</low>
-      <hi>1.2</hi>
+      <lowerBound>0.8</lowerBound>
+      <upperBound>1.2</upperBound>
     </Uniform>
     <Uniform name='FlatHeat2'>
-      <low>8.0</low>
-      <hi>12.0</hi>
+      <lowerBound>8.0</lowerBound>
+      <upperBound>12.0</upperBound>
     </Uniform>
 </Distributions>
 

@@ -27,12 +27,12 @@
     </Functions>
     <Distributions>
         <Uniform name='PressureFailureDist'>
-            <low>1.01e5</low>
-            <high>1.15e5</high>
+            <lowerBound>1.01e5</lowerBound>
+            <upperBound>1.15e5</upperBound>
         </Uniform>
         <Uniform name='depresSystemDist'>
-            <low>0.0</low>
-            <high>5.0</high>
+            <lowerBound>0.0</lowerBound>
+            <upperBound>5.0</upperBound>
         </Uniform>
 
     </Distributions>
