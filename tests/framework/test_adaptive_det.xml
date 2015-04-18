@@ -90,19 +90,19 @@
             <Input             class='Files'            type=''                          >TMI_steady_restart/0957_mesh.cpr</Input>
             <ROM               class='Models'           type='ROM'                       >Acc</ROM>
             <Model             class='Models'           type='Code'                      >MyRAVEN</Model>
-            <TargetEvaluation  class='Datas'            type='TimePointSet'              >adaptiveOut</TargetEvaluation>
-            <SolutionExport    class='Datas'            type='TimePointSet'              >LimitSurf</SolutionExport>
+            <TargetEvaluation  class='DataObjects'            type='TimePointSet'              >adaptiveOut</TargetEvaluation>
+            <SolutionExport    class='DataObjects'            type='TimePointSet'              >LimitSurf</SolutionExport>
             <Function          class='Functions'        type='External'                  >relapFunction</Function>
             <Sampler           class='Samplers'         type='AdaptiveDynamicEventTree'  >AdaptiveDET</Sampler>
-            <Output            class='Datas'            type='TimePointSet'              >adaptiveOut</Output>
-            <Output            class='DataBases'        type='HDF5'                      >testAdaptiveBranchDataBase</Output>
-            <Output            class='Datas'            type='Histories'                 >stories</Output>
-            <Output            class='Datas'            type='TimePointSet'              >timepointset</Output>
+            <Output            class='DataObjects'            type='TimePointSet'              >adaptiveOut</Output>
+            <Output            class='Databases'        type='HDF5'                      >testAdaptiveBranchDatabase</Output>
+            <Output            class='DataObjects'            type='Histories'                 >stories</Output>
+            <Output            class='DataObjects'            type='TimePointSet'              >timepointset</Output>
         </Adaptive >
         <!--
         <IOStep name='testOutstreamStep'>
-            <Input   class='Datas'            type='Histories'       >stories</Input>
-            <Input   class='Datas'            type='TimePointSet'    >timepointset</Input>
+            <Input   class='DataObjects'            type='Histories'       >stories</Input>
+            <Input   class='DataObjects'            type='TimePointSet'    >timepointset</Input>
             <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier</Output>
             <Output  class='OutStreamManager' type='Print'           >testprint_tpset_hier</Output>
             <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier_variables</Output>
@@ -112,9 +112,9 @@
         </IOStep>
          -->
     </Steps>
-    <DataBases>
-        <HDF5 name="testAdaptiveBranchDataBase" directory="/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET"/>
-    </DataBases>
+    <Databases>
+        <HDF5 name="testAdaptiveBranchDatabase" directory="/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET"/>
+    </Databases>
     
     <OutStreamManager>
         <Print name='stories_from_database_dump'>
@@ -122,7 +122,7 @@
             <source>stories_from_database</source>
         </Print>
     </OutStreamManager>
-    <Datas>
+    <DataObjects>
         <Histories name='stories' inputTs='1'>
             <Input>CladFailureDistThreshold,CladTempBranched,DG1_time_ratio,DG1recoveryTime,DG2recoveryTime,DeltaTimeScramToAux</Input>
         <Output>time,AuxSystemUp,CladDamaged,DownStreamSpeed,Head_PumpA,Head_PumpB,InitialMassFlowPrimary,MassFlowRateIn_SC_A,MassFlowRateIn_SC_B,PrimPGrecovery,PrimPGrecoveryThreshold,PrimPGrecoveryTime,ScramStatus,SecPGrecoveryTime,UpstreamSpeed,a_Head_PumpA,a_Head_PumpB,a_MassFlowRateIn_SC_A,a_MassFlowRateIn_SC_B,a_friction2_CL_A,a_friction2_CL_B,a_power_CH1,a_power_CH2,a_power_CH3,auxAbsolute,avg_Fluid_Vel_C_L_A,avg_Fluid_Vel_H_L-A,avg_out_temp_sec_A,avg_temp_clad_CH1,avg_temp_clad_CH2,avg_temp_clad_CH3,avg_temp_fuel_CH1,avg_temp_fuel_CH2,avg_temp_fuel_CH3,crew1DG1,crew1DG1Threshold,crew1DG2CoupledDG1,crew1DG2CoupledDG1Threshold,crewSecPG,crewSecPGThreshold,init_Power_Fraction_CH1,init_Power_Fraction_CH2,init_Power_Fraction_CH3,power_CH1,power_CH2,power_CH3,reactor:power,scram_start_time,sec_inlet_velocity</Output>
@@ -147,7 +147,7 @@
             <Input>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime,crewSecPG</Input>
             <Output>OutputPlaceHolder</Output>
         </TimePointSet>
-    </Datas>
+    </DataObjects>
 </Simulation>
 
 

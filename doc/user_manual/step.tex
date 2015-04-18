@@ -3,7 +3,7 @@
 The core of the RAVEN calculation flow is the \textbf{Step} system.
 %
 The \textbf{Step} is in charge of assembling different entities in RAVEN (e.g.
-Samplers, Models, DataBases, etc.) in order to perform a task defined by the
+Samplers, Models, Databases, etc.) in order to perform a task defined by the
 kind of step being used.
 %
 A sequence of different \textbf{Steps} represents the calculation flow.
@@ -43,7 +43,7 @@ The allowable input objects depend on the type of \textbf{Model} in the
 \textbf{Step}.
 \item \textbf{Output} defines where to collect the results of an action
 performed by the \textbf{Model}.
-It is generally one of the following types: \textbf{Datas}, \textbf{DataBases}, 
+It is generally one of the following types: \textbf{DataObjects}, \textbf{Databases}, 
 or \textbf{OutStreamManager}.
 \item \textbf{Model} represents a physical or mathematical system or behavior.
 The object used in this role defines the allowable types of
@@ -83,8 +83,8 @@ The \textbf{SingleRun} is the simplest step the user can use to assemble a
 calculation flow: perform a single action of a \textbf{Model}.
 %
 For example, it can be used to run a single job (Code Model) and collect the
-outcome(s) in a ``\textbf{Datas}'' object of type \textbf{TimePoint} or 
-\textbf{History} (see Section~\ref{sec:Datas} for more details on available data
+outcome(s) in a ``\textbf{DataObjects}'' object of type \textbf{TimePoint} or 
+\textbf{History} (see Section~\ref{sec:DataObjects} for more details on available data
 representations).
 
 The specifications of this Step must be defined within a \xmlNode{SingleRun} XML
@@ -123,13 +123,13 @@ This XML node accepts the following attributes:
     type.
     This string corresponds to the tag of the main object's type used in the 
     input.
-    For example, \xmlString{Files}, \xmlString{Datas}, \xmlString{DataBases},
+    For example, \xmlString{Files}, \xmlString{DataObjects}, \xmlString{Databases},
     etc.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute needs to specify the object type within the main object
     class.
-    For example, if the  \xmlAttr{class} attribute is \xmlString{Datas}, the
+    For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the
     \xmlAttr{type} attribute might be \xmlString{TimePointSet}.
     \nb The class \xmlString{Files} has no type (i.e. 
     \xmlAttr{type}\textbf{\texttt{=''}}).
@@ -160,13 +160,13 @@ This XML node recognizes the following attributes:
 \begin{itemize}
   \item \xmlAttr{class}, \xmlDesc{required string attribute}, main object class
     type.
-    For this role, only \xmlString{Datas}, \xmlString{DataBases}, and 
+    For this role, only \xmlString{DataObjects}, \xmlString{Databases}, and 
     \xmlString{OutStreamManager} can be used.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute needs to specify the object type within the main object
     class.
-    For example, if the  \xmlAttr{class} attribute is \xmlString{Datas}, the 
+    For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the 
     \xmlAttr{type} attribute might be \xmlString{TimePointSet}.
 \end{itemize}
 \nb The number of \xmlNode{Output} nodes is unlimited.
@@ -180,8 +180,8 @@ Example:
         <Input    class='Files'          type=''>anInputFile.i</Input>
         <Input    class='Files'          type=''>aFile</Input>
         <Model   class='Models'      type='Code'>aCode</Model>
-        <Output  class='DataBases' type='HDF5'>aDataBase</Output>
-        <Output  class='Datas'        type='History'>aData</Output>
+        <Output  class='Databases' type='HDF5'>aDatabase</Output>
+        <Output  class='DataObjects'        type='History'>aData</Output>
   </SingleRun>
   ...
 </Steps>
@@ -238,12 +238,12 @@ This XML node accepts the following attributes:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    For example, \xmlString{Files}, \xmlString{Datas}, \xmlString{DataBases},
+    For example, \xmlString{Files}, \xmlString{DataObjects}, \xmlString{Databases},
     etc.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
-    For example, if the  \xmlAttr{class} attribute is \xmlString{Datas}, the 
+    For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the 
     \xmlAttr{type} attribute might be \xmlString{TimePointSet}.
     \nb The class \xmlString{Files} has no type (i.e.
     \xmlAttr{type}\textbf{\texttt{=''}}).
@@ -293,10 +293,10 @@ This XML node accepts the following attributes:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    For this role, only \xmlString{Datas} can be used.
+    For this role, only \xmlString{DataObjects} can be used.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
-    This attribute needs to specify the object type within the \texttt{Datas} 
+    This attribute needs to specify the object type within the \texttt{DataObjects} 
     object class.
     For example, the \xmlAttr{type} attribute might be \xmlString{Code}, 
     \xmlString{ROM}, etc. \\
@@ -317,12 +317,12 @@ This XML node recognizes the following attributes:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    For this role, only \xmlString{Datas}, \xmlString{DataBases}, and 
+    For this role, only \xmlString{DataObjects}, \xmlString{Databases}, and 
     \xmlString{OutStreamManager} may be used.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
-    For example, if the \xmlAttr{class} attribute is \xmlString{Datas}, the
+    For example, if the \xmlAttr{class} attribute is \xmlString{DataObjects}, the
     \xmlAttr{type} attribute might be \xmlString{TimePointSet}.
 \end{itemize}
 \nb The number of \xmlNode{Output} nodes is unlimited.
@@ -337,17 +337,17 @@ Example:
     <Input class='Files' type=''>aFile</Input>
     <Sampler class='Samplers' type = 'Grid'>aGridName</Sampler>
     <Model class='Models' type='Code'>aCode</Model>
-    <Output class='DataBases' type='HDF5'>aDataBase</Output>
-    <Output class='Datas' type='History'>aData</Output>
+    <Output class='Databases' type='HDF5'>aDatabase</Output>
+    <Output class='DataObjects' type='History'>aData</Output>
   </MultiRun >
   <MultiRun name='StepName2' pauseAtEnd='True' sleepTime='0.02'>
     <Input   class='Files' type=''>anInputFile.i</Input>
     <Input   class='Files' type=''>aFile</Input>
     <Sampler class='Samplers' type='Adaptive'>anAS</Sampler>
     <Model   class='Models' type='Code'>aCode</Model>
-    <Output  class='DataBases' type='HDF5'>aDataBase</Output>
-    <Output  class='Datas' type='History'>aData</Output>
-    <SolutionExport class='Datas' type='TimePointSet'>
+    <Output  class='Databases' type='HDF5'>aDatabase</Output>
+    <Output  class='DataObjects' type='History'>aData</Output>
+    <SolutionExport class='DataObjects' type='TimePointSet'>
       aTPS
     </SolutionExport>
   </MultiRun>
@@ -365,11 +365,11 @@ input/output operations among the different I/O entities available in RAVEN.
 %
 This step type is used to: 
 \begin{itemize}
- \item construct/update a \textit{DataBase} from a \textit{Datas} object, and
+ \item construct/update a \textit{Database} from a \textit{DataObjects} object, and
    vice versa;
- \item construct/update a \textit{DataBase} or a \textit{Datas} object from
+ \item construct/update a \textit{Database} or a \textit{DataObjects} object from
    \textit{CSV} files contained in a directory;
- \item stream the content of a \textit{DataBase} or a \textit{Datas} out through
+ \item stream the content of a \textit{Database} or a \textit{DataObjects} out through
    an \textbf{OutStream} object (see section \ref{sec:outstream});
 \item store/retrieve a \textit{ROM} to/from an external \textit{File} using Pickle module
  of Python.
@@ -414,13 +414,13 @@ This step accepts the following roles:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    As already mentioned, the allowable main classes are \xmlString{Datas},
-    \xmlString{DataBases}, \xmlString{Models} and \xmlString{Files}.
+    As already mentioned, the allowable main classes are \xmlString{DataObjects},
+    \xmlString{Databases}, \xmlString{Models} and \xmlString{Files}.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute needs to specify the object type within the main object
     class.
-    For example, if the  \xmlAttr{class} attribute is \xmlString{Datas}, the
+    For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the
     \xmlAttr{type} attribute might be \xmlString{TimePointSet}. If the  \xmlAttr{class} attribute is \xmlString{Models}, the
     \xmlAttr{type} attribute must be \xmlString{ROM} and if the  \xmlAttr{class} attribute is \xmlString{Files}, the
     \xmlAttr{type} attribute must be \xmlString{ }
@@ -434,7 +434,7 @@ This step accepts the following roles:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    The allowable main classes are \xmlString{Datas}, \xmlString{DataBases}, \xmlString{OutStreamManager}, \xmlString{Models} and \xmlString{Files}.
+    The allowable main classes are \xmlString{DataObjects}, \xmlString{Databases}, \xmlString{OutStreamManager}, \xmlString{Models} and \xmlString{Files}.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
@@ -457,14 +457,14 @@ used for the first \xmlNode{Output}, etc.).
 objects are already linked to a Data object in the relative RAVEN input block.
 
 In this case, the user needs to provide in the \xmlNode{Input} nodes, all of the 
-``Datas'' objects linked to the OutStreamManager objects (see the example 
+``DataObjects'' objects linked to the OutStreamManager objects (see the example 
 below):
 \begin{lstlisting}[style=XML,morekeywords={class}]
 <Steps>
   ...
   <IOStep name='OutStreamStep'>
-    <Input class='Datas' type='Histories'>aHistories</Input>
-    <Input class='Datas' type='TimePointSet'>aTPS</Input>
+    <Input class='DataObjects' type='Histories'>aHistories</Input>
+    <Input class='DataObjects' type='TimePointSet'>aTPS</Input>
     <Output class='OutStreamManager' type='Plot'>plot_hist
     </Output>
     <Output class='OutStreamManager' type='Print'>print_hist
@@ -474,17 +474,17 @@ below):
     <Output class='OutStreamManager' type='Print'>print_tp
     </Output>
   </IOStep>
-  <IOStep name='PushDatasIntoDataBase'>
-    <Input  class='Datas'     type='Histories'>aHistories</Input>
-    <Input  class='Datas'     type='TimePointSet'>aTPS</Input>
-    <Output class='DataBases' type='HDF5'>aDataBase</Output>
-    <Output class='DataBases' type='HDF5'>aDataBase</Output>
+  <IOStep name='PushDataObjectsIntoDatabase'>
+    <Input  class='DataObjects'     type='Histories'>aHistories</Input>
+    <Input  class='DataObjects'     type='TimePointSet'>aTPS</Input>
+    <Output class='Databases' type='HDF5'>aDatabase</Output>
+    <Output class='Databases' type='HDF5'>aDatabase</Output>
   </IOStep>
-  <IOStep name='ConstructDatasFromDataBase'>
-    <Input class='DataBases' type='HDF5'>aDataBase</Input>
-    <Input class='DataBases' type='HDF5'>aDataBase</Input>
-    <Output class='Datas'    type='Histories'>aHistories</Output>
-    <Output class='Datas'    type='TimePointSet'>aTPS</Output>
+  <IOStep name='ConstructDataObjectsFromDatabase'>
+    <Input class='Databases' type='HDF5'>aDatabase</Input>
+    <Input class='Databases' type='HDF5'>aDatabase</Input>
+    <Output class='DataObjects'    type='Histories'>aHistories</Output>
+    <Output class='DataObjects'    type='TimePointSet'>aTPS</Output>
   </IOStep>
 <IOStep name='PushROMIntoFile'>
     <Input class='Models'  type='ROM'>aROM</Input>
@@ -553,7 +553,7 @@ This XML node accepts the following attributes:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    The only allowable main class is \xmlString{Datas}.
+    The only allowable main class is \xmlString{DataObjects}.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
@@ -583,7 +583,7 @@ Example:
 <Steps>
   ...
   <RomTrainer name='aStepName'>
-    <Input  class='Datas'  type='TimePointSet'>aTPS</Input>
+    <Input  class='DataObjects'  type='TimePointSet'>aTPS</Input>
     <Output class='Models' type='ROM'         >aROM</Output>
   </RomTrainer>
   ...
@@ -636,12 +636,12 @@ This step accepts the following roles:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    For example, \xmlString{Files}, \xmlString{Datas}, \xmlString{DataBases},
+    For example, \xmlString{Files}, \xmlString{DataObjects}, \xmlString{Databases},
     etc.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
-    For example, if the  \xmlAttr{class} attribute is \xmlString{Datas}, 
+    For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, 
     the \xmlAttr{type} attribute might be \xmlString{TimePointSet}. 
     \nb The class \xmlString{Files} has no type (i.e.
     \xmlAttr{type}\textbf{\texttt{=''}}).
@@ -679,7 +679,7 @@ This XML node recognizes the following attributes:
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
-    For example, if the  \xmlAttr{class} attribute is \xmlString{Datas}, the
+    For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the
     \xmlAttr{type} attribute might be \xmlString{TimePointSet}.
 \end{itemize}
 \nb The number of \xmlNode{Output} nodes is unlimited.
@@ -690,7 +690,7 @@ Example:
 <Steps>
   ...
   <PostProcess name='PP1'>
-      <Input  class='Datas'  type='TimePointSet' >aData</Input>
+      <Input  class='DataObjects'  type='TimePointSet' >aData</Input>
       <Model  class='Models' type='PostProcessor'>aPP</Model>
       <Output class='Files'  type=''>anOutputFile.csv</Output>
   </PostProcess>

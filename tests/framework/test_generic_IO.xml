@@ -40,17 +40,17 @@
       <Input   class="Files"     type=""            >gen.two</Input>
       <Sampler class="Samplers"  type="Grid"        >grid</Sampler>
       <Model   class="Models"    type="Code"        >poly</Model>
-      <Output  class='Datas'     type='TimePointSet'>samples</Output>
+      <Output  class='DataObjects'     type='TimePointSet'>samples</Output>
       <Output  class='OutStreamManager' type='Print'>samples</Output>
     </MultiRun>
   </Steps>
 
-  <Datas>
+  <DataObjects>
     <TimePointSet name="samples">
       <Input>x,y</Input>
       <Output>poly</Output>
     </TimePointSet>
-  </Datas>
+  </DataObjects>
 
   <OutStreamManager>
       <Print name='samples'>

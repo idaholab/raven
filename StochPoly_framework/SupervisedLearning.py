@@ -9,7 +9,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 from sklearn import svm
 import numpy as np
-import Datas
+import DataObjects
 import numpy
 import h5py
 from itertools import product as itprod
@@ -18,7 +18,7 @@ try:
 except:
   import pickle as pk
 
-#import DataBases #TODO shouldn't need this, see StochPoly.train() for instance check
+#import Databases #TODO shouldn't need this, see StochPoly.train() for instance check
 '''here we intend ROM as super-visioned learning,
    where we try to understand the underlying model by a set of labeled sample
    a sample is composed by (feature,label) that is easy translated in (input,output)

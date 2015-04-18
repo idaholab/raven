@@ -35,19 +35,19 @@
   </Samplers>
   <Steps>
     <IOStep name='test_read_in' fromDirectory='../input_for_test_cc'>
-      <Input  class='Datas'  type='TimePointSet'>fullprint_timepointset</Input>
-      <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
+      <Input  class='DataObjects'  type='TimePointSet'>fullprint_timepointset</Input>
+      <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
     </IOStep>
     <PostProcess name="test_stats_step">
-      <Input  class='Datas'  type='TimePointSet'>fullprint_timepointset</Input>
-      <!-- <Input   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Input>-->
+      <Input  class='DataObjects'  type='TimePointSet'>fullprint_timepointset</Input>
+      <!-- <Input   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Input>-->
       <Model class='Models' type='PostProcessor'>test_stats</Model>
       <Output class='Files' type=''>output.csv</Output>
     </PostProcess>
   </Steps>
-  <DataBases>
+  <Databases>
     <HDF5 name="MC_TEST_REWRITE"/>
-  </DataBases>
+  </Databases>
   <OutStreamManager>
     <Print name='timepointset_from_database_dump'>
       <type>csv</type>
@@ -61,7 +61,7 @@
   </OutStreamManager>
 
 
-  <Datas>
+  <DataObjects>
     <Histories name='fullprint_histories'>
       <Input>pipe1_Area,pipe1_Dh</Input>
       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
@@ -78,6 +78,6 @@
       <Input>pipe1_Area,pipe1_Dh</Input>
       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
     </History>
-  </Datas>
+  </DataObjects>
 
 </Simulation>

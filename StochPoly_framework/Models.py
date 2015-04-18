@@ -10,7 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 import shutil
-import Datas
+import DataObjects
 import numpy as np
 from BaseType import BaseType
 import SupervisedLearning
@@ -117,7 +117,7 @@ class Code(Model):
     self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
     return self.interface.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs)
 
-  def run(self,inputFiles,outputDatas,jobHandler):
+  def run(self,inputFiles,outputDataObjects,jobHandler):
     '''return an instance of external runner'''
     self.currentInputFiles = inputFiles
     executeCommand, self.outFileRoot = self.interface.generateCommand(self.currentInputFiles,self.executable)
@@ -134,7 +134,7 @@ class Code(Model):
     # TODO This errors if output doesn't have .type (csv for example)
     try:
       if output.type == "HDF5":
-        self.__addDataBaseGroup(finisishedjob,output)
+        self.__addDatabaseGroup(finisishedjob,output)
         return
     except AttributeError:
       pass
@@ -146,7 +146,7 @@ class Code(Model):
   def finalizeOutput(self,output):
     output.finalizeOut()
 
-  def __addDataBaseGroup(self,finisishedjob,database):
+  def __addDatabaseGroup(self,finisishedjob,database):
     # add a group into the database
     attributes={}
     attributes["input_file"] = self.currentInputFiles
@@ -214,7 +214,7 @@ class ROM(Model):
     ''' This function creates a new input
         It is called from a sampler to get the implementation specific for this model
         it support string input
-        dictionary input and datas input'''
+        dictionary input and dataObjects input'''
     import itertools
 
     if len(currentInput)>1: raise IOError('ROM accepts only one input not a list of inputs')
@@ -233,7 +233,7 @@ class ROM(Model):
     else:#as a internal data type
       try: #try is used to be sure input.type exist
         if currentInput.type in ['TimePoint','TimePointSet']:
-          newInput = Datas.returnInstance(currentInput.type)
+          newInput = DataObjects.returnInstance(currentInput.type)
           newInput.type = currentInput.type
           for name,value in itertools.izip(currentInput.getInpParametersValues().keys(),currentInput.getInpParametersValues().values()): newInput.updateInputValue(name,np.atleast_1d(np.array(value)))
           for name, newValue in itertools.izip(Kwargs['sampledVars'].keys(),Kwargs['sampledVars'].values()):
@@ -251,7 +251,7 @@ class ROM(Model):
     input are accepted in the following form:
     -as a strings: 'input_name=value,input_name=value,..' this supports only one point in the input space
     -as a dictionary where keys are the input names and the values the corresponding values (it should be either vector or list)
-    -as one of the admitted data for the specific ROM sub-type among the data type available in the datas.py module'''
+    -as one of the admitted data for the specific ROM sub-type among the data type available in the dataObjects.py module'''
     if len(request)>1: raise IOError('ROM accepts only one input not a list of inputs')
     else: self.request =request[0]
     #first we extract the input names and the corresponding values (it is an implicit mapping)

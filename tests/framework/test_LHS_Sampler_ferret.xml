@@ -45,13 +45,13 @@
       <Input   class = 'Files'      type=''          >simple_diffusion.i</Input>
       <Model   class = 'Models'     type='Code'      >Ferret</Model>
       <Sampler class='Samplers' type='LHS'         >myLHS</Sampler>
-      <Output  class='DataBases'    type='HDF5'>test_ferret_lhs</Output>
+      <Output  class='Databases'    type='HDF5'>test_ferret_lhs</Output>
     </MultiRun >
 </Steps>
 
-<DataBases>
+<Databases>
   <HDF5 name="test_ferret_lhs"/> 
-</DataBases>
+</Databases>
 
 </Simulation>
 

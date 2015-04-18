@@ -23,7 +23,7 @@ import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import Datas
+import DataObjects
 import utils
 from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
@@ -113,21 +113,21 @@ class OutStreamManager(BaseType):
     for agrosindex in range(self.numberAggregatedOS):
       foundData = False
       for output in inDict['Output']:
-        if output.name.strip()==self.sourceName[agrosindex] and output.type in Datas.knownTypes():
+        if output.name.strip()==self.sourceName[agrosindex] and output.type in DataObjects.knownTypes():
           self.sourceData.append(output)
           foundData = True
       if not foundData:
         for inp in inDict['Input']:
           if not type(inp) == type(""):
-            if inp.name.strip()==self.sourceName[agrosindex] and inp.type in Datas.knownTypes():
+            if inp.name.strip()==self.sourceName[agrosindex] and inp.type in DataObjects.knownTypes():
               self.sourceData.append(inp)
               foundData = True
       if not foundData and 'TargetEvaluation' in inDict.keys():
-        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in Datas.knownTypes():
+        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in DataObjects.knownTypes():
           self.sourceData.append(inDict['TargetEvaluation'])
           foundData = True
       if not foundData and 'SolutionExport' in inDict.keys():
-        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in Datas.knownTypes():
+        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in DataObjects.knownTypes():
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData: utils.raiseAnError(IOError,self,'the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')

@@ -41,7 +41,7 @@
             <Convergence limit='1600' forceIteration='False' weight='CDF' persistence='7'>0.05</Convergence>
             <ROM               class='Models'           type='ROM'         >Acc</ROM>
             <Function          class='Functions'        type='External'    >relapFunctionSimple</Function>
-            <TargetEvaluation  class='Datas'            type='TimePointSet'>adaptiveOutsimple</TargetEvaluation>
+            <TargetEvaluation  class='DataObjects'            type='TimePointSet'>adaptiveOutsimple</TargetEvaluation>
             <Distribution name='PressureFailureValue'>
                 <distribution >PressureFailureDist</distribution>
                 <grid type='CDF' construction='custom'>0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.95</grid>
@@ -57,20 +57,20 @@
             <Input             class='Files'            type=''                          >ideal_pump.i</Input>
             <Input             class='Files'            type=''                          >ideal_pump_control.py</Input>
             <Model             class='Models'           type='Code'                      >MyRAVEN</Model>
-            <SolutionExport    class='Datas'            type='TimePointSet'              >LimitSurfSimple</SolutionExport>
+            <SolutionExport    class='DataObjects'            type='TimePointSet'              >LimitSurfSimple</SolutionExport>
             <Sampler           class='Samplers'         type='AdaptiveDynamicEventTree'  >AdaptiveDETsimple</Sampler>
-            <Output            class='Datas'            type='TimePointSet'              >adaptiveOutsimple</Output>
-            <Output            class='DataBases'        type='HDF5'                      >AdaptiveDETsimpleDataBase</Output>
-            <Output            class='Datas'            type='Histories'                 >AdaptiveDEThistories</Output>
-            <Output            class='Datas'            type='TimePointSet'              >AdaptiveDETtimepointset</Output>
-            <Output            class='Datas'            type='TimePointSet'              >AdaptiveDETtimepointsetHierarchical</Output>
-            <Output            class='Datas'            type='Histories'                 >adaptiveOutHistorieSimple</Output>
+            <Output            class='DataObjects'            type='TimePointSet'              >adaptiveOutsimple</Output>
+            <Output            class='Databases'        type='HDF5'                      >AdaptiveDETsimpleDatabase</Output>
+            <Output            class='DataObjects'            type='Histories'                 >AdaptiveDEThistories</Output>
+            <Output            class='DataObjects'            type='TimePointSet'              >AdaptiveDETtimepointset</Output>
+            <Output            class='DataObjects'            type='TimePointSet'              >AdaptiveDETtimepointsetHierarchical</Output>
+            <Output            class='DataObjects'            type='Histories'                 >adaptiveOutHistorieSimple</Output>
         </MultiRun>
         <IOStep name='DumpResults'>
-            <Input   class='Datas'            type='TimePointSet'    >AdaptiveDETtimepointset</Input>
-            <Input   class='Datas'            type='TimePointSet'    >adaptiveOutsimple</Input>
-            <Input   class='Datas'            type='TimePointSet'    >LimitSurfSimple</Input>
-            <Input   class='Datas'            type='Histories'       >adaptiveOutHistorieSimple</Input>
+            <Input   class='DataObjects'            type='TimePointSet'    >AdaptiveDETtimepointset</Input>
+            <Input   class='DataObjects'            type='TimePointSet'    >adaptiveOutsimple</Input>
+            <Input   class='DataObjects'            type='TimePointSet'    >LimitSurfSimple</Input>
+            <Input   class='DataObjects'            type='Histories'       >adaptiveOutHistorieSimple</Input>
             <Output  class='OutStreamManager' type='Print'           >adaptiveNoHierarchicalDump</Output>
             <!-- <Output  class='OutStreamManager' type='Plot'            >limitSurfDump</Output> -->
             <Output  class='OutStreamManager' type='Print'           >adaptiveNoHierarchicalDump</Output>
@@ -84,9 +84,9 @@
             <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier_Historiesselective_Input_Output_var</Output>
         </IOStep>
     </Steps>
-    <DataBases>
-        <HDF5 name="AdaptiveDETsimpleDataBase" directory="AdaptiveDET"/>
-    </DataBases>
+    <Databases>
+        <HDF5 name="AdaptiveDETsimpleDatabase" directory="AdaptiveDET"/>
+    </Databases>
     
     <OutStreamManager>
         <Print name='adaptiveNoHierarchicalDump'>
@@ -151,7 +151,7 @@
         </Plot>
          -->
     </OutStreamManager>
-    <Datas>
+    <DataObjects>
         <Histories name='AdaptiveDEThistories' inputTs='-1'>
             <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
             <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
@@ -176,6 +176,6 @@
             <Input>PressureFailureValue,depressurizationOnTime</Input>
             <Output>relapFunctionSimple</Output>
         </TimePointSet>
-    </Datas>
+    </DataObjects>
 </Simulation>
 
