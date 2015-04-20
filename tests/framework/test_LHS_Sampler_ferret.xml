@@ -21,8 +21,8 @@
         <adjustement>up</adjustement>
     </Normal>
     <Uniform name='Uniform1'>
-        <low>0</low>
-        <high>1.0</high>
+        <lowerBound>0</lowerBound>
+        <upperBound>1.0</upperBound>
     </Uniform>
 </Distributions>
 <Samplers>

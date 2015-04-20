@@ -398,7 +398,7 @@ class HDF5(DateBase):
           if inInKey is not None:
             ix = histVar[1]['input_space_headers'].index(inInKey)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
-            inDict[key][i] = histVar[1]['input_space_values'][ix][0]
+            inDict[key][i] = np.atleast_1d(histVar[1]['input_space_values'][ix])[0]
           elif inOutKey is not None:
             ix = histVar[1]['output_space_headers'].index(inOutKey)
             if i == 0: inDict[key] = np.zeros(len(hist_list))

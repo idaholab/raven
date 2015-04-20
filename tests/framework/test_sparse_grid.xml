@@ -8,12 +8,12 @@
 
     <Distributions>
         <Uniform name="UniDist1">
-            <low>1</low>
-            <high>5</high>
+            <lowerBound>1</lowerBound>
+            <upperBound>5</upperBound>
         </Uniform>
          <Uniform name="UniDist2">
-            <low>1</low>
-            <high>5</high>
+            <lowerBound>1</lowerBound>
+            <upperBound>5</upperBound>
         </Uniform>
     </Distributions>
 

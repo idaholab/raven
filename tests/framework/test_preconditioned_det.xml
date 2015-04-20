@@ -16,28 +16,28 @@
 
 <Distributions>
   <Uniform name="zeroToOne">
-    <low>0.0</low>
-    <hi>1.0</hi>
+    <lowerBound>0.0</lowerBound>
+    <upperBound>1.0</upperBound>
   </Uniform>
   <Uniform name="testPreconditionerMonteCarloDist1">
-      <low>0.0</low>
-      <hi>1.0</hi>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
   </Uniform>
   <Uniform name="testPreconditionerGridDist1">
-      <low>0.0</low>
-      <hi>1.0</hi>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
   </Uniform>
   <Uniform name="testPreconditionerGridDist2">
-      <low>0.0</low>
-      <hi>1.0</hi>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
   </Uniform>
   <Uniform name="testPreconditionerLHSDist1">
-      <low>0.0</low>
-      <hi>1.0</hi>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
   </Uniform>
   <Uniform name="testPreconditionerLHSDist2">
-      <low>0.0</low>
-      <hi>1.0</hi>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
   </Uniform>
 </Distributions>
 

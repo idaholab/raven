@@ -8,12 +8,12 @@
 </RunInfo>
 <Distributions>
     <Uniform name='auxbackup'>
-        <low>0</low>
-        <hi>2000</hi>
+        <lowerBound>0</lowerBound>
+        <upperBound>2000</upperBound>
     </Uniform>
     <Uniform name='DG1backup'>
-        <low>0</low>
-        <hi>1000</hi>
+        <lowerBound>0</lowerBound>
+        <upperBound>1000</upperBound>
     </Uniform>
 </Distributions>
 <Models>

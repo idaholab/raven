@@ -231,8 +231,11 @@ class Dummy(Model):
   def _inputToInternal(self,dataIN,full=False):
     """Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data"""
     if self.debug: utils.raiseAMessage(self,'wondering if a dictionary compatibility should be kept','FIXME')
-    if  type(dataIN)!=dict:
-      if dataIN.type not in self.admittedData: utils.raiseAnError(IOError,self,'type '+dataIN.type+' is not compatible with the ROM '+self.name)
+    if  type(dataIN).__name__ !='dict':
+      # NOTICE: THIS IF STATEMENT HERE IS GOING TO BE REMOVED WHEN THE FILEOBJECT CLASS GETS CREATED. STAY TUNED.
+      if type(dataIN).__name__ in ['str','unicode','bytes']: utils.raiseAnError(IOError,self,'type "'+type(dataIN).__name__ +'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
+      # END NOTICE
+      if dataIN.type not in self.admittedData: utils.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
     if full==True:  length = 0
     if full==False: length = -1
     localInput = {}
