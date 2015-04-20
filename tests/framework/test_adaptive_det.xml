@@ -35,8 +35,8 @@
             <sigma>400</sigma>
         </Normal>
         <Uniform name='crew1DG2CoupledDG1'>
-            <low>0.5</low>
-            <hi>1</hi>
+            <lowerBound>0.5</lowerBound>
+            <upperBound>1</upperBound>
         </Uniform>
         <Normal name='crew1DG1'>
             <mean>800</mean>

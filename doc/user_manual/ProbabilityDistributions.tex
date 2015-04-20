@@ -417,10 +417,10 @@ Its support is $lower \le x \le upper$.
 \vspace{-5mm}
 \subnodesIntro
 \begin{itemize}
-  \item \xmlNode{low}, \xmlDesc{float, required parameter}, domain lower
+  \item \xmlNode{lowerBound}, \xmlDesc{float, required parameter}, domain lower
   boundary.
   %
-  \item \xmlNode{high}, \xmlDesc{float, required parameter}, domain upper
+  \item \xmlNode{upperBound}, \xmlDesc{float, required parameter}, domain upper
   boundary.
   %
 \end{itemize}
@@ -430,8 +430,8 @@ Example:
 <Distributions>
   ...
   <Uniform name='aUserDefinedName'>
-    <low>aFloatValue</low>
-    <high>aFloatValue</high>
+    <lowerBound>aFloatValue</lowerBound>
+    <upperBound>aFloatValue</upperBound>
   </Uniform>
   ...
 </Distributions>
