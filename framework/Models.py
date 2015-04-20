@@ -432,7 +432,7 @@ class ExternalModel(Dummy):
   @classmethod
   def specializeValidateDict(cls):
     #one data is needed for the input
-    utils.raiseAMessage('EXTERNAL_MODEL','think about how to import the roles to allowed class for the external model. For the moment we have just all','FIXME')
+    utils.raiseAMessage(self,'think about how to import the roles to allowed class for the external model. For the moment we have just all','FIXME')
   def __init__(self):
     '''
     Constructor

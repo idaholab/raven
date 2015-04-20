@@ -95,13 +95,13 @@ class BaseType(object):
     '''
     tempDict = self.whoAreYou()
     msg=''
-    for key in tempDict.keys(): utils.raiseAMessage('BASECLASSES','{0:15}: {1}'.format(key,str(tempDict[key])))
+    for key in tempDict.keys(): utils.raiseAMessage(self,'{0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myInitializzationParams()
     utils.raiseAMessage(self,'Initialization Parameters:')
-    for key in tempDict.keys(): utils.raiseAMessage('BASECLASSES','{0:15}: {1}'.format(key,str(tempDict[key])))
+    for key in tempDict.keys(): utils.raiseAMessage(self,'{0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myCurrentSetting()
     utils.raiseAMessage(self,'Current Setting:')
-    for key in tempDict.keys(): utils.raiseAMessage('BASECLASSES','{0:15}: {1}'.format(key,str(tempDict[key])))
+    for key in tempDict.keys(): utils.raiseAMessage(self,'{0:15}: {1}'.format(key,str(tempDict[key])))
 #
 #
 #
