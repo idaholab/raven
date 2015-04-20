@@ -170,10 +170,10 @@ class Legendre(OrthogonalPolynomial):
 
   def makeDistribution(self):
     uniformElement = ET.Element("uniform")
-    element = ET.Element("low",{})
+    element = ET.Element("lowerBound",{})
     element.text = "-1"
     uniformElement.append(element)
-    element = ET.Element("hi",{})
+    element = ET.Element("upperBound",{})
     element.text = "1"
     uniformElement.append(element)
     uniform = Distributions.Uniform()
