@@ -1,4 +1,3 @@
-
 RAVEN_DIR := $(CURR_DIR)
 
 RAVEN_INC_DIRS := $(shell find $(RAVEN_DIR)/include -type d -not -path "*/.svn*")
@@ -66,13 +65,14 @@ sa:: $(RAVEN_analyzer)
 
 ################################################################################
 ## Swig for Approximate Morse-Smale Complex (AMSC)
-## source files
-AMSC_srcfiles := $(shell find $(RAVEN_DIR)/src/contrib -name "*.cpp" -not -name main.C)
 
+AMSC_srcfiles := $(shell find $(RAVEN_DIR)/src/contrib -name "*.cpp" -not -name main.C)
 amsc:: $(RAVEN_DIR)/src/contrib/amsc.i $(AMSC_srcfiles)
 	@echo "Building "$@"..."
-	swig -c++ -python $(SWIG_PY_FLAGS)  -I$(RAVEN_DIR)/include/contrib/ $(RAVEN_DIR)/src/contrib/amsc.i
-	$(CXX) -fPIC -shared $(RAVEN_DIR)/src/contrib/amsc_wrap.cxx -I$(RAVEN_DIR)/include/contrib -I/usr/include/python2.7 $(AMSC_srcfiles) -lpython2.7 -o $(RAVEN_DIR)/src/contrib/_amsc.so
+	(cd $(RAVEN_DIR) && unset CXX && python $(RAVEN_DIR)/setup.py build_ext build install --install-platlib=$(RAVEN_DIR)/src/contrib)
+	@echo "Done"
+#	swig -c++ -python $(SWIG_PY_FLAGS)  -I$(RAVEN_DIR)/include/contrib/ $(RAVEN_DIR)/src/contrib/amsc.i
+#	$(CXX) -fPIC -shared $(RAVEN_DIR)/src/contrib/amsc_wrap.cxx -I$(RAVEN_DIR)/include/contrib -I/usr/include/python2.7 $(AMSC_srcfiles) -lpython2.7 -o $(RAVEN_DIR)/src/contrib/_amsc.so
 ################################################################################
 
 # include RAVEN dep files
@@ -105,8 +105,12 @@ clean::
 	@rm -f $(RAVEN_DIR)/src/contrib/_amsc.so \
           $(RAVEN_DIR)/src/contrib/amsc_wrap.cxx \
           $(RAVEN_DIR)/src/contrib/amsc.py \
+          $(RAVEN_DIR)/src/contrib/*egg-info \
           $(RAVEN_objects) \
+          $(RAVEN_app_objects) \
           $(RAVEN_APP) \
+          build/*/src/contrib/* \
+          build/*/_amsc.so \
           $(RAVEN_plugins)
 	@find $(RAVEN_DIR)/framework  -name '*.pyc' -exec rm '{}' \;
 

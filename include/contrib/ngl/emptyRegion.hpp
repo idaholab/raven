@@ -95,6 +95,9 @@ namespace ngl
 		{
 			this->test = test;
 		}
+
+		virtual ~EmptyRegionMethod() { }
+
 		virtual void initialize()
     {
 			NGMethod<T>::initialize();
@@ -235,6 +238,9 @@ namespace ngl
       : EmptyRegionMethod<T>(test)
 		{
 		}
+
+		virtual ~RelaxedEmptyRegionMethod() { }
+
 		virtual void initialize()
     {
 			EmptyRegionMethod<T>::initialize();

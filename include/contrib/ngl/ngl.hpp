@@ -50,9 +50,7 @@ namespace ngl
 		NGLPoint<T> *pts;
 	public:
 		unsigned int numPoints;
-		NGLPointSet()
-		{
-		}
+		NGLPointSet() { }
 		NGLPointSet(T*datain, unsigned int numPoints)
 		{
 			this->numPoints = numPoints;
@@ -62,15 +60,16 @@ namespace ngl
 				Geometry<T>::set(this->pts[i], &(datain[i*Geometry<T>::D]));
 			}
 		}
-		inline NGLPoint<T>& operator[](int i) {
+
+		virtual ~NGLPointSet() { }
+
+		inline NGLPoint<T>& operator[](int i)
+		{
 			return pts[i];
 		}
-		virtual void initialize(NGLParams<T>& params)
-		{
-		}
-		virtual void destroy()
-		{
-		}
+		virtual void initialize(NGLParams<T>& params) { }
+		virtual void destroy() { }
+
 		virtual void getNeighbors(NGLPoint<T> &p, IndexType **ptrIndices,
                               int &numNeighbors)
 		{
@@ -98,12 +97,11 @@ namespace ngl
 		NGMethod() {
 			valid = 0;
 		}
-		virtual void initialize()
-		{
-		}
-		virtual void destroy()
-		{
-		}
+		
+		~NGMethod() { }
+
+		virtual void initialize() { }
+		virtual void destroy() { }
 		virtual void createValid(int numPts)
 		{
 			valid = new bool[numPts];
@@ -182,12 +180,11 @@ namespace ngl
 		{
 			this->K = K;
 		}
-		virtual void initialize()
-		{
-		}
-		virtual void destroy()
-		{
-		}
+
+		~KNNMethod() { }
+
+		virtual void initialize() { }
+		virtual void destroy() { }
 
 		virtual void getNeighbors(NGLPoint<T> &p, NGLPointSet<T> &points,
                               IndexType **ptrIndices, int &numNeighbors)

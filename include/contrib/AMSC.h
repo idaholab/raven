@@ -77,11 +77,10 @@ struct Merge
 struct FlowPair
 {
   FlowPair(): down(-1), up(-1) { }
-
   FlowPair(int _down, int _up): down(_down), up(_up) { }
 
-  int up;
   int down;
+  int up;
 };
 
 /**
