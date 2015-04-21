@@ -238,7 +238,7 @@ class Distribution(BaseType):
 
   def getDimensionality(self):
     return self.dimensionality
-  
+
   def getDisttype(self):
     return self.disttype
 
@@ -320,7 +320,7 @@ class BoostDistribution(Distribution):
     value = 0.0
     for i in str(x).strip().split(','):
       value +=  self._distribution.Pdf(float(i))
-    
+
     return value
     #return self._distribution.Pdf(x)
 
@@ -924,15 +924,15 @@ class Bernoulli(BoostDistribution):
 #   def cdf(self,x):
 #     if x <= 0.5: return self._distribution.Cdf(self.lowerBound)
 #     else       : return self._distribution.Cdf(self.upperBound)
-# 
+#
 #   def pdf(self,x):
 #     if x <= 0.5: return self._distribution.Pdf(self.lowerBound)
 #     else       : return self._distribution.Pdf(self.upperBound)
-# 
+#
 #   def untruncatedCdfComplement(self, x):
 #     if x <= 0.5: return self._distribution.untrCdfComplement(self.lowerBound)
 #     else       : return self._distribution.untrCdfComplement(self.upperBound)
-# 
+#
 #   def untruncatedHazard(self, x):
 #     if x <= 0.5: return self._distribution.untrHazard(self.lowerBound)
 #     else       : return self._distribution.untrHazard(self.upperBound)
@@ -954,24 +954,24 @@ class Categorical(Distribution):
   def _readMoreXML(self,xmlNode):
     Distribution._readMoreXML(self, xmlNode)
     for child in xmlNode:
-      dic={child.tag:child.text}     
+      dic={child.tag:child.text}
       self.mapping.append(dic)
       self.values.add(float(child.tag))
-    
+
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
     tempDict['mapping'] = self.mapping
     tempDict['values'] = self.values
 
   def initializeDistribution(self):
-    totPsum = 0.0    
+    totPsum = 0.0
     for element in self.mapping:
       totPsum += float(element.get(element.keys()[0]))
     if totPsum!=1.0:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
-   
+
   def pdf(self,x):
     if x in self.values:
       for element in self.mapping:
@@ -979,8 +979,8 @@ class Categorical(Distribution):
           return float(element.get(element.keys()[0]))
     else:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate pdf for ' + str(x))
-     
-  def cdf(self,x): 
+
+  def cdf(self,x):
     if x in self.values:
       cumulative=0.0
       for element in self.mapping:
@@ -989,17 +989,17 @@ class Categorical(Distribution):
           return cumulative
     else:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate cdf for ' + str(x))
-         
+
   def ppf(self,x):
     cumulative=0.0
     for element in self.mapping:
       cumulative += float(element.get(element.keys()[0]))
       if cumulative >= x:
         return float(element.keys()[0])
-             
+
   def rvs(self):
     return self.ppf(random())
-    
+
 class Logistic(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
