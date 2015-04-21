@@ -170,7 +170,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.variables2distributionsMapping[child.attrib['name']] = varData
         self.toBeSampled[prefix+child.attrib['name']] = tobesampled
       elif child.tag == "sampler_init":
-        self.initSeed = Distributions.randomIntegers(0,2**31)
+        self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
             self.limit = childChild.text
@@ -192,7 +192,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           else: self.raiseAnError(IOError,self,'Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')
 
     if self.initSeed == None:
-      self.initSeed = Distributions.randomIntegers(0,2**31)
+      self.initSeed = Distributions.randomIntegers(0,2**31,self)
 
     # Creation of the self.distributions2variablesMapping dictionary: {'dist_name': ({'variable_name1': dim1}, {'variable_name2': dim2})}
     for variable in self.variables2distributionsMapping.keys():
@@ -394,7 +394,6 @@ class AdaptiveSampler(Sampler):
   '''This is a general adaptive sampler'''
   def __init__(self):
     Sampler.__init__(self)
-#    self.assemblerObjects = {}               #this dictionary contains information about the object needed by the adaptive sampler in order to work (ROM,targetEvaluation, etc)
     self.goalFunction     = None             #this is the pointer to the function defining the goal
     self.tolerance        = None             #this is norm of the error threshold
     self.subGridTol       = None             #This is the tolerance used to construct the testing sub grid
@@ -411,8 +410,8 @@ class AdaptiveSampler(Sampler):
     self.surfPoint        = None             #coordinate of the points considered on the limit surface
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
     # postprocessor to compute the limit surface
-    self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface",self)
     self.printTag         = 'SAMPLER ADAPTIVE'
+    self.limitSurfacePP   = None
     self.requiredAssObject = (True,(['TargetEvaluation','ROM','Function'],['n','n','-n']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def localInputAndChecks(self,xmlNode):
@@ -468,6 +467,7 @@ class AdaptiveSampler(Sampler):
       tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridVectors[varName])
 
   def localInitialize(self,solutionExport=None):
+    self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface",self)
     if 'Function' in self.assemblerDict.keys(): self.goalFunction = self.assemblerDict['Function'][0][3]
     if 'TargetEvaluation' in self.assemblerDict.keys(): self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
     self.memoryStep        = 5               # number of step for which the memory is kept
@@ -509,7 +509,7 @@ class AdaptiveSampler(Sampler):
       gridVectorsForLS[varName.replace('<distribution>','')] = self.gridVectors[varName]
     self.oldTestMatrix            = np.zeros(tuple(pointByVar))
     # initialize LimitSurface PP
-    self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.distDict.keys()],"tolerance":self.subGridTol,"side":"both","gridVectors":gridVectorsForLS)
+    self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.distDict.keys()],"tolerance":self.subGridTol,"side":"both","gridVectors":gridVectorsForLS})
     self.limitSurfacePP.assemblerDict = self.assemblerDict
     self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{})
     self.persistenceMatrix        = np.zeros(tuple(pointByVar))      #matrix that for each point of the testing grid tracks the persistence of the limit surface position
@@ -1051,7 +1051,7 @@ class LHS(Grid):
     tempFillingCheck = [None]*len(self.axisName) #for all variables
     for i in range(len(tempFillingCheck)):
       tempFillingCheck[i] = [None]*(self.pointByVar-1) #intervals are n-points-1
-      tempFillingCheck[i][:] = Distributions.randomPermutation(list(range(self.pointByVar-1))) #pick a random interval sequence
+      tempFillingCheck[i][:] = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
     self.sampledCoordinate = [None]*(self.pointByVar-1)
     for i in range(self.pointByVar-1):
       self.sampledCoordinate[i] = [None]*len(self.axisName)
@@ -2304,10 +2304,10 @@ class SparseGridCollocation(Grid):
     SVL = SVLs[0] #often need only one
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
-    msg=self.printTag,'INTERPOLATION INFO:\n'
+    msg=' INTERPOLATION INFO:\n'
     msg+='    Variable | Distribution | Quadrature | Polynomials\n'
     for v in self.quadDict.keys():
-      msg+='   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type])+'\n'
+      msg+='   '+' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type])+'\n'
     msg+='    Polynomial Set Degree: '+str(self.maxPolyOrder)+'\n'
     msg+='    Polynomial Set Type  : '+str(SVL.indexSetType)+'\n'
     self.raiseADebug(self,msg)
@@ -2387,7 +2387,7 @@ class SparseGridCollocation(Grid):
         self.raiseAnError(IOError,self,' Quadrature type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
 
       quad = Quadratures.returnInstance(quadType,self,Subtype=subType)
-      quad.initialize(distr,self.messageHanlder)
+      quad.initialize(distr,self.messageHandler)
       self.quadDict[varName]=quad
 
       poly = OrthoPolynomials.returnInstance(polyType,self)
@@ -2501,9 +2501,9 @@ class Sobol(SparseGridCollocation):
         polyDict[c]=self.polyDict[c]
         imptDict[c]=self.importanceDict[c]
       iset=IndexSets.returnInstance(SVL.indexSetType,self)
-      iset.initialize(distDict,imptDict,SVL.maxPolyOrder)
+      iset.initialize(distDict,imptDict,SVL.maxPolyOrder,self.messageHandler)
       self.SQs[combo] = Quadratures.SparseQuad()
-      self.SQs[combo].initialize(iset,SVL.maxPolyOrder,distDict,quadDict,polyDict,self.jobHandler)
+      self.SQs[combo].initialize(iset,distDict,quadDict,self.jobHandler,self.messageHandler)
       initDict={'IndexSet':iset, 'PolynomialOrder':SVL.maxPolyOrder, 'Interpolation':SVL.itpDict}
       initDict['Features']=','.join(combo)
       initDict['Target']=SVL.target #TODO make it work for multitarget

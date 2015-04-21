@@ -196,7 +196,7 @@ class SingleRun(Step):
     #use the models static testing of roles compatibility
     for role in roles:
       if role not in self._excludeFromModelValidation:
-        Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
+        Models.validate(self.parList[modelIndex][2], role, toBeTested[role],self)
     self.raiseADebug(self,'reactivate check on Input as soon as loadCsv gets out from the PostProcessor models!','FIXME')
     if 'Output' not in roles: self.raiseAnError(IOError,self,'It is not possible a run without an Output!!!')
 

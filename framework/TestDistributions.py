@@ -16,6 +16,10 @@ find_crow(os.path.dirname(os.path.abspath(sys.argv[0])))
 
 
 import Distributions
+import MessageHandler
+
+mh = MessageHandler.MessageHandler()
+mh.initialize({'verbosity':3})
 
 print (Distributions)
 def createElement(tag,attrib={},text={}):
@@ -66,6 +70,7 @@ uniformElement.append(createElement("hi",text="3.0"))
 uniform = Distributions.Uniform()
 uniform._readMoreXML(uniformElement)
 uniform.initializeDistribution()
+uniform.setMessageHandler(mh)
 
 #check pickled version as well
 pk.dump(uniform,file('testDistrDump.pk','wb'))
@@ -99,9 +104,9 @@ puniform.rvsWithinbounds(1.5,2.5)
 
 uniform.addInitParams({})
 puniform.addInitParams({})
-for _ in range(10): Distributions.randomIntegers(0,1)
+for _ in range(10): Distributions.randomIntegers(0,1,uniform)
 
-Distributions.randomIntegers(2,1)
+Distributions.randomIntegers(2,1,uniform)
 
 #Test Normal
 mean=1.0
@@ -912,6 +917,7 @@ ndCartesianSplineElement.append(filenode)
 ndCartesianSplineElement.append(createElement("working_dir", text="ND_test_Grid_cdf/"))
 
 ndCartesianSpline = Distributions.NDCartesianSpline()
+ndCartesianSpline.setMessageHandler(mh)
 ndCartesianSpline._readMoreXML(ndCartesianSplineElement)
 ndCartesianSpline.initializeDistribution()
 

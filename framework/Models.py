@@ -45,7 +45,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Sampler']       = []
   testDict                      = {}
   testDict                      = {'class':'','type':[''],'multiplicity':0,'required':False}
-  self.raiseAMessage('MODELS','FIXME: a multiplicity value is needed to control role that can have different class')
+  #FIXME: a multiplicity value is needed to control role that can have different class
   #the possible inputs
   validateDict['Input'].append(testDict.copy())
   validateDict['Input'  ][0]['class'       ] = 'Datas'
@@ -432,7 +432,8 @@ class ExternalModel(Dummy):
   @classmethod
   def specializeValidateDict(cls):
     #one data is needed for the input
-    self.raiseAMessage(self,'think about how to import the roles to allowed class for the external model. For the moment we have just all','FIXME')
+    # FIXME self.raiseAMessage(self,'think about how to import the roles to allowed class for the external model. For the moment we have just all','FIXME')
+    pass
   def __init__(self):
     '''
     Constructor
@@ -561,7 +562,7 @@ class Code(Model):
   CodeInterfaces = importlib.import_module("CodeInterfaces")
   @classmethod
   def specializeValidateDict(cls):
-    self.raiseAMessage('CODE','think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable')
+    #FIXME think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable
     cls.validateDict['Input'] = [cls.validateDict['Input'][1]]
 
   def __init__(self):
@@ -639,7 +640,7 @@ class Code(Model):
     if os.path.exists(abspath):
       self.executable = abspath
     else: self.raiseAMessage(self,'not found executable '+self.executable,'ExceptedError')
-    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType)
+    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self,self.messageHandler)
     self.code.readMoreXML(xmlNode)
     self.code.setInputExtension(list(a for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a for b in (c for c in self.fargs ['input'].values()) for a in b))
@@ -722,7 +723,8 @@ class Code(Model):
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
-    try:                   output.addGroup(attributes,attributes)
+    #FIXME this try-except catches too many of the wrong kind of error -> do we want to check output type?
+    try: output.addGroup(attributes,attributes)
     except AttributeError:
       output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
       if metadata:
@@ -734,7 +736,8 @@ class Projector(Model):
   '''Projector is a data manipulator'''
   @classmethod
   def specializeValidateDict(cls):
-    self.raiseAMessage('PROJECTOR','Remember to add the data type supported the class filter')
+    pass
+    #FIXME self.raiseAMessage('PROJECTOR','Remember to add the data type supported the class filter')
 
   def __init__(self):
     Model.__init__(self)

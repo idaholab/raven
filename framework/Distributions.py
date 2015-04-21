@@ -110,7 +110,7 @@ class Distribution(BaseType):
       self.lowerBoundUsed = True
     if xmlNode.find('adjustment') !=None: self.__adjustment = xmlNode.find('adjustment').text
     else: self.__adjustment = 'scaling'
-
+  
   def getCrowDistDict(self):
     '''
     Returns a dictionary of the keys and values that would be
@@ -234,7 +234,6 @@ class Distribution(BaseType):
     '''
     return 1.0/2.0;
 
-
   def getDimensionality(self):
     return self.dimensionality
 
@@ -255,7 +254,7 @@ def randomSeed(value):
   '''
   return stochasticEnv.seedRandom(value)
 
-def randomIntegers(low,high):
+def randomIntegers(low,high,caller):
   '''
   Function to get a random integer
   @ In, low, integer -> low boundary
@@ -266,11 +265,11 @@ def randomIntegers(low,high):
   raw_num = low + random()*int_range
   raw_int = int(round(raw_num))
   if raw_int < low or raw_int > high:
-    self.raiseAMessage('DISTRIBUTIONS',"Random int out of range")
+    caller.raiseAMessage(caller,"Random int out of range")
     raw_int = max(low,min(raw_int,high))
   return raw_int
 
-def randomPermutation(l):
+def randomPermutation(l,caller):
   '''
   Function to get a random permutation
   @ In, l, list -> list to be permuted
@@ -279,7 +278,7 @@ def randomPermutation(l):
   new_list = []
   old_list = l[:]
   while len(old_list) > 0:
-    new_list.append(old_list.pop(randomIntegers(0,len(old_list)-1)))
+    new_list.append(old_list.pop(randomIntegers(0,len(old_list)-1,caller)))
   return new_list
 
 class BoostDistribution(Distribution):

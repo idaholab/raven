@@ -7,13 +7,12 @@ Created on July 11, 2013
 import os
 import fileinput
 import re
-from utils import raiseAnError
 
 class RELAPparser:
   '''import the MOOSE input as xml tree, provide methods to add/change entries and print it back'''
   def __init__(self,inputFile):
     self.printTag = 'RELAP5 PARSER'
-    if not os.path.exists(inputFile): raiseAnError(IOError,self,'not found RELAP input file')
+    if not os.path.exists(inputFile): self.raiseAnError(IOError,self,'not found RELAP input file')
     IOfile = open(inputFile,'r')
     self.inputfile = inputFile
     self.lines = IOfile.readlines()

@@ -21,6 +21,7 @@ import json
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 '''
@@ -28,11 +29,11 @@ import utils
   *  HDF5 DATABASE CLASS  *
   *************************
 '''
-class hdf5Database(object):
+class hdf5Database(MessageHandler.MessageUser):
   '''
   class to create a h5py (hdf5) database
   '''
-  def __init__(self,name, databaseDir, filename=None):
+  def __init__(self,name, databaseDir, messageHandler,filename=None):
     # database name (i.e. arbitrary name).
     # It is the database name that has been found in the xml input
     self.name       = name
@@ -43,6 +44,7 @@ class hdf5Database(object):
     self.type       = None
     # specialize printTag (THIS IS THE CORRECT WAY TO DO THIS)
     self.printTag = 'DATABASE HDF5'
+    self.messageHandler = messageHandler
     # .H5 file name (to be created or read)
     if filename:
       # File name on disk (file exists => fileExist flag is True)
@@ -438,12 +440,10 @@ class hdf5Database(object):
       # Source in CSV format
       f = open(source['name'],'rb')
       # Retrieve the headers of the CSV file
-      # Retrieve the header of the CSV file
       headers = f.readline().split(b",")
       # Load the csv into a numpy array(n time steps, n parameters)
       data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
-      # Check if the parent attribute is not null
-      # In this case append a subgroup to the parent group
+      # Check if the parent attribute is not null # In this case append a subgroup to the parent group
       # Otherwise => it's the main group
       parent_id = None
       if 'metadata' in attributes.keys():
@@ -487,10 +487,6 @@ class hdf5Database(object):
         #else:                                      objectToConvert = attributes[attr]
         converted = json.dumps(objectToConvert)
         if converted and attr != 'name': sgrp.attrs[utils.toBytes(attr)]=converted
-#       for attr in attributes.keys():
-#         if type(attributes[attr]) == dict: converted = utils.convertDictToListOfLists(utils.utils.toBytesIterative(attributes[attr]))
-#         else                             : converted = utils.utils.toBytesIterative(attributes[attr])
-#         if converted: grp.attrs[utils.toBytes(attr)]=converted
       if "input_file" in attributes: grp.attrs[utils.toString("input_file")] = utils.toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else utils.toString(attributes["input_file"])
     else: pass
     # The sub-group is the new ending group

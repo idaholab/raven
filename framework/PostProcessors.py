@@ -22,10 +22,11 @@ import math
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import self
-import mathself
+import utils
+import mathUtils
 from Assembler import Assembler
 import SupervisedLearning
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 '''
@@ -34,18 +35,20 @@ import SupervisedLearning
   ***************************************
 '''
 
-class BasePostProcessor(Assembler):
+class BasePostProcessor(Assembler,MessageHandler.MessageUser):
   """"This is the base class for postprocessors"""
-  def __init__(self):
+  def __init__(self,messageHandler):
     self.type              = self.__class__.__name__  # pp type
     self.name              = self.__class__.__name__  # pp name
     self.assemblerObjects  = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
     self.requiredAssObject = (False,([],[]))          # tuple. self.first entry boolean flag. True if the XML parser must look for assembler objects;
                                                       # second entry tuple.self.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
     self.assemblerDict     = {}  # {'class':[['subtype','name',instance]]}
+    self.messageHandler = messageHandler
 
   def initialize(self, runInfo, inputs, initDict) :
     #if 'externalFunction' in initDict.keys(): self.externalFunction = initDict['externalFunction']
+    self.raiseAMessage(self,'asdf')
     self.inputs           = inputs
 
   def inputToInternal(self,currentInput): return [(copy.deepcopy(currentInput))]
@@ -56,8 +59,8 @@ class SafestPoint(BasePostProcessor):
   '''
   It searches for the probability-weighted safest point inside the space of the system controllable variables
   '''
-  def __init__(self):
-    BasePostProcessor.__init__(self)
+  def __init__(self,messageHandler):
+    BasePostProcessor.__init__(self,messageHandler)
     self.controllableDist = {}                                    #dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
     self.nonControllableDist = {}                                 #dictionary created upon the .xml input file reading. It stores the distributions for each non-controllale variable.
     self.controllableGrid = {}                                    #dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.
@@ -69,7 +72,7 @@ class SafestPoint(BasePostProcessor):
     self.stat = returnInstance('BasicStatistics',self)            #instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
     self.stat.what = ['expectedValue']
     self.requiredAssObject = (True,(['Distribution'],['n']))
-    self.printTag = self.returnPrintTag('POSTPROCESSOR SAFESTPOINT')
+    self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
@@ -311,8 +314,8 @@ class ComparisonStatistics(BasePostProcessor):
       self.dataPulls = []
       self.referenceData = {}
 
-  def __init__(self):
-    BasePostProcessor.__init__(self)
+  def __init__(self,messageHandler):
+    BasePostProcessor.__init__(self,messageHandler)
     self.dataDict = {} #Dictionary of all the input data, keyed by the name
     self.compareGroups = [] #List of each of the groups that will be compared
     #self.dataPulls = [] #List of data references that will be used
@@ -371,7 +374,7 @@ class ComparisonStatistics(BasePostProcessor):
     return dataDict
 
   def collectOutput(self,finishedjob,output):
-    self.raiseADebug(self,"finishedjob: "+finishedjob+", output "+output)
+    self.raiseADebug(self,"finishedjob: "+str(finishedjob)+", output "+str(output))
     #XXX We only handle the case where output is a filename.  We don't handle
     # it being a datas or hdf5 etc.
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,self,'no available output to collect.')
@@ -524,12 +527,13 @@ class PrintCSV(BasePostProcessor):
   """
   PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
   """
-  def __init__(self):
-    BasePostProcessor.__init__(self)
+  def __init__(self,messageHandler):
+    BasePostProcessor.__init__(self,messageHandler)
     self.paramters  = ['all']
     self.inObj      = None
     self.workingDir = None
     self.printTag   = 'POSTPROCESSOR PRINTCSV'
+
   def inputToInternal(self,currentInput): return [(currentInput)]
 
   def initialize(self, runInfo, inputs, initDict):
@@ -687,8 +691,8 @@ class BasicStatistics(BasePostProcessor):
   """
     BasicStatistics filter class. It computes all the most popular statistics
   """
-  def __init__(self):
-    BasePostProcessor.__init__(self)
+  def __init__(self,messageHandler):
+    BasePostProcessor.__init__(self,messageHandler)
     self.parameters        = {}                                                                                                      #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.acceptedCalcParam = ['covariance','NormalizedSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtosis','median','percentile']  # accepted calculation parameters
     self.what              = self.acceptedCalcParam                                                                                  # what needs to be computed... default...all
@@ -1050,8 +1054,8 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
   """
     LoadCsvIntoInternalObject pp class. It is in charge of loading CSV files into one of the internal object (Data(s) or HDF5)
   """
-  def __init__(self):
-    BasePostProcessor.__init__(self)
+  def __init__(self,messageHandler):
+    BasePostProcessor.__init__(self,messageHandler)
     self.sourceDirectory = None
     self.listOfCsvFiles = []
     self.printTag = 'POSTPROCESSOR LoadCsv'
@@ -1101,8 +1105,8 @@ class LimitSurface(BasePostProcessor):
     LimitSurface filter class. It computes the limit surface associated to a dataset
   """
 
-  def __init__(self):
-    BasePostProcessor.__init__(self)
+  def __init__(self,messageHandler):
+    BasePostProcessor.__init__(self,messageHandler)
     self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
@@ -1356,10 +1360,10 @@ class LimitSurface(BasePostProcessor):
     toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
     #printing----------------------
     self.raiseADebug(self,'LimitSurface:  Limit surface candidate points')
-      for coordinate in np.rollaxis(toBeTested,0):
-        myStr = ''
-        for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        self.raiseADebug(self,'LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
+    for coordinate in np.rollaxis(toBeTested,0):
+      myStr = ''
+      for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
+      self.raiseADebug(self,'LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
     #check which one of the preselected points is really on the limit surface
     nNegPoints = 0
@@ -1428,11 +1432,11 @@ class ExternalPostProcessor(BasePostProcessor):
     object, thus the function should produce a scalar value per row of data. I
     have no idea what happens if the function produces multiple outputs.
   """
-  def __init__(self):
+  def __init__(self,messageHandler):
     '''
       Initialization.
     '''
-    BasePostProcessor.__init__(self)
+    BasePostProcessor.__init__(self,messageHandler)
     self.methodsToRun = []              # A list of strings specifying what
                                         # methods the user wants to compute from
                                         # the external interfaces
@@ -1443,40 +1447,6 @@ class ExternalPostProcessor(BasePostProcessor):
 
     self.printTag = 'POSTPROCESSOR EXTERNAL FUNCTION'
     self.requiredAssObject = (True,(['Function'],['n']))
-
-  #THESE are being deprecated for the similary functions in utils.
-#  def errorString(self,message):
-#    """
-#      Function to format an error string for printing.
-#      @ In, message: A string describing the error
-#      @ Out, A formatted string with the appropriate tags listed
-#    """
-#    # This function can be promoted for printing error functions more easily and
-#    # consistently.
-#    return (self.printTag + ': ' + utils.returnPrintPostTag('ERROR') + '-> '
-#           + self.__class__.__name__ + ': ' + message)
-#
-#  def warningString(self,message):
-#    """
-#      Function to format a warning string for printing.
-#      @ In, message: A string describing the warning
-#      @ Out, A formatted string with the appropriate tags listed
-#    """
-#    # This function can be promoted for printing error functions more easily and
-#    # consistently.
-#    return (self.printTag + ': ' + utils.returnPrintPostTag('Warning') + '-> '
-#           + self.__class__.__name__ + ': ' + message)
-#
-#  def messageString(self,message):
-#    """
-#      Function to format a message string for printing.
-#      @ In, message: A string describing the message
-#      @ Out, A formatted string with the appropriate tags listed
-#    """
-#    # This function can be promoted for printing error functions more easily and
-#    # consistently.
-#    return (self.printTag + ': ' + utils.returnPrintPostTag('Message') + '-> '
-#           + self.__class__.__name__ + ': ' + message)
 
   def inputToInternal(self,currentInp):
     """
@@ -1742,5 +1712,5 @@ def returnInstance(Type,caller):
     @ In, Type : Filter type
     @ Out,Instance of the Specialized Filter class
   """
-  try: return __interFaceDict[Type]()
+  try: return __interFaceDict[Type](caller.messageHandler)
   except KeyError: caller.raiseAnError(NameError,'POSTPROCESSORS','not known '+__base+' type '+Type)

@@ -59,15 +59,15 @@ class OrthogonalPolynomial(object):
     @ In, None, None
     @ Out, Quadrature instance, defining quad for polynomial
     '''
-    return self.quad
+    return self.quad,self.messageHandler
 
-  def __setstate__(self,quad):
+  def __setstate__(self,items):
     '''Pickle load method.
     @ In, quad, Quadrature instance
     @ Out, None, None
     '''
     self.__init__()
-    self.initialize(quad)
+    self.initialize(*items)#quad,messageHandler)
 
   def __eq__(self,other):
     '''
@@ -155,7 +155,7 @@ class OrthogonalPolynomial(object):
 
 class Legendre(OrthogonalPolynomial):
   def initialize(self,quad,messageHandler):
-    OrthoPolynomial.initialize(self,messageHandler)
+    OrthogonalPolynomial.initialize(self,quad,messageHandler)
     self.printTag = 'LEGENDRE-ORTHOPOLY'
     self._poly    = polys.legendre
     self._evPoly  = polys.eval_legendre
@@ -193,7 +193,7 @@ class Legendre(OrthogonalPolynomial):
 
 class Hermite(OrthogonalPolynomial):
   def initialize(self,quad,messageHandler):
-    OrthoPolynomial.initialize(self,messageHandler)
+    OrthogonalPolynomial.initialize(self,quad,messageHandler)
     self.printTag = 'HERMITE-ORTHOPOLY'
     self._poly    = polys.hermitenorm
     self._evPoly  = polys.eval_hermitenorm
@@ -227,7 +227,7 @@ class Hermite(OrthogonalPolynomial):
 
 class Laguerre(OrthogonalPolynomial):
   def initialize(self,quad,messageHandler):
-    OrthoPolynomial.initialize(self,messageHandler)
+    OrthogonalPolynomial.initialize(self,quad,messageHandler)
     self.printTag = 'LAGUERRE-ORTHOPOLY'
     self._poly    = polys.genlaguerre
     self._evPoly  = polys.eval_genlaguerre
@@ -263,7 +263,7 @@ class Laguerre(OrthogonalPolynomial):
 
 class Jacobi(OrthogonalPolynomial):
   def initialize(self,quad,messageHandler):
-    OrthoPolynomial.initialize(self,messageHandler)
+    OrthogonalPolynomial.initialize(self,quad,messageHandler)
     self.printTag = 'JACOBI-ORTHOPOLY'
     self._poly    = polys.jacobi
     self._evPoly  = polys.eval_jacobi

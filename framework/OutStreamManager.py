@@ -62,7 +62,7 @@ class OutStreamManager(BaseType):
     self.availableOutStreamType = []
     # number of agregated outstreams
     self.numberAggregatedOS = 1
-    self.printTag = utils.returnPrintTag('OUTSTREAM MANAGER')
+    self.printTag = 'OUTSTREAM MANAGER'
 
   def _readMoreXML(self,xmlNode):
     '''

@@ -11,7 +11,6 @@ import os
 import copy
 import relapdata
 from CodeInterfaceBaseClass import CodeInterfaceBase
-from utils import raiseAnError
 
 class Relap5(CodeInterfaceBase):
   '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
@@ -22,7 +21,7 @@ class Relap5(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raiseAnError(IOError,'Relap5 INTERFACE','None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not found: self.raiseAnError(IOError,'Relap5 INTERFACE','None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     if clargs: addflags = clargs['text']
     else     : addflags = ''
@@ -41,7 +40,7 @@ class Relap5(CodeInterfaceBase):
     outfile = os.path.join(workingDir,output+'.o')
     outputobj=relapdata.relapdata(outfile)
     if outputobj.hasAtLeastMinorData(): outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
-    else: raiseAnError(IOError,'Relap5 INTERFACE','Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
+    else: self.raiseAnError(IOError,'Relap5 INTERFACE','Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
 
   def checkForOutputFailure(self,output,workingDir):
     """
@@ -77,7 +76,7 @@ class Relap5(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raiseAnError(IOError,'Relap5 INTERFACE','None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not found: self.raiseAnError(IOError,'Relap5 INTERFACE','None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = RELAPparser.RELAPparser(currentInputFiles[index])
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,True)

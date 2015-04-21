@@ -12,7 +12,7 @@ if not 'xrange' in dir(__builtins__):
 import xml.etree.ElementTree as ET
 import os
 import copy
-from utils import raiseAWarning,raiseAnError,toBytes, toStrish, compare
+from utils import toBytes, toStrish, compare
 
 class GenericParser:
   '''import the user-edited input file, build list of strings with replacable parts'''
@@ -35,7 +35,7 @@ class GenericParser:
     for inputFile in self.inputFiles:
       infileName = os.path.basename(inputFile)
       self.segments[infileName] = []
-      if not os.path.exists(inputFile): raiseAnError(IOError,self,'Input file not found: '+inputFile)
+      if not os.path.exists(inputFile): self.raiseAnError(IOError,self,'Input file not found: '+inputFile)
       IOfile = open(inputFile,'rb')
       foundSome = False
       seg = ''
@@ -48,7 +48,7 @@ class GenericParser:
           var = line[start+len(self.prefixKey):end]
           if defaultDelim in var:
             var,defval = var.split(defaultDelim)
-            if var in self.defaults.keys(): raiseAWarning(self,'multiple default values given for variable',var)
+            if var in self.defaults.keys(): self.raiseAWarning(self,'multiple default values given for variable',var)
             #TODO allow the user to specify take-last or take-first?
             if var not in self.defaults.keys(): self.defaults[var]={}
             self.defaults[var][infileName]=defval
@@ -89,7 +89,7 @@ class GenericParser:
           if var in moddict.keys(): self.segments[inputFile][place] = str(moddict[var])
           elif var in self.defaults.keys(): self.segments[inputFile][place] = self.defaults[var][inputFile]
           elif var in iovars: continue #this gets handled in writeNewInput
-          else: raiseAnError(IOError,self,'For variable '+var+' no distribution was sampled and no default given!')
+          else: self.raiseAnError(IOError,self,'For variable '+var+' no distribution was sampled and no default given!')
 
   def writeNewInput(self,infileNames,origNames):
     '''
@@ -111,7 +111,7 @@ class GenericParser:
         if inputFile.endswith(ext):
           found=True
           break
-      if not found: raiseAnError(IOError,self,'No InputFile with extension '+ext+' found!')
+      if not found: self.raiseAnError(IOError,self,'No InputFile with extension '+ext+' found!')
       return index,inputFile
 
     for var in self.varPlaces.keys():

@@ -15,7 +15,7 @@
     <Model    class = 'Models'    type = 'ExternalModel'  >XM1</Model>
     <Output   class = 'Datas'     type = 'TimePointSet'   >Data2</Output>    
   </MultiRun >
-  <RomTrainer name='step2' debug='False'>
+  <RomTrainer name='step2'>
         <Input   class='Datas'  type='TimePointSet'>Data2</Input>
         <Output  class='Models' type='ROM'         >ROM1</Output>
   </RomTrainer>

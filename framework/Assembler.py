@@ -45,7 +45,7 @@ class Assembler(object):
       for value  in val:
         if value[0] not in needDict.keys(): needDict[value[0]] = []
         needDict[value[0]].append((value[1],value[2]))
-    self.raiseADebug(self,'needDict: '+str(needDict))
+    #self.raiseADebug(self,'needDict: '+str(needDict)) messageHandler hasn't been set yet...muting for now
     return needDict
 
   def generateAssembler(self,initDict):
@@ -66,7 +66,7 @@ class Assembler(object):
     self.type = xmlNode.tag
     if 'name' in xmlNode.attrib: self.name = xmlNode.attrib['name']
     self.printTag = self.type
-    if 'verbosity' in xmlNode.attrib.keys():self.verbosity = xmlNode.attrib['verbosity'])
+    if 'verbosity' in xmlNode.attrib.keys():self.verbosity = xmlNode.attrib['verbosity']
     if self.requiredAssObject[0]:
         testObjects = {}
         for token in self.requiredAssObject[1][0]:

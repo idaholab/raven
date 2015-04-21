@@ -11,9 +11,10 @@ import abc
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class BaseType(object):
+class BaseType(MessageHandler.MessageUser):
   '''this is the base class for each general type used by the simulation'''
   def __init__(self):
     self.name             = ''      # name of this istance (alias)
@@ -30,7 +31,7 @@ class BaseType(object):
     provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
     that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag)
     '''
-    self.messageHandler = messageHandler
+    self.setMessageHandler(messageHandler)
     if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
     else: self.raiseAnError(IOError,self,'not found name for a '+self.__class__.__name__)
     self.type     = xmlNode.tag
@@ -39,28 +40,14 @@ class BaseType(object):
       self.localVerbosity = xmlNode.attrib['verbosity']
     self._readMoreXML(xmlNode)
     self.raiseAMessage(self,'------Reading Completed for:',verbosity='debug')
-    self.printMe(verbosity)
+    self.printMe(self.localVerbosity)
 
   def _readMoreXML(self,xmlNode):
     '''method to be overloaded to collect the additional input'''
     pass
 
-  def getLocalVerbosity(self):
-    return self.localVerbosity
-
-  # ***** hooks to the message handler *****
-  def raiseAnError(self,caller,etype,message,tag='ERROR',verbosity='silent'):
-    self.messageHandler.error(caller,etype,message,tag,verbosity)
-
-  def raiseAWarning(self,caller,message,tag='Warning',verbosity='quiet'):
-    self.messageHandler.message(caller,message,tag,verbosity)
-
-  def raiseAMessage(self,caller,message,tag='Message',verbosity='all'):
-    self.messageHandler.message(caller,message,tag,verbosity)
-
-  def raiseADebug(self,caller,message,tag='DEBUG',verbosity='debug'):
-    self.messageHandler.message(caller,message,tag,verbosity)
-  # ***** end message handler hooks *****    
+  def setMessageHandler(self,handler):
+    self.messageHandler = handler
 
   def whoAreYou(self):
     '''This is a generic interface that will return the type and name of any class that inherits this base class plus all the inherited classes'''

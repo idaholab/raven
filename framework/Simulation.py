@@ -27,17 +27,19 @@ import DataBases
 import Functions
 import OutStreamManager
 from JobHandler import JobHandler
+import MessageHandler
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------
-class SimulationMode:
+class SimulationMode(MessageHandler.MessageUser):
   """SimulationMode allows changes to the how the simulation
   runs are done.  modifySimulation lets the mode change runInfoDict
   and other parameters.  runOverride lets the mode do the running instead
   of simulation. """
   def __init__(self,simulation):
     self.__simulation = simulation
+    self.messageHandler = simulation.messageHandler
     self.printTag = 'SIMULATION MODE'
 
   def doOverrideRun(self):
@@ -217,7 +219,7 @@ class MPISimulationMode(SimulationMode):
 
 
 #-----------------------------------------------------------------------------------------------------
-class Simulation(object):
+class Simulation(MessageHandler.MessageUser):
   '''
   This is a class that contain all the object needed to run the simulation
   Usage:
@@ -263,8 +265,15 @@ class Simulation(object):
   Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   '''
 
-  def __init__(self,frameworkDir):
+  def __init__(self,frameworkDir,verbosity='all'):
     self.FIXME          = False
+    #establish message handling: the error, warning, message, and debug print handler
+    self.messageHandler = MessageHandler.MessageHandler()
+    self.verbosity      = verbosity
+    callerLength        = 25
+    tagLength           = 15
+    suppressErrs        = False
+    self.messageHandler.initialize({'verbosity':self.verbosity, 'callerLength':callerLength, 'tagLength':tagLength, 'suppressErrs':suppressErrs})
     sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
@@ -413,12 +422,10 @@ class Simulation(object):
                   if name not in self.whichDict[Class][subType].keys():  self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)
                   else: self.raiseAnError(IOError,self,'Redundant  naming in the input for class '+Class+' and sub Type'+subType+' and name '+name)
               #now we can read the info for this object
-              if globalAttributes and 'verbosity' in globalAttributes.keys(): localVerbosity = globalAttributes['verbosity']
-              else                                                      : localVerbosity = self.verbosity
-              if localDebug: localVerbosity = 3
-              else: localVerbosity = self.verbosity
-              if Class != 'OutStreamManager': self.whichDict[Class][name].readXML(childChild, verbosity=localVerbosity, globalAttributes=globalAttributes,verbosity=localVerbosity)
-              else: self.whichDict[Class][subType][name].readXML(childChild, verbosity=localVerbosity, globalAttributes=globalAttributes)
+              #if globalAttributes and 'verbosity' in globalAttributes.keys(): localVerbosity = globalAttributes['verbosity']
+              #else                                                      : localVerbosity = self.verbosity
+              if Class != 'OutStreamManager': self.whichDict[Class][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
+              else: self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else: self.raiseAnError(IOError,self,'not found name attribute for one '+Class)
       else: self.raiseAnError(IOError,self,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
@@ -474,8 +481,6 @@ class Simulation(object):
         if objectType != objtype.replace("OutStream",""):
           objtype = self.whichDict[myClass][name].type
           self.raiseAnError(IOError,self,'In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
-
-
 
   def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
     '''reads the xml input file for the RunInfo block'''

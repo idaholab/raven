@@ -97,7 +97,7 @@ class HDF5(DateBase):
     self.built    = False
     self.type     = 'HDF5'
     self.file_name = ""
-    self.printTag = utils.returnPrintTag('DATABASE HDF5')
+    self.printTag = 'DATABASE HDF5'
 
 
   def __getstate__(self):
@@ -134,13 +134,15 @@ class HDF5(DateBase):
     # Check if a filename has been provided
     # if yes, we assume the user wants to load the data from there
     # or update it
-    try:
+    #try:
+    if 'filename' in xmlNode.attrib.keys():
       self.file_name = xmlNode.attrib['filename']
-      self.database = h5Data(self.name,self.databaseDir,self.file_name)
+      self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.file_name)
       self.exist    = True
-    except KeyError:
+    #except KeyError:
+    else:
       self.file_name = self.name+".h5"
-      self.database  = h5Data(self.name,self.databaseDir)
+      self.database  = h5Data(self.name,self.databaseDir,self.messageHandler)
       self.exist     = False
 
   def addInitParams(self,tempDict):

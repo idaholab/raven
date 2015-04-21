@@ -132,8 +132,8 @@ class IndexSet(object):
 
 class TensorProduct(IndexSet):
   """This Index Set requires only that the max poly order in the index point i is less than maxPolyOrder ( max(i)<=L )."""
-  def initialize(self,distrList,impList,maxPolyOrder):
-    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
+  def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
+    IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
     self.type='Tensor Product'
     self.printTag='TensorProductIndexSet'
     target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder
@@ -146,8 +146,8 @@ class TensorProduct(IndexSet):
 
 class TotalDegree(IndexSet):
   """This Index Set requires the sum of poly orders in the index point is less than maxPolyOrder ( sum(i)<=L )."""
-  def initialize(self,distrList,impList,maxPolyOrder):
-    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
+  def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
+    IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
     self.type='Total Degree'
     self.printTag='TotalDegreeIndexSet'
     #TODO if user has set max poly orders (levels), make it so you never use more
@@ -162,8 +162,8 @@ class TotalDegree(IndexSet):
 
 class HyperbolicCross(IndexSet):
   """This Index Set requires the product of poly orders in the index point is less than maxPolyOrder ( prod(i+1)<=L+1 )."""
-  def initialize(self,distrList,impList,maxPolyOrder):
-    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
+  def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
+    IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
     self.type='Hyperbolic Cross'
     self.printTag='HyperbolicCrossIndexSet'
     #TODO if user has set max poly orders (levels), make it so you never use more

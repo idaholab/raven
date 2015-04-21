@@ -21,7 +21,6 @@ import inspect
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
-from utils import raiseAnError,raiseAWarning
 #Internal Modules End--------------------------------------------------------------------------------
 
 __moduleInterfaceList = []
@@ -45,8 +44,8 @@ __knownTypes      = list(__interFaceDict.keys())
 
 def knownTypes(): return __knownTypes
 
-def returnCodeInterface(Type):
+def returnCodeInterface(Type,caller,msgHandler):
   '''this allow to the code(model) class to interact with a specific
      code for which the interface is present in the CodeInterfaces module'''
-  if Type not in knownTypes(): raiseAnError(NameError,'CODEINTERFACES','not known '+__base+' type '+Type)
-  return __interFaceDict[Type]()
+  if Type not in knownTypes(): caller.raiseAnError(NameError,'CODEINTERFACES','not known '+__base+' type '+Type)
+  return __interFaceDict[Type](msgHandler)
