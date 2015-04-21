@@ -173,9 +173,9 @@ class SparseQuad(object):
     #TODO optimize me!~~
     oldNames = self.varNames[:]
     #check consistency
-    if len(oldNames)!=len(newNames): utils.raiseAnError(KeyError,'SPARSEGRID','Remap mismatch! Dimensions are not the same!')
+    if len(oldNames)!=len(newNames): self.raiseAnError(KeyError,'SPARSEGRID','Remap mismatch! Dimensions are not the same!')
     for name in oldNames:
-      if name not in newNames: utils.raiseAnError(KeyError,'SPARSEGRID','Remap mismatch! '+name+' not found in original variables!')
+      if name not in newNames: self.raiseAnError(KeyError,'SPARSEGRID','Remap mismatch! '+name+' not found in original variables!')
     wts = self.weights()
     #split by columns (dim) instead of rows (points)
     oldlists = self._xy()
@@ -282,7 +282,7 @@ class SparseQuad(object):
             else:
               self.SG[newpt] = newwt
         else:
-          utils.raiseAMessage(self,'Sparse quad generation (tensor) '+job.identifier+' failed...')
+          self.raiseAMessage(self,'Sparse quad generation (tensor) '+job.identifier+' failed...')
       if j<numRunsNeeded-1:
         for k in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
           j+=1
@@ -356,7 +356,7 @@ class SparseQuad(object):
         if job.getReturnCode() == 0:
           self.c[int(str(job.identifier).replace("_makeSingleCoeff", ""))]=job.returnEvaluation()[1]
         else:
-          utils.raiseAMessage(self,'Sparse grid index '+job.identifier+' failed...')
+          self.raiseAMessage(self,'Sparse grid index '+job.identifier+' failed...')
       if i<N-1: #load new inputs, up to 100 at a time
         for k in range(min(handler.howManyFreeSpots(),N-1-i)):
           i+=1
@@ -418,7 +418,6 @@ class QuadratureSet(object):
   def __init__(self):
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
-    self.debug = False #toggles print statements
     self.rule  = None #tool for generating points and weights for a given order
     self.params = [] #additional parameters for quadrature (alpha,beta, etc)
 
@@ -482,7 +481,7 @@ class Laguerre(QuadratureSet):
     if distr.type=='Gamma':
       self.params=[distr.alpha-1]
     else:
-      utils.raiseAnError(IOError,'QUADRATURES','No implementation for Laguerre quadrature on '+distr.type+' distribution!')
+      self.raiseAnError(IOError,'QUADRATURES','No implementation for Laguerre quadrature on '+distr.type+' distribution!')
 
 class Jacobi(QuadratureSet):
   def initialize(self,distr,msgHandler):
@@ -496,7 +495,7 @@ class Jacobi(QuadratureSet):
     #for Beta distribution, it's  x^(alpha-1) * (1-x)^(beta-1)
     #for Jacobi measure, it's (1+x)^alpha * (1-x)^beta
     else:
-      utils.raiseAnError(IOError,'QUADRATURES','No implementation for Jacobi quadrature on '+distr.type+' distribution!')
+      self.raiseAnError(IOError,'QUADRATURES','No implementation for Jacobi quadrature on '+distr.type+' distribution!')
 
 class ClenshawCurtis(QuadratureSet):
   def initialize(self,distr,msgHandler):
@@ -586,7 +585,7 @@ __knownTypes = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type,**kwargs):
+def returnInstance(Type,caller,**kwargs):
   '''
     function used to generate a Filter class
     @ In, Type : Filter type
@@ -597,5 +596,5 @@ def returnInstance(Type,**kwargs):
     if   kwargs['Subtype']=='Legendre'      : return __interFaceDict['CDFLegendre']()
     elif kwargs['Subtype']=='ClenshawCurtis': return __interFaceDict['CDFClenshawCurtis']()
   if Type in knownTypes(): return __interFaceDict[Type]()
-  else: utils.raiseAnError(NameError,'QUADRATURES','not known '+__base+' type '+Type)
+  else: caller.raiseAnError(NameError,'QUADRATURES','not known '+__base+' type '+Type)
 

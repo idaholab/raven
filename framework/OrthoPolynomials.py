@@ -19,7 +19,6 @@ import xml.etree.ElementTree as ET
 
 #Internal Modules
 from BaseClasses import BaseType
-import utils
 import Distributions
 import Quadratures
 #Internal Modules End--------------------------------------------------------------------------------
@@ -122,7 +121,7 @@ class OrthogonalPolynomial(object):
       self.pointMod = self.cdfPoint
       self.quad = quad
     else:
-      utils.raiseAnError(IOError,'ORTHOPOLYNOMIALS','No implementation for',quad.type,'quadrature and',self.type,'polynomials.')
+      self.raiseAnError(IOError,'ORTHOPOLYNOMIALS','No implementation for',quad.type,'quadrature and',self.type,'polynomials.')
 
   def _getDistr(self):
     '''Returns the private distribution used for the CDF-version quadratures; for debugging.
@@ -326,11 +325,11 @@ __knownTypes = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
+def returnInstance(Type,caller):
   '''
     function used to generate a Filter class
     @ In, Type : Filter type
     @ Out,Instance of the Specialized Filter class
   '''
   if Type in knownTypes(): return __interFaceDict[Type]()
-  else: utils.raiseAnError(NameError,'ORTHOPOLYNOMIALS','not known '+__base+' type '+Type)
+  else: caller.raiseAnError(NameError,'ORTHOPOLYNOMIALS','not known '+__base+' type '+Type)

@@ -69,8 +69,8 @@ __knownTypes                = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
+def returnInstance(Type,caller):
   '''return one instance of Type'''
   try: return __interFaceDict[Type]()
-  except KeyError: utils.raiseAnError(NameError,'TESTS','not known '+__base+' type '+Type)
+  except KeyError: caller.raiseAnError(NameError,'TESTS','not known '+__base+' type '+Type)
 

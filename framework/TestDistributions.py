@@ -52,7 +52,7 @@ def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
 #Test module methods
 print(Distributions.knownTypes())
 #Test error
-try: Distributions.returnInstance("unknown")
+try: Distributions.returnInstance("unknown",'dud')
 except: print("error worked")
 
 #Test Uniform
@@ -387,8 +387,6 @@ checkCrowDist("truncnormal beta",betan,{'scale': 4.0, 'beta': 7.520872400521023,
 
 #do an integral
 checkIntegral("truncnormal beta",betan,1.0,5.0)
-#for i in range(6):
-#  print('DEBUG',i,betan.pdf(i))
 
 checkAnswer("truncnormal beta cdf(1.0)",betan.cdf(1.0),0)
 checkAnswer("truncnormal beta cdf(2.0)",betan.cdf(2.0),0.020339936921)

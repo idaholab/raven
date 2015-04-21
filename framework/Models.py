@@ -45,7 +45,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Sampler']       = []
   testDict                      = {}
   testDict                      = {'class':'','type':[''],'multiplicity':0,'required':False}
-  utils.raiseAMessage('MODELS','FIXME: a multiplicity value is needed to control role that can have different class')
+  self.raiseAMessage('MODELS','FIXME: a multiplicity value is needed to control role that can have different class')
   #the possible inputs
   validateDict['Input'].append(testDict.copy())
   validateDict['Input'  ][0]['class'       ] = 'Datas'
@@ -97,7 +97,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   @classmethod
   def specializeValidateDict(cls):
     ''' This method should be overridden to describe the types of input accepted with a certain role by the model class specialization'''
-    utils.raiseAnError(NotImplementedError,'MODELS','The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
+    self.raiseAnError(NotImplementedError,'MODELS','The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
 
   @classmethod
   def localValidateMethod(cls,who,what):
@@ -107,7 +107,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @in what: a list (or a general iterable) that will be playing the 'who' role
     '''
     #counting successful matches
-    if who not in cls.validateDict.keys(): utils.raiseAnError(IOError,self,'The role '+str(who)+' does not exist in the class '+str(cls))
+    if who not in cls.validateDict.keys(): self.raiseAnError(IOError,self,'The role '+str(who)+' does not exist in the class '+str(cls))
     for myItemDict in cls.validateDict[who]: myItemDict['tempCounter'] = 0
     for anItem in what:
       anItem['found'] = False
@@ -121,20 +121,20 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     for tester in cls.validateDict[who]:
       if tester['required']==True:
         if tester['multiplicity']=='n' and tester['tempCounter']<1:
-          utils.raiseAnError(IOError,self,'The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
+          self.raiseAnError(IOError,self,'The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
         if tester['multiplicity']!='n' and tester['tempCounter']!=tester['multiplicity']:
-          utils.raiseAnError(IOError,self,'The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
+          self.raiseAnError(IOError,self,'The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
-        utils.raiseAnError(IOError,self,'It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
+        self.raiseAnError(IOError,self,'It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
     return True
 
   def __init__(self):
     BaseType.__init__(self)
     self.subType  = ''
     self.runQueue = []
-    self.printTag = utils.returnPrintTag('MODEL')
+    self.printTag = 'MODEL'
     self.mods     = utils.returnImportModuleString(inspect.getmodule(self),True)
     self.globs    = {}
 
@@ -142,7 +142,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     try: self.subType = xmlNode.attrib['subType']
     except KeyError:
       self.raiseADebug(self," Failed in Node: "+str(xmlNode),verbostiy='silent')
-      utils.raiseAnError(IOError,self,'missed subType for the model '+self.name)
+      self.raiseAnError(IOError,self,'missed subType for the model '+self.name)
     del(xmlNode.attrib['subType'])
 
   def localInputAndChecks(self,xmlNode):
@@ -192,7 +192,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     #if a addOutput is present in nameSpace of storeTo it is used
     if 'addOutput' in dir(storeTo): storeTo.addOutput(collectFrom)
-    else                          : utils.raiseAnError(IOError,self,'The place where to store the output has not a addOutput method')
+    else                          : self.raiseAnError(IOError,self,'The place where to store the output has not a addOutput method')
 
   def getAdditionalInputEdits(self,inputInfo):
     '''
@@ -213,7 +213,7 @@ class Dummy(Model):
     Model.__init__(self)
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
     #the following variable are reset at each call of the initialize method
-    self.printTag = utils.returnPrintTag('MODEL DUMMY')
+    self.printTag = 'DUMMY MODEL'
 
   @classmethod
   def specializeValidateDict(cls):
@@ -224,7 +224,7 @@ class Dummy(Model):
     cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
 
   def _manipulateInput(self,dataIn):
-    if len(dataIn)>1: utils.raiseAnError(IOError,self,'Only one input is accepted by the model type '+self.type+' with name '+self.name)
+    if len(dataIn)>1: self.raiseAnError(IOError,self,'Only one input is accepted by the model type '+self.type+' with name '+self.name)
     if type(dataIn[0])!=tuple: inRun = self._inputToInternal(dataIn[0]) #this might happen when a single run is used and the input it does not come from self.createNewInput
     else:                      inRun = dataIn[0][0]
     return inRun
@@ -233,7 +233,7 @@ class Dummy(Model):
     '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''
     self.raiseADebug(self,'wondering if a dictionary compatibility should be kept','FIXME')
     if  type(dataIN)!=dict:
-      if dataIN.type not in self.admittedData: utils.raiseAnError(IOError,self,'type '+dataIN.type+' is not compatible with the ROM '+self.name)
+      if dataIN.type not in self.admittedData: self.raiseAnError(IOError,self,'type '+dataIN.type+' is not compatible with the ROM '+self.name)
     if full==True:  length = 0
     if full==False: length = -1
     localInput = {}
@@ -255,13 +255,13 @@ class Dummy(Model):
     For a TimePoint all value are copied, for a TimePointSet only the last set of entry
     The copied values are returned as a dictionary back
     '''
-    if len(myInput)>1: utils.raiseAnError(IOError,self,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
+    if len(myInput)>1: self.raiseAnError(IOError,self,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
     inputDict = self._inputToInternal(myInput[0])
     #test if all sampled variables are in the inputs category of the data
     if set(list(Kwargs['SampledVars'].keys())+list(inputDict.keys())) != set(list(inputDict.keys())):
-      utils.raiseAnError(IOError,self,'When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
+      self.raiseAnError(IOError,self,'When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
     for key in Kwargs['SampledVars'].keys(): inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
-    if None in inputDict.values(): utils.raiseAnError(IOError,self,'While preparing the input for the model '+self.type+' with name '+self.name+' found an None input variable '+ str(inputDict.items()))
+    if None in inputDict.values(): self.raiseAnError(IOError,self,'While preparing the input for the model '+self.type+' with name '+self.name+' found an None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
     return [(inputDict)],copy.copy(Kwargs)
@@ -280,7 +280,7 @@ class Dummy(Model):
     jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods, globs = self.globs)
 
   def collectOutput(self,finishedJob,output):
-    if finishedJob.returnEvaluation() == -1: utils.raiseAnError(AttributeError,self,"No available Output to collect (Run probabably is not finished yet)")
+    if finishedJob.returnEvaluation() == -1: self.raiseAnError(AttributeError,self,"No available Output to collect (Run probabably is not finished yet)")
     evaluation = finishedJob.returnEvaluation()
     if type(evaluation[1]).__name__ == "tuple": outputeval = evaluation[1][0]
     else                                      : outputeval = evaluation[1]
@@ -310,7 +310,7 @@ class ROM(Dummy):
     self.amITrained                = False      # boolean flag, is the ROM trained?
     self.howManyTargets            = 0          # how many targets?
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
-    self.printTag = utils.returnPrintTag('MODEL ROM')
+    self.printTag = 'ROM MODEL'
 
   def __getstate__(self):
     """
@@ -333,7 +333,7 @@ class ROM(Dummy):
       self.SupervisedEngine = {}
       for target in targets:
         self.initializationOptionDict['Target'] = target
-        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,**self.initializationOptionDict)
+        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
 
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
@@ -349,12 +349,12 @@ class ROM(Dummy):
           except ValueError: self.initializationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
     # check how many targets
-    if not 'Target' in self.initializationOptionDict.keys(): utils.raiseAnError(IOError,self,'No Targets specified!!!')
+    if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,self,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
     for target in targets:
       self.initializationOptionDict['Target'] = target
-      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,**self.initializationOptionDict)
+      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
 
@@ -432,7 +432,7 @@ class ExternalModel(Dummy):
   @classmethod
   def specializeValidateDict(cls):
     #one data is needed for the input
-    utils.raiseAMessage(self,'think about how to import the roles to allowed class for the external model. For the moment we have just all','FIXME')
+    self.raiseAMessage(self,'think about how to import the roles to allowed class for the external model. For the moment we have just all','FIXME')
   def __init__(self):
     '''
     Constructor
@@ -445,8 +445,8 @@ class ExternalModel(Dummy):
     self.modelVariableType        = {}                                                                                                       # dictionary of variable types, used for consistency checks
     self._availableVariableTypes = ['float','bool','int','ndarray','float16','float32','float64','float128','int16','int32','int64','bool8'] # available data types
     self._availableVariableTypes = self._availableVariableTypes + ['numpy.'+item for item in self._availableVariableTypes]                   # as above
-    self.printTag                 = utils.returnPrintTag('MODEL EXTERNAL')                                                                   # print tag
-    self.initExtSelf              = utils.Object()                                                                                           # object used as "self" for external module imported at runtime
+    self.printTag                 = 'EXTERNAL MODEL'
+    self.initExtSelf              = utils.Object()
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -470,7 +470,7 @@ class ExternalModel(Dummy):
     for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
     if 'createNewInput' in dir(self.sim):
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
-      if extCreateNewInput== None: utils.raiseAnError(AttributeError,self,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
+      if extCreateNewInput== None: self.raiseAnError(AttributeError,self,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
       return ([(extCreateNewInput)],copy.copy(Kwargs)),copy.copy(modelVariableValues)
     else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.copy(modelVariableValues)
 
@@ -486,14 +486,14 @@ class ExternalModel(Dummy):
         abspath = os.path.abspath(os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0])
         if '~' in abspath:abspath = os.path.expanduser(abspath)
         if os.path.exists(abspath): os.sys.path.append(abspath)
-        else: utils.raiseAnError(IOError,self,'The path provided for the external model does not exist!!! Got: ' + abspath)
-    else: utils.raiseAnError(IOError,self,'ModuleToLoad not provided for module externalModule')
+        else: self.raiseAnError(IOError,self,'The path provided for the external model does not exist!!! Got: ' + abspath)
+    else: self.raiseAnError(IOError,self,'ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
     self.sim = utils.importFromPath(str(xmlNode.attrib['ModuleToLoad']))
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':
-        if len(son.attrib.keys()) > 0: utils.raiseAnError(IOError,self,'the block '+son.tag+' named '+son.text+' should not have attributes!!!!!')
+        if len(son.attrib.keys()) > 0: self.raiseAnError(IOError,self,'the block '+son.tag+' named '+son.text+' should not have attributes!!!!!')
         self.modelVariableType[son.text] = None
     # check if there are other information that the external module wants to load
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
@@ -523,7 +523,7 @@ class ExternalModel(Dummy):
           if not errorfound: self.raiseADebug(self,'Unsupported type found. Available ones are: '+ str(self._availableVariableTypes).replace('[','').replace(']', ''),verbosity='silent')
           errorfound = True
           self.raiseADebug(self,'variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],verbosity='silent')
-      if errorfound: utils.raiseAnError(RuntimeError,self,'Errors detected. See above!!')
+      if errorfound: self.raiseAnError(RuntimeError,self,'Errors detected. See above!!')
     return copy.copy(modelVariableValues),self
 
   def run(self,Input,jobHandler):
@@ -541,7 +541,7 @@ class ExternalModel(Dummy):
     @ In, finishedJob, InternalRunner object, instance of the run just finished
     @ In, output, "Datas" object, output where the results of the calculation needs to be stored
     '''
-    if finishedJob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,"No available Output to collect (Run probabably is not finished yet)")
+    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,self,"No available Output to collect (Run probabably is not finished yet)")
     def typeMatch(var,var_type_str):
       type_var = type(var)
       return type_var.__name__ == var_type_str or \
@@ -551,7 +551,7 @@ class ExternalModel(Dummy):
     outcomes         = finishedJob.returnEvaluation()[1][0]
     for key in finishedJob.returnEvaluation()[1][0]:
       if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
-        utils.raiseAnError(RuntimeError,self,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
+        self.raiseAnError(RuntimeError,self,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
     Dummy.collectOutput(self, finishedJob, output)
 #
 #
@@ -561,7 +561,7 @@ class Code(Model):
   CodeInterfaces = importlib.import_module("CodeInterfaces")
   @classmethod
   def specializeValidateDict(cls):
-    utils.raiseAMessage('CODE','think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable')
+    self.raiseAMessage('CODE','think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable')
     cls.validateDict['Input'] = [cls.validateDict['Input'][1]]
 
   def __init__(self):
@@ -575,7 +575,7 @@ class Code(Model):
     #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
     #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
     self.alias              = {}
-    self.printTag = utils.returnPrintTag('MODEL CODE')
+    self.printTag           = 'CODE MODEL'
 
   def _readMoreXML(self,xmlNode):
     '''extension of info to be read for the Code(model) as well as the code interface, and creates the interface.
@@ -583,7 +583,6 @@ class Code(Model):
     @ Out: None.
     '''
     Model._readMoreXML(self, xmlNode)
-    #TODO consider: should clargs be an ordered dict?
     self.clargs={'text':'', 'input':{'noarg':[]}, 'pre':'', 'post':''} #output:''
     self.fargs={'input':{}, 'output':''}
     for child in xmlNode:
@@ -592,54 +591,54 @@ class Code(Model):
       elif child.tag =='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
-        else: utils.raiseAnError(IOError,self,'not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
+        else: self.raiseAnError(IOError,self,'not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
       elif child.tag == 'clargs':
         argtype = child.attrib['type']      if 'type'      in child.attrib.keys() else None
         arg     = child.attrib['arg']       if 'arg'       in child.attrib.keys() else None
         ext     = child.attrib['extension'] if 'extension' in child.attrib.keys() else None
-        if argtype == None: utils.raiseAnError(IOError,self,'"type" for clarg not specified!')
+        if argtype == None: self.raiseAnError(IOError,self,'"type" for clarg not specified!')
         elif argtype == 'text':
           if ext != None: raiseAWArning(self,'"text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
-          if arg == None: utils.raiseAnError(IOError,self,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
+          if arg == None: self.raiseAnError(IOError,self,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
           self.clargs['text']=arg
         elif argtype == 'input':
-          if ext == None: utils.raiseAnError(IOError,self,'"extension" for clarg '+argtype+' not specified! Enter filetype to be listed for this flag.')
+          if ext == None: self.raiseAnError(IOError,self,'"extension" for clarg '+argtype+' not specified! Enter filetype to be listed for this flag.')
           if arg == None: self.clargs['input']['noarg'].append(ext)
           else:
             if arg not in self.clargs['input'].keys(): self.clargs['input'][arg]=[]
             self.clargs['input'][arg].append(ext)
         elif argtype == 'output':
-          if arg == None: utils.raiseAnError(IOError,self,'"arg" for clarg '+argtype+' not specified! Enter flag for output file specification.')
+          if arg == None: self.raiseAnError(IOError,self,'"arg" for clarg '+argtype+' not specified! Enter flag for output file specification.')
           self.clargs['output'] = arg
         elif argtype == 'prepend':
-          if ext != None: utils.raiseAWarning(self,'"prepend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
-          if arg == None: utils.raiseAnError(IOError,self,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
+          if ext != None: self.raiseAWarning(self,'"prepend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if arg == None: self.raiseAnError(IOError,self,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
           self.clargs['pre'] = arg
         elif argtype == 'postpend':
-          if ext != None: utils.raiseAWarning(self,'"postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
-          if arg == None: utils.raiseAnError(IOError,self,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
+          if ext != None: self.raiseAWarning(self,'"postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if arg == None: self.raiseAnError(IOError,self,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
           self.clargs['post'] = arg
-        else: utils.raiseAnError(IOError,self,'clarg type '+argtype+' not recognized!')
+        else: self.raiseAnError(IOError,self,'clarg type '+argtype+' not recognized!')
       elif child.tag == 'fileargs':
         argtype = child.attrib['type']      if 'type'      in child.attrib.keys() else None
         arg     = child.attrib['arg']       if 'arg'       in child.attrib.keys() else None
         ext     = child.attrib['extension'] if 'extension' in child.attrib.keys() else None
-        if argtype == None: utils.raiseAnError(IOError,self,'"type" for filearg not specified!')
+        if argtype == None: self.raiseAnError(IOError,self,'"type" for filearg not specified!')
         elif argtype == 'input':
-          if arg == None: utils.raiseAnError(IOError,self,'filearg type "input" requires the template variable be specified in "arg" attribute!')
-          if ext == None: utils.raiseAnError(IOError,self,'filearg type "input" requires the auxiliary file extension be specified in "ext" attribute!')
+          if arg == None: self.raiseAnError(IOError,self,'filearg type "input" requires the template variable be specified in "arg" attribute!')
+          if ext == None: self.raiseAnError(IOError,self,'filearg type "input" requires the auxiliary file extension be specified in "ext" attribute!')
           self.fargs['input'][arg]=[ext]
         elif argtype == 'output':
-          if self.fargs['output']!='': utils.raiseAnError(IOError,self,'output fileargs already specified!  You can only specify one output fileargs node.')
-          if arg == None: utils.raiseAnError(IOError,self,'filearg type "output" requires the template variable be specified in "arg" attribute!')
+          if self.fargs['output']!='': self.raiseAnError(IOError,self,'output fileargs already specified!  You can only specify one output fileargs node.')
+          if arg == None: self.raiseAnError(IOError,self,'filearg type "output" requires the template variable be specified in "arg" attribute!')
           self.fargs['output']=arg
-        else: utils.raiseAnError(IOError,self,'filearg type '+argtype+' not recognized!')
-    if self.executable == '': utils.raiseAnError(IOError,self,'not found the node <executable> in the body of the code model '+str(self.name))
+        else: self.raiseAnError(IOError,self,'filearg type '+argtype+' not recognized!')
+    if self.executable == '': self.raiseAnError(IOError,self,'not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
     abspath = os.path.abspath(self.executable)
     if os.path.exists(abspath):
       self.executable = abspath
-    else: utils.raiseAMessage(self,'not found executable '+self.executable,'ExceptedError')
+    else: self.raiseAMessage(self,'not found executable '+self.executable,'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType)
     self.code.readMoreXML(xmlNode)
     self.code.setInputExtension(list(a for b in (c for c in self.clargs['input'].values()) for a in b))
@@ -674,7 +673,7 @@ class Code(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except OSError: utils.raiseAWarning(self,'current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except OSError: self.raiseAWarning(self,'current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
     self.raiseADebug(self,'original input files copied in the current working dir: '+self.workingDir)
     self.raiseADebug(self,'files copied:')
@@ -693,7 +692,7 @@ class Code(Model):
       if inputFile.endswith(self.code.getInputExtension()):
         found = True
         break
-    if not found: utils.raiseAnError(IOError,self,'->  None of the input files has one of the extensions requested by code '
+    if not found: self.raiseAnError(IOError,self,'->  None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
@@ -710,9 +709,9 @@ class Code(Model):
       if inputFile.endswith(self.code.getInputExtension()):
         found = True
         break
-    if not found: utils.raiseAnError(IOError,self,'None of the input files has one of the extensions requested by code '
+    if not found: self.raiseAnError(IOError,self,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
-    utils.raiseAMessage(self,'job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
+    self.raiseAMessage(self,'job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
 
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
@@ -735,15 +734,15 @@ class Projector(Model):
   '''Projector is a data manipulator'''
   @classmethod
   def specializeValidateDict(cls):
-    utils.raiseAMessage('PROJECTOR','Remember to add the data type supported the class filter')
+    self.raiseAMessage('PROJECTOR','Remember to add the data type supported the class filter')
 
   def __init__(self):
     Model.__init__(self)
-    self.printTag = utils.returnPrintTag('MODEL PROJECTOR')
+    self.printTag = 'PROJECTOR MODEL'
 
   def _readMoreXML(self,xmlNode):
     Model._readMoreXML(self, xmlNode)
-    self.code = PostProcessors.returnInstance(self.subType)
+    self.code = PostProcessors.returnInstance(self.subType,self)
     self.code._readMoreXML(xmlNode)
 
   def addInitParams(self,tempDict):
@@ -757,7 +756,7 @@ class Projector(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try:                   os.mkdir(self.workingDir)
-    except AttributeError: utils.raiseAWarning(self,'current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except AttributeError: self.raiseAWarning(self,'current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
 
   def run(self,inObj,outObj):
@@ -817,7 +816,7 @@ class PostProcessor(Model, Assembler):
     self.input  = {}     # input source
     self.action = None   # action
     self.workingDir = ''
-    self.printTag = utils.returnPrintTag('MODEL POSTPROCESSOR')
+    self.printTag = 'POSTPROCESSOR MODEL'
 
   def whatDoINeed(self):
     '''
@@ -843,7 +842,7 @@ class PostProcessor(Model, Assembler):
 
   def _readMoreXML(self,xmlNode):
     Model._readMoreXML(self, xmlNode)
-    self.interface = PostProcessors.returnInstance(self.subType)
+    self.interface = PostProcessors.returnInstance(self.subType,self)
     self.interface._readMoreXML(xmlNode)
 
   def addInitParams(self,tempDict):
@@ -895,12 +894,12 @@ def addKnownTypes(newDict):
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
+def returnInstance(Type,caller):
   '''This function return an instance of the request model type'''
   try: return __interFaceDict[Type]()
-  except KeyError: utils.raiseAnError(NameError,'MODELS','not known '+__base+' type '+Type)
+  except KeyError: caller.raiseAnError(NameError,'MODELS','not known '+__base+' type '+Type)
 
-def validate(className,role,what):
+def validate(className,role,what,caller):
   '''This is the general interface for the validation of a model usage'''
   if className in __knownTypes: return __interFaceDict[className].localValidateMethod(role,what)
-  else                        : utils.raiseAnError(IOError,'MODELS','the class '+str(className)+' it is not a registered model')
+  else : caller.raiseAnError(IOError,'MODELS','the class '+str(className)+' it is not a registered model')

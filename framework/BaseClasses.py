@@ -13,19 +13,15 @@ import abc
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
-
-#from utils    import utils.returnPrintTag
-
 class BaseType(object):
   '''this is the base class for each general type used by the simulation'''
   def __init__(self):
     self.name             = ''      # name of this istance (alias)
     self.type             = ''      # specific type within this class
-    #self.debug            = False   #set up the debug status of the code
     self.globalAttributes = {}      #this is a dictionary that contains parameters that are set at the level of the base classes defining the types
     self._knownAttribute  = []      #this is a list of strings representing the allowed attribute in the xml input for the class
-    self._knownAttribute += ['name','debug']
-    self.printTag         = utils.returnPrintTag('BaseType')
+    self._knownAttribute += ['name','localVerbosity']
+    self.printTag         = 'BaseType'
     self.messageHandler   = None    # message handling object
     self.localVerbosity   = None    # local verbosity value
 
@@ -36,19 +32,13 @@ class BaseType(object):
     '''
     self.messageHandler = messageHandler
     if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
-    else: utils.raiseAnError(IOError,self,'not found name for a '+self.__class__.__name__)
+    else: self.raiseAnError(IOError,self,'not found name for a '+self.__class__.__name__)
     self.type     = xmlNode.tag
     if self.globalAttributes!= None: self.globalAttributes = globalAttributes
-    #if 'debug' in xmlNode.attrib:
-    #  if   xmlNode.attrib['debug'].lower() in utils.stringsThatMeanTrue() : self.debug = True
-    #  elif xmlNode.attrib['debug'].lower() in utils.stringsThatMeanFalse(): self.debug = False
-    #  else                                   : utils.raiseAnError(IOError,self,'For the attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
-    #else                                     : self.debug = debug
     if 'verbosity' in xmlNode.attrib.keys():
       self.localVerbosity = xmlNode.attrib['verbosity']
     self._readMoreXML(xmlNode)
-    #if self.debug:
-    utils.raiseAMessage(self,'------Reading Completed for:',verbosity='debug')
+    self.raiseAMessage(self,'------Reading Completed for:',verbosity='debug')
     self.printMe(verbosity)
 
   def _readMoreXML(self,xmlNode):
@@ -115,8 +105,8 @@ class BaseType(object):
     tempDict = self.whoAreYou()
     for key in tempDict.keys(): self.raiseAMessage(self,'{0:15}: {1}'.format(key,str(tempDict[key])),verbosity=verbosity)
     tempDict = self.myInitializzationParams()
-    utils.raiseAMessage(self,'Initialization Parameters:')
+    self.raiseAMessage(self,'Initialization Parameters:')
     for key in tempDict.keys(): self.raiseAMessage(self,'{0:15}: {1}'.format(key,str(tempDict[key])),verbosity=verbosity)
     tempDict = self.myCurrentSetting()
-    utils.raiseAMessage(self,'Current Setting:')
+    self.raiseAMessage(self,'Current Setting:')
     for key in tempDict.keys(): self.raiseAMessage(self,'{0:15}: {1}'.format(key,str(tempDict[key])),verbosity=verbosity)

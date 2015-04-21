@@ -39,7 +39,7 @@ class DateBase(BaseType):
     self.database = None
     # Database directory. Default = working directory.
     self.databaseDir = ''
-    self.printTag = utils.returnPrintTag('DATABASE')
+    self.printTag = 'DATABASE'
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -130,7 +130,7 @@ class HDF5(DateBase):
     # Check if database directory exist, otherwise create it
     if '~' in self.databaseDir: self.databaseDir = copy.copy(os.path.expanduser(self.databaseDir))
     if not os.path.exists(self.databaseDir): os.makedirs(self.databaseDir)
-    utils.raiseAMessage(self,'DataBase Directory is '+self.databaseDir+'!')
+    self.raiseAMessage(self,'DataBase Directory is '+self.databaseDir+'!')
     # Check if a filename has been provided
     # if yes, we assume the user wants to load the data from there
     # or update it
@@ -178,7 +178,7 @@ class HDF5(DateBase):
     '''
     if 'metadata' in attributes.keys(): attributes['group'] = attributes['metadata']['prefix']
     elif 'prefix' in attributes.keys(): attributes['group'] = attributes['prefix']
-    else                              : utils.raiseAnError(IOError,self,'addGroup function needs a prefix (ID) for adding a new group to a database!')
+    else                              : self.raiseAnError(IOError,self,'addGroup function needs a prefix (ID) for adding a new group to a database!')
     self.database.addGroup(attributes['group'],attributes,loadFrom,upGroup)
     self.built = True
 
@@ -192,7 +192,7 @@ class HDF5(DateBase):
     '''
     source = {}
     if type(loadFrom) != dict:
-      if not loadFrom.type in ['TimePoint','TimePointSet','History','Histories']: utils.raiseAnError(IOError,self,'addGroupDatas function needs to have a Data(s) as input source')
+      if not loadFrom.type in ['TimePoint','TimePointSet','History','Histories']: self.raiseAnError(IOError,self,'addGroupDatas function needs to have a Data(s) as input source')
       source['type'] = 'Datas'
     source['name'] = loadFrom
     self.database.addGroupDatas(attributes['group'],attributes,source,upGroup)
@@ -217,7 +217,7 @@ class HDF5(DateBase):
     # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
     # MC  => The History named ['group'] (one run)
     '''
-    if (not self.exist) and (not self.built): utils.raiseAnError(IOError,self,'Can not retrieve an History from data set' + self.name + '.It has not built yet.')
+    if (not self.exist) and (not self.built): self.raiseAnError(IOError,self,'Can not retrieve an History from data set' + self.name + '.It has not built yet.')
     if 'filter' in attributes.keys(): tupleVar = self.database.retrieveHistory(attributes['history'],attributes['filter'])
     else:                             tupleVar = self.database.retrieveHistory(attributes['history'])
     return tupleVar
@@ -271,9 +271,9 @@ class HDF5(DateBase):
             inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
           elif inOutKey is not None:
             ix = histVar[1]['output_space_headers'].index(inOutKey)
-            if ints > histVar[0][:,0].size  and ints != -1: utils.raiseAnError(IOError,self,'inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
+            if ints > histVar[0][:,0].size  and ints != -1: self.raiseAnError(IOError,self,'inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
-          else: utils.raiseAnError(IOError,self,'the parameter ' + key + ' has not been found')
+          else: self.raiseAnError(IOError,self,'the parameter ' + key + ' has not been found')
         else:
           if key in histVar[1]['output_space_headers'] or \
              utils.toBytes(key) in histVar[1]['output_space_headers']:
@@ -281,9 +281,9 @@ class HDF5(DateBase):
               ix = histVar[1]['output_space_headers'].index(key)
             else:
               ix = histVar[1]['output_space_headers'].index(utils.toBytes(key))
-            if ints > histVar[0][:,0].size  and ints != -1: utils.raiseAnError(IOError,self,'inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
+            if ints > histVar[0][:,0].size  and ints != -1: self.raiseAnError(IOError,self,'inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
-          else: utils.raiseAnError(IOError,self,'the parameter ' + key + ' has not been found')
+          else: self.raiseAnError(IOError,self,'the parameter ' + key + ' has not been found')
 
     # Fill output param dictionary
     if time_end:
@@ -294,7 +294,7 @@ class HDF5(DateBase):
           if   attributes['operator'].lower() == 'max'    : outDict[key] = np.atleast_1d(np.array(max(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
           elif attributes['operator'].lower() == 'min'    : outDict[key] = np.atleast_1d(np.array(min(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
           elif attributes['operator'].lower() == 'average': outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
-          else: utils.raiseAnError(IOError,self,'Operator '+ attributes['operator'] + ' unknown for TimePoint construction. Available are min,max,average!!')
+          else: self.raiseAnError(IOError,self,'Operator '+ attributes['operator'] + ' unknown for TimePoint construction. Available are min,max,average!!')
         else:
           for key in histVar[1]['output_space_headers']: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]['output_space_headers'].index(key)]))
       else:
@@ -312,11 +312,11 @@ class HDF5(DateBase):
               elif attributes['operator'].lower() == 'average':
                 if key in histVar[1]['output_space_headers']: outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
                 else: outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['output_space_headers'].index(utils.toBytes(key))])))
-              else: utils.raiseAnError(IOError,self,'Operator '+ attributes['operator'] + ' unknown for TimePoint construction. Available are min,max,average!!')
+              else: self.raiseAnError(IOError,self,'Operator '+ attributes['operator'] + ' unknown for TimePoint construction. Available are min,max,average!!')
             else:
               if key in histVar[1]['output_space_headers']: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]['output_space_headers'].index(key)]))
               else: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]['output_space_headers'].index(utils.toBytes(key))]))
-          else: utils.raiseAnError(RuntimeError,self,'the parameter ' + key + ' has not been found')
+          else: self.raiseAnError(RuntimeError,self,'the parameter ' + key + ' has not been found')
     else:
       # Arbitrary point in time case... If the requested time point does not match any of the stored ones and
       # start_time <= requested_time_point <= end_time, compute an interpolated value
@@ -344,7 +344,7 @@ class HDF5(DateBase):
                   actual_value   = histVar[0][i,histVar[1]['output_space_headers'].index(key)]
                   previous_value = histVar[0][i-1,histVar[1]['output_space_headers'].index(key)]
                   outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))
-              else: utils.raiseAnError(IOError,self,'the parameter ' + key + ' has not been found')
+              else: self.raiseAnError(IOError,self,'the parameter ' + key + ' has not been found')
     # return tuple of dictionaries
     return (copy.copy(inDict),copy.copy(outDict),copy.copy(metaDict))
 
@@ -402,17 +402,17 @@ class HDF5(DateBase):
           elif inOutKey is not None:
             ix = histVar[1]['output_space_headers'].index(inOutKey)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
-            if ints > histVar[0][:,0].size and ints != -1: utils.raiseAnError(IOError,self,'inputTs is greater than number of actual ts in history ' +hist_list[i]+ '!')
+            if ints > histVar[0][:,0].size and ints != -1: self.raiseAnError(IOError,self,'inputTs is greater than number of actual ts in history ' +hist_list[i]+ '!')
             inDict[key][i] = np.array(histVar[0][ints,ix])
-          else: utils.raiseAnError(IOError,self,'the parameter ' + key + ' has not been found')
+          else: self.raiseAnError(IOError,self,'the parameter ' + key + ' has not been found')
         else:
           inKey = utils.keyIn(histVar[1]['output_space_headers'],key)
           if inKey is not None:
             ix = histVar[1]['output_space_headers'].index(inKey)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
-            if ints > histVar[0][:,0].size  and ints != -1: utils.raiseAnError(IOError,self,'inputTs is greater than number of actual ts in history ' +hist_list[i]+ '!')
+            if ints > histVar[0][:,0].size  and ints != -1: self.raiseAnError(IOError,self,'inputTs is greater than number of actual ts in history ' +hist_list[i]+ '!')
             inDict[key][i] = histVar[0][ints,ix]
-          else: utils.raiseAnError(IOError,self,'the parameter ' + key + ' has not been found in '+str(histVar[1]))
+          else: self.raiseAnError(IOError,self,'the parameter ' + key + ' has not been found in '+str(histVar[1]))
 
       # time end case => TimePointSet is at the final status
       if time_end:
@@ -424,7 +424,7 @@ class HDF5(DateBase):
               if   attributes['operator'].lower() == 'max'    : outDict[key][i] = max(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
               elif attributes['operator'].lower() == 'min'    : outDict[key][i] = min(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
               elif attributes['operator'].lower() == 'average': outDict[key][i] = np.average(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
-              else: utils.raiseAnError(IOError,self,'Operator '+ attributes['operator'] + ' unknown for TimePointSet construction. Available are min,max,average!!')
+              else: self.raiseAnError(IOError,self,'Operator '+ attributes['operator'] + ' unknown for TimePointSet construction. Available are min,max,average!!')
             else:
               outDict[key][i] = histVar[0][-1,histVar[1]['output_space_headers'].index(key)]
         else:
@@ -443,11 +443,11 @@ class HDF5(DateBase):
                 elif attributes['operator'].lower() == 'average':
                   if key in histVar[1]['output_space_headers']: outDict[key][i] = np.average(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
                   else: outDict[key][i] = np.average(histVar[0][:,histVar[1]['output_space_headers'].index(utils.toBytes(key))])
-                else: utils.raiseAnError(IOError,self,'Operator '+ attributes['operator'] + ' unknown for TimePointSet construction. Available are min,max,average!!')
+                else: self.raiseAnError(IOError,self,'Operator '+ attributes['operator'] + ' unknown for TimePointSet construction. Available are min,max,average!!')
               else:
                 if key in histVar[1]['output_space_headers']: outDict[key][i] = histVar[0][-1,histVar[1]['output_space_headers'].index(key)]
                 else: outDict[key][i] = histVar[0][-1,histVar[1]['output_space_headers'].index(utils.toBytes(key))]
-            else: utils.raiseAnError(RuntimeError,self,'the parameter ' + str(key) + ' has not been found')
+            else: self.raiseAnError(RuntimeError,self,'the parameter ' + str(key) + ' has not been found')
       else:
         # Arbitrary point in time case... If the requested time point Set does not match any of the stored ones and
         # start_time <= requested_time_point <= end_time, compute an interpolated value
@@ -481,7 +481,7 @@ class HDF5(DateBase):
                     actual_value   = histVar[0][i,histVar[1]['output_space_headers'].index(key)]
                     previous_value = histVar[0][i-1,histVar[1]['output_space_headers'].index(key)]
                     outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)
-                else: utils.raiseAnError(RuntimeError,self,'the parameter ' + key + ' has not been found')
+                else: self.raiseAnError(RuntimeError,self,'the parameter ' + key + ' has not been found')
       del histVar
     # return tuple of timepointSet
     return (copy.copy(inDict),copy.copy(outDict),copy.copy(metaDict))
@@ -528,16 +528,16 @@ class HDF5(DateBase):
             inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
           elif inOutKey is not None:
             ix = histVar[1]['output_space_headers'].index(inOutKey)
-            if ints > histVar[0][:,0].size  and ints != -1: utils.raiseAnError(IOError,self,'inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
+            if ints > histVar[0][:,0].size  and ints != -1: self.raiseAnError(IOError,self,'inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
-          else: utils.raiseAnError(RuntimeError,self,'the parameter ' + key + ' has not been found in '+str(histVar[1]['input_space_headers'])+' or '+str(histVar[1]['output_space_headers']))
+          else: self.raiseAnError(RuntimeError,self,'the parameter ' + key + ' has not been found in '+str(histVar[1]['input_space_headers'])+' or '+str(histVar[1]['output_space_headers']))
         else:
           inKey = utils.keyIn(histVar[1]['output_space_headers'],key)
           if inKey is not None:
             ix = histVar[1]['output_space_headers'].index(inKey)
-            if ints > histVar[0][:,0].size  and ints != -1: utils.raiseAnError(IOError,self,'inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
+            if ints > histVar[0][:,0].size  and ints != -1: self.raiseAnError(IOError,self,'inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
-          else: utils.raiseAnError(RuntimeError,self,'the parameter ' + key + ' has not been found in '+str(histVar[1]['output_space_headers']))
+          else: self.raiseAnError(RuntimeError,self,'the parameter ' + key + ' has not been found in '+str(histVar[1]['output_space_headers']))
 
     # Time all case => The history is completed (from start_time to end_time)
     if time_all:
@@ -550,7 +550,7 @@ class HDF5(DateBase):
           if inKey:
             outDict[key] = histVar[0][:,histVar[1]['output_space_headers'].index(inKey)]
           else:
-            utils.raiseAnError(RuntimeError,self,'the parameter ' + key + ' has not been found in '+str(histVar[1]['output_space_headers']))
+            self.raiseAnError(RuntimeError,self,'the parameter ' + key + ' has not been found in '+str(histVar[1]['output_space_headers']))
     else:
       # **************************************************************************
       # * it will be implemented when we decide a strategy about time filtering  *
@@ -562,7 +562,7 @@ class HDF5(DateBase):
         for key in attributes['outParam']:
           if key in histVar[1]['output_space_headers']:
             outDict[key] = histVar[0][:,histVar[1]['output_space_headers'].index(key)]
-          else: utils.raiseAnError(RuntimeError,self,'the parameter ' + key + ' has not been found')
+          else: self.raiseAnError(RuntimeError,self,'the parameter ' + key + ' has not been found')
     # Return tuple of dictionaries containing the histories
     return (copy.copy(inDict),copy.copy(outDict),copy.copy(metaDict))
 
@@ -591,7 +591,7 @@ class HDF5(DateBase):
         listhist_meta[index]= tupleVar[2]
         del tupleVar
       data = (listhist_in,listhist_out,listhist_meta)
-    else: utils.raiseAnError(RuntimeError,self,'Type' + attributes['type'] +' unknown.Caller: hdf5Manager.retrieveData')
+    else: self.raiseAnError(RuntimeError,self,'Type' + attributes['type'] +' unknown.Caller: hdf5Manager.retrieveData')
     # return data
     gc.collect()
     return copy.copy(data)
@@ -604,7 +604,7 @@ __knownTypes            = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
+def returnInstance(Type,caller):
   '''
   Function interface for creating an instance to a database specialized class (for example, HDF5)
   @ In, type                : class type (string)
@@ -612,4 +612,4 @@ def returnInstance(Type):
   Note: Interface function
   '''
   try: return __interFaceDict[Type]()
-  except KeyError: utils.raiseAnError(NameError,'DATABASES','not known '+__base+' type '+Type)
+  except KeyError: caller.raiseAnError(NameError,'DATABASES','not known '+__base+' type '+Type)

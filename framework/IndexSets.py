@@ -75,16 +75,6 @@ class IndexSet(object):
     """
     return not self.__eq__(other)
 
-#  def _extrema(self):
-#    """Finds the low and hi maxima and minima among all dimensions."""
-#    low=np.ones(len(self.points[0]))*1e300
-#    hi =np.ones(len(self.points[0]))*(-1e300)
-#    for pt in self.points:
-#      for i,p in enumerate(pt):
-#        low[i]=min(low[i],p)
-#        hi[i] =max(hi[i],p)
-#    return low,hi
-
   def _xy(self):
     """Returns reordered data.  Originally,
        Points = [(a1,b1,...,z1),
@@ -99,7 +89,7 @@ class IndexSet(object):
     """
     return zip(*self.points)
 
-  def initialize(self,distrList,impList,maxPolyOrder):
+  def initialize(self,distrList,impList,maxPolyOrder,msgHandler):
     """Initialize everything index set needs
     @ In , distrList   , dictionary of {varName:Distribution}, distribution access
     @ In , impList     , dictionary of {varName:float}, weights by dimension
@@ -113,6 +103,7 @@ class IndexSet(object):
     self.impWeights = np.array(list(impList[v] for v in distrList.keys()))
     self.impWeights/= np.max(self.impWeights)
     self.impWeights = 1.0/self.impWeights
+    self.messageHandler=msgHandler
     #establish max orders
     self.maxOrder=maxPolyOrder
     self.polyOrderList=[]
@@ -199,8 +190,6 @@ __knownTypes = list(__interFaceDict.keys())
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
-  if Type in knownTypes():
-    return __interFaceDict[Type]()
-  else:
-    utils.raiseAnError(NameError,'INDEX SETS','not known '+__base+' type '+Type)
+def returnInstance(Type,caller):
+  if Type in knownTypes(): return __interFaceDict[Type]()
+  else: caller.raiseAnError(NameError,'INDEX SETS','not known '+__base+' type '+Type)

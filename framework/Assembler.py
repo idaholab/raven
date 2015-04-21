@@ -27,7 +27,6 @@ class Assembler(object):
     # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
     self.requiredAssObjects = (False,([],[]))
     self.assemblerDict      = {}                       # {'class':[['subtype','name',instance]]}
-    #self.debug              = False
 
 
   def whatDoINeed(self):
@@ -66,7 +65,7 @@ class Assembler(object):
   def _readMoreXML(self,xmlNode):
     self.type = xmlNode.tag
     if 'name' in xmlNode.attrib: self.name = xmlNode.attrib['name']
-    self.printTag = utils.returnPrintTag(self.type)
+    self.printTag = self.type
     if 'verbosity' in xmlNode.attrib.keys():self.verbosity = xmlNode.attrib['verbosity'])
     if self.requiredAssObject[0]:
         testObjects = {}
@@ -77,14 +76,14 @@ class Assembler(object):
             for token in self.requiredAssObject[1][0]:
                 if subNode.tag in token:
                     found = True
-                    if 'class' not in subNode.attrib.keys(): utils.raiseAnError(IOError,self,'In '+self.type+' PostProcessor ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+                    if 'class' not in subNode.attrib.keys(): self.raiseAnError(IOError,self,'In '+self.type+' PostProcessor ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
                     if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag] = []
                     self.assemblerObjects[subNode.tag].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text])
                     testObjects[token] += 1
         if not found:
             for tofto in self.requiredAssObject[1][0]:
                 if not str(self.requiredAssObject[1][1][0]).strip().startswith('-'):
-                    utils.raiseAnError(IOError,self,'the required object ' +tofto+ ' is missed in the definition of the '+self.type+' PostProcessor!')
+                    self.raiseAnError(IOError,self,'the required object ' +tofto+ ' is missed in the definition of the '+self.type+' PostProcessor!')
         # test the objects found
         else:
             for cnt,tofto in enumerate(self.requiredAssObject[1][0]):
@@ -93,11 +92,11 @@ class Assembler(object):
                 # optional
                     if tofto in testObjects.keys():
                         numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
-                        if testObjects[tofto] != int(numerosity): utils.raiseAnError(IOError,self,'Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
+                        if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,self,'Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
                 else:
                 # required
-                    if tofto not in testObjects.keys(): utils.raiseAnError(IOError,self,'Required object/s "'+tofto+'" not found. PostProcessor '+self.name + '!')
+                    if tofto not in testObjects.keys(): self.raiseAnError(IOError,self,'Required object/s "'+tofto+'" not found. PostProcessor '+self.name + '!')
                     else:
                         numerosity = numerosity.replace('n',str(testObjects[tofto]))
-                        if testObjects[tofto] != int(numerosity): utils.raiseAnError(IOError,self,'Only '+numerosity+' '+tofto+' object/s is/are required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
+                        if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,self,'Only '+numerosity+' '+tofto+' object/s is/are required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
     if '_localReadMoreXML' in dir(self): self._localReadMoreXML(xmlNode)
