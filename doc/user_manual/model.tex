@@ -897,7 +897,7 @@ one of the following:
 \begin{itemize}
   \item \xmlString{NDspline}
   \item \xmlString{GaussPolynomialRom}
-  \item \xmlString{NDinvDistWeigth}
+  \item \xmlString{NDinvDistWeight}
   \item \xmlString{microSphere}
   \item \xmlString{SciKitLearn}
 \end{itemize}
@@ -1172,10 +1172,10 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
   </Models>
 \end{lstlisting}
 
-%%%%% ROM Model - NDinvDistWeigth  %%%%%%%
-\subsubsection{NDinvDistWeigth}
-\label{subsubsec:NDinvDistWeigth}
-The NDinvDistWeigth sub-type contains a single ROM type, based on an
+%%%%% ROM Model - NDinvDistWeight  %%%%%%%
+\subsubsection{NDinvDistWeight}
+\label{subsubsec:NDinvDistWeight}
+The NDinvDistWeight sub-type contains a single ROM type, based on an
 $N$-dimensional inverse distance weighting formulation.
 %
 Inverse distance weighting (IDW) is a type of deterministic method for
@@ -1186,7 +1186,7 @@ the values available at the known points.
 %
 
 In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
-\xmlAttr{subType} needs to be xmlString{NDinvDistWeigth} (see the example 
+\xmlAttr{subType} needs to be xmlString{NDinvDistWeight} (see the example 
 below).
 %
 \subnodeIntro
@@ -1209,7 +1209,7 @@ below).
   ...
   <Models>
     ...
-    <ROM name='aUserDefinedName' subType='NDinvDistWeigth'>
+    <ROM name='aUserDefinedName' subType='NDinvDistWeight'>
       <Features>var1,var2,var3</Features>
       <Target>result1,result2</Target>
       <p>3</p>
