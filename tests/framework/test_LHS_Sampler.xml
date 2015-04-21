@@ -58,7 +58,7 @@
         <source>outLHS</source>
     </Print>
 </OutStreamManager>
-<Datas>
+<DataObjects>
     <TimePointSet name='outLHS'>
         <Input>VarGauss1,VarGauss2,VarTri1</Input>
         <Output>OutputPlaceHolder</Output>
@@ -67,14 +67,14 @@
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
       <Output>OutputPlaceHolder</Output>
    </TimePointSet>
-</Datas>
+</DataObjects>
 
 <Steps>
     <MultiRun name='myLHS'>
-        <Input   class='Datas'    type='TimePointSet' >dummyIN</Input>
+        <Input   class='DataObjects'    type='TimePointSet' >dummyIN</Input>
         <Model   class='Models'   type='Dummy'        >MyDummy</Model>
         <Sampler class='Samplers' type='LHS'          >myLHS</Sampler>
-        <Output  class='Datas'    type='TimePointSet' >outLHS</Output>
+        <Output  class='DataObjects'    type='TimePointSet' >outLHS</Output>
         <Output  class='OutStreamManager' type='Print'>outLHS_dump</Output>
     </MultiRun >
 </Steps>

@@ -47,7 +47,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   utils.raiseAMessage('MODELS','FIXME: a multiplicity value is needed to control role that can have different class')
   #the possible inputs
   validateDict['Input'].append(testDict.copy())
-  validateDict['Input'  ][0]['class'       ] = 'Datas'
+  validateDict['Input'  ][0]['class'       ] = 'DataObjects'
   validateDict['Input'  ][0]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
   validateDict['Input'  ][0]['required'    ] = False
   validateDict['Input'  ][0]['multiplicity'] = 'n'
@@ -58,12 +58,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Input'  ][1]['multiplicity'] = 'n'
   #the possible outputs
   validateDict['Output'].append(testDict.copy())
-  validateDict['Output' ][0]['class'       ] = 'Datas'
+  validateDict['Output' ][0]['class'       ] = 'DataObjects'
   validateDict['Output' ][0]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
   validateDict['Output' ][0]['required'    ] = False
   validateDict['Output' ][0]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
-  validateDict['Output' ][1]['class'       ] = 'DataBases'
+  validateDict['Output' ][1]['class'       ] = 'Databases'
   validateDict['Output' ][1]['type'        ] = ['HDF5']
   validateDict['Output' ][1]['required'    ] = False
   validateDict['Output' ][1]['multiplicity'] = 'n'
@@ -287,7 +287,7 @@ class Dummy(Model):
     if type(evaluation[1]).__name__ == "tuple": outputeval = evaluation[1][0]
     else                                      : outputeval = evaluation[1]
     exportDict = {'input_space_params':evaluation[0],'output_space_params':outputeval,'metadata':finishedJob.returnMetadata()}
-    if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(finishedJob.identifier)},exportDict,False)
+    if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       for key in exportDict['input_space_params' ] :
         if key in output.getParaKeys('inputs'): output.updateInputValue (key,exportDict['input_space_params' ][key])
@@ -541,7 +541,7 @@ class ExternalModel(Dummy):
     """
     Method that collects the outputs from the previous run
     @ In, finishedJob, InternalRunner object, instance of the run just finished
-    @ In, output, "Datas" object, output where the results of the calculation needs to be stored
+    @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
     """
     if finishedJob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,"No available Output to collect (Run probabably is not finished yet)")
     def typeMatch(var,var_type_str):
@@ -782,12 +782,12 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Input']                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input'][0]['required'    ] = False
     cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][1]['class'       ] = 'DataBases'
+    cls.validateDict['Input'  ][1]['class'       ] = 'Databases'
     cls.validateDict['Input'  ][1]['type'        ] = ['HDF5']
     cls.validateDict['Input'  ][1]['required'    ] = False
     cls.validateDict['Input'  ][1]['multiplicity'] = 'n'
     cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][2]['class'       ] = 'Datas'
+    cls.validateDict['Input'  ][2]['class'       ] = 'DataObjects'
     cls.validateDict['Input'  ][2]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
     cls.validateDict['Input'  ][2]['required'    ] = False
     cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
@@ -796,12 +796,12 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Output' ][0]['type'        ] = ['']
     cls.validateDict['Output' ][0]['required'    ] = False
     cls.validateDict['Output' ][0]['multiplicity'] = 'n'
-    cls.validateDict['Output' ][1]['class'       ] = 'Datas'
+    cls.validateDict['Output' ][1]['class'       ] = 'DataObjects'
     cls.validateDict['Output' ][1]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
     cls.validateDict['Output' ][1]['required'    ] = False
     cls.validateDict['Output' ][1]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
-    cls.validateDict['Output' ][2]['class'       ] = 'DataBases'
+    cls.validateDict['Output' ][2]['class'       ] = 'Databases'
     cls.validateDict['Output' ][2]['type'        ] = ['HDF5']
     cls.validateDict['Output' ][2]['required'    ] = False
     cls.validateDict['Output' ][2]['multiplicity'] = 'n'
@@ -845,7 +845,7 @@ class PostProcessor(Model, Assembler):
     It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
     It is an abstract method -> It must be implemented in the derived class!
     NB. In this implementation, the method only calls the self.interface.generateAssembler(initDict) method
-    @ In , initDict, dictionary ({'mainClassName(e.g., DataBases):{specializedObjectName(e.g.,DataBaseForSystemCodeNamedWolf):ObjectInstance}'})
+    @ In , initDict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
     @ Out, None, None
     """
     self.interface.generateAssembler(initDict)

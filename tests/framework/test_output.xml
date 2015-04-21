@@ -668,17 +668,17 @@
         <Input     class='Files'            type=''             >ideal_pump_control.py</Input>
         <Model     class='Models'           type='Code'         >MyRAVEN</Model>
         <Sampler   class = 'Samplers'       type='Grid'         >RAVENmc6</Sampler>
-        <Output    class='DataBases'        type='HDF5'         >testOutputDataBase</Output>
-        <Output    class='Datas'            type='Histories'    >stories</Output>
-        <Output    class='Datas'            type='TimePointSet' >TimePointSets</Output>
-        <Output    class='Datas'            type='TimePoint'    >TimePointt</Output>
-        <Output    class='Datas'            type='History'      >Historyy</Output>
+        <Output    class='Databases'        type='HDF5'         >testOutputDatabase</Output>
+        <Output    class='DataObjects'            type='Histories'    >stories</Output>
+        <Output    class='DataObjects'            type='TimePointSet' >TimePointSets</Output>
+        <Output    class='DataObjects'            type='TimePoint'    >TimePointt</Output>
+        <Output    class='DataObjects'            type='History'      >Historyy</Output>
     </MultiRun >
     <IOStep name='testOutstreamStep' pauseAtEnd='False'>
-        <Input    class='Datas'            type='Histories'    >stories</Input>
-        <Input    class='Datas'            type='TimePointSet' >TimePointSets</Input>
-        <Input    class='Datas'            type='TimePoint'    >TimePointt</Input>
-        <Input    class='Datas'            type='History'      >Historyy</Input>
+        <Input    class='DataObjects'            type='Histories'    >stories</Input>
+        <Input    class='DataObjects'            type='TimePointSet' >TimePointSets</Input>
+        <Input    class='DataObjects'            type='TimePoint'    >TimePointt</Input>
+        <Input    class='DataObjects'            type='History'      >Historyy</Input>
         <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot</Output>
         <Output    class='OutStreamManager' type='Print'        >test</Output>
         <Output    class='OutStreamManager' type='Print'        >fullprint_timepointset</Output>
@@ -714,10 +714,10 @@
         <Output    class='OutStreamManager' type='Print'        >fullprint_timepoint</Output>
     </IOStep>
 </Steps>
-<DataBases>
-    <HDF5 name="testOutputDataBase" type="MC"/>
-</DataBases>
-<Datas>
+<Databases>
+    <HDF5 name="testOutputDatabase" type="MC"/>
+</Databases>
+<DataObjects>
     <Histories name='stories'>
         <Input>pipe1_Area,pipe1_Dh</Input>
         <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
@@ -734,5 +734,5 @@
         <Input>pipe1_Area,pipe1_Dh</Input>
         <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </History>
-</Datas>
+</DataObjects>
 </Simulation>
