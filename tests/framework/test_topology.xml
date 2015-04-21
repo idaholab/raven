@@ -15,7 +15,7 @@
 <!-- The definition of the topological partition and all of its parameters -->
   <PostProcessor name='AMSC1' subType='TopologicalDecomposition' debug='true'>
     <graph>Beta Skeleton</graph>
-    <gradient>steepest</gradexient>
+    <gradient>steepest</gradient>
     <beta>1</beta>
     <knn>8</knn>
     <normalization>None</normalization>
