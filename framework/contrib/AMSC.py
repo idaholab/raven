@@ -204,6 +204,11 @@ class AMSC_Object(PySide.QtCore.QObject):
       edgesToPrune.append(edge[0])
       edgesToPrune.append(edge[1])
 
+    ## Swig/Python struggles communicating a python list as a std::vector<int>
+    ## under some implementations, so we will force the datatype via a numpy
+    ## array
+    edgesToPrune = np.array(edgesToPrune, dtype=int)
+
     if debug:
       sys.stderr.write('%f s\n' % (end-start))
       sys.stderr.write('Decomposition: ')
