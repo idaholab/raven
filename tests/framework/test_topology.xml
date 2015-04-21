@@ -15,7 +15,7 @@
 <!-- The definition of the topological partition and all of its parameters -->
   <PostProcessor name='AMSC1' subType='TopologicalDecomposition' debug='true'>
     <graph>Beta Skeleton</graph>
-    <gradient>steepest</gradient>
+    <gradient>steepest</gradexient>
     <beta>1</beta>
     <knn>8</knn>
     <normalization>None</normalization>
@@ -56,32 +56,32 @@
 <Steps>
 <!-- Load the data from a csv into the hdf5 database used by this run -->
     <IOStep name='loadData' fromDirectory='.'>
-      <Input  class='Datas'    type='TimePointSet'>testData</Input>
-      <Output   class='DataBases' type='HDF5'   >myDB</Output>
+      <Input  class='DataObjects'    type='TimePointSet'>testData</Input>
+      <Output   class='Databases' type='HDF5'   >myDB</Output>
     </IOStep> 
 <!-- Perform the topological decomposition -->
     <PostProcess name='decompose1'>
-        <Input   class='Datas'    type='TimePointSet'>testData</Input>
-        <Model   class='Models'   type='PostProcessor'>AMSC1</Model>
-        <Output  class='Datas'    type='TimePointSet'>outTPS1</Output>
+        <Input   class='DataObjects'      type='TimePointSet'>testData</Input>
+        <Model   class='Models'           type='PostProcessor'>AMSC1</Model>
+        <Output  class='DataObjects'      type='TimePointSet'>outTPS1</Output>
         <Output  class='OutStreamManager' type='Print'>myDump1</Output>
     </PostProcess>
     <PostProcess name='decompose2'>
-        <Input   class='Datas'    type='TimePointSet'>testData</Input>
-        <Model   class='Models'   type='PostProcessor'>AMSC2</Model>
-        <Output  class='Datas'    type='TimePointSet'>outTPS2</Output>
+        <Input   class='DataObjects'      type='TimePointSet'>testData</Input>
+        <Model   class='Models'           type='PostProcessor'>AMSC2</Model>
+        <Output  class='DataObjects'      type='TimePointSet'>outTPS2</Output>
         <Output  class='OutStreamManager' type='Print'>myDump2</Output>
     </PostProcess>
     <PostProcess name='decompose3'>
-        <Input   class='Datas'    type='TimePointSet'>testData</Input>
-        <Model   class='Models'   type='PostProcessor'>AMSC3</Model>
-        <Output  class='Datas'    type='TimePointSet'>outTPS3</Output>
+        <Input   class='DataObjects'      type='TimePointSet'>testData</Input>
+        <Model   class='Models'           type='PostProcessor'>AMSC3</Model>
+        <Output  class='DataObjects'      type='TimePointSet'>outTPS3</Output>
         <Output  class='OutStreamManager' type='Print'>myDump3</Output>
     </PostProcess>
     <PostProcess name='decompose4'>
-        <Input   class='Datas'    type='TimePointSet'>testData</Input>
-        <Model   class='Models'   type='PostProcessor'>AMSC4</Model>
-        <Output  class='Datas'    type='TimePointSet'>outTPS4</Output>
+        <Input   class='DataObjects'      type='TimePointSet'>testData</Input>
+        <Model   class='Models'           type='PostProcessor'>AMSC4</Model>
+        <Output  class='DataObjects'      type='TimePointSet'>outTPS4</Output>
         <Output  class='OutStreamManager' type='Print'>myDump4</Output>
     </PostProcess>
 </Steps>
@@ -106,11 +106,11 @@
   </Print>
 </OutStreamManager>
 
-<DataBases>
+<Databases>
 <!-- The necessary database object -->
   <HDF5 name="myDB"/> 
-</DataBases>
-<Datas>
+</Databases>
+<DataObjects>
 <!-- The input TimePointSet object -->
   <TimePointSet name='testData'>
     <Input>X,Y</Input>
@@ -133,5 +133,5 @@
     <Input>X,Y</Input>
     <Output>Z</Output>
   </TimePointSet>
-</Datas>
+</DataObjects>
 </Simulation>
