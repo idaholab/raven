@@ -205,9 +205,10 @@ class AMSC_Object(PySide.QtCore.QObject):
       edgesToPrune.append(edge[1])
 
     ## Swig/Python struggles communicating a python list as a std::vector<int>
-    ## under some implementations, so we will force the datatype via a numpy
-    ## array
-    edgesToPrune = np.array(edgesToPrune, dtype=int)
+    ## under some implementations, so we will force the datatype
+    preliminaryEdges = amsc.vectorInt()
+    for i in edgesToPrune:
+      preliminaryEdges.push_back(int(i))
 
     if debug:
       sys.stderr.write('%f s\n' % (end-start))
@@ -218,7 +219,7 @@ class AMSC_Object(PySide.QtCore.QObject):
                                  amsc.vectorFloat(self.Y),
                                  amsc.vectorString(self.names), str(graph),
                                  str(gradient), int(knn), float(beta),
-                                 amsc.vectorInt(edgesToPrune))
+                                 preliminaryEdges)
 
     if debug:
       end = time.clock()
