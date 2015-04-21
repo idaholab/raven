@@ -63,9 +63,9 @@ if __name__ == '__main__':
     elif item.lower() == 'all':
       verbosity = 'all'
       sys.argv.pop(sys.argv.index(item))
-    elif item.lower() == 'debug':
-      debug = True
-      sys.argv.pop(sys.argv.index(item))
+    #elif item.lower() == 'debug':
+    #  debug = True
+    #  sys.argv.pop(sys.argv.index(item))
     elif item.lower() == 'interfacecheck':
       interfaceCheck = True
       sys.argv.pop(sys.argv.index(item))
@@ -100,7 +100,7 @@ if __name__ == '__main__':
   for inputFile in inputFiles:
     tree = ET.parse(inputFile)
     #except?  raisea IOError('not possible to parse (xml based) the input file '+inputFile)
-    if debug: utils.raiseAMessage('DRIVER','opened file '+inputFile)
+    utils.raiseADebug('DRIVER','opened file '+inputFile)
     root = tree.getroot()
     if root.tag != 'Simulation': utils.raiseAnError(IOError,'DRIVER','The outermost block of the input file '+inputFile+' it is not Simulation')
     #generate all the components of the simulation

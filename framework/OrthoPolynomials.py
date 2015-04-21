@@ -29,13 +29,13 @@ class OrthogonalPolynomial(object):
   def __init__(self):
     self.type    = self.__class__.__name__
     self.name    = self.__class__.__name__
-    self.debug   = True
     self._poly   = None #tool for generating orthopoly1d objects
     self._evPoly = None #tool for evaluating 1d polynomials at (order,point)
     self.params  = [] #additional parameters needed for polynomial (alpha, beta, etc)
+    self.messageHandler = None
 
-  def initialize(self):
-    pass #to be overwritten
+  def initialize(self,quad,messageHandler):
+    self.messageHandler = messageHandler
 
   def __getitem__(self,order):
     '''Returns the polynomial with order 'order';
@@ -155,7 +155,8 @@ class OrthogonalPolynomial(object):
 
 
 class Legendre(OrthogonalPolynomial):
-  def initialize(self,quad):
+  def initialize(self,quad,messageHandler):
+    OrthoPolynomial.initialize(self,messageHandler)
     self.printTag = 'LEGENDRE-ORTHOPOLY'
     self._poly    = polys.legendre
     self._evPoly  = polys.eval_legendre
@@ -192,7 +193,8 @@ class Legendre(OrthogonalPolynomial):
 
 
 class Hermite(OrthogonalPolynomial):
-  def initialize(self,quad):
+  def initialize(self,quad,messageHandler):
+    OrthoPolynomial.initialize(self,messageHandler)
     self.printTag = 'HERMITE-ORTHOPOLY'
     self._poly    = polys.hermitenorm
     self._evPoly  = polys.eval_hermitenorm
@@ -225,7 +227,8 @@ class Hermite(OrthogonalPolynomial):
 
 
 class Laguerre(OrthogonalPolynomial):
-  def initialize(self,quad):
+  def initialize(self,quad,messageHandler):
+    OrthoPolynomial.initialize(self,messageHandler)
     self.printTag = 'LAGUERRE-ORTHOPOLY'
     self._poly    = polys.genlaguerre
     self._evPoly  = polys.eval_genlaguerre
@@ -260,7 +263,8 @@ class Laguerre(OrthogonalPolynomial):
 
 
 class Jacobi(OrthogonalPolynomial):
-  def initialize(self,quad):
+  def initialize(self,quad,messageHandler):
+    OrthoPolynomial.initialize(self,messageHandler)
     self.printTag = 'JACOBI-ORTHOPOLY'
     self._poly    = polys.jacobi
     self._evPoly  = polys.eval_jacobi

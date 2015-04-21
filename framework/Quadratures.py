@@ -29,7 +29,6 @@ import utils
 
 class SparseQuad(object):
   '''Base class to produce sparse-grid multiple-dimension quadrature.'''
-  #TODO is this where this class should be defined?  It's not a Quadrature, but it's related.
   def __init__(self):
     self.type     = 'SparseQuad'
     self.printTag = 'SparseQuad' #FIXME use utility methods for right length
@@ -42,6 +41,7 @@ class SparseQuad(object):
     self.varNames = []   #array of names, in order of distDict.keys()
     self.N        = None #dimensionality of input space
     self.SG       = None #dict{ (point,point,point): weight}
+    self.messageHandler = None
     self.mods     = []
     for key, value in dict(inspect.getmembers(inspect.getmodule(self))).items():
       if inspect.ismodule(value) or inspect.ismethod(value):
@@ -49,6 +49,7 @@ class SparseQuad(object):
           if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
           else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
         else: self.mods.append(str(key))
+
   ##### OVERWRITTEN BUILTINS #####
   def __getitem__(self,n):
     '''Returns the point and weight for entry 'n'.
@@ -195,17 +196,6 @@ class SparseQuad(object):
     self.SG = newSG
     self.varNames = newNames
 
-#  def _extrema(self):
-#    '''Finds largest and smallest point among all points by dimension.'''
-#    points = self.point()
-#    low= np.ones(len(points[0]))*1e300
-#    hi = np.ones(len(points[0]))*(-1e300)
-#    for pt in pts:
-#      for i,p in enumerate(pt):
-#        low[i]=min(low[i],p)
-#        hi[i] =max(hi[i] ,p)
-#    return low,hi
-
   def _xy(self):
     '''Returns reordered points.
        Points = [(a1,b1,...,z1),
@@ -221,23 +211,21 @@ class SparseQuad(object):
     return zip(*self.points())
 
   ##### PUBLIC MEMBERS #####
-  #FIXME remove maxPoly and polyDict, as they are no longer needed.
-  def initialize(self, indexSet, maxPoly, distDict, quadDict, polyDict, handler):
+  def initialize(self, indexSet, distDict, quadDict, handler, msgHandler):
     '''Initializes sparse quad to be functional.
     @ In indexSet, IndexSet object, index set
-    @ In maxPoly, int, relative largest polynomial order to use
     @ In distDict, dict{varName,Distribution object}, distributions
     @ In quadDict, dict{varName,Quadrature object}, quadratures
-    @ In polyDict, dict{varName,OrthoPolynomial object}, polynomials
     @ In handler, JobHandler, parallel processing tool
+    @ In msgHandler, MessageHandler, output tool
     @ Out, None, None
     '''
     self.indexSet = np.array(indexSet[:])
     self.distDict = distDict
     self.quadDict = quadDict
-    self.polyDict = polyDict
     self.varNames = self.distDict.keys()
     self.N        = len(self.varNames)
+    self.messageHandler = msgHandler
     #we know how this ends if it's tensor product index set
 
     if indexSet.type=='Tensor Product':
@@ -457,12 +445,12 @@ class QuadratureSet(object):
     """
     return not self.__eq__(other)
 
-  def initialize(self,distr):
+  def initialize(self,distr,msgHandler):
     '''Initializes specific settings for quadratures.  Must be overwritten.
     @ In distr, Distribution object, distro represented by this quad
     @ Out, None, None
     '''
-    pass
+    self.messageHandler = msgHandler
 
   def quadRule(self,i):
     '''Quadrature rule to use for order.  Defaults to Gauss, CC should set its own.
@@ -473,19 +461,22 @@ class QuadratureSet(object):
 
 
 class Legendre(QuadratureSet):
-  def initialize(self,distr):
+  def initialize(self,distr,msgHandler):
+    QuadratureSet.initialize(self,distr,msgHandler)
     self.rule   = quads.p_roots
     self.params = []
     self.pointRule = GaussQuadRule
 
 class Hermite(QuadratureSet):
-  def initialize(self,distr):
+  def initialize(self,distr,msgHandler):
+    QuadratureSet.initialize(self,distr,msgHandler)
     self.rule   = quads.he_roots
     self.params = []
     self.pointRule = GaussQuadRule
 
 class Laguerre(QuadratureSet):
-  def initialize(self,distr):
+  def initialize(self,distr,msgHandler):
+    QuadratureSet.initialize(self,distr,msgHandler)
     self.rule   = quads.la_roots
     self.pointRule = GaussQuadRule
     if distr.type=='Gamma':
@@ -494,7 +485,8 @@ class Laguerre(QuadratureSet):
       utils.raiseAnError(IOError,'QUADRATURES','No implementation for Laguerre quadrature on '+distr.type+' distribution!')
 
 class Jacobi(QuadratureSet):
-  def initialize(self,distr):
+  def initialize(self,distr,msgHandler):
+    QuadratureSet.initialize(self,distr,msgHandler)
     self.rule   = quads.j_roots
     self.pointRule = GaussQuadRule
     if distr.type=='Beta':
@@ -507,7 +499,8 @@ class Jacobi(QuadratureSet):
       utils.raiseAnError(IOError,'QUADRATURES','No implementation for Jacobi quadrature on '+distr.type+' distribution!')
 
 class ClenshawCurtis(QuadratureSet):
-  def initialize(self,distr):
+  def initialize(self,distr,msgHandler):
+    QuadratureSet.initialize(self,distr,msgHandler)
     self.rule = self.cc_roots
     self.params = []
     self.quadRule = CCQuadRule

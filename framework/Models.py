@@ -141,7 +141,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def _readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['subType']
     except KeyError:
-      utils.raiseAModel(self," Failed in Node: "+str(xmlNode),'DEBUG')
+      self.raiseADebug(self," Failed in Node: "+str(xmlNode),verbostiy='silent')
       utils.raiseAnError(IOError,self,'missed subType for the model '+self.name)
     del(xmlNode.attrib['subType'])
 
@@ -231,7 +231,7 @@ class Dummy(Model):
 
   def _inputToInternal(self,dataIN,full=False):
     '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''
-    if self.debug: utils.raiseAMessage(self,'wondering if a dictionary compatibility should be kept','FIXME')
+    self.raiseADebug(self,'wondering if a dictionary compatibility should be kept','FIXME')
     if  type(dataIN)!=dict:
       if dataIN.type not in self.admittedData: utils.raiseAnError(IOError,self,'type '+dataIN.type+' is not compatible with the ROM '+self.name)
     if full==True:  length = 0
@@ -391,7 +391,7 @@ class ROM(Dummy):
       for instrom in self.SupervisedEngine.values():
         instrom.train(self.trainingSet)
         self.aimITrained = self.amITrained and instrom.amITrained
-      if self.debug:utils.raiseAMessage(self,'add self.amITrained to currentParamters','FIXME')
+      self.raiseADebug(self,'add self.amITrained to currentParamters','FIXME')
 
   def confidence(self,request,target = None):
     '''
@@ -520,9 +520,9 @@ class ExternalModel(Dummy):
       for key in self.modelVariableType.keys():
         self.modelVariableType[key] = type(modelVariableValues[key]).__name__
         if self.modelVariableType[key] not in self._availableVariableTypes:
-          if not errorfound: utils.raiseAMessage(self,'Unsupported type found. Available ones are: '+ str(self._availableVariableTypes).replace('[','').replace(']', ''),'DEBUG')
+          if not errorfound: self.raiseADebug(self,'Unsupported type found. Available ones are: '+ str(self._availableVariableTypes).replace('[','').replace(']', ''),verbosity='silent')
           errorfound = True
-          utils.raiseAMessage(self,'variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],'DEBUG')
+          self.raiseADebug(self,'variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],verbosity='silent')
       if errorfound: utils.raiseAnError(RuntimeError,self,'Errors detected. See above!!')
     return copy.copy(modelVariableValues),self
 
@@ -676,9 +676,9 @@ class Code(Model):
     try: os.mkdir(self.workingDir)
     except OSError: utils.raiseAWarning(self,'current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
-    if self.debug: utils.raiseAMessage(self,'original input files copied in the current working dir: '+self.workingDir)
-    if self.debug: utils.raiseAMessage(self,'files copied:')
-    if self.debug: utils.raiseAMessage(self, '  '+str(inputFiles))
+    self.raiseADebug(self,'original input files copied in the current working dir: '+self.workingDir)
+    self.raiseADebug(self,'files copied:')
+    self.raiseADebug(self, '  '+str(inputFiles))
     self.oriInputFiles = []
     for i in range(len(inputFiles)): self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
     self.currentInputFiles        = None
@@ -895,12 +895,12 @@ def addKnownTypes(newDict):
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type,debug=False):
+def returnInstance(Type):
   '''This function return an instance of the request model type'''
   try: return __interFaceDict[Type]()
   except KeyError: utils.raiseAnError(NameError,'MODELS','not known '+__base+' type '+Type)
 
-def validate(className,role,what,debug=False):
+def validate(className,role,what):
   '''This is the general interface for the validation of a model usage'''
   if className in __knownTypes: return __interFaceDict[className].localValidateMethod(role,what)
   else                        : utils.raiseAnError(IOError,'MODELS','the class '+str(className)+' it is not a registered model')

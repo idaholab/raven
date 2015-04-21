@@ -2364,23 +2364,23 @@ class SparseGridCollocation(Grid):
     SVL = SVLs[0] #often need only one
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
-    if self.debug:
-      msg=self.printTag,'INTERPOLATION INFO:\n'
-      msg+='    Variable | Distribution | Quadrature | Polynomials\n'
-      for v in self.quadDict.keys():
-        msg+='   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type])+'\n'
-      msg+='    Polynomial Set Degree: '+str(self.maxPolyOrder)+'\n'
-      msg+='    Polynomial Set Type  : '+str(SVL.indexSetType)+'\n'
-      utils.raiseAMessage(self,msg)
+    #if self.debug:
+    msg=self.printTag,'INTERPOLATION INFO:\n'
+    msg+='    Variable | Distribution | Quadrature | Polynomials\n'
+    for v in self.quadDict.keys():
+      msg+='   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type])+'\n'
+    msg+='    Polynomial Set Degree: '+str(self.maxPolyOrder)+'\n'
+    msg+='    Polynomial Set Type  : '+str(SVL.indexSetType)+'\n'
+    self.raiseADebug(self,msg)
 
-    if self.debug: utils.raiseAMessage(self,'Starting index set generation...')
+    self.raiseADebug(self,'Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
     self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
 
-    if self.debug: utils.raiseAMessage(self,'Starting sparse grid generation...')
+    self.raiseADebug(self,'Starting sparse grid generation...')
     self.sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
-    self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
+    self.sparseGrid.initialize(self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
 
     if self.writeOut != None:
       msg=self.sparseGrid.__csv__()
@@ -2448,11 +2448,11 @@ class SparseGridCollocation(Grid):
         utils.raiseAnError(IOError,self,' Quadrature type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
 
       quad = Quadratures.returnInstance(quadType,Subtype=subType)
-      quad.initialize(distr)
+      quad.initialize(distr,self.messageHanlder)
       self.quadDict[varName]=quad
 
       poly = OrthoPolynomials.returnInstance(polyType)
-      poly.initialize(quad)
+      poly.initialize(quad,self.messageHandler)
       self.polyDict[varName] = poly
 
       self.importanceDict[varName] = float(dat['weight'])

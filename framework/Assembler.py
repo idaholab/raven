@@ -27,7 +27,7 @@ class Assembler(object):
     # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
     self.requiredAssObjects = (False,([],[]))
     self.assemblerDict      = {}                       # {'class':[['subtype','name',instance]]}
-    self.debug              = False
+    #self.debug              = False
 
 
   def whatDoINeed(self):
@@ -46,7 +46,7 @@ class Assembler(object):
       for value  in val:
         if value[0] not in needDict.keys(): needDict[value[0]] = []
         needDict[value[0]].append((value[1],value[2]))
-    utils.raiseAMessage(self,'needDict: '+str(needDict),'DEBUG')
+    self.raiseADebug(self,'needDict: '+str(needDict))
     return needDict
 
   def generateAssembler(self,initDict):
@@ -67,7 +67,7 @@ class Assembler(object):
     self.type = xmlNode.tag
     if 'name' in xmlNode.attrib: self.name = xmlNode.attrib['name']
     self.printTag = utils.returnPrintTag(self.type)
-    if 'debug' in xmlNode.attrib.keys():self.debug = bool(xmlNode.attrib['debug'])
+    if 'verbosity' in xmlNode.attrib.keys():self.verbosity = xmlNode.attrib['verbosity'])
     if self.requiredAssObject[0]:
         testObjects = {}
         for token in self.requiredAssObject[1][0]:

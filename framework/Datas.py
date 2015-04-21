@@ -249,10 +249,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     options_int = {}
     # print content of data in a .csv format
-    if self.debug:
-      utils.raiseAMessage(self,' '*len(self.printTag)+':=======================')
-      utils.raiseAMessage(self,' '*len(self.printTag)+':DATAS: print on file(s)')
-      utils.raiseAMessage(self,' '*len(self.printTag)+':=======================')
+    #if self.debug:
+    self.raiseADebug(self,' '*len(self.printTag)+':=======================')
+    self.raiseADebug(self,' '*len(self.printTag)+':DATAS: print on file(s)')
+    self.raiseADebug(self,' '*len(self.printTag)+':=======================')
     if options:
       if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
       else: filenameLocal = self.name + '_dump'

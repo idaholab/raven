@@ -38,7 +38,7 @@ class Function(BaseType):
     self.__inputFromWhat['dict']         = self.__inputFromDict
     self.__inputFromWhat['Data']         = self.__inputFromData
     self.printTag                        = utils.returnPrintTag('FUNCTIONS')
-  def _readMoreXML(self,xmlNode,debug=False):
+  def _readMoreXML(self,xmlNode):
     if 'file' in xmlNode.attrib.keys():
       self.functionFile = xmlNode.attrib['file']
       if self.functionFile.endswith('.py') : moduleName = ''.join(self.functionFile.split('.')[:-1]) #remove the .py
