@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 from BaseType import BaseType
 from Csv_loader import CsvLoader as ld
-import DataBases
+import Databases
 
 #from hdf5_manager import hdf5Manager as AAFManager
 #import h5py as h5

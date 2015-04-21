@@ -41,7 +41,7 @@ class DateBase(BaseType):
       try:
         self.databaseDir = xmlNode.attrib['directory']
       except:
-        self.databaseDir = os.path.join(os.getcwd(),'DataBaseStorage')
+        self.databaseDir = os.path.join(os.getcwd(),'DatabaseStorage')
       # no sense target param here and operator
       try:
         self.targetParam = str(xmlNode.attrib['targetParam'])
@@ -82,7 +82,7 @@ class DateBase(BaseType):
 #      @ Out, None
 #    '''
 #    def finalize(self):
-#      self.database.closeDataBaseW()
+#      self.database.closeDatabaseW()
 #      pass
 '''
   *************************s
@@ -206,7 +206,7 @@ class HDF5(DateBase):
         raise Exception("ERROR: Can not retrieve an History from data set" + self.name + ".It has not built yet.")
       if 'filter' in attributes.keys():#attributes['filter']:
         #FIXME why don't I have 'history' in my database?
-        print('in DataBases:',attributes.keys())
+        print('in Databases:',attributes.keys())
         tupleVar = self.database.retrieveHistory(attributes["history"],attributes['filter'])
       else:
         tupleVar = self.database.retrieveHistory(attributes["history"])
@@ -540,7 +540,7 @@ def returnInstance(Type,debug=False):
   @ Out, class Instance     : instance to that class
   Note: Interface function
   '''
-  base = 'DataBase'
+  base = 'Database'
   InterfaceDict = {}
   InterfaceDict['HDF5'   ] = HDF5
   try:return InterfaceDict[Type]()
