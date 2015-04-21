@@ -213,10 +213,10 @@ XML node and the requirements for other attributes change:
         represents the container where the system evaluations are stored.
         %
         From a practical point of view, this XML node must contain the name of
-        a data object defined in the \xmlNode{Datas} block (see
-        Section~\ref{sec:Datas}).
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
         %
-        The adaptive sampling accepts ``Datas'' of type ``TimePoint'' and
+        The adaptive sampling accepts ``DataObjects'' of type ``TimePoint'' and
         ``TimePointSet'' only.
     \end{itemize}
 }
@@ -1459,7 +1459,7 @@ Example:
   <Adaptive name='AdaptiveName'>
     <ROM class='Models' type='ROM'>ROMname</ROM>
     <Function class='Functions' type='External' >FunctionName</Function>
-    <TargetEvaluation class='Datas' type='TimePointSet'>DataName</TargetEvaluation>
+    <TargetEvaluation class='DataObjects' type='TimePointSet'>DataName</TargetEvaluation>
     <Convergence limit='3000'  forceIteration='False' weight='none' persistence='5'>
       1e-2
     </Convergence>
@@ -1580,7 +1580,7 @@ Example:
   <AdaptiveDynamicEventTree name = 'AdaptiveName'>
     <ROM class = 'Models' type = 'ROM'ROMname</ROM>
     <Function class = 'Functions' type = 'External'>FunctionName</Function>
-    <TargetEvaluation class = 'Datas' type = 'TimePointSet'>DataName</TargetEvaluation>
+    <TargetEvaluation class = 'DataObjects' type = 'TimePointSet'>DataName</TargetEvaluation>
     <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'none' persistence = '5'>
       1e-2
     </Convergence>

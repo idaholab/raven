@@ -98,15 +98,15 @@ Actually, two different OutStream types are available:
   %
 \end{itemize}
 \vspace{-5mm}
-Both the types listed above only accept as ``input'' a \textit{Data} object
+Both the types listed above only accept as ``input'' a \textit{DataObjects} object
 type.
 %
-This choice is due to the ``\textit{Datas}'' system (see
-section~\ref{sec:Datas}) having the main advantage of ensuring a standardized
+This choice is due to the ``\textit{DataObjects}'' system (see
+section~\ref{sec:DataObjects}) having the main advantage of ensuring a standardized
 approach for exchanging the data/meta-data among the different framework
 entities.
 %
-Every module can project its outcomes into a \textit{Data} object.
+Every module can project its outcomes into a \textit{DataObjects} object.
 %
 This provides the user with the capability to visualize/dump all the modules'
 results.
@@ -137,7 +137,7 @@ in the following sections.
 %%%%%%%%%
 \subsection{Printing system \label{sec:printing}}
 The Printing system has been created in order to let the user dump the data,
-contained in the internal data objects (see Section~\ref{sec:Datas}), out
+contained in the internal data objects (see Section~\ref{sec:DataObjects}), out
 at anytime during the calculation.
 %
 Currently, the only available output is a \textbf{C}omma \textbf{S}eparated
@@ -166,7 +166,7 @@ least, the two required tags:
   %
   \nb Only \textbf{csv} is currently available
   \item \xmlNode{source}, the \textit{Data} name (one of the \textit{Data} 
-  defined in the \xmlNode{Datas} block.
+  defined in the \xmlNode{DataObjects} block.
 \end{itemize}
 \vspace{-5mm}
 If only these two tags are provided (as in the ``first-example'' below), the
@@ -786,9 +786,9 @@ plots the user decided to combine in the figure, can be specified, such as:
   %
 \end{itemize}
 As already mentioned, the Plot system accepts as input for the visual parameters
-(i.e., x, y, z, colorMap), data only from a \textbf{Datas} object.
+(i.e., x, y, z, colorMap), data only from a \textbf{DataObjects} object.
 %
-Considering the structure of ``Datas,'' the parameters are inputted as follows:
+Considering the structure of ``DataObjects,'' the parameters are inputted as follows:
 \texttt{DataObjectName|Input(or)Output|variableName}.
 
 If the ``variableName'' contains the symbol \texttt{|}, it must be surrounded by

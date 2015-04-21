@@ -41,19 +41,19 @@
   <Dummy name='MyDummy'  subType='' print='True'/>
 </Models>
 
-<Datas>
+<DataObjects>
   <TimePointSet name='dummyIN'>
     <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
     <Output>OutputPlaceHolder</Output>
   </TimePointSet>
-</Datas>
+</DataObjects>
 
 <Steps>
   <MultiRun name='DistTesting'>
     <Sampler class = 'Samplers'          type='MonteCarlo'   >BisonRomMC</Sampler>
-    <Input   class = 'Datas'             type='TimePointSet' >dummyIN</Input>    
+    <Input   class = 'DataObjects'             type='TimePointSet' >dummyIN</Input>    
     <Model   class = 'Models'            type='Dummy'        >MyDummy</Model>
-    <Output  class = 'Datas'             type='TimePointSet' >dummyIN</Output>
+    <Output  class = 'DataObjects'             type='TimePointSet' >dummyIN</Output>
     <Output  class = 'OutStreamManager'  type='Print'        >DistributionsDump</Output>
     <Output  class = 'OutStreamManager'  type='Plot'         >HistogramPowerScaleFact</Output>
     <Output  class = 'OutStreamManager'  type='Plot'         >HistogramThExp</Output>

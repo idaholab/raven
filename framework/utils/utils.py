@@ -300,7 +300,7 @@ def find_ge(a, x):
 #   state = self.__dict__.copy()
 #   # we pop the database instance and close it
 #   state.pop("database")
-#   self.database.closeDataBaseW()
+#   self.database.closeDatabaseW()
 #   # what we return here will be stored in the pickle
 #   return state
 #

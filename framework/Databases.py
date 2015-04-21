@@ -50,7 +50,7 @@ class DateBase(BaseType):
     '''
     # Check if a directory has been provided
     if 'directory' in xmlNode.attrib.keys(): self.databaseDir = copy.copy(xmlNode.attrib['directory'])
-    else:                                    self.databaseDir = copy.copy(os.path.join(os.getcwd(),'DataBaseStorage'))
+    else:                                    self.databaseDir = copy.copy(os.path.join(os.getcwd(),'DatabaseStorage'))
 
   def addInitParams(self,tempDict):
     '''
@@ -110,7 +110,7 @@ class HDF5(DateBase):
     state = self.__dict__.copy()
     # we pop the database instance and close it
     state.pop("database")
-    self.database.closeDataBaseW()
+    self.database.closeDatabaseW()
     # what we return here will be stored in the pickle
     return state
 
@@ -130,7 +130,7 @@ class HDF5(DateBase):
     # Check if database directory exist, otherwise create it
     if '~' in self.databaseDir: self.databaseDir = copy.copy(os.path.expanduser(self.databaseDir))
     if not os.path.exists(self.databaseDir): os.makedirs(self.databaseDir)
-    utils.raiseAMessage(self,'DataBase Directory is '+self.databaseDir+'!')
+    utils.raiseAMessage(self,'Database Directory is '+self.databaseDir+'!')
     # Check if a filename has been provided
     # if yes, we assume the user wants to load the data from there
     # or update it
@@ -182,7 +182,7 @@ class HDF5(DateBase):
     self.database.addGroup(attributes['group'],attributes,loadFrom,upGroup)
     self.built = True
 
-  def addGroupDatas(self,attributes,loadFrom,upGroup=False):
+  def addGroupDataObjects(self,attributes,loadFrom,upGroup=False):
     #### TODO: this function and the function above can be merged together (Andrea)
     '''
     Function to add a group in the HDF5 database
@@ -192,10 +192,10 @@ class HDF5(DateBase):
     '''
     source = {}
     if type(loadFrom) != dict:
-      if not loadFrom.type in ['TimePoint','TimePointSet','History','Histories']: utils.raiseAnError(IOError,self,'addGroupDatas function needs to have a Data(s) as input source')
-      source['type'] = 'Datas'
+      if not loadFrom.type in ['TimePoint','TimePointSet','History','Histories']: utils.raiseAnError(IOError,self,'addGroupDataObjects function needs to have a Data(s) as input source')
+      source['type'] = 'DataObjects'
     source['name'] = loadFrom
-    self.database.addGroupDatas(attributes['group'],attributes,source,upGroup)
+    self.database.addGroupDataObjects(attributes['group'],attributes,source,upGroup)
     self.built = True
 
   def initialize(self,gname,attributes=None,upGroup=False):
@@ -596,7 +596,7 @@ class HDF5(DateBase):
     gc.collect()
     return copy.copy(data)
 
-__base                  = 'DataBase'
+__base                  = 'Database'
 __interFaceDict         = {}
 __interFaceDict['HDF5'] = HDF5
 __knownTypes            = __interFaceDict.keys()

@@ -102,9 +102,9 @@
         <Input   class='Files'            type=''                >ideal_pump_control.py</Input>
         <Model   class='Models'           type='Code'            >MyRAVEN</Model>
         <Sampler class='Samplers'         type='DynamicEventTree'>DET_test</Sampler>
-        <Output  class='DataBases'        type='HDF5'            >testBranchDataBase</Output>
-        <Output  class='Datas'            type='Histories'       >stories</Output>
-        <Output  class='Datas'            type='TimePointSet'    >timepointset</Output>
+        <Output  class='Databases'        type='HDF5'            >testBranchDatabase</Output>
+        <Output  class='DataObjects'            type='Histories'       >stories</Output>
+        <Output  class='DataObjects'            type='TimePointSet'    >timepointset</Output>
         <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier</Output>
         <Output  class='OutStreamManager' type='Print'           >testprint_tpset_hier</Output>
         <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier_variables</Output>
@@ -113,15 +113,15 @@
         <Output  class='OutStreamManager' type='Plot'            >2DHistoryPlot_tps</Output>
     </MultiRun >
     <SingleRun name='extract_hist_example'>
-        <Input   class='DataBases'        type='HDF5'            >testBranchDataBase</Input>
+        <Input   class='Databases'        type='HDF5'            >testBranchDatabase</Input>
         <Model   class='Models'           type='PostProcessor'   >csv_from_hdf5</Model>
         <Output  class='Files'            type=''                >DET_histories.csv</Output>
     </SingleRun>      
 </Steps>
-<DataBases>
-    <HDF5 name="testBranchDataBase"/> 
-</DataBases>
-<Datas>
+<Databases>
+    <HDF5 name="testBranchDatabase"/> 
+</Databases>
+<DataObjects>
     <Histories name='stories' hierarchical='true'>
         <Input>dummy_for_branch</Input>
         <Output>pump_mass_flow_rate,time</Output>
@@ -130,7 +130,7 @@
         <Input>dummy_for_branch</Input>
         <Output>pump_mass_flow_rate,time</Output>
     </TimePointSet>
-</Datas>
+</DataObjects>
 </Simulation>
 
 
