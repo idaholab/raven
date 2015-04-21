@@ -78,7 +78,7 @@
         <Input   class='Files'              type=''               >lorentzAttractor.py</Input>
         <Model   class='Models'             type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'           type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='Datas'              type='TimePointSet'   >testPrintTimePointSet</Output>
+        <Output  class='DataObjects'              type='TimePointSet'   >testPrintTimePointSet</Output>
         <Output  class='OutStreamManager'   type='Print'          >testPrintTimePointSet_dump</Output>
     </MultiRun >
 </Steps>
@@ -91,12 +91,12 @@
 </OutStreamManager>
 
 
-<Datas>
+<DataObjects>
     <TimePointSet name='testPrintTimePointSet'>
         <Input>x0,y0,z0,k0</Input>
         <Output>x,y,z,k</Output>
     </TimePointSet>
-</Datas>
+</DataObjects>
 
 </Simulation>
 

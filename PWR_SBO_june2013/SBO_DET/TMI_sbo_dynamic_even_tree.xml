@@ -64,25 +64,25 @@
         <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
         <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
         <Sampler type='Samplers'   subtype='DynamicEventTree'>DET_equiPb</Sampler>
-        <DataBase type='DataBases' subtype=''                  >DET_SBO_RUN_eqPb</DataBase>
-        <Output  type='DataBases' subtype='HDF5'              >DET_SBO_RUN_eqPb</Output>
+        <Database type='Databases' subtype=''                  >DET_SBO_RUN_eqPb</Database>
+        <Output  type='Databases' subtype='HDF5'              >DET_SBO_RUN_eqPb</Output>
     </MultiRun>  
     <PostProcessing name='extract_hist_from_hdf5_eqPb'>
-        <Input   type='DataBases' subtype='HDF5'   >DET_SBO_RUN_eqPb</Input>
+        <Input   type='Databases' subtype='HDF5'   >DET_SBO_RUN_eqPb</Input>
         <Model   type='Models'   subtype='Filter' >csv_from_hdf5</Model>
         <Output  type='Files'    subtype=''       >DET_histories_eqPb.csv</Output>
     </PostProcessing>       
 </Steps>
-<DataBases>
+<Databases>
     <HDF5 name="DET_SBO_RUN_eqVar" type="DET"/> 
     <HDF5 name="DET_SBO_RUN_eqPb" type="DET"/> 
-</DataBases>
-<Datas>
+</Databases>
+<DataObjects>
    <Histories name='stories_from_database'>
         <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
         <Output>avg_temp_clad_CH2,CladDamaged</Output>
    </Histories>
-</Datas>
+</DataObjects>
 </Simulatio>
 
 

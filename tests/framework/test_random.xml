@@ -13,8 +13,8 @@
 
 <Distributions>
   <Uniform name='simple'>
-    <low>0.0</low>
-    <high>1.0</high>
+    <lowerBound>0.0</lowerBound>
+    <upperBound>1.0</upperBound>
   </Uniform>
 </Distributions>
 
@@ -61,7 +61,7 @@
   </MonteCarlo>
 </Samplers>
 
-<Datas>
+<DataObjects>
   <TimePointSet name='outSet'>
     <Input>simple_var</Input>
     <Output>OutputPlaceHolder</Output>
@@ -70,7 +70,7 @@
     <Input>simple_var</Input>
     <Output>OutputPlaceHolder</Output>
   </TimePointSet>
-</Datas>
+</DataObjects>
     
 <OutStreamManager>
     <Print name='outSet_dump'>
@@ -81,53 +81,53 @@
 
 <Steps>
   <MultiRun name='Sampler1'>
-    <Input   class='Datas'            type='TimePointSet'>dummyIN</Input>
+    <Input   class='DataObjects'            type='TimePointSet'>dummyIN</Input>
     <Model   class='Models'           type='Dummy'       >MyDummy</Model>
     <Sampler class='Samplers'         type='MonteCarlo'  >MC1</Sampler>
-    <Output  class='Datas'            type='TimePointSet'>outSet</Output>
-    <Output  class='DataBases'        type='HDF5'        >test_RandomTest1_db</Output>
+    <Output  class='DataObjects'            type='TimePointSet'>outSet</Output>
+    <Output  class='Databases'        type='HDF5'        >test_RandomTest1_db</Output>
     <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
   </MultiRun >
   <MultiRun name='Sampler2' re-seeding='continue'>
-    <Input   class='Datas'            type='TimePointSet'>dummyIN</Input>
+    <Input   class='DataObjects'            type='TimePointSet'>dummyIN</Input>
     <Model   class='Models'           type='Dummy'       >MyDummy</Model>
     <Sampler class='Samplers'         type='MonteCarlo'  >MC2</Sampler>
-    <Output  class='Datas'            type='TimePointSet'>outSet</Output>
-    <Output  class='DataBases'        type='HDF5'        >test_RandomTest2_db</Output>
+    <Output  class='DataObjects'            type='TimePointSet'>outSet</Output>
+    <Output  class='Databases'        type='HDF5'        >test_RandomTest2_db</Output>
     <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
   </MultiRun >
   <MultiRun name='Sampler3'>
-    <Input   class='Datas'            type='TimePointSet'>dummyIN</Input>
+    <Input   class='DataObjects'            type='TimePointSet'>dummyIN</Input>
     <Model   class='Models'           type='Dummy'       >MyDummy</Model>
     <Sampler class='Samplers'         type='MonteCarlo'  >MC3</Sampler>
-    <Output  class='Datas'            type='TimePointSet'>outSet</Output>
-    <Output  class='DataBases'        type='HDF5'        >test_RandomTest3_db</Output>
+    <Output  class='DataObjects'            type='TimePointSet'>outSet</Output>
+    <Output  class='Databases'        type='HDF5'        >test_RandomTest3_db</Output>
     <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
   </MultiRun >
   <MultiRun name='Sampler4' re-seeding='continue'>
-    <Input   class='Datas'            type='TimePointSet'>dummyIN</Input>
+    <Input   class='DataObjects'            type='TimePointSet'>dummyIN</Input>
     <Model   class='Models'           type='Dummy'       >MyDummy</Model>
     <Sampler class='Samplers'         type='MonteCarlo'  >MC4</Sampler>
-    <Output  class='Datas'            type='TimePointSet'>outSet</Output>
-    <Output  class='DataBases'        type='HDF5'        >test_RandomTest4_db</Output>
+    <Output  class='DataObjects'            type='TimePointSet'>outSet</Output>
+    <Output  class='Databases'        type='HDF5'        >test_RandomTest4_db</Output>
     <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
   </MultiRun >
   <MultiRun name='Sampler5' re-seeding='continue'>
-    <Input   class='Datas'            type='TimePointSet'>dummyIN</Input>
+    <Input   class='DataObjects'            type='TimePointSet'>dummyIN</Input>
     <Model   class='Models'           type='Dummy'       >MyDummy</Model>
     <Sampler class='Samplers'         type='MonteCarlo'  >MC5</Sampler>
-    <Output  class='Datas'            type='TimePointSet'>outSet</Output>
-    <Output  class='DataBases'        type='HDF5'        >test_RandomTest5_db</Output>
+    <Output  class='DataObjects'            type='TimePointSet'>outSet</Output>
+    <Output  class='Databases'        type='HDF5'        >test_RandomTest5_db</Output>
     <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
   </MultiRun >
 </Steps>
-<DataBases>
+<Databases>
   <HDF5 name="test_RandomTest1_db"/> 
   <HDF5 name="test_RandomTest2_db"/> 
   <HDF5 name="test_RandomTest3_db"/> 
   <HDF5 name="test_RandomTest4_db"/> 
   <HDF5 name="test_RandomTest5_db"/> 
-</DataBases>
+</Databases>
 </Simulation>
 
 

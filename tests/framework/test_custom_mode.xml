@@ -64,19 +64,19 @@
         <Input   class='Files'     type=''>ideal_pump_control.py</Input>
         <Model   class='Models'    type='Code'      >MyRAVEN</Model>
         <Sampler class='Samplers'  type='MonteCarlo'>RAVENmc6</Sampler>
-        <Output  class='DataBases' type='HDF5' >testMCDataBase</Output>
-        <Output  class='Datas'     type='Histories' >stories</Output>
+        <Output  class='Databases' type='HDF5' >testMCDatabase</Output>
+        <Output  class='DataObjects'     type='Histories' >stories</Output>
     </MultiRun >
 </Steps>
-<DataBases>
-    <HDF5 name="testMCDataBase"/> 
-</DataBases>
-<Datas>
+<Databases>
+    <HDF5 name="testMCDatabase"/> 
+</Databases>
+<DataObjects>
     <Histories name='stories'>
         <Input>pipe1_Area</Input>
         <Output>pipe1_Hw</Output>
    </Histories>
-</Datas>
+</DataObjects>
 </Simulation>
 
 

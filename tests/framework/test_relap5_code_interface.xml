@@ -47,11 +47,11 @@
         <Input   class='Files'     type=''          >tpfh2o</Input>
         <Model   class='Models'    type='Code'      >MyRELAP</Model>
         <Sampler class='Samplers'  type='MonteCarlo'>MC_samp</Sampler>
-        <Output  class='DataBases' type='HDF5'      >DataB_REL5_1</Output>
+        <Output  class='Databases' type='HDF5'      >DataB_REL5_1</Output>
     </MultiRun >
 </Steps>
-<DataBases>
+<Databases>
     <HDF5 name="DataB_REL5_1"/>
-</DataBases>
+</Databases>
 
 </Simulation>

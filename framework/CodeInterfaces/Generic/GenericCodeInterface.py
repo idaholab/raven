@@ -10,7 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
-from utils import returnPrintTag,returnPrintPostTag
+from utils import raiseAnError,returnPrintTag,returnPrintPostTag
 
 class GenericCodeInterface(CodeInterfaceBase):
   '''This class is used as a generic code interface for Model.Code in Raven.  It expects
@@ -44,15 +44,15 @@ class GenericCodeInterface(CodeInterfaceBase):
     See base class.  Collects all the clargs and the executable to produce the command-line call.
     '''
     if clargs==None:
-      raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> No input file was specified in clargs!')
+      raiseAnError(IOError,self,'No input file was specified in clargs!')
     #check for output either in clargs or fargs
     if len(fargs['output'])<1 and 'output' not in clargs.keys():
-      raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> No output file was specified, either in clargs or fileargs!')
+      raiseAnError(IOError,self,'No output file was specified, either in clargs or fileargs!')
     #check for duplicate extension use
     usedExt=[]
     for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
       if ext not in usedExt: usedExt.append(ext)
-      else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
+      else: raiseAnError(IOError,self,'GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
 
     #check all required input files are there
     inFiles=inputFiles[:]
@@ -64,7 +64,7 @@ class GenericCodeInterface(CodeInterfaceBase):
             found=True
             inFiles.remove(inf)
             break
-        if not found: raise IOError(self.printTag+': ERROR -> input extension "'+ext+'" listed in input but not in inputFiles!')
+        if not found: raiseAnError(IOError,self,'input extension "'+ext+'" listed in input but not in inputFiles!')
     #TODO if any remaining, check them against valid inputs
 
     #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
@@ -78,7 +78,7 @@ class GenericCodeInterface(CodeInterfaceBase):
         if inputFile.endswith(ext):
           found=True
           break
-      if not found: raise IOError(self.printTag + ': No InputFile with extension '+ext+'found!')
+      if not found: raiseAnError(IOError,self,'No InputFile with extension '+ext+'found!')
       return index,inputFile
 
     #prepend
