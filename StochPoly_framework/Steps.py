@@ -102,7 +102,7 @@ class MultiRun(Step):
     if 'ROM' in inDictionary.keys():
       inDictionary['ROM'].addLoadingSource(inDictionary['Input'])
 
-    #if 'DataBases' in inDictionary.keys():
+    #if 'Databases' in inDictionary.keys():
     #  addGroupInit()
     #FIXME this reports falsely if sampler.limit is set in sampler.initialize
 
@@ -288,10 +288,10 @@ class SCRun(Step):
 #    print('HERE',inDictionary.keys())
     #if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
 
-class ExtractFromDataBase(Step):
+class ExtractFromDatabase(Step):
   '''
-    This step type is used only to extract information from a DataBase
-    @Input, DataBase (for example, HDF5)
+    This step type is used only to extract information from a Database
+    @Input, Database (for example, HDF5)
     @Output,Data(s) (for example, History)
   '''
   def __init__(self):
@@ -334,7 +334,7 @@ class ExtractFromDataBase(Step):
 class RomTrainer(Step):
   '''
     This step type is used only to train a ROM
-    @Input, DataBase (for example, HDF5)
+    @Input, Database (for example, HDF5)
     @Output,Data(s) (for example, History)
   '''
   def __init__(self):
@@ -406,7 +406,7 @@ def returnInstance(Type):
   InterfaceDict['MultiRun'      ] = MultiRun
   InterfaceDict['PostProcessing'] = PostProcessing
   InterfaceDict['SCRun'         ] = SCRun
-  InterfaceDict['Extract'       ] = ExtractFromDataBase
+  InterfaceDict['Extract'       ] = ExtractFromDatabase
   InterfaceDict['RomTrainer'    ] = RomTrainer
   InterfaceDict['Plotting'      ] = PlottingStep
   try:

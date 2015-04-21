@@ -52,12 +52,12 @@
     </LatinHyperCube>
 </Samplers>
 
-<Datas>
+<DataObjects>
     <Histories name='stories'>
         <Input>BCs|freesurf_temp|value,BCs|exterior_pressure_y|factor</Input>
         <Output>dt</Output>
    </Histories>
-</Datas>
+</DataObjects>
 
 <Steps>
     <MultiRun name='myLHS'>
@@ -65,13 +65,13 @@
       <Input   class = 'Files'      type=''          >case_1.e</Input>
       <Model   class = 'Models'     type='Code'      >Bison</Model>
       <Sampler class='Samplers' type='LHS'         >myLHS</Sampler>
-      <Output  class='DataBases'    type='HDF5'>test_bison_mpi_lhs</Output>
-      <Output class='Datas' type='Histories'>stories</Output>
+      <Output  class='Databases'    type='HDF5'>test_bison_mpi_lhs</Output>
+      <Output class='DataObjects' type='Histories'>stories</Output>
     </MultiRun >
 </Steps>
 
-<DataBases>
+<Databases>
   <HDF5 name="test_bison_mpi_lhs"/> 
-</DataBases>
+</Databases>
 
 </Simulation>

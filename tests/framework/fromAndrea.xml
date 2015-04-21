@@ -11,34 +11,34 @@
 <Steps>  
   <MultiRun name = 'pth1' pauseAtEnd = 'False' debug = 'True'>
     <Sampler  class = 'Samplers'  type = 'Grid'           >grd_vl_ql_smp_dpt</Sampler>
-    <Input    class = 'Datas'     type = 'TimePointSet'   >grd_vl_ql_smp_dpt_dt</Input>
+    <Input    class = 'DataObjects'     type = 'TimePointSet'   >grd_vl_ql_smp_dpt_dt</Input>
     <Model    class = 'Models'    type = 'ExternalModel'  >xtr_mdl</Model>
-    <Output   class = 'Datas'     type = 'TimePointSet'   >nt_phy_dpt_dt</Output>    
+    <Output   class = 'DataObjects'     type = 'TimePointSet'   >nt_phy_dpt_dt</Output>    
   </MultiRun >
   
   <MultiRun name = 'pth2' pauseAtEnd = 'True'>
     <Sampler          class = 'Samplers'  type = 'Adaptive'      >dpt_smp</Sampler>
-  	<Input            class = 'Datas'     type = 'TimePointSet'  >bln_smp_dt</Input>   
+  	<Input            class = 'DataObjects'     type = 'TimePointSet'  >bln_smp_dt</Input>   
     <Model            class = 'Models'    type = 'ExternalModel' >xtr_mdl</Model>
-    <Output           class = 'Datas'     type = 'TimePointSet'  >nt_phy_dpt_dt</Output>            
-    <SolutionExport   class = 'Datas'     type = 'TimePointSet'  >lmt_srf_dt</SolutionExport>
+    <Output           class = 'DataObjects'     type = 'TimePointSet'  >nt_phy_dpt_dt</Output>            
+    <SolutionExport   class = 'DataObjects'     type = 'TimePointSet'  >lmt_srf_dt</SolutionExport>
   </MultiRun>
   
   <PostProcess name='pth3' pauseAtEnd = 'False'>
-    <Input    class = 'Datas'          type = 'TimePointSet'   >lmt_srf_dt</Input>
+    <Input    class = 'DataObjects'          type = 'TimePointSet'   >lmt_srf_dt</Input>
     <Model    class = 'Models'         type = 'PostProcessor'  >SP</Model>
-    <Output   class = 'Datas'          type = 'TimePointSet'   >sfs_pnt_dt</Output>
+    <Output   class = 'DataObjects'          type = 'TimePointSet'   >sfs_pnt_dt</Output>
   </PostProcess>  
   
   <OutStreamStep name = 'pth4' pauseAtEnd = 'True'>
-  	<Input  class = 'Datas'            type = 'TimePointSet'  >lmt_srf_dt</Input>
+  	<Input  class = 'DataObjects'            type = 'TimePointSet'  >lmt_srf_dt</Input>
   	<Output class = 'OutStreamManager' type = 'Print'         >lmt_srf_dmp</Output>
-    <Input  class = 'Datas'            type = 'TimePointSet'  >sfs_pnt_dt</Input>
+    <Input  class = 'DataObjects'            type = 'TimePointSet'  >sfs_pnt_dt</Input>
   	<Output class = 'OutStreamManager' type = 'Print'         >sfs_pnt_dmp</Output>
   </OutStreamStep>
 </Steps>
 
-<Datas> 
+<DataObjects> 
   <TimePointSet name = 'grd_vl_ql_smp_dpt_dt'>
     <Input>x1,x2,gammay</Input>
     <Output>OutputPlaceHolder</Output>
@@ -63,7 +63,7 @@
     <Input>x1,x2,gammay</Input>
     <Output>p</Output>
   </TimePointSet>  
-</Datas>
+</DataObjects>
 
 
 <Distributions>
@@ -117,7 +117,7 @@
     <Assembler>
         <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
         <Function         class = 'Functions' type = 'External'      >g_zr</Function>
-        <TargetEvaluation class = 'Datas'     type = 'TimePointSet'  >nt_phy_dpt_dt</TargetEvaluation>
+        <TargetEvaluation class = 'DataObjects'     type = 'TimePointSet'  >nt_phy_dpt_dt</TargetEvaluation>
     </Assembler>
     <Convergence limit = '3000' forceIteration = 'False' weight = 'none' persistence = '5'>1e-2</Convergence>
       <variable name = 'x1'>

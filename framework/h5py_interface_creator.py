@@ -69,7 +69,7 @@ class hdf5Database(object):
       # check if it exists
       if not os.path.exists(self.filenameAndPath): utils.raiseAnError(IOError,'DATABASE HDF5','database file has not been found \n                         Searched Path is: ' + self.filenameAndPath )
       # Open file
-      self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'r+')
+      self.h5_file_w = self.openDatabaseW(self.filenameAndPath,'r+')
       # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
       # and the dictionary "self.allGroupEnds" based on the database that already exists
       self.parent_group_name = b'/'
@@ -78,7 +78,7 @@ class hdf5Database(object):
       self.firstRootGroup = True
     else:
       # self.h5_file_w is the HDF5 object. Open the database in "write only" mode
-      self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'w')
+      self.h5_file_w = self.openDatabaseW(self.filenameAndPath,'w')
       # Add the root as first group
       self.allGroupPaths.append("/")
       # The root group is not an end group
@@ -98,7 +98,7 @@ class hdf5Database(object):
     '''
     self.allGroupPaths = []
     self.allGroupEnds  = {}
-    if not self.fileOpen: self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'a')
+    if not self.fileOpen: self.h5_file_w = self.openDatabaseW(self.filenameAndPath,'a')
     self.h5_file_w.visititems(self.__isGroup)
     utils.raiseAMessage(self,'TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
 
@@ -129,8 +129,8 @@ class hdf5Database(object):
     @ Out, None
     '''
 
-    if source['type'] == 'Datas':
-      self.addGroupDatas(gname,attributes,source)
+    if source['type'] == 'DataObjects':
+      self.addGroupDataObjects(gname,attributes,source)
       self.h5_file_w.flush()
       return
     parent_id = None
@@ -222,7 +222,7 @@ class hdf5Database(object):
       else:
         if upGroup: grp = self.h5_file_w.require_group(gname)
         else:       grp = self.h5_file_w.create_group(gname)
-      utils.raiseAMessage(self,'Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+      utils.raiseAMessage(self,'Adding group named "' + gname + '" in Database "'+ self.name +'"')
       # Create dataset in this newly added group
       grp.create_dataset(gname+"_data", dtype="float", data=data)
       # Add metadata
@@ -255,9 +255,9 @@ class hdf5Database(object):
       self.allGroupPaths.append("/" + gname)
       self.allGroupEnds["/" + gname] = True
 
-  def addGroupDatas(self,gname,attributes,source,upGroup=False):
+  def addGroupDataObjects(self,gname,attributes,source,upGroup=False):
     '''
-    Function to add a data (class Datas) or Dictionary into the DataBase
+    Function to add a data (class DataObjects) or Dictionary into the Database
     @ In, gname      : group name
     @ In, attributes : dictionary of attributes that must be added as metadata
     @ In, source     : data source (for example, a TimePointSet)
@@ -345,7 +345,7 @@ class hdf5Database(object):
             groups.append(parentgroup_obj.create_group(gname + '|' +str(run)))
 
           groups[run].attrs[b'source_type'] = utils.toBytes(source['name'].type)
-          groups[run].attrs[b'main_class' ] = b'Datas'
+          groups[run].attrs[b'main_class' ] = b'DataObjects'
           groups[run].attrs[b'EndGroup'   ] = True
           groups[run].attrs[b'parent_id'  ] = parent_name
           if source['name'].type == 'Histories':
@@ -390,7 +390,7 @@ class hdf5Database(object):
           groups = parentgroup_obj.require_group(gname)
           del groups[gname+"_data"]
         else: groups = parentgroup_obj.create_group(gname)
-        groups.attrs[b'main_class'          ] = b'Datas'
+        groups.attrs[b'main_class'          ] = b'DataObjects'
         groups.attrs[b'source_type'         ] = utils.toBytes(source['name'].type)
         groups.attrs[b'n_params'            ] = len(headers_out)
         groups.attrs[b'input_space_headers' ] = [utils.toBytes(headers_in[i])  for i in range(len(headers_in))]
@@ -419,7 +419,7 @@ class hdf5Database(object):
         else:
           self.allGroupPaths.append("/" + gname)
           self.allGroupEnds["/" + gname] = True
-      else: utils.raiseAnError(IOError,self,'The function addGroupDatas accepts Data(s) or dictionaries as inputs only!!!!!')
+      else: utils.raiseAnError(IOError,self,'The function addGroupDataObjects accepts Data(s) or dictionaries as inputs only!!!!!')
 
   def __addSubGroup(self,gname,attributes,source):
     '''
@@ -465,7 +465,7 @@ class hdf5Database(object):
       # The parent group is not the endgroup for this branch
       self.allGroupEnds[parent_group_name] = False
       grp.attrs["EndGroup"]   = False
-      utils.raiseAMessage(self,'Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+      utils.raiseAMessage(self,'Adding group named "' + gname + '" in Database "'+ self.name +'"')
       # Create the sub-group
       sgrp = grp.create_group(gname)
       # Create data set in this new group
@@ -790,7 +790,7 @@ class hdf5Database(object):
 
     return(result,attrs)
 
-  def closeDataBaseW(self):
+  def closeDatabaseW(self):
     '''
     Function to close the database
     @ In,  None
@@ -800,7 +800,7 @@ class hdf5Database(object):
     self.fileOpen       = False
     return
 
-  def openDataBaseW(self,filename,mode='w'):
+  def openDatabaseW(self,filename,mode='w'):
     '''
     Function to open the database
     @ In,  filename : name of the file (string)

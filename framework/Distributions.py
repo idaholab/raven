@@ -378,8 +378,6 @@ class BoostDistribution(Distribution):
 class Uniform(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
-    self.low = 0.0
-    self.hi = 0.0
     self.range = 0.0
     self.type = 'Uniform'
     self.disttype = 'Continuous'
@@ -390,33 +388,21 @@ class Uniform(BoostDistribution):
     self.preferredPolynomials = 'Legendre'
 
   def _localSetState(self,pdict):
-    self.low   = pdict.pop('low'  )
-    self.hi    = pdict.pop('hi'   )
-    self.range = pdict.pop('range')
+    #self.lowerBound   = pdict.pop('lowerBound'  )
+    #self.upperBound   = pdict.pop('upperBound'   )
+    self.range        = pdict.pop('range')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
-    retDict['xMin'] = self.low
-    retDict['xMax'] = self.hi
+    retDict['xMin'] = self.lowerBound
+    retDict['xMax'] = self.upperBound
     return retDict
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self,xmlNode)
-    low_find = xmlNode.find('low')
-    if low_find != None: self.low = float(low_find.text)
-    else: utils.raiseAnError(IOError,self,'low value needed for uniform distribution')
-    hi_find = xmlNode.find('hi')
-    high_find = xmlNode.find('high')
-    if hi_find != None: self.hi = float(hi_find.text)
-    elif high_find != None: self.hi = float(high_find.text)
-    else: utils.raiseAnError(IOError,self,'hi or high value needed for uniform distribution')
-    self.range=self.hi-self.low
-    if not self.upperBoundUsed:
-      self.upperBoundUsed = True
-      self.upperBound     = self.hi
-    if not self.lowerBoundUsed:
-      self.lowerBoundUsed = True
-      self.lowerBound     = self.low
+    if not self.upperBoundUsed or not self.lowerBoundUsed:
+      utils.raiseAnError(IOError,self,'the Uniform distribution needs both upperBound and lowerBound attributes. Got upperBound? '+ str(self.upperBoundUsed) + '. Got lowerBound? '+str(self.lowerBoundUsed))
+    self.range = self.upperBound - self.lowerBound
     self.initializeDistribution()
 
   def stdProbabilityNorm(self):
@@ -428,8 +414,6 @@ class Uniform(BoostDistribution):
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self,tempDict)
-    tempDict['low'] = self.low
-    tempDict['hi'] = self.hi
     tempDict['range'] = self.range
     # no other additional parameters required
 
@@ -440,7 +424,7 @@ class Uniform(BoostDistribution):
     self.convertToDistrDict['ClenshawCurtis'] = self.convertLegendreToUniform
     self.convertToQuadDict ['ClenshawCurtis'] = self.convertUniformToLegendre
     self.measureNormDict   ['ClenshawCurtis'] = self.stdProbabilityNorm
-    self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
+    self._distribution = distribution1D.BasicUniformDistribution(self.lowerBound,self.lowerBound+self.range)
 
   def convertUniformToLegendre(self,y):
     '''Converts from distribution domain to standard Legendre [-1,1].

@@ -10,12 +10,12 @@ warnings.simplefilter('default',DeprecationWarning)
 import xml.etree.ElementTree as ET
 import os,subprocess
 import Steps
-import Datas
+import DataObjects
 import Samplers
 import Models
 import Tests
 import Distributions
-import DataBases
+import Databases
 import OutStreams
 import math
 from JobHandler import JobHandler
@@ -186,25 +186,25 @@ class Simulation:
     #this dictionary is used to generate an instance of a class which name is among the keyword of the dictionary
     self.addWhatDict  = {}
     self.addWhatDict['Steps'         ] = Steps.returnInstance
-    self.addWhatDict['Datas'         ] = Datas.returnInstance
+    self.addWhatDict['DataObjects'         ] = DataObjects.returnInstance
     self.addWhatDict['Samplers'      ] = Samplers.returnInstance
     self.addWhatDict['Models'        ] = Models.returnInstance
     self.addWhatDict['Tests'         ] = Tests.returnInstance
     self.addWhatDict['Distributions' ] = Distributions.returnInstance
-    self.addWhatDict['DataBases'     ] = DataBases.returnInstance
+    self.addWhatDict['Databases'     ] = Databases.returnInstance
     self.addWhatDict['OutStreams'    ] = OutStreams.returnInstance
 
     #Mapping between a class type and the dictionary containing the instances for the simulation
     self.whichDict = {}
     self.whichDict['Steps'        ] = self.stepsDict
-    self.whichDict['Datas'        ] = self.dataDict
+    self.whichDict['DataObjects'        ] = self.dataDict
     self.whichDict['Samplers'     ] = self.samplersDict
     self.whichDict['Models'       ] = self.modelsDict
     self.whichDict['Tests'        ] = self.testsDict
     self.whichDict['RunInfo'      ] = self.runInfoDict
     self.whichDict['Files'        ] = self.filesDict
     self.whichDict['Distributions'] = self.DistributionsDict
-    self.whichDict['DataBases'    ] = self.dataBasesDict
+    self.whichDict['Databases'    ] = self.dataBasesDict
     self.whichDict['OutStreams'   ] = self.OutStreamsDict
 
     self.jobHandler = JobHandler()

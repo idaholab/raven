@@ -17,7 +17,7 @@ This module contains interfaces to import external functions
 from BaseClasses import BaseType
 import utils
 from CustomCommandExecuter import execCommand
-#import Datas
+#import DataObjects
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Function(BaseType):

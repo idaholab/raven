@@ -9,20 +9,20 @@
     <Steps>
         <MultiRun name='make' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='Sobol'       >sobol</Sampler>
-            <Input   class='Datas'            type='TimePointSet'>dummyIN</Input>
+            <Input   class='DataObjects'            type='TimePointSet'>dummyIN</Input>
             <Model   class='Models'           type='Dummy'       >MyDummy</Model>
-            <Output  class='Datas'            type='TimePointSet'>solns</Output>
+            <Output  class='DataObjects'            type='TimePointSet'>solns</Output>
         </MultiRun>
         <OutStreamStep name='print'>
-            <Input   class='Datas'            type='TimePointSet'>solns</Input>
+            <Input   class='DataObjects'            type='TimePointSet'>solns</Input>
             <Output  class='OutStreamManager' type='Print'       >dump</Output>
         </OutStreamStep>
     </Steps>
 
     <Distributions>
         <Uniform name="UniDist">
-            <low>1</low>
-            <high>5</high>
+            <lowerBound>1</lowerBound>
+            <upperBound>5</upperBound>
         </Uniform>
     </Distributions>
 
@@ -55,7 +55,7 @@
         </ROM>
     </Models>
 
-    <Datas>
+    <DataObjects>
         <TimePointSet name="dummyIN">
             <Input>x1,x2,x3,x4,x5,x6</Input>
             <Output>OutputPlaceHolder</Output>
@@ -64,7 +64,7 @@
             <Input>x1,x2,x3,x4,x5,x6</Input>
             <Output>OutputPlaceHolder</Output>
         </TimePointSet>
-    </Datas>
+    </DataObjects>
 
     <OutStreamManager>
         <Print name='dump'>
