@@ -457,6 +457,7 @@ class ExternalModel(Dummy):
     @ In, inputs is a list containing whatever is passed with an input role in the step
     @ In, initDict, optional, dictionary of all objects available in the step is using this model
     """
+    for key in self.modelVariableType.keys(): self.modelVariableType[key] = None
     if 'initialize' in dir(self.sim): self.sim.initialize(self.initExtSelf,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.sim)))
@@ -507,10 +508,13 @@ class ExternalModel(Dummy):
     """
     externalSelf        = utils.Object()
     #self.sim=__import__(self.ModuleToLoad)
-    for key,value in self.initExtSelf.__dict__.items(): CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
     modelVariableValues = {}
     for key in self.modelVariableType.keys(): modelVariableValues[key] = None
+    for key,value in self.initExtSelf.__dict__.items():
+      CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
+      modelVariableValues[key] = copy.copy(value)
     for key in Input.keys(): modelVariableValues[key] = copy.copy(Input[key])
+    #print(self.initExtSelf.__dict__.items())
     if 'createNewInput' not in dir(self.sim):
       for key in Input.keys(): modelVariableValues[key] = copy.copy(Input[key])
       for key in self.modelVariableType.keys() : CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
