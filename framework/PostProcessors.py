@@ -1747,6 +1747,10 @@ class TopologicalDecomposition(BasePostProcessor):
     """
       Initialization method
     """
+    ## Possibly load this here in case people have trouble building it, so it
+    ## only errors if they try to use it?
+    #from AMSC import AMSC_Object
+
     BasePostProcessor.__init__(self)
     self.acceptedGraphParam = ['approximate knn','delaunay','beta skeleton',\
                                'relaxed beta skeleton']

@@ -104,7 +104,9 @@ delete_list := $(RAVEN_APP) $(RAVEN_LIB) $(RAVEN_DIR)/libRAVEN-$(METHOD).*
 clean::
 	@rm -f $(RAVEN_DIR)/src/contrib/_amsc.so \
           $(RAVEN_DIR)/src/contrib/amsc_wrap.cxx \
+          $(RAVEN_DIR)/src/contrib/amsc_wrap.cpp \
           $(RAVEN_DIR)/src/contrib/amsc.py \
+          $(RAVEN_DIR)/src/contrib/amsc.pyc \
           $(RAVEN_DIR)/src/contrib/*egg-info \
           $(RAVEN_objects) \
           $(RAVEN_app_objects) \

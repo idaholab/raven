@@ -36,9 +36,6 @@
 #ifndef AMSC_H
 #define AMSC_H
 
-#include "DenseMatrix.h"
-#include "DenseVector.h"
-
 #include "ngl/ngl.h"
 
 #include <map>
@@ -48,7 +45,8 @@
 #include <list>
 #include <iostream>
 
-//#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
 
 /**
  * Merge data structure
@@ -266,17 +264,14 @@ class AMSC
 //  std::string ComputeLinearRegressions(T persistence=0.);
 
  private:
-  DenseMatrix<T> X;                                     /** Input data matrix */
-  DenseVector<T> y;                                    /** Output data vector */
+  boost::numeric::ublas::matrix<T> X;                   /** Input data matrix */
+  boost::numeric::ublas::vector<T> y;                  /** Output data vector */
+
   std::vector<std::string> names;    /** Names of the input/output dimensions */
 
   std::map< int, std::set<int> > neighbors;         /** Maps a list of points
                                                      *  that are neigbhors of
                                                      *  the index             */
-
-  DenseMatrix<int> extrema;           /** Local maximum/minimum index to which
-                                       *  each point flows (extream(0,*) and
-                                       *  extrema(1,*)), respectively         */
 
   std::vector<FlowPair> neighborFlow;         /** Estimated neighbor gradient
                                                * flow first=desc,second = asc */
@@ -331,8 +326,9 @@ class AMSC
    *        the point samples and connect the closest points between separate
    *        components until everything is one single component)
    */
-  void computeNeighborhood(DenseMatrix<T> &data, std::vector<int> &edgeIndices,
-                           DenseMatrix<int> &nn, DenseMatrix<T> &dists,
+  void computeNeighborhood(std::vector<int> &edgeIndices,
+                           boost::numeric::ublas::matrix<int> &nn,
+                           boost::numeric::ublas::matrix<T> &dists,
                            std::string type, T beta, int &kmax,
                            bool connect=false);
 
@@ -342,8 +338,7 @@ class AMSC
    * This was only necessary in Sam's visualization, in theory it is fine if the
    * data is disconnected.
    */
-  void ConnectComponents(DenseMatrix<T> &data, std::set<int_pair> &ngraph,
-                         int &maxCount);
+  void ConnectComponents(std::set<int_pair> &ngraph, int &maxCount);
 
   // Gradient estimation Methods
 
@@ -354,22 +349,25 @@ class AMSC
    * @param edges
    * @param distances
    */
-  void EstimateIntegralLines(std::string method, DenseMatrix<int> &edges,
-                             DenseMatrix<T> &distances);
+  void EstimateIntegralLines(std::string method,
+                             boost::numeric::ublas::matrix<int> &edges,
+                             boost::numeric::ublas::matrix<T> &distances);
 
   /**
    * Implements the Max Flow algorithm (TODO)
    * @param edges
    * @param distances
    */
-  void MaxFlow(DenseMatrix<int> &edges, DenseMatrix<T> &distances);
+  void MaxFlow(boost::numeric::ublas::matrix<int> &edges,
+               boost::numeric::ublas::matrix<T> &distances);
 
   /**
    * Implements the Steepest Edge algorithm
    * @param edges
    * @param distances
    */
-  void SteepestEdge(DenseMatrix<int> &edges, DenseMatrix<T> &distances);
+  void SteepestEdge(boost::numeric::ublas::matrix<int> &edges,
+                    boost::numeric::ublas::matrix<T> &distances);
 
   //Persistence Simplification
 
@@ -378,14 +376,14 @@ class AMSC
    * @param NN a matrix of integers representing a neighborhood structure, where
             each row specifies the neighbors of a corresponding sample point.
    */
-  void ComputeMaximaPersistence(DenseMatrix<int> &NN);
+  void ComputeMaximaPersistence(boost::numeric::ublas::matrix<int> &NN);
 
   /**
    * Implements the Steepest Edge algorithm
    * @param NN a matrix of integers representing a neighborhood structure, where
             each row specifies the neighbors of a corresponding sample point.
    */
-  void ComputeMinimaPersistence(DenseMatrix<int> &NN);
+  void ComputeMinimaPersistence(boost::numeric::ublas::matrix<int> &NN);
 };
 
 #endif //AMSC_H

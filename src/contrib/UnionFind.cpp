@@ -33,7 +33,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.          *
  ******************************************************************************/
 
-#include "UnionFind.h"
+#include "AMSC/UnionFind.h"
 
 UnionFind::UnionFind() { }
 

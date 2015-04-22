@@ -7,9 +7,9 @@
 %include "stl.i"
 
 %{
-#include "AMSC.h"
+#include "AMSC/AMSC.h"
 %}
-%include "AMSC.h"
+%include "AMSC/AMSC.h"
 
 %template(AMSCFloat) AMSC<float>;
 %template(AMSCDouble) AMSC<double>;

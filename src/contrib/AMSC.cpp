@@ -33,8 +33,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.          *
  ******************************************************************************/
 
-#include "AMSC.h"
-#include "UnionFind.h"
+#include "AMSC/AMSC.h"
+#include "AMSC/UnionFind.h"
 
 #include <utility>
 #include <limits>
@@ -61,21 +61,21 @@ int AMSC<T>::descending(int index)
 }
 
 template<typename T>
-void AMSC<T>::computeNeighborhood(DenseMatrix<T> &data, 
-                                  std::vector<int> &edgeIndices,
-                                  DenseMatrix<int> &edges,
-                                  DenseMatrix<T> &dists, std::string type,
-                                  T beta, int &kmax, bool connect)
+void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
+                                  boost::numeric::ublas::matrix<int> &edges,
+                                  boost::numeric::ublas::matrix<T> &dists,
+                                  std::string type, T beta, int &kmax,
+                                  bool connect)
 {
-  unsigned int numPts = data.N();
-  unsigned int dims = data.M();
+  int numPts = Size();
+  int dims = Dimension();
 
 //  std::cerr << numPts << "x" << dims << std::endl;
 
   T *pts = new T[numPts*dims];
-  for(unsigned int i=0;i<numPts;i++)
-    for(unsigned int d = 0;d<dims;d++)
-      pts[i*dims+d] = data(d,i);
+  for(int i=0; i < numPts; i++)
+    for(int d = 0; d < dims; d++)
+      pts[i*dims+d] = X(d,i);
 
   ngl::Geometry<T>::init(dims);
   if(kmax<0)
@@ -145,13 +145,13 @@ void AMSC<T>::computeNeighborhood(DenseMatrix<T> &data,
       ngraph.insert(edge);
     }
 
-    ConnectComponents(data, ngraph,kmax);
+    ConnectComponents(ngraph, kmax);
     //    edges.deallocate();
     //    dists.deallocate();
-    edges = DenseMatrix<int>(kmax,X.N());
-    dists = DenseMatrix<T>(kmax,X.N());
+    edges = boost::numeric::ublas::matrix<int>(kmax,Size());
+    dists = boost::numeric::ublas::matrix<T>(kmax,Size());
 
-    DenseVector<int> nextNeighborId(numPts);
+    boost::numeric::ublas::vector<int> nextNeighborId(numPts);
     for(unsigned int i = 0; i < numPts; i++)
     {
       nextNeighborId(i) = 0;
@@ -168,7 +168,7 @@ void AMSC<T>::computeNeighborhood(DenseMatrix<T> &data,
       int i2 = it->second;
       double dist = 0;
       for(unsigned int d = 0; d < dims; d++)
-          dist += ((data(d,i1)-data(d,i2))*(data(d,i1)-data(d,i2)));
+          dist += ((X(d,i1)-X(d,i2))*(X(d,i1)-X(d,i2)));
 
       int j = nextNeighborId(i1);
       nextNeighborId(i1) = nextNeighborId(i1) + 1;
@@ -199,10 +199,10 @@ void AMSC<T>::computeNeighborhood(DenseMatrix<T> &data,
       kmax = neighborCounts[i] > kmax ? neighborCounts[i] : kmax;
     delete [] neighborCounts;
 
-    edges = DenseMatrix<int>(kmax,X.N());
-    dists = DenseMatrix<T>(kmax,X.N());
+    edges = boost::numeric::ublas::matrix<int>(kmax,Size());
+    dists = boost::numeric::ublas::matrix<T>(kmax,Size());
 
-    DenseVector<int> nextNeighborId(numPts);
+    boost::numeric::ublas::vector<int> nextNeighborId(numPts);
     for(unsigned int i = 0; i < numPts; i++)
     {
       nextNeighborId(i) = 0;
@@ -226,7 +226,7 @@ void AMSC<T>::computeNeighborhood(DenseMatrix<T> &data,
 
       double dist = 0;
       for(unsigned int d = 0; d < dims; d++)
-          dist += ((data(d,i1)-data(d,i2))*(data(d,i1)-data(d,i2)));
+          dist += ((X(d,i1)-X(d,i2))*(X(d,i1)-X(d,i2)));
 
       int j = nextNeighborId(i1);
       nextNeighborId(i1) = nextNeighborId(i1) + 1;
@@ -238,14 +238,6 @@ void AMSC<T>::computeNeighborhood(DenseMatrix<T> &data,
       edges(j, i2) = i1;
       dists(j,i2) = dist;
     }
-
-    // for(int col = 0; col < edges.N(); col++)
-    // {
-    //   std::cerr << col << ':';
-    //   for(int row = 0; row < edges.M(); row++)  
-    //     std::cerr << edges(row,col) << ',';
-    //   std::cerr << std::endl;
-    // }
   }
 
   for(unsigned int i = 0; i < numPts; i++)
@@ -271,20 +263,24 @@ void AMSC<T>::computeNeighborhood(DenseMatrix<T> &data,
 }
 
 template<typename T>
-void AMSC<T>::SteepestEdge(DenseMatrix<int> &edges, DenseMatrix<T> &distances)
+void AMSC<T>::SteepestEdge(boost::numeric::ublas::matrix<int> &edges,
+boost::numeric::ublas::matrix<T> &distances)
 {
-  for( int i = 0; i < X.N(); i++)
+  for( int i = 0; i < Size(); i++)
     neighborFlow.push_back(FlowPair(-1,-1));
 
   //Store the gradient magnitude of each point's largest ascent/descent
   // so we can verify if the next neighbor represents a larger jump.
-  DenseMatrix<T> G = DenseMatrix<T>(2, X.N());
-  G.Set(0);
+  boost::numeric::ublas::matrix<T> G = boost::numeric::ublas::matrix<T>(2, Size());
+  for(int i = 0; i < 2; i++)
+    for(int j = 0; j < Size(); j++)
+      G(i,j) = 0;
+//  G.Set(0);
 
   //compute steepest asc/descending neighbors
-  for(int i=0; i < (int)X.N(); i++)
+  for(int i=0; i < (int)Size(); i++)
   {
-    for(int k=0; k < (int)edges.M(); k++)
+    for(int k=0; k < (int)edges.size1(); k++)
     {
       int j = edges(k, i);
       if( j == -1 || i == j)  //No neighbor or self as neighbor
@@ -391,15 +387,15 @@ void AMSC<T>::SteepestEdge(DenseMatrix<int> &edges, DenseMatrix<T> &distances)
       }
     }
   }
-  G.deallocate();
+//  G.deallocate();
 
   //compute for each point its minimum and maximum based on
   //steepest ascent/descent
-  for(int i = 0; i < X.N(); i++)
+  for(int i = 0; i < Size(); i++)
     flow.push_back(FlowPair(-1,-1));
 
   std::list<int> path;
-  for(unsigned int i=0; i < X.N(); i++)
+  for(unsigned int i=0; i < Size(); i++)
   {
     //If we have not identified this point's maximum, then we will do so now
     if( flow[i].up == -1)
@@ -427,7 +423,7 @@ void AMSC<T>::SteepestEdge(DenseMatrix<int> &edges, DenseMatrix<T> &distances)
     }
   }
 
-  for(unsigned int i=0; i < X.N(); i++)
+  for(unsigned int i=0; i < Size(); i++)
   {
     if( flow[i].down == -1)
     {
@@ -456,45 +452,45 @@ void AMSC<T>::SteepestEdge(DenseMatrix<int> &edges, DenseMatrix<T> &distances)
 //TODO: Repeat the process for the negative gradient, and then figure out how
 // to do the probabilistic trace in a Markov chain.
 template<typename T>
-void AMSC<T>::MaxFlow(DenseMatrix<int> &edges, DenseMatrix<T> &distances)
+void AMSC<T>::MaxFlow(boost::numeric::ublas::matrix<int> &edges, boost::numeric::ublas::matrix<T> &distances)
 {
-  for( int i = 0; i < X.N(); i++)
+  for( int i = 0; i < Size(); i++)
     neighborFlow.push_back(FlowPair(-1,-1));
 
-  T *avgGradient = new T[X.M()];
-  T *neighborGradient = new T[X.M()];
+  T *avgGradient = new T[Dimension()];
+  T *neighborGradient = new T[Dimension()];
   //compute steepest asc/descending neighbors
-  for(int i=0; i < (int)X.N(); i++)
+  for(int i=0; i < Size(); i++)
   {
     int actualNeighborCount = 0;
-    for(int d = 0; d < (int) X.M(); d++)
+    for(int d = 0; d < Dimension(); d++)
       avgGradient[d] = 0;
 
-    for(int k=0; k < (int)edges.M(); k++)
+    for(int k=0; k < (int)edges.size1(); k++)
     {
       int j = edges(k, i);
       if( j == -1 || i == j)  //No neighbor or self as neighbor
         continue;
       T deltaY = (y(j) - y(i));
-      for(int d = 0; d < (int) X.M(); d++)
+      for(int d = 0; d < Dimension(); d++)
         avgGradient[d] += deltaY / ((X(d,j) - X(d,i)) / sqrt(distances(k, i)));
       actualNeighborCount++;
     }
 
     T *probability = new T[actualNeighborCount];
-    for(int d = 0; d < (int) X.M(); d++)
+    for(int d = 0; d < Dimension(); d++)
       avgGradient[d] /= actualNeighborCount;
 
     actualNeighborCount = 0;
     T probabilitySum = 0;
-    for(int k=0; k < (int)edges.M(); k++)
+    for(int k=0; k < (int)edges.size1(); k++)
     {
       int j = edges(k, i);
       if( j == -1 || i == j)  //No neighbor or self as neighbor
         continue;
 
       T dot = 0;
-      for(int d = 0; d < (int) X.M(); d++)
+      for(int d = 0; d < Dimension(); d++)
       {
         dot += avgGradient[d]*((X(d,j) - X(d,i)));
       }
@@ -508,7 +504,7 @@ void AMSC<T>::MaxFlow(DenseMatrix<int> &edges, DenseMatrix<T> &distances)
 
     actualNeighborCount = 0;
     T runningTotal = 0;
-    for(int k=0; k < (int)edges.M(); k++)
+    for(int k=0; k < (int)edges.size1(); k++)
     {
       int j = edges(k, i);
       if( j == -1 || i == j)  //No neighbor or self as neighbor
@@ -533,8 +529,8 @@ void AMSC<T>::MaxFlow(DenseMatrix<int> &edges, DenseMatrix<T> &distances)
 }
 
 template<typename T>
-void AMSC<T>::EstimateIntegralLines(std::string method, DenseMatrix<int> &edges,
-                                    DenseMatrix<T> &distances)
+void AMSC<T>::EstimateIntegralLines(std::string method, boost::numeric::ublas::matrix<int> &edges,
+                                    boost::numeric::ublas::matrix<T> &distances)
 {
   if( method.compare("steepest") == 0)
     SteepestEdge(edges,distances);
@@ -550,17 +546,17 @@ void AMSC<T>::EstimateIntegralLines(std::string method, DenseMatrix<int> &edges,
 }
 
 template<typename T>
-void AMSC<T>::ComputeMaximaPersistence(DenseMatrix<int> &edges)
+void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int> &edges)
 {
   //initial persistences
   //store as pairs of extrema such that p.first merges to p.second (e.g.
   //p.second is the max with the larger function value
   map_pi_pfi pinv;
-  for(int i = 0; i < X.N(); i++)
+  for(int i = 0; i < Size(); i++)
   {
     int e1 = flow[i].up;
     int saddleIdx;
-    for(unsigned int k=0; k < edges.M(); k++)
+    for(unsigned int k=0; k < edges.size1(); k++)
     {
       if(edges(k,i) == -1 || edges(k,i) == i)
           continue;
@@ -679,17 +675,17 @@ void AMSC<T>::ComputeMaximaPersistence(DenseMatrix<int> &edges)
 }
 
 template<typename T>
-void AMSC<T>::ComputeMinimaPersistence(DenseMatrix<int> &edges)
+void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int> &edges)
 {
   //initial persistences
   //store as pairs of extrema such that p.first merges to p.second (e.g.
   //p.second is the min with the smaller function value
   map_pi_pfi pinv;
-  for(int i = 0; i < X.N(); i++)
+  for(int i = 0; i < Size(); i++)
   {
     int e1 = flow[i].down;
     int saddleIdx;
-    for(unsigned int k=0; k < edges.M(); k++)
+    for(unsigned int k=0; k < edges.size1(); k++)
     {
       if(edges(k,i) == -1 || edges(k,i) == i)
           continue;
@@ -822,8 +818,9 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
 
   int M = Xin.size() / yin.size();
   int N = yin.size();
-  X = DenseMatrix<T>(M,N,NULL);
-  y = DenseVector<T>(N,NULL);
+
+  X = boost::numeric::ublas::matrix<T>(M,N);
+  y = boost::numeric::ublas::vector<T>(N);
 
   globalMinIdx = 0;
   globalMaxIdx = 0;
@@ -839,23 +836,22 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
       globalMinIdx = n;
   }
 
-  DenseMatrix<int> edges;
-  DenseMatrix<T> distances;
+  boost::numeric::ublas::matrix<int> edges;
+  boost::numeric::ublas::matrix<T> distances;
   int kmax = maxN;
   t = clock() - t;
   std::cerr << "Done! " << ((float)t)/CLOCKS_PER_SEC  << " s" << std::endl;
 
   t = clock();
   std::cerr << "\rConstructing Neighborhood" << std::flush;
-  computeNeighborhood(X, edgeIndices, edges, distances, graph, beta, kmax,
-                      connect);
+  computeNeighborhood(edgeIndices, edges, distances, graph, beta, kmax,connect);
   t = clock() - t;
   std::cerr << "Done! " << ((float)t)/CLOCKS_PER_SEC  << " s" << std::endl;
 
   t = clock();
   std::cerr << "\rEstimating Integral Lines..." << std::flush;
   EstimateIntegralLines(gradientMethod, edges, distances);
-  distances.deallocate();
+//  distances.deallocate();
   t = clock() - t;
   std::cerr << "Done! " << ((float)t)/CLOCKS_PER_SEC  << " s" << std::endl;
 
@@ -873,7 +869,7 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
 
   t = clock();
   std::cerr << "\rCleaning up..." << std::flush;
-  edges.deallocate();
+//  edges.deallocate();
   t = clock() - t;
   std::cerr << "Done! " << ((float)t)/CLOCKS_PER_SEC  << " s" << std::endl;
 
@@ -882,11 +878,10 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
 }
 
 template<typename T>
-void AMSC<T>::ConnectComponents(DenseMatrix<T> &data,
-                                std::set<int_pair> &ngraph, int &maxCount)
+void AMSC<T>::ConnectComponents(std::set<int_pair> &ngraph, int &maxCount)
 {
   UnionFind connectedComponents;
-  for(unsigned int i = 0; i < y.N(); i++)
+  for(unsigned int i = 0; i < Size(); i++)
     connectedComponents.MakeSet(i);
 
   for(std::set<int_pair>::iterator iter= ngraph.begin();
@@ -935,17 +930,17 @@ void AMSC<T>::ConnectComponents(DenseMatrix<T> &data,
         {
           int AvIdx = components[a][i];
           std::vector<T> ai;
-          for(unsigned int d = 0; d < data.M(); d++)
-              ai.push_back(data(d,AvIdx));
+          for(unsigned int d = 0; d < Dimension(); d++)
+              ai.push_back(X(d,AvIdx));
           for(unsigned int j = 0; j < components[b].size(); j++)
           {
             int BvIdx = components[b][j];
             std::vector<T> bj;
-            for(unsigned int d = 0; d < data.M(); d++)
-              bj.push_back(data(d,BvIdx));
+            for(unsigned int d = 0; d < Dimension(); d++)
+              bj.push_back(X(d,BvIdx));
 
             T distance = 0;
-            for(unsigned int d = 0; d < data.M(); d++)
+            for(unsigned int d = 0; d < Dimension(); d++)
               distance += (ai[d]-bj[d])*(ai[d]-bj[d]);
             if(minDistance == -1 || distance < minDistance)
             {
@@ -979,8 +974,8 @@ void AMSC<T>::ConnectComponents(DenseMatrix<T> &data,
 
     delete [] components;
   }
-  int *counts = new int[data.N()];
-  for(unsigned int i = 0; i < data.N(); i++)
+  int *counts = new int[Size()];
+  for(unsigned int i = 0; i < Size(); i++)
     counts[i] = 0;
 
   for(std::set<int_pair>::iterator it = ngraph.begin();
@@ -990,7 +985,7 @@ void AMSC<T>::ConnectComponents(DenseMatrix<T> &data,
     counts[it->first]+=1;
     counts[it->second]+=1;
   }
-  for(unsigned int i = 0; i < data.N(); i++)
+  for(unsigned int i = 0; i < Size(); i++)
     maxCount = maxCount < counts[i] ? counts[i] : maxCount;
 
   delete [] counts;
@@ -1001,19 +996,21 @@ void AMSC<T>::ConnectComponents(DenseMatrix<T> &data,
 template<typename T>
 int AMSC<T>::Dimension()
 {
-  return X.M();
+//  return (int)X.M();
+  return (int) X.size1();
 }
 
 template<typename T>
 int AMSC<T>::Size()
 {
-  return X.N();
+//  return (int) X.N();
+  return (int) X.size2();
 }
 
 template<typename T>
 void AMSC<T>::GetX(int i, T *xi)
 {
-  for(int d = 0; d < X.M(); d++)
+  for(int d = 0; d < Dimension(); d++)
     xi[d] = X(d,i);
 }
 
@@ -1041,7 +1038,7 @@ template<typename T>
 T AMSC<T>::MinY()
 {
   T minY = y(0);
-  for(int i = 1; i < y.N(); i++)
+  for(int i = 1; i < Size(); i++)
     minY = minY > y(i) ? y(i) : minY;
   return minY;
 }
@@ -1050,7 +1047,7 @@ template<typename T>
 T AMSC<T>::MaxY()
 {
   T maxY = y(0);
-  for(int i = 1; i < y.N(); i++)
+  for(int i = 1; i < Size(); i++)
     maxY = maxY < y(i) ? y(i) : maxY;
   return maxY;
 }
@@ -1065,7 +1062,7 @@ template<typename T>
 T AMSC<T>::MinX(int dim)
 {
   T minX = X(dim,0);
-  for(int i = 1; i < X.N(); i++)
+  for(int i = 1; i < Size(); i++)
     minX = minX > X(dim,i) ? X(dim,i) : minX;
   return minX;
 }
@@ -1074,7 +1071,7 @@ template<typename T>
 T AMSC<T>::MaxX(int dim)
 {
   T maxX = X(dim,0);
-  for(int i = 1; i < X.N(); i++)
+  for(int i = 1; i < Size(); i++)
     maxX = maxX < X(dim,i) ? X(dim,i) : maxX;
   return maxX;
 }
@@ -1159,7 +1156,7 @@ template<typename T>
 std::map< std::string, std::vector<int> > AMSC<T>::GetPartitions(T persistence)
 {
   std::map< std::string, std::vector<int> > partitions;
-  for(int i = 0; i < X.N(); i++)
+  for(int i = 0; i < Size(); i++)
   {
     std::stringstream stream;
     int minIdx = MinLabel(i);
