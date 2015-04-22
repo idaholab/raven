@@ -63,7 +63,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       This method is used to retrieve the command (in string format) needed to launch the Code.
       @ In , inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
       @ In , executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-      @ In , clargs, dict command-line type:{flags:arguments} to be used in the command call, e.g. clargs['input']['-i']='.inp' 
+      @ In , clargs, dict command-line type:{flags:arguments} to be used in the command call, e.g. clargs['input']['-i']='.inp'
       @ In , fargs, dict file-based variable replacement type:{keywords:values}, e.g. fargs['input']['auxfile']='materials.aux'
       @ Out, string, string containing the full command that the internal JobHandler is going to use to run the Code this interface refers to
     """
