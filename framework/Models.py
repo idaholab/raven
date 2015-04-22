@@ -514,7 +514,6 @@ class ExternalModel(Dummy):
       CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
       modelVariableValues[key] = copy.copy(value)
     for key in Input.keys(): modelVariableValues[key] = copy.copy(Input[key])
-    #print(self.initExtSelf.__dict__.items())
     if 'createNewInput' not in dir(self.sim):
       for key in Input.keys(): modelVariableValues[key] = copy.copy(Input[key])
       for key in self.modelVariableType.keys() : CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
