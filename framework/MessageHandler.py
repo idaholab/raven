@@ -75,7 +75,7 @@ class MessageHandler(MessageUser):
     except AttributeError: tag = str(obj)
     else: tag = str(obj.printTag)
     return tag
-  
+
   def getDesiredVerbosity(self,caller):
     localVerb = caller.getLocalVerbosity()
     if localVerb == None: localVerb = self.verbosity

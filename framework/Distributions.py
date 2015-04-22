@@ -110,7 +110,7 @@ class Distribution(BaseType):
       self.lowerBoundUsed = True
     if xmlNode.find('adjustment') !=None: self.__adjustment = xmlNode.find('adjustment').text
     else: self.__adjustment = 'scaling'
-  
+
   def getCrowDistDict(self):
     '''
     Returns a dictionary of the keys and values that would be
