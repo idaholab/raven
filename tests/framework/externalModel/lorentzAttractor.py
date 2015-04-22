@@ -7,16 +7,10 @@ import numpy as np
 #import mpl_toolkits.mplot3d.axes3d as p3
 
 def initialize(self,runInfoDict,inputFiles):
-  self.SampledVars = None
-
   self.sigma = 10.0
   self.rho   = 28.0
   self.beta  = 8.0/3.0
   return
-
-
-def createNewInput(self,myInput,samplerType,**Kwargs):
-  return Kwargs['SampledVars']
 
 def run(self,Input):
   max_time = 0.03
