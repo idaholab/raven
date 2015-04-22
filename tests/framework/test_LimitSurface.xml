@@ -74,28 +74,28 @@
 
 <Steps>
     <MultiRun name='FirstMRun'  re-seeding='200286'>
-        <Input   class='Datas'     type='TimePointSet'   >Dummy</Input>
+        <Input   class='DataObjects'     type='TimePointSet'   >Dummy</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='Datas'     type='TimePointSet'   >TimePointSetPostProcTest</Output>
+        <Output  class='DataObjects'     type='TimePointSet'   >TimePointSetPostProcTest</Output>
         <Output  class='OutStreamManager' type='Print'   >TimePointSetPostProcTest_dump</Output>
     </MultiRun >
     <PostProcess name='ComputeLimitSurfacePositive' >
-        <Input    class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Input    class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
         <Model    class='Models'           type='PostProcessor'   >computeLimitSurfacePositive</Model>
-        <Output   class='Datas'            type='TimePointSet'    >LimitSurfacePositive</Output>
+        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfacePositive</Output>
         <Output   class='OutStreamManager' type='Print'           >LimitSurfacePositive_dump</Output>
     </PostProcess>
     <PostProcess name='ComputeLimitSurfaceNegative' >
-        <Input    class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Input    class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
         <Model    class='Models'           type='PostProcessor'   >computeLimitSurfaceNegative</Model>
-        <Output   class='Datas'            type='TimePointSet'    >LimitSurfaceNegative</Output>
+        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfaceNegative</Output>
         <Output   class='OutStreamManager' type='Print'           >LimitSurfaceNegative_dump</Output>
     </PostProcess>
     <PostProcess name='ComputeLimitSurfacePositiveNegative' >
-        <Input    class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Input    class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
         <Model    class='Models'           type='PostProcessor'   >computeLimitSurfacePositiveNegative</Model>
-        <Output   class='Datas'            type='TimePointSet'    >LimitSurfacePositiveNegative</Output>
+        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfacePositiveNegative</Output>
         <Output   class='OutStreamManager' type='Print'           >LimitSurfacePositiveNegative_dump</Output>
     </PostProcess>
 </Steps>
@@ -120,7 +120,7 @@
   </Print>
 </OutStreamManager>
 
-<Datas>
+<DataObjects>
     <TimePointSet name='TimePointSetPostProcTest'>
         <Input>x0,y0</Input>
         <Output>z</Output>
@@ -141,7 +141,7 @@
         <Input>x0,y0</Input>
         <Output>OutputPlaceHolder</Output>
     </TimePointSet>
-</Datas>
+</DataObjects>
 
 </Simulation>
 

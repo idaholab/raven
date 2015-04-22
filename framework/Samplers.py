@@ -495,7 +495,7 @@ class AdaptiveSampler(Sampler):
     if 'TargetEvaluation' in self.assemblerDict.keys(): self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
     self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
-    # check if solutionExport is actually a "Datas" type "TimePointSet"
+    # check if solutionExport is actually a "DataObjects" type "TimePointSet"
     if type(solutionExport).__name__ != "TimePointSet": utils.raiseAnError(IOError,self,'solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
@@ -2327,7 +2327,7 @@ class SparseGridCollocation(Grid):
     self.quadDict       = {}    #varName-indexed dict of quadrature types
     self.importanceDict = {}    #varName-indexed dict of importance weights
     self.maxPolyOrder   = None  #integer, relative maximum polynomial order to be used in any one dimension
-    self.lastOutput     = None  #pointer to output datas object
+    self.lastOutput     = None  #pointer to output dataObjects object
     self.ROM            = None  #pointer to ROM
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
@@ -2486,7 +2486,7 @@ class Sobol(SparseGridCollocation):
     self.quadDict       = {}    #varName-indexed dict of quadrature types
     self.importanceDict = {}    #varName-indexed dict of importance weights
     self.references     = {}    #reference (mean) values for distributions, by var
-    self.solns          = None  #pointer to output datas object
+    self.solns          = None  #pointer to output dataObjects object
     self.ROM            = None  #pointer to sobol ROM
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True

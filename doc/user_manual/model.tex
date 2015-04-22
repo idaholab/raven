@@ -897,7 +897,7 @@ one of the following:
 \begin{itemize}
   \item \xmlString{NDspline}
   \item \xmlString{GaussPolynomialRom}
-  \item \xmlString{NDinvDistWeigth}
+  \item \xmlString{NDinvDistWeight}
   \item \xmlString{microSphere}
   \item \xmlString{SciKitLearn}
 \end{itemize}
@@ -1176,10 +1176,10 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are \xmlString{mean}, \xmlString{variance}, and \xmlString{indices}.  In the latter case, the total calculated variance is printed, followed by the percent of contributing variance for each existing subset of the input domain (the Sobol indices).
 
-%%%%% ROM Model - NDinvDistWeigth  %%%%%%%
-\subsubsection{NDinvDistWeigth}
-\label{subsubsec:NDinvDistWeigth}
-The NDinvDistWeigth sub-type contains a single ROM type, based on an
+%%%%% ROM Model - NDinvDistWeight  %%%%%%%
+\subsubsection{NDinvDistWeight}
+\label{subsubsec:NDinvDistWeight}
+The NDinvDistWeight sub-type contains a single ROM type, based on an
 $N$-dimensional inverse distance weighting formulation.
 %
 Inverse distance weighting (IDW) is a type of deterministic method for
@@ -1190,7 +1190,7 @@ the values available at the known points.
 %
 
 In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
-\xmlAttr{subType} needs to be xmlString{NDinvDistWeigth} (see the example 
+\xmlAttr{subType} needs to be xmlString{NDinvDistWeight} (see the example 
 below).
 %
 \subnodeIntro
@@ -1213,7 +1213,7 @@ below).
   ...
   <Models>
     ...
-    <ROM name='aUserDefinedName' subType='NDinvDistWeigth'>
+    <ROM name='aUserDefinedName' subType='NDinvDistWeight'>
       <Features>var1,var2,var3</Features>
       <Target>result1,result2</Target>
       <p>3</p>
@@ -3881,7 +3881,7 @@ that are generally needed to create a new input:
   perturbed by the sampler are reported.
 \end{itemize}
 \nb If the ``Step'' that is using this Model has as input(s) an object of main
-class type ``Datas'' (see Section~\ref{sec:Datas}), the internal ``createNewInput''
+class type ``DataObjects'' (see Section~\ref{sec:DataObjects}), the internal ``createNewInput''
 method is going to convert it in a dictionary of values.
 %
 
@@ -4089,7 +4089,7 @@ to compute many of the most important statistical quantities.
 \paragraph{ComparisonStatistics}
 \label{ComparisonStatistics}
 The \textbf{ComparisonStatistics} post-processor computes statistics
-for comparing two different datas.  This is an experimental
+for comparing two different dataObjects.  This is an experimental
 post-processor, and it will definitely change as it is further
 developed.
 
@@ -4108,7 +4108,7 @@ There are four nodes that are used in the post-processor.
     square-root or sturges.
   \end{itemize}
 \item \xmlNode{compare}: specifies the data to use for comparison.
-  This can either be a normal distribution or a datas:
+  This can either be a normal distribution or a dataObjects:
   \begin{itemize}
   \item \xmlNode{data}: This will specify the data that is used.  The
     different parts are separated by $|$'s.

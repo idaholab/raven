@@ -720,12 +720,12 @@ class NDsplineRom(NDinterpolatorRom):
 #
 #
 #
-class NDinvDistWeigth(NDinterpolatorRom):
-  ROMtype         = 'NDinvDistWeigth'
+class NDinvDistWeight(NDinterpolatorRom):
+  ROMtype         = 'NDinvDistWeight'
   def __init__(self,**kwargs):
     NDinterpolatorRom.__init__(self,**kwargs)
     self.printTag = utils.returnPrintTag('ND-INVERSEWEIGHT ROM')
-    if not 'p' in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
+    if not 'p' in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'the <p> parameter must be provided in order to use NDinvDistWeight as ROM!!!!')
     self.interpolator = interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p']))
 
   def __resetLocal__(self):
@@ -913,7 +913,7 @@ class SciKitLearn(superVisedLearning):
 #
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom
-__interfaceDict['NDinvDistWeigth'     ] = NDinvDistWeigth
+__interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
 __interfaceDict['microSphere'         ] = NDmicroSphere
 __interfaceDict['SciKitLearn'         ] = SciKitLearn
 __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom

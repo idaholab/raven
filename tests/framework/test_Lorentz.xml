@@ -15,8 +15,8 @@
         <Input   class='Files'     type=''               >lorentzAttractor.py</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='Datas'     type='Histories'      >testPrintHistories</Output>
-        <Output  class='DataBases' type='HDF5'           >test_external_db</Output>
+        <Output  class='DataObjects'     type='Histories'      >testPrintHistories</Output>
+        <Output  class='Databases' type='HDF5'           >test_external_db</Output>
         <Output  class='OutStreamManager' type='Print'   >testPrintHistories_dump</Output>
     </MultiRun >
 </Steps>
@@ -72,9 +72,9 @@
 </Samplers>
 
 <!-- DATABASES -->
-<DataBases>
+<Databases>
   <HDF5 name="test_external_db"/>
-</DataBases>
+</Databases>
 
 <!-- OUTSTREAMS -->
 <OutStreamManager>
@@ -85,12 +85,12 @@
 </OutStreamManager>
 
 <!-- DATA OBJECTS -->
-<Datas>
+<DataObjects>
     <Histories name='testPrintHistories'>
         <Input>x0,y0,z0</Input>
         <Output>time,x,y,z</Output>
    </Histories>
-</Datas>
+</DataObjects>
 </Simulation>
 
 

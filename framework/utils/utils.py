@@ -13,6 +13,35 @@ import inspect
 
 class Object(object):pass
 
+def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
+  """
+  Method to check if a path (file or directory) is currently
+  used by another program. It is based on accessing time...
+  Probably there is a better way.
+  @ In, pathname, string containing the all path
+  @ In, timelapse, float, tollerance on time modification
+  @ Out, boolean, True if it is used by another program, False otherwise
+  """
+  import stat
+  import time
+  mode = os.stat(pathname).st_mode
+  if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)): raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  path '+pathname+ ' is neither a file nor a dir!')
+  return abs(os.stat(pathname).st_mtime - time.time()) < timelapse
+
+def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
+  """
+  Method to check if a path (directory) contains an hidden raven file
+  @ In, pathname, string containing the path
+  @ In, filename, string containing the file name
+  @ Out, boolean, True if it is present, False otherwise
+  """
+  import fcntl
+  finm = os.path.join(pathname,filename)
+  fp = open(finm, 'w')
+  try           : fcntl.lockf(fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
+  except IOError: return True
+  return False
+
 def returnImportModuleString(obj,moduleOnly=False):
   mods = []
   globs = dict(inspect.getmembers(obj))
@@ -271,7 +300,7 @@ def find_ge(a, x):
 #   state = self.__dict__.copy()
 #   # we pop the database instance and close it
 #   state.pop("database")
-#   self.database.closeDataBaseW()
+#   self.database.closeDatabaseW()
 #   # what we return here will be stored in the pickle
 #   return state
 #

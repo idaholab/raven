@@ -63,7 +63,7 @@ class hdf5Database(object):
       if self.fileExist:
         # self.h5_file_w is the HDF5 object. Open the database in "update" mode
         # Open file
-        self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'r+')
+        self.h5_file_w = self.openDatabaseW(self.filenameAndPath,'r+')
         # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
         # and the dictionary "self.allGroupEnds" based on the database that already exists
         self.__createObjFromFile()
@@ -71,7 +71,7 @@ class hdf5Database(object):
         self.firstRootGroup = True
       else:
         # self.h5_file_w is the HDF5 object. Open the database in "write only" mode
-        self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'w')
+        self.h5_file_w = self.openDatabaseW(self.filenameAndPath,'w')
         # Add the root as first group
         self.allGroupPaths.append("/")
         # The root group is not an end group
@@ -92,7 +92,7 @@ class hdf5Database(object):
       self.allGroupPaths = []
       self.allGroupEnds  = {}
       if not self.fileOpen:
-        self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'a')
+        self.h5_file_w = self.openDatabaseW(self.filenameAndPath,'a')
       self.h5_file_w.visititems(self.__isGroup)
 
     def __isGroup(self,name,obj):
@@ -207,7 +207,7 @@ class hdf5Database(object):
           grp = rootgrp.create_group(gname)
         else: grp = self.h5_file_w.create_group(gname)
 
-        print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+        print('DATABASE HDF5 : Adding group named "' + gname + '" in Database "'+ self.name +'"')
         # Create dataset in this newly added group
         dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
         # Add metadata
@@ -242,7 +242,7 @@ class hdf5Database(object):
             except KeyError: pass
           else:
             grp.attrs[toBytes(attr)] = attributes[attempt_attr[attr]]
-      elif source['type'] == 'Datas':
+      elif source['type'] == 'DataObjects':
         # get input parameters
         inputSpace  = source['name'].getInpParametersValues()
         outputSpace = source['name'].getOutParametersValues()
@@ -268,7 +268,7 @@ class hdf5Database(object):
           grp = rootgrp.create_group(gname)
         else: grp = self.h5_file_w.create_group(gname)
 
-        print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+        print('DATABASE HDF5 : Adding group named "' + gname + '" in Database "'+ self.name +'"')
         # Create dataset in this newly added group
         dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
         # Add metadata
@@ -344,7 +344,7 @@ class hdf5Database(object):
         # The parent group is not the endgroup for this branch
         self.allGroupEnds[parent_group_name] = False
         grp.attrs["EndGroup"]   = False
-        print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+        print('DATABASE HDF5 : Adding group named "' + gname + '" in Database "'+ self.name +'"')
         # Create the sub-group
         sgrp = grp.create_group(gname)
         # Create data set in this new group
@@ -775,7 +775,7 @@ class hdf5Database(object):
 
       return(copy.copy(result),copy.copy(attrs))
 
-    def closeDataBaseW(self):
+    def closeDatabaseW(self):
       '''
       Function to close the database
       @ In,  None
@@ -785,7 +785,7 @@ class hdf5Database(object):
       self.fileOpen       = False
       return
 
-    def openDataBaseW(self,filename,mode='w'):
+    def openDatabaseW(self,filename,mode='w'):
       '''
       Function to open the database
       @ In,  filename : name of the file (string)
