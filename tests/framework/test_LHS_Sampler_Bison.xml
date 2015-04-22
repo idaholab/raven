@@ -44,12 +44,12 @@
     </LHS>
 </Samplers>
 
-<Datas>
+<DataObjects>
     <Histories name='stories'>
         <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
         <Output>aveTempLeft,aveTempRight</Output>
    </Histories>
-</Datas>
+</DataObjects>
 
 
 <Steps>
@@ -58,14 +58,14 @@
       <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.e</Input>
       <Model   class = 'Models'     type='Code'      >Bison</Model>
       <Sampler class='Samplers' type='LHS'         >myLHS</Sampler>
-      <Output  class='DataBases'    type='HDF5'>test_bison_lhs</Output>
-      <Output class='Datas' type='Histories'>stories</Output>
+      <Output  class='Databases'    type='HDF5'>test_bison_lhs</Output>
+      <Output class='DataObjects' type='Histories'>stories</Output>
     </MultiRun >
 </Steps>
 
-<DataBases>
+<Databases>
   <HDF5 name="test_bison_lhs"/> 
-</DataBases>
+</Databases>
 
 </Simulation>
 

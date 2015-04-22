@@ -1,3 +1,4 @@
+
 '''
 Created on Feb 16, 2013
 
@@ -62,7 +63,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         # Catches the type not being defined somewhere
         pass
     self.type = self.__class__.__name__
-    self.printTag  = 'DATAS'
+    self.printTag  = 'DataObjects'
 
   def _readMoreXML(self,xmlNode):
     """
@@ -249,9 +250,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     options_int = {}
     # print content of data in a .csv format
-    self.raiseADebug(self,' '*len(self.printTag)+':=======================')
-    self.raiseADebug(self,' '*len(self.printTag)+':DATAS: print on file(s)')
-    self.raiseADebug(self,' '*len(self.printTag)+':=======================')
+    self.raiseADebug(self,' '*len(self.printTag)+':=============================')
+    self.raiseADebug(self,' '*len(self.printTag)+':DataObjects: print on file(s)')
+    self.raiseADebug(self,' '*len(self.printTag)+':=============================')
     if options:
       if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
       else: filenameLocal = self.name + '_dump'
@@ -787,7 +788,7 @@ class TimePoint(Data):
     try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
-      if(not self._dataParameters['history']): self.raiseAnError(IOError,self,'DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
+      if(not self._dataParameters['history']): self.raiseAnError(IOError,self,'DataObjects     : ERROR: In order to create a TimePoint data, history name must be provided')
       self._dataParameters['filter'] = 'whole'
 
   def checkConsistency(self):
@@ -921,7 +922,7 @@ class TimePoint(Data):
 
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
-    '''override of the method in the base class Datas'''
+    '''override of the method in the base class DataObjects'''
     if varID!=None or stepID!=None: self.raiseAnError(RuntimeError,self,'seeking to extract a slice from a TimePoint type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':exec ('return '+varTyp+'(self.getParam(inOutType,varName)[0])')
     else: return self.getParam(inOutType,varName)
@@ -1112,7 +1113,7 @@ class TimePointSet(Data):
     outValues = []
     #Print input values
     if self._dataParameters['hierarchical']:
-      # retrieve a serialized of datas from the tree
+      # retrieve a serialized of DataObjects from the tree
       O_o = self.getHierParam('inout','*',serialize=True)
       for key in O_o.keys():
         inpKeys.append([])
@@ -1265,7 +1266,7 @@ class TimePointSet(Data):
 
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
-    '''override of the method in the base class Datas'''
+    '''override of the method in the base class DataObjects'''
     if stepID!=None: self.raiseAnError(RuntimeError,self,'seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':
       if varID!=None:
@@ -1455,7 +1456,7 @@ class History(Data):
 
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
-    '''override of the method in the base class Datas'''
+    '''override of the method in the base class DataObjects'''
     if varID!=None: self.raiseAnError(RuntimeError,self,'seeking to extract a slice over number of parameters an History type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':
       if varName in self._dataParameters['inParam']: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[0])')
@@ -1718,7 +1719,7 @@ class Histories(Data):
       inpKeys   = []
       inpValues = []
       outValues = []
-      # retrieve a serialized of datas from the tree
+      # retrieve a serialized of DataObjects from the tree
       O_o = self.getHierParam('inout','*',serialize=True)
       for key in O_o.keys():
         inpKeys.append([])
@@ -1883,7 +1884,7 @@ class Histories(Data):
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''
-      override of the method in the base class Datas
+      override of the method in the base class DataObjects
       @ In,  myType, string, unused
       @ In,  inOutType
       IMPLEMENT COMMENT HERE
@@ -1941,4 +1942,4 @@ def knownTypes():
 
 def returnInstance(Type,caller):
   try: return __interFaceDict[Type]()
-  except KeyError: caller.raiseAnError(NameError,'DATAS','not known '+__base+' type '+Type)
+  except KeyError: caller.raiseAnError(NameError,caller,'DataObjects: not known '+__base+' type '+Type)

@@ -53,7 +53,7 @@ class Assembler(object):
     This method is used mainly by the Simulation class at the Step construction stage.
     It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
     It is an abstract method -> It must be implemented in the derived class!
-    @ In , initDict, dictionary ({'mainClassName(e.g., DataBases):{specializedObjectName(e.g.,DataBaseForSystemCodeNamedWolf):ObjectInstance}'})
+    @ In , initDict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
     @ Out, None, None
     """
     if '_localGenerateAssembler' in dir(self):

@@ -97,7 +97,7 @@ class CsvLoader:
 
   def csvLoadData(self,filein,options):
     '''
-    General interface function to call the private methods for loading the different datas!
+    General interface function to call the private methods for loading the different dataObjects!
     @ In, filein, csv file name
     @ In, options, dictionary of options
     '''

@@ -643,8 +643,8 @@ class NDsplineRom(NDinterpolatorRom):
 #
 #
 #
-class NDinvDistWeigth(NDinterpolatorRom):
-  ROMtype         = 'NDinvDistWeigth'
+class NDinvDistWeight(NDinterpolatorRom):
+  ROMtype         = 'NDinvDistWeight'
   def __init__(self,**kwargs):
     NDinterpolatorRom.__init__(self,**kwargs)
     self.printTag = 'ND-INVERSEWEIGHT ROM'
@@ -836,7 +836,7 @@ class SciKitLearn(superVisedLearning):
 #
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom
-__interfaceDict['NDinvDistWeigth'     ] = NDinvDistWeigth
+__interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
 __interfaceDict['microSphere'         ] = NDmicroSphere
 __interfaceDict['SciKitLearn'         ] = SciKitLearn
 __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom

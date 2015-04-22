@@ -62,8 +62,8 @@ except: print("error worked")
 #Test Uniform
 
 uniformElement = ET.Element("uniform")
-uniformElement.append(createElement("low",text="1.0"))
-uniformElement.append(createElement("hi",text="3.0"))
+uniformElement.append(createElement("lowerBound",text="1.0"))
+uniformElement.append(createElement("upperBound",text="3.0"))
 
 #ET.dump(uniformElement)
 

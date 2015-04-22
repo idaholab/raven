@@ -16,12 +16,12 @@
 <Steps>
     <PostProcess name='LoadCsvIntoInternalObjectTestData'>
         <Model    class='Models'           type='PostProcessor'   >LoadCsvIntoInternalObjectTest</Model>
-        <Output   class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Output>
+        <Output   class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Output>
         <Output   class='OutStreamManager' type='Print'           >TimePointSetPostProcTest_DUMP</Output>
     </PostProcess>
     <PostProcess name='LoadCsvIntoInternalObjectTestHDF5'>
         <Model    class='Models'           type='PostProcessor'   >LoadCsvIntoInternalObjectTest</Model>
-        <Output   class='DataBases'        type='HDF5'            >HDF5PostProcTest</Output>
+        <Output   class='Databases'        type='HDF5'            >HDF5PostProcTest</Output>
     </PostProcess>
 </Steps>
 <OutStreamManager>
@@ -30,14 +30,14 @@
         <source>TimePointSetPostProcTest</source>
     </Print>
 </OutStreamManager>
-<Datas>
+<DataObjects>
     <TimePointSet name='TimePointSetPostProcTest'>
         <Input>Dummy1</Input>
         <Output>time,pipe_Dh,pipe_Tw</Output>
     </TimePointSet>
-</Datas>
-<DataBases>
+</DataObjects>
+<Databases>
     <HDF5 name="HDF5PostProcTest" />
-</DataBases>
+</Databases>
 
 </Simulation>

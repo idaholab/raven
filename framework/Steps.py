@@ -22,7 +22,7 @@ from BaseClasses import BaseType
 import utils
 import Models
 from OutStreamManager import OutStreamManager
-from Datas import Data
+from DataObjects import Data
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -326,8 +326,8 @@ class MultiRun(SingleRun):
 #     foundFunction    = False
 #     ROMCounter       = 0
 #     #explanation new roles:
-#     #Function        : it takes in a datas and generate the value of the goal functions
-#     #TargetEvaluation: is the output datas that is used for the evaluation of the goal function. It has to be declared among the outputs
+#     #Function        : it takes in a dataObjects and generate the value of the goal functions
+#     #TargetEvaluation: is the output dataObjects that is used for the evaluation of the goal function. It has to be declared among the outputs
 #     #SolutionExport  : if declared it is used to export the location of the  goal functions = 0
 #     for role in self.parList:
 #       if   role[0] == 'Sampler':
@@ -337,11 +337,11 @@ class MultiRun(SingleRun):
 #       elif role[0] == 'TargetEvaluation':
 #         foundTargEval   = True
 #         targEvalCounter+=1
-#         if role[1]!='Datas'                               : raisea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name)
+#         if role[1]!='DataObjects'                               : raisea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name)
 #         if not(['Output']+role[1:] in self.parList[:])    : raisea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The data chosen for the evaluation of the adaptive strategy is not in the output list for step '+self.name)
 #       elif role[0] == 'SolutionExport'  :
 #         solExportCounter  +=1
-#         if role[1]!='Datas'                               : raisea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The data chosen for exporting the goal function solution is not compatible, in the step '+self.name)
+#         if role[1]!='DataObjects'                               : raisea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The data chosen for exporting the goal function solution is not compatible, in the step '+self.name)
 #       elif role[0] == 'Function'       :
 #         functionCounter+=1
 #         foundFunction   = True
@@ -371,7 +371,7 @@ class MultiRun(SingleRun):
 #
 class RomTrainer(Step):
   '''This step type is used only to train a ROM
-    @Input, DataBase (for example, HDF5)
+    @Input, Database (for example, HDF5)
   '''
   def __init__(self):
     Step.__init__(self)
@@ -482,11 +482,11 @@ class IOStep(Step):
     for i in range(len(outputs)):
       if type(inDictionary['Input'][i]).__name__ == 'HDF5':
           if isinstance(outputs[i],Data):
-            self.actionType.append('HDF5-DATAS')
-          else: self.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts A Datas as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
+            self.actionType.append('HDF5-dataObjects')
+          else: self.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
       elif  isinstance(inDictionary['Input'][i],Data):
           if type(outputs[i]).__name__ == 'HDF5':
-            self.actionType.append('DATAS-HDF5')
+            self.actionType.append('dataObjects-HDF5')
           else: self.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a Datas. Got ' + inDictionary['Output'][i].type)
       elif isinstance(inDictionary['Input'][i],Models.ROM):
           if type(outputs[i]).__name__ in ['str','bytes','unicode']:
@@ -497,7 +497,7 @@ class IOStep(Step):
             self.actionType.append('FILES-ROM')
          else: self.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
 
-      else: self.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts Datas, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
+      else: self.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
 
     #Initialize all the HDF5 outputs.
     for i in range(len(outputs)):
@@ -508,10 +508,10 @@ class IOStep(Step):
             outputs[i].initialize(self.name)
             self.raiseADebug(self,'for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(outputs[i].type,outputs[i].name))
 
-    #if have a fromDirectory and are a DATAS-*, need to load data
+    #if have a fromDirectory and are a dataObjects-*, need to load data
     if self.fromDirectory:
       for i in range(len(inDictionary['Input'])):
-        if self.actionType[i].startswith('DATAS-'):
+        if self.actionType[i].startswith('dataObjects-'):
           inInput = inDictionary['Input'][i]
           inInput.loadXML_CSV(self.fromDirectory)
 
@@ -524,12 +524,12 @@ class IOStep(Step):
   def _localTakeAstepRun(self,inDictionary):
     outputs = self.__getOutputs(inDictionary)
     for i in range(len(outputs)):
-      if self.actionType[i] == 'HDF5-DATAS':
-        #inDictionary['Input'][i] is HDF5, outputs[i] is a Datas
+      if self.actionType[i] == 'HDF5-dataObjects':
+        #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
         outputs[i].addOutput(inDictionary['Input'][i])
-      elif self.actionType[i] == 'DATAS-HDF5':
-        #inDictionary['Input'][i] is a datas, outputs[i] is HDF5
-        outputs[i].addGroupDatas({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
+      elif self.actionType[i] == 'dataObjects-HDF5':
+        #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
+        outputs[i].addGroupDataObjects({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         fileobj = open(outputs[i],'wb+')
@@ -561,7 +561,7 @@ __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
 #__interFaceDict['Adaptive'         ] = Adaptive
 __interFaceDict['IOStep'           ] = IOStep
-__interFaceDict['IODataBase'       ] = IOStep
+__interFaceDict['IODatabase'       ] = IOStep
 __interFaceDict['RomTrainer'       ] = RomTrainer
 __interFaceDict['PostProcess'      ] = SingleRun
 __interFaceDict['OutStreamStep'    ] = IOStep

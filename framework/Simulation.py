@@ -18,12 +18,12 @@ import string
 
 #Internal Modules------------------------------------------------------------------------------------
 import Steps
-import Datas
+import DataObjects
 import Samplers
 import Models
 import Tests
 import Distributions
-import DataBases
+import Databases
 import Functions
 import OutStreamManager
 from JobHandler import JobHandler
@@ -333,12 +333,12 @@ class Simulation(MessageHandler.MessageUser):
     #the keywords are the name of the module that contains the specialization of that specific entity
     self.addWhatDict  = {}
     self.addWhatDict['Steps'            ] = Steps
-    self.addWhatDict['Datas'            ] = Datas
+    self.addWhatDict['DataObjects'            ] = DataObjects
     self.addWhatDict['Samplers'         ] = Samplers
     self.addWhatDict['Models'           ] = Models
     self.addWhatDict['Tests'            ] = Tests
     self.addWhatDict['Distributions'    ] = Distributions
-    self.addWhatDict['DataBases'        ] = DataBases
+    self.addWhatDict['Databases'        ] = Databases
     self.addWhatDict['Functions'        ] = Functions
     self.addWhatDict['OutStreamManager' ] = {}
     self.addWhatDict['OutStreamManager' ]['Plot' ] = OutStreamManager
@@ -347,14 +347,14 @@ class Simulation(MessageHandler.MessageUser):
     #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.whichDict = {}
     self.whichDict['Steps'           ] = self.stepsDict
-    self.whichDict['Datas'           ] = self.dataDict
+    self.whichDict['DataObjects'           ] = self.dataDict
     self.whichDict['Samplers'        ] = self.samplersDict
     self.whichDict['Models'          ] = self.modelsDict
     self.whichDict['Tests'           ] = self.testsDict
     self.whichDict['RunInfo'         ] = self.runInfoDict
     self.whichDict['Files'           ] = self.filesDict
     self.whichDict['Distributions'   ] = self.distributionsDict
-    self.whichDict['DataBases'       ] = self.dataBasesDict
+    self.whichDict['Databases'       ] = self.dataBasesDict
     self.whichDict['Functions'       ] = self.functionsDict
     self.whichDict['OutStreamManager'] = {}
     self.whichDict['OutStreamManager']['Plot' ] = self.OutStreamManagerPlotDict
