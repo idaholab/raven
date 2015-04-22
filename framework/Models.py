@@ -555,7 +555,7 @@ class ExternalModel(Dummy):
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
     instanciatedSelf = finishedJob.returnEvaluation()[1][1]
     outcomes         = finishedJob.returnEvaluation()[1][0]
-    for key in finishedJob.returnEvaluation()[1][0]:
+    for key in instanciatedSelf.modelVariableType.keys():
       if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
         utils.raiseAnError(RuntimeError,self,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
     Dummy.collectOutput(self, finishedJob, output)
