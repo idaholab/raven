@@ -178,6 +178,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta)):
   def printXML(self,rootnode,options=None):
     '''
       Allows the SVE to put whatever it wants into an XML to print to file.
+      @ In, rootnode, the root node of an XML tree to print to
       @ In, options, dict of string-based options to use, including filename, things to print, etc
       @ Out, treedict, dict of strings to be printed
     '''
@@ -188,6 +189,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta)):
   def _localPrintXML(self,node,options=None):
     '''
       Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
+      @ In, node, the node to which strings should have text added
       @ In, options, dict of string-based options to use, including filename, things to print, etc
       @ Out, treedict, dict of strings to be printed
     '''
