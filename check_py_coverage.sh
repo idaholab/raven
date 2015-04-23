@@ -52,7 +52,6 @@ cd tests/framework
 
 coverage erase
 #skip test_rom_trainer.xml
-echo $(pwd)
 for I in $(python ../../get_coverage_tests.py)
 do
     echo Running $I
