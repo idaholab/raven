@@ -1111,6 +1111,8 @@ accurately produce the necessary sparse grid points to train this ROM.
 </Simulation>
 \end{lstlisting}
 
+When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are \xmlString{mean} and \xmlString{variance}.
+
 %%%%% ROM Model - HDMRRom  %%%%%%% 
 \subsubsection{HDMRRom}
 \label{subsubsec:HDMRRom}
@@ -1171,6 +1173,8 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
     ...
   </Models>
 \end{lstlisting}
+
+When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are \xmlString{mean}, \xmlString{variance}, and \xmlString{indices}.  In the latter case, the total calculated variance is printed, followed by the percent of contributing variance for each existing subset of the input domain (the Sobol indices).
 
 %%%%% ROM Model - NDinvDistWeight  %%%%%%%
 \subsubsection{NDinvDistWeight}

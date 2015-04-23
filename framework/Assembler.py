@@ -46,7 +46,7 @@ class Assembler(object):
       for value  in val:
         if value[0] not in needDict.keys(): needDict[value[0]] = []
         needDict[value[0]].append((value[1],value[2]))
-    utils.raiseAMessage(self,'needDict: '+str(needDict),'DEBUG')
+    #utils.raiseAMessage(self,'needDict: '+str(needDict),'DEBUG')
     return needDict
 
   def generateAssembler(self,initDict):
