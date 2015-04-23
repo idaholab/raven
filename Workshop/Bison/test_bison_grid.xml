@@ -141,9 +141,9 @@
         <Input   class = 'Files'      type=''          >smeared.e</Input>
         <Model   class = 'Models'     type='Code'      >Bison-opt</Model>
         <Sampler class = 'Samplers'   type='LHS'>Bison1</Sampler>
-        <Output  class = 'DataBases'  type='HDF5'      >MyDatabaseGrid3</Output>
-        <Output     class='Datas'      type='Histories' >stories</Output>
-        <Output     class='Datas'      type='TimePointSet' >timepointset</Output>
+        <Output  class = 'Databases'  type='HDF5'      >MyDatabaseGrid3</Output>
+        <Output     class='DataObjects'      type='Histories' >stories</Output>
+        <Output     class='DataObjects'      type='TimePointSet' >timepointset</Output>
         <Output    class='OutStreamManager' type='Plot'>Plot1</Output>
         <!-- <Output    class='OutStreamManager' type='Plot'>Plot2</Output>
         <Output    class='OutStreamManager' type='Plot'>Plot3</Output> -->
@@ -151,17 +151,17 @@
         <Output    class='OutStreamManager' type='Plot'>Plot5</Output>
     </MultiRun >
     <!-- <SingleRun name='extract_hist_lhs'>
-      <Input   class='DataBases' type='HDF5'   >MyDatabaseGrid3</Input>
+      <Input   class='Databases' type='HDF5'   >MyDatabaseGrid3</Input>
       <Model   class='Models'    type='Filter' >csv_from_hdf5</Model>
       <Output  class='Files'     type=''       >histories.csv</Output>
     </SingleRun> -->
     <!-- <PostProcessing name = 'printCSV'>
-        <Input   class = 'DataBases' type='HDF5'   >MyDatabaseGrid3</Input>
+        <Input   class = 'Databases' type='HDF5'   >MyDatabaseGrid3</Input>
         <Model   class = 'Models'    type='Filters'>printing</Model>
         <Output  class = 'Files'     type=''      >BisonOut.csv</Output>
     </PostProcessing> -->
 </Steps>
-<Datas>
+<DataObjects>
     <Histories name='stories'>
         <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
         <Output>max_stress,avg_clad_temp,ave_temp_interior,fis_gas_released</Output>
@@ -170,10 +170,10 @@
         <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
         <Output>max_stress,avg_clad_temp,ave_temp_interior,fis_gas_released</Output>
    </TimePointSet>
-</Datas>
-<DataBases>
+</DataObjects>
+<Databases>
     <HDF5 name = 'MyDatabaseGrid3'/>
-</DataBases>
+</Databases>
 <!--
 <Tests>
     <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>

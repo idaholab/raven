@@ -57,23 +57,23 @@
 <Steps>
 <!-- Read the data from a csv into the hdf5 database used by this run -->
     <IOStep name='loadData1' fromDirectory='.'>
-      <Input  class='Datas'    type='TimePointSet'>testData</Input>
-      <Output   class='DataBases' type='HDF5'   >myDB</Output>
+      <Input  class='DataObjects'    type='TimePointSet'>testData</Input>
+      <Output   class='Databases' type='HDF5'   >myDB</Output>
     </IOStep> 
     <IOStep name='loadData2' fromDirectory='.'>
-      <Input  class='Datas'    type='TimePointSet'>testData2</Input>
-      <Output   class='DataBases' type='HDF5'   >myDB</Output>
+      <Input  class='DataObjects'    type='TimePointSet'>testData2</Input>
+      <Output   class='Databases' type='HDF5'   >myDB</Output>
     </IOStep> 
 <!-- Perform the sum and difference operators using the function interface -->
     <PostProcess name='applyFunctions'>
-        <Input    class='Datas'     type='TimePointSet' >testData2</Input>
-        <Input    class='Datas'     type='TimePointSet' >testData</Input>
+        <Input    class='DataObjects'     type='TimePointSet' >testData2</Input>
+        <Input    class='DataObjects'     type='TimePointSet' >testData</Input>
         <Model    class='Models'    type='PostProcessor'>functionPP</Model>
-        <Output   class='Datas'     type='TimePointSet' >outTPS</Output>
+        <Output   class='DataObjects'     type='TimePointSet' >outTPS</Output>
     </PostProcess>
 <!-- Write the results to a csv -->
     <IOStep name='saveData'>
-      <Input  class='Datas'            type='TimePointSet'>outTPS</Input>
+      <Input  class='DataObjects'            type='TimePointSet'>outTPS</Input>
       <Output class='OutStreamManager' type='Print'       >myDump</Output>
     </IOStep> 
 </Steps>
@@ -86,11 +86,11 @@
   </Print>
 </OutStreamManager>
 
-<DataBases>
+<Databases>
 <!-- The necessary database object -->
   <HDF5 name="myDB"/> 
-</DataBases>
-<Datas>
+</Databases>
+<DataObjects>
 <!-- The input TimePointSet objects -->
   <TimePointSet name='testData'>
     <Input>X,Y</Input>
@@ -105,5 +105,5 @@
     <Input>A,B,X</Input>
     <Output>Z,Sum,Norm,advOps.Delta,Max</Output>
   </TimePointSet>
-</Datas>
+</DataObjects>
 </Simulation>

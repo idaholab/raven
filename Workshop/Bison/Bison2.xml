@@ -7,9 +7,9 @@
 </RunInfo>
 
 
-<DataBases>
+<Databases>
   <HDF5 name="BisonDB" directory='.' filename='BisonDB.h5'/>
-</DataBases>
+</Databases>
 
 <Distributions>
   <Uniform   name='FlatPowerHistory'>
@@ -101,7 +101,7 @@
    </PostProcessor>
 </Models>
 
-<Datas>
+<DataObjects>
   <TimePointSet name='OriData'>
     <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
     <Output>average_creep_strain_hoop</Output>
@@ -126,58 +126,58 @@
     <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
     <Output>OutputPlaceHolder</Output>
   </TimePointSet>
-</Datas>
+</DataObjects>
 
 <Steps>
-  <IODataBase name='extractHDf5' pauseAtEnd='True'>
-    <Input   class = 'DataBases'         type = 'HDF5'         >BisonDB</Input >
-    <Output  class = 'Datas'             type = 'TimePointSet' >OriData</Output>
+  <IODatabase name='extractHDf5' pauseAtEnd='True'>
+    <Input   class = 'Databases'         type = 'HDF5'         >BisonDB</Input >
+    <Output  class = 'DataObjects'             type = 'TimePointSet' >OriData</Output>
     <Output  class = 'OutStreamManager'  type = 'Plot'         >StressVsPowerGrain</Output>
     <Output  class = 'OutStreamManager'  type = 'Plot'         >StressVsThCoeffGrain</Output>
     <Output  class = 'OutStreamManager'  type = 'Plot'         >StressVsThCoeffPower</Output>    
-  </IODataBase>
+  </IODatabase>
   <RomTrainer name = 'BisonRomTrainer'>
-     <Input  class = 'Datas'             type = 'TimePointSet' >OriData</Input>
+     <Input  class = 'DataObjects'             type = 'TimePointSet' >OriData</Input>
      <Output class = 'Models'            type = 'ROM'          >BisonROM</Output>
   </RomTrainer>
   <MultiRun name='MCrun1'>
     <Sampler class = 'Samplers'          type ='MonteCarlo'    >MC1</Sampler>
-    <Input   class = 'Datas'             type ='TimePointSet'  >dummy</Input>    
+    <Input   class = 'DataObjects'             type ='TimePointSet'  >dummy</Input>    
     <Model   class = 'Models'            type ='ROM'           >BisonROM</Model>
-    <Output  class = 'Datas'             type ='TimePointSet'  >MC1</Output>
+    <Output  class = 'DataObjects'             type ='TimePointSet'  >MC1</Output>
   </MultiRun >
   <MultiRun name='MCrun2'>
     <Sampler class = 'Samplers'          type ='MonteCarlo'    >MC2</Sampler>
-    <Input   class = 'Datas'             type ='TimePointSet'  >dummy</Input>    
+    <Input   class = 'DataObjects'             type ='TimePointSet'  >dummy</Input>    
     <Model   class = 'Models'            type ='ROM'           >BisonROM</Model>
-    <Output  class = 'Datas'             type ='TimePointSet'  >MC2</Output>
+    <Output  class = 'DataObjects'             type ='TimePointSet'  >MC2</Output>
   </MultiRun >
   <OutStreamStep name='MCplots' pauseAtEnd='True'>
-    <Input   class = 'Datas'             type ='TimePointSet'  >MC1</Input>
-    <Input   class = 'Datas'             type ='TimePointSet'  >MC2</Input> 
+    <Input   class = 'DataObjects'             type ='TimePointSet'  >MC1</Input>
+    <Input   class = 'DataObjects'             type ='TimePointSet'  >MC2</Input> 
     <Output  class = 'OutStreamManager'  type ='Plot'          >MC1</Output>
     <Output  class = 'OutStreamManager'  type ='Plot'          >MC2</Output>
   </OutStreamStep>
   <PostProcess name='PPmc1'>
-    <Input   class = 'Datas'             type = 'TimePointSet' >MC1</Input>
+    <Input   class = 'DataObjects'             type = 'TimePointSet' >MC1</Input>
     <Model   class = 'Models'            type = 'PostProcessor'>StatStandard</Model>
   </PostProcess>
   <PostProcess name = 'PPmc2'>
-    <Input    class = 'Datas'            type = 'TimePointSet' >MC2</Input>
+    <Input    class = 'DataObjects'            type = 'TimePointSet' >MC2</Input>
     <Model    class = 'Models'           type = 'PostProcessor'>StatStandard</Model>
   </PostProcess>
 
   <Adaptive name='adaptive' pauseAtEnd='True'>
-    <Input             class = 'Datas'            type = 'TimePointSet'>dummy</Input>
+    <Input             class = 'DataObjects'            type = 'TimePointSet'>dummy</Input>
     <Sampler           class = 'Samplers'         type = 'Adaptive'    >AdaptiveSampler</Sampler>
-    <TargetEvaluation  class = 'Datas'            type = 'TimePointSet'>TestedPoint</TargetEvaluation>
-    <SolutionExport    class = 'Datas'            type = 'TimePointSet'>limitSurf</SolutionExport>
+    <TargetEvaluation  class = 'DataObjects'            type = 'TimePointSet'>TestedPoint</TargetEvaluation>
+    <SolutionExport    class = 'DataObjects'            type = 'TimePointSet'>limitSurf</SolutionExport>
     <Function          class = 'Functions'        type = 'External'    >AVGstressThreshold</Function>
     <Model             class = 'Models'           type = 'ROM'         >BisonROM</Model>
     <ROM               class = 'Models'           type = 'ROM'         >Acc</ROM>
-    <Output            class = 'Datas'            type = 'TimePointSet'>TestedPoint</Output>
-    <Output            class = 'Datas'            type = 'TimePointSet'>OriData</Output>
-    <Output            class = 'Datas'            type = 'TimePointSet'>limitSurf</Output>
+    <Output            class = 'DataObjects'            type = 'TimePointSet'>TestedPoint</Output>
+    <Output            class = 'DataObjects'            type = 'TimePointSet'>OriData</Output>
+    <Output            class = 'DataObjects'            type = 'TimePointSet'>limitSurf</Output>
     <Output            class = 'OutStreamManager' type = 'Plot'        >LimitSurf</Output>
     <Output            class = 'OutStreamManager' type = 'Plot'        >TestedPoint</Output>    
   </Adaptive>

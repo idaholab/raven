@@ -48,13 +48,13 @@
         <Input   type='Files'     subtype=''            >test_fire.py</Input>
         <Model   type='Models'    subtype='ExternalModule' >PythonModule</Model>
         <Sampler type='Samplers'  subtype='MonteCarlo'   >MC_external</Sampler>
-        <Output  type='Datas'     subtype='TimePointSet'>outcome_fire_flames_hell_noHeaven_Caronte_occhiDiBragia_Stupido_chi_legge_tutto</Output>
-        <Output  type='Datas'     subtype='Histories'>test_histories</Output>
+        <Output  type='DataObjects'     subtype='TimePointSet'>outcome_fire_flames_hell_noHeaven_Caronte_occhiDiBragia_Stupido_chi_legge_tutto</Output>
+        <Output  type='DataObjects'     subtype='Histories'>test_histories</Output>
     </MultiRun>
 </Steps>
 
 
-<Datas>
+<DataObjects>
     <TimePointSet name='outcome_fire_flames_hell_noHeaven_Caronte_occhiDiBragia_Stupido_chi_legge_tutto' printCSV='t'>
         <Input>NumberOfFires</Input>
         <Output>outcome</Output>
@@ -63,7 +63,7 @@
         <Input>NumberOfFires</Input>
         <Output>testHistOut</Output>
    </Histories>
-</Datas>
+</DataObjects>
 
 
 
