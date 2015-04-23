@@ -1107,10 +1107,13 @@ class OutStreamPlot(OutStreamManager):
     self.plt.draw()
     #self.plt3D.draw(self.fig.canvas.renderer)
     if 'screen' in self.options['how']['how'].split(',') and disAvail:
-      def handle_close(event):
-        self.fig.canvas.stop_event_loop()
-        utils.raiseAMessage(self,'Closed Figure')
-      self.fig.canvas.mpl_connect('close_event',handle_close)
+      if platform.system() == 'Linux':
+        #XXX For some reason, this is required on Linux, but causes
+        # OSX to fail.  Which is correct for windows has not been determined.
+        def handle_close(event):
+          self.fig.canvas.stop_event_loop()
+          utils.raiseAMessage(self,'Closed Figure')
+        self.fig.canvas.mpl_connect('close_event',handle_close)
       self.fig.show()
       #if blockFigure: self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
     for i in range(len(self.options['how']['how'].split(','))):
@@ -1120,7 +1123,15 @@ class OutStreamPlot(OutStreamManager):
         self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])
 
 class OutStreamPrint(OutStreamManager):
+  '''
+    Class for managing the printing of files as outstream.
+  '''
   def __init__(self):
+    '''
+      Initializes.
+      @ In, None
+      @ Out, None
+    '''
     OutStreamManager.__init__(self)
     self.type = 'OutStreamPrint'
     self.availableOutStreamTypes = ['csv','xml']
@@ -1149,6 +1160,11 @@ class OutStreamPrint(OutStreamManager):
     if 'variables' in self.options.keys(): self.variables = self.options['variables']
 
   def addOutput(self):
+    '''
+      Calls output functions on desired instances
+      @ In, None
+      @ Out, None
+    '''
     if self.variables: dictOptions = {'filenameroot':self.name,'variables':self.variables}
     else             : dictOptions = {'filenameroot':self.name}
     if 'what' in self.options.keys(): dictOptions['what']=self.options['what']
@@ -1164,10 +1180,8 @@ class OutStreamPrint(OutStreamManager):
         if type(self.sourceData[index])==DataObjects.Data: empty = self.sourceData[index].isItEmpty()
         else: empty=False
         if not empty:
-          self.sourceData[index].printXML(dictOptions)
-          #FIXME put back to try-except after implementing
-          #try: self.sourceData[index].printXML(dictOptions)
-          #except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type '+str(type(self.sourceData[index]))+' and output type "xml"!')
+          try: self.sourceData[index].printXML(dictOptions)
+          except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type '+str(type(self.sourceData[index]))+' and output type "xml"!')
 
 '''
  Interface Dictionary (factory) (private)

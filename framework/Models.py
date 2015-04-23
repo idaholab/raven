@@ -127,7 +127,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
-        utils.raiseAnError(IOError,self,'It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
+        utils.raiseAnError(IOError,cls,'It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
     return True
 
   def __init__(self):
