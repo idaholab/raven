@@ -52,7 +52,7 @@ cd tests/framework
 
 coverage erase
 #skip test_rom_trainer.xml
-for I in $(python ${SCRIPT_DIR}/get_coverage_tests.py)
+for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py)
 do
     echo Running $I
     coverage run $EXTRA ../../framework/Driver.py  $I
