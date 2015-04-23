@@ -1154,13 +1154,13 @@ class OutStreamPrint(OutStreamManager):
     if 'target' in self.options.keys(): dictOptions['target']=self.options['target']
     for index in range(len(self.sourceName)):
       if self.options['type']=='csv':
-        if type(self.sourceData[index])==Datas.Data: empty = self.sourceData[index].isItEmpty()
+        if type(self.sourceData[index])==DataObjects.Data: empty = self.sourceData[index].isItEmpty()
         else: empty=False
         if not empty:
           try: self.sourceData[index].printCSV(dictOptions)
           except AttributeError: utils.raiseAnError(IOError,self,'no implementation for source type '+str(type(self.sourceData[index]))+' and output type "csv"!')
       elif self.options['type']=='xml':
-        if type(self.sourceData[index])==Datas.Data: empty = self.sourceData[index].isItEmpty()
+        if type(self.sourceData[index])==DataObjects.Data: empty = self.sourceData[index].isItEmpty()
         else: empty=False
         if not empty:
           self.sourceData[index].printXML(dictOptions)
