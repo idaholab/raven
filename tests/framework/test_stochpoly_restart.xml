@@ -8,42 +8,42 @@
 
     <Steps>
         <MultiRun name='make1'>
-            <Sampler class='Samplers'  type='SparseGridCollocation'>SG</Sampler>
-            <Input   class='Datas'     type='TimePointSet'         >dummyIN</Input>
-            <Model   class='Models'    type='ExternalModel'        >poly</Model>
-            <Output  class='Datas'     type='TimePointSet'         >solns</Output>
+            <Sampler class='Samplers'    type='SparseGridCollocation'>SG</Sampler>
+            <Input   class='DataObjects' type='TimePointSet'         >dummyIN</Input>
+            <Model   class='Models'      type='ExternalModel'        >poly</Model>
+            <Output  class='DataObjects' type='TimePointSet'         >solns</Output>
         </MultiRun>
         <RomTrainer name='train1'>
-            <Input   class='Datas'    type='TimePointSet'>solns</Input>
-            <Output  class='Models'   type='ROM'         >rom</Output>
+            <Input   class='DataObjects' type='TimePointSet'>solns</Input>
+            <Output  class='Models'      type='ROM'         >rom</Output>
         </RomTrainer>
         <OutStreamStep name='print1'>
-            <Input  class='Datas'   type='TimePointSet'  >solns</Input>
-            <Output class='OutStreamManager' type='Print'>dump1</Output>
+            <Input  class='DataObjects'      type='TimePointSet'>solns</Input>
+            <Output class='OutStreamManager' type='Print'       >dump1</Output>
         </OutStreamStep>
         <MultiRun name='make2'>
-            <Sampler class='Samplers'  type='SparseGridCollocation'>SG2</Sampler>
-            <Input   class='Datas'     type='TimePointSet'         >solns</Input>
-            <Model   class='Models'    type='ExternalModel'        >poly</Model>
-            <Output  class='Datas'     type='TimePointSet'         >solns</Output>
-            <Output  class='Datas'     type='TimePointSet'         >solns2</Output>
+            <Sampler class='Samplers'    type='SparseGridCollocation'>SG2</Sampler>
+            <Input   class='DataObjects' type='TimePointSet'         >solns</Input>
+            <Model   class='Models'      type='ExternalModel'        >poly</Model>
+            <Output  class='DataObjects' type='TimePointSet'         >solns</Output>
+            <Output  class='DataObjects' type='TimePointSet'         >solns2</Output>
         </MultiRun>
         <RomTrainer name='train2'>
-            <Input   class='Datas'    type='TimePointSet'>solns</Input>
-            <Output  class='Models'   type='ROM'         >rom2</Output>
+            <Input   class='DataObjects' type='TimePointSet'>solns</Input>
+            <Output  class='Models'      type='ROM'         >rom2</Output>
         </RomTrainer>
         <OutStreamStep name='print2'>
-            <Input  class='Datas'   type='TimePointSet'  >solns2</Input>
-            <Output class='OutStreamManager' type='Print'>dump2</Output>
+            <Input  class='DataObjects'      type='TimePointSet'>solns2</Input>
+            <Output class='OutStreamManager' type='Print'       >dump2</Output>
         </OutStreamStep>
         <OutStreamStep name='print3'>
-            <Input  class='Datas'   type='TimePointSet'  >solns</Input>
-            <Output class='OutStreamManager' type='Print'>dump3</Output>
+            <Input  class='DataObjects'      type='TimePointSet'>solns</Input>
+            <Output class='OutStreamManager' type='Print'       >dump3</Output>
         </OutStreamStep>
     </Steps>
 
     <Distributions>
-        <Uniform name="UniDist"><low>1</low><high>5</high></Uniform>
+        <Uniform name="UniDist"><lowerBound>1</lowerBound><upperBound>5</upperBound></Uniform>
     </Distributions>
 
     <Samplers>
@@ -56,7 +56,7 @@
             <variable name="x1"><distribution>UniDist</distribution></variable>
             <variable name="x2"><distribution>UniDist</distribution></variable>
             <ROM              class='Models' type ='ROM'        >rom2</ROM>
-            <Restart          class='Datas'  type='TimePointSet'>solns</Restart>
+            <Restart          class='DataObjects'  type='TimePointSet'>solns</Restart>
         </SparseGridCollocation>
     </Samplers>
 
@@ -86,7 +86,7 @@
         </ROM>
     </Models>
 
-    <Datas>
+    <DataObjects>
         <TimePointSet name="dummyIN">
             <Input>x1,x2</Input>
             <Output>OutputPlaceHolder</Output>
@@ -99,7 +99,7 @@
             <Input>x1,x2</Input>
             <Output>ans,ans2</Output>
         </TimePointSet>
-    </Datas>
+    </DataObjects>
 
     <OutStreamManager>
         <Print name='dump1'><type>csv</type><source>solns</source></Print>
