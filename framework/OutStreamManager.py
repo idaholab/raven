@@ -1103,10 +1103,13 @@ class OutStreamPlot(OutStreamManager):
     self.plt.draw()
     #self.plt3D.draw(self.fig.canvas.renderer)
     if 'screen' in self.options['how']['how'].split(',') and disAvail:
-      def handle_close(event):
-        self.fig.canvas.stop_event_loop()
-        utils.raiseAMessage(self,'Closed Figure')
-      self.fig.canvas.mpl_connect('close_event',handle_close)
+      if platform.system() == 'Linux':
+        #XXX For some reason, this is required on Linux, but causes
+        # OSX to fail.  Which is correct for windows has not been determined.
+        def handle_close(event):
+          self.fig.canvas.stop_event_loop()
+          utils.raiseAMessage(self,'Closed Figure')
+        self.fig.canvas.mpl_connect('close_event',handle_close)
       self.fig.show()
       #if blockFigure: self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
     for i in range(len(self.options['how']['how'].split(','))):
