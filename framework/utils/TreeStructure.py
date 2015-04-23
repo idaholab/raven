@@ -17,6 +17,7 @@ class Node(object):
       Initialize Tree,
       @ In, name, String, is the node name
       @ In, valuesin, is a dictionary of values
+      @ In, text, the node's text, as <name>text</name>
     '''
     values         = valuesin.copy()
     self.name      = name
@@ -69,6 +70,11 @@ class Node(object):
     self._branches.append(node)
 
   def updateDepth(self):
+    '''
+      updates the 'depth' parameter throughout the tree
+      @In, None
+      @Out, None
+    '''
     if self.parent=='root': self.depth=0
     else: self.depth = self.parent.depth+1
     for node in self._branches:
@@ -228,6 +234,11 @@ class Node(object):
     return result
 
   def setText(self,entry):
+    '''
+      Sets the text of the node, as <node>text</node>.
+      @ In, entry, string to store as node text
+      @ Out, None
+    '''
     self.text = str(entry)
 
   def writeNode(self,dumpFileObj):
@@ -243,6 +254,11 @@ class Node(object):
     if self.numberBranches()>0: dumpFileObj.write(' '+'  '*self.depth + '</branch>\n')
 
   def stringNode(self,msg):
+    '''
+      As writeNode, but returns a string representation of the tree instead of writing it to file.
+      @ In, msg, the string to populate
+      @ Out, msg, the modified string
+    '''
     msg+=''+'  '*self.depth + '<' + self.name + '>'+self.text
     if self.numberBranches()==0:msg+='</'+self.name+'>'
     msg+='\n'
@@ -345,6 +361,11 @@ class NodeTree(object):
     if type(dumpFile) in [str,unicode,bytes]: myFile.close()
 
   def stringNodeTree(self,msg=''):
+    '''
+      As writeNodeTree, but creates a string representation instead of writing to a file.
+      @ In, msg, the string to populate
+      @ Out, msg, the populated string
+    '''
     msg=str(msg)
     msg=self._rootnode.stringNode(msg)
     return msg
