@@ -460,8 +460,8 @@ def printCsv(csv,*args):
 
 def printCsvPart(csv,*args):
     '''
-      Writes the values contained in args to a csv file specified by csv appending a comma 
-      to the end to allow more data to be written to the line. 
+      Writes the values contained in args to a csv file specified by csv appending a comma
+      to the end to allow more data to be written to the line.
       @ In, csv, an open file object to which we will be writing
       @ In, args, an arbitrary collection of values to write to the file
     '''
