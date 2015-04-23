@@ -147,19 +147,19 @@ Additionally, the user can inquire special methods of a \textbf{ROM} after train
 through a printing step.
 %
 Currently, the only available output is a \textbf{C}omma \textbf{S}eparated
-\textbf{V}alue (\textbf{CSV}) file for \textbf{Datas} objects, and \textbf{XML}
+\textbf{V}alue (\textbf{CSV}) file for \textbf{DataObjects}, and \textbf{XML}
 for \textbf{ROM} objects.
 %
 %In the near future, an XML formatted file option will be available.
 %
 This will facilitate the exchanging of results and provide the possibility to
 dump the solution of an analysis and ``restart'' another one constructing a
-\textit{Data} from scratch, as well as access advanced features of particular
+data object from scratch, as well as access advanced features of particular
 reduced order models.
 %
-\subsubsection{\textbf{Datas} Printing}
+\subsubsection{\textbf{DataObjects} Printing}
 The XML code, that is reported below, shows different ways to request a
-\textit{Print} OutStream for \textbf{Datas} objects.
+\textit{Print} OutStream for \textbf{DataObjects}.
 %
 The user needs to provide a name for each sub-block (XML attribute).
 %
@@ -173,8 +173,8 @@ least, the two required tags:
   \itemsep0em
   \item \xmlNode{type}, the output file type (csv or xml).
   %
-  \nb Only \textbf{csv} is currently available for Datas objects
-  \item \xmlNode{source}, the \textit{Data} name (one of the \textit{Data} 
+  \nb Only \textbf{csv} is currently available for \xmlNode{DataObjects}
+  \item \xmlNode{source}, the \textit{Data} name (one of the \textit{Data} items
   defined in the \xmlNode{DataObjects} block.
 \end{itemize}
 \vspace{-5mm}
@@ -228,7 +228,7 @@ The available options, for the \xmlNode{variables} sub-block, are listed below:
 Note all of the XML tags are case-sensitive but not their content.
 
 \subsubsection{\textbf{ROM} Printing}
-While all \textbf{ROM}s in RAVEN are designed to be used as a surrogate model,
+While all \textbf{ROM}s in RAVEN are designed to be used as surrogate models,
 some \textbf{ROM}s additionally offer information about the original model that
 isn't accessible through another means.  For instance, \textbf{HDMRRom} objects
 can calculate sensitivity coefficients for subsets of the input domain.
@@ -249,16 +249,16 @@ three required tags
   \item \xmlNode{type}, the output file type (csv or xml).
   %
   \nb Only \textbf{xml} is currently available for ROMs
-  \item \xmlNode{source}, the \textit{Rom} name (one of the \textit{ROM} 
+  \item \xmlNode{source}, the \textit{ROM} name (one of the \xmlNode{ROM} items
   defined in the \xmlNode{Models} block.
     %
   \item \xmlNode{what}, the comma-separated list of desired metrics.
   The list of metrics available in each ROM is listed under that ROM
   type in Section \ref{subsec:models_ROM}.  Alternatively, the
-  keyward \xmlString{all} can be provided to request all available metrics, if any.
+  keyword \xmlString{all} can be provided to request all available metrics, if any.
 \end{itemize}
 \vspace{-5mm}
-Addtionally, when printing ROMs one optional nodes are available,
+Addtionally, when printing ROMs one optional node is available,
 \vspace{-5mm}
 \begin{itemize}
   \itemsep0em
@@ -266,7 +266,7 @@ Addtionally, when printing ROMs one optional nodes are available,
 
 \end{itemize}
 \vspace{-5mm}
-ROM printing uses the same naming conventions as Datas printing.
+ROM printing uses the same naming conventions as DataObjects printing.
 Examples:
 \begin{lstlisting}[style=XML]
 <OutStreamManager>
