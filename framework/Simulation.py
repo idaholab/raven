@@ -127,7 +127,7 @@ def createAndRunQSUB(simulation):
              os.path.join(frameworkDir,"raven_qsub_command.py")]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
-  utils.raiseAMessage('SIMULATION->QSUB',os.getcwd()+' '+command)
+  utils.raiseAMessage('SIMULATION->QSUB',os.getcwd()+' '+str(command))
   subprocess.call(command)
 
 
