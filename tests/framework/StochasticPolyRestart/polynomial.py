@@ -1,3 +1,8 @@
+#***************************************
+#* Simple analytic test ExternalModule *
+#***************************************
+#
+# Evaluates ans=x+y and ans2=x^2+y^2.
 import numpy as np
 
 def eval(inp,exp):

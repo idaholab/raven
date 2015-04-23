@@ -362,17 +362,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
     return tot
 
   def __trainLocal__(self,featureVals,targetVals):
+    '''See base class.'''
     self.polyCoeffDict={}
-    #check consistency of featureVals
-    #there might be more points than we need, so don't error on this
-    #if len(featureVals)!=len(self.sparseGrid):
-    #  utils.raiseAnError(IOError,self,'ROM requires '+str(len(self.sparseGrid))+' points, but '+str(len(featureVals))+' provided!')
     #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
     self.sparseGrid._remap(self.features)
     utils.raiseAMessage(self,'types: '+str(type(self.sparseGrid.points()))+' | '+str(type(featureVals)))
     #check equality of point space
-    #fvs=sorted(fvs,key=itemgetter(*range(len(fvs[0]))))
-    #sgs=sorted(sgs,key=itemgetter(*range(len(sgs[0]))))
     fvs = []
     tvs=[]
     sgs = self.sparseGrid.points()[:]
@@ -386,7 +381,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
         missing.append(pt)
     if len(missing)>0:
       msg='\n'
-      #if not np.allclose(fvs,sgs,rtol=1e-15):
       msg+='DEBUG missing feature vals:\n'
       for i in missing:
         msg+='  '+str(i)+'\n'
@@ -410,7 +404,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
     self.amITrained=True
-    #self.printPolyDict()
 
   def printPolyDict(self,printZeros=False):
     '''Human-readable version of the polynomial chaos expansion.

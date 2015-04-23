@@ -2335,6 +2335,7 @@ class SparseGridCollocation(Grid):
     self.requiredAssObject = (True,(['ROM','Restart'],['1','n']),) # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def _localWhatDoINeed(self):
+    '''See base class.'''
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
     return gridDict
@@ -2476,7 +2477,12 @@ class SparseGridCollocation(Grid):
       self.importanceDict[varName] = float(dat['weight'])
 
   def localGenerateInput(self,model,myInput):
-    '''Provide the next point in the sparse grid.'''
+    '''
+      Provide the next point in the sparse grid.
+      @ In, model, the model to evaluate
+      @ In, myInput, list of oritinal inputs
+      @ Out, None
+    '''
     pt,weight = self.neededPoints[self.counter-1]
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
