@@ -720,7 +720,10 @@
 <DataObjects>
     <Histories name='stories'>
         <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+        <Output>pipe1_Hw,
+                pump_mass_flow_rate,
+                time
+        </Output>
    </Histories>
    <TimePointSet name='TimePointSets'>
         <Input>pipe1_Area,pipe1_Dh</Input>

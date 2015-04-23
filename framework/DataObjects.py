@@ -71,15 +71,17 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, xmlNode, xml node
     """
     # retrieve input/outputs parameters' keywords
-    self._dataParameters['inParam']  = xmlNode.find('Input' ).text.strip().split(',')
-    self._dataParameters['outParam'] = xmlNode.find('Output').text.strip().split(',')
+    self._dataParameters['inParam']  = list(inp.strip() for inp in xmlNode.find('Input' ).text.strip().split(','))
+    self._dataParameters['outParam'] = list(out.strip() for out in xmlNode.find('Output').text.strip().split(','))
     #test for keywords not allowed
-    if len(set(xmlNode.find('Input' ).text.strip().split(','))&set(self.notAllowedInputs))!=0:
-      utils.raiseAnError(IOError,self,'the keyword '+str(set(xmlNode.find('Input' ).text.strip().split(','))&set(self.notAllowedInputs))+' is not allowed among inputs')
-    if len(set(xmlNode.find('Output' ).text.strip().split(','))&set(self.notAllowedOutputs))!=0:
-      utils.raiseAnError(IOError,self,'the keyword '+str(set(xmlNode.find('Output' ).text.strip().split(','))&set(self.notAllowedOutputs))+' is not allowed among inputs')
+    # if len(set(xmlNode.find('Input' ).text.strip().split(','))&set(self.notAllowedInputs))!=0:
+    if len(set(self._dataParameters['inParam'])&set(self.notAllowedInputs))!=0:
+      utils.raiseAnError(IOError,self,'the keyword '+str(set(self._dataParameters['inParam'])&set(self.notAllowedInputs))+' is not allowed among inputs')
+    #if len(set(xmlNode.find('Output' ).text.strip().split(','))&set(self.notAllowedOutputs))!=0:
+    if len(set(self._dataParameters['outParam'])&set(self.notAllowedOutputs))!=0:
+      utils.raiseAnError(IOError,self,'the keyword '+str(set(self._dataParameters['outParam'])&set(self.notAllowedOutputs))+' is not allowed among inputs')
     #test for same input/output variables name
-    if len(set(xmlNode.find('Input' ).text.strip().split(','))&set(xmlNode.find('Output' ).text.strip().split(',')))!=0:
+    if len(set(self._dataParameters['inParam'])&set(self._dataParameters['outParam']))!=0:
       utils.raiseAnError(IOError,self,'It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
     #
     # retrieve history name if present
