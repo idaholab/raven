@@ -1015,7 +1015,7 @@ class BasicStatistics(BasePostProcessor):
       """
       X    = np.array(feature, ndmin=2, dtype=np.result_type(feature, np.float64))
       diff = np.zeros(feature.shape, dtype=np.result_type(feature, np.float64))
-      w    = np.array(weights, ndmin=1, dtype=np.result_type(weights, np.float64))
+      if weights != None: w = np.array(weights, ndmin=1, dtype=np.result_type(weights, np.float64))
       if X.shape[0] == 1: rowvar = 1
       if rowvar:
           N = X.shape[1]
