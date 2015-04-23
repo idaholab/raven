@@ -458,6 +458,7 @@ class ExternalModel(Dummy):
     @ In, inputs is a list containing whatever is passed with an input role in the step
     @ In, initDict, optional, dictionary of all objects available in the step is using this model
     """
+    for key in self.modelVariableType.keys(): self.modelVariableType[key] = None
     if 'initialize' in dir(self.sim): self.sim.initialize(self.initExtSelf,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.sim)))
@@ -508,9 +509,11 @@ class ExternalModel(Dummy):
     """
     externalSelf        = utils.Object()
     #self.sim=__import__(self.ModuleToLoad)
-    for key,value in self.initExtSelf.__dict__.items(): CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
     modelVariableValues = {}
     for key in self.modelVariableType.keys(): modelVariableValues[key] = None
+    for key,value in self.initExtSelf.__dict__.items():
+      CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
+      modelVariableValues[key] = copy.copy(value)
     for key in Input.keys(): modelVariableValues[key] = copy.copy(Input[key])
     if 'createNewInput' not in dir(self.sim):
       for key in Input.keys(): modelVariableValues[key] = copy.copy(Input[key])
@@ -552,7 +555,7 @@ class ExternalModel(Dummy):
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
     instanciatedSelf = finishedJob.returnEvaluation()[1][1]
     outcomes         = finishedJob.returnEvaluation()[1][0]
-    for key in finishedJob.returnEvaluation()[1][0]:
+    for key in instanciatedSelf.modelVariableType.keys():
       if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
         self.raiseAnError(RuntimeError,self,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
     Dummy.collectOutput(self, finishedJob, output)

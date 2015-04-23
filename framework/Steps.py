@@ -271,13 +271,10 @@ class MultiRun(SingleRun):
         else: self._outputCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex) )
       else: self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
     self.raiseADebug(self,'Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
-    newInputs = []
-    for _ in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
-      if inDictionary['Sampler'].amIreadyToProvideAnInput(): newInputs.append(inDictionary['Sampler'].generateInput(inDictionary["Model"],inDictionary['Input']))
-    #newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize']) #,lastOutput=self.targetOutput
-    for inputIndex, newInput in enumerate(newInputs):
-      inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
-      self.raiseADebug(self,'Submitted input '+str(inputIndex+1))
+    for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
+      if inDictionary['Sampler'].amIreadyToProvideAnInput():
+        inDictionary["Model"].run(inDictionary['Sampler'].generateInput(inDictionary["Model"],inDictionary['Input']),inDictionary['jobHandler'])
+        self.raiseADebug(self,'Submitted input '+str(inputIndex+1))
 
   def _localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']

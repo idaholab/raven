@@ -1024,8 +1024,8 @@ class BasicStatistics(BasePostProcessor):
       else:
           diff = X - np.mean(X, axis=1-axis, keepdims=True)
       if weights != None:
-          if not self.biased: fact = sumWeights/(sumWeights*sumWeights - sumSquareWeights)
-          else:               fact = 1/sumWeights
+          if not self.biased: fact = float(sumWeights/((sumWeights*sumWeights - sumSquareWeights)*(N-1)))
+          else:               fact = float(1.0/(sumWeights*N))
       else:
           if not self.biased: fact = float(1.0/(N-1))
           else:               fact = float(1.0/N)
