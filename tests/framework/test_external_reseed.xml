@@ -58,17 +58,17 @@
 
 <Steps>
     <MultiRun name='FirstMRun'  re-seeding='200286'>
-        <Input   class='Files'     type=''               >Functions.py</Input>
+        <Input   class='DataObjects'     type='TimePoint'               >inputPlaceHolder</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='Datas'     type='Histories'      >testPrintHistories</Output>
-        <Output  class='DataBases' type='HDF5'           >test_external_db</Output>
+        <Output  class='DataObjects'     type='Histories'      >testPrintHistories</Output>
+        <Output  class='Databases' type='HDF5'           >test_external_db</Output>
         <Output  class='OutStreamManager' type='Print'   >testPrintHistories_dump</Output>
     </MultiRun >
 </Steps>
-<DataBases>
+<Databases>
         <HDF5 name="test_external_db"/> 
-</DataBases>
+</Databases>
 
 <OutStreamManager>
   <Print name='testPrintHistories_dump'>
@@ -78,12 +78,16 @@
 </OutStreamManager>
     
     
-<Datas>
+<DataObjects>
     <Histories name='testPrintHistories'>
         <Input>x0,y0,z0</Input>
         <Output>time,x,y,z</Output>
    </Histories>
-</Datas>
+    <TimePoint name='inputPlaceHolder'>
+        <Input>x0,y0,z0</Input>
+        <Output>OutputPlaceHolder</Output>
+    </TimePoint>
+</DataObjects>
 
 
 </Simulation>

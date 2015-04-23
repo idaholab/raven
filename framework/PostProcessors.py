@@ -17,7 +17,7 @@ from scipy import integrate
 import os
 from glob import glob
 import copy
-import Datas
+import DataObjects
 import math
 #External Modules End--------------------------------------------------------------------------------
 
@@ -237,7 +237,7 @@ class SafestPoint(BasePostProcessor):
 
   def run(self,Input):
     nearestPointsInd = []
-    dataCollector = Datas.returnInstance('TimePointSet')
+    dataCollector = DataObjects.returnInstance('TimePointSet')
     dataCollector.type = 'TimePointSet'
     surfTree = spatial.KDTree(copy.copy(self.surfPointsMatrix[:,0:self.surfPointsMatrix.shape[-1]-1]))
     self.controllableSpace.shape = (np.prod(self.controllableSpace.shape[0:len(self.controllableSpace.shape)-1]),self.controllableSpace.shape[-1])
@@ -381,7 +381,7 @@ class ComparisonStatistics(BasePostProcessor):
   def collectOutput(self,finishedjob,output):
     if self.debug: utils.raiseAMessage(self,"finishedjob: "+finishedjob+", output "+output)
     #XXX We only handle the case where output is a filename.  We don't handle
-    # it being a datas or hdf5 etc.
+    # it being a dataObjects or hdf5 etc.
     if finishedjob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,'no available output to collect.')
     else: self.dataDict.update(finishedjob.returnEvaluation()[1])
 
@@ -389,12 +389,12 @@ class ComparisonStatistics(BasePostProcessor):
     for compareGroup in self.compareGroups:
       dataPulls = compareGroup.dataPulls
       reference = compareGroup.referenceData
-      foundDatas = []
+      foundDataObjects = []
       for name, kind, rest in dataPulls:
         data = self.dataDict[name].getParametersValues(kind)
         if len(rest) == 1:
-          foundDatas.append(data[rest[0]])
-      dataToProcess.append((dataPulls,foundDatas,reference))
+          foundDataObjects.append(data[rest[0]])
+      dataToProcess.append((dataPulls,foundDataObjects,reference))
     csv = open(output,"w")
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
@@ -806,7 +806,7 @@ class BasicStatistics(BasePostProcessor):
             if what not in self.acceptedCalcParam:
               if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: writing External Function parameter '+ what )
               basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+'\n')
-    elif output.type == 'Datas':
+    elif output.type == 'DataObjects':
       if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping output in data object named ' + output.name)
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
@@ -1029,8 +1029,8 @@ class BasicStatistics(BasePostProcessor):
       else:
           diff = X - np.mean(X, axis=1-axis, keepdims=True)
       if weights != None:
-          if not self.biased: fact = sumWeights/(sumWeights*sumWeights - sumSquareWeights)
-          else:               fact = 1/sumWeights
+          if not self.biased: fact = float(sumWeights/((sumWeights*sumWeights - sumSquareWeights)*(N-1)))
+          else:               fact = float(1.0/(sumWeights*N))
       else:
           if not self.biased: fact = float(1.0/(N-1))
           else:               fact = float(1.0/N)
@@ -1597,7 +1597,7 @@ class ExternalPostProcessor(BasePostProcessor):
     if type(output).__name__ in ["str","unicode","bytes"]:
       utils.raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
                                + ' yet implemented. I am going to skip it.')
-    elif output.type == 'Datas':
+    elif output.type == 'DataObjects':
       utils.raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
                                + ' yet implemented. I am going to skip it.')
     elif output.type == 'HDF5':

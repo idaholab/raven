@@ -20,7 +20,7 @@
  [./test_Adaptive_DynamicEventTreeRAVEN]
   type = 'RavenFramework'
   input = 'test_adaptive_det_simple.xml'
-  output = 'AdaptiveDET/adaptiveNoHierarchicalDump.csv AdaptiveDET/adaptiveNoHierarchicalDump.xml AdaptiveDET/AdaptiveDETsimpleDataBase.h5'
+  output = 'AdaptiveDET/adaptiveNoHierarchicalDump.csv AdaptiveDET/adaptiveNoHierarchicalDump.xml AdaptiveDET/AdaptiveDETsimpleDatabase.h5'
   csv = 'AdaptiveDET/AdaptiveDETrunTest/out~AdaptiveDETsimple_1-1-1-1-2~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
   max_time = 400
@@ -228,7 +228,7 @@
  [./testExternalModel]
   type = 'RavenFramework'
   input = 'test_Lorentz.xml'
-  output = 'externalModel/testPrintHistories_dump_0.csv externalModel/testPrintHistories_dump_1.csv externalModel/testPrintHistories_dump_2.csv'
+  output = 'externalModel/testPrintHistories_dump_0.csv externalModel/testPrintHistories_dump_1.csv externalModel/testPrintHistories_dump_2.csv externalModel/testTimePointSet_dump.csv'
   max_time = 500
   rel_err = 0.001
  [../]
