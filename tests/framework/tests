@@ -380,6 +380,13 @@
   csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
  [../]
 
+ [./stochPolyRestartTest]
+  type = 'RavenFramework'
+  input = 'test_stochpoly_restart.xml'
+  output = 'StochasticPolyRestart/dump1.xml StochasticPolyRestart/dump2.xml StochasticPolyRestart/dump3.xml'
+  csv = 'StochasticPolyRestart/dump1.csv StochasticPolyRestart/dump2.csv StochasticPolyRestart/dump3.csv'
+ [../]
+
  [./ND_external_MC]
   type = 'RavenFramework'
   input = 'test_simple_ND_external_MC.xml'
