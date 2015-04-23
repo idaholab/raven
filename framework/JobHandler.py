@@ -379,7 +379,7 @@ class JobHandler:
           running = self.__running[i]
           returncode = running.getReturnCode()
           if returncode != 0:
-            utils.raiseAMessage(self," Process Failed "+str(running)+' '+running.command+" returncode "+str(returncode))
+            utils.raiseAMessage(self," Process Failed "+str(running)+' '+str(running.command)+" returncode "+str(returncode))
             self.__numFailed += 1
             self.__failedJobs.append(running.identifier)
             if type(running).__name__ == "External":
