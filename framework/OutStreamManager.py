@@ -24,6 +24,7 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 import DataObjects
+import Models
 import utils
 from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
@@ -122,6 +123,9 @@ class OutStreamManager(BaseType):
             if inp.name.strip()==self.sourceName[agrosindex] and inp.type in DataObjects.knownTypes():
               self.sourceData.append(inp)
               foundData = True
+            elif type(inp)==Models.ROM:
+              self.sourceData.append(inp)
+              foundData = True #good enough
       if not foundData and 'TargetEvaluation' in inDict.keys():
         if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in DataObjects.knownTypes():
           self.sourceData.append(inDict['TargetEvaluation'])
@@ -1119,11 +1123,19 @@ class OutStreamPlot(OutStreamManager):
         self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])
 
 class OutStreamPrint(OutStreamManager):
+  '''
+    Class for managing the printing of files as outstream.
+  '''
   def __init__(self):
+    '''
+      Initializes.
+      @ In, None
+      @ Out, None
+    '''
     OutStreamManager.__init__(self)
     self.type = 'OutStreamPrint'
+    self.availableOutStreamTypes = ['csv','xml']
     self.printTag = utils.returnPrintTag('OUTSTREAM PRINT')
-    self.availableOutStreamTypes = ['csv']
     OutStreamManager.__init__(self)
     self.sourceName   = []
     self.sourceData   = None
@@ -1143,15 +1155,33 @@ class OutStreamPrint(OutStreamManager):
     for subnode in xmlNode:
       if subnode.tag == 'source': self.sourceName = subnode.text.split(',')
       else:self.options[subnode.tag] = subnode.text
-    if 'type' not in self.options.keys(): raise(self.printTag+': ERROR -> type tag not present in Print block called '+ self.name)
-    if self.options['type'] not in self.availableOutStreamTypes : raise(self.printTag+': ERROR -> Print type ' + self.options['type'] + ' not available yet. ')
+    if 'type' not in self.options.keys(): utils.raiseAnError(IOError,self,'type tag not present in Print block called '+ self.name)
+    if self.options['type'] not in self.availableOutStreamTypes : utils.raiseAnError(TypeError,self,'Print type ' + self.options['type'] + ' not available yet. ')
     if 'variables' in self.options.keys(): self.variables = self.options['variables']
 
   def addOutput(self):
+    '''
+      Calls output functions on desired instances
+      @ In, None
+      @ Out, None
+    '''
     if self.variables: dictOptions = {'filenameroot':self.name,'variables':self.variables}
     else             : dictOptions = {'filenameroot':self.name}
+    if 'what' in self.options.keys(): dictOptions['what']=self.options['what']
+    if 'target' in self.options.keys(): dictOptions['target']=self.options['target']
     for index in range(len(self.sourceName)):
-      if not self.sourceData[index].isItEmpty(): self.sourceData[index].printCSV(dictOptions)
+      if self.options['type']=='csv':
+        if type(self.sourceData[index])==DataObjects.Data: empty = self.sourceData[index].isItEmpty()
+        else: empty=False
+        if not empty:
+          try: self.sourceData[index].printCSV(dictOptions)
+          except AttributeError: utils.raiseAnError(IOError,self,'no implementation for source type '+str(type(self.sourceData[index]))+' and output type "csv"!')
+      elif self.options['type']=='xml':
+        if type(self.sourceData[index])==DataObjects.Data: empty = self.sourceData[index].isItEmpty()
+        else: empty=False
+        if not empty:
+          try: self.sourceData[index].printXML(dictOptions)
+          except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type '+str(type(self.sourceData[index]))+' and output type "xml"!')
 
 '''
  Interface Dictionary (factory) (private)
