@@ -21,18 +21,13 @@ the settings of the calculation flow that is being performed through RAVEN:
 
 \begin{itemize}
 %%%%%% WORKING DIR
-\item \xmlNode{WorkingDir}, \xmlDesc{string, required field}, specifies
-the absolute or relative (with respect to the location where RAVEN is run from)
-path to a directory that will store all the results of the calculations and
-where RAVEN looks for the files specified in the block \xmlNode{Files}.
-%
-\default{None}
-
-%%%%%% RELATIVE WORKING DIR
-\item \xmlNode{RelativeWorkingDir}, \xmlDesc{string, optional field}, specifies
-the relative (with respect to the location where the xml file is located)
-path to a directory that will store all the results of the calculations and
-where RAVEN looks for the files specified in the block \xmlNode{Files}.
+\item \xmlNode{WorkingDir}, \xmlDesc{string, required field},
+  specifies the absolute or relative (with respect to the location
+  where the xml file is located) path to a directory that will store
+  all the results of the calculations and where RAVEN looks for the
+  files specified in the block \xmlNode{Files}.  If
+  \texttt{runRelative='True'} is used as an attribute, then it will be
+  relative to where raven is run.
 %
 \default{None}
 
