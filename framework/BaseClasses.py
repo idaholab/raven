@@ -33,13 +33,13 @@ class BaseType(MessageHandler.MessageUser):
     '''
     self.setMessageHandler(messageHandler)
     if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
-    else: self.raiseAnError(IOError,self,'not found name for a '+self.__class__.__name__)
+    else: self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
     self.type     = xmlNode.tag
     if self.globalAttributes!= None: self.globalAttributes = globalAttributes
     if 'verbosity' in xmlNode.attrib.keys():
       self.localVerbosity = xmlNode.attrib['verbosity']
     self._readMoreXML(xmlNode)
-    self.raiseAMessage(self,'------Reading Completed for:',verbosity='debug')
+    self.raiseAMessage('------Reading Completed for:',verbosity='debug')
     self.printMe(self.localVerbosity)
 
   def _readMoreXML(self,xmlNode):
@@ -90,10 +90,10 @@ class BaseType(MessageHandler.MessageUser):
     '''
     if verbosity==None: verbosity = self.getLocalVerbosity()
     tempDict = self.whoAreYou()
-    for key in tempDict.keys(): self.raiseAMessage(self,'{0:15}: {1}'.format(key,str(tempDict[key])),verbosity=verbosity)
+    for key in tempDict.keys(): self.raiseAMessage('{0:15}: {1}'.format(key,str(tempDict[key])),verbosity=verbosity)
     tempDict = self.myInitializzationParams()
-    self.raiseAMessage(self,'Initialization Parameters:')
-    for key in tempDict.keys(): self.raiseAMessage(self,'{0:15}: {1}'.format(key,str(tempDict[key])),verbosity=verbosity)
+    self.raiseAMessage('Initialization Parameters:')
+    for key in tempDict.keys(): self.raiseAMessage('{0:15}: {1}'.format(key,str(tempDict[key])),verbosity=verbosity)
     tempDict = self.myCurrentSetting()
-    self.raiseAMessage(self,'Current Setting:')
-    for key in tempDict.keys(): self.raiseAMessage(self,'{0:15}: {1}'.format(key,str(tempDict[key])),verbosity=verbosity)
+    self.raiseAMessage('Current Setting:')
+    for key in tempDict.keys(): self.raiseAMessage('{0:15}: {1}'.format(key,str(tempDict[key])),verbosity=verbosity)

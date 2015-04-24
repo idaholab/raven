@@ -96,10 +96,10 @@ if __name__ == '__main__':
   #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out
   for inputFile in inputFiles:
     tree = ET.parse(inputFile)
-    #except?  raisea IOError('not possible to parse (xml based) the input file '+inputFile)
+    #except?  raiseanIOError('not possible to parse (xml based) the input file '+inputFile)
     if verbosity=='debug':print('DRIVER','opened file',inputFile)
     root = tree.getroot()
-    if root.tag != 'Simulation': self.raiseAnError(IOError,'DRIVER','The outermost block of the input file '+inputFile+' it is not Simulation')
+    if root.tag != 'Simulation': self.raiseAnError(IOError,'The outermost block of the input file '+inputFile+' it is not Simulation')
     #generate all the components of the simulation
 
     #Call the function to read and construct each single module of the simulation

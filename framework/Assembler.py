@@ -45,7 +45,6 @@ class Assembler(object):
       for value  in val:
         if value[0] not in needDict.keys(): needDict[value[0]] = []
         needDict[value[0]].append((value[1],value[2]))
-    #self.raiseADebug(self,'needDict: '+str(needDict)) messageHandler hasn't been set yet...muting for now
     return needDict
 
   def generateAssembler(self,initDict):
@@ -76,14 +75,14 @@ class Assembler(object):
             for token in self.requiredAssObject[1][0]:
                 if subNode.tag in token:
                     found = True
-                    if 'class' not in subNode.attrib.keys(): self.raiseAnError(IOError,self,'In '+self.type+' PostProcessor ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+                    if 'class' not in subNode.attrib.keys(): self.raiseAnError(IOError,'In '+self.type+' PostProcessor ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
                     if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag] = []
                     self.assemblerObjects[subNode.tag].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text])
                     testObjects[token] += 1
         if not found:
             for tofto in self.requiredAssObject[1][0]:
                 if not str(self.requiredAssObject[1][1][0]).strip().startswith('-'):
-                    self.raiseAnError(IOError,self,'the required object ' +tofto+ ' is missed in the definition of the '+self.type+' PostProcessor!')
+                    self.raiseAnError(IOError,'the required object ' +tofto+ ' is missed in the definition of the '+self.type+' PostProcessor!')
         # test the objects found
         else:
             for cnt,tofto in enumerate(self.requiredAssObject[1][0]):
@@ -92,11 +91,11 @@ class Assembler(object):
                 # optional
                     if tofto in testObjects.keys():
                         numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
-                        if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,self,'Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
+                        if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
                 else:
                 # required
-                    if tofto not in testObjects.keys(): self.raiseAnError(IOError,self,'Required object/s "'+tofto+'" not found. PostProcessor '+self.name + '!')
+                    if tofto not in testObjects.keys(): self.raiseAnError(IOError,'Required object/s "'+tofto+'" not found. PostProcessor '+self.name + '!')
                     else:
                         numerosity = numerosity.replace('n',str(testObjects[tofto]))
-                        if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,self,'Only '+numerosity+' '+tofto+' object/s is/are required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
+                        if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+tofto+' object/s is/are required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
     if '_localReadMoreXML' in dir(self): self._localReadMoreXML(xmlNode)

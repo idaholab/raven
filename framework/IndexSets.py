@@ -192,4 +192,4 @@ def knownTypes():
 
 def returnInstance(Type,caller):
   if Type in knownTypes(): return __interFaceDict[Type]()
-  else: caller.raiseAnError(NameError,'INDEX SETS','not known '+__base+' type '+Type)
+  else: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
