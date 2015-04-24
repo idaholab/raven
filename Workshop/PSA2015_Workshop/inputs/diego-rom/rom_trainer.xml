@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug="True">
+    
+<RunInfo>
+    <WorkingDir>/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/diego-rom/results</WorkingDir>
+    <Files>ROM3pk,ROM4pk,ROM5pk</Files>
+    <Sequence>extract_data3,rom_trainer3,pkDump3</Sequence>
+    <batchSize>1</batchSize>
+</RunInfo>
+
+
+<Models>
+    <ROM name='ROM3' subType='SciKitLearn'>
+        <Features>x1,x2,x3</Features>
+        <Target>y3</Target>
+        <SKLtype>linear_model|LinearRegression</SKLtype>
+        <fit_intercept>True</fit_intercept>
+        <normalize>False</normalize>
+    </ROM>
+</Models>
+
+
+<Steps>
+    <IOStep name='extract_data3'>
+        <Input   class='Databases'   type='HDF5'        >out_db</Input>
+        <Output  class='DataObjects' type='TimePointSet'>outGRID_y3</Output>
+    </IOStep>
+    <RomTrainer name='rom_trainer3'>
+        <Input   class='DataObjects' type='TimePointSet'>outGRID_y3</Input>
+        <Output  class='Models'      type='ROM'         >ROM3</Output>
+    </RomTrainer>
+    <IOStep name='pkDump3'>
+        <Input  class='Models' type='ROM'>ROM3</Input>
+        <Output class='Files'  type=''   >ROM3pk</Output>
+    </IOStep>
+</Steps>
+
+
+<Databases>
+    <HDF5 name="out_db" filename="out_db.h5" directory="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/diego-rom/results/DataBaseStorage/"/>
+</Databases>
+
+
+<DataObjects>
+    <TimePointSet name='outGRID_y3'>
+        <Input>x1,x2,x3</Input>
+        <Output>y3</Output>
+    </TimePointSet>
+</DataObjects>
+
+
+</Simulation>
+
+
+

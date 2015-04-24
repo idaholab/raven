@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug="True">
+
+
+<RunInfo>
+    <WorkingDir>/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/diego-rom/results</WorkingDir>
+    <Files>workshop_function.py</Files>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>1</batchSize>
+</RunInfo>
+
+
+<Steps>
+    <MultiRun name='FirstMRun' pauseAtEnd='True'>
+        <Input   class='Files'            type=''              >workshop_function.py</Input>
+        <Model   class='Models'           type='ExternalModel' >PythonModule</Model>
+        <Sampler class='Samplers'         type='Grid'          >Grid_function</Sampler>
+        <Output  class='DataObjects'      type='TimePointSet'  >outGRID</Output>
+        <Output  class='Databases'        type='HDF5'          >out_db</Output>
+        <Output  class='OutStreamManager' type='Print'         >out_dump</Output>
+        <Output  class='OutStreamManager' type='Plot'          >plotResponseFunction</Output>
+    </MultiRun>
+</Steps>
+
+
+<Models>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/diego-rom/results/workshop_function'>
+       <variable>x1</variable>
+       <variable>x2</variable>
+       <variable>x3</variable>
+       <variable>y1</variable>
+       <variable>y2</variable>
+       <variable>y3</variable>
+       <variable>y4</variable>
+       <variable>y5</variable>
+    </ExternalModel>
+</Models>
+
+
+<Distributions>
+    <Normal name='normal_trunc'>
+        <mean>0.5</mean>
+        <sigma>0.1</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>1</upperBound>
+    </Normal>
+    <Normal name='normal'>
+        <mean>2</mean>
+        <sigma>0.2</sigma>
+    </Normal>
+    <Uniform name='uniform'>
+        <upperBound>4</upperBound>
+        <lowerBound>1</lowerBound>
+    </Uniform>
+</Distributions>
+
+
+<Samplers>
+    <Grid name='Grid_function'>
+      <variable name='x1' >
+        <distribution>normal_trunc</distribution>
+        <grid type='value' lowerBound='0.0' construction='equal' steps='5'>0.2</grid>
+      </variable>
+      <variable name='x2' >
+        <distribution>normal</distribution>
+        <grid type='value' lowerBound='1.5' construction='equal' steps='5'>0.2</grid>
+      </variable>
+      <variable name='x3' >
+        <distribution>uniform</distribution>
+        <grid type='value' lowerBound='1.0' construction='equal' steps='5'>0.6</grid>
+      </variable>
+    </Grid>
+</Samplers>
+
+
+<Databases>
+  <HDF5 name="out_db"/>
+</Databases>
+
+
+<OutStreamManager>
+  <Print name='out_dump'>
+    <type>csv</type>
+    <source>outGRID</source>
+  </Print>
+  <Plot name='plotResponseFunction' dim='3' overwrite='False'>
+      <plotSettings>
+          <plot>
+              <type>scatter</type>
+              <x>outGRID|Input|x1</x>
+              <y>outGRID|Input|x2</y>
+              <z>outGRID|Input|x3</z>
+          </plot>
+      </plotSettings>
+      <actions>
+          <how>screen</how>
+          <title>
+              <text>Sampled Input Space</text>
+          </title>
+      </actions>
+  </Plot>
+</OutStreamManager>
+
+
+<DataObjects>
+    <TimePointSet name='outGRID'>
+        <Input>x1,x2,x3</Input>
+        <Output>y1,y2,y3,y4,y5</Output>
+   </TimePointSet>
+</DataObjects>
+
+
+</Simulation>
+
+
+
