@@ -140,8 +140,16 @@ class Integral(BasePostProcessor):
     # compute the integral
     outcome = None
     if self.integralType == 'montecarlo':
+      tempDict = {}
+      weights  = {}
       randomMatrix = np.random.rand(math.ceil(1.0/self.tolerance),len(self.variableDist.keys()))
-      for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
+      for index, varName in enumerate(self.variableDist.keys()):
+        randomMatrix[:,index] = randomMatrix[:,index]*(self.lowerUpperDict[varName]['upperBound']-self.lowerUpperDict[varName]['lowerBound'])+self.lowerUpperDict[varName]['lowerBound']
+        tempDict[varName] = randomMatrix[:,index]
+        for i in tempDict[varName]:      weights[varName]  = tempDict[varName]
+
+
+
       outcome = self.functionS.evaluate(tempDict)
     else:
       pass
