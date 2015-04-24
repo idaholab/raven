@@ -1,12 +1,5 @@
 import math
 
-def initialize(self,runInfoDict,inputFiles):
-  self.SampledVars = None
-  return
-
-def createNewInput(self,myInput,samplerType,**Kwargs):
-  return Kwargs['SampledVars']
-
 def run(self,Input):
   
   self.x1 = Input['x1']
