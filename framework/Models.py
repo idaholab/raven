@@ -80,7 +80,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Sampler'][0]['multiplicity'] = 1
   validateDict['Sampler'][0]['type']         = ['MonteCarlo',
                                                 'DynamicEventTree',
-                                                'LHS',
+                                                'Stratified',
                                                 'Grid',
                                                 'Adaptive',
                                                 'AdaptiveDynamicEventTree',

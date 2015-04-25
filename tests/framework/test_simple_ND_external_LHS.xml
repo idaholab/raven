@@ -50,7 +50,7 @@
 </Distributions>
 
 <Samplers>
-    <LHS name='LHS_test'>
+    <Stratified name='LHS_test'>
         <sampler_init>
             <initial_seed>1234</initial_seed>
         </sampler_init>
@@ -69,14 +69,14 @@
         <global_grid>
             <grid name='name_grid1' construction='custom'>0.1 1.0 0.2</grid>
         </global_grid>
-    </LHS>
+    </Stratified>
 </Samplers>
 
 <Steps>
     <MultiRun name='FirstMRun' re-seeding='1'>
         <Input   class='Files'              type=''               >lorentzAttractor.py</Input>
         <Model   class='Models'             type='ExternalModel'  >PythonModule</Model>
-        <Sampler class='Samplers'           type='LHS'            >LHS_test</Sampler>
+        <Sampler class='Samplers'           type='Stratified'     >LHS_test</Sampler>
         <Output  class='DataObjects'              type='TimePointSet'   >testPrintTimePointSet</Output>
         <Output  class='OutStreamManager'   type='Print'          >testPrintTimePointSet_dump</Output>
     </MultiRun >
