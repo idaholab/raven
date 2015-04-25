@@ -1048,15 +1048,15 @@ class Grid(Sampler):
 #
 #
 #
-class LHS(Grid):
+class Stratified(Grid):
   '''
-  Latin hyper Cube based sampler. Currently no special filling method are implemented
+  Stratified based sampler. Currently no special filling method are implemented
   '''
   def __init__(self):
     Grid.__init__(self)
     self.sampledCoordinate    = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
-    self.printTag = utils.returnPrintTag('SAMPLER LHS')
-    self.globalGrid          = {}    # Dictionary for the global_grid. These grids are used only for LHS for ND distributions.
+    self.printTag = utils.returnPrintTag('SAMPLER Stratified')
+    self.globalGrid          = {}    # Dictionary for the global_grid. These grids are used only for Stratified for ND distributions.
 
   def localInputAndChecks(self,xmlNode):
     Grid.localInputAndChecks(self,xmlNode)
@@ -1273,7 +1273,7 @@ class DynamicEventTree(Grid):
     # dictionary of preconditioner sampler available
     self.preconditionerAvail = {}
     self.preconditionerAvail['MonteCarlo'] = MonteCarlo      # MC
-    self.preconditionerAvail['Stratified'] = LHS             # Stratified
+    self.preconditionerAvail['Stratified'] = Stratified      # Stratified
     self.preconditionerAvail['Grid'      ] = Grid            # Grid
     # dictionary of inputted preconditioners need to be applied
     self.preconditionerToApply             = {}
@@ -2650,7 +2650,7 @@ __base = 'Sampler'
 __interFaceDict = {}
 __interFaceDict['MonteCarlo'              ] = MonteCarlo
 __interFaceDict['DynamicEventTree'        ] = DynamicEventTree
-__interFaceDict['LHS'                     ] = LHS
+__interFaceDict['Stratified'              ] = Stratified
 __interFaceDict['Grid'                    ] = Grid
 __interFaceDict['Adaptive'                ] = AdaptiveSampler
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET

@@ -687,7 +687,7 @@ This is possible by defining a global\_grid and associate such global grid to ea
 \begin{lstlisting}[style=XML,morekeywords={ND,grid}]
 <Samplers>
   ...
-  <LHS name='StratifiedName'> 
+  <Stratified name='StratifiedName'> 
         <variable name='x0'>
             <distribution dim='1'>ND_InverseWeight_P</distribution>
             <grid type='global_grid'>name_grid1</grid>
@@ -699,7 +699,7 @@ This is possible by defining a global\_grid and associate such global grid to ea
         <global_grid>
             <grid name='name_grid1' construction='custom'>0.1 1.0 0.2</grid>
         </global_grid>
-  </LHS>
+  </Stratified>
   ...
 </Samplers>
 \end{lstlisting}
