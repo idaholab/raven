@@ -37,7 +37,7 @@
     <ResponseSurfaceDesign name='BoxBehnkenRespDesign'>
         <ResponseSurfaceDesignSettings>
             <algorithm_type>BoxBehnken</algorithm_type>
-            <ncenters>1</ncenters>
+            <!-- <ncenters>1</ncenters> -->
         </ResponseSurfaceDesignSettings>
         <variable name='VarGauss1' >
             <distribution >Gauss1</distribution>

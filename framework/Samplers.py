@@ -2252,8 +2252,9 @@ class ResponseSurfaceDesign(Grid):
         utils.raiseAnError(IOError,self,'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
       if self.respOpt['algorithm_type'] == 'boxbehnken':
         if key == 'ncenters':
-          try   : self.respOpt['options'][key] = int(value)
-          except: utils.raiseAnError(IOError,self,'"'+key+'" is not an integer!')
+          if self.respOpt['options'][key] != None:
+            try   : self.respOpt['options'][key] = int(value)
+            except: utils.raiseAnError(IOError,self,'"'+key+'" is not an integer!')
       else:
         if key == 'centers':
           if len(value.split(',')) != 2: utils.raiseAnError(IOError,self,'"'+key+'" must be a comma separated string of 2 values only!')
