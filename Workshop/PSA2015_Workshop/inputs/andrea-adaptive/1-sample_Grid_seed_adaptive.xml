@@ -76,7 +76,7 @@
 
 
 <Databases>
-  <HDF5 name="out_db"/>
+  <HDF5 name="out_db" directory="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/DatabaseStorage"/>
 </Databases>
 
 
@@ -128,7 +128,7 @@
   <Plot name='plotResponse_y5' dim='2' overwrite='False'>
       <plotSettings>
           <plot>
-              <type>line</type>
+              <type>scatter</type>
               <x>outGRID|Input|x1</x>
               <y>outGRID|Output|y5</y>
           </plot>
