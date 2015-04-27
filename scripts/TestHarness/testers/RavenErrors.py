@@ -5,18 +5,22 @@ import os
 import subprocess
 
 class RavenErrors(Tester):
-
+  """
+  This class tests if the expected error messages are generated or not.
+  """
   @staticmethod
   def validParams():
+    """This method add defines the valid parameters for the tester. The expected error message shuld be unique..."""
     params = Tester.validParams()
     params.addRequiredParam('input',"The input file to use for this test.")
+    params.addRequiredParam('expect_err',"All or part of the expected error message (unique keyword)")
     params.addParam('required_executable','','Skip test if this executable is not found')
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
     params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
-    params.addParam('expect_err',"The expected error message (keyword)")
     return params
 
   def getCommand(self, options):
+    """This method returns the command to execute for the test"""
     ravenflag = ''
     if self.specs['test_interface_only'].lower() == 'true': ravenflag = 'interfaceCheck '
     if RavenUtils.inPython3():
@@ -32,6 +36,7 @@ class RavenErrors(Tester):
     self.specs['scale_refine'] = False
 
   def checkRunnable(self, option):
+    """This method checks if the the test is runnable within the current settings"""
     missing,too_old = RavenUtils.checkForMissingModules()
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
@@ -55,6 +60,7 @@ class RavenErrors(Tester):
     return (True, '')
 
   def processResults(self, moose_dir,retcode, options, output):
+    """This method processes results. It checks if the expected error messgae keyword exists in the output stream."""
     for line in output.split('\n'):
       if self.specs['expect_err'] in line:
         return ('',output)
