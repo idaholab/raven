@@ -301,7 +301,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     if 'Restart' in self.assemblerDict.keys():
       self.restartData = self.assemblerDict['Restart'][0][3]
-      print(self.restartData.name)
+      utils.raiseAMessage(self,'Restarting from '+self.restartData.name)
       #check consistency of data
       rdata = self.restartData.getAllMetadata()['crowDist'] #actually a list
       sdata = self.inputInfo['crowDist']
@@ -315,6 +315,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             utils.raiseAMessage(self,'|   '+str(rk)+': '+str(rv))
           #utils.raiseAMessage(self,'  '+str(r))
           utils.raiseAnError(IOError,self,'Restart "%s" data[%i] does not have same inputs as sampler!' %(self.restartData.name,i))
+    else:
+      utils.raiseAMessage(self,'No restart for '+self.printTag)
 
   def localInitialize(self):
     '''
