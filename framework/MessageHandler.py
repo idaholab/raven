@@ -30,17 +30,17 @@ class MessageUser(object):
   '''
     Inheriting from this class grants access to methods used by the message handler.
   '''
-  def raiseAnError(self,etype,caller,message,tag='ERROR',verbosity='silent'):
-    self.messageHandler.error(caller,etype,str(message),str(tag),verbosity)
+  def raiseAnError(self,etype,message,tag='ERROR',verbosity='silent'):
+    self.messageHandler.error(self,etype,str(message),str(tag),verbosity)
 
-  def raiseAWarning(self,caller,message,tag='Warning',verbosity='quiet'):
-    self.messageHandler.message(caller,str(message),str(tag),verbosity)
+  def raiseAWarning(self,message,tag='Warning',verbosity='quiet'):
+    self.messageHandler.message(self,str(message),str(tag),verbosity)
 
-  def raiseAMessage(self,caller,message,tag='Message',verbosity='all'):
-    self.messageHandler.message(caller,str(message),str(tag),verbosity)
+  def raiseAMessage(self,message,tag='Message',verbosity='all'):
+    self.messageHandler.message(self,str(message),str(tag),verbosity)
 
-  def raiseADebug(self,caller,message,tag='DEBUG',verbosity='debug'):
-    self.messageHandler.message(caller,str(message),str(tag),verbosity)
+  def raiseADebug(self,message,tag='DEBUG',verbosity='debug'):
+    self.messageHandler.message(self,str(message),str(tag),verbosity)
 
   def getLocalVerbosity(self):
     return None
@@ -71,6 +71,7 @@ class MessageHandler(MessageUser):
     self.suppressErrs  = initDict['suppressErrs'] in utils.stringsThatMeanTrue() if 'suppressErrs' in initDict.keys() else True
 
   def getStringFromCaller(self,obj):
+    if type(obj) in [str,unicode]: return obj
     try: obj.printTag
     except AttributeError: tag = str(obj)
     else: tag = str(obj.printTag)
@@ -87,7 +88,7 @@ class MessageHandler(MessageUser):
       self.error(self,IOError,'Verbosity key '+str(verb)+' not recognized!  Options are '+str(self.verbCode.keys()+[None]),'ERROR','silent')
     return self.verbCode[str(verb).strip().lower()]
 
-  def error(self,caller,etype,message,tag,verbosity):
+  def error(self,caller,etype,message,tag='ERROR',verbosity='silent'):
     verbval = self.checkVerbosity(verbosity)
     okay,msg = self._printMessage(caller,message,tag,verbval)
     if okay:

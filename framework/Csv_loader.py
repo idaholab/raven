@@ -19,9 +19,10 @@ import csv
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CsvLoader:
+class CsvLoader(MessageHandler.MessageUser):
   def __init__(self):
     '''
     Constructor

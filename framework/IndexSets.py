@@ -7,8 +7,9 @@ from itertools import product
 import sys
 
 import utils
+import MessageHandler
 
-class IndexSet(object):
+class IndexSet(MessageHandler.MessageUser):
   """In stochastic collocation for generalised polynomial chaos, the Index Set
      is a set of all combinations of polynomial orders needed to represent the
      original model to a "level" L (maxPolyOrder).

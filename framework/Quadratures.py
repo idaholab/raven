@@ -23,11 +23,12 @@ import inspect
 #Internal Modules
 from BaseClasses import BaseType
 from JobHandler import JobHandler
+import MessageHandler
 import utils
 #Internal Modules End-----------------------------------------------------------------
 
 
-class SparseQuad(object):
+class SparseQuad(MessageHandler.MessageUser):
   '''Base class to produce sparse-grid multiple-dimension quadrature.'''
   def __init__(self):
     self.type     = 'SparseQuad'
@@ -173,9 +174,9 @@ class SparseQuad(object):
     #TODO optimize me!~~
     oldNames = self.varNames[:]
     #check consistency
-    if len(oldNames)!=len(newNames): self.raiseAnError(KeyError,'SPARSEGRID','Remap mismatch! Dimensions are not the same!')
+    if len(oldNames)!=len(newNames): self.raiseAnError(KeyError,'Remap mismatch! Dimensions are not the same!')
     for name in oldNames:
-      if name not in newNames: self.raiseAnError(KeyError,'SPARSEGRID','Remap mismatch! '+name+' not found in original variables!')
+      if name not in newNames: self.raiseAnError(KeyError,'Remap mismatch! '+name+' not found in original variables!')
     wts = self.weights()
     #split by columns (dim) instead of rows (points)
     oldlists = self._xy()
@@ -282,7 +283,7 @@ class SparseQuad(object):
             else:
               self.SG[newpt] = newwt
         else:
-          self.raiseAMessage(self,'Sparse quad generation (tensor) '+job.identifier+' failed...')
+          self.raiseAMessage('Sparse quad generation (tensor) '+job.identifier+' failed...')
       if j<numRunsNeeded-1:
         for k in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
           j+=1
@@ -356,7 +357,7 @@ class SparseQuad(object):
         if job.getReturnCode() == 0:
           self.c[int(str(job.identifier).replace("_makeSingleCoeff", ""))]=job.returnEvaluation()[1]
         else:
-          self.raiseAMessage(self,'Sparse grid index '+job.identifier+' failed...')
+          self.raiseAMessage('Sparse grid index '+job.identifier+' failed...')
       if i<N-1: #load new inputs, up to 100 at a time
         for k in range(min(handler.howManyFreeSpots(),N-1-i)):
           i+=1
@@ -408,7 +409,7 @@ class SparseQuad(object):
 
 
 
-class QuadratureSet(object):
+class QuadratureSet(MessageHandler.MessageUser):
   '''Base class to produce standard quadrature points and weights.
      Points and weights are obtained as
      -------------------
@@ -481,7 +482,7 @@ class Laguerre(QuadratureSet):
     if distr.type=='Gamma':
       self.params=[distr.alpha-1]
     else:
-      self.raiseAnError(IOError,'QUADRATURES','No implementation for Laguerre quadrature on '+distr.type+' distribution!')
+      self.raiseAnError(IOError,'No implementation for Laguerre quadrature on '+distr.type+' distribution!')
 
 class Jacobi(QuadratureSet):
   def initialize(self,distr,msgHandler):
@@ -495,7 +496,7 @@ class Jacobi(QuadratureSet):
     #for Beta distribution, it's  x^(alpha-1) * (1-x)^(beta-1)
     #for Jacobi measure, it's (1+x)^alpha * (1-x)^beta
     else:
-      self.raiseAnError(IOError,'QUADRATURES','No implementation for Jacobi quadrature on '+distr.type+' distribution!')
+      self.raiseAnError(IOError,'No implementation for Jacobi quadrature on '+distr.type+' distribution!')
 
 class ClenshawCurtis(QuadratureSet):
   def initialize(self,distr,msgHandler):
@@ -596,5 +597,5 @@ def returnInstance(Type,caller,**kwargs):
     if   kwargs['Subtype']=='Legendre'      : return __interFaceDict['CDFLegendre']()
     elif kwargs['Subtype']=='ClenshawCurtis': return __interFaceDict['CDFClenshawCurtis']()
   if Type in knownTypes(): return __interFaceDict[Type]()
-  else: caller.raiseAnError(NameError,'QUADRATURES','not known '+__base+' type '+Type)
+  else: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
 

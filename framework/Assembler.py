@@ -11,10 +11,11 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class Assembler(object):
+class Assembler(MessageHandler.MessageUser):
   """
   Assembler class is used as base class for all the objects that need, for initialization purposes,
   to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)

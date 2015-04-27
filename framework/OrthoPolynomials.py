@@ -21,9 +21,10 @@ import xml.etree.ElementTree as ET
 from BaseClasses import BaseType
 import Distributions
 import Quadratures
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class OrthogonalPolynomial(object):
+class OrthogonalPolynomial(MessageHandler.MessageUser):
   '''Provides polynomial generators and evaluators for stochastic collocation.'''
   def __init__(self):
     self.type    = self.__class__.__name__
@@ -121,7 +122,7 @@ class OrthogonalPolynomial(object):
       self.pointMod = self.cdfPoint
       self.quad = quad
     else:
-      self.raiseAnError(IOError,'ORTHOPOLYNOMIALS','No implementation for',quad.type,'quadrature and',self.type,'polynomials.')
+      self.raiseAnError(IOError,'No implementation for '+quad.type+' quadrature and',self.type,'polynomials.')
 
   def _getDistr(self):
     '''Returns the private distribution used for the CDF-version quadratures; for debugging.
@@ -332,4 +333,4 @@ def returnInstance(Type,caller):
     @ Out,Instance of the Specialized Filter class
   '''
   if Type in knownTypes(): return __interFaceDict[Type]()
-  else: caller.raiseAnError(NameError,'ORTHOPOLYNOMIALS','not known '+__base+' type '+Type)
+  else: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)

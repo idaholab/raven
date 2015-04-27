@@ -30,10 +30,11 @@ from BaseClasses import BaseType
 # for internal parallel
 import pp
 import ppserver
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class ExternalRunner:
+class ExternalRunner(MessageHandler.MessageUser):
   '''
   Class for running external codes
   '''
@@ -130,7 +131,7 @@ class ExternalRunner:
     Function to kill the subprocess of the driven code
     '''
     #In python 2.6 this could be self.process.terminate()
-    self.raiseAMessage(self,"Terminating "+self.__process.pid+' '+self.command)
+    self.raiseAMessage("Terminating "+self.__process.pid+' '+self.command)
     os.kill(self.__process.pid,signal.SIGTERM)
 
   def getWorkingDir(self):
@@ -148,7 +149,7 @@ class ExternalRunner:
 #
 #
 #
-class InternalRunner:
+class InternalRunner(MessageHandler.MessageUser):
   #import multiprocessing as multip
   def __init__(self,ppserver, Input,functionToRun, frameworkModules = [], identifier=None,metadata=None, globs = None, functionToSkip = None):
     # we keep the command here, in order to have the hook for running exec code into internal models
@@ -159,7 +160,7 @@ class InternalRunner:
       if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
       else                : self.identifier =  str(identifier)
     else: self.identifier = 'generalOut'
-    if type(Input) != tuple: self.raiseAnError(IOError,'JOB HANDLER',"The input for InternalRunner needs to be a tuple!!!!")
+    if type(Input) != tuple: self.raiseAnError(IOError,"The input for InternalRunner needs to be a tuple!!!!")
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
     if self.ppserver == None: self.subque = queue.Queue()
     self.functionToRun   = functionToRun
@@ -207,15 +208,15 @@ class InternalRunner:
   def start(self):
     try: self.start_pp()
     except Exception as ae:
-      self.raiseAMessage(self,"InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
+      self.raiseAMessage("InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.retcode = -1
 
   def kill(self):
-    self.raiseAMessage(self,"Terminating "+self.__thread.pid+ " Identifier " + self.identifier)
+    self.raiseAMessage("Terminating "+self.__thread.pid+ " Identifier " + self.identifier)
     if self.ppserver != None: os.kill(self.__thread.tid,signal.SIGTERM)
     else: os.kill(self.__thread.pid,signal.SIGTERM)
 
-class JobHandler:
+class JobHandler(MessageHandler.MessageUser):
   def __init__(self):
     self.runInfoDict            = {}
     self.mpiCommand             = ''
@@ -341,16 +342,16 @@ class JobHandler:
           running = self.__running[i]
           returncode = running.getReturnCode()
           if returncode != 0:
-            self.raiseAMessage(self," Process Failed "+running+' '+running.command+" returncode "+returncode)
+            self.raiseAMessage(" Process Failed "+running+' '+running.command+" returncode "+returncode)
             self.__numFailed += 1
             self.__failedJobs.append(running.identifier)
             if type(running).__name__ == "External":
               outputFilename = running.getOutputFilename()
-              if os.path.exists(outputFilename): self.raiseAMessage(self,open(outputFilename,"r").read())
-              else: self.raiseAMessage(self," No output "+outputFilename)
+              if os.path.exists(outputFilename): self.raiseAMessage(open(outputFilename,"r").read())
+              else: self.raiseAMessage(" No output "+outputFilename)
           else:
             if self.runInfoDict['delSucLogFiles'] and running.__class__.__name__ != 'InternalRunner':
-              self.raiseAMessage(self,' Run "' +running.identifier+'" ended smoothly, removing log file!')
+              self.raiseAMessage(' Run "' +running.identifier+'" ended smoothly, removing log file!')
               if os.path.exists(running.getOutputFilename()): os.remove(running.getOutputFilename())
             if len(self.runInfoDict['deleteOutExtension']) >= 1 and running.__class__.__name__ != 'InternalRunner':
               for fileExt in self.runInfoDict['deleteOutExtension']:
