@@ -167,7 +167,7 @@ XML node and the requirements for other attributes change:
     to control this sampler's convergence criterion.
 }
 
-\newcommand{\assemblerDescription}
+\newcommand{\assemblerDescription} %%NOTE this only applies to the adaptive sampler.  Why is it a newcommand? %%
 {
   \textbf{Assembler Objects} These objects are either required or optional
     depending on the functionality of the Adaptive Sampler.
@@ -190,9 +190,6 @@ XML node and the requirements for other attributes change:
     The \textbf{Adaptive Sampler} approach requires or optionally accepts the
     following object types:
     \begin{itemize}
-      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
-        body of this XML node must contain the name of a ROM defined in the
-        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}).
       \item \xmlNode{Function}, \xmlDesc{string, required field},  the
         body of this XML block needs to contain the name of an external 
         function object defined within the \xmlNode{Functions} main block (see 
@@ -204,14 +201,22 @@ XML node and the requirements for other attributes change:
         This function must implement a method called
         \texttt{\_\_residuumSign(self)}, that returns either -1 or 1, depending
         on the system conditions (see Section \ref{sec:functions}.
+      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
+        body of this XML node must contain the name of a ROM defined in the
+        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM 
+        here specified is going to be used as ``acceleration model'' to speed up the 
+        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM 
+        input block (within the \xmlNode{Models} section) needs to match the name of the goal
+        \xmlNode{Function} (e.g. if the goal function is named ``transitionIdentifier'', the \xmlNode{Target} of the
+        ROM needs to report the same name: \xmlNode{Target}\textbf{transitionIdentifier}\xmlNode{Target}).
       \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field}, 
         represents the container where the system evaluations are stored.
         %
         From a practical point of view, this XML node must contain the name of
-        a data object defined in the \xmlNode{Datas} block (see
-        Section~\ref{sec:Datas}).
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
         %
-        The adaptive sampling accepts ``Datas'' of type ``TimePoint'' and
+        The adaptive sampling accepts ``DataObjects'' of type ``TimePoint'' and
         ``TimePointSet'' only.
     \end{itemize}
 }
@@ -526,13 +531,22 @@ Example:
  \begin{itemize}
     \item \distributionDescription
  \end{itemize} \end{itemize}
-Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}).  
+Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}).
 \begin{itemize}
 
   % Assembler Objects
   \item \assemblerROMDescription{SparseGridCollocation}
 
-\end{itemize}
+    The \textbf{SparseGridCollocation} sampler also optionally accepts  the
+    following object types:
+    \begin{itemize}
+      \item \xmlNode{Restart}, \xmlDesc{string, optional field}, the
+        body of this XML node must contain the name of an appropriate \textbf{TimePointSet} defined in the
+        \xmlNode{DataObjects} block (see Section~\ref{subsec:models_ROM}).  It is used as a
+        ``restart'' tool, where it accepts pre-existing solutions in the TimePointSet instead
+        of recalculating solutions.
+    \end{itemize}
+  \end{itemize}
 \footnotesize
 \begin{lstlisting}[style=XML]
 Example:
@@ -546,6 +560,7 @@ Example:
       <distribution>myDist2</distribution>
     </variable>
     <ROM class = 'Models' type = 'ROM' >SCROM</ROM>
+    <Restart class = 'Datas' type = 'TimePointSet' >solns</Restart>
   </SparseGridCollocation>
   ...
 </Samplers>
@@ -672,7 +687,7 @@ This is possible by defining a global\_grid and associate such global grid to ea
 \begin{lstlisting}[style=XML,morekeywords={ND,grid}]
 <Samplers>
   ...
-  <LHS name='StratifiedName'> 
+  <Stratified name='StratifiedName'> 
         <variable name='x0'>
             <distribution dim='1'>ND_InverseWeight_P</distribution>
             <grid type='global_grid'>name_grid1</grid>
@@ -684,7 +699,7 @@ This is possible by defining a global\_grid and associate such global grid to ea
         <global_grid>
             <grid name='name_grid1' construction='custom'>0.1 1.0 0.2</grid>
         </global_grid>
-  </LHS>
+  </Stratified>
   ...
 </Samplers>
 \end{lstlisting}
@@ -1454,7 +1469,7 @@ Example:
   <Adaptive name='AdaptiveName'>
     <ROM class='Models' type='ROM'>ROMname</ROM>
     <Function class='Functions' type='External' >FunctionName</Function>
-    <TargetEvaluation class='Datas' type='TimePointSet'>DataName</TargetEvaluation>
+    <TargetEvaluation class='DataObjects' type='TimePointSet'>DataName</TargetEvaluation>
     <Convergence limit='3000'  forceIteration='False' weight='none' persistence='5'>
       1e-2
     </Convergence>
@@ -1575,7 +1590,7 @@ Example:
   <AdaptiveDynamicEventTree name = 'AdaptiveName'>
     <ROM class = 'Models' type = 'ROM'ROMname</ROM>
     <Function class = 'Functions' type = 'External'>FunctionName</Function>
-    <TargetEvaluation class = 'Datas' type = 'TimePointSet'>DataName</TargetEvaluation>
+    <TargetEvaluation class = 'DataObjects' type = 'TimePointSet'>DataName</TargetEvaluation>
     <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'none' persistence = '5'>
       1e-2
     </Convergence>

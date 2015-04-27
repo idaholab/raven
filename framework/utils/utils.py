@@ -1,4 +1,5 @@
 from __future__ import print_function
+# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
@@ -11,6 +12,35 @@ import copy
 import inspect
 
 class Object(object):pass
+
+def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
+  """
+  Method to check if a path (file or directory) is currently
+  used by another program. It is based on accessing time...
+  Probably there is a better way.
+  @ In, pathname, string containing the all path
+  @ In, timelapse, float, tollerance on time modification
+  @ Out, boolean, True if it is used by another program, False otherwise
+  """
+  import stat
+  import time
+  mode = os.stat(pathname).st_mode
+  if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)): raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  path '+pathname+ ' is neither a file nor a dir!')
+  return abs(os.stat(pathname).st_mtime - time.time()) < timelapse
+
+def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
+  """
+  Method to check if a path (directory) contains an hidden raven file
+  @ In, pathname, string containing the path
+  @ In, filename, string containing the file name
+  @ Out, boolean, True if it is present, False otherwise
+  """
+  import fcntl
+  finm = os.path.join(pathname,filename)
+  fp = open(finm, 'w')
+  try           : fcntl.lockf(fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
+  except IOError: return True
+  return False
 
 def returnImportModuleString(obj,moduleOnly=False):
   mods = []
@@ -31,6 +61,48 @@ def getPrintTagLenght(): return 25
 def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
 
 def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
+
+def raiseAnError(etype,obj,msg):
+  '''
+    Standardized error raising. Currently halts code.
+    @ In, etype, the error type to raise
+    @ In, obj, either a string or a class instance to determine the label for the error
+    @ In, msg, the error message to display
+    @ Out, None
+  '''
+  if type(obj) in [str,unicode]:
+    tag = obj
+  else:
+    try: obj.printTag
+    except AttributeError: tag = str(obj)
+    else: tag = str(obj.printTag)
+  raise etype(returnPrintTag(tag)+': '+returnPrintPostTag('ERROR')+' -> '+str(msg))
+
+def raiseAWarning(obj,msg,wtag='WARNING'):
+  '''
+    Standardized warning printing.
+    @ In, obj, either a string or a class instance to determine the label for the warning
+    @ In, msg, the warning message to display
+    @ In, wtag, optional, the type of warning to display (default "WARNING")
+    @ Out, None
+  '''
+  if type(obj) in [str,unicode]:
+    tag = obj
+  else:
+    try: obj.printTag
+    except AttributeError: tag = str(obj)
+    else: tag = str(obj.printTag)
+  print(returnPrintTag(tag)+': '+returnPrintPostTag(str(wtag))+' -> '+str(msg))
+
+def raiseAMessage(obj,msg,wtag='Message'):
+  '''
+    Standardized message printing.
+    @ In, obj, either a string or a class instance to determine the label for the message
+    @ In, msg, the message to display
+    @ In, wtag, optional, the type of warning to display (default "Message")
+    @ Out, None
+  '''
+  raiseAWarning(obj,msg,wtag)
 
 def convertMultipleToBytes(sizeString):
   '''
@@ -228,7 +300,7 @@ def find_ge(a, x):
 #   state = self.__dict__.copy()
 #   # we pop the database instance and close it
 #   state.pop("database")
-#   self.database.closeDataBaseW()
+#   self.database.closeDatabaseW()
 #   # what we return here will be stored in the pickle
 #   return state
 #
@@ -379,7 +451,47 @@ def find_interpolationND():
       return interpolationNDpy2
 
 def printCsv(csv,*args):
+    '''
+      Writes the values contained in args to a csv file specified by csv
+      @ In, csv, an open file object to which we will be writing
+      @ In, args, an arbitrary collection of values to write to the file
+    '''
     print(*args,file=csv,sep=',')
 
 def printCsvPart(csv,*args):
+    '''
+      Writes the values contained in args to a csv file specified by csv appending a comma
+      to the end to allow more data to be written to the line.
+      @ In, csv, an open file object to which we will be writing
+      @ In, args, an arbitrary collection of values to write to the file
+    '''
     print(*args,file=csv,sep=',',end=',')
+
+def numpyNearestMatch(findIn,val):
+  '''
+    Given an array, find the entry that most nearly matches the given value.
+    @ In, findIn, the array to look in
+    @ In, val, the value for which to find a match
+    @ Out, tuple, index where match is and the match itself
+  '''
+  idx = (np.abs(findIn-val)).argmin()
+  return idx,findIn[idx]
+
+def NDInArray(findIn,val,tol=1e-12):
+  '''
+    checks a numpy array of numpy arrays for a near match, then returns info.
+    @ In, findIn, numpy array of numpy arrays (both arrays can be any length)
+    @ In, val, tuple/list/numpy array, entry to look for in findIn
+    @ In, tol, float, tolerance to check match within
+    @ Out, (bool,idx,val) -> (found/not found, index where found or None, findIn entry or None)
+  '''
+  loc = np.where(np.all(np.abs(findIn-val)<tol,axis=1)==1)
+  if len(loc[0])>0:
+    found = True
+    idx = loc[0][0]
+    val = findIn[idx]
+  else:
+    found = False
+    idx = val = None
+  return found,idx,val
+

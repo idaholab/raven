@@ -17,7 +17,7 @@ from scipy import integrate
 import os
 from glob import glob
 import copy
-import Datas
+import DataObjects
 import math
 #External Modules End--------------------------------------------------------------------------------
 
@@ -28,9 +28,6 @@ import mathUtils
 from Assembler import Assembler
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
-
-#def error(*objs):
-#  print("ERROR: ", *objs, file=sys.stderr)
 
 '''
   ***************************************
@@ -57,16 +54,14 @@ class BasePostProcessor(Assembler):
 
   def run(self, Input): pass
 
-class SafestPoint(BasePostProcessor):
+class LimitSurfaceIntegral(BasePostProcessor):
   '''
   It searches for the probability-weighted safest point inside the space of the system controllable variables
   '''
   def __init__(self):
     BasePostProcessor.__init__(self)
-    self.controllableDist = {}                                    #dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
-    self.nonControllableDist = {}                                 #dictionary created upon the .xml input file reading. It stores the distributions for each non-controllale variable.
+    self.variableDist = {}                                    #dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
     self.controllableGrid = {}                                    #dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.
-    self.nonControllableGrid = {}                                 #dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each non-controllale variable.
     self.gridInfo = {}                                            #dictionary contaning the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
     self.controllableOrd = []                                     #list contaning the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
     self.nonControllableOrd = []                                  #list contaning the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
@@ -78,14 +73,10 @@ class SafestPoint(BasePostProcessor):
 
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
-    for varName, distName in self.controllableDist.items():
+    for varName, distName in self.variableDist.items():
       if distName not in initDict['Distributions'].keys():
-        raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> distribution ' +distName+ ' not found.')
-      self.controllableDist[varName] = initDict['Distributions'][distName]
-    for varName, distName in self.nonControllableDist.items():
-      if distName not in initDict['Distributions'].keys():
-        raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> distribution ' +distName+ ' not found.')
-      self.nonControllableDist[varName] = initDict['Distributions'][distName]
+        utils.raiseAnError(IOError,self,'distribution ' +distName+ ' not found.')
+      self.variableDist[varName] = initDict['Distributions'][distName]
 
   def _localReadMoreXML(self,xmlNode):
     for child in xmlNode:
@@ -95,49 +86,24 @@ class SafestPoint(BasePostProcessor):
             varName = childChild.attrib['name']
             for childChildChild in childChild:
               if childChildChild.tag == 'distribution':
-                self.controllableDist[varName] = childChildChild.text
+                self.variableDist[varName] = childChildChild.text
               elif childChildChild.tag == 'grid':
                 if 'type' in childChildChild.attrib.keys():
                   if 'steps' in childChildChild.attrib.keys():
                     self.controllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
                   else:
-                    raise NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> number of steps missing after the grid call.')
+                    utils.raiseAnError(NameError,self,'number of steps missing after the grid call.')
                 else:
-                  raise NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> grid type missing after the grid call.')
+                  utils.raiseAnError(NameError,self,'grid type missing after the grid call.')
               else:
-                raise NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
+                utils.raiseAnError(NameError,self,'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
           else:
-            raise NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
-      elif child.tag == 'non-controllable':
-        for childChild in child:
-          if childChild.tag == 'variable':
-            varName = childChild.attrib['name']
-            for childChildChild in childChild:
-              if childChildChild.tag == 'distribution':
-                self.nonControllableDist[varName] = childChildChild.text
-              elif childChildChild.tag == 'grid':
-                if 'type' in childChildChild.attrib.keys():
-                  if 'steps' in childChildChild.attrib.keys():
-                    self.nonControllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
-                  else:
-                    raise NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> number of steps missing after the grid call.')
-                else:
-                  raise NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> grid type missing after the grid call.')
-              else:
-                raise NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
-          else:
-            raise NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
-      #else:
-      #  if child.tag != 'Assembler': raise NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> invalid or missing labels after the post-processor call. Only "controllable", "non-controllable" and "Assembler" are accepted.')
+            utils.raiseAnError(NameError,self,'invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
     if self.debug:
-      print('CONTROLLABLE DISTRIBUTIONS:')
-      print(self.controllableDist)
-      print('CONTROLLABLE GRID:')
-      print(self.controllableGrid)
-      print('NON-CONTROLLABLE DISTRIBUTIONS:')
-      print(self.nonControllableDist)
-      print('NON-CONTROLLABLE GRID:')
-      print(self.nonControllableGrid)
+      utils.raiseAMessage(self,'CONTROLLABLE DISTRIBUTIONS:')
+      utils.raiseAMessage(self,self.variableDist)
+      utils.raiseAMessage(self,'CONTROLLABLE GRID:')
+      utils.raiseAMessage(self,self.controllableGrid)
 
   def initialize(self,runInfo,inputs,initDict):
     self.__gridSetting__()
@@ -146,18 +112,18 @@ class SafestPoint(BasePostProcessor):
     self.stat.parameters['targets'] = self.controllableOrd
     self.stat.initialize(runInfo,inputs,initDict)
     if self.debug:
-      print('GRID INFO:')
-      print(self.gridInfo)
-      print('N-DIMENSIONAL CONTROLLABLE SPACE:')
-      print(self.controllableSpace)
-      print('N-DIMENSIONAL NON-CONTROLLABLE SPACE:')
-      print(self.nonControllableSpace)
-      print('CONTROLLABLE VARIABLES ORDER:')
-      print(self.controllableOrd)
-      print('NON-CONTROLLABLE VARIABLES ORDER:')
-      print(self.nonControllableOrd)
-      print('SURFACE POINTS MATRIX:')
-      print(self.surfPointsMatrix)
+      utils.raiseAMessage(self,'GRID INFO:')
+      utils.raiseAMessage(self,self.gridInfo)
+      utils.raiseAMessage(self,'N-DIMENSIONAL CONTROLLABLE SPACE:')
+      utils.raiseAMessage(self,self.controllableSpace)
+      utils.raiseAMessage(self,'N-DIMENSIONAL NON-CONTROLLABLE SPACE:')
+      utils.raiseAMessage(self,self.nonControllableSpace)
+      utils.raiseAMessage(self,'CONTROLLABLE VARIABLES ORDER:')
+      utils.raiseAMessage(self,self.controllableOrd)
+      utils.raiseAMessage(self,'NON-CONTROLLABLE VARIABLES ORDER:')
+      utils.raiseAMessage(self,self.nonControllableOrd)
+      utils.raiseAMessage(self,'SURFACE POINTS MATRIX:')
+      utils.raiseAMessage(self,self.surfPointsMatrix)
 
   def __gridSetting__(self,constrType='equal'):
     for varName in self.controllableGrid.keys():
@@ -168,7 +134,7 @@ class SafestPoint(BasePostProcessor):
         self.__stepError__(0,1,self.controllableGrid[varName][1],self.controllableGrid[varName][2],varName)
         self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [self.controllableGrid[varName][2]*i for i in range(self.controllableGrid[varName][1]+1)])
       else:
-        raise NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> inserted invalid grid type. Only "value" and "CDF" are accepted.')
+        utils.raiseAnError(NameError,self,'inserted invalid grid type. Only "value" and "CDF" are accepted.')
     for varName in self.nonControllableGrid.keys():
       if self.nonControllableGrid[varName][0] == 'value':
         self.__stepError__(float(self.nonControllableDist[varName].lowerBound),float(self.nonControllableDist[varName].upperBound),self.nonControllableGrid[varName][1],self.nonControllableGrid[varName][2],varName)
@@ -177,11 +143,11 @@ class SafestPoint(BasePostProcessor):
         self.__stepError__(0,1,self.nonControllableGrid[varName][1],self.nonControllableGrid[varName][2],varName)
         self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [self.nonControllableGrid[varName][2]*i for i in range(self.nonControllableGrid[varName][1]+1)])
       else:
-        raise NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> inserted invalid grid type. Only "value" and "CDF" are accepted.')
+        utils.raiseAnError(NameError,self,'inserted invalid grid type. Only "value" and "CDF" are accepted.')
 
   def __stepError__(self,lowerBound,upperBound,steps,tol,varName):
     if upperBound-lowerBound<steps*tol:
-      raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> inserted number of steps or tolerance for variable ' +varName+ ' exceeds its limit.')
+      utils.raiseAnError(IOError,self,'inserted number of steps or tolerance for variable ' +varName+ ' exceeds its limit.')
 
   def __gridGeneration__(self):
     NotchesByVar = [None]*len(self.controllableGrid.keys())
@@ -240,20 +206,20 @@ class SafestPoint(BasePostProcessor):
 
   def run(self,Input):
     nearestPointsInd = []
-    dataCollector = Datas.returnInstance('TimePointSet')
+    dataCollector = DataObjects.returnInstance('TimePointSet')
     dataCollector.type = 'TimePointSet'
     surfTree = spatial.KDTree(copy.copy(self.surfPointsMatrix[:,0:self.surfPointsMatrix.shape[-1]-1]))
     self.controllableSpace.shape = (np.prod(self.controllableSpace.shape[0:len(self.controllableSpace.shape)-1]),self.controllableSpace.shape[-1])
     self.nonControllableSpace.shape = (np.prod(self.nonControllableSpace.shape[0:len(self.nonControllableSpace.shape)-1]),self.nonControllableSpace.shape[-1])
     if self.debug:
-      print('RESHAPED CONTROLLABLE SPACE:')
-      print(self.controllableSpace)
-      print('RESHAPED NON-CONTROLLABLE SPACE:')
-      print(self.nonControllableSpace)
+      utils.raiseAMessage(self,'RESHAPED CONTROLLABLE SPACE:')
+      utils.raiseAMessage(self,self.controllableSpace)
+      utils.raiseAMessage(self,'RESHAPED NON-CONTROLLABLE SPACE:')
+      utils.raiseAMessage(self,self.nonControllableSpace)
     for ncLine in range(self.nonControllableSpace.shape[0]):
       queryPointsMatrix = np.append(self.controllableSpace,np.tile(self.nonControllableSpace[ncLine,:],(self.controllableSpace.shape[0],1)),axis=1)
-      print('QUERIED POINTS MATRIX:')
-      print(queryPointsMatrix)
+      utils.raiseAMessage(self,'QUERIED POINTS MATRIX:')
+      utils.raiseAMessage(self,queryPointsMatrix)
       nearestPointsInd = surfTree.query(queryPointsMatrix)[-1]
       distList = []
       indexList = []
@@ -263,7 +229,7 @@ class SafestPoint(BasePostProcessor):
           distList.append(np.sqrt(np.sum(np.power(queryPointsMatrix[index,0:self.controllableSpace.shape[-1]]-surfTree.data[nearestPointsInd[index],0:self.controllableSpace.shape[-1]],2))))
           indexList.append(index)
       if distList == []:
-        raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> no safest point found for the current set of non-controllable variables: ' +str(self.nonControllableSpace[ncLine,:])+ '.')
+        utils.raiseAnError(ValueError,self,'no safest point found for the current set of non-controllable variables: ' +str(self.nonControllableSpace[ncLine,:])+ '.')
       else:
         for cVarIndex in range(len(self.controllableOrd)):
           dataCollector.updateInputValue(self.controllableOrd[cVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],cVarIndex]))
@@ -289,21 +255,277 @@ class SafestPoint(BasePostProcessor):
       dataCollector.updateMetadata('ProbabilityWeight',np.prod(probList))
     dataCollector.updateMetadata('ExpectedSafestPointCoordinates',self.stat.run(dataCollector)['expectedValue'])
     if self.debug:
-      print(dataCollector.getParametersValues('input'))
-      print(dataCollector.getParametersValues('output'))
-      print(dataCollector.getMetadata('ExpectedSafestPointCoordinates'))
+      utils.raiseAMessage(self,dataCollector.getParametersValues('input'))
+      utils.raiseAMessage(self,dataCollector.getParametersValues('output'))
+      utils.raiseAMessage(self,dataCollector.getMetadata('ExpectedSafestPointCoordinates'))
     return dataCollector
 
   def collectOutput(self,finishedjob,output):
     if finishedjob.returnEvaluation() == -1:
-      raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> no available output to collect (the run is likely not over yet).')
+      utils.raiseAnError(RuntimeError,self,'no available output to collect (the run is likely not over yet).')
     else:
       dataCollector = finishedjob.returnEvaluation()[1]
       if output.type != 'TimePointSet':
-        raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> output item type must be "TimePointSet".')
+        utils.raiseAnError(TypeError,self,'output item type must be "TimePointSet".')
       else:
         if not output.isItEmpty():
-          raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> output item must be empty.')
+          utils.raiseAnError(ValueError,self,'output item must be empty.')
+        else:
+          for key,value in dataCollector.getParametersValues('input').items():
+            for val in value: output.updateInputValue(key, val)
+          for key,value in dataCollector.getParametersValues('output').items():
+            for val in value: output.updateOutputValue(key,val)
+          for key,value in dataCollector.getAllMetadata().items(): output.updateMetadata(key,value)
+
+
+
+class SafestPoint(BasePostProcessor):
+  '''
+  It searches for the probability-weighted safest point inside the space of the system controllable variables
+  '''
+  def __init__(self):
+    BasePostProcessor.__init__(self)
+    self.controllableDist = {}                                    #dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
+    self.nonControllableDist = {}                                 #dictionary created upon the .xml input file reading. It stores the distributions for each non-controllale variable.
+    self.controllableGrid = {}                                    #dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.
+    self.nonControllableGrid = {}                                 #dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each non-controllale variable.
+    self.gridInfo = {}                                            #dictionary contaning the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
+    self.controllableOrd = []                                     #list contaning the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
+    self.nonControllableOrd = []                                  #list contaning the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
+    self.surfPointsMatrix = None                                  #2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
+    self.stat = returnInstance('BasicStatistics')                 #instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
+    self.stat.what = ['expectedValue']
+    self.requiredAssObject = (True,(['Distribution'],['n']))
+    self.printTag = utils.returnPrintTag('POSTPROCESSOR SAFESTPOINT')
+
+  def _localGenerateAssembler(self,initDict):
+    ''' see generateAssembler method '''
+    for varName, distName in self.controllableDist.items():
+      if distName not in initDict['Distributions'].keys():
+        utils.raiseAnError(IOError,self,'distribution ' +distName+ ' not found.')
+      self.controllableDist[varName] = initDict['Distributions'][distName]
+    for varName, distName in self.nonControllableDist.items():
+      if distName not in initDict['Distributions'].keys():
+        utils.raiseAnError(IOError,self,'distribution ' +distName+ ' not found.')
+      self.nonControllableDist[varName] = initDict['Distributions'][distName]
+
+  def _localReadMoreXML(self,xmlNode):
+    for child in xmlNode:
+      if child.tag == 'controllable':
+        for childChild in child:
+          if childChild.tag == 'variable':
+            varName = childChild.attrib['name']
+            for childChildChild in childChild:
+              if childChildChild.tag == 'distribution':
+                self.controllableDist[varName] = childChildChild.text
+              elif childChildChild.tag == 'grid':
+                if 'type' in childChildChild.attrib.keys():
+                  if 'steps' in childChildChild.attrib.keys():
+                    self.controllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
+                  else:
+                    utils.raiseAnError(NameError,self,'number of steps missing after the grid call.')
+                else:
+                  utils.raiseAnError(NameError,self,'grid type missing after the grid call.')
+              else:
+                utils.raiseAnError(NameError,self,'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
+          else:
+            utils.raiseAnError(NameError,self,'invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
+      elif child.tag == 'non-controllable':
+        for childChild in child:
+          if childChild.tag == 'variable':
+            varName = childChild.attrib['name']
+            for childChildChild in childChild:
+              if childChildChild.tag == 'distribution':
+                self.nonControllableDist[varName] = childChildChild.text
+              elif childChildChild.tag == 'grid':
+                if 'type' in childChildChild.attrib.keys():
+                  if 'steps' in childChildChild.attrib.keys():
+                    self.nonControllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
+                  else:
+                    utils.raiseAnError(NameError,self,'number of steps missing after the grid call.')
+                else:
+                  utils.raiseAnError(NameError,self,'grid type missing after the grid call.')
+              else:
+                utils.raiseAnError(NameError,self,'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
+          else:
+            utils.raiseAnError(NameError,self,'invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
+      #else:
+      #  if child.tag != 'Assembler': raisea NameError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> invalid or missing labels after the post-processor call. Only "controllable", "non-controllable" and "Assembler" are accepted.')
+    if self.debug:
+      utils.raiseAMessage(self,'CONTROLLABLE DISTRIBUTIONS:')
+      utils.raiseAMessage(self,self.controllableDist)
+      utils.raiseAMessage(self,'CONTROLLABLE GRID:')
+      utils.raiseAMessage(self,self.controllableGrid)
+      utils.raiseAMessage(self,'NON-CONTROLLABLE DISTRIBUTIONS:')
+      utils.raiseAMessage(self,self.nonControllableDist)
+      utils.raiseAMessage(self,'NON-CONTROLLABLE GRID:')
+      utils.raiseAMessage(self,self.nonControllableGrid)
+
+  def initialize(self,runInfo,inputs,initDict):
+    self.__gridSetting__()
+    self.__gridGeneration__()
+    self.inputToInternal(inputs)
+    self.stat.parameters['targets'] = self.controllableOrd
+    self.stat.initialize(runInfo,inputs,initDict)
+    if self.debug:
+      utils.raiseAMessage(self,'GRID INFO:')
+      utils.raiseAMessage(self,self.gridInfo)
+      utils.raiseAMessage(self,'N-DIMENSIONAL CONTROLLABLE SPACE:')
+      utils.raiseAMessage(self,self.controllableSpace)
+      utils.raiseAMessage(self,'N-DIMENSIONAL NON-CONTROLLABLE SPACE:')
+      utils.raiseAMessage(self,self.nonControllableSpace)
+      utils.raiseAMessage(self,'CONTROLLABLE VARIABLES ORDER:')
+      utils.raiseAMessage(self,self.controllableOrd)
+      utils.raiseAMessage(self,'NON-CONTROLLABLE VARIABLES ORDER:')
+      utils.raiseAMessage(self,self.nonControllableOrd)
+      utils.raiseAMessage(self,'SURFACE POINTS MATRIX:')
+      utils.raiseAMessage(self,self.surfPointsMatrix)
+
+  def __gridSetting__(self,constrType='equal'):
+    for varName in self.controllableGrid.keys():
+      if self.controllableGrid[varName][0] == 'value':
+        self.__stepError__(float(self.controllableDist[varName].lowerBound),float(self.controllableDist[varName].upperBound),self.controllableGrid[varName][1],self.controllableGrid[varName][2],varName)
+        self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [float(self.controllableDist[varName].lowerBound)+self.controllableGrid[varName][2]*i for i in range(self.controllableGrid[varName][1]+1)])
+      elif self.controllableGrid[varName][0] == 'CDF':
+        self.__stepError__(0,1,self.controllableGrid[varName][1],self.controllableGrid[varName][2],varName)
+        self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [self.controllableGrid[varName][2]*i for i in range(self.controllableGrid[varName][1]+1)])
+      else:
+        utils.raiseAnError(NameError,self,'inserted invalid grid type. Only "value" and "CDF" are accepted.')
+    for varName in self.nonControllableGrid.keys():
+      if self.nonControllableGrid[varName][0] == 'value':
+        self.__stepError__(float(self.nonControllableDist[varName].lowerBound),float(self.nonControllableDist[varName].upperBound),self.nonControllableGrid[varName][1],self.nonControllableGrid[varName][2],varName)
+        self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [float(self.nonControllableDist[varName].lowerBound)+self.nonControllableGrid[varName][2]*i for i in range(self.nonControllableGrid[varName][1]+1)])
+      elif self.nonControllableGrid[varName][0] == 'CDF':
+        self.__stepError__(0,1,self.nonControllableGrid[varName][1],self.nonControllableGrid[varName][2],varName)
+        self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [self.nonControllableGrid[varName][2]*i for i in range(self.nonControllableGrid[varName][1]+1)])
+      else:
+        utils.raiseAnError(NameError,self,'inserted invalid grid type. Only "value" and "CDF" are accepted.')
+
+  def __stepError__(self,lowerBound,upperBound,steps,tol,varName):
+    if upperBound-lowerBound<steps*tol:
+      utils.raiseAnError(IOError,self,'inserted number of steps or tolerance for variable ' +varName+ ' exceeds its limit.')
+
+  def __gridGeneration__(self):
+    NotchesByVar = [None]*len(self.controllableGrid.keys())
+    controllableSpaceSize = None
+    for varId, varName in enumerate(self.controllableGrid.keys()):
+      NotchesByVar[varId] = self.controllableGrid[varName][1]+1
+      self.controllableOrd.append(varName)
+    controllableSpaceSize = tuple(NotchesByVar+[len(self.controllableGrid.keys())])
+    self.controllableSpace = np.zeros(controllableSpaceSize)
+    iterIndex = np.nditer(self.controllableSpace,flags=['multi_index'])
+    while not iterIndex.finished:
+      coordIndex = iterIndex.multi_index[-1]
+      varName = self.controllableGrid.keys()[coordIndex]
+      notchPos = iterIndex.multi_index[coordIndex]
+      if self.gridInfo[varName][0] == 'CDF':
+        valList = []
+        for probVal in self.gridInfo[varName][2]:
+          valList.append(self.controllableDist[varName].cdf(probVal))
+        self.controllableSpace[iterIndex.multi_index] = valList[notchPos]
+      else:
+        self.controllableSpace[iterIndex.multi_index] = self.gridInfo[varName][2][notchPos]
+      iterIndex.iternext()
+    NotchesByVar = [None]*len(self.nonControllableGrid.keys())
+    nonControllableSpaceSize = None
+    for varId, varName in enumerate(self.nonControllableGrid.keys()):
+      NotchesByVar[varId] = self.nonControllableGrid[varName][1]+1
+      self.nonControllableOrd.append(varName)
+    nonControllableSpaceSize = tuple(NotchesByVar+[len(self.nonControllableGrid.keys())])
+    self.nonControllableSpace = np.zeros(nonControllableSpaceSize)
+    iterIndex = np.nditer(self.nonControllableSpace,flags=['multi_index'])
+    while not iterIndex.finished:
+      coordIndex = iterIndex.multi_index[-1]
+      varName = self.nonControllableGrid.keys()[coordIndex]
+      notchPos = iterIndex.multi_index[coordIndex]
+      if self.gridInfo[varName][0] == 'CDF':
+        valList = []
+        for probVal in self.gridInfo[varName][2]:
+          valList.append(self.nonControllableDist[varName].cdf(probVal))
+        self.nonControllableSpace[iterIndex.multi_index] = valList[notchPos]
+      else:
+        self.nonControllableSpace[iterIndex.multi_index] = self.gridInfo[varName][2][notchPos]
+      iterIndex.iternext()
+
+  def inputToInternal(self,currentInput):
+    for item in currentInput:
+      if item.type == 'TimePointSet':
+        self.surfPointsMatrix = np.zeros((len(item.getParam('output',item.getParaKeys('outputs')[-1])),len(self.gridInfo.keys())+1))
+        k=0
+        for varName in self.controllableOrd:
+          self.surfPointsMatrix[:,k] = item.getParam('input',varName)
+          k+=1
+        for varName in self.nonControllableOrd:
+          self.surfPointsMatrix[:,k] = item.getParam('input',varName)
+          k+=1
+        self.surfPointsMatrix[:,k] = item.getParam('output',item.getParaKeys('outputs')[-1])
+
+  def run(self,Input):
+    nearestPointsInd = []
+    dataCollector = DataObjects.returnInstance('TimePointSet')
+    dataCollector.type = 'TimePointSet'
+    surfTree = spatial.KDTree(copy.copy(self.surfPointsMatrix[:,0:self.surfPointsMatrix.shape[-1]-1]))
+    self.controllableSpace.shape = (np.prod(self.controllableSpace.shape[0:len(self.controllableSpace.shape)-1]),self.controllableSpace.shape[-1])
+    self.nonControllableSpace.shape = (np.prod(self.nonControllableSpace.shape[0:len(self.nonControllableSpace.shape)-1]),self.nonControllableSpace.shape[-1])
+    if self.debug:
+      utils.raiseAMessage(self,'RESHAPED CONTROLLABLE SPACE:')
+      utils.raiseAMessage(self,self.controllableSpace)
+      utils.raiseAMessage(self,'RESHAPED NON-CONTROLLABLE SPACE:')
+      utils.raiseAMessage(self,self.nonControllableSpace)
+    for ncLine in range(self.nonControllableSpace.shape[0]):
+      queryPointsMatrix = np.append(self.controllableSpace,np.tile(self.nonControllableSpace[ncLine,:],(self.controllableSpace.shape[0],1)),axis=1)
+      utils.raiseAMessage(self,'QUERIED POINTS MATRIX:')
+      utils.raiseAMessage(self,queryPointsMatrix)
+      nearestPointsInd = surfTree.query(queryPointsMatrix)[-1]
+      distList = []
+      indexList = []
+      probList = []
+      for index in range(len(nearestPointsInd)):
+        if self.surfPointsMatrix[np.where(np.prod(surfTree.data[nearestPointsInd[index],0:self.surfPointsMatrix.shape[-1]-1] == self.surfPointsMatrix[:,0:self.surfPointsMatrix.shape[-1]-1],axis=1))[0][0],-1] == 1:
+          distList.append(np.sqrt(np.sum(np.power(queryPointsMatrix[index,0:self.controllableSpace.shape[-1]]-surfTree.data[nearestPointsInd[index],0:self.controllableSpace.shape[-1]],2))))
+          indexList.append(index)
+      if distList == []:
+        utils.raiseAnError(ValueError,self,'no safest point found for the current set of non-controllable variables: ' +str(self.nonControllableSpace[ncLine,:])+ '.')
+      else:
+        for cVarIndex in range(len(self.controllableOrd)):
+          dataCollector.updateInputValue(self.controllableOrd[cVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],cVarIndex]))
+        for ncVarIndex in range(len(self.nonControllableOrd)):
+          dataCollector.updateInputValue(self.nonControllableOrd[ncVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]))
+          if queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound:
+            if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
+              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
+            else:
+              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound+self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
+          elif queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound:
+            if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
+              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
+            else:
+              prob = 1-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
+          else:
+            if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
+              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]
+            else:
+              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]+self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
+          probList.append(prob)
+      dataCollector.updateOutputValue('Probability',np.prod(probList))
+      dataCollector.updateMetadata('ProbabilityWeight',np.prod(probList))
+    dataCollector.updateMetadata('ExpectedSafestPointCoordinates',self.stat.run(dataCollector)['expectedValue'])
+    if self.debug:
+      utils.raiseAMessage(self,dataCollector.getParametersValues('input'))
+      utils.raiseAMessage(self,dataCollector.getParametersValues('output'))
+      utils.raiseAMessage(self,dataCollector.getMetadata('ExpectedSafestPointCoordinates'))
+    return dataCollector
+
+  def collectOutput(self,finishedjob,output):
+    if finishedjob.returnEvaluation() == -1:
+      utils.raiseAnError(RuntimeError,self,'no available output to collect (the run is likely not over yet).')
+    else:
+      dataCollector = finishedjob.returnEvaluation()[1]
+      if output.type != 'TimePointSet':
+        utils.raiseAnError(TypeError,self,'output item type must be "TimePointSet".')
+      else:
+        if not output.isItEmpty():
+          utils.raiseAnError(ValueError,self,'output item must be empty.')
         else:
           for key,value in dataCollector.getParametersValues('input').items():
             for val in value: output.updateInputValue(key, val)
@@ -337,7 +559,6 @@ class ComparisonStatistics(BasePostProcessor):
 
   def initialize(self, runInfo, inputs, initDict):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    #print("runInfo",runInfo,"inputs",inputs,"initDict",initDict)
 
   def _localReadMoreXML(self,xmlNode):
     for outer in xmlNode:
@@ -350,7 +571,6 @@ class ComparisonStatistics(BasePostProcessor):
             name, kind = splitName[:2]
             rest = splitName[2:]
             compareGroup.dataPulls.append([name, kind, rest])
-            #print("xml dataName",dataName,self.dataPulls[-1])
           elif child.tag == 'reference':
             compareGroup.referenceData = dict(child.attrib)
         self.compareGroups.append(compareGroup)
@@ -369,7 +589,7 @@ class ComparisonStatistics(BasePostProcessor):
         elif interpolation == 'quadratic':
           self.interpolation = 'quadratic'
         else:
-          print(self.printTag+': ' +utils.returnPrintPostTag('Warning')+' unexpected interpolation method '+interpolation)
+          utils.raiseAMessage(self,'unexpected interpolation method '+interpolation)
           self.interpolation = interpolation
 
 
@@ -382,33 +602,25 @@ class ComparisonStatistics(BasePostProcessor):
     dataDict = {}
     for aInput in Input: dataDict[aInput.name] = aInput
     return dataDict
-    #print("input",Input,"input name",Input.name,"input input",Input.getParametersValues('inputs'),
-    #      "input output",Input.getParametersValues('outputs'))
 
   def collectOutput(self,finishedjob,output):
-    if self.debug: print("finishedjob",finishedjob,"output",output)
+    if self.debug: utils.raiseAMessage(self,"finishedjob: "+finishedjob+", output "+output)
     #XXX We only handle the case where output is a filename.  We don't handle
-    # it being a datas or hdf5 etc.
-    if finishedjob.returnEvaluation() == -1: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> no available output to collect.')
+    # it being a dataObjects or hdf5 etc.
+    if finishedjob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,'no available output to collect.')
     else: self.dataDict.update(finishedjob.returnEvaluation()[1])
 
     dataToProcess = []
     for compareGroup in self.compareGroups:
       dataPulls = compareGroup.dataPulls
       reference = compareGroup.referenceData
-      foundDatas = []
+      foundDataObjects = []
       for name, kind, rest in dataPulls:
         data = self.dataDict[name].getParametersValues(kind)
-        #print("dataPull",dataPull) #("result",self.dataDict[name].getParametersValues(kind))
         if len(rest) == 1:
-          #print("dataPart",data[rest[0]])
-          #print(data.keys())
-          foundDatas.append(data[rest[0]])
-      dataToProcess.append((dataPulls,foundDatas,reference))
-    #print("dataToProcess",dataToProcess)
+          foundDataObjects.append(data[rest[0]])
+      dataToProcess.append((dataPulls,foundDataObjects,reference))
     csv = open(output,"w")
-#    def printCsv(*args):
-#      print(*args,file=csv,sep=',')
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "mean" in reference:
@@ -450,7 +662,6 @@ class ComparisonStatistics(BasePostProcessor):
             f_2 = cdf[i+2]
           else:
             f_2 = 1.0
-          #print(f_0,f_1,f_2,h,f_prime)
           if self.interpolation == 'linear':
             fPrime = (f_1 - f_0)/h
           else:
@@ -461,7 +672,7 @@ class ComparisonStatistics(BasePostProcessor):
         dataKeys -= set({'num_bins','counts','bins'})
         for key in dataKeys:
           utils.printCsv(csv,'"'+key+'"',dataStats[key])
-        print("data_stats",dataStats)
+        utils.raiseAMessage(self,"data_stats: "+str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc,str(dataPull)))
       graph_data = mathUtils.getGraphs(graphData, self.f_z_stats)
       for key in graph_data:
@@ -480,7 +691,6 @@ class ComparisonStatistics(BasePostProcessor):
           else:
             return str(l)
         newFileName = output[:-4]+"_"+delist(dataPulls)+"_"+str(i)+".csv"
-        #print("data_stat",type(data_stat),data_stat.__sizeof__,data_stat)
         if type(dataStat).__name__ != 'dict':
           assert(False)
           continue
@@ -495,7 +705,6 @@ class ComparisonStatistics(BasePostProcessor):
         extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
         extraCsv.write("\n")
         extraCsv.close()
-        #print(new_filename,"data_pairs",data_pairs)
       utils.printCsv(csv)
 
   def processData(self,dataPull, data, methodInfo):
@@ -508,10 +717,8 @@ class ComparisonStatistics(BasePostProcessor):
       low = sortedData[0]
       high = sortedData[-1]
       dataRange = high - low
-      #print("data",dataPull,"average",sum(data)/len(data))
       ret['low'] = low
       ret['high'] = high
-      #print("low",low,"high",high,end=' ')
       if not 'bin_method' in methodInfo:
         numBins = methodInfo.get("num_bins",10)
       else:
@@ -522,10 +729,9 @@ class ComparisonStatistics(BasePostProcessor):
         elif binMethod == 'sturges':
           numBins = int(math.ceil(mathUtils.log2(dataN)+1))
         else:
-          print(returnPrintPostTag('ERROR')+"Unknown bin_method "+binMethod)
+          utils.raiseAMessage(self,"Unknown bin_method "+binMethod,'ExceptedError')
           numBins = 5
       ret['num_bins'] = numBins
-      #print("num_bins",num_bins)
       kind = methodInfo.get("kind","uniform_bins")
       if kind == "uniform_bins":
         bins = [low+x*dataRange/numBins for x in range(1,numBins)]
@@ -553,7 +759,6 @@ class ComparisonStatistics(BasePostProcessor):
       ret['alpha'] = alpha
       ret['omega'] = omega
       ret['xi'] = xi
-      #print("bins",bins,"counts",counts)
       return ret
 
 class PrintCSV(BasePostProcessor):
@@ -573,7 +778,7 @@ class PrintCSV(BasePostProcessor):
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     runInfo['TempWorkingDir']     = self.workingDir
     try:                            os.mkdir(self.workingDir)
-    except:                         print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '->current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except:                         utils.raiseAWarning(self,'current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     #if type(inputs[-1]).__name__ == "HDF5" : self.inObj = inputs[-1]      # this should go in run return but if HDF5, it is not pickable
 
   def _localReadMoreXML(self,xmlNode):
@@ -591,7 +796,7 @@ class PrintCSV(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     # Check the input type
-    if finishedjob.returnEvaluation() == -1: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '->  No available Output to collect (Run probabably is not finished yet)')
+    if finishedjob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,'No available Output to collect (Run probabably is not finished yet)')
     self.inObj = finishedjob.returnEvaluation()[1]
     if(self.inObj.type == "HDF5"):
       #  Input source is a database (HDF5)
@@ -710,7 +915,7 @@ class PrintCSV(BasePostProcessor):
 #                 addcsvfile.write(b'#Probability threshold,\n')
 #                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
           addcsvfile.write(b' \n')
-    else: raise NameError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> for input type ' + self.inObj.type + ' not yet implemented.')
+    else: utils.raiseAnError(NotImplementedError,self,'for input type ' + self.inObj.type + ' not yet implemented.')
 
   def run(self, Input): # inObj,workingDir=None):
     """
@@ -745,8 +950,8 @@ class BasicStatistics(BasePostProcessor):
     except:
       if type(currentInput) in [str,bytes,unicode]: inType = "file"
       elif type(currentInput) in [list]: inType = "list"
-      else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
-    if inType not in ['file','HDF5','TimePointSet','list']: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(inType) + '!!!!')
+      else: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
+    if inType not in ['file','HDF5','TimePointSet','list']: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(inType) + '!!!!')
     if inType == 'file':
       if currentInput.endswith('csv'): pass
     if inType == 'HDF5': pass # to be implemented
@@ -777,7 +982,7 @@ class BasicStatistics(BasePostProcessor):
         if self.what == 'all': self.what = self.acceptedCalcParam
         else:
           for whatc in self.what.split(','):
-            if whatc not in self.acceptedCalcParam: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available '+str(self.acceptedCalcParam))
+            if whatc not in self.acceptedCalcParam: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available '+str(self.acceptedCalcParam))
           self.what = self.what.split(',')
       if child.tag =="parameters"   : self.parameters['targets'] = child.text.split(',')
       if child.tag =="methodsToRun" : self.methodsToRun          = child.text.split(',')
@@ -787,7 +992,7 @@ class BasicStatistics(BasePostProcessor):
   def collectOutput(self,finishedjob,output):
     #output
     parameterSet = list(set(list(self.parameters['targets'])))
-    if finishedjob.returnEvaluation() == -1: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '->  No available Output to collect (Run probabably is not finished yet)')
+    if finishedjob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,' No available Output to collect (Run probabably is not finished yet)')
     outputDict = finishedjob.returnEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
@@ -796,64 +1001,64 @@ class BasicStatistics(BasePostProcessor):
       availextens = ['csv','txt']
       outputextension = output.split('.')[-1].lower()
       if outputextension not in availextens:
-        print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '->BasicStatistics postprocessor output extension you input is '+outputextension)
-        print('                     Available are '+str(availextens)+ '. Convertint extension to '+str(availextens[0])+'!')
+        utils.raiseAWarning(self,'BasicStatistics postprocessor output extension you input is '+outputextension)
+        utils.raiseAWarning(self,'Available are '+str(availextens)+ '. Convertint extension to '+str(availextens[0])+'!')
         outputextension = availextens[0]
       if outputextension != 'csv': separator = ' '
       else                       : separator = ','
       basicStatFilename = os.path.join(self.__workingDir,output[:output.rfind('.')]+'.'+outputextension)
       if self.debug:
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '->' + "workingDir",self.__workingDir,"output",output.split('.'))
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping output in file named ' + basicStatFilename)
+        utils.raiseAMessage(self,"workingDir",self.__workingDir+" output "+str(output.split('.')))
+        utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping output in file named ' + basicStatFilename)
       with open(basicStatFilename, 'wb') as basicStatdump:
         basicStatdump.write('BasicStatistics '+separator+str(self.name)+'\n')
         basicStatdump.write('----------------'+separator+'-'*len(str(self.name))+'\n')
         for targetP in parameterSet:
-          if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing variable '+ targetP)
+          if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: writing variable '+ targetP)
           basicStatdump.write('Variable'+ separator + targetP +'\n')
           basicStatdump.write('--------'+ separator +'-'*len(targetP)+'\n')
           for what in outputDict.keys():
             if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
-              if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
+              if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
               basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+'\n')
-        maxLenght = max(len(max(parameterSet, key=len))+5,16)
+        maxLength = max(len(max(parameterSet, key=len))+5,16)
         for what in outputDict.keys():
           if what in ['covariance','pearson','NormalizedSensitivity','sensitivity']:
-            if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing parameter matrix '+ what )
+            if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: writing parameter matrix '+ what )
             basicStatdump.write(what+' \n')
-            if outputextension != 'csv': basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet])+'\n')
+            if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])+'\n')
             else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in parameterSet])+'\n')
             for index in range(len(parameterSet)):
-              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict[what][index]])+'\n')
+              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+'\n')
               else                       : basicStatdump.write(parameterSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+'\n')
         if self.externalFunction:
-          if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing External Function results')
+          if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: writing External Function results')
           basicStatdump.write('\n' +'EXT FUNCTION \n')
           basicStatdump.write('------------ \n')
           for what in self.methodsToRun:
             if what not in self.acceptedCalcParam:
-              if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing External Function parameter '+ what )
+              if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: writing External Function parameter '+ what )
               basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+'\n')
-    elif output.type == 'Datas':
-      if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping output in data object named ' + output.name)
+    elif output.type == 'DataObjects':
+      if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping output in data object named ' + output.name)
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
           for targetP in parameterSet:
-            if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping variable '+ targetP + '. Parameter: '+ what + '. Metadata name = '+ targetP+'|'+what)
+            if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping variable '+ targetP + '. Parameter: '+ what + '. Metadata name = '+ targetP+'|'+what)
             output.updateMetadata(targetP+'|'+what,outputDict[what][targetP])
         else:
           if what not in methodToTest:
-            if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping matrix '+ what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets|'+what)
+            if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping matrix '+ what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets|'+what)
             output.updateMetadata('targets|'+what,parameterSet)
             output.updateMetadata(what,outputDict[what])
       if self.externalFunction:
-        if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping External Function results')
+        if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping External Function results')
         for what in self.methodsToRun:
           if what not in self.acceptedCalcParam:
             output.updateMetadata(what,outputDict[what])
-            if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping External Function parameter '+ what)
-    elif output.type == 'HDF5' : print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '->BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
-    else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor: Output type '+ str(output.type) + ' unknown!!')
+            if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping External Function parameter '+ what)
+    elif output.type == 'HDF5' : utils.raiseAWarning(self,'BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
+    else: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor: Output type '+ str(output.type) + ' unknown.')
 
   def run(self, InputIn):
     """
@@ -871,10 +1076,10 @@ class BasicStatistics(BasePostProcessor):
         # check if "what" corresponds to an internal method
         if what in self.acceptedCalcParam:
           if what not in ['pearson','covariance','NormalizedSensitivity','sensitivity']:
-            if type(outputDict[what]) != dict: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a dictionary!!')
+            if type(outputDict[what]) != dict: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a dictionary!!')
           else:
-            if type(outputDict[what]) != np.ndarray: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a numpy.ndarray!!')
-            if len(outputDict[what].shape) != 2:     raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a 2D numpy.ndarray!!')
+            if type(outputDict[what]) != np.ndarray: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a numpy.ndarray!!')
+            if len(outputDict[what].shape) != 2:     utils.raiseAnError(IOError,self,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a 2D numpy.ndarray!!')
 
     #setting some convenience values
     parameterSet = list(set(list(self.parameters['targets'])))  #@Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
@@ -883,8 +1088,8 @@ class BasicStatistics(BasePostProcessor):
 
     if 'ProbabilityWeight' not in Input['metadata'].keys():
       if Input['metadata'].keys().count('SamplerType') > 0:
-        if Input['metadata']['SamplerType'][0] != 'MC' : print('POSTPROC: Warning -> BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      else: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '->BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+        if Input['metadata']['SamplerType'][0] != 'MC' : utils.raiseAWarning(self,'BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+      else: utils.raiseAWarning(self,'BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbweights    = np.zeros(len(Input['targets'][self.parameters['targets'][0]]),dtype=np.float)
       pbweights[:] = 1.0/pbweights.size # it was an Integer Division (1/integer) => 0!!!!!!!! Andrea
     else: pbweights       = Input['metadata']['ProbabilityWeight']
@@ -973,59 +1178,61 @@ class BasicStatistics(BasePostProcessor):
           outputDict[what][myIndex] = ((covMatrix[myIndex,:]/variance)*expValues)/expValues[myIndex]
 
     # print on screen
-    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> BasicStatistics '+str(self.name)+'pp outputs')
+    utils.raiseAMessage(self,'BasicStatistics '+str(self.name)+'pp outputs')
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
+    msg='\n'
     for targetP in parameterSet:
-      print('        *************'+'*'*len(targetP)+'***')
-      print('        * Variable * '+ targetP +'  *')
-      print('        *************'+'*'*len(targetP)+'***')
+      msg+='        *************'+'*'*len(targetP)+'***'
+      msg+='        * Variable * '+ targetP +'  *'
+      msg+='        *************'+'*'*len(targetP)+'***'
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
-          print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
-          print('              ','* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *')
-          print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
-    maxLenght = max(len(max(parameterSet, key=len))+5,16)
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *'
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+    maxLength = max(len(max(parameterSet, key=len))+5,16)
     if 'covariance' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*         Covariance        *')
-      print(' '*maxLenght,'*****************************')
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*         Covariance        *'
+      msg+=' '*maxLength+'*****************************'
 
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['covariance'][index]]))
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])
     if 'pearson' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*    Pearson/Correlation    *')
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*    Pearson/Correlation    *'
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]]))
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])
     if 'sensitivity' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*        Sensitivity        *')
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*        Sensitivity        *'
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['sensitivity'][index]]))
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]])
     if 'NormalizedSensitivity' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*   Normalized Sensitivity  *')
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*   Normalized Sensitivity  *'
+      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['NormalizedSensitivity'][index]]))
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])
 
     if self.externalFunction:
-      print(' '*maxLenght,'+++++++++++++++++++++++++++++')
-      print(' '*maxLenght,'+ OUTCOME FROM EXT FUNCTION +')
-      print(' '*maxLenght,'+++++++++++++++++++++++++++++')
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
+      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +'
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
       for what in self.methodsToRun:
         if what not in self.acceptedCalcParam:
-          print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
-          print('              ','* '+what+' * ' + '%.8E' % outputDict[what]+'  *')
-          print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *'
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+    utils.raiseAMessage(self,msg)
     return outputDict
 
   def covariance(self, feature, weights=None, rowvar=1):
@@ -1041,6 +1248,7 @@ class BasicStatistics(BasePostProcessor):
       """
       X    = np.array(feature, ndmin=2, dtype=np.result_type(feature, np.float64))
       diff = np.zeros(feature.shape, dtype=np.result_type(feature, np.float64))
+      if weights != None: w = np.array(weights, ndmin=1, dtype=np.result_type(weights, np.float64))
       if X.shape[0] == 1: rowvar = 1
       if rowvar:
           N = X.shape[1]
@@ -1055,8 +1263,8 @@ class BasicStatistics(BasePostProcessor):
       else:
           diff = X - np.mean(X, axis=1-axis, keepdims=True)
       if weights != None:
-          if not self.biased: fact = sumWeights/(sumWeights*sumWeights - sumSquareWeights)
-          else:               fact = 1/sumWeights
+          if not self.biased: fact = float(sumWeights/((sumWeights*sumWeights - sumSquareWeights)))
+          else:               fact = float(1.0/(sumWeights))
       else:
           if not self.biased: fact = float(1.0/(N-1))
           else:               fact = float(1.0/N)
@@ -1064,9 +1272,11 @@ class BasicStatistics(BasePostProcessor):
           warnings.warn("Degrees of freedom <= 0", RuntimeWarning)
           fact = 0.0
       if not rowvar:
-          covMatrix = (np.dot(diff.T, diff.conj())*fact).squeeze()
+        if weigths != None: covMatrix = (np.dot(diff.T, w*diff)*fact).squeeze()
+        else:               covMatrix = (np.dot(diff.T, diff)*fact).squeeze()
       else:
-          covMatrix = (np.dot(diff, diff.T.conj())*fact).squeeze()
+        if weights != None: covMatrix = (np.dot(w*diff, diff.T)*fact).squeeze()
+        else:               covMatrix = (np.dot(diff, diff.T)*fact).squeeze()
       return covMatrix
 
   def corrCoeff(self, feature, weights=None, rowvar=1):
@@ -1096,9 +1306,9 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     self.__workingDir = runInfo['WorkingDir']
     if '~' in self.sourceDirectory               : self.sourceDirectory = os.path.expanduser(self.sourceDirectory)
     if not os.path.isabs(self.sourceDirectory)   : self.sourceDirectory = os.path.normpath(os.path.join(self.__workingDir,self.sourceDirectory))
-    if not os.path.exists(self.sourceDirectory)  : raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + "-> The directory indicated for PostProcessor "+ self.name + "does not exist. Path: "+self.sourceDirectory)
+    if not os.path.exists(self.sourceDirectory)  : utils.raiseAnError(IOError,self,"The directory indicated for PostProcessor "+ self.name + "does not exist. Path: "+self.sourceDirectory)
     for _dir,_,_ in os.walk(self.sourceDirectory): self.listOfCsvFiles.extend(glob(os.path.join(_dir,"*.csv")))
-    if len(self.listOfCsvFiles) == 0             : raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + "-> The directory indicated for PostProcessor "+ self.name + "does not contain any csv file. Path: "+self.sourceDirectory)
+    if len(self.listOfCsvFiles) == 0             : utils.raiseAnError(IOError,self,"The directory indicated for PostProcessor "+ self.name + "does not contain any csv file. Path: "+self.sourceDirectory)
     self.listOfCsvFiles.sort()
 
   def inputToInternal(self,currentInput): return self.listOfCsvFiles
@@ -1112,7 +1322,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     """
     for child in xmlNode:
       if child.tag =="directory": self.sourceDirectory = child.text
-    if not self.sourceDirectory: raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + "-> The PostProcessor "+ self.name + "needs a directory for loading the csv files!")
+    if not self.sourceDirectory: utils.raiseAnError(IOError,self,"The PostProcessor "+ self.name + "needs a directory for loading the csv files!")
 
   def collectOutput(self,finishedjob,output):
     #output
@@ -1162,7 +1372,7 @@ class LimitSurface(BasePostProcessor):
     try: inType = currentInput.type
     except:
       if type(currentInput) in [str,bytes,unicode]: inType = "file"
-      else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
+      else: utils.raiseAnError(IOError,self,'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
     if inType == 'file':
       if currentInput.endswith('csv'): pass
     if inType == 'HDF5': pass # to be implemented
@@ -1191,23 +1401,23 @@ class LimitSurface(BasePostProcessor):
     self.__workingDir = runInfo['WorkingDir']
     self.indexes = -1
     for index,inp in enumerate(self.inputs):
-      if type(inp) in [str,bytes,unicode]: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor only accepts Data(s) as inputs!')
+      if type(inp) in [str,bytes,unicode]: utils.raiseAnError(IOError,self,'LimitSurface PostProcessor only accepts Data(s) as inputs!')
       if inp.type in ['TimePointSet','TimePoint']: self.indexes = index
-    if self.indexes == -1: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor needs a TimePoint or TimePointSet as INPUT!!!!!!')
+    if self.indexes == -1: utils.raiseAnError(IOError,self,'LimitSurface PostProcessor needs a TimePoint or TimePointSet as INPUT!!!!!!')
     else:
       # check if parameters are contained in the data
       inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
       outKeys = self.inputs[self.indexes].getParaKeys("outputs")
       self.paramType ={}
       for param in self.parameters['targets']:
-        if param not in inpKeys+outKeys: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor: The param '+ param+' not contained in Data '+self.inputs[self.indexes].name +' !')
+        if param not in inpKeys+outKeys: utils.raiseAnError(IOError,self,'LimitSurface PostProcessor: The param '+ param+' not contained in Data '+self.inputs[self.indexes].name +' !')
         if param in inpKeys: self.paramType[param] = 'inputs'
         else:                self.paramType[param] = 'outputs'
     self.nVar        = len(self.parameters['targets'])         #Total number of variables
-    stepLenght        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance
+    stepLength        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance
     self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
-    stepParam = lambda x: [stepLenght*(max(self.inputs[self.indexes].getParam(self.paramType[x],x))-min(self.inputs[self.indexes].getParam(self.paramType[x],x))),
+    stepParam = lambda x: [stepLength*(max(self.inputs[self.indexes].getParam(self.paramType[x],x))-min(self.inputs[self.indexes].getParam(self.paramType[x],x))),
                                        min(self.inputs[self.indexes].getParam(self.paramType[x],x)),
                                        max(self.inputs[self.indexes].getParam(self.paramType[x],x))]
     #moving forward building all the information set
@@ -1220,12 +1430,12 @@ class LimitSurface(BasePostProcessor):
         if start == end:
           start = start - 0.001*start
           end   = end   + 0.001*end
-          myStepLength = stepLenght*(end - start)
+          myStepLength = stepLength*(end - start)
         start                      += 0.5*myStepLength
         self.gridVectors[varName]   = np.arange(start,end,myStepLength)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
     self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
-    self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
+    self.testGridLength           = np.prod (pointByVar)          #total number of point on the grid
     self.testMatrix               = np.zeros(self.gridShape)      #grid where the values of the goalfunction are stored
     #self.oldTestMatrix            = np.zeros(self.gridShape)      #swap matrix fro convergence test
     self.gridCoorShape            = tuple(pointByVar+[self.nVar]) #shape of the matrix containing all coordinate of all points in the grid
@@ -1242,24 +1452,24 @@ class LimitSurface(BasePostProcessor):
     for varName in self.parameters['targets']:
       self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
     if self.debug:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> self.gridShape '+str(self.gridShape))
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> self.testGridLenght '+str(self.testGridLenght))
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> self.gridCoorShape '+str(self.gridCoorShape))
+      utils.raiseAMessage(self,'self.gridShape '+str(self.gridShape))
+      utils.raiseAMessage(self,'self.testGridLength '+str(self.testGridLength))
+      utils.raiseAMessage(self,'self.gridCoorShape '+str(self.gridCoorShape))
       for key in self.gridVectors.keys():
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> the variable '+key+' has coordinate: '+str(self.gridVectors[key]))
+        utils.raiseAMessage(self,'the variable '+key+' has coordinate: '+str(self.gridVectors[key]))
       myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
       while not myIterator.finished:
-        print (self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
+        utils.raiseAMessage(self,'Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
 
   def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
     """
      Method to initialize the LS accellation rom
      @ In, inp, Data(s) object, data object containing the training set
-     @ In, raiseErrorIfNotFound, bool, raise an error if the limit surface is not found
+     @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
     """
-    print('Initiate training')
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> Initiate training')
+    utils.raiseAMessage(self,'Initiate training')
+    if self.debug: utils.raiseAMessage(self,'Initiate training')
     if type(inp) == dict:
       self.functionValue.update(inp['inputs' ])
       self.functionValue.update(inp['outputs'])
@@ -1282,27 +1492,27 @@ class LimitSurface(BasePostProcessor):
       for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
       #self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
       self.functionValue[self.externalFunction.name][myIndex] =  self.externalFunction.evaluate('residuumSign',tempDict)
-      if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
+      if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: utils.raiseAnError(IOError,self,'LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
       if self.externalFunction.name in inp.getParaKeys('inputs'): inp.self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
       if self.externalFunction.name in inp.getParaKeys('output'): inp.self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
-      if raiseErrorIfNotFound: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
-      else                   : print(self.printTag+': ' +utils.returnPrintPostTag("Warning") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
+      if raiseErrorIfNotFound: utils.raiseAnError(ValueError,self,'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
+      else                   : utils.raiseAWarning(self,'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
     #printing----------------------
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
+    if self.debug: utils.raiseAMessage(self,'LimitSurface: Mapping of the goal function evaluation performed')
     if self.debug:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Already evaluated points and function values:')
+      utils.raiseAMessage(self,'LimitSurface: Already evaluated points and function values:')
       keyList = list(self.functionValue.keys())
-      print(','.join(keyList))
+      utils.raiseAMessage(self,','.join(keyList))
       for index in range(indexEnd+1):
-        print(','.join([str(self.functionValue[key][index]) for key in keyList]))
+        utils.raiseAMessage(self,','.join([str(self.functionValue[key][index]) for key in keyList]))
     #printing----------------------
     tempDict = {}
     for name in self.axisName: tempDict[name] = np.asarray(self.functionValue[name])
     tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
     self.ROM.train(tempDict)
-    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training performed')
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training finished')
+    utils.raiseAMessage(self,'LimitSurface: Training performed')
+    if self.debug: utils.raiseAMessage(self,'LimitSurface: Training finished')
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -1321,12 +1531,12 @@ class LimitSurface(BasePostProcessor):
       calculations
       @ In, dictIn, dict, dictionary of initialization options
     """
-    if "parameters" not in dictIn.keys(): raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> No Parameters specified in XML input!!!!')
+    if "parameters" not in dictIn.keys(): utils.raiseAnError(IOError,self,'No Parameters specified in XML input!!!!')
     if type(dictIn["parameters"]) == list: self.parameters['targets'] = dictIn["parameters"]
     else                                 : self.parameters['targets'] = dictIn["parameters"].split(",")
     if "tolerance" in dictIn.keys(): self.subGridTol = float(dictIn["tolerance"])
     if "side" in dictIn.keys(): self.lsSide = dictIn["side"]
-    if self.lsSide not in ["negative","positive","both"]: raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> Computation side can be positive, negative, both only !!!!')
+    if self.lsSide not in ["negative","positive","both"]: utils.raiseAnError(IOError,self,'Computation side can be positive, negative, both only !!!!')
     if "gridVectors" in dictIn.keys():
       self.gridVectors     = dictIn["gridVectors"]
       self.gridFromOutside = True
@@ -1362,8 +1572,8 @@ class LimitSurface(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     #output
-    if finishedjob.returnEvaluation() == -1: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> No available Output to collect (Run probabably is not finished yet)')
-    print(finishedjob.returnEvaluation())
+    if finishedjob.returnEvaluation() == -1: utils.raiseAnError(RuntimeError,self,'No available Output to collect (Run probabably is not finished yet)')
+    utils.raiseAMessage(self,str(finishedjob.returnEvaluation()))
     limitSurf = finishedjob.returnEvaluation()[1]
     if limitSurf[0]!=None:
       for varName in output.getParaKeys('inputs'):
@@ -1381,23 +1591,23 @@ class LimitSurface(BasePostProcessor):
      @ In , boolean          : True if listSurfaceCoordinate needs to be returned
      @ Out, dictionary       : Dictionary with results
     """
-    self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
-    self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
+    self.testMatrix.shape     = (self.testGridLength)                            #rearrange the grid matrix such as is an array of values
+    self.gridCoord.shape      = (self.testGridLength,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
     tempDict ={}
     for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
     self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
     self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
     self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Prediction performed')
+    if self.debug: utils.raiseAMessage(self,'LimitSurface: Prediction performed')
     #here next the points that are close to any change are detected by a gradient (it is a pre-screener)
     toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
     #printing----------------------
     if self.debug:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface:  Limit surface candidate points')
+      utils.raiseAMessage(self,'LimitSurface:  Limit surface candidate points')
       for coordinate in np.rollaxis(toBeTested,0):
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
+        utils.raiseAMessage(self,'LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
     #check which one of the preselected points is really on the limit surface
     nNegPoints = 0
@@ -1415,11 +1625,11 @@ class LimitSurface(BasePostProcessor):
     listsurfPoint = listsurfPointNegative + listsurfPointPositive
 #     #printing----------------------
     if self.debug:
-      if len(listsurfPoint) > 0: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Limit surface points:')
+      if len(listsurfPoint) > 0: utils.raiseAMessage(self,'LimitSurface: Limit surface points:')
       for coordinate in listsurfPoint:
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
+        utils.raiseAMessage(self,'LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
 
     #if the number of point on the limit surface is > than zero than save it
@@ -1483,38 +1693,39 @@ class ExternalPostProcessor(BasePostProcessor):
     self.printTag = utils.returnPrintTag('POSTPROCESSOR EXTERNAL FUNCTION')
     self.requiredAssObject = (True,(['Function'],['n']))
 
-  def errorString(self,message):
-    """
-      Function to format an error string for printing.
-      @ In, message: A string describing the error
-      @ Out, A formatted string with the appropriate tags listed
-    """
-    # This function can be promoted for printing error functions more easily and
-    # consistently.
-    return (self.printTag + ': ' + utils.returnPrintPostTag('ERROR') + '-> '
-           + self.__class__.__name__ + ': ' + message)
-
-  def warningString(self,message):
-    """
-      Function to format a warning string for printing.
-      @ In, message: A string describing the warning
-      @ Out, A formatted string with the appropriate tags listed
-    """
-    # This function can be promoted for printing error functions more easily and
-    # consistently.
-    return (self.printTag + ': ' + utils.returnPrintPostTag('Warning') + '-> '
-           + self.__class__.__name__ + ': ' + message)
-
-  def messageString(self,message):
-    """
-      Function to format a message string for printing.
-      @ In, message: A string describing the message
-      @ Out, A formatted string with the appropriate tags listed
-    """
-    # This function can be promoted for printing error functions more easily and
-    # consistently.
-    return (self.printTag + ': ' + utils.returnPrintPostTag('Message') + '-> '
-           + self.__class__.__name__ + ': ' + message)
+  #THESE are being deprecated for the similary functions in utils.
+#  def errorString(self,message):
+#    """
+#      Function to format an error string for printing.
+#      @ In, message: A string describing the error
+#      @ Out, A formatted string with the appropriate tags listed
+#    """
+#    # This function can be promoted for printing error functions more easily and
+#    # consistently.
+#    return (self.printTag + ': ' + utils.returnPrintPostTag('ERROR') + '-> '
+#           + self.__class__.__name__ + ': ' + message)
+#
+#  def warningString(self,message):
+#    """
+#      Function to format a warning string for printing.
+#      @ In, message: A string describing the warning
+#      @ Out, A formatted string with the appropriate tags listed
+#    """
+#    # This function can be promoted for printing error functions more easily and
+#    # consistently.
+#    return (self.printTag + ': ' + utils.returnPrintPostTag('Warning') + '-> '
+#           + self.__class__.__name__ + ': ' + message)
+#
+#  def messageString(self,message):
+#    """
+#      Function to format a message string for printing.
+#      @ In, message: A string describing the message
+#      @ Out, A formatted string with the appropriate tags listed
+#    """
+#    # This function can be promoted for printing error functions more easily and
+#    # consistently.
+#    return (self.printTag + ': ' + utils.returnPrintPostTag('Message') + '-> '
+#           + self.__class__.__name__ + ': ' + message)
 
   def inputToInternal(self,currentInp):
     """
@@ -1545,17 +1756,17 @@ class ExternalPostProcessor(BasePostProcessor):
         inType = "list"
 
       if inType not in ['file','HDF5','TimePointSet','list']:
-        print(self.warningString('Input type ' + type(item).__name__ + ' not'
-                               + ' recognized. I am going to skip it.'))
+        utils.raiseAWarning(self,'Input type ' + type(item).__name__ + ' not'
+                               + ' recognized. I am going to skip it.')
       elif inType == 'file':
         if currentInput.endswith('csv'):
           # TODO
-          print(self.warningString('Input type ' + inType + ' not yet '
-                                 + 'implemented. I am going to skip it.'))
+          utils.raiseAWarning(self,'Input type ' + inType + ' not yet '
+                                 + 'implemented. I am going to skip it.')
       elif inType == 'HDF5':
         # TODO
-          print(self.warningString('Input type ' + inType + ' not yet '
-                                 + 'implemented. I am going to skip it.'))
+          utils.raiseAWarning(self,'Input type ' + inType + ' not yet '
+                                 + 'implemented. I am going to skip it.')
       elif inType == 'TimePointSet':
         for param in item.getParaKeys('input'):
           inputDict['targets'][param] = item.getParam('input', param)
@@ -1566,19 +1777,19 @@ class ExternalPostProcessor(BasePostProcessor):
       #Not sure if we need it, but keep a copy of every inputs metadata
       inputDict['metadata'] = metadata
 
-    if len(inputDict['targets'].keys()) == 0: raise IOError(self.errorString("No input variables have been found in the input objects!"))
+    if len(inputDict['targets'].keys()) == 0: utils.raiseAnError(IOError,self,"No input variables have been found in the input objects!")
     for interface in self.externalInterfaces:
       for method in self.methodsToRun:
         # The function should reference self and use the same variable names
         # as the xml file
         for param in interface.parameterNames():
           if param not in inputDict['targets']:
-            raise IOError(self.errorString('variable \"' + param + '\" unknown.'
+            utils.raiseAnError(IOError,self,'variable \"' + param + '\" unknown.'
                                           + ' Please verify your external'
                                           + ' script ('
                                           + interface.functionFile
                                           + ') variables match the data'
-                                          + ' available in your dataset.'))
+                                          + ' available in your dataset.')
 
     return inputDict
 
@@ -1614,20 +1825,20 @@ class ExternalPostProcessor(BasePostProcessor):
     """
     if finishedJob.returnEvaluation() == -1:
       ##TODO This does not feel right
-      raise Exception(self.errorString('No available Output to collect (Run '
-                                       + 'probably did not finish yet)'))
+      utils.raiseAnError(RuntimeError,self,'No available Output to collect (Run '
+                                       + 'probably did not finish yet)')
     inputList = finishedJob.returnEvaluation()[0]
     outputDict = finishedJob.returnEvaluation()[1]
 
     if type(output).__name__ in ["str","unicode","bytes"]:
-      print(self.warningString('Output type ' + type(output).__name__ + ' not'
-                               + ' yet implemented. I am going to skip it.'))
-    elif output.type == 'Datas':
-      print(self.warningString('Output type ' + type(output).__name__ + ' not'
-                               + ' yet implemented. I am going to skip it.'))
+      utils.raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
+                               + ' yet implemented. I am going to skip it.')
+    elif output.type == 'DataObjects':
+      utils.raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
+                               + ' yet implemented. I am going to skip it.')
     elif output.type == 'HDF5':
-      print(self.warningString('Output type ' + type(output).__name__ + ' not'
-                               + ' yet implemented. I am going to skip it.'))
+      utils.raiseAWarning(self,'Output type ' + type(output).__name__ + ' not'
+                               + ' yet implemented. I am going to skip it.')
     elif output.type == 'TimePointSet':
       requestedInput = output.getParaKeys('input')
       requestedOutput = output.getParaKeys('output')
@@ -1672,12 +1883,12 @@ class ExternalPostProcessor(BasePostProcessor):
                   foundCount += 1
 
           if foundCount == 0:
-            raise IOError(self.errorString(key + ' not found in the input '
+            utils.raiseAnError(IOError,self,key + ' not found in the input '
                                             + 'object or the computed output '
-                                            + 'object.'))
+                                            + 'object.')
           elif foundCount > 1:
-            raise IOError(self.errorString(key + ' is ambiguous since it occurs'
-                                            + ' in multiple input objects.'))
+            utils.raiseAnError(IOError,self,key + ' is ambiguous since it occurs'
+                                            + ' in multiple input objects.')
 
         ## We need the size to ensure the data size is consistent, but there
         ## is no guarantee the data is not scalar, so this check is necessary
@@ -1689,10 +1900,10 @@ class ExternalPostProcessor(BasePostProcessor):
         if dataLength is None:
           dataLength = myLength
         elif dataLength != myLength:
-          print(self.warningString('Requested output for ' + key + ' has a'
+          utils.raiseAWarning(self,'Requested output for ' + key + ' has a'
                                     + ' non-conformant data size ('
                                     + str(dataLength) + ' vs ' + str(myLength)
-                                    + '), it is being placed in the metadata.'))
+                                    + '), it is being placed in the metadata.')
           storeInOutput = False
 
         ## Finally, no matter what, place the requested data somewhere
@@ -1711,7 +1922,7 @@ class ExternalPostProcessor(BasePostProcessor):
             output.updateMetadata(key, val)
 
     else:
-      raise IOError(self.errorString('Unknown output type: ' + str(output.type)))
+      utils.raiseAnError(IOError,self,'Unknown output type: ' + str(output.type))
 
   def run(self, InputIn):
     """
@@ -1737,7 +1948,7 @@ class ExternalPostProcessor(BasePostProcessor):
 
 
       if len(matchingInterfaces) == 0:
-        print(self.warningString(method + ' not found. I will skip it.'))
+        utils.raiseAWarning(self,method + ' not found. I will skip it.')
       elif len(matchingInterfaces) == 1:
         methodMap[method] = (matchingInterfaces[0],method)
       else:
@@ -1767,6 +1978,7 @@ __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
+__interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __knownTypes                                 = __interFaceDict.keys()
@@ -1781,4 +1993,4 @@ def returnInstance(Type):
     @ Out,Instance of the Specialized Filter class
   """
   try: return __interFaceDict[Type]()
-  except KeyError: raise NameError('not known '+__base+' type '+Type)
+  except KeyError: utils.raiseAnError(NameError,'POSTPROCESSORS','not known '+__base+' type '+Type)

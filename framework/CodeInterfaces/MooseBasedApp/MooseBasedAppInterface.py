@@ -10,6 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
+from utils import raiseAnError
 
 class MooseBasedAppInterface(CodeInterfaceBase):
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
@@ -20,7 +21,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raise Exception('MOOSEBASEDAPP INTERFACE ERROR -> None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not found: raiseAnError(IOError,'MOOSEBASEDAPP_INTERFACE','None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
                         ' Outputs/file_base='+ outputfile +
@@ -34,7 +35,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     self._samplersDictionary                          = {}
     self._samplersDictionary['MonteCarlo'           ] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['Grid'                 ] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['LHS'                  ] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['Stratified'           ] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['DynamicEventTree'     ] = self.dynamicEventTreeForMooseBasedApp
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['FactorialDesign'      ] = self.pointSamplerForMooseBasedApp
@@ -46,7 +47,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raise Exception('MOOSEBASEDAPP INTERFACE ERROR -> None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not found: raiseAnError(IOError,'MOOSEBASEDAPP INTERFACE','None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
@@ -89,6 +90,6 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     return listDict
 
   def dynamicEventTreeForMooseBasedApp(self,**Kwargs):
-    raise IOError('dynamicEventTreeForMooseBasedApp not yet implemented')
+    raiseAnError(IOError,'MOOSEBASEDAPP_INTERFACE','dynamicEventTreeForMooseBasedApp not yet implemented')
     listDict = []
     return listDict

@@ -6,10 +6,10 @@
   <batchSize>1</batchSize>
 </RunInfo>
 
-<DataBases>
-        <HDF5 name="DB_GridValue" directory='DataBaseStorage' filename='DB_GridValue.h5'/>
-        <HDF5 name="DB_LHS" directory='DataBaseStorage' filename='DB_LHS.h5'/>
-</DataBases>
+<Databases>
+        <HDF5 name="DB_GridValue" directory='DatabaseStorage' filename='DB_GridValue.h5'/>
+        <HDF5 name="DB_LHS" directory='DatabaseStorage' filename='DB_LHS.h5'/>
+</Databases>
 
 <Distributions>
   <LogNormal name='LogNormalThermalExpansion'>
@@ -72,7 +72,7 @@
      <parameters>ThExp,GrainRad,sin</parameters>
    </PostProcessor>
 </Models>
-<Datas>
+<DataObjects>
   <TimePointSet name='DB_GridValue'>
     <Input>ThExp,GrainRad</Input>
     <Output>sum,prod,sin</Output>
@@ -109,55 +109,55 @@
     <Input>ThExp,GrainRad</Input>
     <Output>sin</Output>
   </TimePointSet>
-</Datas>
+</DataObjects>
 <Steps>
-  <IODataBase name='extract_DB_GridValue' pauseAtEnd='True'>
-    <Input   class='DataBases'        type='HDF5'         >DB_GridValue</Input >
-    <Output  class='Datas'            type='TimePointSet' >DB_GridValue</Output>
+  <IODatabase name='extract_DB_GridValue' pauseAtEnd='True'>
+    <Input   class='Databases'        type='HDF5'         >DB_GridValue</Input >
+    <Output  class='DataObjects'            type='TimePointSet' >DB_GridValue</Output>
     <Output  class='OutStreamManager' type='Plot'         >GridValue</Output>
     <Output  class='OutStreamManager' type='Print'        >printGridValue</Output>
-  </IODataBase>
-  <IODataBase name='extract_DB_LHS' pauseAtEnd='True'>
-    <Input   class ='DataBases'        type ='HDF5'         >DB_LHS</Input >
-    <Output  class ='Datas'            type ='TimePointSet' >DB_LHS</Output>
+  </IODatabase>
+  <IODatabase name='extract_DB_LHS' pauseAtEnd='True'>
+    <Input   class ='Databases'        type ='HDF5'         >DB_LHS</Input >
+    <Output  class ='DataObjects'            type ='TimePointSet' >DB_LHS</Output>
     <Output  class='OutStreamManager'  type ='Plot'          >LHS</Output>   
-  </IODataBase>
+  </IODatabase>
   <RomTrainer name='train_Sum_GridValues'>
-    <Input   class='Datas'             type='TimePointSet'>DB_GridValue</Input>
+    <Input   class='DataObjects'             type='TimePointSet'>DB_GridValue</Input>
     <Output  class='Models'            type='ROM'         >ROMforSumGridValue</Output>
   </RomTrainer> 
   <RomTrainer name='train_Sin_LHS'>
-    <Input   class='Datas'             type='TimePointSet'>DB_GridValue</Input>
+    <Input   class='DataObjects'             type='TimePointSet'>DB_GridValue</Input>
     <Output  class='Models'            type='ROM'         >ROMforSinLHS</Output>
   </RomTrainer>
   <MultiRun name='MCsum' pauseAtEnd='True'>
     <Sampler class = 'Samplers'          type='MonteCarlo'   >exercise1a</Sampler>
-    <Input   class = 'Datas'             type='TimePointSet' >dummyMCsum</Input>    
+    <Input   class = 'DataObjects'             type='TimePointSet' >dummyMCsum</Input>    
     <Model   class = 'Models'            type='ROM'          >ROMforSumGridValue</Model>
-    <Output  class = 'Datas'             type='TimePointSet' >outMCsum</Output>
+    <Output  class = 'DataObjects'             type='TimePointSet' >outMCsum</Output>
     <Output  class='OutStreamManager'    type ='Plot'        >MCforSum</Output>   
   </MultiRun >
   <MultiRun name='MCsin' pauseAtEnd='True'>
     <Sampler class = 'Samplers'          type='MonteCarlo'   >exercise1a</Sampler>
-    <Input   class = 'Datas'             type='TimePointSet' >dummyMCsin</Input>    
+    <Input   class = 'DataObjects'             type='TimePointSet' >dummyMCsin</Input>    
     <Model   class = 'Models'            type='ROM'          >ROMforSinLHS</Model>
-    <Output  class = 'Datas'             type='TimePointSet' >outMCsin</Output>
+    <Output  class = 'DataObjects'             type='TimePointSet' >outMCsin</Output>
     <Output  class='OutStreamManager'    type ='Plot'        >MCforSin</Output> 
   </MultiRun >
   <PostProcess name='PPsum'>
-    <Input    class='Datas'            type='TimePointSet'    >outMCsum</Input>
+    <Input    class='DataObjects'            type='TimePointSet'    >outMCsum</Input>
     <Model    class='Models'           type='PostProcessor'   >PPsum</Model>
   </PostProcess>
   <PostProcess name='PPsin'>
-    <Input    class='Datas'            type='TimePointSet'    >outMCsin</Input>
+    <Input    class='DataObjects'            type='TimePointSet'    >outMCsin</Input>
     <Model    class='Models'           type='PostProcessor'   >PPsin</Model>
   </PostProcess>
   <Adaptive name='adptive' pauseAtEnd='True'>
-    <Input             class = 'Datas'            type = 'TimePointSet' >DummyLimitSurf</Input>   
+    <Input             class = 'DataObjects'            type = 'TimePointSet' >DummyLimitSurf</Input>   
     <Sampler           class = 'Samplers'         type = 'Adaptive'     >exercise1AdapValue</Sampler>
-    <TargetEvaluation  class = 'Datas'            type = 'TimePointSet' >Sampled</TargetEvaluation>
-    <Output            class = 'Datas'            type = 'TimePointSet' >Sampled</Output>            
-    <SolutionExport    class = 'Datas'            type = 'TimePointSet' >LimitSurf</SolutionExport>
+    <TargetEvaluation  class = 'DataObjects'            type = 'TimePointSet' >Sampled</TargetEvaluation>
+    <Output            class = 'DataObjects'            type = 'TimePointSet' >Sampled</Output>            
+    <SolutionExport    class = 'DataObjects'            type = 'TimePointSet' >LimitSurf</SolutionExport>
     <Function          class = 'Functions'        type = 'External'     >sinThreshold</Function>
     <Model             class = 'Models'           type = 'ROM'          >ROMforSinLHS</Model>
     <Output            class = 'OutStreamManager' type = 'Plot'         >limitSurf</Output>
