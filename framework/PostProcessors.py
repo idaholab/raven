@@ -620,7 +620,9 @@ class ComparisonStatistics(BasePostProcessor):
         if len(rest) == 1:
           foundDataObjects.append(data[rest[0]])
       dataToProcess.append((dataPulls,foundDataObjects,reference))
-    csv = open(output,"w")
+    generateCSV = True
+    if generateCSV:
+      csv = open(output,"w")
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "mean" in reference:
@@ -633,13 +635,14 @@ class ComparisonStatistics(BasePostProcessor):
       for dataPull, data in zip(dataPulls,datas):
         dataStats = self.processData(dataPull, data, self.methodInfo)
         dataKeys = set(dataStats.keys())
-        utils.printCsv(csv,'"'+str(dataPull)+'"')
-        utils.printCsv(csv,'"num_bins"',dataStats['num_bins'])
         counts = dataStats['counts']
         bins = dataStats['bins']
         countSum = sum(counts)
         binBoundaries = [dataStats['low']]+bins+[dataStats['high']]
-        utils.printCsv(csv,'"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
+        if generateCSV:
+          utils.printCsv(csv,'"'+str(dataPull)+'"')
+          utils.printCsv(csv,'"num_bins"',dataStats['num_bins'])
+          utils.printCsv(csv,'"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
         cdf = [0.0]*len(counts)
         midpoints = [0.0]*len(counts)
         cdfSum = 0.0
@@ -667,45 +670,49 @@ class ComparisonStatistics(BasePostProcessor):
           else:
             fPrime = (-1.5*f_0 + 2.0*f_1 + -0.5*f_2)/h
           fPrimeData[i] = fPrime
-          utils.printCsv(csv,binBoundaries[i+1],midpoints[i],counts[i],nCount,fPrime,cdf[i])
+          if generateCSV:
+            utils.printCsv(csv,binBoundaries[i+1],midpoints[i],counts[i],nCount,fPrime,cdf[i])
         pdfFunc = mathUtils.createInterp(midpoints,fPrimeData,0.0,0.0,self.interpolation)
         dataKeys -= set({'num_bins','counts','bins'})
-        for key in dataKeys:
-          utils.printCsv(csv,'"'+key+'"',dataStats[key])
+        if generateCSV:
+          for key in dataKeys:
+            utils.printCsv(csv,'"'+key+'"',dataStats[key])
         utils.raiseAMessage(self,"data_stats: "+str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc,str(dataPull)))
       graph_data = mathUtils.getGraphs(graphData, self.f_z_stats)
-      for key in graph_data:
-        value = graph_data[key]
-        if type(value).__name__ == 'list':
-          utils.printCsv(csv,*(['"' + l[0] + '"' for l in value]))
-          for i in range(1,len(value[0])):
-            utils.printCsv(csv,*([l[i] for l in value]))
-        else:
-          utils.printCsv(csv,'"'+key+'"',value)
-      for i in range(len(graphData)):
-        dataStat = graphData[i][0]
-        def delist(l):
-          if type(l).__name__ == 'list':
-            return '_'.join([delist(x) for x in l])
+      if generateCSV:
+        for key in graph_data:
+          value = graph_data[key]
+          if type(value).__name__ == 'list':
+            utils.printCsv(csv,*(['"' + l[0] + '"' for l in value]))
+            for i in range(1,len(value[0])):
+              utils.printCsv(csv,*([l[i] for l in value]))
           else:
-            return str(l)
-        newFileName = output[:-4]+"_"+delist(dataPulls)+"_"+str(i)+".csv"
-        if type(dataStat).__name__ != 'dict':
-          assert(False)
-          continue
-        dataPairs = []
-        for key in sorted(dataStat.keys()):
-          value = dataStat[key]
-          if type(value).__name__ in ["int","float"]:
-            dataPairs.append((key,value))
-        extraCsv = open(newFileName,"w")
-        extraCsv.write(",".join(['"'+str(x[0])+'"' for x in dataPairs]))
-        extraCsv.write("\n")
-        extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
-        extraCsv.write("\n")
-        extraCsv.close()
-      utils.printCsv(csv)
+            utils.printCsv(csv,'"'+key+'"',value)
+      if generateCSV:
+        for i in range(len(graphData)):
+          dataStat = graphData[i][0]
+          def delist(l):
+            if type(l).__name__ == 'list':
+              return '_'.join([delist(x) for x in l])
+            else:
+              return str(l)
+          newFileName = output[:-4]+"_"+delist(dataPulls)+"_"+str(i)+".csv"
+          if type(dataStat).__name__ != 'dict':
+            assert(False)
+            continue
+          dataPairs = []
+          for key in sorted(dataStat.keys()):
+            value = dataStat[key]
+            if type(value).__name__ in ["int","float"]:
+              dataPairs.append((key,value))
+          extraCsv = open(newFileName,"w")
+          extraCsv.write(",".join(['"'+str(x[0])+'"' for x in dataPairs]))
+          extraCsv.write("\n")
+          extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
+          extraCsv.write("\n")
+          extraCsv.close()
+        utils.printCsv(csv)
 
   def processData(self,dataPull, data, methodInfo):
       ret = {}
