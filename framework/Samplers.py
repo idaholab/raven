@@ -287,17 +287,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else                              :
       Distributions.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
-    #for key in self.toBeSampled.keys():
-    #    self.distDict[key].initializeDistribution()   #now we can initialize the distributions
-    #specializing the self.localInitialize() to account for adaptive sampling
-    if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
-    else                      : self.localInitialize()
-
-    for distrib in self.ND_sampling_params:
-      if distrib in self.distributions2variablesMapping:
-        params = self.ND_sampling_params[distrib]
-        temp = self.distributions2variablesMapping[distrib][0].keys()[0]
-        self.distDict[temp].updateRNGParam(params)
 
     if 'Restart' in self.assemblerDict.keys():
       self.restartData = self.assemblerDict['Restart'][0][3]
@@ -313,10 +302,19 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           utils.raiseAMessage(self,'restart inputs %i:' %i)
           for rk,rv in r.items():
             utils.raiseAMessage(self,'|   '+str(rk)+': '+str(rv))
-          #utils.raiseAMessage(self,'  '+str(r))
           utils.raiseAnError(IOError,self,'Restart "%s" data[%i] does not have same inputs as sampler!' %(self.restartData.name,i))
     else:
       utils.raiseAMessage(self,'No restart for '+self.printTag)
+
+    #specializing the self.localInitialize() to account for adaptive sampling
+    if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
+    else                      : self.localInitialize()
+
+    for distrib in self.ND_sampling_params:
+      if distrib in self.distributions2variablesMapping:
+        params = self.ND_sampling_params[distrib]
+        temp = self.distributions2variablesMapping[distrib][0].keys()[0]
+        self.distDict[temp].updateRNGParam(params)
 
   def localInitialize(self):
     '''
