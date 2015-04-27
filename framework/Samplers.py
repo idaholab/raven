@@ -299,6 +299,23 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         temp = self.distributions2variablesMapping[distrib][0].keys()[0]
         self.distDict[temp].updateRNGParam(params)
 
+    if 'Restart' in self.assemblerDict.keys():
+      self.restartData = self.assemblerDict['Restart'][0][3]
+      print(self.restartData.name)
+      #check consistency of data
+      rdata = self.restartData.getAllMetadata()['crowDist'] #actually a list
+      sdata = self.inputInfo['crowDist']
+      utils.raiseAMessage(self,'sampler inputs:')
+      for sk,sv in sdata.items():
+        utils.raiseAMessage(self,'|   '+str(sk)+': '+str(sv))
+      for i,r in enumerate(rdata):
+        if not r==sdata:
+          utils.raiseAMessage(self,'restart inputs %i:' %i)
+          for rk,rv in r.items():
+            utils.raiseAMessage(self,'|   '+str(rk)+': '+str(rv))
+          #utils.raiseAMessage(self,'  '+str(r))
+          utils.raiseAnError(IOError,self,'Restart "%s" data[%i] does not have same inputs as sampler!' %(self.restartData.name,i))
+
   def localInitialize(self):
     '''
     use this function to add initialization features to the derived class
@@ -388,13 +405,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     '''
     pass
 
-#
-#
 class AdaptiveSampler(Sampler):
   '''This is a general adaptive sampler'''
   def __init__(self):
     Sampler.__init__(self)
-#    self.assemblerObjects = {}               #this dictionary contains information about the object needed by the adaptive sampler in order to work (ROM,targetEvaluation, etc)
     self.goalFunction     = None             #this is the pointer to the function defining the goal
     self.tolerance        = None             #this is norm of the error threshold
     self.subGridTol       = None             #This is the tolerance used to construct the testing sub grid
@@ -738,16 +752,10 @@ class MonteCarlo(Sampler):
   def __init__(self):
     Sampler.__init__(self)
     self.printTag = utils.returnPrintTag('SAMPLER MONTECARLO')
+    self.restartData          = None  # presampled points to restart from
+    self.requiredAssObject    = (True,(['Restart'],['-n'])) # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def localInputAndChecks(self,xmlNode):
-
-#     if 'limit' in xmlNode.attrib.keys():
-#       try: self.limit = int(xmlNode.attrib['limit'])
-#       except ValueError:
-#         IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
-#     else:
-#       raisea IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
-
     if xmlNode.find('sampler_init')!= None:
       if xmlNode.find('sampler_init').find('limit')!= None:
         try: self.limit = int(xmlNode.find('sampler_init').find('limit').text)
@@ -758,6 +766,8 @@ class MonteCarlo(Sampler):
     else:
       utils.raiseAnError(IOError,self,'Monte Carlo sampling needs the sampler_init block')
 
+  def localInitialize(self):
+    pass #TODO fix the limit based on restartData
 
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
@@ -793,9 +803,7 @@ class MonteCarlo(Sampler):
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
     self.inputInfo['SamplerType'] = 'MC'
-#
-#
-#
+
 class Grid(Sampler):
   '''
   Samples the model on a given (by input) set of points
@@ -807,6 +815,8 @@ class Grid(Sampler):
     self.axisName             = []    # the name of each axis (variable)
     self.gridInfo             = {}    # {'name of the variable':('Type','Construction',[values])}  --> Type: Probability/Value; Construction:Custom/Equal
     self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
+    self.restartData          = None  # presampled points to restart from
+    self.requiredAssObject    = (True,(['Restart'],['-n'])) # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
 
@@ -893,6 +903,7 @@ class Grid(Sampler):
     This is used to check if the points and bounds are compatible with the distribution provided.
     It could not have been done earlier since the distribution might not have been initialized first
     '''
+    if 'Restart' in self.assemblerDict.keys(): self.restartData = self.assemblerDict['Restart'][0][3]
     for varName in self.gridInfo.keys():
       if self.gridInfo[varName][0]=='value':
         valueMax, indexMax = max(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(max(self.gridInfo[varName][2]))
@@ -910,45 +921,16 @@ class Grid(Sampler):
         self.gridInfo[varName][2][indexMax], self.gridInfo[varName][2][indexMin] = valueMax, valueMin
 
   def localGenerateInput(self,model,myInput):
+    #FIXME no way to tell before now if we're already done.  Can we prepopulate the points we need? TODO
+    if self.restartData:
+      restInps = self.restartData.getInputParametersValues()
+      existing = zip(*list(v for v in inps.values()))
+      
     remainder = self.counter - 1 #used to keep track as we get to smaller strides
     stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
     #self.inputInfo['distributionInfo'] = {}
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
-
-#     weight = 1.0
-#     for i in range(len(self.gridCoordinate)):
-#       varName = self.axisName[i]
-#       if not self.externalgGridCoord:
-#         stride = stride // len(self.gridInfo[varName][2])
-#         #index is the index into the array self.gridInfo[varName][2]
-#         index, remainder = divmod(remainder, stride )
-#         self.gridCoordinate[i] = index
-#
-#       # check if the varName is a comma separated list of strings
-#       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-#       for kkey in varName.strip().split(','):
-#         self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
-#         self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
-#         if self.gridInfo[varName][0]=='CDF':
-#           self.values[kkey] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
-#           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
-#         elif self.gridInfo[varName][0]=='value':
-#           self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
-#           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
-#         else: raisea IOError (self.gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
-#
-#       if self.gridInfo[varName][0]=='CDF':
-#         if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
-#         if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(0))/2.0)
-#         if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
-#       else:
-#         if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
-#         if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0)
-#         if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
-#     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-#     self.inputInfo['ProbabilityWeight'] = weight
-#     self.inputInfo['SamplerType'] = 'Grid'
 
     weight = 1.0
 
@@ -1044,10 +1026,7 @@ class Grid(Sampler):
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
       self.inputInfo['SamplerType'] = 'Grid'
-#
-#
-#
-#
+
 class Stratified(Grid):
   '''
   Stratified based sampler. Currently no special filling method are implemented
@@ -1219,13 +1198,10 @@ class Stratified(Grid):
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
-#
-#
-#
-#
+
 class DynamicEventTree(Grid):
   '''
-  DYNAMIC EVENT TREE Sampler - "ANalysis of Dynamic REactor Accident evolution" module (DET      ) :D
+  DYNAMIC EVENT TREE Sampler - (DET)
   '''
   def __init__(self):
     Grid.__init__(self)
@@ -1323,7 +1299,7 @@ class DynamicEventTree(Grid):
     '''
     self.workingDir = model.workingDir
 
-#     returnBranchInfo = self.__readBranchInfo(jobObject.output)
+    # returnBranchInfo = self.__readBranchInfo(jobObject.output)
     # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
     parentNode = self._retrieveParentNode(jobObject.identifier)
     # set runEnded and running to true and false respectively
@@ -1340,9 +1316,9 @@ class DynamicEventTree(Grid):
     endInfo = {'end_time':self.actual_end_time,'end_ts':self.actual_end_ts,'branch_dist':list(self.actualBranchInfo.keys())[0]}
     endInfo['branch_changed_params'] = self.actualBranchInfo[endInfo['branch_dist']]
     parentNode.add('actual_end_ts',self.actual_end_ts)
-#     # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
-#     if(jobObject.identifier == self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode().name): endInfo['parent_node'] = self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode()
-#     else: endInfo['parent_node'] = list(self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode().iter(jobObject.identifier))[0]
+    # # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
+    # if(jobObject.identifier == self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode().name): endInfo['parent_node'] = self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode()
+    # else: endInfo['parent_node'] = list(self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode().iter(jobObject.identifier))[0]
     endInfo['parent_node'] = parentNode
     # get the branchedLevel dictionary
     branchedLevel = {}
@@ -1369,10 +1345,10 @@ class DynamicEventTree(Grid):
         endInfo['branch_changed_params'][key]['associated_pb'] = [pb]
 
     self.branchCountOnLevel = 0
-#     # set runEnded and running to true and false respectively
-#     endInfo['parent_node'].add('runEnded',True)
-#     endInfo['parent_node'].add('running',False)
-#     endInfo['parent_node'].add('end_time',self.actual_end_time)
+    # # set runEnded and running to true and false respectively
+    # endInfo['parent_node'].add('runEnded',True)
+    # endInfo['parent_node'].add('running',False)
+    # endInfo['parent_node'].add('end_time',self.actual_end_time)
     # The branchedLevel counter is updated
     if branchedLevel[endInfo['branch_dist']] < len(self.branchProbabilities[endInfo['branch_dist']]): branchedLevel[endInfo['branch_dist']] += 1
     # Append the parent branchedLevel (updated for the new branch/es) in the list tha contains them
@@ -1576,7 +1552,7 @@ class DynamicEventTree(Grid):
       subGroup.add('runEnded',False)
       subGroup.add('running',False)
       subGroup.add('queue',True)
-#        subGroup.set('restartFileRoot',endInfo['restartRoot'])
+      #  subGroup.set('restartFileRoot',endInfo['restartRoot'])
       # Append the new branch (subgroup) info to the parent_node in the tree object
       endInfo['parent_node'].appendBranch(subGroup)
       # Fill the values dictionary that will be passed into the model in order to create an input
@@ -1980,11 +1956,11 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
               'parent_id':subGroup.get('parent')}
     # add the newer branch name to the map
     self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
-#     check if it is a preconditioned DET sampling, if so add the relative information
-#     precSampled = endInfo['parent_node'].get('preconditionerSampled')
-#     if precSampled:
-#       self.inputInfo['preconditionerCoordinate'] = copy.deepcopy(precSampled)
-#       subGroup.add('preconditionerSampled', precSampled)
+    # check if it is a preconditioned DET sampling, if so add the relative information
+    # precSampled = endInfo['parent_node'].get('preconditionerSampled')
+    # if precSampled:
+    #   self.inputInfo['preconditionerCoordinate'] = copy.deepcopy(precSampled)
+    #   subGroup.add('preconditionerSampled', precSampled)
     # The probability Thresholds are stored here in the cdfValues dictionary... We are sure that they are whitin the ones defined in the grid
     # check is not needed
     self.inputInfo['initiator_distribution'] = [self.toBeSampled[key] for key in cdfValues.keys()]
@@ -2058,12 +2034,12 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
       # add pbthresholds in the grid
       investigatedPoint = {}
       for key,value in cdfValues.items():
-#         if self.insertAdaptBPb:
-#           ind = utils.find_le_index(self.branchProbabilities[self.toBeSampled[key]],value)
-#           if not ind: ind = 0
-#           if value not in self.branchProbabilities[self.toBeSampled[key]]:
-#             self.branchProbabilities[self.toBeSampled[key]].insert(ind,value)
-#             self.branchValues[self.toBeSampled[key]].insert(ind,self.distDict[key].ppf(value))
+        # if self.insertAdaptBPb:
+        #   ind = utils.find_le_index(self.branchProbabilities[self.toBeSampled[key]],value)
+        #   if not ind: ind = 0
+        #   if value not in self.branchProbabilities[self.toBeSampled[key]]:
+        #     self.branchProbabilities[self.toBeSampled[key]].insert(ind,value)
+        #     self.branchValues[self.toBeSampled[key]].insert(ind,self.distDict[key].ppf(value))
 
         ind = utils.find_le_index(self.branchProbabilities[self.toBeSampled[key]],value)
         if not ind: ind = 0
@@ -2134,10 +2110,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     returncode = DynamicEventTree.localFinalizeActualSampling(self,jobObject,model,myInput,genRunQueue=False)
     if returncode:
       self._createRunningQueue(model,myInput)
-#
-#
-#
-#
+
 class FactorialDesign(Grid):
   '''
   Samples the model on a given (by input) set of points
@@ -2210,10 +2183,7 @@ class FactorialDesign(Grid):
     else:
       self.gridCoordinate = self.designMatrix[self.counter - 1][:].tolist()
       Grid.localGenerateInput(self,model, myInput)
-#
-#
-#
-#
+
 class ResponseSurfaceDesign(Grid):
   '''
   Samples the model on a given (by input) set of points
@@ -2362,7 +2332,6 @@ class SparseGridCollocation(Grid):
         for value in self.assemblerDict[key]:
           self.ROM = self.assemblerDict[key][indice][3]
           indice += 1
-    if 'Restart' in self.assemblerDict.keys(): self.restartData = self.assemblerDict['Restart'][0][3]
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #often need only one
     self._generateQuadsAndPolys(SVL)
