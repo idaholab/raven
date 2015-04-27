@@ -39,6 +39,7 @@ class DateBase(BaseType):
     self.database = None
     # Database directory. Default = working directory.
     self.databaseDir = ''
+    self.workingDir = ''
     self.printTag = 'DATABASE'
 
   def _readMoreXML(self,xmlNode):
@@ -50,7 +51,7 @@ class DateBase(BaseType):
     '''
     # Check if a directory has been provided
     if 'directory' in xmlNode.attrib.keys(): self.databaseDir = copy.copy(xmlNode.attrib['directory'])
-    else:                                    self.databaseDir = copy.copy(os.path.join(os.getcwd(),'DatabaseStorage'))
+    else:                                    self.databaseDir = os.path.join(self.workingDir,'DatabaseStorage')
 
   def addInitParams(self,tempDict):
     '''
@@ -76,6 +77,7 @@ class DateBase(BaseType):
     @ Out, data      : the requested data
     '''
     pass
+
 '''
   *************************s
   *  HDF5 DATABASE CLASS  *
@@ -87,7 +89,7 @@ class HDF5(DateBase):
   to add and to retrieve attributes and values from it
   '''
 
-  def __init__(self):
+  def __init__(self,runInfoDict):
     '''
     Constructor
     '''
@@ -98,7 +100,8 @@ class HDF5(DateBase):
     self.type     = 'HDF5'
     self.file_name = ""
     self.printTag = 'DATABASE HDF5'
-
+    self.workingDir = runInfoDict['WorkingDir']
+    self.databaseDir = self.workingDir
 
   def __getstate__(self):
     """
@@ -606,12 +609,14 @@ __knownTypes            = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type,caller):
+needsRunInfo = True
+
+def returnInstance(Type,runInfoDict,caller):
   '''
   Function interface for creating an instance to a database specialized class (for example, HDF5)
   @ In, type                : class type (string)
   @ Out, class Instance     : instance to that class
   Note: Interface function
   '''
-  try: return __interFaceDict[Type]()
+  try: return __interFaceDict[Type](runInfoDict)
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)

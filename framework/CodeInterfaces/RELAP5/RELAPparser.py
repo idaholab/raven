@@ -8,11 +8,14 @@ import os
 import fileinput
 import re
 
-class RELAPparser:
+import MessageHandler
+
+class RELAPparser(MessageHandler.MessageUser):
   '''import the MOOSE input as xml tree, provide methods to add/change entries and print it back'''
-  def __init__(self,inputFile):
+  def __init__(self,inputFile,messageHandler):
     self.printTag = 'RELAP5 PARSER'
-    if not os.path.exists(inputFile): self.raiseAnError(IOError,self,'not found RELAP input file')
+    self.messageHandler = messageHandler
+    if not os.path.exists(inputFile): self.raiseAnError(IOError,'not found RELAP input file')
     IOfile = open(inputFile,'r')
     self.inputfile = inputFile
     self.lines = IOfile.readlines()

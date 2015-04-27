@@ -463,7 +463,47 @@ def find_interpolationND():
       return interpolationNDpy2
 
 def printCsv(csv,*args):
+    '''
+      Writes the values contained in args to a csv file specified by csv
+      @ In, csv, an open file object to which we will be writing
+      @ In, args, an arbitrary collection of values to write to the file
+    '''
     print(*args,file=csv,sep=',')
 
 def printCsvPart(csv,*args):
+    '''
+      Writes the values contained in args to a csv file specified by csv appending a comma
+      to the end to allow more data to be written to the line.
+      @ In, csv, an open file object to which we will be writing
+      @ In, args, an arbitrary collection of values to write to the file
+    '''
     print(*args,file=csv,sep=',',end=',')
+
+def numpyNearestMatch(findIn,val):
+  '''
+    Given an array, find the entry that most nearly matches the given value.
+    @ In, findIn, the array to look in
+    @ In, val, the value for which to find a match
+    @ Out, tuple, index where match is and the match itself
+  '''
+  idx = (np.abs(findIn-val)).argmin()
+  return idx,findIn[idx]
+
+def NDInArray(findIn,val,tol=1e-12):
+  '''
+    checks a numpy array of numpy arrays for a near match, then returns info.
+    @ In, findIn, numpy array of numpy arrays (both arrays can be any length)
+    @ In, val, tuple/list/numpy array, entry to look for in findIn
+    @ In, tol, float, tolerance to check match within
+    @ Out, (bool,idx,val) -> (found/not found, index where found or None, findIn entry or None)
+  '''
+  loc = np.where(np.all(np.abs(findIn-val)<tol,axis=1)==1)
+  if len(loc[0])>0:
+    found = True
+    idx = loc[0][0]
+    val = findIn[idx]
+  else:
+    found = False
+    idx = val = None
+  return found,idx,val
+
