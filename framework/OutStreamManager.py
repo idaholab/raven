@@ -23,7 +23,8 @@ import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import Datas
+import DataObjects
+import Models
 import utils
 from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
@@ -113,21 +114,24 @@ class OutStreamManager(BaseType):
     for agrosindex in range(self.numberAggregatedOS):
       foundData = False
       for output in inDict['Output']:
-        if output.name.strip()==self.sourceName[agrosindex] and output.type in Datas.knownTypes():
+        if output.name.strip()==self.sourceName[agrosindex] and output.type in DataObjects.knownTypes():
           self.sourceData.append(output)
           foundData = True
       if not foundData:
         for inp in inDict['Input']:
           if not type(inp) == type(""):
-            if inp.name.strip()==self.sourceName[agrosindex] and inp.type in Datas.knownTypes():
+            if inp.name.strip()==self.sourceName[agrosindex] and inp.type in DataObjects.knownTypes():
               self.sourceData.append(inp)
               foundData = True
+            elif type(inp)==Models.ROM:
+              self.sourceData.append(inp)
+              foundData = True #good enough
       if not foundData and 'TargetEvaluation' in inDict.keys():
-        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in Datas.knownTypes():
+        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in DataObjects.knownTypes():
           self.sourceData.append(inDict['TargetEvaluation'])
           foundData = True
       if not foundData and 'SolutionExport' in inDict.keys():
-        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in Datas.knownTypes():
+        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in DataObjects.knownTypes():
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData: utils.raiseAnError(IOError,self,'the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
@@ -1014,7 +1018,7 @@ class OutStreamPlot(OutStreamManager):
       ########################
       elif self.outStreamTypes[pltindex] == 'contour' or self.outStreamTypes[pltindex] == 'filledContour':
         if self.dim == 2:
-          if 'number_bins' in self.options['plotSettings']['plot'][pltindex].keys(): nbins = int(self.options['plotSettings']['plot'][pltindex]['number_bins'])
+          if 'numberBins' in self.options['plotSettings']['plot'][pltindex].keys(): nbins = int(self.options['plotSettings']['plot'][pltindex]['numberBins'])
           else: nbins = 5
           for key in self.xValues[pltindex].keys():
             if not self.colorMapCoordinates:
@@ -1053,7 +1057,7 @@ class OutStreamPlot(OutStreamManager):
           utils.raiseAWarning(self,'contour3D/filledContour3D Plot is NOT available for 2D plots, IT IS A 2D! Check "contour/filledContour"!')
           return
         elif self.dim == 3:
-          if 'number_bins' in self.options['plotSettings']['plot'][pltindex].keys(): nbins = int(self.options['plotSettings']['plot'][pltindex]['number_bins'])
+          if 'numberBins' in self.options['plotSettings']['plot'][pltindex].keys(): nbins = int(self.options['plotSettings']['plot'][pltindex]['numberBins'])
           else: nbins = 5
           if 'extend3D' in self.options['plotSettings']['plot'][pltindex].keys(): ext3D = bool(self.options['plotSettings']['plot'][pltindex]['extend3D'])
           else: ext3D = False
@@ -1103,10 +1107,13 @@ class OutStreamPlot(OutStreamManager):
     self.plt.draw()
     #self.plt3D.draw(self.fig.canvas.renderer)
     if 'screen' in self.options['how']['how'].split(',') and disAvail:
-      def handle_close(event):
-        self.fig.canvas.stop_event_loop()
-        utils.raiseAMessage(self,'Closed Figure')
-      self.fig.canvas.mpl_connect('close_event',handle_close)
+      if platform.system() == 'Linux':
+        #XXX For some reason, this is required on Linux, but causes
+        # OSX to fail.  Which is correct for windows has not been determined.
+        def handle_close(event):
+          self.fig.canvas.stop_event_loop()
+          utils.raiseAMessage(self,'Closed Figure')
+        self.fig.canvas.mpl_connect('close_event',handle_close)
       self.fig.show()
       #if blockFigure: self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
     for i in range(len(self.options['how']['how'].split(','))):
@@ -1116,11 +1123,19 @@ class OutStreamPlot(OutStreamManager):
         self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])
 
 class OutStreamPrint(OutStreamManager):
+  '''
+    Class for managing the printing of files as outstream.
+  '''
   def __init__(self):
+    '''
+      Initializes.
+      @ In, None
+      @ Out, None
+    '''
     OutStreamManager.__init__(self)
     self.type = 'OutStreamPrint'
+    self.availableOutStreamTypes = ['csv','xml']
     self.printTag = utils.returnPrintTag('OUTSTREAM PRINT')
-    self.availableOutStreamTypes = ['csv']
     OutStreamManager.__init__(self)
     self.sourceName   = []
     self.sourceData   = None
@@ -1140,15 +1155,33 @@ class OutStreamPrint(OutStreamManager):
     for subnode in xmlNode:
       if subnode.tag == 'source': self.sourceName = subnode.text.split(',')
       else:self.options[subnode.tag] = subnode.text
-    if 'type' not in self.options.keys(): raise(self.printTag+': ERROR -> type tag not present in Print block called '+ self.name)
-    if self.options['type'] not in self.availableOutStreamTypes : raise(self.printTag+': ERROR -> Print type ' + self.options['type'] + ' not available yet. ')
+    if 'type' not in self.options.keys(): utils.raiseAnError(IOError,self,'type tag not present in Print block called '+ self.name)
+    if self.options['type'] not in self.availableOutStreamTypes : utils.raiseAnError(TypeError,self,'Print type ' + self.options['type'] + ' not available yet. ')
     if 'variables' in self.options.keys(): self.variables = self.options['variables']
 
   def addOutput(self):
+    '''
+      Calls output functions on desired instances
+      @ In, None
+      @ Out, None
+    '''
     if self.variables: dictOptions = {'filenameroot':self.name,'variables':self.variables}
     else             : dictOptions = {'filenameroot':self.name}
+    if 'what' in self.options.keys(): dictOptions['what']=self.options['what']
+    if 'target' in self.options.keys(): dictOptions['target']=self.options['target']
     for index in range(len(self.sourceName)):
-      if not self.sourceData[index].isItEmpty(): self.sourceData[index].printCSV(dictOptions)
+      if self.options['type']=='csv':
+        if type(self.sourceData[index])==DataObjects.Data: empty = self.sourceData[index].isItEmpty()
+        else: empty=False
+        if not empty:
+          try: self.sourceData[index].printCSV(dictOptions)
+          except AttributeError: utils.raiseAnError(IOError,self,'no implementation for source type '+str(type(self.sourceData[index]))+' and output type "csv"!')
+      elif self.options['type']=='xml':
+        if type(self.sourceData[index])==DataObjects.Data: empty = self.sourceData[index].isItEmpty()
+        else: empty=False
+        if not empty:
+          try: self.sourceData[index].printXML(dictOptions)
+          except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type '+str(type(self.sourceData[index]))+' and output type "xml"!')
 
 '''
  Interface Dictionary (factory) (private)

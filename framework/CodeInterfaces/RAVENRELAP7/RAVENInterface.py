@@ -58,7 +58,7 @@ class RAVENInterface(CodeInterfaceBase):
     self._samplersDictionary['MonteCarlo'              ] = self.monteCarloForRAVEN
     self._samplersDictionary['Grid'                    ] = self.gridForRAVEN
     self._samplersDictionary['Adaptive'                ] = self.gridForRAVEN # same Grid Fashion. It forces a dist to give a particular value
-    self._samplersDictionary['LHS'                     ] = self.latinHyperCubeForRAVEN
+    self._samplersDictionary['Stratified'              ] = self.latinHyperCubeForRAVEN
     self._samplersDictionary['DynamicEventTree'        ] = self.dynamicEventTreeForRAVEN
     self._samplersDictionary['FactorialDesign'         ] = self.gridForRAVEN
     self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRAVEN
@@ -123,7 +123,7 @@ class RAVENInterface(CodeInterfaceBase):
           listDict = self.__genBasePointSampler(**preconditioner)[1]
           listDict.extend(self.monteCarloForRAVEN(**preconditioner))
         elif 'Grid' in preconditioner['SamplerType']: listDict.extend(self.gridForRAVEN(**preconditioner))
-        elif 'LHS' in preconditioner['SamplerType'] or 'Stratified' in preconditioner['SamplerType']: listDict.extend(self.latinHyperCubeForRAVEN(**preconditioner))
+        elif 'Stratified' in preconditioner['SamplerType'] or 'Stratified' in preconditioner['SamplerType']: listDict.extend(self.latinHyperCubeForRAVEN(**preconditioner))
     # Check the initiator distributions and add the next threshold
     if 'initiator_distribution' in Kwargs.keys():
       for i in range(len(Kwargs['initiator_distribution'])):
@@ -192,7 +192,7 @@ class RAVENInterface(CodeInterfaceBase):
 
   def __genBasePointSampler(self,**Kwargs):
     """Figure out which distributions need to be handled by
-    the grid or LHS samplers by modifying distributions in the .i file.
+    the grid or Stratified samplers by modifying distributions in the .i file.
     Let the regular moose point sampler take care of the rest.
     Returns (distributions,listDict) where listDict is the
     start of the listDict that tells how to modify the input, and

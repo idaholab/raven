@@ -39,6 +39,7 @@ class DateBase(BaseType):
     self.database = None
     # Database directory. Default = working directory.
     self.databaseDir = ''
+    self.workingDir = ''
     self.printTag = utils.returnPrintTag('DATABASE')
 
   def _readMoreXML(self,xmlNode):
@@ -50,7 +51,7 @@ class DateBase(BaseType):
     '''
     # Check if a directory has been provided
     if 'directory' in xmlNode.attrib.keys(): self.databaseDir = copy.copy(xmlNode.attrib['directory'])
-    else:                                    self.databaseDir = copy.copy(os.path.join(os.getcwd(),'DataBaseStorage'))
+    else:                                    self.databaseDir = os.path.join(self.workingDir,'DatabaseStorage')
 
   def addInitParams(self,tempDict):
     '''
@@ -76,6 +77,7 @@ class DateBase(BaseType):
     @ Out, data      : the requested data
     '''
     pass
+
 '''
   *************************s
   *  HDF5 DATABASE CLASS  *
@@ -87,7 +89,7 @@ class HDF5(DateBase):
   to add and to retrieve attributes and values from it
   '''
 
-  def __init__(self):
+  def __init__(self,runInfoDict):
     '''
     Constructor
     '''
@@ -98,7 +100,8 @@ class HDF5(DateBase):
     self.type     = 'HDF5'
     self.file_name = ""
     self.printTag = utils.returnPrintTag('DATABASE HDF5')
-
+    self.workingDir = runInfoDict['WorkingDir']
+    self.databaseDir = self.workingDir
 
   def __getstate__(self):
     """
@@ -110,7 +113,7 @@ class HDF5(DateBase):
     state = self.__dict__.copy()
     # we pop the database instance and close it
     state.pop("database")
-    self.database.closeDataBaseW()
+    self.database.closeDatabaseW()
     # what we return here will be stored in the pickle
     return state
 
@@ -130,7 +133,7 @@ class HDF5(DateBase):
     # Check if database directory exist, otherwise create it
     if '~' in self.databaseDir: self.databaseDir = copy.copy(os.path.expanduser(self.databaseDir))
     if not os.path.exists(self.databaseDir): os.makedirs(self.databaseDir)
-    utils.raiseAMessage(self,'DataBase Directory is '+self.databaseDir+'!')
+    utils.raiseAMessage(self,'Database Directory is '+self.databaseDir+'!')
     # Check if a filename has been provided
     # if yes, we assume the user wants to load the data from there
     # or update it
@@ -182,7 +185,7 @@ class HDF5(DateBase):
     self.database.addGroup(attributes['group'],attributes,loadFrom,upGroup)
     self.built = True
 
-  def addGroupDatas(self,attributes,loadFrom,upGroup=False):
+  def addGroupDataObjects(self,attributes,loadFrom,upGroup=False):
     #### TODO: this function and the function above can be merged together (Andrea)
     '''
     Function to add a group in the HDF5 database
@@ -192,10 +195,10 @@ class HDF5(DateBase):
     '''
     source = {}
     if type(loadFrom) != dict:
-      if not loadFrom.type in ['TimePoint','TimePointSet','History','Histories']: utils.raiseAnError(IOError,self,'addGroupDatas function needs to have a Data(s) as input source')
-      source['type'] = 'Datas'
+      if not loadFrom.type in ['TimePoint','TimePointSet','History','Histories']: utils.raiseAnError(IOError,self,'addGroupDataObjects function needs to have a Data(s) as input source')
+      source['type'] = 'DataObjects'
     source['name'] = loadFrom
-    self.database.addGroupDatas(attributes['group'],attributes,source,upGroup)
+    self.database.addGroupDataObjects(attributes['group'],attributes,source,upGroup)
     self.built = True
 
   def initialize(self,gname,attributes=None,upGroup=False):
@@ -398,7 +401,7 @@ class HDF5(DateBase):
           if inInKey is not None:
             ix = histVar[1]['input_space_headers'].index(inInKey)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
-            inDict[key][i] = histVar[1]['input_space_values'][ix][0]
+            inDict[key][i] = np.atleast_1d(histVar[1]['input_space_values'][ix])[0]
           elif inOutKey is not None:
             ix = histVar[1]['output_space_headers'].index(inOutKey)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
@@ -596,7 +599,7 @@ class HDF5(DateBase):
     gc.collect()
     return copy.copy(data)
 
-__base                  = 'DataBase'
+__base                  = 'Database'
 __interFaceDict         = {}
 __interFaceDict['HDF5'] = HDF5
 __knownTypes            = __interFaceDict.keys()
@@ -604,12 +607,14 @@ __knownTypes            = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
+needsRunInfo = True
+
+def returnInstance(Type,runInfoDict):
   '''
   Function interface for creating an instance to a database specialized class (for example, HDF5)
   @ In, type                : class type (string)
   @ Out, class Instance     : instance to that class
   Note: Interface function
   '''
-  try: return __interFaceDict[Type]()
+  try: return __interFaceDict[Type](runInfoDict)
   except KeyError: utils.raiseAnError(NameError,'DATABASES','not known '+__base+' type '+Type)

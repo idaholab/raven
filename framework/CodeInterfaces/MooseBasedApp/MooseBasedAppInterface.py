@@ -35,7 +35,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     self._samplersDictionary                          = {}
     self._samplersDictionary['MonteCarlo'           ] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['Grid'                 ] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['LHS'                  ] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['Stratified'           ] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['DynamicEventTree'     ] = self.dynamicEventTreeForMooseBasedApp
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['FactorialDesign'      ] = self.pointSamplerForMooseBasedApp

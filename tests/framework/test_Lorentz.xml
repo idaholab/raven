@@ -5,25 +5,36 @@
 <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
     <Files>lorentzAttractor.py</Files>
-    <Sequence>FirstMRun</Sequence>
-    <batchSize>3</batchSize>
+    <Sequence>FirstMRun,FirstMRun2</Sequence>
+    <batchSize>2</batchSize>
 </RunInfo>
 
 <!-- STEPS -->
 <Steps>
     <MultiRun name='FirstMRun'  re-seeding='25061978'>
-        <Input   class='Files'     type=''               >lorentzAttractor.py</Input>
+        <Input   class='DataObjects'     type='TimePoint'>inputPlaceHolder</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='Datas'     type='Histories'      >testPrintHistories</Output>
-        <Output  class='DataBases' type='HDF5'           >test_external_db</Output>
+        <Output  class='DataObjects'     type='Histories'      >testPrintHistories</Output>
+        <Output  class='Databases' type='HDF5'           >test_external_db</Output>
         <Output  class='OutStreamManager' type='Print'   >testPrintHistories_dump</Output>
+        <Output  class='DataObjects' type='TimePointSet'   >testTimePointSet</Output>
+        <Output  class='OutStreamManager' type='Print'   >testTimePointSet_dump</Output>
+    </MultiRun >
+    <MultiRun name='FirstMRun2'  re-seeding='25061978'>
+        <Input   class='DataObjects'     type='TimePoint' >inputPlaceHolder</Input>
+        <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
+        <Sampler class='Samplers'  type='Grid'     >myGrid</Sampler>
+        <Output  class='DataObjects'     type='Histories'>testPrintHistories</Output>
+        <Output  class='OutStreamManager' type='Print'   >testPrintHistories_dump</Output>
+        <Output  class='DataObjects' type='TimePointSet'   >testTimePointSet</Output>
+        <Output  class='OutStreamManager' type='Print'   >testTimePointSet_dump</Output>
     </MultiRun >
 </Steps>
 
 <!-- MODELS -->
 <Models>
-    <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/lorentzAttractor'>  
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/lorentzAttractor'>
        <variable>sigma</variable>
        <variable>rho</variable>
        <variable>beta</variable>
@@ -55,9 +66,9 @@
 
 <!-- SAMPLERS -->
 <Samplers>
-    <MonteCarlo name='MC_external'  limit='3' >
+    <MonteCarlo name='MC_external' >
       <sampler_init>
-        <limit>3</limit>
+        <limit>100</limit>
       </sampler_init>
       <variable name='x0' >
         <distribution  >x0_distrib</distribution>
@@ -69,12 +80,26 @@
         <distribution  >z0_distrib</distribution>
       </variable>
     </MonteCarlo>
+    <Grid name='myGrid'>
+        <variable name='x0' >
+            <distribution  >x0_distrib</distribution>
+            <grid         type='CDF' construction='custom' >0.2 0.5 0.6</grid>
+        </variable>
+        <variable name='y0' >
+            <distribution  >y0_distrib</distribution>
+            <grid         type='CDF'    construction='custom'>0.5 0.9 0.2</grid>
+        </variable>
+        <variable name='z0'>
+            <distribution  >z0_distrib</distribution>
+            <grid         type='CDF'    construction='custom'>0.5  0.9 0.2</grid>
+        </variable>
+    </Grid>
 </Samplers>
 
 <!-- DATABASES -->
-<DataBases>
+<Databases>
   <HDF5 name="test_external_db"/>
-</DataBases>
+</Databases>
 
 <!-- OUTSTREAMS -->
 <OutStreamManager>
@@ -82,15 +107,27 @@
     <type>csv</type>
     <source>testPrintHistories</source>
   </Print>
+  <Print name='testTimePointSet_dump'>
+      <type>csv</type>
+      <source>testTimePointSet</source>
+  </Print>
 </OutStreamManager>
 
 <!-- DATA OBJECTS -->
-<Datas>
+<DataObjects>
     <Histories name='testPrintHistories'>
         <Input>x0,y0,z0</Input>
         <Output>time,x,y,z</Output>
    </Histories>
-</Datas>
+    <TimePointSet name='testTimePointSet'>
+        <Input>x0,y0,z0</Input>
+        <Output>time,x,y,z</Output>
+    </TimePointSet>
+    <TimePoint name='inputPlaceHolder'>
+        <Input>x0,y0,z0</Input>
+        <Output>OutputPlaceHolder</Output>
+    </TimePoint>
+</DataObjects>
 </Simulation>
 
 

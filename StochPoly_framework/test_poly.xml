@@ -53,19 +53,19 @@
         <Input   type='Files'     subtype=''            >test_poly.py</Input>
         <Model   type='Models'    subtype='ExternalModule' >PythonModule</Model>
         <Sampler type='Samplers'  subtype='StochasticCollocation'   >SC</Sampler>
-        <Output  type='DataBases' subtype='HDF5'        >SC_HDF5</Output>
-        <Output  type='Datas'     subtype='TimePointSet'>outcome_poly</Output>
-        <!--Output  type='Datas'     subtype='Histories'>test_poly_histories</Output-->
+        <Output  type='Databases' subtype='HDF5'        >SC_HDF5</Output>
+        <Output  type='DataObjects'     subtype='TimePointSet'>outcome_poly</Output>
+        <!--Output  type='DataObjects'     subtype='Histories'>test_poly_histories</Output-->
     </MultiRun>
     <SCRun name='create_ROM'>
-        <Input type='DataBases' subtype='HDF5' >SC_HDF5</Input>
+        <Input type='Databases' subtype='HDF5' >SC_HDF5</Input>
         <ROM type='Models' subtype='StochasticCollocation'>SCrom</ROM>
         <Sampler type='Samplers' subtype='StochasticCollocation'>SCrom</Sampler>
     </SCRun>
 </Steps>
 
 
-<Datas>
+<DataObjects>
     <TimePointSet name='outcome_poly' printCSV='t'>
         <Input>x</Input>
         <Input>y</Input>
@@ -76,11 +76,11 @@
         <Input>y</Input>
         <Output>outcome</Output>
    </Histories>
-</Datas>
+</DataObjects>
 
-<DataBases>
+<Databases>
   <HDF5 name='SC_HDF5' type='MC' targetParam='outcome'/>
-</DataBases>
+</Databases>
 
 
 </Simulation>

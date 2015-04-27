@@ -495,7 +495,7 @@ class AdaptiveSampler(Sampler):
     if 'TargetEvaluation' in self.assemblerDict.keys(): self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
     self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
-    # check if solutionExport is actually a "Datas" type "TimePointSet"
+    # check if solutionExport is actually a "DataObjects" type "TimePointSet"
     if type(solutionExport).__name__ != "TimePointSet": utils.raiseAnError(IOError,self,'solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
@@ -1048,15 +1048,15 @@ class Grid(Sampler):
 #
 #
 #
-class LHS(Grid):
+class Stratified(Grid):
   '''
-  Latin hyper Cube based sampler. Currently no special filling method are implemented
+  Stratified based sampler. Currently no special filling method are implemented
   '''
   def __init__(self):
     Grid.__init__(self)
     self.sampledCoordinate    = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
-    self.printTag = utils.returnPrintTag('SAMPLER LHS')
-    self.globalGrid          = {}    # Dictionary for the global_grid. These grids are used only for LHS for ND distributions.
+    self.printTag = utils.returnPrintTag('SAMPLER Stratified')
+    self.globalGrid          = {}    # Dictionary for the global_grid. These grids are used only for Stratified for ND distributions.
 
   def localInputAndChecks(self,xmlNode):
     Grid.localInputAndChecks(self,xmlNode)
@@ -1273,7 +1273,7 @@ class DynamicEventTree(Grid):
     # dictionary of preconditioner sampler available
     self.preconditionerAvail = {}
     self.preconditionerAvail['MonteCarlo'] = MonteCarlo      # MC
-    self.preconditionerAvail['Stratified'] = LHS             # Stratified
+    self.preconditionerAvail['Stratified'] = Stratified      # Stratified
     self.preconditionerAvail['Grid'      ] = Grid            # Grid
     # dictionary of inputted preconditioners need to be applied
     self.preconditionerToApply             = {}
@@ -2252,8 +2252,9 @@ class ResponseSurfaceDesign(Grid):
         utils.raiseAnError(IOError,self,'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
       if self.respOpt['algorithm_type'] == 'boxbehnken':
         if key == 'ncenters':
-          try   : self.respOpt['options'][key] = int(value)
-          except: utils.raiseAnError(IOError,self,'"'+key+'" is not an integer!')
+          if self.respOpt['options'][key] != None:
+            try   : self.respOpt['options'][key] = int(value)
+            except: utils.raiseAnError(IOError,self,'"'+key+'" is not an integer!')
       else:
         if key == 'centers':
           if len(value.split(',')) != 2: utils.raiseAnError(IOError,self,'"'+key+'" must be a comma separated string of 2 values only!')
@@ -2327,14 +2328,15 @@ class SparseGridCollocation(Grid):
     self.quadDict       = {}    #varName-indexed dict of quadrature types
     self.importanceDict = {}    #varName-indexed dict of importance weights
     self.maxPolyOrder   = None  #integer, relative maximum polynomial order to be used in any one dimension
-    self.lastOutput     = None  #pointer to output datas object
+    self.lastOutput     = None  #pointer to output dataObjects object
     self.ROM            = None  #pointer to ROM
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
-
-    self.requiredAssObject = (True,(['ROM'],['1']))                  # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+    self.restartData    = None  #timepointset with possible points to restart from
+    self.requiredAssObject = (True,(['ROM','Restart'],['1','n']),) # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def _localWhatDoINeed(self):
+    '''See base class.'''
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
     return gridDict
@@ -2360,15 +2362,16 @@ class SparseGridCollocation(Grid):
         for value in self.assemblerDict[key]:
           self.ROM = self.assemblerDict[key][indice][3]
           indice += 1
+    if 'Restart' in self.assemblerDict.keys(): self.restartData = self.assemblerDict['Restart'][0][3]
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #often need only one
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
     if self.debug:
-      msg=self.printTag,'INTERPOLATION INFO:\n'
+      msg=self.printTag+' INTERPOLATION INFO:\n'
       msg+='    Variable | Distribution | Quadrature | Polynomials\n'
       for v in self.quadDict.keys():
-        msg+='   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type])+'\n'
+        msg+='   '+' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type])+'\n'
       msg+='    Polynomial Set Degree: '+str(self.maxPolyOrder)+'\n'
       msg+='    Polynomial Set Type  : '+str(SVL.indexSetType)+'\n'
       utils.raiseAMessage(self,msg)
@@ -2388,9 +2391,26 @@ class SparseGridCollocation(Grid):
       outFile.writelines(msg)
       outFile.close()
 
-    self.limit=len(self.sparseGrid)
-    if self.debug: utils.raiseAMessage(self,'Size of Sparse Grid  :'+str(self.limit))
+    #if restart, figure out what runs we need; else, all of them
+    if self.restartData != None:
+      inps = self.restartData.getInpParametersValues()
+      existing = zip(*list(v for v in inps.values()))
+      key = inps.keys()
+      if not key==self.distDict.keys(): self.sparseGrid._remap(key)
+      if not key==self.distDict.keys(): utils.raiseAnError(ValueError,self,'Restart vars do not match sparse grid vars!')
+    else:
+      existing=[]
+    self.neededPoints=[]
+    for p in range(len(self.sparseGrid)):
+      pt,wt = self.sparseGrid[p]
+      if pt not in existing:
+        self.neededPoints.append((pt,wt))
+
+    self.limit=len(self.neededPoints)
+    if self.debug: utils.raiseAMessage(self,'Size of Sparse Grid   :'+str(len(self.sparseGrid)))
+    if self.debug: utils.raiseAMessage(self,'Number of Runs Needed :'+str(self.limit))
     if self.debug: utils.raiseAMessage(self,'Finished sampler generation.')
+
     for SVL in self.ROM.SupervisedEngine.values():
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.distDict,
@@ -2458,9 +2478,14 @@ class SparseGridCollocation(Grid):
       self.importanceDict[varName] = float(dat['weight'])
 
   def localGenerateInput(self,model,myInput):
-    '''Provide the next point in the sparse grid.'''
-    pt,weight = self.sparseGrid[self.counter-1]
-    for v,varName in enumerate(self.distDict.keys()):
+    '''
+      Provide the next point in the sparse grid.
+      @ In, model, the model to evaluate
+      @ In, myInput, list of oritinal inputs
+      @ Out, None
+    '''
+    pt,weight = self.neededPoints[self.counter-1]
+    for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
     self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
@@ -2485,7 +2510,7 @@ class Sobol(SparseGridCollocation):
     self.quadDict       = {}    #varName-indexed dict of quadrature types
     self.importanceDict = {}    #varName-indexed dict of importance weights
     self.references     = {}    #reference (mean) values for distributions, by var
-    self.solns          = None  #pointer to output datas object
+    self.solns          = None  #pointer to output dataObjects object
     self.ROM            = None  #pointer to sobol ROM
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
@@ -2626,7 +2651,7 @@ __base = 'Sampler'
 __interFaceDict = {}
 __interFaceDict['MonteCarlo'              ] = MonteCarlo
 __interFaceDict['DynamicEventTree'        ] = DynamicEventTree
-__interFaceDict['LHS'                     ] = LHS
+__interFaceDict['Stratified'              ] = Stratified
 __interFaceDict['Grid'                    ] = Grid
 __interFaceDict['Adaptive'                ] = AdaptiveSampler
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET

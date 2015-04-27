@@ -7,7 +7,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-import Datas
+import DataObjects
 import numpy as np
 import os
 from utils import *
@@ -206,7 +206,7 @@ class PrintCSV(object):
               pass
             addcsvfile.write(b' \n')
 
-    elif(inObj.type == "Datas"):
+    elif(inObj.type == "DataObjects"):
       pass
     else:
       raise NameError ('Filter PrintCSV for input type ' + inObj.type + ' not yet implemented.')

@@ -65,7 +65,7 @@ class Relap5(CodeInterfaceBase):
     self._samplersDictionary                          = {}
     self._samplersDictionary['MonteCarlo'           ] = self.pointSamplerForRELAP5
     self._samplersDictionary['Grid'                 ] = self.pointSamplerForRELAP5
-    self._samplersDictionary['LHS'                  ] = self.pointSamplerForRELAP5
+    self._samplersDictionary['Stratified'           ] = self.pointSamplerForRELAP5
     self._samplersDictionary['Adaptive'             ] = self.pointSamplerForRELAP5
     self._samplersDictionary['FactorialDesign'      ] = self.pointSamplerForRELAP5
     self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForRELAP5

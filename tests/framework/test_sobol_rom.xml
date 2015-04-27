@@ -7,9 +7,9 @@
     </RunInfo>
 
     <Distributions>
-        <Uniform name="xd"><low>0</low><high>1</high></Uniform>
-        <Uniform name="yd"><low>1</low><high>5</high></Uniform>
-        <Uniform name="zd"><low>1</low><high>3</high></Uniform>
+        <Uniform name="xd"><lowerBound>0</lowerBound><upperBound>1</upperBound></Uniform>
+        <Uniform name="yd"><lowerBound>1</lowerBound><upperBound>5</upperBound></Uniform>
+        <Uniform name="zd"><lowerBound>1</lowerBound><upperBound>3</upperBound></Uniform>
     </Distributions>
 
     <Samplers>
@@ -49,27 +49,29 @@
     <Steps>
         <MultiRun name='make'>
             <Sampler class='Samplers'         type='Sobol'        >sobol</Sampler>
-            <Input   class='Datas'            type='TimePointSet' >dummyIN</Input>
+            <Input   class='DataObjects'            type='TimePointSet' >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'>poly</Model>
-            <Output  class='Datas'            type='TimePointSet' >solns</Output>
+            <Output  class='DataObjects'            type='TimePointSet' >solns</Output>
         </MultiRun>
         <RomTrainer name='train'>
-            <Input   class='Datas'            type='TimePointSet' >solns</Input>
+            <Input   class='DataObjects'            type='TimePointSet' >solns</Input>
             <Output  class='Models'           type='ROM'          >rom</Output>
         </RomTrainer>
         <MultiRun name='test'>
             <Sampler class='Samplers'         type='Grid'         >grid</Sampler>
-            <Input   class='Datas'            type='TimePointSet' >dummyIN</Input>
+            <Input   class='DataObjects'            type='TimePointSet' >dummyIN</Input>
             <Model   class='Models'           type='ROM'          >rom</Model>
-            <Output  class='Datas'            type='TimePointSet' >tests</Output>
+            <Output  class='DataObjects'            type='TimePointSet' >tests</Output>
         </MultiRun>
         <OutStreamStep name='print'>
-            <Input   class='Datas'            type='TimePointSet' >tests</Input>
+            <Input   class='DataObjects'            type='TimePointSet' >tests</Input>
             <Output  class='OutStreamManager' type='Print'        >dump</Output>
+            <Input   class='Models'           type='ROM'          >rom</Input>
+            <Output  class='OutStreamManager' type='Print'        >dumprom</Output>
         </OutStreamStep>
     </Steps>
 
-    <Datas>
+    <DataObjects>
         <TimePointSet name="dummyIN">
             <Input>x1,x2,x3</Input>
             <Output>OutputPlaceHolder</Output>
@@ -82,12 +84,17 @@
             <Input>x1,x2,x3</Input>
             <Output>ans</Output>
         </TimePointSet>
-    </Datas>
+    </DataObjects>
 
     <OutStreamManager>
         <Print name='dump'>
             <type>csv</type>
             <source>tests</source>
+        </Print>
+        <Print name='dumprom'>
+            <type>xml</type>
+            <source>rom</source>
+            <what>all </what>
         </Print>
     </OutStreamManager>
 </Simulation>

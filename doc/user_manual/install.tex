@@ -45,18 +45,19 @@ cd ../../
 \subsubsection{Compilation}
 
 First, CROW must be compiled. This can be done either with the python setup or
-with a makefile.
+with a script.
 
 Using the setup.py file:
 \begin{lstlisting}[language=bash]
 cd trunk/crow/
-python setup.py build_ext build install --user
+python setup.py build_ext build install \
+--install-platlib=`pwd`/install
 \end{lstlisting}
 
-Using the makefile:
+Using the script:
 \begin{lstlisting}[language=bash]
 cd trunk/crow/
-make -f Makefile.linux
+./crow_build
 \end{lstlisting}
 
 \subsubsection{Running the Test Suite}
@@ -81,6 +82,10 @@ not available, or some of the test are not currently working.  The
 output will explain why each is skipped.
 
 \subsection{Ubuntu Framework Install}
+
+Ubuntu versions before 14.04 do not have new enough libraries, and so
+some of them will have to be installed manually, or with the
+\verb'raven_libs_script.sh'
 
 \subsubsection{Dependencies}
 Install the dependencies using the command:
@@ -131,6 +136,10 @@ output will explain why each is skipped.
 
 \subsection{Fedora Framework Install}
 
+Fedora versions before 21 do not have new enough libraries, and so
+some of them will have to be installed manually, or with the
+\verb'raven_libs_script.sh'
+
 \subsubsection{Dependencies}
 Install the dependencies:
 
@@ -177,7 +186,9 @@ output will explain why each is skipped.
 
 Open up the file \texttt{raven\_libs\_framework\_and\_crow.dmg}.
 %
-Next, Open up the \texttt{raven\_libs.pkg} inside, and install it.
+Next, Open up the \texttt{raven\_libs.pkg} inside, and install it.  If
+you get an error that the package is not signed, then Control click
+the package, and choose ``Open With'' and then Installer.
 %
 The files will be installed into \texttt{/opt/raven\_libs}.
 %
@@ -211,6 +222,17 @@ cd ../../
 git clone git@hpcgitlab.inl.gov:idaholab/relap-7.git
 cd relap-7
 git submodule update --init contrib/iapws
+cd ..
+\end{lstlisting}
+
+Compiling MOOSE is optional.  If only the MOOSE source code is needed for
+RAVEN, then the following can be used instead:
+
+\begin{lstlisting}[language=bash]
+git clone https://github.com/idaholab/moose.git
+cd moose
+git submodule init libmesh
+git submodule update libmesh
 cd ..
 \end{lstlisting}
 

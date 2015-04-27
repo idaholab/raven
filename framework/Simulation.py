@@ -18,12 +18,12 @@ import string
 
 #Internal Modules------------------------------------------------------------------------------------
 import Steps
-import Datas
+import DataObjects
 import Samplers
 import Models
 import Tests
 import Distributions
-import DataBases
+import Databases
 import Functions
 import OutStreamManager
 from JobHandler import JobHandler
@@ -127,7 +127,7 @@ def createAndRunQSUB(simulation):
              os.path.join(frameworkDir,"raven_qsub_command.py")]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
-  utils.raiseAMessage('SIMULATION->QSUB',os.getcwd()+' '+command)
+  utils.raiseAMessage('SIMULATION->QSUB',os.getcwd()+' '+str(command))
   subprocess.call(command)
 
 
@@ -325,12 +325,12 @@ class Simulation(object):
     #the keywords are the name of the module that contains the specialization of that specific entity
     self.addWhatDict  = {}
     self.addWhatDict['Steps'            ] = Steps
-    self.addWhatDict['Datas'            ] = Datas
+    self.addWhatDict['DataObjects'            ] = DataObjects
     self.addWhatDict['Samplers'         ] = Samplers
     self.addWhatDict['Models'           ] = Models
     self.addWhatDict['Tests'            ] = Tests
     self.addWhatDict['Distributions'    ] = Distributions
-    self.addWhatDict['DataBases'        ] = DataBases
+    self.addWhatDict['Databases'        ] = Databases
     self.addWhatDict['Functions'        ] = Functions
     self.addWhatDict['OutStreamManager' ] = {}
     self.addWhatDict['OutStreamManager' ]['Plot' ] = OutStreamManager
@@ -339,14 +339,14 @@ class Simulation(object):
     #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.whichDict = {}
     self.whichDict['Steps'           ] = self.stepsDict
-    self.whichDict['Datas'           ] = self.dataDict
+    self.whichDict['DataObjects'           ] = self.dataDict
     self.whichDict['Samplers'        ] = self.samplersDict
     self.whichDict['Models'          ] = self.modelsDict
     self.whichDict['Tests'           ] = self.testsDict
     self.whichDict['RunInfo'         ] = self.runInfoDict
     self.whichDict['Files'           ] = self.filesDict
     self.whichDict['Distributions'   ] = self.distributionsDict
-    self.whichDict['DataBases'       ] = self.dataBasesDict
+    self.whichDict['Databases'       ] = self.dataBasesDict
     self.whichDict['Functions'       ] = self.functionsDict
     self.whichDict['OutStreamManager'] = {}
     self.whichDict['OutStreamManager']['Plot' ] = self.OutStreamManagerPlotDict
@@ -407,7 +407,11 @@ class Simulation(object):
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
 #              if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
               if Class != 'OutStreamManager':
-                  if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
+                  if name not in self.whichDict[Class].keys():
+                    if "needsRunInfo" in self.addWhatDict[Class].__dict__:
+                      self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict)
+                    else:
+                      self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
                   else: utils.raiseAnError(IOError,self,'Redundant naming in the input for class '+Class+' and name '+name)
               else:
                   if name not in self.whichDict[Class][subType].keys():  self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag)
@@ -484,13 +488,14 @@ class Simulation(object):
         temp_name = element.text
         if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
         if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = temp_name
-        else:                                   self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
-      elif element.tag == 'RelativeWorkingDir'  :
-        if xmlFilename == None:
-          utils.raiseAnError(IOError,self,'RelativeWorkingDir requested but xmlFilename is None.')
-        xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
-        raw_relative_working_dir = element.text.strip()
-        self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,raw_relative_working_dir)
+        elif "runRelative" in element.attrib:
+          self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
+        else:
+          if xmlFilename == None:
+            utils.raiseAnError(IOError,self,'Relative working directory requested but xmlFilename is None.')
+          xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
+          raw_relative_working_dir = element.text.strip()
+          self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,raw_relative_working_dir)
       elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
