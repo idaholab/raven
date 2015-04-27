@@ -103,7 +103,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.inputInfo['crowDist']         = {}                        # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
     self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
-    self.printTag                      = utils.returnPrintTag(self.type) # prefix for all prints (sampler type)
+    self.printTag                      = self.type                 # prefix for all prints (sampler type)
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
