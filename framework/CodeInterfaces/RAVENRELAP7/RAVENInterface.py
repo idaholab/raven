@@ -70,7 +70,7 @@ class RAVENInterface(CodeInterfaceBase):
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
+    parser = MOOSEparser.MOOSEparser(self.messageHandler,currentInputFiles[index])
     Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)

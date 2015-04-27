@@ -107,7 +107,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @in what: a list (or a general iterable) that will be playing the 'who' role
     """
     #counting successful matches
-    if who not in cls.validateDict.keys(): self.raiseAnError(IOError,'The role '+str(who)+' does not exist in the class '+str(cls))
+    if who not in cls.validateDict.keys(): cls.raiseAnError(IOError,'The role '+str(who)+' does not exist in the class '+str(cls))
     for myItemDict in cls.validateDict[who]: myItemDict['tempCounter'] = 0
     for anItem in what:
       anItem['found'] = False
@@ -121,9 +121,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     for tester in cls.validateDict[who]:
       if tester['required']==True:
         if tester['multiplicity']=='n' and tester['tempCounter']<1:
-          self.raiseAnError(IOError,'The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
+          cls.raiseAnError(IOError,'The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
         if tester['multiplicity']!='n' and tester['tempCounter']!=tester['multiplicity']:
-          self.raiseAnError(IOError,'The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
+          cls.raiseAnError(IOError,'The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
@@ -464,8 +464,9 @@ class ExternalModel(Dummy):
   @classmethod
   def specializeValidateDict(cls):
     #one data is needed for the input
-    # FIXME self.raiseAMessage('think about how to import the roles to allowed class for the external model. For the moment we have just all','FIXME')
+    #cls.raiseADebug('think about how to import the roles to allowed class for the external model. For the moment we have just all')
     pass
+
   def __init__(self):
     """
     Constructor
