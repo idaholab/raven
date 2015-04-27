@@ -44,20 +44,20 @@
     <Grid name='Grid_sampling'>
         <variable name='x1' >
             <distribution>normal_trunc</distribution>
-            <grid type='value' lowerBound='0.0' construction='equal' steps='50'>0.02</grid>
+            <grid type='value' lowerBound='0.0' construction='equal' steps='25'>0.04</grid>
         </variable>
         <variable name='x2' >
             <distribution>normal</distribution>
-            <grid type='value' lowerBound='1.5' construction='equal' steps='50'>0.02</grid>
+            <grid type='value' lowerBound='1.5' construction='equal' steps='25'>0.04</grid>
         </variable>
         <variable name='x3' >
             <distribution>uniform</distribution>
-            <grid type='value' lowerBound='1.0' construction='equal' steps='50'>0.06</grid>
+            <grid type='value' lowerBound='1.0' construction='equal' steps='25'>0.12</grid>
         </variable>
     </Grid>
     <MonteCarlo name='Montecarlo_sampling'>
         <sampler_init>
-            <limit>132651</limit>
+            <limit>17576</limit>
         </sampler_init>
         <variable name='x1' >
             <distribution>normal_trunc</distribution>
@@ -80,13 +80,13 @@
         <Input   class='DataObjects' type='TimePointSet'       >outAdapt_failure</Input>
         <Output  class='Models'      type='ROM'                >ProbabilityROM</Output>
     </RomTrainer>
-    <MultiRun name='rom_sample_pb' sleepTime="0.005">
+    <MultiRun name='rom_sample_pb' sleepTime="0.005" re-seeding="200286">
         <Input   class='DataObjects'      type='TimePoint'     >inputPlaceHolder</Input>
         <Model   class='Models'           type='ExternalModel' >PythonModule</Model>
-        <Sampler class='Samplers'         type='Grid'          >Grid_sampling</Sampler>
+        <Sampler class='Samplers'         type='MonteCarlo'    >Montecarlo_sampling</Sampler>
         <Output  class='DataObjects'      type='TimePointSet'  >outGrid_failure</Output>
     </MultiRun>
-    <MultiRun name='montecarlo_sample_ext_model' sleepTime="0.005">
+    <MultiRun name='montecarlo_sample_ext_model' sleepTime="0.005" re-seeding="200286">
         <Input   class='DataObjects'      type='TimePoint'     >inputPlaceHolder</Input>
         <Model   class='Models'           type='ExternalModel' >PythonModule</Model>
         <Sampler class='Samplers'         type='MonteCarlo'    >Montecarlo_sampling</Sampler>
@@ -146,7 +146,7 @@
         <actions>
             <how>screen</how>
             <title>
-                <text>Adaptive Points Location</text>
+                <text>Failure ROM from Adaptive</text>
             </title>
         </actions>
     </Plot>
@@ -166,7 +166,7 @@
         <actions>
             <how>screen</how>
             <title>
-                <text>Adaptive Points Location</text>
+                <text>Failure MC External Model</text>
             </title>
         </actions>
     </Plot>

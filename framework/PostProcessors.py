@@ -1176,54 +1176,54 @@ class BasicStatistics(BasePostProcessor):
       if key not in self.acceptedCalcParam: methodToTest.append(key)
     msg='\n'
     for targetP in parameterSet:
-      msg+='        *************'+'*'*len(targetP)+'***'
-      msg+='        * Variable * '+ targetP +'  *'
-      msg+='        *************'+'*'*len(targetP)+'***'
+      msg+='        *************'+'*'*len(targetP)+'***\n'
+      msg+='        * Variable * '+ targetP +'  *\n'
+      msg+='        *************'+'*'*len(targetP)+'***\n'
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
-          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
-          msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *'
-          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n'
+          msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *\n'
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n'
     maxLength = max(len(max(parameterSet, key=len))+5,16)
     if 'covariance' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*         Covariance        *'
-      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*****************************\n'
+      msg+=' '*maxLength+'*         Covariance        *\n'
+      msg+=' '*maxLength+'*****************************\n'
 
       msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])+'\n'
     if 'pearson' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*    Pearson/Correlation    *'
-      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*****************************\n'
+      msg+=' '*maxLength+'*    Pearson/Correlation    *\n'
+      msg+=' '*maxLength+'*****************************\n'
       msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])+'\n'
     if 'sensitivity' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*        Sensitivity        *'
-      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*****************************\n'
+      msg+=' '*maxLength+'*        Sensitivity        *\n'
+      msg+=' '*maxLength+'*****************************\n'
       msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]])+'\n'
     if 'NormalizedSensitivity' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*   Normalized Sensitivity  *'
-      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*****************************\n'
+      msg+=' '*maxLength+'*   Normalized Sensitivity  *\n'
+      msg+=' '*maxLength+'*****************************\n'
       msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])+'\n'
 
     if self.externalFunction:
-      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
-      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +'
-      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++\n'
+      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +\n'
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++\n'
       for what in self.methodsToRun:
         if what not in self.acceptedCalcParam:
-          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
-          msg+='              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *'
-          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n'
+          msg+='              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *\n'
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n'
     utils.raiseAMessage(self,msg)
     return outputDict
 

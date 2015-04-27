@@ -146,7 +146,7 @@
         <actions>
             <how>screen</how>
             <title>
-                <text>Adaptive Points Location</text>
+                <text>Failure ROM from Adaptive (MC)</text>
             </title>
         </actions>
     </Plot>
@@ -166,7 +166,7 @@
         <actions>
             <how>screen</how>
             <title>
-                <text>Adaptive Points Location</text>
+                <text>Failure External Model (MC)</text>
             </title>
         </actions>
     </Plot>
