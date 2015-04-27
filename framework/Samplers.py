@@ -288,6 +288,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       Distributions.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
 
+    #grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
     if 'Restart' in self.assemblerDict.keys():
       self.restartData = self.assemblerDict['Restart'][0][3]
       utils.raiseAMessage(self,'Restarting from '+self.restartData.name)
@@ -767,11 +768,16 @@ class MonteCarlo(Sampler):
       utils.raiseAnError(IOError,self,'Monte Carlo sampling needs the sampler_init block')
 
   def localInitialize(self):
-    pass #TODO fix the limit based on restartData
+    if self.restartData:
+      self.counter+=len(self.restartData)
+      utils.raiseAMessage(self,'Number of points from restart: %i' %self.counter)
+      utils.raiseAMessage(self,'Number of points needed:       %i' %(self.limit-self.counter))
+    #pass #TODO fix the limit based on restartData
 
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
+    utils.raiseAMessage(self,'Generating an input, counter=%i' %self.counter)
 
     for key in self.distDict:
       # check if the key is a comma separated list of strings
@@ -789,7 +795,7 @@ class MonteCarlo(Sampler):
           varDim = var[varID]
           for kkey in varID.strip().split(','):
             self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
-            if totDim > 1 and dim == 1:
+            if totDim > 1:
               coordinate=[];
               for i in range(totDim):
                 coordinate.append(np.atleast_1d(rvsnum)[i])
@@ -798,6 +804,7 @@ class MonteCarlo(Sampler):
               self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
             else:
               self.inputInfo['SampledVarsPb'][kkey] = 1.0
+      #else? #FIXME
 
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
