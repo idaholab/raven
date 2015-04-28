@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>test_cc_stats</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py,output.csv</Files>
-    <Sequence>test_read_in,test_stats_step</Sequence>
+    <Sequence>test_read_in,test_stats_step,dump_data</Sequence>
     <batchSize>3</batchSize>
   </RunInfo>
   <Models>
@@ -43,7 +43,12 @@
       <!-- <Input   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Input>-->
       <Model class='Models' type='PostProcessor'>test_stats</Model>
       <Output class='Files' type=''>output.csv</Output>
+      <Output class='DataObjects'  type='TimePointSet'>out_data</Output>
     </PostProcess>
+    <IOStep name="dump_data">
+      <Input  class='DataObjects'  type='TimePointSet'>out_data</Input>
+      <Output class='OutStreamManager' type='Print'>out_data</Output>
+    </IOStep>
   </Steps>
   <Databases>
     <HDF5 name="MC_TEST_REWRITE"/>
@@ -56,6 +61,10 @@
     <Print name='timepointset_IN_database_dump'>
       <type>csv</type>
       <source>timepointset_IN_database</source>
+    </Print>
+    <Print name='out_data'>
+      <type>csv</type>
+      <source>out_data</source>
     </Print>
 
   </OutStreamManager>
@@ -78,6 +87,10 @@
       <Input>pipe1_Area,pipe1_Dh</Input>
       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
     </History>
+    <TimePointSet name='out_data'>
+      <Input>DummyIn</Input>
+      <Output>DummyOut</Output>
+    </TimePointSet>
   </DataObjects>
 
 </Simulation>

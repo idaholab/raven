@@ -620,7 +620,17 @@ class ComparisonStatistics(BasePostProcessor):
         if len(rest) == 1:
           foundDataObjects.append(data[rest[0]])
       dataToProcess.append((dataPulls,foundDataObjects,reference))
-    generateCSV = True
+    generateCSV = False
+    generateTimePointSet = False
+    if type(output).__name__ in ['str','unicode','bytes']:
+      generateCSV = True
+    #elif output.type == 'DataObjects':
+    #  pass
+    elif output.type == 'TimePointSet':
+      generateTimePointSet = True
+      print("&&&&&We should do something about this output ",output)
+    else:
+      utils.raiseAnError(IOError,self,'unsupported type '+type(output))
     if generateCSV:
       csv = open(output,"w")
     for dataPulls, datas, reference in dataToProcess:
@@ -689,6 +699,19 @@ class ComparisonStatistics(BasePostProcessor):
               utils.printCsv(csv,*([l[i] for l in value]))
           else:
             utils.printCsv(csv,'"'+key+'"',value)
+      if generateTimePointSet:
+        for key in graph_data:
+          value = graph_data[key]
+          if type(value).__name__ == 'list':
+            for i in range(len(value)):
+              subvalue = value[i]
+              name = subvalue[0]
+              subdata = subvalue[1:]
+              if i == 0:
+                output.updateInputValue(name, subdata)
+              else:
+                output.updateOutputValue(name, subdata)
+            break #XXX Need to figure out way to specify which data to return
       if generateCSV:
         for i in range(len(graphData)):
           dataStat = graphData[i][0]
