@@ -387,11 +387,17 @@
   csv = 'StochasticPolyRestart/dump1.csv StochasticPolyRestart/dump2.csv StochasticPolyRestart/dump3.csv'
  [../]
 
- [./samplerRestartsTest]
+ [./samplerRestartMC]
   type = 'RavenFramework'
-  input = 'test_sampler_restarts.xml'
+  input = 'test_restart_MC.xml'
   output = 'SamplerRestarts/MCdump1.xml SamplerRestarts/MCdump2.xml SamplerRestarts/MCdump3.xml'
   csv = 'SamplerRestarts/MCdump1.csv SamplerRestarts/MCdump2.csv SamplerRestarts/MCdump3.csv'
+ [../]
+ [./samplerRestartStratified]
+  type = 'RavenFramework'
+  input = 'test_restart_Strat.xml'
+  output = 'SamplerRestarts/STRATdump1.xml SamplerRestarts/STRATdump2.xml SamplerRestarts/STRATdump3.xml'
+  csv = 'SamplerRestarts/STRATdump1.csv SamplerRestarts/STRATdump2.csv SamplerRestarts/STRATdump3.csv'
  [../]
 
  [./ND_external_MC]

@@ -777,7 +777,6 @@ class MonteCarlo(Sampler):
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
-    utils.raiseAMessage(self,'Generating an input, counter=%i' %self.counter)
 
     for key in self.distDict:
       # check if the key is a comma separated list of strings
@@ -1036,7 +1035,7 @@ class Grid(Sampler):
 
 class Stratified(Grid):
   '''
-  Stratified based sampler. Currently no special filling method are implemented
+    Stratified based sampler. Currently no special filling method are implemented
   '''
   def __init__(self):
     Grid.__init__(self)
@@ -1101,6 +1100,12 @@ class Stratified(Grid):
     for i in range(self.pointByVar-1):
       self.sampledCoordinate[i] = [None]*len(self.axisName)
       self.sampledCoordinate[i][:] = [tempFillingCheck[j][i] for j in range(len(tempFillingCheck))]
+
+    if self.restartData:
+      self.counter+=len(self.restartData)
+      utils.raiseAMessage(self,'Number of points from restart: %i' %self.counter)
+      utils.raiseAMessage(self,'Number of points needed:       %i' %(self.limit-self.counter))
+
 
   def localGenerateInput(self,model,myInput):
     '''
