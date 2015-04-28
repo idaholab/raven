@@ -380,13 +380,6 @@
   csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
  [../]
 
- [./stochPolyRestartTest]
-  type = 'RavenFramework'
-  input = 'test_stochpoly_restart.xml'
-  output = 'StochasticPolyRestart/dump1.xml StochasticPolyRestart/dump2.xml StochasticPolyRestart/dump3.xml'
-  csv = 'StochasticPolyRestart/dump1.csv StochasticPolyRestart/dump2.csv StochasticPolyRestart/dump3.csv'
- [../]
-
  [./samplerRestartMC]
   type = 'RavenFramework'
   input = 'test_restart_MC.xml'
@@ -398,6 +391,12 @@
   input = 'test_restart_Strat.xml'
   output = 'SamplerRestarts/STRATdump1.xml SamplerRestarts/STRATdump2.xml SamplerRestarts/STRATdump3.xml'
   csv = 'SamplerRestarts/STRATdump1.csv SamplerRestarts/STRATdump2.csv SamplerRestarts/STRATdump3.csv'
+ [../]
+ [./samplerRestartStochPoly]
+  type = 'RavenFramework'
+  input = 'test_restart_stochpoly.xml'
+  output = 'StochasticPolyRestart/dump1.xml StochasticPolyRestart/dump2.xml StochasticPolyRestart/dump3.xml'
+  csv = 'StochasticPolyRestart/dump1.csv StochasticPolyRestart/dump2.csv StochasticPolyRestart/dump3.csv'
  [../]
 
  [./ND_external_MC]
