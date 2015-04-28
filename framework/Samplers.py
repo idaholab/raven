@@ -113,16 +113,20 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.ND_sampling_params             = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initial_grid_disc' and 'tolerance')
     ######
 
-    self.assemblerObjects  = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-    self.requiredAssObject = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for objects;
-                                                      # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
-    self.assemblerDict     = {}  # {'class':[['subtype','name',instance]]}
+    self.assemblerObjects               = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
+    #self.requiredAssObject             = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for objects;
+                                                                   # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
+    self.requiredAssObject              = (True,(['Restart'],['-n']))
+    self.assemblerDict                  = {}                       # {'class':[['subtype','name',instance]]}
 
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
     availableDist = initDict['Distributions']
     self._generateDistributions(availableDist)
 
+  def _addAssObject(self,name,flag):
+    self.requiredAssObject[1][0].append(name)
+    self.requiredAssObject[1][1].append(flag)
 
   def _localWhatDoINeed(self):
     """
@@ -290,6 +294,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     #grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
     if 'Restart' in self.assemblerDict.keys():
+      print(self.assemblerDict['Restart'])
       self.restartData = self.assemblerDict['Restart'][0][3]
       utils.raiseAMessage(self,'Restarting from '+self.restartData.name)
       #check consistency of data
@@ -387,7 +392,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       else              : newInputs.append(self.generateInput(model,myInput,projector))
     return newInputs
 
-
   def finalizeActualSampling(self,jobObject,model,myInput):
     '''just an API'''
     self.localFinalizeActualSampling(jobObject,model,myInput)
@@ -428,7 +432,10 @@ class AdaptiveSampler(Sampler):
     # postprocessor to compute the limit surface
     self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface")
     self.printTag         = utils.returnPrintTag('SAMPLER ADAPTIVE')
-    self.requiredAssObject = (True,(['TargetEvaluation','ROM','Function'],['n','n','-n']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+
+    self._addAssObject('TargetEvaluation','n')
+    self._addAssObject('ROM','n')
+    self._addAssObject('Function','-n')
 
   def localInputAndChecks(self,xmlNode):
     if 'limit' in xmlNode.attrib.keys():
@@ -754,7 +761,6 @@ class MonteCarlo(Sampler):
     Sampler.__init__(self)
     self.printTag = utils.returnPrintTag('SAMPLER MONTECARLO')
     self.restartData          = None  # presampled points to restart from
-    self.requiredAssObject    = (True,(['Restart'],['-n'])) # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def localInputAndChecks(self,xmlNode):
     if xmlNode.find('sampler_init')!= None:
@@ -822,7 +828,6 @@ class Grid(Sampler):
     self.gridInfo             = {}    # {'name of the variable':('Type','Construction',[values])}  --> Type: Probability/Value; Construction:Custom/Equal
     self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
     self.restartData          = None  # presampled points to restart from
-    self.requiredAssObject    = (True,(['Restart'],['-n'])) # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
 
@@ -1105,7 +1110,6 @@ class Stratified(Grid):
       self.counter+=len(self.restartData)
       utils.raiseAMessage(self,'Number of points from restart: %i' %self.counter)
       utils.raiseAMessage(self,'Number of points needed:       %i' %(self.limit-self.counter))
-
 
   def localGenerateInput(self,model,myInput):
     '''
@@ -2315,7 +2319,8 @@ class SparseGridCollocation(Grid):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.restartData    = None  #timepointset with possible points to restart from
-    self.requiredAssObject = (True,(['ROM','Restart'],['1','n']),) # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+
+    self._addAssObject('ROM','1')
 
   def _localWhatDoINeed(self):
     '''See base class.'''
@@ -2496,7 +2501,7 @@ class Sobol(SparseGridCollocation):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
 
-    self.requiredAssObject = (True,(['ROM'],['1']))                  # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+    self._addAssObject('ROM','1')
 
   def _localWhatDoINeed(self):
     '''
