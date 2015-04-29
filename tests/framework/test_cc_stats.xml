@@ -6,33 +6,51 @@
     <Sequence>test_read_in,test_stats_step,dump_data</Sequence>
     <batchSize>3</batchSize>
   </RunInfo>
+
   <Models>
     <PostProcessor name="test_stats" subType="ComparisonStatistics">
       <kind bin_method='sturges'>uniform_bins</kind>
       <compare>
         <data>fullprint_timepointset|outputs|normal1</data>
-        <reference mean="20" sigma="3.0" />
+        <!-- <reference mean="20" sigma="3.0" /> -->
+        <reference name='normal_20_3' />
       </compare>
       <compare>
         <data>fullprint_timepointset|outputs|normal2</data>
         <!-- Note that normal2 actually is mean=20, sigma = 3.0 -->
-        <reference mean="30" sigma="5.0" />
+        <!--  <reference mean="30" sigma="5.0" /> -->
+        <reference name='normal_30_3' />
       </compare>
       <compare>
         <data>fullprint_timepointset|outputs|uniform1</data>
         <data>fullprint_timepointset|outputs|uniform2p</data>
       </compare>
       <!-- <fz>True</fz> -->
+      <Distribution class='Distributions' type='Normal'>normal_20_3</Distribution>
+      <Distribution class='Distributions' type='Normal'>normal_30_5</Distribution>
     </PostProcessor>
   </Models>
-  <Samplers>
+
+  <Distributions>
+    <Normal name='normal_20_3'>
+      <mean>20.0</mean>
+      <sigma>3.0</sigma>
+    </Normal>
+    <Normal name='normal_30_5'>
+      <mean>30.0</mean>
+      <sigma>5.0</sigma>
+    </Normal>
+  </Distributions>
+
+  <!-- <Samplers>
     <MonteCarlo     name='RAVENmc3'>
         <sampler_init>
             <limit>1</limit>
             <initial_seed>1</initial_seed>
         </sampler_init>
     </MonteCarlo>
-  </Samplers>
+  </Samplers> -->
+
   <Steps>
     <IOStep name='test_read_in' fromDirectory='../input_for_test_cc'>
       <Input  class='DataObjects'  type='TimePointSet'>fullprint_timepointset</Input>
@@ -50,9 +68,11 @@
       <Output class='OutStreamManager' type='Print'>out_data</Output>
     </IOStep>
   </Steps>
+
   <Databases>
     <HDF5 name="MC_TEST_REWRITE"/>
   </Databases>
+
   <OutStreamManager>
     <Print name='timepointset_from_database_dump'>
       <type>csv</type>
@@ -68,7 +88,6 @@
     </Print>
 
   </OutStreamManager>
-
 
   <DataObjects>
     <Histories name='fullprint_histories'>

@@ -63,8 +63,11 @@ class Assembler(object):
       self.assemblerDict[key] =  []
       for interface in value:
         self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
+
   def _readMoreXML(self,xmlNode):
     self.type = xmlNode.tag
+    import xml.etree.ElementTree
+    xml.etree.ElementTree.dump(xmlNode)
     if 'name' in xmlNode.attrib: self.name = xmlNode.attrib['name']
     self.printTag = utils.returnPrintTag(self.type)
     if 'debug' in xmlNode.attrib.keys():self.debug = bool(xmlNode.attrib['debug'])
@@ -73,6 +76,7 @@ class Assembler(object):
         for token in self.requiredAssObject[1][0]:
             testObjects[token] = 0
         found = False
+        print("looking for ",self.requiredAssObject[1][0])
         for subNode in xmlNode:
             for token in self.requiredAssObject[1][0]:
                 if subNode.tag in token:

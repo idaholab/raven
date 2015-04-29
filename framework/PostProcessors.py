@@ -299,7 +299,7 @@ class SafestPoint(BasePostProcessor):
     self.printTag = utils.returnPrintTag('POSTPROCESSOR SAFESTPOINT')
 
   def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method '''
+    ''' see generateAssembler method in Assembler '''
     for varName, distName in self.controllableDist.items():
       if distName not in initDict['Distributions'].keys():
         utils.raiseAnError(IOError,self,'distribution ' +distName+ ' not found.')
@@ -553,6 +553,8 @@ class ComparisonStatistics(BasePostProcessor):
     self.methodInfo = {} #Information on what stuff to do.
     self.f_z_stats = False
     self.interpolation = "quadratic"
+    self.requiredAssObject = (True,(['Distribution'],['n']))
+    self.distributions = {}
 
   def inputToInternal(self,currentInput):
     return [(currentInput)]
@@ -572,6 +574,8 @@ class ComparisonStatistics(BasePostProcessor):
             rest = splitName[2:]
             compareGroup.dataPulls.append([name, kind, rest])
           elif child.tag == 'reference':
+            #XXX this should take a standard distribution
+            # See for example LimitSurfaceIntegral post processor.
             compareGroup.referenceData = dict(child.attrib)
         self.compareGroups.append(compareGroup)
       if outer.tag == 'kind':
@@ -593,6 +597,9 @@ class ComparisonStatistics(BasePostProcessor):
           self.interpolation = interpolation
 
 
+  def _localGenerateAssembler(self, initDict):
+    self.distributions = initDict['Distributions']
+    #print("initDict", initDict)
 
   def run(self, Input): # inObj,workingDir=None):
     """
@@ -642,6 +649,12 @@ class ComparisonStatistics(BasePostProcessor):
           refPdf = lambda x:mathUtils.normal(x,refDataStats["mean"],refDataStats["stdev"])
           refCdf = lambda x:mathUtils.normalCdf(x,refDataStats["mean"],refDataStats["stdev"])
           graphData.append((refDataStats,refCdf,refPdf,"ref"))
+      if "name" in reference:
+        distribution = self.distributions[reference["name"]]
+        refDataStats = {"mean":distribution.untruncatedMean()}
+        refPdf = lambda x:distribution.pdf(x)
+        refCdf = lambda x:distribution.cdf(x)
+        graphData.append((refDataStats,refCdf,refPdf,"ref_"+reference["name"]))
       for dataPull, data in zip(dataPulls,datas):
         dataStats = self.processData(dataPull, data, self.methodInfo)
         dataKeys = set(dataStats.keys())
