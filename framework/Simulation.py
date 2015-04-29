@@ -613,6 +613,7 @@ class Simulation(object):
             neededobjs    = {}
             neededObjects = stp.whatDoINeed()
             for mainClassStr in neededObjects.keys():
+              #FIXME I don't know that this always returns a useful error.  In my case it gave me a ROM name for the stp and 'Model' for mainClassStr
               if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal': utils.raiseAnError(IOError,self,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
               neededobjs[mainClassStr] = {}
               for obj in neededObjects[mainClassStr]:

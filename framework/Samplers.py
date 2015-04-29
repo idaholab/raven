@@ -45,46 +45,46 @@ distribution1D = utils.find_distribution1D()
 
 class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   """
-  This is the base class for samplers
-  Samplers own the sampling strategy (Type) and they generate the
-  input values using the associate distribution. They do not have distributions inside!!!!
+    This is the base class for samplers
+    Samplers own the sampling strategy (Type) and they generate the
+    input values using the associate distribution. They do not have distributions inside!!!!
 
-  --Instance--
-  myInstance = Sampler()
-  myInstance.XMLread(xml.etree.ElementTree.Element)  This method generates all the information that will be permanent for the object during the simulation
+    --Instance--
+    myInstance = Sampler()
+    myInstance.XMLread(xml.etree.ElementTree.Element)  This method generates all the information that will be permanent for the object during the simulation
 
-  --usage--
-  myInstance = Sampler()
-  myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
-  myInstance.whatDoINeed()                           -see Assembler class-
-  myInstance.generateDistributions(dict)             Here the seed for the random engine is started and the distributions are supplied to the sampler and
-                                                     initialized. The method is called come from <Simulation> since it is the only one possess all the distributions.
-  myInstance.initialize()                            This method is called from the <Step> before the Step process start. In the base class it reset the counter to 0
-  myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the sampler is available to generate a new input
-  myInstance.generateInput(self,model,oldInput)      Requested from <Step> to generate a new input. Generate the new values and request to model to modify according the input and returning it back
+    --usage--
+    myInstance = Sampler()
+    myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
+    myInstance.whatDoINeed()                           -see Assembler class-
+    myInstance.generateDistributions(dict)             Here the seed for the random engine is started and the distributions are supplied to the sampler and
+                                                       initialized. The method is called come from <Simulation> since it is the only one possess all the distributions.
+    myInstance.initialize()                            This method is called from the <Step> before the Step process start. In the base class it reset the counter to 0
+    myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the sampler is available to generate a new input
+    myInstance.generateInput(self,model,oldInput)      Requested from <Step> to generate a new input. Generate the new values and request to model to modify according the input and returning it back
 
-  --Other inherited methods--
-  myInstance.whoAreYou()                            -see BaseType class-
-  myInstance.myInitializzationParams()              -see BaseType class-
-  myInstance.myCurrentSetting()                     -see BaseType class-
+    --Other inherited methods--
+    myInstance.whoAreYou()                            -see BaseType class-
+    myInstance.myInitializzationParams()              -see BaseType class-
+    myInstance.myCurrentSetting()                     -see BaseType class-
 
-  --Adding a new Sampler subclass--
-  <MyClass> should inherit at least from Sampler or from another step already presents
+    --Adding a new Sampler subclass--
+    <MyClass> should inherit at least from Sampler or from another step already presents
 
-  DO NOT OVERRIDE any of the class method that are not starting with self.local*
+    DO NOT OVERRIDE any of the class method that are not starting with self.local*
 
-  ADD your class to the dictionary __InterfaceDict at the end of the module
+    ADD your class to the dictionary __InterfaceDict at the end of the module
 
-  The following method overriding is MANDATORY:
-  self.localGenerateInput(model,oldInput)  : this is where the step happens, after this call the output is ready
+    The following method overriding is MANDATORY:
+    self.localGenerateInput(model,oldInput)  : this is where the step happens, after this call the output is ready
 
-  the following methods could be overrode:
-  self.localInputAndChecks(xmlNode)
-  self.localAddInitParams(tempDict)
-  self.localAddCurrentSetting(tempDict)
-  self.localInitialize()
-  self.localStillReady(ready)
-  self.localFinalizeActualSampling(jobObject,model,myInput)
+    the following methods could be overrode:
+    self.localInputAndChecks(xmlNode)
+    self.localAddInitParams(tempDict)
+    self.localAddCurrentSetting(tempDict)
+    self.localInitialize()
+    self.localStillReady(ready)
+    self.localFinalizeActualSampling(jobObject,model,myInput)
   """
 
   def __init__(self):
