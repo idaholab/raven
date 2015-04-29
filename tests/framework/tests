@@ -395,8 +395,14 @@
  [./samplerRestartStochPoly]
   type = 'RavenFramework'
   input = 'test_restart_stochpoly.xml'
-  output = 'StochasticPolyRestart/dump1.xml StochasticPolyRestart/dump2.xml StochasticPolyRestart/dump3.xml'
-  csv = 'StochasticPolyRestart/dump1.csv StochasticPolyRestart/dump2.csv StochasticPolyRestart/dump3.csv'
+  output = 'SamplerRestarts/SCdump1.xml SamplerRestarts/SCdump2.xml SamplerRestarts/SCdump3.xml'
+  csv = 'SamplerRestarts/SCdump1.csv SamplerRestarts/SCdump2.csv SamplerRestarts/SCdump3.csv'
+ [../]
+ [./samplerRestartSobolNoRom]
+  type = 'RavenFramework'
+  input = 'test_restart_sobol_norom.xml'
+  output = 'SamplerRestarts/SOBOLdump1.xml SamplerRestarts/SOBOLdump2.xml SamplerRestarts/SOBOLdump3.xml'
+  csv = 'SamplerRestarts/SOBOLdump1.csv SamplerRestarts/SOBOLdump2.csv SamplerRestarts/SOBOLdump3.csv'
  [../]
 
  [./ND_external_MC]
