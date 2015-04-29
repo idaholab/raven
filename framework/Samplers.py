@@ -936,7 +936,7 @@ class Grid(Sampler):
     if self.restartData:
       restInps = self.restartData.getInputParametersValues()
       existing = zip(*list(v for v in inps.values()))
-      
+
     remainder = self.counter - 1 #used to keep track as we get to smaller strides
     stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
     #self.inputInfo['distributionInfo'] = {}
