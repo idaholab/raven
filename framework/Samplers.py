@@ -2582,6 +2582,12 @@ class Sobol(SparseGridCollocation):
       self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',**initDict)
       initDict={'SG':self.SQs[combo], 'dists':distDict, 'quads':quadDict, 'polys':polyDict, 'iSet':iset}
       self.ROMs[combo].initialize(initDict)
+    #if restart, figure out what runs we need; else, all of them
+    if self.restartData != None:
+      inps = self.restartData.getInpParametersValues()
+      existing = zip(*list(v for v in inps.values()))
+    else:
+      existing=[]
     #make combined sparse grids
     self.references={}
     for var,dist in self.distDict.items():
@@ -2604,7 +2610,7 @@ class Sobol(SparseGridCollocation):
           if var in combo: newpt[v] = pt[combo.index(var)]
           else: newpt[v] = self.references[var]
         newpt=tuple(newpt)
-        if newpt not in self.pointsToRun: self.pointsToRun.append(newpt)
+        if newpt not in self.pointsToRun and newpt not in existing: self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
     initdict={'ROMs':self.ROMs,
               'SG':self.SQs,
@@ -2613,6 +2619,7 @@ class Sobol(SparseGridCollocation):
               'polys':self.polyDict,
               'refs':self.references}
     self.ROM.SupervisedEngine.values()[0].initialize(initdict)
+
 
   def localGenerateInput(self,model,myInput):
     '''Provide the next point in the sparse grid.  Note that this sampler cannot assign probabilty
