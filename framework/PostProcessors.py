@@ -299,7 +299,7 @@ class SafestPoint(BasePostProcessor):
     self.printTag = utils.returnPrintTag('POSTPROCESSOR SAFESTPOINT')
 
   def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method in Assembler '''
+    """ see generateAssembler method in Assembler """
     for varName, distName in self.controllableDist.items():
       if distName not in initDict['Distributions'].keys():
         utils.raiseAnError(IOError,self,'distribution ' +distName+ ' not found.')
@@ -553,7 +553,7 @@ class ComparisonStatistics(BasePostProcessor):
     self.methodInfo = {} #Information on what stuff to do.
     self.f_z_stats = False
     self.interpolation = "quadratic"
-    self.requiredAssObject = (True,(['Distribution'],['n']))
+    self.requiredAssObject = (True,(['Distribution'],['-n']))
     self.distributions = {}
 
   def inputToInternal(self,currentInput):
@@ -598,7 +598,7 @@ class ComparisonStatistics(BasePostProcessor):
 
 
   def _localGenerateAssembler(self, initDict):
-    self.distributions = initDict['Distributions']
+    self.distributions = initDict.get('Distributions',{})
     #print("initDict", initDict)
 
   def run(self, Input): # inObj,workingDir=None):
@@ -635,7 +635,7 @@ class ComparisonStatistics(BasePostProcessor):
     #  pass
     elif output.type == 'TimePointSet':
       generateTimePointSet = True
-      print("&&&&&We should do something about this output ",output)
+      #print("&&&&&We should do something about this output ",output)
     else:
       utils.raiseAnError(IOError,self,'unsupported type '+type(output))
     if generateCSV:
@@ -650,11 +650,18 @@ class ComparisonStatistics(BasePostProcessor):
           refCdf = lambda x:mathUtils.normalCdf(x,refDataStats["mean"],refDataStats["stdev"])
           graphData.append((refDataStats,refCdf,refPdf,"ref"))
       if "name" in reference:
-        distribution = self.distributions[reference["name"]]
-        refDataStats = {"mean":distribution.untruncatedMean()}
+        distribution_name = reference["name"]
+        if not distribution_name in self.distributions:
+          utils.raiseAnError(IOError,self,'Did not find '+distribution_name+
+                             ' in '+str(self.distributions.keys()))
+        else:
+          distribution = self.distributions[distribution_name]
+        refDataStats = {"mean":distribution.untruncatedMean(),
+                        "stdev":distribution.untruncatedStdDev()}
+        refDataStats["min_bin_size"] = refDataStats["stdev"]/2.0
         refPdf = lambda x:distribution.pdf(x)
         refCdf = lambda x:distribution.cdf(x)
-        graphData.append((refDataStats,refCdf,refPdf,"ref_"+reference["name"]))
+        graphData.append((refDataStats,refCdf,refPdf,"ref_"+distribution_name))
       for dataPull, data in zip(dataPulls,datas):
         dataStats = self.processData(dataPull, data, self.methodInfo)
         dataKeys = set(dataStats.keys())

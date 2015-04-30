@@ -19,7 +19,7 @@
         <data>fullprint_timepointset|outputs|normal2</data>
         <!-- Note that normal2 actually is mean=20, sigma = 3.0 -->
         <!--  <reference mean="30" sigma="5.0" /> -->
-        <reference name='normal_30_3' />
+        <reference name='normal_30_5' />
       </compare>
       <compare>
         <data>fullprint_timepointset|outputs|uniform1</data>
