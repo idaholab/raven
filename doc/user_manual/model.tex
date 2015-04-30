@@ -4112,13 +4112,15 @@ There are four nodes that are used in the post-processor.
   \begin{itemize}
   \item \xmlNode{data}: This will specify the data that is used.  The
     different parts are separated by $|$'s.
-  \item \xmlNode{reference}: Specifies that a normal distribution will
-    be used. It takes two attributes.
-    \begin{itemize}
-    \item \textbf{mean} is the mean of the normal distribution
-    \item \textbf{sigma} is the standard deviation of the normal
-      distribution.
-    \end{itemize}
+  \item \xmlNode{reference}: This specifies a reference distribution to be used.  It takes distribution to use that is defined in the distributions block.  A name parameter is used to tell which distribution is used.
+    
+    % DEPRECATED: Specifies that a normal distribution will
+    %be used.It takes two attributes.
+    %\begin{itemize}
+    %\item \textbf{mean} is the mean of the normal distribution
+    %\item \textbf{sigma} is the standard deviation of the normal
+    %  distribution.
+    %\end{itemize}
   \end{itemize}
 \item \xmlNode{fz}: If the text is true, then extra comparison
   statistics for using the $f_z$ function are generated.  These take
@@ -4187,7 +4189,7 @@ points to approximations in the calculation.
       <kind bin_method='sturges'>uniform_bins</kind>
       <compare>
         <data>OriData|Output|tsin_TEMPERATURE</data>
-        <reference mean="410.0" sigma="2.0" />
+        <reference name='normal_410_2' />
       </compare>
       <compare>
         <data>OriData|Output|tsin_TEMPERATURE</data>
@@ -4199,10 +4201,17 @@ points to approximations in the calculation.
         <compare>
           <data>OriData|Output|tsin_TEMPERATURE</data>
         </compare>
+        <Distribution class='Distributions' type='Normal'>normal_410_2</Distribution>
       </PostProcessor>
       ...
    </Models>
    ...
+   <Distributions>
+      <Normal name='normal_410_2'>
+         <mean>410.0</mean>
+         <sigma>2.0</sigma>
+      </Normal>
+   </Distributions>
 </Simulation>
 ----------------------------------------------
 \end{lstlisting}
