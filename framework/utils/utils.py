@@ -13,6 +13,9 @@ import inspect
 
 class Object(object):pass
 
+#custom errors
+class NoMoreSamplesNeeded(GeneratorExit): pass
+
 def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   """
   Method to check if a path (file or directory) is currently

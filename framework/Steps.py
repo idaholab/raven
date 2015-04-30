@@ -275,8 +275,12 @@ class MultiRun(SingleRun):
     if self.debug: utils.raiseAMessage(self,'Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
       if inDictionary['Sampler'].amIreadyToProvideAnInput():
-        inDictionary["Model"].run(inDictionary['Sampler'].generateInput(inDictionary["Model"],inDictionary['Input']),inDictionary['jobHandler'])
-        if self.debug: utils.raiseAMessage(self,'Submitted input '+str(inputIndex+1))
+        try:
+          newinp = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
+          inDictionary["Model"].run(newinp,inDictionary['jobHandler'])
+          if self.debug: utils.raiseAMessage(self,'Submitted input '+str(inputIndex+1))
+        except utils.NoMoreSamplesNeeded:
+          utils.raiseAMessage(self,'Sampler returned "NoMoreSamplesNeeded".  Continuing...')
 
   def _localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
@@ -300,9 +304,12 @@ class MultiRun(SingleRun):
           if self.debug: utils.raiseAMessage(self,'Testing the sampler if it is ready to generate a new input')
           #if sampler.amIreadyToProvideAnInput(inLastOutput=self.targetOutput):
           if sampler.amIreadyToProvideAnInput():
-            newInput =sampler.generateInput(model,inputs)
-            model.run(newInput,jobHandler)
-            if self.debug: utils.raiseAMessage(self,'New input generated')
+            try:
+              newInput =sampler.generateInput(model,inputs)
+              model.run(newInput,jobHandler)
+              if self.debug: utils.raiseAMessage(self,'New input generated')
+            except utils.NoMoreSamplesNeeded:
+              utils.raiseAMessage(self,'Sampler returned "NoMoreSamplesNeeded".  Continuing...')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
       time.sleep(self.sleepTime)
 #

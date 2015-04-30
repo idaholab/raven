@@ -925,46 +925,62 @@ class Grid(Sampler):
 
   def localGenerateInput(self,model,myInput):
     if self.restartData:
-      restInps = self.restartData.getInputParametersValues()
+      inps = self.restartData.getInpParametersValues()
       existing = zip(*list(v for v in inps.values()))
+    else: existing = []
 
-    remainder = self.counter - 1 #used to keep track as we get to smaller strides
-    stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
+    #remainder = self.counter - 1 #used to keep track as we get to smaller strides
+    #stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
     #self.inputInfo['distributionInfo'] = {}
+    #self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
+    #self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
-
     weight = 1.0
 
-    #FIXME can this all happen in initialize instead of here?  TODO
-    # remainder and stride seem important and counter-based
-    for i in range(len(self.gridCoordinate)):
-      varName = self.axisName[i]
-      if not self.externalgGridCoord:
-        stride = stride // len(self.gridInfo[varName][2])
-        #index is the index into the array self.gridInfo[varName][2]
-        index, remainder = divmod(remainder, stride )
-        self.gridCoordinate[i] = index
+    found=False
+    while not found:
+      remainder = self.counter - 1 #used to keep track as we get to smaller strides
+      stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
+      #self.inputInfo['distributionInfo'] = {}
+      for i in range(len(self.gridCoordinate)):
+        # i congruent to input variable
+        varName = self.axisName[i]
+        if not self.externalgGridCoord:
+          stride = stride // len(self.gridInfo[varName][2])
+          #index is the index into the array self.gridInfo[varName][2]
+          if stride == 0: raise utils.NoMoreSamplesNeeded
+          index, remainder = divmod(remainder, stride )
+          self.gridCoordinate[i] = index
 
-      # check if the varName is a comma separated list of strings
-      # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-      for key in varName.strip().split(','):
-        self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
-        self.inputInfo['distributionType'][key] = self.distDict[varName].type
+        # check if the varName is a comma separated list of strings
+        # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+        for key in varName.strip().split(','):
+          self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
+          self.inputInfo['distributionType'][key] = self.distDict[varName].type
 
-        if self.gridInfo[varName][0]=='CDF':
-          if self.distDict[varName].getDimensionality()==1:
-            self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
-          else:
-            location = self.variables2distributionsMapping[varName]['dim']
-            self.values[key] = self.distDict[varName].inverseMarginalDistribution(self.gridInfo[varName][2][self.gridCoordinate[i]],location-1)
+          if self.gridInfo[varName][0]=='CDF':
+            if self.distDict[varName].getDimensionality()==1:
+              self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
+            else:
+              location = self.variables2distributionsMapping[varName]['dim']
+              self.values[key] = self.distDict[varName].inverseMarginalDistribution(self.gridInfo[varName][2][self.gridCoordinate[i]],location-1)
 
-        elif self.gridInfo[varName][0]=='value':
-          self.values[key] = self.gridInfo[varName][2][self.gridCoordinate[i]]
+          elif self.gridInfo[varName][0]=='value':
+            self.values[key] = self.gridInfo[varName][2][self.gridCoordinate[i]]
 
-        else: utils.raiseAnError(IOError,self,gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
+          else: utils.raiseAnError(IOError,self,gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
+      newpoint = tuple(self.values[key] for key in self.values.keys())
+      if newpoint not in existing:
+        found=True
+        utils.raiseAMessage(self,'New point found: '+str(newpoint))
+      else:
+        self.counter+=1
+        if self.counter>=self.limit: raise utils.NoMoreSamplesNeeded
+        utils.raiseAMessage(self,'Existing point: '+str(newpoint))
 
-
+    # duplicate code
     remainder = self.counter - 1 #used to keep track as we get to smaller strides
     stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
 
