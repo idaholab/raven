@@ -404,6 +404,12 @@
   output = 'SamplerRestarts/SOBOLdump1.xml SamplerRestarts/SOBOLdump2.xml SamplerRestarts/SOBOLdump3.xml'
   csv = 'SamplerRestarts/SOBOLdump1.csv SamplerRestarts/SOBOLdump2.csv SamplerRestarts/SOBOLdump3.csv'
  [../]
+ [./samplerRestartGrid]
+  type = 'RavenFramework'
+  input = 'test_restart_Grid.xml'
+  output = 'SamplerRestarts/GRIDdump1.xml SamplerRestarts/GRIDdump2.xml SamplerRestarts/GRIDdump3.xml'
+  csv = 'SamplerRestarts/GRIDdump1.csv SamplerRestarts/GRIDdump2.csv SamplerRestarts/GRIDdump3.csv'
+ [../]
 
  [./ND_external_MC]
   type = 'RavenFramework'
