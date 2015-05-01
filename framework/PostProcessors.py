@@ -145,12 +145,6 @@ class Integral(BasePostProcessor):
       outcome = self.functionS.evaluate(tempDict)
     else:
       pass
-
-
-
-
-
-
     return dataCollector
 
   def collectOutput(self,finishedjob,output):
@@ -1131,6 +1125,7 @@ class BasicStatistics(BasePostProcessor):
       """
       X    = np.array(feature, ndmin=2, dtype=np.result_type(feature, np.float64))
       diff = np.zeros(feature.shape, dtype=np.result_type(feature, np.float64))
+      if weights != None: w = np.array(weights, ndmin=1, dtype=np.result_type(weights, np.float64))
       if X.shape[0] == 1: rowvar = 1
       if rowvar:
           N = X.shape[1]
@@ -1145,8 +1140,8 @@ class BasicStatistics(BasePostProcessor):
       else:
           diff = X - np.mean(X, axis=1-axis, keepdims=True)
       if weights != None:
-          if not self.biased: fact = sumWeights/(sumWeights*sumWeights - sumSquareWeights)
-          else:               fact = 1/sumWeights
+          if not self.biased: fact = float(sumWeights/((sumWeights*sumWeights - sumSquareWeights)))
+          else:               fact = float(1.0/(sumWeights))
       else:
           if not self.biased: fact = float(1.0/(N-1))
           else:               fact = float(1.0/N)
@@ -1154,9 +1149,11 @@ class BasicStatistics(BasePostProcessor):
           warnings.warn("Degrees of freedom <= 0", RuntimeWarning)
           fact = 0.0
       if not rowvar:
-          covMatrix = (np.dot(diff.T, diff.conj())*fact).squeeze()
+        if weigths != None: covMatrix = (np.dot(diff.T, w*diff)*fact).squeeze()
+        else:               covMatrix = (np.dot(diff.T, diff)*fact).squeeze()
       else:
-          covMatrix = (np.dot(diff, diff.T.conj())*fact).squeeze()
+        if weights != None: covMatrix = (np.dot(w*diff, diff.T)*fact).squeeze()
+        else:               covMatrix = (np.dot(diff, diff.T)*fact).squeeze()
       return covMatrix
 
   def corrCoeff(self, feature, weights=None, rowvar=1):
@@ -1859,6 +1856,7 @@ __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
+__interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __knownTypes                                 = __interFaceDict.keys()

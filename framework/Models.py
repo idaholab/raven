@@ -29,6 +29,7 @@ import SupervisedLearning
 import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
+import TreeStructure
 #Internal Modules End--------------------------------------------------------------------------------
 
 #class Model(BaseType):
@@ -79,7 +80,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Sampler'][0]['multiplicity'] = 1
   validateDict['Sampler'][0]['type']         = ['MonteCarlo',
                                                 'DynamicEventTree',
-                                                'LHS',
+                                                'Stratified',
                                                 'Grid',
                                                 'Adaptive',
                                                 'AdaptiveDynamicEventTree',
@@ -126,7 +127,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
-        utils.raiseAnError(IOError,self,'It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
+        utils.raiseAnError(IOError,cls,'It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
     return True
 
   def __init__(self):
@@ -360,6 +361,35 @@ class ROM(Dummy):
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
 
+  def printXML(self,options=None):
+    '''
+      Called by the OutStreamPrint object to cause the ROM to print itself to file.
+      @ In, options, the options to use in printing, including filename, things to print, etc.
+    '''
+    if options:
+      if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
+      else: filenameLocal = self.name + '_dump'
+    else: options={}
+    tree=self._localBuildPrintTree(options)
+    msg=tree.stringNodeTree()
+    file(filenameLocal+'.xml','w').writelines(msg)
+    utils.raiseAMessage(self,'ROM XML printed to "'+filenameLocal+'"')
+
+  def _localBuildPrintTree(self,options=None):
+    node = TreeStructure.Node('ReducedOrderModel')
+    tree = TreeStructure.NodeTree(node)
+    #tree._setrootnode(node)
+    if 'target' in options.keys():
+      targets = options['target'].split(',')
+    else:
+      targets = 'all'
+    if 'all' in targets:
+      targets = list(key for key in self.SupervisedEngine.keys())
+    for key,target in self.SupervisedEngine.items():
+      if key in targets:
+        target.printXML(node,options)
+    return tree
+
   def reset(self):
     """
     Reset the ROM
@@ -514,7 +544,6 @@ class ExternalModel(Dummy):
       CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
       modelVariableValues[key] = copy.copy(value)
     for key in Input.keys(): modelVariableValues[key] = copy.copy(Input[key])
-    #print(self.initExtSelf.__dict__.items())
     if 'createNewInput' not in dir(self.sim):
       for key in Input.keys(): modelVariableValues[key] = copy.copy(Input[key])
       for key in self.modelVariableType.keys() : CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
@@ -555,7 +584,7 @@ class ExternalModel(Dummy):
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
     instanciatedSelf = finishedJob.returnEvaluation()[1][1]
     outcomes         = finishedJob.returnEvaluation()[1][0]
-    for key in finishedJob.returnEvaluation()[1][0]:
+    for key in instanciatedSelf.modelVariableType.keys():
       if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
         utils.raiseAnError(RuntimeError,self,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
     Dummy.collectOutput(self, finishedJob, output)

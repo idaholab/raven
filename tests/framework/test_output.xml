@@ -98,10 +98,10 @@
         <x>stories|Output|time</x>
         <y>stories|Output|pump_mass_flow_rate</y>
         <colorMap>stories|output|pump_mass_flow_rate</colorMap>
-        <cmap>summer</cmap>
+        <cmap>gist_ncar</cmap>
         <kwargs>
-         <color>red</color>
-         <label>pipe1-Hw</label>
+         <!--color>red</color>
+         <label>pipe1-Hw</label-->
         </kwargs>
       </plot>
     </plotSettings>
@@ -153,7 +153,7 @@
               <z>stories|Output|pump_mass_flow_rate</z>
               <y>stories|Output|pipe1_Hw</y>
               <kwargs>
-                  <color>blue</color>
+                  <color>black</color>
                   <label>pipe1-Hw</label>
               </kwargs>
           </plot>
@@ -163,7 +163,7 @@
               <z>stories|Output|pump_mass_flow_rate</z>
               <y>stories|Output|pipe1_Hw</y>
               <colorMap>stories|Output|time</colorMap>
-	      <cmap>summer</cmap>
+	      <cmap>rainbow</cmap>
              <kwargs>
                   <color>green</color>
                   <label>pipe1-Hw</label>
@@ -180,7 +180,7 @@
               <ymin>0</ymin>
               <zmin>0</zmin>
               <xmax>1</xmax>
-              <ymax>1</ymax>
+              <ymax>0.004</ymax>
               <zmax>1</zmax>
           </range>
           <labelFormat>
@@ -196,7 +196,7 @@
           </scale>
           <camera>
               <elevation>10</elevation>
-              <azimuth>10</azimuth>
+              <azimuth>60</azimuth>
           </camera>
           <addText>
               <text> </text>
@@ -579,7 +579,7 @@
       <x>stories|Output|time</x>
       <y>stories|Output|pump_mass_flow_rate</y>
       <colorMap>stories|Input|pipe1_Dh</colorMap> 
-      <cmap>hot</cmap>
+      <cmap>rainbow</cmap>
       </plot>
       <xlabel>Time (s)</xlabel>
       <ylabel>Mass Flow Rate</ylabel>
@@ -598,7 +598,7 @@
       <y>stories|Input|pipe1_Dh</y>
       <z>stories|Output|pump_mass_flow_rate</z> 
       <colorMap>stories|Output|pipe1_Hw</colorMap> 
-      <cmap>hot</cmap>
+      <cmap>summer</cmap>
       </plot>
       <xlabel>Time (s)</xlabel>
       <ylabel>Hydraulic Diameter</ylabel>
@@ -618,7 +618,7 @@
       <y>Historyy|Input|pipe1_Dh</y>
       <z>Historyy|Output|pump_mass_flow_rate</z> 
       <colorMap>Historyy|Output|pipe1_Hw</colorMap> 
-      <cmap>hot</cmap>
+      <cmap>Accent</cmap>
       </plot>
       <xlabel>Time (s)</xlabel>
       <ylabel>Hydraulic Diameter</ylabel>
@@ -719,12 +719,19 @@
 </Databases>
 <DataObjects>
     <Histories name='stories'>
-        <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+        <Input>pipe1_Area,
+               pipe1_Dh</Input>
+        <Output>pipe1_Hw,
+                pump_mass_flow_rate,
+                time
+        </Output>
    </Histories>
    <TimePointSet name='TimePointSets'>
-        <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+        <Input>pipe1_Area, pipe1_Dh</Input>
+        <Output>pipe1_Hw,
+                pump_mass_flow_rate,
+                time
+        </Output>
    </TimePointSet>
    <TimePoint name='TimePointt'>
         <Input>pipe1_Area,pipe1_Dh</Input>
