@@ -28,6 +28,7 @@ import Functions
 import OutStreamManager
 from JobHandler import JobHandler
 import utils
+from FileObject import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------
@@ -325,7 +326,7 @@ class Simulation(object):
     #the keywords are the name of the module that contains the specialization of that specific entity
     self.addWhatDict  = {}
     self.addWhatDict['Steps'            ] = Steps
-    self.addWhatDict['DataObjects'            ] = DataObjects
+    self.addWhatDict['DataObjects'      ] = DataObjects
     self.addWhatDict['Samplers'         ] = Samplers
     self.addWhatDict['Models'           ] = Models
     self.addWhatDict['Tests'            ] = Tests
@@ -339,7 +340,7 @@ class Simulation(object):
     #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.whichDict = {}
     self.whichDict['Steps'           ] = self.stepsDict
-    self.whichDict['DataObjects'           ] = self.dataDict
+    self.whichDict['DataObjects'     ] = self.dataDict
     self.whichDict['Samplers'        ] = self.samplersDict
     self.whichDict['Models'          ] = self.modelsDict
     self.whichDict['Tests'           ] = self.testsDict
@@ -371,7 +372,7 @@ class Simulation(object):
     '''assuming that the file in is already in the self.filesDict it places, as value, the absolute path'''
     if '~' in filein : filein = os.path.expanduser(filein)
     if not os.path.isabs(filein):
-      self.filesDict[filein] = os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein))
+      self.filesDict[filein] = FileObject(os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein)))
 
   def __checkExistPath(self,filein):
     '''assuming that the file in is already in the self.filesDict it checks the existence'''
@@ -442,7 +443,7 @@ class Simulation(object):
       #This is used to reserve some cores
       self.runInfoDict['totalNumCoresUsed'] = oldTotalNumCoresUsed
     elif oldTotalNumCoresUsed > 1: #If 1, probably just default
-      runAWarning(self,"overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
+      utils.raiseAWarning(self,"overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
     #transform all files in absolute path
     for key in self.filesDict.keys(): self.__createAbsPath(key)
     #Let the mode handler do any modification here
@@ -483,7 +484,7 @@ class Simulation(object):
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
       if element.tag in runInfoSkip:
-        runAWarning(self,"Skipped element ",element.tag)
+        utils.raiseAWarning(self,"Skipped element ",element.tag)
       elif   element.tag == 'WorkingDir'        :
         temp_name = element.text
         if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
@@ -502,7 +503,6 @@ class Simulation(object):
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
       elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'        ] = int(element.text)
       elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
-      #elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
       elif element.tag == 'totalNumCoresUsed' : self.runInfoDict['totalNumCoresUsed'   ] = int(element.text)
       elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'            ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
@@ -528,7 +528,8 @@ class Simulation(object):
         for stepName in element.text.split(','): self.stepSequenceList.append(stepName.strip())
       elif element.tag == 'Files':
         text = element.text.strip()
-        for fileName in text.split(','): self.filesDict[fileName.strip()] = fileName.strip()
+        for fileName in text.split(','):
+          self.filesDict[fileName.strip()] = FileObject(fileName.strip())
       elif element.tag == 'DefaultInputFile'  : self.runInfoDict['DefaultInputFile'] = element.text.strip()
       elif element.tag == 'CustomMode' :
         modeName = element.text.strip()

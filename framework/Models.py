@@ -234,7 +234,7 @@ class Dummy(Model):
     if self.debug: utils.raiseAMessage(self,'wondering if a dictionary compatibility should be kept','FIXME')
     if  type(dataIN).__name__ !='dict':
       # NOTICE: THIS IF STATEMENT HERE IS GOING TO BE REMOVED WHEN THE FILEOBJECT CLASS GETS CREATED. STAY TUNED.
-      if type(dataIN).__name__ in ['str','unicode','bytes']: utils.raiseAnError(IOError,self,'type "'+type(dataIN).__name__ +'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
+      #if type(dataIN).__name__ in ['str','unicode','bytes']: utils.raiseAnError(IOError,self,'type "'+type(dataIN).__name__ +'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
       # END NOTICE
       if dataIN.type not in self.admittedData: utils.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
     if full==True:  length = 0

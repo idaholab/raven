@@ -19,13 +19,13 @@ import utils
 class BaseType(object):
   '''this is the base class for each general type used by the simulation'''
   def __init__(self):
-    self.name             = ''      # name of this istance (alias)
-    self.type             = ''      # specific type within this class
-    self.debug            = False   #set up the debug status of the code
-    self.globalAttributes = {}      #this is a dictionary that contains parameters that are set at the level of the base classes defining the types
-    self._knownAttribute  = []      #this is a list of strings representing the allowed attribute in the xml input for the class
+    self.name             = ''                  # name of this istance (alias)
+    self.type             = type(self).__name__ # specific type within this class
+    self.debug            = False               # set up the debug status of the code
+    self.globalAttributes = {}                  # this is a dictionary that contains parameters that are set at the level of the base classes defining the types
+    self._knownAttribute  = []                  # this is a list of strings representing the allowed attribute in the xml input for the class
     self._knownAttribute += ['name','debug']
-    self.printTag         = utils.returnPrintTag('BaseType')
+    self.printTag         = utils.returnPrintTag(type(self).__name__)
 
   def readXML(self,xmlNode,debug=False,globalAttributes=None):
     '''
@@ -100,32 +100,4 @@ class BaseType(object):
     tempDict = self.myCurrentSetting()
     utils.raiseAMessage(self,'Current Setting:')
     for key in tempDict.keys(): utils.raiseAMessage('BASECLASSES','{0:15}: {1}'.format(key,str(tempDict[key])))
-#
-#
-#
-#
-#class Assembler(metaclass_insert(abc.ABCMeta,object)):
-#  '''
-#  Assembler class is used as base class for all the objects that need, for initialization purposes,
-#  to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
-#  '''
-#  @abc.abstractmethod
-#  def whatDoINeed(self):
-#    '''
-#    This method is used mainly by the Simulation class at the Step construction stage.
-#    It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
-#    be initialize. It is an abstract method -> It must be implemented in the derived class!
-#    @ In , None, None
-#    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
-#    '''
-#    pass
-#  @abc.abstractmethod
-#  def generateAssembler(self,initDict):
-#    '''
-#    This method is used mainly by the Simulation class at the Step construction stage.
-#    It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-#    It is an abstract method -> It must be implemented in the derived class!
-#    @ In , initDict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
-#    @ Out, None, None
-#    '''
-#    pass
+

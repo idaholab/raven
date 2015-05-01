@@ -940,12 +940,11 @@ class BasicStatistics(BasePostProcessor):
     inputDict = {'targets':{},'metadata':{}}
     try: inType = currentInput.type
     except:
-      if type(currentInput) in [str,bytes,unicode]: inType = "file"
-      elif type(currentInput) in [list]: inType = "list"
+      if type(currentInput).__name__ == 'list'    : inType = 'list'
       else: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
-    if inType not in ['file','HDF5','TimePointSet','list']: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(inType) + '!!!!')
-    if inType == 'file':
-      if currentInput.endswith('csv'): pass
+    if inType not in ['FileObject','HDF5','TimePointSet','list']: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(inType) + '!!!!')
+    if inType == 'FileObject':
+      if currentInput.subtype == 'csv': pass
     if inType == 'HDF5': pass # to be implemented
     if inType in ['TimePointSet']:
       for targetP in self.parameters['targets']:
@@ -989,7 +988,7 @@ class BasicStatistics(BasePostProcessor):
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
-    if type(output) in [str,unicode,bytes]:
+    if output.type == 'FileObject':
       availextens = ['csv','txt']
       outputextension = output.split('.')[-1].lower()
       if outputextension not in availextens:
@@ -1050,7 +1049,7 @@ class BasicStatistics(BasePostProcessor):
             output.updateMetadata(what,outputDict[what])
             if self.debug: utils.raiseAMessage(self,'BasicStatistics postprocessor: dumping External Function parameter '+ what)
     elif output.type == 'HDF5' : utils.raiseAWarning(self,'BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
-    else: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor: Output type '+ str(output.type) + ' unknown.')
+    else: utils.raiseAnError(IOError,self,'BasicStatistics postprocessor: Output type '+ output.type + ' unknown.')
 
   def run(self, InputIn):
     """
@@ -1361,12 +1360,10 @@ class LimitSurface(BasePostProcessor):
     if type(currentInp) == dict:
       if 'targets' in currentInput.keys(): return
     inputDict = {'targets':{},'metadata':{}}
-    try: inType = currentInput.type
-    except:
-      if type(currentInput) in [str,bytes,unicode]: inType = "file"
-      else: utils.raiseAnError(IOError,self,'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
-    if inType == 'file':
-      if currentInput.endswith('csv'): pass
+    try   : inType = currentInput.type
+    except: utils.raiseAnError(IOError,self,'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
+    if inType == 'FileObject':
+      if currentInput.subtype == 'csv': pass
     if inType == 'HDF5': pass # to be implemented
     if inType in ['TimePointSet']:
       for targetP in self.parameters['targets']:
@@ -1685,40 +1682,6 @@ class ExternalPostProcessor(BasePostProcessor):
     self.printTag = utils.returnPrintTag('POSTPROCESSOR EXTERNAL FUNCTION')
     self.requiredAssObject = (True,(['Function'],['n']))
 
-  #THESE are being deprecated for the similary functions in utils.
-#  def errorString(self,message):
-#    """
-#      Function to format an error string for printing.
-#      @ In, message: A string describing the error
-#      @ Out, A formatted string with the appropriate tags listed
-#    """
-#    # This function can be promoted for printing error functions more easily and
-#    # consistently.
-#    return (self.printTag + ': ' + utils.returnPrintPostTag('ERROR') + '-> '
-#           + self.__class__.__name__ + ': ' + message)
-#
-#  def warningString(self,message):
-#    """
-#      Function to format a warning string for printing.
-#      @ In, message: A string describing the warning
-#      @ Out, A formatted string with the appropriate tags listed
-#    """
-#    # This function can be promoted for printing error functions more easily and
-#    # consistently.
-#    return (self.printTag + ': ' + utils.returnPrintPostTag('Warning') + '-> '
-#           + self.__class__.__name__ + ': ' + message)
-#
-#  def messageString(self,message):
-#    """
-#      Function to format a message string for printing.
-#      @ In, message: A string describing the message
-#      @ Out, A formatted string with the appropriate tags listed
-#    """
-#    # This function can be promoted for printing error functions more easily and
-#    # consistently.
-#    return (self.printTag + ': ' + utils.returnPrintPostTag('Message') + '-> '
-#           + self.__class__.__name__ + ': ' + message)
-
   def inputToInternal(self,currentInp):
     """
       Function to convert the received input into a format this object can
@@ -1729,60 +1692,38 @@ class ExternalPostProcessor(BasePostProcessor):
     """
 
     if type(currentInp) == dict:
-      if 'targets' in currentInp.keys():
-        return
-
+      if 'targets' in currentInp.keys(): return
     currentInput = currentInp
-    if type(currentInput) != list:
-      currentInput = [currentInput]
-
+    if type(currentInput) != list: currentInput = [currentInput]
     inputDict = {'targets':{},'metadata':{}}
     metadata = []
     for item in currentInput:
       inType = None
-      if hasattr(item,'type'):
-        inType = item.type
-      elif type(item).__name__ in ["str","unicode","bytes"]:
-        inType = "file"
-      elif type(item) in [list]:
-        inType = "list"
-
-      if inType not in ['file','HDF5','TimePointSet','list']:
-        utils.raiseAWarning(self,'Input type ' + type(item).__name__ + ' not'
-                               + ' recognized. I am going to skip it.')
-      elif inType == 'file':
-        if currentInput.endswith('csv'):
-          # TODO
-          utils.raiseAWarning(self,'Input type ' + inType + ' not yet '
-                                 + 'implemented. I am going to skip it.')
+      if hasattr(item,'type')  : inType = item.type
+      elif type(item) in [list]: inType = "list"
+      if inType not in ['FileObject','HDF5','TimePointSet','list']: utils.raiseAWarning(self,'Input type ' + type(item).__name__ + ' not' + ' recognized. I am going to skip it.')
+      elif inType == 'FileObject':
+        if currentInput.subtype == 'csv': utils.raiseAWarning(self,'Input type ' + inType + ' not yet ' + 'implemented. I am going to skip it.')
       elif inType == 'HDF5':
         # TODO
-          utils.raiseAWarning(self,'Input type ' + inType + ' not yet '
-                                 + 'implemented. I am going to skip it.')
+          utils.raiseAWarning(self,'Input type ' + inType + ' not yet '+ 'implemented. I am going to skip it.')
       elif inType == 'TimePointSet':
-        for param in item.getParaKeys('input'):
-          inputDict['targets'][param] = item.getParam('input', param)
-        for param in item.getParaKeys('output'):
-          inputDict['targets'][param] = item.getParam('output', param)
+        for param in item.getParaKeys('input') : inputDict['targets'][param] = item.getParam('input', param)
+        for param in item.getParaKeys('output'): inputDict['targets'][param] = item.getParam('output', param)
         metadata.append(item.getAllMetadata())
-
       #Not sure if we need it, but keep a copy of every inputs metadata
       inputDict['metadata'] = metadata
 
     if len(inputDict['targets'].keys()) == 0: utils.raiseAnError(IOError,self,"No input variables have been found in the input objects!")
     for interface in self.externalInterfaces:
-      for method in self.methodsToRun:
+      for _ in self.methodsToRun:
         # The function should reference self and use the same variable names
         # as the xml file
         for param in interface.parameterNames():
           if param not in inputDict['targets']:
-            utils.raiseAnError(IOError,self,'variable \"' + param + '\" unknown.'
-                                          + ' Please verify your external'
-                                          + ' script ('
-                                          + interface.functionFile
+            utils.raiseAnError(IOError,self,'variable \"' + param + '\" unknown.'+' Please verify your external'+' script ('+interface.functionFile
                                           + ') variables match the data'
                                           + ' available in your dataset.')
-
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -1791,7 +1732,7 @@ class ExternalPostProcessor(BasePostProcessor):
     for key in self.assemblerDict.keys():
       if 'Function' in key:
         indice = 0
-        for value in self.assemblerDict[key]:
+        for _ in self.assemblerDict[key]:
           self.externalInterfaces.append(self.assemblerDict[key][indice][3])
           indice += 1
 
