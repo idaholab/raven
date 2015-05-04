@@ -23,10 +23,10 @@ class Test(BaseType):
   def _readMoreXML(self,xmlNode):
     #try:
     self.toBeTested = xmlNode.text.split(',')
-    #except? raisea IOError('not found variable list to be tested in tester '+self.name)
+    #except? risea IOError('not found variable list to be tested in tester '+self.name)
     #try:
     self.name = xmlNode.attrib['tolerance']
-    #except? raisea IOError('not found tolerance for tester '+self.name)
+    #except? risea IOError('not found tolerance for tester '+self.name)
 
   def addInitParams(self,tempDict):
     tempDict['toBeTested'] = self.toBeTested
@@ -69,8 +69,8 @@ __knownTypes                = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
+def returnInstance(Type,caller):
   '''return one instance of Type'''
   try: return __interFaceDict[Type]()
-  except KeyError: utils.raiseAnError(NameError,'TESTS','not known '+__base+' type '+Type)
+  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
 
