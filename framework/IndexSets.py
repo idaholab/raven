@@ -7,8 +7,9 @@ from itertools import product
 import sys
 
 import utils
+import MessageHandler
 
-class IndexSet(object):
+class IndexSet(MessageHandler.MessageUser):
   """In stochastic collocation for generalised polynomial chaos, the Index Set
      is a set of all combinations of polynomial orders needed to represent the
      original model to a "level" L (maxPolyOrder).
@@ -75,16 +76,6 @@ class IndexSet(object):
     """
     return not self.__eq__(other)
 
-#  def _extrema(self):
-#    """Finds the low and hi maxima and minima among all dimensions."""
-#    low=np.ones(len(self.points[0]))*1e300
-#    hi =np.ones(len(self.points[0]))*(-1e300)
-#    for pt in self.points:
-#      for i,p in enumerate(pt):
-#        low[i]=min(low[i],p)
-#        hi[i] =max(hi[i],p)
-#    return low,hi
-
   def _xy(self):
     """Returns reordered data.  Originally,
        Points = [(a1,b1,...,z1),
@@ -99,7 +90,7 @@ class IndexSet(object):
     """
     return zip(*self.points)
 
-  def initialize(self,distrList,impList,maxPolyOrder):
+  def initialize(self,distrList,impList,maxPolyOrder,msgHandler):
     """Initialize everything index set needs
     @ In , distrList   , dictionary of {varName:Distribution}, distribution access
     @ In , impList     , dictionary of {varName:float}, weights by dimension
@@ -113,6 +104,7 @@ class IndexSet(object):
     self.impWeights = np.array(list(impList[v] for v in distrList.keys()))
     self.impWeights/= np.max(self.impWeights)
     self.impWeights = 1.0/self.impWeights
+    self.messageHandler=msgHandler
     #establish max orders
     self.maxOrder=maxPolyOrder
     self.polyOrderList=[]
@@ -141,8 +133,8 @@ class IndexSet(object):
 
 class TensorProduct(IndexSet):
   """This Index Set requires only that the max poly order in the index point i is less than maxPolyOrder ( max(i)<=L )."""
-  def initialize(self,distrList,impList,maxPolyOrder):
-    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
+  def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
+    IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
     self.type='Tensor Product'
     self.printTag='TensorProductIndexSet'
     target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder
@@ -155,8 +147,8 @@ class TensorProduct(IndexSet):
 
 class TotalDegree(IndexSet):
   """This Index Set requires the sum of poly orders in the index point is less than maxPolyOrder ( sum(i)<=L )."""
-  def initialize(self,distrList,impList,maxPolyOrder):
-    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
+  def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
+    IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
     self.type='Total Degree'
     self.printTag='TotalDegreeIndexSet'
     #TODO if user has set max poly orders (levels), make it so you never use more
@@ -171,8 +163,8 @@ class TotalDegree(IndexSet):
 
 class HyperbolicCross(IndexSet):
   """This Index Set requires the product of poly orders in the index point is less than maxPolyOrder ( prod(i+1)<=L+1 )."""
-  def initialize(self,distrList,impList,maxPolyOrder):
-    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
+  def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
+    IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
     self.type='Hyperbolic Cross'
     self.printTag='HyperbolicCrossIndexSet'
     #TODO if user has set max poly orders (levels), make it so you never use more
@@ -199,8 +191,6 @@ __knownTypes = list(__interFaceDict.keys())
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
-  if Type in knownTypes():
-    return __interFaceDict[Type]()
-  else:
-    utils.raiseAnError(NameError,'INDEX SETS','not known '+__base+' type '+Type)
+def returnInstance(Type,caller):
+  if Type in knownTypes(): return __interFaceDict[Type]()
+  else: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
