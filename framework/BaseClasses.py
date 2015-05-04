@@ -17,10 +17,10 @@ import MessageHandler
 class BaseType(MessageHandler.MessageUser):
   '''this is the base class for each general type used by the simulation'''
   def __init__(self):
-    self.name             = ''      # name of this istance (alias)
-    self.type             = ''      # specific type within this class
-    self.globalAttributes = {}      #this is a dictionary that contains parameters that are set at the level of the base classes defining the types
-    self._knownAttribute  = []      #this is a list of strings representing the allowed attribute in the xml input for the class
+    self.name             = ''                  # name of this istance (alias)
+    self.type             = type(self).__name__ # specific type within this class
+    self.globalAttributes = {}                  # this is a dictionary that contains parameters that are set at the level of the base classes defining the types
+    self._knownAttribute  = []                  # this is a list of strings representing the allowed attribute in the xml input for the class
     self._knownAttribute += ['name','localVerbosity']
     self.printTag         = 'BaseType'
     self.messageHandler   = None    # message handling object
