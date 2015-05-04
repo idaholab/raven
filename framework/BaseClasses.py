@@ -22,9 +22,9 @@ class BaseType(MessageHandler.MessageUser):
     self.globalAttributes = {}                  # this is a dictionary that contains parameters that are set at the level of the base classes defining the types
     self._knownAttribute  = []                  # this is a list of strings representing the allowed attribute in the xml input for the class
     self._knownAttribute += ['name','localVerbosity']
-    self.printTag         = utils.returnPrintTag(type(self).__name__)
-    self.messageHandler   = None                # message handling object
-    self.localVerbosity   = None                # local verbosity value
+    self.printTag         = 'BaseType'
+    self.messageHandler   = None    # message handling object
+    self.localVerbosity   = None    # local verbosity value
 
   def readXML(self,xmlNode,messageHandler,globalAttributes=None):
     '''
