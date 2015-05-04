@@ -12,7 +12,7 @@
   <Samplers>
     <MonteCarlo     name='RAVENmc3'>
         <sampler_init>
-            <limit>1</limit>
+            <limit>3</limit>
             <initial_seed>1</initial_seed>
         </sampler_init>
     </MonteCarlo>
