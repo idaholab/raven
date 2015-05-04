@@ -7,8 +7,7 @@ Created on Mar 25, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
+if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -197,7 +196,7 @@ class hdf5Database(object):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         for splgroup in splittedPath:
-          if gname == splgroup: utils.raiseAnError(IOError,self,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
+          if gname == splgroup and splittedPath[0] == self.parent_group_name: utils.raiseAnError(IOError,self,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     if source['type'] == 'csv':
       # Source in CSV format
       f = open(source['name'],'rb')
@@ -269,7 +268,7 @@ class hdf5Database(object):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         for splgroup in splittedPath:
-          if gname == splgroup: utils.raiseAnError(IOError,self,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
+          if gname == splgroup and splittedPath[0] == self.parent_group_name: utils.raiseAnError(IOError,self,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     parent_name = self.parent_group_name.replace('/', '')
     # Create the group
     if parent_name != '/':
@@ -433,7 +432,7 @@ class hdf5Database(object):
       comparisonName = self.allGroupPaths[index]
       splittedPath=comparisonName.split('/')
       for splgroup in splittedPath:
-        if gname == splgroup: utils.raiseAnError(IOError,self,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
+        if gname == splgroup and splittedPath[0] == self.parent_group_name: utils.raiseAnError(IOError,self,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     if source['type'] == 'csv':
       # Source in CSV format
       f = open(source['name'],'rb')
