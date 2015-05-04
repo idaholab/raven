@@ -1658,10 +1658,10 @@ class DynamicEventTree(Grid):
         self.precNumberSamplers = 1
         # the user can decided how to preconditionate
         self.preconditionerToApply[child.attrib['type']] = self.preconditionerAvail[child.attrib['type']]()
+        # give the preconditioner sampler the message handler
+        self.preconditionerToApply[child.attrib['type']].setMessageHandler(self.messageHandler)
         # make the preconditioner sampler read  its own xml block
         self.preconditionerToApply[child.attrib['type']]._readMoreXML(child)
-        # give the preconditioner sampler the message handler
-        self.setMessageHandler(self.messageHandler)
     branchedLevel = {}
     error_found = False
     for keyk in self.axisName:

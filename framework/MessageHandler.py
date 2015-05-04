@@ -30,16 +30,25 @@ class MessageUser(object):
   '''
     Inheriting from this class grants access to methods used by the message handler.
   '''
+
+  def checkHandler(self):
+    if not isinstance(self.messageHandler,MessageHandler):
+      raise IOError('The message handler for '+str(self)+' is not a MessageHanlder!  It is: '+str(self.messageHandler))
+
   def raiseAnError(self,etype,message,tag='ERROR',verbosity='silent'):
+    self.checkHandler()
     self.messageHandler.error(self,etype,str(message),str(tag),verbosity)
 
   def raiseAWarning(self,message,tag='Warning',verbosity='quiet'):
+    self.checkHandler()
     self.messageHandler.message(self,str(message),str(tag),verbosity)
 
   def raiseAMessage(self,message,tag='Message',verbosity='all'):
+    self.checkHandler()
     self.messageHandler.message(self,str(message),str(tag),verbosity)
 
   def raiseADebug(self,message,tag='DEBUG',verbosity='debug'):
+    self.checkHandler()
     self.messageHandler.message(self,str(message),str(tag),verbosity)
 
   def getLocalVerbosity(self):
