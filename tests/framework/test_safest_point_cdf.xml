@@ -9,7 +9,7 @@
 
 
 <Steps>  
-  <MultiRun name = 'pth1' pauseAtEnd = 'False' debug = 'True'>
+  <MultiRun name = 'pth1' pauseAtEnd = 'False'>
     <Sampler  class = 'Samplers'  type = 'Grid'           >grd_vl_ql_smp_dpt</Sampler>
     <Input    class = 'DataObjects'     type = 'TimePointSet'   >grd_vl_ql_smp_dpt_dt</Input>
     <Model    class = 'Models'    type = 'ExternalModel'  >xtr_mdl</Model>
