@@ -27,7 +27,10 @@
   </Distributions>
 
   <Samplers>
-    <Grid name='myGrid' initial_seed='1'>
+    <Grid name='myGrid'>
+      <sampler_init>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
       <variable name='Components|pipe|Tw'>
         <distribution >Gauss1</distribution>
         <grid type='value' construction='equal' lowerBound='300' steps='1'>3</grid>
@@ -44,23 +47,23 @@
       <Input      class='Files'      type=''          >simple_flow_3eqn_control.py</Input>
       <Model      class='Models'     type='Code'      >MyRAVEN</Model>
       <Sampler    class='Samplers'   type='Grid'>myGrid</Sampler>
-      <!-- <DataBases  class='DataBases'  type=''          >testMPIDataBase</DataBases> -->
-      <Output     class='DataBases'  type='HDF5'      >testGridRavenDataBase</Output>
-      <Output     class='Datas'      type='Histories' >stories</Output>
-      <Output  class='Datas'     type='TimePointSet'>outGrid</Output>
+      <!-- <Databases  class='Databases'  type=''          >testMPIDatabase</Databases> -->
+      <Output     class='Databases'  type='HDF5'      >testGridRavenDatabase</Output>
+      <Output     class='DataObjects'      type='Histories' >stories</Output>
+      <Output  class='DataObjects'     type='TimePointSet'>outGrid</Output>
       <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
     </MultiRun >
   </Steps>
-  <DataBases>
-    <HDF5 name="testGridRavenDataBase"/> 
-  </DataBases>
+  <Databases>
+    <HDF5 name="testGridRavenDatabase"/> 
+  </Databases>
   <OutStreamManager>
     <Print name='outGrid_dump'>
         <type>csv</type>
         <source>outGrid</source>
     </Print>
   </OutStreamManager>
-  <Datas>
+  <DataObjects>
     <TimePointSet name='outGrid'>
       <Input>pipe_Area,pipe_Dh,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
@@ -70,7 +73,7 @@
       <Input>pipe_Area,pipe_Dh</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </Histories>
-  </Datas>
+  </DataObjects>
 </Simulation>
 
 

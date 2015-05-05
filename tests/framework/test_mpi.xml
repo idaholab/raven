@@ -54,7 +54,11 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo     name='RAVENmc6'  limit='6'/>
+    <MonteCarlo     name='RAVENmc6'>
+      <sampler_init>
+        <limit>6</limit>
+      </sampler_init>
+    </MonteCarlo>
 </Samplers>
 <Steps>
     <MultiRun name='FirstMRun'>
@@ -62,19 +66,19 @@
         <Input      class='Files'      type=''          >simple_flow_3eqn_control.py</Input>
         <Model      class='Models'     type='Code'      >MyRAVEN</Model>
         <Sampler    class='Samplers'   type='MonteCarlo'>RAVENmc6</Sampler>
-        <Output     class='DataBases'  type='HDF5'      >testMPIDataBase</Output>
-        <Output     class='Datas'      type='Histories' >stories</Output>
+        <Output     class='Databases'  type='HDF5'      >testMPIDatabase</Output>
+        <Output     class='DataObjects'      type='Histories' >stories</Output>
     </MultiRun >
 </Steps>
-<DataBases>
-    <HDF5 name="testMPIDataBase" type="MC"/> 
-</DataBases>
-<Datas>
+<Databases>
+    <HDF5 name="testMPIDatabase" type="MC"/> 
+</Databases>
+<DataObjects>
     <Histories name='stories'>
         <Input>pipe_Area,pipe_Dh</Input>
         <Output>pipe_Hw,pipe_Tw</Output>
    </Histories>
-</Datas>
+</DataObjects>
 </Simulation>
 
 

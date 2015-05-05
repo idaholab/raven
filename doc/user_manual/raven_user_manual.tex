@@ -158,7 +158,7 @@ showstringspaces=false            %
                                                 % node or attribute,
                                                 % xmlDesc = XML description
 \newcommand{\default}[1]{~\\*\textit{Default: #1}}
-\newcommand{\nb} {\textcolor{deepgreen}{\textbf{~\\*Note:}}~}
+\newcommand{\nb} {\textcolor{deepgreen}{\textbf{~Note:}}~}
 
 
 %%%%%%%% End comands definition to input python code into document
@@ -278,10 +278,11 @@ showstringspaces=false            %
 % Set some things we need for SAND reports. These are mandatory
 %
 \SANDnum{INL/EXT-15-34123}
-\SANDprintDate{January 2015}
+\SANDprintDate{March 2015}
 \SANDauthor{Cristian Rabiti, Andrea Alfonsi, Joshua Cogliati, Diego Mandelli, 
 Robert Kinoshita, Sonat Sen}
-\SANDreleaseType{Draft Release}
+\SANDreleaseType{Revision 1 Draft}
+
 
 % ---------------------------------------------------------------------------- %
 % Include the markings required for your SAND report. The default is "Unlimited
@@ -299,6 +300,7 @@ Robert Kinoshita, Sonat Sen}
 %
 % Start the document
 %
+
 \begin{document}
     \maketitle
 
@@ -390,13 +392,13 @@ Robert Kinoshita, Sonat Sen}
 \input{HowToRun.tex}
 \input{ravenStructure.tex}
 \input{runInfo.tex}
-\input{step.tex}
 \input{ProbabilityDistributions.tex}
 \input{sampler.tex}
 \input{database_data.tex}
-\input{functions.tex}
-\input{model.tex}
 \input{OutStreamSystem.tex}
+\input{model.tex}
+\input{functions.tex}
+\input{step.tex}
 \input{existing_interfaces.tex}
 \input{couplingAcode.tex}
 \input{examplesPrimer.tex}

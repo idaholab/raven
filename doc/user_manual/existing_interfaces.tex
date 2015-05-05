@@ -1,5 +1,78 @@
-\section{Existing Interfaces \\ \vspace{2 mm} {\small }}
+\section{Existing Interfaces}
 \label{sec:existingInterface}
+
+\subsection{Generic Interface}
+The GenericCode interface is meant to handle a wide variety of generic codes 
+that take take straightforward input files and produce output CSV files.  There are
+some limitations for this interface.  
+If a code: \vspace{-20pt}
+\begin{itemize}
+\item accepts a keyword-based input file with no cross-dependent inputs,
+\item has no more than one filetype extension per command line flag,
+\item and returns a CSV with the input parameters and output parameters,
+\end{itemize}\vspace{-20pt}
+the GenericCode interface should cover the code for RAVEN.
+
+If a code contains cross-dependent data, the generic interface is not able to
+edit the correct values.  For example, if a geometry-building script specifies
+inner\_radius, outer\_radius, and thickness, the generic interface cannot 
+calculate the thickness given the outer and inner radius, or vice versa.
+
+ An example of the code interface is shown here.  The input parameters are read 
+ from the input files \texttt{gen.one} and \texttt{gen.two} respectively.
+ The code is run using \texttt{python}, so that is part of the \xmlNode{prepend} node.
+ The command line entry to normally run the code is
+\begin{lstlisting}[language=bash]
+python poly_inp.py -i gen.one -a gen.two -o myOut
+\end{lstlisting}
+and produces the output \texttt{myOut.csv}.
+
+Example:
+\begin{lstlisting}[style=XML]
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterface/poly_inp.py</executable>
+      <inputExtentions>.one,.two</inputExtentions>
+      <clargs type='prepend' arg='python'/>
+      <clargs type='input'   arg='-i' extension='.one'/>
+      <clargs type='input'   arg='-a' extension='.two'/>
+      <clargs type='output'  arg='-o'/>
+      <prepend>python</prepend>
+    </Code>
+\end{lstlisting}
+
+If a code doesn't accept necessary Raven-editable auxiliary input files 
+or output filenames through the command line, the GenericCode interface
+can also edit the input files and insert the filenames there.  For example,
+in the previous example, say instead of \texttt{-a gen.two} and \texttt{-o myOut}
+in the command line, \texttt{gen.one} has the following lines:
+\begin{lstlisting}[language=python]
+...
+auxfile = gen.two
+case = myOut
+...
+\end{lstlisting}
+Then, our example XML for the code would be
+
+Example:
+\begin{lstlisting}[style=XML]
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterface/poly_inp.py</executable>
+      <inputExtentions>.one,.two</inputExtentions>
+      <clargs   type='prepend' arg='python'/>
+      <clargs   type='input'   arg='-i'  extension='.one'/>
+      <fileargs type='input'   arg='two' extension='.two'/>
+      <fileargs type='output'  arg='out'/>
+      <prepend>python</prepend>
+    </Code>
+\end{lstlisting}
+and the corresponding template input file lines would be changed to read
+\begin{lstlisting}[language=python]
+...
+auxfile = $RAVEN-two$
+case = $RAVEN-out$
+...
+\end{lstlisting}
+
 \subsection{RELAP5 Interface}
 
 \subsubsection{Files}
@@ -50,7 +123,7 @@ look like the example below:
   <Files>inputfilerelap.i,tpfh2o,executablerelap5.x</Files>
   <Sequence>Grid_Sampler,MC_Sampler</Sequence>
   <batchSize>1</batchSize>
-  <mode>pbsdsh</mode>
+  <mode>mpi</mode>
   <expectedTime>1:00:00</expectedTime>
   <ParallelProcNumb>1</ParallelProcNumb>
 </RunInfo>
@@ -73,7 +146,7 @@ to be used for the sampling of the variables defined in the \xmlNode{Samplers}
 block.
 %
 For all the possibile distributions and all their possible inputs please see the
-chapter about Distributions (Chapter~\ref{sec:distributions}).
+chapter about Distributions (see~\ref{sec:distributions}).
 %
 Here we give a general example of three different distributions:
 \begin{lstlisting}[style=XML,morekeywords={name,debug}]
@@ -210,7 +283,7 @@ created is an HDF5 file).
 %
 Here is a classical example:
 \begin{lstlisting}[style=XML,morekeywords={class,type}]
-    <Output  class='DataBases' type='HDF5'>MC_out</Output>
+    <Output  class='Databases' type='HDF5'>MC_out</Output>
 \end{lstlisting}
 Following is the example of two MultiRun steps which use different sampling
 methods (grid and Monte Carlo), and creating two different databases for each
@@ -223,7 +296,7 @@ one:
     <Input   class='Files'     type=''    >tpfh2o</Input>
     <Model   class='Models'    type='Code'>MyRELAP</Model>
     <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
-    <Output  class='DataBases' type='HDF5'>Grid_out</Output>
+    <Output  class='Databases' type='HDF5'>Grid_out</Output>
   </MultiRun>
   <MultiRun name='MC_Sampler' debug='True' re-seeding='210491'>
     <Input   class='Files'     type=''          >X10.i</Input>
@@ -231,7 +304,7 @@ one:
     <Input   class='Files'     type=''          >tpfh2o</Input>
     <Model   class='Models'    type='Code'      >MyRELAP</Model>
     <Sampler class='Samplers'  type='MonteCarlo'>MC_Sampler</Sampler>
-    <Output  class='DataBases' type='HDF5'      >MC_out</Output>
+    <Output  class='Databases' type='HDF5'      >MC_out</Output>
   </MultiRun>
 </Steps>
 \end{lstlisting}
@@ -242,10 +315,10 @@ called \texttt{Grid\_out} and \texttt{MC\_out}.
 %
 So the user needs to input the following:
 \begin{lstlisting}[style=XML]
-<DataBases>
+<Databases>
   <HDF5 name="Grid_out"/>
   <HDF5 name="MC_out"/>
-</DataBases>
+</Databases>
 \end{lstlisting}
 As listed before, this will create two databases.
 %
@@ -333,4 +406,3 @@ as the primary pressure.
  </MonteCarlo>
 </Samplers>
 \end{lstlisting}
-

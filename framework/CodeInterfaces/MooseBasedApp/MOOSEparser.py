@@ -13,12 +13,15 @@ import xml.etree.ElementTree as ET
 import os
 import copy
 from utils import toBytes, toStrish, compare
+import MessageHandler
 
-class MOOSEparser:
+class MOOSEparser(MessageHandler.MessageUser):
   '''import the MOOSE input as xml tree, provide methods to add/change entries and print it back'''
 
-  def __init__(self,inputFile):
-    if not os.path.exists(inputFile): raise IOError('not found MOOSE input file')
+  def __init__(self,messageHandler,inputFile):
+    self.printTag = 'MOOSE_PARSER'
+    self.messageHandler = messageHandler
+    if not os.path.exists(inputFile): self.raiseAnError(IOError,'not found MOOSE input file')
     IOfile = open(inputFile,'rb')
     self.inputfile = inputFile
     lines = IOfile.readlines()

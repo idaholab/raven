@@ -14,13 +14,18 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 #External Modules--------------------end
+
+#warning: this needs to be before importing h5py
+os.environ["MV2_ENABLE_AFFINITY"]="0"
+
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.append(os.path.join(frameworkDir,'utils'))
-from utils import returnPrintTag, returnPrintPostTag, find_crow, add_path
-find_crow(frameworkDir)
-add_path(os.path.join(frameworkDir,'contrib'))
+import utils
+utils.find_crow(frameworkDir)
+utils.add_path_recursively(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
+from FileObject import FileObject
 #Internal Modules
 
 #------------------------------------------------------------- Driver
@@ -42,34 +47,38 @@ def printStatement():
   this sentence, must appear on any copies of this computer software.
   """)
 
-os.environ["MV2_ENABLE_AFFINITY"]="0"
-
 if __name__ == '__main__':
   '''This is the main driver for the RAVEN framework'''
   # Retrieve the framework directory path and working dir
   printStatement()
-  debug          = False
+  verbosity      = 'all'
   interfaceCheck = False
   workingDir = os.getcwd()
   for item in sys.argv:
-    if item.lower() == 'debug'         :
-      debug = True
+    if   item.lower() == 'silent':
+      verbosity = 'silent'
       sys.argv.pop(sys.argv.index(item))
-    if item.lower() == 'interfacecheck':
+    elif item.lower() == 'quiet':
+      verbosity = 'quiet'
+      sys.argv.pop(sys.argv.index(item))
+    elif item.lower() == 'all':
+      verbosity = 'all'
+      sys.argv.pop(sys.argv.index(item))
+    elif item.lower() == 'interfacecheck':
       interfaceCheck = True
       sys.argv.pop(sys.argv.index(item))
   if interfaceCheck: os.environ['RAVENinterfaceCheck'] = 'True'
   else             : os.environ['RAVENinterfaceCheck'] = 'False'
-  simulation = Simulation(frameworkDir,debug=debug)
+  simulation = Simulation(frameworkDir,verbosity=verbosity)
   #If a configuration file exists, read it in
-  configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
+  configFile = FileObject(os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml"))
   if os.path.exists(configFile):
     tree = ET.parse(configFile)
     root = tree.getroot()
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
-      simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]))
+      simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]),xmlFilename=configFile)
     else:
-      print(returnPrintTag('DRIVER') +': ' +returnPrintPostTag('Warning') + '-> ',configFile,' should only have Simulation and inside it RunInfo')
+      raise IOError('DRIVER',str(configFile)+' should only have Simulation and inside it RunInfo')
 
   # Find the XML input file
   if len(sys.argv) == 1:
@@ -81,21 +90,22 @@ if __name__ == '__main__':
     inputFiles = sys.argv[1:]
   for i in range(len(inputFiles)):
     if not os.path.isabs(inputFiles[i]):
-      inputFiles[i] = os.path.join(workingDir,inputFiles[i])
+      inputFiles[i] = FileObject(os.path.join(workingDir,inputFiles[i]))
 
   simulation.setInputFiles(inputFiles)
   #Parse the input
   #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out
   for inputFile in inputFiles:
     tree = ET.parse(inputFile)
-    #except?  raise IOError('not possible to parse (xml based) the input file '+inputFile)
-    if debug: print('opened file '+inputFile)
+    #except?  riseanIOError('not possible to parse (xml based) the input file '+inputFile)
+    if verbosity=='debug': print('DRIVER','opened file '+inputFile)
     root = tree.getroot()
-    if root.tag != 'Simulation': raise IOError (returnPrintTag('DRIVER') +': ' +returnPrintPostTag('ERROR') + '-> The outermost block of the input file '+inputFile+' it is not Simulation')
+    if root.tag != 'Simulation':
+      raise IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
     #generate all the components of the simulation
 
     #Call the function to read and construct each single module of the simulation
-    simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]))
+    simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
   # Initialize the simulation
   simulation.initialize()
   # Run the simulation

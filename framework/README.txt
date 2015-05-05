@@ -169,5 +169,3 @@ overridden by values in the input file. Example:
   <DefaultInputFile>test.xml</DefaultInputFile>
 </RunInfo>
 </Simulation>
-
-

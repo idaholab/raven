@@ -1,0 +1,9 @@
+#############################################
+#                                           #
+#  Dummy Input File for Poly Python Module  #
+#                                           #
+#############################################
+
+case = $RAVEN-output$
+auxfile = $RAVEN-aux$
+x = $RAVEN-x$

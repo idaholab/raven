@@ -33,6 +33,7 @@
     </PostProcessor>
     <PostProcessor name="NotCorrellatedTest" subType='BasicStatistics' debug='true'>
         <what>all</what>
+        <biased>true</biased>
         <parameters>y01,y02</parameters>
     </PostProcessor>
     <PostProcessor name="InverseCorrelatedTest" subType='BasicStatistics'  debug='true'>
@@ -62,7 +63,10 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo name='MC_external'  limit='4' >
+    <MonteCarlo name='MC_external'>
+      <sampler_init>
+        <limit>4</limit>
+      </sampler_init>
       <variable name='x0' >
         <distribution>x0_distrib</distribution>
       </variable>
@@ -80,22 +84,22 @@
         <Input   class='Files'     type=''               >basicStatisticsExternalModelTest.py</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='Datas'     type='TimePointSet'   >TimePointSetPostProcTest</Output>
+        <Output  class='DataObjects'     type='TimePointSet'   >TimePointSetPostProcTest</Output>
         <Output  class='OutStreamManager' type='Print'   >TimePointSetPostProcTest_dump</Output>
     </MultiRun >
     <PostProcess name='PP1'>
-        <Input    class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Input    class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
         <Model    class='Models'           type='PostProcessor'   >autoCorrelationTest</Model>
         <Function class='Functions'        type='External'        >testFunctionComputeProbability</Function>
         <Output   class='Files'            type=''                >output_basicStatistics_PP1.csv</Output>
     </PostProcess>
     <PostProcess name='PP2'>
-        <Input   class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Input   class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
         <Model   class='Models'           type='PostProcessor'   >NotCorrellatedTest</Model>
         <Output   class='Files'           type=''                >output_basicStatistics_PP2.csv</Output>
     </PostProcess>
     <PostProcess name='PP3'>
-        <Input   class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Input   class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
         <Model   class='Models'           type='PostProcessor'   >InverseCorrelatedTest</Model>
         <Output   class='Files'           type=''                >output_basicStatistics_PP3.csv</Output>
     </PostProcess>
@@ -109,12 +113,12 @@
 </OutStreamManager>
     
     
-<Datas>
+<DataObjects>
     <TimePointSet name='TimePointSetPostProcTest'>
         <Input>x0,y0,z0</Input>
         <Output>time,x02,y02,z02,x01,y01,z01,x,y,z</Output>
     </TimePointSet>
-</Datas>
+</DataObjects>
 
 
 </Simulation>

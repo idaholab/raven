@@ -1,0 +1,194 @@
+<Simulation debug="True">
+	
+
+<RunInfo>
+  <WorkingDir>/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/results</WorkingDir>
+  <Sequence>extract_data_adapt,rom_train_classifier,rom_sample_pb,montecarlo_sample_ext_model,plot_results,PostProcessorComputeROMPb,PostProcessorComputePbExtModel</Sequence>
+  <batchSize>50</batchSize>
+  <Files>output_failure_pb_ExtModel.csv,output_failure_pb_ROM_from_Adapt.csv</Files>
+</RunInfo>
+
+<Databases>
+    <HDF5 name="out_db_montecarlo" directory="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/DatabaseStorage"/>
+    <HDF5 name="out_db_adaptive" filename="out_db_adaptive.h5" directory="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/DatabaseStorage"/>
+</Databases>
+
+<Models>
+    <ROM name='ProbabilityROM' subType='SciKitLearn'>
+        <Features>x1,x2,x3</Features>
+        <Target>failure</Target>
+        <SKLtype>svm|SVC</SKLtype>
+        <kernel>rbf</kernel>
+        <gamma>10</gamma>
+        <tol>1e-5</tol>
+        <C>50</C>
+    </ROM>
+    <ExternalModel name="PythonModule" subType="" ModuleToLoad="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/workshop_model">
+        <variable>x1</variable>
+        <variable>x2</variable>
+        <variable>x3</variable>
+        <variable>y1</variable>
+        <variable>y2</variable>
+        <variable>y3</variable>
+        <variable>y4</variable>
+        <variable>y5</variable>
+        <variable>failure</variable>
+    </ExternalModel>
+    <PostProcessor name="computePb" subType='BasicStatistics'>
+        <what>expectedValue</what>
+        <parameters>failure</parameters>
+    </PostProcessor>
+</Models>
+
+<Samplers>
+    <Grid name='Grid_sampling'>
+        <variable name='x1' >
+            <distribution>normal_trunc</distribution>
+            <grid type='value' lowerBound='0.0' construction='equal' steps='25'>0.04</grid>
+        </variable>
+        <variable name='x2' >
+            <distribution>normal</distribution>
+            <grid type='value' lowerBound='1.5' construction='equal' steps='25'>0.04</grid>
+        </variable>
+        <variable name='x3' >
+            <distribution>uniform</distribution>
+            <grid type='value' lowerBound='1.0' construction='equal' steps='25'>0.12</grid>
+        </variable>
+    </Grid>
+    <MonteCarlo name='Montecarlo_sampling'>
+        <sampler_init>
+            <limit>17576</limit>
+        </sampler_init>
+        <variable name='x1' >
+            <distribution>normal_trunc</distribution>
+        </variable>
+        <variable name='x2' >
+            <distribution>normal</distribution>
+        </variable>
+        <variable name='x3' >
+            <distribution>uniform</distribution>
+        </variable>
+    </MonteCarlo>
+</Samplers>
+
+<Steps>
+    <IOStep name='extract_data_adapt'>
+        <Input   class='Databases'   type='HDF5'               >out_db_adaptive</Input>
+        <Output  class='DataObjects' type='TimePointSet'       >outAdapt_failure</Output>
+    </IOStep>
+    <RomTrainer name='rom_train_classifier'>
+        <Input   class='DataObjects' type='TimePointSet'       >outAdapt_failure</Input>
+        <Output  class='Models'      type='ROM'                >ProbabilityROM</Output>
+    </RomTrainer>
+    <MultiRun name='rom_sample_pb' sleepTime="0.005" re-seeding="200286">
+        <Input   class='DataObjects'      type='TimePoint'     >inputPlaceHolder</Input>
+        <Model   class='Models'           type='ExternalModel' >PythonModule</Model>
+        <Sampler class='Samplers'         type='MonteCarlo'    >Montecarlo_sampling</Sampler>
+        <Output  class='DataObjects'      type='TimePointSet'  >outGrid_failure</Output>
+    </MultiRun>
+    <MultiRun name='montecarlo_sample_ext_model' sleepTime="0.005" re-seeding="200286">
+        <Input   class='DataObjects'      type='TimePoint'     >inputPlaceHolder</Input>
+        <Model   class='Models'           type='ExternalModel' >PythonModule</Model>
+        <Sampler class='Samplers'         type='MonteCarlo'    >Montecarlo_sampling</Sampler>
+        <Output  class='DataObjects'      type='TimePointSet'  >outMC_failure</Output>
+    </MultiRun>
+    <PostProcess name='PostProcessorComputeROMPb'>
+        <Input   class='DataObjects'      type='TimePointSet'  >outGrid_failure</Input>
+        <Model   class='Models'           type='PostProcessor' >computePb</Model>
+        <Output  class='Files'            type=''              >output_failure_pb_ROM_from_Adapt.csv</Output>
+    </PostProcess>
+    <PostProcess name='PostProcessorComputePbExtModel'>
+        <Input   class='DataObjects'      type='TimePointSet'  >outMC_failure</Input>
+        <Model   class='Models'           type='PostProcessor' >computePb</Model>
+        <Output  class='Files'            type=''              >output_failure_pb_ExtModel.csv</Output>
+    </PostProcess>
+    <IOStep name='plot_results' pauseAtEnd="True">
+        <Input   class='DataObjects'      type='TimePointSet' >outGrid_failure</Input>
+        <Input   class='DataObjects'      type='TimePointSet' >outMC_failure</Input>
+        <Output  class='OutStreamManager' type='Plot'         >plotGridFailureROMFromAdapt</Output>
+        <Output  class='OutStreamManager' type='Plot'         >plotGridFailureMCExternalModel</Output>
+    </IOStep>
+</Steps>
+
+<DataObjects>
+    <TimePointSet name='outAdapt_failure'>
+        <Input>x1,x2,x3</Input>
+        <Output>failure</Output>
+    </TimePointSet>
+    <TimePointSet name='outGrid_failure'>
+        <Input>x1,x2,x3</Input>
+        <Output>failure</Output>
+    </TimePointSet>
+    <TimePointSet name='outMC_failure'>
+        <Input>x1,x2,x3</Input>
+        <Output>failure</Output>
+    </TimePointSet>
+    <TimePoint name='inputPlaceHolder'>
+        <Input>x1,x2,x3</Input>
+        <Output>OutputPlaceHolder</Output>
+    </TimePoint>
+</DataObjects>
+
+<OutStreamManager>
+    <Plot name='plotGridFailureROMFromAdapt' dim='3' overwrite='False'>
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>outGrid_failure|Input|x1</x>
+                <y>outGrid_failure|Input|x2</y>
+                <z>outGrid_failure|Input|x3</z>
+                <colorMap>outGrid_failure|Output|failure</colorMap>
+            </plot>
+            <xlabel>x1</xlabel>
+            <ylabel>x2</ylabel>
+            <zlabel>x3</zlabel>
+        </plotSettings>
+        <actions>
+            <how>screen</how>
+            <title>
+                <text>Failure ROM from Adaptive</text>
+            </title>
+        </actions>
+    </Plot>
+    <Plot name='plotGridFailureMCExternalModel' dim='3' overwrite='False'>
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>outMC_failure|Input|x1</x>
+                <y>outMC_failure|Input|x2</y>
+                <z>outMC_failure|Input|x3</z>
+                <colorMap>outMC_failure|Output|failure</colorMap>
+            </plot>
+            <xlabel>x1</xlabel>
+            <ylabel>x2</ylabel>
+            <zlabel>x3</zlabel>
+        </plotSettings>
+        <actions>
+            <how>screen</how>
+            <title>
+                <text>Failure MC External Model</text>
+            </title>
+        </actions>
+    </Plot>
+</OutStreamManager>
+
+<Distributions>
+    <Normal name="normal_trunc">
+        <mean>0.5</mean>
+        <sigma>0.1</sigma>
+        <lowerBound>0.0</lowerBound>
+        <upperBound>1.0</upperBound>
+    </Normal>
+    <Normal name="normal">
+        <mean>2.0</mean>
+        <sigma>0.2</sigma>
+        <lowerBound>0.0</lowerBound>
+        <upperBound>4.0</upperBound>
+    </Normal>
+    <Uniform name="uniform">
+        <upperBound>4.0</upperBound>
+        <lowerBound>1.0</lowerBound>
+    </Uniform>
+</Distributions>
+
+</Simulation>

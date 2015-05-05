@@ -37,15 +37,15 @@ __base                          = 'Code'
 __interFaceDict                 = {}
 for moduleIndex in range(len(__moduleInterfaceList)):
   if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
-    __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex]))
+    __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex],False))
     for key,modClass in inspect.getmembers(__moduleImportedList[moduleIndex], inspect.isclass):
       if 'createNewInput' in modClass.__dict__.keys():__interFaceDict[key.replace("Interface","")] = modClass
 __knownTypes      = list(__interFaceDict.keys())
 
 def knownTypes(): return __knownTypes
 
-def returnCodeInterface(Type):
+def returnCodeInterface(Type,caller,msgHandler):
   '''this allow to the code(model) class to interact with a specific
      code for which the interface is present in the CodeInterfaces module'''
-  if Type not in knownTypes(): raise NameError('not known '+__base+' type '+Type)
-  return __interFaceDict[Type]()
+  if Type not in knownTypes(): caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+  return __interFaceDict[Type](msgHandler)

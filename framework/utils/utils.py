@@ -1,14 +1,108 @@
+from __future__ import print_function
+# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
+
 import numpy as np
 import bisect
 import sys, os
-from scipy.interpolate import Rbf,griddata
+from scipy.interpolate import Rbf, griddata
 import copy
+import inspect
+
+class Object(object):pass
+
+def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
+  """
+  Method to check if a path (file or directory) is currently
+  used by another program. It is based on accessing time...
+  Probably there is a better way.
+  @ In, pathname, string containing the all path
+  @ In, timelapse, float, tollerance on time modification
+  @ Out, boolean, True if it is used by another program, False otherwise
+  """
+  import stat
+  import time
+  mode = os.stat(pathname).st_mode
+  if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)): raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  path '+pathname+ ' is neither a file nor a dir!')
+  return abs(os.stat(pathname).st_mtime - time.time()) < timelapse
+
+def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
+  """
+  Method to check if a path (directory) contains an hidden raven file
+  @ In, pathname, string containing the path
+  @ In, filename, string containing the file name
+  @ Out, boolean, True if it is present, False otherwise
+  """
+  import fcntl
+  finm = os.path.join(pathname,filename)
+  fp = open(finm, 'w')
+  try           : fcntl.lockf(fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
+  except IOError: return True
+  return False
+
+def returnImportModuleString(obj,moduleOnly=False):
+  mods = []
+  globs = dict(inspect.getmembers(obj))
+  for key, value in globs.items():
+    if moduleOnly:
+      if not inspect.ismodule(value): continue
+    else:
+      if not (inspect.ismodule(value) or inspect.ismethod(value)): continue
+    if key != value.__name__:
+      if value.__name__.split(".")[-1] != key: mods.append(str('import ' + value.__name__ + ' as '+ key))
+      else                                   : mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
+    else: mods.append(str(key))
+  return mods
 
 def getPrintTagLenght(): return 25
 
-def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
+def UreturnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
 
-def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
+def UreturnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
+
+#def raiseAnError(etype,obj,msg):
+#  '''
+#    Standardized error raising. Currently halts code.
+#    @ In, etype, the error type to raise
+#    @ In, obj, either a string or a class instance to determine the label for the error
+#    @ In, msg, the error message to display
+#    @ Out, None
+#  '''
+#  if type(obj) in [str,unicode]:
+#    tag = obj
+#  else:
+#    try: obj.printTag
+#    except AttributeError: tag = str(obj)
+#    else: tag = str(obj.printTag)
+#  raise etype(UreturnPrintTag(tag)+': '+UreturnPrintPostTag('ERROR')+' -> '+str(msg))
+#
+#def raiseAWarning(obj,msg,wtag='WARNING'):
+#  '''
+#    Standardized warning printing.
+#    @ In, obj, either a string or a class instance to determine the label for the warning
+#    @ In, msg, the warning message to display
+#    @ In, wtag, optional, the type of warning to display (default "WARNING")
+#    @ Out, None
+#  '''
+#  if type(obj) in [str,unicode]:
+#    tag = obj
+#  else:
+#    try: obj.printTag
+#    except AttributeError: tag = str(obj)
+#    else: tag = str(obj.printTag)
+#  print(UreturnPrintTag(tag)+': '+UreturnPrintPostTag(str(wtag))+' -> '+str(msg))
+#
+#def raiseAMessage(obj,msg,wtag='Message'):
+#  '''
+#    Standardized message printing.
+#    @ In, obj, either a string or a class instance to determine the label for the message
+#    @ In, msg, the message to display
+#    @ In, wtag, optional, the type of warning to display (default "Message")
+#    @ Out, None
+#  '''
+#  raiseAWarning(obj,msg,wtag)
 
 def convertMultipleToBytes(sizeString):
   '''
@@ -20,15 +114,44 @@ def convertMultipleToBytes(sizeString):
   elif 'gb' in sizeString: return int(sizeString.replace("gb",""))*10**9
   else:
     try   : return int(sizeString)
-    except: raise IOError(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
+    except: raise IOError(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
 
 def stringsThatMeanTrue():
-  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin)'''
-  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','etiam'])
+  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
+  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','etiam', 'evet', 'dogru', '1'])
 
 def stringsThatMeanFalse():
-  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin)'''
-  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus'])
+  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
+  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0'])
+
+def stringsThatMeanSilent():
+  '''return list of strings that indicate a verbosity of the lowest level (just errors). You linguists add what you wish.'''
+  return list(['0','silent','false','f','n','no','none'])
+
+def stringsThatMeanPartiallyVerbose():
+  '''return list of strings that indicate a verbosity of the medium level (errors and warnings). You linguists add what you wish.'''
+  return list(['1','quiet','some'])
+
+def stringsThatMeanVerbose():
+  '''return list of strings that indicate full verbosity (errors warnings, messages). You linguists add what you wish.'''
+  return list(['2','loud','true','t','y','yes','all'])
+
+def interpretBoolean(inarg):
+  """
+   Utility method to convert an inarg into a boolean.
+   The inarg can be either a string or integer
+   @ In, object, object to convert (
+  """
+  if type(inarg).__name__ == "bool": return inarg
+  elif type(inarg).__name__ == "integer":
+    if inarg == 0: return False
+    else         : return True
+  elif type(inarg).__name__ in ['str','bytes','unicode']:
+      if inarg.lower().strip() in stringsThatMeanTrue()   : return True
+      elif inarg.lower().strip() in stringsThatMeanFalse(): return False
+      else                                                : raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
+  else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inarg).__name__)
+
 
 def compare(s1,s2):
   sig_fig=6
@@ -93,7 +216,7 @@ def convertDictToListOfLists(inputDict):
       if type(value) == dict: returnList[1].append(convertDictToListOfLists(value))
       else: returnList[1].append(value)
   else:
-    print(returnPrintTag('UTILS') + ': '+returnPrintPostTag('WARNING')+ ' -> in method "convertDictToListOfLists", inputDict is not a dictionary!')
+    print(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('WARNING')+ ' -> in method "convertDictToListOfLists", inputDict is not a dictionary!')
     returnList = None
   return returnList
 
@@ -132,14 +255,15 @@ def first(c):
   return next(iter(c))
 
 def importFromPath(filename, printImporting = True):
-    if printImporting: print(returnPrintTag('UTILS') + ': '+returnPrintPostTag('Message')+ '-> importing module '+ filename)
+    if printImporting: print(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '-> importing module '+ filename)
     import imp, os.path
     try:
       (path, name) = os.path.split(filename)
       (name, ext) = os.path.splitext(name)
       (file, filename, data) = imp.find_module(name, [path])
       importedModule = imp.load_module(name, file, filename, data)
-    except: importedModule = None
+    except Exception as ae:
+      raise Exception(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + 'failed with error '+str(ae))
     return importedModule
 
 def index(a, x):
@@ -178,6 +302,24 @@ def find_ge(a, x):
     if i != len(a): return a[i],i
     return None,None
 
+# def metaclass_insert__getstate__(self):
+#   """
+#   Overwrite state (for pickle-ing)
+#   we do not pickle the HDF5 (C++) instance
+#   but only the info to re-load it
+#   """
+#   # capture what is normally pickled
+#   state = self.__dict__.copy()
+#   # we pop the database instance and close it
+#   state.pop("database")
+#   self.database.closeDatabaseW()
+#   # what we return here will be stored in the pickle
+#   return state
+#
+# def metaclass_insert__setstate__(self, newstate):
+#   self.__dict__.update(newstate)
+#   self.exist    = True
+
 def metaclass_insert(metaclass,*base_classes):
   """This allows a metaclass to be inserted as a base class.
   Metaclasses substitute in as a type(name,bases,namespace) function,
@@ -188,7 +330,7 @@ def metaclass_insert(metaclass,*base_classes):
   This function is based on the method used in Benjamin Peterson's six.py
   """
   namespace={}
-  return metaclass("NewMiddleMeta",base_classes,namespace)
+  return metaclass("NewMiddleClass",base_classes,namespace)
 
 def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
   """
@@ -210,10 +352,10 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
         zi  = rbf(xig, yig)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
-        print(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
+        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
         zi = interpolateFunction(x,y,z,options)
-      else: raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
     if returnCoordinate: return xig,yig,zi
     else               : return zi
   else:
@@ -227,10 +369,10 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
         yi  = rbf(xi)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
-        print(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
+        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
         yi = interpolateFunction(x,y,options)
-      else: raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
     if returnCoordinate: return xi,yi
     else               : return yi
 
@@ -267,13 +409,16 @@ def find_crow(framework_dir):
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
         return
-    raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+pmoduleDirs)
+    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+pmoduleDirs)
 
 def add_path(absolutepath):
   """ Add absolutepath path is in the python path. """
   if not os.path.exists(absolutepath):
-    raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
+    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
   sys.path.append(absolutepath)
+
+def add_path_recursively(absoluteInitialPath):
+  for dirr,_,_ in os.walk(absoluteInitialPath): add_path(dirr)
 
 def find_distribution1D():
   """ find the crow distribution1D module and return it. """
@@ -281,14 +426,18 @@ def find_distribution1D():
     try:
       import crow_modules.distribution1Dpy3
       return crow_modules.distribution1Dpy3
-    except:
+    except ImportError as ie:
+      if not str(ie).startswith("No module named"):
+        raise ie
       import distribution1Dpy3
       return distribution1Dpy3
   else:
     try:
       import crow_modules.distribution1Dpy2
       return crow_modules.distribution1Dpy2
-    except:
+    except ImportError as ie:
+      if not str(ie).startswith("No module named"):
+        raise ie
       import distribution1Dpy2
       return distribution1Dpy2
 
@@ -298,13 +447,63 @@ def find_interpolationND():
     try:
       import crow_modules.interpolationNDpy3
       return crow_modules.interpolationNDpy3
-    except:
+    except ImportError as ie:
+      if not str(ie).startswith("No module named"):
+        raise ie
       import interpolationNDpy3
       return interpolationNDpy3
   else:
     try:
       import crow_modules.interpolationNDpy2
       return crow_modules.interpolationNDpy2
-    except:
+    except ImportError as ie:
+      if not str(ie).startswith("No module named"):
+        raise ie
       import interpolationNDpy2
       return interpolationNDpy2
+
+def printCsv(csv,*args):
+    '''
+      Writes the values contained in args to a csv file specified by csv
+      @ In, csv, an open file object to which we will be writing
+      @ In, args, an arbitrary collection of values to write to the file
+    '''
+    print(*args,file=csv,sep=',')
+
+def printCsvPart(csv,*args):
+    '''
+      Writes the values contained in args to a csv file specified by csv appending a comma
+      to the end to allow more data to be written to the line.
+      @ In, csv, an open file object to which we will be writing
+      @ In, args, an arbitrary collection of values to write to the file
+    '''
+    print(*args,file=csv,sep=',',end=',')
+
+def numpyNearestMatch(findIn,val):
+  '''
+    Given an array, find the entry that most nearly matches the given value.
+    @ In, findIn, the array to look in
+    @ In, val, the value for which to find a match
+    @ Out, tuple, index where match is and the match itself
+  '''
+  idx = (np.abs(findIn-val)).argmin()
+  return idx,findIn[idx]
+
+def NDInArray(findIn,val,tol=1e-12):
+  '''
+    checks a numpy array of numpy arrays for a near match, then returns info.
+    @ In, findIn, numpy array of numpy arrays (both arrays can be any length)
+    @ In, val, tuple/list/numpy array, entry to look for in findIn
+    @ In, tol, float, tolerance to check match within
+    @ Out, (bool,idx,val) -> (found/not found, index where found or None, findIn entry or None)
+  '''
+  loc = np.where(np.all(np.abs(findIn-val)<tol,axis=1)==1)
+  if len(loc[0])>0:
+    found = True
+    idx = loc[0][0]
+    val = findIn[idx]
+  else:
+    found = False
+    idx = val = None
+  return found,idx,val
+

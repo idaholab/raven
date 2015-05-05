@@ -5,7 +5,7 @@
     <WorkingDir>LHStestBison</WorkingDir>
     <Files>gap_perfect_transfer_test.i,gap_perfect_transfer_test.e</Files>
     <Sequence>myLHS</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>
@@ -29,7 +29,10 @@
     </Triangular>
 </Distributions>
 <Samplers>
-    <LHS name='myLHS' initial_seed ='1'>
+    <Stratified name='myLHS'>
+      <sampler_init>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
       <variable name='Materials|heat1|thermal_conductivity' >
         <distribution >DistTri1</distribution>
         <grid         type='value'      construction='custom'>0.02 0.5 0.6 0.8</grid>
@@ -38,15 +41,15 @@
         <distribution >Gauss1</distribution>
         <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
       </variable>
-    </LHS>
+    </Stratified>
 </Samplers>
 
-<Datas>
+<DataObjects>
     <Histories name='stories'>
         <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
         <Output>aveTempLeft,aveTempRight</Output>
    </Histories>
-</Datas>
+</DataObjects>
 
 
 <Steps>
@@ -54,15 +57,15 @@
       <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.i</Input>
       <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.e</Input>
       <Model   class = 'Models'     type='Code'      >Bison</Model>
-      <Sampler class='Samplers' type='LHS'         >myLHS</Sampler>
-      <Output  class='DataBases'    type='HDF5'>test_bison_lhs</Output>
-      <Output class='Datas' type='Histories'>stories</Output>
+      <Sampler class='Samplers' type='Stratified'         >myLHS</Sampler>
+      <Output  class='Databases'    type='HDF5'>test_bison_lhs</Output>
+      <Output class='DataObjects' type='Histories'>stories</Output>
     </MultiRun >
 </Steps>
 
-<DataBases>
+<Databases>
   <HDF5 name="test_bison_lhs"/> 
-</DataBases>
+</Databases>
 
 </Simulation>
 

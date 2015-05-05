@@ -9,8 +9,8 @@
 
     <Distributions>
         <Uniform name="UniDist">
-            <low>1</low>
-            <high>5</high>
+            <lowerBound>1</lowerBound>
+            <upperBound>5</upperBound>
         </Uniform>
     </Distributions>
 
@@ -38,7 +38,7 @@
 
     <Models>
         <Dummy name="MyDummy" subType="" print="True"/>
-        <ExternalModel name='polynomial' subType='' ModuleToLoad = 'polynomial'>
+        <ExternalModel name='polynomial' subType='' ModuleToLoad = './StochasticPolyPickleTest/polynomial'>
             <variable>x1</variable>
             <variable>x2</variable>
             <variable>ans</variable>
@@ -48,28 +48,28 @@
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
         <ROM name='pROM' subType='GaussPolynomialRom'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
     </Models>
 
     <Steps>
         <MultiRun name='make'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>SG</Sampler>
-            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='Datas'            type='TimePointSet'         >SGsolns</Output>
+            <Output  class='DataObjects'            type='TimePointSet'         >SGsolns</Output>
         </MultiRun>
         <RomTrainer name='train'>
-            <Input   class='Datas'            type='TimePointSet'         >SGsolns</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >SGsolns</Input>
             <Output  class='Models'           type='ROM'                  >UROM</Output>
         </RomTrainer>
         <IOStep name='pkDump'>
@@ -83,26 +83,26 @@
 
         <MultiRun name='sampleNatural'>
             <Sampler class='Samplers' type='Grid'        >grid</Sampler>
-            <Input   class='Datas'    type='TimePointSet'>dummyIN</Input>
+            <Input   class='DataObjects'    type='TimePointSet'>dummyIN</Input>
             <Model   class='Models'   type='ROM'         >UROM</Model>
-            <Output  class='Datas'    type='TimePointSet'>Usolns</Output>
+            <Output  class='DataObjects'    type='TimePointSet'>Usolns</Output>
         </MultiRun>
         <MultiRun name='samplePickle'>
             <Sampler class='Samplers' type='Grid'        >grid</Sampler>
-            <Input   class='Datas'    type='TimePointSet'>dummyIN</Input>
+            <Input   class='DataObjects'    type='TimePointSet'>dummyIN</Input>
             <Model   class='Models'   type='ROM'         >pROM</Model>
-            <Output  class='Datas'    type='TimePointSet'>psolns</Output>
+            <Output  class='DataObjects'    type='TimePointSet'>psolns</Output>
         </MultiRun>
 
         <IOStep name='write'>
-            <Input  class='Datas' type='TimePointSet'>Usolns</Input>
-            <Input  class='Datas' type='TimePointSet'>psolns</Input>
+            <Input  class='DataObjects' type='TimePointSet'>Usolns</Input>
+            <Input  class='DataObjects' type='TimePointSet'>psolns</Input>
             <Output class='OutStreamManager' type='Print'>Udump</Output>
             <Output class='OutStreamManager' type='Print'>pdump</Output>
         </IOStep>
     </Steps>
 
-    <Datas>
+    <DataObjects>
         <TimePointSet name="dummyIN">
             <Input>x1,x2</Input>
             <Output>OutputPlaceHolder</Output>
@@ -119,7 +119,7 @@
             <Input>x1,x2</Input>
             <Output>ans</Output>
         </TimePointSet>
-    </Datas>
+    </DataObjects>
 
     <OutStreamManager>
         <Print name='Udump'>

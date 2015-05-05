@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation debug="False">
 <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>
     <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py</Files>
-    <Sequence>FirstMRun,ComputeLimitSurface</Sequence>
-    <batchSize>8</batchSize>
+    <Sequence>FirstMRun,ComputeLimitSurfacePositive,ComputeLimitSurfaceNegative,ComputeLimitSurfacePositiveNegative</Sequence>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>
@@ -13,22 +13,29 @@
        <variable>x0</variable>
        <variable>y0</variable>
     </ExternalModel>
-    <PostProcessor name="computeLimitSurface" subType='LimitSurface' debug='True'>
-        <what>all</what>
+    <PostProcessor name="computeLimitSurfacePositive" subType='LimitSurface' debug='False'>
         <parameters>x0,y0</parameters>
+        <side>positive</side>
+        <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+        <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
+    </PostProcessor>
+    <PostProcessor name="computeLimitSurfaceNegative" subType='LimitSurface' debug='False'>
         <parameters>x0,y0</parameters>
-<!--        <Assembler> -->
-            <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
-            <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
-<!--        </Assembler> -->
+        <side>negative</side>
+        <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+        <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
+    </PostProcessor>
+    <PostProcessor name="computeLimitSurfacePositiveNegative" subType='LimitSurface' debug='False'>
+        <parameters>x0,y0</parameters>
+        <side>both</side>
+        <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+        <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <ROM name='Acc' subType='SciKitLearn'>
         <Features>x0,y0</Features>
         <Target>goalFunctionForLimitSurface</Target>
         <SKLtype>svm|LinearSVC</SKLtype>
-        <!-- <kernel>rbf</kernel> -->
-     <!--   <gamma>0.5</gamma> -->
-     <verbose>1</verbose>
+        <verbose>1</verbose>
         <tol>0.0001</tol>
         <C>10</C>
     </ROM>
@@ -52,7 +59,10 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo name='MC_external'  limit='150' >
+    <MonteCarlo name='MC_external'>
+      <sampler_init>
+        <limit>150</limit>
+      </sampler_init>
       <variable name='x0' >
         <distribution >x0_distrib</distribution>
       </variable>
@@ -64,17 +74,29 @@
 
 <Steps>
     <MultiRun name='FirstMRun'  re-seeding='200286'>
-        <Input   class='Datas'     type='TimePointSet'   >Dummy</Input>
+        <Input   class='DataObjects'     type='TimePointSet'   >Dummy</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='Datas'     type='TimePointSet'   >TimePointSetPostProcTest</Output>
+        <Output  class='DataObjects'     type='TimePointSet'   >TimePointSetPostProcTest</Output>
         <Output  class='OutStreamManager' type='Print'   >TimePointSetPostProcTest_dump</Output>
     </MultiRun >
-    <PostProcess name='ComputeLimitSurface' >
-        <Input    class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
-        <Model    class='Models'           type='PostProcessor'   >computeLimitSurface</Model>
-        <Output   class='Datas'            type='TimePointSet'    >LimitSurface</Output>
-        <Output   class='OutStreamManager' type='Print'           >LimitSurface_dump</Output>
+    <PostProcess name='ComputeLimitSurfacePositive' >
+        <Input    class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Model    class='Models'           type='PostProcessor'   >computeLimitSurfacePositive</Model>
+        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfacePositive</Output>
+        <Output   class='OutStreamManager' type='Print'           >LimitSurfacePositive_dump</Output>
+    </PostProcess>
+    <PostProcess name='ComputeLimitSurfaceNegative' >
+        <Input    class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Model    class='Models'           type='PostProcessor'   >computeLimitSurfaceNegative</Model>
+        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfaceNegative</Output>
+        <Output   class='OutStreamManager' type='Print'           >LimitSurfaceNegative_dump</Output>
+    </PostProcess>
+    <PostProcess name='ComputeLimitSurfacePositiveNegative' >
+        <Input    class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Model    class='Models'           type='PostProcessor'   >computeLimitSurfacePositiveNegative</Model>
+        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfacePositiveNegative</Output>
+        <Output   class='OutStreamManager' type='Print'           >LimitSurfacePositiveNegative_dump</Output>
     </PostProcess>
 </Steps>
 
@@ -84,18 +106,34 @@
     <type>csv</type>
     <source>TimePointSetPostProcTest</source>
   </Print>
-  <Print name='LimitSurface_dump'>
+  <Print name='LimitSurfacePositive_dump'>
       <type>csv</type>
-      <source>LimitSurface</source>
+      <source>LimitSurfacePositive</source>
+  </Print>
+  <Print name='LimitSurfaceNegative_dump'>
+      <type>csv</type>
+      <source>LimitSurfaceNegative</source>
+  </Print>
+  <Print name='LimitSurfacePositiveNegative_dump'>
+      <type>csv</type>
+      <source>LimitSurfacePositiveNegative</source>
   </Print>
 </OutStreamManager>
 
-<Datas>
+<DataObjects>
     <TimePointSet name='TimePointSetPostProcTest'>
         <Input>x0,y0</Input>
         <Output>z</Output>
     </TimePointSet>
-    <TimePointSet name='LimitSurface'>
+    <TimePointSet name='LimitSurfacePositive'>
+        <Input>x0,y0</Input>
+        <Output>OutputPlaceOrder</Output>
+    </TimePointSet>
+    <TimePointSet name='LimitSurfaceNegative'>
+        <Input>x0,y0</Input>
+        <Output>OutputPlaceOrder</Output>
+    </TimePointSet>
+    <TimePointSet name='LimitSurfacePositiveNegative'>
         <Input>x0,y0</Input>
         <Output>OutputPlaceOrder</Output>
     </TimePointSet>
@@ -103,7 +141,7 @@
         <Input>x0,y0</Input>
         <Output>OutputPlaceHolder</Output>
     </TimePointSet>
-</Datas>
+</DataObjects>
 
 </Simulation>
 

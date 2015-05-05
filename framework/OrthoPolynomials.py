@@ -12,29 +12,30 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import scipy.special as polys
-from scipy.misc import factorial
+#from scipy.misc import factorial
+from math import gamma
 import xml.etree.ElementTree as ET
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules
 from BaseClasses import BaseType
-from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
 import Distributions
 import Quadratures
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class OrthogonalPolynomial(object):
+class OrthogonalPolynomial(MessageHandler.MessageUser):
   '''Provides polynomial generators and evaluators for stochastic collocation.'''
   def __init__(self):
     self.type    = self.__class__.__name__
     self.name    = self.__class__.__name__
-    self.debug   = True
     self._poly   = None #tool for generating orthopoly1d objects
     self._evPoly = None #tool for evaluating 1d polynomials at (order,point)
     self.params  = [] #additional parameters needed for polynomial (alpha, beta, etc)
+    self.messageHandler = None
 
-  def initialize(self):
-    pass #to be overwritten
+  def initialize(self,quad,messageHandler):
+    self.messageHandler = messageHandler
 
   def __getitem__(self,order):
     '''Returns the polynomial with order 'order';
@@ -59,15 +60,15 @@ class OrthogonalPolynomial(object):
     @ In, None, None
     @ Out, Quadrature instance, defining quad for polynomial
     '''
-    return self.quad
+    return self.quad,self.messageHandler
 
-  def __setstate__(self,quad):
+  def __setstate__(self,items):
     '''Pickle load method.
     @ In, quad, Quadrature instance
     @ Out, None, None
     '''
     self.__init__()
-    self.initialize(quad)
+    self.initialize(*items)#quad,messageHandler)
 
   def __eq__(self,other):
     '''
@@ -121,7 +122,7 @@ class OrthogonalPolynomial(object):
       self.pointMod = self.cdfPoint
       self.quad = quad
     else:
-      raise IOError('OrthoPolynomials: No implementation for',quad.type,'quadrature and',self.type,'polynomials.')
+      self.raiseAnError(IOError,'No implementation for '+quad.type+' quadrature and',self.type,'polynomials.')
 
   def _getDistr(self):
     '''Returns the private distribution used for the CDF-version quadratures; for debugging.
@@ -154,7 +155,8 @@ class OrthogonalPolynomial(object):
 
 
 class Legendre(OrthogonalPolynomial):
-  def initialize(self,quad):
+  def initialize(self,quad,messageHandler):
+    OrthogonalPolynomial.initialize(self,quad,messageHandler)
     self.printTag = 'LEGENDRE-ORTHOPOLY'
     self._poly    = polys.legendre
     self._evPoly  = polys.eval_legendre
@@ -169,10 +171,10 @@ class Legendre(OrthogonalPolynomial):
 
   def makeDistribution(self):
     uniformElement = ET.Element("uniform")
-    element = ET.Element("low",{})
+    element = ET.Element("lowerBound",{})
     element.text = "-1"
     uniformElement.append(element)
-    element = ET.Element("hi",{})
+    element = ET.Element("upperBound",{})
     element.text = "1"
     uniformElement.append(element)
     uniform = Distributions.Uniform()
@@ -191,7 +193,8 @@ class Legendre(OrthogonalPolynomial):
 
 
 class Hermite(OrthogonalPolynomial):
-  def initialize(self,quad):
+  def initialize(self,quad,messageHandler):
+    OrthogonalPolynomial.initialize(self,quad,messageHandler)
     self.printTag = 'HERMITE-ORTHOPOLY'
     self._poly    = polys.hermitenorm
     self._evPoly  = polys.eval_hermitenorm
@@ -218,12 +221,14 @@ class Hermite(OrthogonalPolynomial):
     return normal
 
   def norm(self,n):
-    return 1.0/np.sqrt(factorial(n))
+    #if n==0:return 1
+    return 1.0/np.sqrt(gamma(1.0+n))
 
 
 
 class Laguerre(OrthogonalPolynomial):
-  def initialize(self,quad):
+  def initialize(self,quad,messageHandler):
+    OrthogonalPolynomial.initialize(self,quad,messageHandler)
     self.printTag = 'LAGUERRE-ORTHOPOLY'
     self._poly    = polys.genlaguerre
     self._evPoly  = polys.eval_genlaguerre
@@ -251,12 +256,15 @@ class Laguerre(OrthogonalPolynomial):
     return gamma
 
   def norm(self,order):
-    return np.sqrt(factorial(order)/factorial(order+self.params[0]))
+    #if order==0 and self.params[0]==0: return 1
+    #if order==0: return np.sqrt(1.0/gamma(1.0+self.params[0]))
+    return np.sqrt(gamma(1.0+order)/gamma(1.0+order+self.params[0]))
 
 
 
 class Jacobi(OrthogonalPolynomial):
-  def initialize(self,quad):
+  def initialize(self,quad,messageHandler):
+    OrthogonalPolynomial.initialize(self,quad,messageHandler)
     self.printTag = 'JACOBI-ORTHOPOLY'
     self._poly    = polys.jacobi
     self._evPoly  = polys.eval_jacobi
@@ -282,17 +290,24 @@ class Jacobi(OrthogonalPolynomial):
   def norm(self,n):
     a=self.params[0]#+1
     b=self.params[1]#+1
-    coeff=1.
-    coeff*=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
-    coeff*=np.sqrt(factorial(n)*factorial(n+a+b)/(factorial(n+a)*factorial(n+b)))
-    coeff*=np.sqrt(2)
-    #not sure why I need this factor, but it corrects all cases I tested
-    #FIXME it might be wrong for n>1, though, it occurs to me...
-    cof2 = 1
-    cof2 *= 2.**(a+b)/(a+b+1.)
-    cof2 *= factorial(a)*factorial(b)/factorial(a+b)
-    coeff*=np.sqrt(cof2)
-    return coeff
+#    coeff=1.
+#    coeff*=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
+#    coeff*=np.sqrt(gamma(1.0+n)*gamma(1.0+n+a+b)/(gamma(1.0+n+a)*gamma(1.0+n+b)))
+#    coeff*=np.sqrt(2)
+#    #not sure why I need this factor, but it corrects all cases I tested
+#    #FIXME it might be wrong for n>1, though, it occurs to me...
+#    cof2 = 1
+#    cof2 *= 2.**(a+b)/(a+b+1.)
+#    cof2 *= gamma(1.0+a)*gamma(1.0+b)/gamma(1.0+a+b)
+#    coeff*=np.sqrt(cof2)
+    ###speedup attempt###
+#    coeff=(2.0*n+a+b+1.0)*\
+#          gamma(1.0+n)*gamma(1.0+n+a+b)/(gamma(1.0+n+a)*gamma(1.0+n+b))*gamma(1.0+a)*gamma(1.0+b)/gamma(1.0+a+b+1.0)
+    ###speedup attempt 2###
+    coeff=(2.0*n+a+b+1.0)*\
+          gamma(n+1)*gamma(n+a+b+1)/(gamma(n+a+1)*gamma(n+b+1))*\
+          gamma(a+1)*gamma(b+1)/gamma(a+b+2.0)
+    return np.sqrt(coeff)
 
 
 
@@ -311,11 +326,11 @@ __knownTypes = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
+def returnInstance(Type,caller):
   '''
     function used to generate a Filter class
     @ In, Type : Filter type
     @ Out,Instance of the Specialized Filter class
   '''
   if Type in knownTypes(): return __interFaceDict[Type]()
-  else: raise NameError('not known '+__base+' type '+Type)
+  else: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)

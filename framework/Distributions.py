@@ -16,14 +16,19 @@ import copy
 import numpy as np
 import scipy
 import scipy.special as polys
-from scipy.misc import factorial
+#from scipy.misc import factorial
+from math import gamma
+import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
-distribution1D = find_distribution1D()
+import utils
+distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
+
+def factorial(x):
+  return gamma(x+1)
 
 stochasticEnv = distribution1D.DistributionContainer.Instance()
 
@@ -42,9 +47,9 @@ _FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
                               'Exponential':'ExponentialDistribution',
                               'LogNormal':'LogNormalDistribution',
                               'Weibull':'WeibullDistribution',
-                              'NDInverseWeight':'NDInverseWeightDistribution',
-                              'NDScatteredMS':'NDScatteredMSDistribution',
-                              'NDCartesianSpline':'NDCartesianSplineDistribution'  }
+                              'NDInverseWeight': 'NDInverseWeightDistribution',
+                              'NDCartesianSpline': 'NDCartesianSplineDistribution',
+                              'MultivariateNormal' : 'MultivariateNormalDistribution'}
 
 
 class Distribution(BaseType):
@@ -60,7 +65,7 @@ class Distribution(BaseType):
     self.lowerBound           = 0.0  # Left bound
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
-    self.printTag             = returnPrintTag('DISTRIBUTIONS')
+    self.printTag             = 'DISTRIBUTIONS'
     self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
     self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
     self.compatibleQuadrature = [] #list of compatible quadratures
@@ -92,7 +97,6 @@ class Distribution(BaseType):
     self.type             = pdict.pop('type')
     self._localSetState(pdict)
     self.initializeDistribution()
-
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -230,6 +234,9 @@ class Distribution(BaseType):
     '''
     return 1.0/2.0;
 
+  def getDimensionality(self):
+    return self.dimensionality
+
 
 def random():
   '''
@@ -247,7 +254,7 @@ def randomSeed(value):
   '''
   return stochasticEnv.seedRandom(value)
 
-def randomIntegers(low,high):
+def randomIntegers(low,high,caller):
   '''
   Function to get a random integer
   @ In, low, integer -> low boundary
@@ -258,11 +265,11 @@ def randomIntegers(low,high):
   raw_num = low + random()*int_range
   raw_int = int(round(raw_num))
   if raw_int < low or raw_int > high:
-    print("Random int out of range")
+    caller.raiseAMessage(caller,"Random int out of range")
     raw_int = max(low,min(raw_int,high))
   return raw_int
 
-def randomPermutation(l):
+def randomPermutation(l,caller):
   '''
   Function to get a random permutation
   @ In, l, list -> list to be permuted
@@ -271,7 +278,7 @@ def randomPermutation(l):
   new_list = []
   old_list = l[:]
   while len(old_list) > 0:
-    new_list.append(old_list.pop(randomIntegers(0,len(old_list)-1)))
+    new_list.append(old_list.pop(randomIntegers(0,len(old_list)-1,caller)))
   return new_list
 
 class BoostDistribution(Distribution):
@@ -280,7 +287,7 @@ class BoostDistribution(Distribution):
   '''
   def __init__(self):
     Distribution.__init__(self)
-    self.dimensionality  = '1D'
+    self.dimensionality  = 1
     self.disttype        = 'Continuous'
 
   def cdf(self,x):
@@ -347,6 +354,7 @@ class BoostDistribution(Distribution):
     '''
     return self._distribution.untrMode()
 
+
   def rvs(self,*args):
     '''
     Function to get random numbers
@@ -360,8 +368,6 @@ class BoostDistribution(Distribution):
 class Uniform(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
-    self.low = 0.0
-    self.hi = 0.0
     self.range = 0.0
     self.type = 'Uniform'
     self.compatibleQuadrature.append('Legendre')
@@ -371,33 +377,22 @@ class Uniform(BoostDistribution):
     self.preferredPolynomials = 'Legendre'
 
   def _localSetState(self,pdict):
-    self.low   = pdict.pop('low'  )
-    self.hi    = pdict.pop('hi'   )
-    self.range = pdict.pop('range')
+    #self.lowerBound   = pdict.pop('lowerBound'  )
+    #self.upperBound   = pdict.pop('upperBound'   )
+    self.range        = pdict.pop('range')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
-    retDict['xMin'] = self.low
-    retDict['xMax'] = self.hi
+    retDict['xMin'] = self.lowerBound
+    retDict['xMax'] = self.upperBound
     return retDict
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self,xmlNode)
-    low_find = xmlNode.find('low')
-    if low_find != None: self.low = float(low_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> low value needed for uniform distribution')
-    hi_find = xmlNode.find('hi')
-    high_find = xmlNode.find('high')
-    if hi_find != None: self.hi = float(hi_find.text)
-    elif high_find != None: self.hi = float(high_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> hi or high value needed for uniform distribution')
-    self.range=self.hi-self.low
-    if not self.upperBoundUsed:
-      self.upperBoundUsed = True
-      self.upperBound     = self.hi
-    if not self.lowerBoundUsed:
-      self.lowerBoundUsed = True
-      self.lowerBound     = self.low
+    if not self.upperBoundUsed or not self.lowerBoundUsed:
+      self.raiseAnError(IOError,'the Uniform distribution needs both upperBound and lowerBound attributes. Got upperBound? '+ str(self.upperBoundUsed) + '. Got lowerBound? '+str(self.lowerBoundUsed))
+    self.range = self.upperBound - self.lowerBound
+    self.initializeDistribution()
 
   def stdProbabilityNorm(self):
     '''Returns the factor to scale error norm by so that norm(probability)=1.
@@ -408,8 +403,6 @@ class Uniform(BoostDistribution):
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self,tempDict)
-    tempDict['low'] = self.low
-    tempDict['hi'] = self.hi
     tempDict['range'] = self.range
     # no other additional parameters required
 
@@ -420,7 +413,7 @@ class Uniform(BoostDistribution):
     self.convertToDistrDict['ClenshawCurtis'] = self.convertLegendreToUniform
     self.convertToQuadDict ['ClenshawCurtis'] = self.convertUniformToLegendre
     self.measureNormDict   ['ClenshawCurtis'] = self.stdProbabilityNorm
-    self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
+    self._distribution = distribution1D.BasicUniformDistribution(self.lowerBound,self.lowerBound+self.range)
 
   def convertUniformToLegendre(self,y):
     '''Converts from distribution domain to standard Legendre [-1,1].
@@ -465,10 +458,10 @@ class Normal(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     mean_find = xmlNode.find('mean' )
     if mean_find != None: self.mean  = float(mean_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> mean value needed for normal distribution')
+    else: self.raiseAnError(IOError,'mean value needed for normal distribution')
     sigma_find = xmlNode.find('sigma')
     if sigma_find != None: self.sigma = float(sigma_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> sigma value needed for normal distribution')
+    else: self.raiseAnError(IOError,'sigma value needed for normal distribution')
     self.initializeDistribution() #FIXME no other distros have this...needed?
 
   def addInitParams(self,tempDict):
@@ -527,32 +520,6 @@ class Normal(BoostDistribution):
     '''
     return self.sigma*x+self.untruncatedMean()
 
-#  def _constructBeta(self,numStdDev=5):
-#    '''Using data from normal distribution and the number of standard deviations
-#    to include, constructs a Beta distribution with the same mean, variance, and
-#    skewness as the initial normal distribution.  Effectively simulates a truncated
-#    Gaussian.'''
-#    L = self.mean-numStdDev*self.sigma
-#    R = self.mean+numStdDev*self.sigma
-#    d = R-L
-#    a = d*d/8./(self.sigma*self.sigma) - 0.5 #comes from forcing equivalent total variance
-#    b = a
-#    print('L %f, R %f, d %f, ab %f, u %f' %(L,R,d,a,0.5*(L+R)))
-#    def createElement(tag,attrib={},text={}):
-#      element = ET.Element(tag,attrib)
-#      element.text = text
-#      return element
-#    betaElement = ET.Element("beta")
-#    betaElement.append(createElement("low"  ,text="%f" %L))
-#    betaElement.append(createElement("hi"   ,text="%f" %R))
-#    betaElement.append(createElement("alpha",text="%f" %a))
-#    betaElement.append(createElement("beta" ,text="%f" %b))
-#    beta = Beta()
-#    beta._readMoreXML(betaElement)
-#    beta.initializeDistribution()
-#    return beta
-
-
 
 
 class Gamma(BoostDistribution):
@@ -584,10 +551,9 @@ class Gamma(BoostDistribution):
     BoostDistribution._readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> low value needed for Gamma distribution')
     alpha_find = xmlNode.find('alpha')
     if alpha_find != None: self.alpha = float(alpha_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> alpha value needed for Gamma distribution')
+    else: self.raiseAnError(IOError,'alpha value needed for Gamma distribution')
     beta_find = xmlNode.find('beta')
     if beta_find != None: self.beta = float(beta_find.text)
     else: self.beta=1.0
@@ -681,20 +647,26 @@ class Beta(BoostDistribution):
     BoostDistribution._readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> low value needed for Beta distribution')
     hi_find = xmlNode.find('hi')
     #high_find = xmlNode.find('high')
     if hi_find != None: self.hi = float(hi_find.text)
     #elif high_find != None: self.hi = float(high_find.text)
     else:
         if xmlNode.find('high') != None: self.hi = float(xmlNode.find('high').text)
-        else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> hi or high value needed for Beta distribution')
     alpha_find = xmlNode.find('alpha')
-    if alpha_find != None: self.alpha = float(alpha_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> alpha value needed for Beta distribution')
     beta_find = xmlNode.find('beta')
-    if beta_find != None: self.beta = float(beta_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> beta value needed for Beta distribution')
+    peak_find = xmlNode.find('peakFactor')
+    if alpha_find != None and beta_find != None and peak_find == None:
+      self.alpha = float(alpha_find.text)
+      self.beta  = float(beta_find.text)
+    elif (alpha_find == None and beta_find == None) and peak_find != None:
+      peakFactor = float(peak_find.text)
+      if not 0 <= peakFactor <= 1: self.raiseAnError(IOError,'peakFactor must be from 0 to 1, inclusive!')
+      #this empirical formula is used to make it so factor->alpha: 0->1, 0.5~7.5, 1->99
+      self.alpha = 0.5*23.818**(5.*peakFactor/3.) + 0.5
+      self.beta = self.alpha
+    else:
+      self.raiseAnError(IOError,'Either provide (alpha and beta) or peakFactor!')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
@@ -715,6 +687,7 @@ class Beta(BoostDistribution):
     self.convertToDistrDict['Jacobi'] = self.convertJacobiToBeta
     self.convertToQuadDict ['Jacobi'] = self.convertBetaToJacobi
     self.measureNormDict   ['Jacobi'] = self.stdProbabilityNorm
+    #this "if" section can only be called if distribution not generated using readMoreXML
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,self.low)
     else:
@@ -783,13 +756,13 @@ class Triangular(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     apex_find = xmlNode.find('apex')
     if apex_find != None: self.apex = float(apex_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> apex value needed for normal distribution')
+    else: self.raiseAnError(IOError,'apex value needed for normal distribution')
     min_find = xmlNode.find('min')
     if min_find != None: self.min = float(min_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> min value needed for normal distribution')
+    else: self.raiseAnError(IOError,'min value needed for normal distribution')
     max_find = xmlNode.find('max')
     if max_find != None: self.max = float(max_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> max value needed for normal distribution')
+    else: self.raiseAnError(IOError,'max value needed for normal distribution')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
@@ -809,7 +782,7 @@ class Triangular(BoostDistribution):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or (self.min == self.lowerBound and self.max == self.upperBound):
       self._distribution = distribution1D.BasicTriangularDistribution(self.apex,self.min,self.max)
     else:
-      raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Truncated triangular not yet implemented')
+      self.raiseAnError(IOError,'Truncated triangular not yet implemented')
 
 
 
@@ -836,7 +809,7 @@ class Poisson(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     mu_find = xmlNode.find('mu')
     if mu_find != None: self.mu = float(mu_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> mu value needed for poisson distribution')
+    else: self.raiseAnError(IOError,'mu value needed for poisson distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -849,7 +822,7 @@ class Poisson(BoostDistribution):
       self.lowerBound = 0.0
       self.upperBound = sys.float_info.max
     else:
-      raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Truncated poisson not yet implemented')
+      self.raiseAnError(IOError,'Truncated poisson not yet implemented')
 
 
 class Binomial(BoostDistribution):
@@ -878,10 +851,10 @@ class Binomial(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     n_find = xmlNode.find('n')
     if n_find != None: self.n = float(n_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> n value needed for Binomial distribution')
+    else: self.raiseAnError(IOError,'n value needed for Binomial distribution')
     p_find = xmlNode.find('p')
     if p_find != None: self.p = float(p_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> p value needed for Binomial distribution')
+    else: self.raiseAnError(IOError,'p value needed for Binomial distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -892,7 +865,7 @@ class Binomial(BoostDistribution):
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicBinomialDistribution(self.n,self.p)
-    else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Truncated Binomial not yet implemented')
+    else: self.raiseAnError(IOError,'Truncated Binomial not yet implemented')
 #
 #
 #
@@ -920,7 +893,7 @@ class Bernoulli(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     p_find = xmlNode.find('p')
     if p_find != None: self.p = float(p_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> p value needed for Bernoulli distribution')
+    else: self.raiseAnError(IOError,'p value needed for Bernoulli distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -930,7 +903,7 @@ class Bernoulli(BoostDistribution):
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
-    else:  raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Truncated Bernoulli not yet implemented')
+    else:  self.raiseAnError(IOError,'Truncated Bernoulli not yet implemented')
 
   def cdf(self,x):
     if x <= 0.5: return self._distribution.Cdf(self.lowerBound)
@@ -975,10 +948,10 @@ class Logistic(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     location_find = xmlNode.find('location')
     if location_find != None: self.location = float(location_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> location value needed for Logistic distribution')
+    else: self.raiseAnError(IOError,'location value needed for Logistic distribution')
     scale_find = xmlNode.find('scale')
     if scale_find != None: self.scale = float(scale_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> scale value needed for Logistic distribution')
+    else: self.raiseAnError(IOError,'scale value needed for Logistic distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -1022,12 +995,10 @@ class Exponential(BoostDistribution):
     BoostDistribution._readMoreXML(self, xmlNode)
     lambda_find = xmlNode.find('lambda')
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> lambda value needed for Exponential distribution')
+    else: self.raiseAnError(IOError,'lambda value needed for Exponential distribution')
     low  = xmlNode.find('low')
-    if low != None:
-      self.low = float(low.text)
-    else:
-      self.low = 0.0
+    if low != None: self.low = float(low.text)
+    else: self.low = 0.0
     # check if lower bound is set, otherwise default
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
@@ -1075,6 +1046,7 @@ class LogNormal(BoostDistribution):
     BoostDistribution.__init__(self)
     self.mean = 1.0
     self.sigma = 1.0
+    self.low = 0.0
     self.type = 'LogNormal'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
@@ -1089,38 +1061,43 @@ class LogNormal(BoostDistribution):
     retDict = Distribution.getCrowDistDict(self)
     retDict['mu'] = self.mean
     retDict['sigma'] = self.sigma
+    retDict['low'] = self.low
     return retDict
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
     mean_find = xmlNode.find('mean')
     if mean_find != None: self.mean = float(mean_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> mean value needed for LogNormal distribution')
+    else: self.raiseAnError(IOError,'mean value needed for LogNormal distribution')
     sigma_find = xmlNode.find('sigma')
     if sigma_find != None: self.sigma = float(sigma_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> sigma value needed for LogNormal distribution')
+    else: self.raiseAnError(IOError,'sigma value needed for LogNormal distribution')
+    low_find = xmlNode.find('low')
+    if low_find != None: self.low = float(low_find.text)
+    else: self.low = 0.0
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['mean' ] = self.mean
     tempDict['sigma'] = self.sigma
+    tempDict['low'] = self.low
 
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma)
+      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low)
       self.lowerBound = -sys.float_info.max
       self.upperBound =  sys.float_info.max
     else:
       if self.lowerBoundUsed == False:
-        a = -sys.float_info.max
+        a = self.low #-sys.float_info.max
         self.lowerBound = a
       else:a = self.lowerBound
       if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
       else:b = self.upperBound
-      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,a,b)
+      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low,a,b)
 
 
 class Weibull(BoostDistribution):
@@ -1129,6 +1106,7 @@ class Weibull(BoostDistribution):
     self.lambda_var = 1.0
     self.k = 1.0
     self.type = 'Weibull'
+    self.low = 0.0
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -1142,16 +1120,20 @@ class Weibull(BoostDistribution):
     retDict = Distribution.getCrowDistDict(self)
     retDict['lambda'] = self.lambda_var
     retDict['k'] = self.k
+    retDict['low'] = self.low
     return retDict
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
     lambda_find = xmlNode.find('lambda')
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> lambda (scale) value needed for Weibull distribution')
+    else: self.raiseAnError(IOError,'lambda (scale) value needed for Weibull distribution')
     k_find = xmlNode.find('k')
     if k_find != None: self.k = float(k_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> k (shape) value needed for Weibull distribution')
+    else: self.raiseAnError(IOError,'k (shape) value needed for Weibull distribution')
+    low_find = xmlNode.find('low')
+    if low_find != None: self.low = float(low_find.text)
+    else: self.low = 0.0
     # check if lower  bound is set, otherwise default
     #if not self.lowerBoundUsed:
     #  self.lowerBoundUsed = True
@@ -1163,20 +1145,21 @@ class Weibull(BoostDistribution):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['lambda'] = self.lambda_var
     tempDict['k'     ] = self.k
+    tempDict['low'   ] = self.low
 
   def initializeDistribution(self):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False): # or self.lowerBound == 0.0:
-      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var)
+      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,self.low)
     else:
       if self.lowerBoundUsed == False:
-        a = 0.0
+        a = self.low
         self.lowerBound = a
       else:a = self.lowerBound
       if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
       else:b = self.upperBound
-      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b)
+      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b,self.low)
 
 
 
@@ -1187,22 +1170,35 @@ class NDimensionalDistributions(Distribution):
     self.data_filename = None
     self.function_type = None
     self.type = 'NDimensionalDistributions'
-    self.dimensionality  = 'ND'
+    self.dimensionality  = None
+
+    self.RNGInitDisc = 10
+    self.RNGtolerance = 0.1
+
   def _readMoreXML(self,xmlNode):
     Distribution._readMoreXML(self, xmlNode)
-    data_filename = xmlNode.find('data_filename')
-    if data_filename != None: self.data_filename = data_filename.text
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <data_filename> parameter needed for MultiDimensional Distributions!!!!')
-    function_type = xmlNode.find('function_type')
-    if not function_type: self.function_type = 'CDF'
-    else:
-      self.function_type = function_type.upper()
-      if self.function_type not in ['CDF','PDF']:  raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <function_type> parameter needs to be either CDF or PDF in MultiDimensional Distributions!!!!')
+    working_dir = xmlNode.find('working_dir')
+    if working_dir != None: self.working_dir = working_dir.text
+
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
     tempDict['function_type'] = self.function_type
     tempDict['data_filename'] = self.data_filename
 
+  #######
+  def updateRNGParam(self, dictParam):
+    self.RNGtolerance = 0.1
+    self.RNGInitDisc  = 10
+    for key in dictParam:
+      if key == 'tolerance':
+        self.RNGtolerance = dictParam['tolerance']
+      elif key == 'initial_grid_disc':
+        self.RNGInitDisc  = dictParam['initial_grid_disc']
+    self._distribution.updateRNGparameter(self.RNGtolerance,self.RNGInitDisc)
+  ######
+
+  def getDimensionality(self):
+    return  self._distribution.returnDimensionality()
 
 class NDInverseWeight(NDimensionalDistributions):
 
@@ -1215,7 +1211,16 @@ class NDInverseWeight(NDimensionalDistributions):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
     p_find = xmlNode.find('p')
     if p_find != None: self.p = float(p_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Minkowski distance parameter <p> not found in NDInverseWeight distribution')
+    else: self.raiseAnError(IOError,'Minkowski distance parameter <p> not found in NDInverseWeight distribution')
+
+    data_filename = xmlNode.find('data_filename')
+    if data_filename != None: self.data_filename = os.path.join(self.working_dir,data_filename.text)
+    else: self.raiseAnError(IOError,'<data_filename> parameter needed for MultiDimensional Distributions!!!!')
+
+    function_type = data_filename.attrib['type']
+    if function_type != None: self.function_type = function_type
+    else: self.raiseAnError(IOError,'<function_type> parameter needed for MultiDimensional Distributions!!!!')
+
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -1223,37 +1228,133 @@ class NDInverseWeight(NDimensionalDistributions):
     tempDict['p'] = self.p
 
   def initializeDistribution(self):
-#    NDimensionalDistributions.initializeDistribution()
-    self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.p)
+    if self.function_type == 'CDF':
+      self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(str(self.data_filename), self.p,True)
+    else:
+      self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(str(self.data_filename), self.p,False)
 
   def cdf(self,x):
-    return self._distribution.Cdf(x)
+    coordinate = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+    return self._distribution.Cdf(coordinate)
 
   def ppf(self,x):
-    return self._distribution.InverseCdf(x)
+    return self._distribution.InverseCdf(x,random())
 
   def pdf(self,x):
-    return self._distribution.Pdf(x)
+    coordinate = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+    return self._distribution.Pdf(coordinate)
+
+  def cellIntegral(self,x,dx):
+    coordinate = distribution1D.vectord_cxx(len(x))
+    dxs        = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+      dxs[i]=dx[i]
+    return self._distribution.cellIntegral(coordinate,dxs)
+
+  def inverseMarginalDistribution (self, x, variable):
+    if (x>0.0) and (x<1.0):
+      return self._distribution.inverseMarginal(x, variable)
+    else:
+      self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
 
   def untruncatedCdfComplement(self, x):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedCdfComplement not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,'untruncatedCdfComplement not yet implemented for ' + self.type)
 
   def untruncatedHazard(self, x):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedHazard not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,'untruncatedHazard not yet implemented for ' + self.type)
 
   def untruncatedMean(self):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMean not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,'untruncatedMean not yet implemented for ' + self.type)
 
   def untruncatedMedian(self):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMedian not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,'untruncatedMedian not yet implemented for ' + self.type)
 
   def untruncatedMode(self):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMode not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,'untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
+    return self._distribution.InverseCdf(random(),random())
 
 
+class NDCartesianSpline(NDimensionalDistributions):
+  def __init__(self):
+    NDimensionalDistributions.__init__(self)
+    self.type = 'NDCartesianSpline'
+
+  def _readMoreXML(self,xmlNode):
+    NDimensionalDistributions._readMoreXML(self, xmlNode)
+
+    data_filename = xmlNode.find('data_filename')
+    if data_filename != None: self.data_filename = os.path.join(self.working_dir,data_filename.text)
+    else: self.raiseAnError(IOError,'<data_filename> parameter needed for MultiDimensional Distributions!!!!')
+
+    function_type = data_filename.attrib['type']
+    if function_type != None: self.function_type = function_type
+    else: self.raiseAnError(IOError,'<function_type> parameter needed for MultiDimensional Distributions!!!!')
+
+    self.initializeDistribution()
+
+  def addInitParams(self,tempDict):
+    NDimensionalDistributions.addInitParams(self, tempDict)
+
+  def initializeDistribution(self):
+    self.raiseAMessage('====== BasicMultiDimensional NDCartesianSpline initialize Distribution ======')
+    if self.function_type == 'CDF':
+      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.data_filename),True)
+    else:
+      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.data_filename),False)
+
+  def cdf(self,x):
+    coordinate = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+    return self._distribution.Cdf(coordinate)
+
+  def ppf(self,x):
+    return self._distribution.InverseCdf(x,random())
+
+  def pdf(self,x):
+    coordinate = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+    return self._distribution.Pdf(coordinate)
+
+  def cellIntegral(self,x,dx):
+    coordinate = distribution1D.vectord_cxx(len(x))
+    dxs        = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+      dxs[i]=dx[i]
+    return self._distribution.cellIntegral(coordinate,dxs)
+
+  def inverseMarginalDistribution (self, x, variable):
+    if (x>=0.0) and (x<=1.0):
+      return self._distribution.inverseMarginal(x, variable)
+    else:
+      self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
+
+  def untruncatedCdfComplement(self, x):
+    self.raiseAnError(NotImplementedError,'untruncatedCdfComplement not yet implemented for ' + self.type)
+
+  def untruncatedHazard(self, x):
+    self.raiseAnError(NotImplementedError,'untruncatedHazard not yet implemented for ' + self.type)
+
+  def untruncatedMean(self):
+    self.raiseAnError(NotImplementedError,'untruncatedMean not yet implemented for ' + self.type)
+
+  def untruncatedMedian(self):
+    self.raiseAnError(NotImplementedError,'untruncatedMedian not yet implemented for ' + self.type)
+
+  def untruncatedMode(self):
+    self.raiseAnError(NotImplementedError,'untruncatedMode not yet implemented for ' + self.type)
+
+  def rvs(self,*args):
+    return self._distribution.InverseCdf(random(),random())
 
 class NDScatteredMS(NDimensionalDistributions):
   def __init__(self):
@@ -1262,14 +1363,14 @@ class NDScatteredMS(NDimensionalDistributions):
     self.precision = None
     self.type = 'NDScatteredMS'
 
-  def _readMoreXML(self,xmlNode): #Diego! Please check the type of the parameters (precision)!....SS
+  def _readMoreXML(self,xmlNode):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
     p_find = xmlNode.find('p')
     if p_find != None: self.p = float(p_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Minkowski distance parameter <p> not found in NDScatteredMS distribution')
+    else: self.raiseAnError(IOError,'Minkowski distance parameter <p> not found in NDScatteredMS distribution')
     precision_find = xmlNode.find('precision')
     if precision_find != None: self.precision = int(precision_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> precision parameter <precision> not found in NDScatteredMS distribution')
+    else: self.raiseAnError(IOError,'precision parameter <precision> not found in NDScatteredMS distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -1291,67 +1392,100 @@ class NDScatteredMS(NDimensionalDistributions):
     return self._distribution.Pdf(x)
 
   def untruncatedCdfComplement(self, x):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedCdfComplement not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,'untruncatedCdfComplement not yet implemented for ' + self.type)
 
   def untruncatedHazard(self, x):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedHazard not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,'untruncatedHazard not yet implemented for ' + self.type)
 
-  def untruncatedMean(self):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMean not yet implemented for ' + self.type)
+  def untruncatedMean(self, x):
+    self.raiseAnError(NotImplementedError,'untruncatedMean not yet implemented for ' + self.type)
 
-  def untruncatedMedian(self):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMedian not yet implemented for ' + self.type)
+  def untruncatedMedian(self, x):
+    self.raiseAnError(NotImplementedError,'untruncatedMedian not yet implemented for ' + self.type)
 
-  def untruncatedMode(self):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMode not yet implemented for ' + self.type)
+  def untruncatedMode(self, x):
+    self.raiseAnError(NotImplementedError,'untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,'rvs not yet implemented for ' + self.type)
 
 
+class MultivariateNormal(NDimensionalDistributions):
 
-class NDCartesianSpline(NDimensionalDistributions):
   def __init__(self):
     NDimensionalDistributions.__init__(self)
-    self.type = 'NDCartesianSpline'
+    self.type = 'MultivariateNormal'
+    self.mu  = None
 
   def _readMoreXML(self,xmlNode):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
+
+    data_filename = xmlNode.find('data_filename')
+    if data_filename != None: self.data_filename = self.working_dir+data_filename.text
+    else: self.raiseAnError(IOError,'<data_filename> parameter needed for MultivariateNormal Distributions!!!!')
+
+    mu = xmlNode.find('mu')
+    if data_filename != None: self.mu = [float(i) for i in mu.text.split()]
+    else: self.raiseAnError(IOError,'<mu> parameter needed for MultivariateNormal Distributions!!!!')
+
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
     NDimensionalDistributions.addInitParams(self, tempDict)
 
   def initializeDistribution(self):
-    #NDimensionalDistributions.initializeDistribution()
-    self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline()
+    self.raiseAMessage('====== BasicMultiDimensional MultivariateNormal initialize distribution ======')
+    mu = distribution1D.vectord_cxx(len(self.mu))
+    for i in range(len(self.mu)):
+      mu[i] = self.mu[i]
+    self._distribution = distribution1D.BasicMultivariateNormal(str(self.data_filename), mu)
 
   def cdf(self,x):
-    return self._distribution.Cdf(x)
+    coordinate = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+    return self._distribution.Cdf(coordinate)
 
   def ppf(self,x):
-    return self._distribution.InverseCdf(x)
+    return self._distribution.InverseCdf(x,random())
 
   def pdf(self,x):
-    return self._distribution.Pdf(x)
+    coordinate = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+    return self._distribution.Pdf(coordinate)
+
+  def cellIntegral(self,x,dx):
+    coordinate = distribution1D.vectord_cxx(len(x))
+    dxs        = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+      dxs[i]=dx[i]
+    return self._distribution.cellIntegral(coordinate,dxs)
+
+  def inverseMarginalDistribution (self, x, variable):
+    if (x>0.0) and (x<1.0):
+      return self._distribution.inverseMarginal(x, variable)
+    else:
+      self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
 
   def untruncatedCdfComplement(self, x):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedCdfComplement not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,'untruncatedCdfComplement not yet implemented for ' + self.type)
 
   def untruncatedHazard(self, x):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedHazard not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,'untruncatedHazard not yet implemented for ' + self.type)
 
-  def untruncatedMean(self):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMean not yet implemented for ' + self.type)
+  def untruncatedMean(self, x):
+    self.raiseAnError(NotImplementedError,'untruncatedMean not yet implemented for ' + self.type)
 
-  def untruncatedMedian(self):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMedian not yet implemented for ' + self.type)
+  def untruncatedMedian(self, x):
+    self.raiseAnError(NotImplementedError,'untruncatedMedian not yet implemented for ' + self.type)
 
-  def untruncatedMode(self):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMode not yet implemented for ' + self.type)
+  def untruncatedMode(self, x):
+    self.raiseAnError(NotImplementedError,'untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
+    return self._distribution.InverseCdf(random(),random())
 
 
 __base                        = 'Distribution'
@@ -1371,11 +1505,12 @@ __interFaceDict['Weibull'          ] = Weibull
 __interFaceDict['NDInverseWeight'  ] = NDInverseWeight
 __interFaceDict['NDScatteredMS'    ] = NDScatteredMS
 __interFaceDict['NDCartesianSpline'] = NDCartesianSpline
+__interFaceDict['MultivariateNormal'] = MultivariateNormal
 __knownTypes                  = __interFaceDict.keys()
 
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
+def returnInstance(Type,caller):
   try: return __interFaceDict[Type]()
-  except KeyError: raise NameError('not known '+__base+' type '+Type)
+  except KeyError: caller.raiseAnError(NameError,'DISTRIBUTIONS','not known '+__base+' type '+Type)

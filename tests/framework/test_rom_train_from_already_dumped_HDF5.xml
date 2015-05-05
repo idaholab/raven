@@ -8,12 +8,12 @@
 </RunInfo>
 <Distributions>
     <Uniform name='auxbackup'>
-        <low>0</low>
-        <hi>2000</hi>
+        <lowerBound>0</lowerBound>
+        <upperBound>2000</upperBound>
     </Uniform>
     <Uniform name='DG1backup'>
-        <low>0</low>
-        <hi>1000</hi>
+        <lowerBound>0</lowerBound>
+        <upperBound>1000</upperBound>
     </Uniform>
 </Distributions>
 <Models>
@@ -27,7 +27,11 @@
     </ROM>
 </Models>
 <Samplers>
-  <MonteCarlo     name='RAVENmc3'  limit='3' initial_seed='200286'>
+  <MonteCarlo     name='RAVENmc3'>
+    <sampler_init>
+      <limit>3</limit>
+      <initial_seed>200286</initial_seed>
+    </sampler_init>
     <variable name='DeltaTimeScramToAux'>
       <distribution  >auxbackup</distribution>
     </variable>
@@ -38,18 +42,18 @@
 </Samplers>
 <Steps> 
     <IOStep name='test_extract_for_rom_trainer'>
-        <Input   class='DataBases' type='HDF5'                      >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-        <Output  class='Datas'    type='TimePointSet'               >timepointset_from_database_for_rom_trainer</Output>
+        <Input   class='Databases' type='HDF5'                      >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+        <Output  class='DataObjects'    type='TimePointSet'               >timepointset_from_database_for_rom_trainer</Output>
     </IOStep>  
     <RomTrainer name='test_rom_trainer'>
-        <Input   class='Datas'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
+        <Input   class='DataObjects'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
         <Output  class='Models' type='ROM'         >ROM1</Output>
     </RomTrainer> 
     <MultiRun name='rom_MC'>
-        <Input   class='Datas'    type='TimePoint'   >data_for_sampling_empty_at_begin</Input>
+        <Input   class='DataObjects'    type='TimePoint'   >data_for_sampling_empty_at_begin</Input>
         <Model   class='Models'   type='ROM'         >ROM1</Model>
         <Sampler class='Samplers' type='MonteCarlo'  >RAVENmc3</Sampler>
-        <Output  class='Datas'    type='TimePointSet'>outputMontecarloRom</Output>
+        <Output  class='DataObjects'    type='TimePointSet'>outputMontecarloRom</Output>
         <Output  class='OutStreamManager' type='Print'>outputMontecarloRom_dump</Output>
     </MultiRun>
 </Steps>
@@ -60,10 +64,10 @@
   </Print>
 </OutStreamManager>
     
-<DataBases>
-        <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" directory='DataBaseStorage' filename='MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5'/>
-</DataBases>
-<Datas>
+<Databases>
+        <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" directory='DatabaseStorage' filename='MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5'/>
+</Databases>
+<DataObjects>
    <TimePointSet name='timepointset_from_database_for_rom_trainer' inputTs='2'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempTreshold</Output>
@@ -76,7 +80,7 @@
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempTreshold</Output>
    </TimePointSet>
-</Datas>
+</DataObjects>
 </Simulation>
 
 
