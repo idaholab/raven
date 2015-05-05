@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug="True">
+
+
+<RunInfo>
+    <WorkingDir>/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/cristian-samplers</WorkingDir>
+    <Files>workshop_function.py,output_basicStatistics.csv</Files>
+    <!-- runGrid,runStratified,runDoE,OutstreamDoE, -->
+    <Sequence>runMC,OutstreamMC,PP</Sequence>
+    <batchSize>100</batchSize>
+</RunInfo>
+
+
+<Distributions>
+    <Normal name='x1_distrib'>
+        <mean>0.5</mean>
+        <sigma>0.1</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>1</upperBound>
+    </Normal>
+    <Normal name='x2_distrib'>
+        <mean>2</mean>
+        <sigma>0.2</sigma>
+    </Normal>
+    <Uniform name='x3_distrib'>
+        <upperBound>4</upperBound>
+        <lowerBound>1</lowerBound>
+    </Uniform>
+</Distributions>
+
+<Samplers>
+  <Grid name='GridSampler'>
+    <variable name='x1' >
+      <distribution>x1_distrib</distribution>
+      <grid type='CDF' lowerBound='0.0' construction='equal' steps='10'>0.1</grid>
+    </variable>
+    <variable name='x2'>
+      <distribution>x2_distrib</distribution>
+      <grid type='value' upperBound='0.9' construction='equal' steps='8'>0.1</grid>
+    </variable>
+    <variable name='x3'>
+      <distribution>x3_distrib</distribution>
+      <grid type='CDF' construction='custom' >0.1 0.3 0.4 0.7 0.9</grid>
+    </variable>
+  </Grid>
+  <LHS name='StratifiedSampler'>
+    <variable name='x1'>
+      <distribution>x1_distrib</distribution>
+      <grid type='CDF' lowerBound='0.0' construction='equal' steps='500'>0.002</grid>
+    </variable>
+    <variable name='x2'>
+      <distribution>x2_distrib</distribution>
+      <grid type='CDF' upperBound='1.0' construction='equal' steps='500'>0.002</grid>
+    </variable>
+    <variable name='x3'>
+      <distribution>x3_distrib</distribution>
+      <grid type='value' lowerBound='1.0' construction='equal' steps='500'>0.006</grid>
+    </variable>
+  </LHS>
+  <ResponseSurfaceDesign name='DoESampler'>
+    <ResponseSurfaceDesignSettings>
+      <algorithm_type>BoxBehnken</algorithm_type>
+      <ncenters>1</ncenters>
+    </ResponseSurfaceDesignSettings>
+    <variable name='x1' >
+      <distribution >x1_distrib</distribution>
+      <boundaries type="CDF">
+        <lower>0</lower>
+        <upper>1</upper>
+      </boundaries>
+    </variable>
+    <variable name='x2' >
+      <distribution  >x2_distrib</distribution>
+      <boundaries type="value">
+        <lower>-5</lower>
+        <upper>7</upper>
+      </boundaries>
+    </variable>
+    <variable name='x3'>
+      <distribution  >x2_distrib</distribution>
+      <boundaries type="CDF">
+        <lower>0.1</lower>
+        <upper>0.9</upper>
+      </boundaries>
+    </variable>
+  </ResponseSurfaceDesign>
+  <MonteCarlo name='MC'>
+    <sampler_init><limit>5000</limit></sampler_init>
+    <variable name='x1' >
+      <distribution>x1_distrib</distribution>
+    </variable>
+    <variable name='x2' >
+      <distribution>x2_distrib</distribution>
+    </variable>
+    <variable name='x3' >
+      <distribution>x3_distrib</distribution>
+    </variable>
+  </MonteCarlo>
+</Samplers>
+
+
+<DataObjects>
+  <TimePointSet name='outStratified'>
+      <Input>x1,x2,x3</Input>
+      <Output>y1,y2,y3,y4,y5</Output>
+  </TimePointSet>
+  <TimePointSet name='outGrid'>
+      <Input>x1,x2,x3</Input>
+      <Output>y1,y2,y3,y4,y5</Output>
+  </TimePointSet>
+  <TimePointSet name='outMC'>
+      <Input>x1,x2,x3</Input>
+      <Output>y1,y2,y3,y4,y5</Output>
+  </TimePointSet>
+  <TimePointSet name='outDoE'>
+      <Input>x1,x2,x3</Input>
+      <Output>y1,y2,y3,y4,y5</Output>
+  </TimePointSet>
+  <TimePointSet name='dummy'>
+      <Input>x1,x2,x3</Input>
+      <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+</DataObjects>
+
+<Models>
+  <ExternalModel name='PythonModule' subType='' ModuleToLoad='/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/cristian-samplers/workshop_function' >
+    <variable>x1</variable>
+    <variable>x2</variable>
+    <variable>x3</variable>
+    <variable>y1</variable>
+    <variable>y2</variable>
+    <variable>y3</variable>
+    <variable>y4</variable>
+    <variable>y5</variable>
+  </ExternalModel>
+  <PostProcessor name="StatisticsOutput" subType='BasicStatistics'>
+    <what>all</what>
+    <parameters>x1,x2,x3,y1,y2,y3,y4</parameters>
+  </PostProcessor>
+</Models>
+
+<Steps>
+  <MultiRun name='runGrid' pauseAtEnd='True'>
+    <Input   class='DataObjects'      type='TimePointSet'         >dummy</Input>
+    <Model   class='Models'           type='ExternalModel'        >PythonModule</Model>
+    <Sampler class='Samplers'         type='Grid'                 >GridSampler</Sampler>
+    <Output  class='DataObjects'      type='TimePointSet'         >outGrid</Output>
+    <Output  class='OutStreamManager' type='Plot'                 >plotLocationGrid</Output>
+  </MultiRun>
+  <MultiRun name='runStratified' pauseAtEnd='True'>
+    <Input   class='DataObjects'      type='TimePointSet'         >dummy</Input>
+    <Model   class='Models'           type='ExternalModel'        >PythonModule</Model>
+    <Sampler class='Samplers'         type='LHS'                  >StratifiedSampler</Sampler>
+    <Output  class='DataObjects'      type='TimePointSet'         >outStratified</Output>
+    <Output  class='OutStreamManager' type='Plot'                 >plotLocationStratified</Output>
+    <Output  class='OutStreamManager' type='Plot'                 >plotLocationStratifiedY4</Output>
+  </MultiRun>
+  <MultiRun name='runDoE' pauseAtEnd='True'>
+    <Input   class='DataObjects'      type='TimePointSet'          >dummy</Input>
+    <Model   class='Models'           type='ExternalModel'         >PythonModule</Model>
+    <Sampler class='Samplers'         type='ResponseSurfaceDesign' >DoESampler</Sampler>
+    <Output  class='DataObjects'      type='TimePointSet'          >outDoE</Output>
+  </MultiRun>
+  <IOStep name='OutstreamDoE' pauseAtEnd='True'>
+    <Input   class='DataObjects'      type='TimePointSet'           >outDoE</Input>
+    <Output  class='OutStreamManager' type='Plot'                   >plotLocationDoE</Output>
+  </IOStep>
+  <MultiRun name='runMC'>
+    <Input   class='DataObjects'      type='TimePointSet'           >dummy</Input>
+    <Model   class='Models'           type='ExternalModel'          >PythonModule</Model>
+    <Sampler class='Samplers'         type='MonteCarlo'             >MC</Sampler>
+    <Output  class='DataObjects'      type='TimePointSet'           >outMC</Output>
+  </MultiRun>
+  <IOStep name='OutstreamMC' pauseAtEnd='True'>
+    <Input   class='DataObjects'      type='TimePointSet'           >outMC</Input>
+    <Output  class='OutStreamManager' type='Plot'                   >plotLocationMC</Output>
+    <Output  class='OutStreamManager' type='Print'                  >out_dump</Output>    
+  </IOStep>
+  <PostProcess name='PP'>
+    <Input    class='DataObjects'     type='TimePointSet'           >outMC</Input>
+    <Model    class='Models'          type='PostProcessor'          >StatisticsOutput</Model>
+    <Output   class='Files'           type=''                       >output_basicStatistics.csv</Output>
+  </PostProcess>
+ </Steps>
+
+
+<OutStreamManager>
+  <Print name='out_dump'>
+    <type>csv</type>
+    <source>outMC</source>
+  </Print>
+  <Plot name='plotLocationStratified' dim='3' overwrite='False'>
+    <plotSettings>
+       <plot>
+        <type>scatter</type>
+        <x>outStratified|Input|x1</x>
+        <y>outStratified|Input|x2</y>
+        <z>outStratified|Input|x3</z>
+      </plot>
+    </plotSettings>
+    <actions>
+      <how>screen</how>
+      <title>
+        <text>Location Stratified</text>
+      </title>
+    </actions>
+  </Plot>
+  <Plot name='plotLocationStratifiedY4' dim='3' overwrite='False'>
+    <plotSettings>
+       <plot>
+        <type>scatter</type>
+        <x>outStratified|Input|x1</x>
+        <y>outStratified|Input|x2</y>
+        <z>outStratified|Input|x3</z>
+        <colorMap>outStratified|Output|y4</colorMap>
+      </plot>
+    </plotSettings>
+    <actions>
+      <how>screen</how>
+      <title>
+        <text>Location Stratified Y4</text>
+      </title>
+    </actions>
+  </Plot>
+  <Plot name='plotLocationGrid' dim='3' overwrite='False'>
+    <plotSettings>
+       <plot>
+        <type>scatter</type>
+        <x>outGrid|Input|x1</x>
+        <y>outGrid|Input|x2</y>
+        <z>outGrid|Input|x3</z>
+      </plot>
+    </plotSettings>
+    <actions>
+      <how>screen</how>
+      <title>
+        <text>location Grid</text>
+      </title>
+    </actions>
+  </Plot>
+  <Plot name='plotLocationDoE' dim='3' overwrite='False'>
+    <plotSettings>
+       <plot>
+        <type>scatter</type>
+        <x>outDoE|Input|x1</x>
+        <y>outDoE|Input|x2</y>
+        <z>outDoE|Input|x3</z>
+      </plot>
+    </plotSettings>
+    <actions>
+      <how>screen</how>
+      <title>
+        <text>location DoE</text>
+      </title>
+    </actions>
+  </Plot>
+  <Plot name='plotLocationMC' dim='3' overwrite='False'>
+    <plotSettings>
+       <plot>
+        <type>scatter</type>
+        <x>outMC|Input|x1</x>
+        <y>outMC|Input|x2</y>
+        <z>outMC|Input|x3</z>
+      </plot>
+    </plotSettings>
+    <actions>
+      <how>screen</how>
+      <title>
+        <text>location MC</text>
+      </title>
+    </actions>
+  </Plot>
+</OutStreamManager>
+
+
+
+
+
+</Simulation>
+
+
+
