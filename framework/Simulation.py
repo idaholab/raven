@@ -139,6 +139,7 @@ def createAndRunQSUB(simulation):
 class MPISimulationMode(SimulationMode):
   def __init__(self,simulation):
     self.__simulation = simulation
+    self.messageHandler = simulation.messageHandler
     #Figure out if we are in PBS
     self.__in_pbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False

@@ -2422,7 +2422,8 @@ class SparseGridCollocation(Grid):
     '''
     found=False
     while not found:
-      pt,weight = self.sparseGrid[self.counter-1]
+      try: pt,weight = self.sparseGrid[self.counter-1]
+      except IndexError: raise utils.NoMoreSamplesNeeded
       if pt in self.existing:
         self.counter+=1
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
@@ -2458,6 +2459,7 @@ class Sobol(SparseGridCollocation):
     self.ROM            = None  #pointer to sobol ROM
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
+    self.existing       = []
 
     self._addAssObject('ROM','1')
 
@@ -2543,9 +2545,7 @@ class Sobol(SparseGridCollocation):
     #if restart, figure out what runs we need; else, all of them
     if self.restartData != None:
       inps = self.restartData.getInpParametersValues()
-      existing = zip(*list(v for v in inps.values()))
-    else:
-      existing=[]
+      self.existing = zip(*list(v for v in inps.values()))
     #make combined sparse grids
     self.references={}
     for var,dist in self.distDict.items():
@@ -2556,7 +2556,8 @@ class Sobol(SparseGridCollocation):
     newpt = np.zeros(len(self.distDict))
     for v,var in enumerate(self.distDict.keys()):
       newpt[v] = self.references[var]
-    if tuple(newpt) not in existing: self.pointsToRun.append(tuple(newpt))
+    #if tuple(newpt) not in existing:
+    self.pointsToRun.append(tuple(newpt))
     #now do the rest
     for combo,rom in self.ROMs.items():
       SG = rom.sparseGrid
@@ -2568,9 +2569,12 @@ class Sobol(SparseGridCollocation):
           if var in combo: newpt[v] = pt[combo.index(var)]
           else: newpt[v] = self.references[var]
         newpt=tuple(newpt)
-        if newpt not in self.pointsToRun and newpt not in existing: self.pointsToRun.append(newpt)
+        if newpt not in self.pointsToRun:# and newpt not in existing:
+          self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
-    self.raiseAMessage('Needed points: %i' %self.limit)
+    self.raiseADebug('Needed points: %i' %self.limit)
+    self.raiseADebug('From Restart : %i' %len(self.existing))
+    self.raiseADebug('Still Needed : %i' %(self.limit-len(self.existing)))
     initdict={'ROMs':self.ROMs,
               'SG':self.SQs,
               'dists':self.distDict,
@@ -2580,16 +2584,26 @@ class Sobol(SparseGridCollocation):
     self.ROM.SupervisedEngine.values()[0].initialize(initdict)
 
   def localGenerateInput(self,model,myInput):
-    '''Provide the next point in the sparse grid.  Note that this sampler cannot assign probabilty
+    '''
+       Provide the next point in the sparse grid.  Note that this sampler cannot assign probabilty
        weights to individual points, as several sub-ROMs will use them with different weights.
-       See base class.'''
-    pt = self.pointsToRun[self.counter-1]
-    for v,varName in enumerate(self.distDict.keys()):
-      self.values[varName] = pt[v]
-      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    #self.inputInfo['ProbabilityWeight'] =  N/A
-    self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
+       See base class.
+    '''
+    found=False
+    while not found:
+      try: pt = self.pointsToRun[self.counter-1]
+      except IndexError: raise utils.NoMoreSamplesNeeded
+      if pt in self.existing:
+        self.counter+=1
+        if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
+        continue
+      else: found=True
+      for v,varName in enumerate(self.distDict.keys()):
+        self.values[varName] = pt[v]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+      self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+      #self.inputInfo['ProbabilityWeight'] =  N/A
+      self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
 
 '''
  Interface Dictionary (factory) (private)
