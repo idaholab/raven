@@ -29,6 +29,8 @@ from Assembler import Assembler
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
+import scipy.optimize as optimization
+
 '''
   ***************************************
   *  SPECIALIZED PostProcessor CLASSES  *
@@ -937,7 +939,7 @@ class BasicStatistics(BasePostProcessor):
     else                         : currentInput = currentInp
     if type(currentInput) == dict:
       if 'targets' in currentInput.keys(): return
-    inputDict = {'targets':{},'metadata':{}}
+    inputDict = {'targets':{},'sampled':{},'calculated':{},'metadata':{}}
     try: inType = currentInput.type
     except:
       if type(currentInput) in [str,bytes,unicode]: inType = "file"
@@ -949,8 +951,12 @@ class BasicStatistics(BasePostProcessor):
     if inType == 'HDF5': pass # to be implemented
     if inType in ['TimePointSet']:
       for targetP in self.parameters['targets']:
-        if   targetP in currentInput.getParaKeys('input' ): inputDict['targets'][targetP] = currentInput.getParam('input' ,targetP)
-        elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
+        if   targetP in currentInput.getParaKeys('input' ):
+          inputDict['targets'][targetP] = currentInput.getParam('input' ,targetP)
+          inputDict['sampled'][targetP] = currentInput.getParam('input' ,targetP)
+        elif targetP in currentInput.getParaKeys('output'):
+          inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
+          inputDict['calculated'][targetP] = currentInput.getParam('output',targetP)
       inputDict['metadata'] = currentInput.getAllMetadata()
 #     # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
       if inputDict['metadata'].keys().count('SamplerType') > 0: pass
@@ -1099,11 +1105,11 @@ class BasicStatistics(BasePostProcessor):
       #sigma
       if what == 'sigma':
         for myIndex, targetP in enumerate(parameterSet):
-          outputDict[what][targetP] = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights))
+          outputDict[what][targetP] = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights))/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
       #variance
       if what == 'variance':
         for myIndex, targetP in enumerate(parameterSet):
-          outputDict[what][targetP] = np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
+          outputDict[what][targetP], sumW = np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights, returned=True)/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
       #coefficient of variation (sigma/mu)
       if what == 'variationCoefficient':
         for myIndex, targetP in enumerate(parameterSet):
@@ -1156,8 +1162,9 @@ class BasicStatistics(BasePostProcessor):
         variance  = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
           variance[myIndex] = np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
-        for myIndex in range(len(parameterSet)):
-          outputDict[what][myIndex] = covMatrix[myIndex,:]/variance
+        #for myIndex in range(len(parameterSet)):
+        for myIndex, targetP in enumerate(parameterSet):
+          outputDict[what][myIndex] = covMatrix[myIndex,:]/(variance[myIndex])
       #Normalizzate sensitivity matrix: linear regression slopes normalizited by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
         feat = np.zeros((len(Input['targets'].keys()),utils.first(Input['targets'].values()).size))
@@ -1176,54 +1183,54 @@ class BasicStatistics(BasePostProcessor):
       if key not in self.acceptedCalcParam: methodToTest.append(key)
     msg='\n'
     for targetP in parameterSet:
-      msg+='        *************'+'*'*len(targetP)+'***'
-      msg+='        * Variable * '+ targetP +'  *'
-      msg+='        *************'+'*'*len(targetP)+'***'
+      msg+='\n'+'        *************'+'*'*len(targetP)+'***'
+      msg+='\n'+'        * Variable * '+ targetP +'  *'
+      msg+='\n'+'        *************'+'*'*len(targetP)+'***'
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
-          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
-          msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *'
-          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='\n'+'               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='\n'+'               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *'
+          msg+='\n'+'               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
     maxLength = max(len(max(parameterSet, key=len))+5,16)
     if 'covariance' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*         Covariance        *'
-      msg+=' '*maxLength+'*****************************'
+      msg+='\n'+' '*maxLength+'*****************************'
+      msg+='\n'+' '*maxLength+'*         Covariance        *'
+      msg+='\n'+' '*maxLength+'*****************************'
 
-      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+='\n'+' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])
+        msg+='\n'+parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])
     if 'pearson' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*    Pearson/Correlation    *'
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+='\n'+' '*maxLength+'*****************************'
+      msg+='\n'+' '*maxLength+'*    Pearson/Correlation    *'
+      msg+='\n'+' '*maxLength+'*****************************'
+      msg+='\n'+' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])
+        msg+='\n'+parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])
     if 'sensitivity' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*        Sensitivity        *'
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+='\n'+' '*maxLength+'*****************************'
+      msg+='\n'+' '*maxLength+'*        Sensitivity        *'
+      msg+='\n'+' '*maxLength+'*****************************'
+      msg+='\n'+' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]])
+        msg+='\n'+parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]])
     if 'NormalizedSensitivity' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*   Normalized Sensitivity  *'
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+='\n'+' '*maxLength+'*****************************'
+      msg+='\n'+' '*maxLength+'*   Normalized Sensitivity  *'
+      msg+='\n'+' '*maxLength+'*****************************'
+      msg+='\n'+' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])
+        msg+='\n'+parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])
 
     if self.externalFunction:
-      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
-      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +'
-      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
+      msg+='\n'+' '*maxLength+'+++++++++++++++++++++++++++++'
+      msg+='\n'+' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +'
+      msg+='\n'+' '*maxLength+'+++++++++++++++++++++++++++++'
       for what in self.methodsToRun:
         if what not in self.acceptedCalcParam:
-          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
-          msg+='              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *'
-          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='\n'+'              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='\n'+'              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *'
+          msg+='\n'+'              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
     utils.raiseAMessage(self,msg)
     return outputDict
 
@@ -1240,7 +1247,7 @@ class BasicStatistics(BasePostProcessor):
       """
       X    = np.array(feature, ndmin=2, dtype=np.result_type(feature, np.float64))
       diff = np.zeros(feature.shape, dtype=np.result_type(feature, np.float64))
-      if weights != None: w = np.array(weights, ndmin=1, dtype=np.result_type(weights, np.float64))
+      if weights != None: w = np.array(weights, ndmin=1, dtype=np.float64)
       if X.shape[0] == 1: rowvar = 1
       if rowvar:
           N = X.shape[1]
