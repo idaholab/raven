@@ -58,51 +58,51 @@ def returnImportModuleString(obj,moduleOnly=False):
 
 def getPrintTagLenght(): return 25
 
-def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
+def UreturnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
 
-def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
+def UreturnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
 
-def raiseAnError(etype,obj,msg):
-  '''
-    Standardized error raising. Currently halts code.
-    @ In, etype, the error type to raise
-    @ In, obj, either a string or a class instance to determine the label for the error
-    @ In, msg, the error message to display
-    @ Out, None
-  '''
-  if type(obj) in [str,unicode]:
-    tag = obj
-  else:
-    try: obj.printTag
-    except AttributeError: tag = str(obj)
-    else: tag = str(obj.printTag)
-  raise etype(returnPrintTag(tag)+': '+returnPrintPostTag('ERROR')+' -> '+str(msg))
-
-def raiseAWarning(obj,msg,wtag='WARNING'):
-  '''
-    Standardized warning printing.
-    @ In, obj, either a string or a class instance to determine the label for the warning
-    @ In, msg, the warning message to display
-    @ In, wtag, optional, the type of warning to display (default "WARNING")
-    @ Out, None
-  '''
-  if type(obj) in [str,unicode]:
-    tag = obj
-  else:
-    try: obj.printTag
-    except AttributeError: tag = str(obj)
-    else: tag = str(obj.printTag)
-  print(returnPrintTag(tag)+': '+returnPrintPostTag(str(wtag))+' -> '+str(msg))
-
-def raiseAMessage(obj,msg,wtag='Message'):
-  '''
-    Standardized message printing.
-    @ In, obj, either a string or a class instance to determine the label for the message
-    @ In, msg, the message to display
-    @ In, wtag, optional, the type of warning to display (default "Message")
-    @ Out, None
-  '''
-  raiseAWarning(obj,msg,wtag)
+#def raiseAnError(etype,obj,msg):
+#  '''
+#    Standardized error raising. Currently halts code.
+#    @ In, etype, the error type to raise
+#    @ In, obj, either a string or a class instance to determine the label for the error
+#    @ In, msg, the error message to display
+#    @ Out, None
+#  '''
+#  if type(obj) in [str,unicode]:
+#    tag = obj
+#  else:
+#    try: obj.printTag
+#    except AttributeError: tag = str(obj)
+#    else: tag = str(obj.printTag)
+#  raise etype(UreturnPrintTag(tag)+': '+UreturnPrintPostTag('ERROR')+' -> '+str(msg))
+#
+#def raiseAWarning(obj,msg,wtag='WARNING'):
+#  '''
+#    Standardized warning printing.
+#    @ In, obj, either a string or a class instance to determine the label for the warning
+#    @ In, msg, the warning message to display
+#    @ In, wtag, optional, the type of warning to display (default "WARNING")
+#    @ Out, None
+#  '''
+#  if type(obj) in [str,unicode]:
+#    tag = obj
+#  else:
+#    try: obj.printTag
+#    except AttributeError: tag = str(obj)
+#    else: tag = str(obj.printTag)
+#  print(UreturnPrintTag(tag)+': '+UreturnPrintPostTag(str(wtag))+' -> '+str(msg))
+#
+#def raiseAMessage(obj,msg,wtag='Message'):
+#  '''
+#    Standardized message printing.
+#    @ In, obj, either a string or a class instance to determine the label for the message
+#    @ In, msg, the message to display
+#    @ In, wtag, optional, the type of warning to display (default "Message")
+#    @ Out, None
+#  '''
+#  raiseAWarning(obj,msg,wtag)
 
 def convertMultipleToBytes(sizeString):
   '''
@@ -114,15 +114,27 @@ def convertMultipleToBytes(sizeString):
   elif 'gb' in sizeString: return int(sizeString.replace("gb",""))*10**9
   else:
     try   : return int(sizeString)
-    except: raise IOError(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
+    except: raise IOError(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
 
 def stringsThatMeanTrue():
-  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish)'''
-  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','etiam', 'evet', 'dogru'])
+  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
+  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','etiam', 'evet', 'dogru', '1'])
 
 def stringsThatMeanFalse():
-  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish)'''
-  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis'])
+  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
+  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0'])
+
+def stringsThatMeanSilent():
+  '''return list of strings that indicate a verbosity of the lowest level (just errors). You linguists add what you wish.'''
+  return list(['0','silent','false','f','n','no','none'])
+
+def stringsThatMeanPartiallyVerbose():
+  '''return list of strings that indicate a verbosity of the medium level (errors and warnings). You linguists add what you wish.'''
+  return list(['1','quiet','some'])
+
+def stringsThatMeanVerbose():
+  '''return list of strings that indicate full verbosity (errors warnings, messages). You linguists add what you wish.'''
+  return list(['2','loud','true','t','y','yes','all'])
 
 def interpretBoolean(inarg):
   """
@@ -137,8 +149,8 @@ def interpretBoolean(inarg):
   elif type(inarg).__name__ in ['str','bytes','unicode']:
       if inarg.lower().strip() in stringsThatMeanTrue()   : return True
       elif inarg.lower().strip() in stringsThatMeanFalse(): return False
-      else                                                : raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
-  else: raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inarg).__name__)
+      else                                                : raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
+  else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inarg).__name__)
 
 
 def compare(s1,s2):
@@ -204,7 +216,7 @@ def convertDictToListOfLists(inputDict):
       if type(value) == dict: returnList[1].append(convertDictToListOfLists(value))
       else: returnList[1].append(value)
   else:
-    print(returnPrintTag('UTILS') + ': '+returnPrintPostTag('WARNING')+ ' -> in method "convertDictToListOfLists", inputDict is not a dictionary!')
+    print(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('WARNING')+ ' -> in method "convertDictToListOfLists", inputDict is not a dictionary!')
     returnList = None
   return returnList
 
@@ -243,7 +255,7 @@ def first(c):
   return next(iter(c))
 
 def importFromPath(filename, printImporting = True):
-    if printImporting: print(returnPrintTag('UTILS') + ': '+returnPrintPostTag('Message')+ '-> importing module '+ filename)
+    if printImporting: print(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '-> importing module '+ filename)
     import imp, os.path
     try:
       (path, name) = os.path.split(filename)
@@ -251,7 +263,7 @@ def importFromPath(filename, printImporting = True):
       (file, filename, data) = imp.find_module(name, [path])
       importedModule = imp.load_module(name, file, filename, data)
     except Exception as ae:
-      raise Exception(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ '-> importing module '+ filename + 'failed with error '+str(ae))
+      raise Exception(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + 'failed with error '+str(ae))
     return importedModule
 
 def index(a, x):
@@ -340,10 +352,10 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
         zi  = rbf(xig, yig)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
-        print(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
+        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
         zi = interpolateFunction(x,y,z,options)
-      else: raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
     if returnCoordinate: return xig,yig,zi
     else               : return zi
   else:
@@ -357,10 +369,10 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
         yi  = rbf(xi)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
-        print(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
+        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
         yi = interpolateFunction(x,y,options)
-      else: raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
     if returnCoordinate: return xi,yi
     else               : return yi
 
@@ -397,12 +409,12 @@ def find_crow(framework_dir):
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
         return
-    raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+pmoduleDirs)
+    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+pmoduleDirs)
 
 def add_path(absolutepath):
   """ Add absolutepath path is in the python path. """
   if not os.path.exists(absolutepath):
-    raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
+    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
   sys.path.append(absolutepath)
 
 def add_path_recursively(absoluteInitialPath):
