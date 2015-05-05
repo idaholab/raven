@@ -799,7 +799,8 @@ class Grid(Sampler):
     self.axisName             = []    # the name of each axis (variable)
     self.gridInfo             = {}    # {'name of the variable':('Type','Construction',[values])}  --> Type: Probability/Value; Construction:Custom/Equal
     self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
-    self.restartData          = None  # presampled points to restart from
+    self.restartData          = None  # presampled points to restart from (DataObject)
+    self.existing             = []    # restart points
 
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
 
@@ -873,11 +874,11 @@ class Grid(Sampler):
             valueMin = valueMin-2.0*np.finfo(valueMin).eps
         self.gridInfo[varName][2][indexMax], self.gridInfo[varName][2][indexMin] = valueMax, valueMin
 
-  def localGenerateInput(self,model,myInput):
     if self.restartData:
       inps = self.restartData.getInpParametersValues()
-      existing = zip(*list(v for v in inps.values()))
-    else: existing = []
+      self.existing = zip(*list(v for v in inps.values()))
+
+  def localGenerateInput(self,model,myInput):
 
     #remainder = self.counter - 1 #used to keep track as we get to smaller strides
     #stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
@@ -921,13 +922,13 @@ class Grid(Sampler):
             self.values[key] = self.gridInfo[varName][2][self.gridCoordinate[i]]
           else: self.raiseAnError(IOError,gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
       newpoint = tuple(self.values[key] for key in self.values.keys())
-      if newpoint not in existing:
+      if newpoint not in self.existing:
         found=True
-        self.raiseAMessage('New point found: '+str(newpoint))
+        self.raiseADebug('New point found: '+str(newpoint))
       else:
         self.counter+=1
         if self.counter>=self.limit: raise utils.NoMoreSamplesNeeded
-        self.raiseAMessage('Existing point: '+str(newpoint))
+        self.raiseADebug('Existing point: '+str(newpoint))
 
     # duplicate code
     remainder = self.counter - 1 #used to keep track as we get to smaller strides
@@ -2274,6 +2275,7 @@ class SparseGridCollocation(Grid):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.restartData    = None  #timepointset with possible points to restart from
+    self.existing       = []    #restart data points
 
     self._addAssObject('ROM','1')
 
@@ -2334,21 +2336,15 @@ class SparseGridCollocation(Grid):
     #if restart, figure out what runs we need; else, all of them
     if self.restartData != None:
       inps = self.restartData.getInpParametersValues()
-      existing = zip(*list(v for v in inps.values()))
+      self.existing = zip(*list(v for v in inps.values()))
       key = inps.keys()
       if not key==self.distDict.keys(): self.sparseGrid._remap(key)
       if not key==self.distDict.keys(): self.raiseAnError(ValueError,'Restart vars do not match sparse grid vars!')
-    else:
-      existing=[]
-    self.neededPoints=[]
-    for p in range(len(self.sparseGrid)):
-      pt,wt = self.sparseGrid[p]
-      if pt not in existing:
-        self.neededPoints.append((pt,wt))
 
-    self.limit=len(self.neededPoints)
+    self.limit=len(self.sparseGrid)
     self.raiseADebug('Size of Sparse Grid  :'+str(self.limit))
-    self.raiseADebug('Number of Runs Needed :'+str(self.limit))
+    self.raiseADebug('Number from Restart :'+str(len(self.existing)))
+    self.raiseADebug('Number of Runs Needed :'+str(self.limit-len(self.existing)))
     self.raiseADebug('Finished sampler generation.')
 
     for SVL in self.ROM.SupervisedEngine.values():
@@ -2424,13 +2420,21 @@ class SparseGridCollocation(Grid):
       @ In, myInput, list of oritinal inputs
       @ Out, None
     '''
-    pt,weight = self.neededPoints[self.counter-1]
-    for v,varName in enumerate(self.sparseGrid.varNames):
-      self.values[varName] = pt[v]
-      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight'] = weight
-    self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
+    found=False
+    while not found:
+      pt,weight = self.sparseGrid[self.counter-1]
+      if pt in self.existing:
+        self.counter+=1
+        if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
+        continue
+      else:
+        found=True
+        for v,varName in enumerate(self.sparseGrid.varNames):
+          self.values[varName] = pt[v]
+          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+        self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+        self.inputInfo['ProbabilityWeight'] = weight
+        self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 
 class Sobol(SparseGridCollocation):
   def __init__(self):
@@ -2574,7 +2578,6 @@ class Sobol(SparseGridCollocation):
               'polys':self.polyDict,
               'refs':self.references}
     self.ROM.SupervisedEngine.values()[0].initialize(initdict)
-
 
   def localGenerateInput(self,model,myInput):
     '''Provide the next point in the sparse grid.  Note that this sampler cannot assign probabilty
