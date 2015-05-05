@@ -687,9 +687,9 @@ class ComparisonStatistics(BasePostProcessor):
             dataPairs.append((key,value))
         extraCsv = open(newFileName,"w")
         extraCsv.write(",".join(['"'+str(x[0])+'"' for x in dataPairs]))
-        extraCsv.write("\n")
+        extraCsv.write(os.linesep)
         extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
-        extraCsv.write("\n")
+        extraCsv.write(os.linesep)
         extraCsv.close()
       utils.printCsv(csv)
 
@@ -821,42 +821,42 @@ class PrintCSV(BasePostProcessor):
         with open(csvfilen, 'wb') as csvfile, open(addfile, 'wb') as addcsvfile:
           #  Add history to the csv file
           np.savetxt(csvfile, histories[key][0], delimiter=",",header=utils.toString(headers))
-          csvfile.write(b' \n')
+          csvfile.write(os.linesep)
           #  process the attributes in a different csv file (different kind of informations)
           #  Add metadata to additional info csv file
-          addcsvfile.write(b'# History Metadata, \n')
-          addcsvfile.write(b'# ______________________________,' + b'_'*len(key)+b','+b'\n')
-          addcsvfile.write(b'#number of parameters,\n')
-          addcsvfile.write(utils.toBytes(str(attributes['n_params']))+b',\n')
-          addcsvfile.write(b'#parameters,\n')
-          addcsvfile.write(headers+b'\n')
-          addcsvfile.write(b'#parent_id,\n')
-          addcsvfile.write(utils.toBytes(attributes['parent_id'])+b'\n')
-          addcsvfile.write(b'#start time,\n')
-          addcsvfile.write(utils.toBytes(str(attributes['start_time']))+b'\n')
-          addcsvfile.write(b'#end time,\n')
-          addcsvfile.write(utils.toBytes(str(attributes['end_time']))+b'\n')
-          addcsvfile.write(b'#number of time-steps,\n')
-          addcsvfile.write(utils.toBytes(str(attributes['n_ts']))+b'\n')
+          addcsvfile.write(b'# History Metadata, ' + os.linesep)
+          addcsvfile.write(b'# ______________________________,' + b'_'*len(key)+b','+os.linesep)
+          addcsvfile.write(b'#number of parameters,' + os.linesep)
+          addcsvfile.write(utils.toBytes(str(attributes['n_params']))+b','+os.linesep)
+          addcsvfile.write(b'#parameters,' + os.linesep)
+          addcsvfile.write(headers+os.linesep)
+          addcsvfile.write(b'#parent_id,' + os.linesep)
+          addcsvfile.write(utils.toBytes(attributes['parent_id'])+os.linesep)
+          addcsvfile.write(b'#start time,' + os.linesep)
+          addcsvfile.write(utils.toBytes(str(attributes['start_time']))+os.linesep)
+          addcsvfile.write(b'#end time,' + os.linesep)
+          addcsvfile.write(utils.toBytes(str(attributes['end_time']))+os.linesep)
+          addcsvfile.write(b'#number of time-steps,' + os.linesep)
+          addcsvfile.write(utils.toBytes(str(attributes['n_ts']))+os.linesep)
           # remove because not needed!!!!!!
 #             for cnt,item in enumerate(attributes['metadata']):
 #               if 'initiator_distribution' in item.keys():
 #                 init_dist = attributes['initiator_distribution']
-#                 addcsvfile.write(b'#number of branches in this history,\n')
-#                 addcsvfile.write(utils.toBytes(str(len(init_dist)))+b'\n')
+#                 addcsvfile.write(b'#number of branches in this history,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(len(init_dist)))+os.linesep)
 #                 string_work = ''
 #                 for i in range(len(init_dist)):
 #                   string_work_2 = ''
 #                   for j in init_dist[i]: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#initiator distributions,\n')
-#                 addcsvfile.write(utils.toBytes(string_work)+b'\n')
+#                 addcsvfile.write(b'#initiator distributions,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(string_work)+os.linesep)
 #               if 'end_timestep' in item.keys():
 #                 string_work = ''
 #                 end_ts = attributes['end_timestep']
 #                 for i in xrange(len(end_ts)): string_work = string_work + str(end_ts[i]) + ','
-#                 addcsvfile.write('#end time step,\n')
-#                 addcsvfile.write(str(string_work)+'\n')
+#                 addcsvfile.write('#end time step,' + os.linesep)
+#                 addcsvfile.write(str(string_work)+os.linesep)
 #               if 'branch_changed_param' in attributes['metadata'][-1].keys():
 #                 string_work = ''
 #                 branch_changed_param = attributes['branch_changed_param']
@@ -866,8 +866,8 @@ class PrintCSV(BasePostProcessor):
 #                     if not j: string_work_2 = string_work_2 + 'None' + ' '
 #                     else: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#changed parameters,\n')
-#                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
+#                 addcsvfile.write(b'#changed parameters,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
 #               if 'branch_changed_param_value' in attributes['metadata'][-1].keys():
 #                 string_work = ''
 #                 branch_changed_param_value = attributes['branch_changed_param_value']
@@ -877,8 +877,8 @@ class PrintCSV(BasePostProcessor):
 #                     if not j: string_work_2 = string_work_2 + 'None' + ' '
 #                     else: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#changed parameters values,\n')
-#                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
+#                 addcsvfile.write(b'#changed parameters values,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
 #               if 'conditional_prb' in attributes['metadata'][-1].keys():
 #                 string_work = ''
 #                 cond_pbs = attributes['conditional_prb']
@@ -888,8 +888,8 @@ class PrintCSV(BasePostProcessor):
 #                     if not j: string_work_2 = string_work_2 + 'None' + ' '
 #                     else: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#conditional probability,\n')
-#                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
+#                 addcsvfile.write(b'#conditional probability,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
 #               if 'PbThreshold' in attributes['metadata'][-1].keys():
 #                 string_work = ''
 #                 pb_thresholds = attributes['PbThreshold']
@@ -899,9 +899,9 @@ class PrintCSV(BasePostProcessor):
 #                     if not j: string_work_2 = string_work_2 + 'None' + ' '
 #                     else: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#Probability threshold,\n')
-#                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
-          addcsvfile.write(b' \n')
+#                 addcsvfile.write(b'#Probability threshold,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
+          addcsvfile.write(os.linesep)
     else: self.raiseAnError(NotImplementedError,'for input type ' + self.inObj.type + ' not yet implemented.')
 
   def run(self, Input): # inObj,workingDir=None):
@@ -996,34 +996,34 @@ class BasicStatistics(BasePostProcessor):
       self.raiseADebug("workingDir",self.__workingDir+" output "+str(output.split('.')))
       self.raiseADebug('BasicStatistics postprocessor: dumping output in file named ' + basicStatFilename)
       with open(basicStatFilename, 'wb') as basicStatdump:
-        basicStatdump.write('BasicStatistics '+separator+str(self.name)+'\n')
-        basicStatdump.write('----------------'+separator+'-'*len(str(self.name))+'\n')
+        basicStatdump.write('BasicStatistics '+separator+str(self.name)+os.linesep)
+        basicStatdump.write('----------------'+separator+'-'*len(str(self.name))+os.linesep)
         for targetP in parameterSet:
           self.raiseADebug('BasicStatistics postprocessor: writing variable '+ targetP)
-          basicStatdump.write('Variable'+ separator + targetP +'\n')
-          basicStatdump.write('--------'+ separator +'-'*len(targetP)+'\n')
+          basicStatdump.write('Variable'+ separator + targetP +os.linesep)
+          basicStatdump.write('--------'+ separator +'-'*len(targetP)+os.linesep)
           for what in outputDict.keys():
             if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
               self.raiseADebug('BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
-              basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+'\n')
+              basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+os.linesep)
         maxLength = max(len(max(parameterSet, key=len))+5,16)
         for what in outputDict.keys():
           if what in ['covariance','pearson','NormalizedSensitivity','sensitivity']:
             self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix '+ what )
-            basicStatdump.write(what+' \n')
-            if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])+'\n')
-            else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in parameterSet])+'\n')
+            basicStatdump.write(what+os.linesep)
+            if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])+os.linesep)
+            else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in parameterSet])+os.linesep)
             for index in range(len(parameterSet)):
-              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+'\n')
-              else                       : basicStatdump.write(parameterSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+'\n')
+              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+os.linesep)
+              else                       : basicStatdump.write(parameterSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+os.linesep)
         if self.externalFunction:
           self.raiseADebug('BasicStatistics postprocessor: writing External Function results')
-          basicStatdump.write('\n' +'EXT FUNCTION \n')
-          basicStatdump.write('------------ \n')
+          basicStatdump.write(os.linesep +'EXT FUNCTION '+os.linesep)
+          basicStatdump.write('------------'+os.linesep)
           for what in self.methodsToRun:
             if what not in self.acceptedCalcParam:
               self.raiseADebug('BasicStatistics postprocessor: writing External Function parameter '+ what )
-              basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+'\n')
+              basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+os.linesep)
     elif output.type == 'DataObjects':
       self.raiseADebug('BasicStatistics postprocessor: dumping output in data object named ' + output.name)
       for what in outputDict.keys():
@@ -1167,56 +1167,56 @@ class BasicStatistics(BasePostProcessor):
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
-    msg='\n'
+    msg=os.linesep
     for targetP in parameterSet:
-      msg+='        *************'+'*'*len(targetP)+'***'
-      msg+='        * Variable * '+ targetP +'  *'
-      msg+='        *************'+'*'*len(targetP)+'***'
+      msg+='        *************'+'*'*len(targetP)+'***' + os.linesep
+      msg+='        * Variable * '+ targetP +'  *' + os.linesep
+      msg+='        *************'+'*'*len(targetP)+'***' + os.linesep
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
-          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
-          msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *'
-          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
+          msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *' + os.linesep
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
     maxLength = max(len(max(parameterSet, key=len))+5,16)
     if 'covariance' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*         Covariance        *'
-      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+'*         Covariance        *' + os.linesep
+      msg+=' '*maxLength+'*****************************' + os.linesep
 
       msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])+os.linesep
     if 'pearson' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*    Pearson/Correlation    *'
-      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+'*    Pearson/Correlation    *' + os.linesep
+      msg+=' '*maxLength+'*****************************' + os.linesep
       msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])+os.linesep
     if 'sensitivity' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*        Sensitivity        *'
-      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+'*        Sensitivity        *' + os.linesep
+      msg+=' '*maxLength+'*****************************' + os.linesep
       msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]])+os.linesep
     if 'NormalizedSensitivity' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*   Normalized Sensitivity  *'
-      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+'*   Normalized Sensitivity  *' + os.linesep
+      msg+=' '*maxLength+'*****************************' + os.linesep
       msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])+os.linesep
 
     if self.externalFunction:
-      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
-      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +'
-      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'+os.linesep
+      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +'+os.linesep
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'+os.linesep
       for what in self.methodsToRun:
         if what not in self.acceptedCalcParam:
-          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
-          msg+='              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *'
-          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
+          msg+='              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *' + os.linesep
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
     self.raiseADebug(msg)
     return outputDict
 
