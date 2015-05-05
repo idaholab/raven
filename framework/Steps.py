@@ -150,8 +150,8 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     '''This method is intended for performing actions at the end of a step'''
     if self.pauseEndStep:
       for i in range(len(inDictionary['Output'])):
-        if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
-          if inDictionary['Output'][i].type in ['OutStreamPlot']: inDictionary['Output'][i].endInstructions('interactive')
+        #if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
+        if inDictionary['Output'][i].type in ['OutStreamPlot']: inDictionary['Output'][i].endInstructions('interactive')
 
   def takeAstep(self,inDictionary):
     '''
@@ -208,10 +208,10 @@ class SingleRun(Step):
     self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
-      if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
-        if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
-        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
-        self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
+      #if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
+      if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
+      elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
+      self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
 
   def _localTakeAstepRun(self,inDictionary):
     '''main driver for a step'''
@@ -226,10 +226,10 @@ class SingleRun(Step):
         if finishedJob.getReturnCode() == 0:
           # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
           for output in outputs:
-            if type(output).__name__ not in ['str','bytes','unicode']:
-              if output.type not in ['OutStreamPlot','OutStreamPrint']: model.collectOutput(finishedJob,output)
-              elif output.type in   ['OutStreamPlot','OutStreamPrint']: output.addOutput()
-            else: model.collectOutput(finishedJob,output)
+            #if type(output).__name__ not in ['str','bytes','unicode']:
+            if output.type not in ['OutStreamPlot','OutStreamPrint']: model.collectOutput(finishedJob,output)
+            elif output.type in   ['OutStreamPlot','OutStreamPrint']: output.addOutput()
+            #else: model.collectOutput(finishedJob,output)
         else:
           self.raiseADebug('the failed jobs are tracked in the JobHandler... we can retrieve and treat them separately. Andrea')
           self.raiseADebug('a job failed... call the handler for this situation')
@@ -477,33 +477,28 @@ class IOStep(Step):
     #determine if this is a DATAS->HDF5, HDF5->DATAS or both.
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
-      if type(inDictionary['Input'][i]).__name__ == 'HDF5':
-          if isinstance(outputs[i],Data):
-            self.actionType.append('HDF5-dataObjects')
-          else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
+      if inDictionary['Input'][i].type == 'HDF5':
+        if isinstance(outputs[i],Data): self.actionType.append('HDF5-dataObjects')
+        else: utils.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
       elif  isinstance(inDictionary['Input'][i],Data):
-          if type(outputs[i]).__name__ == 'HDF5':
-            self.actionType.append('dataObjects-HDF5')
-          else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a Datas. Got ' + inDictionary['Output'][i].type)
+        if outputs[i].type == 'HDF5': self.actionType.append('dataObjects-HDF5')
+        else: utils.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a DataObjects. Got ' + inDictionary['Output'][i].type)
       elif isinstance(inDictionary['Input'][i],Models.ROM):
-          if type(outputs[i]).__name__ in ['str','bytes','unicode']:
-            self.actionType.append('ROM-FILES')
-          else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A Files as Output only, when the Input is a ROM. Got ' + inDictionary['Output'][i].type)
-      elif type(inDictionary['Input'][i]).__name__ in ['str','bytes','unicode']:
-         if isinstance(outputs[i],Models.ROM):
-            self.actionType.append('FILES-ROM')
-         else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
-
-      else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
+        if outputs[i].type == 'FileObject': self.actionType.append('ROM-FILES')
+        else: utils.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts A Files as Output only, when the Input is a ROM. Got ' + inDictionary['Output'][i].type)
+      elif inDictionary['Input'][i].type == 'FileObject':
+        if isinstance(outputs[i],Models.ROM): self.actionType.append('FILES-ROM')
+        else: utils.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
+      else: utils.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
 
     #Initialize all the HDF5 outputs.
     for i in range(len(outputs)):
-      if type(outputs[i]).__name__ not in ['str','bytes','unicode']:
-        if 'HDF5' in inDictionary['Output'][i].type:
-          if outputs[i].name not in databases:
-            databases.add(outputs[i].name)
-            outputs[i].initialize(self.name)
-            self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(outputs[i].type,outputs[i].name))
+      #if type(outputs[i]).__name__ not in ['str','bytes','unicode']:
+      if 'HDF5' in inDictionary['Output'][i].type:
+        if outputs[i].name not in databases:
+          databases.add(outputs[i].name)
+          outputs[i].initialize(self.name)
+          self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(outputs[i].type,outputs[i].name))
 
     #if have a fromDirectory and are a dataObjects-*, need to load data
     if self.fromDirectory:
@@ -541,7 +536,7 @@ class IOStep(Step):
       else:
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
     for output in inDictionary['Output']:
-      if type(output).__name__ in ['OutStreamPrint','OutStreamPlot']:output.addOutput()
+      if output.type in ['OutStreamPrint','OutStreamPlot']: output.addOutput()
 
   def _localAddInitParams(self,tempDict):
     return tempDict # no inputs

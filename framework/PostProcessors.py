@@ -687,9 +687,9 @@ class ComparisonStatistics(BasePostProcessor):
             dataPairs.append((key,value))
         extraCsv = open(newFileName,"w")
         extraCsv.write(",".join(['"'+str(x[0])+'"' for x in dataPairs]))
-        extraCsv.write("\n")
+        extraCsv.write(os.linesep)
         extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
-        extraCsv.write("\n")
+        extraCsv.write(os.linesep)
         extraCsv.close()
       utils.printCsv(csv)
 
@@ -821,42 +821,42 @@ class PrintCSV(BasePostProcessor):
         with open(csvfilen, 'wb') as csvfile, open(addfile, 'wb') as addcsvfile:
           #  Add history to the csv file
           np.savetxt(csvfile, histories[key][0], delimiter=",",header=utils.toString(headers))
-          csvfile.write(b' \n')
+          csvfile.write(os.linesep)
           #  process the attributes in a different csv file (different kind of informations)
           #  Add metadata to additional info csv file
-          addcsvfile.write(b'# History Metadata, \n')
-          addcsvfile.write(b'# ______________________________,' + b'_'*len(key)+b','+b'\n')
-          addcsvfile.write(b'#number of parameters,\n')
-          addcsvfile.write(utils.toBytes(str(attributes['n_params']))+b',\n')
-          addcsvfile.write(b'#parameters,\n')
-          addcsvfile.write(headers+b'\n')
-          addcsvfile.write(b'#parent_id,\n')
-          addcsvfile.write(utils.toBytes(attributes['parent_id'])+b'\n')
-          addcsvfile.write(b'#start time,\n')
-          addcsvfile.write(utils.toBytes(str(attributes['start_time']))+b'\n')
-          addcsvfile.write(b'#end time,\n')
-          addcsvfile.write(utils.toBytes(str(attributes['end_time']))+b'\n')
-          addcsvfile.write(b'#number of time-steps,\n')
-          addcsvfile.write(utils.toBytes(str(attributes['n_ts']))+b'\n')
+          addcsvfile.write(b'# History Metadata, ' + os.linesep)
+          addcsvfile.write(b'# ______________________________,' + b'_'*len(key)+b','+os.linesep)
+          addcsvfile.write(b'#number of parameters,' + os.linesep)
+          addcsvfile.write(utils.toBytes(str(attributes['n_params']))+b','+os.linesep)
+          addcsvfile.write(b'#parameters,' + os.linesep)
+          addcsvfile.write(headers+os.linesep)
+          addcsvfile.write(b'#parent_id,' + os.linesep)
+          addcsvfile.write(utils.toBytes(attributes['parent_id'])+os.linesep)
+          addcsvfile.write(b'#start time,' + os.linesep)
+          addcsvfile.write(utils.toBytes(str(attributes['start_time']))+os.linesep)
+          addcsvfile.write(b'#end time,' + os.linesep)
+          addcsvfile.write(utils.toBytes(str(attributes['end_time']))+os.linesep)
+          addcsvfile.write(b'#number of time-steps,' + os.linesep)
+          addcsvfile.write(utils.toBytes(str(attributes['n_ts']))+os.linesep)
           # remove because not needed!!!!!!
 #             for cnt,item in enumerate(attributes['metadata']):
 #               if 'initiator_distribution' in item.keys():
 #                 init_dist = attributes['initiator_distribution']
-#                 addcsvfile.write(b'#number of branches in this history,\n')
-#                 addcsvfile.write(utils.toBytes(str(len(init_dist)))+b'\n')
+#                 addcsvfile.write(b'#number of branches in this history,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(len(init_dist)))+os.linesep)
 #                 string_work = ''
 #                 for i in range(len(init_dist)):
 #                   string_work_2 = ''
 #                   for j in init_dist[i]: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#initiator distributions,\n')
-#                 addcsvfile.write(utils.toBytes(string_work)+b'\n')
+#                 addcsvfile.write(b'#initiator distributions,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(string_work)+os.linesep)
 #               if 'end_timestep' in item.keys():
 #                 string_work = ''
 #                 end_ts = attributes['end_timestep']
 #                 for i in xrange(len(end_ts)): string_work = string_work + str(end_ts[i]) + ','
-#                 addcsvfile.write('#end time step,\n')
-#                 addcsvfile.write(str(string_work)+'\n')
+#                 addcsvfile.write('#end time step,' + os.linesep)
+#                 addcsvfile.write(str(string_work)+os.linesep)
 #               if 'branch_changed_param' in attributes['metadata'][-1].keys():
 #                 string_work = ''
 #                 branch_changed_param = attributes['branch_changed_param']
@@ -866,8 +866,8 @@ class PrintCSV(BasePostProcessor):
 #                     if not j: string_work_2 = string_work_2 + 'None' + ' '
 #                     else: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#changed parameters,\n')
-#                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
+#                 addcsvfile.write(b'#changed parameters,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
 #               if 'branch_changed_param_value' in attributes['metadata'][-1].keys():
 #                 string_work = ''
 #                 branch_changed_param_value = attributes['branch_changed_param_value']
@@ -877,8 +877,8 @@ class PrintCSV(BasePostProcessor):
 #                     if not j: string_work_2 = string_work_2 + 'None' + ' '
 #                     else: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#changed parameters values,\n')
-#                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
+#                 addcsvfile.write(b'#changed parameters values,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
 #               if 'conditional_prb' in attributes['metadata'][-1].keys():
 #                 string_work = ''
 #                 cond_pbs = attributes['conditional_prb']
@@ -888,8 +888,8 @@ class PrintCSV(BasePostProcessor):
 #                     if not j: string_work_2 = string_work_2 + 'None' + ' '
 #                     else: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#conditional probability,\n')
-#                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
+#                 addcsvfile.write(b'#conditional probability,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
 #               if 'PbThreshold' in attributes['metadata'][-1].keys():
 #                 string_work = ''
 #                 pb_thresholds = attributes['PbThreshold']
@@ -899,9 +899,9 @@ class PrintCSV(BasePostProcessor):
 #                     if not j: string_work_2 = string_work_2 + 'None' + ' '
 #                     else: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#Probability threshold,\n')
-#                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
-          addcsvfile.write(b' \n')
+#                 addcsvfile.write(b'#Probability threshold,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
+          addcsvfile.write(os.linesep)
     else: self.raiseAnError(NotImplementedError,'for input type ' + self.inObj.type + ' not yet implemented.')
 
   def run(self, Input): # inObj,workingDir=None):
@@ -935,12 +935,11 @@ class BasicStatistics(BasePostProcessor):
     inputDict = {'targets':{},'metadata':{}}
     try: inType = currentInput.type
     except:
-      if type(currentInput) in [str,bytes,unicode]: inType = "file"
-      elif type(currentInput) in [list]: inType = "list"
-      else: self.raiseAnError(IOError,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
-    if inType not in ['file','HDF5','TimePointSet','list']: self.raiseAnError(IOError,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(inType) + '!!!!')
-    if inType == 'file':
-      if currentInput.endswith('csv'): pass
+      if type(currentInput).__name__ == 'list'    : inType = 'list'
+      else: self.raiseAnError(IOError,self,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
+    if inType not in ['FileObject','HDF5','TimePointSet','list']: self.raiseAnError(IOError,self,'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(inType) + '!!!!')
+    if inType == 'FileObject':
+      if currentInput.subtype == 'csv': pass
     if inType == 'HDF5': pass # to be implemented
     if inType in ['TimePointSet']:
       for targetP in self.parameters['targets']:
@@ -984,7 +983,7 @@ class BasicStatistics(BasePostProcessor):
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
-    if type(output) in [str,unicode,bytes]:
+    if output.type == 'FileObject':
       availextens = ['csv','txt']
       outputextension = output.split('.')[-1].lower()
       if outputextension not in availextens:
@@ -997,34 +996,34 @@ class BasicStatistics(BasePostProcessor):
       self.raiseADebug("workingDir",self.__workingDir+" output "+str(output.split('.')))
       self.raiseADebug('BasicStatistics postprocessor: dumping output in file named ' + basicStatFilename)
       with open(basicStatFilename, 'wb') as basicStatdump:
-        basicStatdump.write('BasicStatistics '+separator+str(self.name)+'\n')
-        basicStatdump.write('----------------'+separator+'-'*len(str(self.name))+'\n')
+        basicStatdump.write('BasicStatistics '+separator+str(self.name)+os.linesep)
+        basicStatdump.write('----------------'+separator+'-'*len(str(self.name))+os.linesep)
         for targetP in parameterSet:
           self.raiseADebug('BasicStatistics postprocessor: writing variable '+ targetP)
-          basicStatdump.write('Variable'+ separator + targetP +'\n')
-          basicStatdump.write('--------'+ separator +'-'*len(targetP)+'\n')
+          basicStatdump.write('Variable'+ separator + targetP +os.linesep)
+          basicStatdump.write('--------'+ separator +'-'*len(targetP)+os.linesep)
           for what in outputDict.keys():
             if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
               self.raiseADebug('BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
-              basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+'\n')
+              basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+os.linesep)
         maxLength = max(len(max(parameterSet, key=len))+5,16)
         for what in outputDict.keys():
           if what in ['covariance','pearson','NormalizedSensitivity','sensitivity']:
             self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix '+ what )
-            basicStatdump.write(what+' \n')
-            if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])+'\n')
-            else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in parameterSet])+'\n')
+            basicStatdump.write(what+os.linesep)
+            if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])+os.linesep)
+            else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in parameterSet])+os.linesep)
             for index in range(len(parameterSet)):
-              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+'\n')
-              else                       : basicStatdump.write(parameterSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+'\n')
+              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+os.linesep)
+              else                       : basicStatdump.write(parameterSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+os.linesep)
         if self.externalFunction:
           self.raiseADebug('BasicStatistics postprocessor: writing External Function results')
-          basicStatdump.write('\n' +'EXT FUNCTION \n')
-          basicStatdump.write('------------ \n')
+          basicStatdump.write(os.linesep +'EXT FUNCTION '+os.linesep)
+          basicStatdump.write('------------'+os.linesep)
           for what in self.methodsToRun:
             if what not in self.acceptedCalcParam:
               self.raiseADebug('BasicStatistics postprocessor: writing External Function parameter '+ what )
-              basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+'\n')
+              basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+os.linesep)
     elif output.type == 'DataObjects':
       self.raiseADebug('BasicStatistics postprocessor: dumping output in data object named ' + output.name)
       for what in outputDict.keys():
@@ -1168,56 +1167,56 @@ class BasicStatistics(BasePostProcessor):
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
-    msg='\n'
+    msg=os.linesep
     for targetP in parameterSet:
-      msg+='        *************'+'*'*len(targetP)+'***'
-      msg+='        * Variable * '+ targetP +'  *'
-      msg+='        *************'+'*'*len(targetP)+'***'
+      msg+='        *************'+'*'*len(targetP)+'***' + os.linesep
+      msg+='        * Variable * '+ targetP +'  *' + os.linesep
+      msg+='        *************'+'*'*len(targetP)+'***' + os.linesep
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
-          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
-          msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *'
-          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
+          msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *' + os.linesep
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
     maxLength = max(len(max(parameterSet, key=len))+5,16)
     if 'covariance' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*         Covariance        *'
-      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+'*         Covariance        *' + os.linesep
+      msg+=' '*maxLength+'*****************************' + os.linesep
 
       msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])+os.linesep
     if 'pearson' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*    Pearson/Correlation    *'
-      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+'*    Pearson/Correlation    *' + os.linesep
+      msg+=' '*maxLength+'*****************************' + os.linesep
       msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])+os.linesep
     if 'sensitivity' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*        Sensitivity        *'
-      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+'*        Sensitivity        *' + os.linesep
+      msg+=' '*maxLength+'*****************************' + os.linesep
       msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]])+os.linesep
     if 'NormalizedSensitivity' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*   Normalized Sensitivity  *'
-      msg+=' '*maxLength+'*****************************'
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+'*   Normalized Sensitivity  *' + os.linesep
+      msg+=' '*maxLength+'*****************************' + os.linesep
       msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])+os.linesep
 
     if self.externalFunction:
-      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
-      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +'
-      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'+os.linesep
+      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +'+os.linesep
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'+os.linesep
       for what in self.methodsToRun:
         if what not in self.acceptedCalcParam:
-          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
-          msg+='              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *'
-          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
+          msg+='              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *' + os.linesep
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
     self.raiseADebug(msg)
     return outputDict
 
@@ -1355,12 +1354,10 @@ class LimitSurface(BasePostProcessor):
     if type(currentInp) == dict:
       if 'targets' in currentInput.keys(): return
     inputDict = {'targets':{},'metadata':{}}
-    try: inType = currentInput.type
-    except:
-      if type(currentInput) in [str,bytes,unicode]: inType = "file"
-      else: self.raiseAnError(IOError,'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
-    if inType == 'file':
-      if currentInput.endswith('csv'): pass
+    try   : inType = currentInput.type
+    except: self.raiseAnError(IOError,self,'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
+    if inType == 'FileObject':
+      if currentInput.subtype == 'csv': pass
     if inType == 'HDF5': pass # to be implemented
     if inType in ['TimePointSet']:
       for targetP in self.parameters['targets']:
@@ -1685,60 +1682,38 @@ class ExternalPostProcessor(BasePostProcessor):
     """
 
     if type(currentInp) == dict:
-      if 'targets' in currentInp.keys():
-        return
-
+      if 'targets' in currentInp.keys(): return
     currentInput = currentInp
-    if type(currentInput) != list:
-      currentInput = [currentInput]
-
+    if type(currentInput) != list: currentInput = [currentInput]
     inputDict = {'targets':{},'metadata':{}}
     metadata = []
     for item in currentInput:
       inType = None
-      if hasattr(item,'type'):
-        inType = item.type
-      elif type(item).__name__ in ["str","unicode","bytes"]:
-        inType = "file"
-      elif type(item) in [list]:
-        inType = "list"
-
-      if inType not in ['file','HDF5','TimePointSet','list']:
-        self.raiseAWarning('Input type ' + type(item).__name__ + ' not'
-                               + ' recognized. I am going to skip it.')
-      elif inType == 'file':
-        if currentInput.endswith('csv'):
-          # TODO
-          self.raiseAWarning('Input type ' + inType + ' not yet '
-                                 + 'implemented. I am going to skip it.')
+      if hasattr(item,'type')  : inType = item.type
+      elif type(item) in [list]: inType = "list"
+      if inType not in ['FileObject','HDF5','TimePointSet','list']: self.raiseAWarning(self,'Input type ' + type(item).__name__ + ' not' + ' recognized. I am going to skip it.')
+      elif inType == 'FileObject':
+        if currentInput.subtype == 'csv': self.raiseAWarning(self,'Input type ' + inType + ' not yet ' + 'implemented. I am going to skip it.')
       elif inType == 'HDF5':
         # TODO
-          self.raiseAWarning('Input type ' + inType + ' not yet '
-                                 + 'implemented. I am going to skip it.')
+          self.raiseAWarning(self,'Input type ' + inType + ' not yet '+ 'implemented. I am going to skip it.')
       elif inType == 'TimePointSet':
-        for param in item.getParaKeys('input'):
-          inputDict['targets'][param] = item.getParam('input', param)
-        for param in item.getParaKeys('output'):
-          inputDict['targets'][param] = item.getParam('output', param)
+        for param in item.getParaKeys('input') : inputDict['targets'][param] = item.getParam('input', param)
+        for param in item.getParaKeys('output'): inputDict['targets'][param] = item.getParam('output', param)
         metadata.append(item.getAllMetadata())
-
       #Not sure if we need it, but keep a copy of every inputs metadata
       inputDict['metadata'] = metadata
 
     if len(inputDict['targets'].keys()) == 0: self.raiseAnError(IOError,"No input variables have been found in the input objects!")
     for interface in self.externalInterfaces:
-      for method in self.methodsToRun:
+      for _ in self.methodsToRun:
         # The function should reference self and use the same variable names
         # as the xml file
         for param in interface.parameterNames():
           if param not in inputDict['targets']:
-            self.raiseAnError(IOError,'variable \"' + param + '\" unknown.'
-                                          + ' Please verify your external'
-                                          + ' script ('
-                                          + interface.functionFile
+            self.raiseAnError(IOError,self,'variable \"' + param + '\" unknown.'+' Please verify your external'+' script ('+interface.functionFile
                                           + ') variables match the data'
                                           + ' available in your dataset.')
-
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -1747,7 +1722,7 @@ class ExternalPostProcessor(BasePostProcessor):
     for key in self.assemblerDict.keys():
       if 'Function' in key:
         indice = 0
-        for value in self.assemblerDict[key]:
+        for _ in self.assemblerDict[key]:
           self.externalInterfaces.append(self.assemblerDict[key][indice][3])
           indice += 1
 

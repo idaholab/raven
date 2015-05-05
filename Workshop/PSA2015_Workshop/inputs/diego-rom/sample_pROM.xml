@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug="True">
+    
+<RunInfo>
+    <WorkingDir>/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/diego-rom/results</WorkingDir>
+    <Files>ROM3pk</Files>
+    <Sequence>extract_data3,pk3Load,RunPROM3,plot_data_3</Sequence>
+    <batchSize>1</batchSize>
+</RunInfo>
+
+
+<Distributions>
+    <Normal name='normal_trunc'>
+        <mean>0.5</mean>
+        <sigma>0.1</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>1</upperBound>
+    </Normal>
+    <Normal name='normal'>
+        <mean>2</mean>
+        <sigma>0.2</sigma>
+    </Normal>
+    <Uniform name='uniform'>
+        <upperBound>4</upperBound>
+        <lowerBound>1</lowerBound>
+    </Uniform>
+</Distributions>
+
+
+<Models>
+    <ROM name='pROM3' subType='SciKitLearn'>
+        <Features>x1,x2,x3</Features>
+        <Target>y3</Target>
+        <SKLtype>linear_model|LinearRegression</SKLtype>
+        <fit_intercept>True</fit_intercept>
+        <normalize>False</normalize>
+    </ROM>
+</Models>
+
+
+<Samplers>
+    <Grid name='Grid_ROM'>
+        <variable name='x1' >
+            <distribution>normal_trunc</distribution>
+            <grid type='value' lowerBound='0.0' construction='equal' steps='10'>0.1</grid>
+        </variable>
+        <variable name='x2' >
+            <distribution>normal</distribution>
+            <grid type='value' lowerBound='1.5' construction='equal' steps='10'>0.1</grid>
+        </variable>
+        <variable name='x3' >
+            <distribution>uniform</distribution>
+            <grid type='value' lowerBound='1.0' construction='equal' steps='10'>0.3</grid>
+        </variable>
+    </Grid>
+</Samplers>
+
+
+<Steps>
+    <IOStep name='extract_data3'>
+        <Input   class='Databases'   type='HDF5'         >out_db</Input>
+        <Output  class='DataObjects' type='TimePointSet' >outGRID_y3</Output>
+    </IOStep>
+    <IOStep name='pk3Load'>
+        <Input  class='Files'  type=''   >ROM3pk</Input>
+        <Output class='Models' type='ROM'>pROM3</Output>
+    </IOStep>
+    <MultiRun name='RunPROM3'>
+        <Input   class='DataObjects' type='TimePointSet' >Data1</Input>
+        <Model   class='Models'      type='ROM'          >pROM3</Model>
+        <Sampler class='Samplers'    type='Grid'         >Grid_ROM</Sampler>
+        <Output  class='DataObjects' type='TimePointSet' >outPROM_y3</Output>
+    </MultiRun>
+    <IOStep name='plot_data_3' pauseAtEnd='True'>
+        <Input   class='DataObjects'      type='TimePointSet' >outPROM_y3</Input>
+        <Input   class='DataObjects'      type='TimePointSet' >outGRID_y3</Input>
+        <Output  class='OutStreamManager' type='Plot'         >plot_ROM_RSy3</Output>
+        <Output  class='OutStreamManager' type='Plot'         >plot_RSy3</Output>
+    </IOStep>
+</Steps>
+
+
+<Databases>
+    <HDF5 name="out_db" filename="out_db.h5" directory="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/diego-rom/results/DataBaseStorage/"/>
+</Databases>
+
+
+<DataObjects>
+    <TimePointSet name='outGRID_y3'>
+        <Input>x1,x2,x3</Input>
+        <Output>y3</Output>
+    </TimePointSet>
+    <TimePointSet name = 'Data1'>
+        <Input>x1,x2,x3</Input>
+        <Output>OutputPlaceHolder</Output>
+    </TimePointSet>
+    <TimePointSet name='outPROM_y3'>
+        <Input>x1,x2,x3</Input>
+        <Output>y3</Output>
+    </TimePointSet>
+    <TimePointSet name='outGRID_y4'>
+        <Input>x1,x2,x3</Input>
+        <Output>y4</Output>
+    </TimePointSet>
+    <TimePointSet name='outROM_y4'>
+        <Input>x1,x2,x3</Input>
+        <Output>y4</Output>
+    </TimePointSet>
+</DataObjects>
+
+<OutStreamManager>
+    <Plot name='plot_ROM_RSy3' dim='3' overwrite='False'>
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>outPROM_y3|Input|x1</x>
+                <y>outPROM_y3|Input|x3</y>
+                <z>outPROM_y3|Output|y3</z>
+                <colorMap>outPROM_y3|Input|x2</colorMap>
+                <cmap>jet</cmap>
+            </plot>
+        </plotSettings>
+        <actions>
+            <how>screen</how>
+            <title>
+                <text>Sampled Input Space: ROM3</text>
+            </title>
+        </actions>
+    </Plot>
+    <Plot name='plot_RSy3' dim='3' overwrite='False'>
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>outGRID_y3|Input|x1</x>
+                <y>outGRID_y3|Input|x3</y>
+                <z>outGRID_y3|Output|y3</z>
+                <colorMap>outGRID_y3|Input|x2</colorMap>
+                <cmap>jet</cmap>
+            </plot>
+        </plotSettings>
+        <actions>
+            <how>screen</how>
+            <title>
+                <text>Sampled Input Space: Function</text>
+            </title>
+        </actions>
+    </Plot>
+</OutStreamManager>
+
+</Simulation>
+
+
+
