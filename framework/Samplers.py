@@ -40,51 +40,48 @@ import PostProcessors
 distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
-#Internal Submodules---------------------------------------------------------------------------------
-#Internal Submodules End--------------------------------------------------------------------------------
-
 class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   """
-  This is the base class for samplers
-  Samplers own the sampling strategy (Type) and they generate the
-  input values using the associate distribution. They do not have distributions inside!!!!
+    This is the base class for samplers
+    Samplers own the sampling strategy (Type) and they generate the
+    input values using the associate distribution. They do not have distributions inside!!!!
 
-  --Instance--
-  myInstance = Sampler()
-  myInstance.XMLread(xml.etree.ElementTree.Element)  This method generates all the information that will be permanent for the object during the simulation
+    --Instance--
+    myInstance = Sampler()
+    myInstance.XMLread(xml.etree.ElementTree.Element)  This method generates all the information that will be permanent for the object during the simulation
 
-  --usage--
-  myInstance = Sampler()
-  myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
-  myInstance.whatDoINeed()                           -see Assembler class-
-  myInstance.generateDistributions(dict)             Here the seed for the random engine is started and the distributions are supplied to the sampler and
-                                                     initialized. The method is called come from <Simulation> since it is the only one possess all the distributions.
-  myInstance.initialize()                            This method is called from the <Step> before the Step process start. In the base class it reset the counter to 0
-  myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the sampler is available to generate a new input
-  myInstance.generateInput(self,model,oldInput)      Requested from <Step> to generate a new input. Generate the new values and request to model to modify according the input and returning it back
+    --usage--
+    myInstance = Sampler()
+    myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
+    myInstance.whatDoINeed()                           -see Assembler class-
+    myInstance.generateDistributions(dict)             Here the seed for the random engine is started and the distributions are supplied to the sampler and
+                                                       initialized. The method is called come from <Simulation> since it is the only one possess all the distributions.
+    myInstance.initialize()                            This method is called from the <Step> before the Step process start. In the base class it reset the counter to 0
+    myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the sampler is available to generate a new input
+    myInstance.generateInput(self,model,oldInput)      Requested from <Step> to generate a new input. Generate the new values and request to model to modify according the input and returning it back
 
-  --Other inherited methods--
-  myInstance.whoAreYou()                            -see BaseType class-
-  myInstance.myInitializzationParams()              -see BaseType class-
-  myInstance.myCurrentSetting()                     -see BaseType class-
+    --Other inherited methods--
+    myInstance.whoAreYou()                            -see BaseType class-
+    myInstance.myInitializzationParams()              -see BaseType class-
+    myInstance.myCurrentSetting()                     -see BaseType class-
 
-  --Adding a new Sampler subclass--
-  <MyClass> should inherit at least from Sampler or from another step already presents
+    --Adding a new Sampler subclass--
+    <MyClass> should inherit at least from Sampler or from another step already presents
 
-  DO NOT OVERRIDE any of the class method that are not starting with self.local*
+    DO NOT OVERRIDE any of the class method that are not starting with self.local*
 
-  ADD your class to the dictionary __InterfaceDict at the end of the module
+    ADD your class to the dictionary __InterfaceDict at the end of the module
 
-  The following method overriding is MANDATORY:
-  self.localGenerateInput(model,oldInput)  : this is where the step happens, after this call the output is ready
+    The following method overriding is MANDATORY:
+    self.localGenerateInput(model,oldInput)  : this is where the step happens, after this call the output is ready
 
-  the following methods could be overrode:
-  self.localInputAndChecks(xmlNode)
-  self.localAddInitParams(tempDict)
-  self.localAddCurrentSetting(tempDict)
-  self.localInitialize()
-  self.localStillReady(ready)
-  self.localFinalizeActualSampling(jobObject,model,myInput)
+    the following methods could be overrode:
+    self.localInputAndChecks(xmlNode)
+    self.localAddInitParams(tempDict)
+    self.localAddCurrentSetting(tempDict)
+    self.localInitialize()
+    self.localStillReady(ready)
+    self.localFinalizeActualSampling(jobObject,model,myInput)
   """
 
   def __init__(self):
@@ -655,84 +652,81 @@ class AdaptiveSampler(Sampler):
     self.inputInfo['SamplerType'] = 'Adaptive'
     self.inputInfo['subGridTol' ] = self.subGridTol
 
-#This is the normal derivation to be used later on
-#      pbMapPointCoord = np.zeros((len(self.surfPoint),self.nVar*2+1,self.nVar))
-#      for pointIndex, point in enumerate(self.surfPoint):
-#        temp = copy.copy(point)
-#        pbMapPointCoord[pointIndex,2*self.nVar,:] = temp
-#        for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
-#          temp[varIndex] -= np.max(self.axisStepSize[varName])
-#          pbMapPointCoord[pointIndex,varIndex,:] = temp
-#          temp[varIndex] += 2.*np.max(self.axisStepSize[varName])
-#          pbMapPointCoord[pointIndex,varIndex+self.nVar,:] = temp
-#          temp[varIndex] -= np.max(self.axisStepSize[varName])
-#      #getting the coordinate ready to be evaluated by the ROM
-#      pbMapPointCoord.shape = (len(self.surfPoint)*(self.nVar*2+1),self.nVar)
-#      tempDict = {}
-#      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
-#        tempDict[varName] = pbMapPointCoord.T[varIndex,:]
-#      #acquiring Pb evaluation
-#      pbPoint       = self.ROM.confidence(tempDict)
-#      pbPoint.shape = (len(self.surfPoint),self.nVar*2+1,2)
-#      pbMapPointCoord.shape = (len(self.surfPoint),self.nVar*2+1,self.nVar)
-#      #computing gradient
-#      modGrad   = np.zeros((len(self.surfPoint)))
-#      gradVect  = np.zeros((len(self.surfPoint),self.nVar))
-#      for pointIndex in range(len(self.surfPoint)):
-#        centralCoor = pbMapPointCoord[pointIndex,2*self.nVar,:]
-#        centraPb    = pbPoint[pointIndex,2*self.nVar][0]
-#        sum = 0.0
-#        for varIndex in range(self.nVar):
-#          d1Down     = (centraPb-pbPoint[pointIndex,varIndex][0])/(centralCoor[varIndex]-pbMapPointCoord[pointIndex,varIndex,varIndex])
-#          d1Up       = (pbPoint[pointIndex,varIndex+self.nVar][0]-centraPb)/(pbMapPointCoord[pointIndex,varIndex+self.nVar,varIndex]-centralCoor[varIndex])
-#          if np.abs(d1Up)>np.abs(d1Down): d1Avg = d1Up
-#          else                          : d1Avg = d1Down
-#          gradVect[pointIndex,varIndex] = d1Avg
-#          sum +=d1Avg
-#          modGrad[pointIndex] += d1Avg**2
-#        modGrad[pointIndex] = np.sqrt(modGrad[pointIndex])*np.abs(sum)/sum
-#        #concavityPb[pointIndex] = concavityPb[pointIndex]/float(self.nVar)
-#      for pointIndex, point in enumerate(self.surfPoint):
-#        myStr  = ''
-#        myStr  += '['
-#        for varIndex in range(self.nVar):
-#          myStr += '{:+6.4f}'.format(pbMapPointCoord[pointIndex,2*self.nVar,varIndex])
-#        myStr += '] '+'{:+6.4f}'.format(pbPoint[pointIndex,2*self.nVar,0])+'   '
-#        for varIndex in range(2*self.nVar):
-#          myStr += '['
-#          for varIndex2 in range(self.nVar):
-#            myStr += '{:+6.4f}'.format(pbMapPointCoord[pointIndex,varIndex,varIndex2])+' '
-#          myStr += '] '+'{:+6.4f}'.format(pbPoint[pointIndex,varIndex,0])+'   '
-#        myStr += '   gradient  ['
-#        for varIndex in range(self.nVar):
-#          myStr += '{:+6.4f}'.format(gradVect[pointIndex,varIndex])+'  '
-#        myStr += ']'
-#        myStr += '    Module '+'{:+6.4f}'.format(modGrad[pointIndex])
-#
-#      minIndex = np.argmin(np.abs(modGrad))
-#      pdDist = self.sign*(pbPoint[minIndex,2*self.nVar][0]-0.5-10*self.tolerance)/modGrad[minIndex]
-#      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
-#        self.values[varName] = copy.copy(float(pbMapPointCoord[minIndex,2*self.nVar,varIndex]+pdDist*gradVect[minIndex,varIndex]))
-#      gradVect = np.ndarray(self.nVar)
-#      centraPb = pbPoint[minIndex,2*self.nVar]
-#      centralCoor = pbMapPointCoord[minIndex,2*self.nVar,:]
-#      for varIndex in range(self.nVar):
-#        d1Down = (centraPb-pbPoint[minIndex,varIndex])/(centralCoor[varIndex]-pbMapPointCoord[minIndex,varIndex,varIndex])
-#        d1Up   = (pbPoint[minIndex,varIndex+self.nVar]-centraPb)/(pbMapPointCoord[minIndex,varIndex+self.nVar,varIndex]-centralCoor[varIndex])
-#        d1Avg   = (d1Up+d1Down)/2.0
-#        gradVect[varIndex] = d1Avg
-#      gradVect = gradVect*pdDist
-#      gradVect = gradVect+centralCoor
-#      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
-#        self.values[varName] = copy.copy(float(gradVect[varIndex]))
-
+    #      This is the normal derivation to be used later on
+    #      pbMapPointCoord = np.zeros((len(self.surfPoint),self.nVar*2+1,self.nVar))
+    #      for pointIndex, point in enumerate(self.surfPoint):
+    #        temp = copy.copy(point)
+    #        pbMapPointCoord[pointIndex,2*self.nVar,:] = temp
+    #        for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
+    #          temp[varIndex] -= np.max(self.axisStepSize[varName])
+    #          pbMapPointCoord[pointIndex,varIndex,:] = temp
+    #          temp[varIndex] += 2.*np.max(self.axisStepSize[varName])
+    #          pbMapPointCoord[pointIndex,varIndex+self.nVar,:] = temp
+    #          temp[varIndex] -= np.max(self.axisStepSize[varName])
+    #      #getting the coordinate ready to be evaluated by the ROM
+    #      pbMapPointCoord.shape = (len(self.surfPoint)*(self.nVar*2+1),self.nVar)
+    #      tempDict = {}
+    #      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
+    #        tempDict[varName] = pbMapPointCoord.T[varIndex,:]
+    #      #acquiring Pb evaluation
+    #      pbPoint       = self.ROM.confidence(tempDict)
+    #      pbPoint.shape = (len(self.surfPoint),self.nVar*2+1,2)
+    #      pbMapPointCoord.shape = (len(self.surfPoint),self.nVar*2+1,self.nVar)
+    #      #computing gradient
+    #      modGrad   = np.zeros((len(self.surfPoint)))
+    #      gradVect  = np.zeros((len(self.surfPoint),self.nVar))
+    #      for pointIndex in range(len(self.surfPoint)):
+    #        centralCoor = pbMapPointCoord[pointIndex,2*self.nVar,:]
+    #        centraPb    = pbPoint[pointIndex,2*self.nVar][0]
+    #        sum = 0.0
+    #        for varIndex in range(self.nVar):
+    #          d1Down     = (centraPb-pbPoint[pointIndex,varIndex][0])/(centralCoor[varIndex]-pbMapPointCoord[pointIndex,varIndex,varIndex])
+    #          d1Up       = (pbPoint[pointIndex,varIndex+self.nVar][0]-centraPb)/(pbMapPointCoord[pointIndex,varIndex+self.nVar,varIndex]-centralCoor[varIndex])
+    #          if np.abs(d1Up)>np.abs(d1Down): d1Avg = d1Up
+    #          else                          : d1Avg = d1Down
+    #          gradVect[pointIndex,varIndex] = d1Avg
+    #          sum +=d1Avg
+    #          modGrad[pointIndex] += d1Avg**2
+    #        modGrad[pointIndex] = np.sqrt(modGrad[pointIndex])*np.abs(sum)/sum
+    #        #concavityPb[pointIndex] = concavityPb[pointIndex]/float(self.nVar)
+    #      for pointIndex, point in enumerate(self.surfPoint):
+    #        myStr  = ''
+    #        myStr  += '['
+    #        for varIndex in range(self.nVar):
+    #          myStr += '{:+6.4f}'.format(pbMapPointCoord[pointIndex,2*self.nVar,varIndex])
+    #        myStr += '] '+'{:+6.4f}'.format(pbPoint[pointIndex,2*self.nVar,0])+'   '
+    #        for varIndex in range(2*self.nVar):
+    #          myStr += '['
+    #          for varIndex2 in range(self.nVar):
+    #            myStr += '{:+6.4f}'.format(pbMapPointCoord[pointIndex,varIndex,varIndex2])+' '
+    #          myStr += '] '+'{:+6.4f}'.format(pbPoint[pointIndex,varIndex,0])+'   '
+    #        myStr += '   gradient  ['
+    #        for varIndex in range(self.nVar):
+    #          myStr += '{:+6.4f}'.format(gradVect[pointIndex,varIndex])+'  '
+    #        myStr += ']'
+    #        myStr += '    Module '+'{:+6.4f}'.format(modGrad[pointIndex])
+    #
+    #      minIndex = np.argmin(np.abs(modGrad))
+    #      pdDist = self.sign*(pbPoint[minIndex,2*self.nVar][0]-0.5-10*self.tolerance)/modGrad[minIndex]
+    #      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
+    #        self.values[varName] = copy.copy(float(pbMapPointCoord[minIndex,2*self.nVar,varIndex]+pdDist*gradVect[minIndex,varIndex]))
+    #      gradVect = np.ndarray(self.nVar)
+    #      centraPb = pbPoint[minIndex,2*self.nVar]
+    #      centralCoor = pbMapPointCoord[minIndex,2*self.nVar,:]
+    #      for varIndex in range(self.nVar):
+    #        d1Down = (centraPb-pbPoint[minIndex,varIndex])/(centralCoor[varIndex]-pbMapPointCoord[minIndex,varIndex,varIndex])
+    #        d1Up   = (pbPoint[minIndex,varIndex+self.nVar]-centraPb)/(pbMapPointCoord[minIndex,varIndex+self.nVar,varIndex]-centralCoor[varIndex])
+    #        d1Avg   = (d1Up+d1Down)/2.0
+    #        gradVect[varIndex] = d1Avg
+    #      gradVect = gradVect*pdDist
+    #      gradVect = gradVect+centralCoor
+    #      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
+    #        self.values[varName] = copy.copy(float(gradVect[varIndex]))
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     '''generate representation of goal function'''
     pass
-#
-#
-#
+
 class MonteCarlo(Sampler):
   '''MONTE CARLO Sampler'''
   def __init__(self):
@@ -809,7 +803,6 @@ class Grid(Sampler):
 
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
 
-
   def localInputAndChecks(self,xmlNode):
     '''reading and construction of the grid'''
     if 'limit' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'limit is not used in Grid sampler')
@@ -864,7 +857,6 @@ class Grid(Sampler):
     This is used to check if the points and bounds are compatible with the distribution provided.
     It could not have been done earlier since the distribution might not have been initialized first
     '''
-    if 'Restart' in self.assemblerDict.keys(): self.restartData = self.assemblerDict['Restart'][0][3]
     for varName in self.gridInfo.keys():
       if self.gridInfo[varName][0]=='value':
         valueMax, indexMax = max(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(max(self.gridInfo[varName][2]))
@@ -882,46 +874,62 @@ class Grid(Sampler):
         self.gridInfo[varName][2][indexMax], self.gridInfo[varName][2][indexMin] = valueMax, valueMin
 
   def localGenerateInput(self,model,myInput):
-    #FIXME no way to tell before now if we're already done.  Can we prepopulate the points we need? TODO
     if self.restartData:
-      restInps = self.restartData.getInputParametersValues()
+      inps = self.restartData.getInpParametersValues()
       existing = zip(*list(v for v in inps.values()))
+    else: existing = []
 
-    remainder = self.counter - 1 #used to keep track as we get to smaller strides
-    stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
+    #remainder = self.counter - 1 #used to keep track as we get to smaller strides
+    #stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
     #self.inputInfo['distributionInfo'] = {}
+    #self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
+    #self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
-
     weight = 1.0
 
-    for i in range(len(self.gridCoordinate)):
-      varName = self.axisName[i]
-      if not self.externalgGridCoord:
-        stride = stride // len(self.gridInfo[varName][2])
-        #index is the index into the array self.gridInfo[varName][2]
-        index, remainder = divmod(remainder, stride )
-        self.gridCoordinate[i] = index
+    found=False
+    while not found:
+      remainder = self.counter - 1 #used to keep track as we get to smaller strides
+      stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
+      #self.inputInfo['distributionInfo'] = {}
+      for i in range(len(self.gridCoordinate)):
+        # i congruent to input variable
+        varName = self.axisName[i]
+        if not self.externalgGridCoord:
+          stride = stride // len(self.gridInfo[varName][2])
+          #index is the index into the array self.gridInfo[varName][2]
+          if stride == 0: raise utils.NoMoreSamplesNeeded
+          index, remainder = divmod(remainder, stride )
+          self.gridCoordinate[i] = index
 
-      # check if the varName is a comma separated list of strings
-      # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-      for key in varName.strip().split(','):
-        self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
-        self.inputInfo['distributionType'][key] = self.distDict[varName].type
+        # check if the varName is a comma separated list of strings
+        # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+        for key in varName.strip().split(','):
+          self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
+          self.inputInfo['distributionType'][key] = self.distDict[varName].type
 
-        if self.gridInfo[varName][0]=='CDF':
-          if self.distDict[varName].getDimensionality()==1:
-            self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
-          else:
-            location = self.variables2distributionsMapping[varName]['dim']
-            self.values[key] = self.distDict[varName].inverseMarginalDistribution(self.gridInfo[varName][2][self.gridCoordinate[i]],location-1)
+          if self.gridInfo[varName][0]=='CDF':
+            if self.distDict[varName].getDimensionality()==1:
+              self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
+            else:
+              location = self.variables2distributionsMapping[varName]['dim']
+              self.values[key] = self.distDict[varName].inverseMarginalDistribution(self.gridInfo[varName][2][self.gridCoordinate[i]],location-1)
 
-        elif self.gridInfo[varName][0]=='value':
-          self.values[key] = self.gridInfo[varName][2][self.gridCoordinate[i]]
+          elif self.gridInfo[varName][0]=='value':
+            self.values[key] = self.gridInfo[varName][2][self.gridCoordinate[i]]
+          else: self.raiseAnError(IOError,gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
+      newpoint = tuple(self.values[key] for key in self.values.keys())
+      if newpoint not in existing:
+        found=True
+        utils.raiseAMessage(self,'New point found: '+str(newpoint))
+      else:
+        self.counter+=1
+        if self.counter>=self.limit: raise utils.NoMoreSamplesNeeded
+        utils.raiseAMessage(self,'Existing point: '+str(newpoint))
 
-        else: self.raiseAnError(IOError,gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
-
-
+    # duplicate code
     remainder = self.counter - 1 #used to keep track as we get to smaller strides
     stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
 
@@ -1738,10 +1746,7 @@ class DynamicEventTree(Grid):
       #kk = self.toBeSampled.values().index(key)
       self.branchProbabilities[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
     return
-#
-#
-#
-#
+
 class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
   def __init__(self):
     DynamicEventTree.__init__(self)  # init DET
@@ -2531,6 +2536,12 @@ class Sobol(SparseGridCollocation):
       self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
       initDict={'SG':self.SQs[combo], 'dists':distDict, 'quads':quadDict, 'polys':polyDict, 'iSet':iset}
       self.ROMs[combo].initialize(initDict)
+    #if restart, figure out what runs we need; else, all of them
+    if self.restartData != None:
+      inps = self.restartData.getInpParametersValues()
+      existing = zip(*list(v for v in inps.values()))
+    else:
+      existing=[]
     #make combined sparse grids
     self.references={}
     for var,dist in self.distDict.items():
@@ -2541,7 +2552,7 @@ class Sobol(SparseGridCollocation):
     newpt = np.zeros(len(self.distDict))
     for v,var in enumerate(self.distDict.keys()):
       newpt[v] = self.references[var]
-    self.pointsToRun.append(tuple(newpt))
+    if tuple(newpt) not in existing: self.pointsToRun.append(tuple(newpt))
     #now do the rest
     for combo,rom in self.ROMs.items():
       SG = rom.sparseGrid
@@ -2553,8 +2564,9 @@ class Sobol(SparseGridCollocation):
           if var in combo: newpt[v] = pt[combo.index(var)]
           else: newpt[v] = self.references[var]
         newpt=tuple(newpt)
-        if newpt not in self.pointsToRun: self.pointsToRun.append(newpt)
+        if newpt not in self.pointsToRun and newpt not in existing: self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
+    utils.raiseAMessage(self,'Needed points: %i' %self.limit)
     initdict={'ROMs':self.ROMs,
               'SG':self.SQs,
               'dists':self.distDict,
@@ -2562,6 +2574,7 @@ class Sobol(SparseGridCollocation):
               'polys':self.polyDict,
               'refs':self.references}
     self.ROM.SupervisedEngine.values()[0].initialize(initdict)
+
 
   def localGenerateInput(self,model,myInput):
     '''Provide the next point in the sparse grid.  Note that this sampler cannot assign probabilty
@@ -2575,10 +2588,6 @@ class Sobol(SparseGridCollocation):
     #self.inputInfo['ProbabilityWeight'] =  N/A
     self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
 
-#
-#
-#
-#
 '''
  Interface Dictionary (factory) (private)
 '''

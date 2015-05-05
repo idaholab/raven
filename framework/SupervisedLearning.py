@@ -560,7 +560,7 @@ class HDMRRom(GaussPolynomialRom):
       ft[tuple(featureVals[i])]=targetVals[i]
     #get the reference case
     self.refpt = tuple(self.__fillPointWithRef((),[]))
-    self.refSoln = ft[tuple(self.refpt)]
+    self.refSoln = ft[self.refpt]
     for combo,rom in self.ROMs.items():
       subtdict={}
       for c in combo: subtdict[c]=[]
