@@ -6,6 +6,15 @@
   csv = 'revirD_tset/FirstMRun/out~6~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
  [../]
+ [./2steps_same_db]
+  type = 'RavenFramework'
+  input = 'test_2steps_same_db.xml'
+  output = 'revirD_tset/FirstStep/out~1~ideal_pump revirD_tset/FirstStep/out~6~ideal_pump revirD_tset/SecondStep/out~2~ideal_pump'
+  required_executable = '../../RAVEN-%METHOD%'
+  # this prereq is just because it points to the same working directory
+  prereq = simple_framework
+ [../]
+
 
  [./test_output]
   type = 'RavenFramework'
@@ -348,7 +357,7 @@
  [./stochPolyTest]
   type = 'RavenFramework'
   input = 'test_stoch_poly.xml'
-  output = 'StochasticPolyTest/Udump.xml StochasticPolyTest/UCdump.xml StochasticPolyTest/Ndump.xml StochasticPolyTest/Gdump.xml StochasticPolyTest/Bdump.xml StochasticPolyTest/BNdump.xml StochasticPolyTest/Tdump.xml StochasticPolyTest/Edump.xml'
+  output = 'StochasticPolyTest/Udumprom.xml StochasticPolyTest/UCdumprom.xml StochasticPolyTest/Ndumprom.xml StochasticPolyTest/Gdumprom.xml StochasticPolyTest/Bdumprom.xml StochasticPolyTest/BNdumprom.xml StochasticPolyTest/Tdumprom.xml StochasticPolyTest/Edumprom.xml'
   csv = 'StochasticPolyTest/Udump.csv StochasticPolyTest/UCdump.csv StochasticPolyTest/Ndump.csv StochasticPolyTest/Gdump.csv StochasticPolyTest/Bdump.csv StochasticPolyTest/BNdump.csv StochasticPolyTest/Tdump.csv StochasticPolyTest/Edump.csv'
  [../]
 
@@ -369,7 +378,7 @@
  [./sobolRomTest]
   type = 'RavenFramework'
   input = 'test_sobol_rom.xml'
-  output = 'SobolRom/dump.xml'
+  output = 'SobolRom/dump.xml SobolRom/dumprom.xml'
   csv = 'SobolRom/dump.csv'
  [../]
 
@@ -378,6 +387,13 @@
   input = 'test_stochpoly_pickle.xml'
   output = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
   csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
+ [../]
+
+ [./stochPolyRestartTest]
+  type = 'RavenFramework'
+  input = 'test_stochpoly_restart.xml'
+  output = 'StochasticPolyRestart/dump1.xml StochasticPolyRestart/dump2.xml StochasticPolyRestart/dump3.xml'
+  csv = 'StochasticPolyRestart/dump1.csv StochasticPolyRestart/dump2.csv StochasticPolyRestart/dump3.csv'
  [../]
 
  [./ND_external_MC]

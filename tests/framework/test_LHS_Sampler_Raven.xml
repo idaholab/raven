@@ -57,7 +57,7 @@
   </Distributions>
 
   <Samplers>
-    <LHS name='myLHS'>
+    <Stratified name='myLHS'>
       <sampler_init>
         <initial_seed>1</initial_seed>
       </sampler_init>
@@ -69,14 +69,14 @@
         <distribution >ANormalDistribution</distribution>
         <grid type='CDF' construction='equal' upperBound='0.9' steps='3'>0.01</grid>
       </Distribution>
-    </LHS>
+    </Stratified>
   </Samplers>
   <Steps>
     <MultiRun name='FirstMRun'>
       <Input      class='Files'      type=''          >simple_flow_3eqn.i</Input>
       <Input      class='Files'      type=''          >simple_flow_3eqn_control.py</Input>
       <Model      class='Models'     type='Code'      >MyRAVEN</Model>
-      <Sampler    class='Samplers'   type='LHS'>myLHS</Sampler>
+      <Sampler    class='Samplers'   type='Stratified'>myLHS</Sampler>
       <Output     class='Databases'  type='HDF5'      >testLHSRavenDatabase</Output>
       <Output     class='DataObjects'      type='Histories' >stories</Output>
       <Output  class='DataObjects'     type='TimePointSet'>outGrid</Output>
