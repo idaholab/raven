@@ -527,6 +527,8 @@ checkIntegral("binomial",binomial,0.0,10.0,numpts=100,tol=3e-2) #TODO why is thi
 checkAnswer("binomial cdf(1)",binomial.cdf(1),0.244025230408)
 checkAnswer("binomial cdf(2)",binomial.cdf(2),0.525592803955)
 checkAnswer("binomial cdf(5)",binomial.cdf(5),0.980272293091)
+checkAnswer("binomial mean",binomial.untruncatedMean(),2.5)
+checkAnswer("binomial stddev",binomial.untruncatedStdDev(),1.3693063937629153) #sqrt(0.25*10*(1-0.25))
 checkAnswer("pbinomial cdf(1)",pbinomial.cdf(1),0.244025230408)
 checkAnswer("pbinomial cdf(2)",pbinomial.cdf(2),0.525592803955)
 checkAnswer("pbinomial cdf(5)",pbinomial.cdf(5),0.980272293091)
@@ -537,6 +539,7 @@ checkAnswer("binomial ppf(0.9)",binomial.ppf(0.9),4.0)
 checkAnswer("pbinomial ppf(0.1)",pbinomial.ppf(0.1),0.0)
 checkAnswer("pbinomial ppf(0.5)",pbinomial.ppf(0.5),2.0)
 checkAnswer("pbinomial ppf(0.9)",pbinomial.ppf(0.9),4.0)
+
 
 #Test Bernoulli
 
