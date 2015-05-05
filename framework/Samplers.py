@@ -923,11 +923,11 @@ class Grid(Sampler):
       newpoint = tuple(self.values[key] for key in self.values.keys())
       if newpoint not in existing:
         found=True
-        utils.raiseAMessage(self,'New point found: '+str(newpoint))
+        self.raiseAMessage('New point found: '+str(newpoint))
       else:
         self.counter+=1
         if self.counter>=self.limit: raise utils.NoMoreSamplesNeeded
-        utils.raiseAMessage(self,'Existing point: '+str(newpoint))
+        self.raiseAMessage('Existing point: '+str(newpoint))
 
     # duplicate code
     remainder = self.counter - 1 #used to keep track as we get to smaller strides
@@ -2566,7 +2566,7 @@ class Sobol(SparseGridCollocation):
         newpt=tuple(newpt)
         if newpt not in self.pointsToRun and newpt not in existing: self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
-    utils.raiseAMessage(self,'Needed points: %i' %self.limit)
+    self.raiseAMessage('Needed points: %i' %self.limit)
     initdict={'ROMs':self.ROMs,
               'SG':self.SQs,
               'dists':self.distDict,

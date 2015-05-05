@@ -276,9 +276,9 @@ class MultiRun(SingleRun):
         try:
           newinp = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
           inDictionary["Model"].run(newinp,inDictionary['jobHandler'])
-          if self.debug: utils.raiseAMessage(self,'Submitted input '+str(inputIndex+1))
+          if self.debug: self.raiseAMessage('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
-          utils.raiseAMessage(self,'Sampler returned "NoMoreSamplesNeeded".  Continuing...')
+          self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
 
   def _localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
@@ -305,9 +305,9 @@ class MultiRun(SingleRun):
             try:
               newInput =sampler.generateInput(model,inputs)
               model.run(newInput,jobHandler)
-              if self.debug: utils.raiseAMessage(self,'New input generated')
+              self.raiseADebug('New input generated')
             except utils.NoMoreSamplesNeeded:
-              utils.raiseAMessage(self,'Sampler returned "NoMoreSamplesNeeded".  Continuing...')
+              self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
       time.sleep(self.sleepTime)
 #
@@ -486,17 +486,17 @@ class IOStep(Step):
     for i in range(len(outputs)):
       if inDictionary['Input'][i].type == 'HDF5':
         if isinstance(outputs[i],Data): self.actionType.append('HDF5-dataObjects')
-        else: utils.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
+        else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
       elif  isinstance(inDictionary['Input'][i],Data):
         if outputs[i].type == 'HDF5': self.actionType.append('dataObjects-HDF5')
-        else: utils.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a DataObjects. Got ' + inDictionary['Output'][i].type)
+        else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a DataObjects. Got ' + inDictionary['Output'][i].type)
       elif isinstance(inDictionary['Input'][i],Models.ROM):
         if outputs[i].type == 'FileObject': self.actionType.append('ROM-FILES')
-        else: utils.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts A Files as Output only, when the Input is a ROM. Got ' + inDictionary['Output'][i].type)
+        else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A Files as Output only, when the Input is a ROM. Got ' + inDictionary['Output'][i].type)
       elif inDictionary['Input'][i].type == 'FileObject':
         if isinstance(outputs[i],Models.ROM): self.actionType.append('FILES-ROM')
-        else: utils.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
-      else: utils.raiseAnError(IOError,self,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
+        else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
+      else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
 
     #Initialize all the HDF5 outputs.
     for i in range(len(outputs)):

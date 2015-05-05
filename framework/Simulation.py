@@ -452,7 +452,7 @@ class Simulation(MessageHandler.MessageUser):
       #This is used to reserve some cores
       self.runInfoDict['totalNumCoresUsed'] = oldTotalNumCoresUsed
     elif oldTotalNumCoresUsed > 1: #If 1, probably just default
-      utils.raiseAWarning(self,"overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
+      self.raiseAWarning("overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
     #transform all files in absolute path
     for key in self.filesDict.keys(): self.__createAbsPath(key)
     #Let the mode handler do any modification here
@@ -491,7 +491,7 @@ class Simulation(MessageHandler.MessageUser):
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
       if element.tag in runInfoSkip:
-        utils.raiseAWarning(self,"Skipped element ",element.tag)
+        self.raiseAWarning("Skipped element ",element.tag)
       elif   element.tag == 'WorkingDir'        :
         temp_name = element.text
         if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
