@@ -63,7 +63,7 @@ class OutStreamManager(BaseType):
     self.availableOutStreamType = []
     # number of agregated outstreams
     self.numberAggregatedOS = 1
-    self.printTag = utils.returnPrintTag('OUTSTREAM MANAGER')
+    self.printTag = 'OUTSTREAM MANAGER'
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -102,7 +102,7 @@ class OutStreamManager(BaseType):
     @ In, toLoadFrom, source object
     @ Out, None
     '''
-    utils.raiseAnError(NotImplementedError,self,'method addOutput must be implemented by derived classes!!!!')
+    self.raiseAnError(NotImplementedError,'method addOutput must be implemented by derived classes!!!!')
 
   def initialize(self,inDict):
     '''
@@ -134,7 +134,7 @@ class OutStreamManager(BaseType):
         if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in DataObjects.knownTypes():
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
-      if not foundData: utils.raiseAnError(IOError,self,'the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
+      if not foundData: self.raiseAnError(IOError,'the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
 #
 #
 #
@@ -142,7 +142,7 @@ class OutStreamPlot(OutStreamManager):
   def __init__(self):
     OutStreamManager.__init__(self)
     self.type         = 'OutStreamPlot'
-    self.printTag     = utils.returnPrintTag('OUTSTREAM PLOT')
+    self.printTag     = 'OUTSTREAM PLOT'
     # available 2D and 3D plot types
     self.availableOutStreamTypes = {2:['scatter','line','histogram','stem','step','pseudocolor'],
                                     3:['scatter','line','stem','surface','wireframe','tri-surface',
@@ -190,12 +190,12 @@ class OutStreamPlot(OutStreamManager):
     # or it can look like DataName|Input|variableName
     if var:
       if '(' in var and ')' in var:
-        if var.count('(') > 1: utils.raiseAnError(IOError,self,'In Plot ' +self.name +'.Only a couple of () is allowed in variable names!!!!!!')
+        if var.count('(') > 1: self.raiseAnError(IOError,'In Plot ' +self.name +'.Only a couple of () is allowed in variable names!!!!!!')
         result = var.split('|(')[0].split('|')
         result.append(var.split('(')[1].replace(")", ""))
       else:  result = var.split('|')
     else: result = None
-    if len(result) != 3: utils.raiseAnError(IOError,self,'In Plot ' +self.name +'.Only three level variables are accepted !!!!!')
+    if len(result) != 3: self.raiseAnError(IOError,'In Plot ' +self.name +'.Only three level variables are accepted !!!!!')
     return result
 
   def __readPlotActions(self,snode):
@@ -209,13 +209,13 @@ class OutStreamPlot(OutStreamManager):
         for subnode in node:
           if subnode.tag != 'kwargs':
             self.options[node.tag][subnode.tag] = subnode.text
-            if not subnode.text: utils.raiseAnError(IOError,self,'In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
+            if not subnode.text: self.raiseAnError(IOError,'In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
           else:
             self.options[node.tag]['attributes'] = {}
             for subsub in subnode:
               try   : self.options[node.tag]['attributes'][subsub.tag] = ast.literal_eval(subsub.text)
               except: self.options[node.tag]['attributes'][subsub.tag] = subsub.text
-              if not subnode.text: utils.raiseAnError(IOError,self,'In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
+              if not subnode.text: self.raiseAnError(IOError,'In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
       elif node.text:
         if node.text.strip(): self.options[node.tag][node.tag] = node.text
     if 'how' not in self.options.keys(): self.options['how']={'how':'screen'}
@@ -372,10 +372,10 @@ class OutStreamPlot(OutStreamManager):
           if 'ymin' in self.options[key].keys(): self.plt3D.set_ylim3d(ymin = ast.literal_eval(self.options[key]['ymin']))
           if 'ymax' in self.options[key].keys(): self.plt3D.set_ylim3d(ymax = ast.literal_eval(self.options[key]['ymax']))
           if 'zmin' in self.options[key].keys():
-            if 'zmax' not in self.options[key].keys(): utils.raiseAWarning(self,'zmin inputted but not zmax. zmin ignored! ')
+            if 'zmax' not in self.options[key].keys(): self.raiseAWarning('zmin inputted but not zmax. zmin ignored! ')
             else:self.plt3D.set_zlim(ast.literal_eval(self.options[key]['zmin']),ast.literal_eval(self.options[key]['zmax']))
           if 'zmax' in self.options[key].keys():
-            if 'zmin' not in self.options[key].keys(): utils.raiseAWarning(self,'zmax inputted but not zmin. zmax ignored! ')
+            if 'zmin' not in self.options[key].keys(): self.raiseAWarning('zmax inputted but not zmin. zmax ignored! ')
             else:self.plt3D.set_zlim(ast.literal_eval(self.options[key]['zmin']),ast.literal_eval(self.options[key]['zmax']))
       elif key == 'labelFormat':
         if 'style' not in self.options[key].keys(): self.options[key]['style'        ]   = 'sci'
@@ -385,7 +385,7 @@ class OutStreamPlot(OutStreamManager):
         if self.dim == 2:  self.plt.ticklabel_format(**{'style':self.options[key]['style'],'scilimits':ast.literal_eval(self.options[key]['limits']),'useOffset':ast.literal_eval(self.options[key]['useOffset']),'axis':self.options[key]['axis']})
         elif self.dim == 3:self.plt3D.ticklabel_format(**{'style':self.options[key]['style'],'scilimits':ast.literal_eval(self.options[key]['limits']),'useOffset':ast.literal_eval(self.options[key]['useOffset']),'axis':self.options[key]['axis']})
       elif key == 'camera':
-        if self.dim == 2: utils.raiseAWarning(self,'2D plots have not a camera attribute... They are 2D!!!!')
+        if self.dim == 2: self.raiseAWarning('2D plots have not a camera attribute... They are 2D!!!!')
         elif self.dim == 3:
           if 'elevation' in self.options[key].keys() and 'azimuth' in self.options[key].keys():       self.plt3D.view_init(elev = float(self.options[key]['elevation']),azim = float(self.options[key]['azimuth']))
           elif 'elevation' in self.options[key].keys() and 'azimuth' not in self.options[key].keys(): self.plt3D.view_init(elev = float(self.options[key]['elevation']),azim = None)
@@ -413,7 +413,7 @@ class OutStreamPlot(OutStreamManager):
           try:
             self.options[key]['fontdict'] = ast.literal_eval(self.options[key]['fontdict'])
             self.options[key]['fontdict'] = str(self.options[key]['fontdict'])
-          except AttributeError: utils.raiseAnError(TypeError,self,'In ' + key +' tag: can not convert the string "' + self.options[key]['fontdict'] + '" to a dictionary! Check syntax for python function ast.literal_eval')
+          except AttributeError: self.raiseAnError(TypeError,'In ' + key +' tag: can not convert the string "' + self.options[key]['fontdict'] + '" to a dictionary! Check syntax for python function ast.literal_eval')
         if self.dim == 2 :
           self.plt.text(float(self.options[key]['position'].split(',')[0]),float(self.options[key]['position'].split(',')[1]),self.options[key]['text'],fontdict=ast.literal_eval(self.options[key]['fontdict']),**self.options[key].get('attributes',{}))
         elif self.dim ==3:
@@ -427,7 +427,7 @@ class OutStreamPlot(OutStreamManager):
           if self.dim == 2  : self.plt.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
           elif self.dim == 3: self.plt3D.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
       elif key == 'horizontalLine':
-        if self.dim == 3: utils.raiseAWarning(self,'horizontal_line not available in 3-D plots!!')
+        if self.dim == 3: self.raiseAWarning('horizontal_line not available in 3-D plots!!')
         elif self.dim == 2:
           if 'y' not in self.options[key].keys(): self.options[key]['y'] = '0'
           if 'xmin' not in self.options[key].keys()  : self.options[key]['xmin'] = '0'
@@ -435,7 +435,7 @@ class OutStreamPlot(OutStreamManager):
           if 'hold' not in self.options[key].keys() : self.options[key]['hold'] = 'None'
           self.plt.axhline(y=ast.literal_eval(self.options[key]['y']), xmin=ast.literal_eval(self.options[key]['xmin']), xmax=ast.literal_eval(self.options[key]['xmax']), hold=ast.literal_eval(self.options[key]['hold']),**self.options[key].get('attributes',{}))
       elif key == 'verticalLine':
-        if self.dim == 3: utils.raiseAWarning(self,'vertical_line not available in 3-D plots!!')
+        if self.dim == 3: self.raiseAWarning('vertical_line not available in 3-D plots!!')
         elif self.dim == 2:
           if 'x' not in self.options[key].keys(): self.options[key]['x'] = '0'
           if 'ymin' not in self.options[key].keys()  : self.options[key]['ymin'] = '0'
@@ -443,23 +443,23 @@ class OutStreamPlot(OutStreamManager):
           if 'hold' not in self.options[key].keys() : self.options[key]['hold'] = 'None'
           self.plt.axvline(x=ast.literal_eval(self.options[key]['x']), ymin=ast.literal_eval(self.options[key]['ymin']), ymax=ast.literal_eval(self.options[key]['ymax']), hold=ast.literal_eval(self.options[key]['hold']),**self.options[key].get('attributes',{}))
       elif key == 'horizontalRectangle':
-        if self.dim == 3: utils.raiseAWarning(self,'horizontal_rectangle not available in 3-D plots!!')
+        if self.dim == 3: self.raiseAWarning('horizontal_rectangle not available in 3-D plots!!')
         elif self.dim == 2:
-          if 'ymin' not in self.options[key].keys(): utils.raiseAnError(IOError,self,'ymin parameter is needed for function horizontal_rectangle!!')
-          if 'ymax' not in self.options[key].keys(): utils.raiseAnError(IOError,self,'ymax parameter is needed for function horizontal_rectangle!!')
+          if 'ymin' not in self.options[key].keys(): self.raiseAnError(IOError,'ymin parameter is needed for function horizontal_rectangle!!')
+          if 'ymax' not in self.options[key].keys(): self.raiseAnError(IOError,'ymax parameter is needed for function horizontal_rectangle!!')
           if 'xmin' not in self.options[key].keys()  : self.options[key]['xmin'] = '0'
           if 'xmax' not in self.options[key].keys() : self.options[key]['xmax'] = '1'
           self.plt.axhspan(ast.literal_eval(self.options[key]['ymin']),ast.literal_eval(self.options[key]['ymax']), xmin=ast.literal_eval(self.options[key]['xmin']), xmax=ast.literal_eval(self.options[key]['xmax']),**self.options[key].get('attributes',{}))
       elif key == 'verticalRectangle':
-        if self.dim == 3: utils.raiseAWarning(self,'vertical_rectangle not available in 3-D plots!!')
+        if self.dim == 3: self.raiseAWarning('vertical_rectangle not available in 3-D plots!!')
         elif self.dim == 2:
-          if 'xmin' not in self.options[key].keys(): utils.raiseAnError(IOError,self,'xmin parameter is needed for function vertical_rectangle!!')
-          if 'xmax' not in self.options[key].keys(): utils.raiseAnError(IOError,self,'xmax parameter is needed for function vertical_rectangle!!')
+          if 'xmin' not in self.options[key].keys(): self.raiseAnError(IOError,'xmin parameter is needed for function vertical_rectangle!!')
+          if 'xmax' not in self.options[key].keys(): self.raiseAnError(IOError,'xmax parameter is needed for function vertical_rectangle!!')
           if 'ymin' not in self.options[key].keys()  : self.options[key]['ymin'] = '0'
           if 'ymax' not in self.options[key].keys() : self.options[key]['ymax'] = '1'
           self.plt.axvspan(ast.literal_eval(self.options[key]['xmin']),ast.literal_eval(self.options[key]['xmax']), ymin=ast.literal_eval(self.options[key]['ymin']), ymax=ast.literal_eval(self.options[key]['ymax']),**self.options[key].get('attributes',{}))
       elif key == 'axesBox':
-        if   self.dim == 3: utils.raiseAWarning(self,'axes_box not available in 3-D plots!!')
+        if   self.dim == 3: self.raiseAWarning('axes_box not available in 3-D plots!!')
         elif self.dim == 2: self.plt.box(self.options[key][key])
       elif key == 'grid':
         if 'b' not in self.options[key].keys()  : self.options[key]['b'] = 'off'
@@ -472,7 +472,7 @@ class OutStreamPlot(OutStreamManager):
         elif self.dim == 3:
           self.plt3D.grid(b=self.options[key]['b'],**self.options[key].get('attributes',{}))
       else:
-        utils.raiseAWarning(self,'Try to perform not-predifined action ' + key +'. If it does not work check manual and/or relavite matplotlib method specification.')
+        self.raiseAWarning('Try to perform not-predifined action ' + key +'. If it does not work check manual and/or relavite matplotlib method specification.')
         command_args = ' '
         import CustomCommandExecuter as execcommand
         for kk in self.options[key]:
@@ -487,7 +487,7 @@ class OutStreamPlot(OutStreamManager):
           #if self.dim == 2:  exec('self.plt.' + key + '(' + command_args + ')')
           #elif self.dim == 3:exec('self.plt3D.' + key + '(' + command_args + ')')
         except ValueError as ae:
-          utils.raiseAnError(RuntimeError,self,'<'+str(ae)+'> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag+' command has been called in the following way: ' + 'self.plt.' + key + '(' + command_args + ')')
+          self.raiseAnError(RuntimeError,'<'+str(ae)+'> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag+' command has been called in the following way: ' + 'self.plt.' + key + '(' + command_args + ')')
 
   ####################
   #  PUBLIC METHODS  #
@@ -536,26 +536,26 @@ class OutStreamPlot(OutStreamManager):
       self.sourceName.append(self.xCoordinates [pltindex][0].split('|')[0].strip())
       if 'y' in self.options['plotSettings']['plot'][pltindex].keys():
         self.yCoordinates .append(self.options['plotSettings']['plot'][pltindex]['y'].split(','))
-        if self.yCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: utils.raiseAnError(IOError,self,'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got y_cord source is' + self.yCoordinates [pltindex][0].split('|')[0])
+        if self.yCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: self.raiseAnError(IOError,'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got y_cord source is' + self.yCoordinates [pltindex][0].split('|')[0])
       if 'z' in self.options['plotSettings']['plot'][pltindex].keys():
         self.zCoordinates .append(self.options['plotSettings']['plot'][pltindex]['z'].split(','))
-        if self.zCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: utils.raiseAnError(IOError,self,'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got z_cord source is' + self.zCoordinates [pltindex][0].split('|')[0])
+        if self.zCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: self.raiseAnError(IOError,'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got z_cord source is' + self.zCoordinates [pltindex][0].split('|')[0])
       if 'colorMap' in self.options['plotSettings']['plot'][pltindex].keys():
         self.colorMapCoordinates[pltindex]=self.options['plotSettings']['plot'][pltindex]['colorMap'].split(',')
         #self.colorMapCoordinates.append(self.options['plotSettings']['plot'][pltindex]['colorMap'].split(','))
-        if self.colorMapCoordinates[pltindex][0].split('|')[0] != self.sourceName[pltindex]: utils.raiseAnError(IOError,self,'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got colorMap_coordinates source is' + self.colorMapCoordinates[pltindex][0].split('|')[0])
+        if self.colorMapCoordinates[pltindex][0].split('|')[0] != self.sourceName[pltindex]: self.raiseAnError(IOError,'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got colorMap_coordinates source is' + self.colorMapCoordinates[pltindex][0].split('|')[0])
       for pltindex in range(len(self.options['plotSettings']['plot'])):
         if 'interpPointsY' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpPointsY'] = '20'
         if 'interpPointsX' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpPointsX'] = '20'
         if 'interpolationType' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpolationType'] = 'linear'
-        elif self.options['plotSettings']['plot'][pltindex]['interpolationType'] not in self.interpAvail: utils.raiseAnError(IOError,self,'surface interpolation unknown. Available are :' + str(self.interpAvail))
+        elif self.options['plotSettings']['plot'][pltindex]['interpolationType'] not in self.interpAvail: self.raiseAnError(IOError,'surface interpolation unknown. Available are :' + str(self.interpAvail))
         if 'epsilon' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['epsilon'] = '2'
         if 'smooth' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['smooth'] = '0.0'
         if 'cmap' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['cmap'] = 'None'
 #            else:             self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
         elif self.options['plotSettings']['plot'][pltindex]['cmap'] is not 'None' and self.options['plotSettings']['plot'][pltindex]['cmap'] not in self.mpl.cm.datad.keys(): raise('ERROR. The colorMap you specified does not exist... Available are ' + str(self.mpl.cm.datad.keys()))
         if 'interpolationTypeBackUp' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] = 'nearest'
-        elif self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] not in self.interpAvail: utils.raiseAnError(IOError,self,'surface interpolation (BackUp) unknown. Available are :' + str(self.interpAvail))
+        elif self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] not in self.interpAvail: self.raiseAnError(IOError,'surface interpolation (BackUp) unknown. Available are :' + str(self.interpAvail))
     self.numberAggregatedOS = len(self.options['plotSettings']['plot'])
     # initialize here the base class
     OutStreamManager.initialize(self,inDict)
@@ -570,7 +570,7 @@ class OutStreamPlot(OutStreamManager):
     """
     if not 'dim' in xmlNode.attrib.keys(): self.dim = 2
     else:                                  self.dim = int(xmlNode.attrib['dim'])
-    if self.dim not in [2,3]: utils.raiseAnError(IOError,self,'Wrong dimension... 2D or 3D only!!! Got '+ str(self.dim)+'D')
+    if self.dim not in [2,3]: self.raiseAnError(IOError,'Wrong dimension... 2D or 3D only!!! Got '+ str(self.dim)+'D')
     foundPlot = False
     for subnode in xmlNode:
       # if actions, read actions block
@@ -598,18 +598,18 @@ class OutStreamPlot(OutStreamManager):
         self.options[subnode.tag] = {}
         for subsub in subnode: self.options[subnode.tag][subsub.tag] = subsub.text.strip()
     self.type = 'OutStreamPlot'
-    if not 'plotSettings' in self.options.keys(): utils.raiseAnError(IOError,self,'For plot named ' + self.name + ' the plotSettings block is required.')
-    if not foundPlot: utils.raiseAnError(IOError,self,'For plot named'+ self.name + ', No plot section has been found in the plotSettings block!')
+    if not 'plotSettings' in self.options.keys(): self.raiseAnError(IOError,'For plot named ' + self.name + ' the plotSettings block is required.')
+    if not foundPlot: self.raiseAnError(IOError,'For plot named'+ self.name + ', No plot section has been found in the plotSettings block!')
     self.outStreamTypes = []
     for pltindex in range(len(self.options['plotSettings']['plot'])):
-      if not 'type' in self.options['plotSettings']['plot'][pltindex].keys(): utils.raiseAnError(IOError,self,'For plot named'+ self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
+      if not 'type' in self.options['plotSettings']['plot'][pltindex].keys(): self.raiseAnError(IOError,'For plot named'+ self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
       else:
-        if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0: utils.raiseAMessage(self,'For plot named'+ self.name + ', type '+self.options['plotSettings']['plot'][pltindex]['type']+' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!','ExceptedError')
+        if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0: self.raiseAMessage('For plot named'+ self.name + ', type '+self.options['plotSettings']['plot'][pltindex]['type']+' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!','ExceptedError')
         self.outStreamTypes.append(self.options['plotSettings']['plot'][pltindex]['type'])
     self.mpl = importlib.import_module("matplotlib")
     #exec('self.mpl =  importlib.import_module("matplotlib")')
-    if self.debug: utils.raiseAMessage(self,'matplotlib version is ' + str(self.mpl.__version__))
-    if self.dim not in [2,3]: utils.raiseAnError(TypeError,self,'This Plot interface is able to handle 2D-3D plot only')
+    self.raiseADebug('matplotlib version is ' + str(self.mpl.__version__))
+    if self.dim not in [2,3]: self.raiseAnError(TypeError,'This Plot interface is able to handle 2D-3D plot only')
     if not disAvail: self.mpl.use('Agg')
     self.plt = importlib.import_module("matplotlib.pyplot")
     if self.dim == 3: from mpl_toolkits.mplot3d import Axes3D
@@ -624,7 +624,7 @@ class OutStreamPlot(OutStreamManager):
     self.fig = self.plt.figure(self.name)
     # fill the x_values,y_values,z_values dictionaries
     if not self.__fillCoordinatesFromSource():
-      utils.raiseAWarning(self,'Nothing to Plot Yet... Returning!!!!')
+      self.raiseAWarning('Nothing to Plot Yet. Returning.')
       return
     self.counter += 1
     if self.counter > 1:
@@ -651,14 +651,14 @@ class OutStreamPlot(OutStreamManager):
         if self.dim == 2  : self.plt.ylabel(self.options['plotSettings']['ylabel'])
         elif self.dim == 3: self.plt3D.set_ylabel(self.options['plotSettings']['ylabel'])
       if 'zlabel' in self.options['plotSettings'].keys():
-        if self.dim == 2  : utils.raiseAWarning(self,'zlabel keyword does not make sense in 2-D Plots!')
+        if self.dim == 2  : self.raiseAWarning('zlabel keyword does not make sense in 2-D Plots!')
         elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel(self.options['plotSettings']['zlabel'])
       elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel('z')
       # Let's start plotting
       #################
       #  SCATTER PLOT #
       #################
-      if self.debug: utils.raiseAMessage(self,'creating plot'+ self.name)
+      self.raiseADebug('creating plot'+ self.name)
       if self.outStreamTypes[pltindex] == 'scatter':
         if 's' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['s'] = '20'
         if 'c' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['c'] = 'b'
@@ -869,7 +869,7 @@ class OutStreamPlot(OutStreamManager):
                 yi = utils.interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex])
                 self.actPlot = self.plt.step(xi,yi,where=self.options['plotSettings']['plot'][pltindex]['where'],**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
         elif self.dim == 3:
-          utils.raiseAWarning(self,'step Plot not available in 3D')
+          self.raiseAWarning('step Plot not available in 3D')
           return
       ########################
       #    PSEUDOCOLOR PLOT  #
@@ -880,7 +880,7 @@ class OutStreamPlot(OutStreamManager):
             for x_index in range(len(self.xValues[pltindex][key])):
               for y_index in range(len(self.yValues[pltindex][key])):
                 if not self.colorMapCoordinates:
-                  utils.raiseAMessage(self,'STREAM MANAGER: pseudocolor Plot needs coordinates for color map... Returning without plotting')
+                  self.raiseAMessage('pseudocolor Plot needs coordinates for color map... Returning without plotting')
                   return
                 for z_index in range(len(self.colorMapValues[pltindex][key])):
                   if self.colorMapValues[pltindex][key][z_index].size <= 3: return
@@ -895,14 +895,14 @@ class OutStreamPlot(OutStreamManager):
                   actcm = self.fig.colorbar(m)
                   actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
         elif self.dim == 3:
-          utils.raiseAWarning(self,'pseudocolor Plot is considered a 2D plot, not a 3D!')
+          self.raiseAWarning('pseudocolor Plot is considered a 2D plot, not a 3D!')
           return
       ########################
       #     SURFACE PLOT     #
       ########################
       elif self.outStreamTypes[pltindex] == 'surface':
         if self.dim == 2:
-          utils.raiseAWarning(self,'surface Plot is NOT available for 2D plots, IT IS A 3D!')
+          self.raiseAWarning('surface Plot is NOT available for 2D plots, IT IS A 3D!')
           return
         elif self.dim == 3:
           if 'rstride' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['rstride'] = '1'
@@ -944,7 +944,7 @@ class OutStreamPlot(OutStreamManager):
       ########################
       elif self.outStreamTypes[pltindex] == 'tri-surface':
         if self.dim == 2:
-          utils.raiseAWarning(self,'TRI-surface Plot is NOT available for 2D plots, it is 3D!')
+          self.raiseAWarning('TRI-surface Plot is NOT available for 2D plots, it is 3D!')
           return
         elif self.dim == 3:
           if 'color' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['color'] = 'b'
@@ -987,7 +987,7 @@ class OutStreamPlot(OutStreamManager):
       ########################
       elif self.outStreamTypes[pltindex] == 'wireframe':
         if self.dim == 2:
-          utils.raiseAWarning(self,'wireframe Plot is NOT available for 2D plots, IT IS A 3D!')
+          self.raiseAWarning('wireframe Plot is NOT available for 2D plots, IT IS A 3D!')
           return
         elif self.dim == 3:
           if 'rstride' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['rstride'] = '1'
@@ -1000,7 +1000,7 @@ class OutStreamPlot(OutStreamManager):
                   if self.colorMapCoordinates[pltindex] != None: xig, yig, Ci = utils.interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex],z = self.colorMapValues[pltindex][key][z_index],returnCoordinate=True)
                   xig, yig, zi = utils.interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex],z = self.zValues[pltindex][key][z_index],returnCoordinate=True)
                   if self.colorMapCoordinates[pltindex] != None:
-                    utils.raiseAWarning(self,'Currently, ax.plot_wireframe() in MatPlotLib version: '+self.mpl.__version__+' does not support a colormap! Wireframe plotted on a surface plot...')
+                    self.raiseAWarning('Currently, ax.plot_wireframe() in MatPlotLib version: '+self.mpl.__version__+' does not support a colormap! Wireframe plotted on a surface plot...')
                     if self.actcm: first = False
                     else         : first = True
                     if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
@@ -1033,7 +1033,7 @@ class OutStreamPlot(OutStreamManager):
           else: nbins = 5
           for key in self.xValues[pltindex].keys():
             if not self.colorMapCoordinates:
-              utils.raiseAWarning(self,self.outStreamTypes[pltindex]+' Plot needs coordinates for color map... Returning without plotting')
+              self.raiseAWarning(self.outStreamTypes[pltindex]+' Plot needs coordinates for color map... Returning without plotting')
               return
             for x_index in range(len(self.xValues[pltindex][key])):
               for y_index in range(len(self.yValues[pltindex][key])):
@@ -1061,11 +1061,11 @@ class OutStreamPlot(OutStreamManager):
                       self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
                       self.actcm.draw_all()
         elif self.dim == 3:
-          utils.raiseAWarning(self,'contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n               contour3D/filledContour3D are 3-D! ')
+          self.raiseAWarning('contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n               contour3D/filledContour3D are 3-D! ')
           return
       elif self.outStreamTypes[pltindex] == 'contour3D' or self.outStreamTypes[pltindex] == 'filledContour3D':
         if self.dim == 2:
-          utils.raiseAWarning(self,'contour3D/filledContour3D Plot is NOT available for 2D plots, IT IS A 2D! Check "contour/filledContour"!')
+          self.raiseAWarning('contour3D/filledContour3D Plot is NOT available for 2D plots, IT IS A 2D! Check "contour/filledContour"!')
           return
         elif self.dim == 3:
           if 'numberBins' in self.options['plotSettings']['plot'][pltindex].keys(): nbins = int(self.options['plotSettings']['plot'][pltindex]['numberBins'])
@@ -1100,7 +1100,7 @@ class OutStreamPlot(OutStreamManager):
                       self.actcm.draw_all()
       else:
         # Let's try to "write" the code for the plot on the fly
-        utils.raiseAWarning(self,'Try to create a not-predifined plot of type ' + self.outStreamTypes[pltindex] +'. If it does not work check manual and/or relavite matplotlib method specification.')
+        self.raiseAWarning('Try to create a not-predifined plot of type ' + self.outStreamTypes[pltindex] +'. If it does not work check manual and/or relavite matplotlib method specification.')
         command_args = ' '
         import CustomCommandExecuter as execcommand
         for kk in self.options['plotSettings']['plot'][pltindex]:
@@ -1113,7 +1113,7 @@ class OutStreamPlot(OutStreamManager):
           if self.dim == 2:  execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')',self)
           elif self.dim == 3:execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')',self)
         except ValueError as ae:
-          utils.raiseAnError(RuntimeError,self,'<'+str(ae)+'> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
+          self.raiseAnError(RuntimeError,'<'+str(ae)+'> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
     # SHOW THE PICTURE
     self.plt.draw()
     #self.plt3D.draw(self.fig.canvas.renderer)
@@ -1123,7 +1123,7 @@ class OutStreamPlot(OutStreamManager):
         # OSX to fail.  Which is correct for windows has not been determined.
         def handle_close(event):
           self.fig.canvas.stop_event_loop()
-          utils.raiseAMessage(self,'Closed Figure')
+          self.raiseAMessage('Closed Figure')
         self.fig.canvas.mpl_connect('close_event',handle_close)
       self.fig.show()
       #if blockFigure: self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
@@ -1146,7 +1146,7 @@ class OutStreamPrint(OutStreamManager):
     OutStreamManager.__init__(self)
     self.type = 'OutStreamPrint'
     self.availableOutStreamTypes = ['csv','xml']
-    self.printTag = utils.returnPrintTag('OUTSTREAM PRINT')
+    self.printTag = 'OUTSTREAM PRINT'
     OutStreamManager.__init__(self)
     self.sourceName   = []
     self.sourceData   = None
@@ -1166,8 +1166,8 @@ class OutStreamPrint(OutStreamManager):
     for subnode in xmlNode:
       if subnode.tag == 'source': self.sourceName = subnode.text.split(',')
       else:self.options[subnode.tag] = subnode.text
-    if 'type' not in self.options.keys(): utils.raiseAnError(IOError,self,'type tag not present in Print block called '+ self.name)
-    if self.options['type'] not in self.availableOutStreamTypes : utils.raiseAnError(TypeError,self,'Print type ' + self.options['type'] + ' not available yet. ')
+    if 'type' not in self.options.keys(): self.raiseAnError(IOError,'type tag not present in Print block called '+ self.name)
+    if self.options['type'] not in self.availableOutStreamTypes : self.raiseAnError(TypeError,'Print type ' + self.options['type'] + ' not available yet. ')
     if 'variables' in self.options.keys(): self.variables = self.options['variables']
 
   def addOutput(self):
@@ -1186,11 +1186,13 @@ class OutStreamPrint(OutStreamManager):
         else: empty=False
         if not empty:
           try: self.sourceData[index].printCSV(dictOptions)
-          except AttributeError: utils.raiseAnError(IOError,self,'no implementation for source type '+str(type(self.sourceData[index]))+' and output type "csv"!')
+          except AttributeError: self.raiseAnError(IOError,'no implementation for source type '+str(type(self.sourceData[index]))+' and output type "csv"!')
       elif self.options['type']=='xml':
         if type(self.sourceData[index])==DataObjects.Data: empty = self.sourceData[index].isItEmpty()
         else: empty=False
         if not empty:
+          # TODO FIXME before merging go back to just try case
+          self.sourceData[index].printXML(dictOptions)
           try: self.sourceData[index].printXML(dictOptions)
           except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type '+str(type(self.sourceData[index]))+' and output type "xml"!')
 
@@ -1206,11 +1208,11 @@ __knownTypes              = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
+def returnInstance(Type,caller):
   '''
   function used to generate a OutStream class
   @ In, Type : OutStream type
   @ Out,Instance of the Specialized OutStream class
   '''
   try: return __interFaceDict[Type]()
-  except KeyError: utils.raiseAnError(NameError,'OUTSTREAMMANAGER','not known '+__base+' type '+Type)
+  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
