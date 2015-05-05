@@ -276,7 +276,7 @@ class MultiRun(SingleRun):
         try:
           newinp = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
           inDictionary["Model"].run(newinp,inDictionary['jobHandler'])
-          if self.debug: self.raiseAMessage('Submitted input '+str(inputIndex+1))
+          self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
 
