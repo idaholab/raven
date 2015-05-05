@@ -60,12 +60,12 @@ class Integral(BasePostProcessor):
   '''
   def __init__(self):
     BasePostProcessor.__init__(self)
-    self.variableDist = {}                                    #dictionary created upon the .xml input file reading. It stores the distributions for each variable.
-    self.target       = None
+    self.variableDist = {}                                    # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
+    self.target       = None                                  # target that defines the f(x1,x2,...,xn)
     self.tolerance    = 0.0001                                # integration tolerance
     self.integralType = 'montecarlo'                          # integral type (which alg needs to be used). Either montecarlo or quadrature
     self.seed         = 20021986                              # seed for montecarlo
-    self.matrixDict = {}                                    # dictionary of arrays and target
+    self.matrixDict = {}                                      # dictionary of arrays and target
     self.lowerUpperDict   = {}
     self.functionS = None
     self.requiredAssObject = (False,(['Distribution'],['n']))
@@ -132,7 +132,7 @@ class Integral(BasePostProcessor):
         # construct matrix
         for  varName in self.variableDist.keys(): self.matrixDict[varName] = item.getParam('input',varName)
         outputarr = item.getParam('output',self.target)
-        if len(set(outputarr)) == 2: outputarr[outputarr == -1] = 0
+        if len(set(outputarr)) == 2: outputarr[outputarr == -1] = 0.0
         self.matrixDict[self.target] = outputarr
       else: utils.raiseAnError(IOError,self,'Only TimePointSet is accepted as input!!!!')
 
@@ -142,6 +142,7 @@ class Integral(BasePostProcessor):
     if self.integralType == 'montecarlo':
       tempDict = {}
       weights  = {}
+      rectArea = 0.0
       randomMatrix = np.random.rand(math.ceil(1.0/self.tolerance),len(self.variableDist.keys()))
       for index, varName in enumerate(self.variableDist.keys()):
         randomMatrix[:,index] = randomMatrix[:,index]*(self.lowerUpperDict[varName]['upperBound']-self.lowerUpperDict[varName]['lowerBound'])+self.lowerUpperDict[varName]['lowerBound']
@@ -172,6 +173,12 @@ class Integral(BasePostProcessor):
             for val in value: output.updateOutputValue(key,val)
           for key,value in dataCollector.getAllMetadata().items(): output.updateMetadata(key,value)
 
+
+class LimitSurfaceIntegral(Integral):
+  pass
+  
+  
+  
 class SafestPoint(BasePostProcessor):
   '''
   It searches for the probability-weighted safest point inside the space of the system controllable variables
@@ -1850,7 +1857,6 @@ class ExternalPostProcessor(BasePostProcessor):
       for target in Input['targets']:
         if hasattr(interface,target):
           outputDict[target] = getattr(interface, target)
-
     return outputDict
 
 '''
@@ -1859,12 +1865,12 @@ class ExternalPostProcessor(BasePostProcessor):
 __base                                       = 'PostProcessor'
 __interFaceDict                              = {}
 __interFaceDict['SafestPoint'              ] = SafestPoint
-__interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
+__interFaceDict['LimitSurfaceIntegral'     ] = Integral
+__interFaceDict['Integral'                 ] = Integral
 __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
-__interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __knownTypes                                 = __interFaceDict.keys()
