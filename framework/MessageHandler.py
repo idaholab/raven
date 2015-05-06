@@ -101,7 +101,7 @@ class MessageHandler(MessageUser):
     verbval = self.checkVerbosity(verbosity)
     okay,msg = self._printMessage(caller,message,tag,verbval)
     if okay:
-      print('\nMessage called by:',caller)
+      #print('\nMessage called by:',caller)
       print(msg)
 
   def _printMessage(self,caller,message,tag,verbval):
