@@ -87,6 +87,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                                 'FactorialDesign',
                                                 'ResponseSurfaceDesign',
                                                 'SparseGridCollocation',
+                                                'AdaptiveSparseGrid',
                                                 'Sobol']
 
   @classmethod
@@ -127,6 +128,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
+        print('HERERERRERERERE',anItem['class'],anItem['type'],who)
         cls.raiseAnError(IOError,'It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
     return True
 

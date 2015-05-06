@@ -7,9 +7,9 @@ import itertools
 from operator import itemgetter
 import sys
 
-#import MessageHandler
+import MessageHandler
 
-class IndexSet():#MessageHandler.MessageUser):
+class IndexSet(MessageHandler.MessageUser):
   """In stochastic collocation for generalised polynomial chaos, the Index Set
      is a set of all combinations of polynomial orders needed to represent the
      original model to a "level" L (maxPolyOrder).
@@ -185,50 +185,53 @@ class HyperbolicCross(IndexSet):
 
 
 
-class CustomSet(IndexSet):
-  """This Index Set accepts a user-input set of poly order sets."""
-  def initialize(self,isetpts):
-    #TODO check consistency of isetpts
-    self.points=[]
-    for i,idx in isetpts:
-      self.points.append(tuple(idx))
-    self.points = sorted(self.points,key=itemgetter(*range(len(self.points[0]))))
-
-
-
 class AdaptiveSet(IndexSet):
   def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
     IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
     self.type     = 'Adaptive Index Set'
     self.printTag = self.type
     self.N        = len(distrList)
-    self.points   = [tuple([0]*N)] #retained points in the index set
+    self.points   = [tuple([0]*self.N)] #retained points in the index set
     self.rejects  = [] #list of tuples, rejected points in index set (too high order)
     self.shells   = [] #list of lists of tuples, retained points by adaptive layer 
+    self.toTry    = [] #list of new viable points to try
+    self.newestPoint = self.points[0] #tuple, new point to test adding
 
     self.shells.append(self.points)
 
-  def provideNextLayer(self):
+  def addPoint(self,maxPolyOrder=None):
+    if len(self.toTry)<1:
+      self.toTry = self.provideNextLayer(maxPolyOrder)
+      if len(self.toTry)<1: raise MessageHandler.NoMoreSamplesNeeded
+    self.newestPoint = self.toTry.pop()
+    self.raiseADebug('Trying '+str(self.newestPoint))
+    if self.newestPoint not in self.points:
+      self.points.append(self.newestPoint)
+
+  def provideNextLayer(self,maxPolyOrder=None):
     new=[]
+    print('SHELLS:',self.shells)
     for oldpt in self.shells[-1]:
-      print('oldpt:',oldpt,type(oldpt))
       for i in range(self.N):
-        newpt = list(oldpt)
+        newpt = np.array(oldpt)
         newpt[i]+=1
+        if maxPolyOrder!=None and sum(newpt>maxPolyOrder)>0:
+          self.raiseADebug("Rejected point "+str(newpt)+" for too large polynomial order.")
         newpt=tuple(newpt)
         if newpt not in new and newpt not in self.rejects:
           new.append(newpt)
+    self.shells.append([])
     return new
 
-  def sortPoints(self,keep,reject):
-    self.shells.append([])
-    for point in keep:
-      if point not in self.points:
-        self.points.append(point)
-        self.shells[-1].append(point)
-    for point in reject:
-      if point not in self.rejects:
-        self.rejects.append(point)
+  def reject(self):
+    self.raiseADebug('Rejecting '+str(self.newestPoint))
+    self.rejects.append(self.newestPoint)
+    self.points.remove(self.newestPoint)
+
+  def accept(self):
+    self.raiseADebug('Keeping '+str(self.newestPoint))
+    if self.newestPoint not in self.shells[-1]:
+      self.shells[-1].append(self.newestPoint)
 
 
 
@@ -240,6 +243,7 @@ __interFaceDict = {}
 __interFaceDict['TensorProduct'  ] = TensorProduct
 __interFaceDict['TotalDegree'    ] = TotalDegree
 __interFaceDict['HyperbolicCross'] = HyperbolicCross
+__interFaceDict['AdaptiveSet'    ] = AdaptiveSet
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():
