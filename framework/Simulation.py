@@ -457,7 +457,7 @@ class Simulation(MessageHandler.MessageUser):
     for key in self.filesDict.keys(): self.__createAbsPath(key)
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
-    self.jobHandler.initialize(self.runInfoDict)
+    self.jobHandler.initialize(self.runInfoDict,self.messageHandler)
     self.printDicts()
     for stepName, stepInstance in self.stepsDict.items():
       self.checkStep(stepInstance,stepName)
