@@ -38,9 +38,10 @@ class ExternalRunner(MessageHandler.MessageUser):
   '''
   Class for running external codes
   '''
-  def __init__(self,command,workingDir,bufsize,output=None,metadata=None,codePointer=None):
+  def __init__(self,messageHandler,command,workingDir,bufsize,output=None,metadata=None,codePointer=None):
     ''' Initialize command variable'''
     self.codePointerFailed = None
+    self.messageHandler = messageHandler
     self.command    = command
     self.bufsize    = bufsize
     workingDirI     = None
@@ -151,9 +152,10 @@ class ExternalRunner(MessageHandler.MessageUser):
 #
 class InternalRunner(MessageHandler.MessageUser):
   #import multiprocessing as multip
-  def __init__(self,ppserver, Input,functionToRun, frameworkModules = [], identifier=None,metadata=None, globs = None, functionToSkip = None):
+  def __init__(self,messageHandler,ppserver, Input,functionToRun, frameworkModules = [], identifier=None,metadata=None, globs = None, functionToSkip = None):
     # we keep the command here, in order to have the hook for running exec code into internal models
     self.command  = "internal"
+    self.messageHandler = messageHandler
     self.ppserver = ppserver
     self.__thread = None
     if    identifier!=None:
@@ -234,8 +236,9 @@ class JobHandler(MessageHandler.MessageUser):
     self.__numFailed            = 0
     self.__failedJobs           = []
 
-  def initialize(self,runInfoDict):
+  def initialize(self,runInfoDict,messageHandler):
     self.runInfoDict = runInfoDict
+    self.messageHandler = messageHandler
     if self.runInfoDict['NumMPI'] !=1 and len(self.runInfoDict['ParallelCommand']) > 0:
       self.mpiCommand = self.runInfoDict['ParallelCommand']+' '+str(self.runInfoDict['NumMPI'])
     if self.runInfoDict['NumThreads'] !=1 and len(self.runInfoDict['ThreadingCommand']) > 0:
@@ -297,14 +300,14 @@ class JobHandler(MessageHandler.MessageUser):
       command +=self.threadingCommand+' '
     command += executeCommand
     command += self.runInfoDict['postcommand']
-    self.__queue.put(ExternalRunner(command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata,codePointer))
+    self.__queue.put(ExternalRunner(self.messageHandler,command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata,codePointer))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
   def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], globs = None):
     #internal serve is initialized only in case an internal calc is requested
     if not self.initParallelPython: self.__initializeParallelPython()
-    self.__queue.put(InternalRunner(self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs, functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)]))
+    self.__queue.put(InternalRunner(self.messageHandler,self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs, functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)]))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
