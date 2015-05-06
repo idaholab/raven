@@ -19,17 +19,18 @@ class BaseType(MessageHandler.MessageUser):
   def __init__(self):
     self.name             = ''                  # name of this istance (alias)
     self.type             = type(self).__name__ # specific type within this class
+    self.verbosity        = None
     self.globalAttributes = {}                  # this is a dictionary that contains parameters that are set at the level of the base classes defining the types
     self._knownAttribute  = []                  # this is a list of strings representing the allowed attribute in the xml input for the class
-    self._knownAttribute += ['name','localVerbosity']
+    self._knownAttribute += ['name','verbosity']
     self.printTag         = 'BaseType'
     self.messageHandler   = None    # message handling object
-    self.localVerbosity   = None    # local verbosity value
 
   def readXML(self,xmlNode,messageHandler,globalAttributes=None):
     '''
     provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
-    that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag)
+    that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
+    verbosity (xml attribute)
     '''
     self.setMessageHandler(messageHandler)
     if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
@@ -37,10 +38,11 @@ class BaseType(MessageHandler.MessageUser):
     self.type     = xmlNode.tag
     if self.globalAttributes!= None: self.globalAttributes = globalAttributes
     if 'verbosity' in xmlNode.attrib.keys():
-      self.localVerbosity = xmlNode.attrib['verbosity']
+      self.verbosity = xmlNode.attrib['verbosity']
+      print('Set verbosity for',self,'to',self.verbosity)
     self._readMoreXML(xmlNode)
-    self.raiseAMessage('------Reading Completed for:',verbosity='debug')
-    self.printMe(self.localVerbosity)
+    self.raiseADebug('------Reading Completed for:')
+    self.printMe()
 
   def _readMoreXML(self,xmlNode):
     '''method to be overloaded to collect the additional input'''
@@ -85,17 +87,16 @@ class BaseType(MessageHandler.MessageUser):
     '''function to be overloaded to inject the name and values of the parameters that might change during the simulation'''
     pass
 
-  def printMe(self,verbosity=None):
+  def printMe(self):
     '''
     This is a generic interface that will print all the info for
     the instance of an object that inherit this class
     '''
-    if verbosity==None: verbosity = self.getLocalVerbosity()
     tempDict = self.whoAreYou()
-    for key in tempDict.keys(): self.raiseAMessage('{0:15}: {1}'.format(key,str(tempDict[key])),verbosity=verbosity)
+    for key in tempDict.keys(): self.raiseADebug('{0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myInitializzationParams()
-    self.raiseAMessage('Initialization Parameters:')
-    for key in tempDict.keys(): self.raiseAMessage('{0:15}: {1}'.format(key,str(tempDict[key])),verbosity=verbosity)
+    self.raiseADebug('Initialization Parameters:')
+    for key in tempDict.keys(): self.raiseADebug('{0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myCurrentSetting()
-    self.raiseAMessage('Current Setting:')
-    for key in tempDict.keys(): self.raiseAMessage('{0:15}: {1}'.format(key,str(tempDict[key])),verbosity=verbosity)
+    self.raiseADebug('Current Setting:')
+    for key in tempDict.keys(): self.raiseADebug('{0:15}: {1}'.format(key,str(tempDict[key])))

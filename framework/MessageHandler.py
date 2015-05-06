@@ -54,8 +54,9 @@ class MessageUser(object):
     self.checkHandler()
     self.messageHandler.message(self,str(message),str(tag),verbosity)
 
-  def getLocalVerbosity(self):
-    return None
+  def getLocalVerbosity(self,default=None):
+    try: return self.verbosity
+    except AttributeError: return default
 
 
 class MessageHandler(MessageUser):
@@ -73,14 +74,14 @@ class MessageHandler(MessageUser):
     '''
     self.printTag     = 'MESSAGE HANDLER'
     self.verbosity    = 'all'
-    self.suppressErrs = True
+    self.suppressErrs = False
     self.verbCode     = {'silent':0, 'quiet':1, 'all':2, 'debug':3}
 
   def initialize(self,initDict):
     self.verbosity     = initDict['verbosity'   ] if 'verbosity'    in initDict.keys() else 'all'
     self.callerLength  = initDict['callerLength'] if 'callerLength' in initDict.keys() else 25
     self.tagLength     = initDict['tagLength'   ] if 'tagLength'    in initDict.keys() else 15
-    self.suppressErrs  = initDict['suppressErrs'] in utils.stringsThatMeanTrue() if 'suppressErrs' in initDict.keys() else True
+    self.suppressErrs  = initDict['suppressErrs'] in utils.stringsThatMeanTrue() if 'suppressErrs' in initDict.keys() else False
 
   def getStringFromCaller(self,obj):
     if type(obj) in [str,unicode]: return obj
@@ -90,14 +91,15 @@ class MessageHandler(MessageUser):
     return tag
 
   def getDesiredVerbosity(self,caller):
-    localVerb = caller.getLocalVerbosity()
+    localVerb = caller.getLocalVerbosity(default=self.verbosity)
     if localVerb == None: localVerb = self.verbosity
-    return localVerb
+    return self.checkVerbosity(localVerb) #self.verbCode[str(localVerb).strip().lower()]
 
   def checkVerbosity(self,verb):
-    if verb==None: return
+    #if verb==None: return
     if str(verb).strip().lower() not in self.verbCode.keys():
-      self.error(self,IOError,'Verbosity key '+str(verb)+' not recognized!  Options are '+str(self.verbCode.keys()+[None]),'ERROR','silent')
+      raise IOError('Verbosity key '+str(verb)+' not recognized!  Options are '+str(self.verbCode.keys()+[None]),'ERROR','silent')
+    #print('    REQUESTED VERBOSITY',verb)
     return self.verbCode[str(verb).strip().lower()]
 
   def error(self,caller,etype,message,tag='ERROR',verbosity='silent'):
@@ -110,12 +112,20 @@ class MessageHandler(MessageUser):
   def message(self,caller,message,tag,verbosity):
     verbval = self.checkVerbosity(verbosity)
     okay,msg = self._printMessage(caller,message,tag,verbval)
-    if okay: print(msg)
+    if okay:
+      print('\nMessage called by:',caller)
+      print(msg)
 
   def _printMessage(self,caller,message,tag,verbval):
     #allows raising standardized messages
     shouldIPrint = False
-    if verbval <= self.getDesiredVerbosity(caller): shouldIPrint=True
+    desired = self.getDesiredVerbosity(caller)
+    if verbval <= desired: shouldIPrint=True
+    #if desired >= verbval:
+    #  print('')
+    #  print('FROM',caller)
+    #  print('  DESIRED VERBOSITY:',desired,'|  MESSAGE VERBOSITY:',verbval,'|',shouldIPrint)
+    #  print(message)
     if not shouldIPrint: return False,''
     ctag = self.getStringFromCaller(caller)
     msg=self.stdMessage(ctag,tag,message)

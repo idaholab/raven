@@ -265,7 +265,7 @@ def randomIntegers(low,high,caller):
   raw_num = low + random()*int_range
   raw_int = int(round(raw_num))
   if raw_int < low or raw_int > high:
-    caller.raiseAMessage(caller,"Random int out of range")
+    caller.raiseAMessage("Random int out of range")
     raw_int = max(low,min(raw_int,high))
   return raw_int
 
@@ -1513,4 +1513,4 @@ def knownTypes():
 
 def returnInstance(Type,caller):
   try: return __interFaceDict[Type]()
-  except KeyError: caller.raiseAnError(NameError,'DISTRIBUTIONS','not known '+__base+' type '+Type)
+  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)

@@ -19,7 +19,7 @@ import Distributions
 import MessageHandler
 
 mh = MessageHandler.MessageHandler()
-mh.initialize({'verbosity':3})
+mh.initialize({'verbosity':'debug'})
 
 print (Distributions)
 def createElement(tag,attrib={},text={}):

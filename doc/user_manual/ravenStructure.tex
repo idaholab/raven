@@ -46,3 +46,14 @@ The main input blocks are as follows:
 Each of these blocks are explained in dedicated sections in the following
 chapters.
 %
+Each block within RAVEN also makes use of a \xmlAttr{verbosity} system,
+which allows a user to control the level of output to the user interface.
+These settings are declared globally as attributes in the \xmlNode{Simulation} node,
+and locally in each block.  The verbosity levels are
+\begin{itemize}
+\item \xmlString{silent} - Only simulation-breaking errors are displayed.
+\item \xmlString{quiet} - Errors as well as warnings are displayed.
+\item \xmlString{all} (default) - Errors, warnings, and messages are displayed.
+\item \xmlString{debug} - For developers. All errors, warnings, messages, and debug messages are displayed.
+\end{itemize}
+Examples of verbosity usage are included in many examples throughout this manual.
