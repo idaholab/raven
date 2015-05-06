@@ -51,7 +51,7 @@ if __name__ == '__main__':
   '''This is the main driver for the RAVEN framework'''
   # Retrieve the framework directory path and working dir
   printStatement()
-  verbosity      = 'all'
+  verbosity      = 'silent'
   interfaceCheck = False
   workingDir = os.getcwd()
   for item in sys.argv:

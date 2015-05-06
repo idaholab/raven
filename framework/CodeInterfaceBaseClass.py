@@ -27,6 +27,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),MessageHandle
   """
   def __init__(self,msgHandler):
     self.messageHandler = msgHandler
+    self.verbosity = self.messageHandler.verbosity
 
   def genCommand(self,inputFiles,executable,flags=None, fileargs=None):
     """

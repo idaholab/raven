@@ -1,4 +1,4 @@
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 
 
 <RunInfo>
@@ -107,7 +107,7 @@
     </variable>
   </Grid>
 
-  <Adaptive name = 'dpt_smp' debug='True'>
+  <Adaptive name = 'dpt_smp' verbosity='debug'>
     <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
     <Function         class = 'Functions' type = 'External'      >g_zr</Function>
     <TargetEvaluation class = 'DataObjects'     type = 'TimePointSet'  >nt_phy_dpt_dt</TargetEvaluation>

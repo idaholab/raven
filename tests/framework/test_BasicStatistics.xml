@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 <RunInfo>
     <WorkingDir>basicStatistics</WorkingDir>
     <Files>basicStatisticsExternalModelTest.py,output_basicStatistics_PP1.csv,output_basicStatistics_PP2.csv,output_basicStatistics_PP3.csv</Files>
@@ -23,7 +23,7 @@
        <variable>z02</variable>
        <variable>z01</variable>
     </ExternalModel>
-    <PostProcessor name="autoCorrelationTest" subType='BasicStatistics'  debug='true'>
+    <PostProcessor name="autoCorrelationTest" subType='BasicStatistics'  verbosity='debug'>
         <!-- => you can here specify what type of figure of merit you need to compute
            <what>expectedValue,sigma,variance,kurtois,pearson,covariance</what> 
          -->
@@ -31,12 +31,12 @@
         <parameters>x01,x02</parameters>
         <methodsToRun>failureProbability</methodsToRun>
     </PostProcessor>
-    <PostProcessor name="NotCorrellatedTest" subType='BasicStatistics' debug='true'>
+    <PostProcessor name="NotCorrellatedTest" subType='BasicStatistics' verbosity='debug'>
         <what>all</what>
         <biased>true</biased>
         <parameters>y01,y02</parameters>
     </PostProcessor>
-    <PostProcessor name="InverseCorrelatedTest" subType='BasicStatistics'  debug='true'>
+    <PostProcessor name="InverseCorrelatedTest" subType='BasicStatistics'  verbosity='debug'>
         <what>all</what>
         <parameters>z01,z02</parameters>
     </PostProcessor>
