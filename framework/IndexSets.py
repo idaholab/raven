@@ -3,14 +3,13 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import numpy as np
-from itertools import product
+import itertools
 from operator import itemgetter
 import sys
 
-import utils
-import MessageHandler
+#import MessageHandler
 
-class IndexSet(MessageHandler.MessageUser):
+class IndexSet():#MessageHandler.MessageUser):
   """In stochastic collocation for generalised polynomial chaos, the Index Set
      is a set of all combinations of polynomial orders needed to represent the
      original model to a "level" L (maxPolyOrder).
@@ -132,6 +131,8 @@ class IndexSet(MessageHandler.MessageUser):
       MI.append(tuple(I))
     return MI
 
+
+
 class TensorProduct(IndexSet):
   """This Index Set requires only that the max poly order in the index point i is less than maxPolyOrder ( max(i)<=L )."""
   def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
@@ -145,6 +146,8 @@ class TensorProduct(IndexSet):
         big=max(big,p*self.impWeights[j])
       return big <= target
     self.points = self.generateMultiIndex(len(distrList),rule)
+
+
 
 class TotalDegree(IndexSet):
   """This Index Set requires the sum of poly orders in the index point is less than maxPolyOrder ( sum(i)<=L )."""
@@ -162,6 +165,8 @@ class TotalDegree(IndexSet):
       return tot<=target
     self.points = self.generateMultiIndex(len(distrList),rule)
 
+
+
 class HyperbolicCross(IndexSet):
   """This Index Set requires the product of poly orders in the index point is less than maxPolyOrder ( prod(i+1)<=L+1 )."""
   def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
@@ -178,6 +183,8 @@ class HyperbolicCross(IndexSet):
       return tot<=target
     self.points = self.generateMultiIndex(len(distrList),rule)
 
+
+
 class CustomSet(IndexSet):
   """This Index Set accepts a user-input set of poly order sets."""
   def initialize(self,isetpts):
@@ -186,6 +193,44 @@ class CustomSet(IndexSet):
     for i,idx in isetpts:
       self.points.append(tuple(idx))
     self.points = sorted(self.points,key=itemgetter(*range(len(self.points[0]))))
+
+
+
+class AdaptiveSet(IndexSet):
+  def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
+    IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
+    self.type     = 'Adaptive Index Set'
+    self.printTag = self.type
+    self.N        = len(distrList)
+    self.points   = [tuple([0]*N)] #retained points in the index set
+    self.rejects  = [] #list of tuples, rejected points in index set (too high order)
+    self.shells   = [] #list of lists of tuples, retained points by adaptive layer 
+
+    self.shells.append(self.points)
+
+  def provideNextLayer(self):
+    new=[]
+    for oldpt in self.shells[-1]:
+      print('oldpt:',oldpt,type(oldpt))
+      for i in range(self.N):
+        newpt = list(oldpt)
+        newpt[i]+=1
+        newpt=tuple(newpt)
+        if newpt not in new and newpt not in self.rejects:
+          new.append(newpt)
+    return new
+
+  def sortPoints(self,keep,reject):
+    self.shells.append([])
+    for point in keep:
+      if point not in self.points:
+        self.points.append(point)
+        self.shells[-1].append(point)
+    for point in reject:
+      if point not in self.rejects:
+        self.rejects.append(point)
+
+
 
 """
 Interface Dictionary (factory) (private)
