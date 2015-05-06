@@ -395,7 +395,7 @@ class AdaptiveSampler(Sampler):
   pass
 
 
-class MonteCarlo(StatickSampler):
+class MonteCarlo(StaticSampler):
   '''MONTE CARLO Sampler'''
   def __init__(self):
     Sampler.__init__(self)
@@ -2441,9 +2441,15 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.oldSVL           = None #for comparing
     self.newSVL           = None
 
+    self.
+
+  def localInputAndChecks(self,xmlNode):
+    SparseGridCollocation.localInputAndChecks(self,xmlNode)
+
   def  localInitialize(self):
     if 'Restart' in self.assemblerDict.keys(): self.restartData = self.assemblerDict['Restart'][0][3]
-    self.ROM = self.assemberDict['ROM'][0][3]
+    self.ROM = self.assemblerDict['ROM'][0][3]
+    self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #sampler doesn't care about which target -> or do I?
     self._generateQuadsAndPolys(SVL)
@@ -2467,9 +2473,16 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     # NOTE this is the most expensive step thus far; try to do checks before here
     self.sparseGrid.initialize(self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
 
+  def localStillReady(self,ready):
+    #check for convergence?
+    pass
+
   def localGenerateInput(self,model,myInput):
     pass
 
+  def localFinalizeActualSampling(self,jobObject,model,myInput):
+    #train new rom and check convergence
+    pass
 
 
 class Sobol(SparseGridCollocation):
