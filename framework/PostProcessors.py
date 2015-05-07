@@ -937,13 +937,11 @@ class BasicStatistics(BasePostProcessor):
       #sensitivity matrix
       if what == 'sensitivity':
         if self.sampled:
-          self.initializationOptionDict = {}
-          self.initializationOptionDict['SKLtype' ] = 'linear_model|LinearRegression'
-          self.initializationOptionDict['Features'] = ','.join(self.sampled.keys())
           self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
           for target in self.calculated:
-            self.initializationOptionDict['Target'] = target
-            self.SupervisedEngine[target] =  SupervisedLearning.returnInstance('SciKitLearn',self,**self.initializationOptionDict)
+            self.SupervisedEngine[target] =  SupervisedLearning.returnInstance('SciKitLearn',self,**{'SKLtype':'linear_model|LinearRegression',
+                                                                                                     'Features':','.join(self.sampled.keys()),
+                                                                                                     'Target':target})
             self.SupervisedEngine[target].train(Input['targets'])
           for myIndex in range(len(self.calculated)):
             outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
