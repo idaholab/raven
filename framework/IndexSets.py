@@ -221,9 +221,10 @@ class AdaptiveSet(IndexSet):
         newpt[i]+=1
         if maxPolyOrder!=None and sum(newpt>maxPolyOrder)>0:
           self.raiseADebug("    Rejected point "+str(newpt)+" for too large polynomial order.")
-        newpt=tuple(newpt)
-        if newpt not in new and newpt not in self.rejects:
-          new.append(newpt)
+        else:
+          newpt=tuple(newpt)
+          if newpt not in new and newpt not in self.rejects:
+            new.append(newpt)
     self.shells.append([])
     return new
 
