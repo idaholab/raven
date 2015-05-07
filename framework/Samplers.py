@@ -291,7 +291,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     #grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
     if 'Restart' in self.assemblerDict.keys():
-      print(self.assemblerDict['Restart'])
+      self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
       self.restartData = self.assemblerDict['Restart'][0][3]
       self.raiseAMessage('Restarting from '+self.restartData.name)
       #check consistency of data
