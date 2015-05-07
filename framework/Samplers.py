@@ -1176,7 +1176,7 @@ class Stratified(Grid):
 
 class DynamicEventTree(Grid):
   '''
-  DYNAMIC EVENT TREE Sampler - (DET)
+  DYNAMIC EVENT TREE Sampler - "ANalysis of Dynamic REactor Accident evolution"
   '''
   def __init__(self):
     Grid.__init__(self)
