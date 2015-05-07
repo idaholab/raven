@@ -54,9 +54,9 @@ class BasePostProcessor(Assembler,MessageHandler.MessageUser):
 
   def run(self, Input): pass
 
-class Integral(BasePostProcessor):
+class LimitSurfaceIntegral(BasePostProcessor):
   '''
-  This post-processor is aimed to compute the n-dimensional integral of an inputted dataset
+  This post-processor is aimed to compute the n-dimensional integral of an inputted Limit Surface
   '''
   def __init__(self):
     BasePostProcessor.__init__(self)
@@ -65,18 +65,17 @@ class Integral(BasePostProcessor):
     self.tolerance    = 0.0001                                # integration tolerance
     self.integralType = 'montecarlo'                          # integral type (which alg needs to be used). Either montecarlo or quadrature
     self.seed         = 20021986                              # seed for montecarlo
-    self.matrixDict = {}                                    # dictionary of arrays and target
+    self.matrixDict   = {}                                    # dictionary of arrays and target
     self.lowerUpperDict   = {}
     self.functionS = None
     self.requiredAssObject = (False,(['Distribution'],['n']))
-    self.printTag = utils.returnPrintTag('POSTPROCESSOR INTEGRAL')
+    self.printTag = 'POSTPROCESSOR INTEGRAL'
 
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
     for varName, distName in self.variableDist.items():
       if distName != None:
-        if distName not in initDict['Distributions'].keys():
-          utils.raiseAnError(IOError,self,'distribution ' +distName+ ' not found.')
+        if distName not in initDict['Distributions'].keys(): self.raiseAnError(IOError,'distribution ' +distName+ ' not found.')
         self.variableDist[varName] = initDict['Distributions'][distName]
         self.lowerUpperDict[varName]['lowerBound'] = self.variableDist[varName].lowerBound
         self.lowerUpperDict[varName]['upperBound'] = self.variableDist[varName].upperBound
@@ -84,18 +83,18 @@ class Integral(BasePostProcessor):
   def _localReadMoreXML(self,xmlNode):
     if 'tolerance' in xmlNode.attrib.keys():
       try: self.tolerance = float(xmlNode.attrib['tolerance'])
-      except ValueError: utils.raiseAnError(ValueError,self,'tolerance can not be converted into a float value!')
+      except ValueError: self.raiseAnError(ValueError,"tolerance can not be converted into a float value!")
     if 'integralType' in xmlNode.attrib.keys():
       self.integralType = xmlNode.attrib['integralType'].strip().lower()
-      if self.integralType not in ['montecarlo','quadrature']: utils.raiseAnError(IOError,self,'only two integral types are available: qudrature, MonteCarlo!')
+      if self.integralType not in ['montecarlo']: self.raiseAnError(IOError,'only two integral types are available: qudrature, MonteCarlo!')
     if 'seed' in xmlNode.attrib.keys():
       try: self.seed = int(xmlNode.attrib['tolerance'])
-      except ValueError: utils.raiseAnError(ValueError,self,'seed can not be converted into a int value!')
-      if self.integralType != 'montecarlo': utils.raiseAWarning(self,'integral type is '+self.integralType+' but a seed has been inputted!!!')
+      except ValueError: self.raiseAnError(ValueError,'seed can not be converted into a int value!')
+      if self.integralType != 'montecarlo': self.raiseAWarning('integral type is '+self.integralType+' but a seed has been inputted!!!')
       else: np.random.seed(self.seed)
     if 'target' in xmlNode.attrib.keys():
       self.target = xmlNode.attrib['target']
-    else: utils.raiseAWarning(self,'integral target has not been provided. The postprocessor is going to take the last output it finds in the input dataset!!!')
+    else: self.raiseAWarning('integral target has not been provided. The postprocessor is going to take the last output it finds in the provided limitsurface!!!')
 
     for child in xmlNode:
       if child.tag == 'variable':
@@ -103,13 +102,13 @@ class Integral(BasePostProcessor):
         self.variableDist[varName] = None
         for childChild in child:
           if childChild.tag == 'distribution': self.variableDist[varName] = childChild.text
-          else: utils.raiseAnError(NameError,self,'invalid labels after the variable call. Only "distribution" is accepted.')
-      else: utils.raiseAnError(NameError,self,'invalid or missing labels after the variables call. Only "variable" is accepted.')
+          else: self.raiseAnError(NameError,'invalid labels after the variable call. Only "distribution" is accepted.')
+      else: self.raiseAnError(NameError,'invalid or missing labels after the variables call. Only "variable" is accepted.')
       #if no distribution, we look for the integration domain in the input
       self.lowerUpperDict[varName] = {}
       if self.variableDist[varName] == None:
         if 'lowerBound' not in child.attrib.keys() or 'upperBound' not in child.attrib.keys():
-          utils.raiseAnError(NameError,self,'either a distribution name or lowerBound and upperBound need to be specified for variable '+varName)
+          self.raiseAnError(NameError,'either a distribution name or lowerBound and upperBound need to be specified for variable '+varName)
         self.lowerUpperDict[varName]['lowerBound'] = float(child.attrib['lowerBound'])
         self.lowerUpperDict[varName]['upperBound'] = float(child.attrib['upperBound'])
 
@@ -117,24 +116,23 @@ class Integral(BasePostProcessor):
     self.inputToInternal(inputs)
     self.functionS = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsRegressor','Features':','.join(list(self.variableDist.keys())),'Target':self.target})
     self.functionS.train(self.matrixDict)
-    if self.debug:
-      utils.raiseAMessage(self,'DATA SET MATRIX:')
-      utils.raiseAMessage(self,self.matrixDict)
+    self.raiseADebug('DATA SET MATRIX:')
+    self.raiseADebug(self.matrixDict)
 
   def inputToInternal(self,currentInput):
     for item in currentInput:
       if item.type == 'TimePointSet':
         # check if variables and inputs match
         self.matrixDict = {}
-        if not set(item.getParaKeys('inputs')) == set(self.variableDist.keys()): utils.raiseAnError(IOError,self,'The variables inputted and the features in the input TimePointSet '+ item.name + 'do not match!!!')
+        if not set(item.getParaKeys('inputs')) == set(self.variableDist.keys()): self.raiseAnError(IOError,'The variables inputted and the features in the input TimePointSet '+ item.name + 'do not match!!!')
         if self.target == None: self.target = item.getParaKeys('outputs')[-1]
-        if self.target not in item.getParaKeys('outputs'): utils.raiseAnError(IOError,self,'The target '+ self.target + 'is not present among the outputs of the TimePointSet '+ item.name)
+        if self.target not in item.getParaKeys('outputs'): self.raiseAnError(IOError,'The target '+ self.target + 'is not present among the outputs of the TimePointSet '+ item.name)
         # construct matrix
         for  varName in self.variableDist.keys(): self.matrixDict[varName] = item.getParam('input',varName)
         outputarr = item.getParam('output',self.target)
-        if len(set(outputarr)) == 2: outputarr[outputarr == -1] = 0
+        if len(set(outputarr)) != 2: self.raiseAnError(IOError,'The target '+ self.target + 'is not present among the outputs of the TimePointSet '+ item.name)
         self.matrixDict[self.target] = outputarr
-      else: utils.raiseAnError(IOError,self,'Only TimePointSet is accepted as input!!!!')
+      else: self.raiseAnError(IOError,'Only TimePointSet is accepted as input!!!!')
 
   def run(self,Input):
     # compute the integral
@@ -163,14 +161,14 @@ class Integral(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     if finishedjob.returnEvaluation() == -1:
-      utils.raiseAnError(RuntimeError,self,'no available output to collect (the run is likely not over yet).')
+      self.raiseAnError(RuntimeError,'no available output to collect (the run is likely not over yet).')
     else:
       dataCollector = finishedjob.returnEvaluation()[1]
       if output.type != 'TimePointSet':
-        utils.raiseAnError(TypeError,self,'output item type must be "TimePointSet".')
+        self.raiseAnError(TypeError,'output item type must be "TimePointSet".')
       else:
         if not output.isItEmpty():
-          utils.raiseAnError(ValueError,self,'output item must be empty.')
+          self.raiseAnError(ValueError,'output item must be empty.')
         else:
           for key,value in dataCollector.getParametersValues('input').items():
             for val in value: output.updateInputValue(key, val)

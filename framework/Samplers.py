@@ -1006,18 +1006,17 @@ class Stratified(Grid):
       if child.tag == "Distribution":
         #Add <distribution> to name so we know it is not a direct variable
         varName = "<distribution>"+child.attrib['name']
-
       elif child.tag == "global_grid":
-         for childChild in child:
-           if childChild.tag =='grid':
-             globalGridName = childChild.attrib['name']
-             constrType = childChild.attrib['construction']
-             if constrType == 'custom':
+        for childChild in child:
+          if childChild.tag =='grid':
+            globalGridName = childChild.attrib['name']
+            constrType = childChild.attrib['construction']
+            if constrType == 'custom':
               tempList = [float(i) for i in childChild.text.split()]
               tempList.sort()
               self.globalGrid[globalGridName] = (tempList)
               self.limit = len(tempList)*self.limit
-             elif constrType == 'equal':
+            elif constrType == 'equal':
               self.limit = self.limit*(int(childChild.attrib['steps'])+1)
               if   'lowerBound' in childChild.attrib.keys():
                 self.globalGrid[globalGridName] = ([float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
@@ -1026,8 +1025,8 @@ class Stratified(Grid):
                 self.globalGrid[globalGridName] = ([float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
                 self.globalGrid[globalGridName].sort()
               else: self.raiseAnError(IOError,'no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
-           else:
-             self.raiseAnError(IOError,'The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
+          else:
+            self.raiseAnError(IOError,'The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
 
     for variable in self.gridInfo.keys():
       if self.gridInfo[variable][1] == 'global_grid':

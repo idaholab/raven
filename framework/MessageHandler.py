@@ -20,12 +20,6 @@ import os
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
-# set a global variable for backend default setting
-if platform.system() == 'Windows': disAvail = True
-else:
-  if os.getenv('DISPLAY'): disAvail = True
-  else:                    disAvail = False
-
 class MessageUser(object):
   '''
     Inheriting from this class grants access to methods used by the message handler.

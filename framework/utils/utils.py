@@ -118,7 +118,7 @@ def convertMultipleToBytes(sizeString):
 
 def stringsThatMeanTrue():
   '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
-  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','etiam', 'evet', 'dogru', '1'])
+  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1'])
 
 def stringsThatMeanFalse():
   '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
