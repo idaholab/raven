@@ -343,8 +343,7 @@ class ComparisonStatistics(BasePostProcessor):
             rest = splitName[2:]
             compareGroup.dataPulls.append([name, kind, rest])
           elif child.tag == 'reference':
-            #XXX this should take a standard distribution
-            # See for example LimitSurfaceIntegral post processor.
+            #This is either name=distribution or mean=num and sigma=num
             compareGroup.referenceData = dict(child.attrib)
         self.compareGroups.append(compareGroup)
       if outer.tag == 'kind':
