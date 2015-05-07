@@ -709,7 +709,7 @@ class BasicStatistics(BasePostProcessor):
     else                         : currentInput = currentInp
     if type(currentInput) == dict:
       if 'targets' in currentInput.keys(): return
-    inputDict = {'targets':{},'sampled':{},'calculated':{},'metadata':{}}
+    inputDict = {'targets':{},'metadata':{}}
     try: inType = currentInput.type
     except:
       if type(currentInput).__name__ == 'list'    : inType = 'list'
@@ -758,7 +758,7 @@ class BasicStatistics(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     #output
-    parameterSet  = list(set(list(self.parameters['targets'])))
+    parameterSet = list(set(list(self.parameters['targets'])))
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,' No available Output to collect (Run probabably is not finished yet)')
     outputDict = finishedjob.returnEvaluation()[1]
     methodToTest = []
@@ -885,11 +885,11 @@ class BasicStatistics(BasePostProcessor):
       #sigma
       if what == 'sigma':
         for myIndex, targetP in enumerate(parameterSet):
-          outputDict[what][targetP] = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights))/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
+          outputDict[what][targetP] = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights))
       #variance
       if what == 'variance':
         for myIndex, targetP in enumerate(parameterSet):
-          outputDict[what][targetP], sumW = np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights, returned=True)/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
+          outputDict[what][targetP] = np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
       #coefficient of variation (sigma/mu)
       if what == 'variationCoefficient':
         for myIndex, targetP in enumerate(parameterSet):
@@ -955,8 +955,7 @@ class BasicStatistics(BasePostProcessor):
         variance  = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
           variance[myIndex] = np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
-        #for myIndex in range(len(parameterSet)):
-        for myIndex, targetP in enumerate(parameterSet):
+        for myIndex in range(len(parameterSet)):
           outputDict[what][myIndex] = covMatrix[myIndex,:]/(variance[myIndex])
       #Normalizzate sensitivity matrix: linear regression slopes normalizited by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
