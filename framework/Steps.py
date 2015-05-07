@@ -158,15 +158,15 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     This should work for everybody just split the step in an initialization and the run itself
     inDictionary[role]=instance or list of instance
     '''
-    self.raiseADebug('***  Beginning initialization ***')
+    self.raiseAMessage('***  Beginning initialization ***')
     self._initializeStep(inDictionary)
-    self.raiseADebug('***    Initialization done    ***')
-    self.raiseADebug('***       Beginning run       ***')
+    self.raiseAMessage('***    Initialization done    ***')
+    self.raiseAMessage('***       Beginning run       ***')
     self._localTakeAstepRun(inDictionary)
-    self.raiseADebug('***       Run finished        ***')
-    self.raiseADebug('***     Closing the step      ***')
+    self.raiseAMessage('***       Run finished        ***')
+    self.raiseAMessage('***     Closing the step      ***')
     self._endStepActions(inDictionary)
-    self.raiseADebug('***        Step closed        ***')
+    self.raiseAMessage('***        Step closed        ***')
 #
 #
 #

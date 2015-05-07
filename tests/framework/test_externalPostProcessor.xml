@@ -21,7 +21,7 @@
     12. Scalar or non-conformant data size warning message when attempting to
         store it in the output, it is instead put in the metadata: Max
  -->
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 <RunInfo>
   <WorkingDir>externalPostProcessor</WorkingDir>
   <Sequence>
@@ -34,7 +34,7 @@
 <Models>
 <!-- This post-processor will call methods defined in two external python 
      scripts compatible with RAVEN -->
-  <PostProcessor name='functionPP' subType='External' debug='true'>
+  <PostProcessor name='functionPP' subType='External' verbosity='debug'>
     <method>Delta,Sum,Norm,Mean,Max,Min,DoesNotExist</method>
 <!--    <Assembler> -->
       <Function class='Functions' type='External'>basicOps</Function>
