@@ -2471,6 +2471,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def  localInitialize(self):
     if 'Restart' in self.assemblerDict.keys(): self.restartData = self.assemblerDict['Restart'][0][3]
     self.ROM = self.assemblerDict['ROM'][0][3]
+    self.raiseADebug('adapinit: '+str(self.ROM.messageHandler))
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #sampler doesn't care about which target -> or do I?
@@ -2507,27 +2508,33 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
     sparseGrid.initialize(self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
-    if not self.solns.isItEmpty():
-      inps = self.solns.getInpParametersValues()
+    #if not self.solns.isItEmpty():
+    #  inps = self.solns.getInpParametersValues()
       #self.existing = zip(*list(v for v in inps.values())) #done in localInitialize
-      key = inps.keys()
-      if not key==self.distDict.keys(): sparseGrid._remap(key)
+    #  key = inps.keys()
+    key = self.ROM.SupervisedEngine.values()[0].features
+    if not key==self.distDict.keys(): sparseGrid._remap(key)
     return sparseGrid
 
   def _makeAROM(self):
     rom = copy.deepcopy(self.ROM)
     for SVL in rom.SupervisedEngine.values():
-      SVL.initialize({'SG':copy.deepcopy(self.sparseGrid),
+      newSG = copy.deepcopy(self.sparseGrid)
+      newIS = copy.deepcopy(self.indexSet)
+      newSG.messageHandler = self.messageHandler
+      newIS.messageHandler = self.messageHandler
+      SVL.initialize({'SG': newSG,
                       'dists':self.distDict,
                       'quads':self.quadDict,
                       'polys':self.polyDict,
-                      'iSet':copy.deepcopy(self.indexSet)})
+                      'iSet':newIS
+                      })
     rom.train(self.solns)
     return rom
 
   def _convergenceTest(self,newR,oldR):
-    self.raiseADebug('    newRkeys: '+str(newR.sparseGrid.varNames))
-    self.raiseADebug('    oldRkeys: '+str(oldR.sparseGrid.varNames))
+    #self.raiseADebug('    newRkeys: '+str(newR.sparseGrid.varNames))
+    #self.raiseADebug('    oldRkeys: '+str(oldR.sparseGrid.varNames))
     if self.convType=='variance':
       #TODO multitarget ROM #for target in self.oldROM.SupervisedEngine.values():
       old = oldR.__evaluateMoment__(2) - oldR.__evaluateMoment__(1)**2
@@ -2556,11 +2563,12 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def localStillReady(self,ready):
     #update existing solutions
     if not self.solns.isItEmpty():
+      #self.raiseADebug('REMAPPING')
       inps = self.solns.getInpParametersValues()
       self.existing = zip(*list(v for v in inps.values())) #done in localInitialize
       #remap if things got shifted ###DANGER###
       key = inps.keys()
-      if not key==self.distDict.keys(): sparseGrid._remap(key)
+      if not key==self.distDict.keys(): self.sparseGrid._remap(key)
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
     #if we have points left, we're ready
@@ -2575,12 +2583,12 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       oldR = self.oldROM.SupervisedEngine.values()[0]
       newR = self.newROM.SupervisedEngine.values()[0]
       err = self._convergenceTest(newR,oldR)
+      #stash good ROM
+      self.oldROM = copy.deepcopy(self.newROM)
       if err <= self.convValue: #change is too small, so get rid of this point
         #self.raiseADebug('    Rejecting Point Convergence: '+str(err))
         self.indexSet.reject()
       else: #change is significant, so keep this point
-        #stash good ROM
-        self.oldROM = copy.deepcopy(self.newROM)
         #self.raiseADebug('    AcceptancePoint Convergence: '+str(err)+' | '+str(new)+' | '+str(old))
         self.indexSet.accept()
     try:self.indexSet.addPoint(self.maxPolyOrder) #ask index set to expand itself
@@ -2590,11 +2598,11 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       #initialize final rom with final sparse grid and index set
       self.sparseGrid = self._makeSparseQuad()
       for SVL in self.ROM.SupervisedEngine.values():
-        SVL.initialize({'SG':copy.deepcopy(self.sparseGrid),
+        SVL.initialize({'SG':self.sparseGrid,
                         'dists':self.distDict,
                         'quads':self.quadDict,
                         'polys':self.polyDict,
-                        'iSet':copy.deepcopy(self.indexSet)})
+                        'iSet':self.indexSet})
       return False
     #with new index set point, remake the sparse quad...
     self.sparseGrid = self._makeSparseQuad()

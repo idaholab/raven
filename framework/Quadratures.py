@@ -174,7 +174,7 @@ class SparseQuad(MessageHandler.MessageUser):
     #TODO optimize me!~~
     oldNames = self.varNames[:]
     #check consistency
-    self.raiseADebug('old: '+str(oldNames)+' | new: '+str(newNames))
+    #self.raiseADebug('old: '+str(oldNames)+' | new: '+str(newNames))
     if len(oldNames)!=len(newNames): self.raiseAnError(KeyError,'Remap mismatch! Dimensions are not the same!')
     for name in oldNames:
       if name not in newNames: self.raiseAnError(KeyError,'Remap mismatch! '+name+' not found in original variables!')
