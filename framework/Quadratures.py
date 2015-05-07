@@ -212,7 +212,7 @@ class SparseQuad(MessageHandler.MessageUser):
     return zip(*self.points())
 
   ##### PUBLIC MEMBERS #####
-  def initialize(self, indexSet, distDict, quadDict, handler, msgHandler):
+  def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
     '''Initializes sparse quad to be functional.
     @ In indexSet, IndexSet object, index set
     @ In distDict, dict{varName,Distribution object}, distributions
@@ -224,7 +224,7 @@ class SparseQuad(MessageHandler.MessageUser):
     self.indexSet = np.array(indexSet[:])
     self.distDict = distDict
     self.quadDict = quadDict
-    self.varNames = self.distDict.keys()
+    self.varNames = varNames
     self.N        = len(self.varNames)
     self.messageHandler = msgHandler
     #we know how this ends if it's tensor product index set
@@ -391,8 +391,11 @@ class SparseQuad(MessageHandler.MessageUser):
     #m,idx = args
     pointLists=[]
     weightLists=[]
-    for n,distr in enumerate(self.distDict.values()):
-      quad = self.quadDict.values()[n]
+    #TODO FIXME nothing should be in the order of distDict
+    #for n,distr in enumerate(self.distDict.values()):
+    for n,var in enumerate(self.varNames):
+      distr = self.distDict[var]
+      quad = self.quadDict[var]
       mn = m[n]
       pts,wts=quad(mn)
       pts=pts.real

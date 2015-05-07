@@ -2304,6 +2304,7 @@ class SparseGridCollocation(Grid):
     if 'Restart' in self.assemblerDict.keys(): self.restartData = self.assemblerDict['Restart'][0][3]
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #often need only one
+    self.features = SVL.features
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
     msg=self.printTag+' INTERPOLATION INFO:\n'
@@ -2321,7 +2322,7 @@ class SparseGridCollocation(Grid):
     self.raiseADebug('Starting sparse grid generation...')
     self.sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
-    self.sparseGrid.initialize(self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
+    self.sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
 
     if self.writeOut != None:
       msg=self.sparseGrid.__csv__()
