@@ -1,8 +1,8 @@
-'''
+"""
 Created on Mar 7, 2013
 
 @author: crisr
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -32,9 +32,9 @@ def factorial(x):
 
 stochasticEnv = distribution1D.DistributionContainer.Instance()
 
-'''
+"""
  Mapping between internal framework and Crow distribution name
-'''
+"""
 _FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
                               'Normal':'NormalDistribution',
                               'Gamma':'GammaDistribution',
@@ -53,9 +53,9 @@ _FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
 
 
 class Distribution(BaseType):
-  '''
+  """
   a general class containing the distributions
-  '''
+  """
   def __init__(self):
     BaseType.__init__(self)
     self.upperBoundUsed       = False  # True if the distribution is right truncated
@@ -99,9 +99,9 @@ class Distribution(BaseType):
     self.initializeDistribution()
 
   def _readMoreXML(self,xmlNode):
-    '''
+    """
     Readmore xml, see BaseType.py explaination.
-    '''
+    """
     if xmlNode.find('upperBound') !=None:
       self.upperBound = float(xmlNode.find('upperBound').text)
       self.upperBoundUsed = True
@@ -112,10 +112,10 @@ class Distribution(BaseType):
     else: self.__adjustment = 'scaling'
 
   def getCrowDistDict(self):
-    '''
+    """
     Returns a dictionary of the keys and values that would be
     used to create the distribution for a Crow input file.
-    '''
+    """
     retDict = {}
     retDict['type'] = _FrameworkToCrowDistNames[self.type]
     if self.lowerBoundUsed:
@@ -125,10 +125,10 @@ class Distribution(BaseType):
     return retDict
 
   def addInitParams(self,tempDict):
-    '''
+    """
     Function to get the input params that belong to this class
     @ In, tempDict, temporary dictionary
-    '''
+    """
     tempDict['upperBoundUsed'  ] = self.upperBoundUsed
     tempDict['lowerBoundUsed'  ] = self.lowerBoundUsed
     tempDict['hasInfiniteBound'] = self.hasInfiniteBound
@@ -138,100 +138,100 @@ class Distribution(BaseType):
     tempDict['dimensionality'  ] = self.dimensionality
 
   def rvsWithinCDFbounds(self,LowerBound,upperBound):
-    '''
+    """
     Function to get a random number from a truncated distribution
     @ In, LowerBound, float -> lower bound
     @ In, upperBound, float -> upper bound
     @ In,           , float -> random number
-    '''
+    """
     point = float(np.random.rand(1))*(upperBound-LowerBound)+LowerBound
     return self._distribution.InverseCdf(point)
 
   def rvsWithinbounds(self,LowerBound,upperBound):
-    '''
+    """
     Function to get a random number from a truncated distribution
     @ In, LowerBound, float -> lower bound
     @ In, upperBound, float -> upper bound
     @ Out,          , float -> random number
-    '''
+    """
     CDFupper = self._distribution.Cdf(upperBound)
     CDFlower = self._distribution.Cdf(LowerBound)
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
   def convertToDistr(self,qtype,pts):
-    '''Converts points from the quadrature "qtype" standard domain to the distribution domain.
+    """Converts points from the quadrature "qtype" standard domain to the distribution domain.
     @ In qtype, string, type of quadrature to convert from
     @ In pts, array of floats, points to convert
     @ Out, array of floats, converted points
-    '''
+    """
     return self.convertToDistrDict[qtype](pts)
 
   def convertToQuad(self,qtype,pts):
-    '''Converts points from the distribution domain to the quadrature "qtype" standard domain.
+    """Converts points from the distribution domain to the quadrature "qtype" standard domain.
     @ In qtype, string, type of quadrature to convert to
     @ In pts, array of floats, points to convert
     @ Out, array of floats, converted points
-    '''
+    """
     return self.convertToQuadDict[qtype](pts)
 
   def measureNorm(self,qtype):
-    '''Provides the integral/jacobian conversion factor between the distribution domain and the quadrature domain.
+    """Provides the integral/jacobian conversion factor between the distribution domain and the quadrature domain.
     @ In qtype, string, type of quadrature to convert to
     @ Out, float, conversion factor
-    '''
+    """
     return self.measureNormDict[qtype]()
 
   def _convertDistrPointsToCdf(self,pts):
-    '''Converts points in the distribution domain to [0,1].
+    """Converts points in the distribution domain to [0,1].
     @ In pts, array of floats, points to convert
     @ Out, float/array of floats, converted points
-    '''
+    """
     try: return self.cdf(pts.real)
     except TypeError: return list(self.cdf(x) for x in pts)
 
   def _convertCdfPointsToDistr(self,pts):
-    '''Converts points in [0,1] to the distribution domain.
+    """Converts points in [0,1] to the distribution domain.
     @ In pts, array of floats, points to convert
     @ Out, float/array of floats, converted points
-    '''
+    """
     try: return self.ppf(pts.real)
     except TypeError: return list(self.ppf(x) for x in pts)
 
   def _convertCdfPointsToStd(self,pts):
-    '''Converts points in [0,1] to [-1,1], the uniform distribution's STANDARD domain.
+    """Converts points in [0,1] to [-1,1], the uniform distribution's STANDARD domain.
     @ In pts, array of floats, points to convert
     @ Out, float/array of floats, converted points
-    '''
+    """
     try: return 2.0*pts.real-1.0
     except TypeError: return list(2.0*x-1.0 for x in pts)
 
   def _convertStdPointsToCdf(self,pts):
-    '''Converts points in [-1,1] to [0,1] (CDF domain).
+    """Converts points in [-1,1] to [0,1] (CDF domain).
     @ In pts, array of floats, points to convert
     @ Out, float/array of floats, converted points
-    '''
+    """
     try: return 0.5*(pts.real+1.0)
     except TypeError: return list(0.5*(x+1.0) for x in pts)
 
   def CDFconvertToQuad(self,pts):
-    '''Converts all the way from distribution domain to [-1,1] quadrature domain.
+    """Converts all the way from distribution domain to [-1,1] quadrature domain.
     @ In pts, array of floats, points to convert
     @ Out, float/array of floats, converted points
-    '''
+    """
     return self._convertCdfPointsToStd(self._convertDistrPointsToCdf(pts))
 
   def CDFconvertToDistr(self,pts):
-    '''Converts all the way from [-1,1] quadrature domain to distribution domain.
+    """Converts all the way from [-1,1] quadrature domain to distribution domain.
     @ In pts, array of floats, points to convert
     @ Out, float/array of floats, converted points
-    '''
+    """
     return self._convertCdfPointsToDistr(self._convertStdPointsToCdf(pts))
 
   def CDFMeasureNorm(self):
-    '''Integral norm/jacobian for [-1,1] Legendre quadrature.
+    """Integral norm/jacobian for [-1,1] Legendre quadrature.
     @ In None, None
     @ Out float, normalization factor
-    '''
+    """
     return 1.0/2.0;
 
   def getDimensionality(self):
@@ -239,28 +239,28 @@ class Distribution(BaseType):
 
 
 def random():
-  '''
+  """
   Function to get a random number <1<
   @ In, None, None
   @ Out, float, random number
-  '''
+  """
   return stochasticEnv.random()
 
 def randomSeed(value):
-  '''
+  """
   Function to get a random seed
   @ In, None, None
   @ Out, integer, random seed
-  '''
+  """
   return stochasticEnv.seedRandom(value)
 
 def randomIntegers(low,high,caller):
-  '''
+  """
   Function to get a random integer
   @ In, low, integer -> low boundary
   @ In, high, integer -> upper boundary
   @ Out, integer, random int
-  '''
+  """
   int_range = high-low
   raw_num = low + random()*int_range
   raw_int = int(round(raw_num))
@@ -270,11 +270,11 @@ def randomIntegers(low,high,caller):
   return raw_int
 
 def randomPermutation(l,caller):
-  '''
+  """
   Function to get a random permutation
   @ In, l, list -> list to be permuted
   @ Out, list, randomly permuted list
-  '''
+  """
   new_list = []
   old_list = l[:]
   while len(old_list) > 0:
@@ -282,85 +282,93 @@ def randomPermutation(l,caller):
   return new_list
 
 class BoostDistribution(Distribution):
-  '''
+  """
   Base distribution class based on boost
-  '''
+  """
   def __init__(self):
     Distribution.__init__(self)
     self.dimensionality  = 1
     self.disttype        = 'Continuous'
 
   def cdf(self,x):
-    '''
+    """
     Function to get the cdf at a provided coordinate
     @ In, x, float -> value to get the cdf at
-    @ Out, flaot, requested cdf
-    '''
+    @ Out, float, requested cdf
+    """
     return self._distribution.Cdf(x)
 
   def ppf(self,x):
-    '''
+    """
     Function to get the inverse cdf at a provided coordinate
     @ In, x, float -> value to get the inverse cdf at
-    @ Out, flaot, requested inverse cdf
-    '''
+    @ Out, float, requested inverse cdf
+    """
     return self._distribution.InverseCdf(x)
 
   def pdf(self,x):
-    '''
+    """
     Function to get the pdf at a provided coordinate
     @ In, x, float -> value to get the pdf at
-    @ Out, flaot, requested pdf
-    '''
+    @ Out, float, requested pdf
+    """
     return self._distribution.Pdf(x)
 
   def untruncatedCdfComplement(self, x):
-    '''
+    """
     Function to get the untruncated  cdf complement at a provided coordinate
     @ In, x, float -> value to get the untruncated  cdf complement  at
-    @ Out, flaot, requested untruncated  cdf complement
-    '''
+    @ Out, float, requested untruncated  cdf complement
+    """
     return self._distribution.untrCdfComplement(x)
 
   def untruncatedHazard(self, x):
-    '''
+    """
     Function to get the untruncated  Hazard  at a provided coordinate
     @ In, x, float -> value to get the untruncated  Hazard   at
-    @ Out, flaot, requested untruncated  Hazard
-    '''
+    @ Out, float, requested untruncated  Hazard
+    """
     return self._distribution.untrHazard(x)
 
   def untruncatedMean(self):
-    '''
+    """
     Function to get the untruncated  Mean
     @ In, None
-    @ Out, flaot, requested Mean
-    '''
+    @ Out, float, requested Mean
+    """
     return self._distribution.untrMean()
 
+  def untruncatedStdDev(self):
+    """
+    Function to get the untruncated Standard Deviation
+    @ In, None
+    @ Out, float, requested Standard Deviation
+    """
+    return self._distribution.untrStdDev()
+
   def untruncatedMedian(self):
-    '''
+    """
     Function to get the untruncated  Median
     @ In, None
-    @ Out, flaot, requested Median
-    '''
+    @ Out, float, requested Median
+    """
     return self._distribution.untrMedian()
 
   def untruncatedMode(self):
-    '''
+    """
     Function to get the untruncated  Mode
     @ In, None
-    @ Out, flaot, requested Mode
-    '''
+    @ Out, float, requested Mode
+    """
     return self._distribution.untrMode()
 
 
   def rvs(self,*args):
-    '''
+    """
     Function to get random numbers
     @ In, args, dictionary, args
-    @ Out, flaot or list, requested random number or numbers
-    '''
+    @ Out, float or list, requested random number or numbers
+    """
     if len(args) == 0: return self.ppf(random())
     else             : return [self.rvs() for _ in range(args[0])]
 
@@ -395,10 +403,10 @@ class Uniform(BoostDistribution):
     self.initializeDistribution()
 
   def stdProbabilityNorm(self):
-    '''Returns the factor to scale error norm by so that norm(probability)=1.
+    """Returns the factor to scale error norm by so that norm(probability)=1.
     @ In None, None
     @ Out float, norm
-    '''
+    """
     return 0.5
 
   def addInitParams(self,tempDict):
@@ -416,17 +424,17 @@ class Uniform(BoostDistribution):
     self._distribution = distribution1D.BasicUniformDistribution(self.lowerBound,self.lowerBound+self.range)
 
   def convertUniformToLegendre(self,y):
-    '''Converts from distribution domain to standard Legendre [-1,1].
+    """Converts from distribution domain to standard Legendre [-1,1].
     @ In y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
-    '''
+    """
     return (y-self.untruncatedMean())/(self.range/2.)
 
   def convertLegendreToUniform(self,x):
-    '''Converts from standard Legendre [-1,1] to distribution domain.
+    """Converts from standard Legendre [-1,1] to distribution domain.
     @ In y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
-    '''
+    """
     return self.range/2.*x+self.untruncatedMean()
 
 
@@ -496,10 +504,10 @@ class Normal(BoostDistribution):
                                                                   a,b)
 
   def stdProbabilityNorm(self,std=False):
-    '''Returns the factor to scale error norm by so that norm(probability)=1.
+    """Returns the factor to scale error norm by so that norm(probability)=1.
     @ In None, None
     @ Out float, norm
-    '''
+    """
     sv = str(scipy.__version__).split('.')
     if int(sv[0])==0 and int(sv[1])<15:
       return 1.0/np.sqrt(2.*np.pi)
@@ -507,17 +515,17 @@ class Normal(BoostDistribution):
       return 1.0/np.sqrt(np.pi/2.)
 
   def convertNormalToHermite(self,y):
-    '''Converts from distribution domain to standard Hermite [-inf,inf].
+    """Converts from distribution domain to standard Hermite [-inf,inf].
     @ In y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
-    '''
+    """
     return (y-self.untruncatedMean())/(self.sigma)
 
   def convertHermiteToNormal(self,x):
-    '''Converts from standard Hermite [-inf,inf] to distribution domain.
+    """Converts from standard Hermite [-inf,inf] to distribution domain.
     @ In y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
-    '''
+    """
     return self.sigma*x+self.untruncatedMean()
 
 
@@ -593,24 +601,24 @@ class Gamma(BoostDistribution):
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
 
   def convertGammaToLaguerre(self,y):
-    '''Converts from distribution domain to standard Laguerre [0,inf].
+    """Converts from distribution domain to standard Laguerre [0,inf].
     @ In y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
-    '''
+    """
     return (y-self.low)*(self.beta)
 
   def convertLaguerreToGamma(self,x):
-    '''Converts from standard Laguerre [0,inf] to distribution domain.
+    """Converts from standard Laguerre [0,inf] to distribution domain.
     @ In y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
-    '''
+    """
     return x/self.beta+self.low
 
   def stdProbabilityNorm(self):
-    '''Returns the factor to scale error norm by so that norm(probability)=1.
+    """Returns the factor to scale error norm by so that norm(probability)=1.
     @ In None, None
     @ Out float, norm
-    '''
+    """
     #return self.beta**self.alpha/factorial(self.alpha-1.)
     return 1./factorial(self.alpha-1)
 
@@ -701,28 +709,28 @@ class Beta(BoostDistribution):
     self.compatibleQuadrature.append('ClenshawCurtis')
 
   def convertBetaToJacobi(self,y):
-    '''Converts from distribution domain to standard Beta [0,1].
+    """Converts from distribution domain to standard Beta [0,1].
     @ In y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
-    '''
+    """
     u = 0.5*(self.hi+self.low)
     s = 0.5*(self.hi-self.low)
     return (y-u)/(s)
 
   def convertJacobiToBeta(self,x):
-    '''Converts from standard Jacobi [0,1] to distribution domain.
+    """Converts from standard Jacobi [0,1] to distribution domain.
     @ In y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
-    '''
+    """
     u = 0.5*(self.hi+self.low)
     s = 0.5*(self.hi-self.low)
     return s*x+u
 
   def stdProbabilityNorm(self):
-    '''Returns the factor to scale error norm by so that norm(probability)=1.
+    """Returns the factor to scale error norm by so that norm(probability)=1.
     @ In None, None
     @ Out float, norm
-    '''
+    """
     B = factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
     norm = 1.0/(2**(self.alpha+self.beta-1)*B)
     return norm
