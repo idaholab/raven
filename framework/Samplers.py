@@ -101,6 +101,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
+    self.restartData                   = None                      # presampled points to restart from
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
@@ -122,6 +123,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self._generateDistributions(availableDist)
 
   def _addAssObject(self,name,flag):
+    '''
+      Method to add required assembler objects to the requiredAssObject dictionary.
+      @ In, name, the node name to search for
+      @ In, flag, the number of nodes to look for (- means optional, n means any number)
+      @ Out, None
+    '''
     self.requiredAssObject[1][0].append(name)
     self.requiredAssObject[1][1].append(flag)
 
@@ -406,7 +413,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     @in myInput  : the generating input
     '''
     pass
-
+#
+#
+#
+#
 class AdaptiveSampler(Sampler):
   '''This is a general adaptive sampler'''
   def __init__(self):
@@ -726,13 +736,15 @@ class AdaptiveSampler(Sampler):
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     '''generate representation of goal function'''
     pass
-
+#
+#
+#
+#
 class MonteCarlo(Sampler):
   '''MONTE CARLO Sampler'''
   def __init__(self):
     Sampler.__init__(self)
     self.printTag = 'SAMPLER MONTECARLO'
-    self.restartData          = None  # presampled points to restart from
 
   def localInputAndChecks(self,xmlNode):
     if xmlNode.find('sampler_init')!= None:
@@ -746,6 +758,7 @@ class MonteCarlo(Sampler):
       self.raiseAnError(IOError,'Monte Carlo sampling needs the sampler_init block')
 
   def localInitialize(self):
+    '''See base class.'''
     if self.restartData:
       self.counter+=len(self.restartData)
       self.raiseAMessage('Number of points from restart: %i' %self.counter)
@@ -787,7 +800,10 @@ class MonteCarlo(Sampler):
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
     self.inputInfo['SamplerType'] = 'MC'
-
+#
+#
+#
+#
 class Grid(Sampler):
   '''
   Samples the model on a given (by input) set of points
@@ -799,7 +815,6 @@ class Grid(Sampler):
     self.axisName             = []    # the name of each axis (variable)
     self.gridInfo             = {}    # {'name of the variable':('Type','Construction',[values])}  --> Type: Probability/Value; Construction:Custom/Equal
     self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
-    self.restartData          = None  # presampled points to restart from (DataObject)
     self.existing             = []    # restart points
 
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
@@ -996,7 +1011,10 @@ class Grid(Sampler):
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
       self.inputInfo['SamplerType'] = 'Grid'
-
+#
+#
+#
+#
 class Stratified(Grid):
   '''
     Stratified based sampler. Currently no special filling method are implemented
@@ -1173,7 +1191,10 @@ class Stratified(Grid):
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
-
+#
+#
+#
+#
 class DynamicEventTree(Grid):
   '''
   DYNAMIC EVENT TREE Sampler - (DET)
@@ -1747,7 +1768,10 @@ class DynamicEventTree(Grid):
       #kk = self.toBeSampled.values().index(key)
       self.branchProbabilities[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
     return
-
+#
+#
+#
+#
 class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
   def __init__(self):
     DynamicEventTree.__init__(self)  # init DET
@@ -2082,7 +2106,10 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     returncode = DynamicEventTree.localFinalizeActualSampling(self,jobObject,model,myInput,genRunQueue=False)
     if returncode:
       self._createRunningQueue(model,myInput)
-
+#
+#
+#
+#
 class FactorialDesign(Grid):
   '''
   Samples the model on a given (by input) set of points
@@ -2155,7 +2182,10 @@ class FactorialDesign(Grid):
     else:
       self.gridCoordinate = self.designMatrix[self.counter - 1][:].tolist()
       Grid.localGenerateInput(self,model, myInput)
-
+#
+#
+#
+#
 class ResponseSurfaceDesign(Grid):
   '''
   Samples the model on a given (by input) set of points
@@ -2256,7 +2286,10 @@ class ResponseSurfaceDesign(Grid):
     gridcoordinate = self.designMatrix[self.counter - 1][:].tolist()
     for cnt, varName in enumerate(self.axisName): self.gridCoordinate[cnt] = self.mapping[varName].index(gridcoordinate[cnt])
     Grid.localGenerateInput(self,model, myInput)
-
+#
+#
+#
+#
 class SparseGridCollocation(Grid):
   def __init__(self):
     Grid.__init__(self)
@@ -2274,7 +2307,6 @@ class SparseGridCollocation(Grid):
     self.ROM            = None  #pointer to ROM
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
-    self.restartData    = None  #timepointset with possible points to restart from
     self.existing       = []    #restart data points
 
     self._addAssObject('ROM','1')
@@ -2436,7 +2468,10 @@ class SparseGridCollocation(Grid):
         self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['ProbabilityWeight'] = weight
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
-
+#
+#
+#
+#
 class Sobol(SparseGridCollocation):
   def __init__(self):
     '''
