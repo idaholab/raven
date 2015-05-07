@@ -973,63 +973,63 @@ class BasicStatistics(BasePostProcessor):
       if key not in self.acceptedCalcParam: methodToTest.append(key)
     msg=os.linesep
     for targetP in parameterSet:
-      msg+='\n'+'        *************'+'*'*len(targetP)+'***'
-      msg+='\n'+'        * Variable * '+ targetP +'  *'
-      msg+='\n'+'        *************'+'*'*len(targetP)+'***'
+      msg+='        *************'+'*'*len(targetP)+'***' + os.linesep
+      msg+='        * Variable * '+ targetP +'  *' + os.linesep
+      msg+='        *************'+'*'*len(targetP)+'***' + os.linesep
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity'] + methodToTest:
-          msg+='\n'+'               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
-          msg+='\n'+'               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *'
-          msg+='\n'+'               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
+          msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *' + os.linesep
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
     maxLength = max(len(max(parameterSet, key=len))+5,16)
     if 'covariance' in outputDict.keys():
-      msg+='\n'+' '*maxLength+'*****************************'
-      msg+='\n'+' '*maxLength+'*         Covariance        *'
-      msg+='\n'+' '*maxLength+'*****************************'
-      msg+='\n'+' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+'*         Covariance        *' + os.linesep
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
-        msg+='\n'+parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]]) + os.linesep
     if 'pearson' in outputDict.keys():
-      msg+='\n'+' '*maxLength+'*****************************'
-      msg+='\n'+' '*maxLength+'*    Pearson/Correlation    *'
-      msg+='\n'+' '*maxLength+'*****************************'
-      msg+='\n'+' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+'*    Pearson/Correlation    *' + os.linesep
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
-        msg+='\n'+parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]]) + os.linesep
     if 'VarianceDependentSensitivity' in outputDict.keys():
-      msg+='\n'+' '*maxLength+'******************************'
-      msg+='\n'+' '*maxLength+'*VarianceDependentSensitivity*'
-      msg+='\n'+' '*maxLength+'******************************'
-      msg+='\n'+' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+=' '*maxLength+'******************************' + os.linesep
+      msg+=' '*maxLength+'*VarianceDependentSensitivity*' + os.linesep
+      msg+=' '*maxLength+'******************************' + os.linesep
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
-        msg+='\n'+parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['VarianceDependentSensitivity'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['VarianceDependentSensitivity'][index]]) + os.linesep
     if 'NormalizedSensitivity' in outputDict.keys():
-      msg+='\n'+' '*maxLength+'******************************'
-      msg+='\n'+' '*maxLength+'* Normalized V.D.Sensitivity *'
-      msg+='\n'+' '*maxLength+'******************************'
-      msg+='\n'+' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+=' '*maxLength+'******************************' + os.linesep
+      msg+=' '*maxLength+'* Normalized V.D.Sensitivity *' + os.linesep
+      msg+=' '*maxLength+'******************************' + os.linesep
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
-        msg+='\n'+parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]]) + os.linesep
     if 'sensitivity' in outputDict.keys():
       if not self.sampled: self.raiseAWarning('No sampled Input variable defined in '+str(self.name)+' PP. The I/O Sensitivity Matrix wil not be calculated.')
       else:
-        msg+='\n'+' '*maxLength+'*****************************'
-        msg+='\n'+' '*maxLength+'*    I/O   Sensitivity      *'
-        msg+='\n'+' '*maxLength+'*****************************'
-        msg+='\n'+' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in self.sampled])
+        msg+=' '*maxLength+'*****************************' + os.linesep
+        msg+=' '*maxLength+'*    I/O   Sensitivity      *' + os.linesep
+        msg+=' '*maxLength+'*****************************' + os.linesep
+        msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in self.sampled]) + os.linesep
         for index in range(len(self.sampled.keys())):
           variable = self.sampled.keys()[index]
-          msg+='\n'+self.calculated.keys()[index] + ' '*(maxLength-len(variable)) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]/outputDict['sigma'][variable]])
+          msg+=self.calculated.keys()[index] + ' '*(maxLength-len(variable)) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]/outputDict['sigma'][variable]]) + os.linesep
 
     if self.externalFunction:
-      msg+='\n'+' '*maxLength+'+++++++++++++++++++++++++++++'
-      msg+='\n'+' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +'
-      msg+='\n'+' '*maxLength+'+++++++++++++++++++++++++++++'
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++' + os.linesep
+      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +' + os.linesep
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++' + os.linesep
       for what in self.methodsToRun:
         if what not in self.acceptedCalcParam:
-          msg+='\n'+'              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
-          msg+='\n'+'              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *'
-          msg+='\n'+'              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
+          msg+='              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *' + os.linesep
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
     self.raiseADebug(msg)
     return outputDict
 
