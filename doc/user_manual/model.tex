@@ -4071,7 +4071,7 @@ to compute many of the most important statistical quantities.
   ...
   <Models>
     ...
-    <PostProcessor name='aUserDefinedName' subType='BasicStatistics'  debug='true'>
+    <PostProcessor name='aUserDefinedName' subType='BasicStatistics' verbosity='debug'>
       <!-- Here you can specify what type of figure of merit
           you need to compute: expectedValue, sigma, variance, kurtosis, pearson, covariance, etc.
        -->
@@ -4375,7 +4375,7 @@ zones that determine a change in the status of the system (Limit Surface).
  ...
  <Models>
   ...
-    <PostProcessor name="computeLimitSurface" subType='LimitSurface' debug='True'>
+    <PostProcessor name="computeLimitSurface" subType='LimitSurface' verbosity='debug'>
       <what>all</what>
       <parameters>x0,y0</parameters>
       <parameters>x0,y0</parameters>
@@ -4431,7 +4431,7 @@ Section~\ref{sec:functions} for more details).
   ...
   <Models>
     ...
-    <PostProcessor name="externalPP" subType='External' debug='True'>
+    <PostProcessor name="externalPP" subType='External' verbosity='debug'>
       <method>Delta,Sum</method>
       <Assembler>
         <Function class='Functions' type='External'>operators</Function> 

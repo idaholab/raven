@@ -43,7 +43,7 @@ class Function(BaseType):
       self.functionFile = xmlNode.attrib['file']
       if self.functionFile.endswith('.py') : moduleName = ''.join(self.functionFile.split('.')[:-1]) #remove the .py
       else: moduleName = self.functionFile
-      importedModule = utils.importFromPath(moduleName)
+      importedModule = utils.importFromPath(moduleName,self.messageHandler.getDesiredVerbosity(self)>1)
       if not importedModule: self.raiseAnError(IOError,'Failed to import the module '+moduleName+' supposed to contain the function: '+self.name)
       #here the methods in the imported file are brought inside the class
       for method in importedModule.__dict__.keys():

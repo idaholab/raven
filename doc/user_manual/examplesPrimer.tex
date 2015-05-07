@@ -9,7 +9,7 @@ This simple example is about the construction of a ``Lorentz attractor'', sampli
 
 \begin{lstlisting}[style=XML,morekeywords={debug,re,seeding,class,subType,limit}]
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity="debug">
 <!-- RUNINFO -->
 <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
@@ -153,7 +153,7 @@ The ``SafestPoint'' post-processor requires the set of points belonging to the
 limit surface, which must be given as an input.
 
 \begin{lstlisting}[style=XML,morekeywords={debug,re,seeding,class,subType,limit}]
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 
 <!-- RUNINFO -->
 <RunInfo>
@@ -262,7 +262,7 @@ limit surface, which must be given as an input.
     </variable>
   </Grid>
   
-  <Adaptive name = 'dpt_smp' debug='True'>
+  <Adaptive name = 'dpt_smp' verbosity='debug'>
     <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
     <Function         class = 'Functions' type = 'External'      >g_zr</Function>
     <TargetEvaluation class = 'DataObjects'     type = 'TimePointSet'  >nt_phy_dpt_dt</TargetEvaluation>
