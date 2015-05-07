@@ -173,6 +173,7 @@ class SparseQuad(MessageHandler.MessageUser):
     '''
     #TODO optimize me!~~
     oldNames = self.varNames[:]
+    self.raiseADebug('REMAPPING SPARSE GRID from '+str(oldNames)+' to '+str(newNames))
     #check consistency
     if len(oldNames)!=len(newNames): self.raiseAnError(KeyError,'Remap mismatch! Dimensions are not the same!')
     for name in oldNames:
