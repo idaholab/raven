@@ -29,8 +29,6 @@ import SupervisedLearning
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-import scipy.optimize as optimization
-
 '''
   ***************************************
   *  SPECIALIZED PostProcessor CLASSES  *
