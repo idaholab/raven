@@ -370,7 +370,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polyCoeffDict={}
     #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
     self.sparseGrid._remap(self.features)
-    self.raiseAMessage('types: '+str(type(self.sparseGrid.points()))+' | '+str(type(featureVals)))
     #check equality of point space
     fvs = []
     tvs=[]
@@ -408,6 +407,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
     self.amITrained=True
+    #self.printPolyDict()
+
 
   def printPolyDict(self,printZeros=False):
     '''Human-readable version of the polynomial chaos expansion.
@@ -416,13 +417,13 @@ class GaussPolynomialRom(NDinterpolatorRom):
     '''
     data=[]
     for idx,val in self.polyCoeffDict.items():
-      if val > 1e-14 or printZeros:
+      if val > 1e-12 or printZeros:
         data.append([idx,val])
     data.sort()
     msg='polyDict for ['+self.target+'] with inputs '+str(self.features)+': \n'
     for idx,val in data:
       msg+='    '+str(idx)+' '+str(val)+'\n'
-    self.raiseAMessage(msg)
+    self.raiseADebug(msg)
 
   def __evaluateMoment__(self,r):
     '''Use the ROM's built-in method to calculate moments.

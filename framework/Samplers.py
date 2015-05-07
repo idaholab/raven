@@ -2497,9 +2497,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     for pt in self.sparseGrid.points()[:]:
       if pt not in self.neededPoints and pt not in self.existing:
         self.neededPoints.append(pt)
+    #self.raiseADebug('At end of initialize, needed points is '+str(self.neededPoints))
 
   def _makeSparseQuad(self):
-    self.raiseADebug('Starting sparse grid generation...')
+    #self.raiseADebug('Starting sparse grid generation...')
     sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
     sparseGrid.initialize(self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
@@ -2521,27 +2522,66 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     rom.train(self.solns)
     return rom
 
+
+  def _convergenceTest(self,newR,oldR):
+    if self.convType=='variance':
+      #TODO multitarget ROM #for target in self.oldROM.SupervisedEngine.values():
+      old = oldR.__evaluateMoment__(2) - oldR.__evaluateMoment__(1)**2
+      new = newR.__evaluateMoment__(2) - newR.__evaluateMoment__(1)**2
+      if new<0:
+        self.raiseADebug('new2: '+str(newR.__evaluateMoment__(2))+ '|new1: '+str(newR.__evaluateMoment__(1)))
+        self.raiseADebug('Old poly:')
+        oldR.printPolyDict()
+        self.raiseADebug('New poly:')
+        newR.printPolyDict()
+      err = abs(new-old)/old if old!=0 else self.convValue+1
+    elif self.convType=='coeffs':
+      tot=0
+      #make combined coeff list
+      coeffs = newR.polyCoeffDict.keys()
+      for c in coeffs:
+        tot+=newR -oldR.polyCoeffDict[c]
+    else: self.raiseAnError(NotImplementedError,'convergence type not known: '+str(self.convType))
+
   def localStillReady(self,ready):
-    #check for convergence?
+    #update existing solutions
+    inps = self.solns.getInpParametersValues()
+    self.existing = zip(*list(v for v in inps.values()))
+    #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
+    #if we have points left, we're ready
     if len(self.neededPoints)>0: return True
-    #stash old ROM
-    if self.newROM != None: self.oldROM = copy.deepcopy(self.newROM)
+    #if self.newROM != None: self.oldROM = copy.deepcopy(self.newROM)
     #train new ROM
     self.newROM = self._makeAROM()
     if self.oldROM != None:
       oldR = self.oldROM.SupervisedEngine.values()[0]
       newR = self.newROM.SupervisedEngine.values()[0]
-      if self.convType=='variance':
-        #TODO multitarget ROM #for target in self.oldROM.SupervisedEngine.values():
-        old = oldR.__evaluateMoment__(2) - oldR.__evaluateMoment__(1)**2
-        new = newR.__evaluateMoment__(2) - newR.__evaluateMoment__(1)**2
-        err = abs(new-old)/old
-        if err <= self.convValue: self.indexSet.reject() #change is too small, so get rid of this point
-        else: self.indexSet.accept() #change is significant, so keep this point
-    else: self.indexSet.accept() #first step, just accept the new points.
+      err = self._convergenceTest(newR,oldR)
+      if err <= self.convValue: #change is too small, so get rid of this point
+        #self.raiseADebug('    Rejecting Point Convergence: '+str(err))
+        self.indexSet.reject()
+      else: #change is significant, so keep this point
+        #stash good ROM
+        self.oldROM = copy.deepcopy(self.newROM)
+        self.raiseADebug('    AcceptancePoint Convergence: '+str(err)+' | '+str(new)+' | '+str(old))
+        self.indexSet.accept()
+    else:
+      self.oldROM = copy.deepcopy(self.newROM)
+      self.indexSet.accept() #first step, just accept the new points.
     try:self.indexSet.addPoint() #ask index set to expand itself
-    except MessageHandler.NoMoreSamplesNeeded:return False #all potential new points are rejected
+    except MessageHandler.NoMoreSamplesNeeded: #all potential new points are rejected
+      self.raiseADebug('No more samples to try! Declaring sampler complete.')
+      self.indexSet.printOut()
+      #initialize final rom with final sparse grid and index set
+      self.sparseGrid = self._makeSparseQuad()
+      for SVL in self.ROM.SupervisedEngine.values():
+        SVL.initialize({'SG':self.sparseGrid,
+                        'dists':self.distDict,
+                        'quads':self.quadDict,
+                        'polys':self.polyDict,
+                        'iSet':self.indexSet})
+      return False
     #with new index set point, remake the sparse quad...
     self.sparseGrid = self._makeSparseQuad()
     #...and find the new points we need
@@ -2549,12 +2589,12 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     for pt in self.sparseGrid.points()[:]:
       if pt not in self.neededPoints and pt not in self.existing:
         self.neededPoints.append(pt)
-    self.raiseADebug('New points needed: '+str(self.neededPoints))
+    #self.raiseADebug('New points needed: '+str(self.neededPoints))
     return True
 
   def localGenerateInput(self,model,myInput):
     pt = self.neededPoints.pop() # [self.counter-1]
-    self.raiseADebug('Submitting point '+str(pt)+' ...')
+    #self.raiseADebug('Submitting point '+str(pt)+' ...')
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])

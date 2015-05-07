@@ -197,7 +197,8 @@ class AdaptiveSet(IndexSet):
     self.toTry    = [] #list of new viable points to try
     self.newestPoint = self.points[0] #tuple, new point to test adding
 
-    self.shells.append(self.points)
+    self.shells.append([self.points[0]])
+    self.raiseADebug('Variable key: '+str(distrList.keys()))
 
   def addPoint(self,maxPolyOrder=None):
     if len(self.toTry)<1:
@@ -209,27 +210,38 @@ class AdaptiveSet(IndexSet):
       self.points.append(self.newestPoint)
 
   def provideNextLayer(self,maxPolyOrder=None):
+    if len(self.shells[-1])==0: return []
+    self.raiseADebug('Adding a layer...')
+    #self.printOut()
     new=[]
-    print('SHELLS:',self.shells)
     for oldpt in self.shells[-1]:
+      #self.raiseADebug('    Expanding on '+str(oldpt))
       for i in range(self.N):
         newpt = np.array(oldpt)
         newpt[i]+=1
         if maxPolyOrder!=None and sum(newpt>maxPolyOrder)>0:
-          self.raiseADebug("Rejected point "+str(newpt)+" for too large polynomial order.")
+          self.raiseADebug("    Rejected point "+str(newpt)+" for too large polynomial order.")
         newpt=tuple(newpt)
         if newpt not in new and newpt not in self.rejects:
           new.append(newpt)
     self.shells.append([])
     return new
 
+  def printOut(self):
+    self.raiseADebug('    Index Set:')
+    for l in self.shells:
+      self.raiseADebug('        '+str(l))
+    self.raiseADebug('    Rejects:')
+    for r in self.rejects:
+      self.raiseADebug('        '+str(r))
+
   def reject(self):
-    self.raiseADebug('Rejecting '+str(self.newestPoint))
+    self.raiseADebug('    Rejecting '+str(self.newestPoint))
     self.rejects.append(self.newestPoint)
     self.points.remove(self.newestPoint)
 
   def accept(self):
-    self.raiseADebug('Keeping '+str(self.newestPoint))
+    self.raiseADebug('    Keeping '+str(self.newestPoint))
     if self.newestPoint not in self.shells[-1]:
       self.shells[-1].append(self.newestPoint)
 
