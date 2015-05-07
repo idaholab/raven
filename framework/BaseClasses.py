@@ -39,7 +39,7 @@ class BaseType(MessageHandler.MessageUser):
     if self.globalAttributes!= None: self.globalAttributes = globalAttributes
     if 'verbosity' in xmlNode.attrib.keys():
       self.verbosity = xmlNode.attrib['verbosity']
-      print('Set verbosity for',self,'to',self.verbosity)
+      self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
     self._readMoreXML(xmlNode)
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
