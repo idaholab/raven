@@ -27,9 +27,9 @@ else:
   else:                    disAvail = False
 
 class MessageUser(object):
-  '''
+  """
     Inheriting from this class grants access to methods used by the message handler.
-  '''
+  """
   def raiseAnError(self,etype,message,tag='ERROR',verbosity='silent'):
     '''
       Raises an error. By default shows in all verbosity levels.
@@ -82,20 +82,20 @@ class MessageUser(object):
 
 
 class MessageHandler(MessageUser):
-  '''
+  """
   Class for handling messages, warnings, and errors in RAVEN.  One instance of this
   class should be created at the start of the Simulation and propagated through
   the readMoreXML function of the BaseClass.  The utils handlers for raiseAMessage,
   raiseAWarning, raiseAnError, and raiseDebug will access this handler.
-  '''
+  """
   def __init__(self):
-    '''
+    """
       Init of class
       @In, None
       @Out, None
-    '''
+    """
     self.printTag     = 'MESSAGE HANDLER'
-    self.verbosity    = 'all'
+    self.verbosity    = None
     self.suppressErrs = False
     self.verbCode     = {'silent':0, 'quiet':1, 'all':2, 'debug':3}
 
@@ -138,10 +138,8 @@ class MessageHandler(MessageUser):
       @ In, verb, the string verbosity equivalent
       @ Out, integer, integer equivalent to verbosity level
     '''
-    #if verb==None: return
     if str(verb).strip().lower() not in self.verbCode.keys():
       raise IOError('Verbosity key '+str(verb)+' not recognized!  Options are '+str(self.verbCode.keys()+[None]),'ERROR','silent')
-    #print('    REQUESTED VERBOSITY',verb)
     return self.verbCode[str(verb).strip().lower()]
 
   def error(self,caller,etype,message,tag='ERROR',verbosity='silent'):
@@ -171,9 +169,7 @@ class MessageHandler(MessageUser):
     '''
     verbval = self.checkVerbosity(verbosity)
     okay,msg = self._printMessage(caller,message,tag,verbval)
-    if okay:
-      #print('\nMessage called by:',caller)
-      print(msg)
+    if okay: print(msg)
 
   def _printMessage(self,caller,message,tag,verbval):
     '''
@@ -189,11 +185,6 @@ class MessageHandler(MessageUser):
     shouldIPrint = False
     desired = self.getDesiredVerbosity(caller)
     if verbval <= desired: shouldIPrint=True
-    #if desired >= verbval:
-    #  print('')
-    #  print('FROM',caller)
-    #  print('  DESIRED VERBOSITY:',desired,'|  MESSAGE VERBOSITY:',verbval,'|',shouldIPrint)
-    #  print(message)
     if not shouldIPrint: return False,''
     ctag = self.getStringFromCaller(caller)
     msg=self.stdMessage(ctag,tag,message)
