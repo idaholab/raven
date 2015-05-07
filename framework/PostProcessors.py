@@ -60,8 +60,8 @@ class LimitSurfaceIntegral(BasePostProcessor):
   '''
   def __init__(self):
     BasePostProcessor.__init__(self)
-    self.variableDist = {}                                    #dictionary created upon the .xml input file reading. It stores the distributions for each variable.
-    self.target       = None
+    self.variableDist = {}                                    # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
+    self.target       = None                                  # target that defines the f(x1,x2,...,xn)
     self.tolerance    = 0.0001                                # integration tolerance
     self.integralType = 'montecarlo'                          # integral type (which alg needs to be used). Either montecarlo or quadrature
     self.seed         = 20021986                              # seed for montecarlo
@@ -140,6 +140,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     if self.integralType == 'montecarlo':
       tempDict = {}
       weights  = {}
+      rectArea = 0.0
       randomMatrix = np.random.rand(math.ceil(1.0/self.tolerance),len(self.variableDist.keys()))
       for index, varName in enumerate(self.variableDist.keys()):
         randomMatrix[:,index] = randomMatrix[:,index]*(self.lowerUpperDict[varName]['upperBound']-self.lowerUpperDict[varName]['lowerBound'])+self.lowerUpperDict[varName]['lowerBound']
@@ -151,11 +152,6 @@ class LimitSurfaceIntegral(BasePostProcessor):
       outcome = self.functionS.evaluate(tempDict)
     else:
       pass
-
-
-
-
-
 
     return dataCollector
 
@@ -1785,7 +1781,6 @@ class ExternalPostProcessor(BasePostProcessor):
       for target in Input['targets']:
         if hasattr(interface,target):
           outputDict[target] = getattr(interface, target)
-
     return outputDict
 
 '''
@@ -1794,7 +1789,8 @@ class ExternalPostProcessor(BasePostProcessor):
 __base                                       = 'PostProcessor'
 __interFaceDict                              = {}
 __interFaceDict['SafestPoint'              ] = SafestPoint
-__interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
+__interFaceDict['LimitSurfaceIntegral'     ] = Integral
+__interFaceDict['Integral'                 ] = Integral
 __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
