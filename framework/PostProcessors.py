@@ -936,14 +936,9 @@ class BasicStatistics(BasePostProcessor):
         outputDict[what] = self.corrCoeff(feat, weights=pbweights) #np.corrcoef(feat)
       #sensitivity matrix
       if what == 'sensitivity':
-        inputDict = {}
-#        targets = self.calculated
         self.initializationOptionDict = {}
         self.initializationOptionDict['SKLtype' ] = 'linear_model|LinearRegression'
-        self.initializationOptionDict['Features'] = ''
-        numFeatures = len(self.sampled.keys())
-        for i in range(numFeatures-1): self.initializationOptionDict['Features'] += self.sampled.keys()[i]+','
-        self.initializationOptionDict['Features'] += self.sampled.keys()[numFeatures-1]
+        self.initializationOptionDict['Features'] = ','.join(self.sampled.keys())
         self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
         for target in self.calculated:
           self.initializationOptionDict['Target'] = target
