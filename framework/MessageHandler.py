@@ -27,9 +27,9 @@ else:
   else:                    disAvail = False
 
 class MessageUser(object):
-  '''
+  """
     Inheriting from this class grants access to methods used by the message handler.
-  '''
+  """
   def raiseAnError(self,etype,message,tag='ERROR',verbosity='silent'):
     self.messageHandler.error(self,etype,str(message),str(tag),verbosity)
 
@@ -55,13 +55,13 @@ class MessageHandler(MessageUser):
   raiseAWarning, raiseAnError, and raiseDebug will access this handler.
   """
   def __init__(self):
-    '''
+    """
       Init of class
       @In, None
       @Out, None
-    '''
+    """
     self.printTag     = 'MESSAGE HANDLER'
-    self.verbosity    = 'all'
+    self.verbosity    = None
     self.suppressErrs = False
     self.verbCode     = {'silent':0, 'quiet':1, 'all':2, 'debug':3}
 
