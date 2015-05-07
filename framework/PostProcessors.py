@@ -800,15 +800,17 @@ class BasicStatistics(BasePostProcessor):
               if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+os.linesep)
               else                       : basicStatdump.write(parameterSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+os.linesep)
           if what == 'sensitivity':
-            self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix '+ what )
-            basicStatdump.write(what+os.linesep)
-            calculatedSet = list(set(list(self.calculated)))
-            sampledSet    = list(set(list(self.sampled)))
-            if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in sampledSet])+os.linesep)
-            else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in sampledSet])+os.linesep)
-            for index in range(len(calculatedSet)):
-              if outputextension != 'csv': basicStatdump.write(calculatedSet[index] + ' '*(maxLength-len(calculatedSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+os.linesep)
-              else                       : basicStatdump.write(calculatedSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+os.linesep)
+            if not self.sampled: self.raiseAWarning('No sampled Input variable defined in '+str(self.name)+' PP. The I/O Sensitivity Matrix wil not be calculated.')
+            else:
+              self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix '+ what )
+              basicStatdump.write(what+os.linesep)
+              calculatedSet = list(set(list(self.calculated)))
+              sampledSet    = list(set(list(self.sampled)))
+              if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in sampledSet])+os.linesep)
+              else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in sampledSet])+os.linesep)
+              for index in range(len(calculatedSet)):
+                if outputextension != 'csv': basicStatdump.write(calculatedSet[index] + ' '*(maxLength-len(calculatedSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+os.linesep)
+                else                       : basicStatdump.write(calculatedSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+os.linesep)
         if self.externalFunction:
           self.raiseADebug('BasicStatistics postprocessor: writing External Function results')
           basicStatdump.write(os.linesep +'EXT FUNCTION '+os.linesep)
@@ -936,16 +938,17 @@ class BasicStatistics(BasePostProcessor):
         outputDict[what] = self.corrCoeff(feat, weights=pbweights) #np.corrcoef(feat)
       #sensitivity matrix
       if what == 'sensitivity':
-        self.initializationOptionDict = {}
-        self.initializationOptionDict['SKLtype' ] = 'linear_model|LinearRegression'
-        self.initializationOptionDict['Features'] = ','.join(self.sampled.keys())
-        self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
-        for target in self.calculated:
-          self.initializationOptionDict['Target'] = target
-          self.SupervisedEngine[target] =  SupervisedLearning.returnInstance('SciKitLearn',self,**self.initializationOptionDict)
-          self.SupervisedEngine[target].train(Input['targets'])
-        for myIndex in range(len(self.calculated)):
-          outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
+        if self.sampled:
+          self.initializationOptionDict = {}
+          self.initializationOptionDict['SKLtype' ] = 'linear_model|LinearRegression'
+          self.initializationOptionDict['Features'] = ','.join(self.sampled.keys())
+          self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
+          for target in self.calculated:
+            self.initializationOptionDict['Target'] = target
+            self.SupervisedEngine[target] =  SupervisedLearning.returnInstance('SciKitLearn',self,**self.initializationOptionDict)
+            self.SupervisedEngine[target].train(Input['targets'])
+          for myIndex in range(len(self.calculated)):
+            outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
       #VarianceDependentSensitivity matrix
       if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(Input['targets'].keys()),utils.first(Input['targets'].values()).size))
@@ -1013,13 +1016,15 @@ class BasicStatistics(BasePostProcessor):
       for index in range(len(parameterSet)):
         msg+='\n'+parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])
     if 'sensitivity' in outputDict.keys():
-      msg+='\n'+' '*maxLength+'*****************************'
-      msg+='\n'+' '*maxLength+'*       Sensitivity         *'
-      msg+='\n'+' '*maxLength+'*****************************'
-      msg+='\n'+' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in self.sampled])
-      for index in range(len(self.sampled.keys())):
-        variable = self.sampled.keys()[index]
-        msg+='\n'+self.calculated.keys()[index] + ' '*(maxLength-len(variable)) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]/outputDict['sigma'][variable]])
+      if not self.sampled: self.raiseAWarning('No sampled Input variable defined in '+str(self.name)+' PP. The I/O Sensitivity Matrix wil not be calculated.')
+      else:
+        msg+='\n'+' '*maxLength+'*****************************'
+        msg+='\n'+' '*maxLength+'*    I/O   Sensitivity      *'
+        msg+='\n'+' '*maxLength+'*****************************'
+        msg+='\n'+' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in self.sampled])
+        for index in range(len(self.sampled.keys())):
+          variable = self.sampled.keys()[index]
+          msg+='\n'+self.calculated.keys()[index] + ' '*(maxLength-len(variable)) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]/outputDict['sigma'][variable]])
 
     if self.externalFunction:
       msg+='\n'+' '*maxLength+'+++++++++++++++++++++++++++++'
