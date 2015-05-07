@@ -48,12 +48,12 @@ class MessageUser(object):
 
 
 class MessageHandler(MessageUser):
-  '''
+  """
   Class for handling messages, warnings, and errors in RAVEN.  One instance of this
   class should be created at the start of the Simulation and propagated through
   the readMoreXML function of the BaseClass.  The utils handlers for raiseAMessage,
   raiseAWarning, raiseAnError, and raiseDebug will access this handler.
-  '''
+  """
   def __init__(self):
     '''
       Init of class
@@ -84,10 +84,8 @@ class MessageHandler(MessageUser):
     return self.checkVerbosity(localVerb) #self.verbCode[str(localVerb).strip().lower()]
 
   def checkVerbosity(self,verb):
-    #if verb==None: return
     if str(verb).strip().lower() not in self.verbCode.keys():
       raise IOError('Verbosity key '+str(verb)+' not recognized!  Options are '+str(self.verbCode.keys()+[None]),'ERROR','silent')
-    #print('    REQUESTED VERBOSITY',verb)
     return self.verbCode[str(verb).strip().lower()]
 
   def error(self,caller,etype,message,tag='ERROR',verbosity='silent'):
@@ -100,20 +98,13 @@ class MessageHandler(MessageUser):
   def message(self,caller,message,tag,verbosity):
     verbval = self.checkVerbosity(verbosity)
     okay,msg = self._printMessage(caller,message,tag,verbval)
-    if okay:
-      #print('\nMessage called by:',caller)
-      print(msg)
+    if okay: print(msg)
 
   def _printMessage(self,caller,message,tag,verbval):
     #allows raising standardized messages
     shouldIPrint = False
     desired = self.getDesiredVerbosity(caller)
     if verbval <= desired: shouldIPrint=True
-    #if desired >= verbval:
-    #  print('')
-    #  print('FROM',caller)
-    #  print('  DESIRED VERBOSITY:',desired,'|  MESSAGE VERBOSITY:',verbval,'|',shouldIPrint)
-    #  print(message)
     if not shouldIPrint: return False,''
     ctag = self.getStringFromCaller(caller)
     msg=self.stdMessage(ctag,tag,message)
