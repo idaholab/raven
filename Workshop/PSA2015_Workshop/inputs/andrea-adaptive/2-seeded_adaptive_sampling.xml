@@ -2,15 +2,15 @@
 	
 
 <RunInfo>
-  <WorkingDir>/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/results</WorkingDir>
+  <WorkingDir>results</WorkingDir>
   <Sequence>load_seed_dataset,GoalOrientedStep,push_limitsurface_in_database</Sequence>
   <batchSize>20</batchSize>
 </RunInfo>
 
 <Databases>
-    <HDF5 name="out_db" filename="out_db.h5" directory="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/DatabaseStorage"/>
-    <HDF5 name="out_db_adaptive" directory="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/DatabaseStorage"/>
-    <HDF5 name="out_db_ls" directory="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/DatabaseStorage"/>
+    <HDF5 name="out_db" filename="out_db.h5" directory="DatabaseStorage"/>
+    <HDF5 name="out_db_adaptive" directory="DatabaseStorage"/>
+    <HDF5 name="out_db_ls" directory="DatabaseStorage"/>
 </Databases>
 
 <Steps>  
@@ -86,7 +86,7 @@
 
 
 <Models>
-    <ExternalModel name="PythonModule" subType="" ModuleToLoad="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/workshop_model">
+    <ExternalModel name="PythonModule" subType="" ModuleToLoad="workshop_model">
        <variable>x1</variable>
        <variable>x2</variable>
        <variable>x3</variable>
@@ -110,7 +110,7 @@
 
 
 <Functions>
-    <External name="goalFunction" file= "/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/goalFunctionWorkshop">
+    <External name="goalFunction" file= "goalFunctionWorkshop">
         <variable>y4</variable>
         <variable>failure</variable>
     </External>
