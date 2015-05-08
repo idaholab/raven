@@ -397,15 +397,10 @@ class ComparisonStatistics(BasePostProcessor):
       dataToProcess.append((dataPulls,foundDataObjects,reference))
     generateCSV = False
     generateTimePointSet = False
-    if type(output).__name__ in ['str','unicode','bytes']:
-      generateCSV = True
-    #elif output.type == 'DataObjects':
-    #  pass
-    elif output.type == 'FileObject':
+    if output.type == 'FileObject':
       generateCSV = True
     elif output.type == 'TimePointSet':
       generateTimePointSet = True
-      #print("&&&&&We should do something about this output ",output)
     else:
       self.raiseAnError(IOError,'unsupported type '+str(type(output)))
     if generateCSV:
