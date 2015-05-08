@@ -2531,6 +2531,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder,self.messageHandler)
 
     inps = self.solns.getInpParametersValues()
+    # TODO FIXME these points are in the wrong order!!!!!!!
     self.existing = zip(*list(v for v in inps.values()))
 
     self.sparseGrid = self._makeSparseQuad()
@@ -2546,6 +2547,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
     sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
+    self.raiseADebug('sparse grid:\n',sparseGrid)
     #if not self.solns.isItEmpty():
     #  inps = self.solns.getInpParametersValues()
       #self.existing = zip(*list(v for v in inps.values())) #done in localInitialize
@@ -2577,12 +2579,14 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       #TODO multitarget ROM #for target in self.oldROM.SupervisedEngine.values():
       old = oldR.__evaluateMoment__(2) - oldR.__evaluateMoment__(1)**2
       new = newR.__evaluateMoment__(2) - newR.__evaluateMoment__(1)**2
+      self.raiseADebug('    old:',old,'new:',new)
       if new<0:
-        self.raiseADebug('new2: '+str(newR.__evaluateMoment__(2))+ '|new1: '+str(newR.__evaluateMoment__(1)))
-        self.raiseADebug('Old poly:')
-        oldR.printPolyDict()
-        self.raiseADebug('New poly:')
+        #self.raiseADebug('new2: '+str(newR.__evaluateMoment__(2))+ '|new1: '+str(newR.__evaluateMoment__(1)))
+        #self.raiseADebug('Old poly:')
+        #oldR.printPolyDict()
+        #self.raiseADebug('New poly:')
         newR.printPolyDict()
+        self.raiseAnError(IOError,'stop')
       err = abs(new-old)/old if old!=0 else self.convValue+1
     elif self.convType=='coeffs':
       err=0
@@ -2602,7 +2606,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if not self.solns.isItEmpty():
       #self.raiseADebug('REMAPPING')
       inps = self.solns.getInpParametersValues()
-      self.existing = zip(*list(v for v in inps.values())) #done in localInitialize
+      self.existing = zip(*list(v for v in inps.values())) #done in localInitialize TODO FIXME
       #remap if things got shifted ###DANGER###
       #key = inps.keys()
       #if not key==self.distDict.keys(): self.sparseGrid._remap(key)

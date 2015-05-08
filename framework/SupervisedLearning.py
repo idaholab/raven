@@ -388,6 +388,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
       for i in missing:
         msg+='  '+str(i)+'\n'
       self.raiseADebug(msg)
+      self.raiseADebug('sparse:',sgs)
+      self.raiseADebug('solns :',fvs)
       self.raiseAnError(IOError,'input values do not match required values!')
     #make translation matrix between lists
     translate={}
