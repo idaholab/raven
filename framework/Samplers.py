@@ -2512,6 +2512,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #sampler doesn't care about which target -> or do I?
+    self.features=SVL.features
     mpo = self.maxPolyOrder
     self._generateQuadsAndPolys(SVL)
     self.maxPolyOrder = mpo
@@ -2544,13 +2545,13 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #self.raiseADebug('Starting sparse grid generation...')
     sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
-    sparseGrid.initialize(self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
+    sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
     #if not self.solns.isItEmpty():
     #  inps = self.solns.getInpParametersValues()
       #self.existing = zip(*list(v for v in inps.values())) #done in localInitialize
     #  key = inps.keys()
-    key = self.ROM.SupervisedEngine.values()[0].features
-    if not key==self.distDict.keys(): sparseGrid._remap(key)
+    #key = self.ROM.SupervisedEngine.values()[0].features
+    #if not key==self.distDict.keys(): sparseGrid._remap(key)
     return sparseGrid
 
   def _makeAROM(self):
@@ -2591,7 +2592,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
           #self.raiseADebug('        In both.')
           err+=abs(newR.polyCoeffDict[c]-oldR.polyCoeffDict[c])
         else:
-          self.raiseADebug('        Only new: '+str(c))
           err+=abs(newR.polyCoeffDict[c])
       self.raiseADebug('    Error:'+str(err))
     else: self.raiseAnError(NotImplementedError,'convergence type not known: '+str(self.convType))
@@ -2604,7 +2604,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       inps = self.solns.getInpParametersValues()
       self.existing = zip(*list(v for v in inps.values())) #done in localInitialize
       #remap if things got shifted ###DANGER###
-      key = inps.keys()
+      #key = inps.keys()
       #if not key==self.distDict.keys(): self.sparseGrid._remap(key)
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready

@@ -198,7 +198,6 @@ class AdaptiveSet(IndexSet):
     self.newestPoint = self.points[0] #tuple, new point to test adding
 
     self.shells.append([self.points[0]])
-    self.raiseADebug('Variable key: '+str(distrList.keys()))
 
   def addPoint(self,maxPolyOrder=None):
     if len(self.toTry)<1:

@@ -369,7 +369,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     '''See base class.'''
     self.polyCoeffDict={}
     #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
-    self.sparseGrid._remap(self.features)
+    #self.sparseGrid._remap(self.features)
     #check equality of point space
     fvs = []
     tvs=[]
