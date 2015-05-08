@@ -72,6 +72,18 @@ class LimitSurfaceIntegral(BasePostProcessor):
     self.stat.what      = ['expectedValue']
     self.requiredAssObject = (False,(['Distribution'],['n']))
     self.printTag       = 'POSTPROCESSOR INTEGRAL'
+  
+  def _localWhatDoINeed(self):
+    """
+    This method is a local mirror of the general whatDoINeed method.
+    It is implemented by this postprocessor that need to request special objects
+    @ In , None, None
+    @ Out, needDict, list of objects needed
+    """
+    needDict = {'Distributions':[]}
+    for distName in self.variableDist.values(): 
+      if distName != None: needDict['Distributions'].append((None,distName))
+    return needDict
 
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''

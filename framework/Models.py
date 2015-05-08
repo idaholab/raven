@@ -97,7 +97,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   @classmethod
   def specializeValidateDict(cls):
     ''' This method should be overridden to describe the types of input accepted with a certain role by the model class specialization'''
-    raise NotImplementedError('The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
+    cls.raiseAnError(NotImplementedError,'The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
 
   @classmethod
   def localValidateMethod(cls,who,what):
@@ -107,7 +107,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @in what: a list (or a general iterable) that will be playing the 'who' role
     """
     #counting successful matches
-    if who not in cls.validateDict.keys(): raise IOError('The role '+str(who)+' does not exist in the class '+str(cls))
+    if who not in cls.validateDict.keys(): cls.raiseAnError(IOError,'The role '+str(who)+' does not exist in the class '+str(cls))
     for myItemDict in cls.validateDict[who]: myItemDict['tempCounter'] = 0
     for anItem in what:
       anItem['found'] = False
@@ -121,13 +121,13 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     for tester in cls.validateDict[who]:
       if tester['required']==True:
         if tester['multiplicity']=='n' and tester['tempCounter']<1:
-          raise IOError('The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
+          cls.raiseAnError(IOError,'The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
         if tester['multiplicity']!='n' and tester['tempCounter']!=tester['multiplicity']:
-          raise IOError('The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
+          cls.raiseAnError(IOError,'The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
-        raise IOError('It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
+        cls.raiseAnError(IOError,'It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
     return True
 
   def __init__(self):
@@ -521,7 +521,7 @@ class ExternalModel(Dummy):
         else: self.raiseAnError(IOError,'The path provided for the external model does not exist!!! Got: ' + abspath)
     else: self.raiseAnError(IOError,'ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
-    self.sim = utils.importFromPath(str(xmlNode.attrib['ModuleToLoad']),self.messageHandler.getDesiredVerbosity(self)>1)
+    self.sim = utils.importFromPath(str(xmlNode.attrib['ModuleToLoad']))
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':

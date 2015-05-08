@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug="False">
+<RunInfo>
+    <WorkingDir>limitSurface</WorkingDir>
+    <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py,LimitSurfaceUnWeightedPb_FileObj.csv,LimitSurfaceWeightedPb_FileObj.csv</Files>
+    <Sequence>FirstMRun,ComputeLimitSurfacePositive,ComputeLimitSurfaceNegative,ComputeLimitSurfacePositiveNegative</Sequence>
+    <batchSize>1</batchSize>
+</RunInfo>
+
+<Models>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='limitSurface/limitSurfaceTestExternalModel'>
+       <variable>z</variable>
+       <variable>x0</variable>
+       <variable>y0</variable>
+    </ExternalModel>
+    <PostProcessor name="computeLimitSurfacePositiveNegative" subType='LimitSurface' debug='False'>
+        <parameters>x0,y0</parameters>
+        <side>both</side>
+        <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+        <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
+    </PostProcessor>
+    <PostProcessor name="LimitSurfaceIntegralWeighted" subType='LimitSurfaceIntegral' debug='False'>
+        <tolerance>0.0001</tolerance>
+        <integralType>montecarlo</integralType>
+        <seed>20021986</seed>
+        <target>goalFunctionForLimitSurface</target>
+        <variable name='x0'>
+            <distribution >x0_distrib</distribution>
+        </variable>
+        <variable name='y0'>
+            <distribution >y0_distrib</distribution>
+        </variable>
+    </PostProcessor>
+    <PostProcessor name="LimitSurfaceIntegralUnWeightedWithBounds" subType='LimitSurfaceIntegral' debug='False'>
+        <tolerance>0.0001</tolerance>
+        <integralType>montecarlo</integralType>
+        <seed>20021986</seed>
+        <target>goalFunctionForLimitSurface</target>
+        <variable name='x0'>
+            <lowerBound>-2.0</lowerBound>
+            <upperBound>12.0</upperBound>
+        </variable>
+        <variable name='y0'>
+            <lowerBound>-1.0</lowerBound>
+            <upperBound>11.0</upperBound>
+        </variable>
+    </PostProcessor>
+    <!--
+    <PostProcessor name="LimitSurfaceIntegralUnWeighted" subType='LimitSurfaceIntegral' debug='False'>
+        <tolerance>0.0001</tolerance>
+        <integralType>montecarlo</integralType>
+        <seed>20021986</seed>
+        <target>goalFunctionForLimitSurface</target>
+        <variable name='x0'/>
+        <variable name='y0'/>
+    </PostProcessor>
+    -->
+    <ROM name='Acc' subType='SciKitLearn'>
+        <Features>x0,y0</Features>
+        <Target>goalFunctionForLimitSurface</Target>
+        <SKLtype>svm|LinearSVC</SKLtype>
+        <verbose>1</verbose>
+        <tol>0.0001</tol>
+        <C>10</C>
+    </ROM>
+</Models>
+
+<Functions>
+    <External name='goalFunctionForLimitSurface' file='limitSurface/goalFunctionTest'>
+        <variable>z</variable>
+    </External>
+</Functions>
+
+<Distributions>
+    <Normal name='x0_distrib'>
+        <mean>4</mean>
+        <sigma>2</sigma>
+    </Normal>
+    <Normal name='y0_distrib'>
+        <mean>5</mean>
+        <sigma>2</sigma>
+    </Normal>
+</Distributions>
+
+<Samplers>
+    <MonteCarlo name='MC_external'>
+      <sampler_init>
+        <limit>150</limit>
+      </sampler_init>
+      <variable name='x0' >
+        <distribution >x0_distrib</distribution>
+      </variable>
+      <variable name='y0' >
+        <distribution >y0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+</Samplers>
+
+<Steps>
+    <MultiRun name='FirstMRun'  re-seeding='20021986'>
+        <Input   class='DataObjects'             type='TimePointSet'   >Dummy</Input>
+        <Model   class='Models'                  type='ExternalModel'  >PythonModule</Model>
+        <Sampler class='Samplers'                type='MonteCarlo'     >MC_external</Sampler>
+        <Output  class='DataObjects'             type='TimePointSet'   >TimePointSetPostProcTest</Output>
+        <Output  class='OutStreamManager'        type='Print'          >TimePointSetPostProcTest_dump</Output>
+    </MultiRun >
+    <PostProcess name='ComputeLimitSurfacePositiveNegative' >
+        <Input    class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Model    class='Models'                 type='PostProcessor'   >computeLimitSurfacePositiveNegative</Model>
+        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfacePositiveNegative</Output>
+        <Output   class='OutStreamManager'       type='Print'           >LimitSurfacePositiveNegative_dump</Output>
+    </PostProcess>
+    <PostProcess name='ComputeLimitSurfaceIntegralWeighted' >
+        <Input    class='DataObjects'            type='TimePointSet'    >LimitSurfacePositiveNegative</Input>
+        <Model    class='Models'                 type='PostProcessor'   >LimitSurfaceIntegralWeighted</Model>
+        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfaceWeightedPb</Output>
+        <Output   class='OutStreamManager'       type='Print'           >LimitSurfaceWeightedPb_dump</Output>
+        <Output   class='FileObject'             type=''                >LimitSurfaceWeightedPb_FileObj.csv</Output>
+    </PostProcess>
+    <PostProcess name='ComputeLimitSurfaceIntegralUnWeighted' >
+        <Input    class='DataObjects'            type='TimePointSet'    >LimitSurfacePositiveNegative</Input>
+        <Model    class='Models'                 type='PostProcessor'   >LimitSurfaceIntegralUnWeightedWithBounds</Model>
+        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfaceUnWeightedPb</Output>
+        <Output   class='OutStreamManager'       type='Print'           >LimitSurfaceUnWeightedPb_dump</Output>
+        <Output   class='FileObject'             type=''                >LimitSurfaceUnWeightedPb_FileObj.csv</Output>
+    </PostProcess>
+</Steps>
+
+<OutStreamManager>
+    
+  <Print name='TimePointSetPostProcTest_dump'>
+    <type>csv</type>
+    <source>TimePointSetPostProcTest</source>
+  </Print>
+  <Print name='LimitSurfaceUnWeightedPb_dump'>
+      <type>csv</type>
+      <source>LimitSurfaceUnWeightedPb</source>
+  </Print>
+  <Print name='LimitSurfacePositiveNegative_dump'>
+      <type>csv</type>
+      <source>LimitSurfacePositiveNegative</source>
+  </Print>
+  <Print name='LimitSurfaceWeightedPb_dump'>
+      <type>csv</type>
+      <source>LimitSurfaceWeightedPb</source>
+  </Print>
+</OutStreamManager>
+
+<DataObjects>
+    <TimePointSet name='TimePointSetPostProcTest'>
+        <Input>x0,y0</Input>
+        <Output>z</Output>
+    </TimePointSet>
+    <TimePointSet name='LimitSurfacePositiveNegative'>
+        <Input>x0,y0</Input>
+        <Output>goalFunctionForLimitSurface</Output>
+    </TimePointSet>
+    <TimePointSet name='LimitSurfaceWeightedPb'>
+        <Input>x0,y0</Input>
+        <Output>goalFunctionForLimitSurface</Output>
+    </TimePointSet>
+    <TimePointSet name='LimitSurfaceUnWeightedPb'>
+        <Input>x0,y0</Input>
+        <Output>goalFunctionForLimitSurface</Output>
+    </TimePointSet>
+    <TimePointSet name='Dummy'>
+        <Input>x0,y0</Input>
+        <Output>OutputPlaceHolder</Output>
+    </TimePointSet>
+</DataObjects>
+
+</Simulation>
+
+
+
