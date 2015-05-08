@@ -45,7 +45,7 @@ work_in_progress/remote_tools/remote_tools
 work_in_progress/remote_tools/remote_tools.py
 work_in_progress/remote_tools/remote_tools_wrap.cxx
 work_in_progress/remote_tools/time
-framework/DataBaseStorage/
+framework/DatabaseStorage/
 tests/framework/LHStestFerret/myLHS/
 tests/framework/PreconditionedDynamicEventTree/PreconditionedDETrunTest/
 

@@ -74,7 +74,7 @@ class SafestPoint(BasePostProcessor):
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
   def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method '''
+    """ see generateAssembler method in Assembler """
     for varName, distName in self.controllableDist.items():
       if distName not in initDict['Distributions'].keys():
         self.raiseAnError(IOError,'distribution ' +distName+ ' not found.')
@@ -322,6 +322,8 @@ class ComparisonStatistics(BasePostProcessor):
     self.methodInfo = {} #Information on what stuff to do.
     self.f_z_stats = False
     self.interpolation = "quadratic"
+    self.requiredAssObject = (True,(['Distribution'],['-n']))
+    self.distributions = {}
 
   def inputToInternal(self,currentInput):
     return [(currentInput)]
@@ -341,6 +343,7 @@ class ComparisonStatistics(BasePostProcessor):
             rest = splitName[2:]
             compareGroup.dataPulls.append([name, kind, rest])
           elif child.tag == 'reference':
+            #This is either name=distribution or mean=num and sigma=num
             compareGroup.referenceData = dict(child.attrib)
         self.compareGroups.append(compareGroup)
       if outer.tag == 'kind':
@@ -362,6 +365,9 @@ class ComparisonStatistics(BasePostProcessor):
           self.interpolation = interpolation
 
 
+  def _localGenerateAssembler(self, initDict):
+    self.distributions = initDict.get('Distributions',{})
+    #print("initDict", initDict)
 
   def run(self, Input): # inObj,workingDir=None):
     """
@@ -374,8 +380,6 @@ class ComparisonStatistics(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     self.raiseADebug("finishedjob: "+str(finishedjob)+", output "+str(output))
-    #XXX We only handle the case where output is a filename.  We don't handle
-    # it being a dataObjects or hdf5 etc.
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,'no available output to collect.')
     else: self.dataDict.update(finishedjob.returnEvaluation()[1])
 
@@ -389,7 +393,16 @@ class ComparisonStatistics(BasePostProcessor):
         if len(rest) == 1:
           foundDataObjects.append(data[rest[0]])
       dataToProcess.append((dataPulls,foundDataObjects,reference))
-    csv = open(output,"w")
+    generateCSV = False
+    generateTimePointSet = False
+    if output.type == 'FileObject':
+      generateCSV = True
+    elif output.type == 'TimePointSet':
+      generateTimePointSet = True
+    else:
+      self.raiseAnError(IOError,'unsupported type '+str(type(output)))
+    if generateCSV:
+      csv = open(output,"w")
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "mean" in reference:
@@ -399,16 +412,30 @@ class ComparisonStatistics(BasePostProcessor):
           refPdf = lambda x:mathUtils.normal(x,refDataStats["mean"],refDataStats["stdev"])
           refCdf = lambda x:mathUtils.normalCdf(x,refDataStats["mean"],refDataStats["stdev"])
           graphData.append((refDataStats,refCdf,refPdf,"ref"))
+      if "name" in reference:
+        distribution_name = reference["name"]
+        if not distribution_name in self.distributions:
+          self.raiseAnError(IOError,'Did not find '+distribution_name+
+                             ' in '+str(self.distributions.keys()))
+        else:
+          distribution = self.distributions[distribution_name]
+        refDataStats = {"mean":distribution.untruncatedMean(),
+                        "stdev":distribution.untruncatedStdDev()}
+        refDataStats["min_bin_size"] = refDataStats["stdev"]/2.0
+        refPdf = lambda x:distribution.pdf(x)
+        refCdf = lambda x:distribution.cdf(x)
+        graphData.append((refDataStats,refCdf,refPdf,"ref_"+distribution_name))
       for dataPull, data in zip(dataPulls,datas):
         dataStats = self.processData(dataPull, data, self.methodInfo)
         dataKeys = set(dataStats.keys())
-        utils.printCsv(csv,'"'+str(dataPull)+'"')
-        utils.printCsv(csv,'"num_bins"',dataStats['num_bins'])
         counts = dataStats['counts']
         bins = dataStats['bins']
         countSum = sum(counts)
         binBoundaries = [dataStats['low']]+bins+[dataStats['high']]
-        utils.printCsv(csv,'"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
+        if generateCSV:
+          utils.printCsv(csv,'"'+str(dataPull)+'"')
+          utils.printCsv(csv,'"num_bins"',dataStats['num_bins'])
+          utils.printCsv(csv,'"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
         cdf = [0.0]*len(counts)
         midpoints = [0.0]*len(counts)
         cdfSum = 0.0
@@ -436,37 +463,62 @@ class ComparisonStatistics(BasePostProcessor):
           else:
             fPrime = (-1.5*f_0 + 2.0*f_1 + -0.5*f_2)/h
           fPrimeData[i] = fPrime
-          utils.printCsv(csv,binBoundaries[i+1],midpoints[i],counts[i],nCount,fPrime,cdf[i])
+          if generateCSV:
+            utils.printCsv(csv,binBoundaries[i+1],midpoints[i],counts[i],nCount,fPrime,cdf[i])
         pdfFunc = mathUtils.createInterp(midpoints,fPrimeData,0.0,0.0,self.interpolation)
         dataKeys -= set({'num_bins','counts','bins'})
-        for key in dataKeys:
-          utils.printCsv(csv,'"'+key+'"',dataStats[key])
+        if generateCSV:
+          for key in dataKeys:
+            utils.printCsv(csv,'"'+key+'"',dataStats[key])
         self.raiseADebug("data_stats: "+str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc,str(dataPull)))
-      mathUtils.printGraphs(csv, graphData, self.f_z_stats)
-      for i in range(len(graphData)):
-        dataStat = graphData[i][0]
-        def delist(l):
-          if type(l).__name__ == 'list':
-            return '_'.join([delist(x) for x in l])
+      graph_data = mathUtils.getGraphs(graphData, self.f_z_stats)
+      if generateCSV:
+        for key in graph_data:
+          value = graph_data[key]
+          if type(value).__name__ == 'list':
+            utils.printCsv(csv,*(['"' + l[0] + '"' for l in value]))
+            for i in range(1,len(value[0])):
+              utils.printCsv(csv,*([l[i] for l in value]))
           else:
-            return str(l)
-        newFileName = output[:-4]+"_"+delist(dataPulls)+"_"+str(i)+".csv"
-        if type(dataStat).__name__ != 'dict':
-          assert(False)
-          continue
-        dataPairs = []
-        for key in sorted(dataStat.keys()):
-          value = dataStat[key]
-          if type(value).__name__ in ["int","float"]:
-            dataPairs.append((key,value))
-        extraCsv = open(newFileName,"w")
-        extraCsv.write(",".join(['"'+str(x[0])+'"' for x in dataPairs]))
-        extraCsv.write(os.linesep)
-        extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
-        extraCsv.write(os.linesep)
-        extraCsv.close()
-      utils.printCsv(csv)
+            utils.printCsv(csv,'"'+key+'"',value)
+      if generateTimePointSet:
+        for key in graph_data:
+          value = graph_data[key]
+          if type(value).__name__ == 'list':
+            for i in range(len(value)):
+              subvalue = value[i]
+              name = subvalue[0]
+              subdata = subvalue[1:]
+              if i == 0:
+                output.updateInputValue(name, subdata)
+              else:
+                output.updateOutputValue(name, subdata)
+            break #XXX Need to figure out way to specify which data to return
+      if generateCSV:
+        for i in range(len(graphData)):
+          dataStat = graphData[i][0]
+          def delist(l):
+            if type(l).__name__ == 'list':
+              return '_'.join([delist(x) for x in l])
+            else:
+              return str(l)
+          newFileName = output[:-4]+"_"+delist(dataPulls)+"_"+str(i)+".csv"
+          if type(dataStat).__name__ != 'dict':
+            assert(False)
+            continue
+          dataPairs = []
+          for key in sorted(dataStat.keys()):
+            value = dataStat[key]
+            if type(value).__name__ in ["int","float"]:
+              dataPairs.append((key,value))
+          extraCsv = open(newFileName,"w")
+          extraCsv.write(",".join(['"'+str(x[0])+'"' for x in dataPairs]))
+          extraCsv.write(os.linesep)
+          extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
+          extraCsv.write(os.linesep)
+          extraCsv.close()
+        utils.printCsv(csv)
 
   def processData(self,dataPull, data, methodInfo):
       ret = {}
@@ -693,13 +745,15 @@ class BasicStatistics(BasePostProcessor):
   def __init__(self,messageHandler):
     BasePostProcessor.__init__(self,messageHandler)
     self.parameters        = {}                                                                                                      #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = ['covariance','NormalizedSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtosis','median','percentile']  # accepted calculation parameters
+    self.acceptedCalcParam = ['covariance','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtosis','median','percentile']  # accepted calculation parameters
     self.what              = self.acceptedCalcParam                                                                                  # what needs to be computed... default...all
     self.methodsToRun      = []                                                                                                      # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction  = []
     self.printTag          = 'POSTPROCESSOR BASIC STATISTIC'
     self.requiredAssObject = (True,(['Function'],[-1]))
     self.biased            = False
+    self.sampled           = {}
+    self.calculated        = {}
 
   def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
@@ -718,8 +772,12 @@ class BasicStatistics(BasePostProcessor):
     if inType == 'HDF5': pass # to be implemented
     if inType in ['TimePointSet']:
       for targetP in self.parameters['targets']:
-        if   targetP in currentInput.getParaKeys('input' ): inputDict['targets'][targetP] = currentInput.getParam('input' ,targetP)
-        elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
+        if   targetP in currentInput.getParaKeys('input' ):
+          inputDict['targets'][targetP] = currentInput.getParam('input' ,targetP)
+          self.sampled[targetP]         = currentInput.getParam('input' ,targetP)
+        elif targetP in currentInput.getParaKeys('output'):
+          inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
+          self.calculated[targetP]      = currentInput.getParam('output',targetP)
       inputDict['metadata'] = currentInput.getAllMetadata()
 #     # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
       if inputDict['metadata'].keys().count('SamplerType') > 0: pass
@@ -778,12 +836,12 @@ class BasicStatistics(BasePostProcessor):
           basicStatdump.write('Variable'+ separator + targetP +os.linesep)
           basicStatdump.write('--------'+ separator +'-'*len(targetP)+os.linesep)
           for what in outputDict.keys():
-            if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
+            if what not in ['covariance','pearson','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity'] + methodToTest:
               self.raiseADebug('BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
               basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+os.linesep)
         maxLength = max(len(max(parameterSet, key=len))+5,16)
         for what in outputDict.keys():
-          if what in ['covariance','pearson','NormalizedSensitivity','sensitivity']:
+          if what in ['covariance','pearson','NormalizedSensitivity','VarianceDependentSensitivity']:
             self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix '+ what )
             basicStatdump.write(what+os.linesep)
             if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])+os.linesep)
@@ -791,6 +849,18 @@ class BasicStatistics(BasePostProcessor):
             for index in range(len(parameterSet)):
               if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+os.linesep)
               else                       : basicStatdump.write(parameterSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+os.linesep)
+          if what == 'sensitivity':
+            if not self.sampled: self.raiseAWarning('No sampled Input variable defined in '+str(self.name)+' PP. The I/O Sensitivity Matrix wil not be calculated.')
+            else:
+              self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix '+ what )
+              basicStatdump.write(what+os.linesep)
+              calculatedSet = list(set(list(self.calculated)))
+              sampledSet    = list(set(list(self.sampled)))
+              if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in sampledSet])+os.linesep)
+              else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in sampledSet])+os.linesep)
+              for index in range(len(calculatedSet)):
+                if outputextension != 'csv': basicStatdump.write(calculatedSet[index] + ' '*(maxLength-len(calculatedSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+os.linesep)
+                else                       : basicStatdump.write(calculatedSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+os.linesep)
         if self.externalFunction:
           self.raiseADebug('BasicStatistics postprocessor: writing External Function results')
           basicStatdump.write(os.linesep +'EXT FUNCTION '+os.linesep)
@@ -802,7 +872,7 @@ class BasicStatistics(BasePostProcessor):
     elif output.type == 'DataObjects':
       self.raiseADebug('BasicStatistics postprocessor: dumping output in data object named ' + output.name)
       for what in outputDict.keys():
-        if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
+        if what not in ['covariance','pearson','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity'] + methodToTest:
           for targetP in parameterSet:
             self.raiseADebug('BasicStatistics postprocessor: dumping variable '+ targetP + '. Parameter: '+ what + '. Metadata name = '+ targetP+'|'+what)
             output.updateMetadata(targetP+'|'+what,outputDict[what][targetP])
@@ -835,7 +905,7 @@ class BasicStatistics(BasePostProcessor):
         outputDict[what] = self.externalFunction.evaluate(what,Input['targets'])
         # check if "what" corresponds to an internal method
         if what in self.acceptedCalcParam:
-          if what not in ['pearson','covariance','NormalizedSensitivity','sensitivity']:
+          if what not in ['pearson','covariance','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity']:
             if type(outputDict[what]) != dict: self.raiseAnError(IOError,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a dictionary!!')
           else:
             if type(outputDict[what]) != np.ndarray: self.raiseAnError(IOError,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a numpy.ndarray!!')
@@ -918,6 +988,17 @@ class BasicStatistics(BasePostProcessor):
         outputDict[what] = self.corrCoeff(feat, weights=pbweights) #np.corrcoef(feat)
       #sensitivity matrix
       if what == 'sensitivity':
+        if self.sampled:
+          self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
+          for target in self.calculated:
+            self.SupervisedEngine[target] =  SupervisedLearning.returnInstance('SciKitLearn',self,**{'SKLtype':'linear_model|LinearRegression',
+                                                                                                     'Features':','.join(self.sampled.keys()),
+                                                                                                     'Target':target})
+            self.SupervisedEngine[target].train(Input['targets'])
+          for myIndex in range(len(self.calculated)):
+            outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
+      #VarianceDependentSensitivity matrix
+      if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(Input['targets'].keys()),utils.first(Input['targets'].values()).size))
         for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]
         covMatrix = self.covariance(feat, weights=pbweights)
@@ -925,7 +1006,7 @@ class BasicStatistics(BasePostProcessor):
         for myIndex, targetP in enumerate(parameterSet):
           variance[myIndex] = np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
         for myIndex in range(len(parameterSet)):
-          outputDict[what][myIndex] = covMatrix[myIndex,:]/variance
+          outputDict[what][myIndex] = covMatrix[myIndex,:]/(variance[myIndex])
       #Normalizzate sensitivity matrix: linear regression slopes normalizited by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
         feat = np.zeros((len(Input['targets'].keys()),utils.first(Input['targets'].values()).size))
@@ -948,7 +1029,7 @@ class BasicStatistics(BasePostProcessor):
       msg+='        * Variable * '+ targetP +'  *' + os.linesep
       msg+='        *************'+'*'*len(targetP)+'***' + os.linesep
       for what in outputDict.keys():
-        if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
+        if what not in ['covariance','pearson','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity'] + methodToTest:
           msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
           msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *' + os.linesep
           msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
@@ -957,36 +1038,45 @@ class BasicStatistics(BasePostProcessor):
       msg+=' '*maxLength+'*****************************' + os.linesep
       msg+=' '*maxLength+'*         Covariance        *' + os.linesep
       msg+=' '*maxLength+'*****************************' + os.linesep
-
-      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])+os.linesep
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]]) + os.linesep
     if 'pearson' in outputDict.keys():
       msg+=' '*maxLength+'*****************************' + os.linesep
       msg+=' '*maxLength+'*    Pearson/Correlation    *' + os.linesep
       msg+=' '*maxLength+'*****************************' + os.linesep
-      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])+os.linesep
-    if 'sensitivity' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************' + os.linesep
-      msg+=' '*maxLength+'*        Sensitivity        *' + os.linesep
-      msg+=' '*maxLength+'*****************************' + os.linesep
-      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]]) + os.linesep
+    if 'VarianceDependentSensitivity' in outputDict.keys():
+      msg+=' '*maxLength+'******************************' + os.linesep
+      msg+=' '*maxLength+'*VarianceDependentSensitivity*' + os.linesep
+      msg+=' '*maxLength+'******************************' + os.linesep
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]])+os.linesep
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['VarianceDependentSensitivity'][index]]) + os.linesep
     if 'NormalizedSensitivity' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************' + os.linesep
-      msg+=' '*maxLength+'*   Normalized Sensitivity  *' + os.linesep
-      msg+=' '*maxLength+'*****************************' + os.linesep
-      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+=' '*maxLength+'******************************' + os.linesep
+      msg+=' '*maxLength+'* Normalized V.D.Sensitivity *' + os.linesep
+      msg+=' '*maxLength+'******************************' + os.linesep
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])+os.linesep
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]]) + os.linesep
+    if 'sensitivity' in outputDict.keys():
+      if not self.sampled: self.raiseAWarning('No sampled Input variable defined in '+str(self.name)+' PP. The I/O Sensitivity Matrix wil not be calculated.')
+      else:
+        msg+=' '*maxLength+'*****************************' + os.linesep
+        msg+=' '*maxLength+'*    I/O   Sensitivity      *' + os.linesep
+        msg+=' '*maxLength+'*****************************' + os.linesep
+        msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in self.sampled]) + os.linesep
+        for index in range(len(self.sampled.keys())):
+          variable = self.sampled.keys()[index]
+          msg+=self.calculated.keys()[index] + ' '*(maxLength-len(variable)) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]/outputDict['sigma'][variable]]) + os.linesep
 
     if self.externalFunction:
-      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'+os.linesep
-      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +'+os.linesep
-      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'+os.linesep
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++' + os.linesep
+      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +' + os.linesep
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++' + os.linesep
       for what in self.methodsToRun:
         if what not in self.acceptedCalcParam:
           msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
@@ -1008,7 +1098,7 @@ class BasicStatistics(BasePostProcessor):
       """
       X    = np.array(feature, ndmin=2, dtype=np.result_type(feature, np.float64))
       diff = np.zeros(feature.shape, dtype=np.result_type(feature, np.float64))
-      if weights != None: w = np.array(weights, ndmin=1, dtype=np.result_type(weights, np.float64))
+      if weights != None: w = np.array(weights, ndmin=1, dtype=np.float64)
       if X.shape[0] == 1: rowvar = 1
       if rowvar:
           N = X.shape[1]
