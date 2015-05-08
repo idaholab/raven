@@ -561,7 +561,7 @@ class HDMRRom(GaussPolynomialRom):
       ft[tuple(featureVals[i])]=targetVals[i]
     #get the reference case
     self.refpt = tuple(self.__fillPointWithRef((),[]))
-    self.refSoln = ft[tuple(self.refpt)]
+    self.refSoln = ft[self.refpt]
     for combo,rom in self.ROMs.items():
       subtdict={}
       for c in combo: subtdict[c]=[]
@@ -929,10 +929,6 @@ __interfaceDict['SciKitLearn'         ] = SciKitLearn
 __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
 __base                                  = 'superVisedLearning'
-
-def addToInterfaceDict(newDict):
-  for key,val in newDict.items():
-    __interfaceDict[key]=val
 
 def returnInstance(ROMclass,caller,**kwargs):
   '''This function return an instance of the request model type'''

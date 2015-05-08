@@ -49,6 +49,8 @@ class BaseType(MessageHandler.MessageUser):
     pass
 
   def setMessageHandler(self,handler):
+    if not isinstance(handler,MessageHandler.MessageHandler):
+      raise IOError('Attempted to set the message handler for '+str(self)+' to '+str(handler))
     self.messageHandler = handler
 
   def whoAreYou(self):
