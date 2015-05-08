@@ -58,37 +58,39 @@ class LimitSurfaceIntegral(BasePostProcessor):
   '''
   This post-processor is aimed to compute the n-dimensional integral of an inputted Limit Surface
   '''
-  def __init__(self):
-    BasePostProcessor.__init__(self)
-    self.variableDist = {}                                    # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
-    self.target       = None                                  # target that defines the f(x1,x2,...,xn)
-    self.tolerance    = 0.0001                                # integration tolerance
-    self.integralType = 'montecarlo'                          # integral type (which alg needs to be used). Either montecarlo or quadrature
-    self.seed         = 20021986                              # seed for montecarlo
-    self.matrixDict   = {}                                    # dictionary of arrays and target
-    self.lowerUpperDict   = {}
-    self.functionS = None
+  def __init__(self,messageHandler):
+    BasePostProcessor.__init__(self,messageHandler)
+    self.variableDist   = {}                                    # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
+    self.target         = None                                  # target that defines the f(x1,x2,...,xn)
+    self.tolerance      = 0.0001                                # integration tolerance
+    self.integralType   = 'montecarlo'                          # integral type (which alg needs to be used). Either montecarlo or quadrature(quadrature not yet)
+    self.seed           = 20021986                              # seed for montecarlo
+    self.matrixDict     = {}                                    # dictionary of arrays and target
+    self.lowerUpperDict = {}
+    self.functionS      = None
+    self.stat           = returnInstance('BasicStatistics',self)# instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
+    self.stat.what      = ['expectedValue']
     self.requiredAssObject = (False,(['Distribution'],['n']))
-    self.printTag = 'POSTPROCESSOR INTEGRAL'
+    self.printTag       = 'POSTPROCESSOR INTEGRAL'
 
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
     for varName, distName in self.variableDist.items():
       if distName != None:
         if distName not in initDict['Distributions'].keys(): self.raiseAnError(IOError,'distribution ' +distName+ ' not found.')
-        self.variableDist[varName] = initDict['Distributions'][distName]
+        self.variableDist[varName] = initDict['Distributions'][distName] 
         self.lowerUpperDict[varName]['lowerBound'] = self.variableDist[varName].lowerBound
         self.lowerUpperDict[varName]['upperBound'] = self.variableDist[varName].upperBound
 
   def _localReadMoreXML(self,xmlNode):
     if 'tolerance' in xmlNode.attrib.keys():
-      try: self.tolerance = float(xmlNode.attrib['tolerance'])
+      try              : self.tolerance = float(xmlNode.attrib['tolerance'])
       except ValueError: self.raiseAnError(ValueError,"tolerance can not be converted into a float value!")
     if 'integralType' in xmlNode.attrib.keys():
       self.integralType = xmlNode.attrib['integralType'].strip().lower()
       if self.integralType not in ['montecarlo']: self.raiseAnError(IOError,'only two integral types are available: qudrature, MonteCarlo!')
     if 'seed' in xmlNode.attrib.keys():
-      try: self.seed = int(xmlNode.attrib['tolerance'])
+      try              : self.seed = int(xmlNode.attrib['seed'])
       except ValueError: self.raiseAnError(ValueError,'seed can not be converted into a int value!')
       if self.integralType != 'montecarlo': self.raiseAWarning('integral type is '+self.integralType+' but a seed has been inputted!!!')
       else: np.random.seed(self.seed)
@@ -102,7 +104,8 @@ class LimitSurfaceIntegral(BasePostProcessor):
         self.variableDist[varName] = None
         for childChild in child:
           if childChild.tag == 'distribution': self.variableDist[varName] = childChild.text
-          else: self.raiseAnError(NameError,'invalid labels after the variable call. Only "distribution" is accepted.')
+          else: 
+            self.raiseAnError(NameError,'invalid labels after the variable call. Only "distribution" is accepted.')
       else: self.raiseAnError(NameError,'invalid or missing labels after the variables call. Only "variable" is accepted.')
       #if no distribution, we look for the integration domain in the input
       self.lowerUpperDict[varName] = {}
@@ -112,8 +115,11 @@ class LimitSurfaceIntegral(BasePostProcessor):
         self.lowerUpperDict[varName]['lowerBound'] = float(child.attrib['lowerBound'])
         self.lowerUpperDict[varName]['upperBound'] = float(child.attrib['upperBound'])
 
-  def initialize(self,_,inputs,_):
+  def initialize(self,runInfo,inputs,initDict):
     self.inputToInternal(inputs)
+    if self.integralType in ['montecarlo']:
+      self.stat.parameters['targets'] = [self.target]
+      self.stat.initialize(runInfo,inputs,initDict)
     self.functionS = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsRegressor','Features':','.join(list(self.variableDist.keys())),'Target':self.target})
     self.functionS.train(self.matrixDict)
     self.raiseADebug('DATA SET MATRIX:')
@@ -122,7 +128,6 @@ class LimitSurfaceIntegral(BasePostProcessor):
   def inputToInternal(self,currentInput):
     for item in currentInput:
       if item.type == 'TimePointSet':
-        # check if variables and inputs match
         self.matrixDict = {}
         if not set(item.getParaKeys('inputs')) == set(self.variableDist.keys()): self.raiseAnError(IOError,'The variables inputted and the features in the input TimePointSet '+ item.name + 'do not match!!!')
         if self.target == None: self.target = item.getParaKeys('outputs')[-1]
@@ -130,48 +135,53 @@ class LimitSurfaceIntegral(BasePostProcessor):
         # construct matrix
         for  varName in self.variableDist.keys(): self.matrixDict[varName] = item.getParam('input',varName)
         outputarr = item.getParam('output',self.target)
-        if len(set(outputarr)) != 2: self.raiseAnError(IOError,'The target '+ self.target + 'is not present among the outputs of the TimePointSet '+ item.name)
+        if len(set(outputarr)) != 2: self.raiseAnError(IOError,'The target '+ self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
+        outputarr[outputarr==-1] = 0.0
         self.matrixDict[self.target] = outputarr
       else: self.raiseAnError(IOError,'Only TimePointSet is accepted as input!!!!')
 
   def run(self,Input):
     # compute the integral
-    outcome = None
+    pb = None
     if self.integralType == 'montecarlo':
       tempDict = {}
-      weights  = {}
-      rectArea = 0.0
       randomMatrix = np.random.rand(math.ceil(1.0/self.tolerance),len(self.variableDist.keys()))
       for index, varName in enumerate(self.variableDist.keys()):
-        randomMatrix[:,index] = randomMatrix[:,index]*(self.lowerUpperDict[varName]['upperBound']-self.lowerUpperDict[varName]['lowerBound'])+self.lowerUpperDict[varName]['lowerBound']
+        if self.variableDist[varName] == None: randomMatrix[:,index] = randomMatrix[:,index]*(self.lowerUpperDict[varName]['upperBound']-self.lowerUpperDict[varName]['lowerBound'])+self.lowerUpperDict[varName]['lowerBound']
+        else:
+          for samples in randomMatrix.shape[0]: randomMatrix[samples,index] = self.variableDist[varName].ppf(randomMatrix[samples,index]) 
         tempDict[varName] = randomMatrix[:,index]
-        for i in tempDict[varName]:      weights[varName]  = tempDict[varName]
-
-
-
-      outcome = self.functionS.evaluate(tempDict)
-    else:
-      pass
-
-    return dataCollector
+      pb = self.stat.run({'targets':{self.target:self.functionS.evaluate(tempDict)}})
+    else: self.raiseAnError(NotImplemented, "quadrature not yet implemented")
+    return pb
 
   def collectOutput(self,finishedjob,output):
-    if finishedjob.returnEvaluation() == -1:
-      self.raiseAnError(RuntimeError,'no available output to collect (the run is likely not over yet).')
+    if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,'no available output to collect.')
     else:
-      dataCollector = finishedjob.returnEvaluation()[1]
-      if output.type != 'TimePointSet':
-        self.raiseAnError(TypeError,'output item type must be "TimePointSet".')
-      else:
-        if not output.isItEmpty():
-          self.raiseAnError(ValueError,'output item must be empty.')
-        else:
-          for key,value in dataCollector.getParametersValues('input').items():
-            for val in value: output.updateInputValue(key, val)
-          for key,value in dataCollector.getParametersValues('output').items():
-            for val in value: output.updateOutputValue(key,val)
-          for key,value in dataCollector.getAllMetadata().items(): output.updateMetadata(key,value)
-
+      pb = finishedjob.returnEvaluation()[1]
+      lms = finishedjob.returnEvaluation()[0]
+      if output.type == 'TimePointSet':
+        # we store back the limitsurface
+        for key,value in lms.getParametersValues('input').items():
+          for val in value: output.updateInputValue(key, val)
+        for key,value in lms.getParametersValues('output').items():
+          for val in value: output.updateOutputValue(key,val)        
+        for _ in len(lms): output.updateOutputValue('EventProbability',pb)
+      elif output.type == 'FileObject':
+        fileobject = open(output,'w')
+        headers = lms.getParaKeys('inputs')+lms.getParaKeys('outputs')+['EventProbability']
+        fileobject.write(','.join(headers)+'/n')
+        stack  = [None]*len(headers)
+        for key,value in lms.getParametersValues('input').items() : stack.insert(headers.index(key),value.flatten())  
+        for key,value in lms.getParametersValues('output').items(): stack.insert(headers.index(key),value.flatten())
+        stack.insert(headers.index('EventProbability'),np.array([pb]*len(stack[-1])).flatten())
+        stacked = np.column_stack(stack)
+        np.savetxt(output, stacked, delimiter=',', header=','.join(headers))
+      else: self.raiseAnError(Exception, self.type + ' accepts TimePointSet or FileObject only')
+#
+#
+#
+#
 class SafestPoint(BasePostProcessor):
   '''
   It searches for the probability-weighted safest point inside the space of the system controllable variables
@@ -940,7 +950,7 @@ class BasicStatistics(BasePostProcessor):
 
   def run(self, InputIn):
     """
-     Function to finalize the filter => execute the filtering
+     Function to perform the pp calculation => execute the basicstat
      @ In , dictionary       : dictionary of data to process
      @ Out, dictionary       : Dictionary with results
     """
@@ -1150,7 +1160,7 @@ class BasicStatistics(BasePostProcessor):
           warnings.warn("Degrees of freedom <= 0", RuntimeWarning)
           fact = 0.0
       if not rowvar:
-        if weigths != None: covMatrix = (np.dot(diff.T, w*diff)*fact).squeeze()
+        if weights != None: covMatrix = (np.dot(diff.T, w*diff)*fact).squeeze()
         else:               covMatrix = (np.dot(diff.T, diff)*fact).squeeze()
       else:
         if weights != None: covMatrix = (np.dot(w*diff, diff.T)*fact).squeeze()
@@ -1159,8 +1169,7 @@ class BasicStatistics(BasePostProcessor):
 
   def corrCoeff(self, feature, weights=None, rowvar=1):
       covM = self.covariance(feature, weights, rowvar)
-      try:
-        d = np.diag(covM)
+      try: d = np.diag(covM)
       except ValueError:  # scalar covariance
       # nan if incorrect value (nan, inf, 0), 1 otherwise
         return covM / covM
@@ -1646,7 +1655,7 @@ class ExternalPostProcessor(BasePostProcessor):
     inputList = finishedJob.returnEvaluation()[0]
     outputDict = finishedJob.returnEvaluation()[1]
 
-    if type(output).__name__ in ["str","unicode","bytes"]:
+    if output.type == 'FileObject':
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
                                + ' yet implemented. I am going to skip it.')
     elif output.type == 'DataObjects':
@@ -1737,8 +1746,7 @@ class ExternalPostProcessor(BasePostProcessor):
           for val in value:
             output.updateMetadata(key, val)
 
-    else:
-      self.raiseAnError(IOError,'Unknown output type: ' + str(output.type))
+    else: self.raiseAnError(IOError,'Unknown output type: ' + str(output.type))
 
   def run(self, InputIn):
     """
@@ -1789,8 +1797,7 @@ class ExternalPostProcessor(BasePostProcessor):
 __base                                       = 'PostProcessor'
 __interFaceDict                              = {}
 __interFaceDict['SafestPoint'              ] = SafestPoint
-__interFaceDict['LimitSurfaceIntegral'     ] = Integral
-__interFaceDict['Integral'                 ] = Integral
+__interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
 __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
