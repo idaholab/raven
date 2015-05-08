@@ -63,7 +63,7 @@ class SimulationMode(MessageHandler.MessageUser):
     import multiprocessing
     try:
       if multiprocessing.cpu_count() < self.__simulation.runInfoDict['batchSize']:
-        self.raiseAWarning("cpu_count "+str(multiprocessing.cpu_count())+" < batchSize "+str(self.__simulation.runInfoDict['batchSize']))
+        self.raiseAWarning("cpu_count",multiprocessing.cpu_count(),"< batchSize",self.__simulation.runInfoDict['batchSize'])
     except NotImplementedError:
       pass
 
@@ -486,7 +486,7 @@ class Simulation(MessageHandler.MessageUser):
   def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
     '''reads the xml input file for the RunInfo block'''
     if 'verbosity' in xmlNode.attrib.keys(): self.verbosity = xmlNode.attrib['verbosity']
-    self.raiseAMessage('Global verbosity level is "'+str(self.verbosity)+'"',verbosity='quiet')
+    self.raiseAMessage('Global verbosity level is "',self.verbosity,'"',verbosity='quiet')
     for element in xmlNode:
       if element.tag in runInfoSkip:
         self.raiseAWarning("Skipped element ",element.tag)
