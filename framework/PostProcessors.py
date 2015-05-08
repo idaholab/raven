@@ -54,231 +54,6 @@ class BasePostProcessor(Assembler,MessageHandler.MessageUser):
 
   def run(self, Input): pass
 
-class LimitSurfaceIntegral(BasePostProcessor):
-  '''
-  It searches for the probability-weighted safest point inside the space of the system controllable variables
-  '''
-  def __init__(self):
-    BasePostProcessor.__init__(self)
-    self.variableDist = {}                                    #dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
-    self.controllableGrid = {}                                    #dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.
-    self.gridInfo = {}                                            #dictionary contaning the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
-    self.controllableOrd = []                                     #list contaning the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
-    self.nonControllableOrd = []                                  #list contaning the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
-    self.surfPointsMatrix = None                                  #2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
-    self.stat = returnInstance('BasicStatistics')                 #instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
-    self.stat.what = ['expectedValue']
-    self.requiredAssObject = (True,(['Distribution'],['n']))
-    self.printTag = utils.returnPrintTag('POSTPROCESSOR SAFESTPOINT')
-
-  def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method '''
-    for varName, distName in self.variableDist.items():
-      if distName not in initDict['Distributions'].keys():
-        self.raiseAnError(IOError,'distribution ' +distName+ ' not found.')
-      self.variableDist[varName] = initDict['Distributions'][distName]
-
-  def _localReadMoreXML(self,xmlNode):
-    for child in xmlNode:
-      if child.tag == 'controllable':
-        for childChild in child:
-          if childChild.tag == 'variable':
-            varName = childChild.attrib['name']
-            for childChildChild in childChild:
-              if childChildChild.tag == 'distribution':
-                self.variableDist[varName] = childChildChild.text
-              elif childChildChild.tag == 'grid':
-                if 'type' in childChildChild.attrib.keys():
-                  if 'steps' in childChildChild.attrib.keys():
-                    self.controllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
-                  else:
-                    self.raiseAnError(NameError,'number of steps missing after the grid call.')
-                else:
-                  self.raiseAnError(NameError,'grid type missing after the grid call.')
-              else:
-                self.raiseAnError(NameError,'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
-          else:
-            self.raiseAnError(NameError,'invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
-    if self.debug:
-      self.raiseAMessage('CONTROLLABLE DISTRIBUTIONS:')
-      self.raiseAMessage(self.variableDist)
-      self.raiseAMessage('CONTROLLABLE GRID:')
-      self.raiseAMessage(self.controllableGrid)
-
-  def initialize(self,runInfo,inputs,initDict):
-    self.__gridSetting__()
-    self.__gridGeneration__()
-    self.inputToInternal(inputs)
-    self.stat.parameters['targets'] = self.controllableOrd
-    self.stat.initialize(runInfo,inputs,initDict)
-    if self.debug:
-      self.raiseAMessage('GRID INFO:')
-      self.raiseAMessage(self.gridInfo)
-      self.raiseAMessage('N-DIMENSIONAL CONTROLLABLE SPACE:')
-      self.raiseAMessage(self.controllableSpace)
-      self.raiseAMessage('N-DIMENSIONAL NON-CONTROLLABLE SPACE:')
-      self.raiseAMessage(self.nonControllableSpace)
-      self.raiseAMessage('CONTROLLABLE VARIABLES ORDER:')
-      self.raiseAMessage(self.controllableOrd)
-      self.raiseAMessage('NON-CONTROLLABLE VARIABLES ORDER:')
-      self.raiseAMessage(self.nonControllableOrd)
-      self.raiseAMessage('SURFACE POINTS MATRIX:')
-      self.raiseAMessage(self.surfPointsMatrix)
-
-  def __gridSetting__(self,constrType='equal'):
-    for varName in self.controllableGrid.keys():
-      if self.controllableGrid[varName][0] == 'value':
-        self.__stepError__(float(self.controllableDist[varName].lowerBound),float(self.controllableDist[varName].upperBound),self.controllableGrid[varName][1],self.controllableGrid[varName][2],varName)
-        self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [float(self.controllableDist[varName].lowerBound)+self.controllableGrid[varName][2]*i for i in range(self.controllableGrid[varName][1]+1)])
-      elif self.controllableGrid[varName][0] == 'CDF':
-        self.__stepError__(0,1,self.controllableGrid[varName][1],self.controllableGrid[varName][2],varName)
-        self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [self.controllableGrid[varName][2]*i for i in range(self.controllableGrid[varName][1]+1)])
-      else:
-        self.raiseAnError(NameError,'inserted invalid grid type. Only "value" and "CDF" are accepted.')
-    for varName in self.nonControllableGrid.keys():
-      if self.nonControllableGrid[varName][0] == 'value':
-        self.__stepError__(float(self.nonControllableDist[varName].lowerBound),float(self.nonControllableDist[varName].upperBound),self.nonControllableGrid[varName][1],self.nonControllableGrid[varName][2],varName)
-        self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [float(self.nonControllableDist[varName].lowerBound)+self.nonControllableGrid[varName][2]*i for i in range(self.nonControllableGrid[varName][1]+1)])
-      elif self.nonControllableGrid[varName][0] == 'CDF':
-        self.__stepError__(0,1,self.nonControllableGrid[varName][1],self.nonControllableGrid[varName][2],varName)
-        self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [self.nonControllableGrid[varName][2]*i for i in range(self.nonControllableGrid[varName][1]+1)])
-      else:
-        self.raiseAnError(NameError,'inserted invalid grid type. Only "value" and "CDF" are accepted.')
-
-  def __stepError__(self,lowerBound,upperBound,steps,tol,varName):
-    if upperBound-lowerBound<steps*tol:
-      self.raiseAnError(IOError,'inserted number of steps or tolerance for variable ' +varName+ ' exceeds its limit.')
-
-  def __gridGeneration__(self):
-    NotchesByVar = [None]*len(self.controllableGrid.keys())
-    controllableSpaceSize = None
-    for varId, varName in enumerate(self.controllableGrid.keys()):
-      NotchesByVar[varId] = self.controllableGrid[varName][1]+1
-      self.controllableOrd.append(varName)
-    controllableSpaceSize = tuple(NotchesByVar+[len(self.controllableGrid.keys())])
-    self.controllableSpace = np.zeros(controllableSpaceSize)
-    iterIndex = np.nditer(self.controllableSpace,flags=['multi_index'])
-    while not iterIndex.finished:
-      coordIndex = iterIndex.multi_index[-1]
-      varName = self.controllableGrid.keys()[coordIndex]
-      notchPos = iterIndex.multi_index[coordIndex]
-      if self.gridInfo[varName][0] == 'CDF':
-        valList = []
-        for probVal in self.gridInfo[varName][2]:
-          valList.append(self.controllableDist[varName].cdf(probVal))
-        self.controllableSpace[iterIndex.multi_index] = valList[notchPos]
-      else:
-        self.controllableSpace[iterIndex.multi_index] = self.gridInfo[varName][2][notchPos]
-      iterIndex.iternext()
-    NotchesByVar = [None]*len(self.nonControllableGrid.keys())
-    nonControllableSpaceSize = None
-    for varId, varName in enumerate(self.nonControllableGrid.keys()):
-      NotchesByVar[varId] = self.nonControllableGrid[varName][1]+1
-      self.nonControllableOrd.append(varName)
-    nonControllableSpaceSize = tuple(NotchesByVar+[len(self.nonControllableGrid.keys())])
-    self.nonControllableSpace = np.zeros(nonControllableSpaceSize)
-    iterIndex = np.nditer(self.nonControllableSpace,flags=['multi_index'])
-    while not iterIndex.finished:
-      coordIndex = iterIndex.multi_index[-1]
-      varName = self.nonControllableGrid.keys()[coordIndex]
-      notchPos = iterIndex.multi_index[coordIndex]
-      if self.gridInfo[varName][0] == 'CDF':
-        valList = []
-        for probVal in self.gridInfo[varName][2]:
-          valList.append(self.nonControllableDist[varName].cdf(probVal))
-        self.nonControllableSpace[iterIndex.multi_index] = valList[notchPos]
-      else:
-        self.nonControllableSpace[iterIndex.multi_index] = self.gridInfo[varName][2][notchPos]
-      iterIndex.iternext()
-
-  def inputToInternal(self,currentInput):
-    for item in currentInput:
-      if item.type == 'TimePointSet':
-        self.surfPointsMatrix = np.zeros((len(item.getParam('output',item.getParaKeys('outputs')[-1])),len(self.gridInfo.keys())+1))
-        k=0
-        for varName in self.controllableOrd:
-          self.surfPointsMatrix[:,k] = item.getParam('input',varName)
-          k+=1
-        for varName in self.nonControllableOrd:
-          self.surfPointsMatrix[:,k] = item.getParam('input',varName)
-          k+=1
-        self.surfPointsMatrix[:,k] = item.getParam('output',item.getParaKeys('outputs')[-1])
-
-  def run(self,Input):
-    nearestPointsInd = []
-    dataCollector = DataObjects.returnInstance('TimePointSet')
-    dataCollector.type = 'TimePointSet'
-    surfTree = spatial.KDTree(copy.copy(self.surfPointsMatrix[:,0:self.surfPointsMatrix.shape[-1]-1]))
-    self.controllableSpace.shape = (np.prod(self.controllableSpace.shape[0:len(self.controllableSpace.shape)-1]),self.controllableSpace.shape[-1])
-    self.nonControllableSpace.shape = (np.prod(self.nonControllableSpace.shape[0:len(self.nonControllableSpace.shape)-1]),self.nonControllableSpace.shape[-1])
-    if self.debug:
-      self.raiseAMessage('RESHAPED CONTROLLABLE SPACE:')
-      self.raiseAMessage(self.controllableSpace)
-      self.raiseAMessage('RESHAPED NON-CONTROLLABLE SPACE:')
-      self.raiseAMessage(self.nonControllableSpace)
-    for ncLine in range(self.nonControllableSpace.shape[0]):
-      queryPointsMatrix = np.append(self.controllableSpace,np.tile(self.nonControllableSpace[ncLine,:],(self.controllableSpace.shape[0],1)),axis=1)
-      self.raiseAMessage('QUERIED POINTS MATRIX:')
-      self.raiseAMessage(queryPointsMatrix)
-      nearestPointsInd = surfTree.query(queryPointsMatrix)[-1]
-      distList = []
-      indexList = []
-      probList = []
-      for index in range(len(nearestPointsInd)):
-        if self.surfPointsMatrix[np.where(np.prod(surfTree.data[nearestPointsInd[index],0:self.surfPointsMatrix.shape[-1]-1] == self.surfPointsMatrix[:,0:self.surfPointsMatrix.shape[-1]-1],axis=1))[0][0],-1] == 1:
-          distList.append(np.sqrt(np.sum(np.power(queryPointsMatrix[index,0:self.controllableSpace.shape[-1]]-surfTree.data[nearestPointsInd[index],0:self.controllableSpace.shape[-1]],2))))
-          indexList.append(index)
-      if distList == []:
-        self.raiseAnError(ValueError,'no safest point found for the current set of non-controllable variables: ' +str(self.nonControllableSpace[ncLine,:])+ '.')
-      else:
-        for cVarIndex in range(len(self.controllableOrd)):
-          dataCollector.updateInputValue(self.controllableOrd[cVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],cVarIndex]))
-        for ncVarIndex in range(len(self.nonControllableOrd)):
-          dataCollector.updateInputValue(self.nonControllableOrd[ncVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]))
-          if queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound:
-            if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
-              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
-            else:
-              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound+self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
-          elif queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound:
-            if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
-              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
-            else:
-              prob = 1-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
-          else:
-            if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
-              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]
-            else:
-              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]+self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
-          probList.append(prob)
-      dataCollector.updateOutputValue('Probability',np.prod(probList))
-      dataCollector.updateMetadata('ProbabilityWeight',np.prod(probList))
-    dataCollector.updateMetadata('ExpectedSafestPointCoordinates',self.stat.run(dataCollector)['expectedValue'])
-    if self.debug:
-      self.raiseAMessage(dataCollector.getParametersValues('input'))
-      self.raiseAMessage(dataCollector.getParametersValues('output'))
-      self.raiseAMessage(dataCollector.getMetadata('ExpectedSafestPointCoordinates'))
-    return dataCollector
-
-  def collectOutput(self,finishedjob,output):
-    if finishedjob.returnEvaluation() == -1:
-      self.raiseAnError(RuntimeError,'no available output to collect (the run is likely not over yet).')
-    else:
-      dataCollector = finishedjob.returnEvaluation()[1]
-      if output.type != 'TimePointSet':
-        self.raiseAnError(TypeError,'output item type must be "TimePointSet".')
-      else:
-        if not output.isItEmpty():
-          self.raiseAnError(ValueError,'output item must be empty.')
-        else:
-          for key,value in dataCollector.getParametersValues('input').items():
-            for val in value: output.updateInputValue(key, val)
-          for key,value in dataCollector.getParametersValues('output').items():
-            for val in value: output.updateOutputValue(key,val)
-          for key,value in dataCollector.getAllMetadata().items(): output.updateMetadata(key,value)
-
-
-
 class SafestPoint(BasePostProcessor):
   '''
   It searches for the probability-weighted safest point inside the space of the system controllable variables
@@ -299,7 +74,7 @@ class SafestPoint(BasePostProcessor):
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
   def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method '''
+    """ see generateAssembler method in Assembler """
     for varName, distName in self.controllableDist.items():
       if distName not in initDict['Distributions'].keys():
         self.raiseAnError(IOError,'distribution ' +distName+ ' not found.')
@@ -547,6 +322,8 @@ class ComparisonStatistics(BasePostProcessor):
     self.methodInfo = {} #Information on what stuff to do.
     self.f_z_stats = False
     self.interpolation = "quadratic"
+    self.requiredAssObject = (True,(['Distribution'],['-n']))
+    self.distributions = {}
 
   def inputToInternal(self,currentInput):
     return [(currentInput)]
@@ -566,6 +343,7 @@ class ComparisonStatistics(BasePostProcessor):
             rest = splitName[2:]
             compareGroup.dataPulls.append([name, kind, rest])
           elif child.tag == 'reference':
+            #This is either name=distribution or mean=num and sigma=num
             compareGroup.referenceData = dict(child.attrib)
         self.compareGroups.append(compareGroup)
       if outer.tag == 'kind':
@@ -587,6 +365,9 @@ class ComparisonStatistics(BasePostProcessor):
           self.interpolation = interpolation
 
 
+  def _localGenerateAssembler(self, initDict):
+    self.distributions = initDict.get('Distributions',{})
+    #print("initDict", initDict)
 
   def run(self, Input): # inObj,workingDir=None):
     """
@@ -599,8 +380,6 @@ class ComparisonStatistics(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     self.raiseADebug("finishedjob: "+str(finishedjob)+", output "+str(output))
-    #XXX We only handle the case where output is a filename.  We don't handle
-    # it being a dataObjects or hdf5 etc.
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,'no available output to collect.')
     else: self.dataDict.update(finishedjob.returnEvaluation()[1])
 
@@ -614,7 +393,16 @@ class ComparisonStatistics(BasePostProcessor):
         if len(rest) == 1:
           foundDataObjects.append(data[rest[0]])
       dataToProcess.append((dataPulls,foundDataObjects,reference))
-    csv = open(output,"w")
+    generateCSV = False
+    generateTimePointSet = False
+    if output.type == 'FileObject':
+      generateCSV = True
+    elif output.type == 'TimePointSet':
+      generateTimePointSet = True
+    else:
+      self.raiseAnError(IOError,'unsupported type '+str(type(output)))
+    if generateCSV:
+      csv = open(output,"w")
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "mean" in reference:
@@ -624,16 +412,30 @@ class ComparisonStatistics(BasePostProcessor):
           refPdf = lambda x:mathUtils.normal(x,refDataStats["mean"],refDataStats["stdev"])
           refCdf = lambda x:mathUtils.normalCdf(x,refDataStats["mean"],refDataStats["stdev"])
           graphData.append((refDataStats,refCdf,refPdf,"ref"))
+      if "name" in reference:
+        distribution_name = reference["name"]
+        if not distribution_name in self.distributions:
+          self.raiseAnError(IOError,'Did not find '+distribution_name+
+                             ' in '+str(self.distributions.keys()))
+        else:
+          distribution = self.distributions[distribution_name]
+        refDataStats = {"mean":distribution.untruncatedMean(),
+                        "stdev":distribution.untruncatedStdDev()}
+        refDataStats["min_bin_size"] = refDataStats["stdev"]/2.0
+        refPdf = lambda x:distribution.pdf(x)
+        refCdf = lambda x:distribution.cdf(x)
+        graphData.append((refDataStats,refCdf,refPdf,"ref_"+distribution_name))
       for dataPull, data in zip(dataPulls,datas):
         dataStats = self.processData(dataPull, data, self.methodInfo)
         dataKeys = set(dataStats.keys())
-        utils.printCsv(csv,'"'+str(dataPull)+'"')
-        utils.printCsv(csv,'"num_bins"',dataStats['num_bins'])
         counts = dataStats['counts']
         bins = dataStats['bins']
         countSum = sum(counts)
         binBoundaries = [dataStats['low']]+bins+[dataStats['high']]
-        utils.printCsv(csv,'"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
+        if generateCSV:
+          utils.printCsv(csv,'"'+str(dataPull)+'"')
+          utils.printCsv(csv,'"num_bins"',dataStats['num_bins'])
+          utils.printCsv(csv,'"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
         cdf = [0.0]*len(counts)
         midpoints = [0.0]*len(counts)
         cdfSum = 0.0
@@ -661,37 +463,62 @@ class ComparisonStatistics(BasePostProcessor):
           else:
             fPrime = (-1.5*f_0 + 2.0*f_1 + -0.5*f_2)/h
           fPrimeData[i] = fPrime
-          utils.printCsv(csv,binBoundaries[i+1],midpoints[i],counts[i],nCount,fPrime,cdf[i])
+          if generateCSV:
+            utils.printCsv(csv,binBoundaries[i+1],midpoints[i],counts[i],nCount,fPrime,cdf[i])
         pdfFunc = mathUtils.createInterp(midpoints,fPrimeData,0.0,0.0,self.interpolation)
         dataKeys -= set({'num_bins','counts','bins'})
-        for key in dataKeys:
-          utils.printCsv(csv,'"'+key+'"',dataStats[key])
+        if generateCSV:
+          for key in dataKeys:
+            utils.printCsv(csv,'"'+key+'"',dataStats[key])
         self.raiseADebug("data_stats: "+str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc,str(dataPull)))
-      mathUtils.printGraphs(csv, graphData, self.f_z_stats)
-      for i in range(len(graphData)):
-        dataStat = graphData[i][0]
-        def delist(l):
-          if type(l).__name__ == 'list':
-            return '_'.join([delist(x) for x in l])
+      graph_data = mathUtils.getGraphs(graphData, self.f_z_stats)
+      if generateCSV:
+        for key in graph_data:
+          value = graph_data[key]
+          if type(value).__name__ == 'list':
+            utils.printCsv(csv,*(['"' + l[0] + '"' for l in value]))
+            for i in range(1,len(value[0])):
+              utils.printCsv(csv,*([l[i] for l in value]))
           else:
-            return str(l)
-        newFileName = output[:-4]+"_"+delist(dataPulls)+"_"+str(i)+".csv"
-        if type(dataStat).__name__ != 'dict':
-          assert(False)
-          continue
-        dataPairs = []
-        for key in sorted(dataStat.keys()):
-          value = dataStat[key]
-          if type(value).__name__ in ["int","float"]:
-            dataPairs.append((key,value))
-        extraCsv = open(newFileName,"w")
-        extraCsv.write(",".join(['"'+str(x[0])+'"' for x in dataPairs]))
-        extraCsv.write("\n")
-        extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
-        extraCsv.write("\n")
-        extraCsv.close()
-      utils.printCsv(csv)
+            utils.printCsv(csv,'"'+key+'"',value)
+      if generateTimePointSet:
+        for key in graph_data:
+          value = graph_data[key]
+          if type(value).__name__ == 'list':
+            for i in range(len(value)):
+              subvalue = value[i]
+              name = subvalue[0]
+              subdata = subvalue[1:]
+              if i == 0:
+                output.updateInputValue(name, subdata)
+              else:
+                output.updateOutputValue(name, subdata)
+            break #XXX Need to figure out way to specify which data to return
+      if generateCSV:
+        for i in range(len(graphData)):
+          dataStat = graphData[i][0]
+          def delist(l):
+            if type(l).__name__ == 'list':
+              return '_'.join([delist(x) for x in l])
+            else:
+              return str(l)
+          newFileName = output[:-4]+"_"+delist(dataPulls)+"_"+str(i)+".csv"
+          if type(dataStat).__name__ != 'dict':
+            assert(False)
+            continue
+          dataPairs = []
+          for key in sorted(dataStat.keys()):
+            value = dataStat[key]
+            if type(value).__name__ in ["int","float"]:
+              dataPairs.append((key,value))
+          extraCsv = open(newFileName,"w")
+          extraCsv.write(",".join(['"'+str(x[0])+'"' for x in dataPairs]))
+          extraCsv.write(os.linesep)
+          extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
+          extraCsv.write(os.linesep)
+          extraCsv.close()
+        utils.printCsv(csv)
 
   def processData(self,dataPull, data, methodInfo):
       ret = {}
@@ -821,42 +648,42 @@ class PrintCSV(BasePostProcessor):
         with open(csvfilen, 'wb') as csvfile, open(addfile, 'wb') as addcsvfile:
           #  Add history to the csv file
           np.savetxt(csvfile, histories[key][0], delimiter=",",header=utils.toString(headers))
-          csvfile.write(b' \n')
+          csvfile.write(os.linesep)
           #  process the attributes in a different csv file (different kind of informations)
           #  Add metadata to additional info csv file
-          addcsvfile.write(b'# History Metadata, \n')
-          addcsvfile.write(b'# ______________________________,' + b'_'*len(key)+b','+b'\n')
-          addcsvfile.write(b'#number of parameters,\n')
-          addcsvfile.write(utils.toBytes(str(attributes['n_params']))+b',\n')
-          addcsvfile.write(b'#parameters,\n')
-          addcsvfile.write(headers+b'\n')
-          addcsvfile.write(b'#parent_id,\n')
-          addcsvfile.write(utils.toBytes(attributes['parent_id'])+b'\n')
-          addcsvfile.write(b'#start time,\n')
-          addcsvfile.write(utils.toBytes(str(attributes['start_time']))+b'\n')
-          addcsvfile.write(b'#end time,\n')
-          addcsvfile.write(utils.toBytes(str(attributes['end_time']))+b'\n')
-          addcsvfile.write(b'#number of time-steps,\n')
-          addcsvfile.write(utils.toBytes(str(attributes['n_ts']))+b'\n')
+          addcsvfile.write(b'# History Metadata, ' + os.linesep)
+          addcsvfile.write(b'# ______________________________,' + b'_'*len(key)+b','+os.linesep)
+          addcsvfile.write(b'#number of parameters,' + os.linesep)
+          addcsvfile.write(utils.toBytes(str(attributes['n_params']))+b','+os.linesep)
+          addcsvfile.write(b'#parameters,' + os.linesep)
+          addcsvfile.write(headers+os.linesep)
+          addcsvfile.write(b'#parent_id,' + os.linesep)
+          addcsvfile.write(utils.toBytes(attributes['parent_id'])+os.linesep)
+          addcsvfile.write(b'#start time,' + os.linesep)
+          addcsvfile.write(utils.toBytes(str(attributes['start_time']))+os.linesep)
+          addcsvfile.write(b'#end time,' + os.linesep)
+          addcsvfile.write(utils.toBytes(str(attributes['end_time']))+os.linesep)
+          addcsvfile.write(b'#number of time-steps,' + os.linesep)
+          addcsvfile.write(utils.toBytes(str(attributes['n_ts']))+os.linesep)
           # remove because not needed!!!!!!
 #             for cnt,item in enumerate(attributes['metadata']):
 #               if 'initiator_distribution' in item.keys():
 #                 init_dist = attributes['initiator_distribution']
-#                 addcsvfile.write(b'#number of branches in this history,\n')
-#                 addcsvfile.write(utils.toBytes(str(len(init_dist)))+b'\n')
+#                 addcsvfile.write(b'#number of branches in this history,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(len(init_dist)))+os.linesep)
 #                 string_work = ''
 #                 for i in range(len(init_dist)):
 #                   string_work_2 = ''
 #                   for j in init_dist[i]: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#initiator distributions,\n')
-#                 addcsvfile.write(utils.toBytes(string_work)+b'\n')
+#                 addcsvfile.write(b'#initiator distributions,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(string_work)+os.linesep)
 #               if 'end_timestep' in item.keys():
 #                 string_work = ''
 #                 end_ts = attributes['end_timestep']
 #                 for i in xrange(len(end_ts)): string_work = string_work + str(end_ts[i]) + ','
-#                 addcsvfile.write('#end time step,\n')
-#                 addcsvfile.write(str(string_work)+'\n')
+#                 addcsvfile.write('#end time step,' + os.linesep)
+#                 addcsvfile.write(str(string_work)+os.linesep)
 #               if 'branch_changed_param' in attributes['metadata'][-1].keys():
 #                 string_work = ''
 #                 branch_changed_param = attributes['branch_changed_param']
@@ -866,8 +693,8 @@ class PrintCSV(BasePostProcessor):
 #                     if not j: string_work_2 = string_work_2 + 'None' + ' '
 #                     else: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#changed parameters,\n')
-#                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
+#                 addcsvfile.write(b'#changed parameters,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
 #               if 'branch_changed_param_value' in attributes['metadata'][-1].keys():
 #                 string_work = ''
 #                 branch_changed_param_value = attributes['branch_changed_param_value']
@@ -877,8 +704,8 @@ class PrintCSV(BasePostProcessor):
 #                     if not j: string_work_2 = string_work_2 + 'None' + ' '
 #                     else: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#changed parameters values,\n')
-#                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
+#                 addcsvfile.write(b'#changed parameters values,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
 #               if 'conditional_prb' in attributes['metadata'][-1].keys():
 #                 string_work = ''
 #                 cond_pbs = attributes['conditional_prb']
@@ -888,8 +715,8 @@ class PrintCSV(BasePostProcessor):
 #                     if not j: string_work_2 = string_work_2 + 'None' + ' '
 #                     else: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#conditional probability,\n')
-#                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
+#                 addcsvfile.write(b'#conditional probability,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
 #               if 'PbThreshold' in attributes['metadata'][-1].keys():
 #                 string_work = ''
 #                 pb_thresholds = attributes['PbThreshold']
@@ -899,9 +726,9 @@ class PrintCSV(BasePostProcessor):
 #                     if not j: string_work_2 = string_work_2 + 'None' + ' '
 #                     else: string_work_2 = string_work_2 + str(j) + ' '
 #                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#Probability threshold,\n')
-#                 addcsvfile.write(utils.toBytes(str(string_work))+b'\n')
-          addcsvfile.write(b' \n')
+#                 addcsvfile.write(b'#Probability threshold,' + os.linesep)
+#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
+          addcsvfile.write(os.linesep)
     else: self.raiseAnError(NotImplementedError,'for input type ' + self.inObj.type + ' not yet implemented.')
 
   def run(self, Input): # inObj,workingDir=None):
@@ -918,13 +745,15 @@ class BasicStatistics(BasePostProcessor):
   def __init__(self,messageHandler):
     BasePostProcessor.__init__(self,messageHandler)
     self.parameters        = {}                                                                                                      #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = ['covariance','NormalizedSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtosis','median','percentile']  # accepted calculation parameters
+    self.acceptedCalcParam = ['covariance','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtosis','median','percentile']  # accepted calculation parameters
     self.what              = self.acceptedCalcParam                                                                                  # what needs to be computed... default...all
     self.methodsToRun      = []                                                                                                      # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction  = []
     self.printTag          = 'POSTPROCESSOR BASIC STATISTIC'
     self.requiredAssObject = (True,(['Function'],[-1]))
     self.biased            = False
+    self.sampled           = {}
+    self.calculated        = {}
 
   def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
@@ -943,8 +772,12 @@ class BasicStatistics(BasePostProcessor):
     if inType == 'HDF5': pass # to be implemented
     if inType in ['TimePointSet']:
       for targetP in self.parameters['targets']:
-        if   targetP in currentInput.getParaKeys('input' ): inputDict['targets'][targetP] = currentInput.getParam('input' ,targetP)
-        elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
+        if   targetP in currentInput.getParaKeys('input' ):
+          inputDict['targets'][targetP] = currentInput.getParam('input' ,targetP)
+          self.sampled[targetP]         = currentInput.getParam('input' ,targetP)
+        elif targetP in currentInput.getParaKeys('output'):
+          inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
+          self.calculated[targetP]      = currentInput.getParam('output',targetP)
       inputDict['metadata'] = currentInput.getAllMetadata()
 #     # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
       if inputDict['metadata'].keys().count('SamplerType') > 0: pass
@@ -996,38 +829,50 @@ class BasicStatistics(BasePostProcessor):
       self.raiseADebug("workingDir",self.__workingDir+" output "+str(output.split('.')))
       self.raiseADebug('BasicStatistics postprocessor: dumping output in file named ' + basicStatFilename)
       with open(basicStatFilename, 'wb') as basicStatdump:
-        basicStatdump.write('BasicStatistics '+separator+str(self.name)+'\n')
-        basicStatdump.write('----------------'+separator+'-'*len(str(self.name))+'\n')
+        basicStatdump.write('BasicStatistics '+separator+str(self.name)+os.linesep)
+        basicStatdump.write('----------------'+separator+'-'*len(str(self.name))+os.linesep)
         for targetP in parameterSet:
           self.raiseADebug('BasicStatistics postprocessor: writing variable '+ targetP)
-          basicStatdump.write('Variable'+ separator + targetP +'\n')
-          basicStatdump.write('--------'+ separator +'-'*len(targetP)+'\n')
+          basicStatdump.write('Variable'+ separator + targetP +os.linesep)
+          basicStatdump.write('--------'+ separator +'-'*len(targetP)+os.linesep)
           for what in outputDict.keys():
-            if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
+            if what not in ['covariance','pearson','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity'] + methodToTest:
               self.raiseADebug('BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
-              basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+'\n')
+              basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+os.linesep)
         maxLength = max(len(max(parameterSet, key=len))+5,16)
         for what in outputDict.keys():
-          if what in ['covariance','pearson','NormalizedSensitivity','sensitivity']:
+          if what in ['covariance','pearson','NormalizedSensitivity','VarianceDependentSensitivity']:
             self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix '+ what )
-            basicStatdump.write(what+' \n')
-            if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])+'\n')
-            else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in parameterSet])+'\n')
+            basicStatdump.write(what+os.linesep)
+            if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])+os.linesep)
+            else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in parameterSet])+os.linesep)
             for index in range(len(parameterSet)):
-              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+'\n')
-              else                       : basicStatdump.write(parameterSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+'\n')
+              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+os.linesep)
+              else                       : basicStatdump.write(parameterSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+os.linesep)
+          if what == 'sensitivity':
+            if not self.sampled: self.raiseAWarning('No sampled Input variable defined in '+str(self.name)+' PP. The I/O Sensitivity Matrix wil not be calculated.')
+            else:
+              self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix '+ what )
+              basicStatdump.write(what+os.linesep)
+              calculatedSet = list(set(list(self.calculated)))
+              sampledSet    = list(set(list(self.sampled)))
+              if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in sampledSet])+os.linesep)
+              else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in sampledSet])+os.linesep)
+              for index in range(len(calculatedSet)):
+                if outputextension != 'csv': basicStatdump.write(calculatedSet[index] + ' '*(maxLength-len(calculatedSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+os.linesep)
+                else                       : basicStatdump.write(calculatedSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+os.linesep)
         if self.externalFunction:
           self.raiseADebug('BasicStatistics postprocessor: writing External Function results')
-          basicStatdump.write('\n' +'EXT FUNCTION \n')
-          basicStatdump.write('------------ \n')
+          basicStatdump.write(os.linesep +'EXT FUNCTION '+os.linesep)
+          basicStatdump.write('------------'+os.linesep)
           for what in self.methodsToRun:
             if what not in self.acceptedCalcParam:
               self.raiseADebug('BasicStatistics postprocessor: writing External Function parameter '+ what )
-              basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+'\n')
+              basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+os.linesep)
     elif output.type == 'DataObjects':
       self.raiseADebug('BasicStatistics postprocessor: dumping output in data object named ' + output.name)
       for what in outputDict.keys():
-        if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
+        if what not in ['covariance','pearson','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity'] + methodToTest:
           for targetP in parameterSet:
             self.raiseADebug('BasicStatistics postprocessor: dumping variable '+ targetP + '. Parameter: '+ what + '. Metadata name = '+ targetP+'|'+what)
             output.updateMetadata(targetP+'|'+what,outputDict[what][targetP])
@@ -1060,7 +905,7 @@ class BasicStatistics(BasePostProcessor):
         outputDict[what] = self.externalFunction.evaluate(what,Input['targets'])
         # check if "what" corresponds to an internal method
         if what in self.acceptedCalcParam:
-          if what not in ['pearson','covariance','NormalizedSensitivity','sensitivity']:
+          if what not in ['pearson','covariance','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity']:
             if type(outputDict[what]) != dict: self.raiseAnError(IOError,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a dictionary!!')
           else:
             if type(outputDict[what]) != np.ndarray: self.raiseAnError(IOError,'BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a numpy.ndarray!!')
@@ -1143,6 +988,17 @@ class BasicStatistics(BasePostProcessor):
         outputDict[what] = self.corrCoeff(feat, weights=pbweights) #np.corrcoef(feat)
       #sensitivity matrix
       if what == 'sensitivity':
+        if self.sampled:
+          self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
+          for target in self.calculated:
+            self.SupervisedEngine[target] =  SupervisedLearning.returnInstance('SciKitLearn',self,**{'SKLtype':'linear_model|LinearRegression',
+                                                                                                     'Features':','.join(self.sampled.keys()),
+                                                                                                     'Target':target})
+            self.SupervisedEngine[target].train(Input['targets'])
+          for myIndex in range(len(self.calculated)):
+            outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
+      #VarianceDependentSensitivity matrix
+      if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(Input['targets'].keys()),utils.first(Input['targets'].values()).size))
         for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]
         covMatrix = self.covariance(feat, weights=pbweights)
@@ -1150,7 +1006,7 @@ class BasicStatistics(BasePostProcessor):
         for myIndex, targetP in enumerate(parameterSet):
           variance[myIndex] = np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
         for myIndex in range(len(parameterSet)):
-          outputDict[what][myIndex] = covMatrix[myIndex,:]/variance
+          outputDict[what][myIndex] = covMatrix[myIndex,:]/(variance[myIndex])
       #Normalizzate sensitivity matrix: linear regression slopes normalizited by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
         feat = np.zeros((len(Input['targets'].keys()),utils.first(Input['targets'].values()).size))
@@ -1167,56 +1023,65 @@ class BasicStatistics(BasePostProcessor):
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
-    msg='\n'
+    msg=os.linesep
     for targetP in parameterSet:
-      msg+='        *************'+'*'*len(targetP)+'***'
-      msg+='        * Variable * '+ targetP +'  *'
-      msg+='        *************'+'*'*len(targetP)+'***'
+      msg+='        *************'+'*'*len(targetP)+'***' + os.linesep
+      msg+='        * Variable * '+ targetP +'  *' + os.linesep
+      msg+='        *************'+'*'*len(targetP)+'***' + os.linesep
       for what in outputDict.keys():
-        if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
-          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
-          msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *'
-          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+        if what not in ['covariance','pearson','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity'] + methodToTest:
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
+          msg+='               '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *' + os.linesep
+          msg+='               '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
     maxLength = max(len(max(parameterSet, key=len))+5,16)
     if 'covariance' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*         Covariance        *'
-      msg+=' '*maxLength+'*****************************'
-
-      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+'*         Covariance        *' + os.linesep
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]]) + os.linesep
     if 'pearson' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*    Pearson/Correlation    *'
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+'*    Pearson/Correlation    *' + os.linesep
+      msg+=' '*maxLength+'*****************************' + os.linesep
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]])
-    if 'sensitivity' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*        Sensitivity        *'
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]]) + os.linesep
+    if 'VarianceDependentSensitivity' in outputDict.keys():
+      msg+=' '*maxLength+'******************************' + os.linesep
+      msg+=' '*maxLength+'*VarianceDependentSensitivity*' + os.linesep
+      msg+=' '*maxLength+'******************************' + os.linesep
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['VarianceDependentSensitivity'][index]]) + os.linesep
     if 'NormalizedSensitivity' in outputDict.keys():
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+'*   Normalized Sensitivity  *'
-      msg+=' '*maxLength+'*****************************'
-      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])
+      msg+=' '*maxLength+'******************************' + os.linesep
+      msg+=' '*maxLength+'* Normalized V.D.Sensitivity *' + os.linesep
+      msg+=' '*maxLength+'******************************' + os.linesep
+      msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
-        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]])
+        msg+=parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]]) + os.linesep
+    if 'sensitivity' in outputDict.keys():
+      if not self.sampled: self.raiseAWarning('No sampled Input variable defined in '+str(self.name)+' PP. The I/O Sensitivity Matrix wil not be calculated.')
+      else:
+        msg+=' '*maxLength+'*****************************' + os.linesep
+        msg+=' '*maxLength+'*    I/O   Sensitivity      *' + os.linesep
+        msg+=' '*maxLength+'*****************************' + os.linesep
+        msg+=' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in self.sampled]) + os.linesep
+        for index in range(len(self.sampled.keys())):
+          variable = self.sampled.keys()[index]
+          msg+=self.calculated.keys()[index] + ' '*(maxLength-len(variable)) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]/outputDict['sigma'][variable]]) + os.linesep
 
     if self.externalFunction:
-      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
-      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +'
-      msg+=' '*maxLength+'+++++++++++++++++++++++++++++'
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++' + os.linesep
+      msg+=' '*maxLength+'+ OUTCOME FROM EXT FUNCTION +' + os.linesep
+      msg+=' '*maxLength+'+++++++++++++++++++++++++++++' + os.linesep
       for what in self.methodsToRun:
         if what not in self.acceptedCalcParam:
-          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
-          msg+='              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *'
-          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***'
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
+          msg+='              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *' + os.linesep
+          msg+='              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***' + os.linesep
     self.raiseADebug(msg)
     return outputDict
 
@@ -1233,7 +1098,7 @@ class BasicStatistics(BasePostProcessor):
       """
       X    = np.array(feature, ndmin=2, dtype=np.result_type(feature, np.float64))
       diff = np.zeros(feature.shape, dtype=np.result_type(feature, np.float64))
-      if weights != None: w = np.array(weights, ndmin=1, dtype=np.result_type(weights, np.float64))
+      if weights != None: w = np.array(weights, ndmin=1, dtype=np.float64)
       if X.shape[0] == 1: rowvar = 1
       if rowvar:
           N = X.shape[1]
@@ -1901,7 +1766,6 @@ __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
-__interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __knownTypes                                 = __interFaceDict.keys()

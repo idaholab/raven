@@ -69,6 +69,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self.target   = self.initOptionDict['Target'  ]
     self.initOptionDict.pop('Target')
     self.initOptionDict.pop('Features')
+    self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
     if self.features.count(self.target) > 0: self.raiseAnError(IOError,'The target and one of the features have the same name!')
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)

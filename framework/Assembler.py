@@ -62,11 +62,12 @@ class Assembler(MessageHandler.MessageUser):
       self.assemblerDict[key] =  []
       for interface in value:
         self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
+
   def _readMoreXML(self,xmlNode):
     self.type = xmlNode.tag
     if 'name' in xmlNode.attrib: self.name = xmlNode.attrib['name']
     self.printTag = self.type
-    if 'verbosity' in xmlNode.attrib.keys():self.verbosity = xmlNode.attrib['verbosity']
+    if 'verbosity' in xmlNode.attrib.keys(): self.verbosity = xmlNode.attrib['verbosity']
     if self.requiredAssObject[0]:
         testObjects = {}
         for token in self.requiredAssObject[1][0]:

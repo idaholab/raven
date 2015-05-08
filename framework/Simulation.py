@@ -130,7 +130,7 @@ def createAndRunQSUB(simulation):
              os.path.join(frameworkDir,"raven_qsub_command.py")]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
-  simulation.raiseAMessage(os.getcwd()+' '+command)
+  simulation.raiseAMessage(os.getcwd()+' '+str(command))
   subprocess.call(command)
 
 
@@ -138,6 +138,7 @@ def createAndRunQSUB(simulation):
 
 class MPISimulationMode(SimulationMode):
   def __init__(self,simulation):
+    SimulationMode.__init__(self,simulation)
     self.__simulation = simulation
     self.messageHandler = simulation.messageHandler
     #Figure out if we are in PBS
@@ -389,11 +390,8 @@ class Simulation(MessageHandler.MessageUser):
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
-    if 'verbosity' in xmlNode.attrib.keys():
-      if   xmlNode.attrib['verbosity'].strip().lower() in utils.stringsThatMeanSilent()           : self.verbosity = 0
-      elif xmlNode.attrib['verbosity'].strip().lower() in utils.stringsThatMeanPartiallyVerbose() : self.verbosity = 1
-      elif xmlNode.attrib['verbosity'].strip().lower() in utils.stringsThatMeanVerbose()          : self.verbosity = 2
-    else: self.verbosity = 2
+    self.verbosity = xmlNode.attrib['verbosity'] if 'verbosity' in xmlNode.attrib.keys() else 'all'
+    self.messageHandler.verbosity = self.verbosity
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: self.raiseAnError(IOError,'The run info node is mandatory')
     self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
@@ -404,10 +402,7 @@ class Simulation(MessageHandler.MessageUser):
         if len(child.attrib.keys()) == 0: globalAttributes = {}
         else:
           globalAttributes = child.attrib
-          if 'verbosity' in globalAttributes.keys():
-            if   globalAttributes['verbosity'].strip().lower() in utils.stringsThatMeanSilent()           : self.verbosity = 0
-            elif globalAttributes['verbosity'].strip().lower() in utils.stringsThatMeanPartiallyVerbose() : self.verbosity = 1
-            elif globalAttributes['verbosity'].strip().lower() in utils.stringsThatMeanVerbose()          : self.verbosity = 2
+          if 'verbosity' in globalAttributes.keys(): self.verbosity = globalAttributes['verbosity']
         if Class != 'RunInfo':
           for childChild in child:
             subType = childChild.tag
@@ -458,7 +453,7 @@ class Simulation(MessageHandler.MessageUser):
     for key in self.filesDict.keys(): self.__createAbsPath(key)
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
-    self.jobHandler.initialize(self.runInfoDict)
+    self.jobHandler.initialize(self.runInfoDict,self.messageHandler)
     self.printDicts()
     for stepName, stepInstance in self.stepsDict.items():
       self.checkStep(stepInstance,stepName)
@@ -490,6 +485,8 @@ class Simulation(MessageHandler.MessageUser):
 
   def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
     '''reads the xml input file for the RunInfo block'''
+    if 'verbosity' in xmlNode.attrib.keys(): self.verbosity = xmlNode.attrib['verbosity']
+    self.raiseAMessage('Global verbosity level is "'+str(self.verbosity)+'"',verbosity='quiet')
     for element in xmlNode:
       if element.tag in runInfoSkip:
         self.raiseAWarning("Skipped element ",element.tag)
@@ -523,7 +520,7 @@ class Simulation(MessageHandler.MessageUser):
         else                                            : self.runInfoDict['delSucLogFiles'    ] = False
       elif element.tag == 'logfileBuffer'      : self.runInfoDict['logfileBuffer'] = utils.convertMultipleToBytes(element.text.lower())
       elif element.tag == 'clusterParameters'  : self.runInfoDict['clusterParameters'] = splitCommand(element.text)
-      elif element.tag == 'mode'              :
+      elif element.tag == 'mode'               :
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
