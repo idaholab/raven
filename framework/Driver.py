@@ -4,7 +4,7 @@ Created on Feb 20, 2013
 @author: crisr
 '''
 #For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
@@ -51,7 +51,7 @@ if __name__ == '__main__':
   '''This is the main driver for the RAVEN framework'''
   # Retrieve the framework directory path and working dir
   printStatement()
-  verbosity      = 'silent'
+  verbosity      = 'all'
   interfaceCheck = False
   workingDir = os.getcwd()
   for item in sys.argv:

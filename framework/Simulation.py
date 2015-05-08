@@ -130,7 +130,7 @@ def createAndRunQSUB(simulation):
              os.path.join(frameworkDir,"raven_qsub_command.py")]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
-  simulation.raiseAMessage(os.getcwd()+' '+command)
+  simulation.raiseAMessage(os.getcwd()+' '+str(command))
   subprocess.call(command)
 
 
@@ -138,6 +138,7 @@ def createAndRunQSUB(simulation):
 
 class MPISimulationMode(SimulationMode):
   def __init__(self,simulation):
+    SimulationMode.__init__(self,simulation)
     self.__simulation = simulation
     self.messageHandler = simulation.messageHandler
     #Figure out if we are in PBS

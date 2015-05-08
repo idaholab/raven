@@ -2,15 +2,15 @@
 	
 
 <RunInfo>
-  <WorkingDir>/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/results</WorkingDir>
+  <WorkingDir>results</WorkingDir>
   <Sequence>extract_data_adapt,rom_train_classifier,rom_sample_pb,montecarlo_sample_ext_model,plot_results,PostProcessorComputeROMPb,PostProcessorComputePbExtModel</Sequence>
   <batchSize>50</batchSize>
   <Files>output_failure_pb_ExtModel_changedDist.csv,output_failure_pb_ROM_from_Adapt_changedDist.csv</Files>
 </RunInfo>
 
 <Databases>
-    <HDF5 name="out_db_montecarlo" directory="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/DatabaseStorage"/>
-    <HDF5 name="out_db_adaptive" filename="out_db_adaptive.h5" directory="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/DatabaseStorage"/>
+    <HDF5 name="out_db_montecarlo" directory="DatabaseStorage"/>
+    <HDF5 name="out_db_adaptive" filename="out_db_adaptive.h5" directory="DatabaseStorage"/>
 </Databases>
 
 <Models>
@@ -23,7 +23,7 @@
         <tol>1e-5</tol>
         <C>50</C>
     </ROM>
-    <ExternalModel name="PythonModule" subType="" ModuleToLoad="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/andrea-adaptive/workshop_model">
+    <ExternalModel name="PythonModule" subType="" ModuleToLoad="workshop_model">
         <variable>x1</variable>
         <variable>x2</variable>
         <variable>x3</variable>
