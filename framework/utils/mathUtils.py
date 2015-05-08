@@ -54,10 +54,13 @@ def simpson(f, a, b, n):
 
   return sum * h / 3.0
 
-def printGraphs(csv, functions, f_z_stats = False):
-  """prints graphs of the functions.
+def getGraphs(functions, f_z_stats = False):
+  """returns the graphs of the functions.
   The functions are a list of (data_stats_dict, cdf_function, pdf_function,name)
+  It returns a dictionary with the graphs and other statistics calculated.
   """
+
+  retDict = {}
 
   dataStats = [x[0] for x in functions]
   means = [x["mean"] for x in dataStats]
@@ -74,17 +77,22 @@ def printGraphs(csv, functions, f_z_stats = False):
   n = int(math.ceil((high-low)/minBinSize))
   interval = (high - low)/n
 
-  printCsvPart(csv,'"x"')
+  #Print the cdfs and pdfs of the data to be compared.
+  orig_cdf_and_pdf_array = []
+  orig_cdf_and_pdf_array.append(["x"])
   for name in names:
-    printCsvPart(csv,'"'+name+'_cdf"','"'+name+'_pdf"')
-  printCsv(csv)
+    orig_cdf_and_pdf_array.append([name+'_cdf'])
+    orig_cdf_and_pdf_array.append([name+'_pdf'])
 
   for i in range(n):
     x = low+interval*i
-    printCsvPart(csv,x)
+    orig_cdf_and_pdf_array[0].append(x)
+    k = 1
     for stats, cdf, pdf, name in functions:
-      printCsvPart(csv,cdf(x),pdf(x))
-    printCsv(csv)
+      orig_cdf_and_pdf_array[k].append(cdf(x))
+      orig_cdf_and_pdf_array[k+1].append(pdf(x))
+      k += 2
+  retDict["cdf_and_pdf_arrays"] = orig_cdf_and_pdf_array
 
   def fZ(z):
     return simpson(lambda x: pdfs[0](x)*pdfs[1](x-z), lowLow, highHigh, 1000)
@@ -94,34 +102,40 @@ def printGraphs(csv, functions, f_z_stats = False):
   midZ = means[0]-means[1]
   lowZ = midZ - 3.0*max(stddevs[0],stddevs[1])
   highZ = midZ + 3.0*max(stddevs[0],stddevs[1])
-  printCsv(csv,'"z"','"f_z(z)"')
+
+  #print the difference function table.
+  f_z_table = [["z"],["f_z(z)"]]
   zN = 20
   intervalZ = (highZ - lowZ)/zN
   for i in range(zN):
     z = lowZ + intervalZ*i
-    printCsv(csv,z,fZ(z))
+    f_z_table[0].append(z)
+    f_z_table[1].append(fZ(z))
   cdfAreaDifference = simpson(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,100000)
+  retDict["f_z_table"] = f_z_table
 
   def firstMomentSimpson(f, a, b, n):
     return simpson(lambda x:x*f(x), a, b, n)
 
+  #print a bunch of comparison statistics
   pdfCommonArea = simpson(lambda x:min(pdfs[0](x),pdfs[1](x)),
                             lowLow,highHigh,100000)
   for i in range(len(pdfs)):
     pdfArea = simpson(pdfs[i],lowLow,highHigh,100000)
-    printCsv(csv,'"pdf_area_'+names[i]+'"',pdfArea)
+    retDict['pdf_area_'+names[i]] = pdfArea
     dataStats[i]["pdf_area"] = pdfArea
-  printCsv(csv,'"cdf_area_difference"',cdfAreaDifference)
-  printCsv(csv,'"pdf_common_area"',pdfCommonArea)
+  retDict['cdf_area_difference'] = cdfAreaDifference
+  retDict['pdf_common_area'] = pdfCommonArea
   dataStats[0]["cdf_area_difference"] = cdfAreaDifference
   dataStats[0]["pdf_common_area"] = pdfCommonArea
   if f_z_stats:
     sumFunctionDiff = simpson(fZ, lowZ, highZ, 1000)
     firstMomentFunctionDiff = firstMomentSimpson(fZ, lowZ,highZ, 1000)
     varianceFunctionDiff = simpson(lambda x:((x-firstMomentFunctionDiff)**2)*fZ(x),lowZ,highZ, 1000)
-    printCsv(csv,'"sum_function_diff"',sumFunctionDiff)
-    printCsv(csv,'"first_moment_function_diff"',firstMomentFunctionDiff)
-    printCsv(csv,'"variance_function_diff"',varianceFunctionDiff)
+    retDict['sum_function_diff'] = sumFunctionDiff
+    retDict['first_moment_function_diff'] = firstMomentFunctionDiff
+    retDict['variance_function_diff'] = varianceFunctionDiff
+  return retDict
 
 
 def countBins(sortedData, binBoundaries):

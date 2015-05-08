@@ -4004,7 +4004,8 @@ to compute many of the most important statistical quantities.
     \item \textbf{covariance matrix} -- covariance matrix
     \item \textbf{NormalizedSensitivity} -- matrix of normalized sensitivity
     coefficients
-    \item \textbf{sensitivity} -- matrix of sensitivity coefficients
+    \item \textbf{VarianceDependentSensitivity} -- matrix of sensitivity coefficients dependent on the variance of the variables
+    \item \textbf{sensitivity} -- matrix of sensitivity coefficients of Output space to Input space
     \item \textbf{pearson} -- matrix of sensitivity coefficients
     \item \textbf{expectedValue} -- expected value or mean
     \item \textbf{sigma} -- standard deviation
@@ -4070,7 +4071,7 @@ to compute many of the most important statistical quantities.
   ...
   <Models>
     ...
-    <PostProcessor name='aUserDefinedName' subType='BasicStatistics'  debug='true'>
+    <PostProcessor name='aUserDefinedName' subType='BasicStatistics' verbosity='debug'>
       <!-- Here you can specify what type of figure of merit
           you need to compute: expectedValue, sigma, variance, kurtosis, pearson, covariance, etc.
        -->
@@ -4111,13 +4112,18 @@ There are four nodes that are used in the post-processor.
   \begin{itemize}
   \item \xmlNode{data}: This will specify the data that is used.  The
     different parts are separated by $|$'s.
-  \item \xmlNode{reference}: Specifies that a normal distribution will
-    be used. It takes two attributes.
-    \begin{itemize}
-    \item \textbf{mean} is the mean of the normal distribution
-    \item \textbf{sigma} is the standard deviation of the normal
-      distribution.
-    \end{itemize}
+  \item \xmlNode{reference}: This specifies a reference distribution
+    to be used.  It takes distribution to use that is defined in the
+    distributions block.  A name parameter is used to tell which
+    distribution is used.
+
+    % DEPRECATED: Specifies that a normal distribution will
+    %be used.It takes two attributes.
+    %\begin{itemize}
+    %\item \textbf{mean} is the mean of the normal distribution
+    %\item \textbf{sigma} is the standard deviation of the normal
+    %  distribution.
+    %\end{itemize}
   \end{itemize}
 \item \xmlNode{fz}: If the text is true, then extra comparison
   statistics for using the $f_z$ function are generated.  These take
@@ -4132,7 +4138,8 @@ of data.  First for each data provided, it calculates bin boundaries,
 and counts the numbers of data points in each bin.  From the numbers
 in each bin, it creates a cdf function numerically, and from the cdf
 takes the derivative to generate a pdf.  It also calculates statistics
-of the data such as mean and standard deviation.
+of the data such as mean and standard deviation. The post-processor
+can generate either a CSV file or a TimePointSet.
 
 The post-processor uses the generated pdf and cdf function to
 calculate various statistics.  The first is the cdf area difference which is:
@@ -4186,7 +4193,7 @@ points to approximations in the calculation.
       <kind bin_method='sturges'>uniform_bins</kind>
       <compare>
         <data>OriData|Output|tsin_TEMPERATURE</data>
-        <reference mean="410.0" sigma="2.0" />
+        <reference name='normal_410_2' />
       </compare>
       <compare>
         <data>OriData|Output|tsin_TEMPERATURE</data>
@@ -4198,10 +4205,17 @@ points to approximations in the calculation.
         <compare>
           <data>OriData|Output|tsin_TEMPERATURE</data>
         </compare>
+        <Distribution class='Distributions' type='Normal'>normal_410_2</Distribution>
       </PostProcessor>
       ...
    </Models>
    ...
+   <Distributions>
+      <Normal name='normal_410_2'>
+         <mean>410.0</mean>
+         <sigma>2.0</sigma>
+      </Normal>
+   </Distributions>
 </Simulation>
 ----------------------------------------------
 \end{lstlisting}
@@ -4374,7 +4388,7 @@ zones that determine a change in the status of the system (Limit Surface).
  ...
  <Models>
   ...
-    <PostProcessor name="computeLimitSurface" subType='LimitSurface' debug='True'>
+    <PostProcessor name="computeLimitSurface" subType='LimitSurface' verbosity='debug'>
       <what>all</what>
       <parameters>x0,y0</parameters>
       <parameters>x0,y0</parameters>
@@ -4430,7 +4444,7 @@ Section~\ref{sec:functions} for more details).
   ...
   <Models>
     ...
-    <PostProcessor name="externalPP" subType='External' debug='True'>
+    <PostProcessor name="externalPP" subType='External' verbosity='debug'>
       <method>Delta,Sum</method>
       <Assembler>
         <Function class='Functions' type='External'>operators</Function> 

@@ -1,38 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
   <RunInfo>
     <WorkingDir>test_cc_stats</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py,output.csv</Files>
-    <Sequence>test_read_in,test_stats_step</Sequence>
+    <Sequence>test_read_in,test_stats_step,dump_data</Sequence>
     <batchSize>3</batchSize>
   </RunInfo>
+
   <Models>
     <PostProcessor name="test_stats" subType="ComparisonStatistics">
       <kind bin_method='sturges'>uniform_bins</kind>
       <compare>
         <data>fullprint_timepointset|outputs|normal1</data>
-        <reference mean="20" sigma="3.0" />
+        <!-- <reference mean="20" sigma="3.0" /> -->
+        <reference name='normal_20_3' />
       </compare>
       <compare>
         <data>fullprint_timepointset|outputs|normal2</data>
         <!-- Note that normal2 actually is mean=20, sigma = 3.0 -->
-        <reference mean="30" sigma="5.0" />
+        <!--  <reference mean="30" sigma="5.0" /> -->
+        <reference name='normal_30_5' />
       </compare>
       <compare>
         <data>fullprint_timepointset|outputs|uniform1</data>
         <data>fullprint_timepointset|outputs|uniform2p</data>
       </compare>
       <!-- <fz>True</fz> -->
+      <Distribution class='Distributions' type='Normal'>normal_20_3</Distribution>
+      <Distribution class='Distributions' type='Normal'>normal_30_5</Distribution>
     </PostProcessor>
   </Models>
-  <Samplers>
+
+  <Distributions>
+    <Normal name='normal_20_3'>
+      <mean>20.0</mean>
+      <sigma>3.0</sigma>
+    </Normal>
+    <Normal name='normal_30_5'>
+      <mean>30.0</mean>
+      <sigma>5.0</sigma>
+    </Normal>
+  </Distributions>
+
+  <!-- <Samplers>
     <MonteCarlo     name='RAVENmc3'>
         <sampler_init>
             <limit>1</limit>
             <initial_seed>1</initial_seed>
         </sampler_init>
     </MonteCarlo>
-  </Samplers>
+  </Samplers> -->
+
   <Steps>
     <IOStep name='test_read_in' fromDirectory='../input_for_test_cc'>
       <Input  class='DataObjects'  type='TimePointSet'>fullprint_timepointset</Input>
@@ -43,11 +61,18 @@
       <!-- <Input   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Input>-->
       <Model class='Models' type='PostProcessor'>test_stats</Model>
       <Output class='Files' type=''>output.csv</Output>
+      <Output class='DataObjects'  type='TimePointSet'>out_data</Output>
     </PostProcess>
+    <IOStep name="dump_data">
+      <Input  class='DataObjects'  type='TimePointSet'>out_data</Input>
+      <Output class='OutStreamManager' type='Print'>out_data</Output>
+    </IOStep>
   </Steps>
+
   <Databases>
     <HDF5 name="MC_TEST_REWRITE"/>
   </Databases>
+
   <OutStreamManager>
     <Print name='timepointset_from_database_dump'>
       <type>csv</type>
@@ -57,9 +82,12 @@
       <type>csv</type>
       <source>timepointset_IN_database</source>
     </Print>
+    <Print name='out_data'>
+      <type>csv</type>
+      <source>out_data</source>
+    </Print>
 
   </OutStreamManager>
-
 
   <DataObjects>
     <Histories name='fullprint_histories'>
@@ -78,6 +106,10 @@
       <Input>pipe1_Area,pipe1_Dh</Input>
       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
     </History>
+    <TimePointSet name='out_data'>
+      <Input>DummyIn</Input>
+      <Output>DummyOut</Output>
+    </TimePointSet>
   </DataObjects>
 
 </Simulation>

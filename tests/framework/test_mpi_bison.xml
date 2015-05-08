@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 <RunInfo>
     <WorkingDir>mpi_bison_test</WorkingDir>
     <Files>case_1.i,case_1.e</Files>

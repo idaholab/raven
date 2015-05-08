@@ -13,6 +13,9 @@ import inspect
 
 class Object(object):pass
 
+#custom errors
+class NoMoreSamplesNeeded(GeneratorExit): pass
+
 def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   """
   Method to check if a path (file or directory) is currently
@@ -35,11 +38,11 @@ def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
   @ In, filename, string containing the file name
   @ Out, boolean, True if it is present, False otherwise
   """
-  import fcntl
+  import portalocker
   finm = os.path.join(pathname,filename)
   fp = open(finm, 'w')
-  try           : fcntl.lockf(fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
-  except IOError: return True
+  try           : portalocker.lock(fp, portalocker.LOCK_EX | portalocker.LOCK_NB)
+  except portalocker.LockException: return True
   return False
 
 def returnImportModuleString(obj,moduleOnly=False):

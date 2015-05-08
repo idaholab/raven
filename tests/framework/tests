@@ -253,7 +253,7 @@
  [./testBasicStatistics]
   type = 'RavenFramework'
   input = 'test_BasicStatistics.xml'
-  output = 'basicStatistics/TimePointSetPostProcTest_dump.csv basicStatistics/output_basicStatistics_PP1.csv basicStatistics/output_basicStatistics_PP2.csv basicStatistics/output_basicStatistics_PP3.csv'
+  output = 'basicStatistics/TimePointSetPostProcTest_dump.csv basicStatistics/output_basicStatistics_PP1.csv basicStatistics/output_basicStatistics_PP2.csv basicStatistics/output_basicStatistics_PP3.csv basicStatistics/output_basicStatistics_PP4.csv'
   csv = 'basicStatistics/TimePointSetPostProcTest_dump.csv'
   max_time = 500
   rel_err = 0.001
@@ -389,11 +389,35 @@
   csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
  [../]
 
- [./stochPolyRestartTest]
+ [./samplerRestartMC]
   type = 'RavenFramework'
-  input = 'test_stochpoly_restart.xml'
-  output = 'StochasticPolyRestart/dump1.xml StochasticPolyRestart/dump2.xml StochasticPolyRestart/dump3.xml'
-  csv = 'StochasticPolyRestart/dump1.csv StochasticPolyRestart/dump2.csv StochasticPolyRestart/dump3.csv'
+  input = 'test_restart_MC.xml'
+  output = 'SamplerRestarts/MCdump1.xml SamplerRestarts/MCdump2.xml SamplerRestarts/MCdump3.xml'
+  csv = 'SamplerRestarts/MCdump1.csv SamplerRestarts/MCdump2.csv SamplerRestarts/MCdump3.csv'
+ [../]
+ [./samplerRestartStratified]
+  type = 'RavenFramework'
+  input = 'test_restart_Strat.xml'
+  output = 'SamplerRestarts/STRATdump1.xml SamplerRestarts/STRATdump2.xml SamplerRestarts/STRATdump3.xml'
+  csv = 'SamplerRestarts/STRATdump1.csv SamplerRestarts/STRATdump2.csv SamplerRestarts/STRATdump3.csv'
+ [../]
+ [./samplerRestartStochPoly]
+  type = 'RavenFramework'
+  input = 'test_restart_stochpoly.xml'
+  output = 'SamplerRestarts/SCdump1.xml SamplerRestarts/SCdump2.xml SamplerRestarts/SCdump3.xml'
+  csv = 'SamplerRestarts/SCdump1.csv SamplerRestarts/SCdump2.csv SamplerRestarts/SCdump3.csv'
+ [../]
+ [./samplerRestartSobolNoRom]
+  type = 'RavenFramework'
+  input = 'test_restart_sobol_norom.xml'
+  output = 'SamplerRestarts/SOBOLdump1.xml SamplerRestarts/SOBOLdump2.xml SamplerRestarts/SOBOLdump3.xml'
+  csv = 'SamplerRestarts/SOBOLdump1.csv SamplerRestarts/SOBOLdump2.csv SamplerRestarts/SOBOLdump3.csv'
+ [../]
+ [./samplerRestartGrid]
+  type = 'RavenFramework'
+  input = 'test_restart_Grid.xml'
+  output = 'SamplerRestarts/GRIDdump1.xml SamplerRestarts/GRIDdump2.xml SamplerRestarts/GRIDdump3.xml'
+  csv = 'SamplerRestarts/GRIDdump1.csv SamplerRestarts/GRIDdump2.csv SamplerRestarts/GRIDdump3.csv'
  [../]
 
  [./ND_external_MC]
