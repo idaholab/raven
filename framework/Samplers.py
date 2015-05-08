@@ -2604,7 +2604,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.existing = zip(*list(v for v in inps.values())) #done in localInitialize
       #remap if things got shifted ###DANGER###
       key = inps.keys()
-      if not key==self.distDict.keys(): self.sparseGrid._remap(key)
+      #if not key==self.distDict.keys(): self.sparseGrid._remap(key)
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
     #if we have points left, we're ready
@@ -2662,7 +2662,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     #train new rom and check convergence?
     pass
-
 #
 #
 #
