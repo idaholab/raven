@@ -74,7 +74,7 @@ class SafestPoint(BasePostProcessor):
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
   def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method '''
+    """ see generateAssembler method in Assembler """
     for varName, distName in self.controllableDist.items():
       if distName not in initDict['Distributions'].keys():
         self.raiseAnError(IOError,'distribution ' +distName+ ' not found.')
@@ -322,6 +322,8 @@ class ComparisonStatistics(BasePostProcessor):
     self.methodInfo = {} #Information on what stuff to do.
     self.f_z_stats = False
     self.interpolation = "quadratic"
+    self.requiredAssObject = (True,(['Distribution'],['-n']))
+    self.distributions = {}
 
   def inputToInternal(self,currentInput):
     return [(currentInput)]
@@ -341,6 +343,7 @@ class ComparisonStatistics(BasePostProcessor):
             rest = splitName[2:]
             compareGroup.dataPulls.append([name, kind, rest])
           elif child.tag == 'reference':
+            #This is either name=distribution or mean=num and sigma=num
             compareGroup.referenceData = dict(child.attrib)
         self.compareGroups.append(compareGroup)
       if outer.tag == 'kind':
@@ -362,6 +365,9 @@ class ComparisonStatistics(BasePostProcessor):
           self.interpolation = interpolation
 
 
+  def _localGenerateAssembler(self, initDict):
+    self.distributions = initDict.get('Distributions',{})
+    #print("initDict", initDict)
 
   def run(self, Input): # inObj,workingDir=None):
     """
@@ -374,8 +380,6 @@ class ComparisonStatistics(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     self.raiseADebug("finishedjob: "+str(finishedjob)+", output "+str(output))
-    #XXX We only handle the case where output is a filename.  We don't handle
-    # it being a dataObjects or hdf5 etc.
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,'no available output to collect.')
     else: self.dataDict.update(finishedjob.returnEvaluation()[1])
 
@@ -389,7 +393,16 @@ class ComparisonStatistics(BasePostProcessor):
         if len(rest) == 1:
           foundDataObjects.append(data[rest[0]])
       dataToProcess.append((dataPulls,foundDataObjects,reference))
-    csv = open(output,"w")
+    generateCSV = False
+    generateTimePointSet = False
+    if output.type == 'FileObject':
+      generateCSV = True
+    elif output.type == 'TimePointSet':
+      generateTimePointSet = True
+    else:
+      self.raiseAnError(IOError,'unsupported type '+str(type(output)))
+    if generateCSV:
+      csv = open(output,"w")
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "mean" in reference:
@@ -399,16 +412,30 @@ class ComparisonStatistics(BasePostProcessor):
           refPdf = lambda x:mathUtils.normal(x,refDataStats["mean"],refDataStats["stdev"])
           refCdf = lambda x:mathUtils.normalCdf(x,refDataStats["mean"],refDataStats["stdev"])
           graphData.append((refDataStats,refCdf,refPdf,"ref"))
+      if "name" in reference:
+        distribution_name = reference["name"]
+        if not distribution_name in self.distributions:
+          self.raiseAnError(IOError,'Did not find '+distribution_name+
+                             ' in '+str(self.distributions.keys()))
+        else:
+          distribution = self.distributions[distribution_name]
+        refDataStats = {"mean":distribution.untruncatedMean(),
+                        "stdev":distribution.untruncatedStdDev()}
+        refDataStats["min_bin_size"] = refDataStats["stdev"]/2.0
+        refPdf = lambda x:distribution.pdf(x)
+        refCdf = lambda x:distribution.cdf(x)
+        graphData.append((refDataStats,refCdf,refPdf,"ref_"+distribution_name))
       for dataPull, data in zip(dataPulls,datas):
         dataStats = self.processData(dataPull, data, self.methodInfo)
         dataKeys = set(dataStats.keys())
-        utils.printCsv(csv,'"'+str(dataPull)+'"')
-        utils.printCsv(csv,'"num_bins"',dataStats['num_bins'])
         counts = dataStats['counts']
         bins = dataStats['bins']
         countSum = sum(counts)
         binBoundaries = [dataStats['low']]+bins+[dataStats['high']]
-        utils.printCsv(csv,'"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
+        if generateCSV:
+          utils.printCsv(csv,'"'+str(dataPull)+'"')
+          utils.printCsv(csv,'"num_bins"',dataStats['num_bins'])
+          utils.printCsv(csv,'"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
         cdf = [0.0]*len(counts)
         midpoints = [0.0]*len(counts)
         cdfSum = 0.0
@@ -436,37 +463,62 @@ class ComparisonStatistics(BasePostProcessor):
           else:
             fPrime = (-1.5*f_0 + 2.0*f_1 + -0.5*f_2)/h
           fPrimeData[i] = fPrime
-          utils.printCsv(csv,binBoundaries[i+1],midpoints[i],counts[i],nCount,fPrime,cdf[i])
+          if generateCSV:
+            utils.printCsv(csv,binBoundaries[i+1],midpoints[i],counts[i],nCount,fPrime,cdf[i])
         pdfFunc = mathUtils.createInterp(midpoints,fPrimeData,0.0,0.0,self.interpolation)
         dataKeys -= set({'num_bins','counts','bins'})
-        for key in dataKeys:
-          utils.printCsv(csv,'"'+key+'"',dataStats[key])
+        if generateCSV:
+          for key in dataKeys:
+            utils.printCsv(csv,'"'+key+'"',dataStats[key])
         self.raiseADebug("data_stats: "+str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc,str(dataPull)))
-      mathUtils.printGraphs(csv, graphData, self.f_z_stats)
-      for i in range(len(graphData)):
-        dataStat = graphData[i][0]
-        def delist(l):
-          if type(l).__name__ == 'list':
-            return '_'.join([delist(x) for x in l])
+      graph_data = mathUtils.getGraphs(graphData, self.f_z_stats)
+      if generateCSV:
+        for key in graph_data:
+          value = graph_data[key]
+          if type(value).__name__ == 'list':
+            utils.printCsv(csv,*(['"' + l[0] + '"' for l in value]))
+            for i in range(1,len(value[0])):
+              utils.printCsv(csv,*([l[i] for l in value]))
           else:
-            return str(l)
-        newFileName = output[:-4]+"_"+delist(dataPulls)+"_"+str(i)+".csv"
-        if type(dataStat).__name__ != 'dict':
-          assert(False)
-          continue
-        dataPairs = []
-        for key in sorted(dataStat.keys()):
-          value = dataStat[key]
-          if type(value).__name__ in ["int","float"]:
-            dataPairs.append((key,value))
-        extraCsv = open(newFileName,"w")
-        extraCsv.write(",".join(['"'+str(x[0])+'"' for x in dataPairs]))
-        extraCsv.write(os.linesep)
-        extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
-        extraCsv.write(os.linesep)
-        extraCsv.close()
-      utils.printCsv(csv)
+            utils.printCsv(csv,'"'+key+'"',value)
+      if generateTimePointSet:
+        for key in graph_data:
+          value = graph_data[key]
+          if type(value).__name__ == 'list':
+            for i in range(len(value)):
+              subvalue = value[i]
+              name = subvalue[0]
+              subdata = subvalue[1:]
+              if i == 0:
+                output.updateInputValue(name, subdata)
+              else:
+                output.updateOutputValue(name, subdata)
+            break #XXX Need to figure out way to specify which data to return
+      if generateCSV:
+        for i in range(len(graphData)):
+          dataStat = graphData[i][0]
+          def delist(l):
+            if type(l).__name__ == 'list':
+              return '_'.join([delist(x) for x in l])
+            else:
+              return str(l)
+          newFileName = output[:-4]+"_"+delist(dataPulls)+"_"+str(i)+".csv"
+          if type(dataStat).__name__ != 'dict':
+            assert(False)
+            continue
+          dataPairs = []
+          for key in sorted(dataStat.keys()):
+            value = dataStat[key]
+            if type(value).__name__ in ["int","float"]:
+              dataPairs.append((key,value))
+          extraCsv = open(newFileName,"w")
+          extraCsv.write(",".join(['"'+str(x[0])+'"' for x in dataPairs]))
+          extraCsv.write(os.linesep)
+          extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
+          extraCsv.write(os.linesep)
+          extraCsv.close()
+        utils.printCsv(csv)
 
   def processData(self,dataPull, data, methodInfo):
       ret = {}
