@@ -30,46 +30,62 @@ class MessageUser(object):
   """
     Inheriting from this class grants access to methods used by the message handler.
   """
-  def raiseAnError(self,etype,message,tag='ERROR',verbosity='silent'):
+  def raiseAnError(self,etype,*args,**kwargs):
     """
       Raises an error. By default shows in all verbosity levels.
       @ In, etype, Exception class to raise (e.g. IOError)
-      @ In, message, the message to display
-      @ OPTIONAL In, tag, the printed error type (default ERROR)
-      @ OPTIONAL In, verbosity, the print priority of the message (default 'silent', highest priority)
+      @ In, *args, comma-seperated list of things to put in message (as print() function)
+      @ In, **kwargs, optional arguments, which can be:
+                      verbosity, the priority of the message (default 'silent')
+                      tag, the message label (default 'ERROR')
       @ Out, None
     """
-    self.messageHandler.error(self,etype,str(message),str(tag),verbosity)
+    verbosity = kwargs.get('verbosity','silent')
+    tag       = kwargs.get('tag'      ,'ERROR' )
+    msg = ' '.join(str(a) for a in args)
+    self.messageHandler.error(self,etype,msg,str(tag),verbosity)
 
-  def raiseAWarning(self,message,tag='Warning',verbosity='quiet'):
+  def raiseAWarning(self,*args,**kwargs):
     """
       Prints a warning. By default shows in 'quiet', 'all', and 'debug'
-      @ In, message, the message to display
-      @ OPTIONAL In, tag, the printed warning type (default Warning)
-      @ OPTIONAL In, verbosity, the print priority of the message (default 'quiet')
+      @ In, *args, comma-seperated list of things to put in message (as print() function)
+      @ In, **kwargs, optional arguments, which can be:
+                      verbosity, the priority of the message (default 'quiet')
+                      tag, the message label (default 'Warning')
       @ Out, None
     """
-    self.messageHandler.message(self,str(message),str(tag),verbosity)
+    verbosity = kwargs.get('verbosity','quiet'  )
+    tag       = kwargs.get('tag'      ,'Warning')
+    msg = ' '.join(str(a) for a in args)
+    self.messageHandler.message(self,msg,str(tag),verbosity)
 
-  def raiseAMessage(self,message,tag='Message',verbosity='all'):
+  def raiseAMessage(self,*args,**kwargs):
     """
       Prints a message. By default shows in 'all' and 'debug'
-      @ In, message, the message to display
-      @ OPTIONAL In, tag, the printed message type (default Message)
-      @ OPTIONAL In, verbosity, the print priority of the message (default 'all')
+      @ In, *args, comma-seperated list of things to put in message (as print() function)
+      @ In, **kwargs, optional arguments, which can be:
+                      verbosity, the priority of the message (default 'all')
+                      tag, the message label (default 'Message')
       @ Out, None
     """
-    self.messageHandler.message(self,str(message),str(tag),verbosity)
+    verbosity = kwargs.get('verbosity','all'    )
+    tag       = kwargs.get('tag'      ,'Message')
+    msg = ' '.join(str(a) for a in args)
+    self.messageHandler.message(self,msg,str(tag),verbosity)
 
-  def raiseADebug(self,message,tag='DEBUG',verbosity='debug'):
+  def raiseADebug(self,*args,**kwargs):
     """
       Prints a debug message. By default shows only in 'debug'
-      @ In, message, the message to display
-      @ OPTIONAL In, tag, the printed message type (default DEBUG)
-      @ OPTIONAL In, verbosity, the print priority of the message (default 'debug')
+      @ In, *args, comma-seperated list of things to put in message (as print() function)
+      @ In, **kwargs, optional arguments, which can be:
+                      verbosity, the priority of the message (default 'debug')
+                      tag, the message label (default 'DEBUG')
       @ Out, None
     """
-    self.messageHandler.message(self,str(message),str(tag),verbosity)
+    verbosity = kwargs.get('verbosity','debug')
+    tag       = kwargs.get('tag'      ,'DEBUG')
+    msg = ' '.join(str(a) for a in args)
+    self.messageHandler.message(self,msg,str(tag),verbosity)
 
   def getLocalVerbosity(self,default=None):
     """
