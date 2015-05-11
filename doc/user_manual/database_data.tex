@@ -1,5 +1,5 @@
-\section{Datas}
-\label{sec:Datas}
+\section{DataObjects}
+\label{sec:DataObjects}
 
 As seen in the previous chapters, different entities in the RAVEN
 code interact with each other in order to create, ideally, an infinite number of
@@ -8,10 +8,10 @@ different calculation flows.
 These interactions are made possible through a data handling system that each
 entity understands.
 %
-This system, neglecting the grammar imprecision, is called the ``Datas''
+This system, neglecting the grammar imprecision, is called the ``DataObjects''
 system.
 
-The \xmlNode{Datas} tag is a container of data objects of various types that can
+The \xmlNode{DataObjects} tag is a container of data objects of various types that can
 be constructed during the execution of a particular calculation flow.
 %
 These data objects can be used as input or output for a particular
@@ -20,7 +20,7 @@ These data objects can be used as input or output for a particular
 Currently, RAVEN supports 4 different data types, each with a particular
 conceptual meaning.
 %
-These data types are instantiated as sub-nodes in the \xmlNode{Datas} block of
+These data types are instantiated as sub-nodes in the \xmlNode{DataObjects} block of
 an input file:
 \begin{itemize}
   \item \xmlNode{TimePoint}, as the name suggests, describes the state of the
@@ -52,16 +52,16 @@ an input file:
 As noted above, each data object represents a mapping between a set of
 parameters and the resulting outcomes.
 %
-The data objects are defined within the main XML block called \xmlNode{Datas}:
+The data objects are defined within the main XML block called \xmlNode{DataObjects}:
 \begin{lstlisting}[style=XML]
 <Simulation>
    ...
-  <Datas>
+  <DataObjects>
     <TimePoint name='***'>...</TimePoint>
     <TimePointSet name='***'>...</TimePointSet>
     <History name='***'>...</History>
     <Histories name='***'>...</Histories>
-  </Datas>
+  </DataObjects>
    ...
 </Simulation>
 \end{lstlisting}
@@ -126,7 +126,7 @@ needs to specify the following sub-nodes:
 \end{itemize}
 
 \begin{lstlisting}[style=XML,morekeywords={inputTs,operator,hierarchical,name,history}]
-<Datas>
+<DataObjects>
   <TimePoint name='TP' inputTs='-1' operator='max' hierarchical='False'>
     <Input history='a_history_name'>var1,var2,var3</Input>
     <Output>result1,result2</Output>
@@ -143,7 +143,7 @@ needs to specify the following sub-nodes:
     <Input>var1,var2,var3</Input>
     <Output>result1,result2</Output>
   </Histories>
-</Datas>
+</DataObjects>
 \end{lstlisting}
 
 \section{Databases}
@@ -158,21 +158,21 @@ itself in a ``parallel'' or ``hierarchical'' fashion.
 %
 The user can create as many database objects as needed.
 %
-The DataBase objects are defined within the main XML block called
-\xmlNode{DataBases}:
+The Database objects are defined within the main XML block called
+\xmlNode{Databases}:
 \begin{lstlisting}[style=XML]
 <Simulation>
   ...
-  <DataBases>
+  <Databases>
     ...
-    <HDF5 name="aDataBaseName1"/>
-    <HDF5 name="aDataBaseName2"/>
+    <HDF5 name="aDatabaseName1"/>
+    <HDF5 name="aDatabaseName2"/>
     ...
-  </DataBases>
+  </Databases>
   ...
 </Simulation>
 \end{lstlisting}
-The specifications of each DataBase of type HDF5 needs to be defined within the
+The specifications of each Database of type HDF5 needs to be defined within the
 XML block \xmlNode{HDF5}, that recognizes the following attributes:
 \vspace{-5mm}
 \begin{itemize}
@@ -191,7 +191,7 @@ XML block \xmlNode{HDF5}, that recognizes the following attributes:
 %  database, if no \textit{filename} is specified, or from where open an already
 %  existing one, if \textit{filename} is provided. \maljdan{Huh?}
   %
-  \default{raven/framework/DataBaseStorage}
+  \default{raven/framework/DatabaseStorage}
   \item \xmlAttr{filename}, \xmlDesc{optional string attribute}, specifies the
   filename of an HDF5 that already exists in the \xmlAttr{directory}.
   %
@@ -219,8 +219,8 @@ XML block \xmlNode{HDF5}, that recognizes the following attributes:
 \end{itemize}
 
 \begin{lstlisting}[style=XML,morekeywords={directory,filename}]
-<DataBases>
-  <HDF5 name="aDataBaseName1" directory=''path_to_a_dir'' compression=''lzf''/>
-  <HDF5 name="aDataBaseName2" filename=''aDataBaseName2.h5''/>
-</DataBases>
+<Databases>
+  <HDF5 name="aDatabaseName1" directory=''path_to_a_dir'' compression=''lzf''/>
+  <HDF5 name="aDatabaseName2" filename=''aDatabaseName2.h5''/>
+</Databases>
 \end{lstlisting}

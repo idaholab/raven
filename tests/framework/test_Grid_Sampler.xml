@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug='True'>
+<Simulation verbosity='debug'>
 
 <RunInfo>
     <WorkingDir>GridTest</WorkingDir>
@@ -49,7 +49,7 @@
     </Grid>
 </Samplers>
 
-<Datas>
+<DataObjects>
      <TimePointSet name='outGrid'>
         <Input>VarGauss1,VarGauss2,VarTri1</Input>
         <Output>OutputPlaceHolder</Output>
@@ -58,7 +58,7 @@
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
       <Output>OutputPlaceHolder</Output>
    </TimePointSet>
-</Datas>
+</DataObjects>
     
 <OutStreamManager>
     <Print name='outGrid_dump'>
@@ -69,17 +69,17 @@
 
 <Steps>
      <MultiRun name='CustomSampler'>
-        <Input   class='Datas'     type='TimePointSet'>dummyIN</Input>
+        <Input   class='DataObjects'     type='TimePointSet'>dummyIN</Input>
         <Model   class='Models'    type='Dummy'       >MyDummy</Model>
         <Sampler class='Samplers'  type='Grid'        >myGrid</Sampler>
-        <Output  class='Datas'     type='TimePointSet'>outGrid</Output>
-        <Output  class='DataBases' type='HDF5'        >test_DummyModel_db</Output>
+        <Output  class='DataObjects'     type='TimePointSet'>outGrid</Output>
+        <Output  class='Databases' type='HDF5'        >test_DummyModel_db</Output>
         <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
     </MultiRun >
 </Steps>
-<DataBases>
+<Databases>
         <HDF5 name="test_DummyModel_db"/> 
-</DataBases>
+</Databases>
 </Simulation>
 
 

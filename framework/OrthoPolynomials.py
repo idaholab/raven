@@ -19,23 +19,23 @@ import xml.etree.ElementTree as ET
 
 #Internal Modules
 from BaseClasses import BaseType
-import utils
 import Distributions
 import Quadratures
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class OrthogonalPolynomial(object):
+class OrthogonalPolynomial(MessageHandler.MessageUser):
   '''Provides polynomial generators and evaluators for stochastic collocation.'''
   def __init__(self):
     self.type    = self.__class__.__name__
     self.name    = self.__class__.__name__
-    self.debug   = True
     self._poly   = None #tool for generating orthopoly1d objects
     self._evPoly = None #tool for evaluating 1d polynomials at (order,point)
     self.params  = [] #additional parameters needed for polynomial (alpha, beta, etc)
+    self.messageHandler = None
 
-  def initialize(self):
-    pass #to be overwritten
+  def initialize(self,quad,messageHandler):
+    self.messageHandler = messageHandler
 
   def __getitem__(self,order):
     '''Returns the polynomial with order 'order';
@@ -60,15 +60,15 @@ class OrthogonalPolynomial(object):
     @ In, None, None
     @ Out, Quadrature instance, defining quad for polynomial
     '''
-    return self.quad
+    return self.quad,self.messageHandler
 
-  def __setstate__(self,quad):
+  def __setstate__(self,items):
     '''Pickle load method.
     @ In, quad, Quadrature instance
     @ Out, None, None
     '''
     self.__init__()
-    self.initialize(quad)
+    self.initialize(*items)#quad,messageHandler)
 
   def __eq__(self,other):
     '''
@@ -122,7 +122,7 @@ class OrthogonalPolynomial(object):
       self.pointMod = self.cdfPoint
       self.quad = quad
     else:
-      utils.raiseAnError(IOError,'ORTHOPOLYNOMIALS','No implementation for',quad.type,'quadrature and',self.type,'polynomials.')
+      self.raiseAnError(IOError,'No implementation for '+quad.type+' quadrature and',self.type,'polynomials.')
 
   def _getDistr(self):
     '''Returns the private distribution used for the CDF-version quadratures; for debugging.
@@ -155,7 +155,8 @@ class OrthogonalPolynomial(object):
 
 
 class Legendre(OrthogonalPolynomial):
-  def initialize(self,quad):
+  def initialize(self,quad,messageHandler):
+    OrthogonalPolynomial.initialize(self,quad,messageHandler)
     self.printTag = 'LEGENDRE-ORTHOPOLY'
     self._poly    = polys.legendre
     self._evPoly  = polys.eval_legendre
@@ -170,10 +171,10 @@ class Legendre(OrthogonalPolynomial):
 
   def makeDistribution(self):
     uniformElement = ET.Element("uniform")
-    element = ET.Element("low",{})
+    element = ET.Element("lowerBound",{})
     element.text = "-1"
     uniformElement.append(element)
-    element = ET.Element("hi",{})
+    element = ET.Element("upperBound",{})
     element.text = "1"
     uniformElement.append(element)
     uniform = Distributions.Uniform()
@@ -192,7 +193,8 @@ class Legendre(OrthogonalPolynomial):
 
 
 class Hermite(OrthogonalPolynomial):
-  def initialize(self,quad):
+  def initialize(self,quad,messageHandler):
+    OrthogonalPolynomial.initialize(self,quad,messageHandler)
     self.printTag = 'HERMITE-ORTHOPOLY'
     self._poly    = polys.hermitenorm
     self._evPoly  = polys.eval_hermitenorm
@@ -225,7 +227,8 @@ class Hermite(OrthogonalPolynomial):
 
 
 class Laguerre(OrthogonalPolynomial):
-  def initialize(self,quad):
+  def initialize(self,quad,messageHandler):
+    OrthogonalPolynomial.initialize(self,quad,messageHandler)
     self.printTag = 'LAGUERRE-ORTHOPOLY'
     self._poly    = polys.genlaguerre
     self._evPoly  = polys.eval_genlaguerre
@@ -260,7 +263,8 @@ class Laguerre(OrthogonalPolynomial):
 
 
 class Jacobi(OrthogonalPolynomial):
-  def initialize(self,quad):
+  def initialize(self,quad,messageHandler):
+    OrthogonalPolynomial.initialize(self,quad,messageHandler)
     self.printTag = 'JACOBI-ORTHOPOLY'
     self._poly    = polys.jacobi
     self._evPoly  = polys.eval_jacobi
@@ -322,11 +326,11 @@ __knownTypes = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
+def returnInstance(Type,caller):
   '''
     function used to generate a Filter class
     @ In, Type : Filter type
     @ Out,Instance of the Specialized Filter class
   '''
   if Type in knownTypes(): return __interFaceDict[Type]()
-  else: utils.raiseAnError(NameError,'ORTHOPOLYNOMIALS','not known '+__base+' type '+Type)
+  else: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)

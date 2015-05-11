@@ -150,7 +150,7 @@ chapter about Distributions (see~\ref{sec:distributions}).
 %
 Here we give a general example of three different distributions:
 \begin{lstlisting}[style=XML,morekeywords={name,debug}]
-<Distributions debug='True'>
+<Distributions verbosity='debug'>
   <Triangular name='BPfailtime'>
     <apex>5.0</apex>
     <min>4.0</min>
@@ -200,7 +200,7 @@ In this example we are sampling:
 We proceed to do so for both the Grid sampling and the MonteCarlo sampling.
 
 \begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initial_seed}]
-<Samplers debug='True'>
+<Samplers verbosity='debug'>
   <Grid name='Grid_Sampler' initial_seed ='210491' >
     <variable name='0000588:6'>
       <distribution>BPfailtime</distribution>
@@ -254,7 +254,7 @@ the \xmlNode{Sequence} block.
 In our example, \texttt{Grid\_Sampler} and \texttt{MC\_Sampler}.
 %
 \begin{lstlisting}[style=XML,morekeywords={name,debug,re-seeding}]
-     <MultiRun name='Grid_Sampler' debug='True' re-seeding='210491'>
+     <MultiRun name='Grid_Sampler' verbosity='debug' re-seeding='210491'>
 \end{lstlisting}
 
 With this step, we need to import all the files needed for the simulation:
@@ -283,28 +283,28 @@ created is an HDF5 file).
 %
 Here is a classical example:
 \begin{lstlisting}[style=XML,morekeywords={class,type}]
-    <Output  class='DataBases' type='HDF5'>MC_out</Output>
+    <Output  class='Databases' type='HDF5'>MC_out</Output>
 \end{lstlisting}
 Following is the example of two MultiRun steps which use different sampling
 methods (grid and Monte Carlo), and creating two different databases for each
 one:
 \begin{lstlisting}[style=XML]
-<Steps debug='True'>
-  <MultiRun name='Grid_Sampler' debug='True' re-seeding='210491'>
+<Steps verbosity='debug'>
+  <MultiRun name='Grid_Sampler' verbosity='debug' re-seeding='210491'>
     <Input   class='Files'     type=''    >X10.i</Input>
     <Input   class='Files'     type=''    >r5executable.x</Input>
     <Input   class='Files'     type=''    >tpfh2o</Input>
     <Model   class='Models'    type='Code'>MyRELAP</Model>
     <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
-    <Output  class='DataBases' type='HDF5'>Grid_out</Output>
+    <Output  class='Databases' type='HDF5'>Grid_out</Output>
   </MultiRun>
-  <MultiRun name='MC_Sampler' debug='True' re-seeding='210491'>
+  <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
     <Input   class='Files'     type=''          >X10.i</Input>
     <Input   class='Files'     type=''          >r5executable.x</Input>
     <Input   class='Files'     type=''          >tpfh2o</Input>
     <Model   class='Models'    type='Code'      >MyRELAP</Model>
     <Sampler class='Samplers'  type='MonteCarlo'>MC_Sampler</Sampler>
-    <Output  class='DataBases' type='HDF5'      >MC_out</Output>
+    <Output  class='Databases' type='HDF5'      >MC_out</Output>
   </MultiRun>
 </Steps>
 \end{lstlisting}
@@ -315,10 +315,10 @@ called \texttt{Grid\_out} and \texttt{MC\_out}.
 %
 So the user needs to input the following:
 \begin{lstlisting}[style=XML]
-<DataBases>
+<Databases>
   <HDF5 name="Grid_out"/>
   <HDF5 name="MC_out"/>
-</DataBases>
+</Databases>
 \end{lstlisting}
 As listed before, this will create two databases.
 %

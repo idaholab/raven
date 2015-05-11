@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="False">
+<Simulation >
     <RunInfo>
         <WorkingDir>StochasticPolyInterpTest</WorkingDir>
         <Sequence>Nmake,Ntrain,Ntest,Nprint</Sequence>
@@ -45,27 +45,27 @@
     <Steps>
         <MultiRun name='Nmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
-            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='Datas'            type='TimePointSet'         >Nsolns</Output>
+            <Output  class='DataObjects'            type='TimePointSet'         >Nsolns</Output>
         </MultiRun>
         <RomTrainer name='Ntrain'>
-            <Input   class='Datas'            type='TimePointSet'         >Nsolns</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >Nsolns</Input>
             <Output  class='Models'           type='ROM'                  >NROM</Output>
         </RomTrainer>
         <MultiRun name='Ntest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
-            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >NROM</Model>
-            <Output  class='Datas'            type='TimePointSet'         >Ntests</Output>
+            <Output  class='DataObjects'            type='TimePointSet'         >Ntests</Output>
         </MultiRun>
         <OutStreamStep name='Nprint'>
-            <Input   class='Datas'            type='TimePointSet'         >Ntests</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >Ntests</Input>
             <Output  class='OutStreamManager' type='Print'                >Ndump</Output>
         </OutStreamStep>
     </Steps>
 
-    <Datas>
+    <DataObjects>
         <TimePointSet name="dummyIN">
             <Input>x1,x2</Input>
             <Output>OutputPlaceHolder</Output>
@@ -78,7 +78,7 @@
             <Input>x1,x2</Input>
             <Output>ans</Output>
         </TimePointSet>
-    </Datas>
+    </DataObjects>
 
     <OutStreamManager>
         <Print name='Ndump'>

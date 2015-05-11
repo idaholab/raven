@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug='True'>
+<Simulation verbosity='debug'>
 
 <RunInfo>
     <WorkingDir>ResponseDesign</WorkingDir>
@@ -92,7 +92,7 @@
     </ResponseSurfaceDesign>
 </Samplers>
 
-<Datas>
+<DataObjects>
      <TimePointSet name='CentralCompositeRespDesignData'>
         <Input>VarGauss1,VarGauss2,VarTri1</Input>
         <Output>OutputPlaceHolder</Output>
@@ -109,7 +109,7 @@
        <Input>VarGauss1,VarGauss2,VarTri1</Input>
        <Output>OutputPlaceHolder</Output>
    </TimePointSet>
-</Datas>
+</DataObjects>
 
 <OutStreamManager>
     <Print name='CentralCompositeRespDesign_dump'>
@@ -124,25 +124,25 @@
 
 <Steps>
      <MultiRun name='BoxBehnkenRespDesignStep'>
-        <Input   class='Datas'     type='TimePointSet'          >BoxBehnkenRespDesigndummyIN</Input>
+        <Input   class='DataObjects'     type='TimePointSet'          >BoxBehnkenRespDesigndummyIN</Input>
         <Model   class='Models'    type='Dummy'                 >MyDummy1</Model>
         <Sampler class='Samplers'  type='ResponseSurfaceDesign' >BoxBehnkenRespDesign</Sampler>
-        <Output  class='Datas'     type='TimePointSet'          >BoxBehnkenRespDesignData</Output>
-        <Output  class='DataBases' type='HDF5'                  >test_DummyModelResponseSurfDesign_db</Output>
+        <Output  class='DataObjects'     type='TimePointSet'          >BoxBehnkenRespDesignData</Output>
+        <Output  class='Databases' type='HDF5'                  >test_DummyModelResponseSurfDesign_db</Output>
         <Output  class='OutStreamManager' type='Print'          >BoxBehnkenRespDesign_dump</Output>
     </MultiRun >
      <MultiRun name='CentralCompositeRespDesignStep'>
-         <Input   class='Datas'     type='TimePointSet'          >CentralCompositeRespDesignDatadummyIN</Input>
+         <Input   class='DataObjects'     type='TimePointSet'          >CentralCompositeRespDesignDatadummyIN</Input>
          <Model   class='Models'    type='Dummy'                 >MyDummy2</Model>
          <Sampler class='Samplers'  type='ResponseSurfaceDesign' >CentralCompositeRespDesign</Sampler>
-         <Output  class='Datas'     type='TimePointSet'          >CentralCompositeRespDesignData</Output>
-         <Output  class='DataBases' type='HDF5'                  >test_DummyModelResponseSurfDesign_db</Output>
+         <Output  class='DataObjects'     type='TimePointSet'          >CentralCompositeRespDesignData</Output>
+         <Output  class='Databases' type='HDF5'                  >test_DummyModelResponseSurfDesign_db</Output>
          <Output  class='OutStreamManager' type='Print'          >CentralCompositeRespDesign_dump</Output>
      </MultiRun >
 </Steps>
-<DataBases>
+<Databases>
         <HDF5 name="test_DummyModelResponseSurfDesign_db"/>
-</DataBases>
+</Databases>
 </Simulation>
 
 

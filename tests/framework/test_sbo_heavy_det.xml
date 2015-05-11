@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 <RunInfo>
     <WorkingDir>SBO_DET</WorkingDir>
     <Files>DET_histories_eqPb.csv,TMI_PRA_trans_DET_control.py,TMI.i,TMI_steady_restart/0957.rd-0,TMI_steady_restart/0957.xdr,TMI_steady_restart/0957.xdr.0000,TMI_steady_restart/0957_mesh.cpr</Files>
@@ -84,29 +84,29 @@
         <Input   class='Files'      type=''                >TMI_steady_restart/0957_mesh.cpr</Input>
         <Model   class='Models'    type='Code'             >MyRAVEN</Model>
         <Sampler class='Samplers'  type='DynamicEventTree'>DET</Sampler>
-        <Output  class='DataBases' type='HDF5'              >DET_SBO_RUN_eqPb</Output>
+        <Output  class='Databases' type='HDF5'              >DET_SBO_RUN_eqPb</Output>
     </MultiRun>
     <IOStep name='test_extract'>
-        <Input   class='DataBases' type='HDF5'   >DET_SBO_RUN_eqPb</Input>
-        <Output  class='Datas'    type='Histories'>stories_from_database</Output>
+        <Input   class='Databases' type='HDF5'   >DET_SBO_RUN_eqPb</Input>
+        <Output  class='DataObjects'    type='Histories'>stories_from_database</Output>
         <Output  class='OutStreamManager' type='Print'>stories_from_database_dump</Output>
     </IOStep>    
 </Steps>
-<DataBases>
+<Databases>
         <HDF5 name="DET_SBO_RUN_eqPb"/> 
-</DataBases>
+</Databases>
 <OutStreamManager>
         <Print name='stories_from_database_dump'>
             <type>csv</type>
             <source>stories_from_database</source>
         </Print>
 </OutStreamManager>
-<Datas>
+<DataObjects>
    <Histories name='stories_from_database' inputTs='2'>
  <Input>CladFailureDistThreshold,CladTempBranched,DG1_time_ratio,DG1recoveryTime,DG2recoveryTime,DeltaTimeScramToAux</Input>
   <Output>time,AuxSystemUp,CladDamaged,DownStreamSpeed,Head_PumpA,Head_PumpB,InitialMassFlowPrimary,MassFlowRateIn_SC_A,MassFlowRateIn_SC_B,PrimPGrecovery,PrimPGrecoveryThreshold,PrimPGrecoveryTime,ScramStatus,SecPGrecoveryTime,UpstreamSpeed,a_Head_PumpA,a_Head_PumpB,a_MassFlowRateIn_SC_A,a_MassFlowRateIn_SC_B,a_friction2_CL_A,a_friction2_CL_B,a_power_CH1,a_power_CH2,a_power_CH3,auxAbsolute,avg_Fluid_Vel_C_L_A,avg_Fluid_Vel_H_L-A,avg_out_temp_sec_A,avg_temp_clad_CH1,avg_temp_clad_CH2,avg_temp_clad_CH3,avg_temp_fuel_CH1,avg_temp_fuel_CH2,avg_temp_fuel_CH3,crew1DG1,crew1DG1Threshold,crew1DG2CoupledDG1,crew1DG2CoupledDG1Threshold,crewSecPG,crewSecPGThreshold,init_Power_Fraction_CH1,init_Power_Fraction_CH2,init_Power_Fraction_CH3,power_CH1,power_CH2,power_CH3,reactor:power,scram_start_time,sec_inlet_velocity</Output>
    </Histories>
-</Datas>
+</DataObjects>
 </Simulation>
 
 
