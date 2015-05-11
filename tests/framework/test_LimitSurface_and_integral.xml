@@ -3,7 +3,7 @@
 <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>
     <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py,LimitSurfaceUnWeightedPb_FileObj.csv,LimitSurfaceWeightedPb_FileObj.csv</Files>
-    <Sequence>FirstMRun,ComputeLimitSurfacePositive,ComputeLimitSurfaceNegative,ComputeLimitSurfacePositiveNegative</Sequence>
+    <Sequence>FirstMRun,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted,ComputeLimitSurfaceIntegralUnWeighted</Sequence>
     <batchSize>1</batchSize>
 </RunInfo>
 
@@ -19,11 +19,9 @@
         <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
         <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
     </PostProcessor>
-    <PostProcessor name="LimitSurfaceIntegralWeighted" subType='LimitSurfaceIntegral' debug='False'>
-        <tolerance>0.0001</tolerance>
-        <integralType>montecarlo</integralType>
-        <seed>20021986</seed>
-        <target>goalFunctionForLimitSurface</target>
+    <PostProcessor name="LimitSurfaceIntegralWeighted" subType='LimitSurfaceIntegral'
+        tolerance="0.0001" integralType="montecarlo" seed="20021986" target="goalFunctionForLimitSurface">
+
         <variable name='x0'>
             <distribution >x0_distrib</distribution>
         </variable>
@@ -31,18 +29,11 @@
             <distribution >y0_distrib</distribution>
         </variable>
     </PostProcessor>
-    <PostProcessor name="LimitSurfaceIntegralUnWeightedWithBounds" subType='LimitSurfaceIntegral' debug='False'>
-        <tolerance>0.0001</tolerance>
-        <integralType>montecarlo</integralType>
-        <seed>20021986</seed>
-        <target>goalFunctionForLimitSurface</target>
-        <variable name='x0'>
-            <lowerBound>-2.0</lowerBound>
-            <upperBound>12.0</upperBound>
+    <PostProcessor name="LimitSurfaceIntegralUnWeightedWithBounds" subType='LimitSurfaceIntegral'
+        tolerance="0.0001" integralType="montecarlo" seed="20021986" target="goalFunctionForLimitSurface">
+        <variable name='x0' lowerBound="-2.0" upperBound="12.0">
         </variable>
-        <variable name='y0'>
-            <lowerBound>-1.0</lowerBound>
-            <upperBound>11.0</upperBound>
+        <variable name='y0' lowerBound="-1.0" upperBound="11.0">
         </variable>
     </PostProcessor>
     <!--
@@ -115,14 +106,14 @@
         <Model    class='Models'                 type='PostProcessor'   >LimitSurfaceIntegralWeighted</Model>
         <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfaceWeightedPb</Output>
         <Output   class='OutStreamManager'       type='Print'           >LimitSurfaceWeightedPb_dump</Output>
-        <Output   class='FileObject'             type=''                >LimitSurfaceWeightedPb_FileObj.csv</Output>
+        <Output   class='Files'             type=''                >LimitSurfaceWeightedPb_FileObj.csv</Output>
     </PostProcess>
     <PostProcess name='ComputeLimitSurfaceIntegralUnWeighted' >
         <Input    class='DataObjects'            type='TimePointSet'    >LimitSurfacePositiveNegative</Input>
         <Model    class='Models'                 type='PostProcessor'   >LimitSurfaceIntegralUnWeightedWithBounds</Model>
         <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfaceUnWeightedPb</Output>
         <Output   class='OutStreamManager'       type='Print'           >LimitSurfaceUnWeightedPb_dump</Output>
-        <Output   class='FileObject'             type=''                >LimitSurfaceUnWeightedPb_FileObj.csv</Output>
+        <Output   class='Files'             type=''                >LimitSurfaceUnWeightedPb_FileObj.csv</Output>
     </PostProcess>
 </Steps>
 

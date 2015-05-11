@@ -72,7 +72,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     self.stat.what      = ['expectedValue']
     self.requiredAssObject = (False,(['Distribution'],['n']))
     self.printTag       = 'POSTPROCESSOR INTEGRAL'
-  
+
   def _localWhatDoINeed(self):
     """
     This method is a local mirror of the general whatDoINeed method.
@@ -81,7 +81,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     @ Out, needDict, list of objects needed
     """
     needDict = {'Distributions':[]}
-    for distName in self.variableDist.values(): 
+    for distName in self.variableDist.values():
       if distName != None: needDict['Distributions'].append((None,distName))
     return needDict
 
@@ -90,7 +90,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     for varName, distName in self.variableDist.items():
       if distName != None:
         if distName not in initDict['Distributions'].keys(): self.raiseAnError(IOError,'distribution ' +distName+ ' not found.')
-        self.variableDist[varName] = initDict['Distributions'][distName] 
+        self.variableDist[varName] = initDict['Distributions'][distName]
         self.lowerUpperDict[varName]['lowerBound'] = self.variableDist[varName].lowerBound
         self.lowerUpperDict[varName]['upperBound'] = self.variableDist[varName].upperBound
 
@@ -116,7 +116,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
         self.variableDist[varName] = None
         for childChild in child:
           if childChild.tag == 'distribution': self.variableDist[varName] = childChild.text
-          else: 
+          else:
             self.raiseAnError(NameError,'invalid labels after the variable call. Only "distribution" is accepted.')
       else: self.raiseAnError(NameError,'invalid or missing labels after the variables call. Only "variable" is accepted.')
       #if no distribution, we look for the integration domain in the input
@@ -132,7 +132,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     if self.integralType in ['montecarlo']:
       self.stat.parameters['targets'] = [self.target]
       self.stat.initialize(runInfo,inputs,initDict)
-    self.functionS = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsRegressor','Features':','.join(list(self.variableDist.keys())),'Target':self.target})
+    self.functionS = SupervisedLearning.returnInstance('SciKitLearn',self,**{'SKLtype':'neighbors|KNeighborsClassifier','Features':','.join(list(self.variableDist.keys())),'Target':self.target})
     self.functionS.train(self.matrixDict)
     self.raiseADebug('DATA SET MATRIX:')
     self.raiseADebug(self.matrixDict)
@@ -161,32 +161,35 @@ class LimitSurfaceIntegral(BasePostProcessor):
       for index, varName in enumerate(self.variableDist.keys()):
         if self.variableDist[varName] == None: randomMatrix[:,index] = randomMatrix[:,index]*(self.lowerUpperDict[varName]['upperBound']-self.lowerUpperDict[varName]['lowerBound'])+self.lowerUpperDict[varName]['lowerBound']
         else:
-          for samples in randomMatrix.shape[0]: randomMatrix[samples,index] = self.variableDist[varName].ppf(randomMatrix[samples,index]) 
+          for samples in range(randomMatrix.shape[0]): randomMatrix[samples,index] = self.variableDist[varName].ppf(randomMatrix[samples,index])
         tempDict[varName] = randomMatrix[:,index]
       pb = self.stat.run({'targets':{self.target:self.functionS.evaluate(tempDict)}})
     else: self.raiseAnError(NotImplemented, "quadrature not yet implemented")
-    return pb
+    return pb['expectedValue'][self.target]
 
   def collectOutput(self,finishedjob,output):
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,'no available output to collect.')
     else:
       pb = finishedjob.returnEvaluation()[1]
-      lms = finishedjob.returnEvaluation()[0]
+      lms = finishedjob.returnEvaluation()[0][0]
       if output.type == 'TimePointSet':
         # we store back the limitsurface
         for key,value in lms.getParametersValues('input').items():
           for val in value: output.updateInputValue(key, val)
         for key,value in lms.getParametersValues('output').items():
-          for val in value: output.updateOutputValue(key,val)        
-        for _ in len(lms): output.updateOutputValue('EventProbability',pb)
+          for val in value: output.updateOutputValue(key,val)
+        for _ in range(len(lms)): output.updateOutputValue('EventProbability',pb)
       elif output.type == 'FileObject':
         fileobject = open(output,'w')
         headers = lms.getParaKeys('inputs')+lms.getParaKeys('outputs')+['EventProbability']
-        fileobject.write(','.join(headers)+'/n')
+        fileobject.write(','.join(headers))
         stack  = [None]*len(headers)
-        for key,value in lms.getParametersValues('input').items() : stack.insert(headers.index(key),value.flatten())  
-        for key,value in lms.getParametersValues('output').items(): stack.insert(headers.index(key),value.flatten())
-        stack.insert(headers.index('EventProbability'),np.array([pb]*len(stack[-1])).flatten())
+        outIndex = 0
+        for key,value in lms.getParametersValues('input').items() : stack[headers.index(key)] = np.asarray(value).flatten()
+        for key,value in lms.getParametersValues('output').items():
+          stack[headers.index(key)] = np.asarray(value).flatten()
+          outIndex = headers.index(key)
+        stack[headers.index('EventProbability')] = np.array([pb]*len(stack[outIndex])).flatten()
         stacked = np.column_stack(stack)
         np.savetxt(output, stacked, delimiter=',', header=','.join(headers))
       else: self.raiseAnError(Exception, self.type + ' accepts TimePointSet or FileObject only')
@@ -900,7 +903,7 @@ class BasicStatistics(BasePostProcessor):
     if type(currentInp) == list  : currentInput = currentInp [-1]
     else                         : currentInput = currentInp
     if type(currentInput) == dict:
-      if 'targets' in currentInput.keys(): return
+      if 'targets' in currentInput.keys(): return currentInput
     inputDict = {'targets':{},'metadata':{}}
     try: inType = currentInput.type
     except:
@@ -1054,12 +1057,13 @@ class BasicStatistics(BasePostProcessor):
     #setting some convenience values
     parameterSet = list(set(list(self.parameters['targets'])))  #@Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
     N            = [np.asarray(Input['targets'][targetP]).size for targetP in parameterSet]
-    pbPresent    = Input['metadata'].keys().count('ProbabilityWeight')>0
-
-    if 'ProbabilityWeight' not in Input['metadata'].keys():
-      if Input['metadata'].keys().count('SamplerType') > 0:
-        if Input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      else: self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+    if 'metadata' in Input.keys(): pbPresent = Input['metadata'].keys().count('ProbabilityWeight')>0
+    else                         : pbPresent = False
+    if not pbPresent:
+      if 'metadata' in Input.keys():
+        if Input['metadata'].keys().count('SamplerType') > 0:
+          if Input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+        else: self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbweights    = np.zeros(len(Input['targets'][self.parameters['targets'][0]]),dtype=np.float)
       pbweights[:] = 1.0/pbweights.size # it was an Integer Division (1/integer) => 0!!!!!!!! Andrea
     else: pbweights       = Input['metadata']['ProbabilityWeight']
