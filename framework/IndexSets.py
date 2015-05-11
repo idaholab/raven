@@ -210,6 +210,7 @@ class AdaptiveSet(IndexSet):
 
   def provideNextLayer(self,maxPolyOrder=None):
     if len(self.shells[-1])==0: return []
+    self.raiseADebug('')
     self.raiseADebug('Adding a layer...')
     #self.printOut()
     new=[]

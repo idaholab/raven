@@ -2506,9 +2506,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self.convValue = float(child.text)
 
   def  localInitialize(self):
-    if 'Restart' in self.assemblerDict.keys(): self.restartData = self.assemblerDict['Restart'][0][3]
+    #if 'Restart' in self.assemblerDict.keys(): self.restartData = self.assemblerDict['Restart'][0][3]
     self.ROM = self.assemblerDict['ROM'][0][3]
-    self.raiseADebug('adapinit: '+str(self.ROM.messageHandler))
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #sampler doesn't care about which target -> or do I?
@@ -2540,14 +2539,14 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     for pt in self.sparseGrid.points()[:]:
       if pt not in self.neededPoints and pt not in self.existing:
         self.neededPoints.append(pt)
-    #self.raiseADebug('At end of initialize, needed points is '+str(self.neededPoints))
+    self.raiseADebug('At end of initialize, needed points is '+str(self.neededPoints))
 
   def _makeSparseQuad(self):
     #self.raiseADebug('Starting sparse grid generation...')
     sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
     sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
-    self.raiseADebug('sparse grid:\n',sparseGrid)
+    #self.raiseADebug('sparse grid:\n',sparseGrid)
     #if not self.solns.isItEmpty():
     #  inps = self.solns.getInpParametersValues()
       #self.existing = zip(*list(v for v in inps.values())) #done in localInitialize
@@ -2601,19 +2600,30 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     else: self.raiseAnError(NotImplementedError,'convergence type not known: '+str(self.convType))
     return err
 
+  def _updateExisting(self):
+    if not self.solns.isItEmpty():
+      inps = self.solns.getInpParametersValues()
+      #make reorder map
+      reordmap=list(inps.keys().index(i) for i in self.features)
+      solns = list(v for v in inps.values())
+      ordsolns = [solns[i] for i in reordmap]
+      self.existing = zip(*ordsolns)
+    #self.existing = zip(*list(v for v in inps.values())) #done in localInitialize TODO FIXME
+    #  inps = self.solns.getInpParametersValues()
+    #  self.existing=[]#np.zeros(shape=(len(inps.values()[0]),len(self.features)))
+    #  for f,feat in enumerate(self.features):
+    #    self.existing[:,f] = inps[feat]
+    #self.raiseADebug('EXISTING soln points:',self.existing)
+
   def localStillReady(self,ready):
     #update existing solutions
-    if not self.solns.isItEmpty():
-      #self.raiseADebug('REMAPPING')
-      inps = self.solns.getInpParametersValues()
-      self.existing = zip(*list(v for v in inps.values())) #done in localInitialize TODO FIXME
-      #remap if things got shifted ###DANGER###
-      #key = inps.keys()
-      #if not key==self.distDict.keys(): self.sparseGrid._remap(key)
+    self._updateExisting()
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
     #if we have points left, we're ready
-    if len(self.neededPoints)>0: return True
+    if len(self.neededPoints)>0:
+      #self.raiseADebug('Good to go, still have',len(self.neededPoints),'to go.')
+      return True
     #if self.newROM != None: self.oldROM = copy.deepcopy(self.newROM)
     #train new ROM
     self.newROM = self._makeAROM()
@@ -2632,7 +2642,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       else: #change is significant, so keep this point
         #self.raiseADebug('    AcceptancePoint Convergence: '+str(err)+' | '+str(new)+' | '+str(old))
         self.indexSet.accept()
-    try:self.indexSet.addPoint(self.maxPolyOrder) #ask index set to expand itself
+    try:
+      self.indexSet.addPoint(self.maxPolyOrder) #ask index set to expand itself
+      #self.raiseADebug('Found a new shell of index set points.')
     except MessageHandler.NoMoreSamplesNeeded: #all potential new points are rejected
       self.raiseADebug('No more samples to try! Declaring sampler complete.')
       self.indexSet.printOut()
@@ -2649,9 +2661,14 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.sparseGrid = self._makeSparseQuad()
     #...and find the new points we need
     self.neededPoints = []
+    #self.raiseADebug('    existing',self.existing)
     for pt in self.sparseGrid.points()[:]:
+      #self.raiseADebug('    checking',pt)
+      #self.raiseADebug('    in needed:',pt in self.neededPoints)
+      #self.raiseADebug('    in exists:',pt in self.existing)
       if pt not in self.neededPoints and pt not in self.existing:
         self.neededPoints.append(pt)
+        #self.raiseADebug('    Adding',pt,'to needed runs')
     #self.raiseADebug('New points needed: '+str(self.neededPoints))
     return True
 
