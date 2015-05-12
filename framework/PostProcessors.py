@@ -143,7 +143,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
             if self.variableDist[varName] != None: self.raiseAnError(NameError,'you can not specify both distribution and lower/upper bounds nodes for variable ' +varName+' !')
             self.lowerUpperDict[varName]['upperBound'] = float(childChild.text)
           else:
-            self.raiseAnError(NameError,'invalid labels after the variable call. Only "distribution" is accepted. tag: '+child.tag)
+            self.raiseAnError(NameError,'invalid labels after the variable call. Only "distribution", "lowerBound" abd "upperBound" is accepted. tag: '+child.tag)
       elif child.tag == 'tolerance':
         try              : self.tolerance = float(child.text)
         except ValueError: self.raiseAnError(ValueError,"tolerance can not be converted into a float value!")
