@@ -330,7 +330,7 @@ class BoostDistribution(Distribution):
 #     value = 0.0
 #     for i in str(x).strip().split(','):
 #       value +=  self._distribution.Pdf(float(i))
-# 
+#
 #     return value
     return self._distribution.Pdf(x)
 
@@ -948,7 +948,7 @@ class Categorical(Distribution):
   """
   Class for the categorical distributio also called a " generalized Bernoulli distribution"
   """
-    
+
   def __init__(self):
     Distribution.__init__(self)
     self.mapping = []
