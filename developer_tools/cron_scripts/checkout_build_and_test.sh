@@ -25,3 +25,8 @@ make -j3 || exit
 cd inputs/mpi_driver_test/
 ./test_qsubs.sh
 
+#If test qsubs failed the first time, try again
+if test $? -ne 0;
+then
+    ./test_qsubs.sh
+fi
