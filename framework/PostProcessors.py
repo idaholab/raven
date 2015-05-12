@@ -82,6 +82,10 @@ class LimitSurfaceIntegral(BasePostProcessor):
   This post-processor is aimed to compute the n-dimensional integral of an inputted Limit Surface
   """
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.variableDist   = {}                                    # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
     self.target         = None                                  # target that defines the f(x1,x2,...,xn)
@@ -259,6 +263,10 @@ class SafestPoint(BasePostProcessor):
   It searches for the probability-weighted safest point inside the space of the system controllable variables
   """
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.controllableDist = {}                                    #dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
     self.nonControllableDist = {}                                 #dictionary created upon the .xml input file reading. It stores the distributions for each non-controllale variable.
@@ -543,10 +551,17 @@ class ComparisonStatistics(BasePostProcessor):
 
   class CompareGroup:
     def __init__(self):
+      """
+       Constructor
+      """
       self.dataPulls = []
       self.referenceData = {}
 
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.dataDict = {} #Dictionary of all the input data, keyed by the name
     self.compareGroups = [] #List of each of the groups that will be compared
@@ -840,6 +855,10 @@ class PrintCSV(BasePostProcessor):
   PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
   """
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.paramters  = ['all']
     self.inObj      = None
@@ -964,6 +983,10 @@ class BasicStatistics(BasePostProcessor):
     BasicStatistics filter class. It computes all the most popular statistics
   """
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.parameters        = {}                                                                                                      #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.acceptedCalcParam = ['covariance','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtosis','median','percentile']  # accepted calculation parameters
@@ -1386,6 +1409,10 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     LoadCsvIntoInternalObject pp class. It is in charge of loading CSV files into one of the internal object (Data(s) or HDF5)
   """
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.sourceDirectory = None
     self.listOfCsvFiles = []
@@ -1463,6 +1490,10 @@ class LimitSurface(BasePostProcessor):
   """
 
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
@@ -1803,7 +1834,8 @@ class ExternalPostProcessor(BasePostProcessor):
   """
   def __init__(self,messageHandler):
     """
-      Initialization.
+     Constructor
+     @ In, messageHandler, message handler object
     """
     BasePostProcessor.__init__(self,messageHandler)
     self.methodsToRun = []              # A list of strings specifying what
