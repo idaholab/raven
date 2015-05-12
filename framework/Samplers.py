@@ -827,6 +827,9 @@ class Grid(Sampler):
     self.gridEntity.addCustomParameter("gridInfo",{})
     
     gridInfo = {}
+    self.gridEntity._readMoreXml(xmlNode,"variable")
+    
+    
     
     for child in xmlNode:
       #Add <distribution> to name so we know it is not a direct variable 
@@ -852,11 +855,11 @@ class Grid(Sampler):
             #bounds = childChild.text.split()
             #lower, upper = partialEval(bounds[0]),partialEval(bounds[1])
             
-            gridInfo[varName] = (childChild.attrib['type'],constrType,np.arange(lower,upper,(lower-upper)/partialEval(childChild.attrib['steps'])))
+            gridInfo[varName] = (childChild.attrib['type'],constrType,np.arange(lower,upper,(lower-upper)/utils.partialEval(childChild.attrib['steps'])))
             np.array()
             
             
-            self.gridInfo[varName] = (childChild.attrib['type'], constrType, 
+            #self.gridInfo[varName] = (childChild.attrib['type'], constrType, 
             
             
             

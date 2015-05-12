@@ -11,7 +11,7 @@ from scipy.interpolate import interp1d
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import returnPrintTag,returnPrintPostTag,partialEval, raiseAnError
+from utils import UreturnPrintTag,UreturnPrintPostTag,partialEval
 from BaseClasses import BaseType
 #import TreeStructure as TS
 #Internal Modules End--------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ class GridEntity(BaseType):
     return interp1d(x, np.linspace(0.0, 1.0, len(x)), kind='nearest') 
     
   def __init__(self):
-    self.printTag                               = returnPrintTag("GRID ENTITY")
+    self.printTag                               = UreturnPrintTag("GRID ENTITY")
     self.gridContainer                          = {}                 # dictionary that contains all the key feature of the grid
     self.gridContainer['dimensionNames']        = []                 # this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
     self.gridContainer['gridVectors']           = {}                 # {'name of the variable':numpy.ndarray['the coordinate']}
@@ -65,7 +65,7 @@ class GridEntity(BaseType):
         gridStruct, gridName = self._fillGrid(child)
         if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
         else: 
-          if gridName == None: raiseAnError(IOError,self,'grid defined in global_grid block must have the attribute "name"!')
+          if gridName == None: self.raiseAnError(IOError,'grid defined in global_grid block must have the attribute "name"!')
           dimName = child.tag + ':' + gridName
         gridInfo[dimName] = gridStruct
       # to be removed when better strategy for NDimensional is found
@@ -82,7 +82,7 @@ class GridEntity(BaseType):
           if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
           if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
           else: 
-            if gridName == None: raiseAnError(IOError,self,'grid defined in global_grid block must have the attribute "name"!')
+            if gridName == None: self.raiseAnError(IOError,'grid defined in global_grid block must have the attribute "name"!')
             dimName = child.tag + ':' + gridName
           gridInfo[dimName] = gridStruct
     #check for global_grid type of structure
@@ -93,11 +93,11 @@ class GridEntity(BaseType):
       if splitted[0].strip() == 'global_grid': globalGrids[splitted[1]] = gridInfo.pop(key)
     for key in gridInfo.keys():
       if gridInfo[key][0].strip() == 'global_grid':
-        if gridInfo[key][-1].strip() not in globalGrids.keys(): raiseAnError(IOError,self,'global grid for dimension named '+key+'has not been found!')
+        if gridInfo[key][-1].strip() not in globalGrids.keys(): self.raiseAnError(IOError,'global grid for dimension named '+key+'has not been found!')
         gridInfo[key] = globalGrids[gridInfo[key][-1].strip()]
       self.gridInitDict['lowerBounds'           ][key] = min(gridInfo[key][-1])
       self.gridInitDict['upperBounds'           ][key] = max(gridInfo[key][-1])
-      self.gridInitDict['stepLenght'            ][key] = 
+      self.gridInitDict['stepLenght'            ][key] = 1.0/len(gridInfo[key][-1])
       self.gridInitDict['transformationMethods' ][key] = GridEntity.transformationMethodFromCustom(gridInfo[key][-1])
       
               
@@ -116,10 +116,11 @@ class GridEntity(BaseType):
       if 'name' in child.attrib.keys(): nameGrid = child.attrib['name']
     if constrType == 'custom': return (child.attrib['type'],constrType,bounds),nameGrid
     elif constrType == 'equal':
-      if len(bounds) != 2: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> body of grid XML node needs to contain 2 values (lower and upper bounds)!')
-      return (child.attrib['type'],constrType,np.linspace(lower,upper,partialEval(child.attrib['steps']))),nameGrid
+      if len(bounds) != 2: self.raiseAnError(IOError,'body of grid XML node needs to contain 2 values (lower and upper bounds)')
+      if 'steps' not in child.attrib.keys(): self.raiseAnError(IOError,'the attribute step needs to be inputted when "construction" attribute == equal!')
+      return (child.attrib['type'],constrType,np.linspace(lower,upper,partialEval(child.attrib['steps'])+1)),nameGrid
     elif child.attrib['type'] == 'global_grid': return (child.attrib['type'],constrType,child.text),nameGrid
-    else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> construction type unknown! Got: ' + str(constrType))
+    else: self.raiseAnError(IOError,'construction type unknown! Got: ' + str(constrType))
 
   def initialize(self,initDict):
     """
@@ -131,12 +132,12 @@ class GridEntity(BaseType):
       {volumetriRatio:float}, required, p.u. volumetric ratio of the grid 
       {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate
     """
-    if type(initDict).__name__ != "dict": raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The in argument is not a dictionary')
-    if "dimensionNames" not in initDict.keys(): raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> "dimensionNames" key is not present in the initialization dictionary')
-    if "lowerBounds" not in initDict.keys(): raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> "lowerBounds" key is not present in the initialization dictionary')
-    if type(initDict["lowerBounds"]).__name__ != "dict": raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The lowerBounds entry is not a dictionary')
-    if "upperBounds" not in initDict.keys(): raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> "upperBounds" key is not present in the initialization dictionary')
-    if type(initDict["upperBounds"]).__name__ != "dict": raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The upperBounds entry is not a dictionary')
+    if type(initDict).__name__ != "dict": self.raiseAnError(Exception,'The in argument is not a dictionary!')
+    if "dimensionNames" not in initDict.keys(): self.raiseAnError(Exception,'"dimensionNames" key is not present in the initialization dictionary!')
+    if "lowerBounds" not in initDict.keys(): self.raiseAnError(Exception,'"lowerBounds" key is not present in the initialization dictionary')
+    if type(initDict["lowerBounds"]).__name__ != "dict": self.raiseAnError(Exception,'The lowerBounds entry is not a dictionary')
+    if "upperBounds" not in initDict.keys(): self.raiseAnError(Exception,'"upperBounds" key is not present in the initialization dictionary')
+    if type(initDict["upperBounds"]).__name__ != "dict": self.raiseAnError(Exception,'The upperBounds entry is not a dictionary')
     if "transformationMethods" in initDict.keys(): self.gridContainer['transformationMethods'] = initDict["transformationMethods"]
     self.nVar                            = len(initDict["dimensionNames"])
     self.gridContainer['dimensionNames'] = initDict["dimensionNames"]
@@ -145,15 +146,15 @@ class GridEntity(BaseType):
     self.gridContainer['dimensionNames'].sort()
     upperkeys.sort()
     lowerkeys.sort()
-    if upperkeys != lowerkeys != self.gridContainer['dimensionNames']: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> dimensionNames and keys in upperBounds and lowerBounds dictionaries do not correspond')
+    if upperkeys != lowerkeys != self.gridContainer['dimensionNames']: self.raiseAnError(Exception,'dimensionNames and keys in upperBounds and lowerBounds dictionaries do not correspond')
     self.gridContainer['bounds']["upperBounds" ] = initDict["upperBounds"]
     self.gridContainer['bounds']["lowerBounds"]  = initDict["lowerBounds"]
-    if "volumetricRatio" not in initDict.keys() and "stepLenght" not in initDict.keys(): raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> "volumetricRatio" or "stepLenght" key is not present in the initialization dictionary')
+    if "volumetricRatio" not in initDict.keys() and "stepLenght" not in initDict.keys(): self.raiseAnError(Exception,'"volumetricRatio" or "stepLenght" key is not present in the initialization dictionary')
     if "volumetricRatio" in initDict.keys():
       self.volumetricRatio                         = initDict["volumetricRatio"]
       stepLenght                                   = [self.volumetricRatio**(1./float(self.nVar))]*self.nVar # build the step size in 0-1 range such as the differential volume is equal to the tolerance
     else:
-      if type(initDict["stepLenght"]).__name__ != "dict": raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The stepLenght entry is not a dictionary')
+      if type(initDict["stepLenght"]).__name__ != "dict": self.raiseAnError(Exception,'The stepLenght entry is not a dictionary')
       stepLenght = []
       for dimName in self.gridContainer['dimensionNames']: stepLenght.append(initDict["stepLenght"][dimName])
       self.volumetricRatio = np.sum(stepLenght)**(1/self.nVar) # in this case it is an average => it "represents" the average volumentric ratio...not too much sense. Andrea
@@ -193,7 +194,7 @@ class GridEntity(BaseType):
     @ In, string, parameterName, name of the parameter to be returned
     @ Out, object, pointer to the requested parameter
     """
-    if parameterName not in self.gridContainer.keys(): raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> parameter '+parameterName+'unknown among ones in GridEntity class.')
+    if parameterName not in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'unknown among ones in GridEntity class.')
     return self.gridContainer[parameterName]
 
   def updateParameter(self,parameterName, newValue):
@@ -210,7 +211,7 @@ class GridEntity(BaseType):
     @ In, string, parameterName, name of the parameter to be added 
     @ Out, None
     """
-    if parameterName in self.gridContainer.keys(): raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> parameter '+parameterName+'already present in GridEntity!') 
+    if parameterName in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'already present in GridEntity!') 
     self.updateParameter(parameterName, Value)
   
   def resetIterator(self):
