@@ -246,18 +246,3 @@ def calculateStats(data):
 #   m = geometry.MultiLineString(edge_points)
 #   triangles = list(polygonize(m))
 #   return cascaded_union(triangles), edge_points
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
