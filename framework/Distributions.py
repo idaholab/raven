@@ -945,9 +945,8 @@ class Bernoulli(BoostDistribution):
 
 
 class Categorical(Distribution):
-  """Returns the factor to scale error norm by so that norm(probability)=1.
-    @ In None, None
-    @ Out float, norm
+  """
+  Class for the categorical distributio also called a " generalized Bernoulli distribution"
   """
     
   def __init__(self):
