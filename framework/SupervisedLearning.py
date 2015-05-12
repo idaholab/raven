@@ -69,6 +69,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self.target   = self.initOptionDict['Target'  ]
     self.initOptionDict.pop('Target')
     self.initOptionDict.pop('Features')
+    self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
     if self.features.count(self.target) > 0: self.raiseAnError(IOError,'The target and one of the features have the same name!')
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
@@ -560,7 +561,7 @@ class HDMRRom(GaussPolynomialRom):
       ft[tuple(featureVals[i])]=targetVals[i]
     #get the reference case
     self.refpt = tuple(self.__fillPointWithRef((),[]))
-    self.refSoln = ft[tuple(self.refpt)]
+    self.refSoln = ft[self.refpt]
     for combo,rom in self.ROMs.items():
       subtdict={}
       for c in combo: subtdict[c]=[]
@@ -928,10 +929,6 @@ __interfaceDict['SciKitLearn'         ] = SciKitLearn
 __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
 __base                                  = 'superVisedLearning'
-
-def addToInterfaceDict(newDict):
-  for key,val in newDict.items():
-    __interfaceDict[key]=val
 
 def returnInstance(ROMclass,caller,**kwargs):
   '''This function return an instance of the request model type'''

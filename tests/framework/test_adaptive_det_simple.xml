@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
     <RunInfo>
         <WorkingDir>AdaptiveDET</WorkingDir>
         <Files>ideal_pump.i,ideal_pump_control.py</Files>
@@ -133,7 +133,7 @@
             <variables>Output|systemFailed</variables>
         </Print>
         <!--
-        <Plot debug = 'True' name='limitSurfDump' dim='2' overwrite='False'>
+        <Plot verbosity='debug' name='limitSurfDump' dim='2' overwrite='False'>
             <plotSettings>
                 <plot>
                     <type>scatter</type>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="False">
+<Simulation >
     <RunInfo>
         <WorkingDir>StochasticPolyPickleTest</WorkingDir>
         <Sequence>make,train,pkDump,pkLoad,sampleNatural,samplePickle,write</Sequence>
