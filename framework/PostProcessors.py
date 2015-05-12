@@ -95,37 +95,43 @@ class LimitSurfaceIntegral(BasePostProcessor):
         self.lowerUpperDict[varName]['upperBound'] = self.variableDist[varName].upperBound
 
   def _localReadMoreXML(self,xmlNode):
-    if 'tolerance' in xmlNode.attrib.keys():
-      try              : self.tolerance = float(xmlNode.attrib['tolerance'])
-      except ValueError: self.raiseAnError(ValueError,"tolerance can not be converted into a float value!")
-    if 'integralType' in xmlNode.attrib.keys():
-      self.integralType = xmlNode.attrib['integralType'].strip().lower()
-      if self.integralType not in ['montecarlo']: self.raiseAnError(IOError,'only two integral types are available: qudrature, MonteCarlo!')
-    if 'seed' in xmlNode.attrib.keys():
-      try              : self.seed = int(xmlNode.attrib['seed'])
-      except ValueError: self.raiseAnError(ValueError,'seed can not be converted into a int value!')
-      if self.integralType != 'montecarlo': self.raiseAWarning('integral type is '+self.integralType+' but a seed has been inputted!!!')
-      else: np.random.seed(self.seed)
-    if 'target' in xmlNode.attrib.keys():
-      self.target = xmlNode.attrib['target']
-    else: self.raiseAWarning('integral target has not been provided. The postprocessor is going to take the last output it finds in the provided limitsurface!!!')
-
+    print(self.name)
     for child in xmlNode:
+      varName = None
       if child.tag == 'variable':
         varName = child.attrib['name']
+        self.lowerUpperDict[varName] = {}
         self.variableDist[varName] = None
         for childChild in child:
           if childChild.tag == 'distribution': self.variableDist[varName] = childChild.text
+          elif childChild.tag == 'lowerBound':
+            if self.variableDist[varName] != None: self.raiseAnError(NameError,'you can not specify both distribution and lower/upper bounds nodes for variable ' +varName+' !')
+            self.lowerUpperDict[varName]['lowerBound'] = float(childChild.text)
+          elif childChild.tag == 'upperBound':
+            if self.variableDist[varName] != None: self.raiseAnError(NameError,'you can not specify both distribution and lower/upper bounds nodes for variable ' +varName+' !')
+            self.lowerUpperDict[varName]['upperBound'] = float(childChild.text)
           else:
-            self.raiseAnError(NameError,'invalid labels after the variable call. Only "distribution" is accepted.')
-      else: self.raiseAnError(NameError,'invalid or missing labels after the variables call. Only "variable" is accepted.')
+            self.raiseAnError(NameError,'invalid labels after the variable call. Only "distribution" is accepted. tag: '+child.tag)
+      elif child.tag == 'tolerance':
+        try              : self.tolerance = float(child.text)
+        except ValueError: self.raiseAnError(ValueError,"tolerance can not be converted into a float value!")
+      elif child.tag == 'integralType':
+        self.integralType = child.text.strip().lower()
+        if self.integralType not in ['montecarlo']: self.raiseAnError(IOError,'only one integral types are available: MonteCarlo!')
+      elif child.tag == 'seed':
+        try              : self.seed = int(child.text)
+        except ValueError: self.raiseAnError(ValueError,'seed can not be converted into a int value!')
+        if self.integralType != 'montecarlo': self.raiseAWarning('integral type is '+self.integralType+' but a seed has been inputted!!!')
+        else: np.random.seed(self.seed)
+      elif child.tag == 'target':
+        self.target = child.text
+      else: self.raiseAnError(NameError,'invalid or missing labels after the variables call. Only "variable" is accepted.tag: '+child.tag)
       #if no distribution, we look for the integration domain in the input
-      self.lowerUpperDict[varName] = {}
-      if self.variableDist[varName] == None:
-        if 'lowerBound' not in child.attrib.keys() or 'upperBound' not in child.attrib.keys():
-          self.raiseAnError(NameError,'either a distribution name or lowerBound and upperBound need to be specified for variable '+varName)
-        self.lowerUpperDict[varName]['lowerBound'] = float(child.attrib['lowerBound'])
-        self.lowerUpperDict[varName]['upperBound'] = float(child.attrib['upperBound'])
+      if varName != None:
+        if self.variableDist[varName] == None:
+          if 'lowerBound' not in self.lowerUpperDict[varName].keys() or 'upperBound' not in self.lowerUpperDict[varName].keys():
+            self.raiseAnError(NameError,'either a distribution name or lowerBound and upperBound need to be specified for variable '+varName)
+    if self.target == None: self.raiseAWarning('integral target has not been provided. The postprocessor is going to take the last output it finds in the provided limitsurface!!!')
 
   def initialize(self,runInfo,inputs,initDict):
     self.inputToInternal(inputs)

@@ -255,7 +255,7 @@
     \item a callable object
   \end{itemize}
   %
-  If a callable is given it is used to precompute the kernel matrix.
+  If a callable is given it is used to pre-compute the kernel matrix.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
   %
@@ -4390,8 +4390,6 @@ zones that determine a change in the status of the system (Limit Surface).
  <Models>
   ...
     <PostProcessor name="computeLimitSurface" subType='LimitSurface' verbosity='debug'>
-      <what>all</what>
-      <parameters>x0,y0</parameters>
       <parameters>x0,y0</parameters>
       <ROM class='Models' type='ROM'>Acc</ROM>
       <!-- Here, you can add a ROM defined in Models block. 
@@ -4409,120 +4407,83 @@ zones that determine a change in the status of the system (Limit Surface).
 \end{lstlisting}
 
 %%%%% PP LimitSurfaceIntegral %%%%%%%
+
 \paragraph{LimitSurfaceIntegral}
 \label{LimitSurfaceIntegral}
-The \textbf{LimitSurfaceIntegral} post-processor is aimed to compute the probability of the event that
-generated a Limit Surface (either from the LimitSurface post-processor or Adaptive sampling strategies).
-The inputted Limit Surface needs to be, in the  \textbf{PostProcess} step, of type  \textbf{TimePointSet}.
+The \textbf{LimitSurfaceIntegral} post-processor is aimed to compute the likelihood (probability) of the event, whose boundaries are 
+represented by the Limit Surface (either from the LimitSurface post-processor or Adaptive sampling strategies).
+The inputted Limit Surface needs to be, in the  \textbf{PostProcess} step, of type  \textbf{TimePointSet} and needs to contain 
+both boundary sides (-1.0, +1.0).
+\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as outputs both files (CSV) and/or  \textbf{TimePointSet}s.
 
 \ppType{LimitSurfaceIntegral}{LimitSurfaceIntegral}
-\begin{itemize}
-  \item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
 \begin{itemize}
 \item \variableDescription
  \variableChildIntro
  \begin{itemize}
-    \item \distributionDescription
+    \item   \xmlNode{distribution}, \xmlDesc{string,
+               optional field}, name of the distribution that is associated to this variable.
+              Its name needs to be contained in the \xmlNode{Distributions} block explained
+              in Section \ref{sec:distributions}. If this node is not present, the  \xmlNode{lowerBound} 
+              and  \xmlNode{upperBound} XML nodes must be inputted.
+   \item   \xmlNode{lowerBound}, \xmlDesc{float,
+               optional field}, lower limit of integration domain for this dimension (variable).
+               If this node is not present, the  \xmlNode{distribution} XML node must be inputted.
+   \item   \xmlNode{upperBound}, \xmlDesc{float,
+               optional field}, upper limit of integration domain for this dimension (variable).
+               If this node is not present, the  \xmlNode{distribution} XML node must be inputted.  
   \end{itemize}
+  
+    \item  \xmlNode{tolerance}, \xmlDesc{float, optional field}, specifies the tolerance for
+               numerical integration confidence.
+                \default{1.0e-4}
+     \item  \xmlNode{integralType}, \xmlDesc{string, optional field}, specifies the type of integrations that
+                need to be used. Currently only MonteCarlo integration is available
+                \default{MonteCarlo}        
+     \item  \xmlNode{seed}, \xmlDesc{integer, optional field}, specifies the random number generator seed.
+                \default{20021986}         
+     \item  \xmlNode{target}, \xmlDesc{string, optional field}, specifies the target name that represents
+                the $f\left ( \bar{x} \right )$ that needs to be integrated.
+                \default{last output found in the inputted TimePointSet}  
 \end{itemize}
-\end{itemize}
-%The  \textbf{LimitSurfaceIntegral} 
-%
-%
-%In the \textbf{MonteCarlo} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
-%\begin{itemize}
-%\item $<sampler\textunderscore init>$, xml node, required parameter. In this xml-node,the following xml-nodes need to be specified:
-%  \begin{itemize}
-%    \item \textbf{limit}, \textit{required string attribute}, number of MonteCarlo samples needs to be generated; 
-%    \item \textbf{initial\textunderscore seed}, \textit{optional integer attribute}, initial seeding of random number generator
-%    \item \textbf{reseed\_at\_each\_iteration}, \textit{optional boolean/string attribute (case insensitive)}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \textit{Default = False}; 
-%    \item \textbf{dist\textunderscore init}, \textit{optional xml node}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}). 
-%  \end{itemize}
-%\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
-%
-%
-%\begin{itemize}
-%  \item \xmlNode{parameters}, \xmlDesc{comma separated string, required field},
-%  lists the parameters that define the uncertain domain and from which the LS
-%  needs to be computed.
-%  \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, sets the absolute
-%  value (in CDF) of the convergence tolerance.
-% %
-%  This value defines the coarseness of the evaluation grid.
-% % 
-% \default{1.0e-4}
-%  \item \xmlNode{side}, \xmlDesc{string, optional field}, in this node the user can specify
-%  which side of the limit surface needs to be computed. Three options are available: 
-%  \\ \textit{negative},  Limit Surface corresponding to the goal function value of ``-1'';
-%  \\ \textit{positive}, Limit Surface corresponding to the goal function value of ``1'';
-%  \\ \textit{both}, either positive and negative Limit Surface is going to be computed.
-%  %
-%  %
-%\default{negative}
-%  % Assembler Objects
-%  \item \textbf{Assembler Objects} These objects are either required or optional
-%  depending on the functionality of the Adaptive Sampler.
-%  %
-%  The objects must be listed with a rigorous syntax that, except for the xml
-%  node tag, is common among all the objects.
-%  %
-%  Each of these nodes must contain 2 attributes that are used to map those
-%  within the simulation framework:
-%   \begin{itemize}
-%    \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
-%    ``class'' of the listed object.
-%    %
-%    For example, it can be ``Models,'' ``Functions,'' etc.
-%    \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
-%    identifier or sub-type.
-%    %
-%    For example, it can be ``ROM,'' ``External,'' etc.
-%    %
-%  \end{itemize}
-%  The \textbf{LimitSurface} post-processor requires or optionally accepts the
-%  following objects' types:
-%   \begin{itemize}
-%    \item \xmlNode{ROM}, \xmlDesc{string, optional field}, body of this xml
-%    node must contain the name of a ROM defined in the \xmlNode{Models} block
-%    (see section \ref{subsec:models_ROM}).
-%    \item \xmlNode{Function}, \xmlDesc{string, required field}, the body of
-%    this xml block needs to contain the name of an External Function defined
-%    within the \xmlNode{Functions} main block (see section \ref{sec:functions}).
-%    %
-%    This object represents the boolean function that defines the transition
-%    boundaries.
-%    %
-%    This function must implement a method called
-%    \textit{\_\_residuumSign(self)}, that returns either -1 or 1, depending on
-%    the system conditions (see section \ref{sec:functions}).
-%    %
-%    \end{itemize}
-%\end{itemize}
-%
-%\textbf{Example:}
-%\begin{lstlisting}[style=XML,morekeywords={name,subType,debug,class,type}]
-%<Simulation>
-% ...
-% <Models>
-%  ...
-%    <PostProcessor name="computeLimitSurface" subType='LimitSurface' verbosity='debug'>
-%      <what>all</what>
-%      <parameters>x0,y0</parameters>
-%      <parameters>x0,y0</parameters>
-%      <ROM class='Models' type='ROM'>Acc</ROM>
-%      <!-- Here, you can add a ROM defined in Models block. 
-%           If it is not Present, a nearest neighbor algorithm
-%           will be used.
-%       -->
-%      <Function class='Functions' type='External'>
-%        goalFunctionForLimitSurface
-%      </Function>
-%    </PostProcessor>
-%    ...
-%  </Models>
-%  ...
-%</Simulation>
-%\end{lstlisting}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug,class,type}]
+<Simulation>
+ ...
+ <Models>
+  ...
+    <PostProcessor name="LimitSurfaceIntegralDistributions" subType='LimitSurfaceIntegral'>
+        <tolerance>0.0001</tolerance>
+        <integralType>MonteCarlo</integralType>
+        <seed>20021986</seed>
+        <target>goalFunctionOutput</target>
+        <variable name='x0'>
+          <distribution>x0_distrib</distribution>
+        </variable>
+        <variable name='y0'> 
+          <distribution>y0_distrib</distribution> 
+        </variable>
+    </PostProcessor>
+    <PostProcessor name="LimitSurfaceIntegralLowerUpperBounds" subType='LimitSurfaceIntegral'>
+        <tolerance>0.0001</tolerance>
+        <integralType>MonteCarlo</integralType>
+        <seed>20021986</seed>
+        <target>goalFunctionOutput</target>
+        <variable name='x0'>
+          <lowerBound>-2.0</lowerBound>
+          <upperBound>12.0</upperBound>
+        </variable>
+        <variable name='y0'>
+            <lowerBound>-1.0</lowerBound>
+            <upperBound>11.0</upperBound>
+        </variable>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 
