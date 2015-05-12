@@ -66,7 +66,7 @@ class Distribution(BaseType):
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
     self.disttype             = None # distribution type (continuous or discrete)
-    self.printTag             = utils.returnPrintTag('DISTRIBUTIONS')
+    self.printTag             = 'DISTRIBUTIONS'
     self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
     self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
     self.compatibleQuadrature = [] #list of compatible quadratures
