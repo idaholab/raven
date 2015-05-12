@@ -215,6 +215,22 @@ class SparseQuad(MessageHandler.MessageUser):
     return zip(*self.points())
 
   ##### PUBLIC MEMBERS #####
+  def print(self):
+    self.raiseADebug('SparseQuad: (point) | weight')
+    msg=''
+    for p in range(len(self)):
+      msg+='    ('
+      pt,wt = self[p]
+      for i in pt:
+        if i<0:
+          msg+='%1.9f,' %i
+        else:
+          msg+=' %1.9f,' %i
+      msg=msg[:-1]+') | %1.9f'%wt
+      self.raiseADebug(msg)
+      msg=''
+      #msg+='    '+str(self[p])+'\n'
+
   def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
     '''Initializes sparse quad to be functional.
     @ In indexSet, IndexSet object, index set
@@ -257,6 +273,7 @@ class SparseQuad(MessageHandler.MessageUser):
             self.SG[newpt]+=newwt
           else:
             self.SG[newpt] = newwt
+    #self.print()
 
   def addInitParams(self,adict):
     adict['indexSet']=self.indexSet

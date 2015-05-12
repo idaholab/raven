@@ -410,7 +410,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
       self.polyCoeffDict[idx]*=self.norm
     self.amITrained=True
     #self.printPolyDict()
-
+    #self._printPolynomial()
 
   def printPolyDict(self,printZeros=False):
     '''Human-readable version of the polynomial chaos expansion.
@@ -422,10 +422,9 @@ class GaussPolynomialRom(NDinterpolatorRom):
       if val > 1e-12 or printZeros:
         data.append([idx,val])
     data.sort()
-    msg='polyDict for ['+self.target+'] with inputs '+str(self.features)+': \n'
+    self.raiseADebug('polyDict for ['+self.target+'] with inputs '+str(self.features)+':')
     for idx,val in data:
-      msg+='    '+str(idx)+' '+str(val)+'\n'
-    self.raiseADebug(msg)
+      self.raiseADebug('    '+str(idx)+' '+str(val))
 
   def __evaluateMoment__(self,r):
     '''Use the ROM's built-in method to calculate moments.
@@ -449,6 +448,21 @@ class GaussPolynomialRom(NDinterpolatorRom):
     for idx,coeff in self.polyCoeffDict.items():
       tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
     return tot
+
+  def _printPolynomial(self):
+    #dim=len(self.polyCoeffDict.keys()[0])
+    #maxPoly = 0
+    #for idx in self.polyCoeffDict.keys(): maxPoly=max(maxPoly,max(idx))
+    #polys=np.zeros(shape=(dim,maxPoly))
+    self.raiseADebug('Coeff Idx')
+    for idx,coeff in self.polyCoeffDict.items():
+      if abs(coeff)<1e-12: continue
+      self.raiseADebug(str(idx))
+      for i,ix in enumerate(idx):
+        var = self.features[i]
+        print(self.polys[var][ix]*coeff,'|',var)
+
+
 
   def __returnInitialParametersLocal__(self):
     return {}#TODO 'IndexSet:':self.indexSetType,

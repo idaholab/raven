@@ -47,7 +47,7 @@ class IndexSet(MessageHandler.MessageUser):
     if len(self.points[0])==2: #graphical block visualization
       left=0
       p=0
-      while p<len(self.points)-1:
+      while p<len(self.points):
         pt = self.points[p]
         if pt[0]==left:
           msg+='  '+str(pt)
@@ -89,6 +89,26 @@ class IndexSet(MessageHandler.MessageUser):
     @ Out, array of tuples, points by dimension
     """
     return zip(*self.points)
+
+  def print(self):
+    self.raiseADebug('IndexSet Printout:')
+    if len(self.points[0])==2: #graphical block visualization
+      msg=''
+      left=0
+      p=0
+      while p<len(self.points):
+        pt = self.points[p]
+        if pt[0]==left:
+          msg+='  '+str(pt)
+          p+=1
+        else:
+          self.raiseADebug(msg)
+          msg=''
+          left+=1
+      self.raiseADebug(msg)
+    else: #just list them
+      for pt in self.points:
+        self.raiseADebug('  '+str(pt))
 
   def initialize(self,distrList,impList,maxPolyOrder,msgHandler):
     """Initialize everything index set needs
@@ -164,6 +184,8 @@ class TotalDegree(IndexSet):
         tot+=p*self.impWeights[j]
       return tot<=target
     self.points = self.generateMultiIndex(len(distrList),rule)
+    #self.raiseADebug('TD points:')
+    #self.print()
 
 
 
@@ -196,6 +218,7 @@ class AdaptiveSet(IndexSet):
     self.shells   = [] #list of lists of tuples, retained points by adaptive layer 
     self.toTry    = [] #list of new viable points to try
     self.newestPoint = self.points[0] #tuple, new point to test adding
+    self.contribs={}
 
     self.shells.append([self.points[0]])
 
@@ -204,9 +227,11 @@ class AdaptiveSet(IndexSet):
       self.toTry = self.provideNextLayer(maxPolyOrder)
       if len(self.toTry)<1: raise MessageHandler.NoMoreSamplesNeeded
     self.newestPoint = self.toTry.pop()
-    self.raiseADebug('Trying '+str(self.newestPoint))
+    self.raiseADebug('Trying',self.newestPoint)
     if self.newestPoint not in self.points:
       self.points.append(self.newestPoint)
+    self.order()
+    #self.print()
 
   def provideNextLayer(self,maxPolyOrder=None):
     if len(self.shells[-1])==0: return []
@@ -225,8 +250,22 @@ class AdaptiveSet(IndexSet):
           newpt=tuple(newpt)
           if newpt not in new and newpt not in self.rejects:
             new.append(newpt)
+    #now weed out points who don't have all dependents in points
+    totry=[]
+    for n in new:
+      found=True
+      for i in range(self.N):
+        testpt = np.array(n)
+        if testpt[i]>0:
+          testpt[i]-=1
+          testpt=tuple(testpt)
+          if testpt not in self.points:
+            found=False
+            break
+      if found: totry.append(n)
+      else: self.rejects.append(n)
     self.shells.append([])
-    return new
+    return totry
 
   def printOut(self):
     self.raiseADebug('    Index Set:')
@@ -236,17 +275,27 @@ class AdaptiveSet(IndexSet):
     for r in self.rejects:
       self.raiseADebug('        '+str(r))
 
-  def reject(self):
+  def reject(self,err=None):
     self.raiseADebug('    Rejecting '+str(self.newestPoint))
+    #self.contribs[self.newestPoint]= err if err!=None else 'n/a'
     self.rejects.append(self.newestPoint)
     self.points.remove(self.newestPoint)
 
-  def accept(self):
+  def accept(self,err=None):
     self.raiseADebug('    Keeping '+str(self.newestPoint))
+    self.contribs[self.newestPoint]= err if err!=None else 'n/a'
     if self.newestPoint not in self.shells[-1]:
       self.shells[-1].append(self.newestPoint)
 
+  def order(self):
+    import operator
+    self.points.sort(key=operator.itemgetter(*range(len(self.points[0]))))
+    #self.raiseADebug('Post-sort:',self)
 
+  def printImpact(self):
+    self.raiseADebug('Contributions in Index Set:')
+    for key,err in self.contribs.items():
+      self.raiseADebug(key,err)
 
 """
 Interface Dictionary (factory) (private)

@@ -37,13 +37,14 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
   def initialize(self,quad,messageHandler):
     self.messageHandler = messageHandler
 
-  def __getitem__(self,order):
+  def __getitem__(self,order,var=None):
     '''Returns the polynomial with order 'order';
        for example poly[2] returns the orthonormal 2nd-order polynomial object.
     @ In order, int, order of polynomial to return
     @ Out orthopoly1d object, requested polynomial
     '''
-    return self._poly(order,*self.params) * self.norm(order)
+    if var==None: return self._poly(order,*self.params) * self.norm(order)
+    else: return self._poly(order,*self.params,variable=var) * self.norm(order)
 
   def __call__(self,order,pt):
     '''Returns the polynomial of order 'order' evaluated at 'pt'.
