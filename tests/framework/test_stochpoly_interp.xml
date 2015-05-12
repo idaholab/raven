@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="False">
+<Simulation >
     <RunInfo>
         <WorkingDir>StochasticPolyInterpTest</WorkingDir>
         <Sequence>Nmake,Ntrain,Ntest,Nprint</Sequence>

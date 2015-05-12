@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
   <RunInfo>
-    <RelativeWorkingDir>test_iostep_load</RelativeWorkingDir>
+    <WorkingDir runRelative='True'>test_iostep_load</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>test_read_in,test_rewrite</Sequence>
     <batchSize>1</batchSize>
@@ -12,7 +12,7 @@
   <Samplers>
     <MonteCarlo     name='RAVENmc3'>
         <sampler_init>
-            <limit>1</limit>
+            <limit>3</limit>
             <initial_seed>1</initial_seed>
         </sampler_init>
     </MonteCarlo>

@@ -16,6 +16,10 @@ find_crow(os.path.dirname(os.path.abspath(sys.argv[0])))
 
 
 import Distributions
+import MessageHandler
+
+mh = MessageHandler.MessageHandler()
+mh.initialize({'verbosity':'debug'})
 
 print (Distributions)
 def createElement(tag,attrib={},text={}):
@@ -51,7 +55,7 @@ def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
 #Test module methods
 print(Distributions.knownTypes())
 #Test error
-try: Distributions.returnInstance("unknown")
+try: Distributions.returnInstance("unknown",'dud')
 except: print("error worked")
 
 #Test Uniform
@@ -65,6 +69,7 @@ uniformElement.append(createElement("upperBound",text="3.0"))
 uniform = Distributions.Uniform()
 uniform._readMoreXML(uniformElement)
 uniform.initializeDistribution()
+uniform.setMessageHandler(mh)
 
 #check pickled version as well
 pk.dump(uniform,file('testDistrDump.pk','wb'))
@@ -78,6 +83,8 @@ checkIntegral("uniform",uniform,1,3)
 checkAnswer("uniform cdf(1.0)",uniform.cdf(1.0),0.0)
 checkAnswer("uniform cdf(2.0)",uniform.cdf(2.0),0.5)
 checkAnswer("uniform cdf(3.0)",uniform.cdf(3.0),1.0)
+checkAnswer("uniform mean",uniform.untruncatedMean(),2.0)
+checkAnswer("uniform stddev",uniform.untruncatedStdDev(),0.5773502691896257) #sqrt((1/12))*(3.0-1.0)
 checkAnswer("puniform cdf(1.0)",puniform.cdf(1.0),0.0)
 checkAnswer("puniform cdf(2.0)",puniform.cdf(2.0),0.5)
 checkAnswer("puniform cdf(3.0)",puniform.cdf(3.0),1.0)
@@ -98,9 +105,9 @@ puniform.rvsWithinbounds(1.5,2.5)
 
 uniform.addInitParams({})
 puniform.addInitParams({})
-for _ in range(10): Distributions.randomIntegers(0,1)
+for _ in range(10): Distributions.randomIntegers(0,1,uniform)
 
-Distributions.randomIntegers(2,1)
+Distributions.randomIntegers(2,1,uniform)
 
 #Test Normal
 mean=1.0
@@ -125,6 +132,8 @@ checkIntegral("normal",normal,mean-5.*sigma,mean+5.*sigma)
 checkAnswer("normal cdf(0.0)",normal.cdf(0.0),0.308537538726)
 checkAnswer("normal cdf(1.0)",normal.cdf(1.0),0.5)
 checkAnswer("normal cdf(2.0)",normal.cdf(2.0),0.691462461274)
+checkAnswer("normal mean",normal.untruncatedMean(),1.0)
+checkAnswer("normal stddev",normal.untruncatedStdDev(),2.0)
 checkAnswer("pnormal cdf(0.0)",pnormal.cdf(0.0),0.308537538726)
 checkAnswer("pnormal cdf(1.0)",pnormal.cdf(1.0),0.5)
 checkAnswer("pnormal cdf(2.0)",pnormal.cdf(2.0),0.691462461274)
@@ -223,6 +232,8 @@ checkIntegral("gamma",gamma,0.,50.,numpts=1e5)
 checkAnswer("gamma cdf(0.0)",gamma.cdf(0.0),0.0)
 checkAnswer("gamma cdf(1.0)",gamma.cdf(1.0),0.393469340287)
 checkAnswer("gamma cdf(10.0)",gamma.cdf(10.0),0.993262053001)
+checkAnswer("gamma mean",gamma.untruncatedMean(),1.0/0.5)
+checkAnswer("gamma stddev",gamma.untruncatedStdDev(),2.0) #sqrt(1.0/0.5**2)
 checkAnswer("pgamma cdf(0.0)",pgamma.cdf(0.0),0.0)
 checkAnswer("pgamma cdf(1.0)",pgamma.cdf(1.0),0.393469340287)
 checkAnswer("pgamma cdf(10.0)",pgamma.cdf(10.0),0.993262053001)
@@ -293,6 +304,8 @@ checkIntegral("beta",beta,0.0,1.0)
 checkAnswer("beta cdf(0.1)",beta.cdf(0.1),5.5e-05)
 checkAnswer("beta cdf(0.5)",beta.cdf(0.5),0.109375)
 checkAnswer("beta cdf(0.9)",beta.cdf(0.9),0.885735)
+checkAnswer("beta mean",beta.untruncatedMean(),0.7142857142857143) # 5.0/(2.0+5.0)
+checkAnswer("beta stddev",beta.untruncatedStdDev(),0.15971914124998499) # a=5.0;b=2.0;sqrt((a*b)/((a+b)**2*(a+b+1)))
 checkAnswer("pbeta cdf(0.1)",pbeta.cdf(0.1),5.5e-05)
 checkAnswer("pbeta cdf(0.5)",pbeta.cdf(0.5),0.109375)
 checkAnswer("pbeta cdf(0.9)",pbeta.cdf(0.9),0.885735)
@@ -386,8 +399,6 @@ checkCrowDist("truncnormal beta",betan,{'scale': 4.0, 'beta': 7.520872400521023,
 
 #do an integral
 checkIntegral("truncnormal beta",betan,1.0,5.0)
-#for i in range(6):
-#  print('DEBUG',i,betan.pdf(i))
 
 checkAnswer("truncnormal beta cdf(1.0)",betan.cdf(1.0),0)
 checkAnswer("truncnormal beta cdf(2.0)",betan.cdf(2.0),0.020339936921)
@@ -424,6 +435,8 @@ checkIntegral("triangular",triangular,0.0,4.0)
 checkAnswer("triangular cdf(0.25)",triangular.cdf(0.25),0.00520833333333)
 checkAnswer("triangular cdf(3.0)",triangular.cdf(3.0),0.75)
 checkAnswer("triangular cdf(3.5)",triangular.cdf(3.5),0.9375)
+checkAnswer("triangular mean",triangular.untruncatedMean(),2.33333333333)
+checkAnswer("triangular stddev",triangular.untruncatedStdDev(),0.849836585599)
 checkAnswer("ptriangular cdf(0.25)",ptriangular.cdf(0.25),0.00520833333333)
 checkAnswer("ptriangular cdf(3.0)",ptriangular.cdf(3.0),0.75)
 checkAnswer("ptriangular cdf(3.5)",ptriangular.cdf(3.5),0.9375)
@@ -484,6 +497,8 @@ checkIntegral("poisson",poisson,0.0,1000.0, numpts=1000)
 checkAnswer("poisson cdf(1.0)",poisson.cdf(1.0),0.0915781944437)
 checkAnswer("poisson cdf(5.0)",poisson.cdf(5.0),0.7851303870304052)
 checkAnswer("poisson cdf(10.0)",poisson.cdf(10.0),0.997160233879)
+checkAnswer("poisson mean",poisson.untruncatedMean(),4.0)
+checkAnswer("poisson stddev",poisson.untruncatedStdDev(),2.0)
 checkAnswer("ppoisson cdf(1.0)",ppoisson.cdf(1.0),0.0915781944437)
 checkAnswer("ppoisson cdf(5.0)",ppoisson.cdf(5.0),0.7851303870304052)
 checkAnswer("ppoisson cdf(10.0)",ppoisson.cdf(10.0),0.997160233879)
@@ -522,6 +537,8 @@ checkIntegral("binomial",binomial,0.0,10.0,numpts=100,tol=3e-2) #TODO why is thi
 checkAnswer("binomial cdf(1)",binomial.cdf(1),0.244025230408)
 checkAnswer("binomial cdf(2)",binomial.cdf(2),0.525592803955)
 checkAnswer("binomial cdf(5)",binomial.cdf(5),0.980272293091)
+checkAnswer("binomial mean",binomial.untruncatedMean(),2.5)
+checkAnswer("binomial stddev",binomial.untruncatedStdDev(),1.3693063937629153) #sqrt(0.25*10*(1-0.25))
 checkAnswer("pbinomial cdf(1)",pbinomial.cdf(1),0.244025230408)
 checkAnswer("pbinomial cdf(2)",pbinomial.cdf(2),0.525592803955)
 checkAnswer("pbinomial cdf(5)",pbinomial.cdf(5),0.980272293091)
@@ -532,6 +549,7 @@ checkAnswer("binomial ppf(0.9)",binomial.ppf(0.9),4.0)
 checkAnswer("pbinomial ppf(0.1)",pbinomial.ppf(0.1),0.0)
 checkAnswer("pbinomial ppf(0.5)",pbinomial.ppf(0.5),2.0)
 checkAnswer("pbinomial ppf(0.9)",pbinomial.ppf(0.9),4.0)
+
 
 #Test Bernoulli
 
@@ -555,6 +573,8 @@ checkCrowDist("pbernoulli",pbernoulli,{'p': 0.4, 'type': 'BernoulliDistribution'
 
 checkAnswer("bernoulli cdf(0)",bernoulli.cdf(0),0.6)
 checkAnswer("bernoulli cdf(1)",bernoulli.cdf(1),1.0)
+checkAnswer("bernoulli mean",bernoulli.untruncatedMean(),0.4)
+checkAnswer("bernoulli stddev",bernoulli.untruncatedStdDev(),0.4898979485566356) #sqrt(0.4*(1-0.4))
 checkAnswer("pbernoulli cdf(0)",pbernoulli.cdf(0),0.6)
 checkAnswer("pbernoulli cdf(1)",pbernoulli.cdf(1),1.0)
 
@@ -591,6 +611,8 @@ checkIntegral("logistic",logistic,-5.0,13.0)
 checkAnswer("logistic cdf(0)",logistic.cdf(0.0),0.0179862099621)
 checkAnswer("logistic cdf(4)",logistic.cdf(4.0),0.5)
 checkAnswer("logistic cdf(8)",logistic.cdf(8.0),0.982013790038)
+checkAnswer("logistic mean",logistic.untruncatedMean(),4.0)
+checkAnswer("logistic stddev",logistic.untruncatedStdDev(), 1.81379936423)
 checkAnswer("plogistic cdf(0)",plogistic.cdf(0.0),0.0179862099621)
 checkAnswer("plogistic cdf(4)",plogistic.cdf(4.0),0.5)
 checkAnswer("plogistic cdf(8)",plogistic.cdf(8.0),0.982013790038)
@@ -640,6 +662,8 @@ checkIntegral("exponential",exponential,0.0,1.5)
 checkAnswer("exponential cdf(0.3)",exponential.cdf(0.3),0.7768698399)
 checkAnswer("exponential cdf(1.0)",exponential.cdf(1.0),0.993262053001)
 checkAnswer("exponential cdf(3.0)",exponential.cdf(3.0),0.999999694098)
+checkAnswer("exponential mean",exponential.untruncatedMean(),1/5.0)
+checkAnswer("exponential stddev",exponential.untruncatedStdDev(),1/5.0)
 checkAnswer("pexponential cdf(0.3)",pexponential.cdf(0.3),0.7768698399)
 checkAnswer("pexponential cdf(1.0)",pexponential.cdf(1.0),0.993262053001)
 checkAnswer("pexponential cdf(3.0)",pexponential.cdf(3.0),0.999999694098)
@@ -734,6 +758,8 @@ checkIntegral("logNormal",logNormal,0.0,10000.0,numpts=1e5,tol=3e-3)
 checkAnswer("logNormal cdf(2.0)",logNormal.cdf(2.0),0.124367703363)
 checkAnswer("logNormal cdf(1.0)",logNormal.cdf(1.0),0.0668072012689)
 checkAnswer("logNormal cdf(3.0)",logNormal.cdf(3.0),0.170879904093)
+checkAnswer("logNormal mean",logNormal.untruncatedMean(),148.4131591025766) # m=3;s=2.0;exp(m+s**2/2.0)
+checkAnswer("logNormal stddev",logNormal.untruncatedStdDev(),1086.5439790316682) #m=3;s=2.0;sqrt((exp(s**2)-1.0)*(exp(2.0*m+s**2)))
 checkAnswer("plogNormal cdf(2.0)",plogNormal.cdf(2.0),0.124367703363)
 checkAnswer("plogNormal cdf(1.0)",plogNormal.cdf(1.0),0.0668072012689)
 checkAnswer("plogNormal cdf(3.0)",plogNormal.cdf(3.0),0.170879904093)
@@ -832,6 +858,8 @@ checkIntegral("weibull",weibull,0.0,100.0)
 checkAnswer("weibull cdf(0.5)",weibull.cdf(0.5),0.29781149863)
 checkAnswer("weibull cdf(0.2)",weibull.cdf(0.2),0.0855593563928)
 checkAnswer("weibull cdf(2.0)",weibull.cdf(2.0),0.940894253438)
+checkAnswer("weibull mean",weibull.untruncatedMean(),0.9027452929509336) #l=1.0;k=1.5;l*gamma(1+1/k)
+checkAnswer("weibull stddev",weibull.untruncatedStdDev(),0.6129357917546762) #l=1.0;k=1.5;sqrt(l**2*(gamma(1+2/k)-(gamma(1+1/k))**2))
 checkAnswer("pweibull cdf(0.5)",pweibull.cdf(0.5),0.29781149863)
 checkAnswer("pweibull cdf(0.2)",pweibull.cdf(0.2),0.0855593563928)
 checkAnswer("pweibull cdf(2.0)",pweibull.cdf(2.0),0.940894253438)
@@ -913,6 +941,7 @@ ndCartesianSplineElement.append(filenode)
 ndCartesianSplineElement.append(createElement("working_dir", text="ND_test_Grid_cdf/"))
 
 ndCartesianSpline = Distributions.NDCartesianSpline()
+ndCartesianSpline.setMessageHandler(mh)
 ndCartesianSpline._readMoreXML(ndCartesianSplineElement)
 ndCartesianSpline.initializeDistribution()
 

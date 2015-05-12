@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="False">
+<Simulation >
     <RunInfo>
         <WorkingDir>StochasticPolyTest</WorkingDir>
         <Sequence>Umake,Utrain,Utest,Uprint,
@@ -191,6 +191,8 @@
         <OutStreamStep name='Uprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Utests</Input>
             <Output  class='OutStreamManager' type='Print'                >Udump</Output>
+            <Input   class='Models'           type='ROM'                  >UROM</Input>
+            <Output  class='OutStreamManager' type='Print'                >Udumprom</Output>
         </OutStreamStep>
 
         <MultiRun name='UCmake' pauseAtEnd='False'>
@@ -212,6 +214,8 @@
         <OutStreamStep name='UCprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >UCtests</Input>
             <Output  class='OutStreamManager' type='Print'                >UCdump</Output>
+            <Input   class='Models'           type='ROM'                  >UCROM</Input>
+            <Output  class='OutStreamManager' type='Print'                >UCdumprom</Output>
         </OutStreamStep>
 
         <MultiRun name='Nmake' pauseAtEnd='False'>
@@ -233,6 +237,8 @@
         <OutStreamStep name='Nprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Ntests</Input>
             <Output  class='OutStreamManager' type='Print'                >Ndump</Output>
+            <Input   class='Models'           type='ROM'                  >NROM</Input>
+            <Output  class='OutStreamManager' type='Print'                >Ndumprom</Output>
         </OutStreamStep>
 
         <MultiRun name='Gmake' pauseAtEnd='False'>
@@ -254,6 +260,8 @@
         <OutStreamStep name='Gprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Gtests</Input>
             <Output  class='OutStreamManager' type='Print'                >Gdump</Output>
+            <Input   class='Models'           type='ROM'                  >GROM</Input>
+            <Output  class='OutStreamManager' type='Print'                >Gdumprom</Output>
         </OutStreamStep>
 
         <MultiRun name='Bmake' pauseAtEnd='False'>
@@ -275,6 +283,8 @@
         <OutStreamStep name='Bprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Btests</Input>
             <Output  class='OutStreamManager' type='Print'                >Bdump</Output>
+            <Input   class='Models'           type='ROM'                  >BROM</Input>
+            <Output  class='OutStreamManager' type='Print'                >Bdumprom</Output>
         </OutStreamStep>
 
         <MultiRun name='BNmake' pauseAtEnd='False'>
@@ -296,6 +306,8 @@
         <OutStreamStep name='BNprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >BNtests</Input>
             <Output  class='OutStreamManager' type='Print'                >BNdump</Output>
+            <Input   class='Models'           type='ROM'                  >BNROM</Input>
+            <Output  class='OutStreamManager' type='Print'                >BNdumprom</Output>
         </OutStreamStep>
 
         <MultiRun name='Tmake' pauseAtEnd='False'>
@@ -317,6 +329,8 @@
         <OutStreamStep name='Tprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Ttests</Input>
             <Output  class='OutStreamManager' type='Print'                >Tdump</Output>
+            <Input   class='Models'           type='ROM'                  >TROM</Input>
+            <Output  class='OutStreamManager' type='Print'                >Tdumprom</Output>
         </OutStreamStep>
 
         <MultiRun name='Emake' pauseAtEnd='False'>
@@ -338,114 +352,49 @@
         <OutStreamStep name='Eprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Etests</Input>
             <Output  class='OutStreamManager' type='Print'                >Edump</Output>
+            <Input   class='Models'           type='ROM'                  >EROM</Input>
+            <Output  class='OutStreamManager' type='Print'                >Edumprom</Output>
         </OutStreamStep>
 
     </Steps>
 
     <DataObjects>
-        <TimePointSet name="dummyIN">
-            <Input>x1,x2</Input>
-            <Output>OutputPlaceHolder</Output>
-        </TimePointSet>
-        <TimePointSet name='Utests'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Usolns'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='UCtests'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='UCsolns'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Ntests'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Nsolns'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Gtests'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Gsolns'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Btests'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Bsolns'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='BNtests'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='BNsolns'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Ttests'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Tsolns'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Etests'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Esolns'>
-            <Input>x1,x2</Input>
-            <Output>ans</Output>
-        </TimePointSet>
+        <TimePointSet name="dummyIN"><Input>x1,x2</Input><Output>OutputPlaceHolder</Output></TimePointSet>
+        <TimePointSet name='Utests' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Usolns' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='UCtests'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='UCsolns'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Ntests' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Nsolns' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Gtests' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Gsolns' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Btests' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Bsolns' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='BNtests'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='BNsolns'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Ttests' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Tsolns' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Etests' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Esolns' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
     </DataObjects>
 
     <OutStreamManager>
-        <Print name='Udump'>
-            <type>csv</type>
-            <source>Utests</source>
-        </Print>
-        <Print name='UCdump'>
-            <type>csv</type>
-            <source>UCtests</source>
-        </Print>
-        <Print name='Ndump'>
-            <type>csv</type>
-            <source>Ntests</source>
-        </Print>
-        <Print name='Gdump'>
-            <type>csv</type>
-            <source>Gtests</source>
-        </Print>
-        <Print name='Bdump'>
-            <type>csv</type>
-            <source>Btests</source>
-        </Print>
-        <Print name='BNdump'>
-            <type>csv</type>
-            <source>BNtests</source>
-        </Print>
-        <Print name='Tdump'>
-            <type>csv</type>
-            <source>Ttests</source>
-        </Print>
-        <Print name='Edump'>
-            <type>csv</type>
-            <source>Etests</source>
-        </Print>
+        <Print name='Udump' ><type>csv</type><source>Utests</source></Print>
+        <Print name='UCdump'><type>csv</type><source>UCtests</source></Print>
+        <Print name='Ndump' ><type>csv</type><source>Ntests</source></Print>
+        <Print name='Gdump' ><type>csv</type><source>Gtests</source></Print>
+        <Print name='Bdump' ><type>csv</type><source>Btests</source></Print>
+        <Print name='BNdump'><type>csv</type><source>BNtests</source></Print>
+        <Print name='Tdump' ><type>csv</type><source>Ttests</source></Print>
+        <Print name='Edump' ><type>csv</type><source>Etests</source></Print>
+        <Print name='Udumprom' ><type>xml</type><source>UROM</source><what>all</what></Print>
+        <Print name='UCdumprom'><type>xml</type><source>UCROM</source><what>all</what></Print>
+        <Print name='Ndumprom' ><type>xml</type><source>NROM</source><what>all</what></Print>
+        <Print name='Gdumprom' ><type>xml</type><source>GROM</source><what>all</what></Print>
+        <Print name='Bdumprom' ><type>xml</type><source>BROM</source><what>all</what></Print>
+        <Print name='BNdumprom'><type>xml</type><source>BNROM</source><what>all</what></Print>
+        <Print name='Tdumprom' ><type>xml</type><source>TROM</source><what>all</what></Print>
+        <Print name='Edumprom' ><type>xml</type><source>EROM</source><what>all</what></Print>
     </OutStreamManager>
 
 </Simulation>

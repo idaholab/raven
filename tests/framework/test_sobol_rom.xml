@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="False">
+<Simulation >
     <RunInfo>
         <WorkingDir>SobolRom</WorkingDir>
         <Sequence>make,train,test,print</Sequence>
@@ -66,6 +66,8 @@
         <OutStreamStep name='print'>
             <Input   class='DataObjects'            type='TimePointSet' >tests</Input>
             <Output  class='OutStreamManager' type='Print'        >dump</Output>
+            <Input   class='Models'           type='ROM'          >rom</Input>
+            <Output  class='OutStreamManager' type='Print'        >dumprom</Output>
         </OutStreamStep>
     </Steps>
 
@@ -88,6 +90,11 @@
         <Print name='dump'>
             <type>csv</type>
             <source>tests</source>
+        </Print>
+        <Print name='dumprom'>
+            <type>xml</type>
+            <source>rom</source>
+            <what>all </what>
         </Print>
     </OutStreamManager>
 </Simulation>

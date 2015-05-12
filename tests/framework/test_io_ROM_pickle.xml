@@ -14,8 +14,8 @@
     <Input    class = 'DataObjects'     type = 'TimePointSet'   >Data1</Input>
     <Model    class = 'Models'    type = 'ExternalModel'  >XM1</Model>
     <Output   class = 'DataObjects'     type = 'TimePointSet'   >Data2</Output>    
-  </MultiRun >
-  <RomTrainer name='step2' debug='False'>
+  </MultiRun>
+  <RomTrainer name='step2'>
         <Input   class='DataObjects'  type='TimePointSet'>Data2</Input>
         <Output  class='Models' type='ROM'         >ROM1</Output>
   </RomTrainer>
@@ -32,13 +32,13 @@
     <Input    class = 'DataObjects'     type = 'TimePointSet'   >Data1</Input>
     <Model    class = 'Models'    type = 'ROM'            >ROM1</Model>
     <Output   class = 'DataObjects'     type = 'TimePointSet'   >Data3</Output>    
-  </MultiRun >
+  </MultiRun>
   <MultiRun name = 'step6' pauseAtEnd = 'False'>
     <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
     <Input    class = 'DataObjects'     type = 'TimePointSet'   >Data1</Input>
     <Model    class = 'Models'    type = 'ROM'            >ROM2</Model>
     <Output   class = 'DataObjects'     type = 'TimePointSet'   >Data4</Output>    
-  </MultiRun >
+  </MultiRun>
   <IOStep name='step7' pauseAtEnd='False'>
         <Input   class='DataObjects'      type='TimePointSet'>Data3</Input>
         <Input   class='DataObjects'      type='TimePointSet'>Data4</Input>

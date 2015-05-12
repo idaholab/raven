@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 
 <RunInfo>
     <WorkingDir>LHStestFerret</WorkingDir>
@@ -26,7 +26,7 @@
     </Uniform>
 </Distributions>
 <Samplers>
-    <LHS name='myLHS'>
+    <Stratified name='myLHS'>
       <variable name='BCs|left|value' >
         <distribution >Gauss1</distribution>
         <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.3</grid>
@@ -35,7 +35,7 @@
         <distribution >Uniform1</distribution>
         <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
       </variable>
-    </LHS>
+    </Stratified>
 </Samplers>
 
 
@@ -44,7 +44,7 @@
     <MultiRun name='myLHS'>
       <Input   class = 'Files'      type=''          >simple_diffusion.i</Input>
       <Model   class = 'Models'     type='Code'      >Ferret</Model>
-      <Sampler class='Samplers' type='LHS'         >myLHS</Sampler>
+      <Sampler class='Samplers' type='Stratified'         >myLHS</Sampler>
       <Output  class='Databases'    type='HDF5'>test_ferret_lhs</Output>
     </MultiRun >
 </Steps>

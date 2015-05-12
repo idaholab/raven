@@ -154,7 +154,7 @@ that will contain few methods (with strict syntax) that are called by RAVEN duri
 \begin{lstlisting}[language=python]
 from CodeInterfaceBaseClass import CodeInterfaceBase
 class NewCode(CodeInterfaceBase):
-  def generateCommand(self, inputFiles, executable, flags = None)
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None)
   def createNewInput(self, currentInputFiles, oriInputFiles,
                                 samplerType, **Kwargs)                           
   def finalizeCodeOutput(self, command, output, workingDir)
@@ -175,34 +175,32 @@ Hence, the return data type must be a TUPLE.
 \begin{itemize}
   \item \textbf{\textit{inputFiles}}, data type = list: List of input files (lenght of the list depends on the 
            number of inputs  have been added in the Step is running this code);
-  \item \textbf{\textit{executable}} , data type = string, executable name with absolute 
+  \item \textbf{\textit{executable}}, data type = string, executable name with absolute 
             path \\(e.g. /home/path\_to\_executable/code.exe);
-  \item  \textbf{\textit{flags}} , data type = string, a string containing the flags the 
-               user can specify in the input (e.g. under the node $<Code><flags>-u -r</flags></Code>$).
+  \item  \textbf{\textit{clargs}}, \emph{optional}, data type = dict, a dictionary containing the command-line flags the 
+               user can specify in the input (e.g. under the node $<Code><clargs type='input' arg='-i' extension='.inp'/></Code>$).
+  \item  \textbf{\textit{fargs}}, \emph{optional}, data type = dict, a dictionary containing the axuiliary input file variables the 
+               user can specify in the input (e.g. under the node $<Code><clargs type='input' arg='aux' extension='.aux'/></Code>$).
 \end{itemize}
 For the example referred in the previous section, this method would be implemented as follows:
 \newline
 \begin{lstlisting}[language=python]
-  def generateCommand(self,inputFiles,executable,flags=None):
+  def generateCommand(self,inputFiles,executable,clargs=None, fargs=None):
     found = False
     for index, inputFile in enumerate(inputFiles):
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raise Exception(``NEWER CODE ERROR ->
-                      None of the input files has one of the
-                      following extensions ".i", ".inp"!'')
-    outputfile = 'out~'+
-       os.path.split(inputFiles[index])[1].split('.')[0]
-    if flags: precommand = executable + flags
-    else    : precommand = executable
-    executeCommand = (precommand +
-       `` -i '' +os.path.split(inputFiles[index])[1])
+    if not found: raiseAnError(IOError,'MOOSEBASEDAPP_INTERFACE',
+          `None of the input files has one of the following extensions: ` +
+           ` `.join(self.getInputExtension()))
+    outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
+    executeCommand = (executable+ ` -i ` +os.path.split(inputFiles[index])[1])
     return executeCommand,outputfile
 \end{lstlisting} 
 \subsubsection{Method: \textit{def createNewInput(self,currentInputFiles,
                                        \\oriInputFiles, samplerType,**Kwargs)}} 
-\label{subsubsec:generateCommand}
+\label{subsubsec:createNewInput}
 The \textbf{createNewInput} method is used to generate an input based 
 on the information RAVEN passes in. In this function the developer needs to 
 call the driven code input parser in order to modify the input file, accordingly with

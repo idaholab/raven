@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 <RunInfo>
     <WorkingDir>mpi_bison_test</WorkingDir>
     <Files>case_1.i,case_1.e</Files>
@@ -37,7 +37,7 @@
     </Normal>
 </Distributions>
 <Samplers>
-    <LatinHyperCube name='myLHS'>
+    <Stratified name='myLHS'>
       <sampler_init>
         <initial_seed>1</initial_seed>
       </sampler_init>
@@ -49,7 +49,7 @@
         <distribution  >Gauss2</distribution>
         <grid type='CDF' construction='equal' upperBound='0.99' steps='9'>0.1</grid>
       </variable>
-    </LatinHyperCube>
+    </Stratified>
 </Samplers>
 
 <DataObjects>
@@ -64,7 +64,7 @@
       <Input   class = 'Files'      type=''          >case_1.i</Input>
       <Input   class = 'Files'      type=''          >case_1.e</Input>
       <Model   class = 'Models'     type='Code'      >Bison</Model>
-      <Sampler class='Samplers' type='LHS'         >myLHS</Sampler>
+      <Sampler class='Samplers' type='Stratified'         >myLHS</Sampler>
       <Output  class='Databases'    type='HDF5'>test_bison_mpi_lhs</Output>
       <Output class='DataObjects' type='Histories'>stories</Output>
     </MultiRun >

@@ -102,11 +102,24 @@ experiment, low i causes high output, but in the simulation low i
 causes low output, that is, the sign of the correlation is wrong.
 
 This should be similar to the formula used before, but now we have
-$P(ex | S)$ instead of just $P(ex)$.
+$P(ex | S)$ instead of just $P(ex)$.  This is the probability of ex
+conditional on S.  The probability of the simulation (s) is the
+results of the input chosen, the input chosen is related to the
+experimental reading via the correlation of the sensors in the
+experiments.
 
 \begin{equation}
   \int_{-\infty}^{\infty}dSP(S) \int_{-\infty}^{\infty} dex(S-ex) P(ex | S)
 \end{equation}
 
+\section{Goals for 2015}
+
+\begin{itemize}
+\item Determine if the correlation between an input and output are the same in the experiment and in the calculated version. If the probability distributions are the same, is the same thing being calculated?
+\item Look at the correlation between input and output.
+\item Look at examining multiple figures of merit (distance measure?).  Especially if some of the output is correlated.
+\item Look at the correlation between inputs.
+\item (Optional)Look at time dependent analysis (fourier transforms and such.)
+\end{itemize}
 
 \end{document}

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 
 <RunInfo>
     <WorkingDir>LHStest</WorkingDir>
@@ -33,7 +33,7 @@
     </Triangular>
 </Distributions>
 <Samplers>
-    <LHS name='myLHS' initial_seed ='1'>
+    <Stratified name='myLHS' initial_seed ='1'>
       <sampler_init>
         <initial_seed>1</initial_seed>
       </sampler_init>
@@ -49,7 +49,7 @@
         <distribution >Gauss2</distribution>
         <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
       </variable>
-    </LHS>
+    </Stratified>
 </Samplers>
 
 <OutStreamManager>
@@ -73,7 +73,7 @@
     <MultiRun name='myLHS'>
         <Input   class='DataObjects'    type='TimePointSet' >dummyIN</Input>
         <Model   class='Models'   type='Dummy'        >MyDummy</Model>
-        <Sampler class='Samplers' type='LHS'          >myLHS</Sampler>
+        <Sampler class='Samplers' type='Stratified'          >myLHS</Sampler>
         <Output  class='DataObjects'    type='TimePointSet' >outLHS</Output>
         <Output  class='OutStreamManager' type='Print'>outLHS_dump</Output>
     </MultiRun >
