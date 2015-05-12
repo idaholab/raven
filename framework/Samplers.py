@@ -820,7 +820,7 @@ class Grid(Sampler):
 
   def localInputAndChecks(self,xmlNode):
     """reading and construction of the grid"""
-    if 'limit' in xmlNode.attrib.keys(): utils.raiseAnError(IOError,self,'limit is not used in Grid sampler')
+    if 'limit' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
     if not self.axisName: self.axisName = []
     gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'transformationMethods':{},'stepLenght':{}}
@@ -839,7 +839,7 @@ class Grid(Sampler):
           gridInitDict['dimensionNames'].append(varName)
           constrType = childChild.attrib['construction']
           
-          bounds = [partialEval(element) for element in childChild.text.split()]
+          bounds = [utils.partialEval(element) for element in childChild.text.split()]
           bounds.sort()
           lower, upper = min(bounds), max(bounds)
           if constrType == 'custom':
