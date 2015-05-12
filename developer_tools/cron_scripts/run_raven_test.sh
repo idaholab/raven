@@ -1,8 +1,17 @@
 #!/bin/bash
 
+SCRIPT_NAME=`readlink $0`
+if test -x "$SCRIPT_NAME";
+then
+    SCRIPT_DIRNAME=`dirname $SCRIPT_NAME`
+else
+    SCRIPT_DIRNAME=`dirname $0`
+fi
+SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
+
 #Change these to whatever is correct locally
-RAVEN_HOME=$HOME/raven/falcon/fal_pack/
-RESULT_EMAIL=joshua.cogliati@inl.gov
+RAVEN_HOME=`(cd ${SCRIPT_DIR}/../../../ && pwd)`
+RESULT_EMAIL=${RESULT_EMAIL:=joshua.cogliati@inl.gov}
 
 DATE_STRING=`date '+%F_%R'`
 echo "Started" > $HOME/raven/logs/cron_started_${DATE_STRING}

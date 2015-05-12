@@ -18,7 +18,15 @@ git clone git@hpcgitlab.inl.gov:idaholab/crow.git
 git clone git@hpcgitlab.inl.gov:idaholab/raven.git
 
 cd raven
-make -j3 || exit
+make -j3
+
+#If make failed the first time, try again
+if test $? -ne 0;
+then
+    (cd ../crow && git clean -f -x -d .)
+    git clean -f -x -d .
+    make -j3 || exit
+fi
 
 ./run_tests -j3 --no-color
 
