@@ -98,21 +98,24 @@ Actually, two different OutStream types are available:
   %
 \end{itemize}
 \vspace{-5mm}
-Both the types listed above only accept as ``input'' a \textit{Data} object
+Both the types listed above accept as ``input'' a \textit{DataObjects} object
 type.
 %
-This choice is due to the ``\textit{Datas}'' system (see
-section~\ref{sec:Datas}) having the main advantage of ensuring a standardized
+This choice is due to the ``\textit{DataObjects}'' system (see
+section~\ref{sec:DataObjects}) having the main advantage of ensuring a standardized
 approach for exchanging the data/meta-data among the different framework
 entities.
 %
-Every module can project its outcomes into a \textit{Data} object.
+Every module can project its outcomes into a \textit{DataObjects} object.
 %
 This provides the user with the capability to visualize/dump all the modules'
 results.
 %
+Additionally, the \textbf{Print} system can accept a ROM and inquire some of its
+specialized methods.
+%
 As already mentioned, the RAVEN
-framework input is based on the \textbf{E}xtensible \textbf{M}arkup
+framework input is based on the e\textbf{X}tensible \textbf{M}arkup
 \textbf{L}anguage (\textbf{XML}) format.
 %
 Thus, in order to activate the ``\textit{OutStream}'' system, the input needs to
@@ -137,20 +140,26 @@ in the following sections.
 %%%%%%%%%
 \subsection{Printing system \label{sec:printing}}
 The Printing system has been created in order to let the user dump the data,
-contained in the internal data objects (see Section~\ref{sec:Datas}), out
+contained in the internal data objects (see Section~\ref{sec:DataObjects}), out
 at anytime during the calculation.
 %
+Additionally, the user can inquire special methods of a \textbf{ROM} after training it,
+through a printing step.
+%
 Currently, the only available output is a \textbf{C}omma \textbf{S}eparated
-\textbf{V}alue (\textbf{CSV}) file.
+\textbf{V}alue (\textbf{CSV}) file for \textbf{DataObjects}, and \textbf{XML}
+for \textbf{ROM} objects.
 %
 %In the near future, an XML formatted file option will be available.
 %
 This will facilitate the exchanging of results and provide the possibility to
 dump the solution of an analysis and ``restart'' another one constructing a
-\textit{Data} from scratch.
+data object from scratch, as well as access advanced features of particular
+reduced order models.
 %
+\subsubsection{\textbf{DataObjects} Printing}
 The XML code, that is reported below, shows different ways to request a
-\textit{Print} OutStream.
+\textit{Print} OutStream for \textbf{DataObjects}.
 %
 The user needs to provide a name for each sub-block (XML attribute).
 %
@@ -164,9 +173,9 @@ least, the two required tags:
   \itemsep0em
   \item \xmlNode{type}, the output file type (csv or xml).
   %
-  \nb Only \textbf{csv} is currently available
-  \item \xmlNode{source}, the \textit{Data} name (one of the \textit{Data} 
-  defined in the \xmlNode{Datas} block.
+  \nb Only \textbf{csv} is currently available for \xmlNode{DataObjects}
+  \item \xmlNode{source}, the \textit{Data} name (one of the \textit{Data} items
+  defined in the \xmlNode{DataObjects} block.
 \end{itemize}
 \vspace{-5mm}
 If only these two tags are provided (as in the ``first-example'' below), the
@@ -217,6 +226,62 @@ The available options, for the \xmlNode{variables} sub-block, are listed below:
 \end{itemize}
 \vspace{-5mm}
 Note all of the XML tags are case-sensitive but not their content.
+
+\subsubsection{\textbf{ROM} Printing}
+While all \textbf{ROM}s in RAVEN are designed to be used as surrogate models,
+some \textbf{ROM}s additionally offer information about the original model that
+isn't accessible through another means.  For instance, \textbf{HDMRRom} objects
+can calculate sensitivity coefficients for subsets of the input domain.
+%
+The XML code shown below demonstrates the methods to request these features
+from a \textbf{ROM}.
+%
+The user needs to provide a \xmlNode{name} for each sub-block (XML attribute).
+%
+These names are then used in the \textit{Step} blocks to activate the Printing keywords
+at any time.
+%
+As shown in the examples below, every \xmlNode{Print} block for ROMs must contain, at least, the
+three required tags
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \xmlNode{type}, the output file type (csv or xml).
+  %
+  \nb Only \textbf{xml} is currently available for ROMs
+  \item \xmlNode{source}, the \textit{ROM} name (one of the \xmlNode{ROM} items
+  defined in the \xmlNode{Models} block.
+    %
+  \item \xmlNode{what}, the comma-separated list of desired metrics.
+  The list of metrics available in each ROM is listed under that ROM
+  type in Section \ref{subsec:models_ROM}.  Alternatively, the
+  keyword \xmlString{all} can be provided to request all available metrics, if any.
+\end{itemize}
+\vspace{-5mm}
+Addtionally, when printing ROMs one optional node is available,
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \xmlNode{target}, the ROM target for which to inquire data
+
+\end{itemize}
+\vspace{-5mm}
+ROM printing uses the same naming conventions as DataObjects printing.
+Examples:
+\begin{lstlisting}[style=XML]
+<OutStreamManager>
+  <Print name='first-ROM-example'>
+    <type>xml</type>
+    <source>mySobolRom</source>
+    <what>all</what>
+  </Print>
+  <Print name='second-ROM-example'>
+    <type>xml</type>
+    <source>myGaussPolyRom</source>
+    <what>mean,variance</what>
+  </Print>
+</OutStreamManager>
+\end{lstlisting}
 %
 %%%%%%%%%
 % PLOTTING SYSTEM
@@ -288,7 +353,7 @@ contains two main sub-nodes:
   \item \xmlNode{actions}, where general control options for the figure layout
   are defined (see Section~\ref{sec:actionsBlock}).
   %
-  \item \xmlNode{plot\_settings}, where the actual plot options are provided.
+  \item \xmlNode{plotSettings}, where the actual plot options are provided.
   \vspace{-5mm}
 \end{itemize}
 
@@ -311,7 +376,9 @@ In the following list, all the predefined ``actions'' are reported:
   \item \xmlNode{how}, comma separated list of output types:
      \begin{itemize}
     \item \texttt{screen}, show the figure on the screen in interactive mode
-    \item \texttt{pdf}, save the figure as a Portable Document Format file (PDF)
+    \item \texttt{pdf}, save the figure as a Portable Document Format file (PDF). 
+    \nb The pdf format does not support multiple layers that lay on the same pixel. If the
+    user gets an error about this, he/she should move to another format.
     \item \texttt{png}, save the figure as a Portable Network Graphics file
     (PNG)
     \item \texttt{eps}, save the figure as an Encapsulated Postscript file (EPS)
@@ -354,7 +421,7 @@ In the following list, all the predefined ``actions'' are reported:
     %
   \end{itemize}
 % LABEL FORMAT
-  \item \xmlNode{label\_format}, within this block the default scale formatting
+  \item \xmlNode{labelFormat}, within this block the default scale formatting
   can be modified.
   %
   In the body, a few other tags are available:
@@ -389,7 +456,7 @@ In the following list, all the predefined ``actions'' are reported:
     %
   \end{itemize}
 % FIGURE PROPERTIES
-  \item \xmlNode{figure\_properties}, within this block the user specifies how
+  \item \xmlNode{figureProperties}, within this block the user specifies how
   to customize the figure style/quality.
   %
   Thus, through this ``action'' the user has got full control on the quality of
@@ -469,7 +536,7 @@ In the following list, all the predefined ``actions'' are reported:
     \nb This keyword is effective in 3-D plots only.
   \end{itemize}
 % ADD_TEXT
-  \item \xmlNode{add\_text}, same as title.
+  \item \xmlNode{addText}, same as title.
 % AUTOSCALE
   \item \xmlNode{autoscale}, is a convenience method for simple axis view
   autoscaling.
@@ -500,7 +567,7 @@ In the following list, all the predefined ``actions'' are reported:
     %
   \end{itemize}
 %HORIZONTAL_LINE
-  \item \xmlNode{horizontal\_line}, this ``action'' provides the ability to draw
+  \item \xmlNode{horizontalLine}, this ``action'' provides the ability to draw
   a horizontal line in the current figure.
   %
   This capability might be useful, for example, if the user wants to highlight a
@@ -542,7 +609,7 @@ In the following list, all the predefined ``actions'' are reported:
   \nb This capability is not available for 3-D plots.
   %
 %VERTICAL_LINE
-  \item \xmlNode{vertical\_line}, similar to the ``horizontal\_line'' action,
+  \item \xmlNode{verticalLine}, similar to the ``horizontalLine'' action,
   this block provides the ability to draw a vertical line in the current figure.
   %
   This capability might be useful, for example, if the user wants to highlight a
@@ -584,7 +651,7 @@ In the following list, all the predefined ``actions'' are reported:
   \nb This capability is not available for 3-D plots.
   %
 %HORIZONTAL_RECTANGLE
-  \item \xmlNode{horizontal\_rectangle}, this ``action'' provides the ability to
+  \item \xmlNode{horizontalRectangle}, this ``action'' provides the ability to
   draw, in the current figure, a horizontally orientated rectangle.
   %
   This capability might be useful, for example, if the user wants to highlight a
@@ -626,7 +693,7 @@ In the following list, all the predefined ``actions'' are reported:
   \nb This capability is not available for 3D plots.
   %
 %VERTICAL_RECTANGLE
-  \item \xmlNode{vertical\_rectangle}, this ``action'' provides the possibility
+  \item \xmlNode{verticalRectangle}, this ``action'' provides the possibility
   to draw, in the current figure, a vertically orientated rectangle.
   %
   This capability might be useful, for example, if the user wants to highlight a
@@ -668,11 +735,11 @@ In the following list, all the predefined ``actions'' are reported:
   \nb This capability is not available for 3D plots.
   %
 %AXES_BOX
-  \item \xmlNode{axes\_box}, this keyword controls the axes' box.
+  \item \xmlNode{axesBox}, this keyword controls the axes' box.
   %
   Its value can be `on' or `off'.
   %
-  \item \xmlNode{axis\_properties}, this block is used to set axis properties.
+  \item \xmlNode{axisProperties}, this block is used to set axis properties.
   %
   There are no fixed keywords.
   %
@@ -716,14 +783,14 @@ In the following list, all the predefined ``actions'' are reported:
 %%%%%%%%%%%%%
 %Plot block sub-sub-sub section
 %%%%%%%%%%%%%
-\paragraph{``plot\_settings'' input block \label{sec:plotSettings}}
-The sub-block identified by the keyword \xmlNode{plot\_settings} is used to
+\paragraph{``plotSettings'' input block \label{sec:plotSettings}}
+The sub-block identified by the keyword \xmlNode{plotSettings} is used to
 define the plot characteristics.
 %
 Within this sub-section at least a \xmlNode{plot} block must be present.
 %
 the \xmlNode{plot} sub-section may not be unique within the
-\xmlNode{plot\_settings} definition; the number of \xmlNode{plot} sub-blocks is
+\xmlNode{plotSettings} definition; the number of \xmlNode{plot} sub-blocks is
 equal to the number of plots that need to be placed in the same figure.
 %
 For example, in the following XML cut, a ``line'' and a ``scatter'' type are
@@ -735,7 +802,7 @@ combined in the same figure.
     <actions>
       <!-- Actions -->
     </actions>
-    <plot\_settings>
+    <plotSettings>
        <plot>
         <type>line</type>
         <x>d-type|Output|x1</x>
@@ -748,11 +815,11 @@ combined in the same figure.
       </plot>
       <xlabel>label X</xlabel>
       <ylabel>label Y</ylabel>
-    </plot\_settings>
+    </plotSettings>
   </Plot>
 </OutStreamManager>
 \end{lstlisting}
-As already mentioned, within the \xmlNode{plot\_settings} block, at least a
+As already mentioned, within the \xmlNode{plotSettings} block, at least a
 \xmlNode{plot} sub-block needs to be specified.
 %
 Independent of the plot type, some keywords are mandatory:
@@ -770,7 +837,7 @@ Independent of the plot type, some keywords are mandatory:
 In addition, other plot-dependent keywords, reported in
 Section~\ref{sec:23Dplotting}, can be provided.
 
-Under the \xmlNode{plot\_settings} block other keywords, common to all of the
+Under the \xmlNode{plotSettings} block other keywords, common to all of the
 plots the user decided to combine in the figure, can be specified, such as:
 \begin{itemize}
   \item \xmlNode{xlabel}, \xmlDesc{string, optional parameter}, the x axis
@@ -784,9 +851,9 @@ plots the user decided to combine in the figure, can be specified, such as:
   %
 \end{itemize}
 As already mentioned, the Plot system accepts as input for the visual parameters
-(i.e., x, y, z, colorMap), data only from a \textbf{Datas} object.
+(i.e., x, y, z, colorMap), data only from a \textbf{DataObjects} object.
 %
-Considering the structure of ``Datas,'' the parameters are inputted as follows:
+Considering the structure of ``DataObjects,'' the parameters are inputted as follows:
 \texttt{DataObjectName|Input(or)Output|variableName}.
 
 If the ``variableName'' contains the symbol \texttt{|}, it must be surrounded by
@@ -1133,7 +1200,7 @@ respectively.
 %
 In order to customize the plot, the user can define the following XML sub-nodes:
 \begin{itemize}
-  \item \xmlNode{number\_bins}, \xmlDesc{integer, optional field}, sets the 
+  \item \xmlNode{numberBins}, \xmlDesc{integer, optional field}, sets the 
   number of bins.
   %
   \default{5}
@@ -1292,7 +1359,7 @@ to write in the \xmlNode{type} body the keyword ``contour3D'' or ``filledContour
 In order to customize these plots, the user can define the following XML sub
 nodes:
 \begin{itemize}
-  \item \xmlNode{number\_bins}, \xmlDesc{integer, optional field}, sets the
+  \item \xmlNode{numberBins}, \xmlDesc{integer, optional field}, sets the
   number of bins to use.
   %
   \default{5}

@@ -32,10 +32,12 @@ from collections import OrderedDict
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import MessageHandler
+import TreeStructure
 interpolationND = utils.find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
-class superVisedLearning(metaclass_insert(abc.ABCMeta)):
+class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
   """
   This is the general interface to any superVisedLearning learning method.
   Essentially it contains a train, and evaluate methods
@@ -55,18 +57,20 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     if len(arrayin.shape) > 1: return(False, ' The array must be 1-d')
     return (True,'')
 
-  def __init__(self,**kwargs):
-    self.printTag = utils.returnPrintTag('SuperVised')
+  def __init__(self,messageHandler,**kwargs):
+    self.printTag = 'SuperVised'
+    self.messageHandler = messageHandler
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
-    if 'Features' not in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'Feature names not provided')
-    if 'Target'   not in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'Target name not provided')
+    if 'Features' not in self.initOptionDict.keys(): self.raiseAnError(IOError,'Feature names not provided')
+    if 'Target'   not in self.initOptionDict.keys(): self.raiseAnError(IOError,'Target name not provided')
     self.features = self.initOptionDict['Features'].split(',')
     self.target   = self.initOptionDict['Target'  ]
     self.initOptionDict.pop('Target')
     self.initOptionDict.pop('Features')
-    if self.features.count(self.target) > 0: utils.raiseAnError(IOError,self,'The target and one of the features have the same name!')
+    self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
+    if self.features.count(self.target) > 0: self.raiseAnError(IOError,'The target and one of the features have the same name!')
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}
@@ -84,21 +88,21 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
       @ In, tdict, training dictionary
       @ Out, None
     """
-    if type(tdict) != dict: utils.raiseAnError(TypeError,self,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    if type(tdict) != dict: self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
     if self.target in names: targetValues = values[names.index(self.target)]
-    else                   : utils.raiseAnError(IOError,self,'The output sought '+self.target+' is not in the training set')
+    else                   : self.raiseAnError(IOError,'The output sought '+self.target+' is not in the training set')
     # check if the targetValues are consistent with the expected structure
     resp = self.checkArrayConsistency(targetValues)
-    if not resp[0]: utils.raiseAnError(IOError,self,'In training set for target '+self.target+':'+resp[1])
+    if not resp[0]: self.raiseAnError(IOError,'In training set for target '+self.target+':'+resp[1])
     # construct the evaluation matrixes
     featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: utils.raiseAnError(IOError,self,'The feature sought '+feat+' is not in the training set')
+      if feat not in names: self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: utils.raiseAnError(IOError,self,'In training set for feature '+feat+':'+resp[1])
-        if values[names.index(feat)].size != featureValues[:,0].size: utils.raiseAnError(IOError,self,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
+        if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
+        if values[names.index(feat)].size != featureValues[:,0].size: self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
@@ -122,17 +126,17 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     This call is used to get an estimate of the confidence in the prediction.
     The base class self.confidence will translate a dictionary into numpy array, then call the local confidence
     """
-    if type(edict) != dict: utils.raiseAnError(IOError,self,'method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    if type(edict) != dict: self.raiseAnError(IOError,'method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values   = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index])
-      if not resp[0]: utils.raiseAnError(IOError,self,'In evaluate request for feature '+names[index]+':'+resp[1])
+      if not resp[0]: self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: utils.raiseAnError(IOError,self,'The feature sought '+feat+' is not in the evaluate set')
+      if feat not in names: self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: utils.raiseAnError(IOError,self,'In training set for feature '+feat+':'+resp[1])
+        if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = values[names.index(feat)]
     return self.__confidenceLocal__(featureValues)
 
@@ -144,18 +148,18 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     @ In, tdict, evaluation dictionary
     @ Out, numpy array of evaluated points
     """
-    if type(edict) != dict: utils.raiseAnError(IOError,self,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    if type(edict) != dict: self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values  = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index])
-      if not resp[0]: utils.raiseAnError(IOError,self,'In evaluate request for feature '+names[index]+':'+resp[1])
+      if not resp[0]: self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: utils.raiseAnError(IOError,self,'The feature sought '+feat+' is not in the evaluate set')
+      if feat not in names: self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: utils.raiseAnError(IOError,self,'In training set for feature '+feat+':'+resp[1])
+        if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     return self.__evaluateLocal__(featureValues)
 
@@ -173,6 +177,27 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
   def returnCurrentSetting(self):
     """return the set of parameters of the ROM that can change during simulation"""
     return dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
+
+  def printXML(self,rootnode,options=None):
+    '''
+      Allows the SVE to put whatever it wants into an XML to print to file.
+      @ In, rootnode, the root node of an XML tree to print to
+      @ In, options, dict of string-based options to use, including filename, things to print, etc
+      @ Out, treedict, dict of strings to be printed
+    '''
+    node = TreeStructure.Node(self.target)
+    rootnode.appendBranch(node)
+    self._localPrintXML(node,options)
+
+  def _localPrintXML(self,node,options=None):
+    '''
+      Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
+      @ In, node, the node to which strings should have text added
+      @ In, options, dict of string-based options to use, including filename, things to print, etc
+      @ Out, treedict, dict of strings to be printed
+    '''
+    #if treedict=={}: treedict={'PrintOptions':'ROM of type '+str(self.printTag.strip())+' has no special output options.'}
+    node.addText('ROM of type '+str(self.printTag.strip())+' has no special output options.')
 
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
@@ -208,10 +233,10 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
 #
 #
 class NDinterpolatorRom(superVisedLearning):
-  def __init__(self,**kwargs):
-    superVisedLearning.__init__(self,**kwargs)
+  def __init__(self,messageHandler,**kwargs):
+    superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.interpolator = None
-    self.printTag = utils.returnPrintTag('ND Interpolation ROM')
+    self.printTag = 'ND Interpolation ROM'
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -225,7 +250,7 @@ class NDinterpolatorRom(superVisedLearning):
     self.interpolator.fit(featv,targv)
 
   def __confidenceLocal__(self,featureVals):
-    utils.raiseAnError(NotImplementedError,self,'NDinterpRom   : __confidenceLocal__ method must be implemented!')
+    self.raiseAnError(NotImplementedError,'NDinterpRom   : __confidenceLocal__ method must be implemented!')
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -238,7 +263,7 @@ class NDinterpolatorRom(superVisedLearning):
     for n_sample in range(featureVals.shape[0]):
       featv = interpolationND.vectd(featureVals[n_sample][:])
       prediction[n_sample] = self.interpolator.interpolateAt(featv)
-      utils.raiseAMessage(self,'NDinterpRom   : Prediction by ' + self.__class__.ROMtype + '. Predicted value is ' + str(prediction[n_sample]))
+      self.raiseAMessage('NDinterpRom   : Prediction by ' + self.__class__.ROMtype + '. Predicted value is ' + str(prediction[n_sample]))
     return prediction
 
   def __returnInitialParametersLocal__(self):
@@ -247,7 +272,7 @@ class NDinterpolatorRom(superVisedLearning):
     return localInitParam
 
   def __returnCurrentSettingLocal__(self):
-    utils.raiseAnError(NotImplementedError,self,'NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!')
+    self.raiseAnError(NotImplementedError,'NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!')
 
 class GaussPolynomialRom(NDinterpolatorRom):
   def __confidenceLocal__(self,edict):pass #TODO
@@ -257,10 +282,10 @@ class GaussPolynomialRom(NDinterpolatorRom):
 
   def __returnCurrentSettingLocal__(self):pass #TODO
 
-  def __init__(self,**kwargs):
-    superVisedLearning.__init__(self,**kwargs)
+  def __init__(self,messageHandler,**kwargs):
+    superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.interpolator  = None #FIXME what's this?
-    self.printTag      = utils.returnPrintTag('GAUSSgpcROM('+self.target+')')
+    self.printTag      = 'GAUSSgpcROM('+self.target+')'
     self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
     self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
     self.itpDict       = {}   #dict of quad,poly,weight choices keyed on varName
@@ -283,14 +308,35 @@ class GaussPolynomialRom(NDinterpolatorRom):
                              'weight':'1'}
           for atrName,atrVal in val.items():
             if atrName in ['poly','quad','weight']: self.itpDict[var][atrName]=atrVal
-            else: utils.raiseAnError(IOError,self,'Unrecognized option: '+atrName)
+            else: self.raiseAnError(IOError,'Unrecognized option: '+atrName)
 
     if not self.indexSetType:
-      utils.raiseAnError(IOError,self,'No IndexSet specified!')
+      self.raiseAnError(IOError,'No IndexSet specified!')
     if not self.maxPolyOrder:
-      utils.raiseAnError(IOError,self,'No maxPolyOrder specified!')
+      self.raiseAnError(IOError,'No maxPolyOrder specified!')
     if self.maxPolyOrder < 1:
-      utils.raiseAnError(IOError,self,'Polynomial order cannot be less than 1 currently.')
+      self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
+
+  def _localPrintXML(self,node,options=None):
+    if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    self.mean=None
+    canDo = ['mean','variance']
+    if 'what' in options.keys():
+      requests = list(o.strip() for o in options['what'].split(','))
+      if 'all' in requests: requests = canDo
+      for request in requests:
+        request=request.strip()
+        newnode = TreeStructure.Node(request)
+        if   request.lower() in ['mean','expectedvalue']:
+          if self.mean == None: self.mean = self.__evaluateMoment__(1)
+          newnode.setText(self.mean)
+        elif request.lower() in ['variance']:
+          if self.mean == None: self.mean = self.__evaluateMoment__(1)
+          newnode.setText(self.__evaluateMoment__(2) - self.mean*self.mean)
+        else:
+          self.raiseAWarning('ROM does not know how to return '+request)
+          newnode.setText('not found')
+        node.appendBranch(newnode)
 
   def _localNormalizeData(self,values,names,feat):
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
@@ -319,24 +365,30 @@ class GaussPolynomialRom(NDinterpolatorRom):
     return tot
 
   def __trainLocal__(self,featureVals,targetVals):
+    '''See base class.'''
     self.polyCoeffDict={}
-    #check consistency of featureVals
-    if len(featureVals)!=len(self.sparseGrid):
-      utils.raiseAnError(IOError,self,'ROM requires '+str(len(self.sparseGrid))+' points, but '+str(len(featureVals))+' provided!')
     #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
     self.sparseGrid._remap(self.features)
+    self.raiseAMessage('types: '+str(type(self.sparseGrid.points()))+' | '+str(type(featureVals)))
     #check equality of point space
-    fvs = featureVals[:]
+    fvs = []
+    tvs=[]
     sgs = self.sparseGrid.points()[:]
-    fvs=sorted(fvs,key=itemgetter(*range(len(fvs[0]))))
-    sgs=sorted(sgs,key=itemgetter(*range(len(sgs[0]))))
-    msg='\n'
-    if not np.allclose(fvs,sgs,rtol=1e-15):
-      msg+='DEBUG featureVals | sparseGridVals:\n'
-      for i in range(len(fvs)):
-        msg+='  '+str(fvs[i])+' | '+str(sgs[i])+'\n'
-      utils.raiseAWarning(self,msg)
-      utils.raiseAnError(IOError,self,'input values do not match required values!')
+    missing=[]
+    for pt in sgs:
+      found,idx,point = utils.NDInArray(featureVals,pt)
+      if found:
+        fvs.append(point)
+        tvs.append(targetVals[idx])
+      else:
+        missing.append(pt)
+    if len(missing)>0:
+      msg='\n'
+      msg+='DEBUG missing feature vals:\n'
+      for i in missing:
+        msg+='  '+str(i)+'\n'
+      self.raiseADebug(msg)
+      self.raiseAnError(IOError,'input values do not match required values!')
     #make translation matrix between lists
     translate={}
     for i in range(len(fvs)):
@@ -346,7 +398,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
       wtsum=0
-      for pt,soln in zip(featureVals,targetVals):
+      for pt,soln in zip(fvs,tvs):
         stdPt = np.zeros(len(pt))
         for i,p in enumerate(pt):
           varName = self.sparseGrid.varNames[i]
@@ -355,7 +407,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
     self.amITrained=True
-    #self.printPolyDict()
 
   def printPolyDict(self,printZeros=False):
     """Human-readable version of the polynomial chaos expansion.
@@ -370,7 +421,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     msg='polyDict for ['+self.target+'] with inputs '+str(self.features)+': \n'
     for idx,val in data:
       msg+='    '+str(idx)+' '+str(val)+'\n'
-    utils.raiseAMessage(msg)
+    self.raiseAMessage(msg)
 
   def __evaluateMoment__(self,r):
     """Use the ROM's built-in method to calculate moments.
@@ -411,10 +462,10 @@ class HDMRRom(GaussPolynomialRom):
   def _localNormalizeData(self,values,names,feat):
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
-  def __init__(self,**kwargs):
+  def __init__(self,messageHandler,**kwargs):
     '''Initializes SupervisedEngine. See base class.'''
-    superVisedLearning.__init__(self,**kwargs)
-    self.printTag      = utils.returnPrintTag('HDMR_ROM('+self.target+')')
+    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    self.printTag      = 'HDMR_ROM('+self.target+')'
     self.sobolOrder    = None #depth of HDMR/Sobol expansion
     self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
     self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
@@ -428,6 +479,8 @@ class HDMRRom(GaussPolynomialRom):
     self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
     self.sdx           = None #dict of sobol sensitivity coeffs, keyed on order and tuple(varnames)
+    self.mean          = None #mean, store to avoid recalculation
+    self.variance      = None #variance, store to avoid recalculation
 
     for key,val in kwargs.items():
       if key=='SobolOrder': self.sobolOrder = int(val)
@@ -449,6 +502,37 @@ class HDMRRom(GaussPolynomialRom):
     if self.maxPolyOrder < 1:
       raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
 
+  def _localPrintXML(self,node,options=None):
+    if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    self.mean=None
+    canDo = ['mean','variance','indices']
+    if 'what' in options.keys():
+      requests = list(o.strip() for o in options['what'].split(','))
+      if 'all' in requests: requests = canDo
+      for request in requests:
+        request=request.strip()
+        newnode = TreeStructure.Node(request)
+        #node.appendBranch(newnode)
+        if request.lower() in ['mean','expectedvalue']: newnode.setText(self.__mean__())
+        elif request.lower() in ['variance']: newnode.setText(self.__variance__())
+        elif request.lower() in ['indices']:
+          pcts,totpct,totvar = self.getPercentSensitivities(returnTotal=True)
+          vnode = TreeStructure.Node('total_variance')
+          vnode.setText(totvar)
+          newnode.appendBranch(vnode)
+          entries=[]
+          for combo,val in pcts.items():
+            entries.append((combo,val))
+          entries.sort(key=itemgetter(1),reverse=True)
+          for combo,sens in entries:
+            snode = TreeStructure.Node(str(combo))
+            snode.setText(sens)
+            newnode.appendBranch(snode)
+        else:
+          self.raiseAWarning('ROM does not know how to return '+request)
+          newnode.setText('not found')
+        node.appendBranch(newnode)
+
   def _localNormalizeData(self,values,names,feat):
     '''Overwrite normalization. See base class.'''
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
@@ -461,7 +545,6 @@ class HDMRRom(GaussPolynomialRom):
     '''Called by sampler to pass necessary information along.  See base class.'''
     for key,value in idict.items():
       if   key == 'ROMs' : self.ROMs       = value
-      #elif key == 'SG'   : self.sparseGrid = value
       elif key == 'dists': self.distDict   = value
       elif key == 'quads': self.quads      = value
       elif key == 'polys': self.polys      = value
@@ -478,7 +561,7 @@ class HDMRRom(GaussPolynomialRom):
       ft[tuple(featureVals[i])]=targetVals[i]
     #get the reference case
     self.refpt = tuple(self.__fillPointWithRef((),[]))
-    self.refSoln = ft[tuple(self.refpt)]
+    self.refSoln = ft[self.refpt]
     for combo,rom in self.ROMs.items():
       subtdict={}
       for c in combo: subtdict[c]=[]
@@ -507,39 +590,6 @@ class HDMRRom(GaussPolynomialRom):
 
     self.amITrained = True
 
-    #do a couple moments, for kicks -> TODO this should all go into ROM calls
-    #if self.debug: #TODO SupervisedEngine doesn't have debug??
-#    prt('\n| SOBOL Decomposition for '+self.target+' using inputs '+str(self.features)+': ')
-#    prt('|\n| Moments')
-#    prt('|   Mean     = %f' %self.__mean__())
-#    prt('|   Variance = %f' %self.__variance__())
-#    #try the variance
-#    #try sensitivities
-#    prt('|\n| Absolute Sensitivities')
-#    self.getSensitivities()
-#    insig=[]
-#    for combo in self.ROMs.keys():
-#      if abs(self.sdx[len(combo)][combo])>1e-12:
-#        prt('|   Index %s = %f' %(combo,self.sdx[len(combo)][combo]))
-#      else:
-#        insig.append(combo)
-#    if len(insig)>0: prt('|   Contributes less than 1e-12:',insig)
-#    # percent sensitivities
-#    prt('|\n| Percent Sensitivities')
-#    pcts,totpct,totvar = self.getPercentSensitivities(returnTotal=True)
-#    #pcts,totpct,totvar = self.getPercentSensitivities(variance=1.604468e-4,returnTotal=True)
-#    insig=[]
-#    for combo,val in pcts.items():
-#      if abs(val)>1e-12:
-#        prt('|   Index %s = %f' %(combo,val))
-#      else: insig.append(combo)
-#    if len(insig)>0: prt('|   Contributes less than 1e-12:',insig)
-#    prt('| Total:',totvar,'(',totpct*100,'%)')
-#    # evaluations
-#    prt('|\n| SOBOL evaluations')
-#    prt('|   f(0.5,3,2) =',self.__evaluateLocal__([[0.5,3,2]]))
-#    prt('|   f(1,1,1) =',self.__evaluateLocal__([[1,1,1]]))
-
   def __fillPointWithRef(self,combo,pt):
     '''Given a "combo" subset of the full input space and a partially-filled
        point within that space, fills the rest of space with the reference
@@ -558,6 +608,7 @@ class HDMRRom(GaussPolynomialRom):
 
   def __mean__(self):
     '''The Cut-HDMR approximation can return its mean easily.'''
+    if self.mean != None: return self.mean
     vals={'':self.refSoln}
     for i,c in enumerate(self.combos):
       for combo in c:
@@ -568,10 +619,12 @@ class HDMRRom(GaussPolynomialRom):
             if set(doneCombo).issubset(set(combo)):
               vals[combo] -= vals[doneCombo]
     tot = sum(vals.values())
+    self.mean=tot
     return tot
 
   def __variance__(self):
     '''The Cut-HDMR approximation can return its variance easily.'''
+    if self.variance != None: return self.variance
     vals={}
     for i,c in enumerate(self.combos):
       for combo in c:
@@ -583,12 +636,13 @@ class HDMRRom(GaussPolynomialRom):
             if set(doneCombo).issubset(set(combo)):
               vals[combo] -= vals[doneCombo]
     tot = sum(vals.values())
+    self.variance = tot
     return tot
 
   def __evaluateLocal__(self,featureVals):
     '''Evaluates ROM at given points.  See base class.'''
     #am I trained?
-    if not self.amITrained: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> Cannot evaluate, as ROM is not trained!')
+    if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate, as ROM is not trained!')
     fvals=dict(zip(self.features,featureVals[0]))
     vals={'':self.refSoln}
     for i,c in enumerate(self.combos):
@@ -613,11 +667,11 @@ class HDMRRom(GaussPolynomialRom):
       @ In, kind, string, the metric to use when calculating sensitivity indices. Defaults to variance.
     '''
     if kind.lower().strip() not in ['mean','variance']:
-      raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR'),'-> Requested sensitivity benchmark is %s, but expected "mean" or "variance".' %kind)
+      self.raiseAnError(IOError,'Requested sensitivity benchmark is %s, but expected "mean" or "variance".' %kind)
     avail = max(list(len(combo) for combo in self.ROMs.keys()))
     if maxLevel==None: maxLevel = avail
     else:
-      if maxLevels>avail: raise IOError(self.printTag+': '+utils.returnPrintPostTag('ERROR')+'-> Requested level %i for sensitivity analyis, but this composition is at most %i order!' %(maxLevel,avail) )
+      if maxLevels>avail: self.raiseAnError(IOError,'Requested level %i for sensitivity analyis, but this composition is at most %i order!' %(maxLevel,avail) )
 
     self.sdx = {}
     for l in range(maxLevel+1):
@@ -665,9 +719,9 @@ class HDMRRom(GaussPolynomialRom):
 #
 class NDsplineRom(NDinterpolatorRom):
   ROMtype         = 'NDsplineRom'
-  def __init__(self,**kwargs):
-    NDinterpolatorRom.__init__(self,**kwargs)
-    self.printTag = utils.returnPrintTag('ND-SPLINE ROM')
+  def __init__(self,messageHandler,**kwargs):
+    NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
+    self.printTag = 'ND-SPLINE ROM'
     self.interpolator = interpolationND.NDspline()
 
   def __resetLocal__(self):
@@ -676,12 +730,12 @@ class NDsplineRom(NDinterpolatorRom):
 #
 #
 #
-class NDinvDistWeigth(NDinterpolatorRom):
-  ROMtype         = 'NDinvDistWeigth'
-  def __init__(self,**kwargs):
-    NDinterpolatorRom.__init__(self,**kwargs)
-    self.printTag = utils.returnPrintTag('ND-INVERSEWEIGHT ROM')
-    if not 'p' in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
+class NDinvDistWeight(NDinterpolatorRom):
+  ROMtype         = 'NDinvDistWeight'
+  def __init__(self,messageHandler,**kwargs):
+    NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
+    self.printTag = 'ND-INVERSEWEIGHT ROM'
+    if not 'p' in self.initOptionDict.keys(): self.raiseAnError(IOError,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
     self.interpolator = interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p']))
 
   def __resetLocal__(self):
@@ -692,11 +746,11 @@ class NDinvDistWeigth(NDinterpolatorRom):
 #
 class NDmicroSphere(NDinterpolatorRom):
   ROMtype         = 'NDmicroSphere'
-  def __init__(self,**kwargs):
-    NDinterpolatorRom.__init__(self,**kwargs)
-    self.printTag = utils.returnPrintTag('ND-MICROSPHERE ROM')
-    if not 'p' in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'the <p> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
-    if not 'precision' in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'the <precision> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
+  def __init__(self,messageHandler,**kwargs):
+    NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
+    self.printTag = 'ND-MICROSPHERE ROM'
+    if not 'p' in self.initOptionDict.keys(): self.raiseAnError(IOError,'the <p> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
+    if not 'precision' in self.initOptionDict.keys(): self.raiseAnError(IOError,'the <precision> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
     self.interpolator = interpolationND.microSphere(float(self.initOptionDict['p']),int(self.initOptionDict['precision']))
 
   def __resetLocal__(self):
@@ -794,14 +848,14 @@ class SciKitLearn(superVisedLearning):
       elif  callable(getattr(myDict[key2][0], "score"        , None)): qualityEstTypeDict[key1][key2] += ['score']
       else                                                           : qualityEstTypeDict[key1][key2] = False
 
-  def __init__(self,**kwargs):
-    superVisedLearning.__init__(self,**kwargs)
-    self.printTag = utils.returnPrintTag('SCIKITLEARN')
-    if 'SKLtype' not in self.initOptionDict.keys(): utils.raiseAnError(IOError,self,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.name+')')
+  def __init__(self,messageHandler,**kwargs):
+    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    self.printTag = 'SCIKITLEARN'
+    if 'SKLtype' not in self.initOptionDict.keys(): self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.name+')')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.initOptionDict.pop('SKLtype')
-    if not SKLtype in self.__class__.availImpl.keys(): utils.raiseAnError(IOError,self,'not known SKLtype ' + SKLtype +'(from ROM '+self.name+')')
-    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): utils.raiseAnError(IOError,self,'not known SKLsubType ' + SKLsubType +'(from ROM '+self.name+')')
+    if not SKLtype in self.__class__.availImpl.keys(): self.raiseAnError(IOError,'not known SKLtype ' + SKLtype +'(from ROM '+self.name+')')
+    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): self.raiseAnError(IOError,'not known SKLsubType ' + SKLsubType +'(from ROM '+self.name+')')
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
     self.ROM                      = self.__class__.availImpl[SKLtype][SKLsubType][0]()
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
@@ -849,7 +903,7 @@ class SciKitLearn(superVisedLearning):
 
   def __confidenceLocal__(self,edict):
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)
-    else            : utils.raiseAnError(IOError,self,'the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
+    else            : self.raiseAnError(IOError,'the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
 
   def __evaluateLocal__(self,featureVals):
     return self.ROM.predict(featureVals)
@@ -861,7 +915,7 @@ class SciKitLearn(superVisedLearning):
     return self.ROM.get_params()
 
   def __returnCurrentSettingLocal__(self):
-    utils.raiseAMessage(self,'here we need to collect some info on the ROM status','FIXME')
+    self.raiseADebug('here we need to collect some info on the ROM status')
     localInitParam = {}
     return localInitParam
 #
@@ -869,23 +923,23 @@ class SciKitLearn(superVisedLearning):
 #
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom
-__interfaceDict['NDinvDistWeigth'     ] = NDinvDistWeigth
+__interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
 __interfaceDict['microSphere'         ] = NDmicroSphere
 __interfaceDict['SciKitLearn'         ] = SciKitLearn
 __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
 __base                                  = 'superVisedLearning'
 
-def addToInterfaceDict(newDict):
-  for key,val in newDict.items():
-    __interfaceDict[key]=val
+# def addToInterfaceDict(newDict):
+#   for key,val in newDict.items():
+#     __interfaceDict[key]=val
 
-def returnInstance(ROMclass,**kwargs):
+def returnInstance(ROMclass,caller,**kwargs):
   """This function return an instance of the request model type"""
-  try: return __interfaceDict[ROMclass](**kwargs)
-  except KeyError: utils.raiseAnError(NameError,'SUPERVISEDLEARNING','not known '+__base+' type '+str(ROMclass))
+  try: return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)
+  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
 
-def returnClass(ROMclass):
+def returnClass(ROMclass,caller):
   """This function return an instance of the request model type"""
   try: return __interfaceDict[ROMclass]
-  except KeyError: utils.raiseAnError(NameError,'SUPERVISEDLEARNING','not known '+__base+' type '+ROMclass)
+  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+ROMclass)

@@ -1,0 +1,169 @@
+<Simulation>
+	
+
+<RunInfo>
+  <WorkingDir>results</WorkingDir>
+  <Sequence>load_seed_dataset,GoalOrientedStep,push_limitsurface_in_database</Sequence>
+  <batchSize>20</batchSize>
+</RunInfo>
+
+<Databases>
+    <HDF5 name="out_db" filename="out_db.h5" directory="DatabaseStorage"/>
+    <HDF5 name="out_db_adaptive" directory="DatabaseStorage"/>
+    <HDF5 name="out_db_ls" directory="DatabaseStorage"/>
+</Databases>
+
+<Steps>  
+  <IOStep name="load_seed_dataset">
+    <Input   class="Databases"          type="HDF5"         >out_db</Input>
+    <Output  class="DataObjects"        type="TimePointSet" >outAdaptive</Output>
+  </IOStep>
+  <MultiRun name="GoalOrientedStep" pauseAtEnd='True'>
+    <Input   class="DataObjects"             type="TimePoint"     >inputPlaceHolder</Input>
+    <Model   class="Models"                  type="ExternalModel" >PythonModule</Model>
+    <Sampler class="Samplers"                type="Adaptive"      >workshopAdaptive</Sampler>
+    <Output  class="DataObjects"             type="TimePointSet"  >outAdaptive</Output>
+    <Output  class="Databases"               type="HDF5"          >out_db_adaptive</Output>
+    <SolutionExport class="DataObjects"      type="TimePointSet"  >limitSurface</SolutionExport>
+    <Output         class='OutStreamManager' type='Plot'          >plotlimitSurface</Output>
+    <Output         class='OutStreamManager' type='Plot'          >adaptivePointsLocation</Output>
+  </MultiRun>
+  <IOStep name="push_limitsurface_in_database">
+    <Input   class="DataObjects"        type="TimePointSet"  >limitSurface</Input>
+    <Output  class="Databases"          type="HDF5"          >out_db_ls</Output>
+    <Output  class='OutStreamManager'   type='Print'         >limitSurfaceCSV</Output>
+  </IOStep>
+
+</Steps>
+
+<DataObjects>
+    <TimePointSet name="outAdaptive">
+        <Input>x1,x2,x3</Input>
+        <Output>y3,y4,y5,failure</Output>
+    </TimePointSet>
+    <TimePointSet name="limitSurface">
+        <Input>x1,x2,x3</Input>
+        <Output>goalFunction</Output>
+    </TimePointSet>
+    <TimePoint name="inputPlaceHolder">
+        <Input>x1,x2,x3</Input>
+        <Output>OutputPlaceHolder</Output>
+    </TimePoint>
+</DataObjects>
+
+
+<Distributions>
+    <Normal name="normal_trunc">
+        <mean>0.5</mean>
+        <sigma>0.1</sigma>
+        <lowerBound>0.0</lowerBound>
+        <upperBound>1.0</upperBound>
+    </Normal>
+    <Normal name="normal">
+        <mean>2.0</mean>
+        <sigma>0.2</sigma>
+        <lowerBound>0.0</lowerBound>
+        <upperBound>4.0</upperBound>
+    </Normal>
+    <Uniform name="uniform">
+        <upperBound>4.0</upperBound>
+        <lowerBound>1.0</lowerBound>
+    </Uniform>
+</Distributions>
+
+
+<Samplers>
+  <Adaptive name = "workshopAdaptive">
+    <ROM              class = "Models"    type = "ROM"                 >AccelerationROM</ROM>
+    <Function         class = "Functions" type = "External"            >goalFunction</Function>
+    <TargetEvaluation class = "DataObjects"     type = "TimePointSet"  >outAdaptive</TargetEvaluation>
+    <Convergence limit = "3000" forceIteration = "False" weight = "value" persistence = "25">4.0e-4</Convergence>
+    <variable name = "x1"><distribution>normal_trunc</distribution></variable>
+    <variable name = "x2"><distribution>normal</distribution></variable>
+    <variable name = "x3"><distribution>uniform</distribution></variable>
+  </Adaptive>
+</Samplers>
+
+
+<Models>
+    <ExternalModel name="PythonModule" subType="" ModuleToLoad="workshop_model">
+       <variable>x1</variable>
+       <variable>x2</variable>
+       <variable>x3</variable>
+       <variable>y1</variable>
+       <variable>y2</variable>
+       <variable>y3</variable>
+       <variable>y4</variable>
+       <variable>y5</variable>
+       <variable>failure</variable>
+    </ExternalModel>
+    <ROM  name="AccelerationROM" subType="SciKitLearn">
+      <Features>x1,x2,x3</Features>
+      <Target>goalFunction</Target>
+      <SKLtype>svm|SVC</SKLtype>
+      <kernel>rbf</kernel>
+      <gamma>10</gamma>
+      <tol>1e-5</tol>
+      <C>50</C>
+    </ROM>
+</Models>
+
+
+<Functions>
+    <External name="goalFunction" file= "goalFunctionWorkshop">
+        <variable>y4</variable>
+        <variable>failure</variable>
+    </External>
+</Functions>
+
+
+<OutStreamManager> 
+  <Print name = "limitSurfaceCSV">
+  	<type>csv</type>
+  	<source>limitSurface</source>
+  </Print>
+  <Plot name='plotlimitSurface' dim='3' overwrite='False'>
+      <plotSettings>
+          <plot>
+              <type>scatter</type>
+              <x>limitSurface|Input|x1</x>
+              <y>limitSurface|Input|x2</y>
+              <z>limitSurface|Input|x3</z>
+              <colorMap>limitSurface|Output|goalFunction</colorMap>
+          </plot>
+          <xlabel>x1</xlabel>
+          <ylabel>x2</ylabel>
+          <zlabel>x3</zlabel>
+      </plotSettings>
+      <actions>
+          <how>screen</how>
+          <title>
+              <text>Limit Surface</text>
+          </title>
+      </actions>
+  </Plot>
+  <Plot name='adaptivePointsLocation' dim='3' overwrite='False'>
+      <plotSettings>
+          <plot>
+              <type>scatter</type>
+              <x>outAdaptive|Input|x1</x>
+              <y>outAdaptive|Input|x2</y>
+              <z>outAdaptive|Input|x3</z>
+              <colorMap>outAdaptive|Output|y4</colorMap>
+          </plot>
+          <xlabel>x1</xlabel>
+          <ylabel>x2</ylabel>
+          <zlabel>x3</zlabel>
+      </plotSettings>
+      <actions>
+          <how>screen</how>
+          <title>
+              <text>Adaptive Points Location</text>
+          </title>
+      </actions>
+  </Plot>
+</OutStreamManager>
+
+
+
+</Simulation>

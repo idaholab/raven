@@ -7,8 +7,7 @@ Created on Mar 25, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
+if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -21,6 +20,7 @@ import json
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -32,7 +32,7 @@ class hdf5Database(object):
   """
   class to create a h5py (hdf5) database
   """
-  def __init__(self,name, databaseDir, filename=None):
+  def __init__(self,name, databaseDir, messageHandler,filename=None):
     # database name (i.e. arbitrary name).
     # It is the database name that has been found in the xml input
     self.name       = name
@@ -42,7 +42,8 @@ class hdf5Database(object):
     # * DET = Dynamic Event Tree => Storing by a Hierarchical structure
     self.type       = None
     # specialize printTag (THIS IS THE CORRECT WAY TO DO THIS)
-    self.printTag = utils.returnPrintTag('DATABASE HDF5')
+    self.printTag = 'DATABASE HDF5'
+    self.messageHandler = messageHandler
     # .H5 file name (to be created or read)
     if filename:
       # File name on disk (file exists => fileExist flag is True)
@@ -67,9 +68,9 @@ class hdf5Database(object):
     if self.fileExist:
       # self.h5_file_w is the HDF5 object. Open the database in "update" mode
       # check if it exists
-      if not os.path.exists(self.filenameAndPath): utils.raiseAnError(IOError,'DATABASE HDF5','database file has not been found \n                         Searched Path is: ' + self.filenameAndPath )
+      if not os.path.exists(self.filenameAndPath): self.raiseAnError(IOError,'database file has not been found, searched Path is: ' + self.filenameAndPath )
       # Open file
-      self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'r+')
+      self.h5_file_w = self.openDatabaseW(self.filenameAndPath,'r+')
       # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
       # and the dictionary "self.allGroupEnds" based on the database that already exists
       self.parent_group_name = b'/'
@@ -78,7 +79,7 @@ class hdf5Database(object):
       self.firstRootGroup = True
     else:
       # self.h5_file_w is the HDF5 object. Open the database in "write only" mode
-      self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'w')
+      self.h5_file_w = self.openDatabaseW(self.filenameAndPath,'w')
       # Add the root as first group
       self.allGroupPaths.append("/")
       # The root group is not an end group
@@ -98,9 +99,9 @@ class hdf5Database(object):
     """
     self.allGroupPaths = []
     self.allGroupEnds  = {}
-    if not self.fileOpen: self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'a')
+    if not self.fileOpen: self.h5_file_w = self.openDatabaseW(self.filenameAndPath,'a')
     self.h5_file_w.visititems(self.__isGroup)
-    utils.raiseAMessage(self,'TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
+    self.raiseAMessage('TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
 
   def __isGroup(self,name,obj):
     """
@@ -111,11 +112,11 @@ class hdf5Database(object):
     """
     if isinstance(obj,h5.Group):
       self.allGroupPaths.append(name)
-      utils.raiseAMessage(self,'Accessing group named ' +name)
+      self.raiseAMessage('Accessing group named ' +name)
       if "EndGroup" in obj.attrs:
         self.allGroupEnds[name]  = obj.attrs["EndGroup"]
       else:
-        utils.raiseAWarning(self,'not found attribute EndGroup in group ' + name + '.Set True.')
+        self.raiseAWarning('not found attribute EndGroup in group ' + name + '.Set True.')
         self.allGroupEnds[name]  = True
       if "rootname" in obj.attrs: self.parent_group_name = name
     return
@@ -129,8 +130,8 @@ class hdf5Database(object):
     @ Out, None
     """
 
-    if source['type'] == 'Datas':
-      self.addGroupDatas(gname,attributes,source)
+    if source['type'] == 'DataObjects':
+      self.addGroupDataObjects(gname,attributes,source)
       self.h5_file_w.flush()
       return
     parent_id = None
@@ -169,7 +170,7 @@ class hdf5Database(object):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         if len(splittedPath) > 0:
-          if gname == splittedPath[0]: utils.raiseAnError(IOError,self,"Group named " + gname + " already present as root group in database " + self.name + ". new group " + gname + " is equal to old group " + splittedPath[0])
+          if gname == splittedPath[0]: self.raiseAnError(IOError,"Group named " + gname + " already present as root group in database " + self.name + ". new group " + gname + " is equal to old group " + splittedPath[0])
     self.parent_group_name = "/" + gname
     # Create the group
     grp = self.h5_file_w.create_group(gname)
@@ -197,7 +198,8 @@ class hdf5Database(object):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         for splgroup in splittedPath:
-          if gname == splgroup: utils.raiseAnError(IOError,self,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
+          if gname == splgroup and splittedPath[0] == self.parent_group_name: self.raiseAnError(IOError,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
+
     if source['type'] == 'csv':
       # Source in CSV format
       f = open(source['name'],'rb')
@@ -214,7 +216,7 @@ class hdf5Database(object):
         parent_group_name = self.__returnParentGroupPath(parent_name)
         # Retrieve the parent group from the HDF5 database
         if parent_group_name in self.h5_file_w: rootgrp = self.h5_file_w.require_group(parent_group_name)
-        else: utils.raiseAnError(ValueError,self,'NOT FOUND group named ' + parent_group_name)
+        else: self.raiseAnError(ValueError,'NOT FOUND group named ' + parent_group_name)
         if upGroup:
           grp = rootgrp.require_group(gname)
           del grp[gname+"_data"]
@@ -222,7 +224,7 @@ class hdf5Database(object):
       else:
         if upGroup: grp = self.h5_file_w.require_group(gname)
         else:       grp = self.h5_file_w.create_group(gname)
-      utils.raiseAMessage(self,'Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+      self.raiseAMessage('Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
       # Create dataset in this newly added group
       grp.create_dataset(gname+"_data", dtype="float", data=data)
       # Add metadata
@@ -269,14 +271,14 @@ class hdf5Database(object):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         for splgroup in splittedPath:
-          if gname == splgroup: utils.raiseAnError(IOError,self,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
+          if gname == splgroup and splittedPath[0] == self.parent_group_name: self.raiseAnError(IOError,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     parent_name = self.parent_group_name.replace('/', '')
     # Create the group
     if parent_name != '/':
       parent_group_name = self.__returnParentGroupPath(parent_name)
       # Retrieve the parent group from the HDF5 database
       if parent_group_name in self.h5_file_w: parentgroup_obj = self.h5_file_w.require_group(parent_group_name)
-      else: utils.raiseAnError(ValueError,self,'NOT FOUND group named ' + parentgroup_obj)
+      else: self.raiseAnError(ValueError,'NOT FOUND group named ' + parentgroup_obj)
     else: parentgroup_obj = self.h5_file_w
 
     if type(source['name']) == dict:
@@ -304,7 +306,7 @@ class hdf5Database(object):
         if type(value) == np.ndarray:
           if maxsize < value.size : actualone = value.size
         elif type(value) in [int,float,bool,np.float64,np.float32,np.float16,np.int64,np.int32,np.int16,np.int8,np.bool8]: actualone = 1
-        else: utils.raiseAnError(IOError,self,'The type of the dictionary parameters must be within float,bool,int,numpy.ndarray')
+        else: self.raiseAnError(IOError,'The type of the dictionary parameters must be within float,bool,int,numpy.ndarray')
         if maxsize < actualone: maxsize = actualone
       groups.attrs[b'n_ts'  ] = maxsize
       dataout = np.zeros((maxsize,len(out_headers)))
@@ -345,7 +347,7 @@ class hdf5Database(object):
             groups.append(parentgroup_obj.create_group(gname + '|' +str(run)))
 
           groups[run].attrs[b'source_type'] = utils.toBytes(source['name'].type)
-          groups[run].attrs[b'main_class' ] = b'Datas'
+          groups[run].attrs[b'main_class' ] = b'DataObjects'
           groups[run].attrs[b'EndGroup'   ] = True
           groups[run].attrs[b'parent_id'  ] = parent_name
           if source['name'].type == 'Histories':
@@ -390,7 +392,7 @@ class hdf5Database(object):
           groups = parentgroup_obj.require_group(gname)
           del groups[gname+"_data"]
         else: groups = parentgroup_obj.create_group(gname)
-        groups.attrs[b'main_class'          ] = b'Datas'
+        groups.attrs[b'main_class'          ] = b'DataObjects'
         groups.attrs[b'source_type'         ] = utils.toBytes(source['name'].type)
         groups.attrs[b'n_params'            ] = len(headers_out)
         groups.attrs[b'input_space_headers' ] = [utils.toBytes(headers_in[i])  for i in range(len(headers_in))]
@@ -419,7 +421,7 @@ class hdf5Database(object):
         else:
           self.allGroupPaths.append("/" + gname)
           self.allGroupEnds["/" + gname] = True
-      else: utils.raiseAnError(IOError,self,'The function addGroupDatas accepts Data(s) or dictionaries as inputs only!!!!!')
+      else: self.raiseAnError(IOError,'The function addGroupDataObjects accepts Data(s) or dictionaries as inputs only!!!!!')
 
   def __addSubGroup(self,gname,attributes,source):
     """
@@ -433,17 +435,15 @@ class hdf5Database(object):
       comparisonName = self.allGroupPaths[index]
       splittedPath=comparisonName.split('/')
       for splgroup in splittedPath:
-        if gname == splgroup: utils.raiseAnError(IOError,self,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
+        if gname == splgroup and splittedPath[0] == self.parent_group_name: self.raiseAnError(IOError,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     if source['type'] == 'csv':
       # Source in CSV format
       f = open(source['name'],'rb')
       # Retrieve the headers of the CSV file
-      # Retrieve the header of the CSV file
       headers = f.readline().split(b",")
       # Load the csv into a numpy array(n time steps, n parameters)
       data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
-      # Check if the parent attribute is not null
-      # In this case append a subgroup to the parent group
+      # Check if the parent attribute is not null # In this case append a subgroup to the parent group
       # Otherwise => it's the main group
       parent_id = None
       if 'metadata' in attributes.keys():
@@ -453,7 +453,7 @@ class hdf5Database(object):
         if 'parent_id' in attributes.keys(): parent_id = attributes['parent_id']
 
       if parent_id: parent_name = parent_id
-      else: utils.raiseAnError(IOError,self,'NOT FOUND attribute <parent_id> into <attributes> dictionary')
+      else: self.raiseAnError(IOError,'NOT FOUND attribute <parent_id> into <attributes> dictionary')
       # Find parent group path
       if parent_name != '/':
         parent_group_name = self.__returnParentGroupPath(parent_name)
@@ -461,11 +461,11 @@ class hdf5Database(object):
       # Retrieve the parent group from the HDF5 database
       if parent_group_name in self.h5_file_w: grp = self.h5_file_w.require_group(parent_group_name)
       else:
-        utils.raiseAnError(ValueError,self,'NOT FOUND group named ' + parent_group_name)
+        self.raiseAnError(ValueError,'NOT FOUND group named ' + parent_group_name)
       # The parent group is not the endgroup for this branch
       self.allGroupEnds[parent_group_name] = False
       grp.attrs["EndGroup"]   = False
-      utils.raiseAMessage(self,'Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+      self.raiseAMessage('Adding group named "' + gname + '" in Database "'+ self.name +'"')
       # Create the sub-group
       sgrp = grp.create_group(gname)
       # Create data set in this new group
@@ -487,10 +487,6 @@ class hdf5Database(object):
         #else:                                      objectToConvert = attributes[attr]
         converted = json.dumps(objectToConvert)
         if converted and attr != 'name': sgrp.attrs[utils.toBytes(attr)]=converted
-#       for attr in attributes.keys():
-#         if type(attributes[attr]) == dict: converted = utils.convertDictToListOfLists(utils.utils.toBytesIterative(attributes[attr]))
-#         else                             : converted = utils.utils.toBytesIterative(attributes[attr])
-#         if converted: grp.attrs[utils.toBytes(attr)]=converted
       if "input_file" in attributes: grp.attrs[utils.toString("input_file")] = utils.toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else utils.toString(attributes["input_file"])
     else: pass
     # The sub-group is the new ending group
@@ -522,7 +518,7 @@ class hdf5Database(object):
         found = True
         path  = self.allGroupPaths[i]
         break
-    if not found: utils.raiseAnError(NameError,self,"Group named " + nameTo + " not found in the HDF5 database" + self.filenameAndPath)
+    if not found: self.raiseAnError(NameError,"Group named " + nameTo + " not found in the HDF5 database" + self.filenameAndPath)
     else: listGroups = path.split("/")  # Split the path in order to create a list of the groups in this history
     # Retrieve indeces of groups "nameFrom" and "nameTo" v
     fr = listGroups.index(nameFrom)
@@ -656,7 +652,7 @@ class hdf5Database(object):
           namel = name_list[i] +'_data'
           dataset = grp.require_dataset(namel, (int(grp.attrs['n_ts']),int(grp.attrs['n_params'])), dtype='float').value
           if i == 0: n_params = int(grp.attrs['n_params'])
-          if n_params != int(grp.attrs['n_params']): utils.raiseAnError(TypeError,self,'Can not merge datasets with different number of parameters')
+          if n_params != int(grp.attrs['n_params']): self.raiseAnError(TypeError,'Can not merge datasets with different number of parameters')
           # Get numpy array
           gb_res[i]   = dataset[:,:]
           gb_attrs[i] = copy.copy(grp.attrs   )
@@ -709,7 +705,7 @@ class hdf5Database(object):
         # but stop at back(th) group starting from group "name"
         if is_number(filterHist):
           back = int(filterHist) + 1
-          if len(list_path) < back: utils.raiseAnError(RuntimeError,self,'Number of branches back > number of actual branches in dataset for History ending with ' + name)
+          if len(list_path) < back: self.raiseAnError(RuntimeError,'Number of branches back > number of actual branches in dataset for History ending with ' + name)
           if (back == len(list_path)-1) and (self.parent_group_name != '/'): back = back - 1
           # start constructing the merged numpy array
           where_list = []
@@ -744,7 +740,7 @@ class hdf5Database(object):
               n_params = int(grp.attrs['n_params'])
 
             if n_params != int(grp.attrs['n_params']):
-              utils.raiseAnError(TypeError,self,'Can not merge datasets with different number of parameters')
+              self.raiseAnError(TypeError,'Can not merge datasets with different number of parameters')
             # get numpy array
             gb_res[i]   = dataset[:,:]
             gb_attrs[i] =grp.attrs
@@ -785,8 +781,8 @@ class hdf5Database(object):
                   if type(attrs[attr]) == list: attrs[attr].append(gb_attrs[key][attr])
               if attrs["source_type"] == 'csv': attrs["source_file"].append(gb_attrs[key]["source_file"])
 
-        else: utils.raiseAnError(IOError,self,'Filter not recognized in hdf5Database.retrieveHistory function. Filter = ' + str(filter))
-    else: utils.raiseAnError(IOError,self,'History named ' + name + ' not found in database')
+        else: self.raiseAnError(IOError,'Filter not recognized in hdf5Database.retrieveHistory function. Filter = ' + str(filter))
+    else: self.raiseAnError(IOError,'History named ' + name + ' not found in database')
 
     return(result,attrs)
 

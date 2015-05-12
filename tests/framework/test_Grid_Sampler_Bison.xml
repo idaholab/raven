@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 
 <RunInfo>
     <WorkingDir>GridTestBison</WorkingDir>
@@ -57,7 +57,7 @@
     </Print>
 </OutStreamManager>
 
-<Datas>
+<DataObjects>
     <TimePointSet name='outGrid'>
       <Input>Materials|heat1|thermal_conductivity,Materials|heat1|specific_heat,Materials|heat2|thermal_conductivity</Input>
       <Output>aveTempLeft,aveTempRight,time</Output>
@@ -67,7 +67,7 @@
         <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
         <Output>aveTempLeft,aveTempRight,time</Output>
    </Histories>
-</Datas>
+</DataObjects>
 
 <Steps>
   <MultiRun name='CustomSampler'>
@@ -75,15 +75,15 @@
     <Input   class = 'Files'     type=''         >gap_perfect_transfer_test.e</Input>
     <Model   class = 'Models'    type='Code'     >Bison</Model>
     <Sampler class = 'Samplers'  type='Grid'     >myGrid</Sampler>
-    <Output  class = 'DataBases' type='HDF5'     >test_bison_grid</Output>
-    <Output  class = 'Datas'     type='Histories'>stories</Output>
-    <Output  class='Datas'     type='TimePointSet'>outGrid</Output>
+    <Output  class = 'Databases' type='HDF5'     >test_bison_grid</Output>
+    <Output  class = 'DataObjects'     type='Histories'>stories</Output>
+    <Output  class='DataObjects'     type='TimePointSet'>outGrid</Output>
     <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
     </MultiRun >
 </Steps>
-<DataBases>
+<Databases>
   <HDF5 name="test_bison_grid"/> 
-</DataBases>
+</Databases>
 </Simulation>
 
 

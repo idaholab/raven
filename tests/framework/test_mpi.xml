@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 <RunInfo>
     <WorkingDir>mpi_driver_test</WorkingDir>
     <Files>simple_flow_3eqn.i,simple_flow_3eqn_control.py</Files>
@@ -66,19 +66,19 @@
         <Input      class='Files'      type=''          >simple_flow_3eqn_control.py</Input>
         <Model      class='Models'     type='Code'      >MyRAVEN</Model>
         <Sampler    class='Samplers'   type='MonteCarlo'>RAVENmc6</Sampler>
-        <Output     class='DataBases'  type='HDF5'      >testMPIDataBase</Output>
-        <Output     class='Datas'      type='Histories' >stories</Output>
+        <Output     class='Databases'  type='HDF5'      >testMPIDatabase</Output>
+        <Output     class='DataObjects'      type='Histories' >stories</Output>
     </MultiRun >
 </Steps>
-<DataBases>
-    <HDF5 name="testMPIDataBase" type="MC"/> 
-</DataBases>
-<Datas>
+<Databases>
+    <HDF5 name="testMPIDatabase" type="MC"/> 
+</Databases>
+<DataObjects>
     <Histories name='stories'>
         <Input>pipe_Area,pipe_Dh</Input>
         <Output>pipe_Hw,pipe_Tw</Output>
    </Histories>
-</Datas>
+</DataObjects>
 </Simulation>
 
 

@@ -4,7 +4,7 @@ Created on Feb 20, 2013
 @author: crisr
 """
 #For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
@@ -25,6 +25,7 @@ utils.find_crow(frameworkDir)
 utils.add_path_recursively(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
+from FileObject import FileObject
 #Internal Modules
 
 #------------------------------------------------------------- Driver
@@ -50,28 +51,34 @@ if __name__ == '__main__':
   """This is the main driver for the RAVEN framework"""
   # Retrieve the framework directory path and working dir
   printStatement()
-  debug          = False
+  verbosity      = 'all'
   interfaceCheck = False
   workingDir = os.getcwd()
   for item in sys.argv:
-    if item.lower() == 'debug'         :
-      debug = True
+    if   item.lower() == 'silent':
+      verbosity = 'silent'
       sys.argv.pop(sys.argv.index(item))
-    if item.lower() == 'interfacecheck':
+    elif item.lower() == 'quiet':
+      verbosity = 'quiet'
+      sys.argv.pop(sys.argv.index(item))
+    elif item.lower() == 'all':
+      verbosity = 'all'
+      sys.argv.pop(sys.argv.index(item))
+    elif item.lower() == 'interfacecheck':
       interfaceCheck = True
       sys.argv.pop(sys.argv.index(item))
   if interfaceCheck: os.environ['RAVENinterfaceCheck'] = 'True'
   else             : os.environ['RAVENinterfaceCheck'] = 'False'
-  simulation = Simulation(frameworkDir,debug=debug)
+  simulation = Simulation(frameworkDir,verbosity=verbosity)
   #If a configuration file exists, read it in
-  configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
+  configFile = FileObject(os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml"))
   if os.path.exists(configFile):
     tree = ET.parse(configFile)
     root = tree.getroot()
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
       simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]),xmlFilename=configFile)
     else:
-      utils.raiseAWarning('DRIVER',str(configFile)+' should only have Simulation and inside it RunInfo')
+      raise IOError('DRIVER',str(configFile)+' should only have Simulation and inside it RunInfo')
 
   # Find the XML input file
   if len(sys.argv) == 1:
@@ -83,17 +90,18 @@ if __name__ == '__main__':
     inputFiles = sys.argv[1:]
   for i in range(len(inputFiles)):
     if not os.path.isabs(inputFiles[i]):
-      inputFiles[i] = os.path.join(workingDir,inputFiles[i])
+      inputFiles[i] = FileObject(os.path.join(workingDir,inputFiles[i]))
 
   simulation.setInputFiles(inputFiles)
   #Parse the input
   #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out
   for inputFile in inputFiles:
     tree = ET.parse(inputFile)
-    #except?  raisea IOError('not possible to parse (xml based) the input file '+inputFile)
-    if debug: utils.raiseAMessage('DRIVER','opened file '+inputFile)
+    #except?  riseanIOError('not possible to parse (xml based) the input file '+inputFile)
+    if verbosity=='debug': print('DRIVER','opened file '+inputFile)
     root = tree.getroot()
-    if root.tag != 'Simulation': utils.raiseAnError(IOError,'DRIVER','The outermost block of the input file '+inputFile+' it is not Simulation')
+    if root.tag != 'Simulation':
+      raise IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
     #generate all the components of the simulation
 
     #Call the function to read and construct each single module of the simulation

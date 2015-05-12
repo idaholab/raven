@@ -13,9 +13,10 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
+class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),MessageHandler.MessageUser):
   """
   Code Interface base class. This class should be the base class for all the code interfaces.
   In this way some methods are forced to be implemented and some automatic checking features
@@ -24,6 +25,10 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
         of a newer code interface can decide to avoid to inherit from this class if he does not want
         to exploit the automatic checking of the code interface's functionalities
   """
+  def __init__(self,msgHandler):
+    self.messageHandler = msgHandler
+    self.verbosity = self.messageHandler.verbosity
+
   def genCommand(self,inputFiles,executable,flags=None, fileargs=None):
     """
       This method is used to retrieve the command (in string format) needed to launch the Code.
@@ -58,12 +63,13 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     pass #afaik, this is only used in GenericCodeInterface currently.
 
   @abc.abstractmethod
-  def generateCommand(self,inputFiles,executable,flags=None):
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
       This method is used to retrieve the command (in string format) needed to launch the Code.
       @ In , inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
       @ In , executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-      @ In , flags, string, a string containing the flags the user can specify in the input (e.g. under the node <Code> <executable> <flags>-u -r</flags> </executable> </Code>)
+      @ In , clargs, dict command-line type:{flags:arguments} to be used in the command call, e.g. clargs['input']['-i']='.inp'
+      @ In , fargs, dict file-based variable replacement type:{keywords:values}, e.g. fargs['input']['auxfile']='materials.aux'
       @ Out, string, string containing the full command that the internal JobHandler is going to use to run the Code this interface refers to
     """
     return

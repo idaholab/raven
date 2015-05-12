@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="False">
+<Simulation >
     <RunInfo>
         <WorkingDir>IndexSetTest</WorkingDir>
         <Sequence>
@@ -12,8 +12,8 @@
 
     <Distributions>
         <Uniform name="UniDist">
-            <low>1</low>
-            <high>5</high>
+            <lowerBound>1</lowerBound>
+            <upperBound>5</upperBound>
         </Uniform>
     </Distributions>
 
@@ -64,7 +64,7 @@
             <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
             <Interpolation quad='Legendre' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
-        <ROM name='TDROM' subType='GaussPolynomialRom' debug="True">
+        <ROM name='TDROM' subType='GaussPolynomialRom' verbosity='debug'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TotalDegree</IndexSet>
@@ -72,7 +72,7 @@
             <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x1</Interpolation>
             <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
-        <ROM name='HCROM' subType='GaussPolynomialRom' debug="True">
+        <ROM name='HCROM' subType='GaussPolynomialRom' verbosity='debug'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>HyperbolicCross</IndexSet>
@@ -85,69 +85,69 @@
     <Steps>
         <MultiRun name='TPmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TPSG</Sampler>
-            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='Datas'            type='TimePointSet'         >TPsolns</Output>
+            <Output  class='DataObjects'            type='TimePointSet'         >TPsolns</Output>
         </MultiRun>
         <RomTrainer name='TPtrain'>
-            <Input   class='Datas'            type='TimePointSet'         >TPsolns</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >TPsolns</Input>
             <Output  class='Models'           type='ROM'                  >TPROM</Output>
         </RomTrainer>
         <MultiRun name='TPtest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TPSG</Sampler>
-            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >TPROM</Model>
-            <Output  class='Datas'            type='TimePointSet'         >TPtests</Output>
+            <Output  class='DataObjects'            type='TimePointSet'         >TPtests</Output>
         </MultiRun>
         <OutStreamStep name='TPprint'>
-            <Input   class='Datas'            type='TimePointSet'         >TPtests</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >TPtests</Input>
             <Output  class='OutStreamManager' type='Print'                >TPdump</Output>
         </OutStreamStep>
 
         <MultiRun name='TDmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TDSG</Sampler>
-            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='Datas'            type='TimePointSet'         >TDsolns</Output>
+            <Output  class='DataObjects'            type='TimePointSet'         >TDsolns</Output>
         </MultiRun>
         <RomTrainer name='TDtrain'>
-            <Input   class='Datas'            type='TimePointSet'         >TDsolns</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >TDsolns</Input>
             <Output  class='Models'           type='ROM'                  >TDROM</Output>
         </RomTrainer>
         <MultiRun name='TDtest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TDSG</Sampler>
-            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >TDROM</Model>
-            <Output  class='Datas'            type='TimePointSet'         >TDtests</Output>
+            <Output  class='DataObjects'            type='TimePointSet'         >TDtests</Output>
         </MultiRun>
         <OutStreamStep name='TDprint'>
-            <Input   class='Datas'            type='TimePointSet'         >TDtests</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >TDtests</Input>
             <Output  class='OutStreamManager' type='Print'                >TDdump</Output>
         </OutStreamStep>
 
         <MultiRun name='HCmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>HCSG</Sampler>
-            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='Datas'            type='TimePointSet'         >HCsolns</Output>
+            <Output  class='DataObjects'            type='TimePointSet'         >HCsolns</Output>
         </MultiRun>
         <RomTrainer name='HCtrain'>
-            <Input   class='Datas'            type='TimePointSet'         >HCsolns</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >HCsolns</Input>
             <Output  class='Models'           type='ROM'                  >HCROM</Output>
         </RomTrainer>
         <MultiRun name='HCtest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>HCSG</Sampler>
-            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >HCROM</Model>
-            <Output  class='Datas'            type='TimePointSet'         >HCtests</Output>
+            <Output  class='DataObjects'            type='TimePointSet'         >HCtests</Output>
         </MultiRun>
         <OutStreamStep name='HCprint'>
-            <Input   class='Datas'            type='TimePointSet'         >HCtests</Input>
+            <Input   class='DataObjects'            type='TimePointSet'         >HCtests</Input>
             <Output  class='OutStreamManager' type='Print'                >HCdump</Output>
         </OutStreamStep>
     </Steps>
 
-    <Datas>
+    <DataObjects>
         <TimePointSet name="dummyIN">
             <Input>x1,x2</Input>
             <Output>OutputPlaceHolder</Output>
@@ -176,7 +176,7 @@
             <Input>x1,x2</Input>
             <Output>ans</Output>
         </TimePointSet>
-    </Datas>
+    </DataObjects>
 
     <OutStreamManager>
         <Print name='TPdump'>
