@@ -65,12 +65,8 @@ class Distribution(BaseType):
     self.lowerBound           = 0.0  # Left bound
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
-<<<<<<< HEAD
     self.disttype             = None # distribution type (continuous or discrete)
     self.printTag             = utils.returnPrintTag('DISTRIBUTIONS')
-=======
-    self.printTag             = 'DISTRIBUTIONS'
->>>>>>> origin/devel
     self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
     self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
     self.compatibleQuadrature = [] #list of compatible quadratures
@@ -240,9 +236,19 @@ class Distribution(BaseType):
     return 1.0/2.0;
 
   def getDimensionality(self):
+    """
+    Function return the dimensionality of the distribution
+    @ In, None, None
+    @ Out, integer
+    """
     return self.dimensionality
 
   def getDisttype(self):
+    """
+    Function return distribution type
+    @ In, None, None
+    @ Out, (continuous or discrete)
+    """
     return self.disttype
 
 
@@ -303,11 +309,8 @@ class BoostDistribution(Distribution):
     Function to get the cdf at a provided coordinate
     @ In, x, float -> value to get the cdf at
     @ Out, float, requested cdf
-<<<<<<< HEAD
-    '''
-=======
     """
->>>>>>> origin/devel
+
     return self._distribution.Cdf(x)
 
   def ppf(self,x):
@@ -315,11 +318,7 @@ class BoostDistribution(Distribution):
     Function to get the inverse cdf at a provided coordinate
     @ In, x, float -> value to get the inverse cdf at
     @ Out, float, requested inverse cdf
-<<<<<<< HEAD
-    '''
-=======
     """
->>>>>>> origin/devel
     return self._distribution.InverseCdf(x)
 
   def pdf(self,x):
@@ -327,18 +326,14 @@ class BoostDistribution(Distribution):
     Function to get the pdf at a provided coordinate
     @ In, x, float -> value to get the pdf at
     @ Out, float, requested pdf
-<<<<<<< HEAD
-    '''
-    value = 0.0
-    for i in str(x).strip().split(','):
-      value +=  self._distribution.Pdf(float(i))
-
-    return value
-    #return self._distribution.Pdf(x)
-=======
-    """
+   """
+#     value = 0.0
+#     for i in str(x).strip().split(','):
+#       value +=  self._distribution.Pdf(float(i))
+# 
+#     return value
     return self._distribution.Pdf(x)
->>>>>>> origin/devel
+
 
   def untruncatedCdfComplement(self, x):
     """
@@ -353,11 +348,8 @@ class BoostDistribution(Distribution):
     Function to get the untruncated  Hazard  at a provided coordinate
     @ In, x, float -> value to get the untruncated  Hazard   at
     @ Out, float, requested untruncated  Hazard
-<<<<<<< HEAD
-    '''
-=======
     """
->>>>>>> origin/devel
+
     return self._distribution.untrHazard(x)
 
   def untruncatedMean(self):
@@ -365,11 +357,7 @@ class BoostDistribution(Distribution):
     Function to get the untruncated  Mean
     @ In, None
     @ Out, float, requested Mean
-<<<<<<< HEAD
-    '''
-=======
     """
->>>>>>> origin/devel
     return self._distribution.untrMean()
 
   def untruncatedStdDev(self):
@@ -385,11 +373,7 @@ class BoostDistribution(Distribution):
     Function to get the untruncated  Median
     @ In, None
     @ Out, float, requested Median
-<<<<<<< HEAD
-    '''
-=======
     """
->>>>>>> origin/devel
     return self._distribution.untrMedian()
 
   def untruncatedMode(self):
@@ -397,11 +381,8 @@ class BoostDistribution(Distribution):
     Function to get the untruncated  Mode
     @ In, None
     @ Out, float, requested Mode
-<<<<<<< HEAD
-    '''
-=======
     """
->>>>>>> origin/devel
+
     return self._distribution.untrMode()
 
 
@@ -410,11 +391,8 @@ class BoostDistribution(Distribution):
     Function to get random numbers
     @ In, args, dictionary, args
     @ Out, float or list, requested random number or numbers
-<<<<<<< HEAD
-    '''
-=======
     """
->>>>>>> origin/devel
+
     if len(args) == 0: return self.ppf(random())
     else             : return [self.rvs() for _ in range(args[0])]
 
@@ -965,26 +943,13 @@ class Bernoulli(BoostDistribution):
       self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
     else:  self.raiseAnError(IOError,'Truncated Bernoulli not yet implemented')
 
-#   def cdf(self,x):
-#     if x <= 0.5: return self._distribution.Cdf(self.lowerBound)
-#     else       : return self._distribution.Cdf(self.upperBound)
-#
-#   def pdf(self,x):
-#     if x <= 0.5: return self._distribution.Pdf(self.lowerBound)
-#     else       : return self._distribution.Pdf(self.upperBound)
-#
-#   def untruncatedCdfComplement(self, x):
-#     if x <= 0.5: return self._distribution.untrCdfComplement(self.lowerBound)
-#     else       : return self._distribution.untrCdfComplement(self.upperBound)
-#
-#   def untruncatedHazard(self, x):
-#     if x <= 0.5: return self._distribution.untrHazard(self.lowerBound)
-#     else       : return self._distribution.untrHazard(self.upperBound)
-#
-#
-#
 
 class Categorical(Distribution):
+  """Returns the factor to scale error norm by so that norm(probability)=1.
+    @ In None, None
+    @ Out float, norm
+  """
+    
   def __init__(self):
     Distribution.__init__(self)
     self.mapping = []

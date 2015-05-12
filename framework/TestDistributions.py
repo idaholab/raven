@@ -43,6 +43,7 @@ def checkCrowDist(comment,dist,expected_crow_dist):
   crow_dist = dist.getCrowDistDict()
   if crow_dist != expected_crow_dist:
     results["fail"] += 1
+    print(comment,'\n',crow_dist,'\n',expected_crow_dist)
   else:
     results["pass"] += 1
 
