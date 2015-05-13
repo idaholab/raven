@@ -27,18 +27,21 @@ import Databases
 import Functions
 import OutStreamManager
 from JobHandler import JobHandler
+import MessageHandler
 import utils
+from FileObject import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------
-class SimulationMode:
+class SimulationMode(MessageHandler.MessageUser):
   """SimulationMode allows changes to the how the simulation
   runs are done.  modifySimulation lets the mode change runInfoDict
   and other parameters.  runOverride lets the mode do the running instead
   of simulation. """
   def __init__(self,simulation):
     self.__simulation = simulation
-    self.printTag = utils.returnPrintTag('SIMULATION MODE')
+    self.messageHandler = simulation.messageHandler
+    self.printTag = 'SIMULATION MODE'
 
   def doOverrideRun(self):
     """If doOverrideRun is true, then use runOverride instead of
@@ -60,7 +63,7 @@ class SimulationMode:
     import multiprocessing
     try:
       if multiprocessing.cpu_count() < self.__simulation.runInfoDict['batchSize']:
-        utils.raiseAWarning(self,"cpu_count "+str(multiprocessing.cpu_count())+" < batchSize "+str(self.__simulation.runInfoDict['batchSize']))
+        self.raiseAWarning("cpu_count",multiprocessing.cpu_count(),"< batchSize",self.__simulation.runInfoDict['batchSize'])
     except NotImplementedError:
       pass
 
@@ -110,11 +113,11 @@ def createAndRunQSUB(simulation):
   #check invalid characters
   validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
   if any(char not in validChars for char in jobName):
-    utils.raiseAnError(IOError,'SIMULATION->QSUB:','JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
+    simulation.raiseAnError(IOError,'JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
   #check jobName for length
   if len(jobName) > 15:
     jobName = jobName[:10]+'-'+jobName[-4:]
-    utils.raiseAMessage('SIMULATION->QSUB','JobName is limited to 15 characters; truncating to '+jobName)
+    simulation.raiseAMessage('JobName is limited to 15 characters; truncating to '+jobName)
   #Generate the qsub command needed to run input
   command = ["qsub","-N",jobName]+\
             simulation.runInfoDict["clusterParameters"]+\
@@ -127,7 +130,7 @@ def createAndRunQSUB(simulation):
              os.path.join(frameworkDir,"raven_qsub_command.py")]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
-  utils.raiseAMessage('SIMULATION->QSUB',os.getcwd()+' '+str(command))
+  simulation.raiseAMessage(os.getcwd()+' '+str(command))
   subprocess.call(command)
 
 
@@ -135,12 +138,14 @@ def createAndRunQSUB(simulation):
 
 class MPISimulationMode(SimulationMode):
   def __init__(self,simulation):
+    SimulationMode.__init__(self,simulation)
     self.__simulation = simulation
+    self.messageHandler = simulation.messageHandler
     #Figure out if we are in PBS
     self.__in_pbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
     self.__runQsub = False
-    self.printTag = utils.returnPrintTag('MPI SIMULATION MODE')
+    self.printTag = 'MPI SIMULATION MODE'
 
   def modifySimulation(self):
     if self.__nodefile or self.__in_pbs:
@@ -159,7 +164,7 @@ class MPISimulationMode(SimulationMode):
       newBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
       if newBatchsize != oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = newBatchsize
-        utils.raiseAWarning(self,"changing batchsize from",oldBatchsize,"to",newBatchsize)
+        self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(newBatchsize))
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = self.__simulation.runInfoDict['WorkingDir']
@@ -190,7 +195,7 @@ class MPISimulationMode(SimulationMode):
     if(self.__simulation.runInfoDict['NumThreads'] > 1):
       #add number of threads to the post command.
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
-    utils.raiseAMessage('SIMULATION',"precommand: "+self.__simulation.runInfoDict['precommand']+", postcommand: "+self.__simulation.runInfoDict['postcommand'])
+    self.raiseAMessage("precommand: "+self.__simulation.runInfoDict['precommand']+", postcommand: "+self.__simulation.runInfoDict['postcommand'])
 
   def doOverrideRun(self):
     # Check if the simulation has been run in PBS mode and if run QSUB
@@ -212,12 +217,12 @@ class MPISimulationMode(SimulationMode):
       elif child.tag.lower() == "runqsub":
         self.__runQsub = True
       else:
-        utils.raiseAMessage(self,"We should do something with child "+str(child))
+        self.raiseADebug("We should do something with child "+str(child))
     return
 
 
 #-----------------------------------------------------------------------------------------------------
-class Simulation(object):
+class Simulation(MessageHandler.MessageUser):
   '''
   This is a class that contain all the object needed to run the simulation
   Usage:
@@ -239,7 +244,7 @@ class Simulation(object):
    of the base class of the module: <MyModule>=<myClass>+'s'.
    The base class of the module is by convention named as the new type of simulation component <myClass>.
    The module should contain a set of classes named <myType> that are child of the base class <myClass>.
-   The module should possess a function <MyModule>.returnInstance('<myType>') that returns a pointer to the class <myType>.
+   The module should possess a function <MyModule>.returnInstance('<myType>',caller) that returns a pointer to the class <myType>.
   Add in Simulation.__init__ the following
    self.<myClass>Dict = {}
    self.addWhatDict['<myClass>'] = <MyModule>
@@ -263,9 +268,15 @@ class Simulation(object):
   Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   '''
 
-  def __init__(self,frameworkDir,debug=False):
+  def __init__(self,frameworkDir,verbosity='all'):
     self.FIXME          = False
-    self.debug          = debug
+    #establish message handling: the error, warning, message, and debug print handler
+    self.messageHandler = MessageHandler.MessageHandler()
+    self.verbosity      = verbosity
+    callerLength        = 25
+    tagLength           = 15
+    suppressErrs        = False
+    self.messageHandler.initialize({'verbosity':self.verbosity, 'callerLength':callerLength, 'tagLength':tagLength, 'suppressErrs':suppressErrs})
     sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
@@ -325,7 +336,7 @@ class Simulation(object):
     #the keywords are the name of the module that contains the specialization of that specific entity
     self.addWhatDict  = {}
     self.addWhatDict['Steps'            ] = Steps
-    self.addWhatDict['DataObjects'            ] = DataObjects
+    self.addWhatDict['DataObjects'      ] = DataObjects
     self.addWhatDict['Samplers'         ] = Samplers
     self.addWhatDict['Models'           ] = Models
     self.addWhatDict['Tests'            ] = Tests
@@ -339,7 +350,7 @@ class Simulation(object):
     #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.whichDict = {}
     self.whichDict['Steps'           ] = self.stepsDict
-    self.whichDict['DataObjects'           ] = self.dataDict
+    self.whichDict['DataObjects'     ] = self.dataDict
     self.whichDict['Samplers'        ] = self.samplersDict
     self.whichDict['Models'          ] = self.modelsDict
     self.whichDict['Tests'           ] = self.testsDict
@@ -355,7 +366,7 @@ class Simulation(object):
     self.jobHandler    = JobHandler()
     #handle the setting of how the jobHandler act
     self.__modeHandler = SimulationMode(self)
-    self.printTag = utils.returnPrintTag('SIMULATION')
+    self.printTag = 'SIMULATION'
 
   def setInputFiles(self,inputFiles):
     '''Can be used to set the input files that the program received.
@@ -371,60 +382,55 @@ class Simulation(object):
     '''assuming that the file in is already in the self.filesDict it places, as value, the absolute path'''
     if '~' in filein : filein = os.path.expanduser(filein)
     if not os.path.isabs(filein):
-      self.filesDict[filein] = os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein))
+      self.filesDict[filein] = FileObject(os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein)))
 
   def __checkExistPath(self,filein):
     '''assuming that the file in is already in the self.filesDict it checks the existence'''
-    if not os.path.exists(self.filesDict[filein]): utils.raiseAnError(IOError,self,'The file '+ filein +' has not been found')
+    if not os.path.exists(self.filesDict[filein]): self.raiseAnError(IOError,'The file '+ filein +' has not been found')
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
-    if 'debug' in xmlNode.attrib.keys():
-      if xmlNode.attrib['debug'].lower()   in utils.stringsThatMeanTrue() : self.debug=True
-      elif xmlNode.attrib['debug'].lower() in utils.stringsThatMeanFalse(): self.debug=False
-      else                                 : utils.raiseAnError(IOError,self,'Not understandable keyword to set up the debug level: '+str(xmlNode.attrib['debug']))
+    self.verbosity = xmlNode.attrib['verbosity'] if 'verbosity' in xmlNode.attrib.keys() else 'all'
+    self.messageHandler.verbosity = self.verbosity
     try:    runInfoNode = xmlNode.find('RunInfo')
-    except: utils.raiseAnError(IOError,self,'The run info node is mandatory')
+    except: self.raiseAnError(IOError,'The run info node is mandatory')
     self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
     for child in xmlNode:
       if child.tag in list(self.whichDict.keys()):
-        if self.debug: utils.raiseAMessage(self,'-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
+        self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
         if len(child.attrib.keys()) == 0: globalAttributes = {}
         else:
           globalAttributes = child.attrib
-          if 'debug' in  globalAttributes.keys():
-            if   globalAttributes['debug'].lower() in utils.stringsThatMeanFalse(): globalAttributes['debug'] = False
-            elif globalAttributes['debug'].lower() in utils.stringsThatMeanTrue() : globalAttributes['debug'] = True
-            else: utils.raiseAnError(IOError,self,'For the global attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
+          if 'verbosity' in globalAttributes.keys(): self.verbosity = globalAttributes['verbosity']
         if Class != 'RunInfo':
           for childChild in child:
             subType = childChild.tag
             if 'name' in childChild.attrib.keys():
               name = childChild.attrib['name']
-              if self.debug: utils.raiseAMessage(self,'Reading type '+str(childChild.tag)+' with name '+name)
+              self.raiseADebug('Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
-#              if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
+#              if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
               if Class != 'OutStreamManager':
                   if name not in self.whichDict[Class].keys():
                     if "needsRunInfo" in self.addWhatDict[Class].__dict__:
-                      self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict)
+                      self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
                     else:
-                      self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
-                  else: utils.raiseAnError(IOError,self,'Redundant naming in the input for class '+Class+' and name '+name)
+                      self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
+                  else: self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
               else:
-                  if name not in self.whichDict[Class][subType].keys():  self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag)
-                  else: utils.raiseAnError(IOError,self,'Redundant  naming in the input for class '+Class+' and sub Type'+subType+' and name '+name)
+                  if name not in self.whichDict[Class][subType].keys():  self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)
+                  else: self.raiseAnError(IOError,'Redundant  naming in the input for class '+Class+' and sub Type'+subType+' and name '+name)
               #now we can read the info for this object
-              if globalAttributes and 'debug' in globalAttributes.keys(): localDebug = globalAttributes['debug']
-              else                                                      : localDebug = self.debug
-              if Class != 'OutStreamManager': self.whichDict[Class][name].readXML(childChild, debug=localDebug, globalAttributes=globalAttributes)
-              else: self.whichDict[Class][subType][name].readXML(childChild, debug=localDebug, globalAttributes=globalAttributes)
-            else: utils.raiseAnError(IOError,self,'not found name attribute for one '+Class)
-      else: utils.raiseAnError(IOError,self,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
+              #if globalAttributes and 'verbosity' in globalAttributes.keys(): localVerbosity = globalAttributes['verbosity']
+              #else                                                      : localVerbosity = self.verbosity
+              if Class != 'OutStreamManager': self.whichDict[Class][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
+              else: self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
+            else: self.raiseAnError(IOError,'not found name attribute for one '+Class)
+      else: self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
-      utils.raiseAnError(IOError,self,'The step list: '+str(self.stepSequenceList)+' contains steps that have no bee declared: '+str(list(self.stepsDict.keys())))
+      self.raiseAnError(IOError,'The step list: '+str(self.stepSequenceList)+' contains steps that have no bee declared: '+str(list(self.stepsDict.keys())))
 
   def initialize(self):
     '''check/created working directory, check/set up the parallel environment, call step consistency checker'''
@@ -442,13 +448,13 @@ class Simulation(object):
       #This is used to reserve some cores
       self.runInfoDict['totalNumCoresUsed'] = oldTotalNumCoresUsed
     elif oldTotalNumCoresUsed > 1: #If 1, probably just default
-      runAWarning(self,"overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
+      self.raiseAWarning("overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
     #transform all files in absolute path
     for key in self.filesDict.keys(): self.__createAbsPath(key)
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
-    self.jobHandler.initialize(self.runInfoDict)
-    if self.debug: self.printDicts()
+    self.jobHandler.initialize(self.runInfoDict,self.messageHandler)
+    self.printDicts()
     for stepName, stepInstance in self.stepsDict.items():
       self.checkStep(stepInstance,stepName)
 
@@ -456,34 +462,34 @@ class Simulation(object):
     '''This method checks the coherence of the simulation step by step'''
     for [role,myClass,objectType,name] in stepInstance.parList:
       if myClass!= 'Step' and myClass not in list(self.whichDict.keys()):
-        utils.raiseAnError(IOError,self,'For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
+        self.raiseAnError(IOError,'For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
       if myClass != 'OutStreamManager':
           if name not in list(self.whichDict[myClass].keys()):
-            utils.raiseAMessage(self,'name: '+name,'DEBUG')
-            utils.raiseAMessage(self,'list: '+str(list(self.whichDict[myClass].keys())),'DEBUG')
-            utils.raiseAMessage(self,str(self.whichDict[myClass]),'DEBUG')
-            utils.raiseAnError(IOError,self,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
+            self.raiseADebug('name: '+name)
+            self.raiseADebug('list: '+str(list(self.whichDict[myClass].keys())))
+            self.raiseADebug(str(self.whichDict[myClass]))
+            self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
       else:
           if name not in list(self.whichDict[myClass][objectType].keys()):
-            utils.raiseAMessage(self,'name: '+name,'DEBUG')
-            utils.raiseAMessage(self,'list: '+str(list(self.whichDict[myClass][objectType].keys())),'DEBUG')
-            utils.raiseAMessage(self,str(self.whichDict[myClass][objectType]),'DEBUG')
-            utils.raiseAnError(IOError,self,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
+            self.raiseADebug('name: '+name)
+            self.raiseADebug('list: '+str(list(self.whichDict[myClass][objectType].keys())))
+            self.raiseADebug(str(self.whichDict[myClass][objectType]))
+            self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
 
       if myClass != 'Files':  # check if object type is consistent
         if myClass != 'OutStreamManager': objtype = self.whichDict[myClass][name].type
         else:                             objtype = self.whichDict[myClass][objectType][name].type
         if objectType != objtype.replace("OutStream",""):
           objtype = self.whichDict[myClass][name].type
-          utils.raiseAnError(IOError,self,'In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
-
-
+          self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
 
   def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
     '''reads the xml input file for the RunInfo block'''
+    if 'verbosity' in xmlNode.attrib.keys(): self.verbosity = xmlNode.attrib['verbosity']
+    self.raiseAMessage('Global verbosity level is "',self.verbosity,'"',verbosity='quiet')
     for element in xmlNode:
       if element.tag in runInfoSkip:
-        runAWarning(self,"Skipped element ",element.tag)
+        self.raiseAWarning("Skipped element ",element.tag)
       elif   element.tag == 'WorkingDir'        :
         temp_name = element.text
         if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
@@ -492,7 +498,7 @@ class Simulation(object):
           self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
         else:
           if xmlFilename == None:
-            utils.raiseAnError(IOError,self,'Relative working directory requested but xmlFilename is None.')
+            self.raiseAnError(IOError,'Relative working directory requested but xmlFilename is None.')
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
           raw_relative_working_dir = element.text.strip()
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,raw_relative_working_dir)
@@ -502,7 +508,6 @@ class Simulation(object):
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
       elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'        ] = int(element.text)
       elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
-      #elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
       elif element.tag == 'totalNumCoresUsed' : self.runInfoDict['totalNumCoresUsed'   ] = int(element.text)
       elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'            ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
@@ -515,20 +520,21 @@ class Simulation(object):
         else                                            : self.runInfoDict['delSucLogFiles'    ] = False
       elif element.tag == 'logfileBuffer'      : self.runInfoDict['logfileBuffer'] = utils.convertMultipleToBytes(element.text.lower())
       elif element.tag == 'clusterParameters'  : self.runInfoDict['clusterParameters'] = splitCommand(element.text)
-      elif element.tag == 'mode'              :
+      elif element.tag == 'mode'               :
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
           self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self)
           self.__modeHandler.XMLread(element)
         else:
-          utils.raiseAnError(IOError,self,"Unknown mode "+self.runInfoDict['mode'])
+          self.raiseAnError(IOError,"Unknown mode "+self.runInfoDict['mode'])
       elif element.tag == 'expectedTime'      : self.runInfoDict['expectedTime'      ] = element.text.strip()
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','): self.stepSequenceList.append(stepName.strip())
       elif element.tag == 'Files':
         text = element.text.strip()
-        for fileName in text.split(','): self.filesDict[fileName.strip()] = fileName.strip()
+        for fileName in text.split(','):
+          self.filesDict[fileName.strip()] = FileObject(fileName.strip())
       elif element.tag == 'DefaultInputFile'  : self.runInfoDict['DefaultInputFile'] = element.text.strip()
       elif element.tag == 'CustomMode' :
         modeName = element.text.strip()
@@ -571,14 +577,14 @@ class Simulation(object):
       msg=__prntDict(self.OutStreamManagerPrintDict,msg)
       msg=__prntDict(self.addWhatDict,msg)
       msg=__prntDict(self.whichDict,msg)
-      utils.raiseAMessage(self,msg)
+      self.raiseAMessage(msg)
 
   def run(self):
     '''run the simulation'''
     #to do list
     #can we remove the check on the esistence of the file, it might make more sense just to check in case they are input and before the step they are used
     #
-    if self.debug: utils.raiseAMessage(self,'entering the run')
+    self.raiseADebug('entering the run')
     #controlling the PBS environment
     if self.__modeHandler.doOverrideRun():
       self.__modeHandler.runOverride()
@@ -586,7 +592,8 @@ class Simulation(object):
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:
       stepInstance                     = self.stepsDict[stepName]   #retrieve the instance of the step
-      utils.raiseAMessage(self,'-'*2+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')
+      self.raiseAMessage('')
+      self.raiseAMessage('-'*2+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')
       self.runInfoDict['stepName']     = stepName                   #provide the name of the step to runInfoDict
       stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!!
       stepInputDict['Input' ]          = []                         #set the Input to an empty list
@@ -612,23 +619,24 @@ class Simulation(object):
             neededobjs    = {}
             neededObjects = stp.whatDoINeed()
             for mainClassStr in neededObjects.keys():
-              if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal': utils.raiseAnError(IOError,self,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
+              #FIXME I don't know that this always returns a useful error.  In my case it gave me a ROM name for the stp and 'Model' for mainClassStr
+              if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal': self.raiseAnError(IOError,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
               neededobjs[mainClassStr] = {}
               for obj in neededObjects[mainClassStr]:
                 if obj[1] in vars(self):
                   neededobjs[mainClassStr][obj[1]] = vars(self)[obj[1]]
                 elif obj[1] in self.whichDict[mainClassStr].keys():
                   if obj[0]:
-                    if obj[0] not in self.whichDict[mainClassStr][obj[1]].type: utils.raiseAnError(IOError,self,'Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
+                    if obj[0] not in self.whichDict[mainClassStr][obj[1]].type: self.raiseAnError(IOError,'Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
                   neededobjs[mainClassStr][obj[1]] = self.whichDict[mainClassStr][obj[1]]
-                else: utils.raiseAnError(IOError,self,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
+                else: self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
             stp.generateAssembler(neededobjs)
       #if 'Sampler' in stepInputDict.keys(): stepInputDict['Sampler'].generateDistributions(self.distributionsDict)
       #running a step
       stepInstance.takeAstep(stepInputDict)
       #---------------here what is going on? Please add comments-----------------
       for output in stepInputDict['Output']:
-        if self.FIXME: utils.raiseAMessage(self,'This is for the filter, it needs to go when the filtering strategy is done','FIXME')
+        if self.FIXME: self.raiseAMessage('This is for the filter, it needs to go when the filtering strategy is done')
         if "finalize" in dir(output):
           output.finalize()
-      utils.raiseAMessage(self,'-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-')
+      self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-')

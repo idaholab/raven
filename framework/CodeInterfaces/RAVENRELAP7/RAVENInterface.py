@@ -11,7 +11,7 @@ import os
 import sys
 import copy
 import utils
-from utils import raiseAnError,toString
+from utils import toString
 import xml.etree.ElementTree as ET
 import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
@@ -27,7 +27,7 @@ class RAVENInterface(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raiseAnError(IOError,'RAVEN INTERFACE ERROR','None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not found: self.raiseAnError(IOError,'None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
 
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     if clargs: precommand = executable + clargs['text']
@@ -58,7 +58,7 @@ class RAVENInterface(CodeInterfaceBase):
     self._samplersDictionary['MonteCarlo'              ] = self.monteCarloForRAVEN
     self._samplersDictionary['Grid'                    ] = self.gridForRAVEN
     self._samplersDictionary['Adaptive'                ] = self.gridForRAVEN # same Grid Fashion. It forces a dist to give a particular value
-    self._samplersDictionary['LHS'                     ] = self.latinHyperCubeForRAVEN
+    self._samplersDictionary['Stratified'              ] = self.latinHyperCubeForRAVEN
     self._samplersDictionary['DynamicEventTree'        ] = self.dynamicEventTreeForRAVEN
     self._samplersDictionary['FactorialDesign'         ] = self.gridForRAVEN
     self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRAVEN
@@ -69,8 +69,8 @@ class RAVENInterface(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raiseAnError(IOError,'RAVEN INTERFACE','None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
+    if not found: self.raiseAnError(IOError,'None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    parser = MOOSEparser.MOOSEparser(self.messageHandler,currentInputFiles[index])
     Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
@@ -85,21 +85,20 @@ class RAVENInterface(CodeInterfaceBase):
     return newInputFiles
 
   def stochasticCollocationForRAVEN(self,**Kwargs):
-    if 'prefix' not in Kwargs['prefix']: raiseAnError(IOError,'RAVEN INTERFACE','a counter is (currently) needed for the StochColl sampler for RAVEN')
+    if 'prefix' not in Kwargs['prefix']: self.raiseAnError(IOError,'a counter is (currently) needed for the StochColl sampler for RAVEN')
     listDict = []
     varValDict = Kwargs['vars'] #come in as a string of a list, need to re-list
     for key in varValDict.keys():
       modifDict={}
       modifDict['name']=key.split(':')
       modifDict['value']=varValDict[key]
-      #print('interface: set',key.split(':'),'to',varValDict[key])
       listDict.append(modifDict)
       del modifDict
     return listDict
 
   def monteCarloForRAVEN(self,**Kwargs):
     if 'prefix' in Kwargs: counter = Kwargs['prefix']
-    else: raiseAnError(IOError,'RAVEN INTERFACE','a counter is needed for the Monte Carlo sampler for RAVEN')
+    else: self.raiseAnError(IOError,'a counter is needed for the Monte Carlo sampler for RAVEN')
     if 'initial_seed' in Kwargs: init_seed = Kwargs['initial_seed']
     else                       : init_seed = 1
     _,listDict = self.__genBasePointSampler(**Kwargs)
@@ -123,7 +122,7 @@ class RAVENInterface(CodeInterfaceBase):
           listDict = self.__genBasePointSampler(**preconditioner)[1]
           listDict.extend(self.monteCarloForRAVEN(**preconditioner))
         elif 'Grid' in preconditioner['SamplerType']: listDict.extend(self.gridForRAVEN(**preconditioner))
-        elif 'LHS' in preconditioner['SamplerType'] or 'Stratified' in preconditioner['SamplerType']: listDict.extend(self.latinHyperCubeForRAVEN(**preconditioner))
+        elif 'Stratified' in preconditioner['SamplerType'] or 'Stratified' in preconditioner['SamplerType']: listDict.extend(self.latinHyperCubeForRAVEN(**preconditioner))
     # Check the initiator distributions and add the next threshold
     if 'initiator_distribution' in Kwargs.keys():
       for i in range(len(Kwargs['initiator_distribution'])):
@@ -159,7 +158,7 @@ class RAVENInterface(CodeInterfaceBase):
         restart_file_base = output_parent + "_cp/" + end_ts_str
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restart_file_base
-        print(utils.returnPrintTag('CODE INTERFACE')+': ' +utils.returnPrintPostTag('Message')+ '-> Restart file name base is "' + restart_file_base + '"')
+        self.raiseAMessage(' Restart file name base is "' + restart_file_base + '"')
         listDict.append(modifDict)
         del modifDict
     # max simulation time (if present)
@@ -192,7 +191,7 @@ class RAVENInterface(CodeInterfaceBase):
 
   def __genBasePointSampler(self,**Kwargs):
     """Figure out which distributions need to be handled by
-    the grid or LHS samplers by modifying distributions in the .i file.
+    the grid or Stratified samplers by modifying distributions in the .i file.
     Let the regular moose point sampler take care of the rest.
     Returns (distributions,listDict) where listDict is the
     start of the listDict that tells how to modify the input, and
@@ -222,7 +221,7 @@ class RAVENInterface(CodeInterfaceBase):
       #print(key,distributions[key],distributionNode,crowDistribution)
     mooseInterface = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MooseBasedAppInterface.py'),False)
 
-    mooseApp = mooseInterface.MooseBasedAppInterface()
+    mooseApp = mooseInterface.MooseBasedAppInterface(self.messageHandler)
     listDict = mooseApp.pointSamplerForMooseBasedApp(**Kwargs)
     return distributions,listDict
 

@@ -1,4 +1,4 @@
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 	
 
 <RunInfo>
@@ -9,7 +9,7 @@
 
 
 <Steps>  
-  <MultiRun name = 'pth1' pauseAtEnd = 'False' debug = 'True'>
+  <MultiRun name = 'pth1' pauseAtEnd = 'False'>
     <Sampler  class = 'Samplers'  type = 'Grid'           >grd_vl_ql_smp_dpt</Sampler>
     <Input    class = 'DataObjects'     type = 'TimePointSet'   >grd_vl_ql_smp_dpt_dt</Input>
     <Model    class = 'Models'    type = 'ExternalModel'  >xtr_mdl</Model>
@@ -143,7 +143,7 @@
     <C>50</C>
   </ROM>  
   
-  <PostProcessor name='SP_cdf' subType='SafestPoint' debug = 'True'>
+  <PostProcessor name='SP_cdf' subType='SafestPoint' verbosity='debug'>
       <!--    <Assembler> -->
       <Distribution     class = 'Distributions'  type = 'Normal'>x1_dst</Distribution>
       <Distribution     class = 'Distributions'  type = 'Normal'>x2_dst</Distribution>

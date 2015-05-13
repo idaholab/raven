@@ -30,16 +30,18 @@ from BaseClasses import BaseType
 # for internal parallel
 import pp
 import ppserver
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class ExternalRunner:
+class ExternalRunner(MessageHandler.MessageUser):
   '''
   Class for running external codes
   '''
-  def __init__(self,command,workingDir,bufsize,output=None,metadata=None,codePointer=None):
+  def __init__(self,messageHandler,command,workingDir,bufsize,output=None,metadata=None,codePointer=None):
     ''' Initialize command variable'''
     self.codePointerFailed = None
+    self.messageHandler = messageHandler
     self.command    = command
     self.bufsize    = bufsize
     workingDirI     = None
@@ -75,44 +77,6 @@ class ExternalRunner:
     else          : self.__workingDir = workingDir
     self.__metadata   = metadata
     self.codePointer  = codePointer
-    # Initialize logger
-    #self.logger     = self.createLogger(self.identifier)
-    #self.addLoggerHandler(self.identifier, self.output, 100000, 1)
-#   def createLogger(self,name):
-#     '''
-#     Function to create a logging object
-#     @ In, name: name of the logging object
-#     @ Out, logging object
-#     '''
-#     return logging.getLogger(name)
-#
-#   def addLoggerHandler(self,logger_name,filename,max_size,max_number_files):
-#     '''
-#     Function to create a logging object
-#     @ In, logger_name     : name of the logging object
-#     @ In, filename        : log file name (with path)
-#     @ In, max_size        : maximum file size (bytes)
-#     @ In, max_number_files: maximum number of files to be created
-#     @ Out, None
-#     '''
-#     hadler = logging.handlers.RotatingFileHandler(filename,'a',max_size,max_number_files)
-#     logging.getLogger(logger_name).addHandler(hadler)
-#     logging.getLogger(logger_name).setLevel(logging.INFO)
-#     return
-#
-#   def outStreamReader(self, out_stream):
-#     '''
-#     Function that logs every line received from the out stream
-#     @ In, out_stream: output stream
-#     @ In, logger    : the instance of the logger object
-#     @ Out, logger   : the logger itself
-#     '''
-#     while True:
-#       line = out_stream.readline()
-#       if len(line) == 0 or not line:
-#         break
-#       self.logger.info('%s', line)
-#       #self.logger.debug('%s', line.srip())
 
   def isDone(self):
     '''
@@ -168,7 +132,7 @@ class ExternalRunner:
     Function to kill the subprocess of the driven code
     '''
     #In python 2.6 this could be self.process.terminate()
-    utils.raiseAMessage(self,"Terminating "+self.__process.pid+' '+self.command)
+    self.raiseAMessage("Terminating "+self.__process.pid+' '+self.command)
     os.kill(self.__process.pid,signal.SIGTERM)
 
   def getWorkingDir(self):
@@ -186,18 +150,19 @@ class ExternalRunner:
 #
 #
 #
-class InternalRunner:
+class InternalRunner(MessageHandler.MessageUser):
   #import multiprocessing as multip
-  def __init__(self,ppserver, Input,functionToRun, frameworkModules = [], identifier=None,metadata=None, globs = None, functionToSkip = None):
+  def __init__(self,messageHandler,ppserver, Input,functionToRun, frameworkModules = [], identifier=None,metadata=None, globs = None, functionToSkip = None):
     # we keep the command here, in order to have the hook for running exec code into internal models
     self.command  = "internal"
+    self.messageHandler = messageHandler
     self.ppserver = ppserver
     self.__thread = None
     if    identifier!=None:
       if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
       else                : self.identifier =  str(identifier)
     else: self.identifier = 'generalOut'
-    if type(Input) != tuple: utils.raiseAnError(IOError,'JOB HANDLER',"The input for InternalRunner needs to be a tuple!!!!")
+    if type(Input) != tuple: self.raiseAnError(IOError,"The input for InternalRunner needs to be a tuple!!!!")
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
     if self.ppserver == None: self.subque = queue.Queue()
     self.functionToRun   = functionToRun
@@ -245,15 +210,15 @@ class InternalRunner:
   def start(self):
     try: self.start_pp()
     except Exception as ae:
-      utils.raiseAMessage(self,"InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
+      self.raiseAMessage("InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.retcode = -1
 
   def kill(self):
-    utils.raiseAMessage(self,"Terminating "+self.__thread.pid+ " Identifier " + self.identifier)
+    self.raiseAMessage("Terminating "+self.__thread.pid+ " Identifier " + self.identifier)
     if self.ppserver != None: os.kill(self.__thread.tid,signal.SIGTERM)
     else: os.kill(self.__thread.pid,signal.SIGTERM)
 
-class JobHandler:
+class JobHandler(MessageHandler.MessageUser):
   def __init__(self):
     self.runInfoDict            = {}
     self.mpiCommand             = ''
@@ -271,8 +236,9 @@ class JobHandler:
     self.__numFailed            = 0
     self.__failedJobs           = []
 
-  def initialize(self,runInfoDict):
+  def initialize(self,runInfoDict,messageHandler):
     self.runInfoDict = runInfoDict
+    self.messageHandler = messageHandler
     if self.runInfoDict['NumMPI'] !=1 and len(self.runInfoDict['ParallelCommand']) > 0:
       self.mpiCommand = self.runInfoDict['ParallelCommand']+' '+str(self.runInfoDict['NumMPI'])
     if self.runInfoDict['NumThreads'] !=1 and len(self.runInfoDict['ThreadingCommand']) > 0:
@@ -334,14 +300,14 @@ class JobHandler:
       command +=self.threadingCommand+' '
     command += executeCommand
     command += self.runInfoDict['postcommand']
-    self.__queue.put(ExternalRunner(command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata,codePointer))
+    self.__queue.put(ExternalRunner(self.messageHandler,command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata,codePointer))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
   def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], globs = None):
     #internal serve is initialized only in case an internal calc is requested
     if not self.initParallelPython: self.__initializeParallelPython()
-    self.__queue.put(InternalRunner(self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs, functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)]))
+    self.__queue.put(InternalRunner(self.messageHandler,self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs, functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)]))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
@@ -379,16 +345,16 @@ class JobHandler:
           running = self.__running[i]
           returncode = running.getReturnCode()
           if returncode != 0:
-            utils.raiseAMessage(self," Process Failed "+str(running)+' '+str(running.command)+" returncode "+str(returncode))
+            self.raiseAMessage(" Process Failed "+str(running)+' '+str(running.command)+" returncode "+str(returncode))
             self.__numFailed += 1
             self.__failedJobs.append(running.identifier)
             if type(running).__name__ == "External":
               outputFilename = running.getOutputFilename()
-              if os.path.exists(outputFilename): utils.raiseAMessage(self,open(outputFilename,"r").read())
-              else: utils.raiseAMessage(self," No output "+outputFilename)
+              if os.path.exists(outputFilename): self.raiseAMessage(open(outputFilename,"r").read())
+              else: self.raiseAMessage(" No output "+outputFilename)
           else:
             if self.runInfoDict['delSucLogFiles'] and running.__class__.__name__ != 'InternalRunner':
-              utils.raiseAMessage(self,' Run "' +running.identifier+'" ended smoothly, removing log file!')
+              self.raiseAMessage(' Run "' +running.identifier+'" ended smoothly, removing log file!')
               if os.path.exists(running.getOutputFilename()): os.remove(running.getOutputFilename())
             if len(self.runInfoDict['deleteOutExtension']) >= 1 and running.__class__.__name__ != 'InternalRunner':
               for fileExt in self.runInfoDict['deleteOutExtension']:

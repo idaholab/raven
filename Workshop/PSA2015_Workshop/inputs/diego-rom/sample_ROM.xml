@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug="True">
+    
+<RunInfo>
+    <WorkingDir>./results</WorkingDir>
+    <Files>ROM3pk</Files>
+    <Sequence>extract_data4,rom_trainer4,RunROM4,plot_data_4</Sequence>
+    <batchSize>1</batchSize>
+</RunInfo>
+
+
+<Distributions>
+    <Normal name='normal_trunc'>
+        <mean>0.5</mean>
+        <sigma>0.1</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>1</upperBound>
+    </Normal>
+    <Normal name='normal'>
+        <mean>2</mean>
+        <sigma>0.2</sigma>
+    </Normal>
+    <Uniform name='uniform'>
+        <upperBound>4</upperBound>
+        <lowerBound>1</lowerBound>
+    </Uniform>
+</Distributions>
+
+
+<Models>
+    <ROM  name='ROM4' subType='NDinvDistWeight'>
+        <Features>x1,x2,x3</Features>
+        <Target>y4</Target>
+        <p>3</p>
+    </ROM>
+</Models>
+
+
+<Samplers>
+    <Grid name='Grid_ROM'>
+        <variable name='x1' >
+            <distribution>normal_trunc</distribution>
+            <grid type='value' lowerBound='0.0' construction='equal' steps='10'>0.1</grid>
+        </variable>
+        <variable name='x2' >
+            <distribution>normal</distribution>
+            <grid type='value' lowerBound='1.5' construction='equal' steps='10'>0.1</grid>
+        </variable>
+        <variable name='x3' >
+            <distribution>uniform</distribution>
+            <grid type='value' lowerBound='1.0' construction='equal' steps='10'>0.3</grid>
+        </variable>
+    </Grid>
+</Samplers>
+
+
+<Steps>
+    <IOStep name='extract_data4'>
+        <Input   class='Databases'   type='HDF5'         >out_db</Input>
+        <Output  class='DataObjects' type='TimePointSet' >outGRID_y4</Output>
+    </IOStep>
+    <RomTrainer name='rom_trainer4'>
+        <Input   class='DataObjects' type='TimePointSet' >outGRID_y4</Input>
+        <Output  class='Models'      type='ROM'          >ROM4</Output>
+    </RomTrainer>
+    <MultiRun name='RunROM4'>
+        <Input   class='DataObjects' type='TimePointSet' >Data1</Input>
+        <Model   class='Models'      type='ROM'          >ROM4</Model>
+        <Sampler class='Samplers'    type='Grid'         >Grid_ROM</Sampler>
+        <Output  class='DataObjects' type='TimePointSet' >outROM_y4</Output>
+    </MultiRun>
+    <IOStep name='plot_data_4' pauseAtEnd='True'>
+        <Input   class='DataObjects'      type='TimePointSet' >outROM_y4</Input>
+        <Input   class='DataObjects'      type='TimePointSet' >outGRID_y4</Input>
+        <Output  class='OutStreamManager' type='Plot'         >plot_ROM_RSy4</Output>
+        <Output  class='OutStreamManager' type='Plot'         >plot_RSy4</Output>
+    </IOStep>
+</Steps>
+
+
+<Databases>
+    <HDF5 name="out_db" filename="out_db.h5" directory="./results/DatabaseStorage/"/>
+</Databases>
+
+
+<DataObjects>
+    <TimePointSet name = 'Data1'>
+        <Input>x1,x2,x3</Input>
+        <Output>OutputPlaceHolder</Output>
+    </TimePointSet>
+    <TimePointSet name='outGRID_y4'>
+        <Input>x1,x2,x3</Input>
+        <Output>y4</Output>
+    </TimePointSet>
+    <TimePointSet name='outROM_y4'>
+        <Input>x1,x2,x3</Input>
+        <Output>y4</Output>
+    </TimePointSet>
+</DataObjects>
+
+<OutStreamManager>
+    <Plot name='plot_ROM_RSy4' dim='3' overwrite='False'>
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>outROM_y4|Input|x1</x>
+                <y>outROM_y4|Input|x3</y>
+                <z>outROM_y4|Output|y4</z>
+                <colorMap>outROM_y4|Input|x2</colorMap>
+                <cmap>jet</cmap>
+            </plot>
+        </plotSettings>
+        <actions>
+            <how>screen</how>
+            <title>
+                <text>Sampled Input Space: ROM4</text>
+            </title>
+        </actions>
+    </Plot>
+    <Plot name='plot_RSy4' dim='3' overwrite='False'>
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>outGRID_y4|Input|x1</x>
+                <y>outGRID_y4|Input|x3</y>
+                <z>outGRID_y4|Output|y4</z>
+                <colorMap>outGRID_y4|Input|x2</colorMap>
+                <cmap>jet</cmap>
+            </plot>
+        </plotSettings>
+        <actions>
+            <how>screen</how>
+            <title>
+                <text>Sampled Input Space: Function</text>
+            </title>
+        </actions>
+    </Plot>
+</OutStreamManager>
+
+</Simulation>
+
+
+

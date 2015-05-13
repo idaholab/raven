@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="False">
+<Simulation >
     <RunInfo>
         <WorkingDir>IndexSetTest</WorkingDir>
         <Sequence>
@@ -64,7 +64,7 @@
             <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
             <Interpolation quad='Legendre' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
-        <ROM name='TDROM' subType='GaussPolynomialRom' debug="True">
+        <ROM name='TDROM' subType='GaussPolynomialRom' verbosity='debug'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TotalDegree</IndexSet>
@@ -72,7 +72,7 @@
             <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x1</Interpolation>
             <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x2</Interpolation>
         </ROM>
-        <ROM name='HCROM' subType='GaussPolynomialRom' debug="True">
+        <ROM name='HCROM' subType='GaussPolynomialRom' verbosity='debug'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>HyperbolicCross</IndexSet>
