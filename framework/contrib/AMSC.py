@@ -201,14 +201,14 @@ class AMSC_Object(PySide.QtCore.QObject):
                                        or seen.add(x))]
 
     for edge in pairs:
-      edgesToPrune.append(edge[0])
-      edgesToPrune.append(edge[1])
+      edgesToPrune.append(int(edge[0]))
+      edgesToPrune.append(int(edge[1]))
 
     ## Swig/Python struggles communicating a python list as a std::vector<int>
     ## under some implementations, so we will force the datatype
-    preliminaryEdges = amsc.vectorInt()
-    for i in edgesToPrune:
-      preliminaryEdges.push_back(int(i))
+    preliminaryEdges = amsc.vectorInt(int(len(edgesToPrune)))
+    for i,edge in enumerate(edgesToPrune):
+      preliminaryEdges[i] = int(edge)
 
     if debug:
       sys.stderr.write('%f s\n' % (end-start))
