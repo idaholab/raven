@@ -287,6 +287,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.interpolator  = None #FIXME what's this?
     self.printTag      = 'GAUSSgpcROM('+self.target+')'
     self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
+    self.indexSetVals  = []   #list of tuples, custom index set to use if CustomSet is the index set type
     self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
     self.itpDict       = {}   #dict of quad,poly,weight choices keyed on varName
     self.norm          = None #combined distribution normalization factors (product)
@@ -300,8 +301,17 @@ class GaussPolynomialRom(NDinterpolatorRom):
 
     for key,val in kwargs.items():
       if key=='IndexSet': self.indexSetType = val
-      if key=='PolynomialOrder': self.maxPolyOrder = val
-      if key=='Interpolation':
+      elif key=='IndexPoints':
+        self.indexSetVals=[]
+        strIndexPoints = val.strip()
+        strIndexPoints = strIndexPoints.replace(' ','').replace('\n','').strip('()')
+        strIndexPoints = strIndexPoints.split('),(')
+        self.raiseADebug(strIndexPoints)
+        for s in strIndexPoints:
+          self.indexSetVals.append(tuple(int(i) for i in s.split(',')))
+        self.raiseADebug('points',self.indexSetVals)
+      elif key=='PolynomialOrder': self.maxPolyOrder = val
+      elif key=='Interpolation':
         for var,val in val.items():
           self.itpDict[var]={'poly'  :'DEFAULT',
                              'quad'  :'DEFAULT',
@@ -312,6 +322,11 @@ class GaussPolynomialRom(NDinterpolatorRom):
 
     if not self.indexSetType:
       self.raiseAnError(IOError,'No IndexSet specified!')
+    if self.indexSetType=='CustomSet':
+      if len(self.indexSetVals)<1: self.raiseAnError(IOError,'If using CustomSet, must specify points in <IndexPoints> node!')
+      else:
+        for i in self.indexSetVals:
+          if len(i)<len(self.features): self.raiseAnError(IOError,'CustomSet points',i,'is too small!')
     if not self.maxPolyOrder:
       self.raiseAnError(IOError,'No maxPolyOrder specified!')
     if self.maxPolyOrder < 1:

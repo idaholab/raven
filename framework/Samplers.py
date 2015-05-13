@@ -2352,6 +2352,8 @@ class SparseGridCollocation(Grid):
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType,self)
     self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder,self.messageHandler)
+    if self.indexSet.type=='Custom Index Set':
+      self.indexSet.setPoints(SVL.indexSetVals)
 
     self.raiseADebug('Starting sparse grid generation...')
     self.sparseGrid = Quadratures.SparseQuad()
