@@ -1104,9 +1104,7 @@ class Stratified(Grid):
         varName = "<distribution>"+child.attrib['name']
       elif child.tag == "global_grid":
         for childChild in child:
-          if childChild.attrib['type'] == 'global_grid':
-            self.gridInfo[varName] = ('CDF','global_grid',childChild.text)
-          elif childChild.tag =='grid':
+          if childChild.tag =='grid':
             globalGridName = childChild.attrib['name']
             constrType = childChild.attrib['construction']
             if constrType == 'custom':
@@ -1123,9 +1121,8 @@ class Stratified(Grid):
                 self.globalGrid[globalGridName] = ([float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
                 self.globalGrid[globalGridName].sort()
               else: self.raiseAnError(IOError,'no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
-            else:
-              self.raiseAnError(IOError,'The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
-
+          else:
+            self.raiseAnError(IOError,'The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
     for variable in self.gridInfo.keys():
       if self.gridInfo[variable][1] == 'global_grid':
         lst=list(self.gridInfo[variable])

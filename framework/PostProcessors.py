@@ -38,6 +38,10 @@ import MessageHandler
 class BasePostProcessor(Assembler,MessageHandler.MessageUser):
   """"This is the base class for postprocessors"""
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     self.type              = self.__class__.__name__  # pp type
     self.name              = self.__class__.__name__  # pp name
     self.assemblerObjects  = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
@@ -47,18 +51,222 @@ class BasePostProcessor(Assembler,MessageHandler.MessageUser):
     self.messageHandler = messageHandler
 
   def initialize(self, runInfo, inputs, initDict) :
+    """
+     Method to initialize the pp.
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
     #if 'externalFunction' in initDict.keys(): self.externalFunction = initDict['externalFunction']
     self.inputs           = inputs
 
-  def inputToInternal(self,currentInput): return [(copy.deepcopy(currentInput))]
+  def inputToInternal(self,currentInput):
+    """
+     Method to convert an input object into the internal format that is
+     understandable by this pp.
+     @ In, currentInput, object, an object that needs to be converted
+     @ Out, list, list of current inputs
+    """
+    return [(copy.deepcopy(currentInput))]
 
-  def run(self, Input): pass
+  def run(self, Input):
+    """
+     This method executes the postprocessor action.
+     @ In,  Input, object, object contained the data to process. (inputToInternal output)
+     @ Out, dictionary, Dictionary containing the evaluated data
+    """
+    pass
 
+class LimitSurfaceIntegral(BasePostProcessor):
+  """
+  This post-processor is aimed to compute the n-dimensional integral of an inputted Limit Surface
+  """
+  def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
+    BasePostProcessor.__init__(self,messageHandler)
+    self.variableDist   = {}                                    # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
+    self.target         = None                                  # target that defines the f(x1,x2,...,xn)
+    self.tolerance      = 0.0001                                # integration tolerance
+    self.integralType   = 'montecarlo'                          # integral type (which alg needs to be used). Either montecarlo or quadrature(quadrature not yet)
+    self.seed           = 20021986                              # seed for montecarlo
+    self.matrixDict     = {}                                    # dictionary of arrays and target
+    self.lowerUpperDict = {}
+    self.functionS      = None
+    self.stat           = returnInstance('BasicStatistics',self)# instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
+    self.stat.what      = ['expectedValue']
+    self.requiredAssObject = (False,(['Distribution'],['n']))
+    self.printTag       = 'POSTPROCESSOR INTEGRAL'
+
+  def _localWhatDoINeed(self):
+    """
+    This method is a local mirror of the general whatDoINeed method.
+    It is implemented by this postprocessor that need to request special objects
+    @ In , None, None
+    @ Out, needDict, list of objects needed
+    """
+    needDict = {'Distributions':[]}
+    for distName in self.variableDist.values():
+      if distName != None: needDict['Distributions'].append((None,distName))
+    return needDict
+
+  def _localGenerateAssembler(self,initDict):
+    """ see generateAssembler method in Assembler.py """
+    for varName, distName in self.variableDist.items():
+      if distName != None:
+        if distName not in initDict['Distributions'].keys(): self.raiseAnError(IOError,'distribution ' +distName+ ' not found.')
+        self.variableDist[varName] = initDict['Distributions'][distName]
+        self.lowerUpperDict[varName]['lowerBound'] = self.variableDist[varName].lowerBound
+        self.lowerUpperDict[varName]['upperBound'] = self.variableDist[varName].upperBound
+
+  def _localReadMoreXML(self,xmlNode):
+    """
+    Function to read the portion of the xml input that belongs to this specialized class
+    and initialize some stuff based on the inputs got
+    @ In, xmlNode    : Xml element node
+    @ Out, None
+    """
+    for child in xmlNode:
+      varName = None
+      if child.tag == 'variable':
+        varName = child.attrib['name']
+        self.lowerUpperDict[varName] = {}
+        self.variableDist[varName] = None
+        for childChild in child:
+          if childChild.tag == 'distribution': self.variableDist[varName] = childChild.text
+          elif childChild.tag == 'lowerBound':
+            if self.variableDist[varName] != None: self.raiseAnError(NameError,'you can not specify both distribution and lower/upper bounds nodes for variable ' +varName+' !')
+            self.lowerUpperDict[varName]['lowerBound'] = float(childChild.text)
+          elif childChild.tag == 'upperBound':
+            if self.variableDist[varName] != None: self.raiseAnError(NameError,'you can not specify both distribution and lower/upper bounds nodes for variable ' +varName+' !')
+            self.lowerUpperDict[varName]['upperBound'] = float(childChild.text)
+          else:
+            self.raiseAnError(NameError,'invalid labels after the variable call. Only "distribution", "lowerBound" abd "upperBound" is accepted. tag: '+child.tag)
+      elif child.tag == 'tolerance':
+        try              : self.tolerance = float(child.text)
+        except ValueError: self.raiseAnError(ValueError,"tolerance can not be converted into a float value!")
+      elif child.tag == 'integralType':
+        self.integralType = child.text.strip().lower()
+        if self.integralType not in ['montecarlo']: self.raiseAnError(IOError,'only one integral types are available: MonteCarlo!')
+      elif child.tag == 'seed':
+        try              : self.seed = int(child.text)
+        except ValueError: self.raiseAnError(ValueError,'seed can not be converted into a int value!')
+        if self.integralType != 'montecarlo': self.raiseAWarning('integral type is '+self.integralType+' but a seed has been inputted!!!')
+        else: np.random.seed(self.seed)
+      elif child.tag == 'target':
+        self.target = child.text
+      else: self.raiseAnError(NameError,'invalid or missing labels after the variables call. Only "variable" is accepted.tag: '+child.tag)
+      #if no distribution, we look for the integration domain in the input
+      if varName != None:
+        if self.variableDist[varName] == None:
+          if 'lowerBound' not in self.lowerUpperDict[varName].keys() or 'upperBound' not in self.lowerUpperDict[varName].keys():
+            self.raiseAnError(NameError,'either a distribution name or lowerBound and upperBound need to be specified for variable '+varName)
+    if self.target == None: self.raiseAWarning('integral target has not been provided. The postprocessor is going to take the last output it finds in the provided limitsurface!!!')
+
+  def initialize(self,runInfo,inputs,initDict):
+    """
+     Method to initialize the Limit Surface Integral post-processor. This method here
+     is in charge of 'training' the nearest Neighbors ROM.
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
+    self.inputToInternal(inputs)
+    if self.integralType in ['montecarlo']:
+      self.stat.parameters['targets'] = [self.target]
+      self.stat.initialize(runInfo,inputs,initDict)
+    self.functionS = SupervisedLearning.returnInstance('SciKitLearn',self,**{'SKLtype':'neighbors|KNeighborsClassifier','Features':','.join(list(self.variableDist.keys())),'Target':self.target})
+    self.functionS.train(self.matrixDict)
+    self.raiseADebug('DATA SET MATRIX:')
+    self.raiseADebug(self.matrixDict)
+
+  def inputToInternal(self,currentInput):
+    """
+     Method to convert an input object into the internal format that is
+     understandable by this pp.
+     @ In, currentInput, object, an object that needs to be converted
+     @ Out, None, the resulting converted object is stored as an attribute of this class
+    """
+    for item in currentInput:
+      if item.type == 'TimePointSet':
+        self.matrixDict = {}
+        if not set(item.getParaKeys('inputs')) == set(self.variableDist.keys()): self.raiseAnError(IOError,'The variables inputted and the features in the input TimePointSet '+ item.name + 'do not match!!!')
+        if self.target == None: self.target = item.getParaKeys('outputs')[-1]
+        if self.target not in item.getParaKeys('outputs'): self.raiseAnError(IOError,'The target '+ self.target + 'is not present among the outputs of the TimePointSet '+ item.name)
+        # construct matrix
+        for  varName in self.variableDist.keys(): self.matrixDict[varName] = item.getParam('input',varName)
+        outputarr = item.getParam('output',self.target)
+        if len(set(outputarr)) != 2: self.raiseAnError(IOError,'The target '+ self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
+        outputarr[outputarr==-1] = 0.0
+        self.matrixDict[self.target] = outputarr
+      else: self.raiseAnError(IOError,'Only TimePointSet is accepted as input!!!!')
+
+  def run(self,Input):
+    """
+     This method executes the postprocessor action. In this case, it performs the computation of the LS integral
+     @ In,  Input, object, object contained the data to process. (inputToInternal output)
+     @ Out, float, integral outcome (probability of the event)
+    """
+    pb = None
+    if self.integralType == 'montecarlo':
+      tempDict = {}
+      randomMatrix = np.random.rand(math.ceil(1.0/self.tolerance),len(self.variableDist.keys()))
+      for index, varName in enumerate(self.variableDist.keys()):
+        if self.variableDist[varName] == None: randomMatrix[:,index] = randomMatrix[:,index]*(self.lowerUpperDict[varName]['upperBound']-self.lowerUpperDict[varName]['lowerBound'])+self.lowerUpperDict[varName]['lowerBound']
+        else:
+          for samples in range(randomMatrix.shape[0]): randomMatrix[samples,index] = self.variableDist[varName].ppf(randomMatrix[samples,index])
+        tempDict[varName] = randomMatrix[:,index]
+      pb = self.stat.run({'targets':{self.target:self.functionS.evaluate(tempDict)}})
+    else: self.raiseAnError(NotImplemented, "quadrature not yet implemented")
+    return pb['expectedValue'][self.target]
+
+  def collectOutput(self,finishedjob,output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob: A JobHandler object that is in charge of running this
+                         post-processor
+      @ In, output: The object where we want to place our computed results
+      @ Out, None
+    """
+    if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,'no available output to collect.')
+    else:
+      pb = finishedjob.returnEvaluation()[1]
+      lms = finishedjob.returnEvaluation()[0][0]
+      if output.type == 'TimePointSet':
+        # we store back the limitsurface
+        for key,value in lms.getParametersValues('input').items():
+          for val in value: output.updateInputValue(key, val)
+        for key,value in lms.getParametersValues('output').items():
+          for val in value: output.updateOutputValue(key,val)
+        for _ in range(len(lms)): output.updateOutputValue('EventProbability',pb)
+      elif output.type == 'FileObject':
+        fileobject = open(output,'w')
+        headers = lms.getParaKeys('inputs')+lms.getParaKeys('outputs')+['EventProbability']
+        fileobject.write(','.join(headers))
+        stack  = [None]*len(headers)
+        outIndex = 0
+        for key,value in lms.getParametersValues('input').items() : stack[headers.index(key)] = np.asarray(value).flatten()
+        for key,value in lms.getParametersValues('output').items():
+          stack[headers.index(key)] = np.asarray(value).flatten()
+          outIndex = headers.index(key)
+        stack[headers.index('EventProbability')] = np.array([pb]*len(stack[outIndex])).flatten()
+        stacked = np.column_stack(stack)
+        np.savetxt(output, stacked, delimiter=',', header=','.join(headers))
+      else: self.raiseAnError(Exception, self.type + ' accepts TimePointSet or FileObject only')
+#
+#
+#
 class SafestPoint(BasePostProcessor):
   """
   It searches for the probability-weighted safest point inside the space of the system controllable variables
   """
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.controllableDist = {}                                    #dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
     self.nonControllableDist = {}                                 #dictionary created upon the .xml input file reading. It stores the distributions for each non-controllale variable.
@@ -85,6 +293,12 @@ class SafestPoint(BasePostProcessor):
       self.nonControllableDist[varName] = initDict['Distributions'][distName]
 
   def _localReadMoreXML(self,xmlNode):
+    """
+    Function to read the portion of the xml input that belongs to this specialized class
+    and initialize some stuff based on the inputs got
+    @ In, xmlNode    : Xml element node
+    @ Out, None
+    """
     for child in xmlNode:
       if child.tag == 'controllable':
         for childChild in child:
@@ -134,6 +348,13 @@ class SafestPoint(BasePostProcessor):
     self.raiseADebug(self.nonControllableGrid)
 
   def initialize(self,runInfo,inputs,initDict):
+    """
+     Method to initialize the Safest Point pp. This method is in charge
+     of creating the Controllable and no-controllable grid.
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
     self.__gridSetting__()
     self.__gridGeneration__()
     self.inputToInternal(inputs)
@@ -219,6 +440,12 @@ class SafestPoint(BasePostProcessor):
       iterIndex.iternext()
 
   def inputToInternal(self,currentInput):
+    """
+     Method to convert an input object into the internal format that is
+     understandable by this pp.
+     @ In, currentInput, object, an object that needs to be converted
+     @ Out, None, the resulting converted object is stored as an attribute of this class
+    """
     for item in currentInput:
       if item.type == 'TimePointSet':
         self.surfPointsMatrix = np.zeros((len(item.getParam('output',item.getParaKeys('outputs')[-1])),len(self.gridInfo.keys())+1))
@@ -232,6 +459,11 @@ class SafestPoint(BasePostProcessor):
         self.surfPointsMatrix[:,k] = item.getParam('output',item.getParaKeys('outputs')[-1])
 
   def run(self,Input):
+    """
+     This method executes the postprocessor action. In this case, it computes the safest point
+     @ In,  Input, object, object contained the data to process. (inputToInternal output)
+     @ Out, TimePointSet, TimePointSet containing the elaborated data
+    """
     nearestPointsInd = []
     dataCollector = DataObjects.returnInstance('TimePointSet',self)
     dataCollector.type = 'TimePointSet'
@@ -286,6 +518,13 @@ class SafestPoint(BasePostProcessor):
     return dataCollector
 
   def collectOutput(self,finishedjob,output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob: A JobHandler object that is in charge of running this
+                         post-processor
+      @ In, output: The object where we want to place our computed results
+      @ Out, None
+    """
     if finishedjob.returnEvaluation() == -1:
       self.raiseAnError(RuntimeError,'no available output to collect (the run is likely not over yet).')
     else:
@@ -301,7 +540,9 @@ class SafestPoint(BasePostProcessor):
           for key,value in dataCollector.getParametersValues('output').items():
             for val in value: output.updateOutputValue(key,val)
           for key,value in dataCollector.getAllMetadata().items(): output.updateMetadata(key,value)
-
+#
+#
+#
 class ComparisonStatistics(BasePostProcessor):
   """
   ComparisonStatistics is to calculate statistics that compare
@@ -310,10 +551,17 @@ class ComparisonStatistics(BasePostProcessor):
 
   class CompareGroup:
     def __init__(self):
+      """
+       Constructor
+      """
       self.dataPulls = []
       self.referenceData = {}
 
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.dataDict = {} #Dictionary of all the input data, keyed by the name
     self.compareGroups = [] #List of each of the groups that will be compared
@@ -326,12 +574,30 @@ class ComparisonStatistics(BasePostProcessor):
     self.distributions = {}
 
   def inputToInternal(self,currentInput):
+    """
+     Method to convert an input object into the internal format that is
+     understandable by this pp.
+     @ In, currentInput, object, an object that needs to be converted
+     @ Out, object, the resulting converted object
+    """
     return [(currentInput)]
 
   def initialize(self, runInfo, inputs, initDict):
+    """
+     Method to initialize the ComparisonStatistics pp.
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
 
   def _localReadMoreXML(self,xmlNode):
+    """
+    Function to read the portion of the xml input that belongs to this specialized class
+    and initialize some stuff based on the inputs got
+    @ In, xmlNode    : Xml element node
+    @ Out, None
+    """
     for outer in xmlNode:
       if outer.tag == 'compare':
         compareGroup = ComparisonStatistics.CompareGroup()
@@ -371,14 +637,22 @@ class ComparisonStatistics(BasePostProcessor):
 
   def run(self, Input): # inObj,workingDir=None):
     """
-     Function to finalize the filter => execute the filtering
-     @ Out, None      : To add description
+     This method executes the postprocessor action. In this case, it just returns the inputs
+     @ In,  Input, object, object contained the data to process. (inputToInternal output)
+     @ Out, dictionary, Dictionary containing the inputs
     """
     dataDict = {}
     for aInput in Input: dataDict[aInput.name] = aInput
     return dataDict
 
   def collectOutput(self,finishedjob,output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob: A JobHandler object that is in charge of running this
+                         post-processor
+      @ In, output: The object where we want to place our computed results
+      @ Out, None
+    """
     self.raiseADebug("finishedjob: "+str(finishedjob)+", output "+str(output))
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,'no available output to collect.')
     else: self.dataDict.update(finishedjob.returnEvaluation()[1])
@@ -573,21 +847,40 @@ class ComparisonStatistics(BasePostProcessor):
       ret['omega'] = omega
       ret['xi'] = xi
       return ret
-
+#
+#
+#
 class PrintCSV(BasePostProcessor):
   """
   PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
   """
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.paramters  = ['all']
     self.inObj      = None
     self.workingDir = None
     self.printTag   = 'POSTPROCESSOR PRINTCSV'
 
-  def inputToInternal(self,currentInput): return [(currentInput)]
+  def inputToInternal(self,currentInput):
+    """
+     Method to convert an input object into the internal format that is
+     understandable by this pp.
+     @ In, currentInput, object, an object that needs to be converted
+     @ Out, None, the resulting converted object is stored as an attribute of this class
+    """
+    return [(currentInput)]
 
   def initialize(self, runInfo, inputs, initDict):
+    """
+     Method to initialize the PrintCSV pp. In here, the workingdir is collected and eventually created
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     runInfo['TempWorkingDir']     = self.workingDir
@@ -609,6 +902,13 @@ class PrintCSV(BasePostProcessor):
         else: self.paramters[param]
 
   def collectOutput(self,finishedjob,output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob: A JobHandler object that is in charge of running this
+                         post-processor
+      @ In, output: The object where we want to place our computed results
+      @ Out, None
+    """
     # Check the input type
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,'No available Output to collect (Run probabably is not finished yet)')
     self.inObj = finishedjob.returnEvaluation()[1]
@@ -665,84 +965,28 @@ class PrintCSV(BasePostProcessor):
           addcsvfile.write(utils.toBytes(str(attributes['end_time']))+os.linesep)
           addcsvfile.write(b'#number of time-steps,' + os.linesep)
           addcsvfile.write(utils.toBytes(str(attributes['n_ts']))+os.linesep)
-          # remove because not needed!!!!!!
-#             for cnt,item in enumerate(attributes['metadata']):
-#               if 'initiator_distribution' in item.keys():
-#                 init_dist = attributes['initiator_distribution']
-#                 addcsvfile.write(b'#number of branches in this history,' + os.linesep)
-#                 addcsvfile.write(utils.toBytes(str(len(init_dist)))+os.linesep)
-#                 string_work = ''
-#                 for i in range(len(init_dist)):
-#                   string_work_2 = ''
-#                   for j in init_dist[i]: string_work_2 = string_work_2 + str(j) + ' '
-#                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#initiator distributions,' + os.linesep)
-#                 addcsvfile.write(utils.toBytes(string_work)+os.linesep)
-#               if 'end_timestep' in item.keys():
-#                 string_work = ''
-#                 end_ts = attributes['end_timestep']
-#                 for i in xrange(len(end_ts)): string_work = string_work + str(end_ts[i]) + ','
-#                 addcsvfile.write('#end time step,' + os.linesep)
-#                 addcsvfile.write(str(string_work)+os.linesep)
-#               if 'branch_changed_param' in attributes['metadata'][-1].keys():
-#                 string_work = ''
-#                 branch_changed_param = attributes['branch_changed_param']
-#                 for i in range(len(branch_changed_param)):
-#                   string_work_2 = ''
-#                   for j in branch_changed_param[i]:
-#                     if not j: string_work_2 = string_work_2 + 'None' + ' '
-#                     else: string_work_2 = string_work_2 + str(j) + ' '
-#                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#changed parameters,' + os.linesep)
-#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
-#               if 'branch_changed_param_value' in attributes['metadata'][-1].keys():
-#                 string_work = ''
-#                 branch_changed_param_value = attributes['branch_changed_param_value']
-#                 for i in range(len(branch_changed_param_value)):
-#                   string_work_2 = ''
-#                   for j in branch_changed_param_value[i]:
-#                     if not j: string_work_2 = string_work_2 + 'None' + ' '
-#                     else: string_work_2 = string_work_2 + str(j) + ' '
-#                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#changed parameters values,' + os.linesep)
-#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
-#               if 'conditional_prb' in attributes['metadata'][-1].keys():
-#                 string_work = ''
-#                 cond_pbs = attributes['conditional_prb']
-#                 for i in range(len(cond_pbs)):
-#                   string_work_2 = ''
-#                   for j in cond_pbs[i]:
-#                     if not j: string_work_2 = string_work_2 + 'None' + ' '
-#                     else: string_work_2 = string_work_2 + str(j) + ' '
-#                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#conditional probability,' + os.linesep)
-#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
-#               if 'PbThreshold' in attributes['metadata'][-1].keys():
-#                 string_work = ''
-#                 pb_thresholds = attributes['PbThreshold']
-#                 for i in range(len(pb_thresholds)):
-#                   string_work_2 = ''
-#                   for j in pb_thresholds[i]:
-#                     if not j: string_work_2 = string_work_2 + 'None' + ' '
-#                     else: string_work_2 = string_work_2 + str(j) + ' '
-#                   string_work = string_work + string_work_2 + ','
-#                 addcsvfile.write(b'#Probability threshold,' + os.linesep)
-#                 addcsvfile.write(utils.toBytes(str(string_work))+os.linesep)
           addcsvfile.write(os.linesep)
     else: self.raiseAnError(NotImplementedError,'for input type ' + self.inObj.type + ' not yet implemented.')
 
   def run(self, Input): # inObj,workingDir=None):
     """
-     Function to finalize the filter => execute the filtering
-     @ Out, None      : Print of the CSV file
+     This method executes the postprocessor action. In this case, it just returns the input
+     @ In,  Input, object, object contained the data to process. (inputToInternal output)
+     @ Out, object, the input
     """
     return Input[-1]
-
+#
+#
+#
 class BasicStatistics(BasePostProcessor):
   """
     BasicStatistics filter class. It computes all the most popular statistics
   """
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.parameters        = {}                                                                                                      #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.acceptedCalcParam = ['covariance','NormalizedSensitivity','VarianceDependentSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtosis','median','percentile']  # accepted calculation parameters
@@ -756,11 +1000,17 @@ class BasicStatistics(BasePostProcessor):
     self.calculated        = {}
 
   def inputToInternal(self,currentInp):
+    """
+     Method to convert an input object into the internal format that is
+     understandable by this pp.
+     @ In, currentInput, object, an object that needs to be converted
+     @ Out, inputDict, dictionary of the converted data
+    """
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     if type(currentInp) == list  : currentInput = currentInp [-1]
     else                         : currentInput = currentInp
     if type(currentInput) == dict:
-      if 'targets' in currentInput.keys(): return
+      if 'targets' in currentInput.keys(): return currentInput
     inputDict = {'targets':{},'metadata':{}}
     try: inType = currentInput.type
     except:
@@ -785,6 +1035,13 @@ class BasicStatistics(BasePostProcessor):
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
+    """
+     Method to initialize the BasicStatistic pp. In here the working dir is
+     grepped.
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
 
@@ -809,6 +1066,13 @@ class BasicStatistics(BasePostProcessor):
           if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
 
   def collectOutput(self,finishedjob,output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob: A JobHandler object that is in charge of running this
+                         post-processor
+      @ In, output: The object where we want to place our computed results
+      @ Out, None
+    """
     #output
     parameterSet = list(set(list(self.parameters['targets'])))
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,' No available Output to collect (Run probabably is not finished yet)')
@@ -892,9 +1156,9 @@ class BasicStatistics(BasePostProcessor):
 
   def run(self, InputIn):
     """
-     Function to finalize the filter => execute the filtering
-     @ In , dictionary       : dictionary of data to process
-     @ Out, dictionary       : Dictionary with results
+     This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
+     @ In,  Input, object, object contained the data to process. (inputToInternal output)
+     @ Out, dictionary, Dictionary containing the results
     """
     Input  = self.inputToInternal(InputIn)
     outputDict = {}
@@ -914,12 +1178,13 @@ class BasicStatistics(BasePostProcessor):
     #setting some convenience values
     parameterSet = list(set(list(self.parameters['targets'])))  #@Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
     N            = [np.asarray(Input['targets'][targetP]).size for targetP in parameterSet]
-    pbPresent    = Input['metadata'].keys().count('ProbabilityWeight')>0
-
-    if 'ProbabilityWeight' not in Input['metadata'].keys():
-      if Input['metadata'].keys().count('SamplerType') > 0:
-        if Input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      else: self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+    if 'metadata' in Input.keys(): pbPresent = Input['metadata'].keys().count('ProbabilityWeight')>0
+    else                         : pbPresent = False
+    if not pbPresent:
+      if 'metadata' in Input.keys():
+        if Input['metadata'].keys().count('SamplerType') > 0:
+          if Input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+        else: self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbweights    = np.zeros(len(Input['targets'][self.parameters['targets'][0]]),dtype=np.float)
       pbweights[:] = 1.0/pbweights.size # it was an Integer Division (1/integer) => 0!!!!!!!! Andrea
     else: pbweights       = Input['metadata']['ProbabilityWeight']
@@ -1122,7 +1387,7 @@ class BasicStatistics(BasePostProcessor):
           warnings.warn("Degrees of freedom <= 0", RuntimeWarning)
           fact = 0.0
       if not rowvar:
-        if weigths != None: covMatrix = (np.dot(diff.T, w*diff)*fact).squeeze()
+        if weights != None: covMatrix = (np.dot(diff.T, w*diff)*fact).squeeze()
         else:               covMatrix = (np.dot(diff.T, diff)*fact).squeeze()
       else:
         if weights != None: covMatrix = (np.dot(w*diff, diff.T)*fact).squeeze()
@@ -1131,8 +1396,7 @@ class BasicStatistics(BasePostProcessor):
 
   def corrCoeff(self, feature, weights=None, rowvar=1):
       covM = self.covariance(feature, weights, rowvar)
-      try:
-        d = np.diag(covM)
+      try: d = np.diag(covM)
       except ValueError:  # scalar covariance
       # nan if incorrect value (nan, inf, 0), 1 otherwise
         return covM / covM
@@ -1140,18 +1404,27 @@ class BasicStatistics(BasePostProcessor):
 #
 #
 #
-
 class LoadCsvIntoInternalObject(BasePostProcessor):
   """
     LoadCsvIntoInternalObject pp class. It is in charge of loading CSV files into one of the internal object (Data(s) or HDF5)
   """
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.sourceDirectory = None
     self.listOfCsvFiles = []
     self.printTag = 'POSTPROCESSOR LoadCsv'
 
   def initialize(self, runInfo, inputs, initDict):
+    """
+     Method to initialize the LoadCSV pp.
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
     if '~' in self.sourceDirectory               : self.sourceDirectory = os.path.expanduser(self.sourceDirectory)
@@ -1161,7 +1434,14 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     if len(self.listOfCsvFiles) == 0             : self.raiseAnError(IOError,"The directory indicated for PostProcessor "+ self.name + "does not contain any csv file. Path: "+self.sourceDirectory)
     self.listOfCsvFiles.sort()
 
-  def inputToInternal(self,currentInput): return self.listOfCsvFiles
+  def inputToInternal(self,currentInput):
+    """
+     Method to convert an input object into the internal format that is
+     understandable by this pp.
+     @ In, currentInput, object, an object that needs to be converted
+     @ Out, list, list of csv files
+    """
+    return self.listOfCsvFiles
 
   def _localReadMoreXML(self,xmlNode):
     """
@@ -1175,8 +1455,13 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     if not self.sourceDirectory: self.raiseAnError(IOError,"The PostProcessor "+ self.name + "needs a directory for loading the csv files!")
 
   def collectOutput(self,finishedjob,output):
-    #output
-    """collect the output file in the output object"""
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob: A JobHandler object that is in charge of running this
+                         post-processor
+      @ In, output: The object where we want to place our computed results
+      @ Out, None
+    """
     for index,csvFile in enumerate(self.listOfCsvFiles):
 
       attributes={"prefix":str(index),"input_file":self.name,"type":"csv","name":os.path.join(self.sourceDirectory,csvFile)}
@@ -1189,14 +1474,26 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
         if metadata:
           for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
 
-  def run(self, InputIn):  return self.listOfCsvFiles
-
+  def run(self, InputIn):
+    """
+     This method executes the postprocessor action. In this case, it just returns the list of csv files
+     @ In,  Input, object, object contained the data to process. (inputToInternal output)
+     @ Out, list, list of csv files
+    """
+    return self.listOfCsvFiles
+#
+#
+#
 class LimitSurface(BasePostProcessor):
   """
     LimitSurface filter class. It computes the limit surface associated to a dataset
   """
 
   def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self,messageHandler)
     self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
@@ -1213,6 +1510,12 @@ class LimitSurface(BasePostProcessor):
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
 
   def inputToInternal(self,currentInp):
+    """
+     Method to convert an input object into the internal format that is
+     understandable by this pp.
+     @ In, currentInput, object, an object that needs to be converted
+     @ Out, dict, the resulting dictionary containing features and response
+    """
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
@@ -1417,7 +1720,13 @@ class LimitSurface(BasePostProcessor):
     self._initFromDict(initDict)
 
   def collectOutput(self,finishedjob,output):
-    #output
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob: A JobHandler object that is in charge of running this
+                         post-processor
+      @ In, output: The object where we want to place our computed results
+      @ Out, None
+    """
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,'No available Output to collect (Run probabably is not finished yet)')
     self.raiseADebug(str(finishedjob.returnEvaluation()))
     limitSurf = finishedjob.returnEvaluation()[1]
@@ -1432,10 +1741,10 @@ class LimitSurface(BasePostProcessor):
 
   def run(self, InputIn = None, returnListSurfCoord = False): # inObj,workingDir=None):
     """
-     Function to finalize the filter => execute the filtering
-     @ In , dictionary       : dictionary of data to process
-     @ In , boolean          : True if listSurfaceCoordinate needs to be returned
-     @ Out, dictionary       : Dictionary with results
+     This method executes the postprocessor action. In this case it computes the limit surface.
+     @ In ,InputIn, dictionary, dictionary of data to process
+     @ In ,returnListSurfCoord, boolean, True if listSurfaceCoordinate needs to be returned
+     @ Out, dictionary, Dictionary containing the limitsurface
     """
     self.testMatrix.shape     = (self.testGridLength)                            #rearrange the grid matrix such as is an array of values
     self.gridCoord.shape      = (self.testGridLength,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
@@ -1489,7 +1798,9 @@ class LimitSurface(BasePostProcessor):
 
   def __localLimitStateSearch__(self,toBeTested,sign):
     """
-    It returns the list of points belonging to the limit state surface and resulting in positive or negative responses by the ROM, depending on whether ''sign'' equals either -1 or 1, respectively.
+    It returns the list of points belonging to the limit state surface and resulting in
+    positive or negative responses by the ROM, depending on whether ''sign''
+    equals either -1 or 1, respectively.
     """
     listsurfPoint=[]
     myIdList= np.zeros(self.nVar)
@@ -1523,7 +1834,8 @@ class ExternalPostProcessor(BasePostProcessor):
   """
   def __init__(self,messageHandler):
     """
-      Initialization.
+     Constructor
+     @ In, messageHandler, message handler object
     """
     BasePostProcessor.__init__(self,messageHandler)
     self.methodsToRun = []              # A list of strings specifying what
@@ -1582,6 +1894,12 @@ class ExternalPostProcessor(BasePostProcessor):
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
+    """
+     Method to initialize the External pp.
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
     for key in self.assemblerDict.keys():
@@ -1618,7 +1936,7 @@ class ExternalPostProcessor(BasePostProcessor):
     inputList = finishedJob.returnEvaluation()[0]
     outputDict = finishedJob.returnEvaluation()[1]
 
-    if type(output).__name__ in ["str","unicode","bytes"]:
+    if output.type == 'FileObject':
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
                                + ' yet implemented. I am going to skip it.')
     elif output.type == 'DataObjects':
@@ -1709,14 +2027,14 @@ class ExternalPostProcessor(BasePostProcessor):
           for val in value:
             output.updateMetadata(key, val)
 
-    else:
-      self.raiseAnError(IOError,'Unknown output type: ' + str(output.type))
+    else: self.raiseAnError(IOError,'Unknown output type: ' + str(output.type))
 
   def run(self, InputIn):
     """
-     Function to finalize the filter => execute the filtering
-     @ In , dictionary       : dictionary of data to process
-     @ Out, dictionary       : Dictionary with results
+     This method executes the postprocessor action. In this case it performs the action defined int
+     the external pp
+     @ In , InputIn, dictionary, dictionary of data to process
+     @ Out, dictionary, Dictionary containing the post-processed results
     """
     Input  = self.inputToInternal(InputIn)
     outputDict = {'qualifiedNames' : {}}
@@ -1753,7 +2071,6 @@ class ExternalPostProcessor(BasePostProcessor):
       for target in Input['targets']:
         if hasattr(interface,target):
           outputDict[target] = getattr(interface, target)
-
     return outputDict
 
 """
@@ -1762,6 +2079,7 @@ class ExternalPostProcessor(BasePostProcessor):
 __base                                       = 'PostProcessor'
 __interFaceDict                              = {}
 __interFaceDict['SafestPoint'              ] = SafestPoint
+__interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
 __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
