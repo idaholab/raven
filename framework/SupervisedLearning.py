@@ -432,10 +432,14 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ Out, float, evaluation of moment
     '''
     #TODO is there a faster way still to do this?
+    if r==1: return self.polyCoeffDict[tuple([0]*len(self.features))]
+    elif r==2: return sum(s**2 for s in self.polyCoeffDict.values())
     tot=0
     for pt,wt in self.sparseGrid:
       tot+=self.__evaluateLocal__([pt])**r*wt
     tot*=self.norm
+    #self.raiseADebug('MOMENT:',tot)
+    #self.raiseADebug('SUM   :',sum(s**2 for s in self.polyCoeffDict.values()))
     return tot
 
   def __evaluateLocal__(self,featureVals):

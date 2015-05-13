@@ -207,95 +207,175 @@ class HyperbolicCross(IndexSet):
 
 
 
+class CustomSet(IndexSet):
+  def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
+    IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
+    self.type     = 'Adaptive Index Set'
+    self.printTag = self.type
+    self.N        = len(distrList)
+    self.points   = []
+
+  def setPoints(self,points):
+    self.points=[]
+    self.addPoints(points)
+
+  def addPoints(self,points):
+    if type(points)==list:
+      for pt in points: self.points.append(pt)
+    elif type(points)==tuple and len(points)==self.N:
+      self.points.append(points)
+    else: raiseAnError(ValueError,'Unexpected points to add to set:',points)
+
+
+
+
 class AdaptiveSet(IndexSet):
   def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
     IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
     self.type     = 'Adaptive Index Set'
     self.printTag = self.type
     self.N        = len(distrList)
-    self.points   = [tuple([0]*self.N)] #retained points in the index set
-    self.rejects  = [] #list of tuples, rejected points in index set (too high order)
-    self.shells   = [] #list of lists of tuples, retained points by adaptive layer 
-    self.toTry    = [] #list of new viable points to try
-    self.newestPoint = self.points[0] #tuple, new point to test adding
-    self.contribs={}
+    self.points   = [] #retained points in the index set
+    firstpoint    = tuple([0]*self.N)
+    self.active   = {firstpoint:None}
+    self.moment   = {firstpoint:None}
 
-    self.shells.append([self.points[0]])
+  def setMoment(self,point,moment):
+    if point in self.moment.keys(): self.moment[point]=moment
+    else: self.raiseAnError(KeyError,'Tried to set moment',moment,'for point',point,'but it is not in active set!')
 
-  def addPoint(self,maxPolyOrder=None):
-    if len(self.toTry)<1:
-      self.toTry = self.provideNextLayer(maxPolyOrder)
-      if len(self.toTry)<1: raise MessageHandler.NoMoreSamplesNeeded
-    self.newestPoint = self.toTry.pop()
-    self.raiseADebug('Trying',self.newestPoint)
-    if self.newestPoint not in self.points:
-      self.points.append(self.newestPoint)
+  def setImpact(self,point,impact):
+    if point in self.active.keys(): self.active[point]=impact
+    else: self.raiseAnError(KeyError,'Tried to set impact',impact,'for point',point,'but it is not in active set!')
+
+  def checkImpacts(self):
+    for key,impact in self.active.items():
+      #self.raiseADebug('    checking impact:',key,impact)
+      if impact==None:return False
+    return True
+  
+  def expand(self):
+    #get the biggest helper
+    pt = self.getBiggestImpact()
+    #make it permanent
+    self.points.append(pt)
+    self.newestPoint=pt
     self.order()
-    #self.print()
+    #not an eligible bachelor anymore
+    impact = self.active[pt]
+    del self.active[pt]
+    return pt,impact
 
-  def provideNextLayer(self,maxPolyOrder=None):
-    if len(self.shells[-1])==0: return []
-    self.raiseADebug('')
-    self.raiseADebug('Adding a layer...')
-    #self.printOut()
-    new=[]
-    for oldpt in self.shells[-1]:
-      #self.raiseADebug('    Expanding on '+str(oldpt))
-      for i in range(self.N):
-        newpt = np.array(oldpt)
-        newpt[i]+=1
-        if maxPolyOrder!=None and sum(newpt>maxPolyOrder)>0:
-          self.raiseADebug("    Rejected point "+str(newpt)+" for too large polynomial order.")
-        else:
-          newpt=tuple(newpt)
-          if newpt not in new and newpt not in self.rejects:
-            new.append(newpt)
-    #now weed out points who don't have all dependents in points
-    totry=[]
-    for n in new:
+  def getBiggestImpact(self):
+    if not self.checkImpacts(): raiseAnError(ValueError,'Not all impacts have been set for active set!',self.active)
+    if len(self.active)<1: raiseAnError(ValueError,'No active points in dictionary; search for forward points!')
+    mx = -1e300
+    mxkey=None
+    for key,val in self.active.items():
+      mx = max(abs(val),mx)
+      if abs(val)==mx: mxkey = key
+    self.raiseADebug('  biggest impact:',mxkey,mx)
+    return mxkey
+
+  def forward(self,pt,maxPoly=None):
+    for i in range(self.N):
+      newpt = list(pt)
+      newpt[i]+=1
+      if maxPoly != None:
+        if newpt[i]>maxPoly:
+          self.raiseADebug('Rejecting',tuple(newpt),'for too high polynomial')
+          continue
+      if tuple(newpt) in self.active.keys(): continue
+      #self.raiseADebug('    considering adding',newpt)
       found=True
-      for i in range(self.N):
-        testpt = np.array(n)
-        if testpt[i]>0:
-          testpt[i]-=1
-          testpt=tuple(testpt)
-          if testpt not in self.points:
-            found=False
-            break
-      if found: totry.append(n)
-      else: self.rejects.append(n)
-    self.shells.append([])
-    return totry
+      for j in range(self.N):
+        checkpt = newpt[:]
+        if checkpt[j]==0:continue
+        checkpt[j] -= 1
+        #self.raiseADebug('        checking subordinate point',checkpt)
+        if tuple(checkpt) not in self.points:
+          found=False
+          break
+      if found:
+        newpt=tuple(newpt)
+        self.active[newpt]=None
+        self.moment[newpt]=None
 
   def printOut(self):
-    self.raiseADebug('    Index Set:')
-    for l in self.shells:
-      self.raiseADebug('        '+str(l))
-    self.raiseADebug('    Rejects:')
-    for r in self.rejects:
-      self.raiseADebug('        '+str(r))
-
-  def reject(self,err=None):
-    self.raiseADebug('    Rejecting '+str(self.newestPoint))
-    #self.contribs[self.newestPoint]= err if err!=None else 'n/a'
-    self.rejects.append(self.newestPoint)
-    self.points.remove(self.newestPoint)
-
-  def accept(self,err=None):
-    self.raiseADebug('    Keeping '+str(self.newestPoint))
-    self.contribs[self.newestPoint]= err if err!=None else 'n/a'
-    if self.newestPoint not in self.shells[-1]:
-      self.shells[-1].append(self.newestPoint)
+    self.raiseADebug('    Accepted Points | Second Moment:')
+    for p in self.points:
+      self.raiseADebug('       ',p,'| %1.5e' %self.moment[p])
+    self.raiseADebug('    Active Set | Impact:')
+    for a,i in self.active.items():
+      self.raiseADebug('       ',a,'|',i)
 
   def order(self):
     import operator
     self.points.sort(key=operator.itemgetter(*range(len(self.points[0]))))
     #self.raiseADebug('Post-sort:',self)
 
-  def printImpact(self):
-    self.raiseADebug('Contributions in Index Set:')
-    for key,err in self.contribs.items():
-      self.raiseADebug(key,err)
+#  def addPoint(self,maxPolyOrder=None):
+#    if len(self.toTry)<1:
+#      self.toTry = self.provideNextLayer(maxPolyOrder)
+#      if len(self.toTry)<1: raise MessageHandler.NoMoreSamplesNeeded
+#    self.newestPoint = self.toTry.pop()
+#    self.raiseADebug('Trying',self.newestPoint)
+#    if self.newestPoint not in self.points:
+#      self.points.append(self.newestPoint)
+#    self.order()
+#    #self.print()
+#
+#  def provideNextLayer(self,maxPolyOrder=None):
+#    if len(self.shells[-1])==0: return []
+#    self.raiseADebug('')
+#    self.raiseADebug('Adding a layer...')
+#    #self.printOut()
+#    new=[]
+#    for oldpt in self.shells[-1]:
+#      #self.raiseADebug('    Expanding on '+str(oldpt))
+#      for i in range(self.N):
+#        newpt = np.array(oldpt)
+#        newpt[i]+=1
+#        if maxPolyOrder!=None and sum(newpt>maxPolyOrder)>0:
+#          self.raiseADebug("    Rejected point "+str(newpt)+" for too large polynomial order.")
+#        else:
+#          newpt=tuple(newpt)
+#          if newpt not in new and newpt not in self.rejects:
+#            new.append(newpt)
+#    #now weed out points who don't have all dependents in points
+#    totry=[]
+#    for n in new:
+#      found=True
+#      for i in range(self.N):
+#        testpt = np.array(n)
+#        if testpt[i]>0:
+#          testpt[i]-=1
+#          testpt=tuple(testpt)
+#          if testpt not in self.points:
+#            found=False
+#            break
+#      if found: totry.append(n)
+#      else: self.rejects.append(n)
+#    self.shells.append([])
+#    return totry
+#
+#
+#  def reject(self,err=None):
+#    self.raiseADebug('    Rejecting '+str(self.newestPoint))
+#    #self.contribs[self.newestPoint]= err if err!=None else 'n/a'
+#    self.rejects.append(self.newestPoint)
+#    self.points.remove(self.newestPoint)
+#
+#  def accept(self,err=None):
+#    self.raiseADebug('    Keeping '+str(self.newestPoint))
+#    self.contribs[self.newestPoint]= err if err!=None else 'n/a'
+#    if self.newestPoint not in self.shells[-1]:
+#      self.shells[-1].append(self.newestPoint)
+#
+#  def printImpact(self):
+#    self.raiseADebug('Contributions in Index Set:')
+#    for key,err in self.contribs.items():
+#      self.raiseADebug(key,err)
 
 """
 Interface Dictionary (factory) (private)
@@ -305,6 +385,7 @@ __interFaceDict = {}
 __interFaceDict['TensorProduct'  ] = TensorProduct
 __interFaceDict['TotalDegree'    ] = TotalDegree
 __interFaceDict['HyperbolicCross'] = HyperbolicCross
+__interFaceDict['CustomeSet'     ] = CustomSet
 __interFaceDict['AdaptiveSet'    ] = AdaptiveSet
 __knownTypes = list(__interFaceDict.keys())
 
