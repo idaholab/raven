@@ -92,6 +92,11 @@ class IndexSet(MessageHandler.MessageUser):
     return zip(*self.points)
 
   def order(self):
+    '''
+      Orders the index set points in partially-increasing order.
+      @ In, None
+      @ Out, None
+    '''
     self.points.sort(key=operator.itemgetter(*range(len(self.points[0]))))
 
   def initialize(self,distrList,impList,maxPolyOrder,msgHandler):
