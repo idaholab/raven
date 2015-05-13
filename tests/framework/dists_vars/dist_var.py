@@ -7,7 +7,7 @@ def createNewInput(self,myInput,samplerType,**Kwargs):
   return Kwargs['SampledVars']
 
 def run(self,Input):
-  
+
   self.t1 = Input['t1']
   self.t2 = Input['t2']
   self.t3 = Input['t3']
