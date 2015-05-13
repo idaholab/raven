@@ -12,6 +12,8 @@ warnings.simplefilter('default',DeprecationWarning)
 import math
 from utils import printCsv, printCsvPart
 from scipy import interpolate
+from scipy.spatial import Delaunay
+import numpy as np
 
 def normal(x,mu=0.0,sigma=1.0):
   return (1.0/(sigma*math.sqrt(2*math.pi)))*math.exp(-(x - mu)**2/(2.0*sigma**2))
@@ -19,14 +21,14 @@ def normal(x,mu=0.0,sigma=1.0):
 def normalCdf(x,mu=0.0,sigma=1.0):
   return 0.5*(1.0+math.erf((x-mu)/(sigma*math.sqrt(2.0))))
 
-def skewNormal(x,alpha,xi,omega):
+def skewNormal(x,alphafactor,xi,omega):
   def phi(x):
     return (1.0/math.sqrt(2*math.pi))*math.exp(-(x**2)/2.0)
 
   def Phi(x):
     return 0.5*(1+math.erf(x/math.sqrt(2)))
 
-  return (2.0/omega)*phi((x-xi)/omega)*Phi(alpha*(x-xi)/omega)
+  return (2.0/omega)*phi((x-xi)/omega)*Phi(alphafactor*(x-xi)/omega)
 
 def createInterp(x, y, low_fill, high_fill, kind='linear'):
   interp = interpolate.interp1d(x, y, kind)
@@ -156,8 +158,6 @@ def countBins(sortedData, binBoundaries):
 def log2(x):
   return math.log(x)/math.log(2.0)
 
-
-
 def calculateStats(data):
   """Calculate statistics on a numeric array data
   and return them in a dictionary"""
@@ -192,3 +192,57 @@ def calculateStats(data):
   ret["skewness"] = skewness
   ret["kurtosis"] = kurtosis
   return ret
+#
+# I need to convert it in multi-dimensional
+# Not a priority yet. Andrea
+#
+# def computeConcaveHull(coordinates,alphafactor):
+#   """
+#    Method to compute the Concave Hull of a cloud of points
+#    @ In, coordinates, matrix-like, (M,N) -> M = number of coordinates, N, number of dimensions
+#    @ In, alphafactorfactor, float, shape factor tollerance to influence the gooeyness of the border.
+#   """
+#   def add_edge(edges, edge_points, coords, i, j):
+#     """
+#     Add a line between the i-th and j-th points,
+#     if not in the list already
+#     """
+#     if (i, j) in edges or (j, i) in edges: return
+#     edges.add( (i, j) )
+#     edge_points.append(coords[ [i, j] ])
+#
+#   #coords = np.array([point.coords[0] for point in points])
+#
+#   tri = Delaunay(coordinates)
+#   edges = set()
+#   edge_points = []
+#   # loop over triangles:
+#   # ia, ib, ic = indices of corner points of the
+#   # triangle
+#   for ia, ib, ic in tri.simplices:
+#     pa = coordinates[ia]
+#     pb = coordinates[ib]
+#     pc = coordinates[ic]
+#
+#     # Lengths of sides of triangle
+#     a = math.sqrt((pa[0]-pb[0])**2 + (pa[1]-pb[1])**2)
+#     b = math.sqrt((pb[0]-pc[0])**2 + (pb[1]-pc[1])**2)
+#     c = math.sqrt((pc[0]-pa[0])**2 + (pc[1]-pa[1])**2)
+#
+#     # Semiperimeter of triangle
+#     s = (a + b + c)/2.0
+#
+#     # Area of triangle by Heron's formula
+#     area = math.sqrt(s*(s-a)*(s-b)*(s-c))
+#     circum_r = a*b*c/(4.0*area)
+#
+#     # Here's the radius filter.
+#     #print circum_r
+#     if circum_r < 1.0/alphafactor:
+#       add_edge(edges, edge_points, coordinates, ia, ib)
+#       add_edge(edges, edge_points, coordinates, ib, ic)
+#       add_edge(edges, edge_points, coordinates, ic, ia)
+#
+#   m = geometry.MultiLineString(edge_points)
+#   triangles = list(polygonize(m))
+#   return cascaded_union(triangles), edge_points
