@@ -771,7 +771,7 @@ class MonteCarlo(Sampler):
     for key in self.distDict:
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-      
+
       dim    = self.variables2distributionsMapping[key]['dim']
       totDim = self.variables2distributionsMapping[key]['totDim']
       dist   = self.variables2distributionsMapping[key]['name']
