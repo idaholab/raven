@@ -233,7 +233,8 @@ class Custom(IndexSet):
       @ Out, None
     """
     self.points=[]
-    self.addPoints(points)
+    if len(points)>0:
+      self.addPoints(points)
 
   def addPoints(self,points):
     """

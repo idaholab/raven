@@ -2543,8 +2543,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self.neededPoints.append(pt)
 
   def _makeSparseQuad(self,points=[]):
+    self.raiseADebug('Making sparse grid using points',points)
     sparseGrid = Quadratures.SparseQuad()
-    iset = IndexSets.CustomSet()
+    iset = IndexSets.returnInstance('Custom',self)
     iset.initialize(self.distDict,self.importanceDict,self.maxPolyOrder,self.messageHandler)
     iset.setPoints(self.indexSet.points)
     iset.addPoints(points)
@@ -2621,26 +2622,36 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def _writeRomToFile(self,rom,err=None):
     outfile = file('rom'+'-'.join(str(s) for s in self.indexSet.newestPoint)+'.out','w')
+
     outfile.writelines('**************\n')
     outfile.writelines('* Index Set  *\n')
     outfile.writelines('**************\n')
-    for key,contrib in self.indexSet.contribs.items():
-      outfile.writelines('  '+str(key)+': '+str(contrib)+'\n')
+    #for key,contrib in self.indexSet.active.items():
+    for pt in rom.indexSet.points:
+      outfile.writelines('  '+str(pt)+'\n')
+
     outfile.writelines('**************\n')
     outfile.writelines('*    SVL     *\n')
     outfile.writelines('**************\n')
-    SVL = rom.SupervisedEngine.values()[0]
+    SVL = rom
     for key,coeff in SVL.polyCoeffDict.items():
       outfile.writelines('  '+str(key)+': '+str(coeff)+'\n')
+
     outfile.writelines('**************\n')
     outfile.writelines('* SparseGrid *\n')
     outfile.writelines('**************\n')
-    outfile.writelines(str(self.sparseGrid)+'\n')
+    outfile.writelines(str(rom.sparseGrid)+'\n')
     if err!=None:
       outfile.writelines('**************\n')
       outfile.writelines('*   Error    *\n')
       outfile.writelines('**************\n')
       outfile.writelines(str(err)+'\n')
+
+    outfile.writelines('**************\n')
+    outfile.writelines('*  Moments   *\n')
+    outfile.writelines('**************\n')
+    outfile.writelines('First : '+str(rom.__evaluateMoment__(1))+'\n')
+    outfile.writelines('Second: '+str(rom.__evaluateMoment__(2))+'\n')
     outfile.close()
 
   def localStillReady(self,ready):
@@ -2659,6 +2670,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       for active in self.indexSet.active.keys():
         sparseGrid,iset = self._makeSparseQuad(active)
         newrom = self._makeAROM(sparseGrid,iset).SupervisedEngine.values()[0]
+        if len(self.indexSet.points)>0: self._writeRomToFile(newrom)
         #self.raiseADebug('setting new rom for pt',active)
         self.activeROMs[active]=newrom
         new = newrom.__evaluateMoment__(2) #TODO make this change based on QoI
