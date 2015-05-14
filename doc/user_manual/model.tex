@@ -1107,8 +1107,7 @@ accurately produce the necessary sparse grid points to train this ROM.
     <ROM name='myRom' subType='GaussPolynomialRom'>
       <Target>ans</Target>
       <Features>x1,x2</Features>
-      <IndexSet>Custom</IndexSet>
-      <IndexPoints>(0,1),(0,2),(1,1),(4,0)<IndexPoints>
+      <IndexSet>TD</IndexSet>
       <PolynomialOrder>4</PolynomialOrder>
       <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
       <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
