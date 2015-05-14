@@ -2,7 +2,7 @@
 <Simulation debug="True">
     
 <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/diego-rom/results</WorkingDir>
+    <WorkingDir>./results</WorkingDir>
     <Files>ROM3pk</Files>
     <Sequence>extract_data4,rom_trainer4,RunROM4,plot_data_4</Sequence>
     <batchSize>1</batchSize>
@@ -79,7 +79,7 @@
 
 
 <Databases>
-    <HDF5 name="out_db" filename="out_db.h5" directory="/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/diego-rom/results/DataBaseStorage/"/>
+    <HDF5 name="out_db" filename="out_db.h5" directory="./results/DatabaseStorage/"/>
 </Databases>
 
 

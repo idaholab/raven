@@ -255,7 +255,7 @@
     \item a callable object
   \end{itemize}
   %
-  If a callable is given it is used to precompute the kernel matrix.
+  If a callable is given it is used to pre-compute the kernel matrix.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
   %
@@ -1011,11 +1011,13 @@ two more nodes and can accept multiple entries of a third optional node.
 \begin{itemize}
   \item \xmlNode{IndexSet}, \xmlDesc{string, required field},
   specifies the rules by which to construct multidimensional polynomials.  The options are
-  ``TensorProduct,'' ``TotalDegree,'' and ``HyperbolicCross.''  
+  ``TensorProduct,'' ``TotalDegree,'' ``HyperbolicCross,'' and ``Custom.''  
   %
   Total degree is efficient for
   uncertain inputs with a large degree of regularity, while hyperbolic cross is more efficient
   for low-regularity input spaces.
+  %
+  If \xmlString{Custom} is chosen, the \xmlNode{IndexPoints} is required.
   %
   \item \xmlNode{PolynomialOrder}, \xmlDesc{integer, required field},
   indicates the maximum polynomial order in any one dimension to use in the
@@ -1023,6 +1025,12 @@ two more nodes and can accept multiple entries of a third optional node.
   \xmlNode{Interpolation} node, the actual polynomial order in dimensions with high
   importance might exceed this value; however, this value is still used to limit the 
   relative overall order.
+  %
+  \item \xmlNode{IndexPoints}, \xmlDesc{list of tuples, required field},
+  used to specify the index set points in a \xmlString{Custom} index set.  The tuples are
+  entered as comma-seprated values between parenthesis, with each tuple separated by a comma.
+  Any amount of whitespace is acceptable.  See the example below. \nb{Using custom index sets
+  may not result in a stable solution.}
   %
   \item \xmlNode{Interpolation}, \xmlDesc{string, optional field},
   offers the option to specify quadrature, polynomials, and importance weights for the given
@@ -1099,7 +1107,8 @@ accurately produce the necessary sparse grid points to train this ROM.
     <ROM name='myRom' subType='GaussPolynomialRom'>
       <Target>ans</Target>
       <Features>x1,x2</Features>
-      <IndexSet>TotalDegree</IndexSet>
+      <IndexSet>Custom</IndexSet>
+      <IndexPoints>(0,1),(0,2),(1,1),(4,0)<IndexPoints>
       <PolynomialOrder>4</PolynomialOrder>
       <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
       <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
@@ -3954,6 +3963,7 @@ Currently, the following PPs are available in RAVEN:
   \item \textbf{ComparisonStatistics}
   \item \textbf{SafestPoint}
   \item \textbf{LimitSurface}
+  \item \textbf{LimitSurfaceIntegral}
   \item \textbf{External}
   \item \textbf{TopologicalDecomposition}
   %\item \textbf{PrintCSV}
@@ -4389,8 +4399,6 @@ zones that determine a change in the status of the system (Limit Surface).
  <Models>
   ...
     <PostProcessor name="computeLimitSurface" subType='LimitSurface' verbosity='debug'>
-      <what>all</what>
-      <parameters>x0,y0</parameters>
       <parameters>x0,y0</parameters>
       <ROM class='Models' type='ROM'>Acc</ROM>
       <!-- Here, you can add a ROM defined in Models block. 
@@ -4406,6 +4414,88 @@ zones that determine a change in the status of the system (Limit Surface).
   ...
 </Simulation>
 \end{lstlisting}
+
+%%%%% PP LimitSurfaceIntegral %%%%%%%
+
+\paragraph{LimitSurfaceIntegral}
+\label{LimitSurfaceIntegral}
+The \textbf{LimitSurfaceIntegral} post-processor is aimed to compute the likelihood (probability) of the event, whose boundaries are 
+represented by the Limit Surface (either from the LimitSurface post-processor or Adaptive sampling strategies).
+The inputted Limit Surface needs to be, in the  \textbf{PostProcess} step, of type  \textbf{TimePointSet} and needs to contain 
+both boundary sides (-1.0, +1.0).
+\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as outputs both files (CSV) and/or  \textbf{TimePointSet}s.
+
+\ppType{LimitSurfaceIntegral}{LimitSurfaceIntegral}
+\begin{itemize}
+\item \variableDescription
+ \variableChildIntro
+ \begin{itemize}
+    \item   \xmlNode{distribution}, \xmlDesc{string,
+               optional field}, name of the distribution that is associated to this variable.
+              Its name needs to be contained in the \xmlNode{Distributions} block explained
+              in Section \ref{sec:distributions}. If this node is not present, the  \xmlNode{lowerBound} 
+              and  \xmlNode{upperBound} XML nodes must be inputted.
+   \item   \xmlNode{lowerBound}, \xmlDesc{float,
+               optional field}, lower limit of integration domain for this dimension (variable).
+               If this node is not present, the  \xmlNode{distribution} XML node must be inputted.
+   \item   \xmlNode{upperBound}, \xmlDesc{float,
+               optional field}, upper limit of integration domain for this dimension (variable).
+               If this node is not present, the  \xmlNode{distribution} XML node must be inputted.  
+  \end{itemize}
+  
+    \item  \xmlNode{tolerance}, \xmlDesc{float, optional field}, specifies the tolerance for
+               numerical integration confidence.
+                \default{1.0e-4}
+     \item  \xmlNode{integralType}, \xmlDesc{string, optional field}, specifies the type of integrations that
+                need to be used. Currently only MonteCarlo integration is available
+                \default{MonteCarlo}        
+     \item  \xmlNode{seed}, \xmlDesc{integer, optional field}, specifies the random number generator seed.
+                \default{20021986}         
+     \item  \xmlNode{target}, \xmlDesc{string, optional field}, specifies the target name that represents
+                the $f\left ( \bar{x} \right )$ that needs to be integrated.
+                \default{last output found in the inputted TimePointSet}  
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug,class,type}]
+<Simulation>
+ ...
+ <Models>
+  ...
+    <PostProcessor name="LimitSurfaceIntegralDistributions" subType='LimitSurfaceIntegral'>
+        <tolerance>0.0001</tolerance>
+        <integralType>MonteCarlo</integralType>
+        <seed>20021986</seed>
+        <target>goalFunctionOutput</target>
+        <variable name='x0'>
+          <distribution>x0_distrib</distribution>
+        </variable>
+        <variable name='y0'> 
+          <distribution>y0_distrib</distribution> 
+        </variable>
+    </PostProcessor>
+    <PostProcessor name="LimitSurfaceIntegralLowerUpperBounds" subType='LimitSurfaceIntegral'>
+        <tolerance>0.0001</tolerance>
+        <integralType>MonteCarlo</integralType>
+        <seed>20021986</seed>
+        <target>goalFunctionOutput</target>
+        <variable name='x0'>
+          <lowerBound>-2.0</lowerBound>
+          <upperBound>12.0</upperBound>
+        </variable>
+        <variable name='y0'>
+            <lowerBound>-1.0</lowerBound>
+            <upperBound>11.0</upperBound>
+        </variable>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+
+
 %%%%% PP External %%%%%%%
 \paragraph{External}
 \label{External}

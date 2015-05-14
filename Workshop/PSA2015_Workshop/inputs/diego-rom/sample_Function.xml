@@ -3,7 +3,7 @@
 
 
 <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/diego-rom/results</WorkingDir>
+    <WorkingDir>results</WorkingDir>
     <Files>.</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
@@ -24,7 +24,7 @@
 
 
 <Models>
-    <ExternalModel name='PythonModule' subType='' ModuleToLoad='/Users/alfoa/projects/trunk_git/raven/Workshop/PSA2015_Workshop/inputs/diego-rom/workshop_model'>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='workshop_model'>
        <variable>x1</variable>
        <variable>x2</variable>
        <variable>x3</variable>

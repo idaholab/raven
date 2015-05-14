@@ -6,6 +6,7 @@
             TPmake,TPtrain,TPtest,TPprint,
             TDmake,TDtrain,TDtest,TDprint,
             HCmake,HCtrain,HCtest,HCprint,
+            Cmake,Ctrain,Ctest,Cprint,
             Amake,Atrain,Atest,Aprint
         </Sequence>
         <batchSize>1</batchSize>
@@ -39,6 +40,11 @@
             <variable name="x2"><distribution>UniDist</distribution></variable>
             <ROM  class='Models' type='ROM' >AROM</ROM>
         </SparseGridCollocation>
+        <SparseGridCollocation name="CSG">
+            <variable name="x1"><distribution>UniDist</distribution></variable>
+            <variable name="x2"><distribution>UniDist</distribution></variable>
+            <ROM  class='Models' type='ROM' >CROM</ROM>
+        </SparseGridCollocation>
       </Samplers>
 
     <Models>
@@ -71,6 +77,16 @@
             <PolynomialOrder>4</PolynomialOrder>
             <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x1</Interpolation>
             <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x2</Interpolation>
+        </ROM>
+        <ROM name='CROM' subType='GaussPolynomialRom' verbosity='debug'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>Custom</IndexSet>
+            <IndexPoints>
+                (0,0),(0,1),(0,2),
+                (1,0),(1,1)
+            </IndexPoints>
+            <PolynomialOrder>4</PolynomialOrder>
         </ROM>
         <ROM name='AROM' subType='GaussPolynomialRom' debug="True">
             <Target>ans</Target>
@@ -166,6 +182,27 @@
             <Input   class='DataObjects'      type='TimePointSet'>Atests</Input>
             <Output  class='OutStreamManager' type='Print'       >Adump</Output>
         </OutStreamStep>
+
+        <MultiRun name='Cmake' pauseAtEnd='False'>
+            <Sampler class='Samplers'         type='SparseGridCollocation'>CSG</Sampler>
+            <Input   class='DataObjects'      type='TimePointSet'         >dummyIN</Input>
+            <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
+            <Output  class='DataObjects'      type='TimePointSet'         >Csolns</Output>
+        </MultiRun>
+        <RomTrainer name='Ctrain'>
+            <Input   class='DataObjects'      type='TimePointSet'         >Csolns</Input>
+            <Output  class='Models'           type='ROM'                  >CROM</Output>
+        </RomTrainer>
+        <MultiRun name='Ctest' pauseAtEnd='False'>
+            <Sampler class='Samplers'         type='SparseGridCollocation'>CSG</Sampler>
+            <Input   class='DataObjects'      type='TimePointSet'         >dummyIN</Input>
+            <Model   class='Models'           type='ROM'                  >CROM</Model>
+            <Output  class='DataObjects'      type='TimePointSet'         >Ctests</Output>
+        </MultiRun>
+        <OutStreamStep name='Cprint'>
+            <Input   class='DataObjects'      type='TimePointSet'         >Ctests</Input>
+            <Output  class='OutStreamManager' type='Print'                >Cdump</Output>
+        </OutStreamStep>
     </Steps>
 
     <DataObjects>
@@ -178,6 +215,8 @@
         <TimePointSet name='HCsolns'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
         <TimePointSet name='Atests'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
         <TimePointSet name='Asolns'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Ctests'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <TimePointSet name='Csolns'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
     </DataObjects>
 
     <OutStreamManager>
@@ -196,6 +235,10 @@
         <Print name='Adump'>
             <type>csv</type>
             <source>Atests</source>
+        </Print>
+        <Print name='Cdump'>
+            <type>csv</type>
+            <source>Ctests</source>
         </Print>
     </OutStreamManager>
 
