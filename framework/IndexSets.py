@@ -216,6 +216,8 @@ class HyperbolicCross(IndexSet):
       return tot<=target
     self.points = self.generateMultiIndex(len(distrList),rule)
 
+
+
 class Custom(IndexSet):
   '''User-based index set point choices'''
   def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
@@ -246,28 +248,8 @@ class Custom(IndexSet):
     elif type(points)==tuple and len(points)==self.N:
       self.points.append(points)
     else: raiseAnError(ValueError,'Unexpected points to add to set:',points)
+    self.raiseADebug(self.points)
     self.order()
-
-
-class CustomSet(IndexSet):
-  def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
-    IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
-    self.type     = 'Adaptive Index Set'
-    self.printTag = self.type
-    self.N        = len(distrList)
-    self.points   = []
-
-  def setPoints(self,points):
-    self.points=[]
-    self.addPoints(points)
-
-  def addPoints(self,points):
-    if type(points)==list:
-      for pt in points: self.points.append(pt)
-    elif type(points)==tuple and len(points)==self.N:
-      self.points.append(points)
-    else: raiseAnError(ValueError,'Unexpected points to add to set:',points)
-
 
 
 
@@ -351,73 +333,6 @@ class AdaptiveSet(IndexSet):
     for a,i in self.active.items():
       self.raiseADebug('       ',a,'|',i)
 
-  def order(self):
-    import operator
-    self.points.sort(key=operator.itemgetter(*range(len(self.points[0]))))
-    #self.raiseADebug('Post-sort:',self)
-
-#  def addPoint(self,maxPolyOrder=None):
-#    if len(self.toTry)<1:
-#      self.toTry = self.provideNextLayer(maxPolyOrder)
-#      if len(self.toTry)<1: raise MessageHandler.NoMoreSamplesNeeded
-#    self.newestPoint = self.toTry.pop()
-#    self.raiseADebug('Trying',self.newestPoint)
-#    if self.newestPoint not in self.points:
-#      self.points.append(self.newestPoint)
-#    self.order()
-#    #self.print()
-#
-#  def provideNextLayer(self,maxPolyOrder=None):
-#    if len(self.shells[-1])==0: return []
-#    self.raiseADebug('')
-#    self.raiseADebug('Adding a layer...')
-#    #self.printOut()
-#    new=[]
-#    for oldpt in self.shells[-1]:
-#      #self.raiseADebug('    Expanding on '+str(oldpt))
-#      for i in range(self.N):
-#        newpt = np.array(oldpt)
-#        newpt[i]+=1
-#        if maxPolyOrder!=None and sum(newpt>maxPolyOrder)>0:
-#          self.raiseADebug("    Rejected point "+str(newpt)+" for too large polynomial order.")
-#        else:
-#          newpt=tuple(newpt)
-#          if newpt not in new and newpt not in self.rejects:
-#            new.append(newpt)
-#    #now weed out points who don't have all dependents in points
-#    totry=[]
-#    for n in new:
-#      found=True
-#      for i in range(self.N):
-#        testpt = np.array(n)
-#        if testpt[i]>0:
-#          testpt[i]-=1
-#          testpt=tuple(testpt)
-#          if testpt not in self.points:
-#            found=False
-#            break
-#      if found: totry.append(n)
-#      else: self.rejects.append(n)
-#    self.shells.append([])
-#    return totry
-#
-#
-#  def reject(self,err=None):
-#    self.raiseADebug('    Rejecting '+str(self.newestPoint))
-#    #self.contribs[self.newestPoint]= err if err!=None else 'n/a'
-#    self.rejects.append(self.newestPoint)
-#    self.points.remove(self.newestPoint)
-#
-#  def accept(self,err=None):
-#    self.raiseADebug('    Keeping '+str(self.newestPoint))
-#    self.contribs[self.newestPoint]= err if err!=None else 'n/a'
-#    if self.newestPoint not in self.shells[-1]:
-#      self.shells[-1].append(self.newestPoint)
-#
-#  def printImpact(self):
-#    self.raiseADebug('Contributions in Index Set:')
-#    for key,err in self.contribs.items():
-#      self.raiseADebug(key,err)
 
 """
 Interface Dictionary (factory) (private)
