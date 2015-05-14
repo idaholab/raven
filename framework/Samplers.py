@@ -823,97 +823,91 @@ class Grid(Sampler):
     if 'limit' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
     if not self.axisName: self.axisName = []
-    gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'transformationMethods':{},'stepLenght':{}}
-    self.gridEntity.addCustomParameter("gridInfo",{})
-    
-    gridInfo = {}
+    #gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'transformationMethods':{},'stepLenght':{}}
+    #self.gridEntity.addCustomParameter("gridInfo",{})
+    #gridInfo = {}
     self.gridEntity._readMoreXml(xmlNode,"variable")
     
-    
-    
-    for child in xmlNode:
-      #Add <distribution> to name so we know it is not a direct variable 
-      if child.tag == "Distribution": varName = "<distribution>"+child.attrib['name']
-      elif child.tag == "variable"  : varName = child.attrib['name']
-      for childChild in child:
-        if (childChild.tag =='grid' and child.tag == "variable") or (childChild.tag =='grid' and child.tag == "Distribution"):
-          self.axisName.append(varName)
-          # new grid
-          gridInitDict['dimensionNames'].append(varName)
-          constrType = childChild.attrib['construction']
-          
-          bounds = [utils.partialEval(element) for element in childChild.text.split()]
-          bounds.sort()
-          lower, upper = min(bounds), max(bounds)
-          if constrType == 'custom':
-            self.gridInfo[varName] = (childChild.attrib['type'],constrType,bounds)
-            gridInfo[varName] = (childChild.attrib['type'],constrType,bounds)
-            self.limit = len(bounds)*self.limit
-          elif constrType == 'equal':
-            self.limit = self.limit*(int(childChild.attrib['steps'])+1)
-            if len(childChild.text.split()) != 2: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> body of grid XML node needs to contain 2 values (lower and upper bounds)!')
-            #bounds = childChild.text.split()
-            #lower, upper = partialEval(bounds[0]),partialEval(bounds[1])
-            
-            gridInfo[varName] = (childChild.attrib['type'],constrType,np.arange(lower,upper,(lower-upper)/utils.partialEval(childChild.attrib['steps'])))
-            np.array()
-            
-            
-            #self.gridInfo[varName] = (childChild.attrib['type'], constrType, 
-            
-            
-            
-            
-            if   'lowerBound' in childChild.attrib.keys():
-              gridInfo[varName] = (childChild.attrib['type'], constrType,  {'steps':childChild.attrib['steps'], 'lowerBound': childChild.attrib['lowerBound'], 'upperBound': float(childChild.attrib['lowerBound'])+float(childChild.text)*int(childChild.attrib['steps'])})
-              self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
-              self.gridInfo[varName][2].sort()
-            elif 'upperBound' in childChild.attrib.keys():
-              gridInfo[varName] = (childChild.attrib['type'], constrType, {'steps':childChild.attrib['steps'], 'lowerBound': float(childChild.attrib['upperBound'])-int(childChild.attrib['steps'])*float(childChild.text), 'upperBound': childChild.attrib['upperBound']})
-              self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
-              self.gridInfo[varName][2].sort()
-            else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
-          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
-          if gridInfo[varName][0]!='value' and gridInfo[varName][0]!='CDF': raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
+#     for child in xmlNode:
+#       #Add <distribution> to name so we know it is not a direct variable 
+#       if child.tag == "Distribution": varName = "<distribution>"+child.attrib['name']
+#       elif child.tag == "variable"  : varName = child.attrib['name']
+#       for childChild in child:
+#         if (childChild.tag =='grid' and child.tag == "variable") or (childChild.tag =='grid' and child.tag == "Distribution"):
+#           self.axisName.append(varName)
+#           # new grid
+#           gridInitDict['dimensionNames'].append(varName)
+#           constrType = childChild.attrib['construction']
+#           
+#           bounds = [utils.partialEval(element) for element in childChild.text.split()]
+#           bounds.sort()
+#           lower, upper = min(bounds), max(bounds)
+#           if constrType == 'custom':
+#             self.gridInfo[varName] = (childChild.attrib['type'],constrType,bounds)
+#             gridInfo[varName] = (childChild.attrib['type'],constrType,bounds)
+#             self.limit = len(bounds)*self.limit
+#           elif constrType == 'equal':
+#             self.limit = self.limit*(int(childChild.attrib['steps'])+1)
+#             if len(childChild.text.split()) != 2: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> body of grid XML node needs to contain 2 values (lower and upper bounds)!')
+#             #bounds = childChild.text.split()
+#             #lower, upper = partialEval(bounds[0]),partialEval(bounds[1])
+#             
+#             gridInfo[varName] = (childChild.attrib['type'],constrType,np.arange(lower,upper,(lower-upper)/utils.partialEval(childChild.attrib['steps'])))
+#             np.array()
+#             
+#             
+#             #self.gridInfo[varName] = (childChild.attrib['type'], constrType, 
+#             
+#             
+#             
+#             
+#             if   'lowerBound' in childChild.attrib.keys():
+#               gridInfo[varName] = (childChild.attrib['type'], constrType,  {'steps':childChild.attrib['steps'], 'lowerBound': childChild.attrib['lowerBound'], 'upperBound': float(childChild.attrib['lowerBound'])+float(childChild.text)*int(childChild.attrib['steps'])})
+#               self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+#               self.gridInfo[varName][2].sort()
+#             elif 'upperBound' in childChild.attrib.keys():
+#               gridInfo[varName] = (childChild.attrib['type'], constrType, {'steps':childChild.attrib['steps'], 'lowerBound': float(childChild.attrib['upperBound'])-int(childChild.attrib['steps'])*float(childChild.text), 'upperBound': childChild.attrib['upperBound']})
+#               self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+#               self.gridInfo[varName][2].sort()
+#             else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
+#           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
+#           if gridInfo[varName][0]!='value' and gridInfo[varName][0]!='CDF': raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
+# 
+#     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
+# 
+#     for child in xmlNode:
+#       if child.tag == "Distribution":
+#         #Add <distribution> to name so we know it is not a direct variable
+#         varName = "<distribution>"+child.attrib['name']
+#       elif child.tag == "variable":
+#         varName = child.attrib['name']
+#       for childChild in child:
+#         if (childChild.tag =='grid' and child.tag == "variable") or (childChild.tag =='grid' and child.tag == "Distribution"):
+#           self.axisName.append(varName)
+#           if childChild.attrib['type'] == 'global_grid':
+#             self.gridInfo[varName] = ('CDF','global_grid',childChild.text)
+#           else:
+#             constrType = childChild.attrib['construction']
+#             if constrType == 'custom':
+#               tempList = [float(i) for i in childChild.text.split()]
+#               tempList.sort()
+#               self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
+#               if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': self.raiseAnError(IOError,'The type of grid is neither value nor CDF')
+#               self.limit = len(tempList)*self.limit
+#             elif constrType == 'equal':
+#               self.limit = self.limit*(int(childChild.attrib['steps'])+1)
+#               if   'lowerBound' in childChild.attrib.keys():
+#                 self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+#                 self.gridInfo[varName][2].sort()
+#               elif 'upperBound' in childChild.attrib.keys():
+#                 self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+#                 self.gridInfo[varName][2].sort()
+#               else: self.raiseAnError(IOError,'no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
+#             else: self.raiseAnError(IOError,'not specified the grid construction type')
 
-    #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
-
-    for child in xmlNode:
-      if child.tag == "Distribution":
-        #Add <distribution> to name so we know it is not a direct variable
-        varName = "<distribution>"+child.attrib['name']
-      elif child.tag == "variable":
-        varName = child.attrib['name']
-      for childChild in child:
-        if (childChild.tag =='grid' and child.tag == "variable") or (childChild.tag =='grid' and child.tag == "Distribution"):
-          self.axisName.append(varName)
-          if childChild.attrib['type'] == 'global_grid':
-            self.gridInfo[varName] = ('CDF','global_grid',childChild.text)
-          else:
-            constrType = childChild.attrib['construction']
-            if constrType == 'custom':
-              tempList = [float(i) for i in childChild.text.split()]
-              tempList.sort()
-              self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
-              if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': self.raiseAnError(IOError,'The type of grid is neither value nor CDF')
-              self.limit = len(tempList)*self.limit
-            elif constrType == 'equal':
-              self.limit = self.limit*(int(childChild.attrib['steps'])+1)
-              if   'lowerBound' in childChild.attrib.keys():
-                self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
-                self.gridInfo[varName][2].sort()
-              elif 'upperBound' in childChild.attrib.keys():
-                self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
-                self.gridInfo[varName][2].sort()
-              else: self.raiseAnError(IOError,'no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
-            else: self.raiseAnError(IOError,'not specified the grid construction type')
-
-    if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()):
-      self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
-    self.gridCoordinate = [None]*len(self.axisName)
-
-    self.gridEntity.addCustomParameter("gridInfo",gridInfo)
-   
+    if len(self.toBeSampled.keys()) != len(self.gridEntity.returnParameter("gridInfo").keys()): self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
+    #self.gridCoordinate = [None]*len(self.axisName)
+    self.axisName = self.gridEntity.returnParameter("gridInfo").keys()
 
   def localAddInitParams(self,tempDict):
     for variable in self.gridInfo.items():
@@ -929,7 +923,9 @@ class Grid(Sampler):
     This is used to check if the points and bounds are compatible with the distribution provided.
     It could not have been done earlier since the distribution might not have been initialized first
     """
+    # set the limit here!
     
+    #####################
     gridInfo = self.gridEntity.returnParameter("gridInfo")
     gridDictionaryInit = {"dimensionNames":self.axisName,"lowerBounds":{},"upperBounds":{},"transformationMethods":{},"stepLenght":{}}
     for varName, value in gridInfo.items():

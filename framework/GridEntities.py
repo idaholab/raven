@@ -54,7 +54,7 @@ class GridEntity(BaseType):
      @ In, dimensionTag, optional, list, names of the tag that represents the grid dimensions
      @ Out, None
     """
-    self.gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'transformationMethods':{},'stepLenght':{}}
+    self.gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'stepLenght':{}}
     gridInfo = {}
     for child in xmlNode:
       dimName = None
@@ -87,8 +87,7 @@ class GridEntity(BaseType):
           gridInfo[dimName] = gridStruct
     #check for global_grid type of structure
     globalGrids = {}
-    gridInfoKeys = gridInfo.keys()
-    for key in gridInfoKeys:
+    for key in gridInfo.keys():
       splitted = key.split(":")
       if splitted[0].strip() == 'global_grid': globalGrids[splitted[1]] = gridInfo.pop(key)
     for key in gridInfo.keys():
@@ -97,9 +96,8 @@ class GridEntity(BaseType):
         gridInfo[key] = globalGrids[gridInfo[key][-1].strip()]
       self.gridInitDict['lowerBounds'           ][key] = min(gridInfo[key][-1])
       self.gridInitDict['upperBounds'           ][key] = max(gridInfo[key][-1])
-      self.gridInitDict['stepLenght'            ][key] = 1.0/len(gridInfo[key][-1])
-      self.gridInitDict['transformationMethods' ][key] = GridEntity.transformationMethodFromCustom(gridInfo[key][-1])
-      
+      self.gridInitDict['stepLenght'            ][key] = [gridInfo[key][-1][k+1] - gridInfo[key][-1][k] for k in range(len(gridInfo[key][-1])-1)] if gridInfo[key][1] == 'custom' else [gridInfo[key][-1][1] - gridInfo[key][-1][0]]
+    self.gridContainer['gridInfo'] = gridInfo 
               
 
 
