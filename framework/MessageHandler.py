@@ -50,7 +50,7 @@ keyword.  For example,
 self.raiseAMessage('Hello, World', verbosity='silent')
 
 will be printed along with errors if the simulation verbosity is set to 'silent', as well as
-all other levels. 
+all other levels.
 
 TL;DR: MessageUser is a superclass that gives access to hooks to the simulation's MessageHandler
 instance, while the MessageHandler is an output stream control tool.
