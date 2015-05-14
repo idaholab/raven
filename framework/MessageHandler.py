@@ -20,9 +20,47 @@ import os
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
+'''
+HOW THIS MODULE WORKS
+
+The intention is for a single instance of the MessageHandler class to exist in any simulation.
+Currently, that instance is created in the Simulation initialization and propogated through
+all the RAVEN objects.  This usually happens by passing it to BaseClass.readXML, but for
+objects that don't inherit from BaseClass, the messageHandler instance should be passed
+and set via instantiation or initialization.  The appropriate class member to point at the
+messageHandler instance reference is "self.messageHandler," for reasons that will be made clear
+with the  MessageUser superclass.
+
+While an object can access the messageHandler to raise messages and errors, for convienience
+we provide the MessageUser superclass, which BaseType and (almost?) all other Raven objects
+inherit from.  This provides simplistic hooks for a developer to raise an error or message
+with the standard message priorities, as
+
+self.raiseAnError(IOError,'Input value is invalid:',value)
+
+There are currently 4 verbosity levels/message priorities.  They are:
+ - silent: only errors are displayed
+ - quiet : errors and warnings are displayed
+ - all   : (default) errors, warnings, and messages are displayed
+ - debug : errors, warnings, messages, and debug messages are displayed
+
+The developer can change the priority level of their raised messages through the 'verbosity'
+keyword.  For example,
+
+self.raiseAMessage('Hello, World', verbosity='silent')
+
+will be printed along with errors if the simulation verbosity is set to 'silent', as well as
+all other levels. 
+
+TL;DR: MessageUser is a superclass that gives access to hooks to the simulation's MessageHandler
+instance, while the MessageHandler is an output stream control tool.
+'''
+
 class MessageUser(object):
   """
-    Inheriting from this class grants access to methods used by the message handler.
+    Inheriting from this class grants access to methods used by the MessageHandler.
+    In order to work properly, a subclass of this superclass should have a member
+    'self.messageHandler' that references a MessageHandler instance.
   """
   def raiseAnError(self,etype,*args,**kwargs):
     """
@@ -91,12 +129,11 @@ class MessageUser(object):
     except AttributeError: return default
 
 
-class MessageHandler(MessageUser):
+class MessageHandler(object):
   """
   Class for handling messages, warnings, and errors in RAVEN.  One instance of this
   class should be created at the start of the Simulation and propagated through
-  the readMoreXML function of the BaseClass.  The utils handlers for raiseAMessage,
-  raiseAWarning, raiseAnError, and raiseDebug will access this handler.
+  the readMoreXML function of the BaseClass, and initialization of other classes.
   """
   def __init__(self):
     """
