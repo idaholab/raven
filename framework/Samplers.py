@@ -766,19 +766,17 @@ class MonteCarlo(Sampler):
   def localGenerateInput(self,model,myInput):
     """set up self.inputInfo before being sent to the model"""
     # create values dictionary
-
     for key in self.distDict:
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-      #if key in self.ND_sampling_params.keys():
 
       dim    = self.variables2distributionsMapping[key]['dim']
       totDim = self.variables2distributionsMapping[key]['totDim']
       dist   = self.variables2distributionsMapping[key]['name']
 
-      if dim == 1:
-        rvsnum = self.distDict[key].rvs()
-        for var in self.distributions2variablesMapping[dist]:
+      for var in self.distributions2variablesMapping[dist]:
+        if dim == 1:
+          rvsnum = self.distDict[key].rvs()
           varID  = var.keys()[0]
           varDim = var[varID]
           for kkey in varID.strip().split(','):
