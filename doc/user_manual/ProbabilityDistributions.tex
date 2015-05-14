@@ -617,6 +617,7 @@ Example:
 \paragraph{Categorical Distribution}
 \label{Categorical}
 The \distname{Categorical} distribution is a discrete distribution  that describes the result of a random variable that can have K possible outcomes. The probability of each outcome is separately specified.
+The possible outcomes must be numerical values (float)
 %
 There is not necessarily an underlying ordering of these outcomes, but labels are assigned in describing the distribution (in the range 1 to K).
 %
@@ -631,10 +632,11 @@ There is not necessarily an underlying ordering of these outcomes, but labels ar
 \vspace{-5mm}
 \subnodeIntro
 \begin{itemize}
-  \item \xmlNode{state 1}, \xmlDesc{float, required parameter}, probability for state 1
-  \item \xmlNode{state 2}, \xmlDesc{float, required parameter}, probability for state 2
+  \item \xmlNode{outcome 1}, \xmlDesc{float, required parameter}, probability
+  for outcome 1
+  \item \xmlNode{outcome 2}, \xmlDesc{float, required parameter}, probability for outcome 2
   \item ...
-  \item \xmlNode{state K}, \xmlDesc{float, required parameter}, probability for state K
+  \item \xmlNode{outcome K}, \xmlDesc{float, required parameter}, probability for outcome K
  \end{itemize}
 Example:
 \begin{lstlisting}[style=XML]

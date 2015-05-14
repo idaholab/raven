@@ -948,7 +948,7 @@ class Bernoulli(BoostDistribution):
 class Categorical(Distribution):
   """
   Class for the categorical distribution also called " generalized Bernoulli distribution"
-  Note: this distribution can have only numerical (float) values; in the future we might want to include also the possibility to give symbolic values
+  Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
   """
 
   def __init__(self):
@@ -973,7 +973,7 @@ class Categorical(Distribution):
     for child in xmlNode:
       self.mapping[child.tag] = child.text
       if float(child.tag) in self.values:
-        raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution has identical values')
+        raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution has identical outcome')
       else:
         self.values.add(float(child.tag))
 
