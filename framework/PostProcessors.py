@@ -2160,18 +2160,18 @@ class TopologicalDecomposition(BasePostProcessor):
       if child.tag =="graph":
         self.graph = child.text.encode('ascii').lower()
         if self.graph not in self.acceptedGraphParam:
-		  self.raiseAnError(IOError,'Requested unknown graph type: ', self.graph,
+      self.raiseAnError(IOError,'Requested unknown graph type: ', self.graph,
                                     '. Available options: ', self.acceptedGraphParam)
       elif child.tag =="gradient":
         self.gradient = child.text.encode('ascii').lower()
         if self.gradient not in self.acceptedGradientParam:
-		  self.raiseAnError(IOError,'Requested unknown gradient method: ',
+      self.raiseAnError(IOError,'Requested unknown gradient method: ',
                             self.gradient, '. Available options: ',
                             self.acceptedGradientParam)
       elif child.tag =="beta":
         self.beta = float(child.text)
         if self.beta <= 0 or self.beta > 2:
-		  self.raiseAnError(IOError, 'Requested invalid beta value: ', self.beta,
+      self.raiseAnError(IOError, 'Requested invalid beta value: ', self.beta,
                             '. Allowable range: (0,2]')
       elif child.tag == 'knn':
         self.knn = int(child.text)
@@ -2186,7 +2186,7 @@ class TopologicalDecomposition(BasePostProcessor):
       elif child.tag == 'normalization':
         self.normalization = child.text.encode('ascii').lower()
         if self.normalization not in self.acceptedNormalizationParam:
-		  self.raiseAnError(IOError, 'Requested unknown normalization type: ',
+      self.raiseAnError(IOError, 'Requested unknown normalization type: ',
                             self.normalization, '. Available options: ',
                             self.acceptedNormalizationParam)
 
@@ -2206,7 +2206,7 @@ class TopologicalDecomposition(BasePostProcessor):
     outputDict = finishedJob.returnEvaluation()[1]
 
     if type(output).__name__ in ["str","unicode","bytes"]:
-	  self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
+    self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
                          + ' yet implemented. I am going to skip it.')
     elif output.type == 'Datas':
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
@@ -2311,8 +2311,8 @@ class TopologicalDecomposition(BasePostProcessor):
         outputDict['minLabel'][idx] = extPair[0]
         outputDict['maxLabel'][idx] = extPair[1]
 
-	output = '\n'
-	output += '========== Data Labels: ==========\n'
+  output = '\n'
+  output += '========== Data Labels: ==========\n'
     output += 'Index'
     sep = ','
     for lbl in names:
