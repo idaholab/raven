@@ -66,8 +66,6 @@ class IndexSet(MessageHandler.MessageUser):
     @ In , other, object , object to compare to
     @ Out, boolean, equivalency
     """
-    self.raiseAMessage('self:',self.type)
-    self.raiseAMessage('other:',other)
     return self.type == other.type and \
            self.points == other.points and \
            (self.impWeights == other.impWeights).all()
@@ -114,11 +112,11 @@ class IndexSet(MessageHandler.MessageUser):
         self.raiseADebug('  '+str(pt))
 
   def order(self):
-    '''
+    """
       Orders the index set points in partially-increasing order.
       @ In, None
       @ Out, None
-    '''
+    """
     self.points.sort(key=operator.itemgetter(*range(len(self.points[0]))))
 
   def initialize(self,distrList,impList,maxPolyOrder,msgHandler):
@@ -219,9 +217,9 @@ class HyperbolicCross(IndexSet):
 
 
 class Custom(IndexSet):
-  '''User-based index set point choices'''
+  """User-based index set point choices"""
   def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
-    '''see base class'''
+    """see base class"""
     IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
     self.type     = 'Custom'
     self.printTag = 'CustomIndexSet'
@@ -229,20 +227,20 @@ class Custom(IndexSet):
     self.points   = []
 
   def setPoints(self,points):
-    '''
+    """
       Used to set the index set points manually.
       @ In, points, list of tuples to set points to
       @ Out, None
-    '''
+    """
     self.points=[]
     self.addPoints(points)
 
   def addPoints(self,points):
-    '''
+    """
       Adds points to existing index set. Reorders set on completion.
       @ In, points, either single tuple or list of tuples to add
       @ Out, None
-    '''
+    """
     if type(points)==list:
       for pt in points: self.points.append(pt)
     elif type(points)==tuple and len(points)==self.N:
