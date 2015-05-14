@@ -34,7 +34,7 @@ results = {"pass":0,"fail":0}
 
 def checkAnswer(comment,value,expected,tol=1e-10):
   if abs(value - expected) > tol:
-    print(comment,value,"!=",expected)
+    print("checking answer",comment,value,"!=",expected)
     results["fail"] += 1
   else:
     results["pass"] += 1
@@ -42,8 +42,8 @@ def checkAnswer(comment,value,expected,tol=1e-10):
 def checkCrowDist(comment,dist,expected_crow_dist):
   crow_dist = dist.getCrowDistDict()
   if crow_dist != expected_crow_dist:
-    print(comment,'\n',crow_dist,'\n',expected_crow_dist)
     results["fail"] += 1
+    print(comment,'\n',crow_dist,'\n',expected_crow_dist)
   else:
     results["pass"] += 1
 
@@ -949,6 +949,34 @@ ndCartesianSpline.initializeDistribution()
 ndCartesianSpline.addInitParams({})
 
 checkCrowDist("NDCartesianSpline",ndCartesianSpline,{'type': 'NDCartesianSplineDistribution'})
+
+
+#Test Categorical
+
+CategoricalElement = ET.Element("Categorical")
+CategoricalElement.append(createElement("10", text="0.1"))
+CategoricalElement.append(createElement("20", text="0.2"))
+CategoricalElement.append(createElement("30", text="0.15"))
+CategoricalElement.append(createElement("50", text="0.4"))
+CategoricalElement.append(createElement("60", text="0.15"))
+
+Categorical = Distributions.Categorical()
+Categorical._readMoreXML(CategoricalElement)
+Categorical.initializeDistribution()
+
+Categorical.addInitParams({})
+
+checkAnswer("Categorical  pdf(10)" , Categorical.pdf(10),0.1)
+checkAnswer("Categorical  pdf(30)" , Categorical.pdf(30),0.15)
+checkAnswer("Categorical  pdf(60)" , Categorical.pdf(60),0.15)
+
+checkAnswer("Categorical  cdf(10)" , Categorical.cdf(10),0.1)
+checkAnswer("Categorical  cdf(30)" , Categorical.cdf(30),0.45)
+checkAnswer("Categorical  cdf(60)" , Categorical.cdf(60),1.0)
+
+checkAnswer("Categorical  ppf(0.1)" , Categorical.ppf(0.1),10)
+checkAnswer("Categorical  ppf(0.5)" , Categorical.ppf(0.5),50)
+checkAnswer("Categorical  ppf(0.9)" , Categorical.ppf(0.9),60)
 
 
 print(results)

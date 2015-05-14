@@ -39,12 +39,6 @@
         <sampler_init>
             <limit>3</limit>
             <initial_seed>1234</initial_seed>
-            <dist_init>
-                <distribution name= 'MultivariateNormal_test'>
-                    <initial_grid_disc>10</initial_grid_disc>
-                    <tolerance>0.2</tolerance>
-                </distribution>
-            </dist_init>
         </sampler_init>
         <variable name='x0'>
             <distribution dim='1'>MultivariateNormal_test</distribution>
@@ -57,14 +51,14 @@
 
 <Steps>
     <MultiRun name='FirstMRun'>
-        <Input   class='Files'              type=''               >lorentzAttractor_noK.py</Input>
+        <Input   class='DataObjects'        type='TimePoint'      >inputPlaceHolder</Input>
         <Model   class='Models'             type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'           type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='Datas'              type='TimePointSet'   >testPrintTimePointSet</Output>
+        <Output  class='DataObjects'        type='TimePointSet'   >testPrintTimePointSet</Output>
         <Output  class='OutStreamManager'   type='Print'          >testPrintTimePointSet_dump</Output>
     </MultiRun>
     <PostProcess name='PP'>
-        <Input   class='Datas'            type='TimePointSet'    >testPrintTimePointSet</Input>
+        <Input   class='DataObjects'      type='TimePointSet'    >testPrintTimePointSet</Input>
         <Model   class='Models'           type='PostProcessor'   >CorrelationTest</Model>
         <Output  class='Files'            type=''                >CorrelationTest_print.csv</Output>
     </PostProcess>
@@ -78,12 +72,16 @@
 </OutStreamManager>
 
 
-<Datas>
+<DataObjects>
     <TimePointSet name='testPrintTimePointSet'>
         <Input>x0,y0,z0</Input>
         <Output>x,y,z</Output>
     </TimePointSet>
-</Datas>
+    <TimePoint name='inputPlaceHolder'>
+        <Input>x0,y0,z0</Input>
+        <Output>OutputPlaceHolder</Output>
+    </TimePoint>
+</DataObjects>
 
 </Simulation>
 
