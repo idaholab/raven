@@ -971,7 +971,7 @@ class Categorical(Distribution):
    """
     Distribution._readMoreXML(self, xmlNode)
     for child in xmlNode:
-      self.mapping[child.tag] = child.text
+      self.mapping[child.tag] = float(child.text)
       if float(child.tag) in self.values:
         raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution has identical outcome')
       else:
@@ -983,6 +983,7 @@ class Categorical(Distribution):
     """
     Function to get the input params that belong to this class
     @ In, tempDict, temporary dictionary
+    @ Out, tempDict, temporary dictionary
     """
     Distribution.addInitParams(self, tempDict)
     tempDict['mapping'] = self.mapping
@@ -996,7 +997,7 @@ class Categorical(Distribution):
     """
     totPsum = 0.0
     for element in self.mapping:
-      totPsum += float(self.mapping[str(element)])
+      totPsum += self.mapping[str(element)]
     if totPsum!=1.0:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
 
@@ -1007,7 +1008,7 @@ class Categorical(Distribution):
     @ Out, float, requested pdf
     """
     if x in self.values:
-      return float(self.mapping[str(x)])
+      return self.mapping[str(x)]
     else:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate pdf for ' + str(x))
 
@@ -1021,7 +1022,7 @@ class Categorical(Distribution):
     if x in self.values:
       cumulative=0.0
       for element in sorted_mapping:
-        cumulative += float(element[1])
+        cumulative += element[1]
         if x == float(element[0]):
           return cumulative
     else:
@@ -1036,7 +1037,7 @@ class Categorical(Distribution):
     sorted_mapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     cumulative=0.0
     for element in sorted_mapping:
-      cumulative += float(element[1])
+      cumulative += element[1]
       if cumulative >= x:
         return float(element[0])
 
