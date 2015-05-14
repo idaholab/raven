@@ -19,6 +19,7 @@ import scipy.special as polys
 #from scipy.misc import factorial
 from math import gamma
 import os
+import operator
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -247,7 +248,7 @@ class Distribution(BaseType):
     """
     Function return distribution type
     @ In, None, None
-    @ Out, (continuous or discrete)
+    @ Out, String ('Continuous' or 'Discrete')
     """
     return self.disttype
 
@@ -946,66 +947,105 @@ class Bernoulli(BoostDistribution):
 
 class Categorical(Distribution):
   """
-  Class for the categorical distributio also called a " generalized Bernoulli distribution"
+  Class for the categorical distribution also called " generalized Bernoulli distribution"
+  Note: this distribution can have only numerical (float) values; in the future we might want to include also the possibility to give symbolic values
   """
 
   def __init__(self):
+    """
+    Function that initializes the categorical distribution
+    @ In, None
+    @ Out, none
+   """
     Distribution.__init__(self)
-    self.mapping = []
+    self.mapping = {}
     self.values = set()
     self.type     = 'Categorical'
     self.disttype = 'Discrete'
-    #self.compatibleQuadrature.append('CDF')
-    #self.preferredQuadrature  = 'CDF'
-    #self.preferredPolynomials = 'CDF'
 
   def _readMoreXML(self,xmlNode):
+    """
+    Function that retrive data to initialize the categorical distribution from the xmlNode
+    @ In, None
+    @ Out, None
+   """
     Distribution._readMoreXML(self, xmlNode)
     for child in xmlNode:
-      dic={child.tag:child.text}
-      self.mapping.append(dic)
-      self.values.add(float(child.tag))
+      self.mapping[child.tag] = child.text
+      if float(child.tag) in self.values:
+        raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution has identical values')
+      else:
+        self.values.add(float(child.tag))
 
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
+    """
+    Function to get the input params that belong to this class
+    @ In, tempDict, temporary dictionary
+    """
     Distribution.addInitParams(self, tempDict)
     tempDict['mapping'] = self.mapping
     tempDict['values'] = self.values
 
   def initializeDistribution(self):
+    """
+    Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
+    @ In, None
+    @ Out, None
+    """
     totPsum = 0.0
     for element in self.mapping:
-      totPsum += float(element.get(element.keys()[0]))
+      totPsum += float(self.mapping[str(element)])
     if totPsum!=1.0:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
 
   def pdf(self,x):
+    """
+    Function that calculates the pdf value of x
+    @ In, x, float/string -> value to get the pdf at
+    @ Out, float, requested pdf
+    """
     if x in self.values:
-      for element in self.mapping:
-        if element.keys()[0] == str(x):
-          return float(element.get(element.keys()[0]))
+      return float(self.mapping[str(x)])
     else:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate pdf for ' + str(x))
 
   def cdf(self,x):
+    """
+    Function to get the cdf value of x
+    @ In, x, float/string -> value to get the pdf at
+    @ Out, float, requested cdf
+    """
+    sorted_mapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     if x in self.values:
       cumulative=0.0
-      for element in self.mapping:
-        cumulative += float(element.get(element.keys()[0]))
-        if element.keys()[0] == str(x):
+      for element in sorted_mapping:
+        cumulative += float(element[1])
+        if x == float(element[0]):
           return cumulative
     else:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate cdf for ' + str(x))
 
   def ppf(self,x):
+    """
+    Function that calculates the inverse of the cdf given 0 =< x =< 1
+    @ In, x, float -> value to get the pdf at
+    @ Out, float/string, requested inverse cdf
+    """
+    sorted_mapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     cumulative=0.0
-    for element in self.mapping:
-      cumulative += float(element.get(element.keys()[0]))
+    for element in sorted_mapping:
+      cumulative += float(element[1])
       if cumulative >= x:
-        return float(element.keys()[0])
+        return float(element[0])
 
   def rvs(self):
+    """
+    Return a random state of the categorical distribution
+    @ In, None
+    @ Out, float/string
+   """
     return self.ppf(random())
 
 class Logistic(BoostDistribution):
