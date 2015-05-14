@@ -2160,7 +2160,7 @@ class TopologicalDecomposition(BasePostProcessor):
       if child.tag =="graph":
         self.graph = child.text.encode('ascii').lower()
         if self.graph not in self.acceptedGraphParam:
-          self.raiseAnError(IOError,'Requested unknown graph type: ', 
+          self.raiseAnError(IOError,'Requested unknown graph type: ',
                             self.graph, '. Available options: ',
                             self.acceptedGraphParam)
       elif child.tag =="gradient":
