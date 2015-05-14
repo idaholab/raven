@@ -66,6 +66,8 @@ class IndexSet(MessageHandler.MessageUser):
     @ In , other, object , object to compare to
     @ Out, boolean, equivalency
     """
+    self.raiseAMessage('self:',self.type)
+    self.raiseAMessage('other:',other)
     return self.type == other.type and \
            self.points == other.points and \
            (self.impWeights == other.impWeights).all()
@@ -186,13 +188,13 @@ class HyperbolicCross(IndexSet):
       return tot<=target
     self.points = self.generateMultiIndex(len(distrList),rule)
 
-class CustomSet(IndexSet):
+class Custom(IndexSet):
   '''User-based index set point choices'''
   def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
     '''see base class'''
     IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
-    self.type     = 'Custom Index Set'
-    self.printTag = self.type
+    self.type     = 'Custom'
+    self.printTag = 'CustomIndexSet'
     self.N        = len(distrList)
     self.points   = []
 
@@ -226,7 +228,7 @@ __interFaceDict = {}
 __interFaceDict['TensorProduct'  ] = TensorProduct
 __interFaceDict['TotalDegree'    ] = TotalDegree
 __interFaceDict['HyperbolicCross'] = HyperbolicCross
-__interFaceDict['Custom'         ] = CustomSet
+__interFaceDict['Custom'         ] = Custom
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():

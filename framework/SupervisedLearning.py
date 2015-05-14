@@ -300,7 +300,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
 
     for key,val in kwargs.items():
-      if key=='IndexSet': self.indexSetType = val
+      if key=='IndexSet':self.indexSetType = val
       elif key=='IndexPoints':
         self.indexSetVals=[]
         strIndexPoints = val.strip()
@@ -322,7 +322,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
 
     if not self.indexSetType:
       self.raiseAnError(IOError,'No IndexSet specified!')
-    if self.indexSetType=='CustomSet':
+    if self.indexSetType=='Custom':
       if len(self.indexSetVals)<1: self.raiseAnError(IOError,'If using CustomSet, must specify points in <IndexPoints> node!')
       else:
         for i in self.indexSetVals:
@@ -479,43 +479,16 @@ class HDMRRom(GaussPolynomialRom):
 
   def __init__(self,messageHandler,**kwargs):
     '''Initializes SupervisedEngine. See base class.'''
-    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    GaussPolynomialRom.__init__(self,messageHandler,**kwargs)
     self.printTag      = 'HDMR_ROM('+self.target+')'
     self.sobolOrder    = None #depth of HDMR/Sobol expansion
-    self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
-    self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
-    self.itpDict       = {}   #dict of quad,poly,weight choices keyed on varName
     self.ROMs          = {}   #dict of GaussPolyROM objects keyed by combination of vars that make them up
-    self.sparseGrid    = None #Quadratures.SparseGrid object, has points and weights
-    self.distDict      = None #dict{varName: Distribution object}, has point conversion methods based on quadrature
-    self.quads         = None #dict{varName: Quadrature object}, has keys for distribution's point conversion methods
-    self.polys         = None #dict{varName: OrthoPolynomial object}, has polynomials for evaluation
-    self.indexSet      = None #array of tuples, polynomial order combinations
-    self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
-    self.itpDict       = {}   #dict{varName: dict{attribName:value} }
     self.sdx           = None #dict of sobol sensitivity coeffs, keyed on order and tuple(varnames)
     self.mean          = None #mean, store to avoid recalculation
     self.variance      = None #variance, store to avoid recalculation
 
     for key,val in kwargs.items():
       if key=='SobolOrder': self.sobolOrder = int(val)
-      if key=='IndexSet': self.indexSetType = val
-      if key=='PolynomialOrder': self.maxPolyOrder = val
-      if key=='Interpolation':
-        for var,val in val.items():
-          self.itpDict[var]={'poly'  :'DEFAULT',
-                             'quad'  :'DEFAULT',
-                             'weight':'1'}
-          for atrName,atrVal in val.items():
-            if atrName in ['poly','quad','weight']: self.itpDict[var][atrName]=atrVal
-            else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
-
-    if self.indexSetType==None:
-      raise IOError(self.printTag+' No IndexSet specified!')
-    if self.maxPolyOrder==None:
-      raise IOError(self.printTag+' No maxPolyOrder specified!')
-    if self.maxPolyOrder < 1:
-      raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
 
   def _localPrintXML(self,node,options=None):
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
