@@ -492,4 +492,11 @@
    output = 'GenericInterfaceIO/samples.xml'
    csv = 'GenericInterfaceIO/samples.csv'
  [../]
+
+ [./dists_vars]
+   type = 'RavenFramework'
+   input = 'test_distribution_combination.xml'
+   output = 'dists_vars/PrintTimePointSet_dump.csv'
+   csv = 'dists_vars/PrintTimePointSet_dump.csv'
+ [../]
 []
