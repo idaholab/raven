@@ -29,8 +29,8 @@ class GridEntity(BaseType):
     @ In, x, array-like, set of points
     @ Out, transformFunction, instance of the transformation method (callable like f(newPoint))
     """
-    return interp1d(x, np.linspace(0.0, 1.0, len(x)), kind='nearest') 
-    
+    return interp1d(x, np.linspace(0.0, 1.0, len(x)), kind='nearest')
+
   def __init__(self):
     self.printTag                               = UreturnPrintTag("GRID ENTITY")
     self.gridContainer                          = {}                 # dictionary that contains all the key feature of the grid
@@ -46,11 +46,12 @@ class GridEntity(BaseType):
     self.gridContainer['transformationMethods'] = None               # Dictionary of methods to transform the coordinate from 0-1 values to something else. These methods are pointed and passed into the initialize method. {varName:method}
     self.uniqueCellNumber                       = 0                  # number of unique cells
     self.gridIterator                           = None               # the grid iterator
+    self.gridInitDict                           = None               # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
 
   def _readMoreXml(self,xmlNode,dimensionTags=None):
     """
-     XML reader for the grid statement. 
-     @ In, ETree object, xml node from where the info need to be retrieved 
+     XML reader for the grid statement.
+     @ In, ETree object, xml node from where the info need to be retrieved
      @ In, dimensionTag, optional, list, names of the tag that represents the grid dimensions
      @ Out, None
     """
@@ -59,12 +60,12 @@ class GridEntity(BaseType):
     for child in xmlNode:
       dimName = None
       if dimensionTags != None:
-        if child.tag in dimensionTags: dimName = child.attrib['name']    
+        if child.tag in dimensionTags: dimName = child.attrib['name']
       if child.tag == "grid":
         if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
         gridStruct, gridName = self._fillGrid(child)
         if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
-        else: 
+        else:
           if gridName == None: self.raiseAnError(IOError,'grid defined in global_grid block must have the attribute "name"!')
           dimName = child.tag + ':' + gridName
         gridInfo[dimName] = gridStruct
@@ -81,7 +82,7 @@ class GridEntity(BaseType):
           gridStruct, gridName = self._fillGrid(childChild)
           if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
           if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
-          else: 
+          else:
             if gridName == None: self.raiseAnError(IOError,'grid defined in global_grid block must have the attribute "name"!')
             dimName = child.tag + ':' + gridName
           gridInfo[dimName] = gridStruct
@@ -97,14 +98,14 @@ class GridEntity(BaseType):
       self.gridInitDict['lowerBounds'           ][key] = min(gridInfo[key][-1])
       self.gridInitDict['upperBounds'           ][key] = max(gridInfo[key][-1])
       self.gridInitDict['stepLenght'            ][key] = [gridInfo[key][-1][k+1] - gridInfo[key][-1][k] for k in range(len(gridInfo[key][-1])-1)] if gridInfo[key][1] == 'custom' else [gridInfo[key][-1][1] - gridInfo[key][-1][0]]
-    self.gridContainer['gridInfo'] = gridInfo 
-              
+    self.gridContainer['gridInfo'] = gridInfo
+
 
 
 
 
   def _fillGrid(self,child):
-    constrType = None  
+    constrType = None
     if 'construction' in child.attrib.keys(): constrType = child.attrib['construction']
     nameGrid = None
     if constrType in ['custom','equal']:
@@ -120,24 +121,39 @@ class GridEntity(BaseType):
     elif child.attrib['type'] == 'global_grid': return (child.attrib['type'],constrType,child.text),nameGrid
     else: self.raiseAnError(IOError,'construction type unknown! Got: ' + str(constrType))
 
-  def initialize(self,initDict):
+  def initialize(self,initDictionary=None):
     """
     Initialization method. The full grid is created in this method.
-    @ In, dictionary, dictionary of input arguments needed to create a Grid:
+    @ In, initDictionary, dictionary, optional, dictionary of input arguments needed to create a Grid:
       {dimensionNames:[]}, required,list of axis names (dimensions' IDs)
-      {lowerBounds:{}}, required, dictionary of lower bounds for each dimension 
+      {lowerBounds:{}}, required, dictionary of lower bounds for each dimension
       {upperBounds:{}}, required, dictionary of upper bounds for each dimension
-      {volumetriRatio:float}, required, p.u. volumetric ratio of the grid 
+      {volumetriRatio:float}, required, p.u. volumetric ratio of the grid
       {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate
+      !!!!!!
+      if the self.gridInitDict is != None (info read from XML node), this method looks for the information in that dictionary first and after it checks the initDict object
+      !!!!!!
     """
-    if type(initDict).__name__ != "dict": self.raiseAnError(Exception,'The in argument is not a dictionary!')
-    if "dimensionNames" not in initDict.keys(): self.raiseAnError(Exception,'"dimensionNames" key is not present in the initialization dictionary!')
-    if "lowerBounds" not in initDict.keys(): self.raiseAnError(Exception,'"lowerBounds" key is not present in the initialization dictionary')
-    if type(initDict["lowerBounds"]).__name__ != "dict": self.raiseAnError(Exception,'The lowerBounds entry is not a dictionary')
-    if "upperBounds" not in initDict.keys(): self.raiseAnError(Exception,'"upperBounds" key is not present in the initialization dictionary')
-    if type(initDict["upperBounds"]).__name__ != "dict": self.raiseAnError(Exception,'The upperBounds entry is not a dictionary')
+    if self.gridInitDict == None and initDictionary == None: self.raiseAnError(Exception,'No initialization parameters have been provided!!')
+    # grep the keys that have been read
+    readKeys = []
+    initDict = initDictionary if initDictionary != None else {}
+    if self.gridInitDict != None: readKeys = self.gridInitDict.keys()
+
+
+    if initDict != None:
+      if type(initDict).__name__ != "dict": self.raiseAnError(Exception,'The in argument is not a dictionary!')
+
+
+    if "dimensionNames" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"dimensionNames" key is not present in the initialization dictionary!')
+    if "lowerBounds" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"lowerBounds" key is not present in the initialization dictionary')
+    if "lowerBounds" not in readKeys:
+      if type(initDict["lowerBounds"]).__name__ != "dict": self.raiseAnError(Exception,'The lowerBounds entry is not a dictionary')
+    if "upperBounds" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"upperBounds" key is not present in the initialization dictionary')
+    if "upperBounds" not in readKeys:
+      if type(initDict["upperBounds"]).__name__ != "dict": self.raiseAnError(Exception,'The upperBounds entry is not a dictionary')
     if "transformationMethods" in initDict.keys(): self.gridContainer['transformationMethods'] = initDict["transformationMethods"]
-    self.nVar                            = len(initDict["dimensionNames"])
+    self.nVar                            = initDictionary if "dimensionNames" in self.gridInitDict else {}    len(initDict["dimensionNames"])
     self.gridContainer['dimensionNames'] = initDict["dimensionNames"]
     upperkeys                            = initDict["upperBounds"   ].keys()
     lowerkeys                            = initDict["lowerBounds"   ].keys()
@@ -157,7 +173,7 @@ class GridEntity(BaseType):
       for dimName in self.gridContainer['dimensionNames']: stepLenght.append(initDict["stepLenght"][dimName])
       self.volumetricRatio = np.sum(stepLenght)**(1/self.nVar) # in this case it is an average => it "represents" the average volumentric ratio...not too much sense. Andrea
     #here we build lambda function to return the coordinate of the grid point
-    stepParam                                    = lambda x: [stepLenght[self.gridContainer['dimensionNames'].index(x)]*(self.gridContainer['bounds']["upperBounds" ][x]-self.gridContainer['bounds']["lowerBounds"][x]), 
+    stepParam                                    = lambda x: [stepLenght[self.gridContainer['dimensionNames'].index(x)]*(self.gridContainer['bounds']["upperBounds" ][x]-self.gridContainer['bounds']["lowerBounds"][x]),
                                                                           self.gridContainer['bounds']["lowerBounds"][x], self.gridContainer['bounds']["upperBounds" ][x]]
     #moving forward building all the information set
     pointByVar                                   = [None]*self.nVar  #list storing the number of point by cooridnate
@@ -165,7 +181,7 @@ class GridEntity(BaseType):
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
       [stpLenght, start, end]     = stepParam(varName)
       start                      += 0.5*stpLenght
-      if self.gridContainer['transformationMethods'] != None: 
+      if self.gridContainer['transformationMethods'] != None:
         self.self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName](coor) for coor in  np.arange(start,end,stpLenght)])
       else:
         self.self.gridContainer['gridVectors'][varName] = np.arange(start,end,stpLenght)
@@ -198,7 +214,7 @@ class GridEntity(BaseType):
   def updateParameter(self,parameterName, newValue):
     """
     Method to update one of the initialization parameters
-    @ In, string, parameterName, name of the parameter to be updated 
+    @ In, string, parameterName, name of the parameter to be updated
     @ Out, None
     """
     self.gridContainer[parameterName] = newValue
@@ -206,12 +222,12 @@ class GridEntity(BaseType):
   def addCustomParameter(self,parameterName, Value):
     """
     Method to add a new parameter in the Grid Entity
-    @ In, string, parameterName, name of the parameter to be added 
+    @ In, string, parameterName, name of the parameter to be added
     @ Out, None
     """
-    if parameterName in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'already present in GridEntity!') 
+    if parameterName in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'already present in GridEntity!')
     self.updateParameter(parameterName, Value)
-  
+
   def resetIterator(self):
     """
     Reset internal iterator
@@ -219,7 +235,7 @@ class GridEntity(BaseType):
     @ Out, None
     """
     self.gridIterator.reset()
-  
+
   def returnPointAndAdvanceIterator(self):
     """
     Method to return a point in the grid. This method will return the coordinates of the point to which the iterator is pointing

@@ -389,7 +389,7 @@ class Simulation(MessageHandler.MessageUser):
     if not os.path.exists(self.filesDict[filein]): self.raiseAnError(IOError,'The file '+ filein +' has not been found')
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
-    """ parses the xml input file, instances the classes need to represent all objects in the simulation """ 
+    """ parses the xml input file, instances the classes need to represent all objects in the simulation """
     self.verbosity = xmlNode.attrib['verbosity'] if 'verbosity' in xmlNode.attrib.keys() else 'all'
     self.messageHandler.verbosity = self.verbosity
     try:    runInfoNode = xmlNode.find('RunInfo')

@@ -786,7 +786,7 @@ class hdf5Database(object):
 
     return(result,attrs)
 
-  def closeDataBaseW(self):
+  def closeDatabaseW(self):
     """
     Function to close the database
     @ In,  None
@@ -796,7 +796,7 @@ class hdf5Database(object):
     self.fileOpen       = False
     return
 
-  def openDataBaseW(self,filename,mode='w'):
+  def openDatabaseW(self,filename,mode='w'):
     """
     Function to open the database
     @ In,  filename : name of the file (string)

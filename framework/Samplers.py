@@ -825,9 +825,9 @@ class Grid(Sampler):
     #self.gridEntity.addCustomParameter("gridInfo",{})
     #gridInfo = {}
     self.gridEntity._readMoreXml(xmlNode,"variable")
-    
+
 #     for child in xmlNode:
-#       #Add <distribution> to name so we know it is not a direct variable 
+#       #Add <distribution> to name so we know it is not a direct variable
 #       if child.tag == "Distribution": varName = "<distribution>"+child.attrib['name']
 #       elif child.tag == "variable"  : varName = child.attrib['name']
 #       for childChild in child:
@@ -836,7 +836,7 @@ class Grid(Sampler):
 #           # new grid
 #           gridInitDict['dimensionNames'].append(varName)
 #           constrType = childChild.attrib['construction']
-#           
+#
 #           bounds = [utils.partialEval(element) for element in childChild.text.split()]
 #           bounds.sort()
 #           lower, upper = min(bounds), max(bounds)
@@ -849,16 +849,16 @@ class Grid(Sampler):
 #             if len(childChild.text.split()) != 2: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> body of grid XML node needs to contain 2 values (lower and upper bounds)!')
 #             #bounds = childChild.text.split()
 #             #lower, upper = partialEval(bounds[0]),partialEval(bounds[1])
-#             
+#
 #             gridInfo[varName] = (childChild.attrib['type'],constrType,np.arange(lower,upper,(lower-upper)/utils.partialEval(childChild.attrib['steps'])))
 #             np.array()
-#             
-#             
-#             #self.gridInfo[varName] = (childChild.attrib['type'], constrType, 
-#             
-#             
-#             
-#             
+#
+#
+#             #self.gridInfo[varName] = (childChild.attrib['type'], constrType,
+#
+#
+#
+#
 #             if   'lowerBound' in childChild.attrib.keys():
 #               gridInfo[varName] = (childChild.attrib['type'], constrType,  {'steps':childChild.attrib['steps'], 'lowerBound': childChild.attrib['lowerBound'], 'upperBound': float(childChild.attrib['lowerBound'])+float(childChild.text)*int(childChild.attrib['steps'])})
 #               self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
@@ -870,9 +870,9 @@ class Grid(Sampler):
 #             else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
 #           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
 #           if gridInfo[varName][0]!='value' and gridInfo[varName][0]!='CDF': raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
-# 
+#
 #     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
-# 
+#
 #     for child in xmlNode:
 #       if child.tag == "Distribution":
 #         #Add <distribution> to name so we know it is not a direct variable
@@ -922,37 +922,38 @@ class Grid(Sampler):
     It could not have been done earlier since the distribution might not have been initialized first
     """
     # set the limit here!
-    
+
     #####################
     gridInfo = self.gridEntity.returnParameter("gridInfo")
-    gridDictionaryInit = {"dimensionNames":self.axisName,"lowerBounds":{},"upperBounds":{},"transformationMethods":{},"stepLenght":{}}
-    for varName, value in gridInfo.items():
-      gridConstruct = gridInfo[varName]
-      if gridConstruct[1] == 'custom': 
-        gridDictionaryInit["lowerBounds"][varName] = min(gridConstruct[2])
-        gridDictionaryInit["upperBounds"][varName] = max(gridConstruct[2])
-        gridDictionaryInit["stepLenght"][varName]  = (max(gridConstruct[2])-min(gridConstruct[2]))/len(gridConstruct[2])
-        gridDictionaryInit["transformationMethods"][varName] = GridEntities.GridEntity.transformationMethodFromCustom(x)
-      else:
-        gridDictionaryInit["lowerBounds"][varName] = gridConstruct[2]['lowerBound']
-        gridDictionaryInit["upperBounds"][varName] = gridConstruct[2]['upperBound']
-        gridDictionaryInit["stepLenght"][varName]  = (float(gridDictionaryInit["upperBounds"][varName]) - float(gridDictionaryInit["lowerBounds"][varName]))/float(gridConstruct[2]['steps'])
-    for varName in self.gridInfo.keys():
-      if self.gridInfo[varName][0]=='value':
-        valueMax, indexMax = max(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(max(self.gridInfo[varName][2]))
-        valueMin, indexMin = min(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(min(self.gridInfo[varName][2]))
-        
-        if self.distDict[varName].upperBoundUsed:
-          if valueMax>self.distDict[varName].upperBound and valueMax-2.0*np.finfo(valueMax).eps>self.distDict[varName].upperBound:
-            self.raiseAnError(TypeError,'the variable '+varName+'can not be sampled at '+str(valueMax)+' since outside the upper bound of the chosen distribution,Distripution Upper Bound = '+ str(self.distDict[varName].upperBound))
-          if valueMax>self.distDict[varName].upperBound and valueMax-2.0*np.finfo(valueMax).eps<=self.distDict[varName].upperBound:
-            valueMax = valueMax-2.0*np.finfo(valueMax).eps
-        if self.distDict[varName].lowerBoundUsed:
-          if valueMin<self.distDict[varName].lowerBound and valueMin+2.0*np.finfo(valueMin).eps<self.distDict[varName].lowerBound:
-            self.raiseAnError(TypeError,'the variable '+varName+'can not be sampled at '+str(valueMin)+' since outside the lower bound of the chosen distribution,Distripution Lower Bound = '+str(self.distDict[varName].lowerBound))
-          if valueMin<self.distDict[varName].lowerBound and valueMin+2.0*np.finfo(valueMax).eps>=self.distDict[varName].lowerBound:
-            valueMin = valueMin-2.0*np.finfo(valueMin).eps
-        self.gridInfo[varName][2][indexMax], self.gridInfo[varName][2][indexMin] = valueMax, valueMin
+    gridDictionaryInit = {"transformationMethods":{}}
+    self.gridEntity.initialize()
+#    for varName, value in gridInfo.items():
+#       gridConstruct = gridInfo[varName]
+#       if gridConstruct[1] == 'custom':
+#         gridDictionaryInit["lowerBounds"][varName] = min(gridConstruct[2])
+#         gridDictionaryInit["upperBounds"][varName] = max(gridConstruct[2])
+#         gridDictionaryInit["stepLenght"][varName]  = (max(gridConstruct[2])-min(gridConstruct[2]))/len(gridConstruct[2])
+#         gridDictionaryInit["transformationMethods"][varName] = GridEntities.GridEntity.transformationMethodFromCustom(x)
+#       else:
+#         gridDictionaryInit["lowerBounds"][varName] = gridConstruct[2]['lowerBound']
+#         gridDictionaryInit["upperBounds"][varName] = gridConstruct[2]['upperBound']
+#         gridDictionaryInit["stepLenght"][varName]  = (float(gridDictionaryInit["upperBounds"][varName]) - float(gridDictionaryInit["lowerBounds"][varName]))/float(gridConstruct[2]['steps'])
+#     for varName in self.gridInfo.keys():
+#       if self.gridInfo[varName][0]=='value':
+#         valueMax, indexMax = max(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(max(self.gridInfo[varName][2]))
+#         valueMin, indexMin = min(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(min(self.gridInfo[varName][2]))
+#
+#         if self.distDict[varName].upperBoundUsed:
+#           if valueMax>self.distDict[varName].upperBound and valueMax-2.0*np.finfo(valueMax).eps>self.distDict[varName].upperBound:
+#             self.raiseAnError(TypeError,'the variable '+varName+'can not be sampled at '+str(valueMax)+' since outside the upper bound of the chosen distribution,Distripution Upper Bound = '+ str(self.distDict[varName].upperBound))
+#           if valueMax>self.distDict[varName].upperBound and valueMax-2.0*np.finfo(valueMax).eps<=self.distDict[varName].upperBound:
+#             valueMax = valueMax-2.0*np.finfo(valueMax).eps
+#         if self.distDict[varName].lowerBoundUsed:
+#           if valueMin<self.distDict[varName].lowerBound and valueMin+2.0*np.finfo(valueMin).eps<self.distDict[varName].lowerBound:
+#             self.raiseAnError(TypeError,'the variable '+varName+'can not be sampled at '+str(valueMin)+' since outside the lower bound of the chosen distribution,Distripution Lower Bound = '+str(self.distDict[varName].lowerBound))
+#           if valueMin<self.distDict[varName].lowerBound and valueMin+2.0*np.finfo(valueMax).eps>=self.distDict[varName].lowerBound:
+#             valueMin = valueMin-2.0*np.finfo(valueMin).eps
+#         self.gridInfo[varName][2][indexMax], self.gridInfo[varName][2][indexMin] = valueMax, valueMin
 
     if self.restartData:
       inps = self.restartData.getInpParametersValues()
