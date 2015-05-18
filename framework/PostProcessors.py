@@ -1689,7 +1689,8 @@ class LimitSurface(BasePostProcessor):
     if "gridVectors" in dictIn.keys():
       self.gridVectors     = dictIn["gridVectors"]
       self.gridFromOutside = True
-    if "verbosity"       in dictIn.keys(): self.verbosity = utils.interpretBoolean(dictIn["verbosity"])
+    if "verbosity"       in dictIn.keys(): self.verbosity = dictIn['verbosity']
+    if "debug"           in dictIn.keys(): self.raiseAnError('"debug" attribute found, but has been deprecated.  Please change it to "verbosity."  Remove this error by the end of June 2015.')
 
   def getFunctionValue(self):
     """

@@ -40,7 +40,7 @@
         <what>all</what>
         <parameters>z01,z02</parameters>
     </PostProcessor>
-    <PostProcessor name="InputOutput" subType='BasicStatistics'  debug='true'>
+    <PostProcessor name="InputOutput" subType='BasicStatistics' verbosity='debug'>
         <what>all</what>
         <parameters>x0,x01,y0,y02</parameters>
     </PostProcessor>
