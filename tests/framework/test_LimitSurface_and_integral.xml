@@ -13,7 +13,7 @@
        <variable>x0</variable>
        <variable>y0</variable>
     </ExternalModel>
-    <PostProcessor name="computeLimitSurfacePositiveNegative" subType='LimitSurface' verbosity='all'>
+    <PostProcessor name="computeLimitSurfacePositiveNegative" subType='LimitSurface' verbosity='quiet'>
         <parameters>x0,y0</parameters>
         <side>both</side>
         <ROM      class='Models'           type='ROM'             >Acc</ROM>

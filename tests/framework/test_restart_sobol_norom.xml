@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
+<Simulation verbosity='quiet'>
     <RunInfo>
         <WorkingDir>SamplerRestarts</WorkingDir>
         <Sequence>SOBOLmake1,SOBOLtrain1,SOBOLprint1,SOBOLmake2,SOBOLtrain2,SOBOLprint2,SOBOLprint3</Sequence>
