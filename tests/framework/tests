@@ -374,8 +374,8 @@
  [./indexSetTest]
   type = 'RavenFramework'
   input = 'test_indexsets.xml'
-  output = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml'
-  csv = 'IndexSetTest/TPdump.csv IndexSetTest/TDdump.csv IndexSetTest/HCdump.csv'
+  output = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml IndexSetTest/Cdump.xml'
+  csv = 'IndexSetTest/TPdump.csv IndexSetTest/TDdump.csv IndexSetTest/HCdump.csv IndexSetTest/Cdump.csv'
  [../]
 
  [./sobolSamplerTest]

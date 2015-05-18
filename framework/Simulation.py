@@ -486,6 +486,8 @@ class Simulation(MessageHandler.MessageUser):
   def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
     """reads the xml input file for the RunInfo block"""
     if 'verbosity' in xmlNode.attrib.keys(): self.verbosity = xmlNode.attrib['verbosity']
+    #FIXME temporarily create an error to prevent users from using the 'debug' attribute - remove it by end of June 2015 (Sonat)
+    if 'debug' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'"debug" attribute found, but has been deprecated.  Please change it to "verbosity."  Remove this error by end of June 2015.')
     self.raiseAMessage('Global verbosity level is "',self.verbosity,'"',verbosity='quiet')
     for element in xmlNode:
       if element.tag in runInfoSkip:

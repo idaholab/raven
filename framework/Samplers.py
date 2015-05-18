@@ -1042,20 +1042,23 @@ class Grid(Sampler):
 
       # 1D variable
       if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
-        if self.gridInfo[varName][0]=='CDF':
-          if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:
-            weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
-          if self.gridCoordinate[i] == 0:
-            weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
-          if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1:
-            weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
-        else:   # Value
-          if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:
-            weight *= self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
-          if self.gridCoordinate[i] == 0:
-            weight *= self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
-          if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1:
-            weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+        if self.distDict[varName].getDisttype() == 'Discrete':
+           weight *= self.distDict[varName].pdf(self.gridCoordinate[i])
+        else: # self.distDict[varName].getDistype() == 'Continuous'
+          if self.gridInfo[varName][0]=='CDF':
+            if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:
+              weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+            if self.gridCoordinate[i] == 0:
+              weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
+            if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1:
+              weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+          else:   # Value
+            if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:
+              weight *= self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+            if self.gridCoordinate[i] == 0:
+              weight *= self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
+            if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1:
+              weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
       # ND variable
       else:
         if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
@@ -2416,6 +2419,8 @@ class SparseGridCollocation(Grid):
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType,self)
     self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder,self.messageHandler)
+    if self.indexSet.type=='Custom':
+      self.indexSet.setPoints(SVL.indexSetVals)
 
     self.raiseADebug('Starting sparse grid generation...')
     self.sparseGrid = Quadratures.SparseQuad()
@@ -2548,7 +2553,7 @@ class Sobol(SparseGridCollocation):
     self.assemblerObjects={}    #dict of external objects required for assembly
     self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
     self.sobolOrder     = None  #S, the order of the HDMR expansion (1,2,3), queried from the sobol ROM
-    self.indexSetType   = None  #TP, TD, or HC; the type of index set to use, queried from the sobol ROM
+    self.indexSetType   = None  #the type of index set to use, queried from the sobol ROM
     self.polyDict       = {}    #varName-indexed dict of polynomial types
     self.quadDict       = {}    #varName-indexed dict of quadrature types
     self.importanceDict = {}    #varName-indexed dict of importance weights
@@ -2634,7 +2639,7 @@ class Sobol(SparseGridCollocation):
       iset.initialize(distDict,imptDict,SVL.maxPolyOrder,self.messageHandler)
       self.SQs[combo] = Quadratures.SparseQuad()
       self.SQs[combo].initialize(iset,distDict,quadDict,self.jobHandler,self.messageHandler)
-      initDict={'IndexSet':iset, 'PolynomialOrder':SVL.maxPolyOrder, 'Interpolation':SVL.itpDict}
+      initDict={'IndexSet':iset.type, 'PolynomialOrder':SVL.maxPolyOrder, 'Interpolation':SVL.itpDict}
       initDict['Features']=','.join(combo)
       initDict['Target']=SVL.target #TODO make it work for multitarget
       self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
