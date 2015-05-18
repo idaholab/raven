@@ -718,6 +718,21 @@
     <HDF5 name="testOutputDatabase" type="MC"/>
 </Databases>
 <DataObjects>
+   <TimePoint name='TimePointt'>
+        <Input>pipe1_Area,pipe1_Dh</Input>
+        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+   </TimePoint>
+   <TimePointSet name='TimePointSets'>
+        <Input>pipe1_Area, pipe1_Dh</Input>
+        <Output>pipe1_Hw,
+                pump_mass_flow_rate,
+                time
+        </Output>
+   </TimePointSet>
+   <History name='Historyy'>
+        <Input>pipe1_Area,pipe1_Dh</Input>
+        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+   </History>
     <Histories name='stories'>
         <Input>pipe1_Area,
                pipe1_Dh</Input>
@@ -726,20 +741,5 @@
                 time
         </Output>
    </Histories>
-   <TimePointSet name='TimePointSets'>
-        <Input>pipe1_Area, pipe1_Dh</Input>
-        <Output>pipe1_Hw,
-                pump_mass_flow_rate,
-                time
-        </Output>
-   </TimePointSet>
-   <TimePoint name='TimePointt'>
-        <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </TimePoint>
-   <History name='Historyy'>
-        <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </History>
 </DataObjects>
 </Simulation>

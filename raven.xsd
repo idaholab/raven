@@ -1,0 +1,458 @@
+<?xml version="1.0"?>
+<xsd:schema version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"  elementFormDefault="qualified">
+
+	<xsd:element name="Simulation">
+		<xsd:complexType>
+			<xsd:all>			
+				<xsd:element name="RunInfo"          type="RunInfoData"      minOccurs="1"/>
+				<xsd:element name="Distributions"    type="DistributionData" minOccurs="1"/>
+				<xsd:element name="Samplers"         type="SamplerData"      minOccurs="1"/>
+				<xsd:element name="Models"           type="ModelsData"		   minOccurs="1"/>
+				<xsd:element name="Functions"                                minOccurs="0">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+				<xsd:element name="Databases"                                minOccurs="0">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+				<xsd:element name="DataObjects"      type="DataObjectsData"  minOccurs="1"/>
+				<xsd:element name="OutStreamManager" type="OutStreamData"    minOccurs="0"/>
+				<xsd:element name="Steps"                                    minOccurs="1">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+			</xsd:all>
+			<xsd:attribute name="verbosity" type="xsd:string" default="all"/>
+		</xsd:complexType>
+	</xsd:element>
+		
+	<xsd:complexType name="RunInfoData">
+		<xsd:all>
+			<xsd:element name="WorkingDir"         type="xsd:string"  minOccurs="1"/>
+			<xsd:element name="Files"              type="xsd:string"  minOccurs="0"/>
+			<xsd:element name="Sequence"           type="xsd:string"  minOccurs="1"/>
+			<xsd:element name="batchSize"          type="xsd:integer" minOccurs="1" default="1"/>
+			<xsd:element name="JobName"            type="xsd:string"  minOccurs="0"/>
+			<xsd:element name="NumThreads"         type="xsd:integer" minOccurs="0" default="1"/>
+			<xsd:element name="mode" minOccurs="0"> 
+				<xsd:complexType mixed="true">
+					<xsd:choice>
+						<xsd:element name="runQSUB"                        minOccurs="0"/>
+						<xsd:element name="nodefile"     type="xsd:string" minOccurs="0"/>
+						<xsd:element name="nodifileenv"  type="xsd:string" minOccurs="0"/>
+					</xsd:choice>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="NumMPI"             type="xsd:integer" minOccurs="0" default="1"/>
+			<xsd:element name="totalNumCoresUsed"  type="xsd:integer" minOccurs="0" default="1"/>
+			<xsd:element name="precommand"         type="xsd:string"  minOccurs="0" default="None"/>
+			<xsd:element name="postcommand"        type="xsd:string"  minOccurs="0" default="None"/>
+			<xsd:element name="clusterParameters"  type="xsd:string"  minOccurs="0" default="None"/>
+			<xsd:element name="MaxLogSize"         type="xsd:integer" minOccurs="0"/>
+			<xsd:element name="deleteOutExtension" type="xsd:string"  minOccurs="0" default="None"/>
+			<xsd:element name="delSucLogFiles"     type="xsd:boolean" minOccurs="0" default="false"/>
+			
+			<xsd:element name="NumNode"          type="xsd:integer" minOccurs="0"/>
+			<xsd:element name="queueingSoftware" type="xsd:string"  minOccurs="0" default="PBS PROFESSIONAL"/>
+			
+			<xsd:element name="expectedTime"     type="xsd:string"  minOccurs="0" default="None"/>
+			<xsd:element name="DefaultInputFile" type="xsd:string"  minOccurs="0" default="test.xml"/>						
+			<xsd:element name="CustomMode"       minOccurs="0">
+				<xsd:complexType mixed="true">
+					<xsd:attribute name="file"   type="xsd:string"  use="required"/>
+					<xsd:attribute name="class"  type="xsd:string"  use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:all>
+	</xsd:complexType>
+	
+	<xsd:complexType name="DistributionData">
+		<xsd:sequence>
+			<xsd:element name="Beta"          type="BetaDistribution"          minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Exponential"   type="ExponentialDistribution"   minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Gamma"         type="GammaDistribution"         minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Logistic"      type="LogisticDistribution"      minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="LogNormal"     type="LogNormalDistribution"     minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Normal"        type="NormalDistribution"        minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Triangular"    type="TriangularDistribution"    minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Uniform"       type="UniformDistribution"       minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Weibull"       type="WeibullDistribution"       minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Bernoulli"     type="BernoulliDistribution"     minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Binomial"      type="BinomialDistribution"      minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Poisson"       type="PoissonDistribution"       minOccurs="0" maxOccurs="unbounded"/>
+			<!-- ******************************************************* -->
+			<!-- The N-Dimensional Distributions are not yet implemented -->
+			<!-- ******************************************************* -->
+      <xsd:any processContents="skip" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+		
+	<xsd:complexType name="BetaDistribution">
+		<xsd:all> 
+			<xsd:element name="lowerBound"                    minOccurs="1">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:decimal">
+						<xsd:minInclusive value="0"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="upperBound"                    minOccurs="1">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:decimal">
+						<xsd:maxInclusive value="1"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="alpha"      type="xsd:decimal" minOccurs="1"/>
+			<xsd:element name="beta"       type="xsd:decimal" minOccurs="1"/>
+			<xsd:element name="peakFactor" type="xsd:decimal" minOccurs="0"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="ExponentialDistribution">
+		<xsd:all>
+			<xsd:element name="lowerBound"                    minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:decimal">
+						<xsd:minInclusive value="0"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="upperBound" type="xsd:decimal" minOccurs="0"/>
+			<xsd:element name="lambda"     type="xsd:decimal" minOccurs="1"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="GammaDistribution">
+		<xsd:all>
+			<xsd:element name="lowerBound"                    minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:decimal">
+						<xsd:minInclusive value="0"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="upperBound" type="xsd:decimal" minOccurs="0"/>
+			<xsd:element name="alpha"      type="xsd:decimal" minOccurs="1"/>
+			<xsd:element name="beta"       type="xsd:decimal" minOccurs="1"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="LogisticDistribution">
+		<xsd:all>
+			<xsd:element name="upperBound" type="xsd:decimal" minOccurs="0"/>
+			<xsd:element name="lowerBound" type="xsd:decimal" minOccurs="0"/>
+			<xsd:element name="location"      type="xsd:decimal" minOccurs="1"/>
+			<xsd:element name="scale"         type="xsd:decimal" minOccurs="1"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="LogNormalDistribution">
+		<xsd:all>
+			<xsd:element name="lowerBound"                    minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:decimal">
+						<xsd:minInclusive value="0"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="upperBound" type="xsd:decimal" minOccurs="0"/>
+			<xsd:element name="mean"       type="xsd:decimal" minOccurs="1"/>
+			<xsd:element name="sigma"      type="xsd:decimal" minOccurs="1"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="NormalDistribution">
+		<xsd:all> 
+			<xsd:element name="lowerBound" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="upperBound" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="mean"       type="xsd:float" minOccurs="1"/>
+			<xsd:element name="sigma"      type="xsd:float" minOccurs="1"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="TriangularDistribution">
+		<xsd:all> 
+			<xsd:element name="min"  type="xsd:decimal" minOccurs="1"/>
+			<xsd:element name="max"  type="xsd:decimal" minOccurs="1"/>
+			<xsd:element name="apex" type="xsd:decimal" minOccurs="1"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="UniformDistribution">
+		<xsd:all> 
+			<xsd:element name="lowerBound" type="xsd:float" minOccurs="1"/>
+			<xsd:element name="upperBound" type="xsd:float" minOccurs="1"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="WeibullDistribution">
+		<xsd:all>
+			<xsd:element name="lowerBound"                    minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:decimal">
+						<xsd:minInclusive value="0"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="upperBound" type="xsd:decimal" minOccurs="0"/>
+			<xsd:element name="k"          type="xsd:decimal" minOccurs="1"/>
+			<xsd:element name="lambda"     type="xsd:decimal" minOccurs="1"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="BernoulliDistribution">
+		<xsd:all> 
+			<xsd:element name="p" minOccurs="1">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:decimal">
+						<xsd:minInclusive value="0"/>
+						<xsd:maxInclusive value="1"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="BinomialDistribution">
+		<xsd:all> 
+			<xsd:element name="p" minOccurs="1">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:decimal">
+						<xsd:minInclusive value="0"/>
+						<xsd:maxInclusive value="1"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="n" minOccurs="1">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:integer">
+						<xsd:minExclusive value="0"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>				
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="PoissonDistribution">
+		<xsd:all> 
+			<xsd:element name="mu" type="xsd:decimal" minOccurs="1"/>
+		</xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="SamplerData">
+		<xsd:sequence>
+			<!--xsd:element name="MonteCarlo" type="MonteCarloSampler" minOccurs="0" maxOccurs="unbounded"/-->
+      <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="MonteCarloSampler">
+		<xsd:sequence>
+			<xsd:element name="sampler_init" minOccurs="1">
+				<xsd:complexType>
+					<xsd:all>
+						<xsd:element name="limit"                    type="xsd:string"  minOccurs="1"/>
+						<xsd:element name="initial_seed"             type="xsd:integer" minOccurs="0"/>
+						<xsd:element name="reseed_at_each_iteration" type="xsd:boolean" minOccurs="0"/>
+						<xsd:element name="dist_init" minOccurs="0">
+							<xsd:complexType>
+                <xsd:sequence>
+                  <!-- ******************* -->
+                  <!-- Not yet implemented -->
+                  <!-- ******************* -->
+                  <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+                  </xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:all>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="variable" minOccurs="1" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:all>
+						<xsd:element name="distribution" type="xsd:string" minOccurs="1"/>
+					</xsd:all>
+					<xsd:attribute name="name" type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Restart"                        minOccurs="0">
+				<xsd:complexType mixed="true">
+					<xsd:attribute name="class" type="xsd:string" use="required"/>
+					<xsd:attribute name="type"  type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ModelsData">
+		<xsd:sequence>
+			<!--xsd:element name="Dummy"         type="DummyModel"    minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="ExternalModel" type="ExternalModel" minOccurs="0" maxOccurs="unbounded"/-->
+      <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="DummyModel">
+		<xsd:attribute name="name"     type="xsd:string"  use="required"/>
+		<xsd:attribute name="subType"  type="xsd:string"  use="required" fixed=""/>
+		<xsd:attribute name="print"    type="xsd:string"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ExternalModel">
+		<xsd:sequence>
+			<xsd:element name="variable" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name"         type="xsd:string"  use="required"/>
+		<xsd:attribute name="subType"      type="xsd:string"  use="required" fixed=""/>
+		<xsd:attribute name="ModuleToLoad" type="xsd:string"  use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="DataObjectsData">
+		<xsd:sequence>
+			<xsd:element name="TimePoint"    type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="TimePointSet" type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="History"      type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Histories"    type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="commonDataObjectsData">
+		<xsd:all>
+			<xsd:element name="Input"  type="xsd:string" minOccurs="1"/>
+			<xsd:element name="Output" type="xsd:string" minOccurs="1"/>
+		</xsd:all>
+		<xsd:attribute name="name"         type="xsd:string"  use="required"/>
+		<xsd:attribute name="inputTs"      type="xsd:integer"/>
+		<xsd:attribute name="operator"     type="xsd:string"/>
+		<xsd:attribute name="hierarchical" type="xsd:string"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="historyDataObjectsData">
+		<xsd:complexContent>
+			<xsd:restriction base="commonDataObjectsData">
+				<xsd:all>
+					<xsd:element name="Input" minOccurs="1">
+						<xsd:complexType mixed="true">
+							<xsd:attribute name="name" type="xsd:string"/>
+						</xsd:complexType>
+					</xsd:element>
+					<xsd:element name="Output" type="xsd:string" minOccurs="1"/>
+				</xsd:all>
+				<xsd:attribute name="name"     type="xsd:string"  use="required"/>
+			</xsd:restriction>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="OutStreamData">
+		<xsd:sequence>
+			<!--xsd:element name="Print" type="PrintData" minOccurs="0" maxOccurs="unbounded"/ -->
+			<!--xsd:element name="Plot"  type="PlotData"  minOccurs="0" maxOccurs="unbounded"/-->
+      <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="PrintData">
+		<xsd:all>
+			<xsd:element name="type"      type="xsd:string" minOccurs="1" default="csv"/>
+			<xsd:element name="source"    type="xsd:string" minOccurs="1"/>
+			<xsd:element name="variables" type="xsd:string" minOccurs="0"/>
+		</xsd:all>
+		<xsd:attribute name="name"        type="xsd:string" use="required"/>
+	</xsd:complexType>
+			
+	<!--xsd:group name="MultiRunIOStep">
+		<xsd:sequence>
+			<xsd:element name="MultiRun"  type="MultiRunData" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="IOStep"    type="IOStepData"   minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:group>
+			
+	<xsd:complexType name="StepsData">
+		<xsd:sequence>
+			<xsd:group ref="MultiRunIOStep" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="MultiRunData">
+		<xsd:sequence>
+			<xsd:element name="Sampler" minOccurs="1">
+				<xsd:complexType mixed="true">
+					<xsd:attribute name="class" type="xsd:string" use="required"/>
+					<xsd:attribute name="type"  type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Input" minOccurs="1">
+				<xsd:complexType mixed="true">
+					<xsd:attribute name="class" type="xsd:string" use="required"/>
+					<xsd:attribute name="type"  type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Model" minOccurs="1">
+				<xsd:complexType mixed="true">
+					<xsd:attribute name="class" type="xsd:string" use="required"/>
+					<xsd:attribute name="type"  type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Output" minOccurs="1" maxOccurs="unbounded">
+				<xsd:complexType mixed="true">
+					<xsd:attribute name="class" type="xsd:string" use="required"/>
+					<xsd:attribute name="type"  type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>			
+			<xsd:element name="SolutionExport" minOccurs="0">
+				<xsd:complexType mixed="true">
+					<xsd:attribute name="class" type="xsd:string" use="required"/>
+					<xsd:attribute name="type"  type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="name"        type="xsd:string" use="required"/>
+		<xsd:attribute name="pauseAtEnd"  type="xsd:string"/>
+		<xsd:attribute name="sleepTime"   type="xsd:string"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="IOStepData">
+		<xsd:all>
+			<xsd:element name="Input" minOccurs="1">
+				<xsd:complexType mixed="true">
+					<xsd:attribute name="class" type="xsd:string" use="required"/>
+					<xsd:attribute name="type"  type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Output" minOccurs="1">
+				<xsd:complexType mixed="true">
+					<xsd:attribute name="class" type="xsd:string" use="required"/>
+					<xsd:attribute name="type"  type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>			
+		</xsd:all>
+		<xsd:attribute name="name"        type="xsd:string" use="required"/>
+		<xsd:attribute name="pauseAtEnd"  type="xsd:string"/>
+	</xsd:complexType-->
+	
+				
+</xsd:schema>

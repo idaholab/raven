@@ -18,21 +18,18 @@
         <sigma>0.001</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
     </Normal>
     <Normal name='crew1DG2CoupledDG1'>
         <mean>1</mean>
         <sigma>0.001</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
     </Normal>    
     <Normal name='crew1DG1'>
         <mean>1</mean>
         <sigma>0.4</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
-        <adjustement>scaling</adjustement>
     </Normal>
     <Triangular name='CladFailureDist'>
         <apex>1</apex>

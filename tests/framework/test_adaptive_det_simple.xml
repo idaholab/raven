@@ -152,10 +152,10 @@
          -->
     </OutStreamManager>
     <DataObjects>
-        <Histories name='AdaptiveDEThistories' inputTs='-1'>
-            <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
-            <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
-        </Histories>
+        <TimePointSet name='LimitSurfSimple'>
+            <Input>PressureFailureValue,depressurizationOnTime</Input>
+            <Output>relapFunctionSimple</Output>
+        </TimePointSet>
         <TimePointSet name='AdaptiveDETtimepointset' inputTs='-1'>
             <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
             <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
@@ -172,10 +172,10 @@
             <Input>PressureFailureValue,depressurizationOnTime</Input>
             <Output>systemFailed</Output>
         </Histories>
-        <TimePointSet name='LimitSurfSimple'>
-            <Input>PressureFailureValue,depressurizationOnTime</Input>
-            <Output>relapFunctionSimple</Output>
-        </TimePointSet>
+        <Histories name='AdaptiveDEThistories' inputTs='-1'>
+            <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
+            <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
+        </Histories>
     </DataObjects>
 </Simulation>
 
