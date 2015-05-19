@@ -85,7 +85,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       self.raiseAnError(IOError,'It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
     #
     # retrieve history name if present
-    try:   self._dataParameters['history'] = xmlNode.find('Input' ).attrib['name']
+    try:   self._dataParameters['history'] = xmlNode.attrib['historyName']
     except KeyError:self._dataParameters['history'] = None
 
     if 'time' in xmlNode.attrib.keys():
@@ -1251,7 +1251,7 @@ class TimePointSet(Data):
     myFile = open(mainCSV,"rU")
     header = myFile.readline().rstrip()
     inoutKeys = header.split(",")
-    inoutValues = [[] for a in range(len(inoutKeys))]
+    inoutValues = [[] for _ in range(len(inoutKeys))]
     for line in myFile.readlines():
       line_list = line.rstrip().split(",")
       for i in range(len(inoutKeys)):
@@ -1611,7 +1611,6 @@ class Histories(Data):
       # we retrieve the node in which the specialized 'TimePoint' has been stored
       parent_id = None
       if type(name) == list:
-        namep = name[1]
         if type(name[0]) == str: nodeid = name[0]
         else:
           if 'metadata' in options.keys():
@@ -1627,7 +1626,6 @@ class Histories(Data):
         else:
           nodeid = options['prefix']
           if 'parent_id' in options.keys(): parent_id = options['parent_id']
-        namep = name
       if parent_id: tsnode = self.retrieveNodeInTreeMode(nodeid, parent_id)
       #if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id'])
       #else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])

@@ -97,6 +97,7 @@ available attributes:
   \item \xmlAttr{operator}, \xmlDesc{optional string attribute}, is aimed at
   performing simple operations on the data to be stored.
   %
+  %
   The 3 options currently available are:
   \begin{itemize}
     \item \xmlString{max}
@@ -105,6 +106,13 @@ available attributes:
   \end{itemize}
   %
   \default{None}
+
+  \item \xmlAttr{historyName}, \xmlDesc{optional string attribute}, in the case  the 
+   ``DataObject'' type is either a \textit{TimePoint} or a
+  \textit{History}, this XML node contains the name of the associated history needs to be placed in.
+  \\\nb This attribute is a required parameter when the  \textit{TimePoint} or \textit{History}
+   types are constructed from a Database (e.g.HDF5).
+
   \item \xmlAttr{hierarchical}, \xmlDesc{optional boolean attribute}, if True
   this data object will be constructed, if possible, in a hierarchical fashion.
   %
@@ -116,9 +124,6 @@ needs to specify the following sub-nodes:
 \begin{itemize}
   \item \xmlNode{Input}, \xmlDesc{comma separated string, required field} lists
   the input parameters to which this data is connected.
-  \nb In the case when the ``Data'' type is either a \textit{TimePoint} or a
-  \textit{History}, this XML node must contain the attribute \xmlAttr{history},
-  where the name of the associated history needs to be placed.
   %
   \item \xmlNode{Output}, \xmlDesc{comma separated string, required field} lists
   the output parameters to which this data is connected.
