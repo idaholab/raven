@@ -115,18 +115,18 @@
 
 <!-- DATA OBJECTS -->
 <DataObjects>
-    <Histories name='testPrintHistories'>
-        <Input>x0,y0,z0</Input>
-        <Output>time,x,y,z</Output>
-   </Histories>
-    <TimePointSet name='testTimePointSet'>
-        <Input>x0,y0,z0</Input>
-        <Output>time,x,y,z</Output>
-    </TimePointSet>
     <TimePoint name='inputPlaceHolder'>
         <Input>x0,y0,z0</Input>
         <Output>OutputPlaceHolder</Output>
     </TimePoint>
+    <TimePointSet name='testTimePointSet'>
+        <Input>x0,y0,z0</Input>
+        <Output>time,x,y,z</Output>
+    </TimePointSet>
+    <Histories name='testPrintHistories'>
+        <Input>x0,y0,z0</Input>
+        <Output>time,x,y,z</Output>
+    </Histories>
 </DataObjects>
 </Simulation>
 
