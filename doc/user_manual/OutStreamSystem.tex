@@ -166,6 +166,16 @@ The user needs to provide a name for each sub-block (XML attribute).
 These names are then used in the \textit{Step} blocks to activate the Printing
 keywords at any time.
 %
+The XML node has the following
+available attributes:
+\begin{itemize}
+  \itemsep0em
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, is a user-defined
+  identifier for this data object.
+    %
+  \nb As with other objects, this name can be used to refer to this specific
+  entity from other input blocks in the XML.
+ \end{itemize}
 As shown in the examples below, every \xmlNode{Print} block must contain, at
 least, the two required tags:
 \vspace{-5mm}
