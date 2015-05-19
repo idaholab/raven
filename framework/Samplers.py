@@ -929,6 +929,7 @@ class Grid(Sampler):
     #for varName in self.axisName:
     #  gridDictionaryInit["transformationMethods"][varName] = self.distDict[varName]
     self.gridEntity.initialize()
+    self.limit = len(self.gridEntity)
 #    for varName, value in gridInfo.items():
 #       gridConstruct = gridInfo[varName]
 #       if gridConstruct[1] == 'custom':

@@ -30,7 +30,15 @@ class GridEntity(BaseType):
     @ Out, transformFunction, instance of the transformation method (callable like f(newPoint))
     """
     return interp1d(x, np.linspace(0.0, 1.0, len(x)), kind='nearest')
-
+  
+  def __len__(self):
+    """
+    Overload __len__ method. 
+    @ In, None
+    @ Out, integer, total number of nodes
+    """
+    return self.gridContainer['gridLenght'] if 'gridLenght' in self.gridContainer.keys() else 0
+  
   def __init__(self):
     self.printTag                               = UreturnPrintTag("GRID ENTITY")
     self.gridContainer                          = {}                 # dictionary that contains all the key feature of the grid
