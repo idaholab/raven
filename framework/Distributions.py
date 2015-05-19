@@ -652,7 +652,7 @@ class Beta(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
     self.low = 0.0
-    self.hi = 1.0
+    self.high = 1.0
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
@@ -665,7 +665,7 @@ class Beta(BoostDistribution):
 
   def _localSetState(self,pdict):
     self.low   = pdict.pop('low'  )
-    self.hi    = pdict.pop('hi'   )
+    self.high  = pdict.pop('high' )
     self.alpha = pdict.pop('alpha')
     self.beta  = pdict.pop('beta' )
 
@@ -681,12 +681,8 @@ class Beta(BoostDistribution):
     BoostDistribution._readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
-    hi_find = xmlNode.find('hi')
-    #high_find = xmlNode.find('high')
-    if hi_find != None: self.hi = float(hi_find.text)
-    #elif high_find != None: self.hi = float(high_find.text)
-    else:
-        if xmlNode.find('high') != None: self.hi = float(xmlNode.find('high').text)
+    hi_find = xmlNode.find('high')
+    if hi_find != None: self.high = float(hi_find.text)
     alpha_find = xmlNode.find('alpha')
     beta_find = xmlNode.find('beta')
     peak_find = xmlNode.find('peakFactor')
@@ -699,12 +695,11 @@ class Beta(BoostDistribution):
       #this empirical formula is used to make it so factor->alpha: 0->1, 0.5~7.5, 1->99
       self.alpha = 0.5*23.818**(5.*peakFactor/3.) + 0.5
       self.beta = self.alpha
-    else:
-      self.raiseAnError(IOError,'Either provide (alpha and beta) or peakFactor!')
+    else: self.raiseAnError(IOError,'Either provide (alpha and beta) or peakFactor!')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
-      self.upperBound     = self.hi
+      self.upperBound     = self.high
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound     = self.low
@@ -712,10 +707,10 @@ class Beta(BoostDistribution):
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self,tempDict)
-    tempDict['low'] = self.low
-    tempDict['hi'] = self.hi
+    tempDict['low'  ] = self.low
+    tempDict['high' ] = self.high
     tempDict['alpha'] = self.alpha
-    tempDict['beta'] = self.beta
+    tempDict['beta' ] = self.beta
 
   def initializeDistribution(self):
     self.convertToDistrDict['Jacobi'] = self.convertJacobiToBeta
@@ -723,13 +718,13 @@ class Beta(BoostDistribution):
     self.measureNormDict   ['Jacobi'] = self.stdProbabilityNorm
     #this "if" section can only be called if distribution not generated using readMoreXML
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,self.low)
+      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,self.low)
     else:
       if self.lowerBoundUsed == False: a = 0.0
       else:a = self.lowerBound
       if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
-      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b,self.low)
+      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,a,b,self.low)
     self.preferredPolynomials = 'Jacobi'
     self.compatibleQuadrature.append('Jacobi')
     self.compatibleQuadrature.append('ClenshawCurtis')
@@ -739,8 +734,8 @@ class Beta(BoostDistribution):
     @ In y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
     """
-    u = 0.5*(self.hi+self.low)
-    s = 0.5*(self.hi-self.low)
+    u = 0.5*(self.high+self.low)
+    s = 0.5*(self.high-self.low)
     return (y-u)/(s)
 
   def convertJacobiToBeta(self,x):
@@ -748,8 +743,8 @@ class Beta(BoostDistribution):
     @ In y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
     """
-    u = 0.5*(self.hi+self.low)
-    s = 0.5*(self.hi-self.low)
+    u = 0.5*(self.high+self.low)
+    s = 0.5*(self.high-self.low)
     return s*x+u
 
   def stdProbabilityNorm(self):
