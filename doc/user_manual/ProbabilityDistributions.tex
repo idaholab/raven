@@ -716,16 +716,16 @@ interpolation scheme.
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of the distribution
+\item \nameDescription, \textit{required string attribute}, user-defined name of the distribution
 \end{itemize}
 \vspace{-5mm}
 
 
 In RAVEN the NDInverseWeight distribution can be initialized through the following nodes:
 \begin{itemize}
-\item \xmlNode{p}, float, required parameter, power parameter. Greater values of p assign greater influence to values closest to the interpolated point.
-\item \xmlNode{data\textunderscore filename}, string,  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
-\item \xmlNode{working\textunderscore dir}, string, folder location of the data file
+\item \xmlNode{p}, \xmlDesc{float, required parameter}, power parameter. Greater values of p assign greater influence to values closest to the interpolated point.
+\item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter},  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
+\item \xmlNode{working\textunderscore dir}, \xmlDesc{string, required parameter}, folder location of the data file
 \end{itemize}
 
 \begin{lstlisting}[style=XML]
@@ -786,15 +786,15 @@ interpolation scheme.
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of the distribution
+\item \textbf{name}, \xmlDesc{string, required parameter}, user-defined name of the distribution
 \end{itemize}
 \vspace{-5mm}
 
 
 In RAVEN the NDCartesianSpline distribution can be initialized through the following nodes:
 \begin{itemize}
-\item \xmlNode{data\textunderscore filename}, string,  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
-\item \xmlNode{working\textunderscore dir}, string, folder location of the data file
+\item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter},  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
+\item \xmlNode{working\textunderscore dir}, \xmlDesc{string, required parameter}, folder location of the data file
 \end{itemize}
 
 \begin{lstlisting}[style=XML]
