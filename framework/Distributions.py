@@ -11,11 +11,8 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import sys
-import xml.etree.ElementTree as ET #used for creating Beta in Normal distribution
-import copy
 import numpy as np
 import scipy
-import scipy.special as polys
 #from scipy.misc import factorial
 from math import gamma
 import os
@@ -972,8 +969,7 @@ class Categorical(Distribution):
     Distribution._readMoreXML(self, xmlNode)
     for child in xmlNode:
       self.mapping[child.tag] = float(child.text)
-      if float(child.tag) in self.values:
-        raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution has identical outcome')
+      if float(child.tag) in self.values: self.raiseAnError(IOError,'Categorical distribution has identical outcome')
       else:
         self.values.add(float(child.tag))
 
@@ -998,8 +994,7 @@ class Categorical(Distribution):
     totPsum = 0.0
     for element in self.mapping:
       totPsum += self.mapping[str(element)]
-    if totPsum!=1.0:
-      raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
+    if totPsum!=1.0: self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
 
   def pdf(self,x):
     """
@@ -1009,8 +1004,7 @@ class Categorical(Distribution):
     """
     if x in self.values:
       return self.mapping[str(x)]
-    else:
-      raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate pdf for ' + str(x))
+    else: self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
 
   def cdf(self,x):
     """
@@ -1025,8 +1019,7 @@ class Categorical(Distribution):
         cumulative += element[1]
         if x == float(element[0]):
           return cumulative
-    else:
-      raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate cdf for ' + str(x))
+    else: self.raiseAnError(IOError,'Categorical distribution cannot calculate cdf for ' + str(x))
 
   def ppf(self,x):
     """
@@ -1486,59 +1479,6 @@ class NDCartesianSpline(NDimensionalDistributions):
   def rvs(self,*args):
     return self._distribution.InverseCdf(random(),random())
 
-class NDScatteredMS(NDimensionalDistributions):
-  def __init__(self):
-    NDimensionalDistributions.__init__(self)
-    self.p  = None
-    self.precision = None
-    self.type = 'NDScatteredMS'
-
-  def _readMoreXML(self,xmlNode):
-    NDimensionalDistributions._readMoreXML(self, xmlNode)
-    p_find = xmlNode.find('p')
-    if p_find != None: self.p = float(p_find.text)
-    else: self.raiseAnError(IOError,'Minkowski distance parameter <p> not found in NDScatteredMS distribution')
-    precision_find = xmlNode.find('precision')
-    if precision_find != None: self.precision = int(precision_find.text)
-    else: self.raiseAnError(IOError,'precision parameter <precision> not found in NDScatteredMS distribution')
-    self.initializeDistribution()
-
-  def addInitParams(self,tempDict):
-    NDimensionalDistributions.addInitParams(self, tempDict)
-    tempDict['p'] = self.p
-    tempDict['precision'] = self.precision
-
-  def initializeDistribution(self):
-    #NDimensionalDistributions.initializeDistribution()
-    self._distribution = distribution1D.BasicMultiDimensionalScatteredMS(self.p,self.precision)
-
-  def cdf(self,x):
-    return self._distribution.Cdf(x)
-
-  def ppf(self,x):
-    return self._distribution.InverseCdf(x)
-
-  def pdf(self,x):
-    return self._distribution.Pdf(x)
-
-  def untruncatedCdfComplement(self, x):
-    self.raiseAnError(NotImplementedError,'untruncatedCdfComplement not yet implemented for ' + self.type)
-
-  def untruncatedHazard(self, x):
-    self.raiseAnError(NotImplementedError,'untruncatedHazard not yet implemented for ' + self.type)
-
-  def untruncatedMean(self, x):
-    self.raiseAnError(NotImplementedError,'untruncatedMean not yet implemented for ' + self.type)
-
-  def untruncatedMedian(self, x):
-    self.raiseAnError(NotImplementedError,'untruncatedMedian not yet implemented for ' + self.type)
-
-  def untruncatedMode(self, x):
-    self.raiseAnError(NotImplementedError,'untruncatedMode not yet implemented for ' + self.type)
-
-  def rvs(self,*args):
-    self.raiseAnError(NotImplementedError,'rvs not yet implemented for ' + self.type)
-
 
 class MultivariateNormal(NDimensionalDistributions):
 
@@ -1634,7 +1574,6 @@ __interFaceDict['Exponential'      ] = Exponential
 __interFaceDict['LogNormal'        ] = LogNormal
 __interFaceDict['Weibull'          ] = Weibull
 __interFaceDict['NDInverseWeight'  ] = NDInverseWeight
-__interFaceDict['NDScatteredMS'    ] = NDScatteredMS
 __interFaceDict['NDCartesianSpline'] = NDCartesianSpline
 __interFaceDict['MultivariateNormal'] = MultivariateNormal
 __knownTypes                  = __interFaceDict.keys()
