@@ -125,12 +125,12 @@
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempTreshold,UpperPlenum:energy</Output>
    </TimePointSet>
-   <TimePoint name='data_for_sampling_empty_at_begin' inputTs='2'>
-        <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
+   <TimePoint name='data_for_sampling_empty_at_begin' inputTs='2' historyName="1">
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>OutputPlaceHolder</Output>
    </TimePoint>
-    <TimePoint name='data_for_sampling_empty_at_begin_nd' inputTs='2'>
-        <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
+    <TimePoint name='data_for_sampling_empty_at_begin_nd' inputTs='2' historyName="1">
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>OutputPlaceHolder</Output>
     </TimePoint>
    <TimePointSet name='outputMontecarloRom' inputTs='2'>

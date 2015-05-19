@@ -85,7 +85,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       self.raiseAnError(IOError,'It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
     #
     # retrieve history name if present
-    try:   self._dataParameters['history'] = xmlNode.find('Input' ).attrib['name']
+    try:   self._dataParameters['history'] = xmlNode.attrib['historyName']
     except KeyError:self._dataParameters['history'] = None
 
     if 'time' in xmlNode.attrib.keys():
@@ -258,16 +258,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if options:
       if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
       else: filenameLocal = self.name + '_dump'
-      if 'variables' in options.keys():
+      if 'what' in options.keys():
         variables_to_print = []
-        for var in options['variables'].split(','):
+        for var in options['what'].split(','):
           lvar = var.lower()
           if lvar.startswith('input'):
             variables_to_print.extend(self.__getVariablesToPrint(var,'input'))
           elif lvar.startswith('output'):
             variables_to_print.extend(self.__getVariablesToPrint(var,'output'))
           else: self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
-        options_int['variables'] = variables_to_print
+        options_int['what'] = variables_to_print
     else:   filenameLocal = self.name + '_dump'
 
     self.specializedPrintCSV(filenameLocal,options_int)
@@ -855,8 +855,8 @@ class TimePoint(Data):
     outKeys   = []
     outValues = []
     #Print input values
-    if 'variables' in options.keys():
-      for var in options['variables']:
+    if 'what' in options.keys():
+      for var in options['what']:
         if var.split('|')[0] == 'input':
           inpKeys.append(var.split('|')[1])
           inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
@@ -1122,8 +1122,8 @@ class TimePointSet(Data):
         inpValues.append([])
         outKeys.append([])
         outValues.append([])
-        if 'variables' in options.keys():
-          for var in options['variables']:
+        if 'what' in options.keys():
+          for var in options['what']:
             if var.split('|')[0] == 'input':
               inpKeys[-1].append(var.split('|')[1])
               axa = np.zeros(len(O_o[key]))
@@ -1191,8 +1191,8 @@ class TimePointSet(Data):
       #The CSV file will have a header with the input names and output
       #names, and multiple lines of data with the input and output
       #numeric values, one line for each input.
-      if 'variables' in options.keys():
-        for var in options['variables']:
+      if 'what' in options.keys():
+        for var in options['what']:
           if var.split('|')[0] == 'input':
             inpKeys.append(var.split('|')[1])
             inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
@@ -1209,7 +1209,7 @@ class TimePointSet(Data):
               inpKeys.append(var.split('|')[1])
               if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
               else: inpValues.append(np.atleast_1d(self._dataContainer['metadata'][var.split('|')[1]]))
-            else: printAWarning(self,'metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+            else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
       else:
         inpKeys   = self._dataContainer['inputs'].keys()
         inpValues = self._dataContainer['inputs'].values()
@@ -1251,7 +1251,7 @@ class TimePointSet(Data):
     myFile = open(mainCSV,"rU")
     header = myFile.readline().rstrip()
     inoutKeys = header.split(",")
-    inoutValues = [[] for a in range(len(inoutKeys))]
+    inoutValues = [[] for _ in range(len(inoutKeys))]
     for line in myFile.readlines():
       line_list = line.rstrip().split(",")
       for i in range(len(inoutKeys)):
@@ -1368,8 +1368,8 @@ class History(Data):
     outKeys   = []
     outValues = []
     #Print input values
-    if 'variables' in options.keys():
-      for var in options['variables']:
+    if 'what' in options.keys():
+      for var in options['what']:
         if var.split('|')[0] == 'input':
           inpKeys.append(var.split('|')[1])
           inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
@@ -1382,7 +1382,7 @@ class History(Data):
               self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(var.split('|')[1])
             inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: raiseAWArning(self,'metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+          else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
@@ -1611,7 +1611,6 @@ class Histories(Data):
       # we retrieve the node in which the specialized 'TimePoint' has been stored
       parent_id = None
       if type(name) == list:
-        namep = name[1]
         if type(name[0]) == str: nodeid = name[0]
         else:
           if 'metadata' in options.keys():
@@ -1627,7 +1626,6 @@ class Histories(Data):
         else:
           nodeid = options['prefix']
           if 'parent_id' in options.keys(): parent_id = options['parent_id']
-        namep = name
       if parent_id: tsnode = self.retrieveNodeInTreeMode(nodeid, parent_id)
       #if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id'])
       #else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
@@ -1728,8 +1726,8 @@ class Histories(Data):
         inpValues.append([])
         outKeys.append([])
         outValues.append([])
-        if 'variables' in options.keys():
-          for var in options['variables']:
+        if 'what' in options.keys():
+          for var in options['what']:
             if var.split('|')[0] == 'input':
               inpKeys[-1].append(var.split('|')[1])
               axa = np.zeros(len(O_o[key]))
@@ -1797,8 +1795,8 @@ class Histories(Data):
         inpValues_h = []
         outKeys_h   = []
         outValues_h = []
-        if 'variables' in options.keys():
-          for var in options['variables']:
+        if 'what' in options.keys():
+          for var in options['what']:
             if var.split('|')[0] == 'input':
               inpKeys_h.append(var.split('|')[1])
               inpValues_h.append(inpValues[n][var.split('|')[1]])

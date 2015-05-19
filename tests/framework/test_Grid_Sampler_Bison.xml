@@ -18,14 +18,12 @@
         <sigma>0.001</sigma>
         <lowerBound>0.5</lowerBound>
         <upperBound>1.5</upperBound>
-        <adjustement>up</adjustement>
     </Normal>
     <Normal name='Gauss2'>
         <mean>1</mean>
         <sigma>0.4</sigma>
         <lowerBound>0.5</lowerBound>
         <upperBound>1.5</upperBound>
-        <adjustement>scaling</adjustement>
     </Normal>
     <Triangular name='DistTri1'>
         <apex>1</apex>

@@ -8,12 +8,6 @@
     <NumThreads>2</NumThreads>    
     <mode>mpi</mode>
     <NumMPI>2</NumMPI>
-    <!--<ParallelCommand></ParallelCommand>
-    <ThreadingCommand></ThreadingCommand>
-    <queueingSoftware></queueingSoftware>
-    <procByNode></procByNode>
-    <numProcByRun></numProcByRun>
-    <totalNumCoresUsed></totalNumCoresUsed>-->
 </RunInfo>
 
 <Models>
@@ -26,14 +20,12 @@
         <sigma>100.</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>3000.0</upperBound>
-        <adjustement>up</adjustement>
     </Normal>
     <Normal name='Gauss2'>
         <mean>0.1e6</mean>
         <sigma>0.1e5</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>0.2e6</upperBound>
-        <adjustement>scaling</adjustement>
     </Normal>
 </Distributions>
 <Samplers>

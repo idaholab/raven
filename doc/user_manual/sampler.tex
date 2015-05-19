@@ -320,7 +320,7 @@ the different sampling methodologies are reported.
 The \textbf{Monte-Carlo} sampling approach is one of the most well-known and
 widely used approaches to perform exploration of the input space.
 %
-The main idea behind MonteCarlo sampling is to  randomly perturbate of the input space according
+The main idea behind MonteCarlo sampling is to  randomly perturbate the input space according
 to uniform or parameter-based probability density functions.
 %
 
@@ -339,29 +339,13 @@ to uniform or parameter-based probability density functions.
 
 In the \textbf{MonteCarlo} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
 \begin{itemize}
-\item $<sampler\textunderscore init>$, xml node, required parameter. In this xml-node,the following xml-nodes need to be specified:
+\item \xmlNode{sampler\textunderscore init},  \textit{\textbf{XML node, required parameter}}. In this xml-node,the following xml sub-nodes need to be specified:
   \begin{itemize}
-    \item \textbf{limit}, \textit{required string attribute}, number of MonteCarlo samples needs to be generated; 
-    \item \textbf{initial\textunderscore seed}, \textit{optional integer attribute}, initial seeding of random number generator
-    \item \textbf{reseed\_at\_each\_iteration}, \textit{optional boolean/string attribute (case insensitive)}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \textit{Default = False}; 
-    \item \textbf{dist\textunderscore init}, \textit{optional xml node}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}). 
+    \item \xmlNode{limit}, \textit{\textbf{integer,required field}}, number of MonteCarlo samples needs to be generated; 
+    \item \xmlNode{initial\textunderscore seed}, \textit{\textbf{integer, optional field}}, initial seeding of random number generator
+    \item \xmlNode{reseed\_at\_each\_iteration},  \textit{\textbf{boolean/string(case insensitive), optional field}}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \default{False}; 
+    \item \xmlNode{dist\textunderscore init},  \textit{\textbf{integer, optional field}}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}). 
   \end{itemize}
-\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
-% =======
-% \item \nameDescription
-% \item \xmlAttr{limit}, \xmlDesc{required integer attribute}, number of
-%   Monte-Carlo samples to be generate.
-% \item \xmlAttr{initial\_seed}, \xmlDesc{optional integer attribute}, initial
-%   seeding of random number generator.
-%   \default{random seed}.
-% \item \xmlAttr{reseedAtEachIteration}, \xmlDesc{optional boolean/string
-%   attribute}, perform a re-seeding for each sample generated
-%   (True values = True, yes, y, t).
-%   \default{False}.
-% \end{itemize}
-% \vspace{-5mm}
-% \variableIntro{MonteCarlo}
-% >>>>>>> origin/devel
 \begin{itemize}
 \item \variableDescription
  \variableChildIntro
