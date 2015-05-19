@@ -285,7 +285,7 @@ checkAnswer("shifted gamma ppf(0.9)",gamma.ppf(0.9),14.60517018599)
 
 betaElement = ET.Element("beta")
 betaElement.append(createElement("low",text="0.0"))
-betaElement.append(createElement("hi",text="1.0"))
+betaElement.append(createElement("high",text="1.0"))
 betaElement.append(createElement("alpha",text="5.0"))
 betaElement.append(createElement("beta",text="2.0"))
 
@@ -365,7 +365,7 @@ print(beta.rvs(5),beta.rvs())
 
 betaElement = ET.Element("beta")
 betaElement.append(createElement("low",text="-1.0"))
-betaElement.append(createElement("hi",text="5.0"))
+betaElement.append(createElement("high",text="5.0"))
 betaElement.append(createElement("alpha",text="5.0"))
 betaElement.append(createElement("beta",text="2.0"))
 
@@ -390,7 +390,7 @@ print(beta.rvs(5),beta.rvs())
 #Test Truncated-Normal-Like Beta
 betanElement = ET.Element("beta")
 betanElement.append(createElement("low",text="1.0"))
-betanElement.append(createElement("hi",text="5.0"))
+betanElement.append(createElement("high",text="5.0"))
 betanElement.append(createElement("peakFactor",text="0.5"))
 
 betan = Distributions.Beta()

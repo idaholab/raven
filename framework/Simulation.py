@@ -318,7 +318,7 @@ class Simulation(MessageHandler.MessageUser):
     self.distributionsDict    = {}
     self.dataBasesDict        = {}
     self.functionsDict        = {}
-    self.filesDict            = {} #this is different, for each file rather than an instance it just returns the absolute path of the file
+    self.filesDict            = {} #  for each file returns an instance of a FileObject class
     self.OutStreamManagerPlotDict  = {}
     self.OutStreamManagerPrintDict = {}
     self.stepSequenceList     = [] #the list of step of the simulation
@@ -555,10 +555,10 @@ class Simulation(MessageHandler.MessageUser):
         os.sys.path.append(modeDir)
         module = __import__(modeModulename)
         if modeName in self.__modeHandlerDict:
-          runAWarning(self,"duplicate mode definition",modeName)
+          self.raiseAWarning("duplicate mode definition " + modeName)
         self.__modeHandlerDict[modeName] = module.__dict__[modeClass]
       else:
-        runAWarning(self,"Unhandled element ",element.tag)
+        self.raiseAWarning("Unhandled element "+element.tag)
 
   def printDicts(self):
     """utility function capable to print a summary of the dictionaries"""

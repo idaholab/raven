@@ -1150,12 +1150,12 @@ class OutStreamPrint(OutStreamManager):
     OutStreamManager.__init__(self)
     self.sourceName   = []
     self.sourceData   = None
-    self.variables    = None
+    self.what         = None
 
   def localAddInitParams(self,tempDict):
     for index in range(len(self.sourceName)): tempDict['Source Name '+str(index)+' :'] = self.sourceName[index]
-    if self.variables:
-      for index in range(len(self.variables)): tempDict['Variable Name '+str(index)+' :'] = self.variables[index]
+    if self.what:
+      for index in range(len(self.what)): tempDict['Variable Name '+str(index)+' :'] = self.what[index]
 
   def initialize(self,inDict):
     # the linking to the source is performed in the base class initialize method
@@ -1168,7 +1168,7 @@ class OutStreamPrint(OutStreamManager):
       else:self.options[subnode.tag] = subnode.text
     if 'type' not in self.options.keys(): self.raiseAnError(IOError,'type tag not present in Print block called '+ self.name)
     if self.options['type'] not in self.availableOutStreamTypes : self.raiseAnError(TypeError,'Print type ' + self.options['type'] + ' not available yet. ')
-    if 'variables' in self.options.keys(): self.variables = self.options['variables']
+    if 'what' in self.options.keys(): self.what = self.options['what']
 
   def addOutput(self):
     '''
@@ -1176,14 +1176,13 @@ class OutStreamPrint(OutStreamManager):
       @ In, None
       @ Out, None
     '''
-    if self.variables: dictOptions = {'filenameroot':self.name,'variables':self.variables}
+    if self.what: dictOptions = {'filenameroot':self.name,'what':self.what}
     else             : dictOptions = {'filenameroot':self.name}
-    if 'what' in self.options.keys(): dictOptions['what']=self.options['what']
     if 'target' in self.options.keys(): dictOptions['target']=self.options['target']
     for index in range(len(self.sourceName)):
       if self.options['type']=='csv':
         if type(self.sourceData[index])==DataObjects.Data: empty = self.sourceData[index].isItEmpty()
-        else: empty=False
+        else: empty = False
         if not empty:
           try: self.sourceData[index].printCSV(dictOptions)
           except AttributeError: self.raiseAnError(IOError,'no implementation for source type '+str(type(self.sourceData[index]))+' and output type "csv"!')

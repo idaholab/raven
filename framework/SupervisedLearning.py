@@ -732,18 +732,6 @@ class NDinvDistWeight(NDinterpolatorRom):
 #
 #
 #
-class NDmicroSphere(NDinterpolatorRom):
-  ROMtype         = 'NDmicroSphere'
-  def __init__(self,messageHandler,**kwargs):
-    NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
-    self.printTag = 'ND-MICROSPHERE ROM'
-    if not 'p' in self.initOptionDict.keys(): self.raiseAnError(IOError,'the <p> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
-    if not 'precision' in self.initOptionDict.keys(): self.raiseAnError(IOError,'the <precision> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
-    self.interpolator = interpolationND.microSphere(float(self.initOptionDict['p']),int(self.initOptionDict['precision']))
-
-  def __resetLocal__(self):
-    self.interpolator.reset(float(self.initOptionDict['p']),int(self.initOptionDict['precision']))
-
 class SciKitLearn(superVisedLearning):
   ROMtype = 'SciKitLearn'
   availImpl = {}
@@ -912,7 +900,6 @@ class SciKitLearn(superVisedLearning):
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom
 __interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
-__interfaceDict['microSphere'         ] = NDmicroSphere
 __interfaceDict['SciKitLearn'         ] = SciKitLearn
 __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom

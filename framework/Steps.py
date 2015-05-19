@@ -560,10 +560,8 @@ __interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
 __interFaceDict['IOStep'           ] = IOStep
-__interFaceDict['IODatabase'       ] = IOStep
 __interFaceDict['RomTrainer'       ] = RomTrainer
 __interFaceDict['PostProcess'      ] = SingleRun
-__interFaceDict['OutStreamStep'    ] = IOStep
 __base                               = 'Step'
 
 def returnInstance(Type,caller):
