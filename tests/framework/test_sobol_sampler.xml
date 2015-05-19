@@ -13,10 +13,10 @@
             <Model   class='Models'           type='Dummy'       >MyDummy</Model>
             <Output  class='DataObjects'            type='TimePointSet'>solns</Output>
         </MultiRun>
-        <OutStreamStep name='print'>
+        <IOStep name='print'>
             <Input   class='DataObjects'            type='TimePointSet'>solns</Input>
             <Output  class='OutStreamManager' type='Print'       >dump</Output>
-        </OutStreamStep>
+        </IOStep>
     </Steps>
 
     <Distributions>
@@ -39,7 +39,7 @@
     </Samplers>
 
     <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
+        <Dummy name="MyDummy" subType=""/>
         <ROM name='rom' subType='HDMRRom'>
             <SobolOrder>2</SobolOrder>
             <Target>ans</Target>

@@ -42,7 +42,7 @@
       </Samplers>
 
     <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
+        <Dummy name="MyDummy" subType=""/>
         <ExternalModel name='polynomial' subType='' ModuleToLoad = './IndexSetTest/polynomial'>
             <variable>x1</variable>
             <variable>x2</variable>
@@ -101,10 +101,10 @@
             <Model   class='Models'           type='ROM'                  >TPROM</Model>
             <Output  class='DataObjects'      type='TimePointSet'         >TPtests</Output>
         </MultiRun>
-        <OutStreamStep name='TPprint'>
+        <IOStep name='TPprint'>
             <Input   class='DataObjects'      type='TimePointSet'         >TPtests</Input>
             <Output  class='OutStreamManager' type='Print'                >TPdump</Output>
-        </OutStreamStep>
+        </IOStep>
 
         <MultiRun name='TDmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TDSG</Sampler>
@@ -122,10 +122,10 @@
             <Model   class='Models'           type='ROM'                  >TDROM</Model>
             <Output  class='DataObjects'      type='TimePointSet'         >TDtests</Output>
         </MultiRun>
-        <OutStreamStep name='TDprint'>
+        <IOStep name='TDprint'>
             <Input   class='DataObjects'      type='TimePointSet'         >TDtests</Input>
             <Output  class='OutStreamManager' type='Print'                >TDdump</Output>
-        </OutStreamStep>
+        </IOStep>
 
         <MultiRun name='HCmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>HCSG</Sampler>
@@ -143,10 +143,10 @@
             <Model   class='Models'           type='ROM'                  >HCROM</Model>
             <Output  class='DataObjects'      type='TimePointSet'         >HCtests</Output>
         </MultiRun>
-        <OutStreamStep name='HCprint'>
+        <IOStep name='HCprint'>
             <Input   class='DataObjects'      type='TimePointSet'         >HCtests</Input>
             <Output  class='OutStreamManager' type='Print'                >HCdump</Output>
-        </OutStreamStep>
+        </IOStep>
 
         <MultiRun name='Cmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>CSG</Sampler>
@@ -164,10 +164,10 @@
             <Model   class='Models'           type='ROM'                  >CROM</Model>
             <Output  class='DataObjects'      type='TimePointSet'         >Ctests</Output>
         </MultiRun>
-        <OutStreamStep name='Cprint'>
+        <IOStep name='Cprint'>
             <Input   class='DataObjects'      type='TimePointSet'         >Ctests</Input>
             <Output  class='OutStreamManager' type='Print'                >Cdump</Output>
-        </OutStreamStep>
+        </IOStep>
     </Steps>
 
     <DataObjects>

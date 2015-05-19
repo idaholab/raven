@@ -17,10 +17,10 @@
     <Output           class = 'DataObjects'     type = 'TimePointSet'  >nt_phy_dpt_dt</Output>            
     <SolutionExport   class = 'DataObjects'     type = 'TimePointSet'  >lmt_srf_dt</SolutionExport>
   </MultiRun>
-  <OutStreamStep name = 'adaptdump' pauseAtEnd = 'True'>
+  <IOStep name = 'adaptdump' pauseAtEnd = 'True'>
   	<Input  class = 'DataObjects'            type = 'TimePointSet'  >lmt_srf_dt</Input>
   	<Output class = 'OutStreamManager' type = 'Print'         >limitSurfaceDump</Output>
-  </OutStreamStep>
+  </IOStep>
 </Steps>
 
 <DataObjects> 
