@@ -201,28 +201,28 @@ output file will be filled with the whole content of the ``d-name''
   <Print name='second-example'>
     <type>csv</type>
     <source>d-name</source>
-    <variables>Output</variables>
+    <what>Output</what>
   </Print>
   <Print name='third-example'>
     <type>csv</type>
     <source>d-name</source>
-    <variables>Input</variables>
+    <what>Input</what>
   </Print>
   <Print name='fourth-example'>
     <type>csv</type>
     <source>d-name</source>
-    <variables>Input|var-name-in,Output|var-name-out</variables>
+    <what>Input|var-name-in,Output|var-name-out</what>
   </Print>
 </OutStreamManager>
 \end{lstlisting}
 
 If just part of the \xmlNode{source} is important for a particular analysis, the
-additional XML tag \xmlNode{variables} can be provided.
+additional XML tag \xmlNode{what} can be provided.
 %
 In this block, the variables that need to be dumped must be specified, in
 comma separated format.
 %
-The available options, for the \xmlNode{variables} sub-block, are listed below:
+The available options, for the \xmlNode{what} sub-block, are listed below:
 \vspace{-5mm}
 \begin{itemize}
   \itemsep0em
