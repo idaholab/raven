@@ -39,15 +39,15 @@
       <lowerBound>0</lowerBound>
       <upperBound>2</upperBound>
     </Normal>
+    <Normal name='ANormalDistribution'>
+        <mean>-4</mean>
+        <sigma>2</sigma>
+    </Normal>
     <Triangular name='CladFailureDist'>
       <apex>1</apex>
       <min>-0.1</min>
       <max>3</max>
     </Triangular>
-    <Normal name='ANormalDistribution'>
-      <mean>-4</mean>
-      <sigma>2</sigma>
-    </Normal>
   </Distributions>
 
   <Samplers>
