@@ -5,32 +5,33 @@
 		<xsd:complexType>
 			<xsd:all>			
 				<xsd:element name="RunInfo"          type="RunInfoData"      minOccurs="1"/>
-				<xsd:element name="Distributions"    type="DistributionData" minOccurs="1"/>
-				<xsd:element name="Samplers"         type="SamplerData"      minOccurs="1"/>
-				<xsd:element name="Models"           type="ModelsData"		   minOccurs="1"/>
+				<xsd:element name="Models"           type="ModelsData"		 minOccurs="1"/>
+                <xsd:element name="Steps"                                    minOccurs="1">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+                        </xsd:sequence>
+                        <xsd:attribute name="verbosity" type="xsd:string" default="all"/>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="Samplers"         type="SamplerData"      minOccurs="0"/>
+                <xsd:element name="DataObjects"      type="DataObjectsData"  minOccurs="0"/>
+                <xsd:element name="Distributions"    type="DistributionData" minOccurs="0"/>
 				<xsd:element name="Functions"                                minOccurs="0">
-          <xsd:complexType>
-            <xsd:sequence>
-              <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
-            </xsd:sequence>
-          </xsd:complexType>
-        </xsd:element>
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
 				<xsd:element name="Databases"                                minOccurs="0">
-          <xsd:complexType>
-            <xsd:sequence>
-              <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
-            </xsd:sequence>
-          </xsd:complexType>
-        </xsd:element>
-				<xsd:element name="DataObjects"      type="DataObjectsData"  minOccurs="1"/>
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
 				<xsd:element name="OutStreamManager" type="OutStreamData"    minOccurs="0"/>
-				<xsd:element name="Steps"                                    minOccurs="1">
-          <xsd:complexType>
-            <xsd:sequence>
-              <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
-            </xsd:sequence>
-          </xsd:complexType>
-        </xsd:element>
 			</xsd:all>
 			<xsd:attribute name="verbosity" type="xsd:string" default="all"/>
 		</xsd:complexType>
@@ -38,10 +39,14 @@
 		
 	<xsd:complexType name="RunInfoData">
 		<xsd:all>
-			<xsd:element name="WorkingDir"         type="xsd:string"  minOccurs="1"/>
+			<xsd:element name="WorkingDir"                            minOccurs="1">
+                <xsd:complexType mixed="true">
+                    <xsd:attribute name="runRelative" type="xsd:string"/>
+                </xsd:complexType>
+            </xsd:element>
 			<xsd:element name="Files"              type="xsd:string"  minOccurs="0"/>
 			<xsd:element name="Sequence"           type="xsd:string"  minOccurs="1"/>
-			<xsd:element name="batchSize"          type="xsd:integer" minOccurs="1" default="1"/>
+			<xsd:element name="batchSize"          type="xsd:integer" minOccurs="0" default="1"/>
 			<xsd:element name="JobName"            type="xsd:string"  minOccurs="0"/>
 			<xsd:element name="NumThreads"         type="xsd:integer" minOccurs="0" default="1"/>
 			<xsd:element name="mode" minOccurs="0"> 
@@ -49,7 +54,7 @@
 					<xsd:choice>
 						<xsd:element name="runQSUB"                        minOccurs="0"/>
 						<xsd:element name="nodefile"     type="xsd:string" minOccurs="0"/>
-						<xsd:element name="nodifileenv"  type="xsd:string" minOccurs="0"/>
+						<xsd:element name="nodefileenv"  type="xsd:string" minOccurs="0"/>
 					</xsd:choice>
 				</xsd:complexType>
 			</xsd:element>
@@ -93,30 +98,52 @@
 			<!-- ******************************************************* -->
 			<!-- The N-Dimensional Distributions are not yet implemented -->
 			<!-- ******************************************************* -->
-      <xsd:any processContents="skip" minOccurs="0"/>
+            <xsd:element name="NDInverseWeight"         minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                    <xsd:attribute name="name" type="xsd:string" use="required"/>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="NDCartesianSpline"         minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                    <xsd:attribute name="name" type="xsd:string" use="required"/>
+                </xsd:complexType>
+            </xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 		
 	<xsd:complexType name="BetaDistribution">
 		<xsd:all> 
-			<xsd:element name="lowerBound"                    minOccurs="1">
+			<xsd:element name="lowerBound"                    minOccurs="0">
 				<xsd:simpleType>
-					<xsd:restriction base="xsd:decimal">
+					<xsd:restriction base="xsd:float">
 						<xsd:minInclusive value="0"/>
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:element>
-			<xsd:element name="upperBound"                    minOccurs="1">
+			<xsd:element name="upperBound"                    minOccurs="0">
 				<xsd:simpleType>
-					<xsd:restriction base="xsd:decimal">
+					<xsd:restriction base="xsd:float">
 						<xsd:maxInclusive value="1"/>
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:element>
-			<xsd:element name="alpha"      type="xsd:decimal" minOccurs="1"/>
-			<xsd:element name="beta"       type="xsd:decimal" minOccurs="1"/>
-			<xsd:element name="peakFactor" type="xsd:decimal" minOccurs="0"/>
-		</xsd:all>
+            <xsd:element name="low"        type="xsd:float" minOccurs="1"/>
+            <!-- low cannot be less than lowerBound -->
+            <xsd:element name="high"        type="xsd:float" minOccurs="1"/>
+            <!-- high cannot be larger than upperBound -->
+			
+            <xsd:element name="alpha"      type="xsd:float" minOccurs="0"/>
+			<xsd:element name="beta"       type="xsd:float" minOccurs="0"/>
+			<!-- either both alpha and beta or peak factor must be specified -->
+            <xsd:element name="peakFactor" type="xsd:float" minOccurs="0"/>
+		
+        </xsd:all>
 		<xsd:attribute name="name" type="xsd:string" use="required"/>
 	</xsd:complexType>
 
@@ -124,13 +151,13 @@
 		<xsd:all>
 			<xsd:element name="lowerBound"                    minOccurs="0">
 				<xsd:simpleType>
-					<xsd:restriction base="xsd:decimal">
+					<xsd:restriction base="xsd:float">
 						<xsd:minInclusive value="0"/>
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:element>
-			<xsd:element name="upperBound" type="xsd:decimal" minOccurs="0"/>
-			<xsd:element name="lambda"     type="xsd:decimal" minOccurs="1"/>
+			<xsd:element name="upperBound" type="xsd:float" minOccurs="0"/>
+			<xsd:element name="lambda"     type="xsd:float" minOccurs="1"/>
 		</xsd:all>
 		<xsd:attribute name="name" type="xsd:string" use="required"/>
 	</xsd:complexType>
@@ -146,7 +173,9 @@
 			</xsd:element>
 			<xsd:element name="upperBound" type="xsd:decimal" minOccurs="0"/>
 			<xsd:element name="alpha"      type="xsd:decimal" minOccurs="1"/>
-			<xsd:element name="beta"       type="xsd:decimal" minOccurs="1"/>
+			<xsd:element name="beta"       type="xsd:decimal" minOccurs="0"/>
+            <xsd:element name="low"        type="xsd:float" minOccurs="1"/>
+            <!-- low cannot be less than lowerBound -->
 		</xsd:all>
 		<xsd:attribute name="name" type="xsd:string" use="required"/>
 	</xsd:complexType>

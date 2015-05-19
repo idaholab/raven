@@ -87,37 +87,37 @@
 
 
 <DataObjects>
-   <Histories name='histories_from_database' printCSV='t' inputTs='1'>
-        <Input>dummy_for_branch</Input>
+    <TimePoint name='timepoint_from_database'  inputTs='1'>
+        <Input name="1">dummy_for_branch</Input>
         <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </Histories>
-   <TimePoint name='timepoint_from_database' printCSV='t' inputTs='1'>
-       <Input name="1">dummy_for_branch</Input>
-       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </TimePoint>
-   <History name='history_from_database' printCSV='t' inputTs='1'>
-       <Input name="1">dummy_for_branch</Input>
-       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </History>
-   <TimePointSet name='timepointset_from_database' printCSV='t' inputTs='1'>
+    </TimePoint>
+    <TimePoint name='timepoint_IN_database' inputTs='1'>
+        <Input name="histories_from_database|0">dummy_for_branch</Input>
+        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </TimePoint>
+   <TimePointSet name='timepointset_from_database'  inputTs='1'>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </TimePointSet>
-   <Histories name='histories_IN_database' printCSV='t' inputTs='1'>
-       <Input>dummy_for_branch</Input>
-       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </Histories>
-   <TimePoint name='timepoint_IN_database' printCSV='t' inputTs='1'>
-       <Input name="histories_from_database|0">dummy_for_branch</Input>
-       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </TimePoint>
-   <History name='history_IN_database' printCSV='t' inputTs='1'>
-       <Input name="histories_from_database|0">dummy_for_branch</Input>
-       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </History>
-   <TimePointSet name='timepointset_IN_database' printCSV='t' inputTs='1'>
+   <TimePointSet name='timepointset_IN_database' inputTs='1'>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </TimePointSet>
+   <History name='history_IN_database' inputTs='1'>
+       <Input name="histories_from_database|0">dummy_for_branch</Input>
+       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+   </History>
+   <History name='history_from_database'  inputTs='1'>
+       <Input name="1">dummy_for_branch</Input>
+       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+   </History>
+   <Histories name='histories_from_database' inputTs='1'>
+       <Input>dummy_for_branch</Input>
+       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+   </Histories>
+   <Histories name='histories_IN_database' inputTs='1'>
+       <Input>dummy_for_branch</Input>
+       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+   </Histories>
 </DataObjects>
 </Simulation>

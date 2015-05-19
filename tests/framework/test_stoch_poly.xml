@@ -15,18 +15,6 @@
     </RunInfo>
 
     <Distributions>
-        <Uniform name="UniDist">
-            <lowerBound>1</lowerBound>
-            <upperBound>5</upperBound>
-        </Uniform>
-        <Normal name="NormDist">
-            <mean>3</mean>
-            <sigma>2</sigma>
-        </Normal>
-        <Gamma name="GammaDist">
-            <low>0</low>
-            <alpha>2</alpha>
-        </Gamma>
         <Beta name="BetaDist">
             <low>0</low>
             <high>1</high>
@@ -36,16 +24,28 @@
         <Beta name="BetaNorm">
             <peakFactor>0.5</peakFactor>
             <low>0</low>
-            <hi>1</hi>
+            <high>1</high>
         </Beta>
+        <Exponential name='ExpDist'>
+            <lambda>1.5</lambda>
+        </Exponential>
+        <Gamma name="GammaDist">
+            <low>0</low>
+            <alpha>2</alpha>
+        </Gamma>
+        <Normal name="NormDist">
+            <mean>3</mean>
+            <sigma>2</sigma>
+        </Normal>
         <Triangular name='TriDist'>
             <min>1</min>
             <max>5</max>
             <apex>4</apex>
         </Triangular>
-        <Exponential name='ExpDist'>
-            <lambda>1.5</lambda>
-        </Exponential>
+        <Uniform name="UniDist">
+            <lowerBound>1</lowerBound>
+            <upperBound>5</upperBound>
+        </Uniform>
     </Distributions>
 
     <Samplers>

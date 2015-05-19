@@ -26,21 +26,22 @@
       <sigma>0.001</sigma>
       <lowerBound>0</lowerBound>
       <upperBound>2</upperBound>
-      <adjustement>up</adjustement>
     </Normal>
     <Normal name='auxBackUpTimeDist'>
       <mean>1</mean>
       <sigma>0.001</sigma>
       <lowerBound>0</lowerBound>
       <upperBound>2</upperBound>
-      <adjustement>up</adjustement>
-    </Normal>    
+    </Normal>
     <Normal name='Gauss2'>
       <mean>1</mean>
       <sigma>0.4</sigma>
       <lowerBound>0</lowerBound>
       <upperBound>2</upperBound>
-      <adjustement>scaling</adjustement>
+    </Normal>
+    <Normal name='ANormalDistribution'>
+        <mean>-4</mean>
+        <sigma>2</sigma>
     </Normal>
     <Triangular name='CladFailureDist'>
       <apex>1</apex>
@@ -50,10 +51,6 @@
            <upperBound>2</upperBound>
            <adjustement>up</adjustement>  -->
     </Triangular>
-    <Normal name='ANormalDistribution'>
-      <mean>-4</mean>
-      <sigma>2</sigma>
-    </Normal>
   </Distributions>
 
   <Samplers>

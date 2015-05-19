@@ -18,7 +18,6 @@
         <sigma>0.001</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>1</upperBound>
-        <adjustement>up</adjustement>
     </Normal>
     <Uniform name='Uniform1'>
         <lowerBound>0</lowerBound>

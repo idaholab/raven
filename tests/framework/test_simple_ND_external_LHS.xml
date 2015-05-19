@@ -25,6 +25,10 @@
 </Models>
 
 <Distributions>
+    <Normal name='k0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
     <NDInverseWeight name='ND_InverseWeight_P'>
         <p>3.0</p>
         <data_filename type='PDF'>2DgaussianScatteredPDF.txt</data_filename>
@@ -43,10 +47,6 @@
         <data_filename type='CDF'>2DgaussianCartesianCDF.txt</data_filename>
         <working_dir>ND_test_LHS/</working_dir>
     </NDCartesianSpline>
-    <Normal name='k0_distrib'>
-        <mean>4</mean>
-        <sigma>1</sigma>
-    </Normal>
 </Distributions>
 
 <Samplers>

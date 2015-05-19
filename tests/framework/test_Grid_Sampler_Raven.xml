@@ -18,7 +18,6 @@
       <sigma>3</sigma>
       <lowerBound>300</lowerBound>
       <upperBound>320</upperBound>
-      <adjustement>up</adjustement>
     </Normal>
     <Normal name='ANormalDistribution'>
       <mean>-4</mean>
