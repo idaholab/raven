@@ -191,7 +191,8 @@ XML block \xmlNode{HDF5}, that recognizes the following attributes:
 %  database, if no \textit{filename} is specified, or from where open an already
 %  existing one, if \textit{filename} is provided. \maljdan{Huh?}
   %
-  \default{raven/framework/DatabaseStorage}
+  \default{workingDir/framework/DatabaseStorage}.  The \xmlNode{workingDir} is
+   the one defined within the \xmlNode{RunInfo} XML block (see Section~\ref{sec:RunInfo}).
   \item \xmlAttr{filename}, \xmlDesc{optional string attribute}, specifies the
   filename of an HDF5 that already exists in the \xmlAttr{directory}.
   %
