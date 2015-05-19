@@ -374,8 +374,8 @@
  [./indexSetTest]
   type = 'RavenFramework'
   input = 'test_indexsets.xml'
-  output = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml'
-  csv = 'IndexSetTest/TPdump.csv IndexSetTest/TDdump.csv IndexSetTest/HCdump.csv'
+  output = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml IndexSetTest/Cdump.xml'
+  csv = 'IndexSetTest/TPdump.csv IndexSetTest/TDdump.csv IndexSetTest/HCdump.csv IndexSetTest/Cdump.csv'
  [../]
 
  [./sobolSamplerTest]
@@ -491,5 +491,12 @@
    input = 'test_generic_IO.xml'
    output = 'GenericInterfaceIO/samples.xml'
    csv = 'GenericInterfaceIO/samples.csv'
+ [../]
+
+ [./dists_vars]
+   type = 'RavenFramework'
+   input = 'test_distribution_combination.xml'
+   output = 'dists_vars/PrintTimePointSet_dump.csv'
+   csv = 'dists_vars/PrintTimePointSet_dump.csv'
  [../]
 []
