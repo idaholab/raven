@@ -45,39 +45,37 @@
   <Databases>
     <HDF5 name="MC_TEST_REWRITE"/>
   </Databases>
-  <OutStreamManager>
-    <Print name='timepointset_from_database_dump'>
-      <type>csv</type>
-      <source>timepointset_from_database</source>
-    </Print>
-    <Print name='timepointset_IN_database_dump'>
-      <type>csv</type>
-      <source>timepointset_IN_database</source>
-    </Print>
-
-  </OutStreamManager>
 
 
   <DataObjects>
-    <Histories name='fullprint_histories'>
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </Histories>
-    <TimePointSet name='fullprint_timepointset'>
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </TimePointSet>
-    <TimePoint name='fullprint_timepoint'>
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </TimePoint>
-    <History name='fullprint_history'>
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </History>
-  </DataObjects>
+      <TimePoint name='fullprint_timepoint'>
+          <Input>pipe1_Area,pipe1_Dh</Input>
+          <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      </TimePoint>
+      <TimePointSet name='fullprint_timepointset'>
+          <Input>pipe1_Area,pipe1_Dh</Input>
+          <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      </TimePointSet>
+      <History name='fullprint_history'>
+          <Input>pipe1_Area,pipe1_Dh</Input>
+          <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      </History>
+      <Histories name='fullprint_histories'>
+          <Input>pipe1_Area,pipe1_Dh</Input>
+          <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      </Histories>
+ </DataObjects>
 
   <OutStreamManager>
+      <Print name='timepointset_from_database_dump'>
+          <type>csv</type>
+          <source>timepointset_from_database</source>
+      </Print>
+      <Print name='timepointset_IN_database_dump'>
+          <type>csv</type>
+          <source>timepointset_IN_database</source>
+      </Print>
+      
     <Print name='reprint_histories'>
       <type>csv</type>
       <source>fullprint_histories</source>
