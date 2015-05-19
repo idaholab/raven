@@ -39,7 +39,7 @@
     </Samplers>
 
     <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
+        <Dummy name="MyDummy" subType=""/>
         <ROM name='rom' subType='HDMRRom'>
             <SobolOrder>2</SobolOrder>
             <Target>ans</Target>

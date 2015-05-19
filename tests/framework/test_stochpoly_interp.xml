@@ -26,7 +26,7 @@
     </Samplers>
 
     <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
+        <Dummy name="MyDummy" subType=""/>
         <ExternalModel name='polynomial' subType='' ModuleToLoad = './StochasticPolyInterpTest/polynomial'>
             <variable>x1</variable>
             <variable>x2</variable>

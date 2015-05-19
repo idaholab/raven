@@ -7,8 +7,8 @@
     <batchSize>1</batchSize>
 </RunInfo>
 <Models>
-    <Dummy name='MyDummy1' subType='' print='True'/>
-    <Dummy name='MyDummy2' subType='' print='True'/>
+    <Dummy name='MyDummy1' subType=''/>
+    <Dummy name='MyDummy2' subType=''/>
 </Models>
 
 <Distributions>

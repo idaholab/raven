@@ -64,7 +64,7 @@
     </Samplers>
 
     <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
+        <Dummy name="MyDummy" subType=""/>
         <ExternalModel name='poly' subType='' ModuleToLoad='./SamplerRestarts/polynomial'>
             <variable>x1</variable>
             <variable>x2</variable>
