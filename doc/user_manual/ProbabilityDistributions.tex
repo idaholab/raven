@@ -716,7 +716,7 @@ interpolation scheme.
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \nameDescription, \textit{required string attribute}, user-defined name of the distribution
+\item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 
@@ -724,7 +724,10 @@ interpolation scheme.
 In RAVEN the NDInverseWeight distribution can be initialized through the following nodes:
 \begin{itemize}
 \item \xmlNode{p}, \xmlDesc{float, required parameter}, power parameter. Greater values of p assign greater influence to values closest to the interpolated point.
-\item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter},  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
+\item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter},  name of the data file containing scattered values (file type '.txt').
+\begin{itemize}
+\item \xmlAttr{type}, \xmlDesc{required string attribute},  indicates if the data in indicated file is PDF or CDF. 
+\end{itemize}
 \item \xmlNode{working\textunderscore dir}, \xmlDesc{string, required parameter}, folder location of the data file
 \end{itemize}
 
@@ -786,14 +789,17 @@ interpolation scheme.
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \xmlDesc{string, required parameter}, user-defined name of the distribution
+\item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 
 
 In RAVEN the NDCartesianSpline distribution can be initialized through the following nodes:
 \begin{itemize}
-\item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter},  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
+\item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter},  name of the data file containing scattered values (file type '.txt').
+\begin{itemize}
+\item \xmlAttr{type}, \xmlDesc{reuired string attribute}, indicates if the data in indicated file is PDF or CDF. 
+\end{itemize}
 \item \xmlNode{working\textunderscore dir}, \xmlDesc{string, required parameter}, folder location of the data file
 \end{itemize}
 
