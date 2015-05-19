@@ -703,14 +703,29 @@ The user can initialize, for each $N$-Dimensional distribution, the parameters o
 \end{itemize}
 in the $<dist\textunderscore init>$ block defined in sampler block $<sampler\textunderscore init>$ (see Section~\ref{sec:Samplers}). 
 
-\paragraph{NDInverseWeight Distribution}
+\subsubsection{NDInverseWeight Distribution}
 \label{NDInverseWeight}
+The NDInverseWeight distribution creates a $N$-Dimensional distribution given a set of points
+scattered distributed. These points sample the PDF of the original distribution.
+Distribution values (PDF or CDF) are calculated using the inverse weight
+interpolation scheme.
 
-The specifications of this distribution must be defined within the xml block $<NDInverseWeight>$.  In RAVEN the NDInverseWeight distribution can be initialized through the following keywords:
+\specBlock{a}{NDInverseWeight}
+%
+\attrsIntro
+\vspace{-5mm}
 \begin{itemize}
-\item $<p>$, float, required parameter, power parameter. Greater values of p assign greater influence to values closest to the interpolated point.
-\item $<data\textunderscore filename   type='...' >$, string,  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
-\item $<working\textunderscore dir>$, string, folder location of the data file
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of the distribution
+\end{itemize}
+\vspace{-5mm}
+
+
+In RAVEN the NDInverseWeight distribution can be initialized through the following nodes:
+\begin{itemize}
+\item \xmlNode{p}, float, required parameter, power parameter. Greater values of p assign greater influence to values closest to the interpolated point.
+\item \xmlNode{data\textunderscore filename}, string,  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
+\item \xmlNode{working\textunderscore dir}, string, folder location of the data file
 \end{itemize}
 
 \begin{lstlisting}[style=XML]
@@ -722,7 +737,7 @@ Example:
   <NDInverseWeight name='...'>
         <p>...</p>
         <data_filename type='...'>...</data_filename>
-        <working_dir></working_dir>
+        <working_dir>...</working_dir>
   </NDInverseWeight>
   ...
 </Distributions>
@@ -756,12 +771,30 @@ Example: scattered data file
 ----------------------------
 \end{lstlisting}
 
-\paragraph{NDCartesianSpline Distribution}
+\subsubsection{NDCartesianSpline Distribution}
 \label{NDCartesianSpline}
-The specifications of this distribution must be defined within the xml block $<NDCartesianSpline>$.  In RAVEN NDCartesianSpline distribution can be initialized through the following keywords:
+
+The NDCartesianSpline distribution creates a $N$-Dimensional distribution given a set of points
+regularly distributed on a cartesian grid. These points sample the PDF of the original distribution.
+Distribution values (PDF or CDF) are calculated using the ND spline 
+interpolation scheme.
+
+
+\specBlock{a}{NDCartesianSpline}
+%
+\attrsIntro
+\vspace{-5mm}
 \begin{itemize}
-\item $<data_filename   type='...' >$, string,  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
-\item $<working_dir>$, string, folder location of the data file
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of the distribution
+\end{itemize}
+\vspace{-5mm}
+
+
+In RAVEN the NDCartesianSpline distribution can be initialized through the following nodes:
+\begin{itemize}
+\item \xmlNode{data\textunderscore filename}, string,  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
+\item \xmlNode{working\textunderscore dir}, string, folder location of the data file
 \end{itemize}
 
 \begin{lstlisting}[style=XML]
