@@ -59,10 +59,10 @@
             <Model   class='Models'           type='ROM'                  >NROM</Model>
             <Output  class='DataObjects'            type='TimePointSet'         >Ntests</Output>
         </MultiRun>
-        <OutStreamStep name='Nprint'>
+        <IOStep name='Nprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Ntests</Input>
             <Output  class='OutStreamManager' type='Print'                >Ndump</Output>
-        </OutStreamStep>
+        </IOStep>
     </Steps>
 
     <DataObjects>

@@ -13,10 +13,10 @@
             <Model   class='Models'      type='ExternalModel'        >poly</Model>
             <Output  class='DataObjects' type='TimePointSet'         >solns</Output>
         </MultiRun>
-        <OutStreamStep name='print1'>
+        <IOStep name='print1'>
             <Input  class='DataObjects'      type='TimePointSet'     >solns</Input>
             <Output class='OutStreamManager' type='Print'            >STRATdump1</Output>
-        </OutStreamStep>
+        </IOStep>
         <MultiRun name='make2'>
             <Sampler class='Samplers'    type='Stratified'           >2</Sampler>
             <Input   class='DataObjects' type='TimePointSet'         >solns</Input>
@@ -24,14 +24,14 @@
             <Output  class='DataObjects' type='TimePointSet'         >solns</Output>
             <Output  class='DataObjects' type='TimePointSet'         >solns2</Output>
         </MultiRun>
-        <OutStreamStep name='print2'>
+        <IOStep name='print2'>
             <Input  class='DataObjects'      type='TimePointSet'>solns2</Input>
             <Output class='OutStreamManager' type='Print'       >STRATdump2</Output>
-        </OutStreamStep>
-        <OutStreamStep name='print3'>
+        </IOStep>
+        <IOStep name='print3'>
             <Input  class='DataObjects'      type='TimePointSet'>solns</Input>
             <Output class='OutStreamManager' type='Print'       >STRATdump3</Output>
-        </OutStreamStep>
+        </IOStep>
     </Steps>
 
     <Distributions>
