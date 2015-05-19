@@ -589,7 +589,6 @@ class Gamma(BoostDistribution):
     else: self.raiseAnError(IOError,'alpha value needed for Gamma distribution')
     beta_find = xmlNode.find('beta')
     if beta_find != None: self.beta = float(beta_find.text)
-    else: self.beta=1.0
     # check if lower bound are set, otherwise default
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
