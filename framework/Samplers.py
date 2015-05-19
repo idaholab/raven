@@ -979,6 +979,9 @@ class Grid(Sampler):
       remainder = self.counter - 1 #used to keep track as we get to smaller strides
       stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
       #self.inputInfo['distributionInfo'] = {}
+      coordinates = self.gridEntity.returnPointAndAdvanceIterator(True)
+      if coordinates == None: raise utils.NoMoreSamplesNeeded
+      
       for i in range(len(self.gridCoordinate)):
         # i congruent to input variable
         varName = self.axisName[i]
@@ -988,13 +991,12 @@ class Grid(Sampler):
           if stride == 0: raise utils.NoMoreSamplesNeeded
           index, remainder = divmod(remainder, stride )
           self.gridCoordinate[i] = index
-
         # check if the varName is a comma separated list of strings
         # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
         for key in varName.strip().split(','):
           self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
           self.inputInfo['distributionType'][key] = self.distDict[varName].type
-
+          
           if self.gridInfo[varName][0]=='CDF':
             if self.distDict[varName].getDimensionality()==1:
               self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])

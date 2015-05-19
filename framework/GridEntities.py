@@ -205,7 +205,7 @@ class GridEntity(BaseType):
     self.gridContainer['gridShape']                 = tuple   (pointByVar)          # tuple of the grid shape
     self.gridContainer['gridLenght']                = np.prod (pointByVar)          # total number of point on the grid
     self.gridContainer['gridMatrix']                = np.zeros(self.gridContainer['gridShape'])      # grid where the values of the goalfunction are stored
-    self.gridContainer['gridCoorShape']             = tuple(pointByVar+[self.nVar]) # shape of the matrix containing all coordinate of all points in the grid
+    self.gridContainer['gridCoorShape']             = tuple(pointByVar) # shape of the matrix containing all coordinate of all points in the grid
     self.gridContainer['gridCoord']                 = np.zeros(self.gridContainer['gridCoorShape'])  # the matrix containing all coordinate of all points in the grid
     self.uniqueCellNumber                           = self.gridContainer['gridLenght']/2**self.nVar
     #filling the coordinate on the grid
@@ -252,28 +252,38 @@ class GridEntity(BaseType):
     """
     self.gridIterator.reset()
 
-  def returnPointAndAdvanceIterator(self):
+  def returnPointAndAdvanceIterator(self,returnDict=False):
     """
     Method to return a point in the grid. This method will return the coordinates of the point to which the iterator is pointing
     In addition, it advances the iterator in order to point to the following coordinate
-    @ In, None
+    @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not. 
+                               if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
+                               if False a tuple is riturned (coordinate1,coordinate2,etc)
     @ Out, tuple, coordinate, tuple containing the coordinates
     """
     if not self.gridIterator.finished:
-      coordinate = self.returnCoordinateFromIndex(self.gridIterator.multi_index)
+      coordinates = self.returnCoordinateFromIndex(self.gridIterator.multi_index,returnDict)
       self.gridIterator.iternext()
-    else: coordinate = None
-    return coordinate
+    else: coordinates = None
+    return coordinates
 
-  def returnCoordinateFromIndex(self,multiDimIndex):
+  def returnCoordinateFromIndex(self, multiDimIndex, returnDict=False):
     """
     Method to return a point in the grid. This method will return the coordinates of the point is requested by multiDimIndex
     In addition, it advances the iterator in order to point to the following coordinate
     @ In, tuple, multiDimIndex, tuple containing the Id of the point needs to be returned (e.g. 3 dim grid,  (xID,yID,zID))
-    @ Out, tuple, coordinate, tuple containing the coordinates
+    @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not. 
+                                         if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
+                                         if False a tuple is riturned (coordinate1,coordinate2,etc)
+    @ Out, tuple or dict, coordinate, tuple containing the coordinates
     """
-    coordinate = self.gridContainer['gridCoord'][multiDimIndex]
-    return coordinate
+    multiDimIndex
+    coordinates = [None]*self.nVar if returnDict == False else {}
+    for cnt, key in enumerate(self.gridContainer['dimensionNames']):
+      if returnDict: coordinates[cnt] = self.gridContainer['gridVectors'][key][multiDimIndex[cnt]]
+      else         : coordinates[key] = self.gridContainer['gridVectors'][key][multiDimIndex[cnt]]
+    #coordinate = self.gridContainer['gridCoord'][multiDimIndex]
+    return tuple(coordinates)
 
 # class MultiGridEntity(object):
 #   '''
