@@ -30,12 +30,12 @@
     <Output   class = 'DataObjects'          type = 'TimePointSet'   >sfs_pnt_dt</Output>
   </PostProcess>
 
-  <OutStreamStep name = 'pth4' pauseAtEnd = 'True'>
+  <IOStep name = 'pth4' pauseAtEnd = 'True'>
         <Input  class = 'DataObjects'            type = 'TimePointSet'  >lmt_srf_dt</Input>
         <Output class = 'OutStreamManager' type = 'Print'         >lmt_srf_dmp</Output>
     <Input  class = 'DataObjects'            type = 'TimePointSet'  >sfs_pnt_dt</Input>
         <Output class = 'OutStreamManager' type = 'Print'         >sfs_pnt_dmp</Output>
-  </OutStreamStep>
+  </IOStep>
 
 </Steps>
 

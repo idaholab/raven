@@ -48,7 +48,7 @@
     </Samplers>
 
     <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
+        <Dummy name="MyDummy" subType=""/>
         <ROM name='TPROM' subType='GaussPolynomialRom'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
