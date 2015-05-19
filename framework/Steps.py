@@ -559,7 +559,6 @@ class IOStep(Step):
 __interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
-#__interFaceDict['Adaptive'         ] = Adaptive
 __interFaceDict['IOStep'           ] = IOStep
 __interFaceDict['IODatabase'       ] = IOStep
 __interFaceDict['RomTrainer'       ] = RomTrainer

@@ -924,8 +924,10 @@ class Grid(Sampler):
     # set the limit here!
 
     #####################
-    gridInfo = self.gridEntity.returnParameter("gridInfo")
-    gridDictionaryInit = {"transformationMethods":{}}
+    #gridInfo = self.gridEntity.returnParameter("gridInfo")
+    #gridDictionaryInit = {"transformationMethods":{}}
+    #for varName in self.axisName:
+    #  gridDictionaryInit["transformationMethods"][varName] = self.distDict[varName]
     self.gridEntity.initialize()
 #    for varName, value in gridInfo.items():
 #       gridConstruct = gridInfo[varName]
@@ -1043,7 +1045,7 @@ class Grid(Sampler):
       # 1D variable
       if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
         if self.distDict[varName].getDisttype() == 'Discrete':
-           weight *= self.distDict[varName].pdf(self.gridCoordinate[i])
+          weight *= self.distDict[varName].pdf(self.gridCoordinate[i])
         else: # self.distDict[varName].getDistype() == 'Continuous'
           if self.gridInfo[varName][0]=='CDF':
             if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:

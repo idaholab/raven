@@ -103,7 +103,6 @@ if __name__ == '__main__':
     if root.tag != 'Simulation':
       raise IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
     #generate all the components of the simulation
-
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
   # Initialize the simulation

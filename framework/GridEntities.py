@@ -100,10 +100,6 @@ class GridEntity(BaseType):
       self.gridInitDict['stepLenght'            ][key] = [gridInfo[key][-1][k+1] - gridInfo[key][-1][k] for k in range(len(gridInfo[key][-1])-1)] if gridInfo[key][1] == 'custom' else [gridInfo[key][-1][1] - gridInfo[key][-1][0]]
     self.gridContainer['gridInfo'] = gridInfo
 
-
-
-
-
   def _fillGrid(self,child):
     constrType = None
     if 'construction' in child.attrib.keys(): constrType = child.attrib['construction']
@@ -139,12 +135,8 @@ class GridEntity(BaseType):
     readKeys = []
     initDict = initDictionary if initDictionary != None else {}
     if self.gridInitDict != None: readKeys = self.gridInitDict.keys()
-
-
     if initDict != None:
       if type(initDict).__name__ != "dict": self.raiseAnError(Exception,'The in argument is not a dictionary!')
-
-
     if "dimensionNames" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"dimensionNames" key is not present in the initialization dictionary!')
     if "lowerBounds" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"lowerBounds" key is not present in the initialization dictionary')
     if "lowerBounds" not in readKeys:
@@ -153,39 +145,55 @@ class GridEntity(BaseType):
     if "upperBounds" not in readKeys:
       if type(initDict["upperBounds"]).__name__ != "dict": self.raiseAnError(Exception,'The upperBounds entry is not a dictionary')
     if "transformationMethods" in initDict.keys(): self.gridContainer['transformationMethods'] = initDict["transformationMethods"]
-    self.nVar                            = initDictionary if "dimensionNames" in self.gridInitDict else {}    len(initDict["dimensionNames"])
-    self.gridContainer['dimensionNames'] = initDict["dimensionNames"]
-    upperkeys                            = initDict["upperBounds"   ].keys()
-    lowerkeys                            = initDict["lowerBounds"   ].keys()
+    self.nVar                            = len(self.gridInitDict["dimensionNames"]) if "dimensionNames" in self.gridInitDict.keys() else initDict["dimensionNames"]
+    
+    self.gridContainer['dimensionNames'] = self.gridInitDict["dimensionNames"] if "dimensionNames" in self.gridInitDict.keys() else initDict["dimensionNames"]
+    upperkeys                            = self.gridInitDict["upperBounds"].keys() if "upperBounds" in self.gridInitDict.keys() else initDict["upperBounds"  ].keys()  
+    lowerkeys                            = self.gridInitDict["lowerBounds"].keys() if "lowerBounds" in self.gridInitDict.keys() else initDict["lowerBounds"  ].keys() 
     self.gridContainer['dimensionNames'].sort()
     upperkeys.sort()
     lowerkeys.sort()
     if upperkeys != lowerkeys != self.gridContainer['dimensionNames']: self.raiseAnError(Exception,'dimensionNames and keys in upperBounds and lowerBounds dictionaries do not correspond')
-    self.gridContainer['bounds']["upperBounds" ] = initDict["upperBounds"]
-    self.gridContainer['bounds']["lowerBounds"]  = initDict["lowerBounds"]
-    if "volumetricRatio" not in initDict.keys() and "stepLenght" not in initDict.keys(): self.raiseAnError(Exception,'"volumetricRatio" or "stepLenght" key is not present in the initialization dictionary')
+    self.gridContainer['bounds']["upperBounds" ] = self.gridInitDict["upperBounds"] if "upperBounds" in self.gridInitDict.keys() else initDict["upperBounds"]
+    self.gridContainer['bounds']["lowerBounds"]  = self.gridInitDict["lowerBounds"] if "lowerBounds" in self.gridInitDict.keys() else initDict["lowerBounds"]
+    if "volumetricRatio" not in initDict.keys() and "stepLenght" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"volumetricRatio" or "stepLenght" key is not present in the initialization dictionary')
+    if "volumetricRatio"  in initDict.keys() and "stepLenght" in initDict.keys()+readKeys: self.raiseAWarning('"volumetricRatio" and "stepLenght" keys are both present! the "volumetricRatio" has priority!')
     if "volumetricRatio" in initDict.keys():
       self.volumetricRatio                         = initDict["volumetricRatio"]
       stepLenght                                   = [self.volumetricRatio**(1./float(self.nVar))]*self.nVar # build the step size in 0-1 range such as the differential volume is equal to the tolerance
     else:
-      if type(initDict["stepLenght"]).__name__ != "dict": self.raiseAnError(Exception,'The stepLenght entry is not a dictionary')
+      if "stepLenght" not in readKeys:
+        if type(initDict["stepLenght"]).__name__ != "dict": self.raiseAnError(Exception,'The stepLenght entry is not a dictionary')
+      
+      
       stepLenght = []
-      for dimName in self.gridContainer['dimensionNames']: stepLenght.append(initDict["stepLenght"][dimName])
-      self.volumetricRatio = np.sum(stepLenght)**(1/self.nVar) # in this case it is an average => it "represents" the average volumentric ratio...not too much sense. Andrea
+      for dimName in self.gridContainer['dimensionNames']: stepLenght.append(initDict["stepLenght"][dimName] if  "stepLenght" not in readKeys else self.gridInitDict["stepLenght"][dimName])
+      #self.volumetricRatio = np.sum(stepLenght)**(1/self.nVar) # in this case it is an average => it "represents" the average volumentric ratio...not too much sense. Andrea
     #here we build lambda function to return the coordinate of the grid point
-    stepParam                                    = lambda x: [stepLenght[self.gridContainer['dimensionNames'].index(x)]*(self.gridContainer['bounds']["upperBounds" ][x]-self.gridContainer['bounds']["lowerBounds"][x]),
-                                                                          self.gridContainer['bounds']["lowerBounds"][x], self.gridContainer['bounds']["upperBounds" ][x]]
+    #stepParam                                    = lambda x: [stepLenght[self.gridContainer['dimensionNames'].index(x)]*(self.gridContainer['bounds']["upperBounds" ][x]-self.gridContainer['bounds']["lowerBounds"][x]),
+    #                                                                      self.gridContainer['bounds']["lowerBounds"][x], self.gridContainer['bounds']["upperBounds" ][x]]
     #moving forward building all the information set
     pointByVar                                   = [None]*self.nVar  #list storing the number of point by cooridnate
     #building the grid point coordinates
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
-      [stpLenght, start, end]     = stepParam(varName)
-      start                      += 0.5*stpLenght
-      if self.gridContainer['transformationMethods'] != None:
-        self.self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName](coor) for coor in  np.arange(start,end,stpLenght)])
+      if len(stepLenght[varId]) == 1:
+        # equally spaced or volumetriRatio
+        self.gridContainer['gridVectors'][varName] = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName]+stepLenght[varId],stepLenght[varId])    
       else:
-        self.self.gridContainer['gridVectors'][varName] = np.arange(start,end,stpLenght)
-      pointByVar[varId]                               = np.shape(self.self.gridContainer['gridVectors'][varName])[0]
+        # custom grid
+        # it is not very efficient, but this approach is only for custom grids => limited number of discretizations
+        gridMesh = [self.gridContainer['bounds']["lowerBounds"][varName]] 
+        for stepLenghti in stepLenght[varId]: gridMesh.append(gridMesh[-1]+stepLenghti)
+        self.gridContainer['gridVectors'][varName] = np.asarray(gridMesh)
+      if self.gridContainer['transformationMethods'] != None:
+        if varName in self.gridContainer['transformationMethods'].keys():
+          self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName](coor) for coor in self.self.gridContainer['gridVectors'][varName]])  
+      
+      #[stpLenght, start, end]     = stepParam(varName)
+      #start                      += 0.5*stpLenght
+      #if self.gridContainer['transformationMethods'] != None: self.self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName](coor) for coor in  np.arange(start,end,stpLenght)])
+      #else: self.self.gridContainer['gridVectors'][varName] = np.arange(start,end,stpLenght)
+      pointByVar[varId]                               = np.shape(self.gridContainer['gridVectors'][varName])[0]
     self.gridContainer['gridShape']                 = tuple   (pointByVar)          # tuple of the grid shape
     self.gridContainer['gridLenght']                = np.prod (pointByVar)          # total number of point on the grid
     self.gridContainer['gridMatrix']                = np.zeros(self.gridContainer['gridShape'])      # grid where the values of the goalfunction are stored
@@ -198,7 +206,7 @@ class GridEntity(BaseType):
       coordinateID                          = self.gridIterator.multi_index[-1]
       dimName                               = self.gridContainer['dimensionNames'][coordinateID]
       valuePosition                         = self.gridIterator.multi_index[coordinateID]
-      self.gridContainer['gridCoord'][self.gridIterator.multi_index] = self.self.gridContainer['gridVectors'][dimName][valuePosition]
+      self.gridContainer['gridCoord'][self.gridIterator.multi_index] = self.gridContainer['gridVectors'][dimName][valuePosition]
       self.gridIterator.iternext()
     self.resetIterator()
 
