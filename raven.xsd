@@ -382,17 +382,9 @@
 	
 	<xsd:complexType name="historyDataObjectsData">
 		<xsd:complexContent>
-			<xsd:restriction base="commonDataObjectsData">
-				<xsd:all>
-					<xsd:element name="Input" minOccurs="1">
-						<xsd:complexType mixed="true">
-							<xsd:attribute name="name" type="xsd:string"/>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="Output" type="xsd:string" minOccurs="1"/>
-				</xsd:all>
-				<xsd:attribute name="name"     type="xsd:string"  use="required"/>
-			</xsd:restriction>
+			<xsd:extension base="commonDataObjectsData">
+        <xsd:attribute name="historyName" type="xsd:string"  use="required"/>
+			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 	

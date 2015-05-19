@@ -8,7 +8,7 @@
 </RunInfo>
 
 <Models>
-    <Dummy name='MyDummy' subType='' print='True'/>
+    <Dummy name='MyDummy' subType=''/>
 </Models>
 
 <Distributions>

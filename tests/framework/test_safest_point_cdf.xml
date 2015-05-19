@@ -31,10 +31,10 @@
       <Output   class = 'DataObjects'          type = 'TimePointSet'   >sfs_pnt_dt_cdf</Output>
   </PostProcess>
   
-  <OutStreamStep name = 'pth6' pauseAtEnd = 'True'>
+  <IOStep name = 'pth6' pauseAtEnd = 'True'>
       <Input  class = 'DataObjects'            type = 'TimePointSet'  >sfs_pnt_dt_cdf</Input>
       <Output class = 'OutStreamManager' type = 'Print'         >sfs_pnt_cdf_dmp</Output>
-  </OutStreamStep>
+  </IOStep>
 </Steps>
 
 <DataObjects> 

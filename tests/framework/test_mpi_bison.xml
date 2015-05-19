@@ -8,12 +8,6 @@
     <NumThreads>2</NumThreads>    
     <mode>mpi</mode>
     <NumMPI>2</NumMPI>
-    <!--<ParallelCommand></ParallelCommand>
-    <ThreadingCommand></ThreadingCommand>
-    <queueingSoftware></queueingSoftware>
-    <procByNode></procByNode>
-    <numProcByRun></numProcByRun>
-    <totalNumCoresUsed></totalNumCoresUsed>-->
 </RunInfo>
 
 <Models>
