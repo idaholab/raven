@@ -17,10 +17,10 @@
             <Input  class='DataObjects' type='TimePointSet'          >SOBOLsolns</Input>
             <Output class='Models'      type='ROM'                   >rom1</Output>
         </RomTrainer>
-        <OutStreamStep name='SOBOLprint1'>
+        <IOStep name='SOBOLprint1'>
             <Input  class='DataObjects'      type='TimePointSet'     >SOBOLsolns</Input>
             <Output class='OutStreamManager' type='Print'            >SOBOLdump1</Output>
-        </OutStreamStep>
+        </IOStep>
         <MultiRun name='SOBOLmake2'>
             <Sampler class='Samplers'    type='Sobol'                >SOBOL2</Sampler>
             <Input   class='DataObjects' type='TimePointSet'         >SOBOLsolns</Input>
@@ -33,14 +33,14 @@
             <Input  class='DataObjects' type='TimePointSet'          >SOBOLsolns</Input>
             <Output class='Models'      type='ROM'                   >rom2</Output>
         </RomTrainer>
-        <OutStreamStep name='SOBOLprint2'>
+        <IOStep name='SOBOLprint2'>
             <Input  class='DataObjects'      type='TimePointSet'>SOBOLsolns2</Input>
             <Output class='OutStreamManager' type='Print'       >SOBOLdump2</Output>
-        </OutStreamStep>
-        <OutStreamStep name='SOBOLprint3'>
+        </IOStep>
+        <IOStep name='SOBOLprint3'>
             <Input  class='DataObjects'      type='TimePointSet'>SOBOLsolns</Input>
             <Output class='OutStreamManager' type='Print'       >SOBOLdump3</Output>
-        </OutStreamStep>
+        </IOStep>
     </Steps>
 
     <Distributions>
@@ -64,7 +64,7 @@
     </Samplers>
 
     <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
+        <Dummy name="MyDummy" subType=""/>
         <ExternalModel name='poly' subType='' ModuleToLoad='./SamplerRestarts/polynomial'>
             <variable>x1</variable>
             <variable>x2</variable>

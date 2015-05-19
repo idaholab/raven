@@ -11,11 +11,8 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import sys
-import xml.etree.ElementTree as ET #used for creating Beta in Normal distribution
-import copy
 import numpy as np
 import scipy
-import scipy.special as polys
 #from scipy.misc import factorial
 from math import gamma
 import os
@@ -592,7 +589,6 @@ class Gamma(BoostDistribution):
     else: self.raiseAnError(IOError,'alpha value needed for Gamma distribution')
     beta_find = xmlNode.find('beta')
     if beta_find != None: self.beta = float(beta_find.text)
-    else: self.beta=1.0
     # check if lower bound are set, otherwise default
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
@@ -655,7 +651,7 @@ class Beta(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
     self.low = 0.0
-    self.hi = 1.0
+    self.high = 1.0
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
@@ -668,7 +664,7 @@ class Beta(BoostDistribution):
 
   def _localSetState(self,pdict):
     self.low   = pdict.pop('low'  )
-    self.hi    = pdict.pop('hi'   )
+    self.high  = pdict.pop('high' )
     self.alpha = pdict.pop('alpha')
     self.beta  = pdict.pop('beta' )
 
@@ -676,7 +672,7 @@ class Beta(BoostDistribution):
     retDict = Distribution.getCrowDistDict(self)
     retDict['alpha'] = self.alpha
     retDict['beta'] = self.beta
-    retDict['scale'] = self.hi-self.low
+    retDict['scale'] = self.high-self.low
     retDict['low'] = self.low
     return retDict
 
@@ -684,12 +680,8 @@ class Beta(BoostDistribution):
     BoostDistribution._readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
-    hi_find = xmlNode.find('hi')
-    #high_find = xmlNode.find('high')
-    if hi_find != None: self.hi = float(hi_find.text)
-    #elif high_find != None: self.hi = float(high_find.text)
-    else:
-        if xmlNode.find('high') != None: self.hi = float(xmlNode.find('high').text)
+    hi_find = xmlNode.find('high')
+    if hi_find != None: self.high = float(hi_find.text)
     alpha_find = xmlNode.find('alpha')
     beta_find = xmlNode.find('beta')
     peak_find = xmlNode.find('peakFactor')
@@ -702,12 +694,11 @@ class Beta(BoostDistribution):
       #this empirical formula is used to make it so factor->alpha: 0->1, 0.5~7.5, 1->99
       self.alpha = 0.5*23.818**(5.*peakFactor/3.) + 0.5
       self.beta = self.alpha
-    else:
-      self.raiseAnError(IOError,'Either provide (alpha and beta) or peakFactor!')
+    else: self.raiseAnError(IOError,'Either provide (alpha and beta) or peakFactor!')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
-      self.upperBound     = self.hi
+      self.upperBound     = self.high
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound     = self.low
@@ -715,10 +706,10 @@ class Beta(BoostDistribution):
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self,tempDict)
-    tempDict['low'] = self.low
-    tempDict['hi'] = self.hi
+    tempDict['low'  ] = self.low
+    tempDict['high' ] = self.high
     tempDict['alpha'] = self.alpha
-    tempDict['beta'] = self.beta
+    tempDict['beta' ] = self.beta
 
   def initializeDistribution(self):
     self.convertToDistrDict['Jacobi'] = self.convertJacobiToBeta
@@ -726,13 +717,13 @@ class Beta(BoostDistribution):
     self.measureNormDict   ['Jacobi'] = self.stdProbabilityNorm
     #this "if" section can only be called if distribution not generated using readMoreXML
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,self.low)
+      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,self.low)
     else:
       if self.lowerBoundUsed == False: a = 0.0
       else:a = self.lowerBound
       if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
-      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b,self.low)
+      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,a,b,self.low)
     self.preferredPolynomials = 'Jacobi'
     self.compatibleQuadrature.append('Jacobi')
     self.compatibleQuadrature.append('ClenshawCurtis')
@@ -742,8 +733,8 @@ class Beta(BoostDistribution):
     @ In y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
     """
-    u = 0.5*(self.hi+self.low)
-    s = 0.5*(self.hi-self.low)
+    u = 0.5*(self.high+self.low)
+    s = 0.5*(self.high-self.low)
     return (y-u)/(s)
 
   def convertJacobiToBeta(self,x):
@@ -751,8 +742,8 @@ class Beta(BoostDistribution):
     @ In y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
     """
-    u = 0.5*(self.hi+self.low)
-    s = 0.5*(self.hi-self.low)
+    u = 0.5*(self.high+self.low)
+    s = 0.5*(self.high-self.low)
     return s*x+u
 
   def stdProbabilityNorm(self):
@@ -972,8 +963,7 @@ class Categorical(Distribution):
     Distribution._readMoreXML(self, xmlNode)
     for child in xmlNode:
       self.mapping[child.tag] = float(child.text)
-      if float(child.tag) in self.values:
-        raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution has identical outcome')
+      if float(child.tag) in self.values: self.raiseAnError(IOError,'Categorical distribution has identical outcome')
       else:
         self.values.add(float(child.tag))
 
@@ -998,8 +988,7 @@ class Categorical(Distribution):
     totPsum = 0.0
     for element in self.mapping:
       totPsum += self.mapping[str(element)]
-    if totPsum!=1.0:
-      raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
+    if totPsum!=1.0: self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
 
   def pdf(self,x):
     """
@@ -1009,8 +998,7 @@ class Categorical(Distribution):
     """
     if x in self.values:
       return self.mapping[str(x)]
-    else:
-      raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate pdf for ' + str(x))
+    else: self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
 
   def cdf(self,x):
     """
@@ -1025,8 +1013,7 @@ class Categorical(Distribution):
         cumulative += element[1]
         if x == float(element[0]):
           return cumulative
-    else:
-      raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Categorical distribution cannot calculate cdf for ' + str(x))
+    else: self.raiseAnError(IOError,'Categorical distribution cannot calculate cdf for ' + str(x))
 
   def ppf(self,x):
     """
@@ -1494,59 +1481,6 @@ class NDCartesianSpline(NDimensionalDistributions):
   def rvs(self,*args):
     return self._distribution.InverseCdf(random(),random())
 
-class NDScatteredMS(NDimensionalDistributions):
-  def __init__(self):
-    NDimensionalDistributions.__init__(self)
-    self.p  = None
-    self.precision = None
-    self.type = 'NDScatteredMS'
-
-  def _readMoreXML(self,xmlNode):
-    NDimensionalDistributions._readMoreXML(self, xmlNode)
-    p_find = xmlNode.find('p')
-    if p_find != None: self.p = float(p_find.text)
-    else: self.raiseAnError(IOError,'Minkowski distance parameter <p> not found in NDScatteredMS distribution')
-    precision_find = xmlNode.find('precision')
-    if precision_find != None: self.precision = int(precision_find.text)
-    else: self.raiseAnError(IOError,'precision parameter <precision> not found in NDScatteredMS distribution')
-    self.initializeDistribution()
-
-  def addInitParams(self,tempDict):
-    NDimensionalDistributions.addInitParams(self, tempDict)
-    tempDict['p'] = self.p
-    tempDict['precision'] = self.precision
-
-  def initializeDistribution(self):
-    #NDimensionalDistributions.initializeDistribution()
-    self._distribution = distribution1D.BasicMultiDimensionalScatteredMS(self.p,self.precision)
-
-  def cdf(self,x):
-    return self._distribution.Cdf(x)
-
-  def ppf(self,x):
-    return self._distribution.InverseCdf(x)
-
-  def pdf(self,x):
-    return self._distribution.Pdf(x)
-
-  def untruncatedCdfComplement(self, x):
-    self.raiseAnError(NotImplementedError,'untruncatedCdfComplement not yet implemented for ' + self.type)
-
-  def untruncatedHazard(self, x):
-    self.raiseAnError(NotImplementedError,'untruncatedHazard not yet implemented for ' + self.type)
-
-  def untruncatedMean(self, x):
-    self.raiseAnError(NotImplementedError,'untruncatedMean not yet implemented for ' + self.type)
-
-  def untruncatedMedian(self, x):
-    self.raiseAnError(NotImplementedError,'untruncatedMedian not yet implemented for ' + self.type)
-
-  def untruncatedMode(self, x):
-    self.raiseAnError(NotImplementedError,'untruncatedMode not yet implemented for ' + self.type)
-
-  def rvs(self,*args):
-    self.raiseAnError(NotImplementedError,'rvs not yet implemented for ' + self.type)
-
 
 class MultivariateNormal(NDimensionalDistributions):
 
@@ -1642,7 +1576,6 @@ __interFaceDict['Exponential'      ] = Exponential
 __interFaceDict['LogNormal'        ] = LogNormal
 __interFaceDict['Weibull'          ] = Weibull
 __interFaceDict['NDInverseWeight'  ] = NDInverseWeight
-__interFaceDict['NDScatteredMS'    ] = NDScatteredMS
 __interFaceDict['NDCartesianSpline'] = NDCartesianSpline
 __interFaceDict['MultivariateNormal'] = MultivariateNormal
 __knownTypes                  = __interFaceDict.keys()
