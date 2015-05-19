@@ -673,7 +673,7 @@ class Beta(BoostDistribution):
     retDict = Distribution.getCrowDistDict(self)
     retDict['alpha'] = self.alpha
     retDict['beta'] = self.beta
-    retDict['scale'] = self.hi-self.low
+    retDict['scale'] = self.high-self.low
     retDict['low'] = self.low
     return retDict
 
