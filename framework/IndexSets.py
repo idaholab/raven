@@ -247,7 +247,6 @@ class Custom(IndexSet):
     elif type(points)==tuple and len(points)==self.N:
       self.points.append(points)
     else: raiseAnError(ValueError,'Unexpected points to add to set:',points)
-    self.raiseADebug(self.points)
     self.order()
 
 
@@ -261,11 +260,12 @@ class AdaptiveSet(IndexSet):
     self.points   = [] #retained points in the index set
     firstpoint    = tuple([0]*self.N)
     self.active   = {firstpoint:None}
-    self.moment   = {firstpoint:None}
+    self.roms     = {firstpoint:None}
+    self.history  = [] #list of tuples, index set point and its impact parameter
 
-  def setMoment(self,point,moment):
-    if point in self.moment.keys(): self.moment[point]=moment
-    else: self.raiseAnError(KeyError,'Tried to set moment',moment,'for point',point,'but it is not in active set!')
+  def setROM(self,point,rom):
+    if point in self.roms.keys(): self.roms[point]=rom
+    else: self.raiseAnError(KeyError,'Tried to set rom',rom,'for point',point,'but it is not in active set!')
 
   def setImpact(self,point,impact):
     if point in self.active.keys(): self.active[point]=impact
@@ -273,31 +273,33 @@ class AdaptiveSet(IndexSet):
 
   def checkImpacts(self):
     for key,impact in self.active.items():
-      #self.raiseADebug('    checking impact:',key,impact)
       if impact==None:return False
     return True
   
   def expand(self):
     #get the biggest helper
     pt = self.getBiggestImpact()
+    impact = self.active[pt]
+    self.history.append((pt,impact))
     #make it permanent
     self.points.append(pt)
     self.newestPoint=pt
-    self.order()
+    self.order() #sort it as partially increasing
     #not an eligible bachelor anymore
-    impact = self.active[pt]
     del self.active[pt]
     return pt,impact
 
   def getBiggestImpact(self):
-    if not self.checkImpacts(): raiseAnError(ValueError,'Not all impacts have been set for active set!',self.active)
-    if len(self.active)<1: raiseAnError(ValueError,'No active points in dictionary; search for forward points!')
+    if not self.checkImpacts(): self.raiseAnError(ValueError,'Not all impacts have been set for active set!',self.active)
+    if len(self.active)<1: self.raiseAnError(ValueError,'No active points in dictionary; search for forward points!')
+    if len(self.active)==1: return self.active.keys()[0]
     mx = -1e300
     mxkey=None
     for key,val in self.active.items():
       mx = max(abs(val),mx)
       if abs(val)==mx: mxkey = key
     self.raiseADebug('  biggest impact:',mxkey,mx)
+    if mxkey==None: return self.active.keys()[0]
     return mxkey
 
   def forward(self,pt,maxPoly=None):
@@ -322,12 +324,12 @@ class AdaptiveSet(IndexSet):
       if found:
         newpt=tuple(newpt)
         self.active[newpt]=None
-        self.moment[newpt]=None
+        self.roms  [newpt]=None
 
   def printOut(self):
-    self.raiseADebug('    Accepted Points | Second Moment:')
+    self.raiseADebug('    Accepted Points | Rom:')
     for p in self.points:
-      self.raiseADebug('       ',p,'| %1.5e' %self.moment[p])
+      self.raiseADebug('       ',p)#,'| %1.5e' %self.roms[p])
     self.raiseADebug('    Active Set | Impact:')
     for a,i in self.active.items():
       self.raiseADebug('       ',a,'|',i)

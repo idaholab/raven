@@ -376,6 +376,7 @@ class SparseQuad(MessageHandler.MessageUser):
       finishedJobs = handler.getFinished()
       for job in finishedJobs:
         if job.getReturnCode() == 0:
+          #self.raiseAWarning('  Collected job',job.returnEvaluation())
           self.c[int(str(job.identifier).replace("_makeSingleCoeff", ""))]=job.returnEvaluation()[1]
         else:
           self.raiseAMessage('Sparse grid index '+job.identifier+' failed...')
