@@ -433,7 +433,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     '''
     data=[]
     for idx,val in self.polyCoeffDict.items():
-      if val > 1e-12 or printZeros:
+      if abs(val) > 1e-12 or printZeros:
         data.append([idx,val])
     data.sort()
     self.raiseADebug('polyDict for ['+self.target+'] with inputs '+str(self.features)+':')
