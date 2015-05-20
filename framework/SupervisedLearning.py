@@ -440,6 +440,13 @@ class GaussPolynomialRom(NDinterpolatorRom):
     for idx,val in data:
       self.raiseADebug('    '+str(idx)+' '+str(val))
 
+  def checkForNonzeros(self,tol=1e-12):
+    data=[]
+    for idx,val in self.polyCoeffDict.items():
+      if abs(val) > 1e-12:
+        data.append([idx,val])
+    return data
+
   def __evaluateMoment__(self,r):
     '''Use the ROM's built-in method to calculate moments.
     @ In r, int, moment to calculate

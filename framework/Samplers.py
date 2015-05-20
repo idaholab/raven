@@ -2666,11 +2666,15 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self.error+=impact
       self.raiseADebug('  estimated remaining error:',self.error)
       if self.error<self.convValue and len(self.indexSet.points)>self.persistence:
-        done=True #we've converged!
-        self.raiseADebug('error:',self.error)
-        for key in self.indexSet.active.keys():
-          if self.indexSet.active[key]==None: del self.indexSet.active[key]
-        break
+        #pls at least find one point....
+        coeffpts=self.activeROMs[self.indexSet.newestPoint].checkForNonzeros()
+        if len(coeffpts)>0:
+          done=True #we've converged!
+          self.raiseADebug('points:',coeffpts)
+          self.raiseADebug('error:',self.error)
+          for key in self.indexSet.active.keys():
+            if self.indexSet.active[key]==None: del self.indexSet.active[key]
+          break
       self.raiseADebug('new iset:')
       self.indexSet.printOut()
       #if done:
