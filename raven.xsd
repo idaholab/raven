@@ -35,7 +35,7 @@
             </xsd:all>
             <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
         </xsd:complexType>
-        <!--Below restrictions does not work due to the complexType of <distribution> -->
+
         <xsd:key name="distName">
             <xsd:selector xpath="./Distributions/*"/>
             <xsd:field    xpath="@name"/>
@@ -44,12 +44,7 @@
             <xsd:selector xpath="./Samplers/*/variable/distribution"/>
             <xsd:field    xpath="."/>
         </xsd:keyref>
-        <!--Below won't work since <Distribution><distribution> and XPath does not allow -->
-        <xsd:key name="distName2">
-            <xsd:selector xpath="./Distributions/*"/>
-            <xsd:field    xpath="@name"/>
-        </xsd:key>
-        <xsd:keyref name="samplerName2"  refer="distName2">
+        <xsd:keyref name="samplerName2"  refer="distName">
             <xsd:selector xpath="./Samplers/*/Distribution/distribution"/>
             <xsd:field    xpath="."/>
         </xsd:keyref>
