@@ -984,20 +984,23 @@ class Grid(Sampler):
 
       # 1D variable
       if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
-        if self.gridInfo[varName][0]=='CDF':
-          if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:
-            weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
-          if self.gridCoordinate[i] == 0:
-            weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
-          if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1:
-            weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
-        else:   # Value
-          if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:
-            weight *= self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
-          if self.gridCoordinate[i] == 0:
-            weight *= self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
-          if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1:
-            weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+        if self.distDict[varName].getDisttype() == 'Discrete':
+           weight *= self.distDict[varName].pdf(self.gridCoordinate[i])
+        else: # self.distDict[varName].getDistype() == 'Continuous'
+          if self.gridInfo[varName][0]=='CDF':
+            if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:
+              weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+            if self.gridCoordinate[i] == 0:
+              weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
+            if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1:
+              weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+          else:   # Value
+            if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1:
+              weight *= self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+            if self.gridCoordinate[i] == 0:
+              weight *= self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
+            if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1:
+              weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
       # ND variable
       else:
         if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
@@ -2665,12 +2668,12 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self.indexSet.setImpact(active,impact)
         self.error+=impact
       self.raiseADebug('  estimated remaining error:',self.error)
-      if self.error<self.convValue and len(self.indexSet.points)>self.persistence:
+      if abs(self.error)<self.convValue and len(self.indexSet.points)>self.persistence:
         #pls at least find one point....
         coeffpts=self.activeROMs[self.indexSet.newestPoint].checkForNonzeros()
         if len(coeffpts)>0:
           done=True #we've converged!
-          self.raiseADebug('points:',coeffpts)
+          #self.raiseADebug('points:',coeffpts)
           self.raiseADebug('error:',self.error)
           for key in self.indexSet.active.keys():
             if self.indexSet.active[key]==None: del self.indexSet.active[key]
@@ -2725,6 +2728,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
                       'quads':self.quadDict,
                       'polys':self.polyDict,
                       'iSet':self.indexSet})
+    self.indexSet.printHistory()
+    self.indexSet.writeHistory()
 
   def localGenerateInput(self,model,myInput):
     pt = self.neededPoints.pop() # [self.counter-1]

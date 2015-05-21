@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="False">
+<Simulation verbosity='quiet'>
 <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>
     <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py,LimitSurfaceUnWeightedPb_FileObj.csv,LimitSurfaceWeightedPb_FileObj.csv</Files>
@@ -13,7 +13,7 @@
        <variable>x0</variable>
        <variable>y0</variable>
     </ExternalModel>
-    <PostProcessor name="computeLimitSurfacePositiveNegative" subType='LimitSurface' debug='False'>
+    <PostProcessor name="computeLimitSurfacePositiveNegative" subType='LimitSurface' verbosity='quiet'>
         <parameters>x0,y0</parameters>
         <side>both</side>
         <ROM      class='Models'           type='ROM'             >Acc</ROM>

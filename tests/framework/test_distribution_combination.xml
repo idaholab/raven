@@ -77,14 +77,14 @@
 </Steps>
 
 <DataObjects>
+    <TimePoint name='inputPlaceHolder'>
+        <Input>t1,t2</Input>
+        <Output>out</Output>
+    </TimePoint>
     <TimePointSet name='TimePointSet'>
         <Input>t1,t2,t3,t4,x0,y0,z0,x1,y1,z1</Input>
         <Output>out</Output>
    </TimePointSet>
-   <TimePoint name='inputPlaceHolder'>
-        <Input>t1,t2</Input>
-        <Output>out</Output>
-   </TimePoint>
 </DataObjects>
 
 <OutStreamManager>

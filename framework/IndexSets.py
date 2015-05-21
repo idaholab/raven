@@ -280,7 +280,10 @@ class AdaptiveSet(IndexSet):
     #get the biggest helper
     pt = self.getBiggestImpact()
     impact = self.active[pt]
-    self.history.append((pt,impact))
+    msg=str(pt)+': '+str(impact)+' || '
+    for apt,imp in self.active.items():
+      msg+=str(apt)+': '+str(imp)+' | '
+    self.history.append(msg)
     #make it permanent
     self.points.append(pt)
     self.newestPoint=pt
@@ -333,6 +336,18 @@ class AdaptiveSet(IndexSet):
     self.raiseADebug('    Active Set | Impact:')
     for a,i in self.active.items():
       self.raiseADebug('       ',a,'|',i)
+
+  def writeHistory(self):
+    msg = '\n'.join(self.history)
+    outFile = file('isethist.out','w')
+    outFile.writelines(msg)
+    outFile.close()
+
+
+  def printHistory(self):
+    self.raiseAMessage('Index Set Choice History:')
+    for h in self.history:
+      self.raiseAMessage('   ',h)
 
 
 """

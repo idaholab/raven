@@ -46,12 +46,12 @@
   <Print name='testprint_hist_hier_variables'>
     <type>csv</type>
     <source>stories</source>
-    <variables>Output,Input|dummy_for_branch</variables>
+    <what>Output,Input|dummy_for_branch</what>
   </Print>
   <Print name='testprint_tpset_hier_variables'>
     <type>csv</type>
     <source>timepointset</source>
-    <variables>Output,Input|dummy_for_branch</variables>
+    <what>Output,Input|dummy_for_branch</what>
   </Print>
   <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
         <plotSettings>
@@ -122,14 +122,14 @@
     <HDF5 name="testBranchDatabase"/> 
 </Databases>
 <DataObjects>
-    <Histories name='stories' hierarchical='true'>
-        <Input>dummy_for_branch</Input>
-        <Output>pump_mass_flow_rate,time</Output>
-   </Histories>
     <TimePointSet name='timepointset' hierarchical='true'>
         <Input>dummy_for_branch</Input>
         <Output>pump_mass_flow_rate,time</Output>
     </TimePointSet>
+    <Histories name='stories' hierarchical='true'>
+        <Input>dummy_for_branch</Input>
+        <Output>pump_mass_flow_rate,time</Output>
+   </Histories>
 </DataObjects>
 </Simulation>
 
