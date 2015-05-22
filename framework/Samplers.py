@@ -983,11 +983,8 @@ class Grid(Sampler):
       for i in range(len(self.axisName)):
         varName = self.axisName[i]
         if self.gridInfo[varName]=='CDF':
-          if self.distDict[varName].getDimensionality()==1:
-            recastDict[varName] = [self.distDict[varName].ppf]
-          else:
-            location = self.variables2distributionsMapping[varName]['dim']
-            recastDict[varName] = [self.distDict[varName].inverseMarginalDistribution,[location-1]]
+          if self.distDict[varName].getDimensionality()==1: recastDict[varName] = [self.distDict[varName].ppf]
+          else: recastDict[varName] = [self.distDict[varName].inverseMarginalDistribution,[self.variables2distributionsMapping[varName]['dim']-1]]
         elif self.gridInfo[varName]!='value': self.raiseAnError(IOError,self.gridInfo[varName]+' is not know as value keyword for type. Sampler: '+self.name)
       coordinates = self.gridEntity.returnPointAndAdvanceIterator(True,recastDict)
       if coordinates == None: raise utils.NoMoreSamplesNeeded      
@@ -1007,6 +1004,16 @@ class Grid(Sampler):
           self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
           self.inputInfo['distributionType'][key] = self.distDict[varName].type
           self.values[key] = coordinates[varName]
+          if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1): self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
+          else:
+            # N-Dimensional pdf
+            dist_name = self.variables2distributionsMapping[varName]['name']
+            NDcoordinate=[0]*len(self.distributions2variablesMapping[dist_name])
+            for var in self.distributions2variablesMapping[dist_name]:
+              variable = var.keys()[0]
+              position = var.values()[0]
+              NDcoordinate[position-1] = self.values[variable.strip().split(',')[0]]
+            self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(NDcoordinate)
 #           if self.gridInfo[varName][0]=='CDF':
 #             if self.distDict[varName].getDimensionality()==1:
 #               self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
@@ -1041,19 +1048,19 @@ class Grid(Sampler):
         self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
         self.inputInfo['distributionType'][key] = self.distDict[varName].type
 
-        if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
-          self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
-        else:
-          dist_name = self.variables2distributionsMapping[varName]['name']
-          #NDcoordinate=np.zeros(len(self.distributions2variablesMapping[dist_name]))
-          NDcoordinate=[]
-          for i in range(len(self.distributions2variablesMapping[dist_name])):
-            NDcoordinate.append(0)
-          for var in self.distributions2variablesMapping[dist_name]:
-            variable = var.keys()[0]
-            position = var.values()[0]
-            NDcoordinate[position-1] = self.values[variable.strip().split(',')[0]]
-          self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(NDcoordinate)
+#         if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
+#           self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
+#         else:
+#           dist_name = self.variables2distributionsMapping[varName]['name']
+#           #NDcoordinate=np.zeros(len(self.distributions2variablesMapping[dist_name]))
+#           NDcoordinate=[]
+#           for i in range(len(self.distributions2variablesMapping[dist_name])):
+#             NDcoordinate.append(0)
+#           for var in self.distributions2variablesMapping[dist_name]:
+#             variable = var.keys()[0]
+#             position = var.values()[0]
+#             NDcoordinate[position-1] = self.values[variable.strip().split(',')[0]]
+#           self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(NDcoordinate)
 
       # 1D variable
       if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
