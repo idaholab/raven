@@ -95,25 +95,8 @@
             <xsd:element name="Bernoulli"     type="BernoulliDistribution"     minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Binomial"      type="BinomialDistribution"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Poisson"       type="PoissonDistribution"       minOccurs="0" maxOccurs="unbounded"/>
-            <!-- ******************************************************* -->
-            <!-- The N-Dimensional Distributions are not yet implemented -->
-            <!-- ******************************************************* -->
-            <xsd:element name="NDInverseWeight"         minOccurs="0" maxOccurs="unbounded">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
-                    </xsd:sequence>
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="NDCartesianSpline"         minOccurs="0" maxOccurs="unbounded">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
-                    </xsd:sequence>
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:element name="NDInverseWeight"   type="NDInverseWeightDistribution"   minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="NDCartesianSpline" type="NDCartesianSplineDistribution" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
       
@@ -290,6 +273,45 @@
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
+    
+    
+           <xsd:simpleType name="data_filenameSimple"> 
+           			<xsd:restriction base="xsd:string"/>
+            </xsd:simpleType>
+            
+            <xsd:simpleType name="typeAttr">
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="PDF"/>
+                    <xsd:enumeration value="CDF"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+
+            <xsd:complexType name="data_filenameType">
+                <xsd:simpleContent>
+            	      <xsd:extension base="data_filenameSimple">
+                        <xsd:attribute name="type" type="typeAttr" use="required"/>
+               			</xsd:extension>
+                </xsd:simpleContent>
+            </xsd:complexType>
+    
+    <xsd:complexType name="NDInverseWeightDistribution">
+        <xsd:all>
+            <xsd:element name="p" type="xsd:decimal" minOccurs="1"/>
+             <xsd:element name="working_dir" type="xsd:string" minOccurs="1"/>
+             <xsd:element name="data_filename" type="data_filenameType" minOccurs="1"/>
+        </xsd:all>  
+        <xsd:attribute name="name" type="xsd:string" use="required"/>      
+    </xsd:complexType>
+  
+
+    <xsd:complexType name="NDCartesianSplineDistribution">
+        <xsd:all>
+            <xsd:element name="data_filename" type="data_filenameType" minOccurs="1"/>
+            <xsd:element name="working_dir" type="xsd:string" minOccurs="1"/>
+        </xsd:all> 
+        <xsd:attribute name="name" type="xsd:string" use="required"/>       
+    </xsd:complexType>
+      
   
     <xsd:complexType name="SamplerData">
         <xsd:sequence>
