@@ -251,23 +251,33 @@ class GridEntity(BaseType):
     @ Out, None
     """
     self.gridIterator.reset()
-
-  def returnPointAndAdvanceIterator(self,returnDict=False):
+  
+  def returnShiftedCoordinate(self,coordinates,shiftingStep):
+    """
+    Method to return the coordinate that is a # shiftingStep away from the input coordinate
+    For example, if 1D grid= {'dimName':[1,2,3,4]}, coordinate is 3 and  shiftingStep is -2, 
+    the returned coordinate will be 1
+    @ In, list, coordinates, list of coordinate list. [[dimName1,startingCoordinate1],[dimName2,startingCoordinate1]] dictionary of coordinates
+    """
+  
+  def returnPointAndAdvanceIterator(self, returnDict=False, recastMethods={}):
     """
     Method to return a point in the grid. This method will return the coordinates of the point to which the iterator is pointing
     In addition, it advances the iterator in order to point to the following coordinate
     @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not. 
                                if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
-                               if False a tuple is riturned (coordinate1,coordinate2,etc)
+                               if False a tuple is riturned (coordinate1,coordinate2,etc
+    @ In, dict, optional, recastMethods, dictionary containing the methods that need to be used for trasforming the coordinates
+                                         ex. {'dimName1':[methodToTransformCoordinate,*args]}
     @ Out, tuple, coordinate, tuple containing the coordinates
     """
     if not self.gridIterator.finished:
-      coordinates = self.returnCoordinateFromIndex(self.gridIterator.multi_index,returnDict)
+      coordinates = self.returnCoordinateFromIndex(self.gridIterator.multi_index,returnDict,recastMethods)
       self.gridIterator.iternext()
     else: coordinates = None
     return coordinates
 
-  def returnCoordinateFromIndex(self, multiDimIndex, returnDict=False):
+  def returnCoordinateFromIndex(self, multiDimIndex, returnDict=False, recastMethods={}):
     """
     Method to return a point in the grid. This method will return the coordinates of the point is requested by multiDimIndex
     In addition, it advances the iterator in order to point to the following coordinate
@@ -275,15 +285,19 @@ class GridEntity(BaseType):
     @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not. 
                                          if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
                                          if False a tuple is riturned (coordinate1,coordinate2,etc)
+    @ In, dict, optional, recastMethods, dictionary containing the methods that need to be used for trasforming the coordinates
+                                         ex. {'dimName1':[methodToTransformCoordinate,*args]}
     @ Out, tuple or dict, coordinate, tuple containing the coordinates
     """
-    multiDimIndex
+    
     coordinates = [None]*self.nVar if returnDict == False else {}
     for cnt, key in enumerate(self.gridContainer['dimensionNames']):
-      if returnDict: coordinates[cnt] = self.gridContainer['gridVectors'][key][multiDimIndex[cnt]]
-      else         : coordinates[key] = self.gridContainer['gridVectors'][key][multiDimIndex[cnt]]
+      vvkey = cnt if not returnDict else key
+      if key in recastMethods.keys(): coordinates[vvkey] = recastMethods[key][0](self.gridContainer['gridVectors'][key][multiDimIndex[cnt]],*recastMethods[key][1] if len(recastMethods[key]) > 1 else [])
+      else                          : coordinates[vvkey] = self.gridContainer['gridVectors'][key][multiDimIndex[cnt]]
+    if not returnDict: coordinates = tuple(coordinates)
     #coordinate = self.gridContainer['gridCoord'][multiDimIndex]
-    return tuple(coordinates)
+    return coordinates
 
 # class MultiGridEntity(object):
 #   '''

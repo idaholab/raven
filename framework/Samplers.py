@@ -809,7 +809,7 @@ class Grid(Sampler):
     self.printTag = 'SAMPLER GRID'
     self.gridCoordinate       = []    # the grid point to be used for each distribution (changes at each step)
     self.axisName             = []    # the name of each axis (variable)
-    self.gridInfo             = {}    # {'name of the variable':('Type','Construction',[values])}  --> Type: Probability/Value; Construction:Custom/Equal
+    self.gridInfo             = {}    # {'name of the variable':Type}  --> Type: CDF/Value
     self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
     self.existing             = []    # restart points
     #GridBase
@@ -825,7 +825,6 @@ class Grid(Sampler):
     #self.gridEntity.addCustomParameter("gridInfo",{})
     #gridInfo = {}
     self.gridEntity._readMoreXml(xmlNode,"variable")
-
 #     for child in xmlNode:
 #       #Add <distribution> to name so we know it is not a direct variable
 #       if child.tag == "Distribution": varName = "<distribution>"+child.attrib['name']
@@ -902,10 +901,11 @@ class Grid(Sampler):
 #                 self.gridInfo[varName][2].sort()
 #               else: self.raiseAnError(IOError,'no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
 #             else: self.raiseAnError(IOError,'not specified the grid construction type')
-
-    if len(self.toBeSampled.keys()) != len(self.gridEntity.returnParameter("gridInfo").keys()): self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
+    grdInfo = self.gridEntity.returnParameter("gridInfo")
+    for axis, value in grdInfo.items(): self.gridInfo[axis] = value[0]
+    if len(self.toBeSampled.keys()) != len(grdInfo.keys()): self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
     #self.gridCoordinate = [None]*len(self.axisName)
-    self.axisName = self.gridEntity.returnParameter("gridInfo").keys()
+    self.axisName = grdInfo.keys()
 
   def localAddInitParams(self,tempDict):
     for variable in self.gridInfo.items():
@@ -976,37 +976,47 @@ class Grid(Sampler):
 
     found=False
     while not found:
-      remainder = self.counter - 1 #used to keep track as we get to smaller strides
-      stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
+      #remainder = self.counter - 1 #used to keep track as we get to smaller strides
+      #stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
       #self.inputInfo['distributionInfo'] = {}
-      coordinates = self.gridEntity.returnPointAndAdvanceIterator(True)
-      if coordinates == None: raise utils.NoMoreSamplesNeeded
-      
-      for i in range(len(self.gridCoordinate)):
+      recastDict = {}
+      for i in range(len(self.axisName)):
+        varName = self.axisName[i]
+        if self.gridInfo[varName]=='CDF':
+          if self.distDict[varName].getDimensionality()==1:
+            recastDict[varName] = [self.distDict[varName].ppf]
+          else:
+            location = self.variables2distributionsMapping[varName]['dim']
+            recastDict[varName] = [self.distDict[varName].inverseMarginalDistribution,[location-1]]
+        elif self.gridInfo[varName]!='value': self.raiseAnError(IOError,self.gridInfo[varName]+' is not know as value keyword for type. Sampler: '+self.name)
+      coordinates = self.gridEntity.returnPointAndAdvanceIterator(True,recastDict)
+      if coordinates == None: raise utils.NoMoreSamplesNeeded      
+      #for i in range(len(self.gridCoordinate)):
+      for i in range(len(self.axisName)):
         # i congruent to input variable
         varName = self.axisName[i]
-        if not self.externalgGridCoord:
-          stride = stride // len(self.gridInfo[varName][2])
-          #index is the index into the array self.gridInfo[varName][2]
-          if stride == 0: raise utils.NoMoreSamplesNeeded
-          index, remainder = divmod(remainder, stride )
-          self.gridCoordinate[i] = index
+        #if not self.externalgGridCoord:
+        #  stride = stride // len(self.gridInfo[varName][2])
+        #  #index is the index into the array self.gridInfo[varName][2]
+        #  if stride == 0: raise utils.NoMoreSamplesNeeded
+        #  index, remainder = divmod(remainder, stride )
+        #  self.gridCoordinate[i] = index
         # check if the varName is a comma separated list of strings
         # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
         for key in varName.strip().split(','):
           self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
           self.inputInfo['distributionType'][key] = self.distDict[varName].type
-          
-          if self.gridInfo[varName][0]=='CDF':
-            if self.distDict[varName].getDimensionality()==1:
-              self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
-            else:
-              location = self.variables2distributionsMapping[varName]['dim']
-              self.values[key] = self.distDict[varName].inverseMarginalDistribution(self.gridInfo[varName][2][self.gridCoordinate[i]],location-1)
-
-          elif self.gridInfo[varName][0]=='value':
-            self.values[key] = self.gridInfo[varName][2][self.gridCoordinate[i]]
-          else: self.raiseAnError(IOError,gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
+          self.values[key] = coordinates[varName]
+#           if self.gridInfo[varName][0]=='CDF':
+#             if self.distDict[varName].getDimensionality()==1:
+#               self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
+#             else:
+#               location = self.variables2distributionsMapping[varName]['dim']
+#               self.values[key] = self.distDict[varName].inverseMarginalDistribution(self.gridInfo[varName][2][self.gridCoordinate[i]],location-1)
+# 
+#           elif self.gridInfo[varName][0]=='value':
+#             self.values[key] = self.gridInfo[varName][2][self.gridCoordinate[i]]
+#           else: self.raiseAnError(IOError,gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
       newpoint = tuple(self.values[key] for key in self.values.keys())
       if newpoint not in self.existing:
         found=True
