@@ -122,14 +122,14 @@
     <HDF5 name="testBranchDatabase"/> 
 </Databases>
 <DataObjects>
-    <Histories name='stories' hierarchical='true'>
-        <Input>dummy_for_branch</Input>
-        <Output>pump_mass_flow_rate,time</Output>
-   </Histories>
     <TimePointSet name='timepointset' hierarchical='true'>
         <Input>dummy_for_branch</Input>
         <Output>pump_mass_flow_rate,time</Output>
     </TimePointSet>
+    <Histories name='stories' hierarchical='true'>
+        <Input>dummy_for_branch</Input>
+        <Output>pump_mass_flow_rate,time</Output>
+   </Histories>
 </DataObjects>
 </Simulation>
 
