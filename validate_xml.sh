@@ -8,23 +8,24 @@ SCRIPT_DIRNAME=`dirname $0`
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 ORIGPYTHONPATH="$PYTHONPATH"
 
-#update_python_path ()
-#{
-#    if ls -d $INSTALL_DIR/*/python*/site-packages/
-#    then
-#        export PYTHONPATH=`ls -d $INSTALL_DIR/*/python*/site-packages/`:"$ORIGPYTHONPATH"
-#    fi
-#}
-
-#update_python_path
-#PATH=$INSTALL_DIR/bin:$PATH
-
 
 cd tests/framework
+
+failed_tests=0
+passed_tests=0
 
 for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py)
 do
     echo Validating $I
     xmllint --noout --schema ../../raven.xsd $I
+    if test $? -eq 0;
+    then
+        passed_tests=$(($passed_tests + 1))
+    else
+        failed_tests=$(($failed_tests + 1))
+    fi
 done
+echo Passed $passed_tests Failed $failed_tests
+exit $failed_tests
+
 
