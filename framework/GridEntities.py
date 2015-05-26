@@ -221,7 +221,9 @@ class GridEntity(BaseType):
       valuePosition                         = self.gridIterator.multi_index[coordinateID]
       self.gridContainer['gridCoord'][self.gridIterator.multi_index] = self.gridContainer['gridVectors'][dimName][valuePosition]
       self.gridIterator.iternext()
+
     print(self.gridContainer['gridCoord'])
+    print(self.gridContainer['gridCoord'][0,0,:])
     self.resetIterator()
 
   def returnParameter(self,parameterName):
