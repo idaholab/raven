@@ -20,7 +20,6 @@
         <sigma>0.4</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
-        <adjustement>scaling</adjustement>
     </Normal>
     <Triangular name='DistTri1'>
         <apex>1</apex>
