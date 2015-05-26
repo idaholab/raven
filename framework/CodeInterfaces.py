@@ -38,7 +38,7 @@ __interFaceDict                 = {}
 for moduleIndex in range(len(__moduleInterfaceList)):
   if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
     __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex],False))
-    for key,modClass in inspect.getmembers(__moduleImportedList[moduleIndex], inspect.isclass):
+    for key,modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
       if 'createNewInput' in modClass.__dict__.keys():__interFaceDict[key.replace("Interface","")] = modClass
 __knownTypes      = list(__interFaceDict.keys())
 
