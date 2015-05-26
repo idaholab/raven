@@ -8,10 +8,11 @@ Created on Mar 30, 2015
 #import itertools
 import numpy as np
 from scipy.interpolate import interp1d
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import UreturnPrintTag,UreturnPrintPostTag,partialEval
+from utils import UreturnPrintTag,partialEval
 from BaseClasses import BaseType
 #import TreeStructure as TS
 #Internal Modules End--------------------------------------------------------------------------------
@@ -56,19 +57,23 @@ class GridEntity(BaseType):
     self.gridIterator                           = None               # the grid iterator
     self.gridInitDict                           = None               # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
 
-  def _readMoreXml(self,xmlNode,dimensionTags=None):
+  def _readMoreXml(self,xmlNode,dimensionTags=None,messageHandler=None,dimTagsPrefix=None):
     """
      XML reader for the grid statement.
      @ In, ETree object, xml node from where the info need to be retrieved
      @ In, dimensionTag, optional, list, names of the tag that represents the grid dimensions
+     @ In, dimTagsPrefix, optional, dict, eventual prefix to use for defining the dimName
      @ Out, None
     """
+    if messageHandler != None: self.setMessageHandler(messageHandler)
     self.gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'stepLenght':{}}
     gridInfo = {}
     for child in xmlNode:
       dimName = None
       if dimensionTags != None:
-        if child.tag in dimensionTags: dimName = child.attrib['name']
+        if child.tag in dimensionTags: 
+          dimName = child.attrib['name']
+          if dimTagsPrefix != None: dimName = dimTagsPrefix[child.tag] + dimName if child.tag in dimTagsPrefix.keys() else dimName
       if child.tag == "grid":
         if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
         gridStruct, gridName = self._fillGrid(child)
@@ -119,7 +124,7 @@ class GridEntity(BaseType):
       if 'name' in child.attrib.keys(): nameGrid = child.attrib['name']
     if constrType == 'custom': return (child.attrib['type'],constrType,bounds),nameGrid
     elif constrType == 'equal':
-      if len(bounds) != 2: self.raiseAnError(IOError,'body of grid XML node needs to contain 2 values (lower and upper bounds)')
+      if len(bounds) != 2: self.raiseAnError(IOError,'body of grid XML node needs to contain 2 values (lower and upper bounds).Tag = '+child.tag)
       if 'steps' not in child.attrib.keys(): self.raiseAnError(IOError,'the attribute step needs to be inputted when "construction" attribute == equal!')
       return (child.attrib['type'],constrType,np.linspace(lower,upper,partialEval(child.attrib['steps'])+1)),nameGrid
     elif child.attrib['type'] == 'global_grid': return (child.attrib['type'],constrType,child.text),nameGrid
@@ -205,7 +210,7 @@ class GridEntity(BaseType):
     self.gridContainer['gridShape']                 = tuple   (pointByVar)          # tuple of the grid shape
     self.gridContainer['gridLenght']                = np.prod (pointByVar)          # total number of point on the grid
     self.gridContainer['gridMatrix']                = np.zeros(self.gridContainer['gridShape'])      # grid where the values of the goalfunction are stored
-    self.gridContainer['gridCoorShape']             = tuple(pointByVar) # shape of the matrix containing all coordinate of all points in the grid
+    self.gridContainer['gridCoorShape']             = tuple(pointByVar+[self.nVar])                  # shape of the matrix containing all coordinate of all points in the grid
     self.gridContainer['gridCoord']                 = np.zeros(self.gridContainer['gridCoorShape'])  # the matrix containing all coordinate of all points in the grid
     self.uniqueCellNumber                           = self.gridContainer['gridLenght']/2**self.nVar
     #filling the coordinate on the grid
@@ -216,6 +221,7 @@ class GridEntity(BaseType):
       valuePosition                         = self.gridIterator.multi_index[coordinateID]
       self.gridContainer['gridCoord'][self.gridIterator.multi_index] = self.gridContainer['gridVectors'][dimName][valuePosition]
       self.gridIterator.iternext()
+    print(self.gridContainer['gridCoord'])
     self.resetIterator()
 
   def returnParameter(self,parameterName):
@@ -251,14 +257,38 @@ class GridEntity(BaseType):
     @ Out, None
     """
     self.gridIterator.reset()
+
+  def returnIteratorIndexes(self,returnDict = True):
+    """
+    Reset internal iterator
+    @ In, boolean,returnDict if true, the Indexes are returned in dictionary format
+    @ Out, tuple or dictionary
+    """
+    currentIndexes = self.gridIterator.multi_index
+    if not returnDict: return currentIndexes
+    coordinates = {}
+    for cnt, key in enumerate(self.gridContainer['dimensionNames']): coordinates[key] = currentIndexes[cnt]
+    return coordinates
   
-  def returnShiftedCoordinate(self,coordinates,shiftingStep):
+  def returnShiftedCoordinate(self,coordinates,shiftingSteps):
     """
     Method to return the coordinate that is a # shiftingStep away from the input coordinate
     For example, if 1D grid= {'dimName':[1,2,3,4]}, coordinate is 3 and  shiftingStep is -2, 
     the returned coordinate will be 1
-    @ In, list, coordinates, list of coordinate list. [[dimName1,startingCoordinate1],[dimName2,startingCoordinate1]] dictionary of coordinates
+    @ In,  dict, coordinates, dictionary of coordinates. {'dimName1':startingCoordinate1,dimName2:startingCoordinate2,...}
+    @ In,  dict, shiftingSteps, dict of shifiting steps. {'dimName1':shiftingStep1,dimName2:shiftingStep2,...}
+    @ Out, dict, outputCoordinates, dictionary of shifted coordinates' values {dimName:value1,...}
     """
+    outputCoordinates = {}
+    # create multiindex
+    multiindex = []
+    for varName in self.gridContainer['dimensionNames']:
+      if varName in coordinates.keys(): multiindex.append(coordinates[varName] + shiftingSteps[varName])
+      else                            : multiindex.append(0)
+    outputCoors = self.returnCoordinateFromIndex(multiindex,returnDict=True)
+    for varName in coordinates.keys(): outputCoordinates[varName] = outputCoors[varName]
+    return outputCoordinates
+  
   
   def returnPointAndAdvanceIterator(self, returnDict=False, recastMethods={}):
     """
@@ -293,8 +323,13 @@ class GridEntity(BaseType):
     coordinates = [None]*self.nVar if returnDict == False else {}
     for cnt, key in enumerate(self.gridContainer['dimensionNames']):
       vvkey = cnt if not returnDict else key
-      if key in recastMethods.keys(): coordinates[vvkey] = recastMethods[key][0](self.gridContainer['gridVectors'][key][multiDimIndex[cnt]],*recastMethods[key][1] if len(recastMethods[key]) > 1 else [])
-      else                          : coordinates[vvkey] = self.gridContainer['gridVectors'][key][multiDimIndex[cnt]]
+      # if out of bound, we set the coordinate to maxsize
+      if multiDimIndex[cnt] < 0: coordinates[vvkey] = -sys.maxsize
+      elif multiDimIndex[cnt] > len(self.gridContainer['gridVectors'][key])-1: coordinates[vvkey] = sys.maxsize
+      else:
+        if key in recastMethods.keys(): coordinates[vvkey] = recastMethods[key][0](self.gridContainer['gridVectors'][key][multiDimIndex[cnt]],*recastMethods[key][1] if len(recastMethods[key]) > 1 else [])
+        else                          : coordinates[vvkey] = self.gridContainer['gridVectors'][key][multiDimIndex[cnt]]
+       
     if not returnDict: coordinates = tuple(coordinates)
     #coordinate = self.gridContainer['gridCoord'][multiDimIndex]
     return coordinates
@@ -321,6 +356,6 @@ __knownTypes                       = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type):
+def returnInstance(Type,caller):
   try: return __interFaceDict[Type]()
-  except KeyError: raise NameError('not known '+__base+' type '+Type)
+  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
