@@ -132,16 +132,16 @@ needs to specify the following sub-nodes:
 
 \begin{lstlisting}[style=XML,morekeywords={inputTs,operator,hierarchical,name,history}]
 <DataObjects>
-  <TimePoint name='TP' inputTs='-1' operator='max' hierarchical='False'>
-    <Input history='a_history_name'>var1,var2,var3</Input>
+  <TimePoint name='TP' inputTs='-1' operator='max' hierarchical='False' historyName='a_history_name'>
+    <Input>var1,var2,var3</Input>
     <Output>result1,result2</Output>
   </TimePoint>
   <TimePointSet name='TPS'>
     <Input>var1,var2,var3</Input>
     <Output>result1,result2</Output>
   </TimePointSet>
-  <History name='HIST'>
-    <Input history='a_history_name'>var1,var2,var3</Input>
+  <History name='HIST' historyName='a_history_name'>
+    <Input>var1,var2,var3</Input>
     <Output>result1,result2</Output>
   </History>
   <Histories name='HISTs'>
