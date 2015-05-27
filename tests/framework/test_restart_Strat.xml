@@ -40,13 +40,13 @@
     </Distributions>
 
     <Samplers>
-        <Stratified name="1" initial_seed='1'>
+        <Stratified name="1">
             <variable name="x1"><distribution>u1</distribution>
                 <grid type='CDF' construction='equal' steps='1' lowerBound='0.0'>0.5</grid></variable>
             <variable name="x2"><distribution>u2</distribution>
                 <grid type='CDF' construction='equal' steps='1' lowerBound='0.0'>0.5</grid></variable>
         </Stratified>
-        <Stratified name="2" initial_seed='1'>
+        <Stratified name="2">
             <variable name="x1"><distribution>u1</distribution>
                 <grid type='CDF' construction='equal' steps='3' lowerBound='0.0'>0.25</grid></variable>
             <variable name="x2"><distribution>u2</distribution>
