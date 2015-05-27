@@ -28,7 +28,7 @@ import MessageHandler
   *  HDF5 DATABASE CLASS  *
   *************************
 """
-class hdf5Database(object):
+class hdf5Database(MessageHandler.MessageUser):
   """
   class to create a h5py (hdf5) database
   """

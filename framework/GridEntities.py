@@ -31,15 +31,15 @@ class GridEntity(BaseType):
     @ Out, transformFunction, instance of the transformation method (callable like f(newPoint))
     """
     return interp1d(x, np.linspace(0.0, 1.0, len(x)), kind='nearest')
-  
+
   def __len__(self):
     """
-    Overload __len__ method. 
+    Overload __len__ method.
     @ In, None
     @ Out, integer, total number of nodes
     """
     return self.gridContainer['gridLenght'] if 'gridLenght' in self.gridContainer.keys() else 0
-  
+
   def __init__(self):
     self.printTag                               = UreturnPrintTag("GRID ENTITY")
     self.gridContainer                          = {}                 # dictionary that contains all the key feature of the grid
@@ -71,7 +71,7 @@ class GridEntity(BaseType):
     for child in xmlNode:
       dimName = None
       if dimensionTags != None:
-        if child.tag in dimensionTags: 
+        if child.tag in dimensionTags:
           dimName = child.attrib['name']
           if dimTagsPrefix != None: dimName = dimTagsPrefix[child.tag] + dimName if child.tag in dimTagsPrefix.keys() else dimName
       if child.tag == "grid":
@@ -84,11 +84,11 @@ class GridEntity(BaseType):
         gridInfo[dimName] = gridStruct
       # to be removed when better strategy for NDimensional is found
       readGrid = True
-      for childChild in child:
-        if 'dim' in childChild.attrib.keys():
-          readGrid = False
-          if partialEval(childChild.attrib['dim']) == 1: readGrid = True
-          break
+      #for childChild in child:
+      #  if 'dim' in childChild.attrib.keys():
+      #    readGrid = False
+      #    if partialEval(childChild.attrib['dim']) == 1: readGrid = True
+      #    break
       # end to be removed
       for childChild in child:
         if childChild.tag =='grid' and readGrid:
@@ -159,10 +159,10 @@ class GridEntity(BaseType):
       if type(initDict["upperBounds"]).__name__ != "dict": self.raiseAnError(Exception,'The upperBounds entry is not a dictionary')
     if "transformationMethods" in initDict.keys(): self.gridContainer['transformationMethods'] = initDict["transformationMethods"]
     self.nVar                            = len(self.gridInitDict["dimensionNames"]) if "dimensionNames" in self.gridInitDict.keys() else initDict["dimensionNames"]
-    
+
     self.gridContainer['dimensionNames'] = self.gridInitDict["dimensionNames"] if "dimensionNames" in self.gridInitDict.keys() else initDict["dimensionNames"]
-    upperkeys                            = self.gridInitDict["upperBounds"].keys() if "upperBounds" in self.gridInitDict.keys() else initDict["upperBounds"  ].keys()  
-    lowerkeys                            = self.gridInitDict["lowerBounds"].keys() if "lowerBounds" in self.gridInitDict.keys() else initDict["lowerBounds"  ].keys() 
+    upperkeys                            = self.gridInitDict["upperBounds"].keys() if "upperBounds" in self.gridInitDict.keys() else initDict["upperBounds"  ].keys()
+    lowerkeys                            = self.gridInitDict["lowerBounds"].keys() if "lowerBounds" in self.gridInitDict.keys() else initDict["lowerBounds"  ].keys()
     self.gridContainer['dimensionNames'].sort()
     upperkeys.sort()
     lowerkeys.sort()
@@ -177,8 +177,8 @@ class GridEntity(BaseType):
     else:
       if "stepLenght" not in readKeys:
         if type(initDict["stepLenght"]).__name__ != "dict": self.raiseAnError(Exception,'The stepLenght entry is not a dictionary')
-      
-      
+
+
       stepLenght = []
       for dimName in self.gridContainer['dimensionNames']: stepLenght.append(initDict["stepLenght"][dimName] if  "stepLenght" not in readKeys else self.gridInitDict["stepLenght"][dimName])
       #self.volumetricRatio = np.sum(stepLenght)**(1/self.nVar) # in this case it is an average => it "represents" the average volumentric ratio...not too much sense. Andrea
@@ -191,21 +191,16 @@ class GridEntity(BaseType):
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
       if len(stepLenght[varId]) == 1:
         # equally spaced or volumetriRatio
-        self.gridContainer['gridVectors'][varName] = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName]+stepLenght[varId],stepLenght[varId])    
+        self.gridContainer['gridVectors'][varName] = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName]+stepLenght[varId][-1],stepLenght[varId][-1])
       else:
         # custom grid
         # it is not very efficient, but this approach is only for custom grids => limited number of discretizations
-        gridMesh = [self.gridContainer['bounds']["lowerBounds"][varName]] 
+        gridMesh = [self.gridContainer['bounds']["lowerBounds"][varName]]
         for stepLenghti in stepLenght[varId]: gridMesh.append(gridMesh[-1]+stepLenghti)
         self.gridContainer['gridVectors'][varName] = np.asarray(gridMesh)
       if self.gridContainer['transformationMethods'] != None:
         if varName in self.gridContainer['transformationMethods'].keys():
-          self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName](coor) for coor in self.self.gridContainer['gridVectors'][varName]])  
-      
-      #[stpLenght, start, end]     = stepParam(varName)
-      #start                      += 0.5*stpLenght
-      #if self.gridContainer['transformationMethods'] != None: self.self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName](coor) for coor in  np.arange(start,end,stpLenght)])
-      #else: self.self.gridContainer['gridVectors'][varName] = np.arange(start,end,stpLenght)
+          self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName](coor) for coor in self.self.gridContainer['gridVectors'][varName]])
       pointByVar[varId]                               = np.shape(self.gridContainer['gridVectors'][varName])[0]
     self.gridContainer['gridShape']                 = tuple   (pointByVar)          # tuple of the grid shape
     self.gridContainer['gridLenght']                = np.prod (pointByVar)          # total number of point on the grid
@@ -220,10 +215,8 @@ class GridEntity(BaseType):
       dimName                               = self.gridContainer['dimensionNames'][coordinateID]
       valuePosition                         = self.gridIterator.multi_index[coordinateID]
       self.gridContainer['gridCoord'][self.gridIterator.multi_index] = self.gridContainer['gridVectors'][dimName][valuePosition]
+      #print(self.gridIterator.multi_index)
       self.gridIterator.iternext()
-
-    print(self.gridContainer['gridCoord'])
-    print(self.gridContainer['gridCoord'][0,0,:])
     self.resetIterator()
 
   def returnParameter(self,parameterName):
@@ -262,7 +255,7 @@ class GridEntity(BaseType):
 
   def returnIteratorIndexes(self,returnDict = True):
     """
-    Reset internal iterator
+    Reset internal iterator (just for the coordinates on the grid)
     @ In, boolean,returnDict if true, the Indexes are returned in dictionary format
     @ Out, tuple or dictionary
     """
@@ -271,11 +264,11 @@ class GridEntity(BaseType):
     coordinates = {}
     for cnt, key in enumerate(self.gridContainer['dimensionNames']): coordinates[key] = currentIndexes[cnt]
     return coordinates
-  
+
   def returnShiftedCoordinate(self,coordinates,shiftingSteps):
     """
     Method to return the coordinate that is a # shiftingStep away from the input coordinate
-    For example, if 1D grid= {'dimName':[1,2,3,4]}, coordinate is 3 and  shiftingStep is -2, 
+    For example, if 1D grid= {'dimName':[1,2,3,4]}, coordinate is 3 and  shiftingStep is -2,
     the returned coordinate will be 1
     @ In,  dict, coordinates, dictionary of coordinates. {'dimName1':startingCoordinate1,dimName2:startingCoordinate2,...}
     @ In,  dict, shiftingSteps, dict of shifiting steps. {'dimName1':shiftingStep1,dimName2:shiftingStep2,...}
@@ -290,13 +283,13 @@ class GridEntity(BaseType):
     outputCoors = self.returnCoordinateFromIndex(multiindex,returnDict=True)
     for varName in coordinates.keys(): outputCoordinates[varName] = outputCoors[varName]
     return outputCoordinates
-  
-  
+
+
   def returnPointAndAdvanceIterator(self, returnDict=False, recastMethods={}):
     """
     Method to return a point in the grid. This method will return the coordinates of the point to which the iterator is pointing
     In addition, it advances the iterator in order to point to the following coordinate
-    @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not. 
+    @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not.
                                if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
                                if False a tuple is riturned (coordinate1,coordinate2,etc
     @ In, dict, optional, recastMethods, dictionary containing the methods that need to be used for trasforming the coordinates
@@ -305,7 +298,7 @@ class GridEntity(BaseType):
     """
     if not self.gridIterator.finished:
       coordinates = self.returnCoordinateFromIndex(self.gridIterator.multi_index,returnDict,recastMethods)
-      self.gridIterator.iternext()
+      for _ in range(self.nVar): self.gridIterator.iternext()
     else: coordinates = None
     return coordinates
 
@@ -314,14 +307,14 @@ class GridEntity(BaseType):
     Method to return a point in the grid. This method will return the coordinates of the point is requested by multiDimIndex
     In addition, it advances the iterator in order to point to the following coordinate
     @ In, tuple, multiDimIndex, tuple containing the Id of the point needs to be returned (e.g. 3 dim grid,  (xID,yID,zID))
-    @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not. 
+    @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not.
                                          if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
                                          if False a tuple is riturned (coordinate1,coordinate2,etc)
     @ In, dict, optional, recastMethods, dictionary containing the methods that need to be used for trasforming the coordinates
                                          ex. {'dimName1':[methodToTransformCoordinate,*args]}
     @ Out, tuple or dict, coordinate, tuple containing the coordinates
     """
-    
+
     coordinates = [None]*self.nVar if returnDict == False else {}
     for cnt, key in enumerate(self.gridContainer['dimensionNames']):
       vvkey = cnt if not returnDict else key
@@ -331,7 +324,7 @@ class GridEntity(BaseType):
       else:
         if key in recastMethods.keys(): coordinates[vvkey] = recastMethods[key][0](self.gridContainer['gridVectors'][key][multiDimIndex[cnt]],*recastMethods[key][1] if len(recastMethods[key]) > 1 else [])
         else                          : coordinates[vvkey] = self.gridContainer['gridVectors'][key][multiDimIndex[cnt]]
-       
+
     if not returnDict: coordinates = tuple(coordinates)
     #coordinate = self.gridContainer['gridCoord'][multiDimIndex]
     return coordinates

@@ -859,7 +859,7 @@ class Grid(Sampler):
         elif self.gridInfo[varName]!='value': self.raiseAnError(IOError,self.gridInfo[varName]+' is not know as value keyword for type. Sampler: '+self.name)
       gridIndexes = self.gridEntity.returnIteratorIndexes()
       coordinates = self.gridEntity.returnPointAndAdvanceIterator(True,recastDict)
-      if coordinates == None: raise utils.NoMoreSamplesNeeded      
+      if coordinates == None: raise utils.NoMoreSamplesNeeded
       coordinatesPlusOne  = self.gridEntity.returnShiftedCoordinate(gridIndexes,dict.fromkeys(self.axisName,1))
       coordinatesMinusOne = self.gridEntity.returnShiftedCoordinate(gridIndexes,dict.fromkeys(self.axisName,-1))
       for i in range(len(self.axisName)):
@@ -876,12 +876,12 @@ class Grid(Sampler):
             for var in self.distributions2variablesMapping[dist_name]:
               variable = var.keys()[0]
               position = var.values()[0]
-              NDcoordinate[position-1] = self.values[variable.strip().split(',')[0]]
+              NDcoordinate[position-1] = float(coordinates[variable.strip()])
             self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(NDcoordinate)
         if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
           if self.distDict[varName].getDisttype() == 'Discrete':
             weight *= self.distDict[varName].pdf(coordinates[varName])
-          else: 
+          else:
             if self.gridInfo[varName]=='CDF':
               if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
                 weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
@@ -905,26 +905,33 @@ class Grid(Sampler):
             for var in self.distributions2variablesMapping[dist_name]:
               variable = var.keys()[0]
               position = var.values()[0]
-              NDcoordinate[position-1] = self.values[variable.strip().split(',')[0]]
+              NDcoordinate[position-1] = coordinates[variable.strip()]
               if self.gridInfo[varName]=='CDF':
                 if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
-                  dxs[position-1] = self.distDict[varName].inverseMarginalDistribution((coordinatesPlusOne[varName] - coordinatesMinusOne[varName]) / 2.0,self.variables2distributionsMapping[varName]['dim']-1)   
+                  dxs[position-1] = self.distDict[varName].inverseMarginalDistribution((coordinatesPlusOne[varName] - coordinatesMinusOne[varName]) / 2.0,self.variables2distributionsMapping[varName]['dim']-1)
                 if coordinatesMinusOne[varName] == -sys.maxsize:
-                  dxs[position-1] = self.distDict[varName].inverseMarginalDistribution(coordinatesPlusOne[varName] - self.values[variable.strip().split(',')[0]],self.variables2distributionsMapping[varName]['dim']-1)
+                  dxs[position-1] = self.distDict[varName].inverseMarginalDistribution(coordinatesPlusOne[varName] - coordinates[variable.strip()],self.variables2distributionsMapping[varName]['dim']-1)
                 if coordinatesPlusOne[varName] == sys.maxsize:
-                  dxs[position-1] = self.distDict[varName].inverseMarginalDistribution(self.values[variable.strip().split(',')[0]] - coordinatesMinusOne[varName],self.variables2distributionsMapping[varName]['dim']-1)               
+                  dxs[position-1] = self.distDict[varName].inverseMarginalDistribution(coordinates[variable.strip()] - coordinatesMinusOne[varName],self.variables2distributionsMapping[varName]['dim']-1)
               else:
                 if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
                   dxs[position-1] = (coordinatesPlusOne[varName] - coordinatesMinusOne[varName]) / 2.0
                 if coordinatesMinusOne[varName] == -sys.maxsize:
-                  dxs[position-1] = coordinatesPlusOne[varName] - self.values[variable.strip().split(',')[0]]
+                  dxs[position-1] = coordinatesPlusOne[varName] - coordinates[variable.strip()]
                 if coordinatesPlusOne[varName] == sys.maxsize:
-                  dxs[position-1] = self.values[variable.strip().split(',')[0]] - coordinatesMinusOne[varName]
-            weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)   
+                  dxs[position-1] = coordinates[variable.strip()] - coordinatesMinusOne[varName]
+            weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)
+      newpoint = tuple(self.values[key] for key in self.values.keys())
+      if newpoint not in self.existing:
+        found=True
+        self.raiseADebug('New point found: '+str(newpoint))
+      else:
+        self.counter+=1
+        if self.counter>=self.limit: raise utils.NoMoreSamplesNeeded
+        self.raiseADebug('Existing point: '+str(newpoint))
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
       self.inputInfo['SamplerType'] = 'Grid'
-      found = True
 #
 #
 #
@@ -1000,46 +1007,6 @@ class Stratified(Grid):
       self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
 
   def localGenerateInput(self,model,myInput):
-    """
-    j=0
-    #self.inputInfo['distributionInfo'] = {}
-    self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
-    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
-    weight = 1.0
-    for varName in self.axisName:
-      upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
-      lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
-      j +=1
-      intervalFraction = Distributions.random()
-      coordinate = lower + (upper-lower)*intervalFraction
-      # check if the varName is a comma separated list of strings
-      # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-      if self.gridInfo[varName][0] =='CDF':
-        ppfvalue = self.distDict[varName].ppf(coordinate)
-        ppflower = self.distDict[varName].ppf(min(upper,lower))
-        ppfupper = self.distDict[varName].ppf(max(upper,lower))
-      for kkey in varName.strip().split(','):
-        self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
-        self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
-        if self.gridInfo[varName][0] =='CDF':
-          self.values[kkey] = ppfvalue
-          self.inputInfo['upper'][kkey] = ppfupper
-          self.inputInfo['lower'][kkey] = ppflower
-          self.inputInfo['SampledVarsPb'][varName] = coordinate
-          weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
-        elif self.gridInfo[varName][0]=='value':
-          self.values[varName] = coordinate
-          self.inputInfo['upper'][kkey] = max(upper,lower)
-          self.inputInfo['lower'][kkey] = min(upper,lower)
-          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
-      if self.gridInfo[varName][0] =='CDF': weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
-      else: weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
-
-    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight' ] = weight
-    self.inputInfo['SamplerType'] = 'Stratified'
-    """
-
     j=0
     #self.inputInfo['distributionInfo'] = {}
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
