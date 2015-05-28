@@ -38,7 +38,7 @@
       </variable>
       <variable name='Materials|heat2|thermal_conductivity'>
         <distribution >Gauss1</distribution>
-        <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
+        <grid type='CDF' construction='equal'   steps='3'>0.17 0.2</grid>
       </variable>
     </Stratified>
 </Samplers>
