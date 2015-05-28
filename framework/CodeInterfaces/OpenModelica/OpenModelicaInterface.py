@@ -1,0 +1,273 @@
+# -*- coding: cp1252 -*-
+'''
+
+Created on May 22, 2015 
+
+@author: bobk
+
+comments: Interface for OpenModelica Simulation 
+
+OpenModelica (http://www.openmodelica.org) is an open souce implementation of the Modelica simulation language.
+This module provides an interface that allows RAVEN to utilize models built using OpenModelica.
+
+General flow:
+
+A Modelica model is specified in a text file.  For example (BouncingBall.mo):
+
+--- BEGIN MODEL FILE ---
+model BouncingBall
+  parameter Real e=0.7 "coefficient of restitution";
+  parameter Real g=9.81 "gravity acceleration";
+  Real h(start=1) "height of ball";
+  Real v "velocity of ball";
+  Boolean flying(start=true) "true, if ball is flying";
+  Boolean impact;
+  Real v_new;
+  Integer foo;
+
+equation
+  impact = h <= 0.0;
+  foo = if impact then 1 else 2;
+  der(v) = if flying then -g else 0;
+  der(h) = v;
+
+  when {h <= 0.0 and v <= 0.0,impact} then
+    v_new = if edge(impact) then -e*pre(v) else 0;
+    flying = v_new > 0;
+    reinit(v, v_new);
+  end when;
+
+end BouncingBall;
+--- END MODEL FILE ---
+
+When OpenModelica simulates this file it is read, and from it C code is generated and then built into a platform-specific
+executable that does the calculations.  The parameters from the model are written into an XML file (by default 
+BouncingBall_init.xml).  After the executable is generated it may be run multiple times.  There are several way to vary 
+input parameters:
+
+	1) Modify the model file and re-build the simulation executable.
+	2) Change the value(s) in the input XML generated as part of the model build process.
+	3) Use a command-line parameter '-override <var>=<value>' to substitute something for the value in the XML input
+	4) Use a command-line parameter '-overrideFile=<file>' to use a completely different XML input file.
+	5) Use a command-line parameter '-iif=<file>' to specify initial conditions using a file in the .MAT format used
+	   for output.
+	6) Paramters in the model file may also be overriden when the simulation executable is built using an OpenModelica
+	   shell command of the form: simulate(<model>, simflags="-override <var>=<value>) 
+
+For RAVEN purposes, this interface code will use option (2).  Variation of parameters may be done by editing the init 
+file and then re-running the model.  The OpenModelica shell provides a method that may be used to change a parameter:
+
+	setInitXmlStartValue(<input file>, <parameter>, <new value>, <output file>)
+
+To change the initial height of the bouncing ball to 5.0 in the above model, and write it back to a different input
+file BouncingBall_new_init.xml.  It is also possible to write the output over the original file:
+
+	setInitXmlStartValue("BouncingBall_init.xml", "h", "5.0", "BouncingBall_new_init.xml") 
+
+The output of the model may be configured to a number of output formats.  The default is a binary file <Model Name>_res.mat
+(BouncingBall_res.mat for this example).  CSV is also an option, which we will use because that is what RAVEN likes best.
+The output type may be set when generating the model executable.
+
+To generate the executable, use the OM Shell:
+	The generate phase builds C code from the modelica file and then builds an executable.  It also generates an initial
+	init file <model>_init.xml for <model>.mo.  This xml can then be modified and used to re-run the simulation.
+
+        (Using the OpenModelica Shell, load the base Modelica library)
+        >> loadModel(Modelica)
+        (Load the model to build)
+        >> loadFile("BouncingBall.mo")
+        (Build the model into an executable and generate the initial XML input file specifying CSV output)
+        >> buildModel(BouncingBall, outputFormat="csv")
+        (Copy the input file to BouncingBall_new_init.xml, changing the initial value of h to 5.0)
+	>> setInitXmlStartValue("BouncingBall_init.xml", "h", "5.0", "BouncingBall_new_init.xml") 
+
+Alternatively, the python OM Shell interface may be used:
+
+	>>> from OMPython import OMCSession	          # Get the library with OMCSession
+	>>> omc = OMCSession()				  # Creates a new shell session
+	>>> omc.execute(<OpenModelica Shell Command>)	  # General form 
+	>>> omc.execute("loadModel(Modelica)")		  # Load base Modelica library
+	>>> omc.execute("loadFile(\"BouncingBall.mo\")")  # Load BouncingBall.mo model
+        >>> omc.execute("buildModel(BouncingBall, outputFormat=\"csv\")")	# Build the model (but not run it), setting for csv file output
+	>>> omc.execute("setInitXmlStartValue(\"BouncingBall_init.xml\",	# Make a new input file with h = 5.0 
+		\"h\", \ "5.0\", \"BouncingBall_new_init.xml\")")
+	>>> omc.execute("system(\"BouncingBall.exe\")")	# Run the model executable
+	>>> omc.execute("simulate(BouncingBall, stopTime=10.0)")		# Run simulation, changing stop time to 10.0
+
+An alternative would be to take the default .mat output type and use the open source package based on SciPy called DyMat
+(https://pypi.python.org/pypi/DyMat) may be used to convert these output files to human-readable forms (including CSV).  For example:
+
+	<Python Code>
+	import DyMat, DyMat.Export			# Import necessary modules
+        d = DyMat.DyMatFile("BouncingBall_res.mat")	# Load the result file
+	d.names()					# Prints out the names in the result file
+	DyMat.Export.export("CSV", d, ["h", "flying"])	# Export variables h and flying to a CSV file
+
+Example of multiple parameter override (option 3 above): BouncingBall.exe -override "h=7,g=7,v=2"
+
+To use RAVEN, we need to be able to perturb the input and output files from the defaults.  The command line
+form of this is: (Where the output file will be of the type originally configured)
+
+	<executable> -f <init file xml> -r <outputfile>
+
+'''
+
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
+import os
+import copy
+import shutil
+import tempfile
+from lxml import etree
+#from OMPython import OMCSession		# Get the library with Open Modelica Session (needed to run OM stuff)
+
+from CodeInterfaceBaseClass import CodeInterfaceBase
+
+class OpenModelicaInterface(CodeInterfaceBase):
+  '''Provides code to interface RAVEN to OpenModelica'''
+
+  def __init__(self, messageHandler):
+    '''Initializes the GenericCode Interface.
+       @ In, None
+       @Out, None
+    '''
+    #self.omc = OMCSession()		    # Creates a new OpenModelica shell session
+    #self.omc.execute(b"loadModel(Modelica)") # Load the base Modelica library
+
+
+  #  Generate the command to run OpenModelica.  The form of the command is:
+  #
+  #  	<executable> -f <init file xml> -r <outputfile>
+  #
+  #  Where:
+  #     <executable>     The executable generated from the Modelica model file (.mo extension)
+  #     <init file xml>  XML file containing the initial model parameters.  We will perturb this from the
+  #                          one originally generated as part of the model build process, which is
+  #                          typically called <model name>_init.xml.
+  #     <outputfile>     The simulation output.  We will use the model generation process to set the format
+  #                          of this to CSV, though there are other formats available. 
+  #                       
+  def generateCommand(self, inputFiles, executable, clargs, fargs=None):
+    '''Builds the OpenModelica command to run the model for a given input file'''
+    found = False
+    # Find the first file in the inputFiles that is an XML, which is what we need to work with.
+    for index, inputFile in enumerate(inputFiles):
+      if self._isValidInput(inputFile):
+        found = True
+        break
+    if not found:
+      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
+
+    #
+    # Build an output file name of the form: out~<Base Name>, where base name is generated from the
+    #   input file passed in: /path/to/file/<Base Name>.ext
+    #
+    outputfile = 'out~' + os.path.splitext(os.path.basename(inputFiles[index]))[0]
+    executeCommand = (executable+' -f '+os.path.split(inputFiles[index])[1] + ' -r '+ outputfile + '.csv')
+
+    return executeCommand, outputfile
+
+  def _isValidInput(self, inputFile):
+    if inputFile.endswith(('.xml', '.XML', '.Xml')):
+      return True
+    return False
+
+  def getInputExtension(self):
+    return ('.xml', '.XML', '.Xml')
+
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+    '''Generate a new OpenModelica input file (XML format) from the original, changing parameters
+       as specified in Kwargs['SampledVars']'''
+
+    # Since OpenModelica provides a way to do this (the setInitXmlStartValue described above), we'll
+    #   use that.  However, since it can only change one value at a time we'll have to apply it multiple
+    #   times.  Start with the original input file, which we have to find first.
+    found = False
+    for index, inputFile in enumerate(oriInputFiles):
+      if self._isValidInput(inputFile):
+        found = True
+        break
+    if not found:
+      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
+
+    # Figure out the new file name and put it into the proper place in the return list
+    newInputFiles = copy.copy(currentInputFiles)
+    originalPath = str(oriInputFiles[index][:])
+    newPath = os.path.join(os.path.split(originalPath)[0],
+                           "OM" + Kwargs['prefix'] + os.path.split(originalPath)[1])
+#                           Kwargs['prefix'] + "~" + os.path.split(originalPath)[1])
+    newInputFiles[index] = newPath
+
+    # Since the input file is XML we can load and edit it directly using etree
+    # Load the original XML into a tree:
+    tree = etree.parse(originalPath)
+    
+    # Look at all of the variables in the XML and see if we have changes
+    #   in our dictionary.
+    varDict = Kwargs['SampledVars']
+    for elem in tree.findall('.//ScalarVariable'):
+      if (elem.attrib['name'] in varDict.keys()):
+        # Should contain one sub-element called 'Real' 'Integer' or 'Boolean' (May be others)
+        for subelem in elem:
+          if 'start' in subelem.attrib.keys():
+            # Change the start value to the provided one
+            subelem.set('start', str(varDict[elem.attrib['name']]))
+    # Now write out the modified file
+    tree.write(newPath)
+
+#     # If this is the first parameter, then go from the original file to the new one.  Otherwise go from
+#     #   new to new.  Do this by building a setInitXmlStartValue command and running it with the OpenModelica
+#     #   shell.  The command to do this is of the form:
+#     # 	  omc.execute("setInitXmlStartValue(\"BouncingBall_init.xml\",	 
+#     #		\"h\", \ "5.0\", \"BouncingBall_new_init.xml\")")
+#     #
+#     # NOTE: This command doesn't appear to tolerate long file paths, so we'll copy the files to the
+#     #       current directory, run the command there, and then move the output to the destination.
+#     #
+#     # 1) Copy the original file to the new name in the current directory
+#     baseNewPath = os.path.basename(newPath);
+#     print("shutil.copyfile", originalPath, baseNewPath)
+#     shutil.copyfile(originalPath, baseNewPath);
+# 
+#     # 2) Apply the parameter variations one by one to the new file in the current directory
+#     varDict = Kwargs['SampledVars']
+#     for varName in varDict.keys():
+#       OMCommand = "setInitXmlStartValue("
+#       OMCommand += "\"" + baseNewPath + "\", "            # Source file is the one we just copied
+#       OMCommand += "\"" + varName + "\", "                # Variable name to change
+#       OMCommand += "\"" + str(varDict[varName]) + "\", "  # ...and its new value
+#       OMCommand += "\"" + baseNewPath + "\")"             # Put the result back in the same file
+# 
+#       # OMSession needs to be fed the command as ASCII, not unicode as it would be because of the
+#       #   "import unicode_literals"
+#       print("*******", str(OMCommand))
+#       self.omc.execute(str(OMCommand))           # Have OpenModelica do the variable change
+# 
+#     # 3) Put the new file in the proper place
+#     shutil.move(baseNewPath, newPath)
+
+    return newInputFiles
+
+  def finalizeCodeOutput(self, command, output, workingDir):
+    '''Called by RAVEN to modify output files (if needed) so that they are in a proper form.
+       In this case, OpenModelica CSV output comes with trailing commas that RAVEN doesn't
+       like.  So we have to strip them.  Also, the first line (with the variable names)
+       has those names enclosed in double quotes (which we have to remove)
+       @ currentInputFiles, Input, the current input files (list)
+       @ output, Input, the Output name root (string)
+       @ workingDir, Input, actual working dir (string)
+       @ return is optional, in case the root of the output file gets changed in this method.
+    '''
+    # Make a new temporary file in the working directory and read the lines from the original CSV
+    #   to it, stripping trailing commas in the process.
+    tempOutputFD, tempOutputFileName = tempfile.mkstemp(dir = workingDir, text = True)
+    sourceFileName = os.path.join(workingDir, output + '.csv')
+    inputFile = open(sourceFileName)
+    for line in inputFile:
+      # Line ends with a comma followed by a newline
+      os.write(tempOutputFD, line.replace('"','').strip().strip(',') + '\n')
+    inputFile.close()
+    os.close(tempOutputFD)
+    shutil.move(tempOutputFileName, sourceFileName)
