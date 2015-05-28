@@ -948,43 +948,42 @@ class Stratified(Grid):
 
   def localInputAndChecks(self,xmlNode):
     Grid.localInputAndChecks(self,xmlNode)
-    for child in xmlNode:
-      if child.tag == "Distribution":
-        #Add <distribution> to name so we know it is not a direct variable
-        varName = "<distribution>"+child.attrib['name']
-      elif child.tag == "global_grid":
-        for childChild in child:
-          if childChild.tag =='grid':
-            globalGridName = childChild.attrib['name']
-            constrType = childChild.attrib['construction']
-            if constrType == 'custom':
-              tempList = [float(i) for i in childChild.text.split()]
-              tempList.sort()
-              self.globalGrid[globalGridName] = (tempList)
-              self.limit = len(tempList)*self.limit
-            elif constrType == 'equal':
-              self.limit = self.limit*(int(childChild.attrib['steps'])+1)
-              if   'lowerBound' in childChild.attrib.keys():
-                self.globalGrid[globalGridName] = ([float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
-                self.globalGrid[globalGridName].sort()
-              elif 'upperBound' in childChild.attrib.keys():
-                self.globalGrid[globalGridName] = ([float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
-                self.globalGrid[globalGridName].sort()
-              else: self.raiseAnError(IOError,'no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
-          else:
-            self.raiseAnError(IOError,'The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
-    for variable in self.gridInfo.keys():
-      if self.gridInfo[variable][1] == 'global_grid':
-        lst=list(self.gridInfo[variable])
-        lst[2] = self.globalGrid[self.gridInfo[variable][2]]
-        self.gridInfo[variable] = tuple(lst)
+#     for child in xmlNode:
+#       if child.tag == "Distribution":
+#         #Add <distribution> to name so we know it is not a direct variable
+#         varName = "<distribution>"+child.attrib['name']
+#       elif child.tag == "global_grid":
+#         for childChild in child:
+#           if childChild.tag =='grid':
+#             globalGridName = childChild.attrib['name']
+#             constrType = childChild.attrib['construction']
+#             if constrType == 'custom':
+#               tempList = [float(i) for i in childChild.text.split()]
+#               tempList.sort()
+#               self.globalGrid[globalGridName] = (tempList)
+#               self.limit = len(tempList)*self.limit
+#             elif constrType == 'equal':
+#               self.limit = self.limit*(int(childChild.attrib['steps'])+1)
+#               if   'lowerBound' in childChild.attrib.keys():
+#                 self.globalGrid[globalGridName] = ([float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+#                 self.globalGrid[globalGridName].sort()
+#               elif 'upperBound' in childChild.attrib.keys():
+#                 self.globalGrid[globalGridName] = ([float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+#                 self.globalGrid[globalGridName].sort()
+#               else: self.raiseAnError(IOError,'no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
+#           else:
+#             self.raiseAnError(IOError,'The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
+#     for variable in self.gridInfo.keys():
+#       if self.gridInfo[variable][1] == 'global_grid':
+#         lst=list(self.gridInfo[variable])
+#         lst[2] = self.globalGrid[self.gridInfo[variable][2]]
+#         self.gridInfo[variable] = tuple(lst)
 
-    pointByVar  = [len(self.gridInfo[variable][2]) for variable in self.gridInfo.keys()]
+    pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1: self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of point in each dimension')
     self.pointByVar = pointByVar[0]
     self.inputInfo['upper'] = {}
     self.inputInfo['lower'] = {}
-    self.limit = (self.pointByVar-1)
 
   def localInitialize(self):
     """
@@ -992,6 +991,7 @@ class Stratified(Grid):
     and filling mapping of the hyper cube.
     """
     Grid.localInitialize(self)
+    self.limit = (self.pointByVar-1)
     tempFillingCheck = [None]*len(self.axisName) #for all variables
     for i in range(len(tempFillingCheck)):
       tempFillingCheck[i] = [None]*(self.pointByVar-1) #intervals are n-points-1
