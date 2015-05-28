@@ -810,6 +810,7 @@ class Grid(Sampler):
     self.axisName             = []    # the name of each axis (variable)
     self.gridInfo             = {}    # {'name of the variable':Type}  --> Type: CDF/Value
     self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
+    self.gridCoordinate       = []    # current grid coordinates
     self.existing             = []    # restart points
     self.gridEntity           = GridEntities.returnInstance('GridEntity',self)
 
@@ -822,7 +823,6 @@ class Grid(Sampler):
     grdInfo = self.gridEntity.returnParameter("gridInfo")
     for axis, value in grdInfo.items(): self.gridInfo[axis] = value[0]
     if len(self.toBeSampled.keys()) != len(grdInfo.keys()): self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
-    #self.gridCoordinate = [None]*len(self.axisName)
     self.axisName = grdInfo.keys()
 
   def localAddInitParams(self,tempDict):
@@ -857,11 +857,11 @@ class Grid(Sampler):
           if self.distDict[varName].getDimensionality()==1: recastDict[varName] = [self.distDict[varName].ppf]
           else: recastDict[varName] = [self.distDict[varName].inverseMarginalDistribution,[self.variables2distributionsMapping[varName]['dim']-1]]
         elif self.gridInfo[varName]!='value': self.raiseAnError(IOError,self.gridInfo[varName]+' is not know as value keyword for type. Sampler: '+self.name)
-      gridIndexes = self.gridEntity.returnIteratorIndexes()
-      coordinates = self.gridEntity.returnPointAndAdvanceIterator(True,recastDict)
+      if self.externalgGridCoord: currentIndexes, coordinates = self.gridEntity.returnIteratorIndexesFromIndex(self.gridCoordinate), self.gridEntity.returnCoordinateFromIndex(self.gridCoordinate, True, recastDict)
+      else                      : currentIndexes, coordinates = self.gridEntity.returnIteratorIndexes(), self.gridEntity.returnPointAndAdvanceIterator(True,recastDict)
       if coordinates == None: raise utils.NoMoreSamplesNeeded
-      coordinatesPlusOne  = self.gridEntity.returnShiftedCoordinate(gridIndexes,dict.fromkeys(self.axisName,1))
-      coordinatesMinusOne = self.gridEntity.returnShiftedCoordinate(gridIndexes,dict.fromkeys(self.axisName,-1))
+      coordinatesPlusOne  = self.gridEntity.returnShiftedCoordinate(currentIndexes,dict.fromkeys(self.axisName,1))
+      coordinatesMinusOne = self.gridEntity.returnShiftedCoordinate(currentIndexes,dict.fromkeys(self.axisName,-1))
       for i in range(len(self.axisName)):
         varName = self.axisName[i]
         for key in varName.strip().split(','):
@@ -910,9 +910,9 @@ class Grid(Sampler):
                 if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
                   dxs[position-1] = self.distDict[varName].inverseMarginalDistribution((coordinatesPlusOne[varName] - coordinatesMinusOne[varName]) / 2.0,self.variables2distributionsMapping[varName]['dim']-1)
                 if coordinatesMinusOne[varName] == -sys.maxsize:
-                  dxs[position-1] = self.distDict[varName].inverseMarginalDistribution(coordinatesPlusOne[varName] - coordinates[variable.strip()],self.variables2distributionsMapping[varName]['dim']-1)
+                  dxs[position-1] = self.distDict[varName].inverseMarginalDistribution(coordinatesPlusOne[varName],self.variables2distributionsMapping[varName]['dim']-1) - coordinates[variable.strip()]
                 if coordinatesPlusOne[varName] == sys.maxsize:
-                  dxs[position-1] = self.distDict[varName].inverseMarginalDistribution(coordinates[variable.strip()] - coordinatesMinusOne[varName],self.variables2distributionsMapping[varName]['dim']-1)
+                  dxs[position-1] = coordinates[variable.strip()] - self.distDict[varName].inverseMarginalDistribution(coordinatesMinusOne[varName],self.variables2distributionsMapping[varName]['dim']-1)
               else:
                 if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
                   dxs[position-1] = (coordinatesPlusOne[varName] - coordinatesMinusOne[varName]) / 2.0
@@ -948,40 +948,9 @@ class Stratified(Grid):
 
   def localInputAndChecks(self,xmlNode):
     Grid.localInputAndChecks(self,xmlNode)
-#     for child in xmlNode:
-#       if child.tag == "Distribution":
-#         #Add <distribution> to name so we know it is not a direct variable
-#         varName = "<distribution>"+child.attrib['name']
-#       elif child.tag == "global_grid":
-#         for childChild in child:
-#           if childChild.tag =='grid':
-#             globalGridName = childChild.attrib['name']
-#             constrType = childChild.attrib['construction']
-#             if constrType == 'custom':
-#               tempList = [float(i) for i in childChild.text.split()]
-#               tempList.sort()
-#               self.globalGrid[globalGridName] = (tempList)
-#               self.limit = len(tempList)*self.limit
-#             elif constrType == 'equal':
-#               self.limit = self.limit*(int(childChild.attrib['steps'])+1)
-#               if   'lowerBound' in childChild.attrib.keys():
-#                 self.globalGrid[globalGridName] = ([float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
-#                 self.globalGrid[globalGridName].sort()
-#               elif 'upperBound' in childChild.attrib.keys():
-#                 self.globalGrid[globalGridName] = ([float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
-#                 self.globalGrid[globalGridName].sort()
-#               else: self.raiseAnError(IOError,'no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
-#           else:
-#             self.raiseAnError(IOError,'The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
-#     for variable in self.gridInfo.keys():
-#       if self.gridInfo[variable][1] == 'global_grid':
-#         lst=list(self.gridInfo[variable])
-#         lst[2] = self.globalGrid[self.gridInfo[variable][2]]
-#         self.gridInfo[variable] = tuple(lst)
-
     pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1: self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of point in each dimension')
-    self.pointByVar = pointByVar[0]
+    self.pointByVar         = pointByVar[0]
     self.inputInfo['upper'] = {}
     self.inputInfo['lower'] = {}
 
@@ -992,80 +961,48 @@ class Stratified(Grid):
     """
     Grid.localInitialize(self)
     self.limit = (self.pointByVar-1)
-    tempFillingCheck = [None]*len(self.axisName) #for all variables
-    for i in range(len(tempFillingCheck)):
-      tempFillingCheck[i] = [None]*(self.pointByVar-1) #intervals are n-points-1
-      tempFillingCheck[i][:] = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
-    self.sampledCoordinate = [None]*(self.pointByVar-1)
-    for i in range(self.pointByVar-1):
-      self.sampledCoordinate[i] = [None]*len(self.axisName)
-      self.sampledCoordinate[i][:] = [tempFillingCheck[j][i] for j in range(len(tempFillingCheck))]
-
+    tempFillingCheck = [[None]*(self.pointByVar-1)]*len(self.axisName) #for all variables
+    for i in range(len(tempFillingCheck)): tempFillingCheck[i] = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
+    self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
+    for i in range(self.pointByVar-1): self.sampledCoordinate[i] = [tempFillingCheck[j][i] for j in range(len(tempFillingCheck))]
     if self.restartData:
       self.counter+=len(self.restartData)
       self.raiseAMessage('Number of points from restart: %i' %self.counter)
       self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
 
   def localGenerateInput(self,model,myInput):
-    j=0
-    #self.inputInfo['distributionInfo'] = {}
+    varCount = 0
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     weight = 1.0
-
     for varName in self.axisName:
-
+      upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
+      lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
+      coordinate = lower + (upper-lower)*Distributions.random()
+      varCount += 1
       if not "<distribution>" in varName:
         if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['dim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
-          upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
-          lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
-          j += 1
-          intervalFraction = Distributions.random()
-          coordinate = lower + (upper-lower)*intervalFraction
-          gridCoordinate =  self.distDict[varName].ppf(coordinate)
-          distName = self.variables2distributionsMapping[varName]['name']
+          gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
           for distVarName in self.distributions2variablesMapping[distName]:
             for kkey in distVarName.keys()[0].strip().split(','):
-              self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
-              self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
-              self.values[kkey] = np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
-              #self.inputInfo['upper'][kkey] = ppfupper
-              #self.inputInfo['lower'][kkey] = ppflower
+              self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
               self.inputInfo['SampledVarsPb'][varName] = coordinate
-
           weight *= upper - lower
-
       if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:   # 1D variable
-        upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
-        lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
-        j +=1
-        intervalFraction = Distributions.random()
-        coordinate = lower + (upper-lower)*intervalFraction
-        # check if the varName is a comma separated list of strings
-        # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-        if self.gridInfo[varName][0] =='CDF':
-          ppfvalue = self.distDict[varName].ppf(coordinate)
-          ppflower = self.distDict[varName].ppf(min(upper,lower))
-          ppfupper = self.distDict[varName].ppf(max(upper,lower))
+        # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+        if self.gridInfo[varName] =='CDF':
+          ppfvalue, ppflower, ppfupper = self.distDict[varName].ppf(coordinate), self.distDict[varName].ppf(min(upper,lower)), self.distDict[varName].ppf(max(upper,lower))
         for kkey in varName.strip().split(','):
           self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
           self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
-          if self.gridInfo[varName][0] =='CDF':
-            self.values[kkey] = ppfvalue
-            self.inputInfo['upper'][kkey] = ppfupper
-            self.inputInfo['lower'][kkey] = ppflower
-            self.inputInfo['SampledVarsPb'][varName] = coordinate
+          if self.gridInfo[varName] =='CDF':
+            self.values[kkey], self.inputInfo['upper'][kkey], self.inputInfo['lower'][kkey], self.inputInfo['SampledVarsPb'][varName]  = ppfvalue, ppfupper, ppflower, coordinate
             weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
-          elif self.gridInfo[varName][0]=='value':
-            self.values[varName] = coordinate
-            self.inputInfo['upper'][kkey] = max(upper,lower)
-            self.inputInfo['lower'][kkey] = min(upper,lower)
+          elif self.gridInfo[varName] =='value':
+            self.values[varName], self.inputInfo['upper'][kkey], self.inputInfo['lower'][kkey] = coordinate, max(upper,lower), min(upper,lower)
             self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
-        if self.gridInfo[varName][0] =='CDF':
-          weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
-        else:
-          weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
-
+        if self.gridInfo[varName] =='CDF': weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
+        else                             : weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
@@ -2029,10 +1966,10 @@ class FactorialDesign(Grid):
     if self.factOpt['algorithm_type'] != 'full':
       self.externalgGridCoord = True
       for varname in self.gridInfo.keys():
-        if len(self.gridInfo[varname][2]) != 2:
+        if len(self.gridEntity.returnParameter("gridInfo")[varname][2]) != 2:
           self.raiseAnError(IOError,'The number of levels for type '+
                         self.factOpt['algorithm_type'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
-                        str(len(self.gridInfo[varname][2])))
+                        str(len(self.gridEntity.returnParameter("gridInfo")[varname][2])))
     else: self.externalgGridCoord = False
 
   def localAddInitParams(self,tempDict):

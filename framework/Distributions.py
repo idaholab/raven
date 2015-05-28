@@ -1451,7 +1451,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     if (x>=0.0) and (x<=1.0):
       return self._distribution.inverseMarginal(x, variable)
     else:
-      self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
+      self.raiseAnError(ValueError,'NDCartesianSpline: inverseMarginalDistribution(x) with x ' +str(x)+' outside [0.0,1.0]')
 
   def untruncatedCdfComplement(self, x):
     self.raiseAnError(NotImplementedError,'untruncatedCdfComplement not yet implemented for ' + self.type)
@@ -1529,7 +1529,7 @@ class MultivariateNormal(NDimensionalDistributions):
     if (x>0.0) and (x<1.0):
       return self._distribution.inverseMarginal(x, variable)
     else:
-      self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
+      self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x ' +str(x)+' outside [0.0,1.0]')
 
   def untruncatedCdfComplement(self, x):
     self.raiseAnError(NotImplementedError,'untruncatedCdfComplement not yet implemented for ' + self.type)
