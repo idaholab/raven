@@ -286,7 +286,7 @@ class SparseQuad(MessageHandler.MessageUser):
         else:
           self.raiseAMessage('Sparse quad generation (tensor) '+job.identifier+' failed...')
       if j<numRunsNeeded-1:
-        for k in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
+        for _ in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
           j+=1
           cof=self.c[j]
           idx = self.indexSet[j]

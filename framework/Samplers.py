@@ -818,12 +818,12 @@ class Grid(Sampler):
     """reading and construction of the grid"""
     if 'limit' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
-    if not self.axisName: self.axisName = []
     self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable","Distribution"],messageHandler=self.messageHandler, dimTagsPrefix={"Distribution":"<distribution>"})
     grdInfo = self.gridEntity.returnParameter("gridInfo")
     for axis, value in grdInfo.items(): self.gridInfo[axis] = value[0]
     if len(self.toBeSampled.keys()) != len(grdInfo.keys()): self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
     self.axisName = grdInfo.keys()
+    self.axisName.sort()
 
   def localAddInitParams(self,tempDict):
     for variable,value in self.gridInfo.items():
@@ -1488,7 +1488,6 @@ class DynamicEventTree(Grid):
 
   def localInputAndChecks(self,xmlNode):
     Grid.localInputAndChecks(self,xmlNode)
-    self.limit = sys.maxsize
     if 'print_end_xml' in xmlNode.attrib.keys():
       if xmlNode.attrib['print_end_xml'].lower() in utils.stringsThatMeanTrue(): self.print_end_xml = True
       else: self.print_end_xml = False
@@ -1509,20 +1508,21 @@ class DynamicEventTree(Grid):
         self.preconditionerToApply[child.attrib['type']]._readMoreXML(child)
     branchedLevel = {}
     error_found = False
+    gridInfo = self.gridEntity.returnParameter("gridInfo")
     for keyk in self.axisName:
       branchedLevel[self.toBeSampled[keyk]] = 0
-      if self.gridInfo[keyk][0] == 'CDF':
-        self.branchProbabilities[self.toBeSampled[keyk]] = self.gridInfo[keyk][2]
+      if self.gridInfo[keyk] == 'CDF':
+        self.branchProbabilities[self.toBeSampled[keyk]] = gridInfo[keyk][2]
         self.branchProbabilities[self.toBeSampled[keyk]].sort(key=float)
         if max(self.branchProbabilities[self.toBeSampled[keyk]]) > 1:
-          self.raiseAWarning("One of the Thresholds for distribution " + str(self.gridInfo[keyk][2]) + " is > 1")
+          self.raiseAWarning("One of the Thresholds for distribution " + str(gridInfo[keyk][2]) + " is > 1")
           error_found = True
           for index in range(len(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float))):
             if sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float).count(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index]) > 1:
               self.raiseAWarning("In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
               error_found = True
       else:
-        self.branchValues[self.toBeSampled[keyk]] = self.gridInfo[keyk][2]
+        self.branchValues[self.toBeSampled[keyk]] = gridInfo[keyk][2]
         self.branchValues[self.toBeSampled[keyk]].sort(key=float)
         for index in range(len(sorted(self.branchValues[self.toBeSampled[keyk]], key=float))):
           if sorted(self.branchValues[self.toBeSampled[keyk]], key=float).count(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index]) > 1:
@@ -1582,7 +1582,7 @@ class DynamicEventTree(Grid):
     for key in self.branchValues.keys():
       #kk = self.toBeSampled.values().index(key)
       self.branchProbabilities[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
-    return
+    self.limit = sys.maxsize
 #
 #
 #
@@ -1987,10 +1987,8 @@ class FactorialDesign(Grid):
     if   self.factOpt['algorithm_type'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
     elif self.factOpt['algorithm_type'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
     if self.designMatrix != None:
-      # convert all -1 in 0 => we can access to the grid info directly
-      self.designMatrix[self.designMatrix == -1] = 0
-      # the limit is the number of rows
-      self.limit = self.designMatrix.shape[0]
+      self.designMatrix[self.designMatrix == -1] = 0 # convert all -1 in 0 => we can access to the grid info directly
+      self.limit = self.designMatrix.shape[0]        # the limit is the number of rows
 
   def localGenerateInput(self,model,myInput):
     if self.factOpt['algorithm_type'] == 'full':  Grid.localGenerateInput(self,model, myInput)
@@ -2015,13 +2013,11 @@ class ResponseSurfaceDesign(Grid):
     self.mapping         = {}                                    # mapping between designmatrix coordinates and position in grid
     self.minNumbVars     = {'boxbehnken':3,'centralcomposite':2} # minimum number of variables
     # dictionary of accepted types and options (required True, optional False)
-    self.acceptedOptions = {'boxbehnken':['ncenters'],
-                            'centralcomposite':['centers','alpha','face']}
+    self.acceptedOptions = {'boxbehnken':['ncenters'], 'centralcomposite':['centers','alpha','face']}
 
   def localInputAndChecks(self,xmlNode):
     """reading and construction of the grid"""
-    # here we call the input reader of the grid, even if the grid is definded in a different way, just to collect the variable names
-    # Grid.localInputAndChecks(self,xmlNode)
+    Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("ResponseSurfaceDesignSettings")
     if factsettings == None: self.raiseAnError(IOError,'ResponseSurfaceDesignSettings xml node not found!')
     facttype = factsettings.find("algorithm_type")
@@ -2030,13 +2026,12 @@ class ResponseSurfaceDesign(Grid):
     self.respOpt['algorithm_type'] = facttype.text.lower()
     # set defaults
     if self.respOpt['algorithm_type'] == 'boxbehnken': self.respOpt['options'] = {'ncenters':None}
-    else                                   : self.respOpt['options'] = {'centers':(4,4),'alpha':'orthogonal','face':'circumscribed'}
+    else                                             : self.respOpt['options'] = {'centers':(4,4),'alpha':'orthogonal','face':'circumscribed'}
     for child in factsettings:
       if child.tag not in 'algorithm_type': self.respOpt['options'][child.tag] = child.text.lower()
     # start checking
     for key,value in self.respOpt['options'].items():
-      if key not in self.acceptedOptions[facttype.text.lower()]:
-        self.raiseAnError(IOError,'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
+      if key not in self.acceptedOptions[facttype.text.lower()]: self.raiseAnError(IOError,'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
       if self.respOpt['algorithm_type'] == 'boxbehnken':
         if key == 'ncenters':
           if self.respOpt['options'][key] != None:
@@ -2045,31 +2040,17 @@ class ResponseSurfaceDesign(Grid):
       else:
         if key == 'centers':
           if len(value.split(',')) != 2: self.raiseAnError(IOError,'"'+key+'" must be a comma separated string of 2 values only!')
-          centers = value.split(',')
-          try: self.respOpt['options'][key] = (int(centers[0]),int(centers[1]))
+          try: self.respOpt['options'][key] = (int(value.split(',')[0]),int(value.split(',')[1]))
           except: self.raiseAnError(IOError,'"'+key+'" values must be integers!!')
         if key == 'alpha':
           if value not in ['orthogonal','rotatable']: self.raiseAnError(IOError,'Not recognized options for node ' +'"'+key+'". Available are "orthogonal","rotatable"!')
         if key == 'face':
           if value not in ['circumscribed','faced','inscribed']: self.raiseAnError(IOError,'Not recognized options for node ' +'"'+key+'". Available are "circumscribed","faced","inscribed"!')
-    # fill in the grid
-    if 'limit' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'limit is not used in' +self.type+' sampler!')
-    if not self.axisName: self.axisName = []
-    for child in xmlNode:
-      if child.tag == "Distribution": varName = "<distribution>"+child.attrib['name']
-      elif child.tag == "variable"  : varName = child.attrib['name']
-      for childChild in child:
-        if childChild.tag =='boundaries':
-          self.axisName.append(varName)
-          if 'type' not in childChild.attrib.keys(): self.raiseAnError(IOError,'in block '+ childChild.tag + ' attribute type not found!')
-          self.gridInfo[varName] = [childChild.attrib['type'],'custom',[]]
-          lower = childChild.find("lower")
-          upper = childChild.find("upper")
-          if lower == None: self.raiseAnError(IOError,'node "lower" not found in '+childChild.tag+' block!')
-          if upper == None: self.raiseAnError(IOError,'node "upper" not found in '+childChild.tag+' block!')
-          try: self.bounds[varName] = (float(lower.text),float(upper.text))
-          except: self.raiseAnError(IOError,'node "upper" or "lower" must be float')
-    if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
+    gridInfo = self.gridEntity.returnParameter('gridInfo')
+    if len(self.toBeSampled.keys()) != len(gridInfo.keys()): self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
+    for varName, values in gridInfo.items():
+      if values[1] != "custom" : self.raiseAnError(IOError,"The grid construct needs to be custom for variable "+varName)
+      if len(values[2]) != 2   : self.raiseAnError(IOError,"The number of values can be accepted are only 2 (lower and upper bound) for variable "+varName)
     self.gridCoordinate = [None]*len(self.axisName)
     if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['algorithm_type']]: self.raiseAnError(IOError,'minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
     self.externalgGridCoord = True
@@ -2087,13 +2068,15 @@ class ResponseSurfaceDesign(Grid):
     """
     if   self.respOpt['algorithm_type'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
     elif self.respOpt['algorithm_type'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
+    gridInfo   = self.gridEntity.returnParameter('gridInfo')
+    stepLenght = {}
     for cnt, varName in enumerate(self.axisName):
-      column = np.unique(self.designMatrix[:,cnt])
-      yi = np.array([self.bounds[varName][0], self.bounds[varName][1]])
-      xi = np.array([min(column), max(column)])
-      s = InterpolatedUnivariateSpline(xi, yi, k=1)
-      self.gridInfo[varName][2] = s(column).tolist()
-      self.mapping[varName] = column.tolist()
+      self.mapping[varName] = np.unique(self.designMatrix[:,cnt]).tolist()
+      gridInfo[varName] = (gridInfo[varName][0],gridInfo[varName][1],InterpolatedUnivariateSpline(np.array([min(self.mapping[varName]), max(self.mapping[varName])]),
+                           np.array([min(gridInfo[varName][2]), max(gridInfo[varName][2])]), k=1)(self.mapping[varName]).tolist())
+      stepLenght[varName] = [round(gridInfo[varName][-1][k+1] - gridInfo[varName][-1][k],14) for k in range(len(gridInfo[varName][-1])-1)]
+    self.gridEntity.updateParameter("stepLenght", stepLenght, False)
+    self.gridEntity.updateParameter("gridInfo", gridInfo)
     Grid.localInitialize(self)
     self.limit = self.designMatrix.shape[0]
 
@@ -2149,10 +2132,7 @@ class SparseGridCollocation(Grid):
   def localInitialize(self):
     for key in self.assemblerDict.keys():
       if 'ROM' in key:
-        indice = 0
-        for value in self.assemblerDict[key]:
-          self.ROM = self.assemblerDict[key][indice][3]
-          indice += 1
+        for value in self.assemblerDict[key]: self.ROM = value[3]
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #often need only one
     self._generateQuadsAndPolys(SVL)
