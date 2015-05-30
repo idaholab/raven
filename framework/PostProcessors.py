@@ -27,6 +27,7 @@ import mathUtils
 from Assembler import Assembler
 import SupervisedLearning
 import MessageHandler
+import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -1506,6 +1507,7 @@ class LimitSurface(BasePostProcessor):
     self.gridVectors       = {}
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
+    self.gridEntity        = GridEntities.returnInstance("GridEntity",self)
     self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
 
