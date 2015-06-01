@@ -2121,15 +2121,21 @@ class TopologicalDecomposition(BasePostProcessor):
     if type(currentInput) == dict:
       if 'features' in currentInput.keys(): return currentInput
     inputDict = {'features':{},'targets':{},'metadata':{}}
-    try: inType = currentInput.type
-    except:
-      if type(currentInput).__name__ == 'list'    : inType = 'list'
-      else:       self.raiseAnError(IOError, self.__class__.__name__,
+    if hasattr(currentInput,type):
+      inType = currentInput.type
+    elif type(currentInput).__name__ == 'list':
+      inType = 'list'
+    else:
+      self.raiseAnError(IOError, self.__class__.__name__,
                         ' postprocessor accepts files, HDF5, Data(s) only. ',
                         ' Requested: ',type(currentInput))
-    if inType not in ['FileObject','HDF5','TimePointSet','list']: self.raiseAnError(IOError,self,'Topology postprocessor accepts files,HDF5,Data(s) only! Got '+ str(inType) + '!!!!')
+
+    if inType not in ['FileObject','HDF5','TimePointSet','list']: 
+      self.raiseAnError(IOError, self, self.__class__.__name__ + ' post-processor only accepts files, HDF5, or DataObjects! Got '+ str(inType) + '!!!!')
+    # FIXME: implement this feature
     if inType == 'FileObject':
       if currentInput.subtype == 'csv': pass
+    # FIXME: implement this feature
     if inType == 'HDF5': pass # to be implemented
     if inType in ['TimePointSet']:
       for targetP in self.parameters['features']:
