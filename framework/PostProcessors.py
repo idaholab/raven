@@ -2292,7 +2292,9 @@ class TopologicalDecomposition(BasePostProcessor):
       inputData[:,i] = myDataIn[lbl.encode('UTF-8')]
 
     names = self.parameters['features'] + [self.parameters['targets']]
-
+    #FIXME: AMSC_Object employs unsupervised NearestNeighbors algorithm from scikit learn. 
+    #       The NearestNeighbor algorithm is implemented in SupervisedLearning, which requires features and targets by default.
+    #       which we don't have here. When the NearestNeighbor is implemented in unSupervisedLearning switch to it.
     self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=None,
                               names=names, graph=self.graph,
                               gradient=self.gradient, knn=self.knn,

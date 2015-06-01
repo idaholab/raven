@@ -13,8 +13,8 @@
 </RunInfo>
 <Models>
 <!-- The definition of the topological partition and all of its parameters -->
-  <PostProcessor name='AMSC1' subType='TopologicalDecomposition' debug='true'>
-    <graph>Beta Skeleton</graph>
+  <PostProcessor name='AMSC1' subType='TopologicalDecomposition'>
+      <graph>Beta Skeleton</graph>
     <gradient>steepest</gradient>
     <beta>1</beta>
     <knn>8</knn>
@@ -22,7 +22,7 @@
     <parameters>X,Y</parameters>
     <response>Z</response>
   </PostProcessor>
-  <PostProcessor name='AMSC2' subType='TopologicalDecomposition' debug='true'>
+  <PostProcessor name='AMSC2' subType='TopologicalDecomposition'>
     <graph>Beta Skeleton</graph>
     <gradient>steepest</gradient>
     <beta>1</beta>
@@ -32,7 +32,7 @@
     <response>Z</response>
     <persistence>0.005</persistence>
   </PostProcessor>
-  <PostProcessor name='AMSC3' subType='TopologicalDecomposition' debug='true'>
+  <PostProcessor name='AMSC3' subType='TopologicalDecomposition'>
     <graph>Beta Skeleton</graph>
     <gradient>steepest</gradient>
     <beta>1</beta>
@@ -42,12 +42,12 @@
     <response>Z</response>
     <persistence>0.04</persistence>
   </PostProcessor>
-  <PostProcessor name='AMSC4' subType='TopologicalDecomposition' debug='true'>
+  <PostProcessor name='AMSC4' subType='TopologicalDecomposition'>
     <graph>Beta Skeleton</graph>
     <gradient>steepest</gradient>
     <beta>1</beta>
     <knn>8</knn>
-    <normalization>None</normalization>
+    <!--normalization>None</normalization-->
     <parameters>X,Y</parameters>
     <response>Z</response>
     <persistence>0.1</persistence>
