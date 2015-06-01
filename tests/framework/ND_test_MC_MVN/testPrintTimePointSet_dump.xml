@@ -1,0 +1,9 @@
+<data name="testPrintTimePointSet_dump" type="timepointset"><input>y0,x0,z0</input><output>y,x,z</output><input_filename>testPrintTimePointSet_dump.csv</input_filename><metadata><SamplerType>array(u'MC', u'MC', u'MC', 
+      dtype='&lt;U2')</SamplerType><crowDist>array( u'x0': '"type": "MultivariateNormalDistribution"', u'y0,z0': '"type": "MultivariateNormalDistribution"',
+       u'x0': '"type": "MultivariateNormalDistribution"', u'y0,z0': '"type": "MultivariateNormalDistribution"',
+       u'x0': '"type": "MultivariateNormalDistribution"', u'y0,z0': '"type": "MultivariateNormalDistribution"', dtype=object)</crowDist><SampledVars>array( u'y0': 59.225666471576702, u'x0': 1.5158831100156251, u'z0': 59.225666471576702,
+       u'y0': 59.225666471576702, u'x0': 1.5158831100156251, u'z0': 59.225666471576702,
+       u'y0': 59.225666471576702, u'x0': 1.5158831100156251, u'z0': 59.225666471576702, dtype=object)</SampledVars><prefix>array('1', '2', '3', 
+      dtype='|S1')</prefix><SampledVarsPb>array( u'y0': 0.019346402222674704, u'x0': 0.04337372490342549, u'z0': 0.019346402222674704,
+       u'y0': 0.019346402222674704, u'x0': 0.04337372490342549, u'z0': 0.019346402222674704,
+       u'y0': 0.019346402222674704, u'x0': 0.04337372490342549, u'z0': 0.019346402222674704, dtype=object)</SampledVarsPb><PointProbability>array(  4.97621322e-04,   1.41472333e-03,   1.62340600e-05)</PointProbability></metadata></data>
