@@ -15,15 +15,6 @@
     </Distributions>
 
     <Samplers>
-        <SparseGridCollocation name="SG" parallel="1">
-            <variable name="x1">
-                <distribution>UniDist</distribution>
-            </variable>
-            <variable name="x2">
-                <distribution>UniDist</distribution>
-            </variable>
-            <ROM              class = 'Models' type = 'ROM'         >UROM</ROM>
-        </SparseGridCollocation>
         <Grid name='grid'>
             <variable name="x1">
                 <distribution>UniDist</distribution>
@@ -34,10 +25,19 @@
                 <grid type='CDF' construction='equal' lowerBound='0.0' steps='5'>0.2</grid>
             </variable>
         </Grid>
+        <SparseGridCollocation name="SG" parallel="1">
+            <variable name="x1">
+                <distribution>UniDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>UniDist</distribution>
+            </variable>
+            <ROM              class = 'Models' type = 'ROM'         >UROM</ROM>
+        </SparseGridCollocation>
     </Samplers>
 
     <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
+        <Dummy name="MyDummy" subType=""/>
         <ExternalModel name='polynomial' subType='' ModuleToLoad = './StochasticPolyPickleTest/polynomial'>
             <variable>x1</variable>
             <variable>x2</variable>

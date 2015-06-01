@@ -64,13 +64,20 @@ reported.
 Firstly, all the probability distributions functions in the code can be
 truncated by using the following keywords:
 \begin{lstlisting}[style=XML]
-<lowerBound>aFloatValue</lowerBound>
-<upperBound>aFloatValue</upperBound>
+<Distributions>
+   ...
+   <aDistributionType>
+      ...
+      <lowerBound>aFloatValue</lowerBound>
+      <upperBound>aFloatValue</upperBound>
+      ...
+   </aDistributionType>
+</Distributions>
 \end{lstlisting}
-Obviously, each distribution already defines its valid domain (e.g. Normal
-distribution, $[-\infty,+\infty]$).
+Obviously, each distribution already defines its support (domain). For example, the Normal
+distribution domain is $[-\infty,+\infty]$.
 %
-RAVEN currently provides support for 12 1-Dimensional distributions.
+RAVEN currently provides support for 13 1-Dimensional distributions.
 %
 In the following paragraphs, all the input requirements are reported and
 commented.
@@ -78,14 +85,11 @@ commented.
 %%%%%% Beta
 \paragraph{Beta Distribution}
 \label{Beta}
-The \distname{Beta} distribution is defined, by default, on the
-interval $[0,1]$ parameterized by two positive shape parameters, denoted by
-$\alpha$ and $\beta$, that appear as exponents of the random variable.
+The \distname{Beta} distribution is parameterized by two positive shape parameters, denoted by
+$\alpha$ and $\beta$, that appear as exponents of the random variable. Its default support 
+(domain) is $x \in (0, 1)$.
 %
-The distribution domain can be changed, specifying new boundaries, to fit the
-user's needs.
-%
-Its support is $x \in (0, 1)$.
+The distribution domain can be changed, specifying new boundaries, to fit the user's needs.
 %
 The user can specify a \distname{Beta} distribution in two ways.  The standard
 is to provide the parameters \xmlNode{low}, \xmlNode{high}, \xmlNode{alpha},
@@ -108,23 +112,35 @@ to a Gaussian normal is a peak factor of 0.5.
 \vspace{-5mm}
 \subnodesIntro
 \begin{itemize}
-  \item \xmlNode{alpha}, \xmlDesc{float, required parameter}, first shape
-  parameter.  If specified, \xmlNode{beta} must also be specified and
-  \xmlNode{peakFactor} must not be specified.
-  %
-  \item \xmlNode{beta}, \xmlDesc{float, required parameter}, second shape
-  parameter.  If specified, \xmlNode{alpha} must also be specified and
-  \xmlNode{peakFactor} must not be specified.
-  %
-  \item \xmlNode{peakFactor}, \xmlDesc{float, optional parameter}, alternative
-  to specifying \xmlNode{alpha} and \xmlNode{beta}.  Acceptable values range from
-  0 to 1.
-  %
-  \item \xmlNode{low}, \xmlDesc{float, required parameter}, lower domain
-  boundary.
-  %
-  \item \xmlNode{high}, \xmlDesc{float, optional parameter}, upper domain,
-  boundary. \default{1.0}
+  \item Standard initialization:
+    \begin{itemize}
+    \item \xmlNode{alpha}, \xmlDesc{float, conditional required parameter}, first shape
+     parameter.  If specified, \xmlNode{beta} must also be inputted and
+     \xmlNode{peakFactor} can not be specified.
+%
+     \item \xmlNode{beta}, \xmlDesc{float, conditional required parameter}, second shape
+      parameter.  If specified, \xmlNode{alpha} must also be inputted and
+      \xmlNode{peakFactor} can not be specified.
+%
+       \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain
+       boundary. \default{0.0}
+ %
+       \item \xmlNode{high}, \xmlDesc{float, optional parameter}, upper domain,
+         boundary. \default{1.0}
+      \end{itemize}
+ %
+     \item Alternative initialization:
+     \begin{itemize}
+        \item \xmlNode{peakFactor}, \xmlDesc{float, optional parameter}, alternative
+         to specifying \xmlNode{alpha} and \xmlNode{beta}.  Acceptable values range from
+        0 to 1.
+%
+       \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain
+       boundary. \default{0.0}
+ %
+       \item \xmlNode{high}, \xmlDesc{float, optional parameter}, upper domain,
+         boundary. \default{1.0}
+      \end{itemize}
   %
 \end{itemize}
 
@@ -137,6 +153,11 @@ Example:
      <high>aFloatValue</high>
      <alpha>aFloatValue</alpha>
      <beta>aFloatValue</beta>
+  </Beta>
+  <Beta name='aUserDefinedName2'>
+     <low>aFloatValue</low>
+     <high>aFloatValue</high>
+     <peakFactor>aFloatValue</peakFactor>
   </Beta>
   ...
 </Distributions>
@@ -159,6 +180,8 @@ The \distname{Exponential} distribution support is $x \in [0, +\infty)$.
 \subnodeIntro
 \begin{itemize}
   \item \xmlNode{lambda}, \xmlDesc{float, required parameter}, rate parameter.
+  \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain
+     boundary. \default{0.0}
   %
 \end{itemize}
 
@@ -168,6 +191,7 @@ Example:
   ...
   <Exponential name='aUserDefinedName'>
     <lambda>aFloatValue</lambda>
+    <low>aFloatValue</low>
   </Exponential>
   ...
 </Distributions>
@@ -197,8 +221,8 @@ Its support is $x \in (0,+\infty)$.
 \begin{itemize}
   \item \xmlNode{alpha}, \xmlDesc{float, required parameter}, shape parameter.
   %
-  \item \xmlNode{beta}, \xmlDesc{float, required parameter}, 1/scale or the
-  inverse scale parameter;
+  \item \xmlNode{beta}, \xmlDesc{float, optional parameter}, 1/scale or the
+  inverse scale parameter. \default{1.0}
   \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain
   boundary. \default{0.0}
   %
@@ -285,6 +309,8 @@ Its support is $x \in (0, +\infty)$.
   %
   \item \xmlNode{sigma}, \xmlDesc{float, required parameter}, standard
   deviation.
+  \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain
+  boundary. \default{0.0}
   %
 \end{itemize}
 
@@ -295,6 +321,7 @@ Example:
   <LogNormal name='aUserDefinedName'>
     <mean>aFloatValue</mean>
     <sigma>aFloatValue</sigma>
+    <low>aFloatValue</low>
   </LogNormal>
   ...
 </Distributions>
@@ -424,7 +451,8 @@ Its support is $lower \le x \le upper$.
   boundary.
   %
 \end{itemize}
-
+\nb Since the Uniform distribution is a rectangular-shaped PDF, the truncation does not have any effect;
+ this is the reason why the children nodes are the ones generally used for truncated distributions.
 Example:
 \begin{lstlisting}[style=XML]
 <Distributions>
@@ -472,6 +500,8 @@ Its support is $x \in [0, +\infty)$.
   \item \xmlNode{k}, \xmlDesc{float, required parameter}, shape parameter.
   %
   \item \xmlNode{lambda}, \xmlDesc{float, required parameter}, scale parameter.
+  \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain
+  boundary. \default{0.0}
   %
 \end{itemize}
 
@@ -482,6 +512,7 @@ Example:
   <Weibull name='aUserDefinedName'>
     <lambda>aFloatValue</lambda>
     <k>aFloatValue</k>
+    <low>aFloatValue</low>
   </Weibull>
   ...
 </Distributions>
@@ -568,7 +599,7 @@ Example:
 <Distributions>
   ...
   <Binomial name='aUserDefinedName'>
-    <n>aFloatValue</n>
+    <n>aIntegerValue</n>
     <p>aFloatValue</p>
   </Binomial>
   ...
@@ -612,6 +643,48 @@ Example:
 </Distributions>
 \end{lstlisting}
 
+
+%%%%%% Categorical
+\paragraph{Categorical Distribution}
+\label{Categorical}
+The \distname{Categorical} distribution is a discrete distribution  that describes the result of a random variable that can have K possible outcomes. The probability of each outcome is separately specified.
+The possible outcomes must be numerical values (float)
+%
+There is not necessarily an underlying ordering of these outcomes, but labels are assigned in describing the distribution (in the range 1 to K).
+%
+\specBlock{a}{Categorical}
+%
+\attrIntro
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+\vspace{-5mm}
+\subnodeIntro
+\begin{itemize}
+  \item \xmlNode{outcome 1}, \xmlDesc{float, required parameter}, probability
+  for outcome 1
+  \item \xmlNode{outcome 2}, \xmlDesc{float, required parameter}, probability for outcome 2
+  \item ...
+  \item \xmlNode{outcome K}, \xmlDesc{float, required parameter}, probability for outcome K
+ \end{itemize}
+Example:
+\begin{lstlisting}[style=XML]
+<Distributions>
+  ...
+    <Categorical name='testCategorical'>
+        <10>0.1</10>
+        <20>0.2</20>
+        <50>0.15</50>
+        <60>0.4</60>
+        <90>0.15</90>
+    </Categorical>
+  ...
+</Distributions>
+\end{lstlisting}
+
+
 %%%%%% N-Dimensional Probability distributions
 \subsection{N-Dimensional Probability Distributions}
 \label{subsec:NdDist}
@@ -630,14 +703,32 @@ The user can initialize, for each $N$-Dimensional distribution, the parameters o
 \end{itemize}
 in the $<dist\textunderscore init>$ block defined in sampler block $<sampler\textunderscore init>$ (see Section~\ref{sec:Samplers}). 
 
-\paragraph{NDInverseWeight Distribution}
+\subsubsection{NDInverseWeight Distribution}
 \label{NDInverseWeight}
+The NDInverseWeight distribution creates a $N$-Dimensional distribution given a set of points
+scattered distributed. These points sample the PDF of the original distribution.
+Distribution values (PDF or CDF) are calculated using the inverse weight
+interpolation scheme.
 
-The specifications of this distribution must be defined within the xml block $<NDInverseWeight>$.  In RAVEN the NDInverseWeight distribution can be initialized through the following keywords:
+\specBlock{a}{NDInverseWeight}
+%
+\attrsIntro
+\vspace{-5mm}
 \begin{itemize}
-\item $<p>$, float, required parameter, power parameter. Greater values of p assign greater influence to values closest to the interpolated point.
-\item $<data\textunderscore filename   type='...' >$, string,  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
-\item $<working\textunderscore dir>$, string, folder location of the data file
+\itemsep0em
+\item \nameDescription
+\end{itemize}
+\vspace{-5mm}
+
+
+In RAVEN the NDInverseWeight distribution can be initialized through the following nodes:
+\begin{itemize}
+\item \xmlNode{p}, \xmlDesc{float, required parameter}, power parameter. Greater values of p assign greater influence to values closest to the interpolated point.
+\item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter},  name of the data file containing scattered values (file type '.txt').
+\begin{itemize}
+\item \xmlAttr{type}, \xmlDesc{required string attribute},  indicates if the data in indicated file is PDF or CDF. 
+\end{itemize}
+\item \xmlNode{working\textunderscore dir}, \xmlDesc{string, required parameter}, folder location of the data file
 \end{itemize}
 
 \begin{lstlisting}[style=XML]
@@ -649,7 +740,7 @@ Example:
   <NDInverseWeight name='...'>
         <p>...</p>
         <data_filename type='...'>...</data_filename>
-        <working_dir></working_dir>
+        <working_dir>...</working_dir>
   </NDInverseWeight>
   ...
 </Distributions>
@@ -683,12 +774,33 @@ Example: scattered data file
 ----------------------------
 \end{lstlisting}
 
-\paragraph{NDCartesianSpline Distribution}
+\subsubsection{NDCartesianSpline Distribution}
 \label{NDCartesianSpline}
-The specifications of this distribution must be defined within the xml block $<NDCartesianSpline>$.  In RAVEN NDCartesianSpline distribution can be initialized through the following keywords:
+
+The NDCartesianSpline distribution creates a $N$-Dimensional distribution given a set of points
+regularly distributed on a cartesian grid. These points sample the PDF of the original distribution.
+Distribution values (PDF or CDF) are calculated using the ND spline 
+interpolation scheme.
+
+
+\specBlock{a}{NDCartesianSpline}
+%
+\attrsIntro
+\vspace{-5mm}
 \begin{itemize}
-\item $<data_filename   type='...' >$, string,  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
-\item $<working_dir>$, string, folder location of the data file
+\itemsep0em
+\item \nameDescription
+\end{itemize}
+\vspace{-5mm}
+
+
+In RAVEN the NDCartesianSpline distribution can be initialized through the following nodes:
+\begin{itemize}
+\item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter},  name of the data file containing scattered values (file type '.txt').
+\begin{itemize}
+\item \xmlAttr{type}, \xmlDesc{required string attribute}, indicates if the data in indicated file is PDF or CDF. 
+\end{itemize}
+\item \xmlNode{working\textunderscore dir}, \xmlDesc{string, required parameter}, folder location of the data file
 \end{itemize}
 
 \begin{lstlisting}[style=XML]

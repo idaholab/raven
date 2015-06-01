@@ -5,6 +5,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
 from itertools import product
 import sys
+import operator
 
 import utils
 import MessageHandler
@@ -89,6 +90,14 @@ class IndexSet(MessageHandler.MessageUser):
     @ Out, array of tuples, points by dimension
     """
     return zip(*self.points)
+
+  def order(self):
+    """
+      Orders the index set points in partially-increasing order.
+      @ In, None
+      @ Out, None
+    """
+    self.points.sort(key=operator.itemgetter(*range(len(self.points[0]))))
 
   def initialize(self,distrList,impList,maxPolyOrder,msgHandler):
     """Initialize everything index set needs
@@ -177,6 +186,37 @@ class HyperbolicCross(IndexSet):
       return tot<=target
     self.points = self.generateMultiIndex(len(distrList),rule)
 
+class Custom(IndexSet):
+  """User-based index set point choices"""
+  def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
+    """see base class"""
+    IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
+    self.type     = 'Custom'
+    self.printTag = 'CustomIndexSet'
+    self.N        = len(distrList)
+    self.points   = []
+
+  def setPoints(self,points):
+    """
+      Used to set the index set points manually.
+      @ In, points, list of tuples to set points to
+      @ Out, None
+    """
+    self.points=[]
+    self.addPoints(points)
+
+  def addPoints(self,points):
+    """
+      Adds points to existing index set. Reorders set on completion.
+      @ In, points, either single tuple or list of tuples to add
+      @ Out, None
+    """
+    if type(points)==list:
+      for pt in points: self.points.append(pt)
+    elif type(points)==tuple and len(points)==self.N:
+      self.points.append(points)
+    else: raiseAnError(ValueError,'Unexpected points to add to set:',points)
+    self.order()
 
 """
 Interface Dictionary (factory) (private)
@@ -186,6 +226,7 @@ __interFaceDict = {}
 __interFaceDict['TensorProduct'  ] = TensorProduct
 __interFaceDict['TotalDegree'    ] = TotalDegree
 __interFaceDict['HyperbolicCross'] = HyperbolicCross
+__interFaceDict['Custom'         ] = Custom
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():

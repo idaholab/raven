@@ -13,21 +13,21 @@
     </Distributions>
 
     <Samplers>
+        <Grid name='grid'>
+            <variable name="x1"><distribution>xd</distribution><grid type='CDF' construction='equal' lowerBound='0.0' steps='2'>0.5</grid></variable>
+            <variable name="x2"><distribution>yd</distribution><grid type='CDF' construction='equal' lowerBound='0.0' steps='2'>0.5</grid></variable>
+            <variable name="x3"><distribution>zd</distribution><grid type='CDF' construction='equal' lowerBound='0.0' steps='2'>0.5</grid></variable>
+        </Grid>
         <Sobol name="sobol">
             <variable name="x1"><distribution>xd</distribution></variable>
             <variable name="x2"><distribution>yd</distribution></variable>
             <variable name="x3"><distribution>zd</distribution></variable>
             <ROM class = 'Models' type = 'ROM'>rom</ROM>
         </Sobol>
-        <Grid name='grid'>
-            <variable name="x1"><distribution>xd</distribution><grid type='CDF' construction='equal' lowerBound='0.0' steps='2'>0.5</grid></variable>
-            <variable name="x2"><distribution>yd</distribution><grid type='CDF' construction='equal' lowerBound='0.0' steps='2'>0.5</grid></variable>
-            <variable name="x3"><distribution>zd</distribution><grid type='CDF' construction='equal' lowerBound='0.0' steps='2'>0.5</grid></variable>
-        </Grid>
     </Samplers>
 
     <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
+        <Dummy name="MyDummy" subType=""/>
         <ExternalModel name='poly' subType='' ModuleToLoad = 'SobolRom/polynomial'>
             <variable>x1</variable>
             <variable>x2</variable>
@@ -63,12 +63,12 @@
             <Model   class='Models'           type='ROM'          >rom</Model>
             <Output  class='DataObjects'            type='TimePointSet' >tests</Output>
         </MultiRun>
-        <OutStreamStep name='print'>
+        <IOStep name='print'>
             <Input   class='DataObjects'            type='TimePointSet' >tests</Input>
             <Output  class='OutStreamManager' type='Print'        >dump</Output>
             <Input   class='Models'           type='ROM'          >rom</Input>
             <Output  class='OutStreamManager' type='Print'        >dumprom</Output>
-        </OutStreamStep>
+        </IOStep>
     </Steps>
 
     <DataObjects>

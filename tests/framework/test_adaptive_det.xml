@@ -43,7 +43,6 @@
             <sigma>200</sigma>
             <lowerBound>0</lowerBound>
             <upperBound>2500</upperBound>
-            <adjustement>scaling</adjustement>
         </Normal>
         <Triangular name='CladFailureDist'>
             <apex>1277.59</apex>

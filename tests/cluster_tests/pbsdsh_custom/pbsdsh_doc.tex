@@ -1,0 +1,22 @@
+\documentclass{article}
+\begin{document}
+\textbf{pbsdsh}: this ``mode'' uses the pbsdsh protocol to distribute
+the program running; more information regarding this protocol can be found
+in PBS documentation.
+Mode ``pbsdsh'' automatically knows when it needs to generate a
+      \texttt{qsub} command, by inquiring the machine enviroment:
+         \begin{itemize}
+           \item If RAVEN is executed in the HEAD node of an HPC system, RAVEN
+             generates a \texttt{qsub} command, and instantiates and submits
+             itself to the queue system.
+           \item If the user decides to execute RAVEN from an ``interactive
+             node'' (a certain number of nodes that have been reserved in
+             interactive PBS mode), RAVEN, using the ``pbsdsh'' system, is going
+             to utilize the reserved resources (CPUs and nodes) to distribute
+             the jobs, but will not generate a \texttt{qsub} command.
+         \end{itemize}
+         In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs,
+         ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
+           are run using a multi-threading approach (i.e. master processor, multiple parallel threads)
+
+\end{document}
