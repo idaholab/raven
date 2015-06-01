@@ -180,17 +180,17 @@ class AMSC_Object(PySide.QtCore.QObject):
     knnAlgorithm = sklearn.neighbors.NearestNeighbors(n_neighbors=knn + 1,
                                                       algorithm='kd_tree')
     knnAlgorithm.fit(self.Xnorm)
-    distances,edges = knnAlgorithm.kneighbors(self.Xnorm)
+    edges = knnAlgorithm.kneighbors(self.Xnorm, return_distance=False)
     if debug:
       end = time.clock()
       sys.stderr.write('%f s\n' % (end-start))
-      print(edges.shape)
+    #  print(edges.shape)
 
     edgesToPrune = []
     pairs = []                                # prevent duplicates with this guy
     for e1 in xrange(0,edges.shape[0]):
       for col in xrange(0,edges.shape[1]):
-        e2 = edges[e1,col]
+        e2 = edges.item(e1,col)
         if e1 != e2:
           pairs.append((e1,e2))
 
@@ -201,14 +201,14 @@ class AMSC_Object(PySide.QtCore.QObject):
                                        or seen.add(x))]
 
     for edge in pairs:
-      edgesToPrune.append(int(edge[0]))
-      edgesToPrune.append(int(edge[1]))
+      edgesToPrune.append(edge[0])
+      edgesToPrune.append(edge[1])
 
     ## Swig/Python struggles communicating a python list as a std::vector<int>
     ## under some implementations, so we will force the datatype
-    preliminaryEdges = amsc.vectorInt(int(len(edgesToPrune)))
-    for i,edge in enumerate(edgesToPrune):
-      preliminaryEdges[i] = int(edge)
+    #preliminaryEdges = amsc.vectorInt(int(len(edgesToPrune)))
+    #for i,edge in enumerate(edgesToPrune):
+    #  preliminaryEdges[i] = int(edge)
 
     if debug:
       sys.stderr.write('%f s\n' % (end-start))
@@ -219,7 +219,7 @@ class AMSC_Object(PySide.QtCore.QObject):
                                  amsc.vectorFloat(self.Y),
                                  amsc.vectorString(self.names), str(graph),
                                  str(gradient), int(knn), float(beta),
-                                 preliminaryEdges)
+                                 amsc.vectorInt(edgesToPrune))
 
     if debug:
       end = time.clock()

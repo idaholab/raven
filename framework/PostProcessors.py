@@ -1778,7 +1778,7 @@ class LimitSurface(BasePostProcessor):
       listsurfPointPositive= self.__localLimitStateSearch__(toBeTested,1)
       nPosPoints = len(listsurfPointPositive)
     listsurfPoint = listsurfPointNegative + listsurfPointPositive
-#     #printing----------------------
+    #printing----------------------
     if len(listsurfPoint) > 0: self.raiseADebug('LimitSurface: Limit surface points:')
     for coordinate in listsurfPoint:
       myStr = ''
@@ -2107,6 +2107,7 @@ class TopologicalDecomposition(BasePostProcessor):
     self.knn = -1
     self.persistence = 0
     self.normalization = None
+    self.parameters = {}
 
   def inputToInternal(self,currentInp):
     """
@@ -2114,39 +2115,35 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, currentInp : The input object to process
       @ Out, None
     """
-    if type(currentInp) == list:
-      currentInput = currentInp [-1]
-    else:
-      currentInput = currentInp
+    if type(currentInp) == list  : currentInput = currentInp [-1]
+    else                         : currentInput = currentInp
     if type(currentInput) == dict:
-        return
-    inputDict = {}
-    if hasattr(currentInput, 'type'):
-      inType = currentInput.type
-    elif type(currentInput).__name__ in ['str','bytes','unicode']:
-      inType = "file"
-    elif type(currentInput) in [list]:
-      inType = "list"
-    else:
-      self.raiseAnError(IOError, self.__class__.__name__,
+      if 'features' in currentInput.keys(): return currentInput
+    inputDict = {'features':{},'targets':{},'metadata':{}}
+    try: inType = currentInput.type
+    except:
+      if type(currentInput).__name__ == 'list'    : inType = 'list'
+      else:       self.raiseAnError(IOError, self.__class__.__name__,
                         ' postprocessor accepts files, HDF5, Data(s) only. ',
                         ' Requested: ',type(currentInput))
-
-    if inType == 'file':
-      if currentInput.endswith('csv'):
-        pass
-    elif inType == 'HDF5':
-      pass
-    elif inType in ['TimePointSet']:
-      for targetP in self.inputs:
-        if targetP in currentInput.getParaKeys('input' ):
-          inputDict[targetP] = currentInput.getParam('input' ,targetP)
+    if inType not in ['FileObject','HDF5','TimePointSet','list']: self.raiseAnError(IOError,self,'Topology postprocessor accepts files,HDF5,Data(s) only! Got '+ str(inType) + '!!!!')
+    if inType == 'FileObject':
+      if currentInput.subtype == 'csv': pass
+    if inType == 'HDF5': pass # to be implemented
+    if inType in ['TimePointSet']:
+      for targetP in self.parameters['features']:
+        if   targetP in currentInput.getParaKeys('input' ):
+          inputDict['features'][targetP] = currentInput.getParam('input' ,targetP)
         elif targetP in currentInput.getParaKeys('output'):
-          inputDict[targetP] = currentInput.getParam('output',targetP)
-    else:
-      self.raiseAnError(IOError, self.__class__.__name__,
-                        ' postprocessor accepts files, HDF5, Data(s) only. ',
-                        ' Requested: ', type(currentInput))
+          inputDict['features'][targetP] = currentInput.getParam('output',targetP)
+      for targetP in self.parameters['targets']:
+        if   targetP in currentInput.getParaKeys('input' ):
+          inputDict['targets'][targetP] = currentInput.getParam('input' ,targetP)
+        elif targetP in currentInput.getParaKeys('output'):
+          inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
+      inputDict['metadata'] = currentInput.getAllMetadata()
+     # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
+    if inputDict['metadata'].keys().count('SamplerType') > 0: pass
     return inputDict
 
   def _localReadMoreXML(self,xmlNode):
@@ -2179,11 +2176,11 @@ class TopologicalDecomposition(BasePostProcessor):
       elif child.tag == 'persistence':
         self.persistence = float(child.text)
       elif child.tag == 'parameters':
-        self.params = child.text.strip().split(',')
-        for i,param in enumerate(self.params):
-          self.params[i] = self.params[i].encode('ascii')
+        self.parameters['features'] = child.text.strip().split(',')
+        for i,parameter in enumerate(self.parameters['features']):
+          self.parameters['features'][i] = self.parameters['features'][i].encode('ascii')
       elif child.tag == 'response':
-        self.response = child.text
+        self.parameters['targets'] = child.text
       elif child.tag == 'normalization':
         self.normalization = child.text.encode('ascii').lower()
         if self.normalization not in self.acceptedNormalizationParam:
@@ -2283,17 +2280,17 @@ class TopologicalDecomposition(BasePostProcessor):
     Input  = self.inputToInternal(InputIn)
     outputDict = {}
 
-    myDataIn = self.inputs[0].getParametersValues('inputs')
-    myDataOut = self.inputs[0].getParametersValues('outputs')
-    outputData = myDataOut[self.response.encode('UTF-8')]
+    myDataIn  = Input['features']
+    myDataOut = Input['targets']
+    outputData = myDataOut[self.parameters['targets'].encode('UTF-8')]
     self.pointCount = len(outputData)
-    self.dimensionCount = len(self.params)
+    self.dimensionCount = len(self.parameters['features'])
 
     inputData = np.zeros((self.pointCount,self.dimensionCount))
-    for i,lbl in enumerate(self.params):
+    for i,lbl in enumerate(self.parameters['features']):
       inputData[:,i] = myDataIn[lbl.encode('UTF-8')]
 
-    names = self.params + [self.response]
+    names = self.parameters['features'] + [self.parameters['targets']]
 
     self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=None,
                               names=names, graph=self.graph,
@@ -2312,14 +2309,14 @@ class TopologicalDecomposition(BasePostProcessor):
         outputDict['minLabel'][idx] = extPair[0]
         outputDict['maxLabel'][idx] = extPair[1]
 
-    output = '\n'
-    output += '========== Data Labels: ==========\n'
+    output = os.linesep
+    output += '========== Data Labels: ========== ' + os.linesep
     output += 'Index'
     sep = ','
     for lbl in names:
       output += sep + lbl
     output += sep + 'Minimum' + sep + 'Maximum'
-    output += '\n'
+    output += os.linesep
     for i in xrange(0,self.__amsc.GetSampleSize()):
       line = str(i)
       for d in xrange(0,self.__amsc.GetDimensionality()):
@@ -2327,45 +2324,45 @@ class TopologicalDecomposition(BasePostProcessor):
       line += sep + str(outputData[i])
       line += sep + str(int(outputDict['minLabel'][i]))
       line += sep + str(int(outputDict['maxLabel'][i]))
-      output += line + '\n'
-    output += '========== Merge Hierarchy: ==========\n'
-    output += self.__amsc.XMLFormattedHierarchy() + '\n'
+      output += line + os.linesep
+    output += '========== Merge Hierarchy: ==========' + os.linesep
+    output += self.__amsc.XMLFormattedHierarchy() + os.linesep
     outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
-    output += '========== Linear Regressors: ==========\n'
+    output += '========== Linear Regressors: ==========' + os.linesep
     self.__amsc.BuildModels()
     linearFits = self.__amsc.SegmentFitCoefficients()
     linearFitnesses = self.__amsc.SegmentFitnesses()
 
     for key in linearFits.keys():
-      output += str(key) + '\n'
+      output += str(key) + os.linesep
       coefficients = linearFits[key]
       rSquared = linearFitnesses[key]
 #      output += '\t' + u"\u03B2\u0302: " + str(coefficients) + '\n'
 #      output += '\t' + u"R\u00B2: " + str(rSquared) + '\n' + '\n'
-      output += '\t' + "beta: " + str(coefficients) + '\n'
-      output += '\t' + "R^2: " + str(rSquared) + '\n' + '\n'
+      output += '\t' + "beta: " + str(coefficients) + os.linesep
+      output += '\t' + "R^2: " + str(rSquared) + 2*os.linesep
       outputDict['coefficients_%d_%d' % (key[0],key[1])] = coefficients
       outputDict['R2_%d_%d' % (key[0],key[1])] = rSquared
 
 #    output += 'RMSD  = %f\n' % (self.linearNRMSD)
-    output += '========== Gaussian Fits: ==========\n'
+    output += '========== Gaussian Fits: ==========' + os.linesep
 #    output += u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - '
 #          + u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)\n'
     output += 'a/sqrt(2*(pi)^d|M|)*e^(-(x-mu)TM(x-mu)) + c - a'
-    output += '\t(mu & c are fixed, M and a are estimated)\n'
+    output += '\t(mu & c are fixed, M and a are estimated)' + os.linesep
 
     exts = linearFits.keys()
     exts = [int(item) for sublist in exts for item in sublist]
     exts = list(set(exts))
 
     for key in exts:
-      output += str(key) + ':\n'
+      output += str(key) + ':' + os.linesep
       (mu,c,a,A) = self.__amsc.GetExtremumFitCoefficients(key)
 #      output += u':\t\u03BC=' + str(mu) + '\n'
-      output += u':\tmu=' + str(mu) + '\n'
-      output += '\tc=' + str(c) + '\n'
-      output += '\ta=' + str(a) + '\n'
-      output += '\tM=\n' + str(A)+'\n\n'
+      output += u':\tmu=' + str(mu) + os.linesep
+      output += '\tc=' + str(c) + os.linesep
+      output += '\ta=' + str(a) + os.linesep
+      output += '\tM=' + os.linesep + str(A)+ 2*os.linesep
 #      output += '\t\u03A3=\n' + str(A)+'\n\n'
 #      output += '\t' + u"R\u00B2: " + str(rSquared) + '\n\n'
 
