@@ -260,12 +260,12 @@ class AdaptiveSet(IndexSet):
     self.points   = [] #retained points in the index set
     firstpoint    = tuple([0]*self.N)
     self.active   = {firstpoint:None}
-    self.roms     = {firstpoint:None}
+    self.SGs     = {firstpoint:None}
     self.history  = [] #list of tuples, index set point and its impact parameter
 
-  def setROM(self,point,rom):
-    if point in self.roms.keys(): self.roms[point]=rom
-    else: self.raiseAnError(KeyError,'Tried to set rom',rom,'for point',point,'but it is not in active set!')
+  def setSG(self,point,SG):
+    if point in self.SGs.keys(): self.SGs[point]=SG
+    else: self.raiseAnError(KeyError,'Tried to set sparse grid',SG,'for point',point,'but it is not in active set!')
 
   def setImpact(self,point,impact):
     if point in self.active.keys(): self.active[point]=impact
@@ -327,10 +327,10 @@ class AdaptiveSet(IndexSet):
       if found:
         newpt=tuple(newpt)
         self.active[newpt]=None
-        self.roms  [newpt]=None
+        self.SGs   [newpt]=None
 
   def printOut(self):
-    self.raiseADebug('    Accepted Points | Rom:')
+    self.raiseADebug('    Accepted Points:')
     for p in self.points:
       self.raiseADebug('       ',p)#,'| %1.5e' %self.roms[p])
     self.raiseADebug('    Active Set | Impact:')
@@ -342,7 +342,6 @@ class AdaptiveSet(IndexSet):
     outFile = file('isethist.out','w')
     outFile.writelines(msg)
     outFile.close()
-
 
   def printHistory(self):
     self.raiseAMessage('Index Set Choice History:')

@@ -297,6 +297,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polys         = None #dict{varName: OrthoPolynomial object}, has polynomials for evaluation
     self.indexSet      = None #array of tuples, polynomial order combinations
     self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
+    self.numRuns       = None #number of runs to generate ROM; default is len(self.sparseGrid)
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
 
     for key,val in kwargs.items():
@@ -335,7 +336,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
   def _localPrintXML(self,node,options=None):
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance']
+    canDo = ['mean','variance','numRuns']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
@@ -348,6 +349,9 @@ class GaussPolynomialRom(NDinterpolatorRom):
         elif request.lower() in ['variance']:
           if self.mean == None: self.mean = self.__evaluateMoment__(1)
           newnode.setText(self.__evaluateMoment__(2) - self.mean*self.mean)
+        elif request.lower() in ['numruns']:
+          if self.numRuns!=None: newnode.setText(self.numRuns)
+          else: newnode.setText(len(self.sparseGrid))
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
           newnode.setText('not found')
@@ -361,11 +365,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
 
   def initialize(self,idict):
     for key,value in idict.items():
-      if   key == 'SG'   : self.sparseGrid = value
-      elif key == 'dists': self.distDict   = value
-      elif key == 'quads': self.quads      = value
-      elif key == 'polys': self.polys      = value
-      elif key == 'iSet' : self.indexSet   = value
+      if   key == 'SG'      : self.sparseGrid = value
+      elif key == 'dists'   : self.distDict   = value
+      elif key == 'quads'   : self.quads      = value
+      elif key == 'polys'   : self.polys      = value
+      elif key == 'iSet'    : self.indexSet   = value
+      elif key == 'numRuns' : self.numRuns    = value
 
   def _multiDPolyBasisEval(self,orders,pts):
     '''Evaluates each polynomial set at given orders and points, returns product.
