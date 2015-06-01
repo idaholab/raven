@@ -120,7 +120,7 @@ import os
 import copy
 import shutil
 import tempfile
-from lxml import etree
+import xml.etree.ElementTree as ET
 #from OMPython import OMCSession		# Get the library with Open Modelica Session (needed to run OM stuff)
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
@@ -202,7 +202,7 @@ class OpenModelicaInterface(CodeInterfaceBase):
 
     # Since the input file is XML we can load and edit it directly using etree
     # Load the original XML into a tree:
-    tree = etree.parse(originalPath)
+    tree = ET.parse(originalPath)
     
     # Look at all of the variables in the XML and see if we have changes
     #   in our dictionary.
@@ -217,38 +217,8 @@ class OpenModelicaInterface(CodeInterfaceBase):
     # Now write out the modified file
     tree.write(newPath)
 
-#     # If this is the first parameter, then go from the original file to the new one.  Otherwise go from
-#     #   new to new.  Do this by building a setInitXmlStartValue command and running it with the OpenModelica
-#     #   shell.  The command to do this is of the form:
-#     # 	  omc.execute("setInitXmlStartValue(\"BouncingBall_init.xml\",	 
-#     #		\"h\", \ "5.0\", \"BouncingBall_new_init.xml\")")
-#     #
-#     # NOTE: This command doesn't appear to tolerate long file paths, so we'll copy the files to the
-#     #       current directory, run the command there, and then move the output to the destination.
-#     #
-#     # 1) Copy the original file to the new name in the current directory
-#     baseNewPath = os.path.basename(newPath);
-#     print("shutil.copyfile", originalPath, baseNewPath)
-#     shutil.copyfile(originalPath, baseNewPath);
-# 
-#     # 2) Apply the parameter variations one by one to the new file in the current directory
-#     varDict = Kwargs['SampledVars']
-#     for varName in varDict.keys():
-#       OMCommand = "setInitXmlStartValue("
-#       OMCommand += "\"" + baseNewPath + "\", "            # Source file is the one we just copied
-#       OMCommand += "\"" + varName + "\", "                # Variable name to change
-#       OMCommand += "\"" + str(varDict[varName]) + "\", "  # ...and its new value
-#       OMCommand += "\"" + baseNewPath + "\")"             # Put the result back in the same file
-# 
-#       # OMSession needs to be fed the command as ASCII, not unicode as it would be because of the
-#       #   "import unicode_literals"
-#       print("*******", str(OMCommand))
-#       self.omc.execute(str(OMCommand))           # Have OpenModelica do the variable change
-# 
-#     # 3) Put the new file in the proper place
-#     shutil.move(baseNewPath, newPath)
-
     return newInputFiles
+
 
   def finalizeCodeOutput(self, command, output, workingDir):
     '''Called by RAVEN to modify output files (if needed) so that they are in a proper form.
