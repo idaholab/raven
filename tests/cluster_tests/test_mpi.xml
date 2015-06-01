@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
+<Simulation>
 <RunInfo>
-    <WorkingDir>mpi_driver_test</WorkingDir>
+    <WorkingDir>.</WorkingDir>
     <Files>simple_flow_3eqn.i,simple_flow_3eqn_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
-    <NumThreads>4</NumThreads>    
+    <NumThreads>4</NumThreads>
     <mode>mpi</mode>
     <NumMPI>2</NumMPI>
     <!--<ParallelCommand></ParallelCommand>
@@ -17,8 +17,7 @@
 </RunInfo>
 
 <Models>
-  <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
-  <!-- <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/fix_stdin.sh %FRAMEWORK_DIR%/../RAVEN-%METHOD% </Code> -->
+  <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD% </executable></Code>
 </Models>
 
 <Distributions>
@@ -27,45 +26,51 @@
         <sigma>0.001</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
     </Normal>
     <Normal name='auxBackUpTimeDist'>
         <mean>1</mean>
         <sigma>0.001</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
     </Normal>    
     <Normal name='Gauss2'>
         <mean>1</mean>
         <sigma>0.4</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
+        <adjustement>scaling</adjustement>
     </Normal>
     <Triangular name='CladFailureDist'>
         <apex>1</apex>
         <min>-0.1</min>
         <max>3</max>
+<!--         <lowerBound>0</lowerBound> This is not yet supported
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>  -->
     </Triangular>
 </Distributions>
 
 <Samplers>
-    <MonteCarlo     name='RAVENmc6'>
-      <sampler_init>
-        <limit>6</limit>
-      </sampler_init>
-    </MonteCarlo>
+  <MonteCarlo     name='RAVENmc6'>
+    <sampler_init>
+      <limit>6</limit>
+    </sampler_init>
+  </MonteCarlo>
 </Samplers>
 <Steps>
     <MultiRun name='FirstMRun'>
-        <Input      class='Files'      type=''          >simple_flow_3eqn.i</Input>
-        <Input      class='Files'      type=''          >simple_flow_3eqn_control.py</Input>
-        <Model      class='Models'     type='Code'      >MyRAVEN</Model>
-        <Sampler    class='Samplers'   type='MonteCarlo'>RAVENmc6</Sampler>
-        <Output     class='Databases'  type='HDF5'      >testMPIDatabase</Output>
-        <Output     class='DataObjects'      type='Histories' >stories</Output>
+        <Input   class='Files'    type=''>simple_flow_3eqn.i</Input>
+        <Input   class='Files'    type=''>simple_flow_3eqn_control.py</Input>
+        <Model   class='Models'   type='Code'      >MyRAVEN</Model>
+        <Sampler class= 'Samplers' type='MonteCarlo'>RAVENmc6</Sampler>
+        <Output  class='Databases' type='HDF5' >testDatabase</Output>
+        <Output  class='DataObjects'    type='Histories' >stories</Output>
     </MultiRun >
 </Steps>
 <Databases>
-    <HDF5 name="testMPIDatabase" type="MC"/> 
+    <HDF5 name="testDatabase" type="MC"/> 
 </Databases>
 <DataObjects>
     <Histories name='stories'>

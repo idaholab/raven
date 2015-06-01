@@ -90,26 +90,26 @@
   </OutStreamManager>
 
   <DataObjects>
-    <Histories name='fullprint_histories'>
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </Histories>
+    <TimePoint name='fullprint_timepoint'>
+          <Input>pipe1_Area,pipe1_Dh</Input>
+          <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </TimePoint>
     <TimePointSet name='fullprint_timepointset'>
       <Input>pipe1_Area,pipe1_Dh</Input>
       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
     </TimePointSet>
-    <TimePoint name='fullprint_timepoint'>
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </TimePoint>
+    <TimePointSet name='out_data'>
+        <Input>DummyIn</Input>
+        <Output>DummyOut</Output>
+    </TimePointSet>
     <History name='fullprint_history'>
       <Input>pipe1_Area,pipe1_Dh</Input>
       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
     </History>
-    <TimePointSet name='out_data'>
-      <Input>DummyIn</Input>
-      <Output>DummyOut</Output>
-    </TimePointSet>
-  </DataObjects>
+    <Histories name='fullprint_histories'>
+        <Input>pipe1_Area,pipe1_Dh</Input>
+        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </Histories>
+ </DataObjects>
 
 </Simulation>
