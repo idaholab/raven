@@ -1507,7 +1507,6 @@ class LimitSurface(BasePostProcessor):
     self.gridVectors       = {}
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
-    self.gridEntity        = GridEntities.returnInstance("GridEntity",self)
     self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
 
@@ -1566,6 +1565,14 @@ class LimitSurface(BasePostProcessor):
         if param not in inpKeys+outKeys: self.raiseAnError(IOError,'LimitSurface PostProcessor: The param '+ param+' not contained in Data '+self.inputs[self.indexes].name +' !')
         if param in inpKeys: self.paramType[param] = 'inputs'
         else:                self.paramType[param] = 'outputs'
+    self.gridEntity        = GridEntities.returnInstance("GridEntity",self,self.messageHandler)
+    lowerBounds = {}
+    upperBounds = {}
+    for key in self.parameters['targets']: lowerBounds[key], upperBounds[key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key)), max(self.inputs[self.indexes].getParam(self.paramType[key],key))
+    self.gridEntity.initialize(initDictionary={"dimensionNames":self.parameters['targets'],"lowerBounds":lowerBounds,"upperBounds":upperBounds,"volumetricRatio":self.subGridTol})
+    
+    
+    
     self.nVar        = len(self.parameters['targets'])         #Total number of variables
     stepLength        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance
     self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
@@ -1751,6 +1758,9 @@ class LimitSurface(BasePostProcessor):
     """
     self.testMatrix.shape     = (self.testGridLength)                            #rearrange the grid matrix such as is an array of values
     self.gridCoord.shape      = (self.testGridLength,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
+    
+    self.gridCoord = self.gridEntity.returnGridAsArrayOfCoordinates()
+    
     tempDict ={}
     for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
     self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
