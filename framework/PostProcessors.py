@@ -2121,7 +2121,7 @@ class TopologicalDecomposition(BasePostProcessor):
     if type(currentInput) == dict:
       if 'features' in currentInput.keys(): return currentInput
     inputDict = {'features':{},'targets':{},'metadata':{}}
-    if hasattr(currentInput,type):
+    if hasattr(currentInput,'type'):
       inType = currentInput.type
     elif type(currentInput).__name__ == 'list':
       inType = 'list'
