@@ -64,15 +64,8 @@ $(RAVEN_LIB): $(RAVEN_objects) $(RAVEN_plugin_deps)
 sa:: $(RAVEN_analyzer)
 
 ################################################################################
-## Swig for Approximate Morse-Smale Complex (AMSC)
-
-AMSC_srcfiles := $(shell find $(RAVEN_DIR)/src/contrib -name "*.cpp" -not -name main.C)
-amsc:: $(RAVEN_DIR)/src/contrib/amsc.i $(AMSC_srcfiles)
-	@echo "Building "$@"..."
-	(cd $(RAVEN_DIR) && if test `uname` != "Darwin"; then unset CXX; fi && python $(RAVEN_DIR)/setup.py build_ext build install --install-platlib=$(RAVEN_DIR)/src/contrib)
-	@echo "Done"
-#	swig -c++ -python $(SWIG_PY_FLAGS)  -I$(RAVEN_DIR)/include/contrib/ $(RAVEN_DIR)/src/contrib/amsc.i
-#	$(CXX) -fPIC -shared $(RAVEN_DIR)/src/contrib/amsc_wrap.cxx -I$(RAVEN_DIR)/include/contrib -I/usr/include/python2.7 $(AMSC_srcfiles) -lpython2.7 -o $(RAVEN_DIR)/src/contrib/_amsc.so
+## Build system for Approximate Morse-Smale Complex (AMSC)
+include $(RAVEN_DIR)/amsc.mk
 ################################################################################
 
 # include RAVEN dep files
