@@ -45,7 +45,7 @@ sys.path.append(myPath+'/../../src/contrib/')
 import amsc
 ####################################################
 
-import PySide.QtCore
+# import PySide.QtCore
 
 import sklearn.neighbors
 import sklearn.linear_model
@@ -57,7 +57,8 @@ import scipy.stats
 ##Let's see what statsmodels weighted linear regression does
 #import statsmodels.api as sm
 
-class AMSC_Object(PySide.QtCore.QObject):
+# class AMSC_Object(PySide.QtCore.QObject):
+class AMSC_Object(object):
   """ A wrapper class for the C++ approximate Morse-Smale complex Object that
       also communicates with the UI via Qt's signal interface
   """
@@ -81,12 +82,12 @@ class AMSC_Object(PySide.QtCore.QObject):
   #              '#a65628', '#f781bf', '#999999', '#117733', '#332288',
   #              '#999933', '#44AA99', '#882255']
 
-  sigPersistenceChanged = PySide.QtCore.Signal()
-  sigSelectionChanged = PySide.QtCore.Signal()
-  sigFilterChanged = PySide.QtCore.Signal()
-  sigDataChanged = PySide.QtCore.Signal()
-  sigModelsChanged = PySide.QtCore.Signal()
-  sigWeightsChanged = PySide.QtCore.Signal()
+  # sigPersistenceChanged = PySide.QtCore.Signal()
+  # sigSelectionChanged = PySide.QtCore.Signal()
+  # sigFilterChanged = PySide.QtCore.Signal()
+  # sigDataChanged = PySide.QtCore.Signal()
+  # sigModelsChanged = PySide.QtCore.Signal()
+  # sigWeightsChanged = PySide.QtCore.Signal()
 
   def __init__(self, X, Y, w=None, names=None, graph='beta skeleton',
                gradient='steepest', knn=-1, beta=1.0, normalization=None,
@@ -249,7 +250,7 @@ class AMSC_Object(PySide.QtCore.QObject):
 
     if self.FitsSynced():
       self.BuildModels()
-    self.sigWeightsChanged.emit()
+    # self.sigWeightsChanged.emit()
 
   def GetMergeSequence(self):
     """ Returns a data structure holding the ordered merge sequence of extrema
@@ -482,7 +483,7 @@ class AMSC_Object(PySide.QtCore.QObject):
     self.extremumFits = {}
     self.segmentFitnesses = {}
     self.extremumFitnesses = {}
-    self.sigPersistenceChanged.emit()
+    # self.sigPersistenceChanged.emit()
 
   def BuildModels(self,persistence=None):
     """ Forces the construction of linear fits per Morse-Smale segment and
@@ -501,7 +502,7 @@ class AMSC_Object(PySide.QtCore.QObject):
     self.ComputeExtremaShapeDescriptors()
     # self.BuildPolynomialModels(persistence)
     self.ComputeStatisticalSensitivity()
-    self.sigModelsChanged.emit()
+    # self.sigModelsChanged.emit()
 
   def BuildLinearModels(self, persistence=None):
     """ Forces the construction of linear fits per Morse-Smale segment.
@@ -1024,13 +1025,13 @@ class AMSC_Object(PySide.QtCore.QObject):
     self.selectedSegments = list(set(self.selectedSegments))
     self.selectedExtrema = list(set(self.selectedExtrema))
 
-    self.sigSelectionChanged.emit()
+    # self.sigSelectionChanged.emit()
 
   def ClearFilter(self):
     """ Erases all currently set filters on any dimension.
     """
     self.filters = {}
-    self.sigSelectionChanged.emit()
+    # self.sigSelectionChanged.emit()
 
   def SetFilter(self,name,bounds):
     """ Sets the bounds of the selected dimension as a filter
@@ -1044,7 +1045,7 @@ class AMSC_Object(PySide.QtCore.QObject):
     else:
       self.filters[name] = bounds
       print(name, bounds)
-    self.sigSelectionChanged.emit()
+    # self.sigSelectionChanged.emit()
 
   def GetFilter(self,name):
     """ Returns the currently set filter for a particular dimension specified.
@@ -1068,7 +1069,7 @@ class AMSC_Object(PySide.QtCore.QObject):
       if idx not in self.sectedSegments:
         self.selectedSegments.append(idx)
 
-      self.sigSelectionChanged.emit()
+      # self.sigSelectionChanged.emit()
 
   def Deselect(self, idx):
     """ Remove a segment or extremum from the list of currently selected items
@@ -1082,14 +1083,14 @@ class AMSC_Object(PySide.QtCore.QObject):
       if idx in self.sectedSegments:
         self.selectedSegments.remove(idx)
 
-      self.sigSelectionChanged.emit()
+      # self.sigSelectionChanged.emit()
 
   def ClearSelection(self):
     """ Empties the list of selected items.
     """
     self.selectedSegments = []
     self.selectedExtrema = []
-    self.sigSelectionChanged.emit()
+    # self.sigSelectionChanged.emit()
 
   def GetSelectedIndices(self,segmentsOnly=True):
     """ Returns a mixed list of extremum indices and min-max index pairs
