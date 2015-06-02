@@ -4602,6 +4602,9 @@ The following is a list of acceptable sub-nodes:
   lists the parameters defining the input space.
   \item \xmlNode{response}, \xmlDesc{string, required field}, is a single
   variable name defining the scalar output space.
+  \item \xmlNode{weighted}, \xmlDesc{boolean, optional}, a flag that specifies
+  whether the regression models should be probability weighted.
+  \default{False}
 \end{itemize}
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={subType}]

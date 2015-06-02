@@ -2108,6 +2108,7 @@ class TopologicalDecomposition(BasePostProcessor):
     self.knn = -1
     self.persistence = 0
     self.normalization = None
+    self.weighted = False
     self.parameters = {}
 
   def inputToInternal(self,currentInp):
@@ -2186,6 +2187,8 @@ class TopologicalDecomposition(BasePostProcessor):
         self.parameters['features'] = child.text.strip().split(',')
         for i,parameter in enumerate(self.parameters['features']):
           self.parameters['features'][i] = self.parameters['features'][i].encode('ascii')
+      elif child.tag == 'weighted':
+        self.weighted = child.text in ['True','true']
       elif child.tag == 'response':
         self.parameters['targets'] = child.text
       elif child.tag == 'normalization':
@@ -2297,15 +2300,19 @@ class TopologicalDecomposition(BasePostProcessor):
     for i,lbl in enumerate(self.parameters['features']):
       inputData[:,i] = myDataIn[lbl.encode('UTF-8')]
 
+    if self.weighted:
+      weights = InputIn[0].getMetadata('PointProbability')
+    else:
+      weights = None
+
     names = self.parameters['features'] + [self.parameters['targets']]
     #FIXME: AMSC_Object employs unsupervised NearestNeighbors algorithm from scikit learn. 
     #       The NearestNeighbor algorithm is implemented in SupervisedLearning, which requires features and targets by default.
     #       which we don't have here. When the NearestNeighbor is implemented in unSupervisedLearning switch to it.
-    self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=None,
-                              names=names, graph=self.graph,
-                              gradient=self.gradient, knn=self.knn,
-                              beta=self.beta, normalization=self.normalization,
-                              debug=True)
+    self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=weights, names=names,
+                              graph=self.graph, gradient=self.gradient,
+                              knn=self.knn, beta=self.beta,
+                              normalization=self.normalization, debug=True)
 
     self.__amsc.Persistence(self.persistence)
     partitions = self.__amsc.Partitions()
