@@ -3997,7 +3997,7 @@ depend on the post-processor type specified in the attribute \xmlAttr{subType}.
 In the following sections the specifications of each type are reported.
 
 %%%%% PP BasicStatistics %%%%%%%
-\paragraph{BasicStatistics}
+\subsubsection{BasicStatistics}
 \label{BasicStatistics}
 The \textbf{BasicStatistics} post-processor is the container of the algorithms
 to compute many of the most important statistical quantities.
@@ -4095,7 +4095,7 @@ to compute many of the most important statistical quantities.
 \end{lstlisting}
 
 %%%%% PP ComparisonStatistics %%%%%%%
-\paragraph{ComparisonStatistics}
+\subsubsection{ComparisonStatistics}
 \label{ComparisonStatistics}
 The \textbf{ComparisonStatistics} post-processor computes statistics
 for comparing two different dataObjects.  This is an experimental
@@ -4230,7 +4230,7 @@ points to approximations in the calculation.
 \end{lstlisting}
 
 %%%%% PP SafestPoint %%%%%%%
-\paragraph{SafestPoint}
+\subsubsection{SafestPoint}
 \label{SafestPoint}
 The \textbf{SafestPoint} post-processor provides the coordinates of the farthest
 point from the limit surface that is given as an input.
@@ -4326,7 +4326,7 @@ At present only the ``equal'' grid type is available.
 </Simulation>
 \end{lstlisting}
 %%%%% PP LimitSurface %%%%%%%
-\paragraph{LimitSurface}
+\subsubsection{LimitSurface}
 \label{LimitSurface}
 The \textbf{LimitSurface} post-processor is aimed to identify the transition
 zones that determine a change in the status of the system (Limit Surface).
@@ -4416,7 +4416,7 @@ zones that determine a change in the status of the system (Limit Surface).
 
 %%%%% PP LimitSurfaceIntegral %%%%%%%
 
-\paragraph{LimitSurfaceIntegral}
+\subsubsection{LimitSurfaceIntegral}
 \label{LimitSurfaceIntegral}
 The \textbf{LimitSurfaceIntegral} post-processor is aimed to compute the likelihood (probability) of the event, whose boundaries are 
 represented by the Limit Surface (either from the LimitSurface post-processor or Adaptive sampling strategies).
@@ -4496,7 +4496,7 @@ both boundary sides (-1.0, +1.0).
 
 
 %%%%% PP External %%%%%%%
-\paragraph{External}
+\subsubsection{External}
 \label{External}
 The \textbf{External} post-processor will execute an arbitrary python function
 defined externally using the \textit{Functions} interface (see 
@@ -4550,7 +4550,7 @@ Section~\ref{sec:functions} for more details).
 </Simulation>
 \end{lstlisting}
 %%%%% PP TopologicalDecomposition %%%%%%%
-\paragraph{TopologicalDecomposition}
+\subsubsection{TopologicalDecomposition}
 \label{TopologicalDecomposition}
 The \textbf{TopologicalDecomposition} post-processor will compute an 
 approximated hierarchical Morse-Smale complex and perform linear regression on
@@ -4565,29 +4565,36 @@ The following is a list of acceptable sub-nodes:
   \item \xmlNode{graph} \xmlDesc{, string, optional field}, specifies the type
   of neighborhood graph used in the algorithm, available options are:
   \begin{itemize}
-    \item Beta Skeleton
-    \item Relaxed Beta Skeleton
-    \item Approximate KNN
+    \item \xmlString{beta skeleton}
+    \item \xmlString{relaxed beta skeleton}
+    \item \xmlString{approximate knn}
     %\item Delaunay \textit{(disabled)}
   \end{itemize}
-  \default{Beta Skeleton}
+  \default{\xmlString{beta skeleton}}
   \item \xmlNode{gradient}, \xmlDesc{string, optional field}, specifies the 
   method used for estimating the gradient, available options are:
   \begin{itemize}
-    \item Steepest
-    %\item MaxFlow \textit{(disabled)}
+    \item \xmlString{steepest}
+    %\item \xmlString{maxflow} \textit{(disabled)}
   \end{itemize}
-  \default{Steepest}
+  \default{\xmlString{steepest}}
   \item \xmlNode{beta}, \xmlDesc{float, optional field}, is only used when the
-  \texttt{graph} is set to \textit{Beta Skeleton} or \textit{Relaxed Beta
-  Skeleton}.
+  \texttt{graph} is set to \xmlString{beta skeleton} or \xmlString{relaxed beta
+  skeleton}.
   \default{1.0}
   \item \xmlNode{knn}, \xmlDesc{integer, optional field}, is the number of
-  neighbors when using the \textit{Approximate KNN} for the \texttt{graph}
+  neighbors when using the \xmlString{approximate knn} for the \xmlNode{graph}
   sub-node and used to speed up the computation of other graphs by using the
   approximate knn graph as a starting point for pruning. -1 means use a fully
   connected graph.
   \default{-1}
+  \item \xmlNode{normalization}, \xmlDesc{string, optional field}, an optional 
+  string specifying whether the inputs/output should be scaled before computing.
+  Currently, two modes are supported 'zscore' and 'feature'. 'zscore' will ensure
+  the data has a mean of zero and a standard deviation of 1 by subtracting the
+  mean and dividing by the variance. 'feature' scales the data into the
+  unit hypercube.
+  \default{None}
   \item \xmlNode{persistence}, \xmlDesc{float, optional field}, specifies the
   amount of noise reduction to apply before returning labels. 
   \default{0}
@@ -4607,6 +4614,7 @@ The following is a list of acceptable sub-nodes:
       <gradient>Steepest</gradient>
       <beta>1</beta>
       <knn>8</knn>
+      <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
     </PostProcessor>

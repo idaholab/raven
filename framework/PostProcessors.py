@@ -26,6 +26,7 @@ import utils
 import mathUtils
 from Assembler import Assembler
 import SupervisedLearning
+from AMSC import AMSC_Object
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -1778,7 +1779,7 @@ class LimitSurface(BasePostProcessor):
       listsurfPointPositive= self.__localLimitStateSearch__(toBeTested,1)
       nPosPoints = len(listsurfPointPositive)
     listsurfPoint = listsurfPointNegative + listsurfPointPositive
-#     #printing----------------------
+    #printing----------------------
     if len(listsurfPoint) > 0: self.raiseADebug('LimitSurface: Limit surface points:')
     for coordinate in listsurfPoint:
       myStr = ''
@@ -2072,6 +2073,316 @@ class ExternalPostProcessor(BasePostProcessor):
       for target in Input['targets']:
         if hasattr(interface,target):
           outputDict[target] = getattr(interface, target)
+
+    return outputDict
+
+#
+#
+#
+#
+class TopologicalDecomposition(BasePostProcessor):
+  """
+    TopologicalDecomposition class - Computes an approximated hierarchical
+    Morse-Smale decomposition from an input point cloud consisting of an
+    arbitrary number of input parameters and a response value per input point
+  """
+  def __init__(self,messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
+    ## Possibly load this here in case people have trouble building it, so it
+    ## only errors if they try to use it?
+    #from AMSC import AMSC_Object
+
+    BasePostProcessor.__init__(self,messageHandler)
+    self.acceptedGraphParam = ['approximate knn','delaunay','beta skeleton',\
+                               'relaxed beta skeleton']
+    self.acceptedGradientParam = ['steepest','maxflow']
+    self.acceptedNormalizationParam = ['feature','zscore','none']
+
+    # Some default arguments
+    self.gradient = 'steepest'
+    self.graph = 'beta skeleton'
+    self.beta = 1
+    self.knn = -1
+    self.persistence = 0
+    self.normalization = None
+    self.parameters = {}
+
+  def inputToInternal(self,currentInp):
+    """
+      Function to convert the incoming input into a usable format
+      @ In, currentInp : The input object to process
+      @ Out, None
+    """
+    if type(currentInp) == list  : currentInput = currentInp [-1]
+    else                         : currentInput = currentInp
+    if type(currentInput) == dict:
+      if 'features' in currentInput.keys(): return currentInput
+    inputDict = {'features':{},'targets':{},'metadata':{}}
+    if hasattr(currentInput,'type'):
+      inType = currentInput.type
+    elif type(currentInput).__name__ == 'list':
+      inType = 'list'
+    else:
+      self.raiseAnError(IOError, self.__class__.__name__,
+                        ' postprocessor accepts files, HDF5, Data(s) only. ',
+                        ' Requested: ',type(currentInput))
+
+    if inType not in ['FileObject','HDF5','TimePointSet','list']: 
+      self.raiseAnError(IOError, self, self.__class__.__name__ + ' post-processor only accepts files, HDF5, or DataObjects! Got '+ str(inType) + '!!!!')
+    # FIXME: implement this feature
+    if inType == 'FileObject':
+      if currentInput.subtype == 'csv': pass
+    # FIXME: implement this feature
+    if inType == 'HDF5': pass # to be implemented
+    if inType in ['TimePointSet']:
+      for targetP in self.parameters['features']:
+        if   targetP in currentInput.getParaKeys('input' ):
+          inputDict['features'][targetP] = currentInput.getParam('input' ,targetP)
+        elif targetP in currentInput.getParaKeys('output'):
+          inputDict['features'][targetP] = currentInput.getParam('output',targetP)
+      for targetP in self.parameters['targets']:
+        if   targetP in currentInput.getParaKeys('input' ):
+          inputDict['targets'][targetP] = currentInput.getParam('input' ,targetP)
+        elif targetP in currentInput.getParaKeys('output'):
+          inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
+      inputDict['metadata'] = currentInput.getAllMetadata()
+     # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
+    if inputDict['metadata'].keys().count('SamplerType') > 0: pass
+    return inputDict
+
+  def _localReadMoreXML(self,xmlNode):
+    """
+      Function to grab the names of the methods this post-processor will be
+      using
+      @ In, xmlNode    : Xml element node
+      @ Out, None
+    """
+    for child in xmlNode:
+      if child.tag =="graph":
+        self.graph = child.text.encode('ascii').lower()
+        if self.graph not in self.acceptedGraphParam:
+          self.raiseAnError(IOError,'Requested unknown graph type: ',
+                            self.graph, '. Available options: ',
+                            self.acceptedGraphParam)
+      elif child.tag =="gradient":
+        self.gradient = child.text.encode('ascii').lower()
+        if self.gradient not in self.acceptedGradientParam:
+          self.raiseAnError(IOError,'Requested unknown gradient method: ',
+                            self.gradient, '. Available options: ',
+                            self.acceptedGradientParam)
+      elif child.tag =="beta":
+        self.beta = float(child.text)
+        if self.beta <= 0 or self.beta > 2:
+          self.raiseAnError(IOError, 'Requested invalid beta value: ',
+                            self.beta, '. Allowable range: (0,2]')
+      elif child.tag == 'knn':
+        self.knn = int(child.text)
+      elif child.tag == 'persistence':
+        self.persistence = float(child.text)
+      elif child.tag == 'parameters':
+        self.parameters['features'] = child.text.strip().split(',')
+        for i,parameter in enumerate(self.parameters['features']):
+          self.parameters['features'][i] = self.parameters['features'][i].encode('ascii')
+      elif child.tag == 'response':
+        self.parameters['targets'] = child.text
+      elif child.tag == 'normalization':
+        self.normalization = child.text.encode('ascii').lower()
+        if self.normalization not in self.acceptedNormalizationParam:
+          self.raiseAnError(IOError, 'Requested unknown normalization type: ',
+                            self.normalization, '. Available options: ',
+                            self.acceptedNormalizationParam)
+
+  def collectOutput(self,finishedJob,output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob: A JobHandler object that is in charge of running this
+                         post-processor
+      @ In, output: The object where we want to place our computed results
+      @ Out, None
+    """
+    if finishedJob.returnEvaluation() == -1:
+      #TODO This does not feel right
+      raise Exception(self.errorString('No available Output to collect (Run '
+                                       + 'probably did not finish yet)'))
+    inputList = finishedJob.returnEvaluation()[0]
+    outputDict = finishedJob.returnEvaluation()[1]
+
+    if type(output).__name__ in ["str","unicode","bytes"]:
+      self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
+                         + ' yet implemented. I am going to skip it.')
+    elif output.type == 'Datas':
+      self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
+                         + ' yet implemented. I am going to skip it.')
+    elif output.type == 'HDF5':
+      self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
+                         + ' yet implemented. I am going to skip it.')
+    elif output.type == 'TimePointSet':
+      requestedInput = output.getParaKeys('input')
+      requestedOutput = output.getParaKeys('output')
+      dataLength = None
+      for inputData in inputList:
+        # Pass inputs from input data to output data
+        for key,value in inputData.getParametersValues('input').items():
+          if key in requestedInput:
+            # We need the size to ensure the data size is consistent, but there
+            # is no guarantee the data is not scalar, so this check is necessary
+            myLength = 1
+            if hasattr(value, "__len__"):
+              myLength = len(value)
+
+            if dataLength is None:
+              dataLength = myLength
+            elif dataLength != myLength:
+              dataLength = max(dataLength,myLength)
+              self.raiseAWarning('Data size is inconsistent. Currently set to '
+                                 + str(dataLength) + '.')
+
+            for val in value:
+              output.updateInputValue(key, val)
+
+        # Pass outputs from input data to output data
+        for key,value in inputData.getParametersValues('output').items():
+          if key in requestedOutput:
+            # We need the size to ensure the data size is consistent, but there
+            # is no guarantee the data is not scalar, so this check is necessary
+            myLength = 1
+            if hasattr(value, "__len__"):
+              myLength = len(value)
+
+            if dataLength is None:
+              dataLength = myLength
+            elif dataLength != myLength:
+              dataLength = max(dataLength,myLength)
+              self.raiseAWarning('Data size is inconsistent. Currently set to '
+                                      + str(dataLength) + '.')
+
+            for val in value:
+              output.updateOutputValue(key,val)
+
+        # Append the min/max labels to the data whether the user wants them or
+        # not, and place the hierarchy information into the metadata
+        for key,value in outputDict.iteritems():
+          if key in ['minLabel','maxLabel']:
+            output.updateOutputValue(key,[value])
+          elif key in ['hierarchy']:
+            output.updateMetadata(key,[value])
+          elif key.startswith('coefficients'):
+            output.updateMetadata(key,[value])
+          elif key.startswith('R2'):
+            output.updateMetadata(key,[value])
+          elif key.startswith('Gaussian'):
+            output.updateMetadata(key,[value])
+    else:
+      raise IOError(errorString('Unknown output type: ' + str(output.type)))
+
+  def run(self, InputIn):
+    """
+     Function to finalize the filter => execute the filtering
+     @ In , dictionary       : dictionary of data to process
+     @ Out, dictionary       : Dictionary with results
+    """
+    Input  = self.inputToInternal(InputIn)
+    outputDict = {}
+
+    myDataIn  = Input['features']
+    myDataOut = Input['targets']
+    outputData = myDataOut[self.parameters['targets'].encode('UTF-8')]
+    self.pointCount = len(outputData)
+    self.dimensionCount = len(self.parameters['features'])
+
+    inputData = np.zeros((self.pointCount,self.dimensionCount))
+    for i,lbl in enumerate(self.parameters['features']):
+      inputData[:,i] = myDataIn[lbl.encode('UTF-8')]
+
+    names = self.parameters['features'] + [self.parameters['targets']]
+    #FIXME: AMSC_Object employs unsupervised NearestNeighbors algorithm from scikit learn. 
+    #       The NearestNeighbor algorithm is implemented in SupervisedLearning, which requires features and targets by default.
+    #       which we don't have here. When the NearestNeighbor is implemented in unSupervisedLearning switch to it.
+    self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=None,
+                              names=names, graph=self.graph,
+                              gradient=self.gradient, knn=self.knn,
+                              beta=self.beta, normalization=self.normalization,
+                              debug=True)
+
+    self.__amsc.Persistence(self.persistence)
+    partitions = self.__amsc.Partitions()
+
+    outputDict['minLabel'] = np.zeros(self.pointCount)
+    outputDict['maxLabel'] = np.zeros(self.pointCount)
+
+    for extPair,indices in partitions.iteritems():
+      for idx in indices:
+        outputDict['minLabel'][idx] = extPair[0]
+        outputDict['maxLabel'][idx] = extPair[1]
+
+    output = os.linesep
+    output += '========== Data Labels: ========== ' + os.linesep
+    output += 'Index'
+    sep = ','
+    for lbl in names:
+      output += sep + lbl
+    output += sep + 'Minimum' + sep + 'Maximum'
+    output += os.linesep
+    for i in xrange(0,self.__amsc.GetSampleSize()):
+      line = str(i)
+      for d in xrange(0,self.__amsc.GetDimensionality()):
+        line += sep + str(inputData[i,d])
+      line += sep + str(outputData[i])
+      line += sep + str(int(outputDict['minLabel'][i]))
+      line += sep + str(int(outputDict['maxLabel'][i]))
+      output += line + os.linesep
+    output += '========== Merge Hierarchy: ==========' + os.linesep
+    output += self.__amsc.XMLFormattedHierarchy() + os.linesep
+    outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
+    output += '========== Linear Regressors: ==========' + os.linesep
+    self.__amsc.BuildModels()
+    linearFits = self.__amsc.SegmentFitCoefficients()
+    linearFitnesses = self.__amsc.SegmentFitnesses()
+
+    for key in linearFits.keys():
+      output += str(key) + os.linesep
+      coefficients = linearFits[key]
+      rSquared = linearFitnesses[key]
+#      output += '\t' + u"\u03B2\u0302: " + str(coefficients) + '\n'
+#      output += '\t' + u"R\u00B2: " + str(rSquared) + '\n' + '\n'
+      output += '\t' + "beta: " + str(coefficients) + os.linesep
+      output += '\t' + "R^2: " + str(rSquared) + 2*os.linesep
+      outputDict['coefficients_%d_%d' % (key[0],key[1])] = coefficients
+      outputDict['R2_%d_%d' % (key[0],key[1])] = rSquared
+
+#    output += 'RMSD  = %f\n' % (self.linearNRMSD)
+    output += '========== Gaussian Fits: ==========' + os.linesep
+#    output += u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - '
+#          + u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)\n'
+    output += 'a/sqrt(2*(pi)^d|M|)*e^(-(x-mu)TM(x-mu)) + c - a'
+    output += '\t(mu & c are fixed, M and a are estimated)' + os.linesep
+
+    exts = linearFits.keys()
+    exts = [int(item) for sublist in exts for item in sublist]
+    exts = list(set(exts))
+
+    for key in exts:
+      output += str(key) + ':' + os.linesep
+      (mu,c,a,A) = self.__amsc.GetExtremumFitCoefficients(key)
+#      output += u':\t\u03BC=' + str(mu) + '\n'
+      output += u':\tmu=' + str(mu) + os.linesep
+      output += '\tc=' + str(c) + os.linesep
+      output += '\ta=' + str(a) + os.linesep
+      output += '\tM=' + os.linesep + str(A)+ 2*os.linesep
+#      output += '\t\u03A3=\n' + str(A)+'\n\n'
+#      output += '\t' + u"R\u00B2: " + str(rSquared) + '\n\n'
+
+      outputDict['mu_' + str(key)] = mu
+      outputDict['c_' + str(key)] = c
+      outputDict['a_' + str(key)] = a
+      outputDict['Sigma_' + str(key)] = A
+      outputDict['R2_' + str(key)] = rSquared
+
+#    output += 'RMSD  = %f and %f\n' % (self.gaussianNRMSD[0],self.gaussianNRMSD[1])
+    self.raiseAMessage(output)
     return outputDict
 
 """
@@ -2087,6 +2398,7 @@ __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
+__interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
 __knownTypes                                 = __interFaceDict.keys()
 
 def knownTypes():

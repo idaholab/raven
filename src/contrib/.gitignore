@@ -1,0 +1,10 @@
+# Local ignore for the AMSC library
+Makefile
+test*
+*.cxx
+amsc.py
+#*.py
+_amsc.so
+*.csv
+*.xml
+*.png
