@@ -2132,7 +2132,7 @@ class TopologicalDecomposition(BasePostProcessor):
                         ' postprocessor accepts files, HDF5, Data(s) only. ',
                         ' Requested: ',type(currentInput))
 
-    if inType not in ['FileObject','HDF5','TimePointSet','list']: 
+    if inType not in ['FileObject','HDF5','TimePointSet','list']:
       self.raiseAnError(IOError, self, self.__class__.__name__ + ' post-processor only accepts files, HDF5, or DataObjects! Got '+ str(inType) + '!!!!')
     # FIXME: implement this feature
     if inType == 'FileObject':
@@ -2300,7 +2300,7 @@ class TopologicalDecomposition(BasePostProcessor):
       inputData[:,i] = myDataIn[lbl.encode('UTF-8')]
 
     names = self.parameters['features'] + [self.parameters['targets']]
-    #FIXME: AMSC_Object employs unsupervised NearestNeighbors algorithm from scikit learn. 
+    #FIXME: AMSC_Object employs unsupervised NearestNeighbors algorithm from scikit learn.
     #       The NearestNeighbor algorithm is implemented in SupervisedLearning, which requires features and targets by default.
     #       which we don't have here. When the NearestNeighbor is implemented in unSupervisedLearning switch to it.
     self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=None,
