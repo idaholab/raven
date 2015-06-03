@@ -273,7 +273,11 @@ class hdf5Database(MessageHandler.MessageUser):
         splittedPath=comparisonName.split('/')
         for splgroup in splittedPath:
           if gname == splgroup and splittedPath[0] == self.parent_group_name:
-            gname = gname + "_"+ str(index)
+            found = True
+            while found:
+              if gname in splittedPath: found = True
+              else: found = False
+              gname = gname + "_"+ str(index)
             #self.raiseAnError(IOError,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     parent_name = self.parent_group_name.replace('/', '')
     # Create the group
