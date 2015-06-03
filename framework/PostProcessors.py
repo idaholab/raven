@@ -609,8 +609,11 @@ class ComparisonStatistics(BasePostProcessor):
             rest = splitName[2:]
             compareGroup.dataPulls.append([name, kind, rest])
           elif child.tag == 'reference':
-            # This is either name=distribution or mean=num and sigma=num
+            # This has name=distribution
             compareGroup.referenceData = dict(child.attrib)
+            if "name" not in compareGroup.referenceData:
+              self.raiseAnError(IOError, 'Did not find name in reference block')
+
         self.compareGroups.append(compareGroup)
       if outer.tag == 'kind':
         self.methodInfo['kind'] = outer.text
@@ -679,13 +682,6 @@ class ComparisonStatistics(BasePostProcessor):
       csv = open(output, "w")
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
-      if "mean" in reference:
-          refDataStats = {"mean":float(reference["mean"]),
-                            "stdev":float(reference["sigma"]),
-                            "min_bin_size":float(reference["sigma"]) / 2.0}
-          refPdf = lambda x:mathUtils.normal(x, refDataStats["mean"], refDataStats["stdev"])
-          refCdf = lambda x:mathUtils.normalCdf(x, refDataStats["mean"], refDataStats["stdev"])
-          graphData.append((refDataStats, refCdf, refPdf, "ref"))
       if "name" in reference:
         distribution_name = reference["name"]
         if not distribution_name in self.distributions:
