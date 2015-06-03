@@ -230,7 +230,7 @@
    output = 'GridTestRaven/FirstMRun/out~1~simple_flow_3eqn'
    csv = 'GridTestRaven/outGrid_dump.csv'
    method = 'devel opt'
-   required_executable = '../../RAVEN-%METHOD%' 
+   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
 
@@ -355,7 +355,7 @@
   input = 'test_topology.xml'
   csv = 'topologyPostProcessor/myDump1.csv topologyPostProcessor/myDump2.csv topologyPostProcessor/myDump3.csv topologyPostProcessor/myDump4.csv'
   output = 'topologyPostProcessor/myDump1.xml topologyPostProcessor/myDump2.xml topologyPostProcessor/myDump3.xml topologyPostProcessor/myDump4.xml'
-  required_libraries = '../../src/contrib/_amsc.so'
+  required_libraries = '../../src/contrib/_amsc'
  [../]
 
  [./io_ROM_pickle]
