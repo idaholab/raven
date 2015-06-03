@@ -30,26 +30,6 @@ import utils
 
 class SparseQuad(MessageHandler.MessageUser):
   '''Base class to produce sparse-grid multiple-dimension quadrature.'''
-  def __init__(self):
-    self.type     = 'SparseQuad'
-    self.printTag = 'SparseQuad' #FIXME use utility methods for right length
-    self.c        = [] #array of coefficient terms for component tensor grid entries
-    self.oldsg    = [] #storage space for re-ordered versions of sparse grid
-    self.indexSet = None #IndexSet object
-    self.distDict = None #dict{varName: Distribution object}
-    self.quadDict = None #dict{varName: Quadrature object}
-    self.polyDict = None #dict{varName: OrthoPolynomial object}
-    self.varNames = []   #array of names, in order of distDict.keys()
-    self.N        = None #dimensionality of input space
-    self.SG       = None #dict{ (point,point,point): weight}
-    self.messageHandler = None
-    self.mods     = []
-    for key, value in dict(inspect.getmembers(inspect.getmodule(self))).items():
-      if inspect.ismodule(value) or inspect.ismethod(value):
-        if key != value.__name__:
-          if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
-          else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
-        else: self.mods.append(str(key))
 
   ##### OVERWRITTEN BUILTINS #####
   def __getitem__(self,n):
@@ -240,6 +220,7 @@ class SparseQuad(MessageHandler.MessageUser):
     @ In msgHandler, MessageHandler, output tool
     @ Out, None, None
     '''
+    self.origIndexSet = indexSet
     self.indexSet = np.array(indexSet[:])
     self.distDict = distDict
     self.quadDict = quadDict
@@ -310,7 +291,7 @@ class SparseQuad(MessageHandler.MessageUser):
           cof=self.c[j]
           idx = self.indexSet[j]
           m=self.quadRule(idx)+1
-          handler.submitDict['Internal']((m,idx),self.tensorGrid,str(cof)+"_tensor",modulesToImport = self.mods)
+          handler.submitDict['Internal']((m,idx),self.tensorGrid,str(cof)+"_tensor")#,modulesToImport = self.mods)
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 
@@ -383,7 +364,7 @@ class SparseQuad(MessageHandler.MessageUser):
       if i<N-1: #load new inputs, up to 100 at a time
         for k in range(min(handler.howManyFreeSpots(),N-1-i)):
           i+=1
-          handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,str(i)+"_makeSingleCoeff",modulesToImport = self.mods)
+          handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,str(i)+"_makeSingleCoeff")#,modulesToImport = self.mods)
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 

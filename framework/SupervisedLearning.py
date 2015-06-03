@@ -492,12 +492,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
         var = self.features[i]
         print(self.polys[var][ix]*coeff,'|',var)
 
-
-
   def __returnInitialParametersLocal__(self):
     return {}#TODO 'IndexSet:':self.indexSetType,
              #'PolynomialOrder':self.maxPolyOrder,
              # 'Interpolation':interpolationInfo()}
+
+
 
 class HDMRRom(GaussPolynomialRom):
   def __confidenceLocal__(self,edict):pass #TODO

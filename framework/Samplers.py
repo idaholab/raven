@@ -2500,18 +2500,23 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.error            = 0    #estimate of percent of moment calculated so far
     self.moment           = 0
     self.oldSG            = None #previously-accepted sparse grid
+    self.convType         = None #convergence criterion to use
     self.existing         = {}
 
     self._addAssObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
     SparseGridCollocation.localInputAndChecks(self,xmlNode)
+    foundConv = False
     for child in xmlNode:
       if child.tag == 'Convergence':
+        foundConv = True
         self.convType     = child.attrib['target']
         self.maxPolyOrder = int(child.attrib.get('maxPolyOrder',3)) #int(child.attrib['maxPolyOrder']) if 'maxPolyOrder' in child.attrib.keys() else 3
         self.persistence  = int(child.attrib.get('persistence',2))
         self.convValue    = float(child.text)
+    if not foundConv:
+      self.raiseAnError(IOError,'Convergence node not found in input!')
 
   def  localInitialize(self):
     self.ROM = self.assemblerDict['ROM'][0][3]
@@ -2551,12 +2556,28 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     iset.addPoints(points)
     sparseGrid.initialize(self.features,iset,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
     return sparseGrid,iset
+ 
+  def _makeARom(self,grid,inset):
+    rom  = copy.deepcopy(self.ROM)
+    sg   = copy.deepcopy(grid)
+    iset = copy.deepcopy(inset)
+    sg.messageHandler   = self.messageHandler
+    iset.messageHandler = self.messageHandler
+    rom.messageHandler  = self.messageHandler
+    for svl in rom.SupervisedEngine.values():
+      svl.initialize({'SG'   :sg,
+                      'dists':self.distDict,
+                      'quads':self.quadDict,
+                      'polys':self.polyDict,
+                      'iSet' :iset
+                      })
+    rom.train(self.solns)
+    return rom
 
   def _impactParameter(self,new,old):
     impact=0
-    #if self.convType=='variance':
     if abs(old)>1e-14: return((new-old)/old)
-    else: return new #self.raiseAnError(ValueError,'old value is less than 1e-14!')
+    else: return new
 
   def _updateExisting(self):
     if not self.solns.isItEmpty():
@@ -2590,21 +2611,52 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       outfile.writelines(str(err)+'\n')
     outfile.close()
 
-  def _integrateFunction(self,sg):
+  def _integrateFunction(self,sg,r):
     tot=0
-    #for key,val in self.existing.items():
-      #self.raiseADebug(key,'|',val)
     for n in range(len(sg)):
       pt,wt = sg[n]
       if pt not in self.existing.keys(): self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
-      tot+=self.existing[pt][0]**2*wt
+      tot+=self.existing[pt][0]**r*wt
     return tot
+
+  def _convergence(self,sparseGrid,iset):
+    if self.convType.lower()=='mean':
+      new = self._integrateFunction(sparseGrid,1)
+      if self.oldSG!=None: old = self._integrateFunction(self.oldSG,1)
+      else: old = 0
+      impact = self._impactParameter(new,old)
+    elif self.convType.lower()=='variance':
+      new = self._integrateFunction(sparseGrid,2)
+      if self.oldSG!=None: old = self._integrateFunction(self.oldSG,2)
+      else: old = 0
+      impact = self._impactParameter(new,old)
+    elif self.convType.lower()=='coeffs':
+      new = self._makeARom(sparseGrid,iset).SupervisedEngine.values()[0] #TODO multitarget ROM
+      tot = 0 #for L2 norm of coeffs
+      if self.oldSG != None:
+        oSG,oSet = self._makeSparseQuad()
+        old = self._makeARom(oSG,oSet).SupervisedEngine.values()[0]
+        #self.raiseADebug('old:',old.polyCoeffDict.keys())
+      else: old=None
+      for coeff in new.polyCoeffDict.keys():
+        if old!=None and coeff in old.polyCoeffDict.keys():
+          n = new.polyCoeffDict[coeff]
+          o = old.polyCoeffDict[coeff]
+          tot+= (n - o)**2
+          if abs(n-o)>1e-13: self.raiseADebug('    ...old point:',coeff,'new-old:',n-o,'new:',n,'old:',o)
+        else:
+          tot+= new.polyCoeffDict[coeff]**2
+          if abs(new.polyCoeffDict[coeff]) > 1e-13: self.raiseADebug('    ...new point:',coeff,new.polyCoeffDict[coeff])
+      impact = np.sqrt(tot)#/float(len(new.polyCoeffDict))
+    else: self.raiseAnError(KeyError,'Unexpected convergence criteria:',self.convType)
+    return impact
 
   def localStillReady(self,ready):
     #update existing solutions
     self._updateExisting()
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
+    #if we still have a list of points to sample, just keep on trucking.
     if len(self.neededPoints)>0:return True
     #search for points to sample
     while len(self.neededPoints)<1:
@@ -2618,11 +2670,11 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         sparseGrid,iset = self._makeSparseQuad(active)
         #store it
         self.activeSGs[active]=sparseGrid
-        #integrate
-        new = self._integrateFunction(sparseGrid)
-        if self.oldSG!=None: old = self._integrateFunction(self.oldSG)
-        else: old=0
-        impact = self._impactParameter(new,old)
+        #check converge
+        self.raiseADebug('')
+        self.raiseADebug('  ...checking convergence on active',active)
+        impact = self._convergence(sparseGrid,iset)
+        self.raiseADebug('')
         #self.raiseADebug('Impact for',active,'is',impact)
         self.indexSet.setSG(active,sparseGrid)
         self.indexSet.setImpact(active,impact)
@@ -2631,7 +2683,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.raiseADebug('  target error:',self.convValue)
       if abs(self.error)<self.convValue and len(self.indexSet.points)>self.persistence:
         done=True #we've converged!
-        self.raiseADebug('error:',self.error)
+        self.raiseADebug('converged estimated error:',self.error)
         for key in self.indexSet.active.keys():
           if self.indexSet.active[key]==None: del self.indexSet.active[key]
         break
@@ -2642,7 +2694,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self.oldSG = self.activeSGs[self.indexSet.newestPoint]
       #get the biggest helper and make him permanent
       point,impact = self.indexSet.expand()
-      self.raiseADebug('New Coeffs by adding point',point)
+      #self.raiseADebug('New Coeffs by adding point',point)
       # find the forward points of the most effective point
       self.indexSet.forward(point,self.maxPolyOrder)
       for point in self.indexSet.active.keys():
