@@ -15,6 +15,7 @@ class RavenErrors(Tester):
     params.addRequiredParam('input',"The input file to use for this test.")
     params.addRequiredParam('expect_err',"All or part of the expected error message (unique keyword)")
     params.addParam('required_executable','','Skip test if this executable is not found')
+    params.addParam('required_libraries','','Skip test if any of these libraries are not found')
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
     params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
     return params
@@ -31,6 +32,7 @@ class RavenErrors(Tester):
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
+    self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.required_executable = self.specs['required_executable']
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
     self.specs['scale_refine'] = False
@@ -44,6 +46,9 @@ class RavenErrors(Tester):
     if len(too_old) > 0:
       return (False,'skipped (Old version python modules: '+" ".join(too_old)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+    for lib in self.required_libraries:
+      if not os.path.exists(lib):
+        return (False,'skipped (Missing library: "'+lib+'")')
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
       return (False,'skipped (Missing executable: "'+self.required_executable+'")')
