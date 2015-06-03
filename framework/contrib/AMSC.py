@@ -231,11 +231,12 @@ class AMSC_Object(object):
       sys.stderr.write('Decomposition: ')
       start = time.clock()
 
+    print(self.w)
     self.__amsc = amsc.AMSCFloat(amsc.vectorFloat(self.Xnorm.flatten()),
                                  amsc.vectorFloat(self.Y),
                                  amsc.vectorString(self.names), str(graph),
                                  str(gradient), int(knn), float(beta),
-                                 str(persistence),
+                                 str(persistence), amsc.vectorFloat(self.w),
                                  amsc.vectorInt(edgesToPrune))
 
     if debug:

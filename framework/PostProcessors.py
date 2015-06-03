@@ -2094,8 +2094,7 @@ class TopologicalDecomposition(BasePostProcessor):
     BasePostProcessor.__init__(self, messageHandler)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
-    self.acceptedPersistenceParam = ['difference']
-    # self.acceptedPersistenceParam = ['difference','probability','count','area']
+    self.acceptedPersistenceParam = ['difference','probability'] #,'count','area']
     self.acceptedGradientParam = ['steepest', 'maxflow']
     self.acceptedNormalizationParam = ['feature', 'zscore', 'none']
 

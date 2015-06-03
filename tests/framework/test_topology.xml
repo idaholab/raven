@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- A Simple Example of the Approximate Morse-Smale Complex Interface -->
+<!-- A Simple Example of the Approximate Morse-Smale Complex Interface
+     has four local minima surrounding a global maximum, and each of the
+     examples will showcase different levels of partitions using different
+     persistence simplfication metrics -->
 <Simulation>
   <RunInfo>
     <WorkingDir>topologyPostProcessor</WorkingDir>
@@ -49,8 +52,9 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>0.04</simplification>
-      <!-- <persistence>probability</persistence> -->
+      <weighted>True</weighted>
+      <simplification>1e-7</simplification>
+      <persistence>probability</persistence>
     </PostProcessor>
     <PostProcessor name='AMSC4' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
@@ -66,8 +70,8 @@
   </Models>
   <Distributions>
     <Normal name="NormDist">
-      <mean>0.5</mean>
-      <sigma>0.125</sigma>
+      <mean>2.5</mean>
+      <sigma>2</sigma>
     </Normal>
   </Distributions>
   <Samplers>
