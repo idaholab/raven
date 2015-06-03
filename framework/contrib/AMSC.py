@@ -42,7 +42,15 @@ import time
 import os
 myPath = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(myPath+'/../../src/contrib/')
-import amsc
+try:
+  import amsc
+except ImportError as e:
+  makeFilePath = os.path.realpath(myPath+'/../../amsc.mk')
+  sys.stderr.write('It appears you have not built the AMSC library. Try '
+                   + 'running the following command:' + os.linesep
+                   + '\tmake -f ' + makeFilePath + os.linesep)
+  sys.exit(1)
+
 ####################################################
 
 # import PySide.QtCore
