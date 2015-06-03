@@ -60,7 +60,10 @@ This simple example is about the construction of a ``Lorentz attractor'', sampli
 </Distributions>
 <!-- SAMPLERS -->
 <Samplers>
-    <MonteCarlo name='MC_external'  limit='3' >
+    <MonteCarlo name='MC_external'>
+      <sampler_init>
+        <limit>3</limit>
+      </sampler_init>
       <variable name='x0' >
         <distribution  >x0_distrib</distribution>
       </variable>
