@@ -42,7 +42,15 @@ import time
 import os
 myPath = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(myPath+'/../../src/contrib/')
-import amsc
+try:
+  import amsc
+except ImportError as e:
+  makeFilePath = os.path.realpath(myPath+'/../../amsc.mk')
+  sys.stderr.write('It appears you have not built the AMSC library. Try '
+                   + 'running the following command:' + os.linesep
+                   + '\tmake -f ' + makeFilePath + os.linesep)
+  sys.exit(1)
+
 ####################################################
 
 # import PySide.QtCore
@@ -91,7 +99,7 @@ class AMSC_Object(object):
 
   def __init__(self, X, Y, w=None, names=None, graph='beta skeleton',
                gradient='steepest', knn=-1, beta=1.0, normalization=None,
-               debug=False):
+               persistence='difference', debug=False):
     """ Initialization method that takes at minimum a set of input points and
         corresponding output responses.
         @ In, X, an m-by-n array of values specifying m n-dimensional samples
@@ -125,6 +133,13 @@ class AMSC_Object(object):
           has a mean of zero and a standard deviation of 1 by subtracting the
           mean and dividing by the variance. 'feature' scales the data into the
           unit hypercube.
+        @ In, persistence, an optional string specifying how we will compute
+          the persistence hierarchy. Currently, three modes are supported
+          'difference', 'probability' and 'count'. 'difference' will take the
+          function value difference of the extrema and its closest function
+          valued neighboring saddle, 'probability' will augment this value by
+          multiplying the probability of the extremum and its saddle, and count
+          will make the larger point counts more persistent.
     """
     super(AMSC_Object,self).__init__()
 
@@ -220,6 +235,7 @@ class AMSC_Object(object):
                                  amsc.vectorFloat(self.Y),
                                  amsc.vectorString(self.names), str(graph),
                                  str(gradient), int(knn), float(beta),
+                                 str(persistence),
                                  amsc.vectorInt(edgesToPrune))
 
     if debug:
