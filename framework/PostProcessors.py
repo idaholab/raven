@@ -26,7 +26,7 @@ import utils
 import mathUtils
 from Assembler import Assembler
 import SupervisedLearning
-#from AMSC import AMSC_Object # This is loaded on demand to prevent unnecessary headaches
+from AMSC import AMSC_Object
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -2091,9 +2091,15 @@ class TopologicalDecomposition(BasePostProcessor):
      Constructor
      @ In, messageHandler, message handler object
     """
+    ## Possibly load this here in case people have trouble building it, so it
+    ## only errors if they try to use it?
+    #from AMSC import AMSC_Object
+
     BasePostProcessor.__init__(self,messageHandler)
     self.acceptedGraphParam = ['approximate knn','delaunay','beta skeleton',\
                                'relaxed beta skeleton']
+    self.acceptedPersistenceParam = ['difference']
+    # self.acceptedPersistenceParam = ['difference','probability','count','area']
     self.acceptedGradientParam = ['steepest','maxflow']
     self.acceptedNormalizationParam = ['feature','zscore','none']
 
@@ -2102,7 +2108,8 @@ class TopologicalDecomposition(BasePostProcessor):
     self.graph = 'beta skeleton'
     self.beta = 1
     self.knn = -1
-    self.persistence = 0
+    self.simplification = 0
+    self.persistence = 'difference'
     self.normalization = None
     self.weighted = False
     self.parameters = {}
@@ -2177,8 +2184,14 @@ class TopologicalDecomposition(BasePostProcessor):
                             self.beta, '. Allowable range: (0,2]')
       elif child.tag == 'knn':
         self.knn = int(child.text)
+      elif child.tag == 'simplification':
+        self.simplification = float(child.text)
       elif child.tag == 'persistence':
-        self.persistence = float(child.text)
+        self.persistence = child.text.encode('ascii').lower()
+        if self.persistence not in self.acceptedPersistenceParam:
+          self.raiseAnError(IOError,'Requested unknown persistence method: ',
+                            self.persistence, '. Available options: ',
+                            self.acceptedPersistenceParam)
       elif child.tag == 'parameters':
         self.parameters['features'] = child.text.strip().split(',')
         for i,parameter in enumerate(self.parameters['features']):
@@ -2283,11 +2296,6 @@ class TopologicalDecomposition(BasePostProcessor):
      @ In , dictionary       : dictionary of data to process
      @ Out, dictionary       : Dictionary with results
     """
-
-    ## Load this here in case people have trouble building it, so it
-    ## only errors if they try to use it.
-    from AMSC import AMSC_Object
-
     Input  = self.inputToInternal(InputIn)
     outputDict = {}
 
@@ -2310,12 +2318,13 @@ class TopologicalDecomposition(BasePostProcessor):
     #FIXME: AMSC_Object employs unsupervised NearestNeighbors algorithm from scikit learn.
     #       The NearestNeighbor algorithm is implemented in SupervisedLearning, which requires features and targets by default.
     #       which we don't have here. When the NearestNeighbor is implemented in unSupervisedLearning switch to it.
-    self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=weights, names=names,
-                              graph=self.graph, gradient=self.gradient,
-                              knn=self.knn, beta=self.beta,
-                              normalization=self.normalization, debug=True)
+    self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=weights,
+                              names=names, graph=self.graph,
+                              gradient=self.gradient, knn=self.knn,
+                              beta=self.beta, normalization=self.normalization,
+                              persistence=self.persistence, debug=True)
 
-    self.__amsc.Persistence(self.persistence)
+    self.__amsc.Persistence(self.simplification)
     partitions = self.__amsc.Partitions()
 
     outputDict['minLabel'] = np.zeros(self.pointCount)

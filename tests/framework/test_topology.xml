@@ -38,7 +38,8 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <persistence>0.005</persistence>
+      <simplification>0.005</simplification>
+      <persistence>difference</persistence>
     </PostProcessor>
     <PostProcessor name='AMSC3' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
@@ -48,7 +49,8 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <persistence>0.04</persistence>
+      <simplification>0.04</simplification>
+      <!-- <persistence>probability</persistence> -->
     </PostProcessor>
     <PostProcessor name='AMSC4' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
@@ -58,7 +60,8 @@
       <!--normalization>None</normalization-->
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <persistence>0.1</persistence>
+      <simplification>0.1</simplification>
+      <!-- <persistence>count</persistence> -->
     </PostProcessor>
   </Models>
   <Distributions>
@@ -80,13 +83,13 @@
           upperBound='10'>1</grid>
       </variable>
     </Grid>
-  </Samplers>    
+  </Samplers>
   <Steps>
   <!-- Load the data from a csv into the hdf5 database used by this run -->
     <IOStep name='loadData' fromDirectory='.'>
       <Input  class='DataObjects' type='TimePointSet'>testData</Input>
       <Output class='Databases'   type='HDF5'        >myDB</Output>
-    </IOStep> 
+    </IOStep>
   <!-- Load the data from a csv into the hdf5 database used by this run -->
     <MultiRun name='sampleData' pauseAtEnd='False'>
       <Sampler class='Samplers'    type='Grid'          >gridSampler</Sampler>
@@ -143,14 +146,14 @@
 
   <Databases>
   <!-- The necessary database object -->
-    <HDF5 name="myDB"/> 
+    <HDF5 name="myDB"/>
   </Databases>
   <DataObjects>
   <!-- The input TimePointSet object -->
     <TimePointSet name="dummyIN">
       <Input>X,Y</Input>
       <Output>OutputPlaceHolder</Output>
-    </TimePointSet>  
+    </TimePointSet>
     <TimePointSet name='testData'>
       <Input>X,Y</Input>
       <Output>Z</Output>
