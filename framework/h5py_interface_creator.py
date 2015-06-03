@@ -257,21 +257,24 @@ class hdf5Database(MessageHandler.MessageUser):
       self.allGroupPaths.append("/" + gname)
       self.allGroupEnds["/" + gname] = True
 
-  def addGroupDataObjects(self,gname,attributes,source,upGroup=False):
+  def addGroupDataObjects(self,gnam,attributes,source,upGroup=False):
     '''
     Function to add a data (class DataObjects) or Dictionary into the Database
-    @ In, gname      : group name
+    @ In, gnam       : group name
     @ In, attributes : dictionary of attributes that must be added as metadata
     @ In, source     : data source (for example, a TimePointSet)
     @ In, upGroup    : update Group????
     @ Out, None
     '''
+    gname = gnam
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         for splgroup in splittedPath:
-          if gname == splgroup and splittedPath[0] == self.parent_group_name: self.raiseAnError(IOError,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
+          if gname == splgroup and splittedPath[0] == self.parent_group_name:
+            gname = gname + "_"+ str(index)
+            #self.raiseAnError(IOError,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     parent_name = self.parent_group_name.replace('/', '')
     # Create the group
     if parent_name != '/':
