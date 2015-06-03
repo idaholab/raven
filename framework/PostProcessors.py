@@ -2090,9 +2090,6 @@ class TopologicalDecomposition(BasePostProcessor):
      Constructor
      @ In, messageHandler, message handler object
     """
-    # # Possibly load this here in case people have trouble building it, so it
-    # # only errors if they try to use it?
-    from AMSC import AMSC_Object
 
     BasePostProcessor.__init__(self, messageHandler)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
@@ -2295,6 +2292,10 @@ class TopologicalDecomposition(BasePostProcessor):
      @ In , dictionary       : dictionary of data to process
      @ Out, dictionary       : Dictionary with results
     """
+    # # Possibly load this here in case people have trouble building it, so it
+    # # only errors if they try to use it?
+    from AMSC import AMSC_Object
+
     Input = self.inputToInternal(InputIn)
     outputDict = {}
 
