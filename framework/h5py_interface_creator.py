@@ -170,7 +170,8 @@ class hdf5Database(MessageHandler.MessageUser):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         if len(splittedPath) > 0:
-          if gname == splittedPath[0]: self.raiseAnError(IOError,"Group named " + gname + " already present as root group in database " + self.name + ". new group " + gname + " is equal to old group " + splittedPath[0])
+          if gname == splittedPath[0]: return
+            # self.raiseAnError(IOError,"Group named " + gname + " already present as root group in database " + self.name + ". new group " + gname + " is equal to old group " + splittedPath[0])
     self.parent_group_name = "/" + gname
     # Create the group
     grp = self.h5_file_w.create_group(gname)
