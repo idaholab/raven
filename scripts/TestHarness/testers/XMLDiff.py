@@ -83,21 +83,25 @@ class XMLDiff:
         self.__same = False
         self.__messages += 'Gold file does not exist: '+gold_filename
       else:
+        files_read = True
         try:
           test_root = ET.parse( test_filename ).getroot()
         except Exception as e:
-          self.__same = False
+          files_read = False
           self.__messages += 'Exception reading files '+test_filename+': '+str(e.args)
         try:
           gold_root = ET.parse( gold_filename ).getroot()
         except Exception as e:
-          self.__same = False
+          files_read = False
           self.__messages += 'Exception reading files '+gold_filename+': '+str(e.args)
-        if self.__same: same,messages = compare_element(test_root, gold_root)
-        if not same:
+        if files_read:
+          same,messages = compare_element(test_root, gold_root)
+          if not same:
+            self.__same = False
+            separator = "\n"+" "*4
+            self.__messages += "Mismatch between "+test_filename+" and "+gold_filename+separator
+            self.__messages += separator.join(messages) + "\n"
+        else:
           self.__same = False
-          separator = "\n"+" "*4
-          self.__messages += "Mismatch between "+test_filename+" and "+gold_filename+separator
-          self.__messages += separator.join(messages) + "\n"
     return (self.__same,self.__messages)
 
