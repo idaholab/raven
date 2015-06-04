@@ -2617,6 +2617,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       pt,wt = sg[n]
       if pt not in self.existing.keys(): self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
       tot+=self.existing[pt][0]**r*wt
+      #self.raiseADebug('point:',pt,'soln:',self.existing[pt][0]**r,'weight:',wt)
     return tot
 
   def _convergence(self,sparseGrid,iset):
@@ -2627,8 +2628,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       impact = self._impactParameter(new,old)
     elif self.convType.lower()=='variance':
       new = self._integrateFunction(sparseGrid,2)
-      if self.oldSG!=None: old = self._integrateFunction(self.oldSG,2)
+      if self.oldSG!=None:
+        old = self._integrateFunction(self.oldSG,2)
       else: old = 0
+      #self.raiseADebug('integrated new:',new,'old:',old)
       impact = self._impactParameter(new,old)
     elif self.convType.lower()=='coeffs':
       new = self._makeARom(sparseGrid,iset).SupervisedEngine.values()[0] #TODO multitarget ROM
@@ -2671,10 +2674,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         #store it
         self.activeSGs[active]=sparseGrid
         #check converge
-        self.raiseADebug('')
-        self.raiseADebug('  ...checking convergence on active',active)
+        #self.raiseADebug('')
+        #self.raiseADebug('  ...checking convergence on active',active)
         impact = self._convergence(sparseGrid,iset)
-        self.raiseADebug('')
+        #self.raiseADebug('')
         #self.raiseADebug('Impact for',active,'is',impact)
         self.indexSet.setSG(active,sparseGrid)
         self.indexSet.setImpact(active,impact)
