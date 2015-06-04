@@ -39,7 +39,7 @@
   \xmlAttr{subType} of a \xmlNode{PostProcessor} node:
 
   \xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{#2}/}.
-  
+
    Several sub-nodes are available:
 }
 
@@ -49,7 +49,7 @@
   sub-node:
 
   \xmlNode{SKLtype}\texttt{#2}\xmlNode{/SKLtype}.
-  
+
   In addition to this XML node, several others are available:
 }
 
@@ -71,7 +71,7 @@
 
 \newcommand{\tolDescriptionA}[1]
 {
-  \xmlNode{tol}, \xmlDesc{float, optional field}, stop the algorithm if the convergence error felt below the tolerance specified here. 
+  \xmlNode{tol}, \xmlDesc{float, optional field}, stop the algorithm if the convergence error felt below the tolerance specified here.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
@@ -195,7 +195,7 @@
 
 \newcommand{\solverDescription}%[1]
 {
-  \xmlNode{solver}, \xmlDesc{\{`auto', `svd', `cholesky', `lsqr', 
+  \xmlNode{solver}, \xmlDesc{\{`auto', `svd', `cholesky', `lsqr',
   `sparse\_cg'\}}, specifies the solver to use in the computational routines:
   \begin{itemize}
     \item `auto' chooses the solver automatically based on the type of data.
@@ -650,7 +650,7 @@ can be further classified based on its particular functionalities:
   The results (outcomes of the physical model) of the sampling are fed into
   the algorithm representing the ROM that tunes itself to replicate those
   results.
-  \item \xmlNode{ExternalModel}, as its name suggests, is an entity existing 
+  \item \xmlNode{ExternalModel}, as its name suggests, is an entity existing
   outside the RAVEN framework that is embedded in the RAVEN code at run time.
   %
   This object allows the user to create a Python module that will be treated as
@@ -741,14 +741,14 @@ to couple a new code.
   %
   \default{None}
   %
-  \item \xmlNode{clargs} \xmlDesc{string, optional field} allows addition of 
+  \item \xmlNode{clargs} \xmlDesc{string, optional field} allows addition of
   command-line arguments to the execution command.  If the code interface
-  specified in \xmlNode{Code} \xmlAttr{subType} does not specify how to 
+  specified in \xmlNode{Code} \xmlAttr{subType} does not specify how to
   determine the input file(s), this node must be used to specify them.
   There are several types of \xmlNode{clargs}, based on the \xmlAttr{type}:
   \begin{itemize}
     \item \xmlAttr{type} \xmlDesc{string, required field} specifies the type of
-    command-line argument to add.  Options include \xmlString{input}, 
+    command-line argument to add.  Options include \xmlString{input},
     \xmlString{output}, \xmlString{prepend}, \xmlString{postpend}, and
     \xmlString{text}.
     %
@@ -768,21 +768,21 @@ to couple a new code.
   %
   \item \xmlNode{fileargs} \xmlDesc{string, optional field} like \xmlNode{clargs},
   but allows editing of input files to specify the output filename and/or auxiliary
-  file names.  
+  file names.
   %
   The location in the input files to edit using these arguments are identified in
-  the input file using the prefix-postfix notation, which defaults to 
+  the input file using the prefix-postfix notation, which defaults to
   \texttt{\$RAVEN-var\$} for variable keyword \emph{var}.  The variable keyword
   is then listed in the \xmlNode{fileargs} node in the attribute \xmlAttr{arg} to
   couple it in Raven.
   %
   If the code interface specified in \xmlNode{Code} \xmlAttr{subType}
   does not specify how to name the output file, that must be specified either through
-  \xmlNode{clargs} or \xmlNode{filargs}, with \xmlAttr{type} \xmlString{output}.  
+  \xmlNode{clargs} or \xmlNode{filargs}, with \xmlAttr{type} \xmlString{output}.
   The attributes required for \xmlNode{fileargs} are as follows:
   \begin{itemize}
     \item \xmlAttr{type} \xmlDesc{string, required field} specifies the type
-    of entry to replace in the file.  Possible values for \xmlNode{fileargs} 
+    of entry to replace in the file.  Possible values for \xmlNode{fileargs}
     \xmlAttr{type} are \xmlString{input} and \xmlString{output}.
     %
     \item \xmlAttr{arg} \xmlDesc{string, required field} specifies the Raven
@@ -856,7 +856,7 @@ requested.
 \vspace{-5mm}
 Given a particular \textit{Step} using this model, if this model is linked to
 a \textit{Data} with the role of \textbf{Output}, it expects one of the output
-parameters will be identified by the keyword ``OutputPlaceHolder'' (see 
+parameters will be identified by the keyword ``OutputPlaceHolder'' (see
 Section~\ref{sec:steps}).
 
 \textbf{Example:}
@@ -913,7 +913,7 @@ one of the following:
   the 4 sub-types should be used, choosing among the previously reported
   types.
   %
-  This choice conditions the subsequent the required and/or optional 
+  This choice conditions the subsequent the required and/or optional
   \xmlNode{ROM} sub-nodes.
   %
 \end{itemize}
@@ -991,14 +991,14 @@ Thus, it can only be trained from the outcomes of a grid sampling strategy.
 </Simulation>
 \end{lstlisting}
 
-%%%%% ROM Model - GaussPolynomialRom  %%%%%%% 
+%%%%% ROM Model - GaussPolynomialRom  %%%%%%%
 \subsubsection{GaussPolynomialRom}
 \label{subsubsec:GaussPolynomialRom}
-The GaussPolynomialRom sub-type contains a single ROM type, based on a 
+The GaussPolynomialRom sub-type contains a single ROM type, based on a
 characteristic Gaussian polynomial fitting scheme: generalized polynomial chaos
 expansion (gPC).
 %
-In gPC, sets of polynomials orthogonal with respect to the distribution of uncertainty 
+In gPC, sets of polynomials orthogonal with respect to the distribution of uncertainty
 are used to represent the original model.  The method converges moments of the original
 model faster than Monte Carlo for small-dimension uncertainty spaces ($N<15$).
 %
@@ -1010,7 +1010,7 @@ two more nodes and can accept multiple entries of a third optional node.
 \begin{itemize}
   \item \xmlNode{IndexSet}, \xmlDesc{string, required field},
   specifies the rules by which to construct multidimensional polynomials.  The options are
-  ``TensorProduct,'' ``TotalDegree,'' ``HyperbolicCross,'' and ``Custom.''  
+  ``TensorProduct,'' ``TotalDegree,'' ``HyperbolicCross,'' and ``Custom.''
   %
   Total degree is efficient for
   uncertain inputs with a large degree of regularity, while hyperbolic cross is more efficient
@@ -1022,7 +1022,7 @@ two more nodes and can accept multiple entries of a third optional node.
   indicates the maximum polynomial order in any one dimension to use in the
   polynomial chaos expansion. \nb If non-equal importance weights are supplied in the optional
   \xmlNode{Interpolation} node, the actual polynomial order in dimensions with high
-  importance might exceed this value; however, this value is still used to limit the 
+  importance might exceed this value; however, this value is still used to limit the
   relative overall order.
   %
   \item \xmlNode{IndexPoints}, \xmlDesc{list of tuples, required field},
@@ -1034,14 +1034,14 @@ two more nodes and can accept multiple entries of a third optional node.
   %
   \item \xmlNode{Interpolation}, \xmlDesc{string, optional field},
   offers the option to specify quadrature, polynomials, and importance weights for the given
-  variable name.  The ROM accepts any number of \xmlNode{Interpolation} nodes up to the 
-  dimensionality of the input space.  This node accepts several attributes, all of which are 
+  variable name.  The ROM accepts any number of \xmlNode{Interpolation} nodes up to the
+  dimensionality of the input space.  This node accepts several attributes, all of which are
   optional and default to
   the code-defined optimal choices based on the input dimension uncertainty distribution:
   \begin{itemize}
     \item \xmlAttr{quad}, \xmlDesc{string, optional field},
-      specifies the quadrature type to use for collocation in this dimension.  The default options 
-      depend on the uncertainty distribution of the input dimension, as shown in Table 
+      specifies the quadrature type to use for collocation in this dimension.  The default options
+      depend on the uncertainty distribution of the input dimension, as shown in Table
       \ref{tab:gpcCompatible}. Additionally, Clenshaw Curtis quadrature can be used for any
       distribution that doesn't include an infinite bound.
       \default{see Table \ref{tab:gpcCompatible}.}
@@ -1052,11 +1052,11 @@ two more nodes and can accept multiple entries of a third optional node.
       viable choices.  Choosing polynomial type Legendre for any non-uniform distribution will
       enable this formulation automatically.
     \item \xmlAttr{poly}, \xmlDesc{string,optional field},
-      specifies the interpolating polynomial family to use for the polynomial expansion in this 
+      specifies the interpolating polynomial family to use for the polynomial expansion in this
       dimension.  The default options depend on the quadrature type chosen, as shown in Table
       \ref{tab:gpcCompatible}.  Currently, no polynomials are available outside the
       default. \default{see Table \ref{tab:gpcCompatible}.}
-    \item  \xmlAttr{weight}, \xmlDesc{float, optional field}, 
+    \item  \xmlAttr{weight}, \xmlDesc{float, optional field},
       delineates the importance weighting of this dimension.  A larger importance weight will
       result in increased resolution for this dimension at the cost of resolution in lower-weighted
       dimensions.  The algorithm normalizes weights at run-time.\default{1}.
@@ -1120,7 +1120,7 @@ accurately produce the necessary sparse grid points to train this ROM.
 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are \xmlString{mean} and \xmlString{variance}.
 
-%%%%% ROM Model - HDMRRom  %%%%%%% 
+%%%%% ROM Model - HDMRRom  %%%%%%%
 \subsubsection{HDMRRom}
 \label{subsubsec:HDMRRom}
 The HDMRRom sub-type contains a single ROM type, based on a Sobol decomposition scheme.
@@ -1138,7 +1138,7 @@ Additionally, this ROM requires the \xmlNode{SobolOrder} node.
   \item \xmlNode{SobolOrder}, \xmlDesc{integer, required field},
   indicates the maximum cardinality of the input space used in the subset functionals.  For example, order 1
   includes only functionals of each independent dimension separately, while order 2 considers pair-wise
-  interactions.  
+  interactions.
   %
 \end{itemize}
 \nb This ROM type must be trained from a Sobol decomposition training set.
@@ -1197,7 +1197,7 @@ the values available at the known points.
 %
 
 In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
-\xmlAttr{subType} needs to be xmlString{NDinvDistWeight} (see the example 
+\xmlAttr{subType} needs to be xmlString{NDinvDistWeight} (see the example
 below).
 %
 \subnodeIntro
@@ -1240,7 +1240,7 @@ RAVEN through the external library scikit-learn~\cite{SciKitLearn}.
 %
 
 In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
-\xmlAttr{subType} needs to be \\ \xmlString{SciKitLearn} (i.e. 
+\xmlAttr{subType} needs to be \\ \xmlString{SciKitLearn} (i.e.
 \xmlAttr{subType}\textbf{\texttt{=}}\xmlString{SciKitLearn}).
 %
 The specifications of a \xmlString{SciKitLearn} ROM depend on the value assumed
@@ -1455,7 +1455,7 @@ The best model is selected by cross-validation.
   .5, .7, .9, .95, .99, 1].
   %
   \default{0.5}
-  \item \xmlNode{eps}, \xmlDesc{float, optional field}, specifies the length of 
+  \item \xmlNode{eps}, \xmlDesc{float, optional field}, specifies the length of
   the path.
   %
   eps=1e-3 means that $alpha\_min / alpha\_max = 1e-3$.
@@ -1485,7 +1485,7 @@ determined by a linear combination of a subset of potential covariates.
 
 \skltype{Least Angle Regression model}{linear\_model|Lars}
 \begin{itemize}
-  \item \xmlNode{n\_nonzero\_coef}, \xmlDesc{integer, optional field}, 
+  \item \xmlNode{n\_nonzero\_coef}, \xmlDesc{integer, optional field},
   represents the target number of non-zero coefficients.
   %
   \default{500}
@@ -1576,7 +1576,7 @@ absolute values of the coefficients.
 \mbox{}
 
 The \textit{Lasso linear model with iterative fitting along a regularization
-path} is an algorithm of the Lasso family, that computes the linear regressor weights, 
+path} is an algorithm of the Lasso family, that computes the linear regressor weights,
 identifying the regularization path in an iterative fitting (see http://www.jstatsoft.org/v33/i01/paper)
 
 \skltype{Lasso linear model with iterative fitting along a regularization path
@@ -1626,7 +1626,7 @@ regressor}{linear\_model|LarsCV}
 \mbox{}
 
 The \textit{Cross-validated Lasso, using the LARS algorithm} is a
-cross-validated Lasso, using the LARS algorithm. 
+cross-validated Lasso, using the LARS algorithm.
 
 \skltype{Cross-validated Lasso, using the LARS algorithm
 regressor}{linear\_model|LassoLarsCV}
@@ -1769,7 +1769,7 @@ i.e. the sum of norm of each row.
 \skltype{Multi-task Lasso model trained with L1/L2
   mixed-norm as regularizer regressor}{linear\_model|MultiTaskLasso}
 \begin{itemize}
-  \item \xmlNode{alpha}, \xmlDesc{float, optional field}, sets the constant 
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field}, sets the constant
   multiplier for the L1/L2 term.
   %
   \default{1.0}
@@ -1879,7 +1879,7 @@ regressor}{linear\_model|OrthogonalMatchingPursuitCV}
 \subparagraph{Passive Aggressive Classifier}
 \mbox{}
 \\The \textit{Passive Aggressive Classifier} is a principled approach to linear
-classification that advocates minimal weight updates i.e., the least required 
+classification that advocates minimal weight updates i.e., the least required
 to correctly classify the current training instance.
 %
 \skltype{Passive Aggressive
@@ -1901,7 +1901,7 @@ Classifier}{linear\_model|PassiveAggressiveClassifier}
     \item hinge: equivalent to PA-I (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf)
     \item squared\_hinge: equivalent to PA-II (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf)
   \end{itemize}
- 
+
   %
   \item \warmStartDescription{}
 \end{itemize}
@@ -1931,7 +1931,7 @@ parameter, $C$.
   \item \randomStateDescription{None}
   \item \verDescriptionB{}
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, specifies the loss
-  function to be used: 
+  function to be used:
   \begin{itemize}
     \item epsilon\_insensitive: equivalent to PA-I in the reference paper (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf).
     \item squared\_epsilon\_insensitive: equivalent to PA-II in the reference paper (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf).
@@ -2062,7 +2062,7 @@ Regressor}{linear\_model|RandomizedLogisticRegression}
   %
   \item \xmlNode{scaling}, \xmlDesc{float, optional field (default=0.5)}, sets
   the alpha parameter used to randomly scale
-  the features. 
+  the features.
   %
   Should be between 0 and 1.
   %
@@ -2191,7 +2191,7 @@ classifier}{linear\_model|RidgeClassifierCV}
   %
   If None, Generalized Cross-Validation (efficient leave-one-out) will be used.
   %
-  \item \xmlNode{class\_weight}, \xmlDesc{dic, optional field}, specifies 
+  \item \xmlNode{class\_weight}, \xmlDesc{dic, optional field}, specifies
   weights associated with classes in the form {class\_label:weight}.
   %
   If not given, all classes are supposed to have weight one.
@@ -2337,7 +2337,7 @@ training}{linear\_model|SGDClassifier}
   \item \xmlNode{learning\_rate}, \xmlDesc{string, optional field}, specifies
   the learning rate:
   \begin{itemize}
-    \item `constant:' eta = eta0 
+    \item `constant:' eta = eta0
     \item `optimal:' eta = 1.0 / (t + t0)
     \item `invscaling:' eta = eta0 / pow(t, power\_t)
   \end{itemize}
@@ -2445,7 +2445,7 @@ floating point values for the features.
   For epsilon-insensitive, any differences between the current prediction and
   the correct label are ignored if they are less than this threshold.
   %
-  \item \xmlNode{learning\_rate}, \xmlDesc{string, optional field}, 
+  \item \xmlNode{learning\_rate}, \xmlDesc{string, optional field},
   Learning rate:
   \begin{itemize}
     \item constant: eta = eta0
@@ -2499,7 +2499,7 @@ regressor}{linear\_model|lars\_path}
   %
   \default{0}
   %
-  \item \xmlNode{method}, \xmlDesc{{`lar', `lasso'}, optional}, specifies the 
+  \item \xmlNode{method}, \xmlDesc{{`lar', `lasso'}, optional}, specifies the
   returned model.
   %
   Select `lar' for Least Angle Regression, `lasso' for the Lasso.
@@ -2619,7 +2619,7 @@ i.e. the sum of norm of each row.
   %
   \default{0.75}
   %
-  \item \xmlNode{eps}, \xmlDesc{float, optional field}, is the smallest value of 
+  \item \xmlNode{eps}, \xmlDesc{float, optional field}, is the smallest value of
   alpha / alpha\_max considered.
   \item \verDescriptionB{}
 \end{itemize}
@@ -2631,7 +2631,7 @@ using only the Gram matrix, X.T * X, and the product, X.T * y.
 %
 \skltype{Gram OMP regressor}{linear\_model|orthogonal\_mp\_gram}
 \begin{itemize}
-  \item \xmlNode{Gram}, \xmlDesc{array, shape (n\_features,n\_features)}, 
+  \item \xmlNode{Gram}, \xmlDesc{array, shape (n\_features,n\_features)},
   contains the Gram matrix of the input data: X.T * X
   \item \xmlNode{Xy}, \xmlDesc{array, shape (n\_features,) or
   (n\_features, n\_targets)}, specifies the input targets multiplied by X:
@@ -2736,7 +2736,7 @@ handled according to a one-vs-the-rest scheme.
   \item \fitInterceptDescription{True}
   %
   \item \xmlNode{intercept\_scaling}, \xmlDesc{float, optional field}, when
-  True, the instance vector x becomes [x,self.intercept\_scaling], i.e. a 
+  True, the instance vector x becomes [x,self.intercept\_scaling], i.e. a
   ``synthetic'' feature with constant value equals to intercept\_scaling is
   appended to the instance vector.
   %
@@ -2753,7 +2753,7 @@ handled according to a one-vs-the-rest scheme.
   \item \classWeightDescription{}
   \item \verDescriptionB{}
   %
-  \nb This setting takes advantage of a per-process runtime setting in liblinear 
+  \nb This setting takes advantage of a per-process runtime setting in liblinear
   that, if enabled, may not work properly in a multithreaded context.
   %
   \item \randomStateSVMDescription{None}
@@ -3197,7 +3197,7 @@ Classification is computed from a simple majority vote of the nearest neighbors
 of each point: a query point is assigned the data class which has the most
 representatives within the nearest neighbors of the point.
 %
-It implements learning based on the number of neighbors within a fixed radius 
+It implements learning based on the number of neighbors within a fixed radius
 $r$ of each training point, where $r$ is a floating-point value specified by the
 user.
 
@@ -3534,7 +3534,7 @@ The disadvantages of Gaussian Processes for Machine Learning include:
   The number of observations n\_samples should be greater than the size p of
   this basis.
   %
-  Available built-in regression models are `constant,' `linear,' and 
+  Available built-in regression models are `constant,' `linear,' and
   `quadratic.'
   %
   \default{constant}
@@ -3544,7 +3544,7 @@ The disadvantages of Gaussian Processes for Machine Learning include:
   %
   Default assumes a squared-exponential autocorrelation model.
   %
-  Built-in correlation models are `absolute\_exponential,' 
+  Built-in correlation models are `absolute\_exponential,'
   `squared\_exponential,' `generalized\_exponential,' `cubic,' and `linear.'
   %
   \default{squared\_exponential}
@@ -3823,7 +3823,7 @@ that are generally needed to perform a initialization:
     step is run
     \item \texttt{NumMPI} -- the number of mpi process by run
     \item \texttt{NumThreads} -- number of threads by run
-    \item \texttt{numProcByRun} -- total number of core used by one run (number 
+    \item \texttt{numProcByRun} -- total number of core used by one run (number
     of threads by number of mpi)
     \item \texttt{batchSize} -- number of contemporaneous runs
     \item \texttt{ParallelCommand} -- the command that should be used to submit
@@ -3982,7 +3982,7 @@ This XML node needs to contain the attributes:
   \nb As with other objects, this is the name that can be used to refer to this
   specific entity from other input XML blocks.
   \item \xmlAttr{subType}, \xmlDesc{required string attribute}, defines which of
-  the post-processors needs to be used, choosing among the previously reported 
+  the post-processors needs to be used, choosing among the previously reported
   types.
   %
   This choice conditions the subsequent required and/or optional
@@ -3997,7 +3997,7 @@ depend on the post-processor type specified in the attribute \xmlAttr{subType}.
 In the following sections the specifications of each type are reported.
 
 %%%%% PP BasicStatistics %%%%%%%
-\paragraph{BasicStatistics}
+\subsubsection{BasicStatistics}
 \label{BasicStatistics}
 The \textbf{BasicStatistics} post-processor is the container of the algorithms
 to compute many of the most important statistical quantities.
@@ -4033,7 +4033,7 @@ to compute many of the most important statistical quantities.
   \\  If all the quantities need to be computed, the user can input in the body of
   \xmlNode{what} the string ``all.''
   %
-  \item \xmlNode{biased}, \xmlDesc{string (boolean), optional field}, if \textit{True} biased 
+  \item \xmlNode{biased}, \xmlDesc{string (boolean), optional field}, if \textit{True} biased
   covariance and correlation coefficient matrix calucated, if \textit{False} unbiased.
   \default{False}
   %
@@ -4095,7 +4095,7 @@ to compute many of the most important statistical quantities.
 \end{lstlisting}
 
 %%%%% PP ComparisonStatistics %%%%%%%
-\paragraph{ComparisonStatistics}
+\subsubsection{ComparisonStatistics}
 \label{ComparisonStatistics}
 The \textbf{ComparisonStatistics} post-processor computes statistics
 for comparing two different dataObjects.  This is an experimental
@@ -4230,7 +4230,7 @@ points to approximations in the calculation.
 \end{lstlisting}
 
 %%%%% PP SafestPoint %%%%%%%
-\paragraph{SafestPoint}
+\subsubsection{SafestPoint}
 \label{SafestPoint}
 The \textbf{SafestPoint} post-processor provides the coordinates of the farthest
 point from the limit surface that is given as an input.
@@ -4326,7 +4326,7 @@ At present only the ``equal'' grid type is available.
 </Simulation>
 \end{lstlisting}
 %%%%% PP LimitSurface %%%%%%%
-\paragraph{LimitSurface}
+\subsubsection{LimitSurface}
 \label{LimitSurface}
 The \textbf{LimitSurface} post-processor is aimed to identify the transition
 zones that determine a change in the status of the system (Limit Surface).
@@ -4341,10 +4341,10 @@ zones that determine a change in the status of the system (Limit Surface).
   value (in CDF) of the convergence tolerance.
  %
   This value defines the coarseness of the evaluation grid.
- % 
+ %
  \default{1.0e-4}
   \item \xmlNode{side}, \xmlDesc{string, optional field}, in this node the user can specify
-  which side of the limit surface needs to be computed. Three options are available: 
+  which side of the limit surface needs to be computed. Three options are available:
   \\ \textit{negative},  Limit Surface corresponding to the goal function value of ``-1'';
   \\ \textit{positive}, Limit Surface corresponding to the goal function value of ``1'';
   \\ \textit{both}, either positive and negative Limit Surface is going to be computed.
@@ -4400,7 +4400,7 @@ zones that determine a change in the status of the system (Limit Surface).
     <PostProcessor name="computeLimitSurface" subType='LimitSurface' verbosity='debug'>
       <parameters>x0,y0</parameters>
       <ROM class='Models' type='ROM'>Acc</ROM>
-      <!-- Here, you can add a ROM defined in Models block. 
+      <!-- Here, you can add a ROM defined in Models block.
            If it is not Present, a nearest neighbor algorithm
            will be used.
        -->
@@ -4416,11 +4416,11 @@ zones that determine a change in the status of the system (Limit Surface).
 
 %%%%% PP LimitSurfaceIntegral %%%%%%%
 
-\paragraph{LimitSurfaceIntegral}
+\subsubsection{LimitSurfaceIntegral}
 \label{LimitSurfaceIntegral}
-The \textbf{LimitSurfaceIntegral} post-processor is aimed to compute the likelihood (probability) of the event, whose boundaries are 
+The \textbf{LimitSurfaceIntegral} post-processor is aimed to compute the likelihood (probability) of the event, whose boundaries are
 represented by the Limit Surface (either from the LimitSurface post-processor or Adaptive sampling strategies).
-The inputted Limit Surface needs to be, in the  \textbf{PostProcess} step, of type  \textbf{TimePointSet} and needs to contain 
+The inputted Limit Surface needs to be, in the  \textbf{PostProcess} step, of type  \textbf{TimePointSet} and needs to contain
 both boundary sides (-1.0, +1.0).
 \\ The \textbf{LimitSurfaceIntegral} post-processor accepts as outputs both files (CSV) and/or  \textbf{TimePointSet}s.
 
@@ -4432,27 +4432,27 @@ both boundary sides (-1.0, +1.0).
     \item   \xmlNode{distribution}, \xmlDesc{string,
                optional field}, name of the distribution that is associated to this variable.
               Its name needs to be contained in the \xmlNode{Distributions} block explained
-              in Section \ref{sec:distributions}. If this node is not present, the  \xmlNode{lowerBound} 
+              in Section \ref{sec:distributions}. If this node is not present, the  \xmlNode{lowerBound}
               and  \xmlNode{upperBound} XML nodes must be inputted.
    \item   \xmlNode{lowerBound}, \xmlDesc{float,
                optional field}, lower limit of integration domain for this dimension (variable).
                If this node is not present, the  \xmlNode{distribution} XML node must be inputted.
    \item   \xmlNode{upperBound}, \xmlDesc{float,
                optional field}, upper limit of integration domain for this dimension (variable).
-               If this node is not present, the  \xmlNode{distribution} XML node must be inputted.  
+               If this node is not present, the  \xmlNode{distribution} XML node must be inputted.
   \end{itemize}
-  
+
     \item  \xmlNode{tolerance}, \xmlDesc{float, optional field}, specifies the tolerance for
                numerical integration confidence.
                 \default{1.0e-4}
      \item  \xmlNode{integralType}, \xmlDesc{string, optional field}, specifies the type of integrations that
                 need to be used. Currently only MonteCarlo integration is available
-                \default{MonteCarlo}        
+                \default{MonteCarlo}
      \item  \xmlNode{seed}, \xmlDesc{integer, optional field}, specifies the random number generator seed.
-                \default{20021986}         
+                \default{20021986}
      \item  \xmlNode{target}, \xmlDesc{string, optional field}, specifies the target name that represents
                 the $f\left ( \bar{x} \right )$ that needs to be integrated.
-                \default{last output found in the inputted TimePointSet}  
+                \default{last output found in the inputted TimePointSet}
 \end{itemize}
 
 \textbf{Example:}
@@ -4469,8 +4469,8 @@ both boundary sides (-1.0, +1.0).
         <variable name='x0'>
           <distribution>x0_distrib</distribution>
         </variable>
-        <variable name='y0'> 
-          <distribution>y0_distrib</distribution> 
+        <variable name='y0'>
+          <distribution>y0_distrib</distribution>
         </variable>
     </PostProcessor>
     <PostProcessor name="LimitSurfaceIntegralLowerUpperBounds" subType='LimitSurfaceIntegral'>
@@ -4496,10 +4496,10 @@ both boundary sides (-1.0, +1.0).
 
 
 %%%%% PP External %%%%%%%
-\paragraph{External}
+\subsubsection{External}
 \label{External}
 The \textbf{External} post-processor will execute an arbitrary python function
-defined externally using the \textit{Functions} interface (see 
+defined externally using the \textit{Functions} interface (see
 Section~\ref{sec:functions} for more details).
 %
 
@@ -4509,7 +4509,7 @@ Section~\ref{sec:functions} for more details).
   \item \xmlNode{method}, \xmlAttr{comma separated string, required field},
   lists the method names of an external Function that will be computed (each
   returning a post-processing value).
-  \item \xmlNode{Assembler}, \xmlAttr{xml node, required field}, contains a 
+  \item \xmlNode{Assembler}, \xmlAttr{xml node, required field}, contains a
   ``list'' of Functions where the \textit{methods} listed above are defined.
   %
   The objects must be listed with a rigorous syntax that, except for the xml
@@ -4536,7 +4536,7 @@ Section~\ref{sec:functions} for more details).
     <PostProcessor name="externalPP" subType='External' verbosity='debug'>
       <method>Delta,Sum</method>
       <Assembler>
-        <Function class='Functions' type='External'>operators</Function> 
+        <Function class='Functions' type='External'>operators</Function>
           <!--Here, you can add a Function defined in the
               Functions block. This should be present or
               else RAVEN will not know where to find the
@@ -4550,46 +4550,63 @@ Section~\ref{sec:functions} for more details).
 </Simulation>
 \end{lstlisting}
 %%%%% PP TopologicalDecomposition %%%%%%%
-\paragraph{TopologicalDecomposition}
+\subsubsection{TopologicalDecomposition}
 \label{TopologicalDecomposition}
-The \textbf{TopologicalDecomposition} post-processor will compute an 
+The \textbf{TopologicalDecomposition} post-processor will compute an
 approximated hierarchical Morse-Smale complex and perform linear regression on
-each component. 
+each component.
 %
 
 In order to use the \textbf{TopologicalDecomposition} post-processor, the user
-needs to set the attribute \xmlAttr{subType}: 
-\xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{TopologicalDecomposition}}. 
+needs to set the attribute \xmlAttr{subType}:
+\xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{TopologicalDecomposition}}.
 The following is a list of acceptable sub-nodes:
 \begin{itemize}
   \item \xmlNode{graph} \xmlDesc{, string, optional field}, specifies the type
   of neighborhood graph used in the algorithm, available options are:
   \begin{itemize}
-    \item Beta Skeleton
-    \item Relaxed Beta Skeleton
-    \item Approximate KNN
+    \item \xmlString{beta skeleton}
+    \item \xmlString{relaxed beta skeleton}
+    \item \xmlString{approximate knn}
     %\item Delaunay \textit{(disabled)}
   \end{itemize}
-  \default{Beta Skeleton}
-  \item \xmlNode{gradient}, \xmlDesc{string, optional field}, specifies the 
+  \default{\xmlString{beta skeleton}}
+  \item \xmlNode{gradient}, \xmlDesc{string, optional field}, specifies the
   method used for estimating the gradient, available options are:
   \begin{itemize}
-    \item Steepest
-    %\item MaxFlow \textit{(disabled)}
+    \item \xmlString{steepest}
+    %\item \xmlString{maxflow} \textit{(disabled)}
   \end{itemize}
-  \default{Steepest}
+  \default{\xmlString{steepest}}
   \item \xmlNode{beta}, \xmlDesc{float, optional field}, is only used when the
-  \texttt{graph} is set to \textit{Beta Skeleton} or \textit{Relaxed Beta
-  Skeleton}.
+  \texttt{graph} is set to \xmlString{beta skeleton} or \xmlString{relaxed beta
+  skeleton}.
   \default{1.0}
   \item \xmlNode{knn}, \xmlDesc{integer, optional field}, is the number of
-  neighbors when using the \textit{Approximate KNN} for the \texttt{graph}
+  neighbors when using the \xmlString{approximate knn} for the \xmlNode{graph}
   sub-node and used to speed up the computation of other graphs by using the
   approximate knn graph as a starting point for pruning. -1 means use a fully
   connected graph.
   \default{-1}
-  \item \xmlNode{persistence}, \xmlDesc{float, optional field}, specifies the
-  amount of noise reduction to apply before returning labels. 
+  \item \xmlNode{weighted}, \xmlDesc{boolean, optional}, a flag that specifies
+  whether the regression models should be probability weighted.
+  \default{False}
+  \item \xmlNode{persistence}, \xmlDesc{string, optional field}, specifies how
+  to define the hierarchical simplification by assigning a value to each local
+  minimum and maximum according to the one of the strategy options below:
+  \begin{itemize}
+    \item \xmlString{difference} - The function value difference between the
+    extremum and its closest-valued neighboring saddle.
+    % \item \xmlString{probability} - The product of the above and the probability
+    % of the extremum and its closest-valued neighboring saddle.
+    % \item \xmlString{count} - The count of points that flow to or from the
+    % extremum.
+    % \item \xmlString{area} - The area enclosed by the manifold that flows to
+    % or from the extremum.
+  \end{itemize}
+  \default{\xmlString{difference}}
+  \item \xmlNode{simplification}, \xmlDesc{float, optional field}, specifies the
+  amount of noise reduction to apply before returning labels.
   \default{0}
   \item \xmlNode{parameters}, \xmlDesc{comma separated string, required field},
   lists the parameters defining the input space.
@@ -4607,6 +4624,7 @@ The following is a list of acceptable sub-nodes:
       <gradient>Steepest</gradient>
       <beta>1</beta>
       <knn>8</knn>
+      <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
     </PostProcessor>

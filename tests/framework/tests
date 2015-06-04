@@ -351,6 +351,14 @@
   output = 'externalPostProcessor/myDump.xml'
  [../]
 
+ [./topologyPostProcessor]
+  type = 'RavenFramework'
+  input = 'test_topology.xml'
+  csv = 'topologyPostProcessor/myDump1.csv topologyPostProcessor/myDump2.csv topologyPostProcessor/myDump3.csv topologyPostProcessor/myDump4.csv'
+  output = 'topologyPostProcessor/myDump1.xml topologyPostProcessor/myDump2.xml topologyPostProcessor/myDump3.xml topologyPostProcessor/myDump4.xml'
+  required_libraries = '../../src/contrib/_amsc.so'
+ [../]
+
  [./io_ROM_pickle]
   type = 'RavenFramework'
   input = 'test_io_ROM_pickle.xml'
