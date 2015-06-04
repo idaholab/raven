@@ -21,6 +21,7 @@
   input = 'test_output.xml'
   output = 'output_check/1-2DHistoryPlot2_histogram.png output_check/1-2DHistoryPlot_histogram.png output_check/1-test_line-line.png output_check/1-plot2_line-line.png output_check/1-plot4_scatter-scatter.png output_check/1-plot3_scatter-scatter.png output_check/1-plot9_stem.png output_check/1-plot8_stem.png output_check/1-plot7_stem.png output_check/1-plot6_histogram.png output_check/1-plot5_histogram.png output_check/1-plot11_step.png output_check/1-plot10_stem.png output_check/1-plot14_tri-surface-tri-surface.png output_check/1-plot13_surface-surface.png output_check/1-plot12_pseudocolor.png output_check/1-plot17_contour3D-filledContour3D.png output_check/1-plot16_contour-filledContour.png output_check/1-plot15_wireframe-wireframe.png output_check/1-plot18_scatter.png output_check/1-plot19_scatter.png output_check/1-plot20_scatter.png output_check/fullprint_history.csv output_check/fullprint_timepointset.csv output_check/fullprint_timepoint.csv output_check/testprint_selective_history.csv output_check/testprint_selective_timepoint.csv'
   csv = 'output_check/fullprint_histories_2.csv output_check/test_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_hist2_4.csv output_check/testprint_selective_hist3_4.csv output_check/testprint_selective_timepointset.csv'
+  xml = 'output_check/fullprint_histories.xml output_check/fullprint_history.xml output_check/fullprint_timepointset.xml output_check/fullprint_timepoint.xml'
 #  skip = 'Cannot run headless'
   #skip = 'Problem with output system filenames'
    required_executable = '../../RAVEN-%METHOD%'
@@ -348,6 +349,14 @@
   input = 'test_externalPostProcessor.xml'
   csv = 'externalPostProcessor/myDump.csv'
   output = 'externalPostProcessor/myDump.xml'
+ [../]
+
+ [./topologyPostProcessor]
+  type = 'RavenFramework'
+  input = 'test_topology.xml'
+  csv = 'topologyPostProcessor/myDump1.csv topologyPostProcessor/myDump2.csv topologyPostProcessor/myDump3.csv topologyPostProcessor/myDump4.csv'
+  output = 'topologyPostProcessor/myDump1.xml topologyPostProcessor/myDump2.xml topologyPostProcessor/myDump3.xml topologyPostProcessor/myDump4.xml'
+  required_libraries = '../../src/contrib/_amsc.so'
  [../]
 
  [./io_ROM_pickle]

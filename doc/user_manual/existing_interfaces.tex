@@ -73,6 +73,25 @@ case = $RAVEN-out$
 ...
 \end{lstlisting}
 
+In addition, the ``wild-cards'' above can contain two special and optional symbols:
+\begin{itemize}
+  \item  \texttt{:}, that defines an eventual default value;
+  \item  \texttt{|}, that defines the format of the value;
+\end{itemize}
+For example:
+\begin{lstlisting}[language=python]
+...
+auxfile = $RAVEN-two:3$
+case = $RAVEN-out:5|10$
+...
+\end{lstlisting}
+Where, 
+\begin{itemize}
+  \item  \texttt{:}, in case the variable ``two'' is not defined in the RAVEN XML input file, the Parser, will replace it with the value ``3''.;
+  \item  \texttt{|}, the value that is going to be replaced by the Generic Interface, will be left- justified with a string length of ``10'';
+\end{itemize}
+
+
 \subsection{RELAP5 Interface}
 
 \subsubsection{Files}
