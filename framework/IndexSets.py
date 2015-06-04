@@ -296,7 +296,7 @@ class AdaptiveSet(IndexSet):
     for key,impact in self.active.items():
       if impact==None:return False
     return True
-  
+
   def expand(self):
     '''
       Method to accept the biggest-impact point to the established set.

@@ -33,7 +33,7 @@
 
     <Samplers>
         <AdaptiveSparseGrid name="SG" verbosity='debug'>
-            <Convergence target='coeffs' maxPolyOrder='30' persistence='1'>1e-2</Convergence>
+            <Convergence target='coeffs'>1e-2</Convergence>
             <variable name="x1"><distribution>UniDist</distribution></variable>
             <variable name="x2"><distribution>UniDist</distribution></variable>
             <variable name="x3"><distribution>UniDist</distribution></variable>

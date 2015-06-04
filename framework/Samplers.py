@@ -2514,7 +2514,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       if child.tag == 'Convergence':
         foundConv = True
         self.convType     = child.attrib['target']
-        self.maxPolyOrder = int(child.attrib.get('maxPolyOrder',3))
+        self.maxPolyOrder = int(child.attrib.get('maxPolyOrder',10))
         self.persistence  = int(child.attrib.get('persistence',2))
         self.convValue    = float(child.text)
     if not foundConv:
@@ -2575,7 +2575,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     iset.addPoints(points)
     sparseGrid.initialize(self.features,iset,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
     return sparseGrid,iset
- 
+
   def _makeARom(self,grid,inset):
     '''
       Generates a GaussPolynomialRom object using the passed in sparseGrid and indexSet,
@@ -2804,7 +2804,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
     self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['SamplerType'] = self.type 
+    self.inputInfo['SamplerType'] = self.type
 
 #
 #
