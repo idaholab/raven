@@ -1416,14 +1416,6 @@ class NDCartesianSpline(NDimensionalDistributions):
 
     self.initializeDistribution()
 
-#     y=np.arange(40,79,5)
-#
-#     for i in np.nditer(y):
-#       coordinate = np.zeros(2)
-#       coordinate[0] = -0.1
-#       coordinate[1] = i
-#       print(str(coordinate[1]) + " " + str(self.cdf(coordinate)))
-
   def addInitParams(self,tempDict):
     NDimensionalDistributions.addInitParams(self, tempDict)
 

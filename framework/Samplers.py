@@ -326,7 +326,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         temp = self.distributions2variablesMapping[distrib][0].keys()[0]
         self.distDict[temp].updateRNGParam(params)
       else:
-        raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Distribution '+ str(distrib) +' specified in dist_init block of sampler ' + str(self.name) +' does not exist')
+        self.raiseAnError(IOError,'Distribution "%s" specified in dist_init block of sampler "%s" does not exist!' %(distrib,self.name))
 
   def localInitialize(self):
     '''
