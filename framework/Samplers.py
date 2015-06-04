@@ -1783,11 +1783,11 @@ class DynamicEventTree(Grid):
 #
 #
 #
-class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
+class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
   def __init__(self):
     DynamicEventTree.__init__(self)  # init DET
-    AdaptiveSampler.__init__(self)   # init Adaptive
-    self.detAdaptMode         = 1    # Adaptive Dynamic Event Tree method (=1 -> DynamicEventTree as preconditioner and subsequent Adaptive,=2 -> DynamicEventTree online adaptive)
+    LimitSurfaceSearch.__init__(self)   # init Adaptive
+    self.detAdaptMode         = 1    # Adaptive Dynamic Event Tree method (=1 -> DynamicEventTree as preconditioner and subsequent LimitSurfaceSearch,=2 -> DynamicEventTree online adaptive)
     self.noTransitionStrategy = 1    # Strategy in case no transitions have been found by DET (1 = 'Probability MC', 2 = Increase the grid exploration)
     self.insertAdaptBPb       = True # Add Probabability THs requested by adaptive in the initial grid (default = False)
     self.startAdaptive = False
@@ -1810,7 +1810,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     @ In , None, None
     @ Out, needDict, list of objects needed
     '''
-    adaptNeed = AdaptiveSampler._localWhatDoINeed(self)
+    adaptNeed = LimitSurfaceSearch._localWhatDoINeed(self)
     DETNeed   = DynamicEventTree._localWhatDoINeed(self)
     return dict(adaptNeed.items()+ DETNeed.items())
 
@@ -2023,7 +2023,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
       if len(completedHistNames) > self.completedHistCnt:
         self.actualLastOutput = self.lastOutput
         self.lastOutput       = self.actualLastOutput
-        ready = AdaptiveSampler.localStillReady(self,ready)
+        ready = LimitSurfaceSearch.localStillReady(self,ready)
         self.completedHistCnt = len(completedHistNames)
       else: ready = False
       self.adaptiveReady = ready
@@ -2033,7 +2033,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
 
   def localGenerateInput(self,model,myInput):
     if self.startAdaptive:
-      AdaptiveSampler.localGenerateInput(self,model,myInput)
+      LimitSurfaceSearch.localGenerateInput(self,model,myInput)
       #the adaptive sampler created the next point sampled vars
       #find the closest branch
       closestBranch, cdfValues = self._checkClosestBranch()
@@ -2089,7 +2089,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
 
   def localInputAndChecks(self,xmlNode):
     DynamicEventTree.localInputAndChecks(self,xmlNode)
-    AdaptiveSampler.localInputAndChecks(self,xmlNode)
+    LimitSurfaceSearch.localInputAndChecks(self,xmlNode)
     if 'mode' in xmlNode.attrib.keys():
       if xmlNode.attrib['mode'].lower() == 'online': self.detAdaptMode = 2
       elif xmlNode.attrib['mode'].lower() == 'post': self.detAdaptMode = 1
@@ -2107,7 +2107,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
   def localInitialize(self,solutionExport = None):
     if self.detAdaptMode == 2: self.startAdaptive = True
     DynamicEventTree.localInitialize(self)
-    AdaptiveSampler.localInitialize(self,solutionExport=solutionExport)
+    LimitSurfaceSearch.localInitialize(self,solutionExport=solutionExport)
     self._endJobRunnable    = sys.maxsize
 
   def generateInput(self,model,oldInput):
@@ -2705,7 +2705,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         else:
           tot+= new.polyCoeffDict[coeff]**2
           if abs(new.polyCoeffDict[coeff]) > 1e-13: self.raiseADebug('    ...new point:',coeff,new.polyCoeffDict[coeff])
-      impact = np.sqrt(tot)/float(new.polyCoeffDict.values()[0])
+      impact = np.sqrt(tot)#/float(new.polyCoeffDict.values()[0])
     else: self.raiseAnError(KeyError,'Unexpected convergence criteria:',self.convType)
     return impact
 
@@ -2793,7 +2793,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
                       'iSet':self.indexSet,
                       'numRuns':self.counter})
     self.indexSet.printHistory()
-    self.indexSet.writeHistory()
+    #self.indexSet.writeHistory()
 
   def localGenerateInput(self,model,myInput):
     '''
@@ -2908,7 +2908,7 @@ class Sobol(SparseGridCollocation):
       iset=IndexSets.returnInstance(SVL.indexSetType,self)
       iset.initialize(distDict,imptDict,SVL.maxPolyOrder,self.messageHandler)
       self.SQs[combo] = Quadratures.SparseQuad()
-      self.SQs[combo].initialize(iset,distDict,quadDict,self.jobHandler,self.messageHandler)
+      self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
       initDict={'IndexSet':iset.type, 'PolynomialOrder':SVL.maxPolyOrder, 'Interpolation':SVL.itpDict}
       initDict['Features']=','.join(combo)
       initDict['Target']=SVL.target #TODO make it work for multitarget
@@ -2987,7 +2987,7 @@ __interFaceDict['MonteCarlo'              ] = MonteCarlo
 __interFaceDict['DynamicEventTree'        ] = DynamicEventTree
 __interFaceDict['Stratified'              ] = Stratified
 __interFaceDict['Grid'                    ] = Grid
-__interFaceDict['Adaptive'                ] = AdaptiveSampler
+__interFaceDict['LimitSurfaceSearch'      ] = LimitSurfaceSearch
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
 __interFaceDict['FactorialDesign'         ] = FactorialDesign
 __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign

@@ -88,7 +88,7 @@
             </IndexPoints>
             <PolynomialOrder>4</PolynomialOrder>
         </ROM>
-        <ROM name='AROM' subType='GaussPolynomialRom' debug="True">
+        <ROM name='AROM' subType='GaussPolynomialRom' verbosity="debug">
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>HyperbolicCross</IndexSet>
@@ -178,10 +178,10 @@
             <Model   class='Models'           type='ROM'                  >AROM</Model>
             <Output  class='DataObjects'      type='TimePointSet'         >Atests</Output>
         </MultiRun>
-        <OutStreamStep name='Aprint'>
+        <IOStep name='Aprint'>
             <Input   class='DataObjects'      type='TimePointSet'>Atests</Input>
             <Output  class='OutStreamManager' type='Print'       >Adump</Output>
-        </OutStreamStep>
+        </IOStep>
 
         <MultiRun name='Cmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>CSG</Sampler>

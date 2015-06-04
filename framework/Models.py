@@ -82,7 +82,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                                 'DynamicEventTree',
                                                 'Stratified',
                                                 'Grid',
-                                                'Adaptive',
+                                                'LimitSurfaceSearch',
                                                 'AdaptiveDynamicEventTree',
                                                 'FactorialDesign',
                                                 'ResponseSurfaceDesign',

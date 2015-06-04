@@ -252,7 +252,11 @@ class Custom(IndexSet):
 
 
 class AdaptiveSet(IndexSet):
+  '''Adaptive index set that can expand itself on call.  Used in conjunctoin with AdaptiveSparseGrid sampler.'''
   def initialize(self,distrList,impList,maxPolyOrder,messageHandler):
+    '''
+      See base class.  Initializes tools necessary for index set.
+    '''
     IndexSet.initialize(self,distrList,impList,maxPolyOrder,messageHandler)
     self.type     = 'Adaptive Index Set'
     self.printTag = self.type
@@ -264,35 +268,63 @@ class AdaptiveSet(IndexSet):
     self.history  = [] #list of tuples, index set point and its impact parameter
 
   def setSG(self,point,SG):
+    '''
+      Sets the sparse grid for a point in the established or active set.
+      @ In, point, tuple of int, the point for which the sparseGrid corresponds
+      @ In, SG, sparseGrid object
+      @ Out, None
+    '''
     if point in self.SGs.keys(): self.SGs[point]=SG
     else: self.raiseAnError(KeyError,'Tried to set sparse grid',SG,'for point',point,'but it is not in active set!')
 
   def setImpact(self,point,impact):
+    '''
+      Sets the impact parameter for a point in the active set.
+      @ In, point, tuple of int, the point for which the sparseGrid corresponds
+      @ In, impact, float, the impact value for the point
+      @ Out, None
+    '''
     if point in self.active.keys(): self.active[point]=impact
     else: self.raiseAnError(KeyError,'Tried to set impact',impact,'for point',point,'but it is not in active set!')
 
   def checkImpacts(self):
+    '''
+      Checks to assure all points have impact factors assigned.
+      @ In, None
+      @ Out, boolean, True if all assigned, False if any are not.
+    '''
     for key,impact in self.active.items():
       if impact==None:return False
     return True
   
   def expand(self):
+    '''
+      Method to accept the biggest-impact point to the established set.
+      @ In, None
+      @ Out, (tuple of int, float), biggest-impact point and its impact
+    '''
     #get the biggest helper
     pt = self.getBiggestImpact()
     impact = self.active[pt]
+    #stash this event in the history
     msg=str(pt)+': '+str(impact)+' || '
     for apt,imp in self.active.items():
       msg+=str(apt)+': '+str(imp)+' | '
     self.history.append(msg)
-    #make it permanent
+    #make the big guy permanent
     self.points.append(pt)
     self.newestPoint=pt
     self.order() #sort it as partially increasing
-    #not an eligible bachelor anymore
+    #not an eligible bachelor anymore, so take him out of the active set.
     del self.active[pt]
     return pt,impact
 
   def getBiggestImpact(self):
+    '''
+      Algorithm to determine the point with the largest impact.
+      @ In, None
+      @ Out, tuple, the largest-impact point
+    '''
     if not self.checkImpacts(): self.raiseAnError(ValueError,'Not all impacts have been set for active set!',self.active)
     if len(self.active)<1: self.raiseAnError(ValueError,'No active points in dictionary; search for forward points!')
     if len(self.active)==1: return self.active.keys()[0]
@@ -302,10 +334,17 @@ class AdaptiveSet(IndexSet):
       mx = max(abs(val),mx)
       if abs(val)==mx: mxkey = key
     self.raiseADebug('  biggest impact:',mxkey,mx)
-    if mxkey==None: return self.active.keys()[0]
+    if mxkey==None: return self.active.keys()[0] #special case
     return mxkey
 
   def forward(self,pt,maxPoly=None):
+    '''
+      Searches for new active points based on the point given and the established set.
+      @ In, pt, tuple of int, the point to move forward from
+      @ In, maxPoly, integer, optional maximum value to have in any direction
+      @ Out, None
+    '''
+    #add one to each dimenssion, one at a time, as the potential candidates
     for i in range(self.N):
       newpt = list(pt)
       newpt[i]+=1
@@ -315,6 +354,7 @@ class AdaptiveSet(IndexSet):
           continue
       if tuple(newpt) in self.active.keys(): continue
       #self.raiseADebug('    considering adding',newpt)
+      #remove the candidate if not all of its predecessors are accepted.
       found=True
       for j in range(self.N):
         checkpt = newpt[:]
@@ -326,10 +366,16 @@ class AdaptiveSet(IndexSet):
           break
       if found:
         newpt=tuple(newpt)
+        #set up a holder for the impact parameter and sparse grid for this point
         self.active[newpt]=None
         self.SGs   [newpt]=None
 
   def printOut(self):
+    '''
+      Prints the accepted/established points and the current active set to screen.
+      @ In, None
+      @ Out, None
+    '''
     self.raiseADebug('    Accepted Points:')
     for p in self.points:
       self.raiseADebug('       ',p)#,'| %1.5e' %self.roms[p])
@@ -338,12 +384,22 @@ class AdaptiveSet(IndexSet):
       self.raiseADebug('       ',a,'|',i)
 
   def writeHistory(self):
+    '''
+      Writes the chronological creation of this index set to file.
+      @ In, None
+      @ Out, None
+    '''
     msg = '\n'.join(self.history)
     outFile = file('isethist.out','w')
     outFile.writelines(msg)
     outFile.close()
 
   def printHistory(self):
+    '''
+      Prints the chronological creation of this index set to screen.
+      @ In, None
+      @ Out, None
+    '''
     self.raiseAMessage('Index Set Choice History:')
     for h in self.history:
       self.raiseAMessage('   ',h)

@@ -11,7 +11,7 @@
 <Steps>  
 
   <MultiRun name = 'adapt' pauseAtEnd = 'True'>
-    <Sampler          class = 'Samplers'  type = 'Adaptive'      >dpt_smp</Sampler>
+    <Sampler          class = 'Samplers'  type = 'LimitSurfaceSearch'      >dpt_smp</Sampler>
     <Input            class = 'DataObjects'     type = 'TimePointSet'  >bln_smp_dt</Input>   
     <Model            class = 'Models'    type = 'ExternalModel' >xtr_mdl</Model>
     <Output           class = 'DataObjects'     type = 'TimePointSet'  >nt_phy_dpt_dt</Output>            
@@ -69,7 +69,7 @@
 
 <Samplers>  
 
-  <Adaptive name = 'dpt_smp'>
+  <LimitSurfaceSearch name = 'dpt_smp'>
     <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
     <Function         class = 'Functions' type = 'External'      >g_zr</Function>
     <TargetEvaluation class = 'DataObjects'     type = 'TimePointSet'  >nt_phy_dpt_dt</TargetEvaluation>
@@ -83,7 +83,7 @@
       <variable name = 'gammay'>
         <distribution>gammay_dst</distribution>
       </variable>
-  </Adaptive>
+  </LimitSurfaceSearch>
 </Samplers>
 
 
