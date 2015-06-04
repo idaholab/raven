@@ -77,20 +77,27 @@ class XMLDiff:
       test_filename = os.path.join(self.__test_dir,out_file)
       gold_filename = os.path.join(self.__test_dir, 'gold', out_file)
       if not os.path.exists(test_filename):
-        self.addError(test_filename, 'File does not exist!')
+        self.__same = False
+        self.__messages += 'Test file does not exist: '+test_filename
       elif not os.path.exists(gold_filename):
-        self.addError(gold_filename, 'Gold file does not exist!')
+        self.__same = False
+        self.__messages += 'Gold file does not exist: '+gold_filename
       else:
         try:
           test_root = ET.parse( test_filename ).getroot()
-          gold_root = ET.parse( gold_filename ).getroot()
-          same,messages = compare_element(test_root, gold_root)
-          if not same:
-            self.__same = False
-            separator = "\n"+" "*4
-            self.__messages += "Mismatch between "+test_filename+" and "+gold_filename+separator
-            self.__messages += separator.join(messages) + "\n"
         except Exception as e:
-          self.addError(out_file, 'Exception reading files '+str(e.args))
+          self.__same = False
+          self.__messages += 'Exception reading files '+test_filename+': '+str(e.args)
+        try:
+          gold_root = ET.parse( gold_filename ).getroot()
+        except Exception as e:
+          self.__same = False
+          self.__messages += 'Exception reading files '+gold_filename+': '+str(e.args)
+        if self.__same: same,messages = compare_element(test_root, gold_root)
+        if not same:
+          self.__same = False
+          separator = "\n"+" "*4
+          self.__messages += "Mismatch between "+test_filename+" and "+gold_filename+separator
+          self.__messages += separator.join(messages) + "\n"
     return (self.__same,self.__messages)
 
