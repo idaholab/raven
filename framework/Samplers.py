@@ -2701,10 +2701,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
           n = new.polyCoeffDict[coeff]
           o = old.polyCoeffDict[coeff]
           tot+= (n - o)**2
-          if abs(n-o)>1e-13: self.raiseADebug('    ...old point:',coeff,'new-old:',n-o,'new:',n,'old:',o)
+          #if abs(n-o)>1e-13: self.raiseADebug('    ...old point:',coeff,'new-old:',n-o,'new:',n,'old:',o)
         else:
           tot+= new.polyCoeffDict[coeff]**2
-          if abs(new.polyCoeffDict[coeff]) > 1e-13: self.raiseADebug('    ...new point:',coeff,new.polyCoeffDict[coeff])
+          #if abs(new.polyCoeffDict[coeff]) > 1e-13: self.raiseADebug('    ...new point:',coeff,new.polyCoeffDict[coeff])
       impact = np.sqrt(tot)#/float(new.polyCoeffDict.values()[0])
     else: self.raiseAnError(KeyError,'Unexpected convergence criteria:',self.convType)
     return impact
@@ -2793,7 +2793,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
                       'iSet':self.indexSet,
                       'numRuns':self.counter})
     self.indexSet.printHistory()
-    #self.indexSet.writeHistory()
+    self.indexSet.writeHistory()
 
   def localGenerateInput(self,model,myInput):
     '''

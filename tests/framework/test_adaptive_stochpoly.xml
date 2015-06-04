@@ -33,11 +33,10 @@
 
     <Samplers>
         <AdaptiveSparseGrid name="SG" verbosity='debug'>
-            <Convergence target='coeffs'>1e-2</Convergence>
+            <Convergence target='variance'>1e-5</Convergence>
             <variable name="x1"><distribution>UniDist</distribution></variable>
             <variable name="x2"><distribution>UniDist</distribution></variable>
             <variable name="x3"><distribution>UniDist</distribution></variable>
-            <variable name="x4"><distribution>UniDist</distribution></variable>
             <ROM              class = 'Models'      type = 'ROM'         >rom</ROM>
             <TargetEvaluation class = 'DataObjects' type = 'TimePointSet'>solns</TargetEvaluation>
         </AdaptiveSparseGrid>
@@ -49,12 +48,11 @@
             <variable>x1</variable>
             <variable>x2</variable>
             <variable>x3</variable>
-            <variable>x4</variable>
             <variable>ans</variable>
         </ExternalModel>
         <ROM name='rom' subType='GaussPolynomialRom' verbosity='silent'>
             <Target>ans</Target>
-            <Features>x1,x2,x3,x4</Features>
+            <Features>x1,x2,x3</Features>
             <IndexSet>TotalDegree</IndexSet>
             <PolynomialOrder>1</PolynomialOrder>
             <!--Interpolation quad='ClenshawCurtis'>x1</Interpolation>
@@ -64,11 +62,11 @@
 
     <DataObjects>
         <TimePointSet name="dummyIN" verbosity='silent'>
-            <Input>x1,x2,x3,x4</Input>
+            <Input>x1,x2,x3</Input>
             <Output>OutputPlaceHolder</Output>
         </TimePointSet>
         <TimePointSet name='solns' verbosity='silent'>
-            <Input>x1,x2,x3,x4</Input>
+            <Input>x1,x2,x3</Input>
             <Output>ans</Output>
         </TimePointSet>
     </DataObjects>
