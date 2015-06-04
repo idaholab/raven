@@ -740,14 +740,19 @@
       </xsd:complexContent>
     </xsd:complexType>
 
-<!--     <xsd:complexType name="SciKitLearn">
+    <xsd:complexType name="SciKitLearn">
       <xsd:complexContent>
         <xsd:extension base="ROM">
-          <xsd:element name="SKLtype" minOccurs="1">
-          </xsd:element>
+          <xsd:sequence>
+            <xsd:element name="SKLtype" minOccurs="1">
+<!--               <xsd:complexType>
+                <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+              </xsd:complexType> -->
+            </xsd:element>
+          </xsd:sequence>
         </xsd:extension>
       </xsd:complexContent>
-    </xsd:complexType> -->
+    </xsd:complexType>
 
 <!-- *********************************************************************** -->
 <!--                               DataObjects                               -->
