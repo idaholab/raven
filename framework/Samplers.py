@@ -2489,6 +2489,7 @@ class SparseGridCollocation(Grid):
 #
 class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def __init__(self):
+    '''See base class.'''
     SparseGridCollocation.__init__(self)
     self.type             = 'AdaptiveSparseGridSampler'
     self.printTag         = self.type
@@ -2506,26 +2507,33 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self._addAssObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
+    '''See base class.'''
     SparseGridCollocation.localInputAndChecks(self,xmlNode)
     foundConv = False
     for child in xmlNode:
       if child.tag == 'Convergence':
         foundConv = True
         self.convType     = child.attrib['target']
-        self.maxPolyOrder = int(child.attrib.get('maxPolyOrder',3)) #int(child.attrib['maxPolyOrder']) if 'maxPolyOrder' in child.attrib.keys() else 3
+        self.maxPolyOrder = int(child.attrib.get('maxPolyOrder',3))
         self.persistence  = int(child.attrib.get('persistence',2))
         self.convValue    = float(child.text)
     if not foundConv:
       self.raiseAnError(IOError,'Convergence node not found in input!')
 
   def  localInitialize(self):
+    '''
+      Initializes basic tools for sampler.  See base class.
+    '''
+    #set a pointer to the end-product ROM
     self.ROM = self.assemblerDict['ROM'][0][3]
+    #obtain the DataObject that contains evaluations of the model
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
+    #set a pointer to the GaussPolynomialROM object
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = SVLs[0] #sampler doesn't care about which target -> or do I?
-    self.features=SVL.features
+    SVL = SVLs[0] #sampler doesn't care about which target
+    self.features=SVL.features #the input space variables
     mpo = self.maxPolyOrder #save it to re-set it after calling generateQuadsAndPolys
-    self._generateQuadsAndPolys(SVL)
+    self._generateQuadsAndPolys(SVL) #lives in GaussPolynomialRom object
     self.maxPolyOrder = mpo #re-set it
 
     #print out the setup for each variable.
@@ -2535,20 +2543,31 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.raiseADebug('   '+' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
     self.raiseADebug('    Polynomial Set Type  : adaptive')
 
+    #create the index set
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance('AdaptiveSet',self)
     self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder,self.messageHandler)
 
+    #set up the already-existing solutions (and re-order the inputs appropriately)
     self._updateExisting()
 
+    #make the first sparse grid ('dummy' is an unneeded index set)
     self.sparseGrid,dummy = self._makeSparseQuad(self.indexSet.active.keys())
 
+    #set up the points we need RAVEN to run before we can continue
     self.neededPoints = []
     for pt in self.sparseGrid.points()[:]:
       if pt not in self.neededPoints and pt not in self.existing.keys():
         self.neededPoints.append(pt)
 
   def _makeSparseQuad(self,points=[]):
+    '''
+      Generates a sparseGrid object using the self.indexSet adaptively established points
+      as well as and additional points passed in (often the indexSet's adaptive points).
+      Also returns the index set used to generate the sparse grid.
+      @ In, points, list of tuples
+      @ Out, (sparseGrid, indexSet) object tuple
+    '''
     sparseGrid = Quadratures.SparseQuad()
     iset = IndexSets.returnInstance('Custom',self)
     iset.initialize(self.distDict,self.importanceDict,self.maxPolyOrder,self.messageHandler)
@@ -2558,6 +2577,14 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     return sparseGrid,iset
  
   def _makeARom(self,grid,inset):
+    '''
+      Generates a GaussPolynomialRom object using the passed in sparseGrid and indexSet,
+      otherwise fundamentally a copy of the end-target ROM.
+      @ In, grid, a sparseGrid object
+      @ In, inset, a indexSet object
+      @ Out, a GaussPolynomialROM object
+    '''
+    #deepcopy prevents overwriting
     rom  = copy.deepcopy(self.ROM)
     sg   = copy.deepcopy(grid)
     iset = copy.deepcopy(inset)
@@ -2571,19 +2598,31 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
                       'polys':self.polyDict,
                       'iSet' :iset
                       })
+    #while the training won't always need all of solns, it is smart enough to take what it needs
     rom.train(self.solns)
     return rom
 
   def _impactParameter(self,new,old):
+    '''
+      Calculates the impact factor g_k based on the Ayres-Eaton 2015 paper model.
+      @ In, new, the new metric
+      @ In, old, the old metric
+      @ Out, the impact parameter
+    '''
     impact=0
     if abs(old)>1e-14: return((new-old)/old)
     else: return new
 
   def _updateExisting(self):
+    '''
+      Goes through the stores solutions TimePontSet and pulls out solutions, ordering them
+      by the order the features we're evaluating.
+      @ In, None
+      @ Out, None
+    '''
     if not self.solns.isItEmpty():
       inps = self.solns.getInpParametersValues()
       outs = self.solns.getOutParametersValues()
-      #self.raiseADebug('INS AND OUTS',inps,outs)
       #make reorder map
       reordmap=list(inps.keys().index(i) for i in self.features)
       solns = list(v for v in inps.values())
@@ -2593,11 +2632,16 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.existing = dict(zip(existinginps,outvals))
 
   def _writeRomToFile(self,sg,err=None):
+    '''
+      Debug tool to write specifics to file.
+      @ In, sg, sparseGrid object
+      @ In, err, optional float of error
+      @ Out, None
+    '''
     outfile = file('rom'+'-'.join(str(s) for s in self.indexSet.newestPoint)+'.out','w')
     outfile.writelines('**************\n')
     outfile.writelines('* Index Set  *\n')
     outfile.writelines('**************\n')
-    #for key,contrib in self.indexSet.active.items():
     for pt in rom.indexSet.points:
       outfile.writelines('  '+str(pt)+'\n')
     outfile.writelines('**************\n')
@@ -2612,15 +2656,27 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     outfile.close()
 
   def _integrateFunction(self,sg,r):
+    '''
+      Uses the sparse grid sg to effectively integrate the r-th moment of the model.
+      @ In, sg, sparseGrid object
+      @ In, r, integer moment
+      @ Out, float, approximate integral
+    '''
     tot=0
     for n in range(len(sg)):
       pt,wt = sg[n]
       if pt not in self.existing.keys(): self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
       tot+=self.existing[pt][0]**r*wt
-      #self.raiseADebug('point:',pt,'soln:',self.existing[pt][0]**r,'weight:',wt)
     return tot
 
   def _convergence(self,sparseGrid,iset):
+    '''
+      Checks the convergence of the adaptive index set via one of several ways, currently "mean", "variance", or "coeffs",
+      meaning the moment coefficients of the stochastic polynomial expansion.
+      @ In, sparseGrid, sparseGrid object
+      @ In, iset, indexSet object
+      @ Out, estimated impact factor for this index set and sparse grid
+    '''
     if self.convType.lower()=='mean':
       new = self._integrateFunction(sparseGrid,1)
       if self.oldSG!=None: old = self._integrateFunction(self.oldSG,1)
@@ -2634,12 +2690,11 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       #self.raiseADebug('integrated new:',new,'old:',old)
       impact = self._impactParameter(new,old)
     elif self.convType.lower()=='coeffs':
-      new = self._makeARom(sparseGrid,iset).SupervisedEngine.values()[0] #TODO multitarget ROM
+      new = self._makeARom(sparseGrid,iset).SupervisedEngine.values()[0] #TODO multitarget ROM?
       tot = 0 #for L2 norm of coeffs
       if self.oldSG != None:
         oSG,oSet = self._makeSparseQuad()
         old = self._makeARom(oSG,oSet).SupervisedEngine.values()[0]
-        #self.raiseADebug('old:',old.polyCoeffDict.keys())
       else: old=None
       for coeff in new.polyCoeffDict.keys():
         if old!=None and coeff in old.polyCoeffDict.keys():
@@ -2650,68 +2705,82 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         else:
           tot+= new.polyCoeffDict[coeff]**2
           if abs(new.polyCoeffDict[coeff]) > 1e-13: self.raiseADebug('    ...new point:',coeff,new.polyCoeffDict[coeff])
-      impact = np.sqrt(tot)#/float(len(new.polyCoeffDict))
+      impact = np.sqrt(tot)/float(new.polyCoeffDict.values()[0])
     else: self.raiseAnError(KeyError,'Unexpected convergence criteria:',self.convType)
     return impact
 
   def localStillReady(self,ready):
+    '''
+      See base class.  Determines what additional points are necessary for RAVEN to run.
+    '''
     #update existing solutions
     self._updateExisting()
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
     #if we still have a list of points to sample, just keep on trucking.
-    if len(self.neededPoints)>0:return True
-    #search for points to sample
+    if len(self.neededPoints)>0: return True
+    #if no points to check right now, search for points to sample
     while len(self.neededPoints)<1:
       self.raiseADebug('')
       self.raiseADebug('Evaluating new points...')
       #update QoIs and impact parameters
       done=False
       self.error=0
+      #re-evaluate impact of active set, since it could have changed
       for active in self.indexSet.active.keys():
         #create new SG using active point
         sparseGrid,iset = self._makeSparseQuad(active)
         #store it
         self.activeSGs[active]=sparseGrid
-        #check converge
+        #get impact from  convergence
         #self.raiseADebug('')
         #self.raiseADebug('  ...checking convergence on active',active)
         impact = self._convergence(sparseGrid,iset)
         #self.raiseADebug('')
-        #self.raiseADebug('Impact for',active,'is',impact)
+        #stash the sparse grid, impact factor for future reference
         self.indexSet.setSG(active,sparseGrid)
         self.indexSet.setImpact(active,impact)
+        #the estimated error is the sum of all the impacts
         self.error+=impact
       self.raiseADebug('  estimated remaining error:',self.error)
       self.raiseADebug('  target error:',self.convValue)
       if abs(self.error)<self.convValue and len(self.indexSet.points)>self.persistence:
         done=True #we've converged!
         self.raiseADebug('converged estimated error:',self.error)
+        #clear the active index set
         for key in self.indexSet.active.keys():
           if self.indexSet.active[key]==None: del self.indexSet.active[key]
         break
+      #if we're not converged...
       self.raiseADebug('new iset:')
       self.indexSet.printOut()
-      #store the old rom
+      #store the old rom, if we have it
       if len(self.indexSet.points)>1:
         self.oldSG = self.activeSGs[self.indexSet.newestPoint]
-      #get the biggest helper and make him permanent
+      #get the active point with the biggest impact and make him permanent
       point,impact = self.indexSet.expand()
-      #self.raiseADebug('New Coeffs by adding point',point)
       # find the forward points of the most effective point
       self.indexSet.forward(point,self.maxPolyOrder)
+      #find the new points needed to evaluate, if any (there should be usually)
       for point in self.indexSet.active.keys():
         sparseGrid,dummy=self._makeSparseQuad(point)
         for pt in sparseGrid.points()[:]:
           if pt not in self.neededPoints and pt not in self.existing.keys():
             self.neededPoints.append(pt)
+    #if we exited the while-loop searching for new points and there aren't any, we're done!
     if len(self.neededPoints)==0:
       self.indexSet.printOut()
       self.finalizeROM()
       return False
+    #otherwise, we have work to do.
     return True
 
   def finalizeROM(self):
+    '''
+      Initializes final target ROM with necessary objects for training.
+      @ In, None
+      @ Out, None
+    '''
     self.raiseADebug('No more samples to try! Declaring sampling complete.')
     #initialize final rom with final sparse grid and index set
     self.sparseGrid = Quadratures.SparseQuad()
@@ -2727,6 +2796,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.indexSet.writeHistory()
 
   def localGenerateInput(self,model,myInput):
+    '''
+      See base class.  Provides next point in input domain to evaluate.
+    '''
     pt = self.neededPoints.pop() # [self.counter-1]
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
@@ -2734,266 +2806,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type 
 
-#
-#
-#
-#
-#class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
-#  def __init__(self):
-#    SparseGridCollocation.__init__(self)
-#    self.type             = 'AdaptiveSparseGridSampler'
-#    self.printTag         = self.type
-#    self.solns            = None #TimePointSet of solutions -> assembled
-#    self.ROM              = None #eventual final ROM object
-#    self.oldROM           = None #for comparing
-#    self.newROM           = None
-#    self.maxPolyOrder     = 0
-#    self.persistence      = 0    #number of forced iterations, default 2
-#    self.error            = 0    #estimate of percent of moment calculated so far
-#    self.moment           = 0
-#    self.oldrom           = None #previously-accepted rom
-#
-#    self._addAssObject('TargetEvaluation','1')
-#
-#  def localInputAndChecks(self,xmlNode):
-#    SparseGridCollocation.localInputAndChecks(self,xmlNode)
-#    for child in xmlNode:
-#      if child.tag == 'Convergence':
-#        self.convType     = child.attrib['target']
-#        self.maxPolyOrder = int(child.attrib.get('maxPolyOrder',3)) #int(child.attrib['maxPolyOrder']) if 'maxPolyOrder' in child.attrib.keys() else 3
-#        self.persistence  = int(child.attrib.get('persistence',2))
-#        self.convValue    = float(child.text)
-#
-#  def  localInitialize(self):
-#    from collections import OrderedDict
-#    self.activeROMs=OrderedDict()
-#
-#    self.ROM = self.assemblerDict['ROM'][0][3]
-#    self.solns = self.assemblerDict['TargetEvaluation'][0][3]
-#    SVLs = self.ROM.SupervisedEngine.values()
-#    SVL = SVLs[0] #sampler doesn't care about which target -> or do I?
-#    self.features=SVL.features
-#    mpo = self.maxPolyOrder #save it to re-set it after calling generateQuadsAndPolys
-#    self._generateQuadsAndPolys(SVL)
-#    self.maxPolyOrder = mpo #re-set it
-#
-#    #print out the setup for each variable.
-#    self.raiseADebug(' INTERPOLATION INFO:')
-#    self.raiseADebug('    Variable | Distribution | Quadrature | Polynomials')
-#    for v in self.quadDict.keys():
-#      self.raiseADebug('   '+' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
-#    self.raiseADebug('    Polynomial Set Type  : adaptive')
-#
-#    self.raiseADebug('Starting index set generation...')
-#    self.indexSet = IndexSets.returnInstance('AdaptiveSet',self)
-#    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder,self.messageHandler)
-#
-#    self._updateExisting()
-#    #inps = self.solns.getInpParametersValues()
-#    # TODO FIXME these points are in the wrong order!!!!!!!
-#    #self.existing = zip(*list(v for v in inps.values()))
-#
-#    self.sparseGrid,dummy = self._makeSparseQuad(self.indexSet.active.keys())
-#
-#    self.neededPoints = []
-#    for pt in self.sparseGrid.points()[:]:
-#      if pt not in self.neededPoints and pt not in self.existing:
-#        self.neededPoints.append(pt)
-#
-#  def _makeSparseQuad(self,points=[]):
-#    #self.raiseADebug('Making sparse grid using points',points)
-#    sparseGrid = Quadratures.SparseQuad()
-#    iset = IndexSets.returnInstance('Custom',self)
-#    iset.initialize(self.distDict,self.importanceDict,self.maxPolyOrder,self.messageHandler)
-#    iset.setPoints(self.indexSet.points)
-#    iset.addPoints(points)
-#    sparseGrid.initialize(self.features,iset,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
-#    return sparseGrid,iset
-#
-#  def _makeAROM(self,sparseGrid,inset):
-#    rom  = copy.deepcopy(self.ROM)
-#    sg   = copy.deepcopy(sparseGrid)
-#    iset = copy.deepcopy(inset)
-#    sg.messageHandler   = self.messageHandler
-#    iset.messageHandler = self.messageHandler
-#    rom.messageHandler  = self.messageHandler
-#    for svl in rom.SupervisedEngine.values():
-#      svl.initialize({'SG'   :sg,
-#                      'dists':self.distDict,
-#                      'quads':self.quadDict,
-#                      'polys':self.polyDict,
-#                      'iSet' :iset
-#                      })
-#    rom.train(self.solns)
-#    return rom
-#
-#  def _impactParameter(self,newR,oldR):
-#    impact=0
-#    if self.convType=='coeffs':
-#      if oldR==None:
-#        impact = sum(newR.polyCoeffDict.values())
-#      else:
-#        for c in newR.polyCoeffDict.keys():
-#          new = newR.polyCoeffDict[c]
-#          if c in oldR.polyCoeffDict.keys():
-#            old = newR.polyCoeffDict[c]
-#            impact+=(new-old)**2
-#          else:
-#            impact+=(new)**2
-#        impact = np.sqrt(impact)/sum(oldR.polyCoeffDict.values())
-#      #self.raiseADebug('    L2 Coeff Error:'+str(err))
-#    elif self.convType=='variance':
-#      new = newR.__evaluateMoment__(2)
-#      if oldR==None:
-#        old = new
-#      else:
-#        old = oldR.__evaluateMoment__(2)
-#      if abs(old)>1e-14: impact = (new-old)/old
-#      else: self.raiseAnError(ValueError,'old value is less than 1e-14!')
-#    return impact
-#
-#  def _updateExisting(self):
-#    if not self.solns.isItEmpty():
-#      inps = self.solns.getInpParametersValues()
-#      #make reorder map
-#      reordmap=list(inps.keys().index(i) for i in self.features)
-#      solns = list(v for v in inps.values())
-#      ordsolns = [solns[i] for i in reordmap]
-#      self.existing = zip(*ordsolns)
-#
-#  def _writeRomToFile(self,rom,err=None):
-#    outfile = file('rom'+'-'.join(str(s) for s in self.indexSet.newestPoint)+'.out','w')
-#
-#    outfile.writelines('**************\n')
-#    outfile.writelines('* Index Set  *\n')
-#    outfile.writelines('**************\n')
-#    #for key,contrib in self.indexSet.active.items():
-#    for pt in rom.indexSet.points:
-#      outfile.writelines('  '+str(pt)+'\n')
-#
-#    outfile.writelines('**************\n')
-#    outfile.writelines('*    SVL     *\n')
-#    outfile.writelines('**************\n')
-#    SVL = rom
-#    for key,coeff in SVL.polyCoeffDict.items():
-#      outfile.writelines('  '+str(key)+': '+str(coeff)+'\n')
-#
-#    outfile.writelines('**************\n')
-#    outfile.writelines('* SparseGrid *\n')
-#    outfile.writelines('**************\n')
-#    outfile.writelines(str(rom.sparseGrid)+'\n')
-#    if err!=None:
-#      outfile.writelines('**************\n')
-#      outfile.writelines('*   Error    *\n')
-#      outfile.writelines('**************\n')
-#      outfile.writelines(str(err)+'\n')
-#
-#    outfile.writelines('**************\n')
-#    outfile.writelines('*  Moments   *\n')
-#    outfile.writelines('**************\n')
-#    outfile.writelines('First : '+str(rom.__evaluateMoment__(1))+'\n')
-#    outfile.writelines('Second: '+str(rom.__evaluateMoment__(2))+'\n')
-#    outfile.close()
-#
-#  def localStillReady(self,ready):
-#    #update existing solutions
-#    self._updateExisting()
-#    #if we're not ready elsewhere, just be not ready
-#    if ready==False: return ready
-#    if len(self.neededPoints)>0:return True
-#    #search for points to sample
-#    while len(self.neededPoints)<1:
-#      self.raiseADebug('')
-#      self.raiseADebug('Evaluating new points...')
-#      #update QoIs and impact parameters
-#      done=False
-#      self.error=0
-#      for active in self.indexSet.active.keys():
-#        #create new ROM using active point
-#        sparseGrid,iset = self._makeSparseQuad(active)
-#        newrom = self._makeAROM(sparseGrid,iset).SupervisedEngine.values()[0]
-#        #store it
-#        self.activeROMs[active]=newrom
-#        impact = self._impactParameter(newrom,self.oldrom)
-#        #self.raiseADebug('Impact for',active,'is',impact)
-#        self.indexSet.setROM(active,newrom)
-#        self.indexSet.setImpact(active,impact)
-#        self.error+=impact
-#      self.raiseADebug('  estimated remaining error:',self.error)
-#      if abs(self.error)<self.convValue and len(self.indexSet.points)>self.persistence:
-#        #pls at least find one point....
-#        coeffpts=self.activeROMs[self.indexSet.newestPoint].checkForNonzeros()
-#        if len(coeffpts)>0:
-#          done=True #we've converged!
-#          #self.raiseADebug('points:',coeffpts)
-#          self.raiseADebug('error:',self.error)
-#          for key in self.indexSet.active.keys():
-#            if self.indexSet.active[key]==None: del self.indexSet.active[key]
-#          break
-#      self.raiseADebug('new iset:')
-#      self.indexSet.printOut()
-#      #if done:
-#      #  for active in self.indexSet.active.keys(): self.indexSet.points.append(active)
-#      #  break #completed calculation
-#      #store the old rom
-#      if len(self.indexSet.points)>1:
-#        self.oldrom = self.activeROMs[self.indexSet.newestPoint]
-#      #get the biggest helper and make him permanent
-#      point,impact = self.indexSet.expand()
-#      self.raiseADebug('New Coeffs by adding point',point)
-#      self.activeROMs[point].printPolyDict()
-#      #print debugging
-#      #if len(self.indexSet.points)>2:
-#      #  old=self.activeROMs[oldpoint]
-#      #  new=self.activeROMs[point]
-#      #  self.raiseADebug('  Poly Coeff Comparison | diff | old | new')
-#      #  allkeys=set(old.polyCoeffDict.keys())
-#      #  allkeys.update(set(new.polyCoeffDict.keys()))
-#      #  for key in allkeys:
-#      #    oldv = old.polyCoeffDict.get(key,0)
-#      #    newv = new.polyCoeffDict.get(key,0)
-#      #    if abs(newv-oldv)>1e-10:
-#      #      self.raiseADebug('    %8s | %10f | %10f | %10f' %(key,newv-oldv,oldv,newv))
-#      # find the forward points of the most effective point
-#      self.indexSet.forward(point,self.maxPolyOrder)
-#      for point in self.indexSet.active.keys():
-#        sparseGrid,dummy=self._makeSparseQuad(point)
-#        for pt in sparseGrid.points()[:]:
-#          if pt not in self.neededPoints and pt not in self.existing:
-#            self.neededPoints.append(pt)
-#    if len(self.neededPoints)==0:
-#      self.indexSet.printOut()
-#      newrom.printPolyDict()
-#      self.finalizeROM()
-#      return False
-#      #self.raiseAnError(IOError,'we left the loop!')
-#    return True
-#
-#  def finalizeROM(self):
-#    self.raiseADebug('No more samples to try! Declaring sampling complete.')
-#    #initialize final rom with final sparse grid and index set
-#    self.sparseGrid = Quadratures.SparseQuad()
-#    self.sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
-#    for SVL in self.ROM.SupervisedEngine.values():
-#      SVL.initialize({'SG':self.sparseGrid,
-#                      'dists':self.distDict,
-#                      'quads':self.quadDict,
-#                      'polys':self.polyDict,
-#                      'iSet':self.indexSet})
-#    self.indexSet.printHistory()
-#    self.indexSet.writeHistory()
-#
-#  def localGenerateInput(self,model,myInput):
-#    pt = self.neededPoints.pop() # [self.counter-1]
-#    for v,varName in enumerate(self.sparseGrid.varNames):
-#      self.values[varName] = pt[v]
-#      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-#    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-#    self.inputInfo['SamplerType'] = self.type 
-#
-#  def localFinalizeActualSampling(self,jobObject,model,myInput):
-#    #train new rom and check convergence?
-#    pass
 #
 #
 #
