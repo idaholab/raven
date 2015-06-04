@@ -503,7 +503,6 @@
    type = 'RavenFramework'
    input = 'test_generic_interface.xml'
    output = 'GenericInterface/samples.xml'
-   xml = 'GenericInterface/samples.xml'
    csv = 'GenericInterface/samples.csv'
  [../]
 
@@ -511,7 +510,6 @@
    type = 'RavenFramework'
    input = 'test_generic_IO.xml'
    output = 'GenericInterfaceIO/samples.xml'
-   xml = 'GenericInterfaceIO/samples.xml'
    csv = 'GenericInterfaceIO/samples.csv'
  [../]
 
