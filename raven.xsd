@@ -48,6 +48,10 @@
             <xsd:selector xpath="./Samplers/*/Distribution/distribution"/>
             <xsd:field    xpath="."/>
         </xsd:keyref>
+<!--         <xsd:key name="ppName">
+            <xsd:selector xpath="./Models/PostProcessor"/>
+            <xsd:field    xpath="@name"/>
+        </xsd:key> -->
     </xsd:element>
 
     <xsd:simpleType  name="verbosityAttr">
@@ -786,6 +790,256 @@
             <xsd:element name="variables" type="xsd:string" minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name"        type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:simpleType  name="PPsubType">
+        <xsd:restriction   base="xsd:string">
+            <xsd:enumeration value="BasicStatistics"/>
+            <xsd:enumeration value="ComparisonStatistics"/>
+            <xsd:enumeration value="SafestPoint" />
+            <xsd:enumeration value="LimitSurface" />
+            <xsd:enumeration value="LimitSurfaceIntegral" />
+            <xsd:enumeration value="External" />
+            <xsd:enumeration value="TopologicalDecomposition" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="PostProcessor">
+        <xsd:attribute name="name"        type="xsd:string" use="required"/>
+        <xsd:attribute name="subtype"        type="PPsubType" use="required"/>
+    </xsd:complexType>
+
+    <xsd:simpleType  name="BasicStatsWhatType">
+        <xsd:restriction   base="xsd:string">
+            <xsd:enumeration value="covariance matrix"/>
+            <xsd:enumeration value="NormalizedSensitivity"/>
+            <xsd:enumeration value="VarianceDependentSensitivity" />
+            <xsd:enumeration value="sensitivity" />
+            <xsd:enumeration value="pearson" />
+            <xsd:enumeration value="expectedValue" />
+            <xsd:enumeration value="sigma" />
+            <xsd:enumeration value="variationCoefficient" />
+            <xsd:enumeration value="variance" />
+            <xsd:enumeration value="skewness" />
+            <xsd:enumeration value="kurtosis" />
+            <xsd:enumeration value="median" />
+            <xsd:enumeration value="percentile" />
+            <xsd:enumeration value="all" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="AssemblerObjectType">
+      <xsd:simpleContent>
+        <xsd:extension base='xsd:string'>
+          <xsd:attribute name='class' type='xsd:string' use='required' />
+          <xsd:attribute name='type'  type='xsd:string' use='required' />
+        </xsd:extension>
+      </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="BasicStatistics">
+      <xsd:complexContent>
+        <xsd:extension base="PostProcessor">
+          <xsd:all minOccurs="0">
+            <xsd:element name="what" type="BasicStatsWhatType" minOccurs="1"></xsd:element>
+            <xsd:element name='biased' type='xsd:boolean' minOccurs="0" default='false'></xsd:element>
+            <xsd:element name='parameters' type='xsd:string' minOccurs="1"></xsd:element>
+            <xsd:element name='methodsToRun' type='xsd:string' minOccurs="0"></xsd:element>
+            <!-- TODO: Somehow point to the things existing in the function block-->
+            <!-- TODO: Also conditionally require the function node if methodsToRun is present -->
+            <xsd:element name='Function' type="AssemblerObjectType" minOccurs="0" />
+          </xsd:all>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:simpleType  name="CompStatsBinMethod">
+        <xsd:restriction   base="xsd:string">
+            <xsd:enumeration value="square-root"/>
+            <xsd:enumeration value="sturges"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!--TODO: Figure out what type any of these sub-elements are supposed to be -->
+    <xsd:complexType name="ComparisonStatistics">
+      <xsd:complexContent>
+        <xsd:extension base="PostProcessor">
+          <xsd:all minOccurs="0">
+            <xsd:element name="kind" minOccurs="1">
+              <xsd:complexType>
+                <xsd:simpleContent>
+                  <xsd:extension base='xsd:string'>
+                    <xsd:attribute name='num_bins' type='xsd:integer' use='required' />
+                    <xsd:attribute name='bin_method'  type='CompStatsBinMethod' use='required' />
+                  </xsd:extension>
+                </xsd:simpleContent>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="compare" minOccurs="1">
+              <xsd:complexType>
+                <xsd:all>
+                  <xsd:element name='data' type='xsd:string' />
+                  <!--TODO: Must be one of the Distributions -->
+                  <xsd:element name='reference' type='xsd:string'/>
+                </xsd:all>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="fz" type="xsd:boolean" />
+            <xsd:element name="interpolation" type="xsd:string" />
+          </xsd:all>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name='SafestPointVariable'>
+      <xsd:all>
+        <xsd:element name='distribution' type='xsd:string' />
+        <xsd:element name='grid'>
+          <xsd:complexType>
+            <xsd:simpleContent>
+              <xsd:extension base='xsd:integer'>
+                <xsd:attribute name='steps' type='xsd:integer' use='required' />
+                <xsd:attribute name='type'  type='xsd:integer' use='required' />
+              </xsd:extension>
+            </xsd:simpleContent>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:all>
+      <xsd:attribute name='class' type='xsd:string' use='required' />
+      <xsd:attribute name='type'  type='xsd:string' use='required' />
+    </xsd:complexType>
+
+    <!--TODO: Figure out what type any of these sub-elements are supposed to be -->
+    <xsd:complexType name="SafestPoint">
+      <xsd:complexContent>
+        <xsd:extension base="PostProcessor">
+          <xsd:all minOccurs="0">
+            <xsd:element name="kind" minOccurs="1"></xsd:element>
+            <!-- TODO: Somehow point to the things existing in the Distributions block-->
+            <xsd:element name='Distribution' type="AssemblerObjectType" minOccurs="1" />
+            <xsd:element name="controllable" type='SafestPointVariable' />
+            <xsd:element name="non-controllable" type='SafestPointVariable' />
+          </xsd:all>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:simpleType  name="LimitSurfaceSide">
+      <xsd:restriction   base="xsd:string">
+        <xsd:enumeration value="negative"/>
+        <xsd:enumeration value="positive"/>
+        <xsd:enumeration value="both"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="LimitSurface">
+      <xsd:complexContent>
+        <xsd:extension base="PostProcessor">
+          <xsd:all minOccurs="0">
+            <xsd:element name="parameters" type='xsd:string' minOccurs="1"/>
+            <xsd:element name="tolerance" type='xsd:float' default="1e-4"/>
+            <xsd:element name="side" type='LimitSurfaceSide' />
+            <!-- TODO: Somehow point to the things existing in the function block-->
+            <xsd:element name='ROM' minOccurs="0">
+              <xsd:complexType>
+                <xsd:simpleContent>
+                  <xsd:extension base='xsd:string'>
+                    <xsd:attribute name='class' type='xsd:string' use='required' />
+                    <xsd:attribute name='type'  type='xsd:string' use='required' />
+                  </xsd:extension>
+                </xsd:simpleContent>
+              </xsd:complexType>
+            </xsd:element>
+
+            <!-- TODO: Somehow point to the things existing in the function block-->
+            <xsd:element name='Function' type="AssemblerObjectType" minOccurs="0" />
+          </xsd:all>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="LimitSurfaceIntegral">
+      <xsd:complexContent>
+        <xsd:extension base="PostProcessor">
+          <xsd:all minOccurs="0">
+            <xsd:element name="variable" minOccurs="1">
+              <xsd:complexType>
+                <xsd:all minOccurs="0">
+                  <!-- TODO: Somehow point to the things existing in the Distributions block-->
+                  <xsd:element name="distribution" type="xsd:string" minOccurs="0" />
+                  <!-- TODO: either the above or the two below are required-->
+                  <xsd:element name="lowerBound" type="xsd:float" minOccurs="0" />
+                  <xsd:element name="upperBound" type="xsd:float" minOccurs="0" />
+                </xsd:all>
+                <xsd:attribute name="name" type="xsd:string" />
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="tolerance" type="xsd:float" minOccurs="0" default="1e-4" />
+            <xsd:element name="integralType" type="xsd:string" minOccurs="0" fixed="MonteCarlo" />
+            <xsd:element name="seed" type="xsd:integer" minOccurs="0" default="20021986" />
+            <xsd:element name="target" type="xsd:string" minOccurs="0"/>
+          </xsd:all>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="External">
+      <xsd:complexContent>
+        <xsd:extension base="PostProcessor">
+          <xsd:all minOccurs="0">
+            <xsd:element name="method" type="xsd:string" minOccurs="1" />
+            <xsd:element name='Function' type="AssemblerObjectType" minOccurs="1" />
+          </xsd:all>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:simpleType  name="TopoGraph">
+      <xsd:restriction   base="xsd:string">
+        <xsd:enumeration value="beta skeleton"/>
+        <xsd:enumeration value="relaxed beta skeleton"/>
+        <xsd:enumeration value="approximate knn"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType  name="TopoGradient">
+      <xsd:restriction   base="xsd:string">
+        <xsd:enumeration value="steepest"/>
+        <xsd:enumeration value="maxflow"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType  name="TopoBeta">
+      <xsd:restriction   base="xsd:float">
+        <xsd:minExclusive value="0"/>
+        <xsd:maxInclusive value="2"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType  name="TopoPersistence">
+      <xsd:restriction   base="xsd:string">
+        <xsd:enumeration value="difference"/>
+        <xsd:enumeration value="probability"/>
+        <xsd:enumeration value="count"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="TopologicalDecomposition">
+      <xsd:complexContent>
+        <xsd:extension base="PostProcessor">
+          <xsd:all minOccurs="0">
+            <xsd:element name="graph" type="TopoGraph" default="beta skeleton"/>
+            <xsd:element name="gradient" type="TopoGradient" default="steepest"/>
+            <xsd:element name="beta" type="TopoBeta" default="1."/>
+            <xsd:element name="knn" type="xsd:integer" default="-1"/>
+            <xsd:element name="weighted" type="xsd:boolean" default="false"/>
+            <xsd:element name="persistence" type="TopoPersistence" default="difference"/>
+            <xsd:element name="simplification" type="xsd:float" default="0"/>
+            <xsd:element name="parameters" type="xsd:string" minOccurs="1"/>
+            <xsd:element name="response" type="xsd:string" minOccurs="1"/>
+          </xsd:all>
+        </xsd:extension>
+      </xsd:complexContent>
     </xsd:complexType>
 
     <!--xsd:group name="MultiRunIOStep">
