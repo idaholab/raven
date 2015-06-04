@@ -16,10 +16,10 @@ def createNewInput(self,myInput,samplerType,**Kwargs):
   return Kwargs['SampledVars']
 
 def run(self,Input):
-  max_time = 0.03
+  #max_time = 0.03
   t_step = 0.01
 
-  numberTimeSteps = int(max_time/t_step)
+  numberTimeSteps = 2
 
   self.x    = np.zeros(numberTimeSteps)
   self.y    = np.zeros(numberTimeSteps)
