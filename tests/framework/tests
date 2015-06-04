@@ -460,7 +460,6 @@
   type = 'RavenFramework'
   input = 'test_stochpoly_interp.xml'
   output = 'StochasticPolyInterpTest/Ndump.xml'
-  xml = 'StochasticPolyInterpTest/Ndump.xml'
   csv = 'StochasticPolyInterpTest/Ndump.csv'
  [../]
 
