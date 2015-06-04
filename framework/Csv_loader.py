@@ -21,13 +21,8 @@ import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CsvLoader(MessageHandler.MessageUser):
-<<<<<<< HEAD
-  def __init__(self):
-    """
-=======
   def __init__(self,messageHandler):
-    '''
->>>>>>> 4eb129a370a4c6924ceecf74a1ad89603490e686
+    """
     Constructor
     """
     self.all_out_param      = False # all output parameters?
