@@ -385,7 +385,6 @@
   type = 'RavenFramework'
   input = 'test_indexsets.xml'
   output = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml IndexSetTest/Cdump.xml'
-  xml = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml IndexSetTest/Cdump.xml'
   csv = 'IndexSetTest/TPdump.csv IndexSetTest/TDdump.csv IndexSetTest/HCdump.csv IndexSetTest/Cdump.csv'
  [../]
 
@@ -401,7 +400,7 @@
   type = 'RavenFramework'
   input = 'test_sobol_rom.xml'
   output = 'SobolRom/dump.xml SobolRom/dumprom.xml'
-  xml = 'SobolRom/dump.xml SobolRom/dumprom.xml'
+  xml = 'SobolRom/dumprom.xml'
   csv = 'SobolRom/dump.csv'
  [../]
 
