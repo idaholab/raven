@@ -138,7 +138,9 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-
+<!-- *********************************************************************** -->
+<!--                              Distributions                              -->
+<!-- *********************************************************************** -->
     <xsd:complexType name="BetaDistribution">
         <xsd:all>
             <xsd:element name="lowerBound"                    minOccurs="0">
@@ -325,7 +327,7 @@
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="NDInverseWeightDistribution">
         <xsd:all>
             <xsd:element name="p"             type="xsd:decimal"       minOccurs="1"/>
@@ -341,6 +343,10 @@
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
+
+<!-- *********************************************************************** -->
+<!--                                 Samplers                                -->
+<!-- *********************************************************************** -->
     <xsd:complexType name="SamplerData">
         <xsd:sequence>
             <xsd:element name="MonteCarlo"            type="MonteCarloSampler"      minOccurs="0" maxOccurs="unbounded"/>
@@ -527,22 +533,26 @@
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
 
-<xsd:complexType name="FactorialSampler">
-    <xsd:sequence>
-        <xsd:element name="sampler_init" type="samplerInitType" minOccurs="0"/>
-        <xsd:element name="FactorialSettings" minOccurs="1">
-            <xsd:complexType mixed="true">
-                <xsd:all>
-                    <xsd:element name="algorithm_type" type="xsd:string"   minOccurs="1"/>
-                    <xsd:element name="gen"            type="xsd:string"   minOccurs="0"/>
-                    <xsd:element name="genMap"         type="xsd:string"  minOccurs="0"/>
-                 </xsd:all>
-            </xsd:complexType>
-        </xsd:element>
-        <xsd:element name="variable"     type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
-    </xsd:sequence>
-    <xsd:attribute name="name" type="xsd:string" use="required"/>
-</xsd:complexType>
+    <xsd:complexType name="FactorialSampler">
+        <xsd:sequence>
+            <xsd:element name="sampler_init" type="samplerInitType" minOccurs="0"/>
+            <xsd:element name="FactorialSettings" minOccurs="1">
+                <xsd:complexType mixed="true">
+                    <xsd:all>
+                        <xsd:element name="algorithm_type" type="xsd:string"   minOccurs="1"/>
+                        <xsd:element name="gen"            type="xsd:string"   minOccurs="0"/>
+                        <xsd:element name="genMap"         type="xsd:string"  minOccurs="0"/>
+                     </xsd:all>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="variable"     type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+<!-- *********************************************************************** -->
+<!--                                  Models                                 -->
+<!-- *********************************************************************** -->
 
     <xsd:complexType name="ModelsData">
         <xsd:sequence>
@@ -563,88 +573,183 @@
     </xsd:simpleType>
 
     <xsd:complexType name="CodeCLArgsType">
-    <xsd:simpleContent>
-      <xsd:extension base="xsd:string">
-        <xsd:attribute name="type" type="clArgType" use="required">
-        </xsd:attribute>
-        <!-- Required only when the type is 'output' -->
-        <!-- TODO: This functionality should be available with XSD 1.1's -->
-        <!--       xsd:alternative option. Look it up.                   -->
-        <xsd:attribute name="arg" type="xsd:string">
-        </xsd:attribute>
-        <!-- Required only when the type is 'input' -->
-        <!-- TODO: This functionality should be available with XSD 1.1's -->
-        <!--       xsd:alternative option. Look it up.                   -->
-        <xsd:attribute name="extension" type="xsd:string">
-        </xsd:attribute>
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
+      <xsd:simpleContent>
+        <xsd:extension base="xsd:string">
+          <xsd:attribute name="type" type="clArgType" use="required">
+          </xsd:attribute>
+          <!-- Required only when the type is 'output' -->
+          <!-- TODO: This functionality should be available with XSD 1.1's -->
+          <!--       xsd:alternative option. Look it up.                   -->
+          <xsd:attribute name="arg" type="xsd:string">
+          </xsd:attribute>
+          <!-- Required only when the type is 'input' -->
+          <!-- TODO: This functionality should be available with XSD 1.1's -->
+          <!--       xsd:alternative option. Look it up.                   -->
+          <xsd:attribute name="extension" type="xsd:string">
+          </xsd:attribute>
+        </xsd:extension>
+      </xsd:simpleContent>
+    </xsd:complexType>
 
     <xsd:simpleType  name="fileArgType">
-        <xsd:restriction   base="xsd:string">
-            <xsd:enumeration value="input"   />
-            <xsd:enumeration value="output" />
-        </xsd:restriction>
+      <xsd:restriction   base="xsd:string">
+        <xsd:enumeration value="input"  />
+        <xsd:enumeration value="output" />
+      </xsd:restriction>
     </xsd:simpleType>
 
     <xsd:complexType name="CodeFileArgsType">
-    <xsd:simpleContent>
-      <xsd:extension base="xsd:string">
-        <xsd:attribute name="type" type="fileArgType" use="required" />
-        <!-- Will match entry in template input file? -->
-        <!-- I don't think this is testable since it depends on another -->
-        <!-- input file. -->
-        <xsd:attribute name="arg" type="xsd:string" use="required" />
-        <!-- Required only when the type is 'input' -->
-        <!-- TODO: This functionality should be available with XSD 1.1's -->
-        <!--       xsd:alternative option. Look it up.                   -->
-        <xsd:attribute name="extension" type="xsd:string" />
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
+      <xsd:simpleContent>
+        <xsd:extension base="xsd:string">
+          <xsd:attribute name="type" type="fileArgType" use="required" />
+          <!-- Will match entry in template input file? -->
+          <!-- I don't think this is testable since it depends on another -->
+          <!-- input file. -->
+          <xsd:attribute name="arg" type="xsd:string" use="required" />
+          <!-- Required only when the type is 'input' -->
+          <!-- TODO: This functionality should be available with XSD 1.1's -->
+          <!--       xsd:alternative option. Look it up.                   -->
+          <xsd:attribute name="extension" type="xsd:string" />
+        </xsd:extension>
+      </xsd:simpleContent>
+    </xsd:complexType>
 
     <xsd:simpleType  name="CodeModelType">
-        <xsd:restriction   base="xsd:string">
-            <xsd:enumeration value="GenericCode" />
-            <xsd:enumeration value="Relap5" />
-            <xsd:enumeration value="RAVEN" />
-        </xsd:restriction>
+      <xsd:restriction   base="xsd:string">
+        <xsd:enumeration value="GenericCode" />
+        <xsd:enumeration value="Relap5" />
+        <xsd:enumeration value="RAVEN" />
+      </xsd:restriction>
     </xsd:simpleType>
 
     <xsd:complexType name="CodeModel">
-        <xsd:sequence>
-            <xsd:element name="executable" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="alias" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="clargs" type="CodeCLArgsType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="fileargs" type="CodeFileArgsType" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-        <xsd:attribute name="name"     type="xsd:string"  use="required"/>
-        <xsd:attribute name="subType"  type="CodeModelType"  use="required" />
+      <xsd:sequence>
+        <xsd:element name="executable" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="alias" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="clargs" type="CodeCLArgsType" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="fileargs" type="CodeFileArgsType" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+      <xsd:attribute name="name"     type="xsd:string"  use="required"/>
+      <xsd:attribute name="subType"  type="CodeModelType"  use="required" />
     </xsd:complexType>
 
     <xsd:complexType name="DummyModel">
-        <xsd:attribute name="name"     type="xsd:string"  use="required"/>
-        <xsd:attribute name="subType"  type="xsd:string"  use="required" fixed=""/>
-        <xsd:attribute name="print"    type="xsd:string"/>
+      <xsd:attribute name="name"     type="xsd:string"  use="required"/>
+      <xsd:attribute name="subType"  type="xsd:string"  use="required" fixed=""/>
+      <xsd:attribute name="print"    type="xsd:string"/>
     </xsd:complexType>
 
     <xsd:complexType name="ExternalModel">
-        <xsd:sequence>
-            <xsd:element name="variable" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
-        </xsd:sequence>
-        <xsd:attribute name="name"         type="xsd:string"  use="required"/>
-        <xsd:attribute name="subType"      type="xsd:string"  use="required" fixed=""/>
-        <xsd:attribute name="ModuleToLoad" type="xsd:string"  use="required"/>
+      <xsd:sequence>
+        <xsd:element name="variable" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+      </xsd:sequence>
+      <xsd:attribute name="name"         type="xsd:string"  use="required"/>
+      <xsd:attribute name="subType"      type="xsd:string"  use="required" fixed=""/>
+      <xsd:attribute name="ModuleToLoad" type="xsd:string"  use="required"/>
     </xsd:complexType>
 
+    <xsd:complexType name="ROM">
+      <xsd:all minOccurs="0">
+        <xsd:element name="Features"  type="xsd:string" minOccurs="1"/>
+        <xsd:element name="Target"  type="xsd:string" minOccurs="1"/>
+      </xsd:all>
+      <xsd:attribute name="name"         type="xsd:string"  use="required" />
+      <xsd:attribute name="subType"      type="xsd:string"  use="required" />
+    </xsd:complexType>
+
+    <!-- NDSpline does not have any additional features and does not require its own definition-->
+
+    <xsd:simpleType  name="GaussPolyROMIndexSetType">
+      <xsd:restriction   base="xsd:string">
+        <xsd:enumeration value="TensorProduct" />
+        <xsd:enumeration value="TotalDegree" />
+        <xsd:enumeration value="HyperbolicCross" />
+        <xsd:enumeration value="Custom" />
+      </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType  name="QuadratureType">
+      <xsd:restriction   base="xsd:string">
+        <xsd:enumeration value="Legendre" />
+        <xsd:enumeration value="Hermite" />
+        <xsd:enumeration value="Jacobi" />
+        <xsd:enumeration value="ClenshawCurtis" />
+      </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType  name="PolynomialType">
+      <xsd:restriction   base="xsd:string">
+        <xsd:enumeration value="Legendre" />
+        <xsd:enumeration value="Hermite" />
+        <xsd:enumeration value="Jacobi" />
+        <xsd:enumeration value="Laguerre" />
+      </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="GaussPolynomialRom">
+      <xsd:complexContent>
+        <xsd:extension base="ROM">
+          <xsd:element name="IndexSet"  type="GaussPolyROMIndexSetType" minOccurs="1"/>
+          <xsd:element name="PolynomialOrder"  type="xsd:integer" minOccurs="1"/>
+          <!-- TODO: Do we want to test if this is a list of tuples? -->
+          <xsd:element name="IndexPoints"  type="xsd:string" minOccurs="1"/>
+          <xsd:element name="Interpolation">
+            <xsd:complexType>
+              <xsd:simpleContent>
+                <xsd:extension base="xsd:string">
+                  <xml:attribute name="quad" type="QuadratureType"/>
+                  <xml:attribute name="poly" type="PolynomialType"/>
+                  <xml:attribute name="weight" type="xsd:float" default="1"/>
+                </xsd:extension>
+              </xsd:simpleContent>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="HDMRRom">
+      <xsd:complexContent>
+        <xsd:extension base="ROM">
+          <xsd:element name="SobolOrder"  type="xsd:integer" minOccurs="1"/>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:simpleType  name="positiveInteger">
+      <xsd:restriction   base="xsd:integer">
+        <xsd:minExclusive value="0"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="NDinvDistWeight">
+      <xsd:complexContent>
+        <xsd:extension base="ROM">
+          <xsd:element name="p"  type="positiveInteger" minOccurs="1"/>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SciKitLearn">
+      <xsd:complexContent>
+        <xsd:extension base="ROM">
+          <xsd:element name="SKLtype" minOccurs="1">
+            <!-- TODO: Start here -->
+          </xsd:element>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
+<!-- *********************************************************************** -->
+<!--                               DataObjects                               -->
+<!-- *********************************************************************** -->
     <xsd:complexType name="DataObjectsData">
-        <xsd:sequence>
-            <xsd:element name="TimePoint"    type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="TimePointSet" type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="History"      type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="Histories"    type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
+      <xsd:sequence>
+        <xsd:element name="TimePoint"    type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="TimePointSet" type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="History"      type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="Histories"    type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="commonDataObjectsData">
