@@ -653,10 +653,10 @@
     </xsd:complexType>
 
     <xsd:complexType name="ROM">
-      <xsd:all minOccurs="0">
+      <xsd:sequence minOccurs="0">
         <xsd:element name="Features"  type="xsd:string" minOccurs="1"/>
         <xsd:element name="Target"  type="xsd:string" minOccurs="1"/>
-      </xsd:all>
+      </xsd:sequence>
       <xsd:attribute name="name"         type="xsd:string"  use="required" />
       <xsd:attribute name="subType"      type="xsd:string"  use="required" />
     </xsd:complexType>
@@ -693,21 +693,23 @@
     <xsd:complexType name="GaussPolynomialRom">
       <xsd:complexContent>
         <xsd:extension base="ROM">
-          <xsd:element name="IndexSet"  type="GaussPolyROMIndexSetType" minOccurs="1"/>
-          <xsd:element name="PolynomialOrder"  type="xsd:integer" minOccurs="1"/>
-          <!-- TODO: Do we want to test if this is a list of tuples? -->
-          <xsd:element name="IndexPoints"  type="xsd:string" minOccurs="1"/>
-          <xsd:element name="Interpolation">
-            <xsd:complexType>
-              <xsd:simpleContent>
-                <xsd:extension base="xsd:string">
-                  <xml:attribute name="quad" type="QuadratureType"/>
-                  <xml:attribute name="poly" type="PolynomialType"/>
-                  <xml:attribute name="weight" type="xsd:float" default="1"/>
-                </xsd:extension>
-              </xsd:simpleContent>
-            </xsd:complexType>
-          </xsd:element>
+          <xsd:sequence>
+            <xsd:element name="IndexSet"  type="GaussPolyROMIndexSetType" minOccurs="1"/>
+            <xsd:element name="PolynomialOrder"  type="xsd:integer" minOccurs="1"/>
+            <!-- TODO: Do we want to test if this is a list of tuples? -->
+            <xsd:element name="IndexPoints"  type="xsd:string" minOccurs="1"/>
+            <xsd:element name="Interpolation">
+              <xsd:complexType>
+                <xsd:simpleContent>
+                  <xsd:extension base="xsd:string">
+                    <xsd:attribute name="quad" type="QuadratureType" />
+                    <xsd:attribute name="poly" type="PolynomialType" />
+                    <xsd:attribute name="weight" type="xsd:float" default="1" />
+                  </xsd:extension>
+                </xsd:simpleContent>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
         </xsd:extension>
       </xsd:complexContent>
     </xsd:complexType>
@@ -715,7 +717,9 @@
     <xsd:complexType name="HDMRRom">
       <xsd:complexContent>
         <xsd:extension base="ROM">
-          <xsd:element name="SobolOrder"  type="xsd:integer" minOccurs="1"/>
+          <xsd:sequence>
+            <xsd:element name="SobolOrder"  type="xsd:integer" minOccurs="1"/>
+          </xsd:sequence>
         </xsd:extension>
       </xsd:complexContent>
     </xsd:complexType>
@@ -729,20 +733,21 @@
     <xsd:complexType name="NDinvDistWeight">
       <xsd:complexContent>
         <xsd:extension base="ROM">
-          <xsd:element name="p"  type="positiveInteger" minOccurs="1"/>
+          <xsd:sequence>
+            <xsd:element name="p"  type="positiveInteger" minOccurs="1"/>
+          </xsd:sequence>
         </xsd:extension>
       </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="SciKitLearn">
+<!--     <xsd:complexType name="SciKitLearn">
       <xsd:complexContent>
         <xsd:extension base="ROM">
           <xsd:element name="SKLtype" minOccurs="1">
-            <!-- TODO: Start here -->
           </xsd:element>
         </xsd:extension>
       </xsd:complexContent>
-    </xsd:complexType>
+    </xsd:complexType> -->
 
 <!-- *********************************************************************** -->
 <!--                               DataObjects                               -->
