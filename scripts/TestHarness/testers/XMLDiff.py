@@ -2,7 +2,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys,os
 import xml.etree.ElementTree as ET
 
-num_tol = 1e-13 #acceptable difference between two floats
+num_tol = 1e-13 #effectively zero for our purposes
 
 def compare_element(a,b,path=""):
   """ Compares two element trees and returns (same,message)
@@ -32,7 +32,13 @@ def compare_element(a,b,path=""):
     path += a.tag + "/"
   if a.text != b.text:
     if isANumber(a.text) and isANumber(b.text): #special treatment
-      if abs((float(a.text)-float(b.text))/float(b.text))>num_tol:
+      va=float(a.text)
+      vb=float(b.text)
+      if abs(va) < num_tol: va=0
+      if abs(vb) < num_tol: vb=0
+      if vb!=0: valtest = abs((float(a.text)-float(b.text))/float(b.text))>num_tol
+      else: valtest = abs((float(a.text)-float(b.text)))>num_tol
+      if valtest:
         same=False
         fail_message("mismatch text value ",repr(a.text),repr(b.text))
     else:
