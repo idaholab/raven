@@ -325,6 +325,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         params = self.ND_sampling_params[distrib]
         temp = self.distributions2variablesMapping[distrib][0].keys()[0]
         self.distDict[temp].updateRNGParam(params)
+      else:
+        self.raiseAnError(IOError,'Distribution "%s" specified in dist_init block of sampler "%s" does not exist!' %(distrib,self.name))
 
   def localInitialize(self):
     '''
@@ -753,9 +755,9 @@ class MonteCarlo(Sampler):
         except ValueError:
           self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
       else:
-        self.raiseAnError(IOError,'Monte Carlo sampling needs the limit block (number of samples) in the sampler_init block')
+        utils.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the sampler_init block')
     else:
-      self.raiseAnError(IOError,'Monte Carlo sampling needs the sampler_init block')
+      utils.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the sampler_init block')
 
   def localInitialize(self):
     '''See base class.'''
