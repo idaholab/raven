@@ -117,26 +117,9 @@
             <xsd:element name="Bernoulli"     type="BernoulliDistribution"     minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Binomial"      type="BinomialDistribution"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Poisson"       type="PoissonDistribution"       minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="MultivariateNormal"       type="MultivariateNormalDistribution" minOccurs="0" maxOccurs="unbounded"/>
-            <!-- ******************************************************* -->
-            <!-- The N-Dimensional Distributions are not yet implemented -->
-            <!-- ******************************************************* -->
-            <xsd:element name="NDInverseWeight"         minOccurs="0" maxOccurs="unbounded">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
-                    </xsd:sequence>
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="NDCartesianSpline"       minOccurs="0" maxOccurs="unbounded">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
-                    </xsd:sequence>
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:element name="NDInverseWeight"    type="NDInverseWeightDistribution"    minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="NDCartesianSpline"  type="NDCartesianSplineDistribution"  minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="MultivariateNormal" type="MultivariateNormalDistribution" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
