@@ -167,8 +167,10 @@ class GridEntity(BaseType):
     if "volumetricRatio" not in initDict.keys() and "stepLenght" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"volumetricRatio" or "stepLenght" key is not present in the initialization dictionary')
     if "volumetricRatio"  in initDict.keys() and "stepLenght" in initDict.keys()+readKeys: self.raiseAWarning('"volumetricRatio" and "stepLenght" keys are both present! the "volumetricRatio" has priority!')
     if "volumetricRatio" in initDict.keys():
-      self.volumetricRatio                         = initDict["volumetricRatio"]
-      stepLenght                                   = [[round(self.volumetricRatio**(1./float(self.nVar)),14)]]*self.nVar # build the step size in 0-1 range such as the differential volume is equal to the tolerance
+      self.volumetricRatio = initDict["volumetricRatio"]
+      # build the step size in 0-1 range such as the differential volume is equal to the tolerance
+      stepLenght, ratioRelative = [], self.volumetricRatio**(1./float(self.nVar))
+      for varId in range(len(self.gridContainer['dimensionNames'])): stepLenght.append([ratioRelative*(self.gridContainer['bounds']["upperBounds" ][self.gridContainer['dimensionNames'][varId]] - self.gridContainer['bounds']["lowerBounds" ][self.gridContainer['dimensionNames'][varId]])])
     else:
       if "stepLenght" not in readKeys:
         if type(initDict["stepLenght"]).__name__ != "dict": self.raiseAnError(Exception,'The stepLenght entry is not a dictionary')
@@ -180,7 +182,8 @@ class GridEntity(BaseType):
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
       if len(stepLenght[varId]) == 1:
         # equally spaced or volumetriRatio. (the substruction of stepLenght*10e-3 is only to avoid that for roundoff error, the dummy upperbound is included in the mesh)
-        self.gridContainer['gridVectors'][varName] = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName]+round(stepLenght[varId][-1],14)-stepLenght[varId][-1]*10E-3,stepLenght[varId][-1])
+        ggg = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName],stepLenght[varId][-1])
+        self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName],stepLenght[varId][-1]),np.atleast_1d(self.gridContainer['bounds']["upperBounds" ][varName])))
       else:
         # custom grid
         # it is not very efficient, but this approach is only for custom grids => limited number of discretizations
@@ -213,13 +216,13 @@ class GridEntity(BaseType):
       #print(self.gridIterator.multi_index)
       self.gridIterator.iternext()
     self.resetIterator()
-  
+
   def returnGridAsArrayOfCoordinates(self):
     """
     Return the grid as an array of coordinates
     """
     return self.returnCoordinatesReshaped((self.gridContainer['gridLenght'],self.nVar))
-  
+
   def returnCoordinatesReshaped(self,newShape):
     """
      Method to return the grid Coordinates reshaped with respect an in Shape
