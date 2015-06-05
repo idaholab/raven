@@ -2,6 +2,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys,os
 import xml.etree.ElementTree as ET
 
+num_tol = 1e-13 #acceptable difference between two floats
+
 def compare_element(a,b,path=""):
   """ Compares two element trees and returns (same,message)
   where same is true if they are the same,
@@ -29,8 +31,13 @@ def compare_element(a,b,path=""):
   else:
     path += a.tag + "/"
   if a.text != b.text:
-    same = False
-    fail_message("mismatch text ",repr(a.text),repr(b.text))
+    if isANumber(a.text) and isANumber(b.text): #special treatment
+      if abs(float(a.text)-float(b.text))>num_tol:
+        same=False
+        fail_message("mismatch text value ",repr(a.text),repr(b.text))
+    else:
+      same = False
+      fail_message("mismatch text ",repr(a.text),repr(b.text))
   different_keys = set(a.keys()).symmetric_difference(set(b.keys()))
   same_keys = set(a.keys()).intersection(set(b.keys()))
   if len(different_keys) != 0:
@@ -51,6 +58,12 @@ def compare_element(a,b,path=""):
         message.extend(message_child)
   return (same,message)
 
+def isANumber(x):
+  try:
+    float(x)
+    return True
+  except ValueError:
+    return False
 
 class XMLDiff:
   """ XMLDiff is used for comparing a bunch of xml files.
