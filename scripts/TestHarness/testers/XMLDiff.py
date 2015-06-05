@@ -32,7 +32,7 @@ def compare_element(a,b,path=""):
     path += a.tag + "/"
   if a.text != b.text:
     if isANumber(a.text) and isANumber(b.text): #special treatment
-      if abs(float(a.text)-float(b.text))>num_tol:
+      if abs((float(a.text)-float(b.text))/float(b.text))>num_tol:
         same=False
         fail_message("mismatch text value ",repr(a.text),repr(b.text))
     else:
