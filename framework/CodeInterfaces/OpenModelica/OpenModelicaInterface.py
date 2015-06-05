@@ -161,10 +161,11 @@ class OpenModelicaInterface(CodeInterfaceBase):
       raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
 
     #
-    # Build an output file name of the form: out~<Base Name>, where base name is generated from the
-    #   input file passed in: /path/to/file/<Base Name>.ext
+    # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
+    #   input file passed in: /path/to/file/<Base Name>.ext.  'rawout' indicates that this is the direct
+    #   output from running the OpenModelica executable.
     #
-    outputfile = 'out~' + os.path.splitext(os.path.basename(inputFiles[index]))[0]
+    outputfile = 'rawout~' + os.path.splitext(os.path.basename(inputFiles[index]))[0]
     executeCommand = (executable+' -f '+os.path.split(inputFiles[index])[1] + ' -r '+ outputfile + '.csv')
 
     return executeCommand, outputfile
@@ -233,11 +234,16 @@ class OpenModelicaInterface(CodeInterfaceBase):
     # Make a new temporary file in the working directory and read the lines from the original CSV
     #   to it, stripping trailing commas in the process.
     tempOutputFD, tempOutputFileName = tempfile.mkstemp(dir = workingDir, text = True)
-    sourceFileName = os.path.join(workingDir, output + '.csv')
+    sourceFileName = os.path.join(workingDir, output)         # The source file comes in without .csv on it
+    destFileName = sourceFileName.replace('rawout~', 'out~')  # When fix the CSV, change rawout~ to out~
+    sourceFileName += '.csv'
     inputFile = open(sourceFileName)
     for line in inputFile:
       # Line ends with a comma followed by a newline
       os.write(tempOutputFD, line.replace('"','').strip().strip(',') + '\n')
     inputFile.close()
     os.close(tempOutputFD)
-    shutil.move(tempOutputFileName, sourceFileName)
+    
+    shutil.move(tempOutputFileName, destFileName + '.csv')
+    return destFileName   # Return the name without the .csv on it...RAVEN will add it
+

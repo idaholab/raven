@@ -406,3 +406,109 @@ as the primary pressure.
  </MonteCarlo>
 </Samplers>
 \end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{OpenModelica Interface}
+OpenModelica (\url{http://www.openmodelica.org}) is an open souce implementation of the Modelica simulation language.  Modelica is "a non-proprietary, 
+object-oriented, equation based language to conveniently model complex physical systems containing, e.g., mechanical, electrical, electronic, hydraulic, 
+thermal, control, electric power or process-oriented subcomponents."\footnote{\url{http://www.modelica.org}}.  Modelica models are specified in text files 
+with a file extension of .mo.  A standard Modelica example called BouncingBall which simulates the trajectory of an object falling in one dimension from a 
+height is shown as an example:
+\begin{lstlisting}
+model BouncingBall
+  parameter Real e=0.7 "coefficient of restitution";
+  parameter Real g=9.81 "gravity acceleration";
+  Real h(start=1) "height of ball";
+  Real v "velocity of ball";
+  Boolean flying(start=true) "true, if ball is flying";
+  Boolean impact;
+  Real v_new;
+  Integer foo;
+
+equation
+  impact = h <= 0.0;
+  foo = if impact then 1 else 2;
+  der(v) = if flying then -g else 0;
+  der(h) = v;
+
+  when {h <= 0.0 and v <= 0.0,impact} then
+    v_new = if edge(impact) then -e*pre(v) else 0;
+    flying = v_new > 0;
+    reinit(v, v_new);
+  end when;
+
+end BouncingBall;
+\end{lstlisting}
+
+\subsubsection{Files}
+An OpenModelica installation specific to the operating system is used to create a stand-alone executable program that performs the model calculations.  
+A separate XML file containing model parameters and initial conditions is also generated as part of the build process.  The RAVEN OpenModelica interface 
+modifies input parameters by changing copies of this file.  Both the executable and XML parameter file names must be provided to RAVEN.  In the case of 
+the BouncingBall model previously mentioned on the Windows operating system, the \textless Files\textgreater  specification would look like:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  <RunInfo>
+      ...
+    <Files>BouncingBall_init.xml,BouncingBall.exe</Files>
+      ...
+  </RunInfo>
+    ...
+</Simulation>
+\end{lstlisting}
+\subsubsection{Models}
+OpenModelica models may provide simulation output in a number of formats.  The particular format used is specified during the model generation
+process.  RAVEN works best with Comma-Separated Value (CSV) files, which is one of the possible output format options.  Models are generated 
+using the OpenModelica Shell (OMS) command-line interface, which is part of the OpenModelica installation.  To generate an executable that provides 
+CSV-formatted output, use OMSl commands as follows:
+\lstset{
+    frame=single,
+    breaklines=true,
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}
+}
+ \begin{enumerate}
+\item Change to the directory containing the .mo file to generate an executable for:
+\begin{lstlisting}
+>> cd("C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica")
+"C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica"
+\end{lstlisting}
+\item Load the model file into memory:
+\begin{lstlisting}
+>> loadFile("BouncingBall.mo")
+true
+\end{lstlisting}
+\item Create the model executable, specifying CSV output format:
+\begin{lstlisting}
+>> buildModel(BouncingBall, outputFormat="csv")
+{"C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall","BouncingBall_init.xml"}
+Warning: The initial conditions are not fully specified. Use +d=initialization for more information.
+\end{lstlisting}
+At this point the model executable and XML initialization file should have been created in the same directory as the original model file.
+\end{enumerate}
+The model executable is specified to RAVEN using the \textless Models\textgreater  section of the input file as follows:
+\begin{lstlisting}[style=XML]
+<Simulation>
+    ...
+  <Models>
+    <Code name="BouncingBall" subType = "OpenModelica">
+      <executable>BouncingBall.exe</executable>
+    </Code>
+  </Models>
+    ...
+</Simulation>
+\end{lstlisting}
+\subsubsection{CSV Output}
+The CSV files produced by OpenModelica model executables require adjustment before it may be read by RAVEN. 
+The first few lines of original CSV output from the 
+BouncingBall example is shown below:
+\begin{lstlisting}
+"time","h","v","der(h)","der(v)","v_new","foo","flying","impact",
+0,1,0,0,-9.810000000000001,0,2,1,0,
+  ...
+\end{lstlisting}
+RAVEN will not properly read this file as-generated for two reasons:
+\begin{itemize}
+  \item The variable names in the first line are each enclosed in double-quotes. 
+  \item Each line has a trailing comma.
+\end{itemize}
+ The OpenModelica inteface will automatically remove the double-quotes and trailing commas through its implementation of the 
+finalizeCodeOutput function.  
