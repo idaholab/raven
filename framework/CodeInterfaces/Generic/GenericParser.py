@@ -11,28 +11,31 @@ if not 'xrange' in dir(__builtins__):
 
 import xml.etree.ElementTree as ET
 import os
+import sys
 import copy
 from utils import toBytes, toStrish, compare
 import MessageHandler
 
 class GenericParser(MessageHandler.MessageUser):
   '''import the user-edited input file, build list of strings with replacable parts'''
-  def __init__(self,messageHandler,inputFiles,prefix='$RAVEN-',postfix='$',defaultDelim=':'):
+  def __init__(self,messageHandler,inputFiles,prefix='$RAVEN-',postfix='$',defaultDelim=':', formatDelim='|'):
     '''
     Accept the input file and parse it by the prefix-postfix breaks. Someday might be able to change prefix,postfix,defaultDelim from input file, but not yet.
     @ In, inputFiles, string list of input filenames that might need parsing.
     @ In, prefix, the string prefix to find input variables within the input files
     @ In, postfix, the string postfix signifying hte end of an input variable within an input file
     @ In, defaultDelim, the string used between prefix and postfix to set default values
+    @ In, formatDelim, the string used between prefix and postfix to set the format of the value
     @Out, None.
     '''
     self.inputFiles = inputFiles
     self.messageHandler = messageHandler
     self.prefixKey=prefix
     self.postfixKey=postfix
-    self.varPlaces = {} #varPlaces[var][inputFile]
-    self.defaults = {}  # defaults[var][inputFile]
-    self.segments = {}  # segments[inputFile]
+    self.varPlaces = {} # varPlaces[var][inputFile]
+    self.defaults  = {} # defaults[var][inputFile]
+    self.formats   = {} # formats[var][inputFile]
+    self.segments  = {} # segments[inputFile]
     self.printTag = 'GENERIC_PARSER'
     for inputFile in self.inputFiles:
       infileName = os.path.basename(inputFile)
@@ -48,12 +51,22 @@ class GenericParser(MessageHandler.MessageUser):
           start = line.find(self.prefixKey)
           end = line.find(self.postfixKey,start+1)
           var = line[start+len(self.prefixKey):end]
-          if defaultDelim in var:
-            var,defval = var.split(defaultDelim)
-            if var in self.defaults.keys(): self.raiseAWarning('multiple default values given for variable',var)
+          if defaultDelim in var or formatDelim in var:
+            optionalPos = [None]*2
+            optionalPos[0], optionalPos[1] = var.find(defaultDelim), var.find(formatDelim)
+            if optionalPos[0] == -1 : optionalPos[0]  = sys.maxint
+            if optionalPos[1] == -1 : optionalPos[1] = sys.maxint
+            defval    = var[optionalPos[0]+1:min(optionalPos[1],len(var))] if optionalPos[0] < optionalPos[1] else var[min(optionalPos[0]+1,len(var)):len(var)]
+            varformat = var[min(optionalPos[1]+1,len(var)):len(var)] if optionalPos[0] < optionalPos[1] else var[optionalPos[1]+1:min(optionalPos[0],len(var))]
+            #var,defval, varformat =  var.find()       var.split(defaultDelim)
+            var = var[0:min(optionalPos)]
+            if var in self.defaults.keys() and optionalPos[0] != sys.maxint: self.raiseAWarning('multiple default values given for variable',var)
+            if var in self.formats.keys() and optionalPos[1] != sys.maxint: self.raiseAWarning('multiple format values given for variable',var)
             #TODO allow the user to specify take-last or take-first?
-            if var not in self.defaults.keys(): self.defaults[var]={}
-            self.defaults[var][infileName]=defval
+            if var not in self.defaults.keys() and optionalPos[0] != sys.maxint : self.defaults[var] = {}
+            if var not in self.formats.keys()  and optionalPos[1] != sys.maxint : self.formats[var ] = {}
+            if optionalPos[0] != sys.maxint: self.defaults[var][infileName]=defval
+            if optionalPos[1] != sys.maxint: self.formats[var][infileName ]=varformat
           self.segments[infileName].append(toBytes(line[:start]))
           self.segments[infileName].append(toBytes(var))
           if var not in self.varPlaces.keys(): self.varPlaces[var] = {infileName:[len(self.segments[infileName])-1]}
@@ -88,8 +101,14 @@ class GenericParser(MessageHandler.MessageUser):
     for var in self.varPlaces.keys():
       for inputFile in self.segments.keys():
         for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
-          if var in moddict.keys(): self.segments[inputFile][place] = str(moddict[var])
-          elif var in self.defaults.keys(): self.segments[inputFile][place] = self.defaults[var][inputFile]
+          if var in moddict.keys():
+            if var in self.formats.keys():
+              if inputFile in self.formats[var].keys(): self.segments[inputFile][place] = str(moddict[var]).strip().rjust(int(self.formats[var][inputFile]))
+            else: self.segments[inputFile][place] = str(moddict[var])
+          elif var in self.defaults.keys():
+            if var in self.formats.keys():
+              if inputFile in self.formats[var].keys(): self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(int(self.formats[var]))
+            else: self.segments[inputFile][place] = self.defaults[var][inputFile]
           elif var in iovars: continue #this gets handled in writeNewInput
           else: self.raiseAnError(IOError,'For variable '+var+' no distribution was sampled and no default given!')
 
