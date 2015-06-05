@@ -4,34 +4,27 @@
     <variance>1.75</variance>
     <indices>
       <total_variance>1.75</total_variance>
-      <variables>x2</variables>
-        <attributes>
-           <sensitivity>0.761904761905</sensitivity>
-        </attributes>
-      <variables>x3</variables>
-        <attributes>
-           <sensitivity>0.190476190476</sensitivity>
-        </attributes>
-      <variables>x1</variables>
-        <attributes>
-           <sensitivity>0.047619047619</sensitivity>
-        </attributes>
-      <variables>x1,x2</variables>
-        <attributes>
-           <sensitivity>1.2180732613e-14</sensitivity>
-        </attributes>
-      <variables>x1,x3</variables>
-        <attributes>
-           <sensitivity>0.0</sensitivity>
-        </attributes>
-      <variables>x2,x3</variables>
-        <attributes>
-           <sensitivity>-2.03012210217e-15</sensitivity>
-        </attributes>
-      <variables>x1,x2,x3</variables>
-        <attributes>
-           <sensitivity>-4.06024420434e-15</sensitivity>
-        </attributes>
+      <variables>x1
+        <sensitivity>0.047619047619</sensitivity>
+      </variables>
+      <variables>x1,x2
+        <sensitivity>1.2180732613e-14</sensitivity>
+      </variables>
+      <variables>x1,x2,x3
+        <sensitivity>-4.06024420434e-10</sensitivity><!--change this back to e-15!-->
+      </variables>
+      <variables>x1,x3
+        <sensitivity>0.0</sensitivity>
+      </variables>
+      <variables>x2
+        <sensitivity>0.761904761905</sensitivity>
+      </variables>
+      <variables>x2,x3
+        <sensitivity>-2.03012210217e-15</sensitivity>
+      </variables>
+      <variables>x3
+        <sensitivity>0.190476190476</sensitivity>
+      </variables>
     </indices>
   </ans>
 </ReducedOrderModel>

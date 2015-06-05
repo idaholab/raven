@@ -514,7 +514,9 @@ class HDMRRom(GaussPolynomialRom):
           entries.sort(key=itemgetter(1),reverse=True)
           for combo,sens in entries:
             snode = TreeStructure.Node('variables')
-            snode.add('sensitivity',str(sens))
+            svnode = TreeStructure.Node('sensitivity')
+            svnode.setText(sens)
+            snode.appendBranch(svnode)
             snode.setText(','.join(combo))
             newnode.appendBranch(snode)
         else:

@@ -2,19 +2,25 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys,os
 import xml.etree.ElementTree as ET
 
-num_tol = 1e-13 #effectively zero for our purposes
+num_tol = 1e-10 #effectively zero for our purposes
 
-def compare_element(a,b,path=""):
+def compare_element(a,b,*args,**kwargs):
   """ Compares two element trees and returns (same,message)
   where same is true if they are the same,
   and message is a list of the differences
   a: the first element tree
   b: the second element tree
-  path: a string to describe where the element trees are located (mainly
+  accepted args:
+    unordered: prevents checking order of xml nodes
+  accepted kwargs:
+    path: a string to describe where the element trees are located (mainly
   used recursively)
   """
   same = True
   message = []
+  options = args
+  path = kwargs.get('path','')
+  #justChecking = kwargs.get('justChecking',False)
   def fail_message(*args):
     """ adds the fail message to the list
     args: The arguments to the fail message (will be converted with str())
@@ -36,14 +42,16 @@ def compare_element(a,b,path=""):
       vb=float(b.text)
       if abs(va) < num_tol: va=0
       if abs(vb) < num_tol: vb=0
-      if vb!=0: valtest = abs((float(a.text)-float(b.text))/float(b.text))>num_tol
-      else: valtest = abs((float(a.text)-float(b.text)))>num_tol
-      if valtest:
+      if vb!=0: valtest = abs((float(a.text)-float(b.text))/float(b.text))
+      else: valtest = abs((float(a.text)-float(b.text)))
+      if valtest > num_tol:
         same=False
-        fail_message("mismatch text value ",repr(a.text),repr(b.text))
+        fail_message("mismatch text value ",repr(a.text),repr(b.text),'rel. diff',valtest)
+        return (same,message)
     else:
       same = False
       fail_message("mismatch text ",repr(a.text),repr(b.text))
+      return (same,message)
   different_keys = set(a.keys()).symmetric_difference(set(b.keys()))
   same_keys = set(a.keys()).intersection(set(b.keys()))
   if len(different_keys) != 0:
@@ -58,10 +66,37 @@ def compare_element(a,b,path=""):
     fail_message("mismatch number of children ",len(a),len(b))
   else:
     if a.tag == b.tag:
-      for i in range(len(a)):
-        (same_child,message_child) = compare_element(a[i],b[i],path)
-        same = same and same_child
-        message.extend(message_child)
+      if 'unordered' in options:
+        #loop over children, if they're found remove them, if not, note not same and remove them
+        while len(a)>0:
+          childnode = a[0]
+          #print(path,'Checking for matches for',childnode.tag,childnode.text)
+          possible_matches = b.findall(childnode.tag)
+          found_match = False
+          for possible in possible_matches:
+            #print(path,'    ...checking against',possible.tag,possible.text)
+            found_match,match_message = compare_element(childnode,possible,*options,path=path)#,justChecking=True)
+            if found_match: break
+          if found_match:
+            #print(path,'     ...found!')
+            a.remove(childnode)
+            b.remove(possible)
+          else:
+            #if justChecking:
+            #  print(path,'     ...not yet, still looking...')
+            #  return False,''
+            #else:
+            #print(path,'     ...not found!')
+            same = False
+            message.extend(match_message)
+            fail_message('matching node not found!',childnode.tag,childnode.text.strip())
+            a.remove(childnode)
+            return (same,message)
+      else:
+        for i in range(len(a)):
+          (same_child,message_child) = compare_element(a[i],b[i],*options,path=path)
+          same = same and same_child
+          message.extend(message_child)
   return (same,message)
 
 def isANumber(x):
@@ -74,7 +109,7 @@ def isANumber(x):
 class XMLDiff:
   """ XMLDiff is used for comparing a bunch of xml files.
   """
-  def __init__(self, test_dir, out_files):
+  def __init__(self, test_dir, out_files,*args):
     """ Create an XMLDiff class
     test_dir: the directory where the test takes place
     out_files: the files to be compared.  They will be in test_dir + out_files
@@ -84,6 +119,7 @@ class XMLDiff:
     self.__messages = ""
     self.__same = True
     self.__test_dir = test_dir
+    self.__options = args
 
   def diff(self):
     """ Run the comparison.
@@ -114,7 +150,7 @@ class XMLDiff:
           files_read = False
           self.__messages += 'Exception reading files '+gold_filename+': '+str(e.args)
         if files_read:
-          same,messages = compare_element(test_root, gold_root)
+          same,messages = compare_element(test_root, gold_root,*self.__options)
           if not same:
             self.__same = False
             separator = "\n"+" "*4
