@@ -9,7 +9,8 @@ def evaluate(inp):
   #return np.exp(-sum(inp)/len(inp))
 
 def run(self,Input):
-  self.ans = (1.+self.x1) * (1.+self.x2**2) + (1.+self.x3**3)
+  self.ans = self.x1**2*self.x2 + self.x1**2 + self.x1*self.x2 + self.x1 + self.x2 + 1.
+  #self.ans = (1.+self.x1**3) * (1.+self.x2**2) * (1.+self.x3**1)
   #self.ans = evaluate((self.x1,self.x2,self.x3,self.x4))
   #self.ans =self.x1*self.x2 + self.x3
   #self.ans=eval((self.x1,self.x2,self.x3),1)
