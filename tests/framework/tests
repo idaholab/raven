@@ -93,6 +93,7 @@
   rel_err = 0.01
   required_executable = '../../RAVEN-%METHOD%'
  [../]
+
  [./test_merge_2_databases]
   type = 'RavenFramework'
   input = 'test_merge_2_databases.xml '
@@ -480,6 +481,14 @@
   input = 'test_simple_ND_external_grid_cdf.xml'
   output = 'ND_test_Grid_cdf/testPrintTimePointSet_dump.csv ND_test_Grid_cdf/testPrintTimePointSet_dump.csv'
   csv = 'ND_test_Grid_cdf/testPrintTimePointSet_dump.csv ND_test_Grid_cdf/testPrintTimePointSet_dump.csv'
+ [../]
+
+ [./ND_test_MC_MVN]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_MC_MVN.xml'
+  output = 'ND_test_MC_MVN/testPrintTimePointSet_dump.csv ND_test_MC_MVN/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_MC_MVN/testPrintTimePointSet_dump.csv ND_test_MC_MVN/testPrintTimePointSet_dump.csv'
+ [../]
 
  [./test_comparison_statistics]
    type = 'RavenFramework'
