@@ -26,10 +26,10 @@ class csvUtilityClass(object):
     for filename in listOfFiles:
       if "$*$" in filename: filePathToExpand.append(filename)
       else                : self.listOfFiles.append(filename)
-    if len(filePathToExpand) > 0: 
+    if len(filePathToExpand) > 0:
       # we need to look for this files
       for fileToExpand in filePathToExpand: self.listOfFiles.extend(glob(os.path.join(os.path.split(fileToExpand)[0],os.path.split(fileToExpand)[1].replace("$*$","*") + ".csv")))
-    
+
     for filename in self.listOfFiles:
       # open file
       myFile = open (filename,'rb')
@@ -49,13 +49,13 @@ class csvUtilityClass(object):
 
   def mergeCSV(self,outputFileName,options = {}):
     from sklearn import neighbors
-    
+
     """
     Method that is going to merge multiple csvs in a single one.
     @ In, string, required param, outputFileName, full path of the resulting merged CSV (output file name, eg. /users/userName/output.csv)
-    @ In, dict, optional param. options, dictionary of options: { 
+    @ In, dict, optional param. options, dictionary of options: {
                                                                  "variablesToExpandFrom":"aVariable" (a variable through which the "shorter" CSVs need to be expanded)
-                                                                 "sameKeySuffix":"integerCounter or filename (default)" (if in the CSVs that need to be merged there are 
+                                                                 "sameKeySuffix":"integerCounter or filename (default)" (if in the CSVs that need to be merged there are
                                                                  multiple occurrences of the same key, the code will append either a letter (A,B,C,D,etc) or an integer counter (1,2,3,etc)
                                                                  }
     """
@@ -69,9 +69,9 @@ class csvUtilityClass(object):
     setHeaders = list(set(self.allHeaders))
     headerCounts = {}
     headerAppender = {}
-    for variable in setHeaders: 
+    for variable in setHeaders:
       headerCounts[variable]   = self.allHeaders.count(variable)
-      headerAppender[variable] = 0 
+      headerAppender[variable] = 0
     self.allHeaders = []
     variablesToExpandFromValues = {}
     variablesToExpandFromValuesSet = []
@@ -100,7 +100,7 @@ class csvUtilityClass(object):
     nearest = neighbors.KNeighborsRegressor(n_neighbors=1)
     for filename, data in self.dataContainer.items():
       for _, varToExpandFrom in enumerate(variablesToExpandFrom):
-        if varToExpandFrom in data["headers"]: 
+        if varToExpandFrom in data["headers"]:
           index = data["headers"].index(varToExpandFrom)
           break
       for headindex, head in enumerate(data["headers"]):
@@ -112,7 +112,7 @@ if __name__ == '__main__':
   listOfFiles = ["/Users/alfoa/Downloads/Channel$*$","/Users/alfoa/Downloads/WholeCore.csv","/Users/alfoa/Downloads/primar.csv"]
   csvUtil = csvUtilityClass(listOfFiles)
   csvUtil.mergeCSV("/Users/alfoa/Downloads/testOutput.csv",{"expandCsv":True,"variablesToExpandFrom":["TIME","TIME2"],})
-      
-    
-     
-      
+
+
+
+
