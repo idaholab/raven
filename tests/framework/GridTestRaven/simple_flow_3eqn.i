@@ -7,9 +7,9 @@
   stabilization_type = SUPG
   scaling_factor_var = '1. 1.e-4 1.e-6'
 []
-[EoS]
+[FluidProperties]
   [./eos]
-    type = LinearEquationOfState
+    type = LinearFluidProperties
     p_0 = 1.e5      # Pa
     rho_0 = 1.e3    # kg/m^3
     a2 = 1.e7       # m^2/s^2
@@ -23,7 +23,7 @@
   [./pipe]
     # geometry
     type = Pipe
-    eos = eos
+    fp = eos
     position = '0 0 0'
     orientation = '1 0 0'
     A = 1.
@@ -40,13 +40,13 @@
     input = 'pipe(in)'
     p = 1e5
     T = 300.0
-    eos = eos
+    fp = eos
   [../]
   [./outlet]
     type = Outlet
     input = 'pipe(out)'
     p = 9.5e4
-    eos = eos
+    fp = eos
   [../]
 []
 

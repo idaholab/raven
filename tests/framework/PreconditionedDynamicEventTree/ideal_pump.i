@@ -9,13 +9,13 @@
   stabilization_type = NONE
   scaling_factor_var = '1e4 1e1 1e-2'
 []
-[EoS]
+[FluidProperties]
   [./eos]
-    type = LinearEquationOfState
+    type = LinearFluidProperties
     p_0 = 1.e5 # Pa
     rho_0 = 1.e3 # kg/m^3
     a2 = 1.e7 # m^2/s^2
-    beta = .46e-3 # Comment: This number should be positive for water. alpha = 1/V dV/dT = -1/rho d_rho/dT
+    beta = .46e-3 # K^{-1}  #Comment: This number should be positive for water. alpha = 1/V dV/dT = -1/rho d_rho/dT
     cv = 4.18e3 # J/kg-K, could be a global parameter?
     e_0 = 1.254e6 # J/kg
     T_0 = 300 # K
@@ -27,7 +27,7 @@
   [./pipe1]
     # geometry
     type = Pipe
-    eos = eos
+    fp = eos
     position = '0 0 0'
     orientation = '1 0 0'
     A = 3.14159265E-04 # 2.0 cm (0.02 m) in diameter, A = 1/4 * PI * d^2
@@ -40,7 +40,7 @@
   [./pipe2]
     # geometry
     type = Pipe
-    eos = eos
+    fp = eos
     position = '1.2 0 0'
     orientation = '1 0 0'
     A = 0.785398163e-4 # 1.0 cm (0.01 m) in diameter, A = 1/4 * PI * d^2
@@ -53,7 +53,7 @@
   [./pump]
     # now no-used but still required parameters, give them some whatever values
     type = IdealPump
-    eos = eos
+    fp = eos
     inputs = 'pipe1(out)'
     outputs = 'pipe2(in)'
     mass_flow_rate = 0.3141159265 # rho * u * A (kg/s)
@@ -65,14 +65,12 @@
     input = 'pipe1(in)'
     p = 1.0e5
     T = 300.0
-    eos = eos
   [../]
   [./outlet_TDV]
     type = TimeDependentVolume
     input = 'pipe2(out)'
     p = 1.e5
     T = 300.0
-    eos = eos
   [../]
 []
 [Preconditioning]
