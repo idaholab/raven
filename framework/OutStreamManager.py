@@ -180,8 +180,8 @@ class OutStreamPlot(OutStreamManager):
     elif what == 'y'                : var = self.yCoordinates [where[0]][where[1]]
     elif what == 'z'                : var = self.zCoordinates [where[0]][where[1]]
     elif what == 'colorMap'         : var = self.colorMapCoordinates[where[0]][where[1]]
-    # the variable can contain brackets (when the symbol "|" is present in the variable name),
-    # for example DataName|Input|(RavenAuxiliary|variableName|initial_value)
+    # the variable can contain brackets {} (when the symbol "|" is present in the variable name),
+    # for example DataName|Input|{RavenAuxiliary|variableName|initial_value}
     # or it can look like DataName|Input|variableName
     if var:
       if '{' in var and '}' in var:
