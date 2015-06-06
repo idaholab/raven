@@ -72,11 +72,6 @@ class OutStreamManager(BaseType):
     @ In, xmlNode    : Xml element node
     @ Out, None
     '''
-    #BaseType._readMoreXML(self,xmlNode)
-    #if self.globalAttributes:
-    #  if 'online' in self.globalAttributes.keys():
-    #    if self.globalAttributes['online'].lower() in ['t','true','on']: self.online = True
-    #    else: self.online = False
     if 'overwrite' in xmlNode.attrib.keys():
       if xmlNode.attrib['overwrite'].lower() in ['t','true','on']: self.overwrite = True
       else: self.overwrite = False
@@ -189,10 +184,10 @@ class OutStreamPlot(OutStreamManager):
     # for example DataName|Input|(RavenAuxiliary|variableName|initial_value)
     # or it can look like DataName|Input|variableName
     if var:
-      if '(' in var and ')' in var:
-        if var.count('(') > 1: self.raiseAnError(IOError,'In Plot ' +self.name +'.Only a couple of () is allowed in variable names!!!!!!')
-        result = var.split('|(')[0].split('|')
-        result.append(var.split('(')[1].replace(")", ""))
+      if '{' in var and '}' in var:
+        if var.count('{') > 1: self.raiseAnError(IOError,'In Plot ' +self.name +'.Only a couple of {} is allowed in variable names!!!!!!')
+        result = var.split('|{')[0].split('|')
+        result.append(var.split('{')[1].replace("}", ""))
       else:  result = var.split('|')
     else: result = None
     if len(result) != 3: self.raiseAnError(IOError,'In Plot ' +self.name +'.Only three level variables are accepted !!!!!')
