@@ -764,11 +764,12 @@ class Code(Model):
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     #FIXME this try-except catches too many of the wrong kind of error -> do we want to check output type?
-    try: output.addGroup(attributes,attributes)
-    except AttributeError:
+    if output.type == "HDF5"        : output.addGroup(attributes,attributes)
+    elif output.type in ['TimePoint','TimePointSet','History','Histories']:
       output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
+    else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
 #
 #
 #
