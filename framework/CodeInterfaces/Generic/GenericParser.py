@@ -35,6 +35,7 @@ class GenericParser(MessageHandler.MessageUser):
     self.varPlaces = {} # varPlaces[var][inputFile]
     self.defaults  = {} # defaults[var][inputFile]
     self.formats   = {} # formats[var][inputFile]
+    self.acceptFormats = {"d":int,"e":float,"E":float,"f":float,"F":float,"g":float,"G":float}
     self.segments  = {} # segments[inputFile]
     self.printTag = 'GENERIC_PARSER'
     for inputFile in self.inputFiles:
@@ -58,7 +59,6 @@ class GenericParser(MessageHandler.MessageUser):
             if optionalPos[1] == -1 : optionalPos[1] = sys.maxint
             defval    = var[optionalPos[0]+1:min(optionalPos[1],len(var))] if optionalPos[0] < optionalPos[1] else var[min(optionalPos[0]+1,len(var)):len(var)]
             varformat = var[min(optionalPos[1]+1,len(var)):len(var)] if optionalPos[0] < optionalPos[1] else var[optionalPos[1]+1:min(optionalPos[0],len(var))]
-            #var,defval, varformat =  var.find()       var.split(defaultDelim)
             var = var[0:min(optionalPos)]
             if var in self.defaults.keys() and optionalPos[0] != sys.maxint: self.raiseAWarning('multiple default values given for variable',var)
             if var in self.formats.keys() and optionalPos[1] != sys.maxint: self.raiseAWarning('multiple format values given for variable',var)
@@ -66,7 +66,16 @@ class GenericParser(MessageHandler.MessageUser):
             if var not in self.defaults.keys() and optionalPos[0] != sys.maxint : self.defaults[var] = {}
             if var not in self.formats.keys()  and optionalPos[1] != sys.maxint : self.formats[var ] = {}
             if optionalPos[0] != sys.maxint: self.defaults[var][infileName]=defval
-            if optionalPos[1] != sys.maxint: self.formats[var][infileName ]=varformat
+            if optionalPos[1] != sys.maxint:
+              # check if the format is valid
+              if not any(formVal in varformat for formVal in self.acceptFormats.keys()):
+                try              : int(varformat)
+                except ValueError: self.raiseAnError(ValueError,"the format specified for wildcard "+ line[start+len(self.prefixKey):end] +
+                                                     " is unknown. Available are either a plain integer or the following "+" ".join(self.acceptFormats.keys()))
+                self.formats[var][infileName ]=varformat,int
+              else:
+                for formVal in self.acceptFormats.keys():
+                  if formVal in varformat: self.formats[var][infileName ]=varformat,self.acceptFormats[formVal]; break
           self.segments[infileName].append(toBytes(line[:start]))
           self.segments[infileName].append(toBytes(var))
           if var not in self.varPlaces.keys(): self.varPlaces[var] = {infileName:[len(self.segments[infileName])-1]}
@@ -103,11 +112,19 @@ class GenericParser(MessageHandler.MessageUser):
         for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
           if var in moddict.keys():
             if var in self.formats.keys():
-              if inputFile in self.formats[var].keys(): self.segments[inputFile][place] = str(moddict[var]).strip().rjust(int(self.formats[var][inputFile]))
+              if inputFile in self.formats[var].keys():
+                if any(formVal in self.formats[var][inputFile][0] for formVal in self.acceptFormats.keys()):
+                  formatstringc = "{:"+self.formats[var][inputFile][0].strip()+"}"
+                  self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](moddict[var]))
+                else: self.segments[inputFile][place] = str(moddict[var]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
             else: self.segments[inputFile][place] = str(moddict[var])
           elif var in self.defaults.keys():
             if var in self.formats.keys():
-              if inputFile in self.formats[var].keys(): self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(int(self.formats[var]))
+              if inputFile in self.formats[var].keys():
+                if any(formVal in self.formats[var][inputFile][0] for formVal in self.acceptFormats.keys()):
+                  formatstringc = "{:"+self.formats[var][inputFile][0].strip()+"}"
+                  self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](self.defaults[var][inputFile]))
+                else: self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
             else: self.segments[inputFile][place] = self.defaults[var][inputFile]
           elif var in iovars: continue #this gets handled in writeNewInput
           else: self.raiseAnError(IOError,'For variable '+var+' no distribution was sampled and no default given!')
