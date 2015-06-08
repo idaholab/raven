@@ -1,8 +1,6 @@
 \section{Existing Interfaces}
 \label{sec:existingInterface}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% Gneric  INTERFACE  %%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \subsection{Generic Interface}
 The GenericCode interface is meant to handle a wide variety of generic codes 
 that take take straightforward input files and produce output CSV files.  There are
@@ -93,9 +91,7 @@ Where,
   \item  \texttt{|}, the value that is going to be replaced by the Generic Interface, will be left- justified with a string length of ``10'';
 \end{itemize}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% RELAP5  INTERFACE  %%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \subsection{RELAP5 Interface}
 
 \subsubsection{Files}
@@ -177,15 +173,15 @@ Here we give a general example of three different distributions:
   <Triangular name='BPfailtime'>
     <apex>5.0</apex>
     <min>4.0</min>
-    <max>6.0</max>
+  <max>6.0</max>
   </Triangular>
   <LogNormal name='BPrepairtime'>
     <mean>0.75</mean>
     <sigma>0.25</sigma>
   </LogNormal>
   <Uniform name='ScalFactPower'>
-    <lowerBound>1.0</lowerBound>
-    <upperBound>1.2</upperBound>
+    <low>1.0</low>
+    <hi>1.2</hi>
   </Uniform>
  </Distributions>
 \end{lstlisting}
@@ -224,7 +220,7 @@ We proceed to do so for both the Grid sampling and the MonteCarlo sampling.
 
 \begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initial_seed}]
 <Samplers verbosity='debug'>
-  <Grid name='Grid_Sampler' >
+  <Grid name='Grid_Sampler' initial_seed ='210491' >
     <variable name='0000588:6'>
       <distribution>BPfailtime</distribution>
       <grid type='value' construction='equal' lowerBound='0.0' steps='10'>2880</grid>
@@ -277,16 +273,18 @@ the \xmlNode{Sequence} block.
 In our example, \texttt{Grid\_Sampler} and \texttt{MC\_Sampler}.
 %
 \begin{lstlisting}[style=XML,morekeywords={name,debug,re-seeding}]
-     <MultiRun name='Grid_Sampler' verbosity='debug'>
+     <MultiRun name='Grid_Sampler' verbosity='debug' re-seeding='210491'>
 \end{lstlisting}
 
 With this step, we need to import all the files needed for the simulation:
 \begin{itemize}
   \item RELAP input file
+  \item Relap 5 Executable
   \item element tables -- tpfh2o
 \end{itemize}
 \begin{lstlisting}[style=XML,morekeywords={name,class,type}]
     <Input   class='Files' type=''>inputrelap.i</Input>
+    <Input   class='Files' type=''>r5executable.x</Input>
     <Input   class='Files' type=''>tpfh2o</Input>
 \end{lstlisting}
 We then need to define which model will be used:
@@ -311,7 +309,7 @@ methods (grid and Monte Carlo), and creating two different databases for each
 one:
 \begin{lstlisting}[style=XML]
 <Steps verbosity='debug'>
-  <MultiRun name='Grid_Sampler' verbosity='debug'>
+  <MultiRun name='Grid_Sampler' verbosity='debug' re-seeding='210491'>
     <Input   class='Files'     type=''    >X10.i</Input>
     <Input   class='Files'     type=''    >r5executable.x</Input>
     <Input   class='Files'     type=''    >tpfh2o</Input>
@@ -345,9 +343,7 @@ As listed before, this will create two databases.
 %
 The files will have names corresponding to their \xmlAttr{name} appended with
 the .h5 extension (i.e. \texttt{Grid\_out.h5} and \texttt{MC\_out.h5}).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% RELAP7 INTERFACE  %%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \subsection{RELAP7 Interface}
 \subsubsection{Files}
 In the \xmlNode{Files} section, as specified before, all of the files needed for
@@ -429,288 +425,3 @@ as the primary pressure.
  </MonteCarlo>
 </Samplers>
 \end{lstlisting}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% MooseBasedApp INTERFACE  %%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{MooseBasedApp Interface}
-\subsubsection{Files}
-In the \xmlNode{Files} section, as specified before, all of the files needed for
-the code to run should be specified.
-%
-In the case of any MooseBasedApp, the files typically needed are the following:
-\begin{itemize}
-  \item MooseBasedApp YAML input file
-  \item Restart Files (if the calculation is instantiated from a restart point)
-\end{itemize}
-Example:
-\begin{lstlisting}[style=XML]
-<Files>mooseBasedApp.i,0020_mesh.cpr,0020.xdr.0000,0020.rd-0</Files>
-\end{lstlisting}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Models}
-In the \xmlNode{Models} block particular MooseBasedApp executable needs to be specified.
-%
-Here is a standard example of what can be used to use with a typical MooseBasedApp (Bison) as the model:
-\begin{lstlisting}[style=XML]
-<Models>
-    <Code name='MyMooseBasedApp' subType='MooseBasedApp'><executable>~path/to/Bison-opt</executable></Code>
-</Models>
-\end{lstlisting}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Distributions}
-The \xmlNode{Distribution} block defines the distributions that are going
-to be used for the sampling of the variables defined in the \xmlNode{Samplers}
-block.
-%
-For all the possible distributions and all their possible inputs please see the
-chapter about Distributions (see~\ref{sec:distributions}).
-%
-Here we give a general example of three different distributions:
-\begin{lstlisting}[style=XML,morekeywords={name,debug}]
-<Distributions>
-    <Normal name='ThermalConductivity1'>
-        <mean>1</mean>
-        <sigma>0.001</sigma>
-        <lowerBound>0.5</lowerBound>
-        <upperBound>1.5</upperBound>
-    </Normal>
-    <Normal name='SpecificHeat'>
-        <mean>1</mean>
-        <sigma>0.4</sigma>
-        <lowerBound>0.5</lowerBound>
-        <upperBound>1.5</upperBound>
-    </Normal>
-    <Triangular name='ThermalConductivity2'>
-        <apex>1</apex>
-        <min>0.1</min>
-        <max>4</max>
-    </Triangular>
-</Distributions>
-\end{lstlisting}
-
-It is good practice to name the distribution something similar to what kind of
-variable is going to be sampled, since there might be many variables with the
-same kind of distributions but different input parameters.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Samplers}
-In the \xmlNode{Samplers} block we want to define the variables that are going
-to be sampled.
-%
-\textbf{Example}:
-We want to do the sampling of 3 variables:
-\begin{itemize}
-  \item Thermal Conductivity of the Fuel;
-  \item Specific Heat Transfer Ratio of the Cladding;
-  \item Thermal Conductivity of the Cladding.
-\end{itemize}
-
-We are going to sample these 3 variables using two different sampling methods:
-Grid and Monte-Carlo.
-
-In order to perturb any MooseBasedApp, the user needs to specify the variables to be
-sampled indicating the path to the value separated with the symbol ``$|$''. For example,
-if the variable that we want to perturb is specified in the input as follows:
-\begin{lstlisting}[style=XML]
-[Materials]
-  ...
-  [./heatStructure]
-     ...
-     thermal_conductivity = 1.0
-     ...
-  [../]
-  ...
-[]
-\end{lstlisting}
-the variable name in the Sampler input block needs to be named as follows:
-\begin{lstlisting}[style=XML]
-...
-<Samplers>
-  <aSampler name='aUserDefinedName' >
-    <variable name='Materials|heatStructure|thermal_conductivity'>
-      ...
-    </variable>
-  </aSampler>
-</Samplers>
-...
-\end{lstlisting}
-%
-In this example, we proceed to do so for both the Grid sampling and the Monte-Carlo sampling.
-
-\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initial_seed}]
-<Samplers verbosity='debug'>
-    <Grid name='myGrid'>
-      <variable name='Materials|heatStructure1|thermal_conductivity' >
-        <distribution>ThermalConductivity1</distribution>
-        <grid         type='value' construction='custom' >0.6 0.7 0.8</grid>
-      </variable>
-      <variable name='Materials|heatStructure1|specific_heat' >
-        <distribution >SpecificHeat</distribution>
-        <grid         type='CDF'    construction='custom'>0.5 1.0 0.0</grid>
-      </variable>
-      <variable name='Materials|heatStructure2|thermal_conductivity'>
-        <distribution  >ThermalConductivity2</distribution>
-        <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
-      </variable>
-    </Grid>
-  <MonteCarlo name='MC_Sampler' limit='1000'>
-      <variable name='Materials|heatStructure1|thermal_conductivity' >
-        <distribution>ThermalConductivity1</distribution>
-      </variable>
-      <variable name='Materials|heatStructure1|specific_heat' >
-        <distribution >SpecificHeat</distribution>
-      </variable>
-      <variable name='Materials|heatStructure2|thermal_conductivity'>
-        <distribution  >ThermalConductivity2</distribution>
-      </variable>
-  </MonteCarlo>
-</Samplers>
-\end{lstlisting}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Steps}
-For a MooseBasedApp, the \xmlNode{MultiRun} step type will most likely be
-used, as first step.
-%
-First, the step needs to be named: this name will be one of the names used in
-the \xmlNode{Sequence} block.
-%
-In our example, \texttt{Grid\_Sampler} and \texttt{MC\_Sampler}.
-%
-\begin{lstlisting}[style=XML,morekeywords={name,debug,re-seeding}]
-     <MultiRun name='Grid_Sampler' >
-\end{lstlisting}
-
-With this step, we need to import all the files needed for the simulation:
-\begin{itemize}
-  \item MooseBasedApp YAML input file;
-  \item eventual restart files (optional);
-  \item other auxiliary files (e.g., powerHistory tables, etc.). 
-\end{itemize}
-\begin{lstlisting}[style=XML,morekeywords={name,class,type}]
-    <Input   class='Files' type=''>mooseBasedApp.i</Input>
-    <Input   class='Files' type=''>0020_mesh.cpr</Input>
-    <Input   class='Files' type=''>0020.xdr.0000</Input>
-    <Input   class='Files' type=''>0020.rd-0</Input>
-\end{lstlisting}
-We then need to define which model will be used:
-\begin{lstlisting}[style=XML]
-    <Model  class='Models' type='Code'>MyMooseBasedApp</Model>
-\end{lstlisting}
-We then need to specify which Sampler is used, and this can be done as follows:
-\begin{lstlisting}[style=XML]
-    <Sampler class='Samplers' type='Grid'>Grid_Sampler</Sampler>
-\end{lstlisting}
-And lastly, we need to specify what kind of output the user wants.
-%
-For example the user might want to make a database (in RAVEN the database
-created is an HDF5 file) and a DataObject of type TimePointSet, to use in sub-sequential
-post-processing.
-%
-Here is a classical example:
-\begin{lstlisting}[style=XML,morekeywords={class,type}]
-    <Output  class='Databases' type='HDF5'>MC_out</Output>
-    <Output  class='DataObjects' type='TimePointSet'>MCOutData</Output>
-\end{lstlisting}
-
-Following is the example of two MultiRun steps which use different sampling
-methods (grid and Monte Carlo), and creating two different databases for each
-one:
-\begin{lstlisting}[style=XML]
-<Steps verbosity='debug'>
-  <MultiRun name='Grid_Sampler' verbosity='debug'>
-    <Input  class='Files' type=''>mooseBasedApp.i</Input>
-    <Input  class='Files' type=''>0020_mesh.cpr</Input>
-    <Input  class='Files' type='' >0020.xdr.0000</Input>
-    <Input  class='Files' type=''>0020.rd-0</Input>
-    <Model  class='Models'    type='Code'>MyMooseBasedApp</Model>
-    <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
-    <Output  class='Databases' type='HDF5'>Grid_out</Output>
-    <Output  class='DataObjects' type='TimePointSet'>gridOutData</Output>
-  </MultiRun>
-  <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
-    <Input  class='Files' type=''>mooseBasedApp.i</Input>
-    <Input  class='Files' type=''>0020_mesh.cpr</Input>
-    <Input  class='Files' type='' >0020.xdr.0000</Input>
-    <Input  class='Files' type=''>0020.rd-0</Input>
-    <Model  class='Models'    type='Code'>MyMooseBasedApp</Model>
-    <Sampler class='Samplers'  type='MonteCarlo' >MC_Sampler</Sampler>
-    <Output  class='Databases' type='HDF5' >MC_out</Output>
-    <Output  class='DataObjects' type='TimePointSet'>MCOutData</Output>
-  </MultiRun>
-</Steps>
-\end{lstlisting}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Databases}
-As shown in the \xmlNode{Steps} block, the code is creating two database objects
-called \texttt{Grid\_out} and \texttt{MC\_out}.
-%
-So the user needs to input the following:
-\begin{lstlisting}[style=XML]
-<Databases>
-  <HDF5 name="Grid_out"/>
-  <HDF5 name="MC_out"/>
-</Databases>
-\end{lstlisting}
-As listed before, this will create two databases.
-%
-The files will have names corresponding to their \xmlAttr{name} appended with
-the .h5 extension (i.e. \texttt{Grid\_out.h5} and \texttt{MC\_out.h5}).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{DataObjects}
-As shown in the \xmlNode{Steps} block, the code is creating two DataObjects of type TimePointSet
-called \texttt{gridOutData} and \texttt{MCOutData}.
-%
-So the user needs to input the following:
-\begin{lstlisting}[style=XML]
-<DataObjects>
-    <TimePointSet name='gridOutData'>
-      <Input>
-          Materials|heatStructure2|thermal_conductivity,
-          Materials|heatStructure1|specific_heat,
-          Materials|heatStructure2|thermal_conductivity
-      </Input>
-      <Output>aveTempLeft</Output>
-    </TimePointSet>
-    <TimePointSet name='MCOutData'>
-      <Input>
-          Materials|heatStructure2|thermal_conductivity,
-          Materials|heatStructure1|specific_heat,
-          Materials|heatStructure2|thermal_conductivity
-      </Input>
-      <Output>aveTempLeft</Output>
-    </TimePointSet>
-</DataObjects>
-\end{lstlisting}
-As listed before, this will create two DataObjects that can be used in sub-sequential post-processing.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{OutStreamManager}
-As fully explained in section~\ref{sec:outstream}, if the user want to print out or plot the content of a \textbf{DataObjects},
-he needs to create an \textbf{OutStream} in the \xmlNode{OutStreamManager} XML block.
-\\As it shown in the example below, for MooseBasedApp (and any other Code interface that might use the symbol $|$ 
-for the Sampler's variable syntax), in the Plot \xmlNode{x} and \xmlNode{y} specification, the user needs to
-utilize curly brackets.
-\begin{lstlisting}[style=XML]
-<OutStreamManager>
-  <Print name='gridOutDataDumpCSV'>
-    <type>csv</type>
-    <source>gridOutData</source>
-  </Print>
-   <Plot verbosity='debug' name='test' dim='2' overwrite='False'>
-    <plotSettings>
-       <plot>
-        <type>line</type>
-        <x>MCOutData|Input|{Materials|heatStructure2|thermal_conductivity}</x>
-        <y>MCOutData|Output|aveTempLeft</y>
-        <kwargs><color>blue</color></kwargs>
-      </plot>
-    </plotSettings>
-    <actions><how>screen,png</how></actions>
-  </Plot>
-</OutStreamManager>
-\end{lstlisting}
-
-
-
-
