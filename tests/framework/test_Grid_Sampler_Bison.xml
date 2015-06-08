@@ -60,16 +60,14 @@
         <Input>Materials|heat1|thermal_conductivity,Materials|heat1|specific_heat,Materials|heat2|thermal_conductivity</Input>
         <Output>aveTempLeft,aveTempRight,time</Output>
     </TimePointSet>
-    
-    <Histories name='stories'>
-        <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
-        <Output>aveTempLeft,aveTempRight,time</Output>
-    </Histories>
     <TimePointSet name='outGridFromHDF5'>
         <Input>Materials|heat1|thermal_conductivity,Materials|heat1|specific_heat,Materials|heat2|thermal_conductivity,aveTempLeft</Input>
         <Output>aveTempRight,time</Output>
     </TimePointSet>
-    
+    <Histories name='stories'>
+        <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
+        <Output>aveTempLeft,aveTempRight,time</Output>
+    </Histories>
     <Histories name='storiesFromHDF5'>
         <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity,aveTempLeft</Input>
         <Output>aveTempRight,time</Output>
