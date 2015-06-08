@@ -4,10 +4,12 @@ import xml.etree.ElementTree as ET
 
 num_tol = 1e-10 #effectively zero for our purposes
 
+
 def compare_element(a,b,*args,**kwargs):
   """ Compares two element trees and returns (same,message)
   where same is true if they are the same,
   and message is a list of the differences
+  differ: XMLdiff object
   a: the first element tree
   b: the second element tree
   accepted args:
@@ -20,7 +22,6 @@ def compare_element(a,b,*args,**kwargs):
   message = []
   options = args
   path = kwargs.get('path','')
-  #justChecking = kwargs.get('justChecking',False)
   def fail_message(*args):
     """ adds the fail message to the list
     args: The arguments to the fail message (will be converted with str())
@@ -28,9 +29,7 @@ def compare_element(a,b,*args,**kwargs):
     print_args = [path]
     print_args.extend(args)
     args_expanded = " ".join([str(x) for x in print_args])
-    #print(*print_args)
     message.append(args_expanded)
-  #print("processing ",path,a.tag,b.tag,len(a),len(b))
   if a.tag != b.tag:
     same = False
     fail_message("mismatch tags ",a.tag,b.tag)
@@ -66,37 +65,10 @@ def compare_element(a,b,*args,**kwargs):
     fail_message("mismatch number of children ",len(a),len(b))
   else:
     if a.tag == b.tag:
-      if 'unordered' in options:
-        #loop over children, if they're found remove them, if not, note not same and remove them
-        while len(a)>0:
-          childnode = a[0]
-          #print(path,'Checking for matches for',childnode.tag,childnode.text)
-          possible_matches = b.findall(childnode.tag)
-          found_match = False
-          for possible in possible_matches:
-            #print(path,'    ...checking against',possible.tag,possible.text)
-            found_match,match_message = compare_element(childnode,possible,*options,path=path)#,justChecking=True)
-            if found_match: break
-          if found_match:
-            #print(path,'     ...found!')
-            a.remove(childnode)
-            b.remove(possible)
-          else:
-            #if justChecking:
-            #  print(path,'     ...not yet, still looking...')
-            #  return False,''
-            #else:
-            #print(path,'     ...not found!')
-            same = False
-            message.extend(match_message)
-            fail_message('matching node not found!',childnode.tag,childnode.text.strip())
-            a.remove(childnode)
-            return (same,message)
-      else:
-        for i in range(len(a)):
-          (same_child,message_child) = compare_element(a[i],b[i],*options,path=path)
-          same = same and same_child
-          message.extend(message_child)
+      for i in range(len(a)):
+        (same_child,message_child) = compare_element(a[i],b[i],*options,path=path)
+        same = same and same_child
+        message.extend(message_child)
   return (same,message)
 
 def isANumber(x):
