@@ -2532,7 +2532,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     #set a pointer to the GaussPolynomialROM object
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = SVLs[0] #sampler doesn't care about which target
+    SVL = SVLs[0] #sampler doesn't always care about which target
     self.features=SVL.features #the input space variables
     mpo = self.maxPolyOrder #save it to re-set it after calling generateQuadsAndPolys
     self._generateQuadsAndPolys(SVL) #lives in GaussPolynomialRom object
@@ -2586,8 +2586,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, inset, a indexSet object
       @ Out, a GaussPolynomialROM object
     '''
+    self.raiseADebug('Targets:',self.ROM.SupervisedEngine.keys())
     #deepcopy prevents overwriting
     rom  = copy.deepcopy(self.ROM)
+    self.raiseADebug('Targets:',rom.SupervisedEngine.keys())
     sg   = copy.deepcopy(grid)
     iset = copy.deepcopy(inset)
     sg.messageHandler   = self.messageHandler
@@ -2657,46 +2659,48 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       outfile.writelines(str(err)+'\n')
     outfile.close()
 
-  def _integrateFunction(self,sg,r):
+  def _integrateFunction(self,sg,r,i):
     '''
       Uses the sparse grid sg to effectively integrate the r-th moment of the model.
       @ In, sg, sparseGrid object
       @ In, r, integer moment
+      @ In, i, index of target to evaluate
       @ Out, float, approximate integral
     '''
     tot=0
     for n in range(len(sg)):
       pt,wt = sg[n]
       if pt not in self.existing.keys(): self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
-      tot+=self.existing[pt][0]**r*wt
+      tot+=self.existing[pt][i]**r*wt
     return tot
 
-  def _convergence(self,sparseGrid,iset):
+  def _convergence(self,sparseGrid,iset,i):
     '''
       Checks the convergence of the adaptive index set via one of several ways, currently "mean", "variance", or "coeffs",
       meaning the moment coefficients of the stochastic polynomial expansion.
       @ In, sparseGrid, sparseGrid object
       @ In, iset, indexSet object
+      @ In, i, index of target to check convergence with respect to
       @ Out, estimated impact factor for this index set and sparse grid
     '''
     if self.convType.lower()=='mean':
-      new = self._integrateFunction(sparseGrid,1)
-      if self.oldSG!=None: old = self._integrateFunction(self.oldSG,1)
+      new = self._integrateFunction(sparseGrid,1,i)
+      if self.oldSG!=None: old = self._integrateFunction(self.oldSG,1,i)
       else: old = 0
       impact = self._impactParameter(new,old)
     elif self.convType.lower()=='variance':
-      new = self._integrateFunction(sparseGrid,2)
+      new = self._integrateFunction(sparseGrid,2,i)
       if self.oldSG!=None:
-        old = self._integrateFunction(self.oldSG,2)
+        old = self._integrateFunction(self.oldSG,2,i)
       else: old = 0
       #self.raiseADebug('integrated new:',new,'old:',old)
       impact = self._impactParameter(new,old)
     elif self.convType.lower()=='coeffs':
-      new = self._makeARom(sparseGrid,iset).SupervisedEngine.values()[0] #TODO multitarget ROM?
+      new = self._makeARom(sparseGrid,iset).SupervisedEngine.values()[i] #TODO multitarget ROM?
       tot = 0 #for L2 norm of coeffs
       if self.oldSG != None:
         oSG,oSet = self._makeSparseQuad()
-        old = self._makeARom(oSG,oSet).SupervisedEngine.values()[0]
+        old = self._makeARom(oSG,oSet).SupervisedEngine.values()[i]
       else: old=None
       for coeff in new.polyCoeffDict.keys():
         if old!=None and coeff in old.polyCoeffDict.keys():
@@ -2737,7 +2741,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         #get impact from  convergence
         #self.raiseADebug('')
         #self.raiseADebug('  ...checking convergence on active',active)
-        impact = self._convergence(sparseGrid,iset)
+        av_impact = 0
+        for i,target in enumerate(self.ROM.SupervisedEngine.keys()):
+          av_impact += self._convergence(sparseGrid,iset,i)
+        impact = av_impact/float(len(self.ROM.SupervisedEngine.keys()))
         #self.raiseADebug('')
         #stash the sparse grid, impact factor for future reference
         self.indexSet.setSG(active,sparseGrid)
