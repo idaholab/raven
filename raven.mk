@@ -75,6 +75,8 @@ include $(RAVEN_DIR)/amsc.mk
 ifeq ($(APPLICATION_NAME),RAVEN)
 all:: RAVEN amsc
 
+framework_modules:: amsc python_crow_modules
+
 RAVEN: $(RAVEN_APP) $(CONTROL_MODULES) $(CROW_MODULES)
 
 $(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(RAVEN_LIB) $(RAVEN_app_objects) $(CROW_LIB) $(app_LIBS)
