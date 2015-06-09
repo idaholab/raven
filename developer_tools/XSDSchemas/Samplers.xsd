@@ -12,6 +12,8 @@
             <xsd:element name="Stratified"            type="GridSampler"            minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="ResponseSurfaceDesign" type="ResponseSurfaceSampler" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="FactorialDesign"       type="FactorialSampler"       minOccurs="0" maxOccurs="unbounded"/>
+            <!-- ADAPTIVE SAMPLERS -->
+            <xsd:element name="Adaptive"              type="AdaptiveSampler"        minOccurs="0" maxOccurs="unbounded"/>
             <!-- Not all of them implemented yet -->
             <xsd:any processContents="skip" minOccurs="0"/>
         </xsd:sequence>
@@ -204,6 +206,42 @@
             <xsd:element name="variable"     type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <!-- *********************************************************************** -->
+    <!--                  Adaptive Samplers                                      -->
+    <!-- *********************************************************************** -->
+    <xsd:simpleType name="weightAttr">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="value"/>
+            <xsd:enumeration value="CDF"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="RavenBool">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="false"/>
+            <xsd:enumeration value="False"/>
+            <xsd:enumeration value="true"/>
+            <xsd:enumeration value="True"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="AdaptiveSampler">
+        <xsd:sequence>
+            <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Function"         type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="Convergence"                      minOccurs="1" maxOccurs="unbounded">
+                <xsd:complexType mixed="true">
+                    <xsd:attribute name="limit"          type="xsd:integer"/>
+                    <xsd:attribute name="forceIteration" type="RavenBool"/>
+                    <xsd:attribute name="weight"         type="weightAttr"/>
+                    <xsd:attribute name="persistence"    type="xsd:integer"/>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"      type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr"/>
     </xsd:complexType>
 
 </xsd:schema>
