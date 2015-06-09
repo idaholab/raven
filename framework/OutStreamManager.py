@@ -20,6 +20,7 @@ import numpy.ma as ma
 import importlib                #it is used in exec code so it might be detected as unused
 import platform
 import os
+import re
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -183,14 +184,13 @@ class OutStreamPlot(OutStreamManager):
     # the variable can contain brackets {} (when the symbol "|" is present in the variable name),
     # for example DataName|Input|{RavenAuxiliary|variableName|initial_value}
     # or it can look like DataName|Input|variableName
-    if var:
-      if '{' in var and '}' in var:
-        if var.count('{') > 1: self.raiseAnError(IOError,'In Plot ' +self.name +'.Only a couple of {} is allowed in variable names!!!!!!')
-        result = var.split('|{')[0].split('|')
-        result.append(var.split('{')[1].replace("}", ""))
-      else:  result = var.split('|')
+    if var != None:
+      result = var.split('|')
+      if len(result) != 3: self.raiseAnError(IOError,'In Plot ' +self.name +'.Only three level variables are accepted !!!!!')
+      if '{' in result[-1] and '}' in result[-1]:
+        locLower, locUpper = min([m.start() for m in re.finditer('{', result[-1])]), max([m.start() for m in re.finditer('}', result[-1])])
+        result[-1] = result[-1][locLower+1:locUpper-1]
     else: result = None
-    if len(result) != 3: self.raiseAnError(IOError,'In Plot ' +self.name +'.Only three level variables are accepted !!!!!')
     return result
 
   def __readPlotActions(self,snode):
