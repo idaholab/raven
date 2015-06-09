@@ -221,13 +221,15 @@ class GridEntity(BaseType):
     if parameterName not in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'unknown among ones in GridEntity class.')
     return self.gridContainer[parameterName]
 
-  def updateParameter(self,parameterName, newValue):
+  def updateParameter(self,parameterName, newValue, upContainer=True):
     """
     Method to update one of the initialization parameters
     @ In, string, parameterName, name of the parameter to be updated
+    @ In, boolean, optional, upContainer, True if gridContainer needs to be updated, else gridInit
     @ Out, None
     """
-    self.gridContainer[parameterName] = newValue
+    if upContainer: self.gridContainer[parameterName] = newValue
+    else          : self.gridInitDict[parameterName ] = newValue
 
   def addCustomParameter(self,parameterName, Value):
     """

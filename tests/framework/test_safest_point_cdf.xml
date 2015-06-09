@@ -93,15 +93,15 @@
   <Grid name = 'grd_vl_ql_smp_dpt'>
     <variable name = 'x1' >
       <distribution>x1_dst</distribution>
-      <grid type = 'value' construction = 'equal' steps = '10' upperBound = '10'>2</grid>
+      <grid type = 'value' construction = 'equal' steps = '10' >-10.0 10.0</grid>
     </variable>  
     <variable name='x2' >
       <distribution>x2_dst</distribution>
-      <grid type = 'value' construction = 'equal' steps = '10' upperBound = '10'>2</grid>
+      <grid type = 'value' construction = 'equal' steps = '10' >-10.0 10.0</grid>
     </variable>
     <variable name='gammay' >
       <distribution>gammay_dst</distribution>
-      <grid type = 'value' construction = 'equal' steps = '10' upperBound = '20'>4</grid>
+      <grid type = 'value' construction = 'equal' steps = '10' >-20.0 20.0</grid>
     </variable>
   </Grid>
   

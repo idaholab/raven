@@ -27,6 +27,7 @@ import mathUtils
 from Assembler import Assembler
 import SupervisedLearning
 import MessageHandler
+import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -1490,19 +1491,20 @@ class LimitSurface(BasePostProcessor):
      Constructor
      @ In, messageHandler, message handler object
     """
-    BasePostProcessor.__init__(self, messageHandler)
-    self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.surfPoint = None  # coordinate of the points considered on the limit surface
-    self.testMatrix = None  # This is the n-dimensional matrix representing the testing grid
-    # self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
-    self.functionValue = {}  # This a dictionary that contains np vectors with the value for each variable and for the goal function
-    self.ROM = None  # Pointer to a ROM
-    self.externalFunction = None  # Pointer to an external Function
-    self.subGridTol = 1.0e-4  # SubGrid tollerance
-    self.gridVectors = {}
-    self.gridFromOutside = False  # The grid has been passed from outside (self._initFromDict)?
-    self.lsSide = "negative"  # Limit surface side to compute the LS for (negative,positive,both)
-    self.requiredAssObject = (True, (['ROM', 'Function'], [-1, 1]))
+    BasePostProcessor.__init__(self,messageHandler)
+    self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
+    self.surfPoint         = None             #coordinate of the points considered on the limit surface
+    self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
+    #self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
+    self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
+    self.ROM               = None             #Pointer to a ROM
+    self.externalFunction  = None             #Pointer to an external Function
+    self.subGridTol        = 1.0e-4           #SubGrid tollerance
+    self.gridVectors       = {}
+    self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
+    self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
+    self.gridEntity        = GridEntities.returnInstance("GridEntity",self)
+    self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
 
   def inputToInternal(self, currentInp):

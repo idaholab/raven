@@ -57,7 +57,7 @@
       </sampler_init>
       <variable name='Components|pipe|Tw'>
         <distribution >Gauss1</distribution>
-        <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.02 0.92</grid>
+        <grid type='value' construction='equal' steps='3'>0.02 0.92</grid>
       </variable>
       <Distribution name='Dummy1'>
         <distribution >ANormalDistribution</distribution>

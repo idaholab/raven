@@ -386,11 +386,14 @@
                     <xsd:attribute name="construction" type="xsd:string"/>
                     <!-- The condition is not yet implemented -->
                     <xsd:attribute name="steps"        type="xsd:integer"/>
-                    <xsd:attribute name="upperBound"   type="xsd:float"/>
-                    <xsd:attribute name="lowerBound"   type="xsd:float"/>
+                    <!-- Not needed anymore. See the manual.
+                     <xsd:attribute name="upperBound"   type="xsd:float"/>
+                     <xsd:attribute name="lowerBound"   type="xsd:float"/>
+                     -->
                 </xsd:extension>
             </xsd:simpleContent>
     </xsd:complexType>
+    <!-- No needed anymore. the syntax has been uniformed to the gridtype
     <xsd:complexType name="boundariesType">
         <xsd:all>
             <xsd:element name="lower" type="xsd:float" minOccurs="1"/>
@@ -398,6 +401,7 @@
         </xsd:all>
         <xsd:attribute name="type"         type="xsd:string" use="required"/>
     </xsd:complexType>
+     -->
     <xsd:complexType name="variableType">
         <xsd:sequence>
             <xsd:element name="distribution" type="extendedVariableDistributionType" minOccurs="1"/>
@@ -409,7 +413,9 @@
             <xsd:extension base="variableType">
                 <xsd:choice>
                     <xsd:element name="grid"       type="gridType"       minOccurs="1"/>
+                    <!-- Non needed anymore... see the manual
                     <xsd:element name="boundaries" type="boundariesType" minOccurs="1"/>
+                     -->
                 </xsd:choice>
             </xsd:extension>
         </xsd:complexContent>
@@ -444,8 +450,10 @@
                                 <xsd:attribute name="construction" type="xsd:string"/>
                                 <!-- The condition is not yet implemented -->
                                 <xsd:attribute name="steps"        type="xsd:integer"/>
+                                <!-- Not needed anymore. See the manual.
                                 <xsd:attribute name="upperBound"   type="xsd:float"/>
                                 <xsd:attribute name="lowerBound"   type="xsd:float"/>
+                                 -->
                             </xsd:complexType>
                         </xsd:element>
                     </xsd:sequence>
