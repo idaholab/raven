@@ -70,28 +70,32 @@ class GridEntity(BaseType):
     gridInfo = {}
     for child in xmlNode:
       dimName = None
+      dimTag  = None
       if dimensionTags != None:
         if child.tag in dimensionTags:
           dimName = child.attrib['name']
           if dimTagsPrefix != None: dimName = dimTagsPrefix[child.tag] + dimName if child.tag in dimTagsPrefix.keys() else dimName
       if child.tag == "grid":
-        if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
-        gridStruct, gridName = self._fillGrid(child)
-        if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
-        else:
-          if gridName == None: self.raiseAnError(IOError,'grid defined in global_grid block must have the attribute "name"!')
-          dimName = child.tag + ':' + gridName
-        gridInfo[dimName] = gridStruct
-      readGrid = True
+        gridInfo[dimName] = self._readGridStructure(child,dimName)
+#         if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
+#         gridStruct, gridName = self._fillGrid(child)
+#         if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
+#         else:
+#           if gridName == None: self.raiseAnError(IOError,'grid defined in global_grid block must have the attribute "name"!')
+#           dimName = child.tag + ':' + gridName
+#         gridInfo[dimName] = gridStruct
       for childChild in child:
-        if childChild.tag =='grid' and readGrid:
-          gridStruct, gridName = self._fillGrid(childChild)
-          if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
-          if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
-          else:
-            if gridName == None: self.raiseAnError(IOError,'grid defined in global_grid block must have the attribute "name"!')
-            dimName = child.tag + ':' + gridName
-          gridInfo[dimName] = gridStruct
+        gridInfo[dimName] = self._readGridStructure(childChild,dimName)
+        if 'dim' in childChild.attrib.keys():
+          dimTag = childChild.attrib['dim']
+#         if childChild.tag =='grid':
+#           gridStruct, gridName = self._fillGrid(childChild)
+#           if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
+#           if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
+#           else:
+#             if gridName == None: self.raiseAnError(IOError,'grid defined in global_grid block must have the attribute "name"!')
+#             dimName = child.tag + ':' + gridName
+#           gridInfo[dimName] = gridStruct
     #check for global_grid type of structure
     globalGrids = {}
     for key in gridInfo.keys():
@@ -104,7 +108,17 @@ class GridEntity(BaseType):
       self.gridInitDict['lowerBounds'           ][key] = min(gridInfo[key][-1])
       self.gridInitDict['upperBounds'           ][key] = max(gridInfo[key][-1])
       self.gridInitDict['stepLenght'            ][key] = [round(gridInfo[key][-1][k+1] - gridInfo[key][-1][k],14) for k in range(len(gridInfo[key][-1])-1)] if gridInfo[key][1] == 'custom' else [round(gridInfo[key][-1][1] - gridInfo[key][-1][0],14)]
-    self.gridContainer['gridInfo'] = gridInfo
+    self.gridContainer['gridInfo'               ]      = gridInfo
+  
+  def _readGridStructure(self,child,dimName):
+    if child.tag =='grid':
+      gridStruct, gridName = self._fillGrid(child)
+      if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
+      if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
+      else:
+        if gridName == None: self.raiseAnError(IOError,'grid defined in global_grid block must have the attribute "name"!')
+        dimName = child.tag + ':' + gridName
+      return gridStruct  
 
   def _fillGrid(self,child):
     constrType = None
