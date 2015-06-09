@@ -1,4 +1,3 @@
-
 RAVEN_DIR := $(CURR_DIR)
 
 RAVEN_INC_DIRS := $(shell find $(RAVEN_DIR)/include -type d -not -path "*/.svn*")
@@ -53,7 +52,7 @@ else
   RAVEN_plugin_deps :=
 endif
 
-all:: $(RAVEN_LIB)
+all:: $(RAVEN_LIB) amsc
 
 $(RAVEN_LIB): $(RAVEN_objects) $(RAVEN_plugin_deps)
 	@echo "Linking "$@"..."
@@ -64,12 +63,17 @@ $(RAVEN_LIB): $(RAVEN_objects) $(RAVEN_plugin_deps)
 # Clang static analyzer
 sa:: $(RAVEN_analyzer)
 
+################################################################################
+## Build system for Approximate Morse-Smale Complex (AMSC)
+include $(RAVEN_DIR)/amsc.mk
+################################################################################
+
 # include RAVEN dep files
 -include $(RAVEN_deps)
 
 # how to build RAVEN application
 ifeq ($(APPLICATION_NAME),RAVEN)
-all:: RAVEN
+all:: RAVEN amsc
 
 RAVEN: $(RAVEN_APP) $(CONTROL_MODULES) $(CROW_MODULES)
 
@@ -86,26 +90,24 @@ $(APPLICATION_DIR)/src/executioners/RavenExecutioner.$(obj-suffix): $(APPLICATIO
 	@echo "Override RavenExecutioner Compile"
 	$(RAVEN_MODULE_COMPILE_LINE)
 
-
 endif
 
 delete_list := $(RAVEN_APP) $(RAVEN_LIB) $(RAVEN_DIR)/libRAVEN-$(METHOD).*
 
 clean::
-	@rm -f $(RAVEN_DIR)/control_modules/_distribution1D.so \
-          $(RAVEN_DIR)/control_modules/_raventools.so \
-          $(RAVEN_DIR)/control_modules/distribution1D_wrap.cxx \
-          $(RAVEN_DIR)/control_modules/raventools_wrap.cxx \
-          $(RAVEN_DIR)/control_modules/distribution1D.py \
-          $(RAVEN_DIR)/control_modules/libdistribution1D.* \
-          $(RAVEN_DIR)/control_modules/raventools.py \
-          $(RAVEN_DIR)/control_modules/*.so*
+	@rm -f $(RAVEN_DIR)/src/contrib/_amsc.so \
+          $(RAVEN_DIR)/src/contrib/amsc_wrap.cxx \
+          $(RAVEN_DIR)/src/contrib/amsc_wrap.cpp \
+          $(RAVEN_DIR)/src/contrib/amsc.py \
+          $(RAVEN_DIR)/src/contrib/amsc.pyc \
+          $(RAVEN_DIR)/src/contrib/*egg-info \
+          $(RAVEN_objects) \
+          $(RAVEN_app_objects) \
+          $(RAVEN_APP) \
+          build/*/src/contrib/* \
+          build/*/_amsc.so \
+          $(RAVEN_plugins)
 	@find $(RAVEN_DIR)/framework  -name '*.pyc' -exec rm '{}' \;
-
-clobber::
-	@rm -f $(RAVEN_DIR)/control_modules/_distribution1D.so \
-          $(RAVEN_DIR)/control_modules/distribution1D_wrap.cxx \
-          $(RAVEN_DIR)/control_modules/distribution1D.py
 
 cleanall::
 	make -C $(RAVEN_DIR) clean

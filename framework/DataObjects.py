@@ -374,7 +374,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if parent_id and self._dataParameters['hierarchical']:
           self.raiseAWarning('-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
-    else: tupleVar = ld().csvLoadData([toLoadFrom],self._dataParameters)
+    else: tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
 
     for hist in tupleVar[0].keys():
       if type(tupleVar[0][hist]) == dict:
