@@ -356,17 +356,27 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     self._toLoadFromList.append(toLoadFrom)
     self.addSpecializedReadingSettings()
-    self._dataParameters['SampledVars'] = options['metadata']['SampledVars'] if options != None and 'metadata' in options.keys() and 'SampledVars' in options['metadata'].keys() else None
-    self.raiseAMessage('Object type ' + self._toLoadFromList[-1].type + ' named "' + self._toLoadFromList[-1].name+'"')
-    if(self._toLoadFromList[-1].type == 'HDF5'):
+
+    sourceType = None
+    self.raiseAMessage('Constructing data type ' +self.type +' named '+ self.name + ' from:')
+    try:
+      sourceType =  self._toLoadFromList[-1].type
+      self.raiseAMessage('Object type ' + self._toLoadFromList[-1].type + ' named "' + self._toLoadFromList[-1].name+'"')
+    except AttributeError:
+      self.raiseAMessage('Object type' +' CSV named "' + toLoadFrom+'"')
+
+    if(sourceType == 'HDF5'):
       tupleVar = self._toLoadFromList[-1].retrieveData(self._dataParameters)
       if options:
-        parent_id = options['metadata']['parent_id'] if 'metadata' in options.keys() and 'parent_id' in options['metadata'].keys() else (options['parent_id'] if 'parent_id' in options.keys() else None)
+        parent_id = None
+        if 'metadata' in options.keys():
+          if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+        else:
+          if 'parent_id' in options.keys(): parent_id = options['parent_id']
         if parent_id and self._dataParameters['hierarchical']:
           self.raiseAWarning('-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
-    elif (self._toLoadFromList[-1].type == 'FileObject'): tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
-    else: self.raiseAnError(ValueError, "Type "+self._toLoadFromList[-1].type+ "from which the DataObject "+ self.name +" should be constructed is unknown!!!")
+    else: tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
 
     for hist in tupleVar[0].keys():
       if type(tupleVar[0][hist]) == dict:
@@ -953,14 +963,16 @@ class TimePointSet(Data):
     #histories), len(toLoadFromList) = 11 but the number of histories
     #is actually 30.
     lenMustHave = 0
-    sourceType = self._toLoadFromList[-1].type
+    try:   sourceType = self._toLoadFromList[-1].type
+    except AttributeError:sourceType = None
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
-      if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-      elif 'FileObject' == sourceLoad.type: lenMustHave += 1
-      else: self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
+      if not type(sourceLoad) == type(""):
+        if('HDF5' == sourceLoad.type):  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
+      else: lenMustHave += 1
 
-    if'HDF5' == self._toLoadFromList[-1].type:
+    if('HDF5' == sourceType):
+      #eg = self._toLoadFromList[-1].getEndingGroupNames()
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != lenMustHave:
           self.raiseAnError(NotConsistentData,'The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
@@ -1488,13 +1500,13 @@ class Histories(Data):
       @ In,  None
       @ Out, None
     '''
+    try: sourceType = self._toLoadFromList[-1].type
+    except AttributeError: sourceType = None
     lenMustHave = 0
-    sourceType = self._toLoadFromList[-1].type
-    # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
-      if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-      elif 'FileObject' == sourceLoad.type: lenMustHave += 1
-      else: self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
+      if not type(sourceLoad) == type(""):
+        if('HDF5' == sourceLoad.type):  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
+      else: lenMustHave += 1
 
     if self._dataParameters['hierarchical']:
       for key in self._dataContainer['inputs'].keys():

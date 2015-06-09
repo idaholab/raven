@@ -238,16 +238,16 @@ class hdf5Database(MessageHandler.MessageUser):
       grp.attrs["source_type"            ] = source['type']
       if source['type'] == 'csv': grp.attrs["source_file"] = source['name']
       for attr in attributes.keys():
-        if attr == 'metadata':
-          if 'SampledVars' in attributes['metadata'].keys():
-            grp.attrs[b'input_space_headers'] = [utils.toBytes(list(attributes['metadata']['SampledVars'].keys())[i])  for i in range(len(attributes['metadata']['SampledVars'].keys()))]
-            grp.attrs[b'input_space_values' ] = list(attributes['metadata']['SampledVars'].values())
+        #if type(attributes[attr]) == dict: converted = utils.convertDictToListOfLists(utils.utils.toBytesIterative(attributes[attr]))
+        #else                             : converted = utils.utils.toBytesIterative(attributes[attr])
         objectToConvert = utils.convertNumpyToLists(attributes[attr])
+        #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
+        #else:                                      objectToConvert = attributes[attr]
         converted = json.dumps(objectToConvert)
         if converted and attr != 'name': grp.attrs[utils.toBytes(attr)]=converted
         #decoded = json.loads(grp.attrs[utils.toBytes(attr)])
       if "input_file" in attributes.keys(): grp.attrs[utils.toString("input_file")] = utils.toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else utils.toString(attributes["input_file"])
-    else: self.raiseAnError(ValueError,source['type'] + " unknown!")
+    else: pass
     # Add the group name into the list "self.allGroupPaths" and
     # set the relative bool flag into the dictionary "self.allGroupEnds"
     if parent_group_name != "/":
@@ -289,7 +289,7 @@ class hdf5Database(MessageHandler.MessageUser):
       else: groups = parentgroup_obj.create_group(gname)
       groups.attrs[b'main_class' ] = b'PythonType'
       groups.attrs[b'source_type'] = b'Dictionary'
-      # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
+      # I keep this structure here because I want to mantain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
       if set(['input_space_params']).issubset(set(source['name'].keys())):
         groups.attrs[b'input_space_headers' ] = list(utils.toBytesIterative(source['name']['input_space_params'].keys()))
         groups.attrs[b'input_space_values'  ] = list(utils.toBytesIterative(source['name']['input_space_params'].values()))
@@ -482,10 +482,6 @@ class hdf5Database(MessageHandler.MessageUser):
       if source['type'] == 'csv': sgrp.attrs["source_file"] = source['name']
       # add metadata if present
       for attr in attributes.keys():
-        if attr == 'metadata':
-          if 'SampledVars' in attributes['metadata'].keys():
-            sgrp.attrs[b'input_space_headers'] = [utils.toBytes(list(attributes['metadata']['SampledVars'].keys())[i])  for i in range(len(attributes['metadata']['SampledVars'].keys()))]
-            sgrp.attrs[b'input_space_values' ] = list(attributes['metadata']['SampledVars'].values())
         objectToConvert = utils.convertNumpyToLists(attributes[attr])
         #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
         #else:                                      objectToConvert = attributes[attr]
@@ -688,6 +684,13 @@ class hdf5Database(MessageHandler.MessageUser):
         attrs["source_type"]     = gb_attrs[0]["source_type"]
         attrs["input_file"]      = []
         attrs["source_file"]     = []
+
+        #for param_key in ["branch_changed_param","conditional_prb",
+        #                  "branch_changed_param_value",
+        #                  "initiator_distribution","PbThreshold",
+        #                  "end_timestep"]:
+        #  if param_key in gb_attrs[0]:
+        #    attrs[param_key] = []
         for key in gb_res.keys():
           for attr in gb_attrs[key].keys():
             if attr not in ["output_space_headers","input_space_headers","input_space_values","n_params","parent_id","start_time","end_time","n_ts","source_type"]:

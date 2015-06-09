@@ -10,7 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import os
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ class FileObject(BaseType,str):
     BaseType.__init__(self)
     str.__init__(filename.strip())
     self.filename = filename.strip()
-    if self.filename != '.': self.name = os.path.basename(self.filename).split()[0]
+    if self.filename != '.': self.name = filename.strip(".")[0]
     else                   : self.name = self.filename
     if len(filename.split(".")) > 1: self.subtype = filename.split(".")[1].lower()
     else                           : self.subtype = 'unknown'
