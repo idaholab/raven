@@ -1,8 +1,3 @@
-def initialize(self,runInfoDict,inputFiles):
-  self.SampledVars = None
-  return
-
-
 def createNewInput(self,myInput,samplerType,**Kwargs):
   return Kwargs['SampledVars']
 
