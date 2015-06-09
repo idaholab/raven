@@ -284,6 +284,14 @@ Example XML block to define the variables and associated distributions:
 </variable>
 \end{lstlisting}
 
+If the variable is associated to a multi-dimensional ND distribution, it is needed to specify which dimension of the ND distribution is associated to such variable. An example is shown below: the variable  ``variableX'' is associated to the third dimension of the ND distribution ``NDdistribution''.
+
+\begin{lstlisting}[style=XML]
+        <variable name='variableX'>
+            <distribution dim='3'>NDdistribution</distribution>
+        </variable>
+\end{lstlisting}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Once-Through Samplers %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%

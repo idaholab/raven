@@ -177,27 +177,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             varData['dim']=int(dim)
             self.variables2distributionsMapping[child.attrib['name']] = varData
         self.toBeSampled[prefix+child.attrib['name']] = tobesampled
-      elif child.tag == "sampler_init":
-        self.initSeed = Distributions.randomIntegers(0,2**31,self)
-        for childChild in child:
-          if childChild.tag == "limit":
-            self.limit = childChild.text
-          elif childChild.tag == "initial_seed":
-            self.initSeed = int(childChild.text)
-          elif childChild.tag == "reseed_at_each_iteration":
-            if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
-          elif childChild.tag == "dist_init":
-            for childChildChild in childChild:
-              NDdistData = {}
-              for childChildChildChild in childChildChild:
-                if childChildChildChild.tag == 'initial_grid_disc':
-                  NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
-                elif childChildChildChild.tag == 'tolerance':
-                  NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
-                else:
-                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initial_grid_disc and tolerance!')
-              self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
-          else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')
 
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
@@ -225,6 +204,33 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
 
     self.localInputAndChecks(xmlNode)
+    
+  def read_sampler_init(self,xmlNode):   
+    for child in xmlNode:
+      if child.tag == "sampler_init":
+        self.initSeed = Distributions.randomIntegers(0,2**31,self)
+        for childChild in child:
+          if childChild.tag == "limit":
+            self.limit = childChild.text
+          elif childChild.tag == "initial_seed":
+            self.initSeed = int(childChild.text)
+          elif childChild.tag == "reseed_at_each_iteration":
+            if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
+          elif childChild.tag == "dist_init":
+            for childChildChild in childChild:
+              NDdistData = {}
+              for childChildChildChild in childChildChild:
+                if childChildChildChild.tag == 'initial_grid_disc':
+                  NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
+                elif childChildChildChild.tag == 'tolerance':
+                  NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
+                else:
+                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initial_grid_disc and tolerance!')
+              self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
+          else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')
+    
+    if self.initSeed == None:
+      self.initSeed = Distributions.randomIntegers(0,2**31,self)
 
   def endJobRunnable(self): return self._endJobRunnable
 
@@ -749,6 +755,8 @@ class MonteCarlo(Sampler):
     self.printTag = 'SAMPLER MONTECARLO'
 
   def localInputAndChecks(self,xmlNode):
+    Sampler.read_sampler_init(self,xmlNode)
+    
     if xmlNode.find('sampler_init')!= None:
       if xmlNode.find('sampler_init').find('limit')!= None:
         try: self.limit = int(xmlNode.find('sampler_init').find('limit').text)
@@ -1030,6 +1038,8 @@ class Stratified(Grid):
 
   def localInputAndChecks(self,xmlNode):
     Grid.localInputAndChecks(self,xmlNode)
+    
+    Sampler.read_sampler_init(self,xmlNode)
 
     for child in xmlNode:
       if child.tag == "Distribution":
