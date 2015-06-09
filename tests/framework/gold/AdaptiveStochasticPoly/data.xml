@@ -1,4 +1,4 @@
-<data name="data" type="timepointset"><input>x2,x1</input><output>ans</output><input_filename>data.csv</input_filename><metadata><SamplerType>array('AdaptiveSparseGrid', 'AdaptiveSparseGrid', 'AdaptiveSparseGrid',
+<data name="data" type="timepointset"><input>x2,x1</input><output>ans2,ans</output><input_filename>data.csv</input_filename><metadata><SamplerType>array('AdaptiveSparseGrid', 'AdaptiveSparseGrid', 'AdaptiveSparseGrid',
        'AdaptiveSparseGrid', 'AdaptiveSparseGrid', 'AdaptiveSparseGrid',
        'AdaptiveSparseGrid', 'AdaptiveSparseGrid', 'AdaptiveSparseGrid',
        'AdaptiveSparseGrid', 'AdaptiveSparseGrid', 'AdaptiveSparseGrid',

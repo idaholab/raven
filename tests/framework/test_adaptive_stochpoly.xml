@@ -47,14 +47,13 @@
             <variable>x1</variable>
             <variable>x2</variable>
             <variable>ans</variable>
+            <variable>ans2</variable>
         </ExternalModel>
         <ROM name='rom' subType='GaussPolynomialRom' verbosity='silent'>
-            <Target>ans</Target>
+            <Target>ans,ans2</Target>
             <Features>x1,x2</Features>
             <IndexSet>TotalDegree</IndexSet>
             <PolynomialOrder>1</PolynomialOrder>
-            <!--Interpolation quad='ClenshawCurtis'>x1</Interpolation>
-            <Interpolation quad='ClenshawCurtis'>x2</Interpolation-->
         </ROM>
     </Models>
 
@@ -65,7 +64,7 @@
         </TimePointSet>
         <TimePointSet name='solns' verbosity='silent'>
             <Input>x1,x2</Input>
-            <Output>ans</Output>
+            <Output>ans,ans2</Output>
         </TimePointSet>
     </DataObjects>
 

@@ -329,12 +329,15 @@ class ROM(Dummy):
   def __setstate__(self, newstate):
     self.__dict__.update(newstate)
     if not self.amITrained:
+      #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
       targets = self.initializationOptionDict['Target'].split(',')
       self.howManyTargets = len(targets)
       self.SupervisedEngine = {}
       for target in targets:
         self.initializationOptionDict['Target'] = target
         self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+      #restore targets to initialization option dict
+      self.initializationOptionDict['Target'] = ','.join(targets)
 
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
@@ -358,6 +361,8 @@ class ROM(Dummy):
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
+    #restore targets to initialization option dict
+    self.initializationOptionDict['Target'] = ','.join(targets)
 
   def printXML(self,options=None):
     '''

@@ -1,4 +1,8 @@
 <ReducedOrderModel>
+  <ans2>
+    <mean>1.0</mean>
+    <variance>0.777777777778</variance>
+  </ans2>
   <ans>
     <mean>1.33333333333</mean>
     <variance>1.15555555556</variance>

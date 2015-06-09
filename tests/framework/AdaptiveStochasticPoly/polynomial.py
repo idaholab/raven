@@ -10,6 +10,7 @@ def evaluate(inp):
 
 def run(self,Input):
   self.ans = self.x1**2*self.x2 + self.x1**2 + self.x1*self.x2 + self.x1 + self.x2 + 1.
+  self.ans2 = self.x1*self.x2 + self.x1 + self.x2 + 1.
   #self.ans = (1.+self.x1**3) * (1.+self.x2**2) * (1.+self.x3**1)
   #self.ans = evaluate((self.x1,self.x2,self.x3,self.x4))
   #self.ans =self.x1*self.x2 + self.x3

@@ -2586,10 +2586,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, inset, a indexSet object
       @ Out, a GaussPolynomialROM object
     '''
-    self.raiseADebug('Targets:',self.ROM.SupervisedEngine.keys())
     #deepcopy prevents overwriting
     rom  = copy.deepcopy(self.ROM)
-    self.raiseADebug('Targets:',rom.SupervisedEngine.keys())
     sg   = copy.deepcopy(grid)
     iset = copy.deepcopy(inset)
     sg.messageHandler   = self.messageHandler
