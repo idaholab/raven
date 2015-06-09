@@ -17,6 +17,7 @@
             <xsd:element name="Poisson"       type="PoissonDistribution"       minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="NDInverseWeight"   type="NDInverseWeightDistribution"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="NDCartesianSpline" type="NDCartesianSplineDistribution" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="MultivariateNormal" type="MultivariateNormalDistribution" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <!-- *********************************************************************** -->
@@ -221,6 +222,14 @@
         <xsd:all>
             <xsd:element name="data_filename" type="data_filenameType" minOccurs="1"/>
             <xsd:element name="working_dir"   type="xsd:string"        minOccurs="1"/>
+        </xsd:all>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+    <xsd:complexType name="MultivariateNormalDistribution">
+        <xsd:all>
+            <xsd:element name="data_filename" type="xsd:string"        minOccurs="1"/>
+            <xsd:element name="working_dir"   type="xsd:string"        minOccurs="1"/>
+            <xsd:element name="mu"            type="floatList"         minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>

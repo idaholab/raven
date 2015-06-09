@@ -77,25 +77,18 @@ download_files ()
     cd $ORIG_DIR
 }
 
-if curl http://www.energy.gov > /dev/null
-then
-    echo Successfully got data from the internet
-else
-    echo Could not connect to internet
-    echo Enter Proxy Username
-    read username
-    echo Enter Proxy Password
-    read password
-    export http_proxy="http://${username}:${password}@134.20.11.87:8080"
-    export https_proxy=$http_proxy
-    if curl http://www.energy.gov > /dev/null
-    then
-        echo Successfully got data from the internet
-    else
-        echo Proxy setting did not help
-    fi
-
-fi
+get_blas_and_lpack ()
+{
+    cd $BUILD_DIR
+    download_files a643b737c30a0a5b823e11e33c9d46a605122c61 http://www.netlib.org/blas/blas.tgz
+    echo Extracting blas
+    tar -xzf $DOWNLOAD_DIR/blas.tgz
+    export BLAS_SRC=$BUILD_DIR/BLAS
+    download_files 93a6e4e6639aaf00571d53a580ddc415416e868b http://www.netlib.org/lapack/lapack-3.4.2.tgz
+    echo Extracting lapack
+    tar -xzf $DOWNLOAD_DIR/lapack-3.4.2.tgz
+    export LAPACK_SRC=$BUILD_DIR/lapack-3.4.2
+}
 
 update_python_path
 
@@ -118,15 +111,8 @@ then
 else
 #numpy
 #no dependencies
-    cd $BUILD_DIR
-    download_files a643b737c30a0a5b823e11e33c9d46a605122c61 http://www.netlib.org/blas/blas.tgz
-    echo Extracting blas
-    tar -xzf $DOWNLOAD_DIR/blas.tgz
-    export BLAS_SRC=$BUILD_DIR/BLAS
-    download_files 93a6e4e6639aaf00571d53a580ddc415416e868b http://www.netlib.org/lapack/lapack-3.4.2.tgz
-    echo Extracting lapack
-    tar -xzf $DOWNLOAD_DIR/lapack-3.4.2.tgz
-    export LAPACK_SRC=$BUILD_DIR/lapack-3.4.2
+    get_blas_and_lpack
+
     download_files ba328985f20390b0f969a5be2a6e1141d5752cf9 http://downloads.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
     echo Extracting numpy
     tar -xzf $DOWNLOAD_DIR/numpy-1.7.0.tar.gz
@@ -144,8 +130,8 @@ else
 #hdf5
 #no dependencies
     cd $BUILD_DIR
-    download_files 8414ca0e6ff7d08e423955960d641ec5f309a55f http://www.hdfgroup.org/ftp/HDF5/prev-releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.bz2
-    #download_files 712955025f03db808f000d8f4976b8df0c0d37b5 http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.13.tar.bz2 
+    download_files 8414ca0e6ff7d08e423955960d641ec5f309a55f http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.bz2
+    #download_files 712955025f03db808f000d8f4976b8df0c0d37b5 http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.13.tar.bz2
     echo Extracting hdf5
     tar -xjf $DOWNLOAD_DIR/hdf5-1.8.12.tar.bz2
     cd hdf5-1.8.12
@@ -174,9 +160,9 @@ else
     cd h5py-2.2.1
     if test "$OS_NAME" = "Darwin 13"
     then
-	$PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR
+        $PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR
     else
-	(unset CC CXX OPT; $PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR)
+        (unset CC CXX OPT; $PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR)
     fi
     (unset CC CXX OPT; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR --hdf5=$INSTALL_DIR )
 fi
@@ -188,6 +174,7 @@ then
 else
 #scipy
 #depends on numpy
+    get_blas_and_lpack
     cd $BUILD_DIR
     download_files 1ba2e2fc49ba321f62d6f78a5351336ed2509af3 http://downloads.sourceforge.net/project/scipy/scipy/0.12.0/scipy-0.12.0.tar.gz
     echo Extracting scipy
@@ -197,7 +184,7 @@ else
 --- scipy-0.12.0/scipy/_build_utils/_fortran.py	2013-04-06 10:10:34.000000000 -0600
 +++ scipy-0.12.0_mod/scipy/_build_utils/_fortran.py	2013-07-31 13:51:13.965027409 -0600
 @@ -16,8 +16,11 @@
- 
+
      libraries = info.get('libraries', '')
      for library in libraries:
 -        if r_mkl.search(library):
@@ -207,9 +194,9 @@ else
 +                return True
 +        except:
 +            pass
- 
+
      return False
- 
+
 PATCH_SCIPY
     (unset CC CXX F90 F77 FC; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 fi
@@ -230,9 +217,9 @@ else
     cd scikit-learn-0.14.1
     if test "$OS_NAME" = "Darwin 13"
     then
-	($PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
+        ($PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
     else
-	(unset CC CXX OPT; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
+        (unset CC CXX OPT; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
     fi
 fi
 
