@@ -108,11 +108,6 @@ class csvUtilityClass(object):
         datafinal[:,self.allHeaders.index(head)] = nearest.predict(variablesToExpandFromValuesSet)[:]
     np.savetxt(outputFileName,datafinal,delimiter=",",header=",".join(self.allHeaders))
 
-if __name__ == '__main__':
-  listOfFiles = ["/Users/alfoa/Downloads/Channel$*$","/Users/alfoa/Downloads/WholeCore.csv","/Users/alfoa/Downloads/primar.csv"]
-  csvUtil = csvUtilityClass(listOfFiles)
-  csvUtil.mergeCSV("/Users/alfoa/Downloads/testOutput.csv",{"expandCsv":True,"variablesToExpandFrom":["TIME","TIME2"],})
-
 
 
 
