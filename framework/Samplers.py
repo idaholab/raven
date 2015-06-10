@@ -2984,6 +2984,99 @@ class Sobol(SparseGridCollocation):
       self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight'] =  N/A
       self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
+#
+#
+#
+#
+class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
+  def __init__(self):
+    '''
+      Initializes members to be used in the sampler.
+      @ In, None
+      @ Out, None
+    '''
+    Sobol.__init__(self)
+    self.type = 'AdaptiveSobolSampler'
+    self.printTag = 'SAMPLER ADAPTIVE SOBOL'
+    self.maxComboCard = None
+
+    self._addAssObject('TargetEvaluation','1')
+
+  def localInputAndChecks(self,xmlNode):
+    '''
+      Extended readMoreXML after other objects are instantiated
+      @ In, xmlNode, xmlNode object whose head should be Sobol under Sampler.
+      @ Out, None
+    '''
+    Sobol.localInputAndChecks(self,xmlNode)
+    foundConv = False
+    for child in xmlNode:
+      if child.tag == 'Convergence':
+        foundConv = True
+        self.convType      = child.attrib['target'] #TODO
+        self.maxSobolOrder = int(child.attrib.get('maxSobolOrder',2)) #TODO
+        self.maxPolyOrder = int(child.attrib.get('maxPolyOrder',10)) #TODO
+        self.convValue     = float(child.text)
+    if not foundConv:
+      self.raiseAnError(IOError,'Convergence node not found in input!')
+
+  def localInitialize(self):
+    '''
+      Initializes Sampler, including building sub-ROMs for Sobol decomposition.  Note that re-using this
+      sampler will destroy any ROM trained and attached to this sampler, and can be retrained after sampling.
+      @ In, None
+      @ Out, None
+    '''
+    for key in self.assemblerDict.keys():
+      if 'ROM' in key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.ROM = self.assemblerDict[key][indice][3]
+          indice += 1
+    SVLs = self.ROM.SupervisedEngine.values()
+    SVL = SVLs[0]
+    self._generateQuadsAndPolys(SVL)
+    self.features = SVL.features
+    self.iSets = {} #dict of adaptive index sets
+    self.ROMs  = {} #dict of adaptive ROMs
+    #calculate first order combos
+    first_combos = self._makeCombos(1)
+    self.raiseADebug('first set:')
+    for c in first_combos:
+      self.raiseADebug('  ',c)
+    import sys
+    sys.exit()
+
+    #make combination of ROMs that we need
+    #TODO
+
+  def _convergence(self):
+    pass #TODO
+
+  def _makeCombos(self,order):
+    return itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(order+1))
+
+  def _makeComboRom(self,combo):
+    distDict={}
+    quadDict={}
+    polyDict={}
+    imptDict={}
+    limit=0
+    for c in combo:
+      distDict[c]=self.distDict[c]
+      quadDict[c]=self.quadDict[c]
+      polyDict[c]=self.polyDict[c]
+      imptDict[c]=self.importanceDict[c]
+    iset = IndexSets.returnInstance('AdaptiveSet')
+    iset.initialize(distDict,imptDict,self.maxPolyOrder,self.messageHandler)
+    self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialROM')
+    #set up for adaptive sampling
+    #make the rom
+
+  def localStillReady(self,ready):
+    pass #TODO
+
+
 
 '''
  Interface Dictionary (factory) (private)
@@ -3001,6 +3094,7 @@ __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
 __interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
 __interFaceDict['AdaptiveSparseGrid'      ] = AdaptiveSparseGrid
 __interFaceDict['Sobol'                   ] = Sobol
+__interFaceDict['AdaptiveSobol'           ] = AdaptiveSobol
 __knownTypes = list(__interFaceDict.keys())
 
 def addKnownTypes(newDict):
