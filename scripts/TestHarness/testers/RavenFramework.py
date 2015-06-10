@@ -15,6 +15,7 @@ class RavenFramework(Tester):
     params.addParam('output','',"List of output files that the input should create.")
     params.addParam('csv','',"List of csv files to check")
     params.addParam('xml','',"List of xml files to check")
+    params.addParam('xmlopts','',"Options for xml checking")
     params.addParam('rel_err','','Relative Error for csv files')
     params.addParam('required_executable','','Skip test if this executable is not found')
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
@@ -87,7 +88,9 @@ class RavenFramework(Tester):
     message = csv_diff.diff()
     if csv_diff.getNumErrors() > 0:
       return (message,output)
-    xml_diff = XMLDiff(self.specs['test_dir'],self.xml_files)
+    if len(self.specs['xmlopts'])>0: xmlopts = self.specs['xmlopts'].split(' ')
+    else: xmlopts=[]
+    xml_diff = XMLDiff(self.specs['test_dir'],self.xml_files,*xmlopts)
     (xml_same,xml_messages) = xml_diff.diff()
     if not xml_same:
       return (xml_messages,output)
