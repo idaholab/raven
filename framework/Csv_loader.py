@@ -23,7 +23,7 @@ import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CsvLoader(MessageHandler.MessageUser):
-  def __init__(self):
+  def __init__(self,messageHandler):
     '''
     Constructor
     '''
@@ -32,6 +32,7 @@ class CsvLoader(MessageHandler.MessageUser):
     self.all_field_names    = []
     self.type               = 'CsvLoader'
     self.printTag           = self.type
+    self.messageHandler     = messageHandler
 
   def loadCsvFile(self,filein):
     '''

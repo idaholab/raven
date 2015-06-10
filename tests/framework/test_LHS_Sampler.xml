@@ -31,7 +31,7 @@
     </Triangular>
 </Distributions>
 <Samplers>
-    <Stratified name='myLHS' initial_seed ='1'>
+    <Stratified name='myLHS'>
       <sampler_init>
         <initial_seed>1</initial_seed>
       </sampler_init>
