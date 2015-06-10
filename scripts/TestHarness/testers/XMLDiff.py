@@ -13,7 +13,7 @@ def compare_element(a,b,*args,**kwargs):
   a: the first element tree
   b: the second element tree
   accepted args:
-    unordered: prevents checking order of xml nodes
+    <none implemented>
   accepted kwargs:
     path: a string to describe where the element trees are located (mainly
   used recursively)
@@ -41,8 +41,8 @@ def compare_element(a,b,*args,**kwargs):
       vb=float(b.text)
       if abs(va) < num_tol: va=0
       if abs(vb) < num_tol: vb=0
-      if vb!=0: valtest = abs((float(a.text)-float(b.text))/float(b.text))
-      else: valtest = abs((float(a.text)-float(b.text)))
+      valtest = abs(va-vb)
+      if vb!=0: valtest /= vb
       if valtest > num_tol:
         same=False
         fail_message("mismatch text value ",repr(a.text),repr(b.text),'rel. diff',valtest)
@@ -115,12 +115,12 @@ class XMLDiff:
           test_root = ET.parse( test_filename ).getroot()
         except Exception as e:
           files_read = False
-          self.__messages += 'Exception reading files '+test_filename+': '+str(e.args)
+          self.__messages += 'Exception reading file '+test_filename+': '+str(e.args)
         try:
           gold_root = ET.parse( gold_filename ).getroot()
         except Exception as e:
           files_read = False
-          self.__messages += 'Exception reading files '+gold_filename+': '+str(e.args)
+          self.__messages += 'Exception reading file '+gold_filename+': '+str(e.args)
         if files_read:
           same,messages = compare_element(test_root, gold_root,*self.__options)
           if not same:
