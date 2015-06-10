@@ -191,7 +191,7 @@ class OutStreamPlot(OutStreamManager):
       startLoc, endLoc     = match.start(), match.end()
       result[0], result[1], result[2] =  var[:startLoc],var[startLoc+1:endLoc-1],var[endLoc:]
       if '{' in result[-1] and '}' in result[-1]:
-        locLower, locUpper = min([m.start() for m in re.finditer('{', result[-1])]), max([m.start() for m in re.finditer('}', result[-1])])
+        locLower, locUpper = result[-1].find("{"), result[-1].rfind("}")
         result[-1] = result[-1][locLower+1:locUpper]
     else: result = None
     return result
