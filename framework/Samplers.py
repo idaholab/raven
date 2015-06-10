@@ -3040,7 +3040,7 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     self.iSets = {} #dict of adaptive index sets
     self.ROMs  = {} #dict of adaptive ROMs
     #calculate first order combos
-    first_combos = self._makeCombos(1)
+    first_combos = self._makeCombos(2,3)
     self.raiseADebug('first set:')
     for c in first_combos:
       self.raiseADebug('  ',c)
@@ -3053,10 +3053,21 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
   def _convergence(self):
     pass #TODO
 
-  def _makeCombos(self,order):
-    return itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(order+1))
+  def _makeCombos(self,low,high):
+    '''
+      Returns a list of the possible subset combinations with a cardinality from low to high.
+      @ In,  low,         the smallest subset size (number of variables included in each subset)
+      @ In,  high,        the maximum subset size
+      @ Out, list(tuple), list of combinations
+    '''
+    return itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(low,high+1))
 
   def _makeComboRom(self,combo):
+    '''
+      Constructs a single ROM for the given subset (combo).
+      @ In, combo, tuple(string) subset description, i.e. ('x','y')
+      @ Out, GaussPolynomialROM object
+    '''
     distDict={}
     quadDict={}
     polyDict={}
@@ -3072,6 +3083,7 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialROM')
     #set up for adaptive sampling
     #make the rom
+    #TODO
 
   def localStillReady(self,ready):
     pass #TODO
