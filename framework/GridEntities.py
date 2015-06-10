@@ -12,8 +12,9 @@ import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import UreturnPrintTag,partialEval
+from utils import UreturnPrintTag,partialEval,compare
 from BaseClasses import BaseType
+from MessageHandler import MessageHandler
 #import TreeStructure as TS
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -40,7 +41,8 @@ class GridEntity(BaseType):
     """
     return self.gridContainer['gridLenght'] if 'gridLenght' in self.gridContainer.keys() else 0
 
-  def __init__(self):
+  def __init__(self,messageHandler):
+    if messageHandler != None: self.setMessageHandler(messageHandler)
     self.printTag                               = UreturnPrintTag("GRID ENTITY")
     self.gridContainer                          = {}                 # dictionary that contains all the key feature of the grid
     self.gridContainer['dimensionNames']        = []                 # this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
@@ -55,7 +57,7 @@ class GridEntity(BaseType):
     self.gridContainer['transformationMethods'] = None               # Dictionary of methods to transform the coordinate from 0-1 values to something else. These methods are pointed and passed into the initialize method. {varName:method}
     self.uniqueCellNumber                       = 0                  # number of unique cells
     self.gridIterator                           = None               # the grid iterator
-    self.gridInitDict                           = None               # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
+    self.gridInitDict                           = {}                 # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
 
   def _readMoreXml(self,xmlNode,dimensionTags=None,messageHandler=None,dimTagsPrefix=None):
     """
@@ -68,9 +70,10 @@ class GridEntity(BaseType):
     if messageHandler != None: self.setMessageHandler(messageHandler)
     self.gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'stepLenght':{}}
     gridInfo = {}
+    dimInfo = {}
     for child in xmlNode:
       dimName = None
-      dimTag  = None
+
       if dimensionTags != None:
         if child.tag in dimensionTags:
           dimName = child.attrib['name']
@@ -85,9 +88,12 @@ class GridEntity(BaseType):
 #           dimName = child.tag + ':' + gridName
 #         gridInfo[dimName] = gridStruct
       for childChild in child:
-        gridInfo[dimName] = self._readGridStructure(childChild,dimName)
+        if childChild.tag == "grid": 
+          gridInfo[dimName] = self._readGridStructure(childChild,dimName)
         if 'dim' in childChild.attrib.keys():
-          dimTag = childChild.attrib['dim']
+          dimID = str(len(self.gridInitDict['dimensionNames'])+1) if dimName == None else dimName
+          try              : dimInfo[dimID] = childChild.attrib['dim']
+          except ValueError: self.raiseAnError(ValueError, "can not convert 'dim' attribute in integer!")
 #         if childChild.tag =='grid':
 #           gridStruct, gridName = self._fillGrid(childChild)
 #           if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
@@ -104,6 +110,8 @@ class GridEntity(BaseType):
     for key in gridInfo.keys():
       if gridInfo[key][0].strip() == 'global_grid':
         if gridInfo[key][-1].strip() not in globalGrids.keys(): self.raiseAnError(IOError,'global grid for dimension named '+key+'has not been found!')
+        if key in dimInfo.keys():
+          if dimInfo[key] != 1: self.gridInitDict['dimensionNames'].pop(key); continue
         gridInfo[key] = globalGrids[gridInfo[key][-1].strip()]
       self.gridInitDict['lowerBounds'           ][key] = min(gridInfo[key][-1])
       self.gridInitDict['upperBounds'           ][key] = max(gridInfo[key][-1])
@@ -145,17 +153,17 @@ class GridEntity(BaseType):
       {dimensionNames:[]}, required,list of axis names (dimensions' IDs)
       {lowerBounds:{}}, required, dictionary of lower bounds for each dimension
       {upperBounds:{}}, required, dictionary of upper bounds for each dimension
-      {volumetriRatio:float}, required, p.u. volumetric ratio of the grid
+      {volumetriRatio:float or stepLenght:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLenghts ({'varName:list,etc'}
       {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate
       !!!!!!
       if the self.gridInitDict is != None (info read from XML node), this method looks for the information in that dictionary first and after it checks the initDict object
       !!!!!!
     """
-    if self.gridInitDict == None and initDictionary == None: self.raiseAnError(Exception,'No initialization parameters have been provided!!')
+    if len(self.gridInitDict.keys()) == 0 and initDictionary == None: self.raiseAnError(Exception,'No initialization parameters have been provided!!')
     # grep the keys that have been read
     readKeys = []
     initDict = initDictionary if initDictionary != None else {}
-    if self.gridInitDict != None: readKeys = self.gridInitDict.keys()
+    if  len(self.gridInitDict.keys()) != 0: readKeys = self.gridInitDict.keys()
     if initDict != None:
       if type(initDict).__name__ != "dict": self.raiseAnError(Exception,'The in argument is not a dictionary!')
     if "dimensionNames" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"dimensionNames" key is not present in the initialization dictionary!')
@@ -166,7 +174,7 @@ class GridEntity(BaseType):
     if "upperBounds" not in readKeys:
       if type(initDict["upperBounds"]).__name__ != "dict": self.raiseAnError(Exception,'The upperBounds entry is not a dictionary')
     if "transformationMethods" in initDict.keys(): self.gridContainer['transformationMethods'] = initDict["transformationMethods"]
-    self.nVar                            = len(self.gridInitDict["dimensionNames"]) if "dimensionNames" in self.gridInitDict.keys() else initDict["dimensionNames"]
+    self.nVar                            = len(self.gridInitDict["dimensionNames"]) if "dimensionNames" in self.gridInitDict.keys() else len(initDict["dimensionNames"])
     self.gridContainer['dimensionNames'] = self.gridInitDict["dimensionNames"] if "dimensionNames" in self.gridInitDict.keys() else initDict["dimensionNames"]
     upperkeys                            = self.gridInitDict["upperBounds"].keys() if "upperBounds" in self.gridInitDict.keys() else initDict["upperBounds"  ].keys()
     lowerkeys                            = self.gridInitDict["lowerBounds"].keys() if "lowerBounds" in self.gridInitDict.keys() else initDict["lowerBounds"  ].keys()
@@ -179,8 +187,10 @@ class GridEntity(BaseType):
     if "volumetricRatio" not in initDict.keys() and "stepLenght" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"volumetricRatio" or "stepLenght" key is not present in the initialization dictionary')
     if "volumetricRatio"  in initDict.keys() and "stepLenght" in initDict.keys()+readKeys: self.raiseAWarning('"volumetricRatio" and "stepLenght" keys are both present! the "volumetricRatio" has priority!')
     if "volumetricRatio" in initDict.keys():
-      self.volumetricRatio                         = initDict["volumetricRatio"]
-      stepLenght                                   = [self.volumetricRatio**(1./float(self.nVar))]*self.nVar # build the step size in 0-1 range such as the differential volume is equal to the tolerance
+      self.volumetricRatio = initDict["volumetricRatio"]
+      # build the step size in 0-1 range such as the differential volume is equal to the tolerance
+      stepLenght, ratioRelative = [], self.volumetricRatio**(1./float(self.nVar))
+      for varId in range(len(self.gridContainer['dimensionNames'])): stepLenght.append([ratioRelative*(self.gridContainer['bounds']["upperBounds" ][self.gridContainer['dimensionNames'][varId]] - self.gridContainer['bounds']["lowerBounds" ][self.gridContainer['dimensionNames'][varId]])])
     else:
       if "stepLenght" not in readKeys:
         if type(initDict["stepLenght"]).__name__ != "dict": self.raiseAnError(Exception,'The stepLenght entry is not a dictionary')
@@ -192,17 +202,18 @@ class GridEntity(BaseType):
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
       if len(stepLenght[varId]) == 1:
         # equally spaced or volumetriRatio. (the substruction of stepLenght*10e-3 is only to avoid that for roundoff error, the dummy upperbound is included in the mesh)
-        self.gridContainer['gridVectors'][varName] = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName]+round(stepLenght[varId][-1],14)-stepLenght[varId][-1]*10E-3,stepLenght[varId][-1])
+        ggg = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName],stepLenght[varId][-1])
+        self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName],stepLenght[varId][-1]),np.atleast_1d(self.gridContainer['bounds']["upperBounds" ][varName])))
       else:
         # custom grid
         # it is not very efficient, but this approach is only for custom grids => limited number of discretizations
         gridMesh = [self.gridContainer['bounds']["lowerBounds"][varName]]
         for stepLenghti in stepLenght[varId]: gridMesh.append(round(gridMesh[-1],14)+round(stepLenghti,14))
         self.gridContainer['gridVectors'][varName] = np.asarray(gridMesh)
-      if round(max(self.gridContainer['gridVectors'][varName]),14) > round(self.gridContainer['bounds']["upperBounds" ][varName],14): self.raiseAnError(IOError,"the maximum value in the grid is bigger that upperBound! upperBound: "+
+      if not compare(round(max(self.gridContainer['gridVectors'][varName]),14), round(self.gridContainer['bounds']["upperBounds" ][varName],14)): self.raiseAnError(IOError,"the maximum value in the grid is bigger that upperBound! upperBound: "+
                                                                                                                                       str(self.gridContainer['bounds']["upperBounds" ][varName]) +
                                                                                                                                       " < maxValue in grid: "+str(max(self.gridContainer['gridVectors'][varName])))
-      if round(min(self.gridContainer['gridVectors'][varName]),14) < round(self.gridContainer['bounds']["lowerBounds" ][varName],14): self.raiseAnError(IOError,"the minimum value in the grid is lower that lowerBound! lowerBound: "+
+      if not compare(round(min(self.gridContainer['gridVectors'][varName]),14),round(self.gridContainer['bounds']["lowerBounds" ][varName],14)): self.raiseAnError(IOError,"the minimum value in the grid is lower that lowerBound! lowerBound: "+
                                                                                                                                       str(self.gridContainer['bounds']["lowerBounds"][varName]) +
                                                                                                                                       " > minValue in grid: "+str(min(self.gridContainer['gridVectors'][varName])))
       if self.gridContainer['transformationMethods'] != None:
@@ -225,6 +236,21 @@ class GridEntity(BaseType):
       #print(self.gridIterator.multi_index)
       self.gridIterator.iternext()
     self.resetIterator()
+
+  def returnGridAsArrayOfCoordinates(self):
+    """
+    Return the grid as an array of coordinates
+    """
+    return self.returnCoordinatesReshaped((self.gridContainer['gridLenght'],self.nVar))
+
+  def returnCoordinatesReshaped(self,newShape):
+    """
+     Method to return the grid Coordinates reshaped with respect an in Shape
+     @ In, newShape, tuple, newer shape
+    """
+    returnCoordinates = self.gridContainer['gridCoord']
+    returnCoordinates.shape = newShape
+    return returnCoordinates
 
   def returnParameter(self,parameterName):
     """
@@ -371,6 +397,6 @@ __knownTypes                       = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type,caller):
-  try: return __interFaceDict[Type]()
+def returnInstance(Type,caller,messageHandler=None):
+  try: return __interFaceDict[Type](messageHandler)
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)

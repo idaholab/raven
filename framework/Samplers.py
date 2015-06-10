@@ -525,6 +525,14 @@ class AdaptiveSampler(Sampler):
     #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
     if self.toleranceWeight!='cdf': stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
     else                          : stepParam = lambda _: [stepLenght, 0.0, 1.0]
+
+    bounds          = {"lowerBounds":{},"upperBounds":{}}
+    transformMethod = {}
+    for varName in self.distDict.keys():
+      if self.toleranceWeight!='cdf': bounds["lowerBounds"][varName], bounds["upperBounds"][varName] = self.distDict[varName].lowerBound, self.distDict[varName].upperBound
+      else:
+        bounds["lowerBounds"][varName], bounds["upperBounds"][varName] = 0.0, 1.0
+        transformMethod[varName] = self.distDict[varName]
     #moving forward building all the information set
     pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
     #building the grid point coordinates
@@ -539,7 +547,7 @@ class AdaptiveSampler(Sampler):
       gridVectorsForLS[varName.replace('<distribution>','')] = self.gridVectors[varName]
     self.oldTestMatrix            = np.zeros(tuple(pointByVar))
     # initialize LimitSurface PP
-    self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.distDict.keys()],"tolerance":self.subGridTol,"side":"both","gridVectors":gridVectorsForLS})
+    self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.distDict.keys()],"tolerance":self.subGridTol,"side":"both","gridVectors":gridVectorsForLS,"transformationMethods":transformMethod,"bounds":bounds})
     self.limitSurfacePP.assemblerDict = self.assemblerDict
     self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{})
     self.persistenceMatrix        = np.zeros(tuple(pointByVar))      #matrix that for each point of the testing grid tracks the persistence of the limit surface position
