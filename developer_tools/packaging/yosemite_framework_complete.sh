@@ -4,7 +4,7 @@ export INSTALL_DIR=/opt/raven_libs
 rm -Rvf $INSTALL_DIR
 ./framework_extra.sh
 ls $INSTALL_DIR/bin
-../../backend_raven_libs_script.sh
+../backend_raven_libs_script.sh
 ./crow_compile.sh
 export CHECKOUT_DIR=$INSTALL_DIR/framework
 ./minimum_framework_git.sh
