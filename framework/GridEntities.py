@@ -70,9 +70,10 @@ class GridEntity(BaseType):
     if messageHandler != None: self.setMessageHandler(messageHandler)
     self.gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'stepLenght':{}}
     gridInfo = {}
+    dimInfo = {}
     for child in xmlNode:
       dimName = None
-      dimTag  = None
+
       if dimensionTags != None:
         if child.tag in dimensionTags:
           dimName = child.attrib['name']
@@ -87,9 +88,12 @@ class GridEntity(BaseType):
 #           dimName = child.tag + ':' + gridName
 #         gridInfo[dimName] = gridStruct
       for childChild in child:
-        gridInfo[dimName] = self._readGridStructure(childChild,dimName)
+        if childChild.tag == "grid": 
+          gridInfo[dimName] = self._readGridStructure(childChild,dimName)
         if 'dim' in childChild.attrib.keys():
-          dimTag = childChild.attrib['dim']
+          dimID = str(len(self.gridInitDict['dimensionNames'])+1) if dimName == None else dimName
+          try              : dimInfo[dimID] = childChild.attrib['dim']
+          except ValueError: self.raiseAnError(ValueError, "can not convert 'dim' attribute in integer!")
 #         if childChild.tag =='grid':
 #           gridStruct, gridName = self._fillGrid(childChild)
 #           if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
@@ -106,6 +110,8 @@ class GridEntity(BaseType):
     for key in gridInfo.keys():
       if gridInfo[key][0].strip() == 'global_grid':
         if gridInfo[key][-1].strip() not in globalGrids.keys(): self.raiseAnError(IOError,'global grid for dimension named '+key+'has not been found!')
+        if key in dimInfo.keys():
+          if dimInfo[key] != 1: self.gridInitDict['dimensionNames'].pop(key); continue
         gridInfo[key] = globalGrids[gridInfo[key][-1].strip()]
       self.gridInitDict['lowerBounds'           ][key] = min(gridInfo[key][-1])
       self.gridInitDict['upperBounds'           ][key] = max(gridInfo[key][-1])
