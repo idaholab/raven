@@ -72,14 +72,13 @@ class GridEntity(BaseType):
     gridInfo = {}
     dimInfo = {}
     for child in xmlNode:
-      dimName = None
-
+      self.dimName = None
       if dimensionTags != None:
         if child.tag in dimensionTags:
-          dimName = child.attrib['name']
-          if dimTagsPrefix != None: dimName = dimTagsPrefix[child.tag] + dimName if child.tag in dimTagsPrefix.keys() else dimName
+          self.dimName = child.attrib['name']
+          if dimTagsPrefix != None: self.dimName = dimTagsPrefix[child.tag] + self.dimName if child.tag in dimTagsPrefix.keys() else self.dimName
       if child.tag == "grid":
-        gridInfo[dimName] = self._readGridStructure(child,dimName)
+        gridInfo[self.dimName] = self._readGridStructure(child,xmlNode)
 #         if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
 #         gridStruct, gridName = self._fillGrid(child)
 #         if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
@@ -88,11 +87,11 @@ class GridEntity(BaseType):
 #           dimName = child.tag + ':' + gridName
 #         gridInfo[dimName] = gridStruct
       for childChild in child:
-        if childChild.tag == "grid": 
-          gridInfo[dimName] = self._readGridStructure(childChild,dimName)
+        if childChild.tag == "grid":
+          gridInfo[self.dimName] = self._readGridStructure(childChild,child)
         if 'dim' in childChild.attrib.keys():
-          dimID = str(len(self.gridInitDict['dimensionNames'])+1) if dimName == None else dimName
-          try              : dimInfo[dimID] = childChild.attrib['dim']
+          dimID = str(len(self.gridInitDict['dimensionNames'])+1) if self.dimName == None else self.dimName
+          try              : dimInfo[dimID] = int(childChild.attrib['dim'])
           except ValueError: self.raiseAnError(ValueError, "can not convert 'dim' attribute in integer!")
 #         if childChild.tag =='grid':
 #           gridStruct, gridName = self._fillGrid(childChild)
@@ -111,21 +110,24 @@ class GridEntity(BaseType):
       if gridInfo[key][0].strip() == 'global_grid':
         if gridInfo[key][-1].strip() not in globalGrids.keys(): self.raiseAnError(IOError,'global grid for dimension named '+key+'has not been found!')
         if key in dimInfo.keys():
-          if dimInfo[key] != 1: self.gridInitDict['dimensionNames'].pop(key); continue
+          if dimInfo[key] != 1: 
+            self.gridInitDict['dimensionNames'].pop(self.gridInitDict['dimensionNames'].index(key))
+            #gridInfo.pop(key)
+            continue
         gridInfo[key] = globalGrids[gridInfo[key][-1].strip()]
       self.gridInitDict['lowerBounds'           ][key] = min(gridInfo[key][-1])
       self.gridInitDict['upperBounds'           ][key] = max(gridInfo[key][-1])
       self.gridInitDict['stepLenght'            ][key] = [round(gridInfo[key][-1][k+1] - gridInfo[key][-1][k],14) for k in range(len(gridInfo[key][-1])-1)] if gridInfo[key][1] == 'custom' else [round(gridInfo[key][-1][1] - gridInfo[key][-1][0],14)]
     self.gridContainer['gridInfo'               ]      = gridInfo
   
-  def _readGridStructure(self,child,dimName):
+  def _readGridStructure(self,child,parent):    
     if child.tag =='grid':
       gridStruct, gridName = self._fillGrid(child)
-      if dimName == None: dimName = str(len(self.gridInitDict['dimensionNames'])+1)
-      if child.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(dimName)
+      if self.dimName == None: self.dimName = str(len(self.gridInitDict['dimensionNames'])+1)
+      if parent.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(self.dimName)
       else:
         if gridName == None: self.raiseAnError(IOError,'grid defined in global_grid block must have the attribute "name"!')
-        dimName = child.tag + ':' + gridName
+        self.dimName = parent.tag + ':' + gridName
       return gridStruct  
 
   def _fillGrid(self,child):
