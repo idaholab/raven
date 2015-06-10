@@ -182,11 +182,16 @@ class OutStreamPlot(OutStreamManager):
     elif what == 'z'                : var = self.zCoordinates [where[0]][where[1]]
     elif what == 'colorMap'         : var = self.colorMapCoordinates[where[0]][where[1]]
     # the variable can contain brackets {} (when the symbol "|" is present in the variable name),
-    # for example DataName|Input|{RavenAuxiliary|variableName|initial_value}
-    # or it can look like DataName|Input|variableName
+    # for example DataName|Input|{RavenAuxiliary|variableName|initial_value} or it can look like DataName|Input|variableName
     if var != None:
-      result = var.split('|')
-      if len(result) != 3: self.raiseAnError(IOError,'In Plot ' +self.name +'.Only three level variables are accepted !!!!!')
+      result = [None]*3
+      if   '|Input|'  in var: match = re.search(r"[^a-zA-Z](|Input|)[^a-zA-Z]", var)
+      elif '|Output|' in var: match = re.search(r"[^a-zA-Z](|Output|)[^a-zA-Z]", var)
+      else: self.raiseAnError(IOError, 'In Plot ' +self.name +' for inputted coordinate ' +what + ' the tag "Input" or "Output" (case sensitive) has not been specified (e.g. sourceName|Input|aVariable)!')
+      startLoc, endLoc     = match.start(), match.end()
+      result[1]            = var[startLoc+1:endLoc-1]
+      splitted             = var.split(result[1])
+      result[0], result[2] = splitted[0],splitted[1]
       if '{' in result[-1] and '}' in result[-1]:
         locLower, locUpper = min([m.start() for m in re.finditer('{', result[-1])]), max([m.start() for m in re.finditer('}', result[-1])])
         result[-1] = result[-1][locLower+1:locUpper-1]
