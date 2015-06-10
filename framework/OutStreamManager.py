@@ -185,13 +185,11 @@ class OutStreamPlot(OutStreamManager):
     # for example DataName|Input|{RavenAuxiliary|variableName|initial_value} or it can look like DataName|Input|variableName
     if var != None:
       result = [None]*3
-      if   '|input|'  in var.lower(): match = re.search(r"[^a-zA-Z](|input|)[^a-zA-Z]", var.lower())
-      elif '|output|' in var.lower(): match = re.search(r"[^a-zA-Z](|output|)[^a-zA-Z]", var.lower())
-      else: self.raiseAnError(IOError, 'In Plot ' +self.name +' for inputted coordinate ' +what + ' the tag "Input" or "Output" (case sensitive) has not been specified (e.g. sourceName|Input|aVariable)!')
+      if   '|input|'  in var.lower(): match = re.search(r"(\|input\|)", var.lower())
+      elif '|output|' in var.lower(): match = re.search(r"(\|output\|)", var.lower())
+      else: self.raiseAnError(IOError, 'In Plot ' +self.name +' for inputted coordinate ' +what + ' the tag "Input" or "Output" (case insensitive) has not been specified (e.g. sourceName|Input|aVariable)!')
       startLoc, endLoc     = match.start(), match.end()
-      result[1]            = var[startLoc+1:endLoc-1]
-      splitted             = var.split(var[startLoc:endLoc])
-      result[0], result[2] = splitted[0],splitted[1]
+      result[0], result[1], result[2] =  var[:startLoc],var[startLoc+1:endLoc-1],var[endLoc:]
       if '{' in result[-1] and '}' in result[-1]:
         locLower, locUpper = min([m.start() for m in re.finditer('{', result[-1])]), max([m.start() for m in re.finditer('}', result[-1])])
         result[-1] = result[-1][locLower+1:locUpper]
