@@ -72,6 +72,10 @@ def compare_element(a,b,*args,**kwargs):
   return (same,message)
 
 def isANumber(x):
+  '''Checks if x can be converted to a float.
+  @ In, x, a variable or value
+  @ Out, bool, True if x can be converted to a float.
+  '''
   try:
     float(x)
     return True
