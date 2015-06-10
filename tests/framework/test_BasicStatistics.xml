@@ -46,7 +46,7 @@
     </PostProcessor>
     <PostProcessor name="CreateInfinity" subType='BasicStatistics' verbosity='debug'>
         <what>all</what>
-        <parameters>time,x0,x01,y0,y02</parameters>
+        <parameters>time,x0,y0,y02</parameters>
     </PostProcessor>
 </Models>
 <Functions>
