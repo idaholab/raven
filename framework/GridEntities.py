@@ -98,7 +98,7 @@ class GridEntity(BaseType):
 #           gridInfo[dimName] = gridStruct
     #check for global_grid type of structure
     globalGrids = {}
-    for key in gridInfo.keys():
+    for key in gridInfo.keys(): 
       splitted = key.split(":")
       if splitted[0].strip() == 'global_grid': globalGrids[splitted[1]] = gridInfo.pop(key)
     for key in gridInfo.keys():
