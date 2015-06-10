@@ -1,0 +1,12 @@
+<data name="FACTdump1" type="timepointset"><input>x2,x1</input><output>ans2,ans</output><input_filename>FACTdump1.csv</input_filename><metadata><SamplerType>array(u'Grid', u'Grid', u'Grid', u'Grid', 
+      dtype='&lt;U4')</SamplerType><crowDist>array( u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
+       u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
+       u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
+       u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0', dtype=object)</crowDist><SampledVars>array(u'x2': 2.5, u'x1': 1.8, u'x2': 2.5, u'x1': 1.8,
+       u'x2': 2.5, u'x1': 1.8, u'x2': 2.5, u'x1': 1.8, dtype=object)</SampledVars><ProbabilityWeight>array( 0.1 ,  0.1 ,  0.16,  0.16)</ProbabilityWeight><prefix>array('1', '2', '3', '4', 
+      dtype='|S1')</prefix><distributionName>array(u'x2': 'u2', u'x1': 'u1', u'x2': 'u2', u'x1': 'u1',
+       u'x2': 'u2', u'x1': 'u1', u'x2': 'u2', u'x1': 'u1', dtype=object)</distributionName><distributionType>array(u'x2': 'Uniform', u'x1': 'Uniform',
+       u'x2': 'Uniform', u'x1': 'Uniform',
+       u'x2': 'Uniform', u'x1': 'Uniform',
+       u'x2': 'Uniform', u'x1': 'Uniform', dtype=object)</distributionType><SampledVarsPb>array(u'x2': 1.0, u'x1': 1.0, u'x2': 1.0, u'x1': 1.0,
+       u'x2': 1.0, u'x1': 1.0, u'x2': 1.0, u'x1': 1.0, dtype=object)</SampledVarsPb><PointProbability>array( 1.,  1.,  1.,  1.)</PointProbability></metadata></data>
