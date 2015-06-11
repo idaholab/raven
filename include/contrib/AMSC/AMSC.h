@@ -122,6 +122,8 @@ class AMSC
    * @param beta floating point value in the range (0,2] determining the beta
    *        value used if the neighborhood type is a beta-skeleton, otherwise
    *        ignored
+   * @param persistenceType string identifier for what type of persistence
+   *        computation should be used
    * @param edgeIndices an optional list of edges specified as a flattened
    *        n-by-2 array to use as the underlying graph structure (will be
    *        pruned by ngl)
@@ -129,7 +131,7 @@ class AMSC
   AMSC(std::vector<T> &Xin, std::vector<T> &yin,
        std::vector<std::string> &_names, std::string graph,
        std::string gradientMethod, int maxN, T beta,
-       std::vector<int> &edgeIndices);
+       std::string persistenceType, std::vector<int> &edgeIndices);
 
   /**
    * Returns the number of input dimensions in the associated dataset
@@ -264,6 +266,10 @@ class AMSC
 //  std::string ComputeLinearRegressions(T persistence=0.);
 
  private:
+  std::string persistenceType;          /** A string identifier specifying    *
+                                         *  how we should compute persistence */
+  bool verbose;                     /** A flag used for toggling debug output */
+
   boost::numeric::ublas::matrix<T> X;                   /** Input data matrix */
   boost::numeric::ublas::vector<T> y;                  /** Output data vector */
 

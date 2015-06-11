@@ -14,10 +14,10 @@ cd tests/framework
 failed_tests=0
 passed_tests=0
 
-for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py)
+for I in $(python ${SCRIPT_DIR}/get_coverage_tests.py)
 do
     echo Validating $I
-    xmllint --noout --schema ../../raven.xsd $I
+    xmllint --noout --schema  ${SCRIPT_DIR}/XSDSchemas/raven.xsd $I
     if test $? -eq 0;
     then
         passed_tests=$(($passed_tests + 1))

@@ -49,6 +49,8 @@ or \textbf{OutStreamManager}.
 The object used in this role defines the allowable types of
 \textbf{Inputs} and \textbf{Outputs} usable in this step.
 \item \textbf{Sampler} defines the sampling strategy to be used to probe the model.
+\\ It is worth to mention that, when a sampling strategy is employed, the ``variables'' defined in the \xmlNode{variable} blocks are going to be 
+directly placed in the \textbf{Output} objects of type \textbf{DataObjects} and \textbf{Databases}).
 \item \textbf{Function} is an extremely important role. It introduces the capability to
 perform pre or post processing of Model \textbf{Inputs} and \textbf{Outputs}. Its specific
 behavior depends on the \textbf{Step} is using it.
