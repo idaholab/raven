@@ -150,8 +150,11 @@ class CsvLoader(MessageHandler.MessageUser):
     #fill input param dictionary
     for key in inParam:
       ix = self.all_field_names.index(key) if key in self.all_field_names else None
-      inDict[key] = np.atleast_1d(np.array(data[ints,ix])) if ix != None else None
-      ix, inDict[key] = 0, np.atleast_1d(SampledVars[key]) if ix == None and SampledVars != None else None
+      if ix != None:
+        inDict[key] = np.atleast_1d(np.array(data[ints,ix]))
+      else:
+        if SampledVars != None:
+          if key in SampledVars.keys(): inDict[key], ix = np.atleast_1d(SampledVars[key]), 0
       if ix == None: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     # fill output param dictionary
     # time end case
@@ -223,10 +226,12 @@ class CsvLoader(MessageHandler.MessageUser):
         else: self.field_names = outParam
       #fill input param dictionary
       for key in inParam:
-        if i == 0: inDict[key] = np.zeros(len(filesin))
         ix = self.all_field_names.index(key) if key in self.all_field_names else None
-        inDict[key][i] = np.atleast_1d(np.array(data[ints,ix])) if ix != None else None
-        ix, inDict[key] = 0, np.atleast_1d(SampledVars[key]) if ix == None and SampledVars != None else None
+        if ix != None:
+          inDict[key] = np.atleast_1d(np.array(data[ints,ix]))
+        else:
+          if SampledVars != None:
+            if key in SampledVars.keys(): inDict[key], ix = np.atleast_1d(SampledVars[key]), 0
         if ix == None: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
       # time end case
       if time_end:
@@ -329,8 +334,11 @@ class CsvLoader(MessageHandler.MessageUser):
     #fill input param dictionary
     for key in inParam:
       ix = self.all_field_names.index(key) if key in self.all_field_names else None
-      inDict[key] = np.atleast_1d(np.array(data[ints,ix])) if ix != None else None
-      ix, inDict[key] = 0, np.atleast_1d(SampledVars[key]) if ix == None and SampledVars != None else None
+      if ix != None:
+        inDict[key] = np.atleast_1d(np.array(data[ints,ix]))
+      else:
+        if SampledVars != None:
+          if key in SampledVars.keys(): inDict[key], ix = np.atleast_1d(SampledVars[key]), 0
       if ix == None: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
 
     # time all case

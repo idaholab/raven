@@ -240,8 +240,15 @@ class hdf5Database(MessageHandler.MessageUser):
       for attr in attributes.keys():
         if attr == 'metadata':
           if 'SampledVars' in attributes['metadata'].keys():
-            grp.attrs[b'input_space_headers'] = [utils.toBytes(list(attributes['metadata']['SampledVars'].keys())[i])  for i in range(len(attributes['metadata']['SampledVars'].keys()))]
-            grp.attrs[b'input_space_values' ] = list(attributes['metadata']['SampledVars'].values())
+            inpHeaders = []
+            inpValues  = []
+            for inkey, invalue in attributes['metadata']['SampledVars'].items():
+              if inkey not in headers:
+                inpHeaders.append(utils.toBytes(inkey))
+                inpValues.append(invalue)
+            if len(inpHeaders) > 0:
+              grp.attrs[b'input_space_headers'] = inpHeaders
+              grp.attrs[b'input_space_values' ] = inpValues
         objectToConvert = utils.convertNumpyToLists(attributes[attr])
         converted = json.dumps(objectToConvert)
         if converted and attr != 'name': grp.attrs[utils.toBytes(attr)]=converted
@@ -484,8 +491,15 @@ class hdf5Database(MessageHandler.MessageUser):
       for attr in attributes.keys():
         if attr == 'metadata':
           if 'SampledVars' in attributes['metadata'].keys():
-            sgrp.attrs[b'input_space_headers'] = [utils.toBytes(list(attributes['metadata']['SampledVars'].keys())[i])  for i in range(len(attributes['metadata']['SampledVars'].keys()))]
-            sgrp.attrs[b'input_space_values' ] = list(attributes['metadata']['SampledVars'].values())
+            inpHeaders = []
+            inpValues  = []
+            for inkey, invalue in attributes['metadata']['SampledVars'].items():
+              if inkey not in headers:
+                inpHeaders.append(utils.toBytes(inkey))
+                inpValues.append(invalue)
+            if len(inpHeaders) > 0:
+              sgrp.attrs[b'input_space_headers'] = inpHeaders
+              sgrp.attrs[b'input_space_values' ] = inpValues
         objectToConvert = utils.convertNumpyToLists(attributes[attr])
         #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
         #else:                                      objectToConvert = attributes[attr]
