@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 
 <RunInfo>
     <WorkingDir>LHStestBison</WorkingDir>
@@ -20,7 +20,6 @@
         <sigma>0.4</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
-        <adjustement>scaling</adjustement>
     </Normal>
     <Triangular name='DistTri1'>
         <apex>1</apex>
@@ -60,12 +59,28 @@
       <Sampler class='Samplers' type='Stratified'         >myLHS</Sampler>
       <Output  class='Databases'    type='HDF5'>test_bison_lhs</Output>
       <Output class='DataObjects' type='Histories'>stories</Output>
+      <Output class='OutStreamManager' type='Plot'>test</Output>
     </MultiRun >
 </Steps>
 
 <Databases>
   <HDF5 name="test_bison_lhs"/> 
 </Databases>
+
+
+<OutStreamManager>
+    <Plot verbosity='debug' name='test' dim='2' overwrite='False'>
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>stories|Input|{Materials|heat1|thermal_conductivity}</x>
+                <y>stories|Input|{Materials|heat2|thermal_conductivity}</y>
+            </plot>
+        </plotSettings>
+        <actions> <how>png</how> </actions>
+    </Plot>
+</OutStreamManager>
+
 
 </Simulation>
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 <RunInfo>
     <WorkingDir>SBO_DET</WorkingDir>
     <Files>DET_histories_eqPb.csv,TMI_PRA_trans_DET_control.py,TMI.i,TMI_steady_restart/0957.rd-0,TMI_steady_restart/0957.xdr,TMI_steady_restart/0957.xdr.0000,TMI_steady_restart/0957_mesh.cpr</Files>
@@ -18,21 +18,18 @@
         <sigma>0.001</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
     </Normal>
     <Normal name='crew1DG2CoupledDG1'>
         <mean>1</mean>
         <sigma>0.001</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
-    </Normal>    
+    </Normal>
     <Normal name='crew1DG1'>
         <mean>1</mean>
         <sigma>0.4</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
-        <adjustement>scaling</adjustement>
     </Normal>
     <Triangular name='CladFailureDist'>
         <apex>1</apex>

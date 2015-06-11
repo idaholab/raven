@@ -1,0 +1,2 @@
+<data name="myDump4" type="timepointset"><input>Y,X</input><output>Z,maxLabel,minLabel</output><input_filename>myDump4.csv</input_filename><metadata><hierarchy>array( 'Minima,0.973801,0,0 Minima,0.0312272,10,0 Minima,0.0046905,110,0 Minima,0.071948,120,0 Maxima,0.973801,74,74 ', 
+      dtype='|S109')</hierarchy><coefficients_0_74>array( 0.01270175,  0.05566578)</coefficients_0_74><R2_74>array( 0.41512462)</R2_74><R2_0_74>array( 0.41512462)</R2_0_74><R2_0>array( 0.41512462)</R2_0></metadata></data>

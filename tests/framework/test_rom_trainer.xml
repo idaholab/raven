@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_steady_restart/1863.rd-0,TMI_steady_restart/1863.xdr,TMI_steady_restart/1863.xdr.0000,TMI_steady_restart/1863_mesh.cpr</Files>
@@ -54,8 +54,8 @@
         </variable>
     </MonteCarlo>
 </Samplers>
-<Steps debug='True'> 
-    <MultiRun name='MC_for_rom_trainer' debug='True'>
+<Steps verbosity='debug'> 
+    <MultiRun name='MC_for_rom_trainer' verbosity='debug'>
         <Input   class='Files'      type=''                >TMI.i</Input>
         <Input   class='Files'      type=''                >TMI_PRA_trans_MC_control.py</Input>
         <Input   class='Files'      type=''                >TMI_steady_restart/1863.rd-0</Input>
@@ -66,12 +66,12 @@
         <Sampler class='Samplers'   type='MonteCarlo'      >RAVENmcCode3</Sampler>
         <Output  class='Databases'  type='HDF5'            >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
     </MultiRun>  
-    <IOStep name='test_extract_for_rom_trainer' debug='True'>
+    <IOStep name='test_extract_for_rom_trainer' verbosity='debug'>
         <Input   class='Databases' type='HDF5'        >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
         <Output  class='DataObjects'     type='TimePointSet'>timepointset_from_database_for_rom_trainer</Output>
         <Output  class='OutStreamManager' type='Print'>ciccio</Output>
     </IOStep>  
-    <RomTrainer name='test_rom_trainer' debug='True'>
+    <RomTrainer name='test_rom_trainer' verbosity='debug'>
         <Input   class='DataObjects'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
         <Output  class='Models' type='ROM'         >ROM1</Output>
     </RomTrainer>
@@ -118,12 +118,12 @@
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempTreshold</Output>
    </TimePointSet>
-   <TimePoint name='data_for_sampling_empty_at_begin' inputTs='2'>
-        <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
+   <TimePoint name='data_for_sampling_empty_at_begin' inputTs='2' historyName="1">
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>OutputPlaceHolder</Output>
    </TimePoint>
-    <TimePoint name='data_for_sampling_empty_at_begin_nd' inputTs='2'>
-        <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
+    <TimePoint name='data_for_sampling_empty_at_begin_nd' inputTs='2' historyName="1">
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>OutputPlaceHolder</Output>
     </TimePoint>
    <TimePointSet name='outputMontecarloRom' inputTs='2'>

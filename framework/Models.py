@@ -30,6 +30,7 @@ import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
 import TreeStructure
+from FileObject import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 #class Model(BaseType):
@@ -97,7 +98,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   @classmethod
   def specializeValidateDict(cls):
     ''' This method should be overridden to describe the types of input accepted with a certain role by the model class specialization'''
-    cls.raiseAnError(NotImplementedError,'The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
+    raise NotImplementedError('The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
 
   @classmethod
   def localValidateMethod(cls,who,what):
@@ -107,7 +108,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @in what: a list (or a general iterable) that will be playing the 'who' role
     """
     #counting successful matches
-    if who not in cls.validateDict.keys(): cls.raiseAnError(IOError,'The role '+str(who)+' does not exist in the class '+str(cls))
+    if who not in cls.validateDict.keys(): raise IOError('The role '+str(who)+' does not exist in the class '+str(cls))
     for myItemDict in cls.validateDict[who]: myItemDict['tempCounter'] = 0
     for anItem in what:
       anItem['found'] = False
@@ -121,13 +122,13 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     for tester in cls.validateDict[who]:
       if tester['required']==True:
         if tester['multiplicity']=='n' and tester['tempCounter']<1:
-          cls.raiseAnError(IOError,'The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
+          raise IOError('The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
         if tester['multiplicity']!='n' and tester['tempCounter']!=tester['multiplicity']:
-          cls.raiseAnError(IOError,'The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
+          raise IOError('The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
-        cls.raiseAnError(IOError,'It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
+        raise IOError('It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
     return True
 
   def __init__(self):
@@ -521,7 +522,7 @@ class ExternalModel(Dummy):
         else: self.raiseAnError(IOError,'The path provided for the external model does not exist!!! Got: ' + abspath)
     else: self.raiseAnError(IOError,'ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
-    self.sim = utils.importFromPath(str(xmlNode.attrib['ModuleToLoad']))
+    self.sim = utils.importFromPath(str(xmlNode.attrib['ModuleToLoad']),self.messageHandler.getDesiredVerbosity(self)>1)
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':
@@ -760,15 +761,16 @@ class Code(Model):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
-    attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
+    attributes={"input_file":self.currentInputFiles,"type":"csv","name":FileObject(os.path.join(self.workingDir,finisishedjob.output+'.csv'))}
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     #FIXME this try-except catches too many of the wrong kind of error -> do we want to check output type?
-    try: output.addGroup(attributes,attributes)
-    except AttributeError:
-      output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
+    if output.type == "HDF5"        : output.addGroup(attributes,attributes)
+    elif output.type in ['TimePoint','TimePointSet','History','Histories']:
+      output.addOutput(FileObject(os.path.join(self.workingDir,finisishedjob.output) + ".csv"),attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
+    else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
 #
 #
 #

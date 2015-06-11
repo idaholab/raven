@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 <RunInfo>
     <WorkingDir>PreconditionedDynamicEventTree</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py,DET_histories.csv</Files>
@@ -95,12 +95,12 @@
   <Print name='testprint_hist_hier_variables'>
     <type>csv</type>
     <source>stories</source>
-    <variables>Output,Input|dummy_for_branch</variables>
+    <what>Output,Input|dummy_for_branch</what>
   </Print>
   <Print name='testprint_tpset_hier_variables'>
     <type>csv</type>
     <source>timepointset</source>
-    <variables>Output,Input|dummy_for_branch</variables>
+    <what>Output,Input|dummy_for_branch</what>
   </Print>
   <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='True'>
         <plotSettings>
@@ -168,14 +168,14 @@
     <HDF5 name="testPreconditionedBranchDatabase"/>
 </Databases>
 <DataObjects>
-    <Histories name='stories' hierarchical='true'>
-        <Input>dummy_for_branch</Input>
-        <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,pipe2_f,inlet_TDV_p_bc,time</Output>
-   </Histories>
     <TimePointSet name='timepointset' hierarchical='true'>
         <Input>dummy_for_branch</Input>
         <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,pipe2_f,inlet_TDV_p_bc,time</Output>
     </TimePointSet>
+    <Histories name='stories' hierarchical='true'>
+        <Input>dummy_for_branch</Input>
+        <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,pipe2_f,inlet_TDV_p_bc,time</Output>
+   </Histories>
 </DataObjects>
 </Simulation>
 

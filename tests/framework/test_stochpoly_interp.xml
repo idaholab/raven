@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="False">
+<Simulation >
     <RunInfo>
         <WorkingDir>StochasticPolyInterpTest</WorkingDir>
         <Sequence>Nmake,Ntrain,Ntest,Nprint</Sequence>
@@ -26,7 +26,7 @@
     </Samplers>
 
     <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
+        <Dummy name="MyDummy" subType=""/>
         <ExternalModel name='polynomial' subType='' ModuleToLoad = './StochasticPolyInterpTest/polynomial'>
             <variable>x1</variable>
             <variable>x2</variable>
@@ -59,10 +59,10 @@
             <Model   class='Models'           type='ROM'                  >NROM</Model>
             <Output  class='DataObjects'            type='TimePointSet'         >Ntests</Output>
         </MultiRun>
-        <OutStreamStep name='Nprint'>
+        <IOStep name='Nprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Ntests</Input>
             <Output  class='OutStreamManager' type='Print'                >Ndump</Output>
-        </OutStreamStep>
+        </IOStep>
     </Steps>
 
     <DataObjects>

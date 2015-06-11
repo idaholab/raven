@@ -85,7 +85,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       self.raiseAnError(IOError,'It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
     #
     # retrieve history name if present
-    try:   self._dataParameters['history'] = xmlNode.find('Input' ).attrib['name']
+    try:   self._dataParameters['history'] = xmlNode.attrib['historyName']
     except KeyError:self._dataParameters['history'] = None
 
     if 'time' in xmlNode.attrib.keys():
@@ -258,16 +258,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if options:
       if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
       else: filenameLocal = self.name + '_dump'
-      if 'variables' in options.keys():
+      if 'what' in options.keys():
         variables_to_print = []
-        for var in options['variables'].split(','):
+        for var in options['what'].split(','):
           lvar = var.lower()
           if lvar.startswith('input'):
             variables_to_print.extend(self.__getVariablesToPrint(var,'input'))
           elif lvar.startswith('output'):
             variables_to_print.extend(self.__getVariablesToPrint(var,'output'))
           else: self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
-        options_int['variables'] = variables_to_print
+        options_int['what'] = variables_to_print
     else:   filenameLocal = self.name + '_dump'
 
     self.specializedPrintCSV(filenameLocal,options_int)
@@ -356,27 +356,17 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     self._toLoadFromList.append(toLoadFrom)
     self.addSpecializedReadingSettings()
-
-    sourceType = None
-    self.raiseAMessage('Constructing data type ' +self.type +' named '+ self.name + ' from:')
-    try:
-      sourceType =  self._toLoadFromList[-1].type
-      self.raiseAMessage('Object type ' + self._toLoadFromList[-1].type + ' named "' + self._toLoadFromList[-1].name+'"')
-    except AttributeError:
-      self.raiseAMessage('Object type' +' CSV named "' + toLoadFrom+'"')
-
-    if(sourceType == 'HDF5'):
+    self._dataParameters['SampledVars'] = options['metadata']['SampledVars'] if options != None and 'metadata' in options.keys() and 'SampledVars' in options['metadata'].keys() else None
+    self.raiseAMessage('Object type ' + self._toLoadFromList[-1].type + ' named "' + self._toLoadFromList[-1].name+'"')
+    if(self._toLoadFromList[-1].type == 'HDF5'):
       tupleVar = self._toLoadFromList[-1].retrieveData(self._dataParameters)
       if options:
-        parent_id = None
-        if 'metadata' in options.keys():
-          if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
-        else:
-          if 'parent_id' in options.keys(): parent_id = options['parent_id']
+        parent_id = options['metadata']['parent_id'] if 'metadata' in options.keys() and 'parent_id' in options['metadata'].keys() else (options['parent_id'] if 'parent_id' in options.keys() else None)
         if parent_id and self._dataParameters['hierarchical']:
           self.raiseAWarning('-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
-    else: tupleVar = ld().csvLoadData([toLoadFrom],self._dataParameters)
+    elif (self._toLoadFromList[-1].type == 'FileObject'): tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
+    else: self.raiseAnError(ValueError, "Type "+self._toLoadFromList[-1].type+ "from which the DataObject "+ self.name +" should be constructed is unknown!!!")
 
     for hist in tupleVar[0].keys():
       if type(tupleVar[0][hist]) == dict:
@@ -855,8 +845,8 @@ class TimePoint(Data):
     outKeys   = []
     outValues = []
     #Print input values
-    if 'variables' in options.keys():
-      for var in options['variables']:
+    if 'what' in options.keys():
+      for var in options['what']:
         if var.split('|')[0] == 'input':
           inpKeys.append(var.split('|')[1])
           inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
@@ -963,16 +953,14 @@ class TimePointSet(Data):
     #histories), len(toLoadFromList) = 11 but the number of histories
     #is actually 30.
     lenMustHave = 0
-    try:   sourceType = self._toLoadFromList[-1].type
-    except AttributeError:sourceType = None
+    sourceType = self._toLoadFromList[-1].type
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
-      if not type(sourceLoad) == type(""):
-        if('HDF5' == sourceLoad.type):  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-      else: lenMustHave += 1
+      if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
+      elif 'FileObject' == sourceLoad.type: lenMustHave += 1
+      else: self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
 
-    if('HDF5' == sourceType):
-      #eg = self._toLoadFromList[-1].getEndingGroupNames()
+    if'HDF5' == self._toLoadFromList[-1].type:
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != lenMustHave:
           self.raiseAnError(NotConsistentData,'The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
@@ -1122,8 +1110,8 @@ class TimePointSet(Data):
         inpValues.append([])
         outKeys.append([])
         outValues.append([])
-        if 'variables' in options.keys():
-          for var in options['variables']:
+        if 'what' in options.keys():
+          for var in options['what']:
             if var.split('|')[0] == 'input':
               inpKeys[-1].append(var.split('|')[1])
               axa = np.zeros(len(O_o[key]))
@@ -1191,8 +1179,8 @@ class TimePointSet(Data):
       #The CSV file will have a header with the input names and output
       #names, and multiple lines of data with the input and output
       #numeric values, one line for each input.
-      if 'variables' in options.keys():
-        for var in options['variables']:
+      if 'what' in options.keys():
+        for var in options['what']:
           if var.split('|')[0] == 'input':
             inpKeys.append(var.split('|')[1])
             inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
@@ -1209,7 +1197,7 @@ class TimePointSet(Data):
               inpKeys.append(var.split('|')[1])
               if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
               else: inpValues.append(np.atleast_1d(self._dataContainer['metadata'][var.split('|')[1]]))
-            else: printAWarning(self,'metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+            else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
       else:
         inpKeys   = self._dataContainer['inputs'].keys()
         inpValues = self._dataContainer['inputs'].values()
@@ -1251,7 +1239,7 @@ class TimePointSet(Data):
     myFile = open(mainCSV,"rU")
     header = myFile.readline().rstrip()
     inoutKeys = header.split(",")
-    inoutValues = [[] for a in range(len(inoutKeys))]
+    inoutValues = [[] for _ in range(len(inoutKeys))]
     for line in myFile.readlines():
       line_list = line.rstrip().split(",")
       for i in range(len(inoutKeys)):
@@ -1368,8 +1356,8 @@ class History(Data):
     outKeys   = []
     outValues = []
     #Print input values
-    if 'variables' in options.keys():
-      for var in options['variables']:
+    if 'what' in options.keys():
+      for var in options['what']:
         if var.split('|')[0] == 'input':
           inpKeys.append(var.split('|')[1])
           inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
@@ -1382,7 +1370,7 @@ class History(Data):
               self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(var.split('|')[1])
             inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: raiseAWArning(self,'metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+          else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
@@ -1500,13 +1488,13 @@ class Histories(Data):
       @ In,  None
       @ Out, None
     '''
-    try: sourceType = self._toLoadFromList[-1].type
-    except AttributeError: sourceType = None
     lenMustHave = 0
+    sourceType = self._toLoadFromList[-1].type
+    # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
-      if not type(sourceLoad) == type(""):
-        if('HDF5' == sourceLoad.type):  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-      else: lenMustHave += 1
+      if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
+      elif 'FileObject' == sourceLoad.type: lenMustHave += 1
+      else: self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
 
     if self._dataParameters['hierarchical']:
       for key in self._dataContainer['inputs'].keys():
@@ -1611,7 +1599,6 @@ class Histories(Data):
       # we retrieve the node in which the specialized 'TimePoint' has been stored
       parent_id = None
       if type(name) == list:
-        namep = name[1]
         if type(name[0]) == str: nodeid = name[0]
         else:
           if 'metadata' in options.keys():
@@ -1627,7 +1614,6 @@ class Histories(Data):
         else:
           nodeid = options['prefix']
           if 'parent_id' in options.keys(): parent_id = options['parent_id']
-        namep = name
       if parent_id: tsnode = self.retrieveNodeInTreeMode(nodeid, parent_id)
       #if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id'])
       #else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
@@ -1728,8 +1714,8 @@ class Histories(Data):
         inpValues.append([])
         outKeys.append([])
         outValues.append([])
-        if 'variables' in options.keys():
-          for var in options['variables']:
+        if 'what' in options.keys():
+          for var in options['what']:
             if var.split('|')[0] == 'input':
               inpKeys[-1].append(var.split('|')[1])
               axa = np.zeros(len(O_o[key]))
@@ -1797,8 +1783,8 @@ class Histories(Data):
         inpValues_h = []
         outKeys_h   = []
         outValues_h = []
-        if 'variables' in options.keys():
-          for var in options['variables']:
+        if 'what' in options.keys():
+          for var in options['what']:
             if var.split('|')[0] == 'input':
               inpKeys_h.append(var.split('|')[1])
               inpValues_h.append(inpValues[n][var.split('|')[1]])

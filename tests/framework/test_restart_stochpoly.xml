@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="False">
+<Simulation >
     <RunInfo>
-        <WorkingDir>StochasticPolyRestart</WorkingDir>
+        <WorkingDir>SamplerRestarts</WorkingDir>
         <Sequence>make1,train1,print1,make2,train2,print2,print3</Sequence>
         <batchSize>1</batchSize>
     </RunInfo>
@@ -17,10 +17,10 @@
             <Input   class='DataObjects' type='TimePointSet'>solns</Input>
             <Output  class='Models'      type='ROM'         >rom</Output>
         </RomTrainer>
-        <OutStreamStep name='print1'>
+        <IOStep name='print1'>
             <Input  class='DataObjects'      type='TimePointSet'>solns</Input>
-            <Output class='OutStreamManager' type='Print'       >dump1</Output>
-        </OutStreamStep>
+            <Output class='OutStreamManager' type='Print'       >SCdump1</Output>
+        </IOStep>
         <MultiRun name='make2'>
             <Sampler class='Samplers'    type='SparseGridCollocation'>SG2</Sampler>
             <Input   class='DataObjects' type='TimePointSet'         >solns</Input>
@@ -32,14 +32,14 @@
             <Input   class='DataObjects' type='TimePointSet'>solns</Input>
             <Output  class='Models'      type='ROM'         >rom2</Output>
         </RomTrainer>
-        <OutStreamStep name='print2'>
+        <IOStep name='print2'>
             <Input  class='DataObjects'      type='TimePointSet'>solns2</Input>
-            <Output class='OutStreamManager' type='Print'       >dump2</Output>
-        </OutStreamStep>
-        <OutStreamStep name='print3'>
+            <Output class='OutStreamManager' type='Print'       >SCdump2</Output>
+        </IOStep>
+        <IOStep name='print3'>
             <Input  class='DataObjects'      type='TimePointSet'>solns</Input>
-            <Output class='OutStreamManager' type='Print'       >dump3</Output>
-        </OutStreamStep>
+            <Output class='OutStreamManager' type='Print'       >SCdump3</Output>
+        </IOStep>
     </Steps>
 
     <Distributions>
@@ -61,8 +61,8 @@
     </Samplers>
 
     <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
-        <ExternalModel name='poly' subType='' ModuleToLoad='./StochasticPolyRestart/polynomial'>
+        <Dummy name="MyDummy" subType=""/>
+        <ExternalModel name='poly' subType='' ModuleToLoad='./SamplerRestarts/polynomial'>
             <variable>x1</variable>
             <variable>x2</variable>
             <variable>ans</variable>
@@ -102,8 +102,8 @@
     </DataObjects>
 
     <OutStreamManager>
-        <Print name='dump1'><type>csv</type><source>solns</source></Print>
-        <Print name='dump2'><type>csv</type><source>solns2</source></Print>
-        <Print name='dump3'><type>csv</type><source>solns</source></Print>
+        <Print name='SCdump1'><type>csv</type><source>solns</source></Print>
+        <Print name='SCdump2'><type>csv</type><source>solns2</source></Print>
+        <Print name='SCdump3'><type>csv</type><source>solns</source></Print>
     </OutStreamManager>
 </Simulation>

@@ -1,4 +1,5 @@
 \section{RunInfo}
+\label{sec:RunInfo}
 In the \textbf{RunInfo} block, the user specifies how the overall computation
 should be run.
 %
@@ -32,12 +33,13 @@ the settings of the calculation flow that is being performed through RAVEN:
 \default{None}
 
 %%%%%% Files
-\item \xmlNode{Files}, \xmlDesc{comma separated string, required field}, lists
-the paths to any files required by the code.
+\item \xmlNode{Files}, \xmlDesc{comma separated string, optional field}, lists
+the paths to any files required by the code. If no file is needed (either as input or output), 
+this node could be omitted.
 %string from the \emph{WorkingDir}.
 
 %%%%%% BATCH SIZE
-\item \xmlNode{batchSize}, \xmlDesc{integer, required field}, specifies the
+\item \xmlNode{batchSize}, \xmlDesc{integer, optional field}, specifies the
 number of parallel runs executed simultaneously (e.g., the number of driven
 code instances, e.g. RELAP5-3D, that RAVEN will spawn at the same time).
 %
@@ -244,8 +246,8 @@ PROFESSIONAL, etc.).
 \default{PBS PROFESSIONAL}
 
 %%%%%% EXPECTED TIME
-\item \xmlNode{expectedTime}, \xmlDesc{colum separated string, requested field
-(mpi mode)}, specifies the time the whole calculation is expected to
+\item \xmlNode{expectedTime}, \xmlDesc{colum separated string, optional field
+(mpi or custom mode)}, specifies the time the whole calculation is expected to
 last.
 %
 The syntax of this node is \textit{hours:minutes:seconds} (e.g.
@@ -254,7 +256,7 @@ period of time, the HPC system will automatically stop the simulation (even if
 the simulation is not completed). It is preferable to rationally overestimate
 the needed time.
 %
-\default{None}
+\default{10:00:00} (10 hours.)
 \end{itemize}
 
 %\begin{itemize}

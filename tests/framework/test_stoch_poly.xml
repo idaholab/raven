@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="False">
+<Simulation >
     <RunInfo>
         <WorkingDir>StochasticPolyTest</WorkingDir>
         <Sequence>Umake,Utrain,Utest,Uprint,
@@ -15,18 +15,6 @@
     </RunInfo>
 
     <Distributions>
-        <Uniform name="UniDist">
-            <lowerBound>1</lowerBound>
-            <upperBound>5</upperBound>
-        </Uniform>
-        <Normal name="NormDist">
-            <mean>3</mean>
-            <sigma>2</sigma>
-        </Normal>
-        <Gamma name="GammaDist">
-            <low>0</low>
-            <alpha>2</alpha>
-        </Gamma>
         <Beta name="BetaDist">
             <low>0</low>
             <high>1</high>
@@ -36,16 +24,28 @@
         <Beta name="BetaNorm">
             <peakFactor>0.5</peakFactor>
             <low>0</low>
-            <hi>1</hi>
+            <high>1</high>
         </Beta>
+        <Exponential name='ExpDist'>
+            <lambda>1.5</lambda>
+        </Exponential>
+        <Gamma name="GammaDist">
+            <low>0</low>
+            <alpha>2</alpha>
+        </Gamma>
+        <Normal name="NormDist">
+            <mean>3</mean>
+            <sigma>2</sigma>
+        </Normal>
         <Triangular name='TriDist'>
             <min>1</min>
             <max>5</max>
             <apex>4</apex>
         </Triangular>
-        <Exponential name='ExpDist'>
-            <lambda>1.5</lambda>
-        </Exponential>
+        <Uniform name="UniDist">
+            <lowerBound>1</lowerBound>
+            <upperBound>5</upperBound>
+        </Uniform>
     </Distributions>
 
     <Samplers>
@@ -99,7 +99,7 @@
     </Samplers>
 
     <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
+        <Dummy name="MyDummy" subType=""/>
         <ExternalModel name='polynomial' subType='' ModuleToLoad = './StochasticPolyTest/polynomial'>
             <variable>x1</variable>
             <variable>x2</variable>
@@ -188,12 +188,12 @@
             <Model   class='Models'           type='ROM'                  >UROM</Model>
             <Output  class='DataObjects'            type='TimePointSet'         >Utests</Output>
         </MultiRun>
-        <OutStreamStep name='Uprint'>
+        <IOStep name='Uprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Utests</Input>
             <Output  class='OutStreamManager' type='Print'                >Udump</Output>
             <Input   class='Models'           type='ROM'                  >UROM</Input>
             <Output  class='OutStreamManager' type='Print'                >Udumprom</Output>
-        </OutStreamStep>
+        </IOStep>
 
         <MultiRun name='UCmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>UCSG</Sampler>
@@ -211,12 +211,12 @@
             <Model   class='Models'           type='ROM'                  >UCROM</Model>
             <Output  class='DataObjects'            type='TimePointSet'         >UCtests</Output>
         </MultiRun>
-        <OutStreamStep name='UCprint'>
+        <IOStep name='UCprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >UCtests</Input>
             <Output  class='OutStreamManager' type='Print'                >UCdump</Output>
             <Input   class='Models'           type='ROM'                  >UCROM</Input>
             <Output  class='OutStreamManager' type='Print'                >UCdumprom</Output>
-        </OutStreamStep>
+        </IOStep>
 
         <MultiRun name='Nmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
@@ -234,12 +234,12 @@
             <Model   class='Models'           type='ROM'                  >NROM</Model>
             <Output  class='DataObjects'            type='TimePointSet'         >Ntests</Output>
         </MultiRun>
-        <OutStreamStep name='Nprint'>
+        <IOStep name='Nprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Ntests</Input>
             <Output  class='OutStreamManager' type='Print'                >Ndump</Output>
             <Input   class='Models'           type='ROM'                  >NROM</Input>
             <Output  class='OutStreamManager' type='Print'                >Ndumprom</Output>
-        </OutStreamStep>
+        </IOStep>
 
         <MultiRun name='Gmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>GSG</Sampler>
@@ -257,12 +257,12 @@
             <Model   class='Models'           type='ROM'                  >GROM</Model>
             <Output  class='DataObjects'            type='TimePointSet'         >Gtests</Output>
         </MultiRun>
-        <OutStreamStep name='Gprint'>
+        <IOStep name='Gprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Gtests</Input>
             <Output  class='OutStreamManager' type='Print'                >Gdump</Output>
             <Input   class='Models'           type='ROM'                  >GROM</Input>
             <Output  class='OutStreamManager' type='Print'                >Gdumprom</Output>
-        </OutStreamStep>
+        </IOStep>
 
         <MultiRun name='Bmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>BSG</Sampler>
@@ -280,12 +280,12 @@
             <Model   class='Models'           type='ROM'                  >BROM</Model>
             <Output  class='DataObjects'            type='TimePointSet'         >Btests</Output>
         </MultiRun>
-        <OutStreamStep name='Bprint'>
+        <IOStep name='Bprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Btests</Input>
             <Output  class='OutStreamManager' type='Print'                >Bdump</Output>
             <Input   class='Models'           type='ROM'                  >BROM</Input>
             <Output  class='OutStreamManager' type='Print'                >Bdumprom</Output>
-        </OutStreamStep>
+        </IOStep>
 
         <MultiRun name='BNmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>BNSG</Sampler>
@@ -303,12 +303,12 @@
             <Model   class='Models'           type='ROM'                  >BNROM</Model>
             <Output  class='DataObjects'            type='TimePointSet'         >BNtests</Output>
         </MultiRun>
-        <OutStreamStep name='BNprint'>
+        <IOStep name='BNprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >BNtests</Input>
             <Output  class='OutStreamManager' type='Print'                >BNdump</Output>
             <Input   class='Models'           type='ROM'                  >BNROM</Input>
             <Output  class='OutStreamManager' type='Print'                >BNdumprom</Output>
-        </OutStreamStep>
+        </IOStep>
 
         <MultiRun name='Tmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TSG</Sampler>
@@ -326,12 +326,12 @@
             <Model   class='Models'           type='ROM'                  >TROM</Model>
             <Output  class='DataObjects'            type='TimePointSet'         >Ttests</Output>
         </MultiRun>
-        <OutStreamStep name='Tprint'>
+        <IOStep name='Tprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Ttests</Input>
             <Output  class='OutStreamManager' type='Print'                >Tdump</Output>
             <Input   class='Models'           type='ROM'                  >TROM</Input>
             <Output  class='OutStreamManager' type='Print'                >Tdumprom</Output>
-        </OutStreamStep>
+        </IOStep>
 
         <MultiRun name='Emake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>ESG</Sampler>
@@ -349,12 +349,12 @@
             <Model   class='Models'           type='ROM'                  >EROM</Model>
             <Output  class='DataObjects'            type='TimePointSet'         >Etests</Output>
         </MultiRun>
-        <OutStreamStep name='Eprint'>
+        <IOStep name='Eprint'>
             <Input   class='DataObjects'            type='TimePointSet'         >Etests</Input>
             <Output  class='OutStreamManager' type='Print'                >Edump</Output>
             <Input   class='Models'           type='ROM'                  >EROM</Input>
             <Output  class='OutStreamManager' type='Print'                >Edumprom</Output>
-        </OutStreamStep>
+        </IOStep>
 
     </Steps>
 

@@ -10,7 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-
+import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ class FileObject(BaseType,str):
     BaseType.__init__(self)
     str.__init__(filename.strip())
     self.filename = filename.strip()
-    if self.filename != '.': self.name = filename.strip(".")[0]
+    if self.filename != '.': self.name = os.path.basename(self.filename).split()[0]
     else                   : self.name = self.filename
     if len(filename.split(".")) > 1: self.subtype = filename.split(".")[1].lower()
     else                           : self.subtype = 'unknown'
@@ -39,49 +39,49 @@ class FileObject(BaseType,str):
     """
     Overload add "+"
     """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: utils.raiseAnError(ValueError,self,"other is not a string like type! Got "+ type(other).__name__)
+    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
     return FileObject(self.filename + other)
   def __radd__(self, other):
     """
     Overload radd "+"
     """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: utils.raiseAnError(ValueError,self,"other is not a string like type! Got "+ type(other).__name__)
+    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
     return FileObject(other + self.filename)
   def __lt__(self, other)  :
     """
     Overload lt "<"
     """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: utils.raiseAnError(ValueError,self,"other is not a string like type! Got "+ type(other).__name__)
+    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
     return len(self.filename) < len(str(other))
   def ___le__(self, other) :
     """
     Overload le "<="
     """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: utils.raiseAnError(ValueError,self,"other is not a string like type! Got "+ type(other).__name__)
+    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
     return len(self.filename) <= len(str(other))
   def __eq__(self, other)  :
     """
     Overload eq "=="
     """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes','NoneType']: utils.raiseAnError(ValueError,self,"other is not a string like type! Got "+ type(other).__name__)
+    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes','NoneType']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
     return self.filename == other
   def __ne__(self, other)  :
     """
     Overload ne "!="
     """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes','NoneType']: utils.raiseAnError(ValueError,self,"other is not a string like type! Got "+ type(other).__name__)
+    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes','NoneType']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
     return self.filename != other
   def __gt__(self, other)  :
     """
     Overload gt ">"
     """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: utils.raiseAnError(ValueError,self,"other is not a string like type! Got "+ type(other).__name__)
+    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
     return len(self.filename) > len(str(other))
   def __ge__(self, other)  :
     """
     Overload ge ">"
     """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: utils.raiseAnError(ValueError,self,"other is not a string like type! Got "+ type(other).__name__)
+    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
     return len(self.filename) >= len(str(other))
 
 

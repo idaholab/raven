@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
   <RunInfo>
     <WorkingDir>GridTestRaven</WorkingDir>
     <Files>simple_flow_3eqn.i,
@@ -18,7 +18,6 @@
       <sigma>3</sigma>
       <lowerBound>300</lowerBound>
       <upperBound>320</upperBound>
-      <adjustement>up</adjustement>
     </Normal>
     <Normal name='ANormalDistribution'>
       <mean>-4</mean>

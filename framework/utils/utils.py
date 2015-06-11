@@ -13,6 +13,9 @@ import inspect
 
 class Object(object):pass
 
+#custom errors
+class NoMoreSamplesNeeded(GeneratorExit): pass
+
 def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   """
   Method to check if a path (file or directory) is currently
@@ -25,7 +28,7 @@ def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   import stat
   import time
   mode = os.stat(pathname).st_mode
-  if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)): raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  path '+pathname+ ' is neither a file nor a dir!')
+  if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)): raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  path '+pathname+ ' is neither a file nor a dir!')
   return abs(os.stat(pathname).st_mtime - time.time()) < timelapse
 
 def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
@@ -118,7 +121,7 @@ def convertMultipleToBytes(sizeString):
 
 def stringsThatMeanTrue():
   '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
-  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','etiam', 'evet', 'dogru', '1'])
+  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1'])
 
 def stringsThatMeanFalse():
   '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''

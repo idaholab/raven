@@ -167,10 +167,10 @@ XML node and the requirements for other attributes change:
     to control this sampler's convergence criterion.
 }
 
-\newcommand{\assemblerDescription} %%NOTE this only applies to the adaptive sampler.  Why is it a newcommand? %%
+\newcommand{\assemblerDescription}[1] %%NOTE this only applies to the adaptive sampler.  Why is it a newcommand? %%
 {
   \textbf{Assembler Objects} These objects are either required or optional
-    depending on the functionality of the Adaptive Sampler.
+    depending on the functionality of the #1 Sampler.
     %
     The objects must be listed with a rigorous syntax that, except for the XML
     node tag, is common among all the objects.
@@ -187,65 +187,27 @@ XML node and the requirements for other attributes change:
         %
         For example, it can be \xmlString{ROM}, \xmlString{External}, etc.
     \end{itemize}
-    The \textbf{Adaptive Sampler} approach requires or optionally accepts the
+    The \textbf{#1} approach requires or optionally accepts the
     following object types:
-    \begin{itemize}
-      \item \xmlNode{Function}, \xmlDesc{string, required field},  the
-        body of this XML block needs to contain the name of an external 
-        function object defined within the \xmlNode{Functions} main block (see 
-        Section~\ref{sec:functions}).
-        %
-        This object represents the boolean function that defines the transition
-        boundaries.
-        %
-        This function must implement a method called
-        \texttt{\_\_residuumSign(self)}, that returns either -1 or 1, depending
-        on the system conditions (see Section \ref{sec:functions}.
-      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
-        body of this XML node must contain the name of a ROM defined in the
-        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM 
-        here specified is going to be used as ``acceleration model'' to speed up the 
-        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM 
-        input block (within the \xmlNode{Models} section) needs to match the name of the goal
-        \xmlNode{Function} (e.g. if the goal function is named ``transitionIdentifier'', the \xmlNode{Target} of the
-        ROM needs to report the same name: \xmlNode{Target}\textbf{transitionIdentifier}\xmlNode{Target}).
-      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field}, 
-        represents the container where the system evaluations are stored.
-        %
-        From a practical point of view, this XML node must contain the name of
-        a data object defined in the \xmlNode{DataObjects} block (see
-        Section~\ref{sec:DataObjects}).
-        %
-        The adaptive sampling accepts ``DataObjects'' of type ``TimePoint'' and
-        ``TimePointSet'' only.
-    \end{itemize}
+
 }
-\newcommand{\assemblerROMDescription}[1]
+\newcommand{\ROMDescription}[1]
 {
-  \textbf{Assembler Objects} These objects are either required or optional
-    depending on the functionality of the #1 sampler.
-    %
-    The objects must be listed with a rigorous syntax that, except for the XML
-    node tag, is common among all the objects.
-    %
-    Each of these nodes must contain 2 attributes that are used to map them
-    within the simulation framework:
-    \begin{itemize}
-      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
-        ``class'' of the listed object.
-        %
-        For example, it can be \xmlString{Models}, \xmlString{Functions}, etc.
-      \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
-        identifier or sub-type.
-        %
-        For example, it can be \xmlString{ROM}, \xmlString{External}, etc.
-    \end{itemize}
-    The \textbf{#1 sampler} requires  the
-    following object types:
     \begin{itemize}
       \item \xmlNode{ROM}, \xmlDesc{string, required field}, the
         body of this XML node must contain the name of an appropriate ROM defined in the
         \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}).
+    \end{itemize}
+}
+
+\newcommand{\restartDescription}[1]
+{
+    \begin{itemize}
+      \item \xmlNode{Restart}, \xmlDesc{string, optional field}, the
+        body of this XML node must contain the name of an appropriate \textbf{TimePointSet} defined in the
+        \xmlNode{DataObjects} block (see Section~\ref{subsec:models_ROM}).  It is used as a
+        ``restart'' tool, where it accepts pre-existing solutions in the TimePointSet instead
+        of recalculating solutions.
     \end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -341,6 +303,7 @@ are available:
 \item \textbf{Stratified}
 \item \textbf{Grid Based}
 \item \textbf{Sparse Grid Collocation}
+\item \textbf{Sobol Decomposition}
 \item \textbf{Response Surface Design of Experiment}
 \item \textbf{Factorial Design of Experiment}
 \end{itemize}
@@ -357,7 +320,7 @@ the different sampling methodologies are reported.
 The \textbf{Monte-Carlo} sampling approach is one of the most well-known and
 widely used approaches to perform exploration of the input space.
 %
-The main idea behind MonteCarlo sampling is to  randomly perturbate of the input space according
+The main idea behind MonteCarlo sampling is to  randomly perturbate the input space according
 to uniform or parameter-based probability density functions.
 %
 
@@ -376,29 +339,14 @@ to uniform or parameter-based probability density functions.
 
 In the \textbf{MonteCarlo} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
 \begin{itemize}
-\item $<sampler\textunderscore init>$, xml node, required parameter. In this xml-node,the following xml-nodes need to be specified:
+\item \xmlNode{sampler\textunderscore init},  \textit{\textbf{XML node, required parameter}}. In this xml-node,the following xml sub-nodes need to be specified:
   \begin{itemize}
-    \item \textbf{limit}, \textit{required string attribute}, number of MonteCarlo samples needs to be generated; 
-    \item \textbf{initial\textunderscore seed}, \textit{optional integer attribute}, initial seeding of random number generator
-    \item \textbf{reseed\_at\_each\_iteration}, \textit{optional boolean/string attribute (case insensitive)}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \textit{Default = False}; 
-    \item \textbf{dist\textunderscore init}, \textit{optional xml node}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}). 
+    \item \xmlNode{limit}, \textit{\textbf{integer,required field}}, number of MonteCarlo samples needs to be generated; 
+    \item \xmlNode{initial\textunderscore seed}, \textit{\textbf{integer, optional field}}, initial seeding of random number generator
+    \item \xmlNode{reseed\_at\_each\_iteration},  \textit{\textbf{boolean/string(case insensitive), optional field}}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \default{False}; 
+    \item \xmlNode{dist\textunderscore init},  \textit{\textbf{integer, optional field}}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}). 
   \end{itemize}
-\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
-% =======
-% \item \nameDescription
-% \item \xmlAttr{limit}, \xmlDesc{required integer attribute}, number of
-%   Monte-Carlo samples to be generate.
-% \item \xmlAttr{initial\_seed}, \xmlDesc{optional integer attribute}, initial
-%   seeding of random number generator.
-%   \default{random seed}.
-% \item \xmlAttr{reseedAtEachIteration}, \xmlDesc{optional boolean/string
-%   attribute}, perform a re-seeding for each sample generated
-%   (True values = True, yes, y, t).
-%   \default{False}.
-% \end{itemize}
-% \vspace{-5mm}
-% \variableIntro{MonteCarlo}
-% >>>>>>> origin/devel
+\end{itemize}
 \begin{itemize}
 \item \variableDescription
  \variableChildIntro
@@ -406,7 +354,10 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
     \item \distributionDescription
   \end{itemize}
 \end{itemize}
-\end{itemize}
+%\end{itemize}
+
+\assemblerDescription{MonteCarlo}
+\restartDescription{MonteCarlo}
 
 Example:
 \begin{lstlisting}[style=XML]
@@ -472,6 +423,9 @@ Regarding the N-dimensional distributions, the user can specify for each dimensi
   \end{itemize}
 \end{itemize}
 
+\assemblerDescription{Grid}
+\restartDescription{Grid}
+
 Example:
 \begin{lstlisting}[style=XML,morekeywords={construction,steps,lowerBound,upperBound}]
 <Samplers>
@@ -522,6 +476,7 @@ Example:
 \itemsep0em
 \item \nameDescription
 \item \xmlAttr{parallel}, \xmlDesc{optional string attribute}, option to disable parallel construction of the sparse grid.  Because of increasing computational expense with increasing input space dimension, RAVEN will default to parallel construction of the sparse grid. %\talbpaul{Is this what we want?} 
+\item \xmlAttr{outfile}, \xmlDesc{optional string attribute}, option to allow the generated sparse grid points and weights to be printed to a file with the given name.
 \default{True}
 \end{itemize}
 \variableIntro{SparseGridCollocation}
@@ -532,21 +487,12 @@ Example:
     \item \distributionDescription
  \end{itemize} \end{itemize}
 Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}).
-\begin{itemize}
 
   % Assembler Objects
-  \item \assemblerROMDescription{SparseGridCollocation}
+  \assemblerDescription{SparseGridCollocation}
+  \ROMDescription{SparseGridCollocation}
+  \restartDescription{SparseGridCollocation}
 
-    The \textbf{SparseGridCollocation} sampler also optionally accepts  the
-    following object types:
-    \begin{itemize}
-      \item \xmlNode{Restart}, \xmlDesc{string, optional field}, the
-        body of this XML node must contain the name of an appropriate \textbf{TimePointSet} defined in the
-        \xmlNode{DataObjects} block (see Section~\ref{subsec:models_ROM}).  It is used as a
-        ``restart'' tool, where it accepts pre-existing solutions in the TimePointSet instead
-        of recalculating solutions.
-    \end{itemize}
-  \end{itemize}
 \footnotesize
 \begin{lstlisting}[style=XML]
 Example:
@@ -586,12 +532,12 @@ The \textbf{Sobol} sampler uses high-density model reduction (HDMR) a.k.a. Sobol
     \item \distributionDescription
  \end{itemize} \end{itemize}
 Because of the tight coupling between the Sobol sampler and the HDMRRom, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, Sobol order, and importance weights to use in each dimension (see \ref{subsubsec:HDMRRom}).  
-\begin{itemize}
 
   % Assembler Objects
-  \item \assemblerROMDescription{Sobol}
+  \assemblerDescription{Sobol}
+  \ROMDescription{Sobol}
+  \restartDescription{Sobol}
 
-\end{itemize}
 \footnotesize
 \begin{lstlisting}[style=XML]
 Example:
@@ -655,6 +601,9 @@ similar to that of the \textbf{Grid} sampler.
 It is important to mention again that for each zone (grid mesh) only a point,
 randomly selected, is picked and not all the nodal combinations (like in the
 \textbf{Grid} sampling).
+
+\assemblerDescription{Stratified}
+\restartDescription{Stratified}
 
 Example:
 \begin{lstlisting}[style=XML,morekeywords={construction,steps,lowerBound,upperBound}]
@@ -1458,8 +1407,37 @@ In addition to the \xmlNode{variable} nodes, the main XML node
   \item \convergenceDescription
 
   % Assembler Objects
-  \item \assemblerDescription
-
+  \item \assemblerDescription{Adaptive}
+    \begin{itemize}
+      \item \xmlNode{Function}, \xmlDesc{string, required field},  the
+        body of this XML block needs to contain the name of an external 
+        function object defined within the \xmlNode{Functions} main block (see 
+        Section~\ref{sec:functions}).
+        %
+        This object represents the boolean function that defines the transition
+        boundaries.
+        %
+        This function must implement a method called
+        \texttt{\_\_residuumSign(self)}, that returns either -1 or 1, depending
+        on the system conditions (see Section \ref{sec:functions}.
+      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
+        body of this XML node must contain the name of a ROM defined in the
+        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM 
+        here specified is going to be used as ``acceleration model'' to speed up the 
+        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM 
+        input block (within the \xmlNode{Models} section) needs to match the name of the goal
+        \xmlNode{Function} (e.g. if the goal function is named ``transitionIdentifier'', the \xmlNode{Target} of the
+        ROM needs to report the same name: \xmlNode{Target}\textbf{transitionIdentifier}\xmlNode{Target}).
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field}, 
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The adaptive sampling accepts ``DataObjects'' of type ``TimePoint'' and
+        ``TimePointSet'' only.
+    \end{itemize}
 \end{itemize}
 
 Example:
@@ -1579,7 +1557,37 @@ sub-nodes:
 \begin{itemize}
   \item \convergenceDescription
   % Assembler Objects
-  \item \assemblerDescription
+  \item \assemblerDescription{AdaptiveDynamicEventTree}
+    \begin{itemize}
+      \item \xmlNode{Function}, \xmlDesc{string, required field},  the
+        body of this XML block needs to contain the name of an external 
+        function object defined within the \xmlNode{Functions} main block (see 
+        Section~\ref{sec:functions}).
+        %
+        This object represents the boolean function that defines the transition
+        boundaries.
+        %
+        This function must implement a method called
+        \texttt{\_\_residuumSign(self)}, that returns either -1 or 1, depending
+        on the system conditions (see Section \ref{sec:functions}.
+      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
+        body of this XML node must contain the name of a ROM defined in the
+        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM 
+        here specified is going to be used as ``acceleration model'' to speed up the 
+        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM 
+        input block (within the \xmlNode{Models} section) needs to match the name of the goal
+        \xmlNode{Function} (e.g. if the goal function is named ``transitionIdentifier'', the \xmlNode{Target} of the
+        ROM needs to report the same name: \xmlNode{Target}\textbf{transitionIdentifier}\xmlNode{Target}).
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field}, 
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The adaptive sampling accepts ``DataObjects'' of type ``TimePoint'' and
+        ``TimePointSet'' only.
+    \end{itemize}
 \end{itemize}
 
 

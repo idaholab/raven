@@ -63,7 +63,7 @@ class SimulationMode(MessageHandler.MessageUser):
     import multiprocessing
     try:
       if multiprocessing.cpu_count() < self.__simulation.runInfoDict['batchSize']:
-        self.raiseAWarning("cpu_count "+str(multiprocessing.cpu_count())+" < batchSize "+str(self.__simulation.runInfoDict['batchSize']))
+        self.raiseAWarning("cpu_count",multiprocessing.cpu_count(),"< batchSize",self.__simulation.runInfoDict['batchSize'])
     except NotImplementedError:
       pass
 
@@ -130,7 +130,7 @@ def createAndRunQSUB(simulation):
              os.path.join(frameworkDir,"raven_qsub_command.py")]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
-  simulation.raiseAMessage(os.getcwd()+' '+command)
+  simulation.raiseAMessage(os.getcwd()+' '+str(command))
   subprocess.call(command)
 
 
@@ -138,7 +138,9 @@ def createAndRunQSUB(simulation):
 
 class MPISimulationMode(SimulationMode):
   def __init__(self,simulation):
+    SimulationMode.__init__(self,simulation)
     self.__simulation = simulation
+    self.messageHandler = simulation.messageHandler
     #Figure out if we are in PBS
     self.__in_pbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
@@ -316,7 +318,7 @@ class Simulation(MessageHandler.MessageUser):
     self.distributionsDict    = {}
     self.dataBasesDict        = {}
     self.functionsDict        = {}
-    self.filesDict            = {} #this is different, for each file rather than an instance it just returns the absolute path of the file
+    self.filesDict            = {} #  for each file returns an instance of a FileObject class
     self.OutStreamManagerPlotDict  = {}
     self.OutStreamManagerPrintDict = {}
     self.stepSequenceList     = [] #the list of step of the simulation
@@ -388,11 +390,8 @@ class Simulation(MessageHandler.MessageUser):
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
-    if 'verbosity' in xmlNode.attrib.keys():
-      if   xmlNode.attrib['verbosity'].strip().lower() in utils.stringsThatMeanSilent()           : self.verbosity = 0
-      elif xmlNode.attrib['verbosity'].strip().lower() in utils.stringsThatMeanPartiallyVerbose() : self.verbosity = 1
-      elif xmlNode.attrib['verbosity'].strip().lower() in utils.stringsThatMeanVerbose()          : self.verbosity = 2
-    else: self.verbosity = 2
+    self.verbosity = xmlNode.attrib['verbosity'] if 'verbosity' in xmlNode.attrib.keys() else 'all'
+    self.messageHandler.verbosity = self.verbosity
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: self.raiseAnError(IOError,'The run info node is mandatory')
     self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
@@ -403,10 +402,7 @@ class Simulation(MessageHandler.MessageUser):
         if len(child.attrib.keys()) == 0: globalAttributes = {}
         else:
           globalAttributes = child.attrib
-          if 'verbosity' in globalAttributes.keys():
-            if   globalAttributes['verbosity'].strip().lower() in utils.stringsThatMeanSilent()           : self.verbosity = 0
-            elif globalAttributes['verbosity'].strip().lower() in utils.stringsThatMeanPartiallyVerbose() : self.verbosity = 1
-            elif globalAttributes['verbosity'].strip().lower() in utils.stringsThatMeanVerbose()          : self.verbosity = 2
+          if 'verbosity' in globalAttributes.keys(): self.verbosity = globalAttributes['verbosity']
         if Class != 'RunInfo':
           for childChild in child:
             subType = childChild.tag
@@ -452,7 +448,7 @@ class Simulation(MessageHandler.MessageUser):
       #This is used to reserve some cores
       self.runInfoDict['totalNumCoresUsed'] = oldTotalNumCoresUsed
     elif oldTotalNumCoresUsed > 1: #If 1, probably just default
-      utils.raiseAWarning(self,"overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
+      self.raiseAWarning("overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
     #transform all files in absolute path
     for key in self.filesDict.keys(): self.__createAbsPath(key)
     #Let the mode handler do any modification here
@@ -489,9 +485,13 @@ class Simulation(MessageHandler.MessageUser):
 
   def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
     '''reads the xml input file for the RunInfo block'''
+    if 'verbosity' in xmlNode.attrib.keys(): self.verbosity = xmlNode.attrib['verbosity']
+    #FIXME temporarily create an error to prevent users from using the 'debug' attribute - remove it by end of June 2015 (Sonat)
+    if 'debug' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'"debug" attribute found, but has been deprecated.  Please change it to "verbosity."  Remove this error by end of June 2015.')
+    self.raiseAMessage('Global verbosity level is "',self.verbosity,'"',verbosity='quiet')
     for element in xmlNode:
       if element.tag in runInfoSkip:
-        utils.raiseAWarning(self,"Skipped element ",element.tag)
+        self.raiseAWarning("Skipped element ",element.tag)
       elif   element.tag == 'WorkingDir'        :
         temp_name = element.text
         if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
@@ -522,7 +522,7 @@ class Simulation(MessageHandler.MessageUser):
         else                                            : self.runInfoDict['delSucLogFiles'    ] = False
       elif element.tag == 'logfileBuffer'      : self.runInfoDict['logfileBuffer'] = utils.convertMultipleToBytes(element.text.lower())
       elif element.tag == 'clusterParameters'  : self.runInfoDict['clusterParameters'] = splitCommand(element.text)
-      elif element.tag == 'mode'              :
+      elif element.tag == 'mode'               :
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
@@ -555,10 +555,10 @@ class Simulation(MessageHandler.MessageUser):
         os.sys.path.append(modeDir)
         module = __import__(modeModulename)
         if modeName in self.__modeHandlerDict:
-          runAWarning(self,"duplicate mode definition",modeName)
+          self.raiseAWarning("duplicate mode definition " + modeName)
         self.__modeHandlerDict[modeName] = module.__dict__[modeClass]
       else:
-        runAWarning(self,"Unhandled element ",element.tag)
+        self.raiseAWarning("Unhandled element "+element.tag)
 
   def printDicts(self):
     '''utility function capable to print a summary of the dictionaries'''
@@ -594,6 +594,7 @@ class Simulation(MessageHandler.MessageUser):
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:
       stepInstance                     = self.stepsDict[stepName]   #retrieve the instance of the step
+      self.raiseAMessage('')
       self.raiseAMessage('-'*2+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')
       self.runInfoDict['stepName']     = stepName                   #provide the name of the step to runInfoDict
       stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!!
@@ -620,6 +621,7 @@ class Simulation(MessageHandler.MessageUser):
             neededobjs    = {}
             neededObjects = stp.whatDoINeed()
             for mainClassStr in neededObjects.keys():
+              #FIXME I don't know that this always returns a useful error.  In my case it gave me a ROM name for the stp and 'Model' for mainClassStr
               if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal': self.raiseAnError(IOError,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
               neededobjs[mainClassStr] = {}
               for obj in neededObjects[mainClassStr]:

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity='debug'>
 <RunInfo>
     <WorkingDir>mpi_driver_test</WorkingDir>
     <Files>simple_flow_3eqn.i,simple_flow_3eqn_control.py</Files>
@@ -27,29 +27,23 @@
         <sigma>0.001</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
     </Normal>
     <Normal name='auxBackUpTimeDist'>
         <mean>1</mean>
         <sigma>0.001</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
     </Normal>    
     <Normal name='Gauss2'>
         <mean>1</mean>
         <sigma>0.4</sigma>
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
-        <adjustement>scaling</adjustement>
     </Normal>
     <Triangular name='CladFailureDist'>
         <apex>1</apex>
         <min>-0.1</min>
         <max>3</max>
-<!--         <lowerBound>0</lowerBound> This is not yet supported
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement>  -->
     </Triangular>
 </Distributions>
 
