@@ -1202,7 +1202,7 @@ class BasicStatistics(BasePostProcessor):
         for myIndex, targetP in enumerate(parameterSet):
           outputDict[what][targetP] = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights))
           if (outputDict[what][targetP] == 0):
-            self.raiseAWarning('The variable: ' + targetP + ' is not sampled! Please check your input in PP: ' + self.name)
+            self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
             outputDict[what][targetP] = np.Infinity
       # variance
       if what == 'variance':
@@ -1225,7 +1225,7 @@ class BasicStatistics(BasePostProcessor):
           if pbPresent:
             sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights))
             if (sigma == 0):
-              self.raiseAWarning('The variable: ' + targetP + ' is not sampled! Please check your input in PP: ' + self.name)
+              self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
               sigma = np.Infinity
             outputDict[what][targetP] = np.average(((Input['targets'][targetP] - expValues[myIndex]) ** 4), weights = pbweights) / sigma ** 4
           else:
@@ -1234,7 +1234,7 @@ class BasicStatistics(BasePostProcessor):
               N[myIndex] = no.Infinity
             value = (np.asarray(Input['targets'][targetP]) - expValues[myIndex])
             if not np.any(value):
-              self.raiseAWarning('The variable: ' + targetP + ' is not sampled! Please check your input in PP: ' + self.name)
+              self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
               for i in range(len(value)): value[i] = np.Infinity
             outputDict[what][targetP] = -3.0 + (np.sum(value ** 4) / (N[myIndex] - 1)) / (np.sum(value ** 2) / float(N[myIndex] - 1)) ** 2
       # skewness
@@ -1243,7 +1243,7 @@ class BasicStatistics(BasePostProcessor):
           if pbPresent:
             sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights))
             if (sigma == 0):
-              self.raiseAWarning('The variable: ' + targetP + ' is not sampled! Please check your input in PP: ' + self.name)
+              self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
               sigma = np.Infinity
             outputDict[what][targetP] = np.average((((Input['targets'][targetP] - expValues[myIndex]) / sigma) ** 3), weights = pbweights)
           else:
@@ -1252,7 +1252,7 @@ class BasicStatistics(BasePostProcessor):
               N[myIndex] = np.Infinity
             value = (np.asarray(Input['targets'][targetP]) - expValues[myIndex])
             if not np.any(value):
-              self.raiseAWarning('The variable: ' + targetP + ' is not sampled! Please check your input in PP: ' + self.name)
+              self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
               for i in range(len(value)): value[i] = np.Infinity
             outputDict[what][targetP] = (np.sum(value ** 3) * (N[myIndex] - 1) ** -1) / (np.sum(value ** 2) / float(N[myIndex] - 1)) ** 1.5
       # median
