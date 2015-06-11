@@ -968,12 +968,16 @@ class OutStreamPlot(OutStreamManager):
                     xs[sindex]=self.xValues[pltindex][key][x_index][metricIndeces[sindex]]
                     ys[sindex]=self.yValues[pltindex][key][y_index][metricIndeces[sindex]]
                     zs[sindex]=self.zValues[pltindex][key][z_index][metricIndeces[sindex]]
+                  surfacePlotOptions = {'color': self.options['plotSettings']['plot'][pltindex]['color'],
+                                        'shade':ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade'])}
+                  surfacePlotOptions.update(self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   if self.zValues[pltindex][key][z_index].size <= 3: return
                   if self.colorMapCoordinates[pltindex] != None:
                     if self.actcm: first = False
                     else         : first = True
                     if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
-                    self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, color = self.options['plotSettings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    surfacePlotOptions['cmap'] = self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
+                    self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, **surfacePlotOptions)
                     if first:
                         self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
                         m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
@@ -984,10 +988,9 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
                         self.actcm.draw_all()
                   else:
-                    if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
-                      self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, color = self.options['plotSettings']['plot'][pltindex]['color'],shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
-                    else:
-                      self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, color = self.options['plotSettings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    if self.options['plotSettings']['plot'][pltindex]['cmap'] != 'None':
+                      surfacePlotOptions["cmap"] = self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
+                    self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, **surfacePlotOptions)
       ########################
       #    WIREFRAME  PLOT   #
       ########################
