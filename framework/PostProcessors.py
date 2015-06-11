@@ -3,7 +3,7 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function , unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -27,6 +27,7 @@ import mathUtils
 from Assembler import Assembler
 import SupervisedLearning
 import MessageHandler
+from FileObject import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -1517,7 +1518,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
         for key in metadata: attributes[key] = metadata[key]
       try:                   output.addGroup(attributes, attributes)
       except AttributeError:
-        output.addOutput(os.path.join(self.sourceDirectory, csvFile), attributes)
+        output.addOutput(FileObject(os.path.join(self.sourceDirectory, csvFile)), attributes)
         if metadata:
           for key, value in metadata.items(): output.updateMetadata(key, value, attributes)
 
