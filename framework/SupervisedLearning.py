@@ -466,6 +466,9 @@ class GaussPolynomialRom(NDinterpolatorRom):
              #'PolynomialOrder':self.maxPolyOrder,
              # 'Interpolation':interpolationInfo()}
 
+
+
+
 class HDMRRom(GaussPolynomialRom):
   def __confidenceLocal__(self,edict):pass #TODO
 
@@ -508,14 +511,27 @@ class HDMRRom(GaussPolynomialRom):
           vnode = TreeStructure.Node('total_variance')
           vnode.setText(totvar)
           newnode.appendBranch(vnode)
-          entries=[]
-          for combo,val in pcts.items():
-            entries.append((combo,val))
+          #split into two sets, significant and insignificat
+          entries = []
+          insig = []
+          for combo,sens in pcts.items():
+            if abs(sens)>1e-10:
+              entries.append((combo,sens))
+            else:
+              insig.append((combo,sens))
           entries.sort(key=itemgetter(1),reverse=True)
-          for combo,sens in entries:
-            snode = TreeStructure.Node(str(combo))
-            snode.setText(sens)
+          insig.sort(key=itemgetter(0))
+          def addSensBranch(combo,sens):
+            snode = TreeStructure.Node('variables')
+            svnode = TreeStructure.Node('sensitivity')
+            svnode.setText(sens)
+            snode.appendBranch(svnode)
+            snode.setText(','.join(combo))
             newnode.appendBranch(snode)
+          for combo,sens in entries:
+            addSensBranch(combo,sens)
+          for combo,sens in insig:
+            addSensBranch(combo,sens)
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
           newnode.setText('not found')
