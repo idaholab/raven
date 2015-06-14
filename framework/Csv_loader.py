@@ -118,7 +118,7 @@ class CsvLoader(MessageHandler.MessageUser):
     else:
       self.raiseAnError(IOError,'Type ' + options['type'] + 'unknown')
 
-  def __csvLoaderForTimePoint(self,filein,time,inParam,outParam,inputTs):
+  def __csvLoaderForTimePoint(self,filein,time,inParam,outParam,inputTs,SampledVars=None):
     """
         loader for time point data type
         @ In, filein, file name
@@ -188,7 +188,7 @@ class CsvLoader(MessageHandler.MessageUser):
               else: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     return (inDict,outDict)
 
-  def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam,inputTs):
+  def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam,inputTs,SampledVars=None):
     """
     loader for time point set data type
     @ In, filein, file name
@@ -289,7 +289,7 @@ class CsvLoader(MessageHandler.MessageUser):
       del data
     return (inDict,outDict)
 
-  def __csvLoaderForHistory(self,filein,time,inParam,outParam,inputTs):
+  def __csvLoaderForHistory(self,filein,time,inParam,outParam,inputTs,SampledVars=None):
     """
     loader for history data type
     @ In, filein, file name

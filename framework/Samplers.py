@@ -971,10 +971,22 @@ class Stratified(Grid):
     """
     Grid.localInitialize(self)
     self.limit = (self.pointByVar-1)
-    tempFillingCheck = [[None]*(self.pointByVar-1)]*len(self.axisName) #for all variables
-    for i in range(len(tempFillingCheck)): tempFillingCheck[i] = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
-    self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
-    for i in range(self.pointByVar-1): self.sampledCoordinate[i] = [tempFillingCheck[j][i] for j in range(len(tempFillingCheck))]
+    globGridsCount = {}
+    dimInfo = self.gridEntity.returnParameter("dimInfo")
+    for val in dimInfo.values():
+      if val[-1] != None and val[-1] not in globGridsCount.keys(): globGridsCount[val[-1]] = 0
+      globGridsCount[val[-1]] += 1
+    diff = -sum(globGridsCount.values())+len(globGridsCount.keys())
+    tempFillingCheck = [[None]*(self.pointByVar-1)]*(len(self.gridEntity.returnParameter("dimensionNames"))+diff) #for all variables
+    d = dict.fromkeys(self.axisName, None)
+    self.sampledCoordinate = [d]*(self.pointByVar-1)
+    for i in range(len(tempFillingCheck)): tempFillingCheck[i]  = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
+    for i in range(self.pointByVar-1):
+      point = tempFillingCheck[i]
+      self.sampledCoordinate[i] = []
+
+
+      self.sampledCoordinate[i] = [tempFillingCheck[j][i] for j in range(len(tempFillingCheck))]
     if self.restartData:
       self.counter+=len(self.restartData)
       self.raiseAMessage('Number of points from restart: %i' %self.counter)

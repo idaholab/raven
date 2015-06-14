@@ -77,6 +77,7 @@ def isANumber(x):
   @ Out, bool, True if x can be converted to a float.
   '''
   try:
+    print(x)
     float(x)
     return True
   except ValueError:
@@ -105,6 +106,7 @@ class XMLDiff:
     """
     # read in files
     for out_file in self.__out_files:
+      print(out_file)
       test_filename = os.path.join(self.__test_dir,out_file)
       gold_filename = os.path.join(self.__test_dir, 'gold', out_file)
       if not os.path.exists(test_filename):
