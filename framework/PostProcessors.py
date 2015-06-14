@@ -3,7 +3,7 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function , unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -28,6 +28,7 @@ from Assembler import Assembler
 import SupervisedLearning
 import MessageHandler
 import GridEntities
+from FileObject import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -1061,6 +1062,7 @@ class BasicStatistics(BasePostProcessor):
       if child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
       if child.tag == "biased"       :
           if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
+      assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
 
   def collectOutput(self, finishedjob, output):
     """
@@ -1121,7 +1123,8 @@ class BasicStatistics(BasePostProcessor):
               else                       : basicStatdump.write('matrix' + separator + ''.join([str(item) + separator for item in sampledSet]) + os.linesep)
               for index in range(len(calculatedSet)):
                 if outputextension != 'csv': basicStatdump.write(calculatedSet[index] + ' ' * (maxLength - len(calculatedSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
-                else                       : basicStatdump.write(calculatedSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
+                else                       :
+                  basicStatdump.write(calculatedSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
         if self.externalFunction:
           self.raiseADebug('BasicStatistics postprocessor: writing External Function results')
           basicStatdump.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
@@ -1200,31 +1203,60 @@ class BasicStatistics(BasePostProcessor):
       if what == 'sigma':
         for myIndex, targetP in enumerate(parameterSet):
           outputDict[what][targetP] = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights))
+          if (outputDict[what][targetP] == 0):
+            self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
+            outputDict[what][targetP] = np.Infinity
       # variance
       if what == 'variance':
         for myIndex, targetP in enumerate(parameterSet):
           outputDict[what][targetP] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+          if (outputDict[what][targetP] == 0):
+            self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
+            outputDict[what][targetP] = np.Infinity
       # coefficient of variation (sigma/mu)
       if what == 'variationCoefficient':
         for myIndex, targetP in enumerate(parameterSet):
           sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights))
+          if (outputDict['expectedValue'][targetP] == 0):
+            self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient can not be calculated in PP: ' + self.name)
+            outputDict['expectedValue'][targetP] = np.Infinity
           outputDict[what][targetP] = sigma / outputDict['expectedValue'][targetP]
       # kurtosis
       if what == 'kurtosis':
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent:
-              sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights))
-              outputDict[what][targetP] = np.average(((Input['targets'][targetP] - expValues[myIndex]) ** 4), weights = pbweights) / sigma ** 4
+            sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights))
+            if (sigma == 0):
+              self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
+              sigma = np.Infinity
+            outputDict[what][targetP] = np.average(((Input['targets'][targetP] - expValues[myIndex]) ** 4), weights = pbweights) / sigma ** 4
           else:
-            outputDict[what][targetP] = -3.0 + (np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex]) ** 4) / (N[myIndex] - 1)) / (np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex]) ** 2) / float(N[myIndex] - 1)) ** 2
+            if (N[myIndex] == 1):
+              self.raiseAWarning('The number of samples is 1 for: ' + targetP + '! Please check your input in PP: ' + self.name)
+              N[myIndex] = no.Infinity
+            value = (np.asarray(Input['targets'][targetP]) - expValues[myIndex])
+            if not np.any(value):
+              self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
+              for i in range(len(value)): value[i] = np.Infinity
+            outputDict[what][targetP] = -3.0 + (np.sum(value ** 4) / (N[myIndex] - 1)) / (np.sum(value ** 2) / float(N[myIndex] - 1)) ** 2
       # skewness
       if what == 'skewness':
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent:
             sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights))
+            if (sigma == 0):
+              self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
+              sigma = np.Infinity
             outputDict[what][targetP] = np.average((((Input['targets'][targetP] - expValues[myIndex]) / sigma) ** 3), weights = pbweights)
           else:
-            outputDict[what][targetP] = (np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex]) ** 3) * (N[myIndex] - 1) ** -1) / (np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex]) ** 2) / float(N[myIndex] - 1)) ** 1.5
+            if (N[myIndex] == 1):
+              self.raiseAWarning('The number of samples is 1 for: ' + targetP + '! Please check your input in PP: ' + self.name)
+              N[myIndex] = np.Infinity
+            value = (np.asarray(Input['targets'][targetP]) - expValues[myIndex])
+            if not np.any(value):
+              self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
+              for i in range(len(value)): value[i] = np.Infinity
+            outputDict[what][targetP] = (np.sum(value ** 3) * (N[myIndex] - 1) ** -1) / (np.sum(value ** 2) / float(N[myIndex] - 1)) ** 1.5
       # median
       if what == 'median':
         for targetP in parameterSet: outputDict[what][targetP] = np.median(Input['targets'][targetP])
@@ -1254,11 +1286,24 @@ class BasicStatistics(BasePostProcessor):
           self.SupervisedEngine = {}  # dict of ROM instances (== number of targets => keys are the targets)
           for target in self.calculated:
             self.SupervisedEngine[target] = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'linear_model|LinearRegression',
-                                                                                                     'Features':','.join(self.sampled.keys()),
-                                                                                                     'Target':target})
-            self.SupervisedEngine[target].train(Input['targets'])
-          for myIndex in range(len(self.calculated)):
-            outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
+                                                                                                      'Features':','.join(self.sampled.keys()),
+                                                                                                      'Target':target})
+            var = np.average((Input['targets'][target] - outputDict['expectedValue'][target]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+            if (var == 0):
+              self.raiseAWarning('Sensitivity of a variable (' + target + ') with 0 variance is requested! in PP: ' + self.name)
+            else:
+              self.SupervisedEngine[target].train(Input['targets'])
+          for myIndex in range(len(self.calculated.keys())):
+            if self.SupervisedEngine[self.calculated.keys()[myIndex]].amITrained:
+              outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
+              features = self.sampled.keys()
+              for index in range(len(features)):
+                sigma = np.sqrt(np.average((Input['targets'][features[index]] - expValues[parameterSet.index(features[index])]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights))
+                outputDict[what][myIndex][index] = outputDict[what][myIndex][index] / sigma
+            else:
+              value = np.zeros(len(self.calculated.keys()))
+              for i in range(len(self.calculated.keys())): value[i] = np.Infinity
+              outputDict[what][myIndex] = value
       # VarianceDependentSensitivity matrix
       if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
@@ -1268,6 +1313,9 @@ class BasicStatistics(BasePostProcessor):
         for myIndex, targetP in enumerate(parameterSet):
           variance[myIndex] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
         for myIndex in range(len(parameterSet)):
+          if (variance[myIndex] == 0):
+             self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
+             variance[myIndex] = np.Infinity
           outputDict[what][myIndex] = covMatrix[myIndex, :] / (variance[myIndex])
       # Normalizzate sensitivity matrix: linear regression slopes normalizited by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
@@ -1277,6 +1325,9 @@ class BasicStatistics(BasePostProcessor):
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
           variance[myIndex] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+          if (variance[myIndex] is 0):
+            self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
+            variance[myIndex] = np.Infinity
         for myIndex in range(len(parameterSet)):
           outputDict[what][myIndex] = ((covMatrix[myIndex, :] / variance) * expValues) / expValues[myIndex]
 
@@ -1331,9 +1382,10 @@ class BasicStatistics(BasePostProcessor):
         msg += ' ' * maxLength + '*    I/O   Sensitivity      *' + os.linesep
         msg += ' ' * maxLength + '*****************************' + os.linesep
         msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in self.sampled]) + os.linesep
-        for index in range(len(self.sampled.keys())):
-          variable = self.sampled.keys()[index]
-          msg += self.calculated.keys()[index] + ' ' * (maxLength - len(variable)) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['sensitivity'][index] / outputDict['sigma'][variable]]) + os.linesep
+        sigma = {}
+        for indexCalculated in range(len(self.calculated.keys())):
+#          variable = self.sampled.keys()[indexSampled]
+          msg += self.calculated.keys()[indexCalculated] + ' ' * (maxLength) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['sensitivity'][indexCalculated]]) + os.linesep
 
     if self.externalFunction:
       msg += ' ' * maxLength + '+++++++++++++++++++++++++++++' + os.linesep
@@ -1467,7 +1519,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
         for key in metadata: attributes[key] = metadata[key]
       try:                   output.addGroup(attributes, attributes)
       except AttributeError:
-        output.addOutput(os.path.join(self.sourceDirectory, csvFile), attributes)
+        output.addOutput(FileObject(os.path.join(self.sourceDirectory, csvFile)), attributes)
         if metadata:
           for key, value in metadata.items(): output.updateMetadata(key, value, attributes)
 

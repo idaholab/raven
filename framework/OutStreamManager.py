@@ -20,6 +20,7 @@ import numpy.ma as ma
 import importlib                #it is used in exec code so it might be detected as unused
 import platform
 import os
+import re
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -72,11 +73,6 @@ class OutStreamManager(BaseType):
     @ In, xmlNode    : Xml element node
     @ Out, None
     """
-    #BaseType._readMoreXML(self,xmlNode)
-    #if self.globalAttributes:
-    #  if 'online' in self.globalAttributes.keys():
-    #    if self.globalAttributes['online'].lower() in ['t','true','on']: self.online = True
-    #    else: self.online = False
     if 'overwrite' in xmlNode.attrib.keys():
       if xmlNode.attrib['overwrite'].lower() in ['t','true','on']: self.overwrite = True
       else: self.overwrite = False
@@ -185,17 +181,19 @@ class OutStreamPlot(OutStreamManager):
     elif what == 'y'                : var = self.yCoordinates [where[0]][where[1]]
     elif what == 'z'                : var = self.zCoordinates [where[0]][where[1]]
     elif what == 'colorMap'         : var = self.colorMapCoordinates[where[0]][where[1]]
-    # the variable can contain brackets (when the symbol "|" is present in the variable name),
-    # for example DataName|Input|(RavenAuxiliary|variableName|initial_value)
-    # or it can look like DataName|Input|variableName
-    if var:
-      if '(' in var and ')' in var:
-        if var.count('(') > 1: self.raiseAnError(IOError,'In Plot ' +self.name +'.Only a couple of () is allowed in variable names!!!!!!')
-        result = var.split('|(')[0].split('|')
-        result.append(var.split('(')[1].replace(")", ""))
-      else:  result = var.split('|')
+    # the variable can contain brackets {} (when the symbol "|" is present in the variable name),
+    # for example DataName|Input|{RavenAuxiliary|variableName|initial_value} or it can look like DataName|Input|variableName
+    if var != None:
+      result = [None]*3
+      if   '|input|'  in var.lower(): match = re.search(r"(\|input\|)", var.lower())
+      elif '|output|' in var.lower(): match = re.search(r"(\|output\|)", var.lower())
+      else: self.raiseAnError(IOError, 'In Plot ' +self.name +' for inputted coordinate ' +what + ' the tag "Input" or "Output" (case insensitive) has not been specified (e.g. sourceName|Input|aVariable)!')
+      startLoc, endLoc     = match.start(), match.end()
+      result[0], result[1], result[2] =  var[:startLoc],var[startLoc+1:endLoc-1],var[endLoc:]
+      if '{' in result[-1] and '}' in result[-1]:
+        locLower, locUpper = result[-1].find("{"), result[-1].rfind("}")
+        result[-1] = result[-1][locLower+1:locUpper]
     else: result = None
-    if len(result) != 3: self.raiseAnError(IOError,'In Plot ' +self.name +'.Only three level variables are accepted !!!!!')
     return result
 
   def __readPlotActions(self,snode):
@@ -293,19 +291,27 @@ class OutStreamPlot(OutStreamManager):
           if self.colorMapCoordinates[pltindex] != None: self.colorMapValues[pltindex][cnt] = []
           for i in range(len(self.xCoordinates [pltindex])):
             xsplit = self.__splitVariableNames('x', (pltindex,i))
-            self.xValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(xsplit[1],cnt+1,nodeid='RecontructEnding')[xsplit[2]]))
+            datax = self.sourceData[pltindex].getParam(xsplit[1],cnt+1,nodeid='RecontructEnding')
+            if xsplit[2] not in datax.keys(): self.raiseAnError(IOError,"Parameter "+xsplit[2]+ " not found as " + xsplit[1]+" in DataObject "+ xsplit[0])
+            self.xValues[pltindex][cnt].append(np.asarray(datax[xsplit[2]]))
           if self.yCoordinates :
             for i in range(len(self.yCoordinates [pltindex])):
               ysplit = self.__splitVariableNames('y', (pltindex,i))
-              self.yValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(ysplit[1],cnt+1,nodeid='RecontructEnding')[ysplit[2]]))
+              datay = self.sourceData[pltindex].getParam(ysplit[1],cnt+1,nodeid='RecontructEnding')
+              if ysplit[2] not in datay.keys(): self.raiseAnError(IOError,"Parameter "+ysplit[2]+ " not found as " + ysplit[1]+" in DataObject "+ ysplit[0])
+              self.yValues[pltindex][cnt].append(np.asarray(datay[ysplit[2]]))
           if self.zCoordinates  and self.dim>2:
             for i in range(len(self.zCoordinates [pltindex])):
               zsplit = self.__splitVariableNames('z', (pltindex,i))
-              self.zValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(zsplit[1],cnt+1,nodeid='RecontructEnding')[zsplit[2]]))
+              dataz = self.sourceData[pltindex].getParam(zsplit[1],cnt+1,nodeid='RecontructEnding')
+              if zsplit[2] not in dataz.keys(): self.raiseAnError(IOError,"Parameter "+zsplit[2]+ " not found as " + zsplit[1]+" in DataObject "+ zsplit[0])
+              self.zValues[pltindex][cnt].append(np.asarray(dataz[zsplit[2]]))
           if self.colorMapCoordinates[pltindex] != None:
             for i in range(len(self.colorMapCoordinates[pltindex])):
-              zsplit = self.__splitVariableNames('colorMap', (pltindex,i))
-              self.colorMapValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(zsplit[1],cnt+1,nodeid='RecontructEnding')[zsplit[2]]))
+              colorSplit = self.__splitVariableNames('colorMap', (pltindex,i))
+              dataColor = self.sourceData[pltindex].getParam(colorSplit[1],cnt+1,nodeid='RecontructEnding')
+              if colorSplit[2] not in dataColor.keys(): self.raiseAnError(IOError,"Parameter "+colorSplit[2]+ " not found as " + colorSplit[1]+" in DataObject "+ colorSplit[0])
+              self.colorMapValues[pltindex][cnt].append(np.asarray(dataColor[colorSplit[2]]))
       #check if something has been got or not
       if len(self.xValues[pltindex].keys()) == 0: return False
       else:
@@ -962,12 +968,16 @@ class OutStreamPlot(OutStreamManager):
                     xs[sindex]=self.xValues[pltindex][key][x_index][metricIndeces[sindex]]
                     ys[sindex]=self.yValues[pltindex][key][y_index][metricIndeces[sindex]]
                     zs[sindex]=self.zValues[pltindex][key][z_index][metricIndeces[sindex]]
+                  surfacePlotOptions = {'color': self.options['plotSettings']['plot'][pltindex]['color'],
+                                        'shade':ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade'])}
+                  surfacePlotOptions.update(self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   if self.zValues[pltindex][key][z_index].size <= 3: return
                   if self.colorMapCoordinates[pltindex] != None:
                     if self.actcm: first = False
                     else         : first = True
                     if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
-                    self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, color = self.options['plotSettings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    surfacePlotOptions['cmap'] = self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
+                    self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, **surfacePlotOptions)
                     if first:
                         self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
                         m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
@@ -978,10 +988,9 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
                         self.actcm.draw_all()
                   else:
-                    if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
-                      self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, color = self.options['plotSettings']['plot'][pltindex]['color'],shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
-                    else:
-                      self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, color = self.options['plotSettings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    if self.options['plotSettings']['plot'][pltindex]['cmap'] != 'None':
+                      surfacePlotOptions["cmap"] = self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
+                    self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, **surfacePlotOptions)
       ########################
       #    WIREFRAME  PLOT   #
       ########################

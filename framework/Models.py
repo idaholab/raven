@@ -30,6 +30,7 @@ import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
 import TreeStructure
+from FileObject import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 #class Model(BaseType):
@@ -759,14 +760,15 @@ class Code(Model):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
-    attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
+    attributes={"input_file":self.currentInputFiles,"type":"csv","name":FileObject(os.path.join(self.workingDir,finisishedjob.output+'.csv'))}
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
-    if output.type == 'HDF5': output.addGroup(attributes,attributes)
-    else:
-      output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
+    if output.type == "HDF5"        : output.addGroup(attributes,attributes)
+    elif output.type in ['TimePoint','TimePointSet','History','Histories']:
+      output.addOutput(FileObject(os.path.join(self.workingDir,finisishedjob.output) + ".csv"),attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
+    else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
 #
 #
 #

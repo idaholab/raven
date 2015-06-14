@@ -9,9 +9,10 @@
        u'y': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0', u'x': '"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0', dtype=object)</crowDist><SampledVars>array(u'y': 1.7, u'x': 0.7, u'y': 1.7, u'x': 0.7,
        u'y': 1.7, u'x': 0.7, u'y': 1.7, u'x': 0.7, dtype=object)</SampledVars><ProbabilityWeight>array( 0.1225,  0.1225,  0.1225,  0.1225)</ProbabilityWeight><outfile>array(u'out~gen', u'out~gen', u'out~gen', u'out~gen', 
       dtype='&lt;U7')</outfile><prefix>array('1', '2', '3', '4', 
-      dtype='|S1')</prefix><distributionName>array(u'y': 'yd', u'x': 'xd', u'y': 'yd', u'x': 'xd',
-       u'y': 'yd', u'x': 'xd', u'y': 'yd', u'x': 'xd', dtype=object)</distributionName><distributionType>array(u'y': 'Uniform', u'x': 'Uniform',
+      dtype='|S1')</prefix><PointProbability>array( 1.,  1.,  1.,  1.)</PointProbability><additionalEdits>array(u'input': , u'output': u'', u'input': , u'output': u'',
+       u'input': , u'output': u'', u'input': , u'output': u'', dtype=object)</additionalEdits><distributionType>array(u'y': 'Uniform', u'x': 'Uniform',
        u'y': 'Uniform', u'x': 'Uniform',
        u'y': 'Uniform', u'x': 'Uniform',
-       u'y': 'Uniform', u'x': 'Uniform', dtype=object)</distributionType><SampledVarsPb>array(u'y': 1.0, u'x': 1.0, u'y': 1.0, u'x': 1.0,
-       u'y': 1.0, u'x': 1.0, u'y': 1.0, u'x': 1.0, dtype=object)</SampledVarsPb><PointProbability>array( 1.,  1.,  1.,  1.)</PointProbability></metadata></data>
+       u'y': 'Uniform', u'x': 'Uniform', dtype=object)</distributionType><distributionName>array(u'y': 'yd', u'x': 'xd', u'y': 'yd', u'x': 'xd',
+       u'y': 'yd', u'x': 'xd', u'y': 'yd', u'x': 'xd', dtype=object)</distributionName><SampledVarsPb>array(u'y': 1.0, u'x': 1.0, u'y': 1.0, u'x': 1.0,
+       u'y': 1.0, u'x': 1.0, u'y': 1.0, u'x': 1.0, dtype=object)</SampledVarsPb></metadata></data>
