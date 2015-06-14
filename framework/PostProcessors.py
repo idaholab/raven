@@ -1554,7 +1554,9 @@ class LimitSurface(BasePostProcessor):
     self.gridVectors       = {}
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
-    self.gridEntity        = GridEntities.returnInstance("GridEntity",self)
+    self.gridEntity        = None
+    self.bounds            = None
+    self.transfMethods     = {}
     self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
 
@@ -1592,6 +1594,7 @@ class LimitSurface(BasePostProcessor):
      @ In, initDict, dict, dictionary with initialization options
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.gridEntity = GridEntities.returnInstance("GridEntity",self,self.messageHandler)
     self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
@@ -1613,9 +1616,7 @@ class LimitSurface(BasePostProcessor):
         if param not in inpKeys + outKeys: self.raiseAnError(IOError, 'LimitSurface PostProcessor: The param ' + param + ' not contained in Data ' + self.inputs[self.indexes].name + ' !')
         if param in inpKeys: self.paramType[param] = 'inputs'
         else:                self.paramType[param] = 'outputs'
-    self.gridEntity = GridEntities.returnInstance("GridEntity",self,self.messageHandler)
-
-    if not self.bounds:
+    if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
       for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key)), max(self.inputs[self.indexes].getParam(self.paramType[key],key))
     self.gridEntity.initialize(initDictionary={"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
@@ -1703,7 +1704,6 @@ class LimitSurface(BasePostProcessor):
       self.gridVectors = dictIn["gridVectors"]
       self.gridFromOutside = True
     if "verbosity"       in dictIn.keys(): self.verbosity = dictIn['verbosity']
-    if "debug"           in dictIn.keys(): self.raiseAnError('"debug" attribute found, but has been deprecated.  Please change it to "verbosity."  Remove this error by the end of June 2015.')
 
   def getFunctionValue(self):
     """

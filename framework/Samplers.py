@@ -971,10 +971,25 @@ class Stratified(Grid):
     """
     Grid.localInitialize(self)
     self.limit = (self.pointByVar-1)
-    tempFillingCheck = [[None]*(self.pointByVar-1)]*len(self.axisName) #for all variables
-    for i in range(len(tempFillingCheck)): tempFillingCheck[i] = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
+    globGridsCount = {}
+    dimInfo = self.gridEntity.returnParameter("dimInfo")
+    for val in dimInfo.values():
+      if val[-1] != None and val[-1] not in globGridsCount.keys(): globGridsCount[val[-1]] = 0
+      globGridsCount[val[-1]] += 1
+    diff = -sum(globGridsCount.values())+len(globGridsCount.keys())
+    tempFillingCheck = [[None]*(self.pointByVar-1)]*(len(self.gridEntity.returnParameter("dimensionNames"))+diff) #for all variables
+    
     self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
-    for i in range(self.pointByVar-1): self.sampledCoordinate[i] = [tempFillingCheck[j][i] for j in range(len(tempFillingCheck))]
+    for i in range(len(tempFillingCheck)): tempFillingCheck[i]  = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
+    cnt = 0
+    mappingIdVarName = {}
+    for varName in self.axisName:
+      if varName not in dimInfo.keys(): mappingIdVarName[varName] = cnt
+      else:
+        for addKey,value in dimInfo.items():
+          if value[1] == dimInfo[varName][1] and addKey not in mappingIdVarName.keys(): mappingIdVarName[addKey] = cnt
+      cnt +=1  
+    for nPoint in range(self.pointByVar-1): self.sampledCoordinate[nPoint]= [tempFillingCheck[mappingIdVarName[varName]][nPoint] for varName in self.axisName]
     if self.restartData:
       self.counter+=len(self.restartData)
       self.raiseAMessage('Number of points from restart: %i' %self.counter)

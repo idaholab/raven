@@ -87,11 +87,10 @@ class GridEntity(BaseType):
 #           dimName = child.tag + ':' + gridName
 #         gridInfo[dimName] = gridStruct
       for childChild in child:
-        if childChild.tag == "grid":
-          gridInfo[self.dimName] = self._readGridStructure(childChild,child)
+        if childChild.tag == "grid": gridInfo[self.dimName] = self._readGridStructure(childChild,child)
         if 'dim' in childChild.attrib.keys():
           dimID = str(len(self.gridInitDict['dimensionNames'])+1) if self.dimName == None else self.dimName
-          try              : dimInfo[dimID] = int(childChild.attrib['dim'])
+          try              : dimInfo[dimID] = [int(childChild.attrib['dim']),None]
           except ValueError: self.raiseAnError(ValueError, "can not convert 'dim' attribute in integer!")
 #         if childChild.tag =='grid':
 #           gridStruct, gridName = self._fillGrid(childChild)
@@ -109,18 +108,20 @@ class GridEntity(BaseType):
     for key in gridInfo.keys():
       if gridInfo[key][0].strip() == 'global_grid':
         if gridInfo[key][-1].strip() not in globalGrids.keys(): self.raiseAnError(IOError,'global grid for dimension named '+key+'has not been found!')
-        if key in dimInfo.keys():
-          if dimInfo[key] != 1: 
-            self.gridInitDict['dimensionNames'].pop(self.gridInitDict['dimensionNames'].index(key))
-            #gridInfo.pop(key)
-            continue
+        if key in dimInfo.keys(): dimInfo[key][-1] = gridInfo[key][-1].strip()
         gridInfo[key] = globalGrids[gridInfo[key][-1].strip()]
+        #  if dimInfo[key] != 1:
+        #    self.gridInitDict['dimensionNames'].pop(self.gridInitDict['dimensionNames'].index(key))
+        #    #gridInfo.pop(key)
+        #    gridInfo[key] = globalGrids[gridInfo[key][-1].strip()]
+        #    continue
       self.gridInitDict['lowerBounds'           ][key] = min(gridInfo[key][-1])
       self.gridInitDict['upperBounds'           ][key] = max(gridInfo[key][-1])
       self.gridInitDict['stepLenght'            ][key] = [round(gridInfo[key][-1][k+1] - gridInfo[key][-1][k],14) for k in range(len(gridInfo[key][-1])-1)] if gridInfo[key][1] == 'custom' else [round(gridInfo[key][-1][1] - gridInfo[key][-1][0],14)]
     self.gridContainer['gridInfo'               ]      = gridInfo
-  
-  def _readGridStructure(self,child,parent):    
+    self.gridContainer['dimInfo'] = dimInfo
+
+  def _readGridStructure(self,child,parent):
     if child.tag =='grid':
       gridStruct, gridName = self._fillGrid(child)
       if self.dimName == None: self.dimName = str(len(self.gridInitDict['dimensionNames'])+1)
@@ -128,7 +129,7 @@ class GridEntity(BaseType):
       else:
         if gridName == None: self.raiseAnError(IOError,'grid defined in global_grid block must have the attribute "name"!')
         self.dimName = parent.tag + ':' + gridName
-      return gridStruct  
+      return gridStruct
 
   def _fillGrid(self,child):
     constrType = None
@@ -204,8 +205,7 @@ class GridEntity(BaseType):
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
       if len(stepLenght[varId]) == 1:
         # equally spaced or volumetriRatio. (the substruction of stepLenght*10e-3 is only to avoid that for roundoff error, the dummy upperbound is included in the mesh)
-        ggg = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName],stepLenght[varId][-1])
-        self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName],stepLenght[varId][-1]),np.atleast_1d(self.gridContainer['bounds']["upperBounds" ][varName])))
+        self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName]-self.gridContainer['bounds']["upperBounds" ][varName]*1.e-3,stepLenght[varId][-1]),np.atleast_1d(self.gridContainer['bounds']["upperBounds" ][varName])))
       else:
         # custom grid
         # it is not very efficient, but this approach is only for custom grids => limited number of discretizations
