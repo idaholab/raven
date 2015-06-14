@@ -759,7 +759,6 @@ class Code(Model):
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
-    # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":FileObject(os.path.join(self.workingDir,finisishedjob.output+'.csv'))}
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
