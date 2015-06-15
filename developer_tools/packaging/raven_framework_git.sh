@@ -26,6 +26,7 @@ git checkout $RAVEN_BRANCH -- developer_tools/py3_raven_libs_script.sh
 git checkout $RAVEN_BRANCH -- developer_tools/backend_raven_libs_script.sh
 git checkout $RAVEN_BRANCH -- tests/framework
 git checkout $RAVEN_BRANCH -- run_tests
+git checkout $RAVEN_BRANCH -- run_framework_tests
 git checkout $RAVEN_BRANCH -- scripts
 git checkout $RAVEN_BRANCH -- doc/user_manual
 git checkout $RAVEN_BRANCH -- raven_framework

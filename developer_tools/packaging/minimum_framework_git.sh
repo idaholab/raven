@@ -24,6 +24,7 @@ git checkout $RAVEN_BRANCH -- framework
 git checkout $RAVEN_BRANCH -- README.txt
 git checkout $RAVEN_BRANCH -- tests/framework
 git checkout $RAVEN_BRANCH -- run_tests
+git checkout $RAVEN_BRANCH -- run_framework_tests
 git checkout $RAVEN_BRANCH -- scripts/TestHarness
 git checkout $RAVEN_BRANCH -- doc/user_manual
 git checkout $RAVEN_BRANCH -- raven_framework
