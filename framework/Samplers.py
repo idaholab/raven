@@ -534,25 +534,27 @@ class AdaptiveSampler(Sampler):
         bounds["lowerBounds"][varName], bounds["upperBounds"][varName] = 0.0, 1.0
         transformMethod[varName] = self.distDict[varName]
     #moving forward building all the information set
-    pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
-    #building the grid point coordinates
-    gridVectorsForLS = {}
-    for varId, varName in enumerate(self.distDict.keys()):
-      self.axisName.append(varName)
-      [myStepLength, start, end]  = stepParam(varName)
-      start                      += 0.5*myStepLength
-      if self.toleranceWeight=='cdf'     : self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLength)])
-      elif self.toleranceWeight=='value' : self.gridVectors[varName] = np.arange(start,end,myStepLength)
-      pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
-      gridVectorsForLS[varName.replace('<distribution>','')] = self.gridVectors[varName]
-    self.oldTestMatrix            = np.zeros(tuple(pointByVar))
+#    pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
+#     #building the grid point coordinates
+#     gridVectorsForLS = {}
+#     for varId, varName in enumerate(self.distDict.keys()):
+#       self.axisName.append(varName)
+#       [myStepLength, start, end]  = stepParam(varName)
+#       start                      += 0.5*myStepLength
+#       if self.toleranceWeight=='cdf'     : self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLength)])
+#       elif self.toleranceWeight=='value' : self.gridVectors[varName] = np.arange(start,end,myStepLength)
+#       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
+#       gridVectorsForLS[varName.replace('<distribution>','')] = self.gridVectors[varName]
+#     self.oldTestMatrix            = np.zeros(tuple(pointByVar))
+    self.axisName = self.distDict.keys()
+    self.axisName.sort()
     # initialize LimitSurface PP
-    self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.distDict.keys()],"tolerance":self.subGridTol,"side":"both","gridVectors":gridVectorsForLS,"transformationMethods":transformMethod,"bounds":bounds})
+    self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.axisName],"tolerance":self.subGridTol,"side":"both","transformationMethods":transformMethod,"bounds":bounds})
     self.limitSurfacePP.assemblerDict = self.assemblerDict
     self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{})
-    self.persistenceMatrix        = np.zeros(tuple(pointByVar))      #matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
-    self.oldTestMatrix            = np.zeros(tuple(pointByVar))      #swap matrix fro convergence test
+    self.persistenceMatrix        = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #matrix that for each point of the testing grid tracks the persistence of the limit surface position
+    self.testGridLenght           = np.prod (self.limitSurfacePP.getTestMatrix().shape) #total number of point on the grid
+    self.oldTestMatrix            = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #swap matrix fro convergence test
     self.hangingPoints            = np.ndarray((0, self.nVar))
     self.raiseADebug('Initialization done')
 
@@ -988,7 +990,8 @@ class Stratified(Grid):
       else:
         for addKey,value in dimInfo.items():
           if value[1] == dimInfo[varName][1] and addKey not in mappingIdVarName.keys(): mappingIdVarName[addKey] = cnt
-      cnt +=1  
+      if len(mappingIdVarName.keys()) == len(self.axisName): break
+      cnt +=1
     for nPoint in range(self.pointByVar-1): self.sampledCoordinate[nPoint]= [tempFillingCheck[mappingIdVarName[varName]][nPoint] for varName in self.axisName]
     if self.restartData:
       self.counter+=len(self.restartData)
