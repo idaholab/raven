@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation verbosity='debug'>
+  <RunInfo>
+    <WorkingDir>GridTestRaven</WorkingDir>
+    <Files>simple_flow_3eqn.i,
+    simple_flow_3eqn_control.py</Files>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
+  </Models>
+
+  <Distributions>
+    <Normal name='Gauss1'>
+      <mean>310</mean>
+      <sigma>3</sigma>
+      <lowerBound>300</lowerBound>
+      <upperBound>320</upperBound>
+    </Normal>
+    <Normal name='ANormalDistribution'>
+      <mean>-4</mean>
+      <sigma>2</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Grid name='myGrid'>
+      <sampler_init>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
+      <variable name='Components|pipe|Tw'>
+        <distribution >Gauss1</distribution>
+        <grid type='value' construction='equal' lowerBound='300' steps='1'>3</grid>
+      </variable>
+      <Distribution name='Dummy1'>
+        <distribution >ANormalDistribution</distribution>
+        <grid type='CDF' construction='equal' upperBound='0.9' steps='2'>0.01</grid>
+      </Distribution>
+    </Grid>
+  </Samplers>
+  <Steps>
+    <MultiRun name='FirstMRun'>
+      <Input      class='Files'      type=''          >simple_flow_3eqn.i</Input>
+      <Input      class='Files'      type=''          >simple_flow_3eqn_control.py</Input>
+      <Model      class='Models'     type='Code'      >MyRAVEN</Model>
+      <Sampler    class='Samplers'   type='Grid'>myGrid</Sampler>
+      <Output     class='Databases'  type='HDF5'      >testGridRavenDatabase</Output>
+      <Output     class='DataObjects'      type='Histories' >stories</Output>
+      <Output  class='DataObjects'     type='TimePointSet'>outGrid</Output>
+      <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
+    </MultiRun >
+  </Steps>
+  <Databases>
+    <HDF5 name="testGridRavenDatabase"/> 
+  </Databases>
+  <OutStreamManager>
+    <Print name='outGrid_dump'>
+        <type>csv</type>
+        <source>outGrid</source>
+    </Print>
+  </OutStreamManager>
+  <DataObjects>
+    <TimePointSet name='outGrid' time="0.0012345">
+      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </TimePointSet>
+    
+    <Histories name='stories'>
+      <Input>pipe_Area,pipe_Dh</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </Histories>
+  </DataObjects>
+</Simulation>
+
+
+

@@ -1,9 +1,9 @@
-'''
+"""
 Created on Feb 7, 2013
 @author: alfoa
 This python module performs the loading of
 data from csv files
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -24,9 +24,9 @@ import MessageHandler
 
 class CsvLoader(MessageHandler.MessageUser):
   def __init__(self,messageHandler):
-    '''
+    """
     Constructor
-    '''
+    """
     self.all_out_param      = False # all output parameters?
     self.field_names        = []    #
     self.all_field_names    = []
@@ -35,7 +35,7 @@ class CsvLoader(MessageHandler.MessageUser):
     self.messageHandler     = messageHandler
 
   def loadCsvFile(self,filein):
-    '''
+    """
     Function to load a csv file into a numpy array (2D)
     It also retrieves the headers
     The format of the csv must be:
@@ -45,7 +45,7 @@ class CsvLoader(MessageHandler.MessageUser):
     FLOAT ,FLOAT ,FLOAT ,FLOAT
     @ In, filein, string -> Input file name (absolute path)
     @ Out, data, numpy.ndarray -> the loaded data
-    '''
+    """
     # open file
     myFile = open (filein,'rb')
     # read the field names
@@ -59,59 +59,35 @@ class CsvLoader(MessageHandler.MessageUser):
     return data
 
   def getFieldNames(self):
-    '''
+    """
     @ In, None
     @ Out, field_names, list -> field names' list
     Function to get actual field names (desired output parameter keywords)
-    '''
+    """
     return self.field_names
 
   def getAllFieldNames(self):
-    '''
+    """
     Function to get all field names found in the csv file
     @ In, None
     @ Out, all_field_names, list -> list of field names (headers)
-    '''
+    """
     return self.all_field_names
 
-#   def parseFilesToGrepDimensions(self,filesin):
-#     '''
-#     Function to grep max dimensions in multiple csv files
-#     @ In, filesin, csv files list
-#     @ Out, None
-#     filesin        = file names
-#     NtimeSteps     = maxNumberOfTs
-#     maxNumOfParams = max number of parameters
-#     NSamples       = number of Samples
-#     '''
-#     NSamples       = len(filesin)
-#     maxNumOfParams = 0
-#     NtimeSteps     = 0
-#     for i in range(filesin):
-#       with open(filesin[i],'rb') as f:
-#         reader = csv.DictReader(f)
-#         #reader.next #XXX This line does nothing
-#         if(len(reader.fieldnames) > maxNumOfParams): maxNumOfParams = len(reader.fieldnames)
-#         countTimeSteps = 1
-#         for _ in reader: countTimeSteps = countTimeSteps + 1
-#         if(countTimeSteps>NtimeSteps): NtimeSteps = countTimeSteps
-#     return (NtimeSteps,maxNumOfParams,NSamples)
-
   def csvLoadData(self,filein,options):
-    '''
+    """
     General interface function to call the private methods for loading the different dataObjects!
     @ In, filein, csv file name
     @ In, options, dictionary of options
-    '''
-    SampledVars = options['SampledVars'] if 'SampledVars' in options.keys() else None
-    if   options['type'] == 'TimePoint':    return self.__csvLoaderForTimePoint(filein[0],options['time'],options['inParam'],options['outParam'],options['inputTs'],SampledVars)
-    elif options['type'] == 'TimePointSet': return self.__csvLoaderForTimePointSet(filein,options['time'],options['inParam'],options['outParam'],options['inputTs'],SampledVars)
-    elif options['type'] == 'History':      return self.__csvLoaderForHistory(filein[0],options['time'],options['inParam'],options['outParam'],options['inputTs'],SampledVars)
+    """
+    if   options['type'] == 'TimePoint':    return self.__csvLoaderForTimePoint(filein[0],options)
+    elif options['type'] == 'TimePointSet': return self.__csvLoaderForTimePointSet(filein,options)
+    elif options['type'] == 'History':      return self.__csvLoaderForHistory(filein[0],options)
     elif options['type'] == 'Histories':
       listhist_in  = {}
       listhist_out = {}
       for index in xrange(len(filein)):
-        tupleVar = self.__csvLoaderForHistory(filein[index],options['time'],options['inParam'],options['outParam'],options['inputTs'],SampledVars)
+        tupleVar = self.__csvLoaderForHistory(filein[index],options)
         # dictionary of dictionary key = i => ith history ParameterValues dictionary
         listhist_in[index]  = tupleVar[0]
         listhist_out[index] = tupleVar[1]
@@ -120,19 +96,22 @@ class CsvLoader(MessageHandler.MessageUser):
     else:
       self.raiseAnError(IOError,'Type ' + options['type'] + 'unknown')
 
-  def __csvLoaderForTimePoint(self,filein,time,inParam,outParam,inputTs,SampledVars=None):
-    '''
+  def __csvLoaderForTimePoint(self,filein,options):
+    """
     loader for time point data type
     @ In, filein, file name
-    @ In, time, time
-    @ In, inParam, input Parameters
-    @ In, outParam, output Parameters
-    @ In, inputTs, time-step from which the input parameters need to be taken
-    @ In, SampledVars, optional, dictionary of input parameters. The code is going to
+    @ In, options, dictionary of options:
+          time, time
+          inParam, input Parameters
+          outParam, output Parameters
+          inputTs, time-step from which the input parameters need to be taken
+          SampledVars, optional, dictionary of input parameters. The code is going to
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
-    '''
+    """
     #load the data into the numpy array
+    inParam, outParam = options['inParam'], options['outParam']
+    inputTs = options['inputTs'] if 'inputTs' in options.keys() else None
     data = self.loadCsvFile(filein)
     if 'all' in outParam: self.all_out_param  = True
     else                : self.all_out_param = False
@@ -190,18 +169,19 @@ class CsvLoader(MessageHandler.MessageUser):
               else: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     return (inDict,outDict)
 
-  def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam,inputTs,SampledVars=None):
-    '''
+  def __csvLoaderForTimePointSet(self,filesin,options):
+    """
     loader for time point set data type
     @ In, filein, file name
-    @ In, time, time
-    @ In, inParam, input Parameters
-    @ In, outParam, output Parameters
-    @ In, inputTs, time-step from which the input parameters need to be taken
-    @ In, SampledVars, optional, dictionary of input parameters. The code is going to
+    @ In, options, dictionary of options:
+          time, time
+          inParam, input Parameters
+          outParam, output Parameters
+          inputTs, time-step from which the input parameters need to be taken
+          SampledVars, optional, dictionary of input parameters. The code is going to
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
-    '''
+    """
     if 'all' in outParam:
       self.all_out_param  = True
     else:
@@ -291,18 +271,19 @@ class CsvLoader(MessageHandler.MessageUser):
       del data
     return (inDict,outDict)
 
-  def __csvLoaderForHistory(self,filein,time,inParam,outParam,inputTs,SampledVars=None):
-    '''
+  def __csvLoaderForHistory(self,filein,options):
+    """
     loader for history data type
     @ In, filein, file name
-    @ In, time, time
-    @ In, inParam, input Parameters
-    @ In, outParam, output Parameters
-    @ In, inputTs, time-step from which the input parameters need to be taken
-    @ In, SampledVars, optional, dictionary of input parameters. The code is going to
+    @ In, options, dictionary of options:
+          time, time
+          inParam, input Parameters
+          outParam, output Parameters
+          inputTs, time-step from which the input parameters need to be taken
+          SampledVars, optional, dictionary of input parameters. The code is going to
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
-    '''
+    """
     #load the data into the numpy array
     data = self.loadCsvFile(filein)
 

@@ -50,6 +50,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataContainer                  = {'inputs':{},'outputs':{}} # Dict that contains the actual data. self._dataContainer['inputs'] contains the input space, self._dataContainer['output'] the output space
     self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
     self.metaExclXml                     = ['probability']            # list of metadata keys that are excluded from xml outputter, and included in the CSV one
+    self.acceptHierarchy                 = False                      # flag to tell if a sub-type accepts hierarchy
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
     self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
     # This is a list of metadata types that are CSV-compatible...we build the list this way to catch when a python implementation doesn't
@@ -74,16 +75,15 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataParameters['inParam']  = list(inp.strip() for inp in xmlNode.find('Input' ).text.strip().split(','))
     self._dataParameters['outParam'] = list(out.strip() for out in xmlNode.find('Output').text.strip().split(','))
     #test for keywords not allowed
-    if len(set(self._dataParameters['inParam'])&set(self.notAllowedInputs))!=0:
-      self.raiseAnError(IOError,'the keyword '+str(set(self._dataParameters['inParam'])&set(self.notAllowedInputs))+' is not allowed among inputs')
-
-    if len(set(self._dataParameters['outParam'])&set(self.notAllowedOutputs))!=0:
-      self.raiseAnError(IOError,'the keyword '+str(set(self._dataParameters['outParam'])&set(self.notAllowedOutputs))+' is not allowed among inputs')
-
+    if len(set(self._dataParameters['inParam'])&set(self.notAllowedInputs))!=0  : self.raiseAnError(IOError,'the keyword '+str(set(self._dataParameters['inParam'])&set(self.notAllowedInputs))+' is not allowed among inputs')
+    if len(set(self._dataParameters['outParam'])&set(self.notAllowedOutputs))!=0: self.raiseAnError(IOError,'the keyword '+str(set(self._dataParameters['outParam'])&set(self.notAllowedOutputs))+' is not allowed among inputs')
     #test for same input/output variables name
-    if len(set(self._dataParameters['inParam'])&set(self._dataParameters['outParam']))!=0:
-      self.raiseAnError(IOError,'It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
-    #
+    if len(set(self._dataParameters['inParam'])&set(self._dataParameters['outParam']))!=0: self.raiseAnError(IOError,'It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
+    optionsData = xmlNode.find('options')
+    if optionsData != None:
+      for child in optionsData:
+        self._dataParameters[child.tag] = child.text
+    
     # retrieve history name if present
     try:   self._dataParameters['history'] = xmlNode.attrib['historyName']
     except KeyError:self._dataParameters['history'] = None
@@ -114,6 +114,14 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self.TSData = None
         self.rootToBranch = {}
     else: self._dataParameters['hierarchical'] = False
+  
+  def _specializedInputCheck(self):
+    """
+    Function to check the input parameters that have been read for each DataObject subtype
+    @ In, None
+    @ Out, None
+    """
+    pass
 
   def addInitParams(self,tempDict):
     """
@@ -218,12 +226,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     pass
 
-  @abc.abstractmethod
   def acceptHierarchical(self):
     """
       This function returns a boolean. True if the specialized Data accepts the hierarchical structure
     """
-    pass
+    return self.acceptHierarchy
 
   def __getVariablesToPrint(self,var,inOrOut):
     """
@@ -765,10 +772,9 @@ class TimePoint(Data):
   '''
   TimePoint is an object that stores a set of inputs and outputs for a particular point in time!
   '''
-  def acceptHierarchical(self):
-    ''' Overwritten from baseclass'''
-    return False
-
+  def _specializedInputCheck(self):
+    pass
+  
   def addSpecializedReadingSettings(self):
     '''
       This function adds in the dataParameters dict the options needed for reading and constructing this class
@@ -918,14 +924,20 @@ class TimePoint(Data):
     if varID!=None or stepID!=None: self.raiseAnError(RuntimeError,'seeking to extract a slice from a TimePoint type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':exec ('return '+varTyp+'(self.getParam(inOutType,varName)[0])')
     else: return self.getParam(inOutType,varName)
-
+#
+#
+#
+#
 class TimePointSet(Data):
   '''
   TimePointSet is an object that stores multiple sets of inputs and outputs for a particular point in time!
   '''
-  def acceptHierarchical(self):
-    ''' Overwritten from baseclass'''
-    return True
+  def __init__(self):
+    Data.__init__(self)
+    self.acceptHierarchy = True
+
+  def _specializedInputCheck(self):
+    pass
 
   def addSpecializedReadingSettings(self):
     '''
@@ -1254,7 +1266,6 @@ class TimePointSet(Data):
     for key in xmlData["outKeys"]:
       self._dataContainer["outputs"][key] = np.array(inoutDict[key])
 
-
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class DataObjects'''
     if stepID!=None: self.raiseAnError(RuntimeError,'seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
@@ -1272,14 +1283,16 @@ class TimePointSet(Data):
         for index in range(len(paramss[nodeid])): extractedValue[index] = paramss[nodeid][index]
         return extractedValue
       else: return self.getParam(inOutType,varName)
-
+#
+#
+#
+#
 class History(Data):
   '''
   History is an object that stores a set of inputs and associated history for output parameters.
   '''
-  def acceptHierarchical(self):
-    ''' Overwritten from baseclass'''
-    return False
+  def _specializedInputCheck(self):
+    pass
 
   def addSpecializedReadingSettings(self):
     '''
@@ -1444,7 +1457,6 @@ class History(Data):
     for key,value in zip(outKeys,outValues):
       self._dataContainer['outputs'][key] = np.array(value)
 
-
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class DataObjects'''
     if varID!=None: self.raiseAnError(RuntimeError,'seeking to extract a slice over number of parameters an History type of data is not possible. Data name: '+self.name+' variable: '+varName)
@@ -1457,17 +1469,20 @@ class History(Data):
       if stepID==None : return self.getParam(inOutType,varName)
       elif stepID!=None and type(stepID)==tuple: return self.getParam(inOutType,varName)[stepID[0]:stepID[1]]
       else: self.raiseAnError(RuntimeError,'trying to extract variable '+varName+' from '+self.name+' the id coordinate seems to be incoherent: stepID='+str(stepID))
-
-
+#
+#
+#
+#
 class Histories(Data):
   '''
   Histories is an object that stores multiple sets of inputs and associated history for output parameters.
   '''
-  def acceptHierarchical(self):
-    '''
-      Overwritten from base class
-    '''
-    return True
+  def __init__(self):
+    Data.__init__(self)
+    self.acceptHierarchy = True
+
+  def _specializedInputCheck(self):
+    pass
 
   def addSpecializedReadingSettings(self):
     '''
