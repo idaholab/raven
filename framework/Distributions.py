@@ -966,7 +966,7 @@ class Categorical(Distribution):
       if child.tag == "state":
         outcome = child.attrib['outcome']
         self.mapping[outcome] = float(child.text)
-        if float(child.tag) in self.values:
+        if float(outcome) in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
         else:
           self.values.add(float(outcome))
