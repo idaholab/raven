@@ -42,15 +42,15 @@
     <Samplers>
         <Grid name="1">
             <variable name="x1"><distribution>u1</distribution>
-                <grid type='CDF' construction='equal' steps='1' lowerBound='0.0'>1.0</grid></variable>
+                <grid type='CDF' construction='equal' steps='1' >0.0 1.0</grid></variable>
             <variable name="x2"><distribution>u2</distribution>
-                <grid type='CDF' construction='equal' steps='1' lowerBound='0.0'>1.0</grid></variable>
+                <grid type='CDF' construction='equal' steps='1' >0.0 1.0</grid></variable>
         </Grid>
         <Grid name="2">
             <variable name="x1"><distribution>u1</distribution>
-                <grid type='CDF' construction='equal' steps='2' lowerBound='0.0'>0.5</grid></variable>
+                <grid type='CDF' construction='equal' steps='2' >0.0 1.0</grid></variable>
             <variable name="x2"><distribution>u2</distribution>
-                <grid type='CDF' construction='equal' steps='2' lowerBound='0.0'>0.5</grid></variable>
+                <grid type='CDF' construction='equal' steps='2' >0.0 1.0</grid></variable>
             <Restart  class='DataObjects' type='TimePointSet'>solns</Restart>
         </Grid>
     </Samplers>

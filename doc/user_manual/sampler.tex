@@ -37,6 +37,26 @@
   \xmlNode{variable} XML blocks:
 }
 
+\newcommand{\constructionGridDescriptionOnlyCustom}
+{
+Based on the \xmlAttr{construction} type, the content of the \xmlNode{grid}
+XML node and the requirements for other attributes change. In this case, only the following is available:
+\begin{itemize}
+  \item \xmlAttr{construction}\textbf{\texttt{=}}\xmlString{custom}.
+    The grid will be directly specified by the user.
+    This construction type requires that the \xmlNode{grid} node contains
+    the actual mesh bins.
+    For example, if the grid \xmlAttr{type} is \xmlString{CDF}, in the body
+    of \xmlNode{grid}, the user will specify the CDF probability thresholds
+    (nodalization in probability).
+      All the bins are checked against the associated
+      \xmlNode{distribution} bounds.
+      If one or more of them falls outside the distribution's bounds, the
+      code will raise an error.
+      No additional attributes are needed.
+\end{itemize}
+}
+
 \newcommand{\constructionGridDescription}
 {
 Based on the \xmlAttr{construction} type, the content of the \xmlNode{grid}
@@ -50,41 +70,29 @@ XML node and the requirements for other attributes change:
       \begin{itemize}
          \item \xmlAttr{steps}, \xmlDesc{required integer attribute}, number
            of equally spaced/probable discretization steps.
-         \item \xmlAttr{upperBound}, \xmlDesc{conditional float attribute}, the
-           upper limit of the grid.
-           \nb This attribute must be specified if the \xmlAttr{lowerBound}
-           has not been defined.
-         \item \xmlAttr{lowerBound}, \xmlDesc{conditional float attribute}, the
-           lower limit of the grid.
-           \nb This attribute must be specified if the \xmlAttr{upperBound}
-           has not been defined.
       \end{itemize}
       This construction type requires that the content of the \xmlNode{grid}
-      node represents the step size,$stepSize$ in the expression below, (either
-      in probability or value).
-      The attributes \xmlAttr{lowerBound} and \xmlAttr{upperBound} are
-      mutually exclusive (only one of them can be specified):
-      \begin{itemize}
-      \item If the \xmlAttr{upperBound} is present, the grid lower bound
-        will be at:\\
-        $\xmlAttr{upperBound} - \xmlAttr{steps}*stepSize$
-      \item If the \xmlAttr{lowerBound} is present, the grid upper bound
-        will be at:\\
-        $\xmlAttr{lowerBound} + \xmlAttr{steps}*stepSize$
-      \end{itemize}
+      node represents the lower and upper bounds (either
+      in probability or value). Two values need to be specified; the lowest one 
+     will be considered as the $lowerBound$, the largest, the $upperBound$.
       The lower and upper bounds are checked against the associated
       \xmlNode{distribution} bounds.
       If one or both of them falls outside the distribution's bounds, the
       code will raise an error.
+      The $stepSize$ is determined as follows:
+      \\ $stepSize=(upperBound - lowerBound)/steps$
   \item \xmlAttr{construction}\textbf{\texttt{=}}\xmlString{custom}.
     The grid will be directly specified by the user.
     No additional attributes are needed.
-
     This construction type requires that the \xmlNode{grid} node contains
     the actual mesh bins.
     For example, if the grid \xmlAttr{type} is \xmlString{CDF}, in the body
     of \xmlNode{grid}, the user will specify the CDF probability thresholds
     (nodalization in probability).
+      All the bins are checked against the associated
+      \xmlNode{distribution} bounds.
+      If one or more of them falls outside the distribution's bounds, the
+      code will raise an error.
 \end{itemize}
 }
 \newcommand{\variableDescription}
@@ -105,9 +113,33 @@ XML node and the requirements for other attributes change:
   in Section \ref{sec:distributions}.
 }
 
+
+
+
+\newcommand{\gridDescriptionOnlyCustom}
+{
+  \xmlNode{grid}, \xmlDesc{space separated floats, required
+  field}, the content of this XML node depends on the definition of the
+  associated attributes:
+  \begin{itemize}
+  \itemsep0em
+    \item \xmlAttr{type}, \xmlDesc{required string attribute}, user-defined
+      discretization metric type: 1) \xmlString{CDF}, the grid will be
+      specified based on cumulative distribution function probability
+      thresholds, and 2) \xmlString{value}, the grid will be provided
+      using variable values.
+    \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how
+      the grid needs to be constructed, independent of its type (i.e.
+      \xmlString{CDF} or \xmlString{value}).
+  \end{itemize}
+  \constructionGridDescriptionOnlyCustom
+}
+
+
+
 \newcommand{\gridDescription}
 {
-  \xmlNode{grid}, \xmlDesc{float or space separated floats, required
+  \xmlNode{grid}, \xmlDesc{space separated floats, required
   field}, the content of this XML node depends on the definition of the
   associated attributes:
   \begin{itemize}
@@ -442,22 +474,22 @@ Example:
     <variable name='var1'> 
       <distribution>aDistributionNameDefinedInDistributionBlock1
       </distribution> 
-      <grid type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid> 
+      <grid type='value' construction='equal' steps='100' >0.2 10</grid> 
     </variable> 
     <variable name='var2'> 
       <distribution>aDistributionNameDefinedInDistributionBlock2
       </distribution> 
-      <grid type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid> 
+      <grid type='CDF' construction='equal' steps='5' >0.2 0.8</grid> 
     </variable>
     <variable name='var3'> 
       <distribution>aDistributionNameDefinedInDistributionBlock3
       </distribution> 
-      <grid type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid> 
+      <grid type='value' construction='equal' steps='100' >0.2 21.0</grid> 
     </variable> 
     <variable name='var4'> 
       <distribution>aDistributionNameDefinedInDistributionBlock4
       </distribution> 
-      <grid type='CDF' construction='equal' steps='5' upperBound='1.0'>0.2</grid> 
+      <grid type='CDF' construction='equal' steps='5' >0.2 1.0</grid> 
     </variable>
     <variable name='var5'> 
       <distribution>aDistributionNameDefinedInDistributionBlock5
@@ -621,12 +653,12 @@ Example:
     <variable name='var1'> 
       <distribution>aDistributionNameDefinedInDistributionBlock1
       </distribution> 
-      <grid type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid> 
+      <grid type='CDF' construction='equal' steps='5' >0.2 0.8</grid> 
     </variable>
     <variable name='var2'> 
       <distribution>aDistributionNameDefinedInDistributionBlock2
       </distribution> 
-      <grid type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid> 
+      <grid type='value' construction='equal' steps='100' >0.2 21.0</grid> 
     </variable> 
     <variable name='var3'> 
       <distribution>aDistributionNameDefinedInDistributionBlock3
@@ -654,7 +686,7 @@ This is possible by defining a global\_grid and associate such global grid to ea
             <grid type='global_grid'>name_grid1</grid>
         </variable>
         <global_grid>
-            <grid name='name_grid1' construction='custom'>0.1 1.0 0.2</grid>
+            <grid name='name_grid1' type='CDF' construction='custom'>0.1 1.0 0.2</grid>
         </global_grid>
   </Stratified>
   ...
@@ -732,28 +764,8 @@ defined within a \xmlNode{ResponseSurfaceDesign} block.
  \variableChildrenIntro
  \begin{itemize}
     \item \distributionDescription
-     \item \xmlNode{boundaries}, \xmlDesc{XML node, required field}, within this
-       block the boundaries for this variable are defined.
-       This XML node needs to contain the attribute:
-       \begin{itemize}
-         \item \xmlAttr{type}, \xmlDesc{required string attribute}, how the
-           boundaries are defined.
-           This attribute can be:
-           \begin{itemize}
-             \item \xmlString{CDF}: the boundaries are going to be provided as
-               probability CDF thresholds
-             \item \xmlString{value}: the boundaries are going to be provided as
-               variable values.
-           \end{itemize}
-       \end{itemize}
-       Within the \xmlNode{boundaries} block, the following sub-nodes need to be
-       provided:
-       \begin{itemize}
-         \item \xmlNode{lower}, \xmlDesc{float, required field}, the lower limit
-           of this variable.
-         \item \xmlNode{upper}, \xmlDesc{float, required field}, the upper limit
-           of this variable.
-       \end{itemize}
+     \item \gridDescriptionOnlyCustom
+     It needs to be noticed that only the construction ``custom'' is available. In the \xmlNode{grid} body only the lower and upper bounds can be inputted (2 numbers only).
  \end{itemize}
 \end{itemize}
 The main XML block \xmlNode{ResponseSurfaceDesign} needs to contain an
@@ -827,10 +839,7 @@ Example:
         </ResponseSurfaceDesignSettings>
         <variable name='var1' >
             <distribution >Gauss1</distribution>
-            <boundaries type="CDF">
-                <lower>0.0</lower>
-                <upper>1.0</upper>
-            </boundaries>
+           <grid type='CDF' construction='custom'  >0.2 0.8</grid> 
         </variable>
         <!-- N.B. at least 3 variables need to inputted 
                 in order to employ this algorithm
@@ -845,10 +854,7 @@ Example:
         </ResponseSurfaceDesignSettings>
         <variable name='var4' >
             <distribution >Gauss1</distribution>
-            <boundaries type="CDF">
-                <lower>aFloatValue</lower>
-                <upper>aFloatValue</upper>
-            </boundaries>
+            <grid type='CDF' construction='custom'  >0.2 0.8</grid>
         </variable>
         <!-- N.B. at least 2 variables need to inputted 
                 in order to employ this algorithm

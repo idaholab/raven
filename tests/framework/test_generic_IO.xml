@@ -29,8 +29,8 @@
 
   <Samplers>
     <Grid name='grid'>
-      <variable name="x"><distribution>xd</distribution><grid type='CDF' construction='equal' lowerBound='0.3' steps='1'>0.4</grid></variable>
-      <variable name="y"><distribution>yd</distribution><grid type='CDF' construction='equal' lowerBound='0.3' steps='1'>0.4</grid></variable>
+      <variable name="x"><distribution>xd</distribution><grid type='CDF' construction='equal' steps='1'>0.3 0.7</grid></variable>
+      <variable name="y"><distribution>yd</distribution><grid type='CDF' construction='equal' steps='1'>0.3 0.7</grid></variable>
     </Grid>
   </Samplers>
 
