@@ -975,13 +975,6 @@ filenode5.set("outcome","60")
 CategoricalElement.append(filenode5)
 
 
-#CategoricalElement = ET.Element("Categorical")
-#CategoricalElement.append(createElement("10", text="0.1"))
-#CategoricalElement.append(createElement("20", text="0.2"))
-#CategoricalElement.append(createElement("30", text="0.15"))
-#CategoricalElement.append(createElement("50", text="0.4"))
-#CategoricalElement.append(createElement("60", text="0.15"))
-
 Categorical = Distributions.Categorical()
 Categorical._readMoreXML(CategoricalElement)
 Categorical.initializeDistribution()
