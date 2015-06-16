@@ -23,7 +23,6 @@
     <Output           class = 'DataObjects'     type = 'TimePointSet'  >nt_phy_dpt_dt</Output>            
     <SolutionExport   class = 'DataObjects'     type = 'TimePointSet'  >lmt_srf_dt</SolutionExport>
     <Output class = 'OutStreamManager'    type = 'Print'         >lmt_srf_dmp</Output>
-    <Output class = 'OutStreamManager'    type = 'Plot'         >test</Output>
   </MultiRun>
   
   <PostProcess name='pth5' pauseAtEnd = 'False'>
@@ -178,20 +177,6 @@
 
 
 <OutStreamManager>
-    <Plot verbosity='debug' name='test' dim='3' overwrite='False'>
-        <plotSettings>
-            <plot>
-                <type>scatter</type>
-                <x>lmt_srf_dt|Input|x1</x>
-                <y>lmt_srf_dt|Input|x2</y>
-                <z>lmt_srf_dt|Input|gammay</z>
-                <colorMap>lmt_srf_dt|Output|g_zr</colorMap>
-            </plot>
-        </plotSettings>
-        <actions>
-            <how>screen</how>
-        </actions>
-    </Plot>
   <Print name = 'lmt_srf_dmp'>
   	<type>csv</type>
   	<source>lmt_srf_dt</source>
