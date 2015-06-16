@@ -635,8 +635,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
       for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
       distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
       #the hanging point are added to the list of the already explored points so not to pick the same when in //
-#      lastPoint = [self.functionValue[name][-1] for name in [key.replace('<distribution>','') for key in self.axisName]]
-#      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
+      #      lastPoint = [self.functionValue[name][-1] for name in [key.replace('<distribution>','') for key in self.axisName]]
+      #      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
       tempDict = {}
       #distLast = np.zeros(self.surfPoint.shape[0])
       for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
@@ -3040,7 +3040,7 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     self.iSets = {} #dict of adaptive index sets
     self.ROMs  = {} #dict of adaptive ROMs
     #calculate first order combos
-    first_combos = self._makeCombos(2,3)
+    first_combos = self._makeCombos(0,1)
     self.raiseADebug('first set:')
     for c in first_combos:
       self.raiseADebug('  ',c)
@@ -3068,6 +3068,12 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
       @ In, combo, tuple(string) subset description, i.e. ('x','y')
       @ Out, GaussPolynomialROM object
     '''
+    node = ET.Element('sampler')
+    node.append(createElement('Convergence',text=self.convValue))
+    for c in combo:
+        var = str(c)
+        vnode = createElement('variable',text=var)
+
     distDict={}
     quadDict={}
     polyDict={}
@@ -3082,6 +3088,12 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     iset.initialize(distDict,imptDict,self.maxPolyOrder,self.messageHandler)
     self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialROM')
     #set up for adaptive sampling
+    self.sampler[combo] = AdaptiveSparseGrid()
+    node = SubstituteXML()
+    node.text = self.convValue
+    node.attrib['target']='variance'
+    node.attrib['maxPolyOrder']='10'
+    self.sampler[combo].initialize(node)
     #make the rom
     #TODO
 
