@@ -523,16 +523,16 @@ class AdaptiveSampler(Sampler):
     stepLenght        = self.subGridTol**(1./float(self.nVar)) # build the step size in 0-1 range such as the differential volume is equal to the tolerance
     self.axisName     = []                                     # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
-    if self.toleranceWeight!='cdf': stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
-    else                          : stepParam = lambda _: [stepLenght, 0.0, 1.0]
+#     if self.toleranceWeight!='cdf': stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
+#     else                          : stepParam = lambda _: [stepLenght, 0.0, 1.0]
 
     bounds          = {"lowerBounds":{},"upperBounds":{}}
     transformMethod = {}
     for varName in self.distDict.keys():
-      if self.toleranceWeight!='cdf': bounds["lowerBounds"][varName], bounds["upperBounds"][varName] = self.distDict[varName].lowerBound, self.distDict[varName].upperBound
+      if self.toleranceWeight!='cdf': bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = self.distDict[varName].lowerBound, self.distDict[varName].upperBound
       else:
-        bounds["lowerBounds"][varName], bounds["upperBounds"][varName] = 0.0, 1.0
-        transformMethod[varName] = self.distDict[varName]
+        bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = 0.0, 1.0
+        transformMethod[varName.replace('<distribution>','')] = self.distDict[varName].ppf
     #moving forward building all the information set
 #    pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
 #     #building the grid point coordinates
@@ -980,7 +980,7 @@ class Stratified(Grid):
       globGridsCount[val[-1]] += 1
     diff = -sum(globGridsCount.values())+len(globGridsCount.keys())
     tempFillingCheck = [[None]*(self.pointByVar-1)]*(len(self.gridEntity.returnParameter("dimensionNames"))+diff) #for all variables
-    
+
     self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
     for i in range(len(tempFillingCheck)): tempFillingCheck[i]  = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
     cnt = 0

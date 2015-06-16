@@ -58,7 +58,7 @@ class GridEntity(BaseType):
     self.uniqueCellNumber                       = 0                  # number of unique cells
     self.gridIterator                           = None               # the grid iterator
     self.gridInitDict                           = {}                 # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
-
+    self.volumetricRatio                        = None               # volumetric ratio (optional if steplenght is read or passed in initDict)
   def _readMoreXml(self,xmlNode,dimensionTags=None,messageHandler=None,dimTagsPrefix=None):
     """
      XML reader for the grid statement.
@@ -102,7 +102,7 @@ class GridEntity(BaseType):
 #           gridInfo[dimName] = gridStruct
     #check for global_grid type of structure
     globalGrids = {}
-    for key in gridInfo.keys(): 
+    for key in gridInfo.keys():
       splitted = key.split(":")
       if splitted[0].strip() == 'global_grid': globalGrids[splitted[1]] = gridInfo.pop(key)
     for key in gridInfo.keys():
@@ -205,15 +205,15 @@ class GridEntity(BaseType):
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
       if len(stepLenght[varId]) == 1:
         # equally spaced or volumetriRatio. (the substruction of stepLenght*10e-3 is only to avoid that for roundoff error, the dummy upperbound is included in the mesh)
-        #self.gridContainer['gridVectors'][varName] = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName]-self.gridContainer['bounds']["upperBounds" ][varName]*1.e-3,stepLenght[varId][-1])
-        self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName]-self.gridContainer['bounds']["upperBounds" ][varName]*1.e-3,stepLenght[varId][-1]),np.atleast_1d(self.gridContainer['bounds']["upperBounds" ][varName])))
+        if self.volumetricRatio != None: self.gridContainer['gridVectors'][varName] = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName],stepLenght[varId][-1])
+        else                           : self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName]-self.gridContainer['bounds']["upperBounds" ][varName]*1.e-3,stepLenght[varId][-1]),np.atleast_1d(self.gridContainer['bounds']["upperBounds" ][varName])))
       else:
         # custom grid
         # it is not very efficient, but this approach is only for custom grids => limited number of discretizations
         gridMesh = [self.gridContainer['bounds']["lowerBounds"][varName]]
         for stepLenghti in stepLenght[varId]: gridMesh.append(round(gridMesh[-1],14)+round(stepLenghti,14))
         self.gridContainer['gridVectors'][varName] = np.asarray(gridMesh)
-      if not compare(round(max(self.gridContainer['gridVectors'][varName]),14), round(self.gridContainer['bounds']["upperBounds" ][varName],14)): self.raiseAnError(IOError,"the maximum value in the grid is bigger that upperBound! upperBound: "+
+      if not compare(round(max(self.gridContainer['gridVectors'][varName]),14), round(self.gridContainer['bounds']["upperBounds" ][varName],14)) and self.volumetricRatio == None: self.raiseAnError(IOError,"the maximum value in the grid is bigger that upperBound! upperBound: "+
                                                                                                                                       str(self.gridContainer['bounds']["upperBounds" ][varName]) +
                                                                                                                                       " < maxValue in grid: "+str(max(self.gridContainer['gridVectors'][varName])))
       if not compare(round(min(self.gridContainer['gridVectors'][varName]),14),round(self.gridContainer['bounds']["lowerBounds" ][varName],14)): self.raiseAnError(IOError,"the minimum value in the grid is lower that lowerBound! lowerBound: "+
@@ -221,7 +221,7 @@ class GridEntity(BaseType):
                                                                                                                                       " > minValue in grid: "+str(min(self.gridContainer['gridVectors'][varName])))
       if self.gridContainer['transformationMethods'] != None:
         if varName in self.gridContainer['transformationMethods'].keys():
-          self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName](coor) for coor in self.self.gridContainer['gridVectors'][varName]])
+          self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName](coor) for coor in self.gridContainer['gridVectors'][varName]])
       pointByVar[varId]                               = np.shape(self.gridContainer['gridVectors'][varName])[0]
     self.gridContainer['gridShape']                 = tuple   (pointByVar)          # tuple of the grid shape
     self.gridContainer['gridLenght']                = np.prod (pointByVar)          # total number of point on the grid
