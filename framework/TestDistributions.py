@@ -954,16 +954,26 @@ checkCrowDist("NDCartesianSpline",ndCartesianSpline,{'type': 'NDCartesianSplineD
 #Test Categorical
 
 CategoricalElement = ET.Element("Categorical")
-CategoricalElement.append(createElement("state", text="0.1"))
-filenode.set("outcome","10")
-CategoricalElement.append(createElement("state", text="0.2"))
-filenode.set("outcome","20")
-CategoricalElement.append(createElement("state", text="0.15"))
-filenode.set("outcome","30")
-CategoricalElement.append(createElement("state", text="0.4"))
-filenode.set("outcome","50")
-CategoricalElement.append(createElement("state", text="0.15"))
-filenode.set("outcome","60")
+filenode1=createElement("state", text="0.1")
+filenode1.set("outcome","10")
+CategoricalElement.append(filenode1)
+
+filenode2=createElement("state", text="0.2")
+filenode2.set("outcome","20")
+CategoricalElement.append(filenode2)
+
+filenode3=createElement("state", text="0.15")
+filenode3.set("outcome","30")
+CategoricalElement.append(filenode3)
+
+filenode4=createElement("state", text="0.4")
+filenode4.set("outcome","50")
+CategoricalElement.append(filenode4)
+
+filenode5=createElement("state", text="0.5")
+filenode5.set("outcome","60")
+CategoricalElement.append(filenode5)
+
 
 #CategoricalElement = ET.Element("Categorical")
 #CategoricalElement.append(createElement("10", text="0.1"))
