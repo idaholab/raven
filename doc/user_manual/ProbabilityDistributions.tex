@@ -663,22 +663,30 @@ There is not necessarily an underlying ordering of these outcomes, but labels ar
 \vspace{-5mm}
 \subnodeIntro
 \begin{itemize}
-  \item \xmlNode{outcome 1}, \xmlDesc{float, required parameter}, probability
-  for outcome 1
-  \item \xmlNode{outcome 2}, \xmlDesc{float, required parameter}, probability for outcome 2
+  \item \xmlNode{state}, \xmlDesc{float, required parameter}, probability for outcome 1
+  \begin{itemize}
+          \item \xmlAttr{outcome}, \xmlDesc{float, required parameter}, outcome value.
+  \end{itemize}
+  \item \xmlNode{state}, \xmlDesc{float, required parameter}, probability for outcome 2
+  \begin{itemize}
+          \item \xmlAttr{outcome}, \xmlDesc{float, required parameter}, outcome value.
+  \end{itemize}
   \item ...
-  \item \xmlNode{outcome K}, \xmlDesc{float, required parameter}, probability for outcome K
+  \item \xmlNode{state}, \xmlDesc{float, required parameter}, probability for outcome K
+  \begin{itemize}
+          \item \xmlAttr{outcome}, \xmlDesc{float, required parameter}, outcome value.
+  \end{itemize}
  \end{itemize}
 Example:
 \begin{lstlisting}[style=XML]
 <Distributions>
   ...
     <Categorical name='testCategorical'>
-        <10>0.1</10>
-        <20>0.2</20>
-        <50>0.15</50>
-        <60>0.4</60>
-        <90>0.15</90>
+        <state outcome="10">0.1</state>
+        <state outcome="20">0.2</state>
+        <state outcome="50">0.15</state>
+        <state outcome="60">0.4</state>
+        <state outcome="90">0.15</state>
     </Categorical>
   ...
 </Distributions>

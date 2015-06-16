@@ -961,18 +961,18 @@ class Categorical(Distribution):
     @ Out, None
    """
     Distribution._readMoreXML(self, xmlNode)
-    
+
     for child in xmlNode:
       if self.mapping[child.tag] == "state":
         outcome = child.attrib['outcome']
         self.mapping[outcome] = float(child.text)
-        if float(child.tag) in self.values: 
+        if float(child.tag) in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
-        else: 
+        else:
           self.values.add(float(outcome))
       else:
         self.raiseAnError(IOError,'Invalide xml node for Categorical distribution; only "state" is allowed')
-        
+
 #     for child in xmlNode:
 #       self.mapping[child.tag] = float(child.text)
 #       if float(child.tag) in self.values: self.raiseAnError(IOError,'Categorical distribution has identical outcome')
