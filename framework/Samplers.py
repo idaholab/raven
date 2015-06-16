@@ -429,8 +429,6 @@ class AdaptiveSampler(Sampler):
     self.repetition       = 0                #the actual number of time the error was below the requested threshold
     self.forceIteration   = False            #this flag control if at least a self.limit number of iteration should be done
     self.axisName         = None             #this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
-    self.gridVectors      = {}               # {'name of the variable':numpy.ndarray['the coordinate']}
-    self.testGridLenght   = 0                #this the total number of point in the testing grid
     self.oldTestMatrix    = None             #This is the test matrix to use to store the old evaluation of the function
     self.solutionExport   = None             #This is the data used to export the solution (it could also not be present)
     self.nVar             = 0                #this is the number of the variable sampled
@@ -493,8 +491,6 @@ class AdaptiveSampler(Sampler):
       tempDict['The solution is exported in '    ] = 'Name: ' + self.solutionExport.name + 'Type: ' + self.solutionExport.type
     if self.goalFunction!=None:
       tempDict['The function used is '] = self.goalFunction.name
-    for varName in self.distDict.keys():
-      tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridVectors[varName])
 
   def localInitialize(self,solutionExport=None):
     self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface",self)
@@ -520,12 +516,6 @@ class AdaptiveSampler(Sampler):
     #setup the grid. The grid is build such as each element has a volume equal to the sub grid tolerance
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
     self.nVar         = len(self.distDict.keys())              # Total number of variables
-    stepLenght        = self.subGridTol**(1./float(self.nVar)) # build the step size in 0-1 range such as the differential volume is equal to the tolerance
-    self.axisName     = []                                     # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
-    #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
-#     if self.toleranceWeight!='cdf': stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
-#     else                          : stepParam = lambda _: [stepLenght, 0.0, 1.0]
-
     bounds          = {"lowerBounds":{},"upperBounds":{}}
     transformMethod = {}
     for varName in self.distDict.keys():
@@ -534,18 +524,6 @@ class AdaptiveSampler(Sampler):
         bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = 0.0, 1.0
         transformMethod[varName.replace('<distribution>','')] = self.distDict[varName].ppf
     #moving forward building all the information set
-#    pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
-#     #building the grid point coordinates
-#     gridVectorsForLS = {}
-#     for varId, varName in enumerate(self.distDict.keys()):
-#       self.axisName.append(varName)
-#       [myStepLength, start, end]  = stepParam(varName)
-#       start                      += 0.5*myStepLength
-#       if self.toleranceWeight=='cdf'     : self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLength)])
-#       elif self.toleranceWeight=='value' : self.gridVectors[varName] = np.arange(start,end,myStepLength)
-#       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
-#       gridVectorsForLS[varName.replace('<distribution>','')] = self.gridVectors[varName]
-#     self.oldTestMatrix            = np.zeros(tuple(pointByVar))
     self.axisName = self.distDict.keys()
     self.axisName.sort()
     # initialize LimitSurface PP
@@ -553,7 +531,6 @@ class AdaptiveSampler(Sampler):
     self.limitSurfacePP.assemblerDict = self.assemblerDict
     self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{})
     self.persistenceMatrix        = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    self.testGridLenght           = np.prod (self.limitSurfacePP.getTestMatrix().shape) #total number of point on the grid
     self.oldTestMatrix            = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #swap matrix fro convergence test
     self.hangingPoints            = np.ndarray((0, self.nVar))
     self.raiseADebug('Initialization done')
@@ -620,7 +597,6 @@ class AdaptiveSampler(Sampler):
     return ready
 
   def localGenerateInput(self,model,oldInput):
-    #self.adaptAlgo.nextPoint(self.dataContainer,self.goalFunction,self.values,self.distDict)
     # create values dictionary
     """compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
      check the points where the derivative probability is the lowest"""
@@ -634,18 +610,13 @@ class AdaptiveSampler(Sampler):
       for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
       distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
       #the hanging point are added to the list of the already explored points so not to pick the same when in //
-#      lastPoint = [self.functionValue[name][-1] for name in [key.replace('<distribution>','') for key in self.axisName]]
-#      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
       tempDict = {}
-      #distLast = np.zeros(self.surfPoint.shape[0])
       for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
         tempDict[varName]     = self.surfPoint[:,varIndex]
-        #distLast[:] += np.square(tempDict[varName]-lastPoint[varIndex])
         self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
         self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
       #distLast = np.sqrt(distLast)
       distance, _ = distanceTree.query(self.surfPoint)
-      #distance = np.multiply(distance,distLast,self.invPointPersistence)
       distance = np.multiply(distance,self.invPointPersistence)
       if np.max(distance)>0.0:
         for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
@@ -653,7 +624,6 @@ class AdaptiveSampler(Sampler):
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
       else: self.raiseADebug('np.max(distance)=0.0')
-
     if not varSet:
       #here we are still generating the batch
       for key in self.distDict.keys():

@@ -1551,7 +1551,6 @@ class LimitSurface(BasePostProcessor):
     self.ROM               = None             #Pointer to a ROM
     self.externalFunction  = None             #Pointer to an external Function
     self.subGridTol        = 1.0e-4           #SubGrid tollerance
-    self.gridVectors       = {}
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
     self.gridEntity        = None
@@ -1700,9 +1699,6 @@ class LimitSurface(BasePostProcessor):
     if self.lsSide not in ["negative", "positive", "both"]: self.raiseAnError(IOError, 'Computation side can be positive, negative, both only !!!!')
     if "bounds" in dictIn.keys(): self.bounds = dictIn["bounds"]
     if "transformationMethods" in dictIn.keys(): self.transfMethods = dictIn["transformationMethods"]
-    if "gridVectors" in dictIn.keys():
-      self.gridVectors = dictIn["gridVectors"]
-      self.gridFromOutside = True
     if "verbosity"       in dictIn.keys(): self.verbosity = dictIn['verbosity']
 
   def getFunctionValue(self):
