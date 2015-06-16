@@ -963,7 +963,7 @@ class Categorical(Distribution):
     Distribution._readMoreXML(self, xmlNode)
 
     for child in xmlNode:
-      if self.mapping[child.tag] == "state":
+      if child.tag == "state":
         outcome = child.attrib['outcome']
         self.mapping[outcome] = float(child.text)
         if float(child.tag) in self.values:
