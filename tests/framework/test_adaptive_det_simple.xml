@@ -38,10 +38,10 @@
     </Distributions>
     <Samplers>
         <AdaptiveDynamicEventTree name='AdaptiveDETsimple' print_end_xml='yes' maxSimulationTime='5.0'>
-            <Convergence limit='1600' forceIteration='False' weight='CDF' persistence='7'>0.05</Convergence>
             <ROM               class='Models'           type='ROM'         >Acc</ROM>
             <Function          class='Functions'        type='External'    >relapFunctionSimple</Function>
             <TargetEvaluation  class='DataObjects'            type='TimePointSet'>adaptiveOutsimple</TargetEvaluation>
+            <Convergence limit='1600' forceIteration='False' weight='CDF' persistence='7'>0.05</Convergence>
             <Distribution name='PressureFailureValue'>
                 <distribution >PressureFailureDist</distribution>
                 <grid type='CDF' construction='custom'>0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.95</grid>

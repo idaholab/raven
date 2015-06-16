@@ -25,6 +25,10 @@
     <Exponential name='t34_distrib'>
         <lambda>8.7E-4</lambda>
     </Exponential>
+    <Categorical name='testCateg'>
+      <state outcome="1">0.1</state>
+      <state outcome="2">0.9</state>
+    </Categorical>
     <NDCartesianSpline name='ND_CartesianSpline_P'>
         <data_filename type='PDF'>2DgaussianCartesianPDF.txt</data_filename>
         <working_dir>dists_vars/</working_dir>

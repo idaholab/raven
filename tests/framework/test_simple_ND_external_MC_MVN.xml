@@ -51,7 +51,7 @@
 
 <Steps>
     <MultiRun name='FirstMRun'>
-        <Input   class='DataObjects'        type='TimePoint'      >inputPlaceHolder</Input>
+        <Input   class='DataObjects'        type='TimePointSet'   >inputPlaceHolder</Input>
         <Model   class='Models'             type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'           type='MonteCarlo'     >MC_external</Sampler>
         <Output  class='DataObjects'        type='TimePointSet'   >testPrintTimePointSet</Output>
@@ -77,10 +77,10 @@
         <Input>x0,y0,z0</Input>
         <Output>x,y,z</Output>
     </TimePointSet>
-    <TimePoint name='inputPlaceHolder'>
+    <TimePointSet name='inputPlaceHolder'>
         <Input>x0,y0,z0</Input>
         <Output>OutputPlaceHolder</Output>
-    </TimePoint>
+    </TimePointSet>
 </DataObjects>
 
 </Simulation>
