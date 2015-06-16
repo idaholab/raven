@@ -937,6 +937,7 @@ class Stratified(Grid):
     self.globalGrid          = {}    # Dictionary for the global_grid. These grids are used only for Stratified for ND distributions.
 
   def localInputAndChecks(self,xmlNode):
+    Sampler.read_sampler_init(self,xmlNode)
     Grid.localInputAndChecks(self,xmlNode)
     pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1: self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of point in each dimension')
