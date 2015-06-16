@@ -56,24 +56,24 @@
           <!-- Point sampler way (directly sampling the variable) -->
           <variable name='Auxiliary|testGridpreconditioned1|initial_value' >
               <distribution>testPreconditionerGridDist1</distribution>
-              <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
+              <grid type='CDF' construction='equal' steps='1' >0.1 0.2</grid>
           </variable>
           <!-- RAVEN way for the second distribution-->
           <Distribution name='testPreconditionerMonteCarloDist2'>
               <distribution>testPreconditionerGridDist2</distribution>
-              <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
+              <grid type='CDF' construction='equal' steps='1' >0.1 0.2</grid>
           </Distribution>
       </PreconditionerSampler>
       <PreconditionerSampler type='Stratified'>
           <!-- Point sampler way (directly sampling the variable ) -->
           <variable name='Auxiliary|testLHSpreconditioned1|initial_value' >
               <distribution>testPreconditionerLHSDist1</distribution>
-              <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
+              <grid type='CDF' construction='equal' steps='1' >0.1 0.2</grid>
           </variable>
           <!-- RAVEN way for the second distribution-->
           <Distribution name='testPreconditionerMonteCarloDist2'>
               <distribution>testPreconditionerLHSDist2</distribution>
-              <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
+              <grid type='CDF' construction='equal' steps='1' >0.1 0.2</grid>
           </Distribution>
       </PreconditionerSampler>
       <!-- DYNAMIC EVENT TREE INPUT (it goes outside an inner block like PreconditionerSampler) -->

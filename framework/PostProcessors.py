@@ -27,6 +27,7 @@ import mathUtils
 from Assembler import Assembler
 import SupervisedLearning
 import MessageHandler
+import GridEntities
 from FileObject import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -1542,19 +1543,20 @@ class LimitSurface(BasePostProcessor):
      Constructor
      @ In, messageHandler, message handler object
     """
-    BasePostProcessor.__init__(self, messageHandler)
-    self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.surfPoint = None  # coordinate of the points considered on the limit surface
-    self.testMatrix = None  # This is the n-dimensional matrix representing the testing grid
-    # self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
-    self.functionValue = {}  # This a dictionary that contains np vectors with the value for each variable and for the goal function
-    self.ROM = None  # Pointer to a ROM
-    self.externalFunction = None  # Pointer to an external Function
-    self.subGridTol = 1.0e-4  # SubGrid tollerance
-    self.gridVectors = {}
-    self.gridFromOutside = False  # The grid has been passed from outside (self._initFromDict)?
-    self.lsSide = "negative"  # Limit surface side to compute the LS for (negative,positive,both)
-    self.requiredAssObject = (True, (['ROM', 'Function'], [-1, 1]))
+    BasePostProcessor.__init__(self,messageHandler)
+    self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
+    self.surfPoint         = None             #coordinate of the points considered on the limit surface
+    self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
+    self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
+    self.ROM               = None             #Pointer to a ROM
+    self.externalFunction  = None             #Pointer to an external Function
+    self.subGridTol        = 1.0e-4           #SubGrid tollerance
+    self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
+    self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
+    self.gridEntity        = None
+    self.bounds            = None
+    self.transfMethods     = {}
+    self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
 
   def inputToInternal(self, currentInp):
@@ -1591,13 +1593,14 @@ class LimitSurface(BasePostProcessor):
      @ In, initDict, dict, dictionary with initialization options
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.gridEntity = GridEntities.returnInstance("GridEntity",self,self.messageHandler)
+    self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
       mySrting = ','.join(list(self.parameters['targets']))
       self.ROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':mySrting, 'Target':self.externalFunction.name})
     else: self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()
-    self.__workingDir = runInfo['WorkingDir']
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
       if type(inp) in [str, bytes, unicode]: self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs!')
@@ -1612,53 +1615,13 @@ class LimitSurface(BasePostProcessor):
         if param not in inpKeys + outKeys: self.raiseAnError(IOError, 'LimitSurface PostProcessor: The param ' + param + ' not contained in Data ' + self.inputs[self.indexes].name + ' !')
         if param in inpKeys: self.paramType[param] = 'inputs'
         else:                self.paramType[param] = 'outputs'
-    self.nVar = len(self.parameters['targets'])  # Total number of variables
-    stepLength = self.subGridTol ** (1. / float(self.nVar))  # build the step size in 0-1 range such as the differential volume is equal to the tolerance
-    self.axisName = []  # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
-    # here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
-    stepParam = lambda x: [stepLength * (max(self.inputs[self.indexes].getParam(self.paramType[x], x)) - min(self.inputs[self.indexes].getParam(self.paramType[x], x))),
-                                       min(self.inputs[self.indexes].getParam(self.paramType[x], x)),
-                                       max(self.inputs[self.indexes].getParam(self.paramType[x], x))]
-    # moving forward building all the information set
-    pointByVar = [None] * self.nVar  # list storing the number of point by cooridnate
-    # building the grid point coordinates
-    for varId, varName in enumerate(self.parameters['targets']):
-      self.axisName.append(varName)
-      if not self.gridFromOutside:
-        [myStepLength, start, end] = stepParam(varName)
-        if start == end:
-          start = start - 0.001 * start
-          end = end + 0.001 * end
-          myStepLength = stepLength * (end - start)
-        start += 0.5 * myStepLength
-        self.gridVectors[varName] = np.arange(start, end, myStepLength)
-      pointByVar[varId] = np.shape(self.gridVectors[varName])[0]
-    self.gridShape = tuple   (pointByVar)  # tuple of the grid shape
-    self.testGridLength = np.prod (pointByVar)  # total number of point on the grid
-    self.testMatrix = np.zeros(self.gridShape)  # grid where the values of the goalfunction are stored
-    # self.oldTestMatrix            = np.zeros(self.gridShape)      #swap matrix fro convergence test
-    self.gridCoorShape = tuple(pointByVar + [self.nVar])  # shape of the matrix containing all coordinate of all points in the grid
-    self.gridCoord = np.zeros(self.gridCoorShape)  # the matrix containing all coordinate of all points in the grid
-    # filling the coordinate on the grid
-    myIterator = np.nditer(self.gridCoord, flags = ['multi_index'])
-    while not myIterator.finished:
-      coordinateID = myIterator.multi_index[-1]
-      axisName = self.axisName[coordinateID]
-      valuePosition = myIterator.multi_index[coordinateID]
-      self.gridCoord[myIterator.multi_index] = self.gridVectors[axisName][valuePosition]
-      myIterator.iternext()
-    self.axisStepSize = {}
-    for varName in self.parameters['targets']:
-      self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex + 1] - self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName]) - 1)])
-    self.raiseADebug('self.gridShape ' + str(self.gridShape))
-    self.raiseADebug('self.testGridLength ' + str(self.testGridLength))
-    self.raiseADebug('self.gridCoorShape ' + str(self.gridCoorShape))
-    for key in self.gridVectors.keys():
-      self.raiseADebug('the variable ' + key + ' has coordinate: ' + str(self.gridVectors[key]))
-    myIterator = np.nditer(self.testMatrix, flags = ['multi_index'])
-    while not myIterator.finished:
-      self.raiseADebug('Indexes: ' + str(myIterator.multi_index) + '    coordinate: ' + str(self.gridCoord[myIterator.multi_index]))
-      myIterator.iternext()
+    if self.bounds == None:
+      self.bounds = {"lowerBounds":{},"upperBounds":{}}
+      for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key)), max(self.inputs[self.indexes].getParam(self.paramType[key],key))
+    self.gridEntity.initialize(initDictionary={"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
+    self.nVar       = len(self.parameters['targets'])         #Total number of variables
+    self.axisName   = self.gridEntity.returnParameter("dimensionNames")                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
+    self.testMatrix = np.zeros(self.gridEntity.returnParameter("gridShape"))  # grid where the values of the goalfunction are stored
 
   def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
     """
@@ -1666,7 +1629,7 @@ class LimitSurface(BasePostProcessor):
      @ In, inp, Data(s) object, data object containing the training set
      @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
     """
-    self.raiseADebug('Initiate training')
+
     self.raiseADebug('Initiate training')
     if type(inp) == dict:
       self.functionValue.update(inp['inputs' ])
@@ -1734,11 +1697,9 @@ class LimitSurface(BasePostProcessor):
     if "tolerance" in dictIn.keys(): self.subGridTol = float(dictIn["tolerance"])
     if "side" in dictIn.keys(): self.lsSide = dictIn["side"]
     if self.lsSide not in ["negative", "positive", "both"]: self.raiseAnError(IOError, 'Computation side can be positive, negative, both only !!!!')
-    if "gridVectors" in dictIn.keys():
-      self.gridVectors = dictIn["gridVectors"]
-      self.gridFromOutside = True
+    if "bounds" in dictIn.keys(): self.bounds = dictIn["bounds"]
+    if "transformationMethods" in dictIn.keys(): self.transfMethods = dictIn["transformationMethods"]
     if "verbosity"       in dictIn.keys(): self.verbosity = dictIn['verbosity']
-    if "debug"           in dictIn.keys(): self.raiseAnError('"debug" attribute found, but has been deprecated.  Please change it to "verbosity."  Remove this error by the end of June 2015.')
 
   def getFunctionValue(self):
     """
@@ -1795,13 +1756,13 @@ class LimitSurface(BasePostProcessor):
      @ In ,returnListSurfCoord, boolean, True if listSurfaceCoordinate needs to be returned
      @ Out, dictionary, Dictionary containing the limitsurface
     """
-    self.testMatrix.shape = (self.testGridLength)  # rearrange the grid matrix such as is an array of values
-    self.gridCoord.shape = (self.testGridLength, self.nVar)  # rearrange the grid coordinate matrix such as is an array of coordinate values
-    tempDict = {}
-    for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:, varId]
-    self.testMatrix[:] = self.ROM.evaluate(tempDict)  # get the prediction on the testing grid
-    self.testMatrix.shape = self.gridShape  # bring back the grid structure
-    self.gridCoord.shape = self.gridCoorShape  # bring back the grid structure
+    self.testMatrix.shape     = (self.gridEntity.returnParameter("gridLenght"))    #rearrange the grid matrix such as is an array of values
+    self.gridCoord = self.gridEntity.returnGridAsArrayOfCoordinates()
+    tempDict ={}
+    for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
+    self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
+    self.testMatrix.shape     = self.gridEntity.returnParameter("gridShape")     #bring back the grid structure
+    self.gridCoord.shape      = self.gridEntity.returnParameter("gridCoorShape") #bring back the grid structure
     self.raiseADebug('LimitSurface: Prediction performed')
     # here next the points that are close to any change are detected by a gradient (it is a pre-screener)
     toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)), axis = 0))))
@@ -1833,7 +1794,6 @@ class LimitSurface(BasePostProcessor):
       for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
       self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
-
     # if the number of point on the limit surface is > than zero than save it
     evaluations = None
     if len(listsurfPoint) > 0:
@@ -1852,12 +1812,13 @@ class LimitSurface(BasePostProcessor):
     equals either -1 or 1, respectively.
     """
     listsurfPoint = []
+    gridShape = self.gridEntity.returnParameter("gridShape")
     myIdList = np.zeros(self.nVar)
     for coordinate in np.rollaxis(toBeTested, 0):
       myIdList[:] = coordinate
       if self.testMatrix[tuple(coordinate)] * sign > 0:
         for iVar in range(self.nVar):
-          if coordinate[iVar] + 1 < self.gridShape[iVar]:
+          if coordinate[iVar] + 1 < gridShape[iVar]:
             myIdList[iVar] += 1
             if self.testMatrix[tuple(myIdList)] * sign <= 0:
               listsurfPoint.append(copy.copy(coordinate))
