@@ -81,28 +81,27 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if len(set(self._dataParameters['inParam'])&set(self._dataParameters['outParam']))!=0: self.raiseAnError(IOError,'It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
     optionsData = xmlNode.find('options')
     if optionsData != None:
-      for child in optionsData:
-        self._dataParameters[child.tag] = child.text
+      for child in optionsData: self._dataParameters[child.tag] = child.text
     
-    # retrieve history name if present
-    try:   self._dataParameters['history'] = xmlNode.attrib['historyName']
-    except KeyError:self._dataParameters['history'] = None
-
-    if 'time' in xmlNode.attrib.keys():
-      # check if time information are present... in case, store it
-      if not (self._dataParameters['time'] == 'end' or self._dataParameters['time'] == 'all'):
-        try:   self._dataParameters['time'] = float(self._dataParameters['time'])
-        except ValueError: self._dataParameters['time'] = float(self._dataParameters['time'].split(','))
-    else:self._dataParameters['time'] = None
-
-    if 'operator' in xmlNode.attrib.keys():
-      # check if time information are present... in case, store it
-      self._dataParameters['operator'] = xmlNode.attrib['operator'].lower()
-      if self._dataParameters['operator'] not in ['min','max','average']: self.raiseAnError(IOError,'Only operation available are '+str(['min','max','average'])+' .Data named '+ self.name + 'of type ' + self.type  )
-
-    # check if inputTs is provided => the time step that the inputs refer to
-    try: self._dataParameters['inputTs'] = int(xmlNode.attrib['inputTs'])
-    except KeyError:self._dataParameters['inputTs'] = None
+#     # retrieve history name if present
+#     try:   self._dataParameters['history'] = xmlNode.attrib['historyName']
+#     except KeyError:self._dataParameters['history'] = None
+# 
+#     if 'time' in xmlNode.attrib.keys():
+#       # check if time information are present... in case, store it
+#       if not (self._dataParameters['time'] == 'end' or self._dataParameters['time'] == 'all'):
+#         try:   self._dataParameters['time'] = float(self._dataParameters['time'])
+#         except ValueError: self._dataParameters['time'] = float(self._dataParameters['time'].split(','))
+#     else:self._dataParameters['time'] = None
+# 
+#     if 'operator' in xmlNode.attrib.keys():
+#       # check if time information are present... in case, store it
+#       self._dataParameters['operator'] = xmlNode.attrib['operator'].lower()
+#       if self._dataParameters['operator'] not in ['min','max','average']: self.raiseAnError(IOError,'Only operation available are '+str(['min','max','average'])+' .Data named '+ self.name + 'of type ' + self.type  )
+# 
+#     # check if inputTs is provided => the time step that the inputs refer to
+#     try: self._dataParameters['inputTs'] = int(xmlNode.attrib['inputTs'])
+#     except KeyError:self._dataParameters['inputTs'] = None
     # check if this data needs to be in hierarchical fashion
     if 'hierarchical' in xmlNode.attrib.keys():
       if xmlNode.attrib['hierarchical'].lower() in utils.stringsThatMeanTrue(): self._dataParameters['hierarchical'] = True
@@ -420,7 +419,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     elif  typeVar.lower() in 'outputs': return self.getOutParametersValues(nodeid,serialize)
     else: self.raiseAnError(RuntimeError,'type ' + typeVar + ' is not a valid type. Function: Data.getParametersValues')
 
-  #Insert bird joke here...
   def getParaKeys(self,typePara):
     """
     Functions to get the parameter keys
@@ -773,7 +771,11 @@ class TimePoint(Data):
   TimePoint is an object that stores a set of inputs and outputs for a particular point in time!
   '''
   def _specializedInputCheck(self):
-    pass
+    """
+     Here we check if the parameters read by the global reader are compatible with this type of Data
+     @ In, None
+     @ Out, None
+    """
   
   def addSpecializedReadingSettings(self):
     '''

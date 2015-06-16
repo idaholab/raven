@@ -110,8 +110,8 @@ class CsvLoader(MessageHandler.MessageUser):
                                  it will try to get the values from this dictionary (if present)
     """
     #load the data into the numpy array
-    inParam, outParam = options['inParam'], options['outParam']
-    inputTs = options['inputTs'] if 'inputTs' in options.keys() else None
+    inParam, outParam, inputTs = options['inParam'], options['outParam'], options['inputTs'] if 'inputTs' in options.keys() else None
+    SampledVars, time = options['SampledVars'] if 'SampledVars' in options.keys() else None, options['time'] if 'time' in options.keys() else None
     data = self.loadCsvFile(filein)
     if 'all' in outParam: self.all_out_param  = True
     else                : self.all_out_param = False
