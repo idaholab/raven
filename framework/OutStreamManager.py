@@ -1,8 +1,8 @@
-'''
+"""
 Created on Nov 14, 2013
 
 @author: alfoa
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -41,18 +41,18 @@ else:
 #  return X[~np.isnan(X).any(1)]
 
 class OutStreamManager(BaseType):
-  '''
+  """
   ********************************************************************
   *                          OUTSTREAM CLASS                         *
   ********************************************************************
   *  This class is a general base class for outstream action classes *
   *  For example, a matplotlib interface class or Print class, etc.  *
   ********************************************************************
-  '''
+  """
   def __init__(self):
-    '''
+    """
       Init of Base class
-    '''
+    """
     BaseType.__init__(self)
     # outstreaming options
     self.options = {}
@@ -67,23 +67,23 @@ class OutStreamManager(BaseType):
     self.printTag = 'OUTSTREAM MANAGER'
 
   def _readMoreXML(self,xmlNode):
-    '''
+    """
     Function to read the portion of the xml input that belongs to this specialized class
     and initialize some stuff based on the got inputs
     @ In, xmlNode    : Xml element node
     @ Out, None
-    '''
+    """
     if 'overwrite' in xmlNode.attrib.keys():
       if xmlNode.attrib['overwrite'].lower() in ['t','true','on']: self.overwrite = True
       else: self.overwrite = False
     self.localReadXML(xmlNode)
 
   def addInitParams(self,tempDict):
-    '''
+    """
     Function adds the initial parameter in a temporary dictionary
     @ In, tempDict
     @ Out, tempDict
-    '''
+    """
     tempDict[                     'Global Class Type                 '] = 'OutStreamManager'
     tempDict[                     'Specialized Class Type            '] = self.type
     if self.overwrite:   tempDict['Overwrite output everytime called '] = 'True'
@@ -93,19 +93,19 @@ class OutStreamManager(BaseType):
     return tempDict
 
   def addOutput(self):
-    '''
+    """
     Function to add a new output source (for example a CSV file or a HDF5 object)
     @ In, toLoadFrom, source object
     @ Out, None
-    '''
+    """
     self.raiseAnError(NotImplementedError,'method addOutput must be implemented by derived classes!!!!')
 
   def initialize(self,inDict):
-    '''
+    """
     Function to initialize the OutStream. It basically looks for the "data" object and link it to the system
     @ In, inDict, dictionary, It contains all the Object are going to be used in the current step. The sources are searched into this.
     @ Out, None
-    '''
+    """
     self.sourceData   = []
     for agrosindex in range(self.numberAggregatedOS):
       foundData = False
@@ -1204,9 +1204,9 @@ class OutStreamPrint(OutStreamManager):
           try: self.sourceData[index].printXML(dictOptions)
           except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type '+str(type(self.sourceData[index]))+' and output type "xml"!')
 
-'''
+"""
  Interface Dictionary (factory) (private)
-'''
+"""
 __base                     = 'OutStreamManager'
 __interFaceDict            = {}
 __interFaceDict['Plot'   ] = OutStreamPlot
@@ -1216,11 +1216,12 @@ __knownTypes              = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
+
 def returnInstance(Type,caller):
-  '''
+  """
   function used to generate a OutStream class
   @ In, Type : OutStream type
   @ Out,Instance of the Specialized OutStream class
-  '''
+  """
   try: return __interFaceDict[Type]()
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)

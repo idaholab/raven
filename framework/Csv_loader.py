@@ -1,20 +1,18 @@
-'''
+"""
 Created on Feb 7, 2013
 @author: alfoa
 This python module performs the loading of
 data from csv files
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
+if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
-import csv
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -24,9 +22,9 @@ import MessageHandler
 
 class CsvLoader(MessageHandler.MessageUser):
   def __init__(self,messageHandler):
-    '''
+    """
     Constructor
-    '''
+    """
     self.all_out_param      = False # all output parameters?
     self.field_names        = []    #
     self.all_field_names    = []
@@ -35,7 +33,7 @@ class CsvLoader(MessageHandler.MessageUser):
     self.messageHandler     = messageHandler
 
   def loadCsvFile(self,filein):
-    '''
+    """
     Function to load a csv file into a numpy array (2D)
     It also retrieves the headers
     The format of the csv must be:
@@ -45,7 +43,7 @@ class CsvLoader(MessageHandler.MessageUser):
     FLOAT ,FLOAT ,FLOAT ,FLOAT
     @ In, filein, string -> Input file name (absolute path)
     @ Out, data, numpy.ndarray -> the loaded data
-    '''
+    """
     # open file
     myFile = open (filein,'rb')
     # read the field names
@@ -59,23 +57,23 @@ class CsvLoader(MessageHandler.MessageUser):
     return data
 
   def getFieldNames(self):
-    '''
+    """
     @ In, None
     @ Out, field_names, list -> field names' list
     Function to get actual field names (desired output parameter keywords)
-    '''
+    """
     return self.field_names
 
   def getAllFieldNames(self):
-    '''
+    """
     Function to get all field names found in the csv file
     @ In, None
     @ Out, all_field_names, list -> list of field names (headers)
-    '''
+    """
     return self.all_field_names
 
 #   def parseFilesToGrepDimensions(self,filesin):
-#     '''
+#     """
 #     Function to grep max dimensions in multiple csv files
 #     @ In, filesin, csv files list
 #     @ Out, None
@@ -83,7 +81,7 @@ class CsvLoader(MessageHandler.MessageUser):
 #     NtimeSteps     = maxNumberOfTs
 #     maxNumOfParams = max number of parameters
 #     NSamples       = number of Samples
-#     '''
+#     """
 #     NSamples       = len(filesin)
 #     maxNumOfParams = 0
 #     NtimeSteps     = 0
@@ -98,11 +96,11 @@ class CsvLoader(MessageHandler.MessageUser):
 #     return (NtimeSteps,maxNumOfParams,NSamples)
 
   def csvLoadData(self,filein,options):
-    '''
+    """
     General interface function to call the private methods for loading the different dataObjects!
     @ In, filein, csv file name
     @ In, options, dictionary of options
-    '''
+    """
     SampledVars = options['SampledVars'] if 'SampledVars' in options.keys() else None
     if   options['type'] == 'TimePoint':    return self.__csvLoaderForTimePoint(filein[0],options['time'],options['inParam'],options['outParam'],options['inputTs'],SampledVars)
     elif options['type'] == 'TimePointSet': return self.__csvLoaderForTimePointSet(filein,options['time'],options['inParam'],options['outParam'],options['inputTs'],SampledVars)
@@ -121,7 +119,7 @@ class CsvLoader(MessageHandler.MessageUser):
       self.raiseAnError(IOError,'Type ' + options['type'] + 'unknown')
 
   def __csvLoaderForTimePoint(self,filein,time,inParam,outParam,inputTs,SampledVars=None):
-    '''
+    """
     loader for time point data type
     @ In, filein, file name
     @ In, time, time
@@ -131,7 +129,7 @@ class CsvLoader(MessageHandler.MessageUser):
     @ In, SampledVars, optional, dictionary of input parameters. The code is going to
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
-    '''
+    """
     #load the data into the numpy array
     data = self.loadCsvFile(filein)
     if 'all' in outParam: self.all_out_param  = True
@@ -191,7 +189,7 @@ class CsvLoader(MessageHandler.MessageUser):
     return (inDict,outDict)
 
   def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam,inputTs,SampledVars=None):
-    '''
+    """
     loader for time point set data type
     @ In, filein, file name
     @ In, time, time
@@ -201,7 +199,7 @@ class CsvLoader(MessageHandler.MessageUser):
     @ In, SampledVars, optional, dictionary of input parameters. The code is going to
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
-    '''
+    """
     if 'all' in outParam:
       self.all_out_param  = True
     else:
@@ -292,7 +290,7 @@ class CsvLoader(MessageHandler.MessageUser):
     return (inDict,outDict)
 
   def __csvLoaderForHistory(self,filein,time,inParam,outParam,inputTs,SampledVars=None):
-    '''
+    """
     loader for history data type
     @ In, filein, file name
     @ In, time, time
@@ -302,28 +300,22 @@ class CsvLoader(MessageHandler.MessageUser):
     @ In, SampledVars, optional, dictionary of input parameters. The code is going to
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
-    '''
+    """
     #load the data into the numpy array
     data = self.loadCsvFile(filein)
 
     time_float = []
 
-    if 'all' in outParam:
-      self.all_out_param  = True
-    else:
-      self.all_out_param = False
+    if 'all' in outParam: self.all_out_param  = True
+    else                : self.all_out_param = False
 
     if time:
-      if 'all' in time:
-        time_all = True
+      if 'all' in time: time_all = True
       else:
         time_all = False
         time_float = [float(x) for x in time]
-    else:
-      # WE HAVE TO TAKE A DECISION REGARDING THE FILTERING
+    else: time_all = True
 
-      time_all = True
-      #time_float[0] = -1.0
     if inputTs: ints = int(inputTs)
     else: ints = 0
     if ints > data[:,0].size-1  and ints != -1: self.raiseAnError(IOError,'inputTs is greater than number of actual ts in file '+ str(filein) + '!')

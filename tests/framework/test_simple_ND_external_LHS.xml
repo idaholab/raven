@@ -67,7 +67,7 @@
             <grid type='global_grid'>name_grid1</grid>
         </variable>
         <global_grid>
-            <grid name='name_grid1' construction='custom'>0.1 1.0 0.2</grid>
+            <grid name='name_grid1' type='CDF' construction='custom'>0.1 1.0 0.2</grid>
         </global_grid>
     </Stratified>
 </Samplers>

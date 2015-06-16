@@ -41,11 +41,11 @@
       </variable>
       <variable name='VarGauss1' >
         <distribution>Gauss1</distribution>
-        <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.3</grid>
+        <grid type='value' construction='equal' steps='3'>0.02 0.92</grid>
       </variable>
       <variable name='VarGauss2'>
         <distribution >Gauss2</distribution>
-        <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
+        <grid type='CDF' construction='equal' steps='3'>0.17 0.2</grid>
       </variable>
     </Stratified>
 </Samplers>
