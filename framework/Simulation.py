@@ -14,6 +14,7 @@ import math
 import sys
 import io
 import string
+import datetime
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -276,7 +277,9 @@ class Simulation(MessageHandler.MessageUser):
     callerLength        = 25
     tagLength           = 15
     suppressErrs        = False
-    self.messageHandler.initialize({'verbosity':self.verbosity, 'callerLength':callerLength, 'tagLength':tagLength, 'suppressErrs':suppressErrs})
+    printTimeStamps     = True
+    self.messageHandler.initialize({'verbosity':self.verbosity, 'callerLength':callerLength, 'tagLength':tagLength, 'suppressErrs':suppressErrs, 'printTimeStamps':printTimeStamps})
+    readtime = datetime.datetime.fromtimestamp(self.messageHandler.starttime).strftime('%Y-%m-%d %H:%M:%S')
     sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
@@ -367,6 +370,7 @@ class Simulation(MessageHandler.MessageUser):
     #handle the setting of how the jobHandler act
     self.__modeHandler = SimulationMode(self)
     self.printTag = 'SIMULATION'
+    self.raiseAMessage('Simulation started at',readtime,verbosity='silent')
 
   def setInputFiles(self,inputFiles):
     '''Can be used to set the input files that the program received.
@@ -390,7 +394,8 @@ class Simulation(MessageHandler.MessageUser):
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
-    self.verbosity = xmlNode.attrib['verbosity'] if 'verbosity' in xmlNode.attrib.keys() else 'all'
+    self.verbosity = xmlNode.attrib.get('verbosity','all')
+    if 'printTimeStamps' in xmlNode.attrib.keys(): self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
     self.messageHandler.verbosity = self.verbosity
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: self.raiseAnError(IOError,'The run info node is mandatory')
