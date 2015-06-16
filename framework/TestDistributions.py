@@ -970,7 +970,7 @@ filenode4=createElement("state", text="0.4")
 filenode4.set("outcome","50")
 CategoricalElement.append(filenode4)
 
-filenode5=createElement("state", text="0.5")
+filenode5=createElement("state", text="0.15")
 filenode5.set("outcome","60")
 CategoricalElement.append(filenode5)
 
