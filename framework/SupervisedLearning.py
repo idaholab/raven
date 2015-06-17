@@ -1,9 +1,9 @@
-'''
+"""
 Module containing all supported type of ROM aka Surrogate Models etc
 here we intend ROM as super-visioned learning,
 where we try to understand the underlying model by a set of labeled sample
 a sample is composed by (feature,label) that is easy translated in (input,output)
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -38,21 +38,21 @@ interpolationND = utils.find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
 class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
-  '''
+  """
   This is the general interface to any superVisedLearning learning method.
   Essentially it contains a train, and evaluate methods
-  '''
+  """
   returnType      = '' #this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
   qualityEstType  = [] #this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
   ROMtype         = '' #the broad class of the interpolator
 
   @staticmethod
   def checkArrayConsistency(arrayin):
-    '''
+    """
     This method checks the consistency of the in-array
     @ In, object... It should be an array
     @ Out, tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
-    '''
+    """
     if type(arrayin) != numpy.ndarray: return (False,' The object is not a numpy array')
     if len(arrayin.shape) > 1: return(False, ' The array must be 1-d')
     return (True,'')
@@ -81,13 +81,13 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     pass #Overloaded by (at least) GaussPolynomialRom
 
   def train(self,tdict):
-    '''
+    """
       Method to perform the training of the superVisedLearning algorithm
       NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires. So far the base class will do the translation into numpy
       @ In, tdict, training dictionary
       @ Out, None
-    '''
+    """
     if type(tdict) != dict: self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
     if self.target in names: targetValues = values[names.index(self.target)]
@@ -111,21 +111,21 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self.amITrained = True
 
   def _localNormalizeData(self,values,names,feat):
-    '''
+    """
     Method to normalize data based on the mean and standard deviation.  If undesired for a particular ROM,
     this method can be overloaded to simply pass (see, e.g., GaussPolynomialRom).
     @ In, values, list of feature values (from tdict)
     @ In, names, names of features (from tdict)
     @ In, feat, list of features (from ROM)
     @ Out, None
-    '''
+    """
     self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
 
   def confidence(self,edict):
-    '''
+    """
     This call is used to get an estimate of the confidence in the prediction.
     The base class self.confidence will translate a dictionary into numpy array, then call the local confidence
-    '''
+    """
     if type(edict) != dict: self.raiseAnError(IOError,'method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values   = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
@@ -141,13 +141,13 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     return self.__confidenceLocal__(featureValues)
 
   def evaluate(self,edict):
-    '''
+    """
     Method to perform the evaluation of a point or a set of points through the previous trained superVisedLearning algorithm
     NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
     the interface with the kernels requires.
     @ In, tdict, evaluation dictionary
     @ Out, numpy array of evaluated points
-    '''
+    """
     if type(edict) != dict: self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values  = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
@@ -164,18 +164,18 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     return self.__evaluateLocal__(featureValues)
 
   def reset(self):
-    '''override this method to re-instance the ROM'''
+    """override this method to re-instance the ROM"""
     self.amITrained = False
     self.__resetLocal__()
 
   def returnInitialParameters(self):
-    '''override this method to return the fix set of parameters of the ROM'''
+    """override this method to return the fix set of parameters of the ROM"""
     iniParDict = dict(self.initOptionDict.items() + {'returnType':self.__class__.returnType,'qualityEstType':self.__class__.qualityEstType,'Features':self.features,
                                              'Target':self.target,'returnType':self.__class__.returnType}.items() + self.__returnInitialParametersLocal__().items())
     return iniParDict
 
   def returnCurrentSetting(self):
-    '''return the set of parameters of the ROM that can change during simulation'''
+    """return the set of parameters of the ROM that can change during simulation"""
     return dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
 
   def printXML(self,rootnode,options=None):
@@ -201,34 +201,34 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
-    '''@ In, featureVals, 2-D numpy array [n_samples,n_features]'''
+    """@ In, featureVals, 2-D numpy array [n_samples,n_features]"""
 
   @abc.abstractmethod
   def __confidenceLocal__(self,featureVals):
-    '''
+    """
     This should return an estimation of the quality of the prediction.
     This could be distance or probability or anything else, the type needs to be declared in the variable cls.qualityEstType
     @ In, featureVals, 2-D numpy array [n_samples,n_features]
-    '''
+    """
 
   @abc.abstractmethod
   def __evaluateLocal__(self,featureVals):
-    '''
+    """
     @ In,  featureVals, 2-D numpy array [n_samples,n_features]
     @ Out, targetVals , 1-D numpy array [n_samples]
-    '''
+    """
 
   @abc.abstractmethod
   def __resetLocal__(self,featureVals):
-    '''After this method the ROM should be described only by the initial parameter settings'''
+    """After this method the ROM should be described only by the initial parameter settings"""
 
   @abc.abstractmethod
   def __returnInitialParametersLocal__(self):
-    '''this should return a dictionary with the parameters that could be possible not in self.initOptionDict'''
+    """this should return a dictionary with the parameters that could be possible not in self.initOptionDict"""
 
   @abc.abstractmethod
   def __returnCurrentSettingLocal__(self):
-    '''override this method to pass the set of parameters of the ROM that can change during simulation'''
+    """override this method to pass the set of parameters of the ROM that can change during simulation"""
 #
 #
 #
@@ -253,12 +253,12 @@ class NDinterpolatorRom(superVisedLearning):
     self.raiseAnError(NotImplementedError,'NDinterpRom   : __confidenceLocal__ method must be implemented!')
 
   def __evaluateLocal__(self,featureVals):
-    '''
+    """
     Perform regression on samples in featureVals.
     For an one-class model, +1 or -1 is returned.
     @ In, numpy.array 2-D, features
     @ Out, numpy.array 1-D, predicted values
-    '''
+    """
     prediction = np.zeros(featureVals.shape[0])
     for n_sample in range(featureVals.shape[0]):
       featv = interpolationND.vectd(featureVals[n_sample][:])
@@ -267,7 +267,7 @@ class NDinterpolatorRom(superVisedLearning):
     return prediction
 
   def __returnInitialParametersLocal__(self):
-    '''there are no possible default parameters to report'''
+    """there are no possible default parameters to report"""
     localInitParam = {}
     return localInitParam
 
@@ -373,11 +373,11 @@ class GaussPolynomialRom(NDinterpolatorRom):
       elif key == 'numRuns' : self.numRuns    = value
 
   def _multiDPolyBasisEval(self,orders,pts):
-    '''Evaluates each polynomial set at given orders and points, returns product.
+    """Evaluates each polynomial set at given orders and points, returns product.
     @ In orders, tuple(int), polynomial orders to evaluate
     @ In pts, tuple(float), values at which to evaluate polynomials
     @ Out, float, product of polynomial evaluations
-    '''
+    """
     tot=1
     for i,(o,p) in enumerate(zip(orders,pts)):
       varName = self.sparseGrid.varNames[i]
@@ -432,10 +432,10 @@ class GaussPolynomialRom(NDinterpolatorRom):
     #self._printPolynomial()
 
   def printPolyDict(self,printZeros=False):
-    '''Human-readable version of the polynomial chaos expansion.
+    """Human-readable version of the polynomial chaos expansion.
     @ In printZeros,boolean,optional flag for printing even zero coefficients
     @ Out, None, None
-    '''
+    """
     data=[]
     for idx,val in self.polyCoeffDict.items():
       if abs(val) > 1e-12 or printZeros:
@@ -453,10 +453,10 @@ class GaussPolynomialRom(NDinterpolatorRom):
     return data
 
   def __evaluateMoment__(self,r):
-    '''Use the ROM's built-in method to calculate moments.
+    """Use the ROM's built-in method to calculate moments.
     @ In r, int, moment to calculate
     @ Out, float, evaluation of moment
-    '''
+    """
     #TODO is there a faster way still to do this?
     if r==1: return self.polyCoeffDict[tuple([0]*len(self.features))]
     elif r==2: return sum(s**2 for s in self.polyCoeffDict.values())
@@ -759,7 +759,7 @@ class NDsplineRom(NDinterpolatorRom):
     self.interpolator = interpolationND.NDspline()
 
   def __resetLocal__(self):
-    ''' The reset here erase the Interpolator while keeping the instance'''
+    """ The reset here erase the Interpolator while keeping the instance"""
     self.interpolator.reset()
 #
 #
@@ -773,7 +773,7 @@ class NDinvDistWeight(NDinterpolatorRom):
     self.interpolator = interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p']))
 
   def __resetLocal__(self):
-    ''' The reset here erase the Interpolator while keeping the instance'''
+    """ The reset here erase the Interpolator while keeping the instance"""
     self.interpolator.reset(float(self.initOptionDict['p']))
 #
 #
@@ -951,12 +951,16 @@ __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
 __base                                  = 'superVisedLearning'
 
+# def addToInterfaceDict(newDict):
+#   for key,val in newDict.items():
+#     __interfaceDict[key]=val
+
 def returnInstance(ROMclass,caller,**kwargs):
-  '''This function return an instance of the request model type'''
+  """This function return an instance of the request model type"""
   try: return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
 
 def returnClass(ROMclass,caller):
-  '''This function return an instance of the request model type'''
+  """This function return an instance of the request model type"""
   try: return __interfaceDict[ROMclass]
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+ROMclass)

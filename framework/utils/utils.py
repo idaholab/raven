@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import division, print_function, absolute_import
 # WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
 import warnings
 warnings.simplefilter('default',DeprecationWarning)

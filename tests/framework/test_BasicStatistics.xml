@@ -2,8 +2,8 @@
 <Simulation verbosity='debug'>
 <RunInfo>
     <WorkingDir>basicStatistics</WorkingDir>
-    <Files>basicStatisticsExternalModelTest.py,output_basicStatistics_PP1.csv,output_basicStatistics_PP2.csv,output_basicStatistics_PP3.csv,output_basicStatistics_PP4.csv</Files>
-    <Sequence>FirstMRun,PP1,PP2,PP3,PP4</Sequence>
+    <Files>basicStatisticsExternalModelTest.py,output_basicStatistics_PP1.csv,output_basicStatistics_PP2.csv,output_basicStatistics_PP3.csv,output_basicStatistics_PP4.csv,output_basicStatistics_PP5.csv</Files>
+    <Sequence>FirstMRun,PP1,PP2,PP3,PP4,PP5</Sequence>
     <batchSize>1</batchSize>
 </RunInfo>
 
@@ -43,6 +43,10 @@
     <PostProcessor name="InputOutput" subType='BasicStatistics' verbosity='debug'>
         <what>all</what>
         <parameters>x0,x01,y0,y02</parameters>
+    </PostProcessor>
+    <PostProcessor name="CreateInfinity" subType='BasicStatistics' verbosity='debug'>
+        <what>all</what>
+        <parameters>time,x0,y0,y02</parameters>
     </PostProcessor>
 </Models>
 <Functions>
@@ -111,6 +115,11 @@
         <Input   class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
         <Model   class='Models'           type='PostProcessor'   >InputOutput</Model>
         <Output   class='Files'           type=''                >output_basicStatistics_PP4.csv</Output>
+    </PostProcess>
+    <PostProcess name='PP5'>
+        <Input   class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Model   class='Models'           type='PostProcessor'   >CreateInfinity</Model>
+        <Output   class='Files'           type=''                >output_basicStatistics_PP5.csv</Output>
     </PostProcess>
 </Steps>
 

@@ -18,11 +18,11 @@
         <Grid name='grid'>
             <variable name="x1">
                 <distribution>UniDist</distribution>
-                <grid type='CDF' construction='equal' lowerBound='0.0' steps='5'>0.2</grid>
+                <grid type='CDF' construction='equal' steps='5'>0.0 1.0</grid>
             </variable>
             <variable name="x2">
                 <distribution>UniDist</distribution>
-                <grid type='CDF' construction='equal' lowerBound='0.0' steps='5'>0.2</grid>
+                <grid type='CDF' construction='equal' steps='5'>0.0 1.0</grid>
             </variable>
         </Grid>
         <SparseGridCollocation name="SG" parallel="1">

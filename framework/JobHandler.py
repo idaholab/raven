@@ -1,8 +1,8 @@
-'''
+"""
 Created on Mar 5, 2013
 
 @author: crisr
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -33,13 +33,12 @@ import ppserver
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-
 class ExternalRunner(MessageHandler.MessageUser):
-  '''
+  """
   Class for running external codes
-  '''
+  """
   def __init__(self,messageHandler,command,workingDir,bufsize,output=None,metadata=None,codePointer=None):
-    ''' Initialize command variable'''
+    """ Initialize command variable"""
     self.codePointerFailed = None
     self.messageHandler = messageHandler
     self.command    = command
@@ -78,22 +77,64 @@ class ExternalRunner(MessageHandler.MessageUser):
     self.__metadata   = metadata
     self.codePointer  = codePointer
 
+# BEGIN: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
+    # Initialize logger
+    #self.logger     = self.createLogger(self.identifier)
+    #self.addLoggerHandler(self.identifier, self.output, 100000, 1)
+#   def createLogger(self,name):
+#     """
+#     Function to create a logging object
+#     @ In, name: name of the logging object
+#     @ Out, logging object
+#     """
+#     return logging.getLogger(name)
+#
+#   def addLoggerHandler(self,logger_name,filename,max_size,max_number_files):
+#     """
+#     Function to create a logging object
+#     @ In, logger_name     : name of the logging object
+#     @ In, filename        : log file name (with path)
+#     @ In, max_size        : maximum file size (bytes)
+#     @ In, max_number_files: maximum number of files to be created
+#     @ Out, None
+#     """
+#     hadler = logging.handlers.RotatingFileHandler(filename,'a',max_size,max_number_files)
+#     logging.getLogger(logger_name).addHandler(hadler)
+#     logging.getLogger(logger_name).setLevel(logging.INFO)
+#     return
+#
+#   def outStreamReader(self, out_stream):
+#     """
+#     Function that logs every line received from the out stream
+#     @ In, out_stream: output stream
+#     @ In, logger    : the instance of the logger object
+#     @ Out, logger   : the logger itself
+#     """
+#     while True:
+#       line = out_stream.readline()
+#       if len(line) == 0 or not line:
+#         break
+#       self.logger.info('%s', line)
+#       #self.logger.debug('%s', line.srip())
+
+# END: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
+
   def isDone(self):
-    '''
+    """
     Function to inquire the process to check if the calculation is finished
-    '''
+    """
     self.__process.poll()
     return self.__process.returncode != None
 
   def getReturnCode(self):
-    '''
+    """
     Function to inquire the process to get the return code
     If the self.codePointer is available (!= None), this method
     inquires it to check if the process return code is a false negative (or positive).
     The first time the codePointer is inquired, it calls the function and store the result
     => sub-sequential calls to getReturnCode will not inquire the codePointer anymore but
     just return the stored value
-    '''
+    """
     returnCode = self.__process.returncode
     if self.codePointer != None and returnCode == 0:
       if  self.codePointerFailed == None:  self.codePointerFailed = self.codePointer.checkForOutputFailure(self.output,self.getWorkingDir())
@@ -101,21 +142,21 @@ class ExternalRunner(MessageHandler.MessageUser):
     return returnCode
 
   def returnEvaluation(self):
-    '''
+    """
     Function to return the External runner evaluation (outcome/s). Since in process, return None
-    '''
+    """
     return None
 
   def returnMetadata(self):
-    '''
+    """
     Function to return the External runner metadata
-    '''
+    """
     return self.__metadata
 
   def start(self):
-    '''
+    """
     Function to run the driven code
-    '''
+    """
     oldDir = os.getcwd()
     os.chdir(self.__workingDir)
     localenv = dict(os.environ)
@@ -128,23 +169,23 @@ class ExternalRunner(MessageHandler.MessageUser):
     #self.thread.start()
 
   def kill(self):
-    '''
+    """
     Function to kill the subprocess of the driven code
-    '''
+    """
     #In python 2.6 this could be self.process.terminate()
     self.raiseAMessage("Terminating "+self.__process.pid+' '+self.command)
     os.kill(self.__process.pid,signal.SIGTERM)
 
   def getWorkingDir(self):
-    '''
+    """
     Function to get the working directory path
-    '''
+    """
     return self.__workingDir
 
   def getOutputFilename(self):
-    '''
+    """
     Function to get the output filenames
-    '''
+    """
     return os.path.join(self.__workingDir,self.output)
 #
 #

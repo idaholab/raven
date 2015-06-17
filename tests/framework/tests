@@ -255,7 +255,7 @@
  [./testBasicStatistics]
   type = 'RavenFramework'
   input = 'test_BasicStatistics.xml'
-  output = 'basicStatistics/TimePointSetPostProcTest_dump.csv basicStatistics/output_basicStatistics_PP1.csv basicStatistics/output_basicStatistics_PP2.csv basicStatistics/output_basicStatistics_PP3.csv basicStatistics/output_basicStatistics_PP4.csv'
+  output = 'basicStatistics/TimePointSetPostProcTest_dump.csv basicStatistics/output_basicStatistics_PP1.csv basicStatistics/output_basicStatistics_PP2.csv basicStatistics/output_basicStatistics_PP3.csv basicStatistics/output_basicStatistics_PP4.csv basicStatistics/output_basicStatistics_PP5.csv'
   csv = 'basicStatistics/TimePointSetPostProcTest_dump.csv'
   max_time = 500
   rel_err = 0.001
@@ -284,8 +284,8 @@
  [./testCreateInternalObjFromCSVs]
   type = 'RavenFramework'
   input = 'test_CreateInternalObjFromCSVs.xml'
-  output = 'TimePointSetPostProcTest_DUMP.csv'
-  csv = 'TimePointSetPostProcTest_DUMP.csv'
+  output = 'CreateInternalObjFromCSVs/TimePointSetPostProcTest_DUMP.csv'
+  csv = 'CreateInternalObjFromCSVs/TimePointSetPostProcTest_DUMP.csv'
   max_time = 500
   rel_err = 0.001
   prereq = testGridRaven

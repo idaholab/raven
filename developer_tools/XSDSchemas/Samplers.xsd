@@ -1,0 +1,277 @@
+<?xml version="1.0"?>
+<xsd:schema version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"  elementFormDefault="qualified">
+    <!-- *********************************************************************** -->
+    <!--                                 Samplers                                -->
+    <!-- *********************************************************************** -->
+    <xsd:complexType name="SamplerData">
+        <xsd:sequence>
+            <xsd:element name="MonteCarlo"               type="MonteCarloSampler"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Grid"                     type="GridSampler"            minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="SparseGridCollocation"    type="SparseGridSampler"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Sobol"                    type="SparseGridSampler"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Stratified"               type="GridSampler"            minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="ResponseSurfaceDesign"    type="ResponseSurfaceSampler" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="FactorialDesign"          type="FactorialSampler"       minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="DynamicEventTree"         type="DETSampler"             minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Adaptive"                 type="AdaptiveSampler"        minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="AdaptiveDynamicEventTree" type="AdaptiveDETSampler"     minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="samplerInitType">
+        <xsd:all>
+            <!-- the requirements below will change depending on the fixes in the manual -->
+            <xsd:element name="limit"                    type="xsd:string"  minOccurs="0"/>
+            <xsd:element name="initial_seed"             type="xsd:integer" minOccurs="0"/>
+            <xsd:element name="reseed_at_each_iteration" type="xsd:string"  minOccurs="0"/>
+            <xsd:element name="dist_init" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <!-- ******************* -->
+                        <!-- Not yet implemented -->
+                        <!-- ******************* -->
+                        <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:simpleType name="floatList">
+        <xsd:list itemType="xsd:float"/>
+    </xsd:simpleType>
+    <xsd:simpleType name="variableDistributionType">
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+    <xsd:complexType name="extendedVariableDistributionType">
+        <xsd:simpleContent>
+            <xsd:extension base="variableDistributionType">
+                <xsd:attribute name="dim"  type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:complexType name="gridType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string"> <!--base="floatList" due to global_grid-->
+                <xsd:attribute name="type"         type="xsd:string" use="required"/>
+                <xsd:attribute name="construction" type="xsd:string"/> <!--Due to global_grid use="required"/-->
+                <!-- The condition is not yet implemented -->
+                <xsd:attribute name="steps"        type="xsd:integer"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:complexType name="variableType">
+        <xsd:sequence>
+            <xsd:element name="distribution" type="extendedVariableDistributionType" minOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+    <xsd:complexType name="extendedVariableType">
+        <xsd:complexContent>
+            <xsd:extension base="variableType">
+              <xsd:sequence>
+                 <xsd:element name="grid"       type="gridType"       minOccurs="0"/>
+              </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="MonteCarloSampler">
+        <xsd:sequence>
+            <xsd:element name="sampler_init" type="samplerInitType" minOccurs="1"/>
+            <xsd:element name="variable"     type="variableType"    minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Restart"      type="AssemblerObjectType"   minOccurs="0"  maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="GridSampler">
+        <xsd:sequence>
+            <xsd:element name="sampler_init" type="samplerInitType"      minOccurs="0"/>
+            <xsd:element name="variable"     type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Distribution" type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="global_grid"                              minOccurs="0">
+                <xsd:complexType mixed="true">
+                    <xsd:sequence>
+                        <xsd:element name="grid"                   minOccurs="1" maxOccurs="unbounded">
+                            <xsd:complexType mixed="true">
+                                <xsd:attribute name="name"         type="xsd:string" use="required"/>
+                                <xsd:attribute name="type"         type="xsd:string" use="required"/>
+                                <xsd:attribute name="construction" type="xsd:string" use="required"/>
+                                <!-- The condition is not yet implemented -->
+                                <xsd:attribute name="steps"        type="xsd:integer" />
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Restart"         type="AssemblerObjectType"   minOccurs="0"  maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="SparseGridSampler">
+        <xsd:sequence>
+            <xsd:element name="variable"        type="variableType"          minOccurs="0" maxOccurs="unbounded"/>
+            <!--xsd:element name="Distribution" type="variableType"          minOccurs="0" maxOccurs="unbounded"/-->
+            <xsd:element name="ROM"             type="AssemblerObjectType"   minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Restart"         type="AssemblerObjectType"   minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"     type="xsd:string" use="required"/>
+        <xsd:attribute name="parallel" type="xsd:string"/>
+        <xsd:attribute name="outfile"  type="xsd:string"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ResponseSurfaceSampler">
+        <xsd:sequence>
+            <xsd:element name="sampler_init" type="samplerInitType" minOccurs="0"/>
+            <xsd:element name="ResponseSurfaceDesignSettings" minOccurs="1">
+                <xsd:complexType mixed="true">
+                    <xsd:all>
+                        <xsd:element name="algorithm_type" type="xsd:string"   minOccurs="1"/>
+                        <xsd:element name="ncenters"       type="xsd:integer" minOccurs="0"/>
+                        <xsd:element name="centers"        type="xsd:string"  minOccurs="0"/>
+                        <xsd:element name="alpha"          minOccurs="0">
+                            <xsd:simpleType>
+                                <xsd:restriction   base="xsd:string">
+                                    <xsd:enumeration value="orthogonal"/>
+                                    <xsd:enumeration value="rotatable" />
+                                </xsd:restriction>
+                            </xsd:simpleType>
+                        </xsd:element>
+                        <xsd:element name="face"           minOccurs="0">
+                            <xsd:simpleType>
+                                <xsd:restriction   base="xsd:string">
+                                    <xsd:enumeration value="circumscribed"/>
+                                    <xsd:enumeration value="inscribed" />
+                                    <xsd:enumeration value="faced"   />
+                                </xsd:restriction>
+                            </xsd:simpleType>
+                        </xsd:element>
+                    </xsd:all>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="variable"     type="extendedVariableType" minOccurs="0" maxOccurs="unbounded">
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="FactorialSampler">
+        <xsd:sequence>
+            <xsd:element name="sampler_init" type="samplerInitType" minOccurs="0"/>
+            <xsd:element name="FactorialSettings" minOccurs="1">
+                <xsd:complexType mixed="true">
+                    <xsd:all>
+                        <xsd:element name="algorithm_type" type="xsd:string"   minOccurs="1"/>
+                        <xsd:element name="gen"            type="xsd:string"   minOccurs="0"/>
+                        <xsd:element name="genMap"         type="xsd:string"  minOccurs="0"/>
+                    </xsd:all>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="variable"     type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <!-- *********************************************************************** -->
+    <!--                  Adaptive Samplers                                      -->
+    <!-- *********************************************************************** -->
+    <xsd:simpleType name="weightAttr">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="value"/>
+            <xsd:enumeration value="CDF"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="modeAttr">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="post"/>
+            <xsd:enumeration value="online"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="RavenBool">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="false"/>
+            <xsd:enumeration value="False"/>
+            <xsd:enumeration value="no"/>
+            <xsd:enumeration value="true"/>
+            <xsd:enumeration value="True"/>
+            <xsd:enumeration value="yes"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="AdaptiveSampler">
+        <xsd:sequence>
+            <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Function"         type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="Convergence"                      minOccurs="1" maxOccurs="unbounded">
+                <xsd:complexType mixed="true">
+                    <xsd:attribute name="limit"          type="xsd:integer"/>
+                    <xsd:attribute name="forceIteration" type="RavenBool"/>
+                    <xsd:attribute name="weight"         type="weightAttr"/>
+                    <xsd:attribute name="persistence"    type="xsd:integer"/>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"      type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr"/>
+    </xsd:complexType>
+    <!-- *********************************************************************** -->
+    <!--                  Dynamic Event Tree                                     -->
+    <!-- *********************************************************************** -->
+    <xsd:simpleType name="DETHybridSamplerType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="MonteCarlo"/>
+            <xsd:enumeration value="Grid"/>
+            <xsd:enumeration value="Stratified"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="HybridSamplerSettingsType">
+        <xsd:sequence>
+            <!-- ****************************************** -->
+            <!-- the extendedVariableType has been adjusted -->
+            <!-- according to the needs of this element     -->
+            <!-- needs to be corrected                      -->
+            <!-- ****************************************** -->
+            <xsd:element name="sampler_init" type="samplerInitType"         minOccurs="0"/>
+            <xsd:element name="variable"     type="extendedVariableType"    minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="Distribution" type="extendedVariableType"    minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="type" type="DETHybridSamplerType" use="required"/>
+    </xsd:complexType>
+    <xsd:complexType name="DETSampler">
+        <xsd:sequence>
+            <xsd:element name="PreconditionerSampler" type="HybridSamplerSettingsType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="variable"              type="extendedVariableType"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Distribution"          type="extendedVariableType"      minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"              type="xsd:string" use="required"/>
+        <xsd:attribute name="print_end_xml"     type="RavenBool"/>
+        <xsd:attribute name="maxSimulationTime" type="xsd:float"/>
+    </xsd:complexType>
+    <xsd:complexType name="AdaptiveDETSampler">
+        <xsd:sequence>
+            <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Function"         type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="Convergence"                      minOccurs="1" maxOccurs="unbounded">
+                <xsd:complexType mixed="true">
+                    <xsd:attribute name="limit"          type="xsd:integer"/>
+                    <xsd:attribute name="forceIteration" type="RavenBool"/>
+                    <xsd:attribute name="weight"         type="weightAttr"/>
+                    <xsd:attribute name="persistence"    type="xsd:integer"/>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="variable"         type="extendedVariableType"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Distribution"     type="extendedVariableType"      minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"              type="xsd:string" use="required"/>
+        <xsd:attribute name="print_end_xml"     type="RavenBool"/>
+        <xsd:attribute name="maxSimulationTime" type="xsd:float"/>
+        <xsd:attribute name="mode"              type="modeAttr"  default="post"/>
+        <xsd:attribute name="updateGrid"        type="RavenBool" default="true"/>
+    </xsd:complexType>
+
+
+</xsd:schema>

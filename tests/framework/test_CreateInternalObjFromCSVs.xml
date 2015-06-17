@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation verbosity='debug'>
 <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>CreateInternalObjFromCSVs</WorkingDir>
     <Files>.</Files>
     <Sequence>LoadCsvIntoInternalObjectTestData,LoadCsvIntoInternalObjectTestHDF5</Sequence>
     <batchSize>1</batchSize>
@@ -9,7 +9,7 @@
 
 <Models>
     <PostProcessor name="LoadCsvIntoInternalObjectTest" subType='LoadCsvIntoInternalObject'>
-        <directory>GridTestRaven/FirstMRun</directory>
+        <directory>../GridTestRaven/FirstMRun</directory>
     </PostProcessor>
 </Models>
 

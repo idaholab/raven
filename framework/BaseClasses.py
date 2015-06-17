@@ -1,7 +1,7 @@
-'''
+"""
 Created on Mar 16, 2013
 @author: crisr
-'''
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -15,7 +15,7 @@ import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class BaseType(MessageHandler.MessageUser):
-  '''this is the base class for each general type used by the simulation'''
+  """this is the base class for each general type used by the simulation"""
   def __init__(self):
     self.name             = ''                  # name of this istance (alias)
     self.type             = type(self).__name__ # specific type within this class
@@ -27,11 +27,11 @@ class BaseType(MessageHandler.MessageUser):
     self.messageHandler   = None    # message handling object
 
   def readXML(self,xmlNode,messageHandler,globalAttributes=None):
-    '''
+    """
     provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
     that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
     verbosity (xml attribute)
-    '''
+    """
     self.setMessageHandler(messageHandler)
     if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
     else: self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
@@ -47,7 +47,7 @@ class BaseType(MessageHandler.MessageUser):
     self.printMe()
 
   def _readMoreXML(self,xmlNode):
-    '''method to be overloaded to collect the additional input'''
+    """method to be overloaded to collect the additional input"""
     pass
 
   def setMessageHandler(self,handler):
@@ -56,7 +56,7 @@ class BaseType(MessageHandler.MessageUser):
     self.messageHandler = handler
 
   def whoAreYou(self):
-    '''This is a generic interface that will return the type and name of any class that inherits this base class plus all the inherited classes'''
+    """This is a generic interface that will return the type and name of any class that inherits this base class plus all the inherited classes"""
     tempDict          = {}
     tempDict['Class'] = '{0:15}'.format(self.__class__.__name__) +' from '+' '.join([str(base) for base in self.__class__.__bases__])
     tempDict['Type' ] = self.type
@@ -64,36 +64,36 @@ class BaseType(MessageHandler.MessageUser):
     return tempDict
 
   def myInitializzationParams(self):
-    '''
+    """
     this is a generic interface that will return the name and value of the initialization parameters of any class that inherits this base class.
     In reality it is just empty and will fill the dictionary calling addInitParams that is the function to be overloaded used as API
-    '''
+    """
     tempDict = {}
     self.addInitParams(tempDict)
     return tempDict
 
   def addInitParams(self,originalDict):
-    '''function to be overloaded to inject the name and values of the initial parameters'''
+    """function to be overloaded to inject the name and values of the initial parameters"""
     pass
 
   def myCurrentSetting(self):
-    '''
+    """
     this is a generic interface that will return the name and value of the parameters that change during the simulation of any class that inherits this base class.
     In reality it is just empty and will fill the dictionary calling addCurrentSetting that is the function to be overloaded used as API
-    '''
+    """
     tempDict = {}
     self.addCurrentSetting(tempDict)
     return tempDict
 
   def addCurrentSetting(self,originalDict):
-    '''function to be overloaded to inject the name and values of the parameters that might change during the simulation'''
+    """function to be overloaded to inject the name and values of the parameters that might change during the simulation"""
     pass
 
   def printMe(self):
-    '''
+    """
     This is a generic interface that will print all the info for
     the instance of an object that inherit this class
-    '''
+    """
     tempDict = self.whoAreYou()
     for key in tempDict.keys(): self.raiseADebug('{0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myInitializzationParams()
