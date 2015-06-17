@@ -8,22 +8,22 @@
 
     <Steps>
         <MultiRun name='make1'>
-            <Sampler class='Samplers'    type='Stratified'           >1</Sampler>
             <Input   class='DataObjects' type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'      type='ExternalModel'        >poly</Model>
+            <Sampler class='Samplers'    type='Stratified'           >1</Sampler>
             <Output  class='DataObjects' type='TimePointSet'         >solns</Output>
+        </MultiRun>
+        <MultiRun name='make2'>
+            <Input   class='DataObjects' type='TimePointSet'         >solns</Input>
+            <Model   class='Models'      type='ExternalModel'        >poly</Model>
+            <Sampler class='Samplers'    type='Stratified'           >2</Sampler>
+            <Output  class='DataObjects' type='TimePointSet'         >solns</Output>
+            <Output  class='DataObjects' type='TimePointSet'         >solns2</Output>
         </MultiRun>
         <IOStep name='print1'>
             <Input  class='DataObjects'      type='TimePointSet'     >solns</Input>
             <Output class='OutStreamManager' type='Print'            >STRATdump1</Output>
         </IOStep>
-        <MultiRun name='make2'>
-            <Sampler class='Samplers'    type='Stratified'           >2</Sampler>
-            <Input   class='DataObjects' type='TimePointSet'         >solns</Input>
-            <Model   class='Models'      type='ExternalModel'        >poly</Model>
-            <Output  class='DataObjects' type='TimePointSet'         >solns</Output>
-            <Output  class='DataObjects' type='TimePointSet'         >solns2</Output>
-        </MultiRun>
         <IOStep name='print2'>
             <Input  class='DataObjects'      type='TimePointSet'>solns2</Input>
             <Output class='OutStreamManager' type='Print'       >STRATdump2</Output>

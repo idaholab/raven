@@ -57,8 +57,8 @@
             <Input             class='Files'            type=''                          >ideal_pump.i</Input>
             <Input             class='Files'            type=''                          >ideal_pump_control.py</Input>
             <Model             class='Models'           type='Code'                      >MyRAVEN</Model>
-            <SolutionExport    class='DataObjects'            type='TimePointSet'              >LimitSurfSimple</SolutionExport>
             <Sampler           class='Samplers'         type='AdaptiveDynamicEventTree'  >AdaptiveDETsimple</Sampler>
+            <SolutionExport    class='DataObjects'            type='TimePointSet'              >LimitSurfSimple</SolutionExport>
             <Output            class='DataObjects'            type='TimePointSet'              >adaptiveOutsimple</Output>
             <Output            class='Databases'        type='HDF5'                      >AdaptiveDETsimpleDatabase</Output>
             <Output            class='DataObjects'            type='Histories'                 >AdaptiveDEThistories</Output>
@@ -87,7 +87,7 @@
     <Databases>
         <HDF5 name="AdaptiveDETsimpleDatabase" directory="AdaptiveDET"/>
     </Databases>
-    
+
     <OutStreamManager>
         <Print name='adaptiveNoHierarchicalDump'>
             <type>csv</type>

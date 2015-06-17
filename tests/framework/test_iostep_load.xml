@@ -20,12 +20,12 @@
   <Steps>
     <IOStep name='test_read_in' fromDirectory='../output_check'>
       <Input  class='DataObjects'    type='Histories'>fullprint_histories</Input>
-      <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
       <Input  class='DataObjects'    type='TimePoint'>fullprint_timepoint</Input>
-      <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
       <Input  class='DataObjects'    type='History'>fullprint_history</Input>
-      <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
       <Input  class='DataObjects'    type='TimePointSet'>fullprint_timepointset</Input>
+      <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
+      <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
+      <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
       <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
     </IOStep>
     <IOStep name='test_rewrite'>
@@ -75,7 +75,7 @@
           <type>csv</type>
           <source>timepointset_IN_database</source>
       </Print>
-      
+
     <Print name='reprint_histories'>
       <type>csv</type>
       <source>fullprint_histories</source>

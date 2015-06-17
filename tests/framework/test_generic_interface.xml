@@ -38,8 +38,8 @@
     <MultiRun name="sample">
       <Input   class="Files"     type=""            >gen.one</Input>
       <Input   class="Files"     type=""            >gen.two</Input>
-      <Sampler class="Samplers"  type="Grid"        >grid</Sampler>
       <Model   class="Models"    type="Code"        >poly</Model>
+      <Sampler class="Samplers"  type="Grid"        >grid</Sampler>
       <Output  class='DataObjects'     type='TimePointSet'>samples</Output>
       <Output  class='OutStreamManager' type='Print'>samples</Output>
     </MultiRun>

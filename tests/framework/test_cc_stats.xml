@@ -54,6 +54,10 @@
       <Input  class='DataObjects'  type='TimePointSet'>fullprint_timepointset</Input>
       <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
     </IOStep>
+    <IOStep name="dump_data">
+      <Input  class='DataObjects'  type='TimePointSet'>out_data</Input>
+      <Output class='OutStreamManager' type='Print'>out_data</Output>
+    </IOStep>
     <PostProcess name="test_stats_step">
       <Input  class='DataObjects'  type='TimePointSet'>fullprint_timepointset</Input>
       <!-- <Input   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Input>-->
@@ -61,10 +65,6 @@
       <Output class='Files' type=''>output.csv</Output>
       <Output class='DataObjects'  type='TimePointSet'>out_data</Output>
     </PostProcess>
-    <IOStep name="dump_data">
-      <Input  class='DataObjects'  type='TimePointSet'>out_data</Input>
-      <Output class='OutStreamManager' type='Print'>out_data</Output>
-    </IOStep>
   </Steps>
 
   <Databases>

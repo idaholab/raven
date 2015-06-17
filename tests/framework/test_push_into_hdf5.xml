@@ -27,33 +27,33 @@
     </MultiRun>
     <IOStep name='test_extract'>
         <Input   class='Databases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
+        <Input   class='Databases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
+        <Input   class='Databases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
+        <Input   class='Databases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  class='DataObjects'    type='Histories'>histories_from_database</Output>
-        <Input   class='Databases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  class='DataObjects'    type='TimePoint'>timepoint_from_database</Output>
-        <Input   class='Databases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  class='DataObjects'    type='History'>history_from_database</Output>
-        <Input   class='Databases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  class='DataObjects'    type='TimePointSet'>timepointset_from_database</Output>
         <Output    class='OutStreamManager' type='Print'     >timepointset_from_database_dump</Output>
     </IOStep>
     <IOStep name='test_push_in'>
         <Input  class='DataObjects'    type='Histories'>histories_from_database</Input>
-        <Output   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
         <Input  class='DataObjects'    type='TimePoint'>timepoint_from_database</Input>
-        <Output   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
         <Input  class='DataObjects'    type='History'>history_from_database</Input>
-        <Output   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
         <Input  class='DataObjects'    type='TimePointSet'>timepointset_from_database</Input>
+        <Output   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
+        <Output   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
+        <Output   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
         <Output   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
     </IOStep>
     <IOStep name='test_extract_again'>
         <Input   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
+        <Input   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
+        <Input   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
+        <Input   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
         <Output  class='DataObjects'    type='Histories'>histories_IN_database</Output>
-        <Input   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
         <Output  class='DataObjects'    type='TimePoint'>timepoint_IN_database</Output>
-        <Input   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
         <Output  class='DataObjects'    type='History'>history_IN_database</Output>
-        <Input   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
         <Output  class='DataObjects'    type='TimePointSet'>timepointset_IN_database</Output>
         <Output    class='OutStreamManager' type='Print'     >timepointset_IN_database_dump</Output>
     </IOStep>

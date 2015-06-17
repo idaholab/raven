@@ -1,0 +1,163 @@
+<?xml version="1.0"?>
+<xsd:schema version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"  elementFormDefault="qualified">
+  <xsd:complexType name="StepType">
+    <xsd:sequence>
+      <xsd:element name="MultiRun" type="MultiRunStepType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="SingleRun" type="SingleRunStepType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="IOStep" type="IOStepType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="RomTrainer" type="ROMTrainerStepType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="PostProcess" type="PPStepType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+    <xsd:attribute name="verbosity" type="xsd:string" default="all"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="SingleRunStepType">
+    <xsd:all minOccurs="0">
+      <xsd:element name="Input" minOccurs="1">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Model" minOccurs="1">
+        <xsd:complexType mixed="true">
+          <xsd:attribute name="class" type="xsd:string" fixed="Models" use="required"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Output" minOccurs="1">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:all>
+    <xsd:attribute name="name"       type="xsd:string" use="required" />
+    <xsd:attribute name="pauseAtEnd" type="xsd:boolean" />
+  </xsd:complexType>
+
+  <xsd:complexType name="MultiRunStepType">
+    <xsd:sequence minOccurs="0">
+      <xsd:element name="Input" minOccurs="1" maxOccurs="unbounded">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Model" minOccurs="1"  maxOccurs="unbounded">
+        <xsd:complexType mixed="true">
+          <xsd:attribute name="class" type="xsd:string" fixed="Models" use="required"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Sampler" minOccurs="1"  maxOccurs="unbounded">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required" fixed="Samplers"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="SolutionExport" minOccurs="0"  maxOccurs="unbounded">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required" fixed="DataObjects"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Output" minOccurs="1"  maxOccurs="unbounded">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="name"       type="xsd:string" use="required"/>
+    <xsd:attribute name="pauseAtEnd" type="xsd:boolean" />
+    <xsd:attribute name="sleepTime"  type="xsd:float"  default="0.05" />
+    <xsd:attribute name="verbosity" type="xsd:string" default="all"/>
+    <xsd:attribute name="re-seeding" type="xsd:string" />
+  </xsd:complexType>
+
+  <xsd:complexType name="IOStepType">
+    <xsd:sequence minOccurs="0">
+      <xsd:element name="Input" minOccurs="1"   maxOccurs="unbounded">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Output" minOccurs="1" maxOccurs="unbounded">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="name"          type="xsd:string"  use="required"/>
+    <xsd:attribute name="pauseAtEnd"    type="xsd:boolean" />
+    <xsd:attribute name="fromDirectory" type="xsd:string" />
+    <xsd:attribute name="verbosity" type="xsd:string" default="all"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="ROMTrainerStepType">
+    <xsd:all minOccurs="0">
+      <xsd:element name="Input" minOccurs="1">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Output" minOccurs="1">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:all>
+    <xsd:attribute name="name"       type="xsd:string" use="required"/>
+    <xsd:attribute name="verbosity" type="xsd:string" default="all"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="PPStepType">
+    <xsd:sequence minOccurs="0">
+      <!-- This is supposed to be required, but some examples don't use it -->
+      <xsd:element name="Input" minOccurs="0" maxOccurs="unbounded">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+      <!-- This is not in the manual -->
+      <xsd:element name="Function" minOccurs="0" maxOccurs="unbounded">
+        <xsd:complexType mixed="true">
+          <xsd:attribute name="class" type="xsd:string" use="required" fixed="Functions"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required" fixed="External"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Model" minOccurs="1" maxOccurs="unbounded">
+        <xsd:complexType mixed="true">
+          <xsd:attribute name="class" type="xsd:string" use="required" fixed="Models"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="Output" minOccurs="1" maxOccurs="unbounded">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="name"       type="xsd:string" use="required"/>
+    <xsd:attribute name="pauseAtEnd" type="xsd:boolean" />
+  </xsd:complexType>
+</xsd:schema>

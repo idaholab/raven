@@ -28,7 +28,7 @@
             <grid type='CDF' construction='equal' upperBound='0.9' steps='15'>0.05</grid>
         </Distribution>
     </Grid>
-    
+
 </Samplers>
 
 <OutStreamManager>
@@ -220,8 +220,8 @@
         <type>scatter</type>
         <x>stories|Output|time</x>
         <y>stories|Output|pump_mass_flow_rate</y>
-        <colorMap>stories|Output|pipe1_Hw</colorMap> 
-        <cmap>summer</cmap> 
+        <colorMap>stories|Output|pipe1_Hw</colorMap>
+        <cmap>summer</cmap>
         <kwargs>
          <color>red</color>
          <label>pump mass flow rate</label>
@@ -423,7 +423,7 @@
             <y>TimePointSets|Input|pipe1_Dh</y>
             <interpolationType>nearest</interpolationType>
             <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
-	    <cmap>summer</cmap> 
+	    <cmap>summer</cmap>
             <kwargs>
                 <label>pump mass flow rate</label>
             </kwargs>
@@ -456,7 +456,7 @@
             <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
-            <interpolationType>nearest</interpolationType> 
+            <interpolationType>nearest</interpolationType>
             <kwargs>
                 <label>pump mass flow rate</label>
             </kwargs>
@@ -468,8 +468,8 @@
             <y>TimePointSets|Input|pipe1_Dh</y>
             <interpolationType>nearest</interpolationType>
             <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
-	    <cmap>summer</cmap> 
-        </plot> 
+	    <cmap>summer</cmap>
+        </plot>
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
     </plotSettings>
@@ -578,7 +578,7 @@
       <type>scatter</type>
       <x>stories|Output|time</x>
       <y>stories|Output|pump_mass_flow_rate</y>
-      <colorMap>stories|Input|pipe1_Dh</colorMap> 
+      <colorMap>stories|Input|pipe1_Dh</colorMap>
       <cmap>rainbow</cmap>
       </plot>
       <xlabel>Time (s)</xlabel>
@@ -596,8 +596,8 @@
       <type>scatter</type>
       <x>stories|Output|time</x>
       <y>stories|Input|pipe1_Dh</y>
-      <z>stories|Output|pump_mass_flow_rate</z> 
-      <colorMap>stories|Output|pipe1_Hw</colorMap> 
+      <z>stories|Output|pump_mass_flow_rate</z>
+      <colorMap>stories|Output|pipe1_Hw</colorMap>
       <cmap>summer</cmap>
       </plot>
       <xlabel>Time (s)</xlabel>
@@ -616,8 +616,8 @@
       <type>scatter</type>
       <x>Historyy|Output|time</x>
       <y>Historyy|Input|pipe1_Dh</y>
-      <z>Historyy|Output|pump_mass_flow_rate</z> 
-      <colorMap>Historyy|Output|pipe1_Hw</colorMap> 
+      <z>Historyy|Output|pump_mass_flow_rate</z>
+      <colorMap>Historyy|Output|pipe1_Hw</colorMap>
       <cmap>Accent</cmap>
       </plot>
       <xlabel>Time (s)</xlabel>
@@ -663,22 +663,22 @@
 
 
 <Steps>
-    <MultiRun name='FirstMRun' pauseAtEnd='False'>
+    <MultiRun name='FirstMRun' pauseAtEnd='false'>
         <Input     class='Files'            type=''             >ideal_pump.i</Input>
         <Input     class='Files'            type=''             >ideal_pump_control.py</Input>
         <Model     class='Models'           type='Code'         >MyRAVEN</Model>
-        <Sampler   class = 'Samplers'       type='Grid'         >RAVENmc6</Sampler>
+        <Sampler   class='Samplers'         type='Grid'         >RAVENmc6</Sampler>
         <Output    class='Databases'        type='HDF5'         >testOutputDatabase</Output>
-        <Output    class='DataObjects'            type='Histories'    >stories</Output>
-        <Output    class='DataObjects'            type='TimePointSet' >TimePointSets</Output>
-        <Output    class='DataObjects'            type='TimePoint'    >TimePointt</Output>
-        <Output    class='DataObjects'            type='History'      >Historyy</Output>
+        <Output    class='DataObjects'      type='Histories'    >stories</Output>
+        <Output    class='DataObjects'      type='TimePointSet' >TimePointSets</Output>
+        <Output    class='DataObjects'      type='TimePoint'    >TimePointt</Output>
+        <Output    class='DataObjects'      type='History'      >Historyy</Output>
     </MultiRun >
-    <IOStep name='testOutstreamStep' pauseAtEnd='False'>
-        <Input    class='DataObjects'            type='Histories'    >stories</Input>
-        <Input    class='DataObjects'            type='TimePointSet' >TimePointSets</Input>
-        <Input    class='DataObjects'            type='TimePoint'    >TimePointt</Input>
-        <Input    class='DataObjects'            type='History'      >Historyy</Input>
+    <IOStep name='testOutstreamStep' pauseAtEnd='false'>
+        <Input     class='DataObjects'      type='Histories'    >stories</Input>
+        <Input     class='DataObjects'      type='TimePointSet' >TimePointSets</Input>
+        <Input     class='DataObjects'      type='TimePoint'    >TimePointt</Input>
+        <Input     class='DataObjects'      type='History'      >Historyy</Input>
         <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot</Output>
         <Output    class='OutStreamManager' type='Print'        >test</Output>
         <Output    class='OutStreamManager' type='Print'        >fullprint_timepointset</Output>

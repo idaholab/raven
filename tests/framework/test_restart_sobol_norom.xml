@@ -8,31 +8,23 @@
 
     <Steps>
         <MultiRun name='SOBOLmake1'>
-            <Sampler class='Samplers'    type='Sobol'                >SOBOL1</Sampler>
             <Input   class='DataObjects' type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'      type='ExternalModel'        >poly</Model>
+            <Sampler class='Samplers'    type='Sobol'                >SOBOL1</Sampler>
             <Output  class='DataObjects' type='TimePointSet'         >SOBOLsolns</Output>
         </MultiRun>
-        <RomTrainer name='SOBOLtrain1'>
-            <Input  class='DataObjects' type='TimePointSet'          >SOBOLsolns</Input>
-            <Output class='Models'      type='ROM'                   >rom1</Output>
-        </RomTrainer>
+        <MultiRun name='SOBOLmake2'>
+            <Input   class='DataObjects' type='TimePointSet'         >SOBOLsolns</Input>
+            <!--Input   class='Models'      type='ROM'                  >rom1</Input-->
+            <Model   class='Models'      type='ExternalModel'        >poly</Model>
+            <Sampler class='Samplers'    type='Sobol'                >SOBOL2</Sampler>
+            <Output  class='DataObjects' type='TimePointSet'         >SOBOLsolns</Output>
+            <Output  class='DataObjects' type='TimePointSet'         >SOBOLsolns2</Output>
+        </MultiRun>
         <IOStep name='SOBOLprint1'>
             <Input  class='DataObjects'      type='TimePointSet'     >SOBOLsolns</Input>
             <Output class='OutStreamManager' type='Print'            >SOBOLdump1</Output>
         </IOStep>
-        <MultiRun name='SOBOLmake2'>
-            <Sampler class='Samplers'    type='Sobol'                >SOBOL2</Sampler>
-            <Input   class='DataObjects' type='TimePointSet'         >SOBOLsolns</Input>
-            <!--Input   class='Models'      type='ROM'                  >rom1</Input-->
-            <Model   class='Models'      type='ExternalModel'        >poly</Model>
-            <Output  class='DataObjects' type='TimePointSet'         >SOBOLsolns</Output>
-            <Output  class='DataObjects' type='TimePointSet'         >SOBOLsolns2</Output>
-        </MultiRun>
-        <RomTrainer name='SOBOLtrain2'>
-            <Input  class='DataObjects' type='TimePointSet'          >SOBOLsolns</Input>
-            <Output class='Models'      type='ROM'                   >rom2</Output>
-        </RomTrainer>
         <IOStep name='SOBOLprint2'>
             <Input  class='DataObjects'      type='TimePointSet'>SOBOLsolns2</Input>
             <Output class='OutStreamManager' type='Print'       >SOBOLdump2</Output>
@@ -41,6 +33,14 @@
             <Input  class='DataObjects'      type='TimePointSet'>SOBOLsolns</Input>
             <Output class='OutStreamManager' type='Print'       >SOBOLdump3</Output>
         </IOStep>
+        <RomTrainer name='SOBOLtrain2'>
+            <Input  class='DataObjects' type='TimePointSet'          >SOBOLsolns</Input>
+            <Output class='Models'      type='ROM'                   >rom2</Output>
+        </RomTrainer>
+        <RomTrainer name='SOBOLtrain1'>
+            <Input  class='DataObjects' type='TimePointSet'          >SOBOLsolns</Input>
+            <Output class='Models'      type='ROM'                   >rom1</Output>
+        </RomTrainer>
     </Steps>
 
     <Distributions>

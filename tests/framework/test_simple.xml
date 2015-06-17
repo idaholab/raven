@@ -56,16 +56,16 @@
 
 <Steps>
     <MultiRun name='FirstMRun' re-seeding='1'>
-        <Input   class='Files'     type=''>ideal_pump.i</Input>
-        <Input   class='Files'     type=''>ideal_pump_control.py</Input>
-        <Model   class='Models'    type='Code'      >MyRAVEN</Model>
-        <Sampler class='Samplers'  type='MonteCarlo'>RAVENmc6</Sampler>
-        <Output  class='Databases' type='HDF5' >testMCDatabase</Output>
-        <Output  class='DataObjects'     type='Histories' >stories</Output>
-    </MultiRun >
+        <Input   class='Files'       type=''          >ideal_pump.i</Input>
+        <Input   class='Files'       type=''          >ideal_pump_control.py</Input>
+        <Model   class='Models'      type='Code'      >MyRAVEN</Model>
+        <Sampler class='Samplers'    type='MonteCarlo'>RAVENmc6</Sampler>
+        <Output  class='Databases'   type='HDF5'      >testMCDatabase</Output>
+        <Output  class='DataObjects' type='Histories' >stories</Output>
+    </MultiRun>
 </Steps>
 <Databases>
-    <HDF5 name="testMCDatabase"/> 
+    <HDF5 name="testMCDatabase"/>
 </Databases>
 <DataObjects>
     <Histories name='stories'>
