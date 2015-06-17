@@ -166,7 +166,6 @@ class MessageHandler(object):
         @ In, msg, the string that means true or false
         @ Out, None
       '''
-      print('message is',msg)
       if msg in utils.stringsThatMeanTrue():
           self.callerLength = 40
           self.tagLength = 30
@@ -175,7 +174,6 @@ class MessageHandler(object):
           self.callerLength = 25
           self.tagLength = 15
           self.printTime = False
-      print('global printstamp is',self.printTime)
 
   def getStringFromCaller(self,obj):
     """
