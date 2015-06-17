@@ -228,8 +228,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
           else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')
 
-    if self.initSeed == None:
-      self.initSeed = Distributions.randomIntegers(0,2**31,self)
+    #if self.initSeed == None:
+    #  self.initSeed = Distributions.randomIntegers(0,2**31,self)
 
   def endJobRunnable(self): return self._endJobRunnable
 
