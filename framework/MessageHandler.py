@@ -159,7 +159,6 @@ class MessageHandler(object):
     self.callerLength  = initDict.get('callerLength',40)
     self.tagLength     = initDict.get('tagLength',30)
     self.suppressErrs  = initDict['suppressErrs'] in utils.stringsThatMeanTrue() if 'suppressErrs' in initDict.keys() else False
-    self.printTime     = initDict['printTimeStamps'] in utils.stringsThatMeanTrue() if 'printtimeStamps' in initDict.keys() else True
 
   def setTimePrint(self,msg):
       '''

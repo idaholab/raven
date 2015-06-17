@@ -277,8 +277,7 @@ class Simulation(MessageHandler.MessageUser):
     callerLength        = 25
     tagLength           = 15
     suppressErrs        = False
-    printTimeStamps     = True
-    self.messageHandler.initialize({'verbosity':self.verbosity, 'callerLength':callerLength, 'tagLength':tagLength, 'suppressErrs':suppressErrs, 'printTimeStamps':printTimeStamps})
+    self.messageHandler.initialize({'verbosity':self.verbosity, 'callerLength':callerLength, 'tagLength':tagLength, 'suppressErrs':suppressErrs})
     readtime = datetime.datetime.fromtimestamp(self.messageHandler.starttime).strftime('%Y-%m-%d %H:%M:%S')
     sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
