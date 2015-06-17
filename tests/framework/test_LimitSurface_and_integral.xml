@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation verbosity='quiet'>
 <RunInfo>
-    <WorkingDir>limitSurface</WorkingDir>
+    <WorkingDir>limitSurface_integral</WorkingDir>
     <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py,LimitSurfaceUnWeightedPb_FileObj.csv,LimitSurfaceWeightedPb_FileObj.csv</Files>
     <Sequence>FirstMRun,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted,ComputeLimitSurfaceIntegralUnWeighted</Sequence>
     <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>
-    <ExternalModel name='PythonModule' subType='' ModuleToLoad='limitSurface/limitSurfaceTestExternalModel'>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='limitSurface_integral/limitSurfaceTestExternalModel'>
        <variable>z</variable>
        <variable>x0</variable>
        <variable>y0</variable>
@@ -52,7 +52,7 @@
 </Models>
 
 <Functions>
-    <External name='goalFunctionForLimitSurface' file='limitSurface/goalFunctionTest'>
+    <External name='goalFunctionForLimitSurface' file='limitSurface_integral/goalFunctionTest'>
         <variable>z</variable>
     </External>
 </Functions>
@@ -61,10 +61,14 @@
     <Normal name='x0_distrib'>
         <mean>4</mean>
         <sigma>2</sigma>
+        <lowerBound>0.0</lowerBound>
+        <upperBound>8.0</upperBound>
     </Normal>
     <Normal name='y0_distrib'>
         <mean>5</mean>
         <sigma>2</sigma>
+        <lowerBound>0.0</lowerBound>
+        <upperBound>10.0</upperBound>
     </Normal>
 </Distributions>
 
