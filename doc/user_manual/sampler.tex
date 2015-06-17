@@ -319,9 +319,28 @@ Example XML block to define the variables and associated distributions:
 If the variable is associated to a multi-dimensional ND distribution, it is needed to specify which dimension of the ND distribution is associated to such variable. An example is shown below: the variable  ``variableX'' is associated to the third dimension of the ND distribution ``NDdistribution''.
 
 \begin{lstlisting}[style=XML]
-        <variable name='variableX'>
-            <distribution dim='3'>NDdistribution</distribution>
-        </variable>
+<variable name='variableX'>
+     <distribution dim='3'>NDdistribution</distribution>
+</variable>
+\end{lstlisting}
+
+In the sampler class a special node exists: the \xmlNode{sampler\textunderscore init} node.
+This node contains specific parameters that characterize each particular sampler. 
+In addition, \xmlNode{sampler\textunderscore init} might contains the information regarding the random generator function for each $N$-Dimensional distribution (specified in the \xmlNode{dist\textunderscore init} node):
+\begin{itemize}
+\item initial\textunderscore grid\textunderscore disc 
+\item tolerance
+\end{itemize}
+
+An example of \xmlNode{dist\textunderscore init} node is provided below:
+
+\begin{lstlisting}[style=XML]
+<dist_init>
+    <distribution name= 'ND_dist_name'>
+         <initial_grid_disc>5</initial_grid_disc>
+          <tolerance>0.2</tolerance>
+     </distribution>
+  </dist_init>
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -353,6 +372,7 @@ ways to explore the input space.
 %
 In the following paragraphs, the input requirements and a small explanation of
 the different sampling methodologies are reported.
+
 
 %%% Once-Through Samplers: MonteCarlo
 \subsubsection{Monte Carlo}
