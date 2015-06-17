@@ -385,7 +385,7 @@
  [./indexSetTest]
   type = 'RavenFramework'
   input = 'test_indexsets.xml'
-  output = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml IndexSetTest/Cdump.xml'
+  xml = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml IndexSetTest/Cdump.xml'
   csv = 'IndexSetTest/TPdump.csv IndexSetTest/TDdump.csv IndexSetTest/HCdump.csv IndexSetTest/Cdump.csv'
  [../]
 
@@ -393,7 +393,6 @@
   type = 'RavenFramework'
   input = 'test_sobol_sampler.xml'
   output = 'SobolSampler/dump.xml'
-  xml = 'SobolSampler/dump.xml'
   csv = 'SobolSampler/dump.csv'
  [../]
 
@@ -459,7 +458,7 @@
  [./stochPolyInterpTest]
   type = 'RavenFramework'
   input = 'test_stochpoly_interp.xml'
-  output = 'StochasticPolyInterpTest/Ndump.xml'
+  xml = 'StochasticPolyInterpTest/Ndump.xml'
   csv = 'StochasticPolyInterpTest/Ndump.csv'
  [../]
 
@@ -509,14 +508,14 @@
  [./genericInterface]
    type = 'RavenFramework'
    input = 'test_generic_interface.xml'
-   output = 'GenericInterface/samples.xml'
+   xml = 'GenericInterface/samples.xml'
    csv = 'GenericInterface/samples.csv'
  [../]
 
  [./genericInterfaceIO]
    type = 'RavenFramework'
    input = 'test_generic_IO.xml'
-   output = 'GenericInterfaceIO/samples.xml'
+   xml = 'GenericInterfaceIO/samples.xml'
    csv = 'GenericInterfaceIO/samples.csv'
  [../]
 
