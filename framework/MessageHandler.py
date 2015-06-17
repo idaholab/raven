@@ -14,6 +14,7 @@ if not 'xrange' in dir(__builtins__):
 #External Modules------------------------------------------------------------------------------------
 import platform
 import os
+import time
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -141,9 +142,11 @@ class MessageHandler(object):
       @In, None
       @Out, None
     """
+    self.starttime    = time.time()
     self.printTag     = 'MESSAGE HANDLER'
     self.verbosity    = None
     self.suppressErrs = False
+    self.printTime    = True
     self.verbCode     = {'silent':0, 'quiet':1, 'all':2, 'debug':3}
 
   def initialize(self,initDict):
@@ -152,10 +155,25 @@ class MessageHandler(object):
       @ In, initDict, dictionary of global options
       @ Out, None
     """
-    self.verbosity     = initDict['verbosity'   ] if 'verbosity'    in initDict.keys() else 'all'
-    self.callerLength  = initDict['callerLength'] if 'callerLength' in initDict.keys() else 25
-    self.tagLength     = initDict['tagLength'   ] if 'tagLength'    in initDict.keys() else 15
+    self.verbosity     = initDict.get('verbosity','all')
+    self.callerLength  = initDict.get('callerLength',40)
+    self.tagLength     = initDict.get('tagLength',30)
     self.suppressErrs  = initDict['suppressErrs'] in utils.stringsThatMeanTrue() if 'suppressErrs' in initDict.keys() else False
+
+  def setTimePrint(self,msg):
+      '''
+        Allows the code to toggle timestamp printing.
+        @ In, msg, the string that means true or false
+        @ Out, None
+      '''
+      if msg in utils.stringsThatMeanTrue():
+          self.callerLength = 40
+          self.tagLength = 30
+          self.printTime = True
+      elif msg in utils.stringsThatMeanFalse():
+          self.callerLength = 25
+          self.tagLength = 15
+          self.printTime = False
 
   def getStringFromCaller(self,obj):
     """
@@ -246,6 +264,9 @@ class MessageHandler(object):
       @ Out, string, formatted message
     """
     msg = ''
+    if self.printTime:
+      curtime = time.time()-self.starttime
+      msg+='('+'{:8.2f}'.format(curtime)+' sec) '
     msg+=pre.ljust(self.callerLength)[0:self.callerLength] + ': '
     msg+=tag.ljust(self.tagLength)[0:self.tagLength]+' -> '
     msg+=post
