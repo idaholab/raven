@@ -73,7 +73,7 @@ XML node and the requirements for other attributes change:
       \end{itemize}
       This construction type requires that the content of the \xmlNode{grid}
       node represents the lower and upper bounds (either
-      in probability or value). Two values need to be specified; the lowest one 
+      in probability or value). Two values need to be specified; the lowest one
      will be considered as the $lowerBound$, the largest, the $upperBound$.
       The lower and upper bounds are checked against the associated
       \xmlNode{distribution} bounds.
@@ -158,7 +158,7 @@ XML node and the requirements for other attributes change:
 
 \newcommand{\convergenceDescription}
 {
-\xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence 
+\xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence
     tolerance.
     %
     The meaning of this tolerance depends on the definition of other attributes
@@ -178,18 +178,18 @@ XML node and the requirements for other attributes change:
         \begin{itemize}
           \item \xmlString{CDF}, the convergence is checked in terms
             of probability (Cumulative Distribution Function).
-          \item \xmlString{value}, the convergence is checked on the 
+          \item \xmlString{value}, the convergence is checked on the
             hyper-volume in terms of variable values.
         \end{itemize}
         \default{CDF}.
-      \item \xmlAttr{persistence}, \xmlDesc{optional integer attribute}, 
+      \item \xmlAttr{persistence}, \xmlDesc{optional integer attribute},
         offers an additional convergence check.
         %
         It represents the number of times the computed error needs to be
         below the inputted tolerance before convergence is reported.
         %
         \default{0}.
-     % \item \xmlAttr{subGridTol}, \xmlDesc{optional string attribute}, 
+     % \item \xmlAttr{subGridTol}, \xmlDesc{optional string attribute},
       %  defines a tolerance for constructing a sub-grid on which the
        % acceleration ROM is going to be tested.
         %
@@ -365,7 +365,7 @@ to uniform or parameter-based probability density functions.
 \item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
 %\item \textbf{limit}, \textit{required integer attribute}, number of MonteCarlo samples needs to be generated;
 %\item \textbf{initial\_seed}, \textit{optional integer attribute}, initial seeding of random number generator. \textit{Default = random seed};
-%\item \textbf{reseedAtEachIteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \textit{Default = False}; 
+%\item \textbf{reseedAtEachIteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \textit{Default = False};
 \end{itemize}
 \vspace{-5mm}
 
@@ -373,10 +373,10 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
 \begin{itemize}
 \item \xmlNode{sampler\textunderscore init},  \textit{\textbf{XML node, required parameter}}. In this xml-node,the following xml sub-nodes need to be specified:
   \begin{itemize}
-    \item \xmlNode{limit}, \textit{\textbf{integer,required field}}, number of MonteCarlo samples needs to be generated; 
+    \item \xmlNode{limit}, \textit{\textbf{integer,required field}}, number of MonteCarlo samples needs to be generated;
     \item \xmlNode{initial\textunderscore seed}, \textit{\textbf{integer, optional field}}, initial seeding of random number generator
-    \item \xmlNode{reseed\_at\_each\_iteration},  \textit{\textbf{boolean/string(case insensitive), optional field}}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \default{False}; 
-    \item \xmlNode{dist\textunderscore init},  \textit{\textbf{integer, optional field}}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}). 
+    \item \xmlNode{reseed\_at\_each\_iteration},  \textit{\textbf{boolean/string(case insensitive), optional field}}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \default{False};
+    \item \xmlNode{dist\textunderscore init},  \textit{\textbf{integer, optional field}}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}).
   \end{itemize}
 \end{itemize}
 \begin{itemize}
@@ -395,7 +395,7 @@ Example:
 \begin{lstlisting}[style=XML]
 <Samplers>
   ...
-  <MonteCarlo name='MCname'> 
+  <MonteCarlo name='MCname'>
     <sampler_init>
       <limit>10</limit>
       <initial_seed>200286</initial_seed>
@@ -407,10 +407,10 @@ Example:
         </distribution>
       </dist_init>
     </sampler_init>
-    <variable name='var1'> 
+    <variable name='var1'>
       <distribution>aDistributionNameDefinedInDistributionBlock
-      </distribution>  
-    </variable> 
+      </distribution>
+    </variable>
   </MonteCarlo>
   ...
 </Samplers>
@@ -462,36 +462,36 @@ Example:
 \begin{lstlisting}[style=XML,morekeywords={construction,steps,lowerBound,upperBound}]
 <Samplers>
   ...
-  <Grid name='Gridname'> 
-    <variable name='var1'> 
+  <Grid name='Gridname'>
+    <variable name='var1'>
       <distribution>aDistributionNameDefinedInDistributionBlock1
-      </distribution> 
-      <grid type='value' construction='equal' steps='100' >0.2 10</grid> 
-    </variable> 
-    <variable name='var2'> 
+      </distribution>
+      <grid type='value' construction='equal' steps='100' >0.2 10</grid>
+    </variable>
+    <variable name='var2'>
       <distribution>aDistributionNameDefinedInDistributionBlock2
-      </distribution> 
-      <grid type='CDF' construction='equal' steps='5' >0.2 0.8</grid> 
+      </distribution>
+      <grid type='CDF' construction='equal' steps='5' >0.2 0.8</grid>
     </variable>
-    <variable name='var3'> 
+    <variable name='var3'>
       <distribution>aDistributionNameDefinedInDistributionBlock3
-      </distribution> 
-      <grid type='value' construction='equal' steps='100' >0.2 21.0</grid> 
-    </variable> 
-    <variable name='var4'> 
-      <distribution>aDistributionNameDefinedInDistributionBlock4
-      </distribution> 
-      <grid type='CDF' construction='equal' steps='5' >0.2 1.0</grid> 
+      </distribution>
+      <grid type='value' construction='equal' steps='100' >0.2 21.0</grid>
     </variable>
-    <variable name='var5'> 
+    <variable name='var4'>
+      <distribution>aDistributionNameDefinedInDistributionBlock4
+      </distribution>
+      <grid type='CDF' construction='equal' steps='5' >0.2 1.0</grid>
+    </variable>
+    <variable name='var5'>
       <distribution>aDistributionNameDefinedInDistributionBlock5
-      </distribution> 
-      <grid type='value' construction='custom'>0.2 0.5 10.0</grid> 
-    </variable> 
-    <variable name='var6'> 
+      </distribution>
+      <grid type='value' construction='custom'>0.2 0.5 10.0</grid>
+    </variable>
+    <variable name='var6'>
       <distribution>aDistributionNameDefinedInDistributionBlock6
-      </distribution> 
-      <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid> 
+      </distribution>
+      <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
     </variable>
   </Grid>
   ...
@@ -503,11 +503,18 @@ Example:
 %\talbpaul{Work in progress.}
 %\senrs{Assembler section updated}
 \label{subsubsubsec:SparseGridCollocation}
-\textbf{Sparse Grid Collocation} builds on generic \textbf{Grid} sampling by selecting evaluation points based on characteristic quadratures as part of stochastic collocation for generalized polynomial chaos uncertainty quantification.  In collocation you construct an N-dimensional grid, with each uncertain variable providing an axis.  Along each axis, the points of evaluation correspond to quadrature points necessary to integrate polynomials (see \ref{subsubsec:GaussPolynomialRom}).  In the simplest (and most  naive) case, a N-Dimensional tensor product of all possible combinations of points from each dimension's quadrature is constructed as sampling points.  The number of necessary samples can be reduced by employing Smolyak-like sparse grid algorithms, which use reduced combinations of polynomial orders to reduce the necessary sampling space.  \specBlock{a}{SparseGridCollocation}.
+\textbf{Sparse Grid Collocation} builds on generic \textbf{Grid} sampling by selecting evaluation points based on characteristic quadratures as part of
+stochastic collocation for generalized polynomial chaos uncertainty quantification.  In collocation you construct an N-dimensional grid, with each uncertain
+variable providing an axis.  Along each axis, the points of evaluation correspond to quadrature points necessary to integrate polynomials
+(see \ref{subsubsec:GaussPolynomialRom}).  In the simplest (and most  naive) case, a N-Dimensional tensor product of all possible combinations of points from
+each dimension's quadrature is constructed as sampling points.  The number of necessary samples can be reduced by employing Smolyak-like sparse grid algorithms,
+which use reduced combinations of polynomial orders to reduce the necessary sampling space.  \specBlock{a}{SparseGridCollocation}.
+
+\nb{SparseGridCollocation requires uncorrelated input dimensions; thus, for the present, it is not compatible with NDDistribution objects.}
 \begin{itemize}
 \itemsep0em
 \item \nameDescription
-\item \xmlAttr{parallel}, \xmlDesc{optional string attribute}, option to disable parallel construction of the sparse grid.  Because of increasing computational expense with increasing input space dimension, RAVEN will default to parallel construction of the sparse grid. %\talbpaul{Is this what we want?} 
+\item \xmlAttr{parallel}, \xmlDesc{optional string attribute}, option to disable parallel construction of the sparse grid.  Because of increasing computational expense with increasing input space dimension, RAVEN will default to parallel construction of the sparse grid. %\talbpaul{Is this what we want?}
 \item \xmlAttr{outfile}, \xmlDesc{optional string attribute}, option to allow the generated sparse grid points and weights to be printed to a file with the given name.
 \default{True}
 \end{itemize}
@@ -544,12 +551,20 @@ Example:
 </Samplers>
 \end{lstlisting}
  \normalsize
- 
+
  %%% Once-Through Samplers: Sobol
 \subsubsection{Sobol}
 %\senrs{Assembler section updated}
 \label{subsubsubsec:SobolSampler}
-The \textbf{Sobol} sampler uses high-density model reduction (HDMR) a.k.a. Sobol decomposition to approximate a function as the sum of increasing-complexity interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.  This Sobol sampler uses the associated HDMRRom (see \ref{subsubsec:HDMRRom}) to determine at what points the input space need be evaluated.
+The \textbf{Sobol} sampler uses high-density model reduction (HDMR) a.k.a. Sobol decomposition to approximate a function as the sum of increasing-complexity
+interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At 
+order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions
+of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos
+(see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.  This Sobol sampler uses the associated HDMRRom
+(see \ref{subsubsec:HDMRRom}) to determine at what points the input space need be evaluated.
+
+\nb{Sobol sampler relies on SparseGridCollocation, which requires uncorrelated input dimensions; thus, for the present,
+it is not compatible with NDDistribution objects.}
 \begin{itemize}
 \itemsep0em
 \item \nameDescription
@@ -563,7 +578,7 @@ The \textbf{Sobol} sampler uses high-density model reduction (HDMR) a.k.a. Sobol
  \begin{itemize}
     \item \distributionDescription
  \end{itemize} \end{itemize}
-Because of the tight coupling between the Sobol sampler and the HDMRRom, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, Sobol order, and importance weights to use in each dimension (see \ref{subsubsec:HDMRRom}).  
+Because of the tight coupling between the Sobol sampler and the HDMRRom, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, Sobol order, and importance weights to use in each dimension (see \ref{subsubsec:HDMRRom}).
 
   % Assembler Objects
   \assemblerDescription{Sobol}
@@ -588,7 +603,7 @@ Example:
 </Samplers>
 \end{lstlisting}
  \normalsize
- 
+
 %%% Once-Through Samplers: Stratified
 \subsubsection{Stratified}
 \label{subsubsubsec:Stratified}
@@ -641,21 +656,21 @@ Example:
 \begin{lstlisting}[style=XML,morekeywords={construction,steps,lowerBound,upperBound}]
 <Samplers>
   ...
-  <Stratified name='StratifiedName'> 
-    <variable name='var1'> 
+  <Stratified name='StratifiedName'>
+    <variable name='var1'>
       <distribution>aDistributionNameDefinedInDistributionBlock1
-      </distribution> 
-      <grid type='CDF' construction='equal' steps='5' >0.2 0.8</grid> 
+      </distribution>
+      <grid type='CDF' construction='equal' steps='5' >0.2 0.8</grid>
     </variable>
-    <variable name='var2'> 
+    <variable name='var2'>
       <distribution>aDistributionNameDefinedInDistributionBlock2
-      </distribution> 
-      <grid type='value' construction='equal' steps='100' >0.2 21.0</grid> 
-    </variable> 
-    <variable name='var3'> 
+      </distribution>
+      <grid type='value' construction='equal' steps='100' >0.2 21.0</grid>
+    </variable>
+    <variable name='var3'>
       <distribution>aDistributionNameDefinedInDistributionBlock3
-      </distribution> 
-      <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid> 
+      </distribution>
+      <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
     </variable>
   </Stratified>
   ...
@@ -668,7 +683,7 @@ This is possible by defining a global\_grid and associate such global grid to ea
 \begin{lstlisting}[style=XML,morekeywords={ND,grid}]
 <Samplers>
   ...
-  <Stratified name='StratifiedName'> 
+  <Stratified name='StratifiedName'>
         <variable name='x0'>
             <distribution dim='1'>ND_InverseWeight_P</distribution>
             <grid type='global_grid'>name_grid1</grid>
@@ -688,7 +703,7 @@ This is possible by defining a global\_grid and associate such global grid to ea
 %%% Once-Through Samplers: Response Surface Design
 \subsubsection{Response Surface Design}
 \label{subsubsubsec:RespSurfDOE}
-The \textbf{Response Surface Design}, or Response Surface Modeling (RSM), 
+The \textbf{Response Surface Design}, or Response Surface Modeling (RSM),
 approach is one of the most common Design of Experiment (DOE) methodologies
 currently in use.
 %
@@ -761,7 +776,7 @@ defined within a \xmlNode{ResponseSurfaceDesign} block.
  \end{itemize}
 \end{itemize}
 The main XML block \xmlNode{ResponseSurfaceDesign} needs to contain an
-additional sub-node called \xmlNode{ResponseSurfaceDesignSettings}. 
+additional sub-node called \xmlNode{ResponseSurfaceDesignSettings}.
 In this sub-node, the user needs to specify different settings depending on the
 algorithm being used:
      \begin{itemize}
@@ -831,9 +846,9 @@ Example:
         </ResponseSurfaceDesignSettings>
         <variable name='var1' >
             <distribution >Gauss1</distribution>
-           <grid type='CDF' construction='custom'  >0.2 0.8</grid> 
+           <grid type='CDF' construction='custom'  >0.2 0.8</grid>
         </variable>
-        <!-- N.B. at least 3 variables need to inputted 
+        <!-- N.B. at least 3 variables need to inputted
                 in order to employ this algorithm
          -->
     </ResponseSurfaceDesign>
@@ -848,9 +863,9 @@ Example:
             <distribution >Gauss1</distribution>
             <grid type='CDF' construction='custom'  >0.2 0.8</grid>
         </variable>
-        <!-- N.B. at least 2 variables need to inputted 
+        <!-- N.B. at least 2 variables need to inputted
                 in order to employ this algorithm
-         -->        
+         -->
     </ResponseSurfaceDesign>
   ...
 </Samplers>
@@ -886,7 +901,7 @@ this family of techniques:
   \item \textbf{2-Level Fractional-Factorial} consists of a carefully chosen
     subset (fraction) of the experimental runs of a full factorial design.
     %
-    The subset is chosen so as to exploit the sparsity-of-effects principle 
+    The subset is chosen so as to exploit the sparsity-of-effects principle
     exposing information about the most important features of the problem
     studied, while using a fraction of the effort of a full factorial design in
     terms of experimental runs and resources.
@@ -969,12 +984,12 @@ algorithm being used:
           \xmlNode{variable}.
        \item \xmlNode{algorithm\_type}\texttt{pb}\xmlNode{algorithm\_type/}. Plackett-Burman design.
          If \texttt{pb} is specified, no additional nodes are necessary.
-         \\ 
+         \\
          \nb The Plackett-Burman design does not have any limitations on the
          number of discretization bins allowed in the \xmlNode{grid} node for
          each \xmlNode{variable}.
       \end{itemize}
-   
+
   \end{itemize}
 Example:
 \begin{lstlisting}[style=XML,morekeywords={construction,upperBound,steps}]
@@ -986,12 +1001,12 @@ Example:
     </FactorialSettings>
     <variable name='var1' >
       <distribution>aDistributionNameDefinedInDistributionBlock1
-      </distribution> 
+      </distribution>
       <grid type='value' construction='custom' >0.02 0.03 0.5</grid>
     </variable>
     <variable name='var2' >
       <distribution>aDistributionNameDefinedInDistributionBlock2
-      </distribution> 
+      </distribution>
       <grid type='CDF' construction='custom'>0.5 0.7 1.0</grid>
     </variable>
   </FactorialDesign>
@@ -1003,17 +1018,17 @@ Example:
     </FactorialSettings>
     <variable name='var1' >
       <distribution>aDistributionNameDefinedInDistributionBlock3
-      </distribution> 
+      </distribution>
       <grid type='value' construction='custom' >0.02 0.5</grid>
     </variable>
     <variable name='var2' >
       <distribution>aDistributionNameDefinedInDistributionBlock
-      </distribution> 
+      </distribution>
       <grid type='CDF' construction='custom'>0.5 1.0</grid>
     </variable>
     <variable name='var3'>
       <distribution>aDistributionNameDefinedInDistributionBlock5
-      </distribution> 
+      </distribution>
       <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
     </variable>
   </FactorialDesign>
@@ -1023,12 +1038,12 @@ Example:
     </FactorialSettings>
     <variable name='var1' >
       <distribution>aDistributionNameDefinedInDistributionBlock6
-      </distribution> 
+      </distribution>
       <grid type='value' construction='custom' >0.02 0.5</grid>
     </variable>
     <variable name='VarGauss2' >
       <distribution>aDistributionNameDefinedInDistributionBlock7
-      </distribution> 
+      </distribution>
       <grid type='CDF' construction='custom'>0.5 1.0</grid>
     </variable>
   </FactorialDesign>
@@ -1125,30 +1140,30 @@ Example:
 \begin{lstlisting}[style=XML]
 <Samplers>
   ...
-  <DynamicEventTree name='DETname'> 
-    <variable name='var1'> 
-      <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution> 
-      <grid type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid> 
-    </variable> 
-    <variable name='var2'> 
-      <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution> 
-      <grid type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid> 
+  <DynamicEventTree name='DETname'>
+    <variable name='var1'>
+      <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution>
+      <grid type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid>
     </variable>
-    <variable name='var3'> 
-      <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution> 
-      <grid type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid> 
-    </variable> 
-    <variable name='var4'> 
-      <distribution>aDistributionNameDefinedInDistributionBlock4 </distribution> 
-      <grid type='CDF' construction='equal' steps='5' upperBound='1.0'>0.2</grid> 
+    <variable name='var2'>
+      <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution>
+      <grid type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>
     </variable>
-    <variable name='var5'> 
-      <distribution>aDistributionNameDefinedInDistributionBlock5 </distribution> 
-      <grid type='value' construction='custom'>0.2 0.5 10.0</grid> 
-    </variable> 
-    <variable name='var6'> 
-      <distribution>aDistributionNameDefinedInDistributionBlock6 </distribution> 
-      <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid> 
+    <variable name='var3'>
+      <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
+      <grid type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>
+    </variable>
+    <variable name='var4'>
+      <distribution>aDistributionNameDefinedInDistributionBlock4 </distribution>
+      <grid type='CDF' construction='equal' steps='5' upperBound='1.0'>0.2</grid>
+    </variable>
+    <variable name='var5'>
+      <distribution>aDistributionNameDefinedInDistributionBlock5 </distribution>
+      <grid type='value' construction='custom'>0.2 0.5 10.0</grid>
+    </variable>
+    <variable name='var6'>
+      <distribution>aDistributionNameDefinedInDistributionBlock6 </distribution>
+      <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
     </variable>
   </DynamicEventTree>
   ...
@@ -1229,7 +1244,7 @@ For this reason, its specifications must be defined within a
   \end{itemize}
 \end{itemize}
 
-In order to activate the \textbf{Hybrid Dynamic Event Tree}  sampler, the main 
+In order to activate the \textbf{Hybrid Dynamic Event Tree}  sampler, the main
 \xmlNode{DynamicEventTree} block needs to contain, at least, an additional
 sub-node called \xmlNode{HybridSamplerSettings}.
 %
@@ -1250,7 +1265,7 @@ This sub-node needs to contain the following attribute:
     \xmlString{Stratified}.
  \end{itemize}
 
-Independent of the type of ``pre-sampler'' that has been specified, the 
+Independent of the type of ``pre-sampler'' that has been specified, the
 \xmlNode{HybridSamplerSettings} must contain the variables need to be sampled.
 %
 As already mentioned, these variables are specified within consecutive
@@ -1264,8 +1279,8 @@ As already mentioned, these variables are specified within consecutive
     \end{itemize}
  \end{itemize}
 
-If a pre-sampling strategy \xmlAttr{type} is either \xmlString{Grid} or 
-\xmlString{Stratified}, within the \xmlNode{variable} blocks, the user needs to 
+If a pre-sampling strategy \xmlAttr{type} is either \xmlString{Grid} or
+\xmlString{Stratified}, within the \xmlNode{variable} blocks, the user needs to
 specify the sub-node \xmlNode{grid}.
 %
 As with the standard DET, the content of this XML node depends on the definition
@@ -1275,13 +1290,13 @@ of the associated attributes:
 \item \xmlAttr{type}, \xmlDesc{required string attribute}, user-defined
   discretization metric type:
   \begin{itemize}
-    \item \xmlString{CDF}, the grid is going to be specified based on the 
+    \item \xmlString{CDF}, the grid is going to be specified based on the
       cumulative distribution function probability thresholds
     \item \xmlString{value}, the grid is going to be provided using variable
       values.
   \end{itemize}
-  \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how the 
-    grid needs to be constructed, independent of its type (i.e. \xmlString{CDF} 
+  \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how the
+    grid needs to be constructed, independent of its type (i.e. \xmlString{CDF}
     or \xmlString{value}).
 \end{itemize}
 \constructionGridDescription
@@ -1293,38 +1308,38 @@ Example:
   <DynamicEventTree name='HybridDETname' print_end_XML="True">
     <HybridSamplerSettings type='MonteCarlo' limit='2'>
       <variable name='var1' >
-        <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution> 
+        <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution>
       </variable>
       <variable name='var2' >
-        <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution> 
+        <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution>
         <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
       </variable>
     </HybridSamplerSettings>
     <HybridSamplerSettings type='Grid'>
       <!-- Point sampler way (directly sampling the variable) -->
       <variable name='var3' >
-        <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution> 
+        <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
         <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
       </variable>
       <variable name='var4' >
-        <distribution>aDistributionNameDefinedInDistributionBlock4 </distribution> 
+        <distribution>aDistributionNameDefinedInDistributionBlock4 </distribution>
         <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
       </variable>
     </HybridSamplerSettings>
     <HybridSamplerSettings type='Stratified'>
       <!-- Point sampler way (directly sampling the variable ) -->
       <variable name='var5' >
-        <distribution>aDistributionNameDefinedInDistributionBlock5 </distribution> 
+        <distribution>aDistributionNameDefinedInDistributionBlock5 </distribution>
         <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
       </variable>
       <variable name='var6' >
-        <distribution>aDistributionNameDefinedInDistributionBlock6 </distribution> 
+        <distribution>aDistributionNameDefinedInDistributionBlock6 </distribution>
         <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
       </variable>
     </HybridSamplerSettings>
     <!-- DYNAMIC EVENT TREE INPUT (it goes outside an inner block like HybridSamplerSettings) -->
       <Distribution name='dist7'>
-        <distribution>aDistributionNameDefinedInDistributionBlock7 </distribution> 
+        <distribution>aDistributionNameDefinedInDistributionBlock7 </distribution>
         <grid type='CDF' construction='custom'>0.1 0.8</grid>
       </Distribution>
   </DynamicEventTree>
@@ -1406,7 +1421,7 @@ the input space in proximity of the limit surface.
     \end{itemize}
 \end{itemize}
 
-In addition to the \xmlNode{variable} nodes, the main XML node 
+In addition to the \xmlNode{variable} nodes, the main XML node
 \xmlNode{Adaptive} needs to contain two supplementary sub-nodes:
 
 \begin{itemize}
@@ -1416,8 +1431,8 @@ In addition to the \xmlNode{variable} nodes, the main XML node
   \item \assemblerDescription{Adaptive}
     \begin{itemize}
       \item \xmlNode{Function}, \xmlDesc{string, required field},  the
-        body of this XML block needs to contain the name of an external 
-        function object defined within the \xmlNode{Functions} main block (see 
+        body of this XML block needs to contain the name of an external
+        function object defined within the \xmlNode{Functions} main block (see
         Section~\ref{sec:functions}).
         %
         This object represents the boolean function that defines the transition
@@ -1428,13 +1443,13 @@ In addition to the \xmlNode{variable} nodes, the main XML node
         on the system conditions (see Section \ref{sec:functions}.
       \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
         body of this XML node must contain the name of a ROM defined in the
-        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM 
-        here specified is going to be used as ``acceleration model'' to speed up the 
-        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM 
+        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM
+        here specified is going to be used as ``acceleration model'' to speed up the
+        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM
         input block (within the \xmlNode{Models} section) needs to match the name of the goal
         \xmlNode{Function} (e.g. if the goal function is named ``transitionIdentifier'', the \xmlNode{Target} of the
         ROM needs to report the same name: \xmlNode{Target}\textbf{transitionIdentifier}\xmlNode{Target}).
-      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field}, 
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
         represents the container where the system evaluations are stored.
         %
         From a practical point of view, this XML node must contain the name of
@@ -1458,13 +1473,13 @@ Example:
       1e-2
     </Convergence>
     <variable name='var1'>
-      <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution> 
+      <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution>
     </variable>
     <variable name='var2'>
-      <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution> 
+      <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution>
     </variable>
     <variable name='var3'>
-      <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution> 
+      <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
     </variable>
   </Adaptive>
   ...
@@ -1483,7 +1498,7 @@ def __residuumSign(self):
 %%% Adaptive Samplers: Adaptive Sampling for Limit Surface search
 \subsubsection{Adaptive Dynamic Event Tree}
 \label{subsubsubsec:ADET}
-The \textbf{Adaptive Dynamic Event Tree} approach is an advanced methodology 
+The \textbf{Adaptive Dynamic Event Tree} approach is an advanced methodology
 employing a smart sampling around transition zones that determine a change in
 the status of the system (limit surface), using the support of a Dynamic Event
 Tree methodology.
@@ -1529,7 +1544,7 @@ the input space in proximity of the limit surface.
          search starts at the beginning, during the initial standard Dynamic
          Event Tree analysis.
          %
-         Whenever a transition is detected, the 
+         Whenever a transition is detected, the
          \textbf{Adaptive Dynamic Event Tree} starts its goal-oriented search
          using the DET as support;
     \end{itemize}
@@ -1540,7 +1555,7 @@ the input space in proximity of the limit surface.
    %      \item \textit{noTransitionStrategy = grid},  if this option is activated, the adaptive search starts at begin, during the initial standard Dynamic Event Tree. Whenever a transition is detected, the \textbf{Adaptive Dynamic Event Tree} starts it goal-oriented search using the DET as support;
   %    \end{itemize}
    %   \default{post}.
-  \item \xmlAttr{updateGrid}, \xmlDesc{optional boolean attribute}, if true, 
+  \item \xmlAttr{updateGrid}, \xmlDesc{optional boolean attribute}, if true,
     each adaptive request is going to update the meshing of the initial DET
     grid.
     %
@@ -1566,8 +1581,8 @@ sub-nodes:
   \item \assemblerDescription{AdaptiveDynamicEventTree}
     \begin{itemize}
       \item \xmlNode{Function}, \xmlDesc{string, required field},  the
-        body of this XML block needs to contain the name of an external 
-        function object defined within the \xmlNode{Functions} main block (see 
+        body of this XML block needs to contain the name of an external
+        function object defined within the \xmlNode{Functions} main block (see
         Section~\ref{sec:functions}).
         %
         This object represents the boolean function that defines the transition
@@ -1578,13 +1593,13 @@ sub-nodes:
         on the system conditions (see Section \ref{sec:functions}.
       \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
         body of this XML node must contain the name of a ROM defined in the
-        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM 
-        here specified is going to be used as ``acceleration model'' to speed up the 
-        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM 
+        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM
+        here specified is going to be used as ``acceleration model'' to speed up the
+        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM
         input block (within the \xmlNode{Models} section) needs to match the name of the goal
         \xmlNode{Function} (e.g. if the goal function is named ``transitionIdentifier'', the \xmlNode{Target} of the
         ROM needs to report the same name: \xmlNode{Target}\textbf{transitionIdentifier}\xmlNode{Target}).
-      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field}, 
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
         represents the container where the system evaluations are stored.
         %
         From a practical point of view, this XML node must contain the name of
@@ -1611,19 +1626,19 @@ Example:
     <variable name = 'var1'>
         <distribution>
          aDistributionNameDefinedInDistributionBlock1
-        </distribution> 
+        </distribution>
         <grid type='CDF' construction='custom'>0.1 0.8</grid>
     </variable>
     <variable name = 'var2'>
         <distribution>
           aDistributionNameDefinedInDistributionBlock2
-        </distribution> 
+        </distribution>
         <grid type='CDF' construction='custom'>0.1 0.8</grid>
     </variable>
     <variable name = 'var3'>
         <distribution>
           aDistributionNameDefinedInDistributionBlock3
-        </distribution> 
+        </distribution>
         <grid type='CDF' construction='custom'>0.1 0.8</grid>
     </variable>
   </AdaptiveDynamicEventTree>

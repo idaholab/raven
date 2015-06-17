@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation >
+<Simulation printTimeStamps='false'>
     <RunInfo>
         <WorkingDir>StochasticPolyTest</WorkingDir>
         <Sequence>Umake,Utrain,Utest,Uprint,
