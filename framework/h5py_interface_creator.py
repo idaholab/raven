@@ -1,8 +1,8 @@
-'''
+"""
 Created on Mar 25, 2013
 
 @author: alfoa
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -23,15 +23,15 @@ import utils
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-'''
+"""
   *************************
   *  HDF5 DATABASE CLASS  *
   *************************
-'''
+"""
 class hdf5Database(MessageHandler.MessageUser):
-  '''
+  """
   class to create a h5py (hdf5) database
-  '''
+  """
   def __init__(self,name, databaseDir, messageHandler,filename=None):
     # database name (i.e. arbitrary name).
     # It is the database name that has been found in the xml input
@@ -90,13 +90,13 @@ class hdf5Database(MessageHandler.MessageUser):
       self.parent_group_name = b'/'
 
   def __createObjFromFile(self):
-    '''
+    """
     Function to create the list "self.allGroupPaths" and the dictionary "self.allGroupEnds"
     from a database that already exists. It uses the h5py method "visititems" in conjunction
     with the private method "self.__isGroup"
     @ In, None
     @ Out, None
-    '''
+    """
     self.allGroupPaths = []
     self.allGroupEnds  = {}
     if not self.fileOpen: self.h5_file_w = self.openDatabaseW(self.filenameAndPath,'a')
@@ -104,12 +104,12 @@ class hdf5Database(MessageHandler.MessageUser):
     self.raiseAMessage('TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
 
   def __isGroup(self,name,obj):
-    '''
+    """
     Function to check if an object name is of type "group". If it is, the function stores
     its name into the "self.allGroupPaths" list and update the dictionary "self.allGroupEnds"
     @ In, name : object name
     @ In, obj  : the object itself
-    '''
+    """
     if isinstance(obj,h5.Group):
       self.allGroupPaths.append(name)
       self.raiseAMessage('Accessing group named ' +name)
@@ -122,13 +122,13 @@ class hdf5Database(MessageHandler.MessageUser):
     return
 
   def addGroup(self,gname,attributes,source,upGroup=False):
-    '''
+    """
     Function to add a group into the database
     @ In, gname      : group name
     @ In, attributes : dictionary of attributes that must be added as metadata
     @ In, source     : data source (for example, csv file)
     @ Out, None
-    '''
+    """
 
     if source['type'] == 'DataObjects':
       self.addGroupDataObjects(gname,attributes,source)
@@ -158,13 +158,13 @@ class hdf5Database(MessageHandler.MessageUser):
     return
 
   def addGroupInit(self,gname,attributes=None,upGroup=False):
-    '''
+    """
     Function to add an empty group to the database
     This function is generally used when the user provides a rootname in the input
     @ In, attributes : dictionary of attributes that must be added as metadata
     @ In, gname      : group name
     @ Out, None
-    '''
+    """
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
@@ -184,13 +184,13 @@ class hdf5Database(MessageHandler.MessageUser):
     self.h5_file_w.flush()
 
   def __addGroupRootLevel(self,gname,attributes,source,upGroup=False):
-    '''
+    """
     Function to add a group into the database (root level)
     @ In, gname      : group name
     @ In, attributes : dictionary of attributes that must be added as metadata
     @ In, source     : data source (for example, csv file)
     @ Out, None
-    '''
+    """
     # Check in the "self.allGroupPaths" list if a group is already present...
     # If so, error (Deleting already present information is not desiderable)
     if not upGroup:
@@ -265,14 +265,14 @@ class hdf5Database(MessageHandler.MessageUser):
       self.allGroupEnds["/" + gname] = True
 
   def addGroupDataObjects(self,gname,attributes,source,upGroup=False):
-    '''
-    Function to add a data (class DataObjects) or Dictionary into the Database
+    """
+    Function to add a data (class Datas) or Dictionary into the DataBase
     @ In, gname      : group name
     @ In, attributes : dictionary of attributes that must be added as metadata
     @ In, source     : data source (for example, a TimePointSet)
     @ In, upGroup    : update Group????
     @ Out, None
-    '''
+    """
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
@@ -431,13 +431,13 @@ class hdf5Database(MessageHandler.MessageUser):
       else: self.raiseAnError(IOError,'The function addGroupDataObjects accepts Data(s) or dictionaries as inputs only!!!!!')
 
   def __addSubGroup(self,gname,attributes,source):
-    '''
+    """
     Function to add a group into the database (Hierarchical)
     @ In, gname      : group name
     @ In, attributes : dictionary of attributes that must be added as metadata
     @ In, source     : data source (for example, csv file)
     @ Out, None
-    '''
+    """
     for index in xrange(len(self.allGroupPaths)):
       comparisonName = self.allGroupPaths[index]
       splittedPath=comparisonName.split('/')
@@ -517,12 +517,12 @@ class hdf5Database(MessageHandler.MessageUser):
     return
 
   def computeBack(self,nameFrom,nameTo):
-    '''
+    """
     Function to compute the number of step back from a group to another
     @ In,  nameFrom : group name (from)
     @ In,  nameTo   : group name (to)
     @ Out, back     : number of step back (integer)
-    '''
+    """
     # "list_str_w", list in which the path for a particular group is stored (working variable)
     # "path", string in which the path of the "to" group is stored
     # "found", bolean variable ... I would say...self explanable :D
@@ -546,11 +546,11 @@ class hdf5Database(MessageHandler.MessageUser):
     return back
 
   def retrieveAllHistoryPaths(self,rootName=None):
-    '''
+    """
     Function to create a list of all the histories' paths present in an existing database
     @ In,  rootName (optional), It's the root name, if present, only the groups that have this root are going to be returned
     @ Out, List of the histories' paths
-    '''
+    """
     allHistoryPaths = []
     # Create the "self.allGroupPaths" list from the existing database
     if not self.fileOpen: self.__createObjFromFile()
@@ -570,11 +570,11 @@ class hdf5Database(MessageHandler.MessageUser):
     return allHistoryPaths
 
   def retrieveAllHistoryNames(self,rootName=None):
-    '''
+    """
     Function to create a list of all the histories' names present in an existing database
     @ In,  rootName (optional), It's the root name, if present, only the history names that have this root are going to be returned
     @ Out, List of the histories' names
-    '''
+    """
     if not self.fileOpen: self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
     workingList = []
     for index in xrange(len(self.allGroupPaths)):
@@ -584,7 +584,7 @@ class hdf5Database(MessageHandler.MessageUser):
     return workingList
 
   def retrieveHistory(self,name,filterHist=None,attributes = None):
-    '''
+    """
     Function to retrieve the history whose end group name is "name"
     @ In,  name       : history name => It must correspond to a group name (string)
     @ In,  filterHist : filter for history retrieving
@@ -593,7 +593,7 @@ class hdf5Database(MessageHandler.MessageUser):
                      or None = retrieve only the group "name". Defaul is None)
     @ In, attributes : dictionary of attributes (options)
     @ Out, history: tuple where position 0 = 2D numpy array (history), 1 = dictionary (metadata)
-    '''
+    """
     list_str_w = []
     list_path  = []
     path       = ''
@@ -798,31 +798,31 @@ class hdf5Database(MessageHandler.MessageUser):
     return(result,attrs)
 
   def closeDatabaseW(self):
-    '''
+    """
     Function to close the database
     @ In,  None
     @ Out, None
-    '''
+    """
     self.h5_file_w.close()
     self.fileOpen       = False
     return
 
   def openDatabaseW(self,filename,mode='w'):
-    '''
+    """
     Function to open the database
     @ In,  filename : name of the file (string)
     @ In,  mode     : open mode (default "w=write")
     @ Out, fh5      : hdf5 object
-    '''
+    """
     fh5 = h5.File(filename,mode)
     self.fileOpen       = True
     return fh5
 
   def __returnParentGroupPath(self,parent_name):
-    '''
+    """
     Function to return a parent group Path
     @ In, parent_name, parent ID
-    '''
+    """
     if parent_name != '/':
       parent_group_name = '-$' # control variable
       for index in xrange(len(self.allGroupPaths)):

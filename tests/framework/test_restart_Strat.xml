@@ -42,15 +42,15 @@
     <Samplers>
         <Stratified name="1">
             <variable name="x1"><distribution>u1</distribution>
-                <grid type='CDF' construction='equal' steps='1' lowerBound='0.0'>0.5</grid></variable>
+                <grid type='CDF' construction='equal' steps='1' >0.0 0.5</grid></variable>
             <variable name="x2"><distribution>u2</distribution>
-                <grid type='CDF' construction='equal' steps='1' lowerBound='0.0'>0.5</grid></variable>
+                <grid type='CDF' construction='equal' steps='1' >0.0 0.5</grid></variable>
         </Stratified>
         <Stratified name="2">
             <variable name="x1"><distribution>u1</distribution>
-                <grid type='CDF' construction='equal' steps='3' lowerBound='0.0'>0.25</grid></variable>
+                <grid type='CDF' construction='equal' steps='3' >0.0 0.75</grid></variable>
             <variable name="x2"><distribution>u2</distribution>
-                <grid type='CDF' construction='equal' steps='3' lowerBound='0.0'>0.25</grid></variable>
+                <grid type='CDF' construction='equal' steps='3' >0.0 0.75</grid></variable>
             <Restart  class='DataObjects' type='TimePointSet'>solns</Restart>
         </Stratified>
     </Samplers>

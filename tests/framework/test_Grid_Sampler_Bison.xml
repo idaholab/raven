@@ -43,7 +43,7 @@
       </variable>
       <variable name='Materials|heat2|thermal_conductivity'>
         <distribution  >DistTri1</distribution>
-        <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
+        <grid type='value' construction='equal' steps='1'>3.5 4.0</grid>
       </variable>
     </Grid>
 </Samplers>
