@@ -2188,7 +2188,11 @@ class SparseGridCollocation(Grid):
       @ In, SVL, one of the SupervisedEngine objects from the ROM
       @ Out, None
     '''
-    ROMdata = SVL.interpolationInfo() #they are all the same? -> yes, I think so
+    #do a distributions check
+    for dist in self.distDict.values():
+      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists not supported for this sampler (yet)!')
+
+    ROMdata = SVL.interpolationInfo()
     self.maxPolyOrder = SVL.maxPolyOrder
     #check input space consistency
     samVars=self.axisName[:]
