@@ -203,6 +203,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
     self.localInputAndChecks(xmlNode)
 
+    if self.initSeed == None:
+      self.initSeed = Distributions.randomIntegers(0,2**31,self)
+      
   def read_sampler_init(self,xmlNode):
     for child in xmlNode:
       if child.tag == "sampler_init":
