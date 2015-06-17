@@ -38,6 +38,7 @@
                 <xsd:element name="OutStreamManager" type="OutStreamData"    minOccurs="0"/>
             </xsd:all>
             <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
+            <xsd:attribute name="printTimeStamps" type="xsd:string" default="true"/>
         </xsd:complexType>
 
         <xsd:key name="distName">
