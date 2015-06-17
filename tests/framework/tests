@@ -284,8 +284,8 @@
  [./testCreateInternalObjFromCSVs]
   type = 'RavenFramework'
   input = 'test_CreateInternalObjFromCSVs.xml'
-  output = 'TimePointSetPostProcTest_DUMP.csv'
-  csv = 'TimePointSetPostProcTest_DUMP.csv'
+  output = 'CreateInternalObjFromCSVs/TimePointSetPostProcTest_DUMP.csv'
+  csv = 'CreateInternalObjFromCSVs/TimePointSetPostProcTest_DUMP.csv'
   max_time = 500
   rel_err = 0.001
   prereq = testGridRaven

@@ -14,9 +14,9 @@
 <Distributions>
     <Normal name='Gauss1'>
         <mean>1</mean>
-        <sigma>0.001</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
+        <sigma>0.123456789</sigma>
+        <lowerBound>0.987654321</lowerBound>
+        <upperBound>2.123456789</upperBound>
     </Normal>
     <Normal name='Gauss2'>
         <mean>1</mean>
@@ -39,24 +39,15 @@
         </ResponseSurfaceDesignSettings>
         <variable name='VarGauss1' >
             <distribution >Gauss1</distribution>
-            <boundaries type="CDF">
-                <lower>0.0</lower>
-                <upper>1.0</upper>
-            </boundaries>
+            <grid type='CDF' construction='custom' >0.0 1.0</grid>
         </variable>
         <variable name='VarGauss2' >
             <distribution  >Gauss2</distribution>
-            <boundaries type="value">
-                <lower>0.1</lower>
-                <upper>1.5</upper>
-            </boundaries>
+            <grid type='value' construction='custom' >0.1 1.5</grid>
         </variable>
         <variable name='VarTri1'>
             <distribution  >DistTri1</distribution>
-            <boundaries type="CDF">
-                <lower>0.1</lower>
-                <upper>0.9</upper>
-            </boundaries>
+            <grid type='value' construction='custom' >0.1 0.9</grid>
         </variable>
     </ResponseSurfaceDesign>
     <ResponseSurfaceDesign name='CentralCompositeRespDesign'>
@@ -68,24 +59,15 @@
         </ResponseSurfaceDesignSettings>
         <variable name='VarGauss1' >
             <distribution >Gauss1</distribution>
-            <boundaries type="CDF">
-                <lower>0.0</lower>
-                <upper>1.0</upper>
-            </boundaries>
+            <grid type='CDF' construction='custom' >0.0 1.0</grid>
         </variable>
         <variable name='VarGauss2' >
             <distribution  >Gauss2</distribution>
-            <boundaries type="value">
-                <lower>0.1</lower>
-                <upper>1.5</upper>
-            </boundaries>
+            <grid type='value' construction='custom' >0.1 1.5</grid>
         </variable>
         <variable name='VarTri1'>
             <distribution  >DistTri1</distribution>
-            <boundaries type="CDF">
-                <lower>0.1</lower>
-                <upper>0.9</upper>
-            </boundaries>
+            <grid type='value' construction='custom' >0.1 0.9</grid>
         </variable>
     </ResponseSurfaceDesign>
 </Samplers>

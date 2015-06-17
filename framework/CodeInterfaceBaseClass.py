@@ -45,21 +45,21 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),MessageHandle
     return subcodeCommand,outputfileroot
 
   def readMoreXML(self,xmlNode):
-    '''
+    """
       Function to read the portion of the xml input that belongs to this class and
       initialize some members based on inputs.
       @ In, xmlNode, XML element node
       @Out, None.
-    '''
+    """
     self._readMoreXML(xmlNode)
 
   def _readMoreXML(self,xmlNode):
-    '''
+    """
       Function to read the portion of the xml input that belongs to this specialized class and
       initialize some members based on inputs.
       @ In, xmlNode, XML element node
       @Out, None.
-    '''
+    """
     pass #afaik, this is only used in GenericCodeInterface currently.
 
   @abc.abstractmethod

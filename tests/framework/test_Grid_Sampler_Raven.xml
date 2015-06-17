@@ -32,11 +32,11 @@
       </sampler_init>
       <variable name='Components|pipe|Tw'>
         <distribution >Gauss1</distribution>
-        <grid type='value' construction='equal' lowerBound='300' steps='1'>3</grid>
+        <grid type='value' construction='equal' steps='1'>300 303</grid>
       </variable>
       <Distribution name='Dummy1'>
         <distribution >ANormalDistribution</distribution>
-        <grid type='CDF' construction='equal' upperBound='0.9' steps='2'>0.01</grid>
+        <grid type='CDF' construction='equal' steps='2'>0.88 0.9</grid>
       </Distribution>
     </Grid>
   </Samplers>
