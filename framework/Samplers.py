@@ -179,9 +179,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.variables2distributionsMapping[child.attrib['name']] = varData
         self.toBeSampled[prefix+child.attrib['name']] = tobesampled
 
-    if self.initSeed == None:
-      self.initSeed = Distributions.randomIntegers(0,2**31,self)
-
     # Creation of the self.distributions2variablesMapping dictionary: {'dist_name': ({'variable_name1': dim1}, {'variable_name2': dim2})}
     for variable in self.variables2distributionsMapping.keys():
       distName = self.variables2distributionsMapping[variable]['name']
@@ -203,9 +200,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
     self.localInputAndChecks(xmlNode)
 
-    if self.initSeed == None:
-      self.initSeed = Distributions.randomIntegers(0,2**31,self)
-      
+
   def read_sampler_init(self,xmlNode):
     for child in xmlNode:
       if child.tag == "sampler_init":
