@@ -180,6 +180,8 @@ class CsvLoader(MessageHandler.MessageUser):
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
     """
+    inParam, outParam, inputTs = options['inParam'], options['outParam'], options['inputTs'] if 'inputTs' in options.keys() else None
+    SampledVars, time = options['SampledVars'] if 'SampledVars' in options.keys() else None, options['time'] if 'time' in options.keys() else None
     if 'all' in outParam:
       self.all_out_param  = True
     else:
@@ -282,6 +284,8 @@ class CsvLoader(MessageHandler.MessageUser):
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
     """
+    inParam, outParam, inputTs = options['inParam'], options['outParam'], options['inputTs'] if 'inputTs' in options.keys() else None
+    SampledVars, time = options['SampledVars'] if 'SampledVars' in options.keys() else None, options['time'] if 'time' in options.keys() else None
     #load the data into the numpy array
     data = self.loadCsvFile(filein)
 
