@@ -19,13 +19,10 @@
 </Distributions>
 
 <Samplers>
-    <Grid name='RAVENmc6'>
-        <sampler_init>
-            <initial_seed>1</initial_seed>
-        </sampler_init>
+    <Grid name='RAVENGrid'>
         <Distribution name='Dummy1'>
             <distribution >zeroToOne</distribution>
-            <grid type='CDF' construction='equal' upperBound='0.9' steps='15'>0.05</grid>
+            <grid type='CDF' construction='equal' steps='15'>0.15  0.9</grid>
         </Distribution>
     </Grid>
     
@@ -667,7 +664,7 @@
         <Input     class='Files'            type=''             >ideal_pump.i</Input>
         <Input     class='Files'            type=''             >ideal_pump_control.py</Input>
         <Model     class='Models'           type='Code'         >MyRAVEN</Model>
-        <Sampler   class = 'Samplers'       type='Grid'         >RAVENmc6</Sampler>
+        <Sampler   class = 'Samplers'       type='Grid'         >RAVENGrid</Sampler>
         <Output    class='Databases'        type='HDF5'         >testOutputDatabase</Output>
         <Output    class='DataObjects'            type='Histories'    >stories</Output>
         <Output    class='DataObjects'            type='TimePointSet' >TimePointSets</Output>

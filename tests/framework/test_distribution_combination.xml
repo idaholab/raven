@@ -27,7 +27,7 @@
     </Exponential>
     <NDCartesianSpline name='ND_CartesianSpline_P'>
         <data_filename type='PDF'>2DgaussianCartesianPDF.txt</data_filename>
-        <working_dir>dists_vars/</working_dir>
+        <working_dir>dists_vars</working_dir>
     </NDCartesianSpline>
 </Distributions>
 
