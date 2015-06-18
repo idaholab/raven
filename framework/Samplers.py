@@ -2129,6 +2129,9 @@ class SparseGridCollocation(Grid):
   def _localGenerateAssembler(self,initDict):
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
+    #do a distributions check for ND
+    for dist in self.distDict.values():
+      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists not supported for this sampler (yet)!')
 
   def localInputAndChecks(self,xmlNode):
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
@@ -2203,7 +2206,7 @@ class SparseGridCollocation(Grid):
       @ In, SVL, one of the SupervisedEngine objects from the ROM
       @ Out, None
     '''
-    ROMdata = SVL.interpolationInfo() #they are all the same? -> yes, I think so
+    ROMdata = SVL.interpolationInfo()
     self.maxPolyOrder = SVL.maxPolyOrder
     #check input space consistency
     samVars=self.axisName[:]
@@ -2645,15 +2648,6 @@ class Sobol(SparseGridCollocation):
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
     return gridDict
-
-  def _localGenerateAssembler(self,initDict):
-    '''
-      Used to obtain necessary objects.  See base class.
-      @ In, initDict, dictionary of objects required to initialize
-      @ Out, None
-    '''
-    Grid._localGenerateAssembler(self, initDict)
-    self.jobHandler = initDict['internal']['jobHandler']
 
   def localInputAndChecks(self,xmlNode):
     '''
