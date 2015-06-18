@@ -52,11 +52,11 @@
   <Grid name = 'grid1'>
     <variable name = 'x1' >
       <distribution>x1_dst</distribution>
-      <grid type = 'value' construction = 'equal' steps = '10' upperBound = '10'>2</grid>
+      <grid type = 'value' construction = 'equal' steps = '10' >-10 10</grid>
     </variable>  
     <variable name='x2' >
       <distribution>x2_dst</distribution>
-      <grid type = 'value' construction = 'equal' steps = '10' upperBound = '10'>2</grid>
+      <grid type = 'value' construction = 'equal' steps = '10' >-10 10</grid>
     </variable>
   </Grid>
 </Samplers>

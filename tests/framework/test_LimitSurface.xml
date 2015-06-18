@@ -51,10 +51,14 @@
     <Normal name='x0_distrib'>
         <mean>4</mean>
         <sigma>2</sigma>
+        <lowerBound>0.0</lowerBound>
+        <upperBound>8.0</upperBound>
     </Normal>
     <Normal name='y0_distrib'>
         <mean>5</mean>
         <sigma>2</sigma>
+        <lowerBound>0.0</lowerBound>
+        <upperBound>10.0</upperBound>
     </Normal>
 </Distributions>
 

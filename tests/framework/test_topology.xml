@@ -78,13 +78,11 @@
     <Grid name="gridSampler">
       <variable name="X">
         <distribution>NormDist</distribution>
-        <grid type='value' construction='equal' steps='10' lowerBound='0'
-          upperBound='10'>1</grid>
+        <grid type='value' construction='equal' steps='10'>0 10</grid>
       </variable>
       <variable name="Y">
         <distribution>NormDist</distribution>
-        <grid type='value' construction='equal' steps='10' lowerBound='0'
-          upperBound='10'>1</grid>
+        <grid type='value' construction='equal' steps='10'>0 10</grid>
       </variable>
     </Grid>
   </Samplers>

@@ -30,6 +30,7 @@ import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
 import TreeStructure
+from FileObject import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 #class Model(BaseType):
@@ -96,7 +97,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   @classmethod
   def specializeValidateDict(cls):
-    ''' This method should be overridden to describe the types of input accepted with a certain role by the model class specialization'''
+    """ This method should be overridden to describe the types of input accepted with a certain role by the model class specialization"""
     raise NotImplementedError('The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
 
   @classmethod
@@ -705,7 +706,6 @@ class Code(Model):
   def initialize(self,runInfoDict,inputFiles,initDict=None):
     """initialize some of the current setting for the runs and generate the working
        directory with the starting input files"""
-
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
@@ -759,16 +759,15 @@ class Code(Model):
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
-    # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
-    attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
+    attributes={"input_file":self.currentInputFiles,"type":"csv","name":FileObject(os.path.join(self.workingDir,finisishedjob.output+'.csv'))}
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
-    #FIXME this try-except catches too many of the wrong kind of error -> do we want to check output type?
-    try: output.addGroup(attributes,attributes)
-    except AttributeError:
-      output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
+    if output.type == "HDF5"        : output.addGroup(attributes,attributes)
+    elif output.type in ['TimePoint','TimePointSet','History','Histories']:
+      output.addOutput(FileObject(os.path.join(self.workingDir,finisishedjob.output) + ".csv"),attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
+    else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
 #
 #
 #
@@ -938,7 +937,7 @@ def knownTypes():
   return __knownTypes
 
 def returnInstance(Type,caller):
-  '''This function return an instance of the request model type'''
+  """This function return an instance of the request model type"""
   try: return __interFaceDict[Type]()
   except KeyError: caller.raiseAnError(NameError,'MODELS','not known '+__base+' type '+Type)
 
