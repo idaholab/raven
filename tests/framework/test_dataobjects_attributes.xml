@@ -42,14 +42,19 @@
   </Samplers>
   <Steps>
     <MultiRun name='FirstMRun'>
-      <Input      class='Files'      type=''          >simple_flow_3eqn.i</Input>
-      <Input      class='Files'      type=''          >simple_flow_3eqn_control.py</Input>
-      <Model      class='Models'     type='Code'      >MyRAVEN</Model>
-      <Sampler    class='Samplers'   type='Grid'>myGrid</Sampler>
-      <Output     class='Databases'  type='HDF5'      >testGridRavenDatabase</Output>
-      <Output     class='DataObjects'      type='Histories' >stories</Output>
-      <Output  class='DataObjects'     type='TimePointSet'>outGrid</Output>
-      <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
+      <Input      class='Files'            type=''            >simple_flow_3eqn.i</Input>
+      <Input      class='Files'            type=''            >simple_flow_3eqn_control.py</Input>
+      <Model      class='Models'           type='Code'        >MyRAVEN</Model>
+      <Sampler    class='Samplers'         type='Grid'        >myGrid</Sampler>
+      <Output     class='Databases'        type='HDF5'        >testGridRavenDatabase</Output>
+      <Output     class='DataObjects'      type='Histories'   >stories1</Output>
+      <Output     class='DataObjects'      type='Histories'   >stories2</Output>
+      <Output     class='DataObjects'      type='History'     >hst1</Output>
+      <Output     class='DataObjects'      type='History'     >hst2</Output>
+      <Output     class='DataObjects'      type='TimePointSet'>outGridTPS1</Output>
+      <Output     class='DataObjects'      type='TimePointSet'>outGridTPS2</Output>
+      <Output     class='DataObjects'      type='TimePoint'   >outGridTP</Output>
+      <Output     class='OutStreamManager' type='Print'       >outGrid_dump</Output>
     </MultiRun >
   </Steps>
   <Databases>
@@ -62,15 +67,63 @@
     </Print>
   </OutStreamManager>
   <DataObjects>
-    <TimePointSet name='outGrid' time="0.0012345">
+    <TimePointSet name='outGridTPS1'>
+      <options>
+       <inputRow>1</inputRow>
+       <outputRow>-1</outputRow>
+      </options>
       <Input>pipe_Area,pipe_Dh,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </TimePointSet>
-    
-    <Histories name='stories'>
+    <TimePointSet name='outGridTPS2'>
+        <options>
+            <inputRow>1</inputRow>
+            <matchParameter>time</matchParameter>
+            <outputMatchValue>0.0012345</outputMatchValue>
+        </options>
+        <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </TimePointSet>
+    <TimePoint name='outGridTP' time="0.0012345">
+        <options>
+            <inputRow>-1</inputRow>
+            <operator>max</operator>
+        </options>
+        <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </TimePoint>
+    <Histories name='stories1'>
+        <options>
+            <inputRow>1</inputRow>
+        </options>
       <Input>pipe_Area,pipe_Dh</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </Histories>
+    <Histories name='stories2'>
+        <options>
+            <inputRow>-1</inputRow>
+            <matchParameter>time</matchParameter>
+            <outputMatchValue>0.0 0.1 0.2 0.3 0.4 1.0</outputMatchValue>
+        </options>
+        <Input>pipe_Area,pipe_Dh</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </Histories>
+    <History name='hst1'>
+        <options>
+            <inputRow>1</inputRow>
+        </options>
+        <Input>pipe_Area,pipe_Dh</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </History>
+    <History name='hst2'>
+        <options>
+            <inputRow>-1</inputRow>
+            <matchParameter>time</matchParameter>
+            <outputMatchValue>0.0 0.1 0.2 0.3 0.4 1.0</outputMatchValue>
+        </options>
+        <Input>pipe_Area,pipe_Dh</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </History>
   </DataObjects>
 </Simulation>
 
