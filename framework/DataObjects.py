@@ -128,9 +128,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     for i in range(len(self._dataParameters['inParam' ])):  tempDict['Input_'+str(i)]  = self._dataParameters['inParam' ][i]
     for i in range(len(self._dataParameters['outParam'])):  tempDict['Output_'+str(i)] = self._dataParameters['outParam'][i]
-    tempDict['Time'                       ] = self._dataParameters['time']
-    tempDict['Hierarchical mode'          ] = self._dataParameters['hierarchical']
-    tempDict['TimeStep of the input space'] = self._dataParameters['inputTs']
+    for key,value in self._dataParameters.items(): tempDict[key] = value
     return tempDict
 
   def removeInputValue(self,name):
