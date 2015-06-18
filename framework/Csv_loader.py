@@ -266,8 +266,7 @@ class CsvLoader(MessageHandler.MessageUser):
                     actual_value   = data[i,self.all_field_names.index(key)]
                     previous_value = data[i-1,self.all_field_names.index(key)]
                     outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)
-                else:
-                  self.raiseAnError(IOError,"the parameter " + key + " has not been found")
+                else: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
       del data
     return (inDict,outDict)
 
