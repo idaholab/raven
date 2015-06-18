@@ -471,6 +471,14 @@
   test_interface_only = True
  [../]
 
+[./OpenModelicaInterfaceTestNoExecutable]
+  type = 'RavenFramework'
+  input = 'test_OpenModelica_code_interface.xml'
+  output = 'OMInterfaceTest/testDummyStep/OM1BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM2BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM3BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM4BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM5BouncingBall_init.xml OMInterfaceTest/testDummyStep/out~OM1BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM2BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM3BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM4BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM5BouncingBall_init.csv'
+  csv = 'OMInterfaceTest/testDummyStep/out~OM1BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM2BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM3BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM4BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM5BouncingBall_init.csv'
+  test_interface_only = True
+ [../]
+
  [./ND_external_LHS]
   type = 'RavenFramework'
   input = 'test_simple_ND_external_LHS.xml'
