@@ -269,7 +269,7 @@ class hdf5Database(MessageHandler.MessageUser):
     Function to add a data (class Datas) or Dictionary into the DataBase
     @ In, gname      : group name
     @ In, attributes : dictionary of attributes that must be added as metadata
-    @ In, source     : data source (for example, a TimePointSet)
+    @ In, source     : data source (for example, a PointSet)
     @ In, upGroup    : update Group????
     @ Out, None
     """
@@ -338,13 +338,13 @@ class hdf5Database(MessageHandler.MessageUser):
       # Retrieve the headers from the data (inputs and outputs)
       headers_in  = list(source['name'].getInpParametersValues().keys())
       headers_out = list(source['name'].getOutParametersValues().keys())
-      # for a "histories" type we create a number of groups = number of histories (compatibility with loading structure)
+      # for a "HistorySet" type we create a number of groups = number of HistorySet (compatibility with loading structure)
       data_in  = list(source['name'].getInpParametersValues().values())
       data_out = list(source['name'].getOutParametersValues().values())
       metadata = source['name'].getAllMetadata()
-      if source['name'].type in ['Histories','TimePointSet']:
+      if source['name'].type in ['HistorySet','PointSet']:
         groups = []
-        if 'Histories' in source['name'].type: nruns = len(data_in)
+        if 'HistorySet' in source['name'].type: nruns = len(data_in)
         else:                                  nruns = data_in[0].size
         for run in range(nruns):
           if upGroup:
@@ -357,7 +357,7 @@ class hdf5Database(MessageHandler.MessageUser):
           groups[run].attrs[b'main_class' ] = b'DataObjects'
           groups[run].attrs[b'EndGroup'   ] = True
           groups[run].attrs[b'parent_id'  ] = parent_name
-          if source['name'].type == 'Histories':
+          if source['name'].type == 'HistorySet':
             groups[run].attrs[b'input_space_headers' ] = [utils.toBytes(list(data_in[run].keys())[i])  for i in range(len(data_in[run].keys()))]
             groups[run].attrs[b'output_space_headers'] = [utils.toBytes(list(data_out[run].keys())[i])  for i in range(len(data_out[run].keys()))]
             groups[run].attrs[b'input_space_values'  ] = list(data_in[run].values())
@@ -394,7 +394,7 @@ class hdf5Database(MessageHandler.MessageUser):
           else:
             self.allGroupPaths.append("/" + gname + '|' +str(run))
             self.allGroupEnds["/" + gname + '|' +str(run)] = True
-      elif source['name'].type in ['TimePoint','History']:
+      elif source['name'].type in ['Point','History']:
         if upGroup:
           groups = parentgroup_obj.require_group(gname)
           del groups[gname+"_data"]
@@ -547,22 +547,22 @@ class hdf5Database(MessageHandler.MessageUser):
 
   def retrieveAllHistoryPaths(self,rootName=None):
     """
-    Function to create a list of all the histories' paths present in an existing database
+    Function to create a list of all the HistorySet' paths present in an existing database
     @ In,  rootName (optional), It's the root name, if present, only the groups that have this root are going to be returned
-    @ Out, List of the histories' paths
+    @ Out, List of the HistorySet' paths
     """
     allHistoryPaths = []
     # Create the "self.allGroupPaths" list from the existing database
     if not self.fileOpen: self.__createObjFromFile()
     # Check database type
     if self.type == 'MC':
-      # Parallel structure => "self.allGroupPaths" already contains the histories' paths
+      # Parallel structure => "self.allGroupPaths" already contains the HistorySet' paths
       if not rootName: allHistoryPaths = self.allGroupPaths
       else:
         for index in xrange(len(self.allGroupPaths)):
           if rootName in self.allGroupPaths[index].split('/')[1] : allHistoryPaths.append(self.allGroupPaths[index])
     else:
-      # Tree structure => construct the histories' paths
+      # Tree structure => construct the HistorySet' paths
       for index in xrange(len(self.allGroupPaths)):
         if self.allGroupEnds[self.allGroupPaths[index]]:
           if rootName and not (rootName in self.allGroupPaths[index].split('/')[1]): continue
@@ -571,9 +571,9 @@ class hdf5Database(MessageHandler.MessageUser):
 
   def retrieveAllHistoryNames(self,rootName=None):
     """
-    Function to create a list of all the histories' names present in an existing database
+    Function to create a list of all the HistorySet' names present in an existing database
     @ In,  rootName (optional), It's the root name, if present, only the history names that have this root are going to be returned
-    @ Out, List of the histories' names
+    @ Out, List of the HistorySet' names
     """
     if not self.fileOpen: self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
     workingList = []

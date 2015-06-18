@@ -78,10 +78,10 @@ class CsvLoader(MessageHandler.MessageUser):
     @ In, filein, csv file name
     @ In, options, dictionary of options
     """
-    if   options['type'] == 'TimePoint':    return self.__csvLoaderForTimePoint(filein[0],options)
-    elif options['type'] == 'TimePointSet': return self.__csvLoaderForTimePointSet(filein,options)
+    if   options['type'] == 'Point':    return self.__csvLoaderForPoint(filein[0],options)
+    elif options['type'] == 'PointSet': return self.__csvLoaderForPointSet(filein,options)
     elif options['type'] == 'History':      return self.__csvLoaderForHistory(filein[0],options)
-    elif options['type'] == 'Histories':
+    elif options['type'] == 'HistorySet':
       listhist_in  = {}
       listhist_out = {}
       for index in xrange(len(filein)):
@@ -94,7 +94,7 @@ class CsvLoader(MessageHandler.MessageUser):
     else:
       self.raiseAnError(IOError,'Type ' + options['type'] + 'unknown')
 
-  def __csvLoaderForTimePoint(self,filein,options):
+  def __csvLoaderForPoint(self,filein,options):
     """
     loader for time point data type
     @ In, filein, file name
@@ -167,7 +167,7 @@ class CsvLoader(MessageHandler.MessageUser):
               else: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     return (inDict,outDict)
 
-  def __csvLoaderForTimePointSet(self,filesin,options):
+  def __csvLoaderForPointSet(self,filesin,options):
     """
     loader for time point set data type
     @ In, filein, file name

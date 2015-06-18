@@ -23,14 +23,14 @@ conceptual meaning.
 These data types are instantiated as sub-nodes in the \xmlNode{DataObjects} block of
 an input file:
 \begin{itemize}
-  \item \xmlNode{TimePoint}, as the name suggests, describes the state of the
+  \item \xmlNode{Point}, as the name suggests, describes the state of the
   system at a certain point in time.
   %
   In other words, it can be considered a mapping between a set of parameters
   in the input space and the resulting outcomes in the output space at a
   particular time.
   %
-  \item \xmlNode{TimePointSet} is a collection of individual \textit{TimePoint}
+  \item \xmlNode{PointSet} is a collection of individual \textit{Point}
   objects.
   %
   It can be considered a mapping between multiple sets of parameters in the
@@ -40,7 +40,7 @@ an input file:
   \item \xmlNode{History} describes the temporal evolution of the state of the
   system within a certain input domain.
   %
-  \item \xmlNode{Histories} is a collection of individual \textit{History}
+  \item \xmlNode{HistorySet} is a collection of individual \textit{History}
   objects.
   %
   It can be considered a mapping between multiple sets of parameters in the
@@ -57,10 +57,10 @@ The data objects are defined within the main XML block called \xmlNode{DataObjec
 <Simulation>
    ...
   <DataObjects>
-    <TimePoint name='***'>...</TimePoint>
-    <TimePointSet name='***'>...</TimePointSet>
+    <Point name='***'>...</Point>
+    <PointSet name='***'>...</PointSet>
     <History name='***'>...</History>
-    <Histories name='***'>...</Histories>
+    <HistorySet name='***'>...</HistorySet>
   </DataObjects>
    ...
 </Simulation>
@@ -108,9 +108,9 @@ available attributes:
   \default{None}
 
   \item \xmlAttr{historyName}, \xmlDesc{optional string attribute}, in the case  the 
-   ``DataObject'' type is either a \textit{TimePoint} or a
+   ``DataObject'' type is either a \textit{Point} or a
   \textit{History}, this XML node contains the name of the associated history needs to be placed in.
-  \\\nb This attribute is a required parameter when the  \textit{TimePoint} or \textit{History}
+  \\\nb This attribute is a required parameter when the  \textit{Point} or \textit{History}
    types are constructed from a Database (e.g.HDF5).
 
   \item \xmlAttr{hierarchical}, \xmlDesc{optional boolean attribute}, if True
@@ -119,7 +119,7 @@ available attributes:
   \default{False}
 \end{itemize}
 \vspace{-5mm}
-In each XML node (e.g. \xmlNode{TimePoint} or \xmlNode{Histories}), the user
+In each XML node (e.g. \xmlNode{Point} or \xmlNode{HistorySet}), the user
 needs to specify the following sub-nodes:
 \begin{itemize}
   \item \xmlNode{Input}, \xmlDesc{comma separated string, required field} lists
@@ -132,22 +132,22 @@ needs to specify the following sub-nodes:
 
 \begin{lstlisting}[style=XML,morekeywords={inputTs,operator,hierarchical,name,history}]
 <DataObjects>
-  <TimePoint name='TP' inputTs='-1' operator='max' hierarchical='False' historyName='a_history_name'>
+  <Point name='TP' inputTs='-1' operator='max' hierarchical='False' historyName='a_history_name'>
     <Input>var1,var2,var3</Input>
     <Output>result1,result2</Output>
-  </TimePoint>
-  <TimePointSet name='TPS'>
+  </Point>
+  <PointSet name='TPS'>
     <Input>var1,var2,var3</Input>
     <Output>result1,result2</Output>
-  </TimePointSet>
+  </PointSet>
   <History name='HIST' historyName='a_history_name'>
     <Input>var1,var2,var3</Input>
     <Output>result1,result2</Output>
   </History>
-  <Histories name='HISTs'>
+  <HistorySet name='HISTs'>
     <Input>var1,var2,var3</Input>
     <Output>result1,result2</Output>
-  </Histories>
+  </HistorySet>
 </DataObjects>
 \end{lstlisting}
 

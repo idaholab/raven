@@ -75,29 +75,29 @@
     </MultiRun>  
     <IOStep name='test_extract_for_rom_trainer' verbosity='debug'>
         <Input   class='Databases' type='HDF5'        >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-        <Output  class='DataObjects'     type='TimePointSet'>timepointset_from_database_for_rom_trainer</Output>
+        <Output  class='DataObjects'     type='PointSet'>Pointset_from_database_for_rom_trainer</Output>
         <Output  class='OutStreamManager' type='Print'>ciccio</Output>
     </IOStep>  
     <RomTrainer name='test_rom_trainer' verbosity='debug'>
-        <Input   class='DataObjects'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
+        <Input   class='DataObjects'  type='PointSet'>Pointset_from_database_for_rom_trainer</Input>
         <Output  class='Models' type='ROM'         >ROM1</Output>
     </RomTrainer>
     <RomTrainer name='test_rom_trainer_nd_interp'>
-        <Input   class='DataObjects'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
+        <Input   class='DataObjects'  type='PointSet'>Pointset_from_database_for_rom_trainer</Input>
         <Output  class='Models' type='ROM'         >ROM2</Output>
     </RomTrainer>
     <MultiRun name='rom_MC' re-seeding='200286'>
-        <Input   class='DataObjects'    type='TimePoint'   >data_for_sampling_empty_at_begin</Input>
+        <Input   class='DataObjects'    type='Point'   >data_for_sampling_empty_at_begin</Input>
         <Model   class='Models'   type='ROM'         >ROM1</Model>
         <Sampler class='Samplers' type='MonteCarlo'  >RAVENmc3</Sampler>
-        <Output  class='DataObjects'    type='TimePointSet'>outputMontecarloRom</Output>
+        <Output  class='DataObjects'    type='PointSet'>outputMontecarloRom</Output>
         <Output  class='OutStreamManager' type='Print'>outputMontecarloMultiTargetRom_dump</Output>
     </MultiRun>
     <MultiRun name='rom_MC_nd_interpolator'>
-        <Input   class='DataObjects'    type='TimePoint'   >data_for_sampling_empty_at_begin_nd</Input>
+        <Input   class='DataObjects'    type='Point'   >data_for_sampling_empty_at_begin_nd</Input>
         <Model   class='Models'   type='ROM'         >ROM2</Model>
         <Sampler class='Samplers' type='MonteCarlo'  >RAVENmcND</Sampler>
-        <Output  class='DataObjects'    type='TimePointSet'>outputMontecarloRomND</Output>
+        <Output  class='DataObjects'    type='PointSet'>outputMontecarloRomND</Output>
         <Output  class='OutStreamManager' type='Print'>outputMontecarloMultiTargetRomND_dump</Output>
     </MultiRun>
 </Steps>
@@ -113,7 +113,7 @@
   </Print>
   <Print name='ciccio'>
     <type>csv</type>
-    <source>timepointset_from_database_for_rom_trainer</source>
+    <source>Pointset_from_database_for_rom_trainer</source>
   </Print>
 </OutStreamManager>
     
@@ -121,26 +121,26 @@
   <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/> 
 </Databases>
 <DataObjects>
-   <TimePoint name='data_for_sampling_empty_at_begin' inputTs='2' historyName="1">
+   <Point name='data_for_sampling_empty_at_begin' inputTs='2' historyName="1">
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>OutputPlaceHolder</Output>
-   </TimePoint>
-    <TimePoint name='data_for_sampling_empty_at_begin_nd' inputTs='2' historyName="1">
+   </Point>
+    <Point name='data_for_sampling_empty_at_begin_nd' inputTs='2' historyName="1">
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>OutputPlaceHolder</Output>
-    </TimePoint>
-   <TimePointSet name='timepointset_from_database_for_rom_trainer' inputTs='2'>
+    </Point>
+   <PointSet name='Pointset_from_database_for_rom_trainer' inputTs='2'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempTreshold,UpperPlenum:energy</Output>
-   </TimePointSet>
-   <TimePointSet name='outputMontecarloRom' inputTs='2'>
+   </PointSet>
+   <PointSet name='outputMontecarloRom' inputTs='2'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempTreshold,UpperPlenum:energy</Output>
-   </TimePointSet>
-    <TimePointSet name='outputMontecarloRomND' inputTs='2'>
+   </PointSet>
+    <PointSet name='outputMontecarloRomND' inputTs='2'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempTreshold,UpperPlenum:energy</Output>
-    </TimePointSet>
+    </PointSet>
 </DataObjects>
 </Simulation>
 

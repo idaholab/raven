@@ -1,4 +1,4 @@
-<data name="samples" type="timepointset"><input>y,x</input><output>poly</output><input_filename>samples.csv</input_filename><metadata><executable>array( '/Users/talbpw/projects/raven/tests/framework/GenericInterfaceIO/poly_inp_io.py',
+<data name="samples" type="Pointset"><input>y,x</input><output>poly</output><input_filename>samples.csv</input_filename><metadata><executable>array( '/Users/talbpw/projects/raven/tests/framework/GenericInterfaceIO/poly_inp_io.py',
        '/Users/talbpw/projects/raven/tests/framework/GenericInterfaceIO/poly_inp_io.py',
        '/Users/talbpw/projects/raven/tests/framework/GenericInterfaceIO/poly_inp_io.py',
        '/Users/talbpw/projects/raven/tests/framework/GenericInterfaceIO/poly_inp_io.py', 

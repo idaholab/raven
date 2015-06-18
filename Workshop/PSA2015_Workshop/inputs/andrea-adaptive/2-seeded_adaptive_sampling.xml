@@ -16,20 +16,20 @@
 <Steps>  
   <IOStep name="load_seed_dataset">
     <Input   class="Databases"          type="HDF5"         >out_db</Input>
-    <Output  class="DataObjects"        type="TimePointSet" >outAdaptive</Output>
+    <Output  class="DataObjects"        type="PointSet" >outAdaptive</Output>
   </IOStep>
   <MultiRun name="GoalOrientedStep" pauseAtEnd='True'>
-    <Input   class="DataObjects"             type="TimePoint"     >inputPlaceHolder</Input>
+    <Input   class="DataObjects"             type="Point"     >inputPlaceHolder</Input>
     <Model   class="Models"                  type="ExternalModel" >PythonModule</Model>
     <Sampler class="Samplers"                type="Adaptive"      >workshopAdaptive</Sampler>
-    <Output  class="DataObjects"             type="TimePointSet"  >outAdaptive</Output>
+    <Output  class="DataObjects"             type="PointSet"  >outAdaptive</Output>
     <Output  class="Databases"               type="HDF5"          >out_db_adaptive</Output>
-    <SolutionExport class="DataObjects"      type="TimePointSet"  >limitSurface</SolutionExport>
+    <SolutionExport class="DataObjects"      type="PointSet"  >limitSurface</SolutionExport>
     <Output         class='OutStreamManager' type='Plot'          >plotlimitSurface</Output>
     <Output         class='OutStreamManager' type='Plot'          >adaptivePointsLocation</Output>
   </MultiRun>
   <IOStep name="push_limitsurface_in_database">
-    <Input   class="DataObjects"        type="TimePointSet"  >limitSurface</Input>
+    <Input   class="DataObjects"        type="PointSet"  >limitSurface</Input>
     <Output  class="Databases"          type="HDF5"          >out_db_ls</Output>
     <Output  class='OutStreamManager'   type='Print'         >limitSurfaceCSV</Output>
   </IOStep>
@@ -37,18 +37,18 @@
 </Steps>
 
 <DataObjects>
-    <TimePointSet name="outAdaptive">
+    <PointSet name="outAdaptive">
         <Input>x1,x2,x3</Input>
         <Output>y3,y4,y5,failure</Output>
-    </TimePointSet>
-    <TimePointSet name="limitSurface">
+    </PointSet>
+    <PointSet name="limitSurface">
         <Input>x1,x2,x3</Input>
         <Output>goalFunction</Output>
-    </TimePointSet>
-    <TimePoint name="inputPlaceHolder">
+    </PointSet>
+    <Point name="inputPlaceHolder">
         <Input>x1,x2,x3</Input>
         <Output>OutputPlaceHolder</Output>
-    </TimePoint>
+    </Point>
 </DataObjects>
 
 
@@ -76,7 +76,7 @@
   <Adaptive name = "workshopAdaptive">
     <ROM              class = "Models"    type = "ROM"                 >AccelerationROM</ROM>
     <Function         class = "Functions" type = "External"            >goalFunction</Function>
-    <TargetEvaluation class = "DataObjects"     type = "TimePointSet"  >outAdaptive</TargetEvaluation>
+    <TargetEvaluation class = "DataObjects"     type = "PointSet"  >outAdaptive</TargetEvaluation>
     <Convergence limit = "3000" forceIteration = "False" weight = "value" persistence = "25">4.0e-4</Convergence>
     <variable name = "x1"><distribution>normal_trunc</distribution></variable>
     <variable name = "x2"><distribution>normal</distribution></variable>

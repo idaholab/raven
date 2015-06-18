@@ -1,4 +1,4 @@
-<data name="HCdump" type="timepointset"><input>x2,x1</input><output>ans</output><input_filename>HCdump.csv</input_filename><metadata><SamplerType>array(u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+<data name="HCdump" type="Pointset"><input>x2,x1</input><output>ans</output><input_filename>HCdump.csv</input_filename><metadata><SamplerType>array(u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',

@@ -62,17 +62,17 @@
         <Model   class='Models'   type='Code'      >MyRAVEN</Model>
         <Sampler class= 'Samplers' type='MonteCarlo'>RAVENmc6</Sampler>
         <Output  class='Databases' type='HDF5' >testDatabase</Output>
-        <Output  class='DataObjects'    type='Histories' >stories</Output>
+        <Output  class='DataObjects'    type='HistorySet' >stories</Output>
     </MultiRun >
 </Steps>
 <Databases>
     <HDF5 name="testDatabase" type="MC"/>
 </Databases>
 <DataObjects>
-    <Histories name='stories'>
+    <HistorySet name='stories'>
         <Input>pipe_Area,pipe_Dh</Input>
         <Output>pipe_Hw,pipe_Tw</Output>
-   </Histories>
+   </HistorySet>
 </DataObjects>
 </Simulation>
 

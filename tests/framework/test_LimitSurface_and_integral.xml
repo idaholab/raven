@@ -88,29 +88,29 @@
 
 <Steps>
     <MultiRun name='FirstMRun'  re-seeding='20021986'>
-        <Input   class='DataObjects'             type='TimePointSet'   >Dummy</Input>
+        <Input   class='DataObjects'             type='PointSet'   >Dummy</Input>
         <Model   class='Models'                  type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'                type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='DataObjects'             type='TimePointSet'   >TimePointSetPostProcTest</Output>
-        <Output  class='OutStreamManager'        type='Print'          >TimePointSetPostProcTest_dump</Output>
+        <Output  class='DataObjects'             type='PointSet'   >PointSetPostProcTest</Output>
+        <Output  class='OutStreamManager'        type='Print'          >PointSetPostProcTest_dump</Output>
     </MultiRun >
     <PostProcess name='ComputeLimitSurfacePositiveNegative' >
-        <Input    class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Input    class='DataObjects'            type='PointSet'    >PointSetPostProcTest</Input>
         <Model    class='Models'                 type='PostProcessor'   >computeLimitSurfacePositiveNegative</Model>
-        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfacePositiveNegative</Output>
+        <Output   class='DataObjects'            type='PointSet'    >LimitSurfacePositiveNegative</Output>
         <Output   class='OutStreamManager'       type='Print'           >LimitSurfacePositiveNegative_dump</Output>
     </PostProcess>
     <PostProcess name='ComputeLimitSurfaceIntegralWeighted' >
-        <Input    class='DataObjects'            type='TimePointSet'    >LimitSurfacePositiveNegative</Input>
+        <Input    class='DataObjects'            type='PointSet'    >LimitSurfacePositiveNegative</Input>
         <Model    class='Models'                 type='PostProcessor'   >LimitSurfaceIntegralWeighted</Model>
-        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfaceWeightedPb</Output>
+        <Output   class='DataObjects'            type='PointSet'    >LimitSurfaceWeightedPb</Output>
         <Output   class='OutStreamManager'       type='Print'           >LimitSurfaceWeightedPb_dump</Output>
         <Output   class='Files'                  type=''                >LimitSurfaceWeightedPb_FileObj.csv</Output>
     </PostProcess>
     <PostProcess name='ComputeLimitSurfaceIntegralUnWeighted' >
-        <Input    class='DataObjects'            type='TimePointSet'    >LimitSurfacePositiveNegative</Input>
+        <Input    class='DataObjects'            type='PointSet'    >LimitSurfacePositiveNegative</Input>
         <Model    class='Models'                 type='PostProcessor'   >LimitSurfaceIntegralUnWeightedWithBounds</Model>
-        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfaceUnWeightedPb</Output>
+        <Output   class='DataObjects'            type='PointSet'    >LimitSurfaceUnWeightedPb</Output>
         <Output   class='OutStreamManager'       type='Print'           >LimitSurfaceUnWeightedPb_dump</Output>
         <Output   class='Files'                  type=''                >LimitSurfaceUnWeightedPb_FileObj.csv</Output>
     </PostProcess>
@@ -118,9 +118,9 @@
 
 <OutStreamManager>
     
-  <Print name='TimePointSetPostProcTest_dump'>
+  <Print name='PointSetPostProcTest_dump'>
     <type>csv</type>
-    <source>TimePointSetPostProcTest</source>
+    <source>PointSetPostProcTest</source>
   </Print>
   <Print name='LimitSurfaceUnWeightedPb_dump'>
       <type>csv</type>
@@ -137,26 +137,26 @@
 </OutStreamManager>
 
 <DataObjects>
-    <TimePointSet name='TimePointSetPostProcTest'>
+    <PointSet name='PointSetPostProcTest'>
         <Input>x0,y0</Input>
         <Output>z</Output>
-    </TimePointSet>
-    <TimePointSet name='LimitSurfacePositiveNegative'>
+    </PointSet>
+    <PointSet name='LimitSurfacePositiveNegative'>
         <Input>x0,y0</Input>
         <Output>goalFunctionForLimitSurface</Output>
-    </TimePointSet>
-    <TimePointSet name='LimitSurfaceWeightedPb'>
+    </PointSet>
+    <PointSet name='LimitSurfaceWeightedPb'>
         <Input>x0,y0</Input>
         <Output>goalFunctionForLimitSurface</Output>
-    </TimePointSet>
-    <TimePointSet name='LimitSurfaceUnWeightedPb'>
+    </PointSet>
+    <PointSet name='LimitSurfaceUnWeightedPb'>
         <Input>x0,y0</Input>
         <Output>goalFunctionForLimitSurface</Output>
-    </TimePointSet>
-    <TimePointSet name='Dummy'>
+    </PointSet>
+    <PointSet name='Dummy'>
         <Input>x0,y0</Input>
         <Output>OutputPlaceHolder</Output>
-    </TimePointSet>
+    </PointSet>
 </DataObjects>
 
 </Simulation>

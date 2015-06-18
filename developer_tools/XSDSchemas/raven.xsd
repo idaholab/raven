@@ -119,10 +119,10 @@
 <!-- *********************************************************************** -->
     <xsd:complexType name="DataObjectsData">
       <xsd:sequence>
-        <xsd:element name="TimePoint"    type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
-        <xsd:element name="TimePointSet" type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="Point"        type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="PointSet"     type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
         <xsd:element name="History"      type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
-        <xsd:element name="Histories"    type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="HistorySet"   type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
       </xsd:sequence>
     </xsd:complexType>
 

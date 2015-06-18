@@ -58,12 +58,12 @@
 
 <Steps>
     <MultiRun name='FirstMRun'  re-seeding='200286'>
-        <Input   class='DataObjects'     type='TimePoint'               >inputPlaceHolder</Input>
+        <Input   class='DataObjects'     type='Point'               >inputPlaceHolder</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='DataObjects'     type='Histories'      >testPrintHistories</Output>
+        <Output  class='DataObjects'     type='HistorySet'      >testPrintHistorySet</Output>
         <Output  class='Databases' type='HDF5'           >test_external_db</Output>
-        <Output  class='OutStreamManager' type='Print'   >testPrintHistories_dump</Output>
+        <Output  class='OutStreamManager' type='Print'   >testPrintHistorySet_dump</Output>
     </MultiRun >
 </Steps>
 <Databases>
@@ -71,22 +71,22 @@
 </Databases>
 
 <OutStreamManager>
-  <Print name='testPrintHistories_dump'>
+  <Print name='testPrintHistorySet_dump'>
     <type>csv</type>
-    <source>testPrintHistories</source>
+    <source>testPrintHistorySet</source>
   </Print>
 </OutStreamManager>
     
     
 <DataObjects>
-    <TimePoint name='inputPlaceHolder'>
+    <Point name='inputPlaceHolder'>
         <Input>x0,y0,z0</Input>
         <Output>OutputPlaceHolder</Output>
-    </TimePoint>
-    <Histories name='testPrintHistories'>
+    </Point>
+    <HistorySet name='testPrintHistorySet'>
         <Input>x0,y0,z0</Input>
         <Output>time,x,y,z</Output>
-   </Histories>
+   </HistorySet>
 </DataObjects>
 
 
