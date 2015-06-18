@@ -609,11 +609,12 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
         }
         else if (this->persistenceType.compare("probability") == 0)
         {
-          //Should we include the probability of the saddle? No for now, I don't
-          // think it makes sense to use it, we really only care about the
-          // probability near the extremum not around the edges of its flow
-          pers = y(p.first) - y(saddleIdx);
-          pers *= w(p.first); // * w(saddleIdx);
+          //TODO: test
+          T probabilityIntegral = 0;
+          for(int idx = 0; idx < Size(); idx++)
+            if (flow[idx].up == p.first)
+              probabilityIntegral += w(idx);
+          pers = probabilityIntegral;
         }
         else if (this->persistenceType.compare("count") == 0)
         {
@@ -663,11 +664,15 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
 
   //compute final persistences - recursively merge smallest persistence
   //extrema and update remaining peristencies depending on the merge
+
+  //First, set each maximum to merge into itself
   std::map<int,int> merge;
   for(persistence_map_it it = maxHierarchy.begin();
       it != maxHierarchy.end();
       it++)
+  {
     merge[it->first] = it->first;
+  }
 
   map_pfi_pi ptmp;
   map_pi_pfi pinv2;
@@ -729,15 +734,25 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
     else if (this->persistenceType.compare("probability") == 0)
     {
       //TODO: test
+      T newPersistence = 0;
+      T oldPersistence = 0;
+      for(int idx = 0; idx < Size(); idx++)
+      {
+        int extIdx = followChain(flow[idx].up, merge);
+        if (extIdx == p.first)
+          newPersistence += w(idx);
+        if (extIdx == pold.first)
+          oldPersistence += w(idx);
+      }
 
       //check if there is new merge pair with increased persistence (or same
       // persistence and a larger index maximum)
-      T diff = y(p.first) - y(pold.first);
+      T diff = newPersistence - oldPersistence;
       if( diff > 0 || (diff == 0 && p.first > pold.first ))
       {
         //if the persistence increased insert into the persistence list and
         //merge possible other extrema with smaller persistence values first
-        double npers = pers + diff * w(p.first); // * w(saddleIdx);
+        double npers = newPersistence;
         persistence[std::pair<T,int>(npers,saddleIdx)] = p;
       }
       //otherwise merge the pair
@@ -759,9 +774,44 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
     }
     else if (this->persistenceType.compare("count") == 0)
     {
-      //TODO: implement & test
-      // We need to simplify the level to the appropriate level before counting
-      // the points that flow to it
+      //TODO: test
+      int newPersistence = 0;
+      int oldPersistence = 0;
+      for(int idx = 0; idx < Size(); idx++)
+      {
+        int extIdx = followChain(flow[idx].up, merge);
+        if (extIdx == p.first)
+          newPersistence++;
+        if (extIdx == pold.first)
+          oldPersistence++;
+      }
+
+      //check if there is new merge pair with increased persistence (or same
+      // persistence and a larger index maximum)
+      T diff = newPersistence - oldPersistence;
+      if( diff > 0 || (diff == 0 && p.first > pold.first ))
+      {
+        //if the persistence increased insert into the persistence list and
+        //merge possible other extrema with smaller persistence values first
+        double npers = newPersistence;
+        persistence[std::pair<T,int>(npers,saddleIdx)] = p;
+      }
+      //otherwise merge the pair
+      else
+      {
+        //check if the pair has not been previously merged
+        map_pi_pfi_it invIt = pinv2.find(p);
+        if(pinv2.end() == invIt)
+        {
+          merge[p.first] = p.second;
+          maxHierarchy[p.first].persistence = pers;
+          maxHierarchy[p.first].parent = p.second;
+          maxHierarchy[p.first].saddle = saddleIdx;
+
+          ptmp[std::pair<T,int>(pers,saddleIdx)] = p;
+          pinv2[p] = std::pair<T,int>(pers,saddleIdx);
+        }
+      }
     }
     else if (this->persistenceType.compare("area") == 0)
     {
@@ -805,11 +855,12 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
         }
         else if (this->persistenceType.compare("probability") == 0)
         {
-          //Should we include the probability of the saddle? No for now, I don't
-          // think it makes sense to use it, we really only care about the
-          // probability near the extremum not around the edges of its flow
-          pers = y(saddleIdx) - y(p.first);
-          pers *= w(p.first); // * w(saddleIdx);
+          //TODO: test
+          T probabilityIntegral = 0;
+          for(int idx = 0; idx < Size(); idx++)
+            if (flow[idx].down == p.first)
+              probabilityIntegral += w(idx);
+          pers = probabilityIntegral;
         }
         else if (this->persistenceType.compare("count") == 0)
         {
@@ -861,11 +912,15 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
 
   //compute final persistences - recursively merge smallest persistence
   //extrema and update remaining peristencies depending on the merge
+
+  //First, set each maximum to merge into itself
   std::map<int,int> merge;
   for(persistence_map_it it = minHierarchy.begin();
       it != minHierarchy.end();
       it++)
+  {
     merge[it->first] = it->first;
+  }
 
   map_pfi_pi ptmp;
   map_pi_pfi pinv2;
@@ -925,13 +980,23 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
     else if (this->persistenceType.compare("probability") == 0)
     {
       //TODO: test
+      T newPersistence = 0;
+      T oldPersistence = 0;
+      for(int idx = 0; idx < Size(); idx++)
+      {
+        int extIdx = followChain(flow[idx].down, merge);
+        if (extIdx == p.first)
+          newPersistence += w(idx);
+        if (extIdx == pold.first)
+          oldPersistence += w(idx);
+      }
 
-      T diff = y(pold.first) - y(p.first);
+      T diff = newPersistence - oldPersistence;
       if( diff > 0 || (diff == 0 && p.first < pold.first ))
       {
         //if the persistence increased insert into the persistence list and
         //merge possible other extrema with smaller persistence values first
-        double npers = pers + diff * w(p.first); //* w(saddleIdx);
+        double npers = newPersistence;
         persistence[std::pair<T,int>(npers,saddleIdx)] = p;
       }
       //otherwise merge the pair
@@ -952,10 +1017,41 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
     }
     else if (this->persistenceType.compare("count") == 0)
     {
-      //FIXME: implement this & test
+      //TODO: test
+      int newPersistence = 0;
+      int oldPersistence = 0;
+      for(int idx = 0; idx < Size(); idx++)
+      {
+        int extIdx = followChain(flow[idx].down, merge);
+        if (extIdx == p.first)
+          newPersistence++;
+        if (extIdx == pold.first)
+          oldPersistence++;
+      }
 
-      // We need to simplify the level to the appropriate level before counting
-      // the points that flow to it
+      T diff = newPersistence - oldPersistence;
+      if( diff > 0 || (diff == 0 && p.first < pold.first ))
+      {
+        //if the persistence increased insert into the persistence list and
+        //merge possible other extrema with smaller persistence values first
+        double npers = newPersistence;
+        persistence[std::pair<T,int>(npers,saddleIdx)] = p;
+      }
+      //otherwise merge the pair
+      else
+      {
+        //check if the pair has not been previously merged
+        map_pi_pfi_it invIt = pinv2.find(p);
+        if(pinv2.end() == invIt)
+        {
+          merge[p.first] = p.second;
+          minHierarchy[p.first].persistence = pers;
+          minHierarchy[p.first].parent = p.second;
+          minHierarchy[p.first].saddle = saddleIdx;
+          ptmp[std::pair<T,int>(pers,saddleIdx)] = p;
+          pinv2[p] = std::pair<T,int>(pers,saddleIdx);
+        }
+      }
     }
     else if (this->persistenceType.compare("area") == 0)
     {

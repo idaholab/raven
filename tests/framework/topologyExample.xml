@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A Simple Example of the Approximate Morse-Smale Complex Interface
+     has four local minima surrounding a global maximum, and each of the
+     examples will showcase different levels of partitions using different
+     persistence simplfication metrics -->
+<Simulation>
+  <RunInfo>
+    <WorkingDir>topologyPostProcessor</WorkingDir>
+    <Sequence>
+      sampleData,
+      decompose
+    </Sequence>
+  </RunInfo>
+  <Models>
+    <ExternalModel name='testFunction' subType=''
+                   ModuleToLoad = './topologyPostProcessor/Schwefel'>
+      <variable>X</variable>
+      <variable>Y</variable>
+      <variable>Z</variable>
+    </ExternalModel>
+  <!-- The definition of the topological partition and all of its parameters -->
+    <PostProcessor name='AMSC' subType='TopologicalDecomposition'>
+      <graph>Beta Skeleton</graph>
+      <gradient>steepest</gradient>
+      <beta>1</beta>
+      <knn>8</knn>
+      <normalization>None</normalization>
+      <parameters>X,Y</parameters>
+      <response>Z</response>
+      <simplification>0.005</simplification>
+      <persistence>probability</persistence>
+    </PostProcessor>
+  </Models>
+  <Distributions>
+    <Normal name="NormDist">
+      <mean>0.5</mean>
+      <sigma>0.125</sigma>
+    </Normal>
+  </Distributions>
+  <Samplers>
+    <Grid name="gridSampler">
+      <variable name="X">
+        <distribution>NormDist</distribution>
+        <grid type='value' construction='equal' steps='500'>0 1</grid>
+      </variable>
+      <variable name="Y">
+        <distribution>NormDist</distribution>
+        <grid type='value' construction='equal' steps='500'>0 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+  <Steps>
+  <!-- Load the data from a csv into the hdf5 database used by this run -->
+    <MultiRun name='sampleData' pauseAtEnd='False'>
+      <Sampler class='Samplers'    type='Grid'          >gridSampler</Sampler>
+      <Input   class='DataObjects' type='TimePointSet'  >dummyIN</Input>
+      <Model   class='Models'      type='ExternalModel' >testFunction</Model>
+      <Output  class='DataObjects' type='TimePointSet'  >testData</Output>
+    </MultiRun>
+  <!-- Perform the topological decomposition -->
+    <PostProcess name='decompose1'>
+      <Input   class='DataObjects'      type='TimePointSet' >testData</Input>
+      <Model   class='Models'           type='PostProcessor'>AMSC</Model>
+      <Output  class='DataObjects'      type='TimePointSet' >outTPS</Output>
+      <Output  class='OutStreamManager' type='Print'        >myDump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreamManager>
+  <!-- A csv file containing the output of the example -->
+    <Print name='myDump'>
+      <type>csv</type>
+      <source>outTPS</source>
+    </Print>
+  </OutStreamManager>
+
+  <Databases>
+  <!-- The necessary database object -->
+    <HDF5 name="schwefelDB"/>
+  </Databases>
+  <DataObjects>
+  <!-- The input TimePointSet object -->
+    <TimePointSet name="dummyIN">
+      <Input>X,Y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </TimePointSet>
+    <TimePointSet name='testData'>
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </TimePointSet>
+  <!-- The output TimePointSet objects -->
+    <TimePointSet name='outTPS'>
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </TimePointSet>
+  </DataObjects>
+</Simulation>
