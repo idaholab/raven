@@ -85,19 +85,19 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 #     # retrieve history name if present
 #     try:   self._dataParameters['history'] = xmlNode.attrib['historyName']
 #     except KeyError:self._dataParameters['history'] = None
-# 
+#
 #     if 'time' in xmlNode.attrib.keys():
 #       # check if time information are present... in case, store it
 #       if not (self._dataParameters['time'] == 'end' or self._dataParameters['time'] == 'all'):
 #         try:   self._dataParameters['time'] = float(self._dataParameters['time'])
 #         except ValueError: self._dataParameters['time'] = float(self._dataParameters['time'].split(','))
 #     else:self._dataParameters['time'] = None
-# 
+#
 #     if 'operator' in xmlNode.attrib.keys():
 #       # check if time information are present... in case, store it
 #       self._dataParameters['operator'] = xmlNode.attrib['operator'].lower()
 #       if self._dataParameters['operator'] not in ['min','max','average']: self.raiseAnError(IOError,'Only operation available are '+str(['min','max','average'])+' .Data named '+ self.name + 'of type ' + self.type  )
-# 
+#
 #     # check if inputTs is provided => the time step that the inputs refer to
 #     try: self._dataParameters['inputTs'] = int(xmlNode.attrib['inputTs'])
 #     except KeyError:self._dataParameters['inputTs'] = None
@@ -112,7 +112,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self.TSData = None
         self.rootToBranch = {}
     else: self._dataParameters['hierarchical'] = False
-  
+
   def _specializedInputCheck(self,xmlNode):
     """
     Function to check the input parameters that have been read for each DataObject subtype
@@ -513,7 +513,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       convertArr = lambda x: np.asarray(x)
 
     if type(typeVar).__name__ not in ['str','unicode','bytes'] : self.raiseAnError(RuntimeError,'type of parameter typeVar needs to be a string. Function: Data.getParam')
-    if type(keyword).__name__ not in acceptedType        : 
+    if type(keyword).__name__ not in acceptedType        :
       self.raiseAnError(RuntimeError,'type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
     if nodeid:
       if type(nodeid).__name__ not in ['str','unicode','bytes']  : self.raiseAnError(RuntimeError,'type of parameter nodeid needs to be a string. Function: Data.getParam')
@@ -768,7 +768,7 @@ class Point(Data):
   """
   Point is an object that stores a set of inputs and outputs for a particular point in time!
   """
-  
+
   def _specializedInputCheck(self,xmlNode):
     """
      Here we check if the parameters read by the global reader are compatible with this type of Data
