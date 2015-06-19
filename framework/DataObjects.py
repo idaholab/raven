@@ -511,8 +511,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else                       :
       acceptedType = ['str','unicode','bytes']
       convertArr = lambda x: np.asarray(x)
+
     if type(typeVar).__name__ not in ['str','unicode','bytes'] : self.raiseAnError(RuntimeError,'type of parameter typeVar needs to be a string. Function: Data.getParam')
-    if type(keyword).__name__ not in acceptedType        : self.raiseAnError(RuntimeError,'type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
+    if type(keyword).__name__ not in acceptedType        : 
+      self.raiseAnError(RuntimeError,'type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
     if nodeid:
       if type(nodeid).__name__ not in ['str','unicode','bytes']  : self.raiseAnError(RuntimeError,'type of parameter nodeid needs to be a string. Function: Data.getParam')
     if typeVar.lower() not in ['input','inout','inputs','output','outputs']: self.raiseAnError(RuntimeError,'type ' + typeVar + ' is not a valid type. Function: Data.getParam')
@@ -773,8 +775,8 @@ class Point(Data):
      @ In, ElementTree object, xmlNode
      @ Out, None
     """
-    if "historyName" not in xmlNode.attrib.keys(): self.raiseAnError(IOError,'In order to create a Point data, history name must be provided')
-    else                                         : self._dataParameters['history'] = xmlNode.attrib['historyName']
+    if "historyName" in xmlNode.attrib.keys(): self._dataParameters['history'] = xmlNode.attrib['historyName']
+    else                                     : self._dataParameters['history'] = None
 
   def addSpecializedReadingSettings(self):
     """
@@ -1290,9 +1292,8 @@ class History(Data):
   History is an object that stores a set of inputs and associated history for output parameters.
   """
   def _specializedInputCheck(self,xmlNode):
-    if "historyName" not in xmlNode.attrib.keys(): self.raiseAnError(IOError,'In order to create a Point data, history name must be provided')
-    else                                         : self._dataParameters['history'] = xmlNode.attrib['historyName']
-
+    if "historyName" in xmlNode.attrib.keys(): self._dataParameters['history'] = xmlNode.attrib['historyName']
+    else                                     : self._dataParameters['history'] = None
   def addSpecializedReadingSettings(self):
     """
       This function adds in the _dataParameters dict the options needed for reading and constructing this class

@@ -238,14 +238,17 @@ class HDF5(DateBase):
     # Check the outParam variables and the time filters
     if attributes['outParam'] == 'all': all_out_param  = True
     else:                               all_out_param = False
-
-    if attributes['time'] == 'end' or (not attributes['time']):
-      time_end = True
-      time_float = -1.0
-    else:
-      # convert the time in float
-      time_end = False
-      time_float = float(attributes['time'])
+    
+    time = attributes['time'] if 'time' in  attributes.keys() else None
+    time_end, time_float = True, -1.0 if time == 'end' or time == None else False,float(time)
+    
+#     if attributes['time'] == 'end' or (not attributes['time']):
+#       time_end = True
+#       time_float = -1.0
+#     else:
+#       # convert the time in float
+#       time_end = False
+#       time_float = float(attributes['time'])
 
     if 'operator' in attributes.keys():
       operator = True
