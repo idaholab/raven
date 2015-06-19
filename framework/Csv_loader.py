@@ -71,7 +71,7 @@ class CsvLoader(MessageHandler.MessageUser):
     @ Out, all_field_names, list -> list of field names (headers)
     """
     return self.all_field_names
-
+  
   def csvLoadData(self,filein,options):
     """
     General interface function to call the private methods for loading the different dataObjects!
@@ -96,32 +96,32 @@ class CsvLoader(MessageHandler.MessageUser):
 
   def __csvLoaderForPoint(self,filein,options):
     """
-    loader for time point data type
+    loader for point data type
     @ In, filein, file name
     @ In, options, dictionary of options:
-          time, time
+          outputPivotVal, output value at which the outputs need to be collected
           inParam, input Parameters
           outParam, output Parameters
-          inputTs, time-step from which the input parameters need to be taken
+          inputRow, outputPivotVal-step from which the input parameters need to be taken
           SampledVars, optional, dictionary of input parameters. The code is going to
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
     """
     #load the data into the numpy array
-    inParam, outParam, inputTs = options['inParam'], options['outParam'], options['inputTs'] if 'inputTs' in options.keys() else None
-    SampledVars, time = options['SampledVars'] if 'SampledVars' in options.keys() else None, options['time'] if 'time' in options.keys() else None
+    inParam, outParam, inputRow = options['inParam'], options['outParam'], options['inputRow'] if 'inputRow' in options.keys() else None
+    SampledVars, outputPivotVal = options['SampledVars'] if 'SampledVars' in options.keys() else None, options['outputPivotVal'] if 'outputPivotVal' in options.keys() else None
     data = self.loadCsvFile(filein)
     if 'all' in outParam: self.all_out_param  = True
     else                : self.all_out_param = False
-    if (time == 'end') or (not time):
-      time_end = True
-      time_float = -1.0
+    if (outputPivotVal == 'end') or (not outputPivotVal):
+      outputPivotVal_end = True
+      outputPivotVal_float = -1.0
     else:
-      # convert the time in float
-      time_end = False
-      time_float = float(time)
-    ints = int(inputTs) if inputTs else 0
-    if ints > data[:,0].size -1  and ints != -1: self.raiseAnError(IOError,'inputTs is greater than number of actual ts in file '+ str(filein) + '!')
+      # convert the outputPivotVal in float
+      outputPivotVal_end = False
+      outputPivotVal_float = float(outputPivotVal)
+    ints = int(inputRow) if inputRow else 0
+    if ints > data[:,0].size -1  and ints != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual ts in file '+ str(filein) + '!')
     inDict, outDict = {}, {}
     self.field_names = self.all_field_names if self.all_out_param else outParam
     #fill input param dictionary
@@ -134,8 +134,8 @@ class CsvLoader(MessageHandler.MessageUser):
           if key in SampledVars.keys(): inDict[key], ix = np.atleast_1d(SampledVars[key]), 0
       if ix == None: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     # fill output param dictionary
-    # time end case
-    if time_end:
+    # outputPivotVal end case
+    if outputPivotVal_end:
       last_row = data[:,0].size - 1
       if self.all_out_param:
         for key in self.all_field_names: outDict[key] = np.atleast_1d(np.array(data[last_row,self.all_field_names.index(key)]))
@@ -145,62 +145,62 @@ class CsvLoader(MessageHandler.MessageUser):
           else: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     else:
       for i in data:
-        if data[i,0] >= time_float and time_float >= 0.0:
-          if i-1 >= 0: previous_time = data[i-1,0]
-          else:        previous_time = data[i,0]
-          actual_time   = data[i,0]
+        if data[i,0] >= outputPivotVal_float and outputPivotVal_float >= 0.0:
+          if i-1 >= 0: previous_outputPivotVal = data[i-1,0]
+          else:        previous_outputPivotVal = data[i,0]
+          actual_outputPivotVal   = data[i,0]
           if self.all_out_param:
             for key in self.all_field_names:
-              if(actual_time == previous_time): outDict[key] = np.atleast_1d(np.array((data[i,self.all_field_names.index(key)]  - time_float) / actual_time))
+              if(actual_outputPivotVal == previous_outputPivotVal): outDict[key] = np.atleast_1d(np.array((data[i,self.all_field_names.index(key)]  - outputPivotVal_float) / actual_outputPivotVal))
               else:
                 actual_value   = data[i,self.all_field_names.index(key)]
                 previous_value = data[i-1,self.all_field_names.index(key)]
-                outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))
+                outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_outputPivotVal-previous_outputPivotVal)*(outputPivotVal_float-previous_outputPivotVal)))
           else:
             for key in outParam:
               if key in self.all_field_names:
-                if actual_time == previous_time: outDict[key] = np.atleast_1d(np.array((data[i,self.all_field_names.index(key)]  - time_float) / actual_time))
+                if actual_outputPivotVal == previous_outputPivotVal: outDict[key] = np.atleast_1d(np.array((data[i,self.all_field_names.index(key)]  - outputPivotVal_float) / actual_outputPivotVal))
                 else:
                   actual_value   = data[i,self.all_field_names.index(key)]
                   previous_value = data[i-1,self.all_field_names.index(key)]
-                  outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))
+                  outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_outputPivotVal-previous_outputPivotVal)*(outputPivotVal_float-previous_outputPivotVal)))
               else: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     return (inDict,outDict)
 
   def __csvLoaderForPointSet(self,filesin,options):
     """
-    loader for time point set data type
+    loader for outputPivotVal point set data type
     @ In, filein, file name
     @ In, options, dictionary of options:
-          time, time
+          outputPivotVal, outputPivotVal
           inParam, input Parameters
           outParam, output Parameters
-          inputTs, time-step from which the input parameters need to be taken
+          inputRow, outputPivotVal-step from which the input parameters need to be taken
           SampledVars, optional, dictionary of input parameters. The code is going to
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
     """
-    inParam, outParam, inputTs = options['inParam'], options['outParam'], options['inputTs'] if 'inputTs' in options.keys() else None
-    SampledVars, time = options['SampledVars'] if 'SampledVars' in options.keys() else None, options['time'] if 'time' in options.keys() else None
+    inParam, outParam, inputRow = options['inParam'], options['outParam'], options['inputRow'] if 'inputRow' in options.keys() else None
+    SampledVars, outputPivotVal = options['SampledVars'] if 'SampledVars' in options.keys() else None, options['outputPivotVal'] if 'outputPivotVal' in options.keys() else None
     if 'all' in outParam:
       self.all_out_param  = True
     else:
       self.all_out_param = False
-    if (time == 'end') or (not time):
-      time_end = True
-      time_float = -1.0
+    if (outputPivotVal == 'end') or (not outputPivotVal):
+      outputPivotVal_end = True
+      outputPivotVal_float = -1.0
     else:
-      # convert the time in float
-      time_end = False
-      time_float = float(time)
-    if inputTs: ints = int(inputTs)
+      # convert the outputPivotVal in float
+      outputPivotVal_end = False
+      outputPivotVal_float = float(outputPivotVal)
+    if inputRow: ints = int(inputRow)
     else: ints = 0
     inDict, outDict = {}, {}
 
     for i in range(len(filesin)):
       #load the data into the numpy array
       data = self.loadCsvFile(filesin[i])
-      if ints > data[:,0].size -1  and ints != -1: self.raiseAnError(IOError,'inputTs is greater than number of actual ts in file '+ str(filesin[i]) + '!')
+      if ints > data[:,0].size -1  and ints != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual ts in file '+ str(filesin[i]) + '!')
       if i == 0:
         if(self.all_out_param): self.field_names = self.all_field_names
         else: self.field_names = outParam
@@ -213,8 +213,8 @@ class CsvLoader(MessageHandler.MessageUser):
           if SampledVars != None:
             if key in SampledVars.keys(): inDict[key], ix = np.atleast_1d(SampledVars[key]), 0
         if ix == None: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
-      # time end case
-      if time_end:
+      # outputPivotVal end case
+      if outputPivotVal_end:
         last_row = data[:,0].size - 1
         if self.all_out_param:
           for key in self.all_field_names:
@@ -234,38 +234,38 @@ class CsvLoader(MessageHandler.MessageUser):
       else:
 
         for i in data:
-          if data[i,0] >= time_float and time_float >= 0.0:
+          if data[i,0] >= outputPivotVal_float and outputPivotVal_float >= 0.0:
             if i-1 >= 0:
-              previous_time = data[i-1,0]
+              previous_outputPivotVal = data[i-1,0]
             else:
-              previous_time = data[i,0]
-            actual_time   = data[i,0]
+              previous_outputPivotVal = data[i,0]
+            actual_outputPivotVal   = data[i,0]
             if self.all_out_param:
               for key in self.all_field_names:
-                if(actual_time == previous_time):
+                if(actual_outputPivotVal == previous_outputPivotVal):
                   if i == 0:
                     #create numpy array
                     outDict[key] = np.zeros(np.shape(len(filesin)))
 
-                  outDict[key][i] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time
+                  outDict[key][i] = (data[i,self.all_field_names.index(key)]  - outputPivotVal_float) / actual_outputPivotVal
                 else:
                   if i == 0: outDict[key] = np.zeros(np.shape(len(filesin)))
                   actual_value   = data[i,self.all_field_names.index(key)]
                   previous_value = data[i-1,self.all_field_names.index(key)]
-                  outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)
+                  outDict[key][i] = (actual_value-previous_value)/(actual_outputPivotVal-previous_outputPivotVal)*(outputPivotVal_float-previous_outputPivotVal)
             else:
               for key in outParam:
                 if key in self.all_field_names:
-                  if(actual_time == previous_time):
+                  if(actual_outputPivotVal == previous_outputPivotVal):
                     if i == 0:
                       #create numpy array
                       outDict[key] = np.zeros(np.shape(len(filesin)))
-                    outDict[key][i] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time
+                    outDict[key][i] = (data[i,self.all_field_names.index(key)]  - outputPivotVal_float) / actual_outputPivotVal
                   else:
                     if i == 0: outDict[key] = np.zeros(np.shape(len(filesin)))
                     actual_value   = data[i,self.all_field_names.index(key)]
                     previous_value = data[i-1,self.all_field_names.index(key)]
-                    outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)
+                    outDict[key][i] = (actual_value-previous_value)/(actual_outputPivotVal-previous_outputPivotVal)*(outputPivotVal_float-previous_outputPivotVal)
                 else: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
       del data
     return (inDict,outDict)
@@ -275,34 +275,43 @@ class CsvLoader(MessageHandler.MessageUser):
     loader for history data type
     @ In, filein, file name
     @ In, options, dictionary of options:
-          time, time
+          outputPivotVal, outputPivotVal
           inParam, input Parameters
           outParam, output Parameters
-          inputTs, time-step from which the input parameters need to be taken
+          inputRow, outputPivotVal-step from which the input parameters need to be taken
           SampledVars, optional, dictionary of input parameters. The code is going to
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
+              <inputRow>  
+              <outputRow>
+              <pivotParameter>
+              <outputPivotValue>
+              <operator>
+              <outputPivotValue>
+              <inputPivotValue>
+
     """
-    inParam, outParam, inputTs = options['inParam'], options['outParam'], options['inputTs'] if 'inputTs' in options.keys() else None
-    SampledVars, time = options['SampledVars'] if 'SampledVars' in options.keys() else None, options['time'] if 'time' in options.keys() else None
+    inParam, outParam, inputRow, outputRow      = options['inParam'], options['outParam'], options.get('inputRow',None), options.get('outputRow',None)
+    SampledVars, inputPivotVal, outputPivotVal  = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None)
+    pivotParameter                              = options.get('pivotParameter',"time")
     #load the data into the numpy array
     data = self.loadCsvFile(filein)
 
-    time_float = []
+    outputPivotVal_float = []
 
-    if 'all' in outParam: self.all_out_param  = True
+    if 'all' in outParam: self.all_out_param = True
     else                : self.all_out_param = False
 
-    if time:
-      if 'all' in time: time_all = True
+    if outputPivotVal:
+      if 'all' in outputPivotVal: outputPivotVal_all = True
       else:
-        time_all = False
-        time_float = [float(x) for x in time]
-    else: time_all = True
+        outputPivotVal_all = False
+        outputPivotVal_float = [float(x) for x in outputPivotVal]
+    else: outputPivotVal_all = True
 
-    if inputTs: ints = int(inputTs)
+    if inputRow: ints = int(inputRow)
     else: ints = 0
-    if ints > data[:,0].size-1  and ints != -1: self.raiseAnError(IOError,'inputTs is greater than number of actual ts in file '+ str(filein) + '!')
+    if ints > data[:,0].size-1  and ints != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual ts in file '+ str(filein) + '!')
     inDict, outDict = {}, {}
 
     if(self.all_out_param): self.field_names = self.all_field_names
@@ -310,15 +319,14 @@ class CsvLoader(MessageHandler.MessageUser):
     #fill input param dictionary
     for key in inParam:
       ix = self.all_field_names.index(key) if key in self.all_field_names else None
-      if ix != None:
-        inDict[key] = np.atleast_1d(np.array(data[ints,ix]))
+      if ix != None: inDict[key] = np.atleast_1d(np.array(data[ints,ix]))
       else:
         if SampledVars != None:
           if key in SampledVars.keys(): inDict[key], ix = np.atleast_1d(SampledVars[key]), 0
       if ix == None: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
 
-    # time all case
-    if time_all:
+    # outputPivotVal all case
+    if outputPivotVal_all:
       if self.all_out_param:
         for key in self.all_field_names:
           outDict[key] = data[:,self.all_field_names.index(key)]
@@ -329,8 +337,8 @@ class CsvLoader(MessageHandler.MessageUser):
           else:
             self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     else:
-      # it will be implemented when we decide a strategy about time filtering
-      ## for now it is a copy paste of the time_all case
+      # it will be implemented when we decide a strategy about outputPivotVal filtering
+      ## for now it is a copy paste of the outputPivotVal_all case
       if self.all_out_param:
         for key in self.all_field_names:
           outDict[key] = data[:,self.all_field_names.index(key)]

@@ -81,36 +81,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     optionsData = xmlNode.find('options')
     if optionsData != None:
       for child in optionsData: self._dataParameters[child.tag] = child.text
+    if set(self._dataParameters.keys()).issubset(['inputRow','inputPivotValue'])             : self.raiseAnError(IOError,'It is not allowed to simultaneously specify the nodes: inputRow and inputPivotValue!')
+    if set(self._dataParameters.keys()).issubset(['outputRow','outputPivotValue','operator']): self.raiseAnError(IOError,'It is not allowed to simultaneously specify the nodes: outputRow, outputPivotValue and operator!')
     self._specializedInputCheck(xmlNode)
-#     # retrieve history name if present
-#     try:   self._dataParameters['history'] = xmlNode.attrib['historyName']
-#     except KeyError:self._dataParameters['history'] = None
-#
-#     if 'time' in xmlNode.attrib.keys():
-#       # check if time information are present... in case, store it
-#       if not (self._dataParameters['time'] == 'end' or self._dataParameters['time'] == 'all'):
-#         try:   self._dataParameters['time'] = float(self._dataParameters['time'])
-#         except ValueError: self._dataParameters['time'] = float(self._dataParameters['time'].split(','))
-#     else:self._dataParameters['time'] = None
-#
-#     if 'operator' in xmlNode.attrib.keys():
-#       # check if time information are present... in case, store it
-#       self._dataParameters['operator'] = xmlNode.attrib['operator'].lower()
-#       if self._dataParameters['operator'] not in ['min','max','average']: self.raiseAnError(IOError,'Only operation available are '+str(['min','max','average'])+' .Data named '+ self.name + 'of type ' + self.type  )
-#
-#     # check if inputTs is provided => the time step that the inputs refer to
-#     try: self._dataParameters['inputTs'] = int(xmlNode.attrib['inputTs'])
-#     except KeyError:self._dataParameters['inputTs'] = None
-    # check if this data needs to be in hierarchical fashion
     if 'hierarchical' in xmlNode.attrib.keys():
       if xmlNode.attrib['hierarchical'].lower() in utils.stringsThatMeanTrue(): self._dataParameters['hierarchical'] = True
-      else: self._dataParameters['hierarchical'] = False
+      else                                                                    : self._dataParameters['hierarchical'] = False
       if self._dataParameters['hierarchical'] and not self.acceptHierarchical():
         self.raiseAWarning('hierarchical fashion is not available (No Sense) for Data named '+ self.name + 'of type ' + self.type + '!!!')
         self._dataParameters['hierarchical'] = False
-      else:
-        self.TSData = None
-        self.rootToBranch = {}
+      else: self.TSData, self.rootToBranch = None, {}
     else: self._dataParameters['hierarchical'] = False
 
   def _specializedInputCheck(self,xmlNode):
@@ -358,7 +338,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     self._toLoadFromList.append(toLoadFrom)
     self.addSpecializedReadingSettings()
-    self._dataParameters['SampledVars'] = options['metadata']['SampledVars'] if options != None and 'metadata' in options.keys() and 'SampledVars' in options['metadata'].keys() else None
+    self._dataParameters['SampledVars'] = copy.deepcopy(options['metadata']['SampledVars']) if options != None and 'metadata' in options.keys() and 'SampledVars' in options['metadata'].keys() else None
     self.raiseAMessage('Object type ' + self._toLoadFromList[-1].type + ' named "' + self._toLoadFromList[-1].name+'"')
     if(self._toLoadFromList[-1].type == 'HDF5'):
       tupleVar = self._toLoadFromList[-1].retrieveData(self._dataParameters)
