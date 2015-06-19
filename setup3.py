@@ -9,4 +9,6 @@ setup(name='amsc',
                                       'src/contrib/DenseMatrix.cpp',
                                       'src/contrib/UnionFind.cpp',
                                       'src/contrib/AMSC.cpp'],
-                   include_dirs=include_dirs, swig_opts=swig_opts)])
+                             include_dirs=include_dirs, swig_opts=swig_opts)],
+      package_dir={'':'src/contrib'},
+      py_modules=['amsc'])
