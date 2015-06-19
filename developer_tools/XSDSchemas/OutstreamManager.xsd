@@ -5,18 +5,226 @@
 <!-- *********************************************************************** -->
   <xsd:complexType name="OutStreamData">
     <xsd:sequence>
-      <!--xsd:element name="Print" type="PrintData" minOccurs="0" maxOccurs="unbounded"/ -->
-      <!--xsd:element name="Plot"  type="PlotData"  minOccurs="0" maxOccurs="unbounded"/-->
-      <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="Print" type="PrintData" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="Plot"  type="PlotData"  minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
   </xsd:complexType>
 
   <xsd:complexType name="PrintData">
     <xsd:all>
-      <xsd:element name="type"      type="xsd:string" minOccurs="1" default="csv"/>
-      <xsd:element name="source"    type="xsd:string" minOccurs="1"/>
-      <xsd:element name="variables" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="type"   type="xsd:string" minOccurs="1" default="csv"/>
+      <xsd:element name="source" type="xsd:string" minOccurs="1"/>
+      <xsd:element name="what"   type="xsd:string" minOccurs="0"/>
+      <xsd:element name="target"   type="xsd:string" minOccurs="0"/>
+    </xsd:all>
+    <xsd:attribute name="name"   type="xsd:string" use="required"/>
+  </xsd:complexType>
+
+  <xsd:simpleType name="dimInteger">
+    <xsd:restriction base="xsd:integer">
+      <xsd:minInclusive value="2"/>
+      <xsd:maxInclusive value="3"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="PlotData">
+    <xsd:all>
+      <xsd:element name="actions"      type="actionType" />
+      <xsd:element name="plotSettings" type="plotSettingsType" />
     </xsd:all>
     <xsd:attribute name="name"        type="xsd:string" use="required"/>
+    <xsd:attribute name="dim"         type="dimInteger" use="required"/>
+    <xsd:attribute name="interactive" type="xsd:boolean" default="false"/>
+    <xsd:attribute name="overwrite"   type="xsd:boolean" default="false"/>
+  </xsd:complexType>
+
+  <xsd:simpleType name="toggleType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="on"/>
+      <xsd:enumeration value="off" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="titleType">
+    <xsd:all>
+    <!-- TODO -->
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="labelFormatType">
+    <xsd:all>
+    <!-- TODO -->
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="figurePropertiesType">
+    <xsd:all>
+    <!-- TODO -->
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="rangeType">
+    <xsd:all>
+    <!-- TODO -->
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="cameraType">
+    <xsd:all>
+    <!-- TODO -->
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="scaleType">
+    <xsd:all>
+    <!-- TODO -->
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="titleType">
+    <xsd:all>
+    <!-- TODO -->
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="autoscaleType">
+    <xsd:all>
+    <!-- TODO -->
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="horizontalLineType">
+    <xsd:all>
+    <!-- TODO -->
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="verticalLineType">
+    <xsd:all>
+    <!-- TODO -->
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="rectangleType">
+    <xsd:all>
+    <!-- TODO -->
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="plotGridType">
+    <xsd:all>
+    <!-- TODO -->
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="actionType">
+    <xsd:all>
+      <xsd:element name="how"                 type="xsd:string" minOccurs="0"/>
+      <xsd:element name="title"               type="titleType" minOccurs="0"/>
+      <xsd:element name="labelFormat"         type="labelFormatType" minOccurs="0"/>
+      <xsd:element name="figureProperties"    type="figurePropertiesType" minOccurs="0"/>
+      <xsd:element name="range"               type="rangeType" minOccurs="0"/>
+      <xsd:element name="camera"              type="cameraType" minOccurs="0"/>
+      <xsd:element name="scale"               type="scaleType" minOccurs="0"/>
+      <xsd:element name="addText"             type="titleType" minOccurs="0"/>
+      <xsd:element name="autoscale"           type="autoscaleType" minOccurs="0"/>
+      <xsd:element name="horizontalLine"      type="horizontalLineType" minOccurs="0"/>
+      <xsd:element name="verticalLine"        type="verticalLineType" minOccurs="0"/>
+      <xsd:element name="horizontalRectangle" type="rectangleType" minOccurs="0"/>
+      <xsd:element name="verticalRectangle"   type="rectangleType" minOccurs="0"/>
+      <xsd:element name="axesBox"             type="toggleType" minOccurs="0"/>
+      <xsd:element name="axisProperties"      type="xsd:string" minOccurs="0"/>
+      <xsd:element name="grid"                type="plotGridType" minOccurs="0"/>
+    </xsd:all>
+  </xsd:complexType>
+
+  <xsd:simpleType name="histType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="bar"/>
+      <xsd:enumeration value="barstacked" />
+      <xsd:enumeration value="step" />
+      <xsd:enumeration value="stepfilled" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="alignType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="left"/>
+      <xsd:enumeration value="mid" />
+      <xsd:enumeration value="right" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="orientationType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="horizontal"/>
+      <xsd:enumeration value="vertical" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="fractionType">
+    <xsd:restriction base="xsd:float">
+      <xsd:minInclusive value="0"/>
+      <xsd:maxInclusive value="1"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="plotSettingsType">
+    <xsd:all>
+      <xsd:element name="title" type="xsd:string" />
+      <xsd:element name="x" type="xsd:string" />
+      <xsd:element name="y" type="xsd:string" />
+      <!-- Required only if dim=3 -->
+      <xsd:element name="z" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="kwargs" type="kwargsType" minOccurs="0"/>
+
+      <xsd:element name="xlabel" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="ylabel" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="zlabel" type="xsd:string" minOccurs="0"/>
+      <!-- can be a color or a vector? -->
+      <xsd:element name="colorMap" type="xsd:string" minOccurs="0"/>
+      <!-- type=scatter -->
+      <xsd:element name="s" type="xsd:integer" minOccurs="0"/>
+      <xsd:element name="c" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="marker" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="alpha" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="linewidths" type="xsd:string" minOccurs="0"/>
+      <!-- type=line -->
+      <xsd:element name="interpolationType" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="interpPointsX" type="xsd:integer" minOccurs="0"/>
+      <xsd:element name="interpPointsY" type="xsd:integer" minOccurs="0"/>
+      <!-- type=histogram -->
+      <xsd:element name="bins" type="xsd:list" minOccurs="0"/>
+      <xsd:element name="normed" type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="weights" type="xsd:list" minOccurs="0"/>
+      <xsd:element name="cumulative" type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="histtype" type="histType" minOccurs="0"/>
+      <xsd:element name="align" type="alignType" minOccurs="0"/>
+      <xsd:element name="orientation" type="orientationType" minOccurs="0"/>
+      <xsd:element name="rwidth" type="fractionType" minOccurs="0"/>
+      <xsd:element name="log" type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="color" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="stacked" type="xsd:boolean" minOccurs="0"/>
+      <!-- type=stem -->
+      <xsd:element name="linefmt" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="markerfmt" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="basefmt" type="xsd:string" minOccurs="0"/>
+      <!-- type=step -->
+      <xsd:element name="where" type="xsd:string" minOccurs="0"/>
+      <!-- type=pseudocolor, see line -->
+      <!-- type=contour,filledContour -->
+      <xsd:element name="numberBins" type="xsd:integer" minOccurs="0"/>
+      <xsd:element name="cmap" type="xsd:string" minOccurs="0"/>
+      <!-- type=surface -->
+      <xsd:element name="rstride" type="xsd:integer" minOccurs="0"/>
+      <xsd:element name="cstride" type="xsd:integer" minOccurs="0"/>
+      <xsd:element name="antialiased" type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="linewidth" type="xsd:integer" minOccurs="0"/>
+      <!-- type=wireframe, similar to above -->
+      <!-- type=tri-surface -->
+      <xsd:element name="color" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="shade" type="xsd:boolean" minOccurs="0"/>
+      <!-- type=contour3D, all are specified above -->
+    </xsd:all>
   </xsd:complexType>
 </xsd:schema>
