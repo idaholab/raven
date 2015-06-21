@@ -87,35 +87,43 @@
 
 
 <DataObjects>
-   <Point name='Point_from_database' inputTs='1' historyName="1">
+   <Point name='Point_from_database' historyName="1">
+       <options><inputRow>1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </Point>
-   <Point name='Point_IN_database' inputTs='1' historyName="HistorySet_from_database|0">
+   <Point name='Point_IN_database' historyName="HistorySet_from_database|0">
+       <options><inputRow>1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </Point>
-   <PointSet name='Pointset_from_database' inputTs='1'>
+   <PointSet name='Pointset_from_database'>
+       <options><inputRow>1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </PointSet>
-   <PointSet name='Pointset_IN_database' inputTs='1'>
+   <PointSet name='Pointset_IN_database' >
+       <options><inputRow>1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </PointSet>
-   <History name='history_from_database' inputTs='1' historyName="1">
+   <History name='history_from_database' historyName="1">
+       <options><inputRow>1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </History>
-   <History name='history_IN_database' inputTs='1' historyName="HistorySet_from_database|0">
+   <History name='history_IN_database' historyName="HistorySet_from_database|0">
+       <options><inputRow>1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </History>
-   <HistorySet name='HistorySet_from_database' inputTs='1'>
+   <HistorySet name='HistorySet_from_database'>
+       <options><inputRow>1</inputRow></options>
         <Input>dummy_for_branch</Input>
         <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </HistorySet>
-   <HistorySet name='HistorySet_IN_database' inputTs='1'>
+   <HistorySet name='HistorySet_IN_database'>
+       <options><inputRow>1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </HistorySet>

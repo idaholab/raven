@@ -156,23 +156,28 @@
             <Input>PressureFailureValue,depressurizationOnTime</Input>
             <Output>relapFunctionSimple</Output>
         </PointSet>
-        <PointSet name='AdaptiveDETPointset' inputTs='-1'>
+        <PointSet name='AdaptiveDETPointset'>
+            <options><inputRow>-1</inputRow></options>
             <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
             <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
         </PointSet>
-        <PointSet name='AdaptiveDETPointsetHierarchical' inputTs='-1' hierarchical='t'>
+        <PointSet name='AdaptiveDETPointsetHierarchical' hierarchical='t'>
+            <options><inputRow>-1</inputRow></options>
             <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
             <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
         </PointSet>
-        <PointSet name='adaptiveOutsimple' inputTs='-1' hierarchical='t'>
+        <PointSet name='adaptiveOutsimple' hierarchical='t'>
+            <options><inputRow>-1</inputRow></options>
             <Input>PressureFailureValue,depressurizationOnTime</Input>
             <Output>systemFailed</Output>
         </PointSet>
-        <HistorySet name='adaptiveOutHistorySetimple' inputTs='-1' hierarchical='t'>
+        <HistorySet name='adaptiveOutHistorySetimple' hierarchical='t'>
+            <options><inputRow>-1</inputRow></options>
             <Input>PressureFailureValue,depressurizationOnTime</Input>
             <Output>systemFailed</Output>
         </HistorySet>
-        <HistorySet name='AdaptiveDETHistorySet' inputTs='-1'>
+        <HistorySet name='AdaptiveDETHistorySet'>
+            <options><inputRow>-1</inputRow></options>
             <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
             <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
         </HistorySet>

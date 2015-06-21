@@ -263,9 +263,6 @@ class CsvLoader(MessageHandler.MessageUser):
         ix = self.all_field_names.index(key) if key in self.all_field_names else None
         if ix != None:
           if inputPivotVal != None:
-            print(float(inputPivotVal))
-            print( np.max(data[:,pivotIndex]))
-            print(np.min(data[:,pivotIndex]))
             if float(inputPivotVal) > np.max(data[:,pivotIndex]) or float(inputPivotVal) < np.min(data[:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in file '+ str(filesin[i]) + '!')
             inDict[key][i] = interp1d(data[:,pivotIndex], data[:,ix], kind='linear')(float(inputPivotVal))
           else: inDict[key][i] = data[inputRow,ix]
@@ -397,8 +394,7 @@ class CsvLoader(MessageHandler.MessageUser):
           else:
             self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     else:
-      # it will be implemented when we decide a strategy about outputPivotVal filtering
-      ## for now it is a copy paste of the outputPivotVal_all case
+      # pivot value
       if self.all_out_param:
         for key in self.all_field_names: outDict[key] = np.atleast_1d(np.array(interp1d(data[:,pivotIndex], data[:,self.all_field_names.index(key)], kind='linear')(outputPivotVal)))
       else:
