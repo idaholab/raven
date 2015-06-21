@@ -24,18 +24,18 @@ These data types are instantiated as sub-nodes in the \xmlNode{DataObjects} bloc
 an input file:
 \begin{itemize}
   \item \xmlNode{Point}, as the name suggests, describes the state of the
-  system at a certain point in time.
+  system at a certain point (e.g. in time).
   %
   In other words, it can be considered a mapping between a set of parameters
   in the input space and the resulting outcomes in the output space at a
-  particular time.
+  particular point in the phase space (e.g. in time).
   %
   \item \xmlNode{PointSet} is a collection of individual \textit{Point}
   objects.
   %
   It can be considered a mapping between multiple sets of parameters in the
   input space and the resulting sets of outcomes in the output space at a
-  particular point in time.
+  particular point (e.g. in time).
   %
   \item \xmlNode{History} describes the temporal evolution of the state of the
   system within a certain input domain.
@@ -87,30 +87,30 @@ available attributes:
 %    ``end'', at the end of the history, or ``all'', consider.
 %    %
 %    \default{random seed};
-  \item \xmlAttr{inputTs}, \xmlDesc{optional integer attribute}, used to
-  specify at which ``time step'' the input space needs to be retrieved.
-  %
-  \nb If the user wants to take conditions from the end of the simulation, s/he
-  can directly input ``-1.''
-  %
-  \default{0}
-  \item \xmlAttr{operator}, \xmlDesc{optional string attribute}, is aimed at
-  performing simple operations on the data to be stored.
-  %
-  %
-  The 3 options currently available are:
-  \begin{itemize}
-    \item \xmlString{max}
-    \item \xmlString{min}
-    \item \xmlString{average}
-  \end{itemize}
-  %
-  \default{None}
+%  \item \xmlAttr{inputTs}, \xmlDesc{optional integer attribute}, used to
+%  specify at which ``time step'' the input space needs to be retrieved.
+%  %
+%  \nb If the user wants to take conditions from the end of the simulation, s/he
+%  can directly input ``-1.''
+%  %
+%  \default{0}
+%  \item \xmlAttr{operator}, \xmlDesc{optional string attribute}, is aimed at
+%  performing simple operations on the data to be stored.
+%  %
+%  %
+%  The 3 options currently available are:
+%  \begin{itemize}
+%    \item \xmlString{max}
+%    \item \xmlString{min}
+%    \item \xmlString{average}
+%  \end{itemize}
+%  %
+%  \default{None}
 
   \item \xmlAttr{historyName}, \xmlDesc{optional string attribute}, in the case  the 
-   ``DataObject'' type is either a \textit{Point} or a
+   ``DataObject'' type is either a \textit{Point} or an
   \textit{History}, this XML node contains the name of the associated history needs to be placed in.
-  \\\nb This attribute is a required parameter when the  \textit{Point} or \textit{History}
+  \\\nb This attribute is a required parameter when the  \xmlNode{Point} or \xmlNode{History}
    types are constructed from a Database (e.g.HDF5).
 
   \item \xmlAttr{hierarchical}, \xmlDesc{optional boolean attribute}, if True
@@ -130,25 +130,120 @@ needs to specify the following sub-nodes:
   %
 \end{itemize}
 
+In addition to the XML nodes \xmlNode{Input} and \xmlNode{Output} explained above, the user
+can optionally specify a XML node named  \xmlNode{options}. The  \xmlNode{options} node can
+contain the following optional XML sub-nodes:
+
+\begin{itemize}
+  \item \xmlNode{inputRow}, \xmlDesc{integer, optional field}, used to
+       specify  the row (in the CSV file or HDF5 table) from which the input space
+      needs to be retrieved (e.g. the time-step);
+  %
+  \item \xmlNode{outputRow}, \xmlDesc{integer, optional field}, used to
+       specify  the row (in the CSV file or HDF5 table) from which the output space
+      needs to be retrieved (e.g. the time-step). If this node is inputted, the nodes
+       \xmlNode{operator} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
+     \\\nb This XML node is available for DataObjects of type \xmlNode{Point} and \xmlNode{PointSet} only;
+  %
+  \item \xmlNode{operator}, \xmlDesc{string, optional field}, is aimed to perform 
+       simple operations on the data to be stored.
+       The 3 options currently available are:
+       \begin{itemize}
+          \item \xmlString{max}
+          \item \xmlString{min}
+          \item \xmlString{average}
+       \end{itemize}
+       If this node is inputted, the nodes
+       \xmlNode{outputRow} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
+       \\\nb This XML node is available for DataObjects of type \xmlNode{Point} and \xmlNode{PointSet} only;
+  %
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field} the name of the parameter whose values
+    need to be used as reference of the values specified in the XML nodes  \xmlNode{inputPivotValue},  \xmlNode{outputPivotValue} and  \xmlNode{inputPivotValue} (if inputted). This field can be used, for example, if the driven code output CSVs call the variable ``time'' differently 
+  from the default name ``time'' or to specify a different reference parameter (e.g. PRESSURE). Default value is ``time''.
+   \\\nb the variable specified here should be monotonic; the code does not check for eventual oscillation and is going to take the first occurance for the values specified in the XML nodes \xmlNode{inputPivotValue},  \xmlNode{outputPivotValue} and  \xmlNode{inputPivotValue} ;
+  %
+  \item \xmlNode{inputPivotValue}, \xmlDesc{float, optional field}, the value of the \xmlNode{pivotParameter} at which the input space needs to be retrieved
+    If this node is inputted, the node  \xmlNode{inputRow} can not be inputted (mutually exclusive).
+    %
+  \item \xmlNode{outputPivotValue}. This node can be either a float or a list of floats, depending on the type of DataObjects:
+   \begin{itemize}
+      \item if \xmlNode{History} or \xmlNode{HistorySet},\xmlNode{outputPivotValue}, \xmlDesc{list of floats, optional field},  list of values of the
+                          \xmlNode{pivotParameter} at which the output space needs to be retrieved;
+      \item if \xmlNode{Point} or \xmlNode{PointSet},\xmlNode{outputPivotValue}, \xmlDesc{float, optional field},  the value of the \xmlNode{pivotParameter}
+         at which the output space needs to be retrieved. If this node is inputted, the node  \xmlNode{outputRow} can not be inputted (mutually exclusive); 
+   \end{itemize}
+  %
+  It needs to be noticed that if the optional nodes in the block \xmlNode{options} are not inputted, the following default are applied:
+    \begin{itemize}
+       \item the Input space is retrieved from the first row in the CSVs files or HDF5 tables (if the parameters specified are not among the variables sampled by RAVEN);
+       \item  the output space defaults are as follows:
+       \begin{itemize}
+           \item if \xmlNode{Point} or \xmlNode{PointSet}, the output space is retrieved from the last row in the CSVs files or HDF5 tables;
+           \item if \xmlNode{History} or \xmlNode{HistorySet}, the output space is represented by all the rows found in  the CSVs or HDF5 tables.
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
 \begin{lstlisting}[style=XML,morekeywords={inputTs,operator,hierarchical,name,history}]
-<DataObjects>
-  <Point name='TP' inputTs='-1' operator='max' hierarchical='False' historyName='a_history_name'>
-    <Input>var1,var2,var3</Input>
-    <Output>result1,result2</Output>
-  </Point>
-  <PointSet name='TPS'>
-    <Input>var1,var2,var3</Input>
-    <Output>result1,result2</Output>
-  </PointSet>
-  <History name='HIST' historyName='a_history_name'>
-    <Input>var1,var2,var3</Input>
-    <Output>result1,result2</Output>
-  </History>
-  <HistorySet name='HISTs'>
-    <Input>var1,var2,var3</Input>
-    <Output>result1,result2</Output>
-  </HistorySet>
-</DataObjects>
+  <DataObjects>
+    <PointSet name='outTPS1'>
+      <options>
+       <inputRow>1</inputRow>
+       <outputRow>-1</outputRow>
+      </options>
+      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </PointSet>
+    <PointSet name='outTPS2'>
+        <options>
+            <inputPivotValue>0.00011</inputPivotValue>
+            <pivotParameter>time</pivotParameter>
+            <outputPivotValue>0.00012345</outputPivotValue>
+        </options>
+        <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </PointSet>
+    <Point name='outTP'>
+        <options>
+            <inputRow>-1</inputRow>
+            <operator>max</operator>
+        </options>
+        <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </Point>
+    <HistorySet name='stories1'>
+        <options>
+            <inputRow>1</inputRow>
+        </options>
+      <Input>pipe_Area,pipe_Dh</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </HistorySet>
+    <HistorySet name='stories2'>
+        <options>
+            <inputRow>-1</inputRow>
+            <pivotParameter>time</pivotParameter>
+            <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
+        </options>
+        <Input>pipe_Area,pipe_Dh</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </HistorySet>
+    <History name='hst1'>
+        <options>
+            <inputRow>1</inputRow>
+        </options>
+        <Input>pipe_Area,pipe_Dh</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </History>
+    <History name='hst2'>
+        <options>
+            <inputRow>-1</inputRow>
+            <pivotParameter>time</pivotParameter>
+            <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
+        </options>
+        <Input>pipe_Area,pipe_Dh</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </History>
+  </DataObjects>
 \end{lstlisting}
 
 \section{Databases}

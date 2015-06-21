@@ -1274,6 +1274,8 @@ class History(Data):
   def _specializedInputCheck(self,xmlNode):
     if "historyName" in xmlNode.attrib.keys(): self._dataParameters['history'] = xmlNode.attrib['historyName']
     else                                     : self._dataParameters['history'] = None
+    if set(self._dataParameters.keys()).issubset(['operator','outputRow']): self.raiseAnError(IOError,"Inputted operator or outputRow attributes are available for Point and PointSet only!")
+
   def addSpecializedReadingSettings(self):
     """
       This function adds in the _dataParameters dict the options needed for reading and constructing this class
@@ -1460,6 +1462,14 @@ class HistorySet(Data):
   def __init__(self):
     Data.__init__(self)
     self.acceptHierarchy = True
+
+  def _specializedInputCheck(self,xmlNode):
+    """
+     Here we check if the parameters read by the global reader are compatible with this type of Data
+     @ In, ElementTree object, xmlNode
+     @ Out, None
+    """
+    if set(self._dataParameters.keys()).issubset(['operator','outputRow']): self.raiseAnError(IOError,"Inputted operator or outputRow attributes are available for Point and PointSet only!")
 
   def addSpecializedReadingSettings(self):
     """

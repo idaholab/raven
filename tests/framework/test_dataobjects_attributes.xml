@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation verbosity='debug'>
   <RunInfo>
-    <WorkingDir>GridTestRaven</WorkingDir>
+    <WorkingDir>DataobjectsAttributes</WorkingDir>
     <Files>simple_flow_3eqn.i,
     simple_flow_3eqn_control.py</Files>
     <Sequence>FirstMRun</Sequence>
@@ -64,63 +64,63 @@
     </Print>
   </OutStreamManager>
   <DataObjects>
-    <PointSet name='outGridTPS1'>
-      <options>
-       <inputRow>1</inputRow>
-       <outputRow>-1</outputRow>
-      </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
-    </PointSet>
-    <PointSet name='outGridTPS2'>
-        <options>
-            <inputRow>1</inputRow>
-            <pivotParameter>time</pivotParameter>
-            <outputPivotValue>0.0012345</outputPivotValue>
-        </options>
-        <Input>pipe_Area,pipe_Dh,Dummy1</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-    </PointSet>
-    <Point name='outGridTP' time="0.0012345">
-        <options>
-            <inputRow>-1</inputRow>
-            <operator>max</operator>
-        </options>
-        <Input>pipe_Area,pipe_Dh,Dummy1</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-    </Point>
-    <HistorySet name='stories1'>
-        <options>
-            <inputRow>1</inputRow>
-        </options>
-      <Input>pipe_Area,pipe_Dh</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
-    </HistorySet>
-    <HistorySet name='stories2'>
-        <options>
-            <inputRow>-1</inputRow>
-            <pivotParameter>time</pivotParameter>
-            <outputPivotValue>0.0 0.1 0.2 0.3 0.4 1.0</outputPivotValue>
-        </options>
-        <Input>pipe_Area,pipe_Dh</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-    </HistorySet>
-    <History name='hst1'>
-        <options>
-            <inputRow>1</inputRow>
-        </options>
-        <Input>pipe_Area,pipe_Dh</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-    </History>
-    <History name='hst2'>
-        <options>
-            <inputRow>-1</inputRow>
-            <pivotParameter>time</pivotParameter>
-            <outputPivotValue>0.0 0.1 0.2 0.3 0.4 1.0</outputPivotValue>
-        </options>
-        <Input>pipe_Area,pipe_Dh</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-    </History>
+      <PointSet name='outGridTPS1'>
+          <options>
+              <inputRow>1</inputRow>
+              <outputRow>-1</outputRow>
+          </options>
+          <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+          <Output>pipe_Hw,pipe_Tw,time</Output>
+      </PointSet>
+      <PointSet name='outGridTPS2'>
+          <options>
+              <inputPivotValue>0.00011</inputPivotValue>
+              <pivotParameter>time</pivotParameter>
+              <outputPivotValue>0.00012345</outputPivotValue>
+          </options>
+          <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+          <Output>pipe_Hw,pipe_Tw,time</Output>
+      </PointSet>
+      <Point name='outGridTP'>
+          <options>
+              <inputRow>-1</inputRow>
+              <operator>max</operator>
+          </options>
+          <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+          <Output>pipe_Hw,pipe_Tw,time</Output>
+      </Point>
+      <HistorySet name='stories1'>
+          <options>
+              <inputRow>1</inputRow>
+          </options>
+          <Input>pipe_Area,pipe_Dh</Input>
+          <Output>pipe_Hw,pipe_Tw,time</Output>
+      </HistorySet>
+      <HistorySet name='stories2'>
+          <options>
+              <inputRow>-1</inputRow>
+              <pivotParameter>time</pivotParameter>
+              <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
+          </options>
+          <Input>pipe_Area,pipe_Dh</Input>
+          <Output>pipe_Hw,pipe_Tw,time</Output>
+      </HistorySet>
+      <History name='hst1'>
+          <options>
+              <inputRow>1</inputRow>
+          </options>
+          <Input>pipe_Area,pipe_Dh</Input>
+          <Output>pipe_Hw,pipe_Tw,time</Output>
+      </History>
+      <History name='hst2'>
+          <options>
+              <inputRow>-1</inputRow>
+              <pivotParameter>time</pivotParameter>
+              <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
+          </options>
+          <Input>pipe_Area,pipe_Dh</Input>
+          <Output>pipe_Hw,pipe_Tw,time</Output>
+      </History>
   </DataObjects>
 </Simulation>
 
