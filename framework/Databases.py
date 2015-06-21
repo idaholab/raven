@@ -248,8 +248,8 @@ class HDF5(DateBase):
         outputPivotVal_end, outputPivotVal = False,  float(outputPivotVal)
     else: outputPivotVal_end = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow != None : inputRow  = int(inputRow) - 1
-    if outputRow != None: outputRow = int(outputRow) - 1
+    if inputRow != None  and inputRow  > 0: inputRow  = int(inputRow) - 1
+    if outputRow != None and outputRow > 0: outputRow = int(outputRow) - 1
 
     if pivotParameter != None:
       pivotIndex = histVar[1]['output_space_headers'].index(pivotParameter) if pivotParameter in histVar[1]['output_space_headers'] else None
@@ -372,8 +372,8 @@ class HDF5(DateBase):
         outputPivotVal_end, outputPivotVal = False,  float(outputPivotVal)
     else: outputPivotVal_end = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow != None : inputRow  = int(inputRow) - 1
-    if outputRow != None: outputRow = int(outputRow) - 1
+    if inputRow != None  and inputRow  > 0: inputRow  = int(inputRow) - 1
+    if outputRow != None and outputRow > 0: outputRow = int(outputRow) - 1
 
     inDict   = {}
     outDict  = {}
@@ -512,7 +512,7 @@ class HDF5(DateBase):
         outputPivotVal_all, outputPivotVal = False,  [float(x) for x in outputPivotVal.split()]
     else: outputPivotVal_all = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow != None : inputRow  = int(inputRow) - 1
+    if inputRow != None  and inputRow  > 0: inputRow  = int(inputRow) - 1
     inDict  = {}
     outDict = {}
     metaDict= {}
