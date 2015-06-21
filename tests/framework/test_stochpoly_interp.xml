@@ -45,39 +45,39 @@
     <Steps>
         <MultiRun name='Nmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Nsolns</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Nsolns</Output>
         </MultiRun>
         <RomTrainer name='Ntrain'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Nsolns</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Nsolns</Input>
             <Output  class='Models'           type='ROM'                  >NROM</Output>
         </RomTrainer>
         <MultiRun name='Ntest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >NROM</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Ntests</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Ntests</Output>
         </MultiRun>
         <IOStep name='Nprint'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Ntests</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Ntests</Input>
             <Output  class='OutStreamManager' type='Print'                >Ndump</Output>
         </IOStep>
     </Steps>
 
     <DataObjects>
-        <TimePointSet name="dummyIN">
+        <PointSet name="dummyIN">
             <Input>x1,x2</Input>
             <Output>OutputPlaceHolder</Output>
-        </TimePointSet>
-        <TimePointSet name='Ntests'>
+        </PointSet>
+        <PointSet name='Ntests'>
             <Input>x1,x2</Input>
             <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Nsolns'>
+        </PointSet>
+        <PointSet name='Nsolns'>
             <Input>x1,x2</Input>
             <Output>ans</Output>
-        </TimePointSet>
+        </PointSet>
     </DataObjects>
 
     <OutStreamManager>

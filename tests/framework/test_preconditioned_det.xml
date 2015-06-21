@@ -2,7 +2,7 @@
 <Simulation verbosity='debug'>
 <RunInfo>
     <WorkingDir>PreconditionedDynamicEventTree</WorkingDir>
-    <Files>ideal_pump.i,ideal_pump_control.py,DET_histories.csv</Files>
+    <Files>ideal_pump.i,ideal_pump_control.py,DET_HistorySet.csv</Files>
     <Sequence>PreconditionedDETrunTest,testOutstreamStep</Sequence>
     <batchSize>4</batchSize>
 </RunInfo>
@@ -90,7 +90,7 @@
   </Print>
   <Print name='testprint_tpset_hier'>
     <type>csv</type>
-    <source>timepointset</source>
+    <source>Pointset</source>
   </Print>
   <Print name='testprint_hist_hier_variables'>
     <type>csv</type>
@@ -99,7 +99,7 @@
   </Print>
   <Print name='testprint_tpset_hier_variables'>
     <type>csv</type>
-    <source>timepointset</source>
+    <source>Pointset</source>
     <what>Output,Input|dummy_for_branch</what>
   </Print>
   <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='True'>
@@ -126,8 +126,8 @@
         <plotSettings>
             <plot>
                 <type>scatter</type>
-                <x>timepointset|Output|time</x>
-                <y>timepointset|Output|pump_mass_flow_rate</y>
+                <x>Pointset|Output|time</x>
+                <y>Pointset|Output|pump_mass_flow_rate</y>
                 <kwargs>
                     <color>green</color>
                 </kwargs>
@@ -150,12 +150,12 @@
         <Model   class='Models'           type='Code'              >MyRAVEN</Model>
         <Sampler class='Samplers'         type='DynamicEventTree'  >PreconditionedDET_test</Sampler>
         <Output  class='Databases'        type='HDF5'              >testPreconditionedBranchDatabase</Output>
-        <Output  class='DataObjects'            type='Histories'         >stories</Output>
-        <Output  class='DataObjects'            type='TimePointSet'      >timepointset</Output>
+        <Output  class='DataObjects'            type='HistorySet'         >stories</Output>
+        <Output  class='DataObjects'            type='PointSet'      >Pointset</Output>
     </MultiRun >
     <IOStep name='testOutstreamStep'>
-      <Input   class='DataObjects'            type='Histories'       >stories</Input>
-      <Input   class='DataObjects'            type='TimePointSet'    >timepointset</Input>
+      <Input   class='DataObjects'            type='HistorySet'       >stories</Input>
+      <Input   class='DataObjects'            type='PointSet'    >Pointset</Input>
       <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier</Output>
       <Output  class='OutStreamManager' type='Print'           >testprint_tpset_hier</Output>
       <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier_variables</Output>
@@ -168,14 +168,14 @@
     <HDF5 name="testPreconditionedBranchDatabase"/>
 </Databases>
 <DataObjects>
-    <TimePointSet name='timepointset' hierarchical='true'>
+    <PointSet name='Pointset' hierarchical='true'>
         <Input>dummy_for_branch</Input>
         <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,pipe2_f,inlet_TDV_p_bc,time</Output>
-    </TimePointSet>
-    <Histories name='stories' hierarchical='true'>
+    </PointSet>
+    <HistorySet name='stories' hierarchical='true'>
         <Input>dummy_for_branch</Input>
         <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,pipe2_f,inlet_TDV_p_bc,time</Output>
-   </Histories>
+   </HistorySet>
 </DataObjects>
 </Simulation>
 

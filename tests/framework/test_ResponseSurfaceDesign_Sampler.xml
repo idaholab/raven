@@ -73,22 +73,22 @@
 </Samplers>
 
 <DataObjects>
-     <TimePointSet name='CentralCompositeRespDesignData'>
+     <PointSet name='CentralCompositeRespDesignData'>
         <Input>VarGauss1,VarGauss2,VarTri1</Input>
         <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='CentralCompositeRespDesignDatadummyIN'>
+   </PointSet>
+   <PointSet name='CentralCompositeRespDesignDatadummyIN'>
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
       <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='BoxBehnkenRespDesignData'>
+   </PointSet>
+   <PointSet name='BoxBehnkenRespDesignData'>
        <Input>VarGauss1,VarGauss2,VarTri1</Input>
        <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='BoxBehnkenRespDesigndummyIN'>
+   </PointSet>
+   <PointSet name='BoxBehnkenRespDesigndummyIN'>
        <Input>VarGauss1,VarGauss2,VarTri1</Input>
        <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
+   </PointSet>
 </DataObjects>
 
 <OutStreamManager>
@@ -104,18 +104,18 @@
 
 <Steps>
      <MultiRun name='BoxBehnkenRespDesignStep'>
-        <Input   class='DataObjects'     type='TimePointSet'          >BoxBehnkenRespDesigndummyIN</Input>
+        <Input   class='DataObjects'     type='PointSet'          >BoxBehnkenRespDesigndummyIN</Input>
         <Model   class='Models'    type='Dummy'                 >MyDummy1</Model>
         <Sampler class='Samplers'  type='ResponseSurfaceDesign' >BoxBehnkenRespDesign</Sampler>
-        <Output  class='DataObjects'     type='TimePointSet'          >BoxBehnkenRespDesignData</Output>
+        <Output  class='DataObjects'     type='PointSet'          >BoxBehnkenRespDesignData</Output>
         <Output  class='Databases' type='HDF5'                  >test_DummyModelResponseSurfDesign_db</Output>
         <Output  class='OutStreamManager' type='Print'          >BoxBehnkenRespDesign_dump</Output>
     </MultiRun >
      <MultiRun name='CentralCompositeRespDesignStep'>
-         <Input   class='DataObjects'     type='TimePointSet'          >CentralCompositeRespDesignDatadummyIN</Input>
+         <Input   class='DataObjects'     type='PointSet'          >CentralCompositeRespDesignDatadummyIN</Input>
          <Model   class='Models'    type='Dummy'                 >MyDummy2</Model>
          <Sampler class='Samplers'  type='ResponseSurfaceDesign' >CentralCompositeRespDesign</Sampler>
-         <Output  class='DataObjects'     type='TimePointSet'          >CentralCompositeRespDesignData</Output>
+         <Output  class='DataObjects'     type='PointSet'          >CentralCompositeRespDesignData</Output>
          <Output  class='Databases' type='HDF5'                  >test_DummyModelResponseSurfDesign_db</Output>
          <Output  class='OutStreamManager' type='Print'          >CentralCompositeRespDesign_dump</Output>
      </MultiRun >

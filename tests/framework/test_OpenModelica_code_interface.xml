@@ -44,10 +44,10 @@
 	</Steps>
 
 	<DataObjects>
-		<Histories name='BBHistories'>
+		<HistorySet name='BBHistorySet'>
 			<Input>h</Input>
 			<Output>time,v,flying,impact</Output>
-		</Histories>
+		</HistorySet>
 	</DataObjects>
 
 	<Databases>

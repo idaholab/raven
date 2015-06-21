@@ -72,8 +72,8 @@
       <Model      class='Models'     type='Code'      >MyRAVEN</Model>
       <Sampler    class='Samplers'   type='Stratified'>myLHS</Sampler>
       <Output     class='Databases'  type='HDF5'      >testLHSRavenDatabase</Output>
-      <Output     class='DataObjects'      type='Histories' >stories</Output>
-      <Output  class='DataObjects'     type='TimePointSet'>outGrid</Output>
+      <Output     class='DataObjects'      type='HistorySet' >stories</Output>
+      <Output  class='DataObjects'     type='PointSet'>outGrid</Output>
       <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
     </MultiRun >
   </Steps>
@@ -87,15 +87,15 @@
     </Print>
   </OutStreamManager>
   <DataObjects>
-    <TimePointSet name='outGrid'>
+    <PointSet name='outGrid'>
       <Input>pipe_Area,pipe_Dh,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
-    </TimePointSet>
+    </PointSet>
     
-    <Histories name='stories'>
+    <HistorySet name='stories'>
       <Input>pipe_Area,pipe_Dh</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
-    </Histories>
+    </HistorySet>
   </DataObjects>
 </Simulation>
 

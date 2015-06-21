@@ -235,7 +235,7 @@ class OutStreamPlot(OutStreamManager):
       if self.colorMapCoordinates[pltindex] != None: self.colorMapValues[pltindex] = None
     for pltindex in range(len(self.outStreamTypes)):
       if self.sourceData[pltindex].isItEmpty(): return False
-      if self.sourceData[pltindex].type.strip() not in 'Histories':
+      if self.sourceData[pltindex].type.strip() != 'HistorySet':
         self.xValues[pltindex] = {1:[]}
         if self.yCoordinates : self.yValues[pltindex] = {1:[]}
         if self.zCoordinates : self.zValues[pltindex] = {1:[]}
@@ -278,7 +278,7 @@ class OutStreamPlot(OutStreamManager):
               for index in range(len(parame.values())): conarr[index] = parame.values()[index][0]
               self.colorMapValues[pltindex][1].append(np.asarray(conarr))
       else:
-        #Histories
+        #HistorySet
         self.xValues[pltindex] = {}
         if self.yCoordinates : self.yValues[pltindex] = {}
         if self.zCoordinates   and self.dim>2: self.zValues[pltindex] = {}
