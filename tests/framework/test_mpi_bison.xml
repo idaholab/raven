@@ -45,10 +45,10 @@
 </Samplers>
 
 <DataObjects>
-    <Histories name='stories'>
+    <HistorySet name='stories'>
         <Input>BCs|freesurf_temp|value,BCs|exterior_pressure_y|factor</Input>
         <Output>dt</Output>
-   </Histories>
+   </HistorySet>
 </DataObjects>
 
 <Steps>
@@ -58,7 +58,7 @@
       <Model   class = 'Models'     type='Code'      >Bison</Model>
       <Sampler class='Samplers' type='Stratified'         >myLHS</Sampler>
       <Output  class='Databases'    type='HDF5'>test_bison_mpi_lhs</Output>
-      <Output class='DataObjects' type='Histories'>stories</Output>
+      <Output class='DataObjects' type='HistorySet'>stories</Output>
     </MultiRun >
 </Steps>
 

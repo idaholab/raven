@@ -48,14 +48,14 @@
 </Samplers>
 
 <DataObjects>
-     <TimePointSet name='outGrid'>
+     <PointSet name='outGrid'>
         <Input>VarGauss1,VarGauss2,VarTri1</Input>
         <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='dummyIN'>
+   </PointSet>
+   <PointSet name='dummyIN'>
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
       <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
+   </PointSet>
 </DataObjects>
     
 <OutStreamManager>
@@ -67,10 +67,10 @@
 
 <Steps>
      <MultiRun name='CustomSampler'>
-        <Input   class='DataObjects'     type='TimePointSet'>dummyIN</Input>
+        <Input   class='DataObjects'     type='PointSet'>dummyIN</Input>
         <Model   class='Models'    type='Dummy'       >MyDummy</Model>
         <Sampler class='Samplers'  type='Grid'        >myGrid</Sampler>
-        <Output  class='DataObjects'     type='TimePointSet'>outGrid</Output>
+        <Output  class='DataObjects'     type='PointSet'>outGrid</Output>
         <Output  class='Databases' type='HDF5'        >test_DummyModel_db</Output>
         <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
     </MultiRun >

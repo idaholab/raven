@@ -236,9 +236,9 @@ XML node and the requirements for other attributes change:
 {
     \begin{itemize}
       \item \xmlNode{Restart}, \xmlDesc{string, optional field}, the
-        body of this XML node must contain the name of an appropriate \textbf{TimePointSet} defined in the
+        body of this XML node must contain the name of an appropriate \textbf{PointSet} defined in the
         \xmlNode{DataObjects} block (see Section~\ref{subsec:models_ROM}).  It is used as a
-        ``restart'' tool, where it accepts pre-existing solutions in the TimePointSet instead
+        ``restart'' tool, where it accepts pre-existing solutions in the PointSet instead
         of recalculating solutions.
     \end{itemize}
 }
@@ -545,7 +545,7 @@ Example:
       <distribution>myDist2</distribution>
     </variable>
     <ROM class = 'Models' type = 'ROM' >SCROM</ROM>
-    <Restart class = 'Datas' type = 'TimePointSet' >solns</Restart>
+    <Restart class = 'Datas' type = 'PointSet' >solns</Restart>
   </SparseGridCollocation>
   ...
 </Samplers>
@@ -1456,8 +1456,8 @@ In addition to the \xmlNode{variable} nodes, the main XML node
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        The adaptive sampling accepts ``DataObjects'' of type ``TimePoint'' and
-        ``TimePointSet'' only.
+        The adaptive sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
     \end{itemize}
 \end{itemize}
 
@@ -1468,7 +1468,7 @@ Example:
   <Adaptive name='AdaptiveName'>
     <ROM class='Models' type='ROM'>ROMname</ROM>
     <Function class='Functions' type='External' >FunctionName</Function>
-    <TargetEvaluation class='DataObjects' type='TimePointSet'>DataName</TargetEvaluation>
+    <TargetEvaluation class='DataObjects' type='PointSet'>DataName</TargetEvaluation>
     <Convergence limit='3000'  forceIteration='False' weight='none' persistence='5'>
       1e-2
     </Convergence>
@@ -1606,8 +1606,8 @@ sub-nodes:
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        The adaptive sampling accepts ``DataObjects'' of type ``TimePoint'' and
-        ``TimePointSet'' only.
+        The adaptive sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
     \end{itemize}
 \end{itemize}
 
@@ -1619,7 +1619,7 @@ Example:
   <AdaptiveDynamicEventTree name = 'AdaptiveName'>
     <ROM class = 'Models' type = 'ROM'ROMname</ROM>
     <Function class = 'Functions' type = 'External'>FunctionName</Function>
-    <TargetEvaluation class = 'DataObjects' type = 'TimePointSet'>DataName</TargetEvaluation>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>DataName</TargetEvaluation>
     <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'none' persistence = '5'>
       1e-2
     </Convergence>
