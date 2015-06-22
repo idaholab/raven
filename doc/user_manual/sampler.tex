@@ -1435,8 +1435,8 @@ In addition to the \xmlNode{variable} nodes, the main XML node
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        The Limit Surface Search sampling accepts ``DataObjects'' of type ``TimePoint'' and
-        ``TimePointSet'' only.
+        The Limit Surface Search sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
     \end{itemize}
 \end{itemize}
 
@@ -1444,7 +1444,7 @@ Example:
 \begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
 <Samplers>
   ...
-  <Limit Surface Search name='LSSName'>
+  <LimitSurfaceSearch name='LSSName'>
     <ROM class='Models' type='ROM'>ROMname</ROM>
     <Function class='Functions' type='External' >FunctionName</Function>
     <TargetEvaluation class='DataObjects' type='TimePointSet'>DataName</TargetEvaluation>
@@ -1460,7 +1460,7 @@ Example:
     <variable name='var3'>
       <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution> 
     </variable>
-  </Limit Surface Search>
+  </LimitSurfaceSearch>
   ...
 </Samplers>
 \end{lstlisting}
@@ -1642,7 +1642,7 @@ The \textbf{Adaptive Sparse Grid} approach is an advanced methodology that emplo
 an intelligent search for the most suitable sparse grid quadrature to characterize a model.
 %
 To perform such sampling, RAVEN adaptively builds an index set and generates sparse grids
-in a similar manner to Sparse Grid Collaction samplers.  In each iterative step, the adaptive
+in a similar manner to Sparse Grid Collocation samplers.  In each iterative step, the adaptive
 index set determines the next possible quadrature orders to add in each dimension, and
 determines the index set point that would offer the largest impact to one of the convergence
 metrics.  This process continues until the total impact of all the potential index set points is
@@ -1715,8 +1715,8 @@ In addition to the \xmlNode{variable} nodes, the main XML node
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        The Adaptive Sparse Grid sampling accepts ``DataObjects'' of type ``TimePoint'' and
-        ``TimePointSet'' only.
+        The Adaptive Sparse Grid sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
    % \end{itemize}
 \end{itemize}
 
@@ -1733,7 +1733,7 @@ Example:
       <distribution>UniDist</distribution>
     </variable>
     <ROM class = 'Models' type = 'ROM'>gausspolyrom</ROM>
-    <TargetEvaluation class = 'DataObjects' type = 'TimePointSet'>solns</TargetEvaluation>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
   </AdaptiveSparseGrid>
   ...
 </Samplers>

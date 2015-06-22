@@ -9,12 +9,12 @@
     <Steps>
         <MultiRun name='make' verbosity='silent'>
             <Sampler class='Samplers'    type='AdaptiveSparseGrid'   >SG</Sampler>
-            <Input   class='DataObjects' type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects' type='PointSet'         >dummyIN</Input>
             <Model   class='Models'      type='ExternalModel'        >poly</Model>
-            <Output  class='DataObjects' type='TimePointSet'         >solns</Output>
+            <Output  class='DataObjects' type='PointSet'         >solns</Output>
         </MultiRun>
         <RomTrainer name='train' verbosity='silent'>
-            <Input   class='DataObjects' type='TimePointSet'>solns</Input>
+            <Input   class='DataObjects' type='PointSet'>solns</Input>
             <Output  class='Models'      type='ROM'         >rom</Output>
         </RomTrainer>
         <IOStep name='print' verbosity='silent'>
@@ -22,7 +22,7 @@
             <Output class='OutStreamManager' type='Print'       >dump</Output>
         </IOStep>
         <IOStep name='print2' verbosity='silent'>
-            <Input  class='DataObjects'      type='TimePointSet'>solns</Input>
+            <Input  class='DataObjects'      type='PointSet'>solns</Input>
             <Output class='OutStreamManager' type='Print'       >data</Output>
         </IOStep>
     </Steps>
@@ -37,7 +37,7 @@
             <variable name="x1"><distribution>UniDist</distribution></variable>
             <variable name="x2"><distribution>UniDist</distribution></variable>
             <ROM              class = 'Models'      type = 'ROM'         >rom</ROM>
-            <TargetEvaluation class = 'DataObjects' type = 'TimePointSet'>solns</TargetEvaluation>
+            <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
         </AdaptiveSparseGrid>
     </Samplers>
 
@@ -58,14 +58,14 @@
     </Models>
 
     <DataObjects>
-        <TimePointSet name="dummyIN" verbosity='silent'>
+        <PointSet name="dummyIN" verbosity='silent'>
             <Input>x1,x2</Input>
             <Output>OutputPlaceHolder</Output>
-        </TimePointSet>
-        <TimePointSet name='solns' verbosity='silent'>
+        </PointSet>
+        <PointSet name='solns' verbosity='silent'>
             <Input>x1,x2</Input>
             <Output>ans,ans2</Output>
-        </TimePointSet>
+        </PointSet>
     </DataObjects>
 
     <OutStreamManager>

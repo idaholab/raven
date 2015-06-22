@@ -153,10 +153,9 @@ class SparseQuad(MessageHandler.MessageUser):
     '''
     #TODO optimize me!~~
     oldNames = self.varNames[:]
-    #self.raiseADebug('REMAPPING SPARSE GRID from '+str(oldNames)+' to '+str(newNames))
-    #self.raiseAnError(IOError,'REMAPPING SPARSE GRID from '+str(oldNames)+' to '+str(newNames))
+    self.raiseADebug('REMAPPING SPARSE GRID from '+str(oldNames)+' to '+str(newNames))
     #check consistency
-    #self.raiseADebug('old: '+str(oldNames)+' | new: '+str(newNames))
+    self.raiseADebug('old: '+str(oldNames)+' | new: '+str(newNames))
     if len(oldNames)!=len(newNames): self.raiseAnError(KeyError,'Remap mismatch! Dimensions are not the same!')
     for name in oldNames:
       if name not in newNames: self.raiseAnError(KeyError,'Remap mismatch! '+name+' not found in original variables!')
@@ -176,7 +175,6 @@ class SparseQuad(MessageHandler.MessageUser):
     newSG=collections.OrderedDict()
     for combo in newptwt:
       newSG[tuple(combo[:-1])]=combo[-1] #weight is last entry
-    #self.oldsg.append(self.SG) #FIXME this could be expensive if not needed
     self.SG = newSG
     self.varNames = newNames
 
@@ -196,6 +194,11 @@ class SparseQuad(MessageHandler.MessageUser):
 
   ##### PUBLIC MEMBERS #####
   def print(self):
+    """
+      Prints the existing quadrature points.
+      @ In, None
+      @ Out, None
+    """
     self.raiseADebug('SparseQuad: (point) | weight')
     msg=''
     for p in range(len(self)):
@@ -209,10 +212,10 @@ class SparseQuad(MessageHandler.MessageUser):
       msg=msg[:-1]+') | %1.9f'%wt
       self.raiseADebug(msg)
       msg=''
-      #msg+='    '+str(self[p])+'\n'
 
   def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
     '''Initializes sparse quad to be functional.
+    @ In varNames, the ordered list of grid dimension names
     @ In indexSet, IndexSet object, index set
     @ In distDict, dict{varName,Distribution object}, distributions
     @ In quadDict, dict{varName,Quadrature object}, quadratures
@@ -254,7 +257,6 @@ class SparseQuad(MessageHandler.MessageUser):
             self.SG[newpt]+=newwt
           else:
             self.SG[newpt] = newwt
-    #self.print()
 
   def addInitParams(self,adict):
     adict['indexSet']=self.indexSet
@@ -291,7 +293,7 @@ class SparseQuad(MessageHandler.MessageUser):
           cof=self.c[j]
           idx = self.indexSet[j]
           m=self.quadRule(idx)+1
-          handler.submitDict['Internal']((m,idx),self.tensorGrid,str(cof)+"_tensor")#,modulesToImport = self.mods)
+          handler.submitDict['Internal']((m,idx),self.tensorGrid,str(cof)+"_tensor",modulesToImport = self.mods)
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 
@@ -357,14 +359,13 @@ class SparseQuad(MessageHandler.MessageUser):
       finishedJobs = handler.getFinished()
       for job in finishedJobs:
         if job.getReturnCode() == 0:
-          #self.raiseAWarning('  Collected job',job.returnEvaluation())
           self.c[int(str(job.identifier).replace("_makeSingleCoeff", ""))]=job.returnEvaluation()[1]
         else:
           self.raiseAMessage('Sparse grid index '+job.identifier+' failed...')
       if i<N-1: #load new inputs, up to 100 at a time
         for k in range(min(handler.howManyFreeSpots(),N-1-i)):
           i+=1
-          handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,str(i)+"_makeSingleCoeff")#,modulesToImport = self.mods)
+          handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,str(i)+"_makeSingleCoeff",modulesToImport = self.mods)
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 

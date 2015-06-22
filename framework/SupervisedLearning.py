@@ -1,9 +1,9 @@
-'''
+"""
 Module containing all supported type of ROM aka Surrogate Models etc
 here we intend ROM as super-visioned learning,
 where we try to understand the underlying model by a set of labeled sample
 a sample is composed by (feature,label) that is easy translated in (input,output)
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -38,21 +38,21 @@ interpolationND = utils.find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
 class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
-  '''
+  """
   This is the general interface to any superVisedLearning learning method.
   Essentially it contains a train, and evaluate methods
-  '''
+  """
   returnType      = '' #this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
   qualityEstType  = [] #this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
   ROMtype         = '' #the broad class of the interpolator
 
   @staticmethod
   def checkArrayConsistency(arrayin):
-    '''
+    """
     This method checks the consistency of the in-array
     @ In, object... It should be an array
     @ Out, tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
-    '''
+    """
     if type(arrayin) != numpy.ndarray: return (False,' The object is not a numpy array')
     if len(arrayin.shape) > 1: return(False, ' The array must be 1-d')
     return (True,'')
@@ -81,13 +81,13 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     pass #Overloaded by (at least) GaussPolynomialRom
 
   def train(self,tdict):
-    '''
+    """
       Method to perform the training of the superVisedLearning algorithm
       NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires. So far the base class will do the translation into numpy
       @ In, tdict, training dictionary
       @ Out, None
-    '''
+    """
     if type(tdict) != dict: self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
     if self.target in names: targetValues = values[names.index(self.target)]
@@ -111,21 +111,21 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self.amITrained = True
 
   def _localNormalizeData(self,values,names,feat):
-    '''
+    """
     Method to normalize data based on the mean and standard deviation.  If undesired for a particular ROM,
     this method can be overloaded to simply pass (see, e.g., GaussPolynomialRom).
     @ In, values, list of feature values (from tdict)
     @ In, names, names of features (from tdict)
     @ In, feat, list of features (from ROM)
     @ Out, None
-    '''
+    """
     self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
 
   def confidence(self,edict):
-    '''
+    """
     This call is used to get an estimate of the confidence in the prediction.
     The base class self.confidence will translate a dictionary into numpy array, then call the local confidence
-    '''
+    """
     if type(edict) != dict: self.raiseAnError(IOError,'method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values   = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
@@ -141,13 +141,13 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     return self.__confidenceLocal__(featureValues)
 
   def evaluate(self,edict):
-    '''
+    """
     Method to perform the evaluation of a point or a set of points through the previous trained superVisedLearning algorithm
     NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
     the interface with the kernels requires.
     @ In, tdict, evaluation dictionary
     @ Out, numpy array of evaluated points
-    '''
+    """
     if type(edict) != dict: self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values  = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
@@ -164,71 +164,71 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     return self.__evaluateLocal__(featureValues)
 
   def reset(self):
-    '''override this method to re-instance the ROM'''
+    """override this method to re-instance the ROM"""
     self.amITrained = False
     self.__resetLocal__()
 
   def returnInitialParameters(self):
-    '''override this method to return the fix set of parameters of the ROM'''
+    """override this method to return the fix set of parameters of the ROM"""
     iniParDict = dict(self.initOptionDict.items() + {'returnType':self.__class__.returnType,'qualityEstType':self.__class__.qualityEstType,'Features':self.features,
                                              'Target':self.target,'returnType':self.__class__.returnType}.items() + self.__returnInitialParametersLocal__().items())
     return iniParDict
 
   def returnCurrentSetting(self):
-    '''return the set of parameters of the ROM that can change during simulation'''
+    """return the set of parameters of the ROM that can change during simulation"""
     return dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
 
   def printXML(self,rootnode,options=None):
-    '''
+    """
       Allows the SVE to put whatever it wants into an XML to print to file.
       @ In, rootnode, the root node of an XML tree to print to
       @ In, options, dict of string-based options to use, including filename, things to print, etc
       @ Out, treedict, dict of strings to be printed
-    '''
+    """
     node = TreeStructure.Node(self.target)
     rootnode.appendBranch(node)
     self._localPrintXML(node,options)
 
   def _localPrintXML(self,node,options=None):
-    '''
+    """
       Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
       @ In, node, the node to which strings should have text added
       @ In, options, dict of string-based options to use, including filename, things to print, etc
       @ Out, treedict, dict of strings to be printed
-    '''
+    """
     #if treedict=={}: treedict={'PrintOptions':'ROM of type '+str(self.printTag.strip())+' has no special output options.'}
     node.addText('ROM of type '+str(self.printTag.strip())+' has no special output options.')
 
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
-    '''@ In, featureVals, 2-D numpy array [n_samples,n_features]'''
+    """@ In, featureVals, 2-D numpy array [n_samples,n_features]"""
 
   @abc.abstractmethod
   def __confidenceLocal__(self,featureVals):
-    '''
+    """
     This should return an estimation of the quality of the prediction.
     This could be distance or probability or anything else, the type needs to be declared in the variable cls.qualityEstType
     @ In, featureVals, 2-D numpy array [n_samples,n_features]
-    '''
+    """
 
   @abc.abstractmethod
   def __evaluateLocal__(self,featureVals):
-    '''
+    """
     @ In,  featureVals, 2-D numpy array [n_samples,n_features]
     @ Out, targetVals , 1-D numpy array [n_samples]
-    '''
+    """
 
   @abc.abstractmethod
   def __resetLocal__(self,featureVals):
-    '''After this method the ROM should be described only by the initial parameter settings'''
+    """After this method the ROM should be described only by the initial parameter settings"""
 
   @abc.abstractmethod
   def __returnInitialParametersLocal__(self):
-    '''this should return a dictionary with the parameters that could be possible not in self.initOptionDict'''
+    """this should return a dictionary with the parameters that could be possible not in self.initOptionDict"""
 
   @abc.abstractmethod
   def __returnCurrentSettingLocal__(self):
-    '''override this method to pass the set of parameters of the ROM that can change during simulation'''
+    """override this method to pass the set of parameters of the ROM that can change during simulation"""
 #
 #
 #
@@ -253,12 +253,12 @@ class NDinterpolatorRom(superVisedLearning):
     self.raiseAnError(NotImplementedError,'NDinterpRom   : __confidenceLocal__ method must be implemented!')
 
   def __evaluateLocal__(self,featureVals):
-    '''
+    """
     Perform regression on samples in featureVals.
     For an one-class model, +1 or -1 is returned.
     @ In, numpy.array 2-D, features
     @ Out, numpy.array 1-D, predicted values
-    '''
+    """
     prediction = np.zeros(featureVals.shape[0])
     for n_sample in range(featureVals.shape[0]):
       featv = interpolationND.vectd(featureVals[n_sample][:])
@@ -267,7 +267,7 @@ class NDinterpolatorRom(superVisedLearning):
     return prediction
 
   def __returnInitialParametersLocal__(self):
-    '''there are no possible default parameters to report'''
+    """there are no possible default parameters to report"""
     localInitParam = {}
     return localInitParam
 
@@ -275,14 +275,32 @@ class NDinterpolatorRom(superVisedLearning):
     self.raiseAnError(NotImplementedError,'NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!')
 
 class GaussPolynomialRom(NDinterpolatorRom):
-  def __confidenceLocal__(self,edict):pass #TODO
-
-  def __resetLocal__(self):
+  def __confidenceLocal__(self,edict):
+    """Require by inheritance, unused.
+    @ In, None
+    @ Out, None
+    """
     pass
 
-  def __returnCurrentSettingLocal__(self):pass #TODO
+  def __resetLocal__(self):
+    """Require by inheritance, unused.
+    @ In, None
+    @ Out, None
+    """
+    pass
+
+  def __returnCurrentSettingLocal__(self):
+    """Require by inheritance, unused.
+    @ In, None
+    @ Out, None
+    """
+    pass
 
   def __init__(self,messageHandler,**kwargs):
+    """Initializes class.
+    @ In, kwargs, dict of XML inputs from ROM
+    @ Out, None
+    """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.interpolator  = None #FIXME what's this?
     self.printTag      = 'GAUSSgpcROM('+self.target+')'
@@ -334,6 +352,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
       self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
 
   def _localPrintXML(self,node,options=None):
+    """
+      Adds requested entries to XML node.
+      @ In, node, XML node to which entries will be added
+      @ In, options, dict (optional), list of requests and options
+      @Out, None
+    """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
     canDo = ['mean','variance','numRuns']
@@ -358,26 +382,45 @@ class GaussPolynomialRom(NDinterpolatorRom):
         node.appendBranch(newnode)
 
   def _localNormalizeData(self,values,names,feat):
+    """Overwrites default normalization procedure.
+    @ In, values, unused
+    @ In, names, unused
+    @ In, feat, feature to (not) normalize
+    @ Out, None
+    """
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   def interpolationInfo(self):
+    """Returns the interpolation information
+    @ In, None
+    @ Out, dictionary of interpolation information
+    """
     return dict(self.itpDict)
 
   def initialize(self,idict):
-    for key,value in idict.items():
-      if   key == 'SG'      : self.sparseGrid = value
-      elif key == 'dists'   : self.distDict   = value
-      elif key == 'quads'   : self.quads      = value
-      elif key == 'polys'   : self.polys      = value
-      elif key == 'iSet'    : self.indexSet   = value
-      elif key == 'numRuns' : self.numRuns    = value
+    """Initializes the instance.
+    @ In, idict, dict of objects needed to initalize
+    @ Out, None
+    """
+    self.sparseGrid = idict.get('SG'     ,None)
+    self.distDict   = idict.get('dists'  ,None)
+    self.quads      = idict.get('quads'  ,None)
+    self.polys      = idict.get('polys'  ,None)
+    self.indexSet   = idict.get('iset'   ,None)
+    self.numRuns    = idict.get('numRuns',None)
+    #make sure requireds are not None
+    if self.sparseGrid is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "SG"   ')
+    if self.distDict   is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "dists"')
+    if self.quads      is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "quads"')
+    if self.polys      is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "polys"')
+    if self.indexSet   is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "iset" ')
 
   def _multiDPolyBasisEval(self,orders,pts):
-    '''Evaluates each polynomial set at given orders and points, returns product.
+    """Evaluates each polynomial set at given orders and points, returns product.
     @ In orders, tuple(int), polynomial orders to evaluate
     @ In pts, tuple(float), values at which to evaluate polynomials
     @ Out, float, product of polynomial evaluations
-    '''
+    """
     tot=1
     for i,(o,p) in enumerate(zip(orders,pts)):
       varName = self.sparseGrid.varNames[i]
@@ -385,10 +428,11 @@ class GaussPolynomialRom(NDinterpolatorRom):
     return tot
 
   def __trainLocal__(self,featureVals,targetVals):
-    '''See base class.'''
+    """Trains ROM.
+    @ In, featureVals, list, feature values
+    @ In, targetVals, list, target values
+    """
     self.polyCoeffDict={}
-    #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
-    #self.sparseGrid._remap(self.features)
     #check equality of point space
     fvs = []
     tvs=[]
@@ -428,14 +472,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
     self.amITrained=True
-    #self.printPolyDict()
-    #self._printPolynomial()
 
   def printPolyDict(self,printZeros=False):
-    '''Human-readable version of the polynomial chaos expansion.
+    """Human-readable version of the polynomial chaos expansion.
     @ In printZeros,boolean,optional flag for printing even zero coefficients
     @ Out, None, None
-    '''
+    """
     data=[]
     for idx,val in self.polyCoeffDict.items():
       if abs(val) > 1e-12 or printZeros:
@@ -446,17 +488,22 @@ class GaussPolynomialRom(NDinterpolatorRom):
       self.raiseADebug('    '+str(idx)+' '+str(val))
 
   def checkForNonzeros(self,tol=1e-12):
+    """
+      Checks poly coefficient dictionary for nonzero entries.
+      @ In, tol, float(optional), the tolerance under which is zero (default 1e-12)
+      @Out, list(tuple), the indices and values of the nonzero coefficients
+    """
     data=[]
     for idx,val in self.polyCoeffDict.items():
-      if abs(val) > 1e-12:
+      if round(val,11) !=0:
         data.append([idx,val])
     return data
 
   def __evaluateMoment__(self,r):
-    '''Use the ROM's built-in method to calculate moments.
+    """Use the ROM's built-in method to calculate moments.
     @ In r, int, moment to calculate
     @ Out, float, evaluation of moment
-    '''
+    """
     #TODO is there a faster way still to do this?
     if r==1: return self.polyCoeffDict[tuple([0]*len(self.features))]
     elif r==2: return sum(s**2 for s in self.polyCoeffDict.values())
@@ -464,11 +511,13 @@ class GaussPolynomialRom(NDinterpolatorRom):
     for pt,wt in self.sparseGrid:
       tot+=self.__evaluateLocal__([pt])**r*wt
     tot*=self.norm
-    #self.raiseADebug('MOMENT:',tot)
-    #self.raiseADebug('SUM   :',sum(s**2 for s in self.polyCoeffDict.values()))
     return tot
 
   def __evaluateLocal__(self,featureVals):
+    """ Evaluates a point.
+    @ In, featureVals, list of values at which to evaluate the ROM
+    @ Out, float, the evaluated point
+    """
     featureVals=featureVals[0]
     tot=0
     stdPt = np.zeros(len(featureVals))
@@ -480,38 +529,55 @@ class GaussPolynomialRom(NDinterpolatorRom):
     return tot
 
   def _printPolynomial(self):
-    #dim=len(self.polyCoeffDict.keys()[0])
-    #maxPoly = 0
-    #for idx in self.polyCoeffDict.keys(): maxPoly=max(maxPoly,max(idx))
-    #polys=np.zeros(shape=(dim,maxPoly))
+    """ Prints each polynomial for each coefficient.
+    @ In, None
+    @ Out, None
+    """
     self.raiseADebug('Coeff Idx')
     for idx,coeff in self.polyCoeffDict.items():
       if abs(coeff)<1e-12: continue
       self.raiseADebug(str(idx))
       for i,ix in enumerate(idx):
         var = self.features[i]
-        print(self.polys[var][ix]*coeff,'|',var)
+        self.raiseADebug(self.polys[var][ix]*coeff,'|',var)
 
   def __returnInitialParametersLocal__(self):
-    return {}#TODO 'IndexSet:':self.indexSetType,
-             #'PolynomialOrder':self.maxPolyOrder,
-             # 'Interpolation':interpolationInfo()}
+    """Required by inheritance, but not used.
+    @ In, None
+    @ Out, None
+    """
+    return {}
 
 
 
 class HDMRRom(GaussPolynomialRom):
-  def __confidenceLocal__(self,edict):pass #TODO
-
-  def __resetLocal__(self):
+  """High-Dimention Model Reduction reduced order model.  Constructs model based on subsets of the input space."""
+  def __confidenceLocal__(self,edict):
+    """Require by inheritance, unused.
+    @ In, edict, unused
+    @ Out, None
+    """
     pass
 
-  def __returnCurrentSettingLocal__(self):pass #TODO
+  def __resetLocal__(self):
+    """Require by inheritance, unused.
+    @ In, None
+    @ Out, None
+    """
+    pass
 
-  def _localNormalizeData(self,values,names,feat):
-    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+  def __returnCurrentSettingLocal__(self):
+    """Require by inheritance, unused.
+    @ In, None
+    @ Out, None
+    """
+    pass
 
   def __init__(self,messageHandler,**kwargs):
-    '''Initializes SupervisedEngine. See base class.'''
+    """Initializes class.
+    @ In, kwargs, dict of XML inputs from ROM
+    @ Out, None
+    """
     GaussPolynomialRom.__init__(self,messageHandler,**kwargs)
     self.printTag      = 'HDMR_ROM('+self.target+')'
     self.sobolOrder    = None #depth of HDMR/Sobol expansion
@@ -524,6 +590,12 @@ class HDMRRom(GaussPolynomialRom):
       if key=='SobolOrder': self.sobolOrder = int(val)
 
   def _localPrintXML(self,node,options=None):
+    """
+      Adds requested entries to XML node.
+      @ In, node, XML node to which entries will be added
+      @ In, options, dict (optional), list of requests and options
+      @Out, None
+    """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
     canDo = ['mean','variance','indices']
@@ -567,16 +639,11 @@ class HDMRRom(GaussPolynomialRom):
           newnode.setText('not found')
         node.appendBranch(newnode)
 
-  def _localNormalizeData(self,values,names,feat):
-    '''Overwrite normalization. See base class.'''
-    self.muAndSigmaFeatures[feat] = (0.0,1.0)
-
-  def interpolationInfo(self):
-    '''See base class.'''
-    return dict(self.itpDict)
-
   def initialize(self,idict):
-    '''Called by sampler to pass necessary information along.  See base class.'''
+    """Initializes the instance.
+    @ In, idict, dict of objects needed to initalize
+    @ Out, None
+    """
     for key,value in idict.items():
       if   key == 'ROMs' : self.ROMs       = value
       elif key == 'dists': self.distDict   = value
@@ -585,11 +652,11 @@ class HDMRRom(GaussPolynomialRom):
       elif key == 'refs' : self.references = value
 
   def __trainLocal__(self,featureVals,targetVals):
-    '''
+    """
       Because HDMR rom is a collection of sub-roms, we call sub-rom "train" to do what we need it do.
       @ In, tdict, training dictionary
       @ Out, None
-    '''
+    """
     ft={}
     for i in range(len(featureVals)):
       ft[tuple(featureVals[i])]=targetVals[i]
@@ -625,13 +692,13 @@ class HDMRRom(GaussPolynomialRom):
     self.amITrained = True
 
   def __fillPointWithRef(self,combo,pt):
-    '''Given a "combo" subset of the full input space and a partially-filled
+    """Given a "combo" subset of the full input space and a partially-filled
        point within that space, fills the rest of space with the reference
        cut values.
        @ In, combo, tuple of strings, names of subset dimensions
        @ In, pt, list of floats, values of points in subset dimension
        @ Out, newpt, full point in input dimension space on cut-hypervolume
-    '''
+    """
     newpt=np.zeros(len(self.features))
     for v,var in enumerate(self.features):
       if var in combo:
@@ -641,7 +708,10 @@ class HDMRRom(GaussPolynomialRom):
     return newpt
 
   def __mean__(self):
-    '''The Cut-HDMR approximation can return its mean easily.'''
+    """The Cut-HDMR approximation can return its mean easily.
+    @ In, None
+    @ Out, float, the mean
+    """
     if self.mean != None: return self.mean
     vals={'':self.refSoln}
     for i,c in enumerate(self.combos):
@@ -657,7 +727,10 @@ class HDMRRom(GaussPolynomialRom):
     return tot
 
   def __variance__(self):
-    '''The Cut-HDMR approximation can return its variance easily.'''
+    """The Cut-HDMR approximation can return its variance easily.
+    @ In, None
+    @ Out, float, the variance
+    """
     if self.variance != None: return self.variance
     vals={}
     for i,c in enumerate(self.combos):
@@ -674,7 +747,10 @@ class HDMRRom(GaussPolynomialRom):
     return tot
 
   def __evaluateLocal__(self,featureVals):
-    '''Evaluates ROM at given points.  See base class.'''
+    """ Evaluates a point.
+    @ In, featureVals, list of values at which to evaluate the ROM
+    @ Out, float, the evaluated point
+    """
     #am I trained?
     if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate, as ROM is not trained!')
     fvals=dict(zip(self.features,featureVals[0]))
@@ -694,12 +770,12 @@ class HDMRRom(GaussPolynomialRom):
     return tot
 
   def getSensitivities(self,maxLevel=None,kind='variance'):
-    '''
+    """
       Generates dictionary of Sobol indices for the requested levels.
       Optionally the moment (r) to get sensitivity indices of can be requested.
       @ In, levels, list, levels to obtain indices for. Defaults to all available.
       @ In, kind, string, the metric to use when calculating sensitivity indices. Defaults to variance.
-    '''
+    """
     if kind.lower().strip() not in ['mean','variance']:
       self.raiseAnError(IOError,'Requested sensitivity benchmark is %s, but expected "mean" or "variance".' %kind)
     avail = max(list(len(combo) for combo in self.ROMs.keys()))
@@ -722,13 +798,13 @@ class HDMRRom(GaussPolynomialRom):
               self.sdx[i][combo]-=self.sdx[cl][doneCombo]
 
   def getPercentSensitivities(self,variance=None,returnTotal=False):
-    '''Calculates percent sensitivities.
+    """Calculates percent sensitivities.
     If variance specified, uses it as the bnechmark variance, otherwise uses ROM to calculate total variance approximately.
     If returnTotal specified, also returns percent of total variance and the total variance value.
     @ In, variance, float to represent user-provided total variance
     @ In, returnTotal, boolean to turn on returning total percent and total variance
     @ Out, pcts, percent=based Sobol sensitivity indices
-    '''
+    """
     if self.sdx == None or len(self.sdx)<1:
       self.getSensitivities()
     if variance==None or variance==0:
@@ -759,7 +835,7 @@ class NDsplineRom(NDinterpolatorRom):
     self.interpolator = interpolationND.NDspline()
 
   def __resetLocal__(self):
-    ''' The reset here erase the Interpolator while keeping the instance'''
+    """ The reset here erase the Interpolator while keeping the instance"""
     self.interpolator.reset()
 #
 #
@@ -773,7 +849,7 @@ class NDinvDistWeight(NDinterpolatorRom):
     self.interpolator = interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p']))
 
   def __resetLocal__(self):
-    ''' The reset here erase the Interpolator while keeping the instance'''
+    """ The reset here erase the Interpolator while keeping the instance"""
     self.interpolator.reset(float(self.initOptionDict['p']))
 #
 #
@@ -952,11 +1028,11 @@ __interfaceDict['HDMRRom'             ] = HDMRRom
 __base                                  = 'superVisedLearning'
 
 def returnInstance(ROMclass,caller,**kwargs):
-  '''This function return an instance of the request model type'''
+  """This function return an instance of the request model type"""
   try: return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
 
 def returnClass(ROMclass,caller):
-  '''This function return an instance of the request model type'''
+  """This function return an instance of the request model type"""
   try: return __interfaceDict[ROMclass]
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+ROMclass)
