@@ -971,12 +971,6 @@ class Categorical(Distribution):
       else:
         self.raiseAnError(IOError,'Invalide xml node for Categorical distribution; only "state" is allowed')
 
-#     for child in xmlNode:
-#       self.mapping[child.tag] = float(child.text)
-#       if float(child.tag) in self.values: self.raiseAnError(IOError,'Categorical distribution has identical outcome')
-#       else:
-#         self.values.add(float(child.tag))
-
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):

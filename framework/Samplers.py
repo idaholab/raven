@@ -205,6 +205,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
 
   def read_sampler_init(self,xmlNode):
+    """
+    This method is responsible to read only the sampler_init block in the .xml file.
+    This method has been moved from the base sampler class since the sampler_init block is needed only for the MC and stratified (LHS) samplers
+    @ In xmlNode
+    """
     for child in xmlNode:
       if child.tag == "sampler_init":
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
@@ -731,6 +736,9 @@ class MonteCarlo(Sampler):
     self.printTag = 'SAMPLER MONTECARLO'
 
   def localInputAndChecks(self,xmlNode):
+    """
+    xml additional parser for the MonteCarlo Class
+    """
     Sampler.read_sampler_init(self,xmlNode)
 
     if xmlNode.find('sampler_init')!= None:
@@ -935,6 +943,9 @@ class Stratified(Grid):
     self.globalGrid          = {}    # Dictionary for the global_grid. These grids are used only for Stratified for ND distributions.
 
   def localInputAndChecks(self,xmlNode):
+    """
+    xml additional parser for the Stratified Class
+    """
     Sampler.read_sampler_init(self,xmlNode)
     Grid.localInputAndChecks(self,xmlNode)
     pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
