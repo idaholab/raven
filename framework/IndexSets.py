@@ -9,7 +9,7 @@ import sys
 import operator
 
 import MessageHandler
-import FileObjects
+import FileObject
 
 class IndexSet(MessageHandler.MessageUser):
   """In stochastic collocation for generalised polynomial chaos, the Index Set
@@ -24,7 +24,7 @@ class IndexSet(MessageHandler.MessageUser):
     self.maxPolyOrder  = None #integer, maximum order polynomial to use in any one dimension -> misleading! Relative order for anisotropic case
     self.polyOrderList = []   #array of lists containing all the polynomial orders needed for each dimension
     self.impWeights    = []   #array of scalars for assigning importance weights to each dimension
-    self.messageHandler=msgHandler
+    self.messageHandler=messageHandler
 
   def __len__(self):
     """Returns number of entries in the index set.
@@ -126,7 +126,7 @@ class IndexSet(MessageHandler.MessageUser):
     """
     self.points.sort(key=operator.itemgetter(*range(len(self.points[0]))))
 
-  def initialize(self,distrList,impList,maxPolyOrder,msgHandler):
+  def initialize(self,distrList,impList,maxPolyOrder):
     """Initialize everything index set needs
     @ In , distrList   , dictionary of {varName:Distribution}, distribution access
     @ In , impList     , dictionary of {varName:float}, weights by dimension
