@@ -30,7 +30,7 @@ import OutStreamManager
 from JobHandler import JobHandler
 import MessageHandler
 import utils
-from FileObject import FileObject
+from FileObjects import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------

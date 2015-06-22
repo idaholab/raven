@@ -25,7 +25,7 @@ utils.find_crow(frameworkDir)
 utils.add_path_recursively(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
-from FileObject import FileObject
+from FileObjects import FileObject
 #Internal Modules
 
 #------------------------------------------------------------- Driver
