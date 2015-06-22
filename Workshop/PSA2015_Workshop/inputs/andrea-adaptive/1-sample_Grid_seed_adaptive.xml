@@ -12,10 +12,10 @@
 
 <Steps>
     <MultiRun name='SampleAModel' pauseAtEnd='True'>
-        <Input   class='DataObjects'      type='TimePoint'     >inputPlaceHolder</Input>
+        <Input   class='DataObjects'      type='Point'     >inputPlaceHolder</Input>
         <Model   class='Models'           type='ExternalModel' >PythonModule</Model>
         <Sampler class='Samplers'         type='Grid'          >Grid_function</Sampler>
-        <Output  class='DataObjects'      type='TimePointSet'  >outGRID</Output>
+        <Output  class='DataObjects'      type='PointSet'  >outGRID</Output>
         <Output  class='Databases'        type='HDF5'          >out_db</Output>
         <Output  class='OutStreamManager' type='Print'         >out_dump</Output>
         <Output  class='OutStreamManager' type='Plot'          >plotResponse_y3</Output>
@@ -147,14 +147,14 @@
 
 
 <DataObjects>
-    <TimePointSet name='outGRID'>
+    <PointSet name='outGRID'>
         <Input>x1,x2,x3</Input>
         <Output>y1,y2,y3,y4,y5,failure</Output>
-   </TimePointSet>
-    <TimePoint name='inputPlaceHolder'>
+   </PointSet>
+    <Point name='inputPlaceHolder'>
         <Input>x1,x2,x3</Input>
         <Output>OutputPlaceHolder</Output>
-    </TimePoint>
+    </Point>
 </DataObjects>
 
 

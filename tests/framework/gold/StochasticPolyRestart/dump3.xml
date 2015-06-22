@@ -1,4 +1,4 @@
-<data name="dump3" type="timepointset"><input>x2,x1</input><output>ans2,ans</output><input_filename>dump3.csv</input_filename><metadata><SamplerType>array(u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+<data name="dump3" type="Pointset"><input>x2,x1</input><output>ans2,ans</output><input_filename>dump3.csv</input_filename><metadata><SamplerType>array(u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',

@@ -23,9 +23,9 @@ This simple example is about the construction of a ``Lorentz attractor'', sampli
         <Input   class='Files'     type=''               >lorentzAttractor.py</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='DataObjects'     type='Histories'      >testPrintHistories</Output>
+        <Output  class='DataObjects'     type='HistorySet'      >testPrintHistorySet</Output>
         <Output  class='Databases' type='HDF5'           >test_external_db</Output>
-        <Output  class='OutStreamManager' type='Print'   >testPrintHistories_dump</Output>
+        <Output  class='OutStreamManager' type='Print'   >testPrintHistorySet_dump</Output>
     </MultiRun >
 </Steps>
 <!-- MODELS -->
@@ -81,17 +81,17 @@ This simple example is about the construction of a ``Lorentz attractor'', sampli
 </Databases>
 <!-- OUTSTREAMS -->
 <OutStreamManager>
-  <Print name='testPrintHistories_dump'>
+  <Print name='testPrintHistorySet_dump'>
     <type>csv</type>
-    <source>testPrintHistories</source>
+    <source>testPrintHistorySet</source>
   </Print>
 </OutStreamManager>
 <!-- DATA OBJECTS -->
 <DataObjects>
-    <Histories name='testPrintHistories'>
+    <HistorySet name='testPrintHistorySet'>
         <Input>x0,y0,z0</Input>
         <Output>time,x,y,z</Output>
-   </Histories>
+   </HistorySet>
 </DataObjects>
 </Simulation>
 \end{lstlisting}
@@ -136,7 +136,7 @@ This example shows a slightly more complicated example, that employs the usage o
     \item \textit{Samplers:} Grid and Adaptive;
     \item \textit{Models:} External, Reduce Order Models and Post-Processors;
     \item \textit{OutStreams:} Prints and Plots;
-    \item \textit{Data Objects:} TimePointSets;
+    \item \textit{Data Objects:} PointSets;
     \item \textit{Functions:} ExternalFunctions.
 \end{itemize}
 The goal of this input is to compute the ``SafestPoint''.
@@ -169,59 +169,59 @@ limit surface, which must be given as an input.
 <Steps>  
   <MultiRun name = 'pth1' pauseAtEnd = 'False'>
     <Sampler  class = 'Samplers'  type = 'Grid'           >grd_vl_ql_smp_dpt</Sampler>
-    <Input    class = 'DataObjects'     type = 'TimePointSet'   >grd_vl_ql_smp_dpt_dt</Input>
+    <Input    class = 'DataObjects'     type = 'PointSet'   >grd_vl_ql_smp_dpt_dt</Input>
     <Model    class = 'Models'    type = 'ExternalModel'  >xtr_mdl</Model>
-    <Output   class = 'DataObjects'     type = 'TimePointSet'   >nt_phy_dpt_dt</Output>    
+    <Output   class = 'DataObjects'     type = 'PointSet'   >nt_phy_dpt_dt</Output>    
   </MultiRun >
   
   <MultiRun name = 'pth2' pauseAtEnd = 'True'>
     <Sampler          class = 'Samplers'  type = 'Adaptive'      >dpt_smp</Sampler>
-    <Input            class = 'DataObjects'     type = 'TimePointSet'  >bln_smp_dt</Input>   
+    <Input            class = 'DataObjects'     type = 'PointSet'  >bln_smp_dt</Input>   
     <Model            class = 'Models'    type = 'ExternalModel' >xtr_mdl</Model>
-    <Output           class = 'DataObjects'     type = 'TimePointSet'  >nt_phy_dpt_dt</Output>            
-    <SolutionExport   class = 'DataObjects'     type = 'TimePointSet'  >lmt_srf_dt</SolutionExport>
+    <Output           class = 'DataObjects'     type = 'PointSet'  >nt_phy_dpt_dt</Output>            
+    <SolutionExport   class = 'DataObjects'     type = 'PointSet'  >lmt_srf_dt</SolutionExport>
   </MultiRun>
   
   <PostProcess name='pth3' pauseAtEnd = 'False'>
-    <Input    class = 'DataObjects'          type = 'TimePointSet'       >lmt_srf_dt</Input>
+    <Input    class = 'DataObjects'          type = 'PointSet'       >lmt_srf_dt</Input>
     <Model    class = 'Models'         type = 'PostProcessor'  >SP</Model>
-    <Output   class = 'DataObjects'          type = 'TimePointSet'     >sfs_pnt_dt</Output>
+    <Output   class = 'DataObjects'          type = 'PointSet'     >sfs_pnt_dt</Output>
   </PostProcess>  
   
   <OutStreamStep name = 'pth4' pauseAtEnd = 'True'>
-  	<Input  class = 'DataObjects'            type = 'TimePointSet'  >lmt_srf_dt</Input>
+  	<Input  class = 'DataObjects'            type = 'PointSet'  >lmt_srf_dt</Input>
   	<Output class = 'OutStreamManager' type = 'Print'         >lmt_srf_dmp</Output>
-    <Input  class = 'DataObjects'            type = 'TimePointSet'  >sfs_pnt_dt</Input>
+    <Input  class = 'DataObjects'            type = 'PointSet'  >sfs_pnt_dt</Input>
   	<Output class = 'OutStreamManager' type = 'Print'         >sfs_pnt_dmp</Output>
   </OutStreamStep>
 </Steps>
 
 <!-- DATA OBJECTS -->
 <DataObjects> 
-  <TimePointSet name = 'grd_vl_ql_smp_dpt_dt'>
+  <PointSet name = 'grd_vl_ql_smp_dpt_dt'>
     <Input>x1,x2,gammay</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
+  </PointSet>
   
-  <TimePointSet name = 'nt_phy_dpt_dt'>
+  <PointSet name = 'nt_phy_dpt_dt'>
     <Input>x1,x2,gammay</Input>
     <Output>g</Output>
-  </TimePointSet>
+  </PointSet>
     
-  <TimePointSet name = 'bln_smp_dt'>
+  <PointSet name = 'bln_smp_dt'>
     <Input>x1,x2,gammay</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
+  </PointSet>
     
-  <TimePointSet name = 'lmt_srf_dt'>
+  <PointSet name = 'lmt_srf_dt'>
     <Input>x1,x2,gammay</Input>
     <Output>g_zr</Output>
-  </TimePointSet>
+  </PointSet>
   
-  <TimePointSet name = 'sfs_pnt_dt'>
+  <PointSet name = 'sfs_pnt_dt'>
     <Input>x1,x2,gammay</Input>
     <Output>p</Output>
-  </TimePointSet>
+  </PointSet>
 </DataObjects>
 
 <!-- DISTRIBUTIONS -->
@@ -268,7 +268,7 @@ limit surface, which must be given as an input.
   <Adaptive name = 'dpt_smp' verbosity='debug'>
     <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
     <Function         class = 'Functions' type = 'External'      >g_zr</Function>
-    <TargetEvaluation class = 'DataObjects'     type = 'TimePointSet'  >nt_phy_dpt_dt</TargetEvaluation>
+    <TargetEvaluation class = 'DataObjects'     type = 'PointSet'  >nt_phy_dpt_dt</TargetEvaluation>
     <Convergence limit = '3000' forceIteration = 'False' weight = 'none' persistence = '5'>1e-2</Convergence>
       <variable name = 'x1'>
         <distribution>x1_dst</distribution>

@@ -27,35 +27,35 @@
     </MultiRun>
     <IOStep name='test_extract'>
         <Input   class='Databases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
-        <Output  class='DataObjects'    type='Histories'>histories_from_database</Output>
+        <Output  class='DataObjects'    type='HistorySet'>HistorySet_from_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
-        <Output  class='DataObjects'    type='TimePoint'>timepoint_from_database</Output>
+        <Output  class='DataObjects'    type='Point'>Point_from_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  class='DataObjects'    type='History'>history_from_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
-        <Output  class='DataObjects'    type='TimePointSet'>timepointset_from_database</Output>
-        <Output    class='OutStreamManager' type='Print'     >timepointset_from_database_dump</Output>
+        <Output  class='DataObjects'    type='PointSet'>Pointset_from_database</Output>
+        <Output    class='OutStreamManager' type='Print'     >Pointset_from_database_dump</Output>
     </IOStep>
     <IOStep name='test_push_in'>
-        <Input  class='DataObjects'    type='Histories'>histories_from_database</Input>
+        <Input  class='DataObjects'    type='HistorySet'>HistorySet_from_database</Input>
         <Output   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
-        <Input  class='DataObjects'    type='TimePoint'>timepoint_from_database</Input>
+        <Input  class='DataObjects'    type='Point'>Point_from_database</Input>
         <Output   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
         <Input  class='DataObjects'    type='History'>history_from_database</Input>
         <Output   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
-        <Input  class='DataObjects'    type='TimePointSet'>timepointset_from_database</Input>
+        <Input  class='DataObjects'    type='PointSet'>Pointset_from_database</Input>
         <Output   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
     </IOStep>
     <IOStep name='test_extract_again'>
         <Input   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
-        <Output  class='DataObjects'    type='Histories'>histories_IN_database</Output>
+        <Output  class='DataObjects'    type='HistorySet'>HistorySet_IN_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
-        <Output  class='DataObjects'    type='TimePoint'>timepoint_IN_database</Output>
+        <Output  class='DataObjects'    type='Point'>Point_IN_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
         <Output  class='DataObjects'    type='History'>history_IN_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
-        <Output  class='DataObjects'    type='TimePointSet'>timepointset_IN_database</Output>
-        <Output    class='OutStreamManager' type='Print'     >timepointset_IN_database_dump</Output>
+        <Output  class='DataObjects'    type='PointSet'>Pointset_IN_database</Output>
+        <Output    class='OutStreamManager' type='Print'     >Pointset_IN_database_dump</Output>
     </IOStep>
 </Steps>
 <Databases>
@@ -63,50 +63,58 @@
         <HDF5 name="MC_TEST_PUSH_STEP"/>
 </Databases>
 <OutStreamManager>
-  <Print name='timepointset_from_database_dump'>
+  <Print name='Pointset_from_database_dump'>
     <type>csv</type>
-    <source>timepointset_from_database</source>
+    <source>Pointset_from_database</source>
   </Print>
-  <Print name='timepointset_IN_database_dump'>
+  <Print name='Pointset_IN_database_dump'>
     <type>csv</type>
-    <source>timepointset_IN_database</source>
+    <source>Pointset_IN_database</source>
   </Print>
 
 </OutStreamManager>
 
 
 <DataObjects>
-   <TimePoint name='timepoint_from_database' inputTs='1' historyName="1">
+   <Point name='Point_from_database' historyName="1">
+       <options><inputRow>-1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </TimePoint>
-   <TimePoint name='timepoint_IN_database' inputTs='1' historyName="histories_from_database|0">
+   </Point>
+   <Point name='Point_IN_database' historyName="HistorySet_from_database|0">
+       <options><inputRow>-1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </TimePoint>
-   <TimePointSet name='timepointset_from_database' inputTs='1'>
+   </Point>
+   <PointSet name='Pointset_from_database'>
+       <options><inputRow>-1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </TimePointSet>
-   <TimePointSet name='timepointset_IN_database' inputTs='1'>
+   </PointSet>
+   <PointSet name='Pointset_IN_database'>
+       <options><inputRow>-1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </TimePointSet>
-   <History name='history_from_database' inputTs='1' historyName="1">
+   </PointSet>
+   <History name='history_from_database' historyName="1">
+       <options><inputRow>-1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </History>
-   <History name='history_IN_database' inputTs='1' historyName="histories_from_database|0">
+   <History name='history_IN_database' historyName="HistorySet_from_database|0">
+       <options><inputRow>-1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </History>
-   <Histories name='histories_from_database' inputTs='1'>
+   <HistorySet name='HistorySet_from_database'>
+       <options><inputRow>-1</inputRow></options>
         <Input>dummy_for_branch</Input>
         <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </Histories>
-   <Histories name='histories_IN_database' inputTs='1'>
+   </HistorySet>
+   <HistorySet name='HistorySet_IN_database'>
+       <options><inputRow>-1</inputRow></options>
        <Input>dummy_for_branch</Input>
        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </Histories>
+   </HistorySet>
 </DataObjects>
 </Simulation>

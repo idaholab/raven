@@ -9,27 +9,27 @@
     <Steps>
         <MultiRun name='make1'>
             <Sampler class='Samplers'    type='Grid'                 >1</Sampler>
-            <Input   class='DataObjects' type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects' type='PointSet'         >dummyIN</Input>
             <Model   class='Models'      type='ExternalModel'        >poly</Model>
-            <Output  class='DataObjects' type='TimePointSet'         >solns</Output>
+            <Output  class='DataObjects' type='PointSet'         >solns</Output>
         </MultiRun>
         <IOStep name='print1'>
-            <Input  class='DataObjects'      type='TimePointSet'     >solns</Input>
+            <Input  class='DataObjects'      type='PointSet'     >solns</Input>
             <Output class='OutStreamManager' type='Print'            >GRIDdump1</Output>
         </IOStep>
         <MultiRun name='make2'>
             <Sampler class='Samplers'    type='Grid'                 >2</Sampler>
-            <Input   class='DataObjects' type='TimePointSet'         >solns</Input>
+            <Input   class='DataObjects' type='PointSet'         >solns</Input>
             <Model   class='Models'      type='ExternalModel'        >poly</Model>
-            <Output  class='DataObjects' type='TimePointSet'         >solns</Output>
-            <Output  class='DataObjects' type='TimePointSet'         >solns2</Output>
+            <Output  class='DataObjects' type='PointSet'         >solns</Output>
+            <Output  class='DataObjects' type='PointSet'         >solns2</Output>
         </MultiRun>
         <IOStep name='print2'>
-            <Input  class='DataObjects'      type='TimePointSet'>solns2</Input>
+            <Input  class='DataObjects'      type='PointSet'>solns2</Input>
             <Output class='OutStreamManager' type='Print'       >GRIDdump2</Output>
         </IOStep>
         <IOStep name='print3'>
-            <Input  class='DataObjects'      type='TimePointSet'>solns</Input>
+            <Input  class='DataObjects'      type='PointSet'>solns</Input>
             <Output class='OutStreamManager' type='Print'       >GRIDdump3</Output>
         </IOStep>
     </Steps>
@@ -51,7 +51,7 @@
                 <grid type='CDF' construction='equal' steps='2' >0.0 1.0</grid></variable>
             <variable name="x2"><distribution>u2</distribution>
                 <grid type='CDF' construction='equal' steps='2' >0.0 1.0</grid></variable>
-            <Restart  class='DataObjects' type='TimePointSet'>solns</Restart>
+            <Restart  class='DataObjects' type='PointSet'>solns</Restart>
         </Grid>
     </Samplers>
 
@@ -66,18 +66,18 @@
     </Models>
 
     <DataObjects>
-        <TimePointSet name="dummyIN">
+        <PointSet name="dummyIN">
             <Input>x1,x2</Input>
             <Output>OutputPlaceHolder</Output>
-        </TimePointSet>
-        <TimePointSet name='solns'>
+        </PointSet>
+        <PointSet name='solns'>
             <Input>x1,x2</Input>
             <Output>ans,ans2</Output>
-        </TimePointSet>
-        <TimePointSet name='solns2'>
+        </PointSet>
+        <PointSet name='solns2'>
             <Input>x1,x2</Input>
             <Output>ans,ans2</Output>
-        </TimePointSet>
+        </PointSet>
     </DataObjects>
 
     <OutStreamManager>

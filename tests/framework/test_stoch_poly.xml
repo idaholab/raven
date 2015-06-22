@@ -174,22 +174,22 @@
     <Steps>
         <MultiRun name='Umake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>USG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Usolns</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Usolns</Output>
         </MultiRun>
         <RomTrainer name='Utrain'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Usolns</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Usolns</Input>
             <Output  class='Models'           type='ROM'                  >UROM</Output>
         </RomTrainer>
         <MultiRun name='Utest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>USG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >UROM</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Utests</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Utests</Output>
         </MultiRun>
         <IOStep name='Uprint'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Utests</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Utests</Input>
             <Output  class='OutStreamManager' type='Print'                >Udump</Output>
             <Input   class='Models'           type='ROM'                  >UROM</Input>
             <Output  class='OutStreamManager' type='Print'                >Udumprom</Output>
@@ -197,22 +197,22 @@
 
         <MultiRun name='UCmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>UCSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >UCsolns</Output>
+            <Output  class='DataObjects'            type='PointSet'         >UCsolns</Output>
         </MultiRun>
         <RomTrainer name='UCtrain'>
-            <Input   class='DataObjects'            type='TimePointSet'         >UCsolns</Input>
+            <Input   class='DataObjects'            type='PointSet'         >UCsolns</Input>
             <Output  class='Models'           type='ROM'                  >UCROM</Output>
         </RomTrainer>
         <MultiRun name='UCtest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>UCSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >UCROM</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >UCtests</Output>
+            <Output  class='DataObjects'            type='PointSet'         >UCtests</Output>
         </MultiRun>
         <IOStep name='UCprint'>
-            <Input   class='DataObjects'            type='TimePointSet'         >UCtests</Input>
+            <Input   class='DataObjects'            type='PointSet'         >UCtests</Input>
             <Output  class='OutStreamManager' type='Print'                >UCdump</Output>
             <Input   class='Models'           type='ROM'                  >UCROM</Input>
             <Output  class='OutStreamManager' type='Print'                >UCdumprom</Output>
@@ -220,22 +220,22 @@
 
         <MultiRun name='Nmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Nsolns</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Nsolns</Output>
         </MultiRun>
         <RomTrainer name='Ntrain'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Nsolns</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Nsolns</Input>
             <Output  class='Models'           type='ROM'                  >NROM</Output>
         </RomTrainer>
         <MultiRun name='Ntest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >NROM</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Ntests</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Ntests</Output>
         </MultiRun>
         <IOStep name='Nprint'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Ntests</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Ntests</Input>
             <Output  class='OutStreamManager' type='Print'                >Ndump</Output>
             <Input   class='Models'           type='ROM'                  >NROM</Input>
             <Output  class='OutStreamManager' type='Print'                >Ndumprom</Output>
@@ -243,22 +243,22 @@
 
         <MultiRun name='Gmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>GSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Gsolns</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Gsolns</Output>
         </MultiRun>
         <RomTrainer name='Gtrain'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Gsolns</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Gsolns</Input>
             <Output  class='Models'           type='ROM'                  >GROM</Output>
         </RomTrainer>
         <MultiRun name='Gtest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>GSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >GROM</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Gtests</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Gtests</Output>
         </MultiRun>
         <IOStep name='Gprint'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Gtests</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Gtests</Input>
             <Output  class='OutStreamManager' type='Print'                >Gdump</Output>
             <Input   class='Models'           type='ROM'                  >GROM</Input>
             <Output  class='OutStreamManager' type='Print'                >Gdumprom</Output>
@@ -266,22 +266,22 @@
 
         <MultiRun name='Bmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>BSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Bsolns</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Bsolns</Output>
         </MultiRun>
         <RomTrainer name='Btrain'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Bsolns</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Bsolns</Input>
             <Output  class='Models'           type='ROM'                  >BROM</Output>
         </RomTrainer>
         <MultiRun name='Btest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>BSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >BROM</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Btests</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Btests</Output>
         </MultiRun>
         <IOStep name='Bprint'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Btests</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Btests</Input>
             <Output  class='OutStreamManager' type='Print'                >Bdump</Output>
             <Input   class='Models'           type='ROM'                  >BROM</Input>
             <Output  class='OutStreamManager' type='Print'                >Bdumprom</Output>
@@ -289,22 +289,22 @@
 
         <MultiRun name='BNmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>BNSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >BNsolns</Output>
+            <Output  class='DataObjects'            type='PointSet'         >BNsolns</Output>
         </MultiRun>
         <RomTrainer name='BNtrain'>
-            <Input   class='DataObjects'            type='TimePointSet'         >BNsolns</Input>
+            <Input   class='DataObjects'            type='PointSet'         >BNsolns</Input>
             <Output  class='Models'           type='ROM'                  >BNROM</Output>
         </RomTrainer>
         <MultiRun name='BNtest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>BNSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >BNROM</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >BNtests</Output>
+            <Output  class='DataObjects'            type='PointSet'         >BNtests</Output>
         </MultiRun>
         <IOStep name='BNprint'>
-            <Input   class='DataObjects'            type='TimePointSet'         >BNtests</Input>
+            <Input   class='DataObjects'            type='PointSet'         >BNtests</Input>
             <Output  class='OutStreamManager' type='Print'                >BNdump</Output>
             <Input   class='Models'           type='ROM'                  >BNROM</Input>
             <Output  class='OutStreamManager' type='Print'                >BNdumprom</Output>
@@ -312,22 +312,22 @@
 
         <MultiRun name='Tmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Tsolns</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Tsolns</Output>
         </MultiRun>
         <RomTrainer name='Ttrain'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Tsolns</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Tsolns</Input>
             <Output  class='Models'           type='ROM'                  >TROM</Output>
         </RomTrainer>
         <MultiRun name='Ttest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TSG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >TROM</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Ttests</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Ttests</Output>
         </MultiRun>
         <IOStep name='Tprint'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Ttests</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Ttests</Input>
             <Output  class='OutStreamManager' type='Print'                >Tdump</Output>
             <Input   class='Models'           type='ROM'                  >TROM</Input>
             <Output  class='OutStreamManager' type='Print'                >Tdumprom</Output>
@@ -335,22 +335,22 @@
 
         <MultiRun name='Emake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>ESG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Esolns</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Esolns</Output>
         </MultiRun>
         <RomTrainer name='Etrain'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Esolns</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Esolns</Input>
             <Output  class='Models'           type='ROM'                  >EROM</Output>
         </RomTrainer>
         <MultiRun name='Etest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>ESG</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >EROM</Model>
-            <Output  class='DataObjects'            type='TimePointSet'         >Etests</Output>
+            <Output  class='DataObjects'            type='PointSet'         >Etests</Output>
         </MultiRun>
         <IOStep name='Eprint'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Etests</Input>
+            <Input   class='DataObjects'            type='PointSet'         >Etests</Input>
             <Output  class='OutStreamManager' type='Print'                >Edump</Output>
             <Input   class='Models'           type='ROM'                  >EROM</Input>
             <Output  class='OutStreamManager' type='Print'                >Edumprom</Output>
@@ -359,23 +359,23 @@
     </Steps>
 
     <DataObjects>
-        <TimePointSet name="dummyIN"><Input>x1,x2</Input><Output>OutputPlaceHolder</Output></TimePointSet>
-        <TimePointSet name='Utests' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Usolns' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='UCtests'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='UCsolns'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Ntests' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Nsolns' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Gtests' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Gsolns' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Btests' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Bsolns' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='BNtests'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='BNsolns'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Ttests' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Tsolns' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Etests' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Esolns' ><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <PointSet name="dummyIN"><Input>x1,x2</Input><Output>OutputPlaceHolder</Output></PointSet>
+        <PointSet name='Utests' ><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Usolns' ><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='UCtests'><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='UCsolns'><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Ntests' ><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Nsolns' ><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Gtests' ><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Gsolns' ><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Btests' ><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Bsolns' ><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='BNtests'><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='BNsolns'><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Ttests' ><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Tsolns' ><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Etests' ><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Esolns' ><Input>x1,x2</Input><Output>ans</Output></PointSet>
     </DataObjects>
 
     <OutStreamManager>

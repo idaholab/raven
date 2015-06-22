@@ -89,7 +89,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     BaseType.__init__(self)
     self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.auxcnt                        = 0                         # Aux counter of samples performed (for its usage check initialize method)
-    self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of Histories to run, DET = Unlimited)
+    self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
     self.toBeSampled                   = {}                        # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
     self.distDict                      = {}                        # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
     self.values                        = {}                        # for each variable the current value {'var name':value}
@@ -502,8 +502,8 @@ class AdaptiveSampler(Sampler):
     if 'TargetEvaluation' in self.assemblerDict.keys(): self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
     #self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
-    # check if solutionExport is actually a "DataObjects" type "TimePointSet"
-    if type(solutionExport).__name__ != "TimePointSet": self.raiseAnError(IOError,'solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
+    # check if solutionExport is actually a "DataObjects" type "PointSet"
+    if type(solutionExport).__name__ != "PointSet": self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ type(solutionExport).__name__+'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
     self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
@@ -1828,7 +1828,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
             for key in histdict['outputs'].keys():
               if key not in lastOutDict['outputs'].keys(): lastOutDict['outputs'][key] = np.atleast_1d(histdict['outputs'][key])
               else                                       : lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),np.atleast_1d(histdict['outputs'][key])))
-        else: self.raiseAWarning('No Completed histories! Not possible to start an adaptive search! Something went wrong!')
+        else: self.raiseAWarning('No Completed HistorySet! Not possible to start an adaptive search! Something went wrong!')
       if len(completedHistNames) > self.completedHistCnt:
         self.actualLastOutput = self.lastOutput
         self.lastOutput       = self.actualLastOutput
@@ -2123,6 +2123,9 @@ class SparseGridCollocation(Grid):
   def _localGenerateAssembler(self,initDict):
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
+    #do a distributions check for ND
+    for dist in self.distDict.values():
+      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists not supported for this sampler (yet)!')
 
   def localInputAndChecks(self,xmlNode):
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
@@ -2195,7 +2198,7 @@ class SparseGridCollocation(Grid):
       @ In, SVL, one of the SupervisedEngine objects from the ROM
       @ Out, None
     '''
-    ROMdata = SVL.interpolationInfo() #they are all the same? -> yes, I think so
+    ROMdata = SVL.interpolationInfo()
     self.maxPolyOrder = SVL.maxPolyOrder
     #check input space consistency
     samVars=self.axisName[:]
@@ -2309,15 +2312,6 @@ class Sobol(SparseGridCollocation):
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
     return gridDict
-
-  def _localGenerateAssembler(self,initDict):
-    '''
-      Used to obtain necessary objects.  See base class.
-      @ In, initDict, dictionary of objects required to initialize
-      @ Out, None
-    '''
-    Grid._localGenerateAssembler(self, initDict)
-    self.jobHandler = initDict['internal']['jobHandler']
 
   def localInputAndChecks(self,xmlNode):
     '''

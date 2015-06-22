@@ -56,22 +56,22 @@
 </OutStreamManager>
 
 <DataObjects>
-    <TimePointSet name='outGrid'>
+    <PointSet name='outGrid'>
         <Input>Materials|heat1|thermal_conductivity,Materials|heat1|specific_heat,Materials|heat2|thermal_conductivity</Input>
         <Output>aveTempLeft,aveTempRight,time</Output>
-    </TimePointSet>
-    <TimePointSet name='outGridFromHDF5'>
+    </PointSet>
+    <PointSet name='outGridFromHDF5'>
         <Input>Materials|heat1|thermal_conductivity,Materials|heat1|specific_heat,Materials|heat2|thermal_conductivity,aveTempLeft</Input>
         <Output>aveTempRight,time</Output>
-    </TimePointSet>
-    <Histories name='stories'>
+    </PointSet>
+    <HistorySet name='stories'>
         <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
         <Output>aveTempLeft,aveTempRight,time</Output>
-    </Histories>
-    <Histories name='storiesFromHDF5'>
+    </HistorySet>
+    <HistorySet name='storiesFromHDF5'>
         <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity,aveTempLeft</Input>
         <Output>aveTempRight,time</Output>
-    </Histories>
+    </HistorySet>
 </DataObjects>
 
 <Steps>
@@ -81,15 +81,15 @@
     <Model   class = 'Models'    type='Code'     >Bison</Model>
     <Sampler class = 'Samplers'  type='Grid'     >myGrid</Sampler>
     <Output  class = 'Databases' type='HDF5'     >test_bison_grid</Output>
-    <Output  class = 'DataObjects'     type='Histories'>stories</Output>
-    <Output  class='DataObjects'     type='TimePointSet'>outGrid</Output>
+    <Output  class = 'DataObjects'     type='HistorySet'>stories</Output>
+    <Output  class='DataObjects'     type='PointSet'>outGrid</Output>
     <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
   </MultiRun >
   <IOStep name='IOStepTest'>
       <Input   class = 'Databases' type='HDF5'            >test_bison_grid</Input>
-      <Output  class='DataObjects'     type='TimePointSet'>outGridFromHDF5</Output>
+      <Output  class='DataObjects'     type='PointSet'>outGridFromHDF5</Output>
       <Input   class = 'Databases' type='HDF5'            >test_bison_grid</Input>
-      <Output  class='DataObjects'     type='Histories'>storiesFromHDF5</Output>
+      <Output  class='DataObjects'     type='HistorySet'>storiesFromHDF5</Output>
   </IOStep>
 </Steps>
 <Databases>
