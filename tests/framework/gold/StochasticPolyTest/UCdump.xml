@@ -1,4 +1,4 @@
-<data name="UCdump" type="timepointset"><input>x2,x1</input><output>ans</output><input_filename>UCdump.csv</input_filename><metadata><SamplerType>array(u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+<data name="UCdump" type="Pointset"><input>x2,x1</input><output>ans</output><input_filename>UCdump.csv</input_filename><metadata><SamplerType>array(u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',

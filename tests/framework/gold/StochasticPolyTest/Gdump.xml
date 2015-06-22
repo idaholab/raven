@@ -1,4 +1,4 @@
-<data name="Gdump" type="timepointset"><input>x2,x1</input><output>ans</output><input_filename>Gdump.csv</input_filename><metadata><SamplerType>array(u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+<data name="Gdump" type="Pointset"><input>x2,x1</input><output>ans</output><input_filename>Gdump.csv</input_filename><metadata><SamplerType>array(u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',

@@ -19,13 +19,10 @@
 </Distributions>
 
 <Samplers>
-    <Grid name='RAVENmc6'>
-        <sampler_init>
-            <initial_seed>1</initial_seed>
-        </sampler_init>
+    <Grid name='RAVENGrid'>
         <Distribution name='Dummy1'>
             <distribution >zeroToOne</distribution>
-            <grid type='CDF' construction='equal' upperBound='0.9' steps='15'>0.05</grid>
+            <grid type='CDF' construction='equal' steps='15'>0.15  0.9</grid>
         </Distribution>
     </Grid>
     
@@ -51,14 +48,14 @@
     <source>stories</source>
     <what>Input|pipe1_Area</what>
   </Print>
-  <Print name='testprint_selective_timepointset'>
+  <Print name='testprint_selective_Pointset'>
         <type>csv</type>
-        <source>TimePointSets</source>
+        <source>PointSets</source>
         <what>Output,Input|pipe1_Area</what>
     </Print>
-  <Print name='testprint_selective_timepoint'>
+  <Print name='testprint_selective_Point'>
         <type>csv</type>
-        <source>TimePointt</source>
+        <source>Pointt</source>
         <what>Output,Input|pipe1_Area</what>
     </Print>
   <Print name='testprint_selective_history'>
@@ -66,7 +63,7 @@
         <source>Historyy</source>
         <what>Output,Input|pipe1_Area</what>
     </Print>
-  <Print name='fullprint_histories'>
+  <Print name='fullprint_HistorySet'>
       <type>csv</type>
       <source>stories</source>
     </Print>
@@ -74,13 +71,13 @@
       <type>csv</type>
       <source>Historyy</source>
   </Print>
-  <Print name='fullprint_timepoint'>
+  <Print name='fullprint_Point'>
       <type>csv</type>
-      <source>TimePointt</source>
+      <source>Pointt</source>
     </Print>
-  <Print name='fullprint_timepointset'>
+  <Print name='fullprint_Pointset'>
       <type>csv</type>
-      <source>TimePointSets</source>
+      <source>PointSets</source>
     </Print>
    <Plot verbosity='debug' name='test' dim='2' overwrite='False'>
     <plotSettings>
@@ -277,7 +274,7 @@
       <plotSettings>
           <plot>
               <type>histogram</type>
-              <x>TimePointSets|Output|pump_mass_flow_rate</x>
+              <x>PointSets|Output|pump_mass_flow_rate</x>
           </plot>
           <xlabel>time [s]</xlabel>
           <ylabel>evolution</ylabel>
@@ -293,8 +290,8 @@
       <plotSettings>
           <plot>
               <type>histogram</type>
-              <x>TimePointSets|Input|pipe1_Area</x>
-              <y>TimePointSets|Output|pump_mass_flow_rate</y>
+              <x>PointSets|Input|pipe1_Area</x>
+              <y>PointSets|Output|pump_mass_flow_rate</y>
           </plot>
           <xlabel>time [s]</xlabel>
           <ylabel>evolution</ylabel>
@@ -311,8 +308,8 @@
       <plotSettings>
           <plot>
               <type>stem</type>
-              <x>TimePointSets|Input|pipe1_Area</x>
-              <y>TimePointSets|Output|pump_mass_flow_rate</y>
+              <x>PointSets|Input|pipe1_Area</x>
+              <y>PointSets|Output|pump_mass_flow_rate</y>
           </plot>
           <xlabel>time [s]</xlabel>
           <ylabel>evolution</ylabel>
@@ -328,9 +325,9 @@
       <plotSettings>
           <plot>
               <type>stem</type>
-              <x>TimePointSets|Input|pipe1_Area</x>
-              <y>TimePointSets|Output|pipe1_Hw</y>
-              <z>TimePointSets|Output|pump_mass_flow_rate</z>
+              <x>PointSets|Input|pipe1_Area</x>
+              <y>PointSets|Output|pipe1_Hw</y>
+              <z>PointSets|Output|pump_mass_flow_rate</z>
           </plot>
           <xlabel>time [s]</xlabel>
           <ylabel>evolution</ylabel>
@@ -347,8 +344,8 @@
     <plotSettings>
         <plot>
             <type>stem</type>
-            <x>TimePointSets|Input|pipe1_Area</x>
-            <y>TimePointSets|Output|pump_mass_flow_rate</y>
+            <x>PointSets|Input|pipe1_Area</x>
+            <y>PointSets|Output|pump_mass_flow_rate</y>
         </plot>
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
@@ -364,9 +361,9 @@
     <plotSettings>
         <plot>
             <type>stem</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <y>TimePointSets|Input|pipe1_Dh</y>
-            <z>TimePointSets|Output|pump_mass_flow_rate</z>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <y>PointSets|Input|pipe1_Dh</y>
+            <z>PointSets|Output|pump_mass_flow_rate</z>
         </plot>
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
@@ -382,8 +379,8 @@
     <plotSettings>
         <plot>
             <type>step</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <y>TimePointSets|Output|pump_mass_flow_rate</y>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <y>PointSets|Output|pump_mass_flow_rate</y>
         </plot>
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
@@ -399,9 +396,9 @@
     <plotSettings>
         <plot>
             <type>pseudocolor</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <y>TimePointSets|Input|pipe1_Dh</y>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <y>PointSets|Input|pipe1_Dh</y>
+            <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
             <cmap>summer</cmap>
         </plot>
         <xlabel>time [s]</xlabel>
@@ -418,11 +415,11 @@
     <plotSettings>
         <plot>
             <type>surface</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <z>TimePointSets|Output|pump_mass_flow_rate</z>
-            <y>TimePointSets|Input|pipe1_Dh</y>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <z>PointSets|Output|pump_mass_flow_rate</z>
+            <y>PointSets|Input|pipe1_Dh</y>
             <interpolationType>nearest</interpolationType>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
 	    <cmap>summer</cmap> 
             <kwargs>
                 <label>pump mass flow rate</label>
@@ -430,9 +427,9 @@
         </plot>
         <plot>
             <type>surface</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <z>TimePointSets|Output|pump_mass_flow_rate</z>
-            <y>TimePointSets|Input|pipe1_Dh</y>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <z>PointSets|Output|pump_mass_flow_rate</z>
+            <y>PointSets|Input|pipe1_Dh</y>
             <interpolationType>nearest</interpolationType>
             <kwargs>
                 <color>red</color>
@@ -453,9 +450,9 @@
     <plotSettings>
         <plot>
             <type>tri-surface</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <z>TimePointSets|Output|pump_mass_flow_rate</z>
-            <y>TimePointSets|Input|pipe1_Dh</y>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <z>PointSets|Output|pump_mass_flow_rate</z>
+            <y>PointSets|Input|pipe1_Dh</y>
             <interpolationType>nearest</interpolationType> 
             <kwargs>
                 <label>pump mass flow rate</label>
@@ -463,11 +460,11 @@
         </plot>
         <plot>
             <type>tri-surface</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <z>TimePointSets|Output|pump_mass_flow_rate</z>
-            <y>TimePointSets|Input|pipe1_Dh</y>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <z>PointSets|Output|pump_mass_flow_rate</z>
+            <y>PointSets|Input|pipe1_Dh</y>
             <interpolationType>nearest</interpolationType>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
 	    <cmap>summer</cmap> 
         </plot> 
         <xlabel>time [s]</xlabel>
@@ -484,17 +481,17 @@
     <plotSettings>
         <plot>
             <type>wireframe</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <z>TimePointSets|Output|pump_mass_flow_rate</z>
-            <y>TimePointSets|Input|pipe1_Dh</y>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <z>PointSets|Output|pump_mass_flow_rate</z>
+            <y>PointSets|Input|pipe1_Dh</y>
             <interpolationType>nearest</interpolationType>
         </plot>
         <plot>
             <type>wireframe</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <z>TimePointSets|Output|pump_mass_flow_rate</z>
-            <y>TimePointSets|Input|pipe1_Dh</y>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <z>PointSets|Output|pump_mass_flow_rate</z>
+            <y>PointSets|Input|pipe1_Dh</y>
+            <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
             <cmap>summer</cmap>
             <interpolationType>nearest</interpolationType>
             <kwargs>
@@ -518,16 +515,16 @@
     <plotSettings>
         <plot>
             <type>contour</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <y>TimePointSets|Input|pipe1_Dh</y>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <y>PointSets|Input|pipe1_Dh</y>
+            <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
             <interpolationType>nearest</interpolationType>
         </plot>
         <plot>
             <type>filledContour</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <y>TimePointSets|Input|pipe1_Dh</y>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <y>PointSets|Input|pipe1_Dh</y>
+            <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
             <interpolationType>nearest</interpolationType>
         </plot>
         <xlabel>time [s]</xlabel>
@@ -544,18 +541,18 @@
     <plotSettings>
         <plot>
             <type>contour3D</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <z>TimePointSets|Output|pump_mass_flow_rate</z>
-            <y>TimePointSets|Input|pipe1_Dh</y>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <z>PointSets|Output|pump_mass_flow_rate</z>
+            <y>PointSets|Input|pipe1_Dh</y>
+            <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
            <interpolationType>nearest</interpolationType>
         </plot>
        <plot>
             <type>filledContour3D</type>
-            <x>TimePointSets|Output|pipe1_Hw</x>
-            <z>TimePointSets|Output|pump_mass_flow_rate</z>
-            <y>TimePointSets|Input|pipe1_Dh</y>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <x>PointSets|Output|pipe1_Hw</x>
+            <z>PointSets|Output|pump_mass_flow_rate</z>
+            <y>PointSets|Input|pipe1_Dh</y>
+            <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
             <cmap>summer</cmap>
             <interpolationType>nearest</interpolationType>
         </plot>
@@ -631,7 +628,7 @@
     <plotSettings>
         <plot>
             <type>histogram</type>
-            <x>TimePointSets|Output|pump_mass_flow_rate</x>
+            <x>PointSets|Output|pump_mass_flow_rate</x>
         </plot>
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
@@ -647,7 +644,7 @@
       <plotSettings>
           <plot>
               <type>histogram</type>
-              <x>TimePointSets|Output|pump_mass_flow_rate</x>
+              <x>PointSets|Output|pump_mass_flow_rate</x>
           </plot>
           <xlabel>time [s]</xlabel>
           <ylabel>evolution</ylabel>
@@ -667,21 +664,21 @@
         <Input     class='Files'            type=''             >ideal_pump.i</Input>
         <Input     class='Files'            type=''             >ideal_pump_control.py</Input>
         <Model     class='Models'           type='Code'         >MyRAVEN</Model>
-        <Sampler   class = 'Samplers'       type='Grid'         >RAVENmc6</Sampler>
+        <Sampler   class = 'Samplers'       type='Grid'         >RAVENGrid</Sampler>
         <Output    class='Databases'        type='HDF5'         >testOutputDatabase</Output>
-        <Output    class='DataObjects'            type='Histories'    >stories</Output>
-        <Output    class='DataObjects'            type='TimePointSet' >TimePointSets</Output>
-        <Output    class='DataObjects'            type='TimePoint'    >TimePointt</Output>
+        <Output    class='DataObjects'            type='HistorySet'    >stories</Output>
+        <Output    class='DataObjects'            type='PointSet' >PointSets</Output>
+        <Output    class='DataObjects'            type='Point'    >Pointt</Output>
         <Output    class='DataObjects'            type='History'      >Historyy</Output>
     </MultiRun >
     <IOStep name='testOutstreamStep' pauseAtEnd='False'>
-        <Input    class='DataObjects'            type='Histories'    >stories</Input>
-        <Input    class='DataObjects'            type='TimePointSet' >TimePointSets</Input>
-        <Input    class='DataObjects'            type='TimePoint'    >TimePointt</Input>
+        <Input    class='DataObjects'            type='HistorySet'    >stories</Input>
+        <Input    class='DataObjects'            type='PointSet' >PointSets</Input>
+        <Input    class='DataObjects'            type='Point'    >Pointt</Input>
         <Input    class='DataObjects'            type='History'      >Historyy</Input>
         <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot</Output>
         <Output    class='OutStreamManager' type='Print'        >test</Output>
-        <Output    class='OutStreamManager' type='Print'        >fullprint_timepointset</Output>
+        <Output    class='OutStreamManager' type='Print'        >fullprint_Pointset</Output>
         <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot2</Output>
         <Output    class='OutStreamManager' type='Plot'         >test</Output>
         <Output    class='OutStreamManager' type='Plot'         >plot2</Output>
@@ -706,40 +703,40 @@
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist1</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist2</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist3</Output>
-        <Output    class='OutStreamManager' type='Print'        >testprint_selective_timepointset</Output>
-        <Output    class='OutStreamManager' type='Print'        >testprint_selective_timepoint</Output>
+        <Output    class='OutStreamManager' type='Print'        >testprint_selective_Pointset</Output>
+        <Output    class='OutStreamManager' type='Print'        >testprint_selective_Point</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_history</Output>
-        <Output    class='OutStreamManager' type='Print'        >fullprint_histories</Output>
+        <Output    class='OutStreamManager' type='Print'        >fullprint_HistorySet</Output>
         <Output    class='OutStreamManager' type='Print'        >fullprint_history</Output>
-        <Output    class='OutStreamManager' type='Print'        >fullprint_timepoint</Output>
+        <Output    class='OutStreamManager' type='Print'        >fullprint_Point</Output>
     </IOStep>
 </Steps>
 <Databases>
     <HDF5 name="testOutputDatabase" type="MC"/>
 </Databases>
 <DataObjects>
-   <TimePoint name='TimePointt'>
+   <Point name='Pointt'>
         <Input>pipe1_Area,pipe1_Dh</Input>
         <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-   </TimePoint>
-   <TimePointSet name='TimePointSets'>
+   </Point>
+   <PointSet name='PointSets'>
         <Input>pipe1_Area, pipe1_Dh</Input>
         <Output>pipe1_Hw,
                 pump_mass_flow_rate,
                 time
         </Output>
-   </TimePointSet>
+   </PointSet>
    <History name='Historyy'>
         <Input>pipe1_Area,pipe1_Dh</Input>
         <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </History>
-    <Histories name='stories'>
+    <HistorySet name='stories'>
         <Input>pipe1_Area,
                pipe1_Dh</Input>
         <Output>pipe1_Hw,
                 pump_mass_flow_rate,
                 time
         </Output>
-   </Histories>
+   </HistorySet>
 </DataObjects>
 </Simulation>

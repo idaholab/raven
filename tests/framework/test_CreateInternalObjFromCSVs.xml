@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation verbosity='debug'>
 <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>CreateInternalObjFromCSVs</WorkingDir>
     <Files>.</Files>
     <Sequence>LoadCsvIntoInternalObjectTestData,LoadCsvIntoInternalObjectTestHDF5</Sequence>
     <batchSize>1</batchSize>
@@ -9,15 +9,15 @@
 
 <Models>
     <PostProcessor name="LoadCsvIntoInternalObjectTest" subType='LoadCsvIntoInternalObject'>
-        <directory>GridTestRaven/FirstMRun</directory>
+        <directory>../GridTestRaven/FirstMRun</directory>
     </PostProcessor>
 </Models>
 
 <Steps>
     <PostProcess name='LoadCsvIntoInternalObjectTestData'>
         <Model    class='Models'           type='PostProcessor'   >LoadCsvIntoInternalObjectTest</Model>
-        <Output   class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Output>
-        <Output   class='OutStreamManager' type='Print'           >TimePointSetPostProcTest_DUMP</Output>
+        <Output   class='DataObjects'            type='PointSet'    >PointSetPostProcTest</Output>
+        <Output   class='OutStreamManager' type='Print'           >PointSetPostProcTest_DUMP</Output>
     </PostProcess>
     <PostProcess name='LoadCsvIntoInternalObjectTestHDF5'>
         <Model    class='Models'           type='PostProcessor'   >LoadCsvIntoInternalObjectTest</Model>
@@ -25,16 +25,16 @@
     </PostProcess>
 </Steps>
 <OutStreamManager>
-    <Print name='TimePointSetPostProcTest_DUMP'>
+    <Print name='PointSetPostProcTest_DUMP'>
         <type>csv</type>
-        <source>TimePointSetPostProcTest</source>
+        <source>PointSetPostProcTest</source>
     </Print>
 </OutStreamManager>
 <DataObjects>
-    <TimePointSet name='TimePointSetPostProcTest'>
+    <PointSet name='PointSetPostProcTest'>
         <Input>Dummy1</Input>
         <Output>time,pipe_Dh,pipe_Tw</Output>
-    </TimePointSet>
+    </PointSet>
 </DataObjects>
 <Databases>
     <HDF5 name="HDF5PostProcTest" />

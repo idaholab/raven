@@ -1027,6 +1027,10 @@ __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
 __base                                  = 'superVisedLearning'
 
+# def addToInterfaceDict(newDict):
+#   for key,val in newDict.items():
+#     __interfaceDict[key]=val
+
 def returnInstance(ROMclass,caller,**kwargs):
   """This function return an instance of the request model type"""
   try: return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)

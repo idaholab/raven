@@ -1,8 +1,8 @@
-'''
+"""
 Created on Feb 20, 2013
 
 @author: crisr
-'''
+"""
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
@@ -48,7 +48,7 @@ def printStatement():
   """)
 
 if __name__ == '__main__':
-  '''This is the main driver for the RAVEN framework'''
+  """This is the main driver for the RAVEN framework"""
   # Retrieve the framework directory path and working dir
   printStatement()
   verbosity      = 'all'
@@ -103,7 +103,6 @@ if __name__ == '__main__':
     if root.tag != 'Simulation':
       raise IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
     #generate all the components of the simulation
-
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
   # Initialize the simulation

@@ -49,6 +49,8 @@ or \textbf{OutStreamManager}.
 The object used in this role defines the allowable types of
 \textbf{Inputs} and \textbf{Outputs} usable in this step.
 \item \textbf{Sampler} defines the sampling strategy to be used to probe the model.
+\\ It is worth to mention that, when a sampling strategy is employed, the ``variables'' defined in the \xmlNode{variable} blocks are going to be 
+directly placed in the \textbf{Output} objects of type \textbf{DataObjects} and \textbf{Databases}).
 \item \textbf{Function} is an extremely important role. It introduces the capability to
 perform pre or post processing of Model \textbf{Inputs} and \textbf{Outputs}. Its specific
 behavior depends on the \textbf{Step} is using it.
@@ -83,7 +85,7 @@ The \textbf{SingleRun} is the simplest step the user can use to assemble a
 calculation flow: perform a single action of a \textbf{Model}.
 %
 For example, it can be used to run a single job (Code Model) and collect the
-outcome(s) in a ``\textbf{DataObjects}'' object of type \textbf{TimePoint} or 
+outcome(s) in a ``\textbf{DataObjects}'' object of type \textbf{Point} or 
 \textbf{History} (see Section~\ref{sec:DataObjects} for more details on available data
 representations).
 
@@ -130,7 +132,7 @@ This XML node accepts the following attributes:
     This attribute needs to specify the object type within the main object
     class.
     For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the
-    \xmlAttr{type} attribute might be \xmlString{TimePointSet}.
+    \xmlAttr{type} attribute might be \xmlString{PointSet}.
     \nb The class \xmlString{Files} has no type (i.e. 
     \xmlAttr{type}\textbf{\texttt{=''}}).
 \end{itemize}
@@ -167,7 +169,7 @@ This XML node recognizes the following attributes:
     This attribute needs to specify the object type within the main object
     class.
     For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the 
-    \xmlAttr{type} attribute might be \xmlString{TimePointSet}.
+    \xmlAttr{type} attribute might be \xmlString{PointSet}.
 \end{itemize}
 \nb The number of \xmlNode{Output} nodes is unlimited.
 \end{itemize}
@@ -244,7 +246,7 @@ This XML node accepts the following attributes:
     type.
     This attribute specifies the object type within the main object class.
     For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the 
-    \xmlAttr{type} attribute might be \xmlString{TimePointSet}.
+    \xmlAttr{type} attribute might be \xmlString{PointSet}.
     \nb The class \xmlString{Files} has no type (i.e.
     \xmlAttr{type}\textbf{\texttt{=''}}).
 \end{itemize}
@@ -306,7 +308,7 @@ This XML node accepts the following attributes:
     export their solution into a \xmlNode{SolutionExport} entity. The \xmlNode{Outputs} node 
     in the \texttt{Datas} object needs to contain the goal  \xmlNode{Function} name. 
     For example, if  \xmlNode{Sampler} is of type \xmlString{Adaptive}, the 
-    \xmlNode{SolutionExport} needs to be of type \xmlString{TimePointSet} and 
+    \xmlNode{SolutionExport} needs to be of type \xmlString{PointSet} and 
     it will contain the coordinates, in the input space, that belong to the
     ``Limit Surface.'' 
 \end{itemize}
@@ -324,7 +326,7 @@ This XML node recognizes the following attributes:
     type.
     This attribute specifies the object type within the main object class.
     For example, if the \xmlAttr{class} attribute is \xmlString{DataObjects}, the
-    \xmlAttr{type} attribute might be \xmlString{TimePointSet}.
+    \xmlAttr{type} attribute might be \xmlString{PointSet}.
 \end{itemize}
 \nb The number of \xmlNode{Output} nodes is unlimited.
 \end{itemize}
@@ -348,7 +350,7 @@ Example:
     <Model   class='Models' type='Code'>aCode</Model>
     <Output  class='Databases' type='HDF5'>aDatabase</Output>
     <Output  class='DataObjects' type='History'>aData</Output>
-    <SolutionExport class='DataObjects' type='TimePointSet'>
+    <SolutionExport class='DataObjects' type='PointSet'>
       aTPS
     </SolutionExport>
   </MultiRun>
@@ -422,7 +424,7 @@ This step accepts the following roles:
     This attribute needs to specify the object type within the main object
     class.
     For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the
-    \xmlAttr{type} attribute might be \xmlString{TimePointSet}. If the  \xmlAttr{class} attribute is \xmlString{Models}, the
+    \xmlAttr{type} attribute might be \xmlString{PointSet}. If the  \xmlAttr{class} attribute is \xmlString{Models}, the
     \xmlAttr{type} attribute must be \xmlString{ROM} and if the  \xmlAttr{class} attribute is \xmlString{Files}, the
     \xmlAttr{type} attribute must be \xmlString{ }
 \end{itemize}
@@ -464,8 +466,8 @@ below):
 <Steps>
   ...
   <IOStep name='OutStreamStep'>
-    <Input class='DataObjects' type='Histories'>aHistories</Input>
-    <Input class='DataObjects' type='TimePointSet'>aTPS</Input>
+    <Input class='DataObjects' type='HistorySet'>aHistorySet</Input>
+    <Input class='DataObjects' type='PointSet'>aTPS</Input>
     <Output class='OutStreamManager' type='Plot'>plot_hist
     </Output>
     <Output class='OutStreamManager' type='Print'>print_hist
@@ -476,16 +478,16 @@ below):
     </Output>
   </IOStep>
   <IOStep name='PushDataObjectsIntoDatabase'>
-    <Input  class='DataObjects'     type='Histories'>aHistories</Input>
-    <Input  class='DataObjects'     type='TimePointSet'>aTPS</Input>
+    <Input  class='DataObjects'     type='HistorySet'>aHistorySet</Input>
+    <Input  class='DataObjects'     type='PointSet'>aTPS</Input>
     <Output class='Databases' type='HDF5'>aDatabase</Output>
     <Output class='Databases' type='HDF5'>aDatabase</Output>
   </IOStep>
   <IOStep name='ConstructDataObjectsFromDatabase'>
     <Input class='Databases' type='HDF5'>aDatabase</Input>
     <Input class='Databases' type='HDF5'>aDatabase</Input>
-    <Output class='DataObjects'    type='Histories'>aHistories</Output>
-    <Output class='DataObjects'    type='TimePointSet'>aTPS</Output>
+    <Output class='DataObjects'    type='HistorySet'>aHistorySet</Output>
+    <Output class='DataObjects'    type='PointSet'>aTPS</Output>
   </IOStep>
 <IOStep name='PushROMIntoFile'>
     <Input class='Models'  type='ROM'>aROM</Input>
@@ -558,9 +560,9 @@ This XML node accepts the following attributes:
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
-    For example, the \xmlAttr{type} attribute might be \xmlString{TimePointSet}.
+    For example, the \xmlAttr{type} attribute might be \xmlString{PointSet}.
     \nb Since the ROMs currently present in RAVEN are not time-dependent, the
-    only allowable types are \xmlString{TimePoint} and \xmlString{TimePointSet}.
+    only allowable types are \xmlString{Point} and \xmlString{PointSet}.
   \end{itemize}
 \item \xmlNode{Output}, \xmlDesc{string, required parameter}, names a ROM entity
   that is going to be trained.
@@ -584,7 +586,7 @@ Example:
 <Steps>
   ...
   <RomTrainer name='aStepName'>
-    <Input  class='DataObjects'  type='TimePointSet'>aTPS</Input>
+    <Input  class='DataObjects'  type='PointSet'>aTPS</Input>
     <Output class='Models' type='ROM'         >aROM</Output>
   </RomTrainer>
   ...
@@ -643,7 +645,7 @@ This step accepts the following roles:
     type.
     This attribute specifies the object type within the main object class.
     For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, 
-    the \xmlAttr{type} attribute might be \xmlString{TimePointSet}. 
+    the \xmlAttr{type} attribute might be \xmlString{PointSet}. 
     \nb The class \xmlString{Files} has no type (i.e.
     \xmlAttr{type}\textbf{\texttt{=''}}).
 \end{itemize}
@@ -681,7 +683,7 @@ This XML node recognizes the following attributes:
     type.
     This attribute specifies the object type within the main object class.
     For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the
-    \xmlAttr{type} attribute might be \xmlString{TimePointSet}.
+    \xmlAttr{type} attribute might be \xmlString{PointSet}.
 \end{itemize}
 \nb The number of \xmlNode{Output} nodes is unlimited.
 \end{itemize}
@@ -691,7 +693,7 @@ Example:
 <Steps>
   ...
   <PostProcess name='PP1'>
-      <Input  class='DataObjects'  type='TimePointSet' >aData</Input>
+      <Input  class='DataObjects'  type='PointSet' >aData</Input>
       <Model  class='Models' type='PostProcessor'>aPP</Model>
       <Output class='Files'  type=''>anOutputFile.csv</Output>
   </PostProcess>

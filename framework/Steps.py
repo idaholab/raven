@@ -235,6 +235,7 @@ class SingleRun(Step):
           self.raiseADebug('a job failed... call the handler for this situation')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
       time.sleep(self.sleepTime)
+
   def _localAddInitParams(self,tempDict): pass
 #
 #

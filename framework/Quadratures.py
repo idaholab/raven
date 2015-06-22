@@ -1,8 +1,8 @@
-'''
+"""
 Created on Dec 2, 2014
 
 @author: talbpw
-'''
+"""
 #for future compatibility with Python 3-----------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -29,28 +29,48 @@ import utils
 
 
 class SparseQuad(MessageHandler.MessageUser):
-  '''Base class to produce sparse-grid multiple-dimension quadrature.'''
+  """Base class to produce sparse-grid multiple-dimension quadrature."""
+  def __init__(self):
+    self.type     = 'SparseQuad'
+    self.printTag = 'SparseQuad' #FIXME use utility methods for right length
+    self.c        = [] #array of coefficient terms for component tensor grid entries
+    self.oldsg    = [] #storage space for re-ordered versions of sparse grid
+    self.indexSet = None #IndexSet object
+    self.distDict = None #dict{varName: Distribution object}
+    self.quadDict = None #dict{varName: Quadrature object}
+    self.polyDict = None #dict{varName: OrthoPolynomial object}
+    self.varNames = []   #array of names, in order of distDict.keys()
+    self.N        = None #dimensionality of input space
+    self.SG       = None #dict{ (point,point,point): weight}
+    self.messageHandler = None
+    self.mods     = []
+    for key, value in dict(inspect.getmembers(inspect.getmodule(self))).items():
+      if inspect.ismodule(value) or inspect.ismethod(value):
+        if key != value.__name__:
+          if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
+          else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
+        else: self.mods.append(str(key))
 
   ##### OVERWRITTEN BUILTINS #####
   def __getitem__(self,n):
-    '''Returns the point and weight for entry 'n'.
+    """Returns the point and weight for entry 'n'.
     @ In n, integer, index of desired components
     @ Out, tuple, points and weight at index n
-    '''
+    """
     return self.points(n),self.weights(n)
 
   def __len__(self):
-    ''' Returns cardinality of sparse grid.
+    """ Returns cardinality of sparse grid.
     @ In None, None
     @ Out int, size of sparse grid
-    '''
+    """
     return len(self.weights())
 
   def __repr__(self):
-    '''Slightly more human-readable version of printout.
+    """Slightly more human-readable version of printout.
     @ In None, None
     @ Out string, list of points and weights
-    '''
+    """
     msg='SparseQuad: (point) | weight\n'
     for p in range(len(self)):
       msg+='    ('
@@ -65,10 +85,10 @@ class SparseQuad(MessageHandler.MessageUser):
     return msg
 
   def __csv__(self):
-    '''Slightly more human-readable version of printout.
+    """Slightly more human-readable version of printout.
     @ In None, None
     @ Out string, list of points and weights
-    '''
+    """
     msg=''
     for _ in range(len(self[0][0])):
       msg+='pt,'
@@ -81,19 +101,19 @@ class SparseQuad(MessageHandler.MessageUser):
     return msg
 
   def __getstate__(self):
-    '''Determines picklable items
+    """Determines picklable items
     @ In None, None
     @ Out tuple(tuple(float),float), points and weights
-    '''
+    """
     pdict={}
     self.addInitParams(pdict)
     return pdict
 
   def __setstate__(self,pdict):
-    '''Determines how to load from picklable items
+    """Determines how to load from picklable items
     @ In tuple(tuple(float),float), points and weights
     @ Out None, None
-    '''
+    """
     self.__init__()
     self.indexSet = pdict.pop('indexSet')
     self.distDict = pdict.pop('distDict')
@@ -104,10 +124,10 @@ class SparseQuad(MessageHandler.MessageUser):
     self.__initFromPoints(points,weights)
 
   def __eq__(self,other):
-    '''Checks equivalency between sparsequads
+    """Checks equivalency between sparsequads
     @ In other, object, object to compare to
     @ Out, bool, equivalency
-    '''
+    """
     if not isinstance(other,self.__class__): return False
     if len(self.SG)!=len(other.SG):return False
     for pt,wt in self.SG.items():
@@ -116,41 +136,41 @@ class SparseQuad(MessageHandler.MessageUser):
     return True
 
   def __ne__(self,other):
-    '''Checks inequivalency between sparsequads
+    """Checks inequivalency between sparsequads
     @ In other, object, object to compare to
     @ Out, bool, inequivalency
-    '''
+    """
     return not self.__eq__(other)
 
   ##### PRIVATE MEMBERS #####
   def __initFromPoints(self,pts,wts):
-    '''Initializes sparse grid from pt, wt arrays
+    """Initializes sparse grid from pt, wt arrays
     @ In pts, array(tuple(float)), points for grid
     @ In wts, array(float), weights for grid
     @ Out None, None
-    '''
+    """
     newSG={}
     for p,pt in enumerate(pts):
       newSG[pt]=wts[p]
     self.SG=newSG
 
   def __initFromDict(self,ndict):
-    '''Initializes sparse grid from dictionary
+    """Initializes sparse grid from dictionary
     @ In ndict, {tuple(float): float}, {point: weight}
     @ Out None, None
-    '''
+    """
     self.SG=ndict.copy()
 
   ##### PROTECTED MEMBERS #####
   def _remap(self,newNames):
-    '''Reorders data in the sparse grid.  For instance,
+    """Reorders data in the sparse grid.  For instance,
        original:       { (a1,b1,c1): w1,
                          (a2,b2,c2): w2,...}
        remap([a,c,b]): { (a1,c1,b1): w1,
                          (a2,c2,b2): w2,...}
     @ In newNames, tuple(str), list of dimension names
     @ Out None, None
-    '''
+    """
     #TODO optimize me!~~
     oldNames = self.varNames[:]
     self.raiseADebug('REMAPPING SPARSE GRID from '+str(oldNames)+' to '+str(newNames))
@@ -179,7 +199,7 @@ class SparseQuad(MessageHandler.MessageUser):
     self.varNames = newNames
 
   def _xy(self):
-    '''Returns reordered points.
+    """Returns reordered points.
        Points = [(a1,b1,...,z1),
                  (a2,b2,...,z2),
                  ...]
@@ -189,7 +209,7 @@ class SparseQuad(MessageHandler.MessageUser):
                 (z1,z2,z3,...)]
     @ In , None  , None
     @ Out, array of tuples, points by dimension
-    '''
+    """
     return zip(*self.points())
 
   ##### PUBLIC MEMBERS #####
@@ -214,7 +234,7 @@ class SparseQuad(MessageHandler.MessageUser):
       msg=''
 
   def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
-    '''Initializes sparse quad to be functional.
+    """Initializes sparse quad to be functional.
     @ In varNames, the ordered list of grid dimension names
     @ In indexSet, IndexSet object, index set
     @ In distDict, dict{varName,Distribution object}, distributions
@@ -222,7 +242,7 @@ class SparseQuad(MessageHandler.MessageUser):
     @ In handler, JobHandler, parallel processing tool
     @ In msgHandler, MessageHandler, output tool
     @ Out, None, None
-    '''
+    """
     self.origIndexSet = indexSet
     self.indexSet = np.array(indexSet[:])
     self.distDict = distDict
@@ -267,10 +287,10 @@ class SparseQuad(MessageHandler.MessageUser):
     adict['weights' ]=self.weights()
 
   def parallelSparseQuadGen(self,handler):
-    '''Generates sparse quadrature points in parallel.
+    """Generates sparse quadrature points in parallel.
     @ In handler, JobHandler, parallel processing tool
     @ Out, None, None
-    '''
+    """
     numRunsNeeded=len(self.c)
     j=-1
     while True:
@@ -288,7 +308,7 @@ class SparseQuad(MessageHandler.MessageUser):
         else:
           self.raiseAMessage('Sparse quad generation (tensor) '+job.identifier+' failed...')
       if j<numRunsNeeded-1:
-        for k in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
+        for _ in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
           j+=1
           cof=self.c[j]
           idx = self.indexSet[j]
@@ -298,30 +318,30 @@ class SparseQuad(MessageHandler.MessageUser):
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 
   def quadRule(self,idx):
-    '''Collects the cumulative effect of quadrature rules across the dimensions.i
+    """Collects the cumulative effect of quadrature rules across the dimensions.i
     @ In idx, tuple(int), index set point
     @ Out, tuple(int), quadrature orders to use
-    '''
+    """
     tot=np.zeros(len(idx),dtype=np.int64)
     for i,ix in enumerate(idx):
       tot[i]=self.quadDict.values()[i].quadRule(ix)
     return tot
 
   def points(self,n=None):
-    '''Returns sparse grid points
+    """Returns sparse grid points
     @ In n,string,splice instruction
     @ Out, tuple(float) or tuple(tuple(float)), requested points
-    '''
+    """
     if n==None:
       return self.SG.keys()
     else:
       return self.SG.keys()[n]
 
   def weights(self,n=None):
-    '''Either returns the list of weights, or the weight indexed at n, or the weight corresponding to point n.
+    """Either returns the list of weights, or the weight indexed at n, or the weight corresponding to point n.
     @ In n,string,splice instruction
     @ Out, float or tuple(float), requested weights
-    '''
+    """
     if n==None:
       return self.SG.values()
     else:
@@ -329,12 +349,12 @@ class SparseQuad(MessageHandler.MessageUser):
       except TypeError:  return self.SG.values()[n]
 
   def smarterMakeCoeffs(self):
-    '''Somewhat optimized method to create coefficients for each index set in the sparse grid approximation.
+    """Somewhat optimized method to create coefficients for each index set in the sparse grid approximation.
        This particular implementation is faster for any more than 2 dimensions in comparison with the
        serialMakeCoeffs method.
     @ In, None, None
     @ Out, None, None
-    '''
+    """
     N=len(self.indexSet)
     iSet = self.indexSet[:]
     self.c=np.ones(N)
@@ -348,10 +368,10 @@ class SparseQuad(MessageHandler.MessageUser):
           self.c[i]+=(-1)**sum(d)
 
   def parallelMakeCoeffs(self,handler):
-    '''Same thing as smarterMakeCoeffs, but in parallel.
+    """Same thing as smarterMakeCoeffs, but in parallel.
     @ In, None, None
     @ Out, None, None
-    '''
+    """
     N=len(self.indexSet)
     self.c=np.zeros(N)
     i=-1
@@ -370,13 +390,13 @@ class SparseQuad(MessageHandler.MessageUser):
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 
   def makeSingleCoeff(self,N,i,idx,iSet):
-    '''Batch-style algorithm to calculate a single coefficient
+    """Batch-style algorithm to calculate a single coefficient
     @ In N, tinteger, required arguments
     @ In i, integer, required arguments
     @ In idx, tuple(int), required arguments
     @ In iSet, integer, required arguments
     @ Out, float, coefficient for subtensor i
-    '''
+    """
     #N,i,idx,iSet = arglist
     c=1
     for j in range(i+1,N):
@@ -387,11 +407,11 @@ class SparseQuad(MessageHandler.MessageUser):
     return c
 
   def tensorGrid(self, m, idx):
-    '''Creates a tensor itertools.product of quadrature points.
+    """Creates a tensor itertools.product of quadrature points.
     @ In m, integer, number points
     @ In idx, integer, index set point
     @ Out tuple(tuple(float),float), requisite points and weights
-    '''
+    """
     #m,idx = args
     pointLists=[]
     weightLists=[]
@@ -414,15 +434,13 @@ class SparseQuad(MessageHandler.MessageUser):
     return points,weights
 
 
-
-
 class QuadratureSet(MessageHandler.MessageUser):
-  '''Base class to produce standard quadrature points and weights.
+  """Base class to produce standard quadrature points and weights.
      Points and weights are obtained as
      -------------------
      myQuad = Legendre()
      pts,wts = myQuad(n)
-     '''
+     """
   def __init__(self):
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
@@ -430,10 +448,10 @@ class QuadratureSet(MessageHandler.MessageUser):
     self.params = [] #additional parameters for quadrature (alpha,beta, etc)
 
   def __call__(self,order):
-    '''Defines operations to return correct pts, wts
+    """Defines operations to return correct pts, wts
     @ In order, int, order of desired quadrature
     @ Out, tuple(tuple(float),float) points and weight
-    '''
+    """
     pts,wts = self.rule(order,*self.params)
     pts = np.around(pts,decimals=15) #TODO helps with checking equivalence, might not be desirable
     return pts,wts
@@ -453,17 +471,17 @@ class QuadratureSet(MessageHandler.MessageUser):
     return not self.__eq__(other)
 
   def initialize(self,distr,msgHandler):
-    '''Initializes specific settings for quadratures.  Must be overwritten.
+    """Initializes specific settings for quadratures.  Must be overwritten.
     @ In distr, Distribution object, distro represented by this quad
     @ Out, None, None
-    '''
+    """
     self.messageHandler = msgHandler
 
   def quadRule(self,i):
-    '''Quadrature rule to use for order.  Defaults to Gauss, CC should set its own.
+    """Quadrature rule to use for order.  Defaults to Gauss, CC should set its own.
     @ In i, int, quadrature level
     @ Out, int, quadrature order
-    '''
+    """
     return GaussQuadRule(i)
 
 
@@ -513,10 +531,10 @@ class ClenshawCurtis(QuadratureSet):
     self.quadRule = CCQuadRule
 
   def cc_roots(self,o):
-    '''Computes Clenshaw Curtis nodes and weights for given order n=2^o+1
+    """Computes Clenshaw Curtis nodes and weights for given order n=2^o+1
     @ In o,int,level of quadrature to obtain
     @ Out, tuple(tuple(float),float), points and weights
-    '''
+    """
     #TODO FIXME a depreciation warning is being thrown in this prodedure
     n1=o
     if o==1:
@@ -542,31 +560,31 @@ class CDFClenshawCurtis(ClenshawCurtis): #added just for name distinguish; equiv
 
 
 def CCQuadRule(i):
-  '''In order to get nested points, we need 2**i on Clenshaw-Curtis points instead of just i.
+  """In order to get nested points, we need 2**i on Clenshaw-Curtis points instead of just i.
      For example, i=2 is not nested in i==1, but i==2**2 is.
   @ In i,int,level desired
   @ Out, int,desired quad order
-  '''
+  """
   try: return np.array(list((0 if p==0 else 2**p) for p in i))
   except TypeError: return 0 if i==0 else 2**i
 
 
 def GaussQuadRule(i):
-  '''We need no modification for Gauss rules, as we don't expect them to be nested.
+  """We need no modification for Gauss rules, as we don't expect them to be nested.
   @ In i,int,level desired
   @ Out, int,desired quad order
-  '''
+  """
   return i
 
 
 def makeSingleCoeff(N,i,idx,iSet):
-  '''Batch-style algorithm to calculate a single coefficient
+  """Batch-style algorithm to calculate a single coefficient
   @ In N, tinteger, required arguments
   @ In i, integer, required arguments
   @ In idx, tuple(int), required arguments
   @ In iSet, integer, required arguments
   @ Out, float, coefficient for subtensor i
-  '''
+  """
   #N,i,idx,iSet = arglist
   c=1
   for j in range(i+1,N):
@@ -576,9 +594,9 @@ def makeSingleCoeff(N,i,idx,iSet):
       c += (-1)**sum(d)
   return c
 
-'''
+"""
  Interface Dictionary (factory) (private)
-'''
+"""
 __base = 'QuadratureSet'
 __interFaceDict = {}
 __interFaceDict['Legendre'] = Legendre
@@ -594,11 +612,11 @@ def knownTypes():
   return __knownTypes
 
 def returnInstance(Type,caller,**kwargs):
-  '''
+  """
     function used to generate a Filter class
     @ In, Type : Filter type
     @ Out,Instance of the Specialized Filter class
-  '''
+  """
   # some modification necessary to distinguish CDF on Legendre versus CDF on ClenshawCurtis
   if Type=='CDF':
     if   kwargs['Subtype']=='Legendre'      : return __interFaceDict['CDFLegendre']()

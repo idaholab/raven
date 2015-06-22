@@ -1,4 +1,4 @@
-"[u'fullprint_timepointset', u'outputs', [u'normal1']]"
+"[u'fullprint_Pointset', u'outputs', [u'normal1']]"
 "num_bins",7
 "bin_boundary","bin_midpoint","bin_count","normalized_bin_count","f_prime","cdf"
 17.0549393154,16.2573078059,5,0.142857142857,0.0358203358723,0.142857142857
@@ -43,8 +43,8 @@
 6.97201421096,0.0131936932036
 7.87201421096,0.00715390715682
 "pdf_area_ref",0.999999426697
-"pdf_area_[u'fullprint_timepointset', u'outputs', [u'normal1']]",0.876190755574
-"x","ref_cdf","ref_pdf","[u'fullprint_timepointset', u'outputs', [u'normal1']]_cdf","[u'fullprint_timepointset', u'outputs', [u'normal1']]_pdf"
+"pdf_area_[u'fullprint_Pointset', u'outputs', [u'normal1']]",0.876190755574
+"x","ref_cdf","ref_pdf","[u'fullprint_Pointset', u'outputs', [u'normal1']]_cdf","[u'fullprint_Pointset', u'outputs', [u'normal1']]_pdf"
 11.0,0.00134989803163,0.00147728280398,0.0,0.0
 12.5,0.00620966532578,0.00584276683119,0.0,0.0
 14.0,0.0227501319482,0.0179969888377,0.0,0.0
@@ -59,7 +59,7 @@
 27.5,0.993790334674,0.00584276683119,1.0,0.0
 "cdf_area_difference",1.00916370591
 
-"[u'fullprint_timepointset', u'outputs', [u'normal2']]"
+"[u'fullprint_Pointset', u'outputs', [u'normal2']]"
 "num_bins",7
 "bin_boundary","bin_midpoint","bin_count","normalized_bin_count","f_prime","cdf"
 15.9344417184,15.1193878484,4,0.114285714286,0.0175273252625,0.114285714286
@@ -103,9 +103,9 @@
 20.8872694649,0.0114046165044
 22.3872694649,0.00637363709559
 23.8872694649,0.00327949516126
-"pdf_area_[u'fullprint_timepointset', u'outputs', [u'normal2']]",0.914289591162
+"pdf_area_[u'fullprint_Pointset', u'outputs', [u'normal2']]",0.914289591162
 "pdf_area_ref",0.999999426697
-"x","ref_cdf","ref_pdf","[u'fullprint_timepointset', u'outputs', [u'normal2']]_cdf","[u'fullprint_timepointset', u'outputs', [u'normal2']]_pdf"
+"x","ref_cdf","ref_pdf","[u'fullprint_Pointset', u'outputs', [u'normal2']]_cdf","[u'fullprint_Pointset', u'outputs', [u'normal2']]_pdf"
 12.0074439282,0.000160022026281,0.000123037923919,0.0,0.0
 13.5785180269,0.000511186700505,0.000362793103312,0.0,0.0
 15.1495921255,0.00148860339693,0.000969171741077,0.115354323923,0.0172675325151
@@ -129,7 +129,7 @@
 43.4289259013,0.996382020254,0.00216551415028,1.0,0.0
 "cdf_area_difference",11.1433076711
 
-"[u'fullprint_timepointset', u'outputs', [u'uniform1']]"
+"[u'fullprint_Pointset', u'outputs', [u'uniform1']]"
 "num_bins",7
 "bin_boundary","bin_midpoint","bin_count","normalized_bin_count","f_prime","cdf"
 2.75592368163,1.39260856942,8,0.228571428571,0.0366753067958,0.228571428571
@@ -151,7 +151,7 @@
 "variance",34.4975073041
 "omega",59.1605484991
 "mean",9.67328376502
-"[u'fullprint_timepointset', u'outputs', [u'uniform2p']]"
+"[u'fullprint_Pointset', u'outputs', [u'uniform2p']]"
 "num_bins",7
 "bin_boundary","bin_midpoint","bin_count","normalized_bin_count","f_prime","cdf"
 3.96783982848,2.56558454575,5,0.142857142857,-0.0203753402988,0.142857142857
@@ -174,8 +174,8 @@
 "omega",92.1200418899
 "mean",12.9819613872
 "pdf_common_area",0.346568145591
-"pdf_area_[u'fullprint_timepointset', u'outputs', [u'uniform1']]",0.890478422887
-"pdf_area_[u'fullprint_timepointset', u'outputs', [u'uniform2p']]",1.12381281614
+"pdf_area_[u'fullprint_Pointset', u'outputs', [u'uniform1']]",0.890478422887
+"pdf_area_[u'fullprint_Pointset', u'outputs', [u'uniform2p']]",1.12381281614
 "z","f_z(z)"
 -22.977053547,0.0
 -21.0102159545,0.0
@@ -197,7 +197,7 @@
 10.4591855251,0.0260868681802
 12.4260231176,0.0214161180863
 14.3928607101,0.000592370616874
-"x","[u'fullprint_timepointset', u'outputs', [u'uniform1']]_cdf","[u'fullprint_timepointset', u'outputs', [u'uniform1']]_pdf","[u'fullprint_timepointset', u'outputs', [u'uniform2p']]_cdf","[u'fullprint_timepointset', u'outputs', [u'uniform2p']]_pdf"
+"x","[u'fullprint_Pointset', u'outputs', [u'uniform1']]_cdf","[u'fullprint_Pointset', u'outputs', [u'uniform1']]_pdf","[u'fullprint_Pointset', u'outputs', [u'uniform2p']]_cdf","[u'fullprint_Pointset', u'outputs', [u'uniform2p']]_pdf"
 -8.20433517171,0.0,0.0,0.0,0.0
 -5.48069033946,0.0,0.0,0.0,0.0
 -2.75704550721,0.0,0.0,0.0,0.0

@@ -14,9 +14,9 @@
 
     <Samplers>
         <Grid name='grid'>
-            <variable name="x1"><distribution>xd</distribution><grid type='CDF' construction='equal' lowerBound='0.0' steps='2'>0.5</grid></variable>
-            <variable name="x2"><distribution>yd</distribution><grid type='CDF' construction='equal' lowerBound='0.0' steps='2'>0.5</grid></variable>
-            <variable name="x3"><distribution>zd</distribution><grid type='CDF' construction='equal' lowerBound='0.0' steps='2'>0.5</grid></variable>
+            <variable name="x1"><distribution>xd</distribution><grid type='CDF' construction='equal' steps='2'>0.0 1.0</grid></variable>
+            <variable name="x2"><distribution>yd</distribution><grid type='CDF' construction='equal' steps='2'>0.0 1.0</grid></variable>
+            <variable name="x3"><distribution>zd</distribution><grid type='CDF' construction='equal' steps='2'>0.0 1.0</grid></variable>
         </Grid>
         <Sobol name="sobol">
             <variable name="x1"><distribution>xd</distribution></variable>
@@ -49,22 +49,22 @@
     <Steps>
         <MultiRun name='make'>
             <Sampler class='Samplers'         type='Sobol'        >sobol</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet' >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet' >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'>poly</Model>
-            <Output  class='DataObjects'            type='TimePointSet' >solns</Output>
+            <Output  class='DataObjects'            type='PointSet' >solns</Output>
         </MultiRun>
         <RomTrainer name='train'>
-            <Input   class='DataObjects'            type='TimePointSet' >solns</Input>
+            <Input   class='DataObjects'            type='PointSet' >solns</Input>
             <Output  class='Models'           type='ROM'          >rom</Output>
         </RomTrainer>
         <MultiRun name='test'>
             <Sampler class='Samplers'         type='Grid'         >grid</Sampler>
-            <Input   class='DataObjects'            type='TimePointSet' >dummyIN</Input>
+            <Input   class='DataObjects'            type='PointSet' >dummyIN</Input>
             <Model   class='Models'           type='ROM'          >rom</Model>
-            <Output  class='DataObjects'            type='TimePointSet' >tests</Output>
+            <Output  class='DataObjects'            type='PointSet' >tests</Output>
         </MultiRun>
         <IOStep name='print'>
-            <Input   class='DataObjects'            type='TimePointSet' >tests</Input>
+            <Input   class='DataObjects'            type='PointSet' >tests</Input>
             <Output  class='OutStreamManager' type='Print'        >dump</Output>
             <Input   class='Models'           type='ROM'          >rom</Input>
             <Output  class='OutStreamManager' type='Print'        >dumprom</Output>
@@ -72,18 +72,18 @@
     </Steps>
 
     <DataObjects>
-        <TimePointSet name="dummyIN">
+        <PointSet name="dummyIN">
             <Input>x1,x2,x3</Input>
             <Output>OutputPlaceHolder</Output>
-        </TimePointSet>
-        <TimePointSet name='tests'>
+        </PointSet>
+        <PointSet name='tests'>
             <Input>x1,x2,x3</Input>
             <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='solns'>
+        </PointSet>
+        <PointSet name='solns'>
             <Input>x1,x2,x3</Input>
             <Output>ans</Output>
-        </TimePointSet>
+        </PointSet>
     </DataObjects>
 
     <OutStreamManager>
