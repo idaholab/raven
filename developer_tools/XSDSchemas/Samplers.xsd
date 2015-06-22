@@ -8,12 +8,13 @@
             <xsd:element name="MonteCarlo"               type="MonteCarloSampler"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Grid"                     type="GridSampler"            minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="SparseGridCollocation"    type="SparseGridSampler"      minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="Sobol"                    type="SparseGridSampler"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Sobol"                    type="Sobol"                  minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Stratified"               type="GridSampler"            minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="ResponseSurfaceDesign"    type="ResponseSurfaceSampler" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="FactorialDesign"          type="FactorialSampler"       minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="DynamicEventTree"         type="DETSampler"             minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="Adaptive"                 type="AdaptiveSampler"        minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="LimitSurfaceSearch"       type="LimitSurfaceSearch"     minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="AdaptiveSparseGrid"       type="AdaptiveSparseGrid"     minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdaptiveDynamicEventTree" type="AdaptiveDETSampler"     minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
