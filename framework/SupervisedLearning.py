@@ -335,7 +335,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
   def _localPrintXML(self,node,options=None):
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance']
+    canDo = ['mean','variance','numRuns']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
@@ -348,6 +348,9 @@ class GaussPolynomialRom(NDinterpolatorRom):
         elif request.lower() in ['variance']:
           if self.mean == None: self.mean = self.__evaluateMoment__(1)
           newnode.setText(self.__evaluateMoment__(2) - self.mean*self.mean)
+        elif request.lower() in ['numruns']:
+          if self.numRuns!=None: newnode.setText(self.numRuns)
+          else: newnode.setText(len(self.sparseGrid))
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
           newnode.setText('not found')
@@ -361,11 +364,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
 
   def initialize(self,idict):
     for key,value in idict.items():
-      if   key == 'SG'   : self.sparseGrid = value
-      elif key == 'dists': self.distDict   = value
-      elif key == 'quads': self.quads      = value
-      elif key == 'polys': self.polys      = value
-      elif key == 'iSet' : self.indexSet   = value
+      if   key == 'SG'      : self.sparseGrid = value
+      elif key == 'dists'   : self.distDict   = value
+      elif key == 'quads'   : self.quads      = value
+      elif key == 'polys'   : self.polys      = value
+      elif key == 'iSet'    : self.indexSet   = value
+      elif key == 'numRuns' : self.numRuns    = value
 
   def _multiDPolyBasisEval(self,orders,pts):
     """Evaluates each polynomial set at given orders and points, returns product.
@@ -383,8 +387,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     '''See base class.'''
     self.polyCoeffDict={}
     #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
-    self.sparseGrid._remap(self.features)
-    self.raiseAMessage('types: '+str(type(self.sparseGrid.points()))+' | '+str(type(featureVals)))
+    #self.sparseGrid._remap(self.features)
     #check equality of point space
     fvs = []
     tvs=[]
@@ -403,6 +406,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
       for i in missing:
         msg+='  '+str(i)+'\n'
       self.raiseADebug(msg)
+      self.raiseADebug('sparse:',sgs)
+      self.raiseADebug('solns :',fvs)
       self.raiseAnError(IOError,'input values do not match required values!')
     #make translation matrix between lists
     translate={}
@@ -422,6 +427,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
     self.amITrained=True
+    #self.printPolyDict()
+    #self._printPolynomial()
 
   def printPolyDict(self,printZeros=False):
     """Human-readable version of the polynomial chaos expansion.
@@ -430,13 +437,19 @@ class GaussPolynomialRom(NDinterpolatorRom):
     """
     data=[]
     for idx,val in self.polyCoeffDict.items():
-      if val > 1e-14 or printZeros:
+      if abs(val) > 1e-12 or printZeros:
         data.append([idx,val])
     data.sort()
-    msg='polyDict for ['+self.target+'] with inputs '+str(self.features)+': \n'
+    self.raiseADebug('polyDict for ['+self.target+'] with inputs '+str(self.features)+':')
     for idx,val in data:
-      msg+='    '+str(idx)+' '+str(val)+'\n'
-    self.raiseAMessage(msg)
+      self.raiseADebug('    '+str(idx)+' '+str(val))
+
+  def checkForNonzeros(self,tol=1e-12):
+    data=[]
+    for idx,val in self.polyCoeffDict.items():
+      if abs(val) > 1e-12:
+        data.append([idx,val])
+    return data
 
   def __evaluateMoment__(self,r):
     """Use the ROM's built-in method to calculate moments.
@@ -444,10 +457,14 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ Out, float, evaluation of moment
     """
     #TODO is there a faster way still to do this?
+    if r==1: return self.polyCoeffDict[tuple([0]*len(self.features))]
+    elif r==2: return sum(s**2 for s in self.polyCoeffDict.values())
     tot=0
     for pt,wt in self.sparseGrid:
       tot+=self.__evaluateLocal__([pt])**r*wt
     tot*=self.norm
+    #self.raiseADebug('MOMENT:',tot)
+    #self.raiseADebug('SUM   :',sum(s**2 for s in self.polyCoeffDict.values()))
     return tot
 
   def __evaluateLocal__(self,featureVals):
@@ -461,11 +478,23 @@ class GaussPolynomialRom(NDinterpolatorRom):
       tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
     return tot
 
+  def _printPolynomial(self):
+    #dim=len(self.polyCoeffDict.keys()[0])
+    #maxPoly = 0
+    #for idx in self.polyCoeffDict.keys(): maxPoly=max(maxPoly,max(idx))
+    #polys=np.zeros(shape=(dim,maxPoly))
+    self.raiseADebug('Coeff Idx')
+    for idx,coeff in self.polyCoeffDict.items():
+      if abs(coeff)<1e-12: continue
+      self.raiseADebug(str(idx))
+      for i,ix in enumerate(idx):
+        var = self.features[i]
+        print(self.polys[var][ix]*coeff,'|',var)
+
   def __returnInitialParametersLocal__(self):
     return {}#TODO 'IndexSet:':self.indexSetType,
              #'PolynomialOrder':self.maxPolyOrder,
              # 'Interpolation':interpolationInfo()}
-
 
 
 
