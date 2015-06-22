@@ -18,7 +18,7 @@
   
   <MultiRun name = 'pth2' pauseAtEnd = 'True'>
     <Sampler          class = 'Samplers'  type = 'LimitSurfaceSearch'      >dpt_smp</Sampler>
-  	<Input            class = 'DataObjects'     type = 'TimePointSet'  >bln_smp_dt</Input>   
+  	<Input            class = 'DataObjects'     type = 'PointSet'  >bln_smp_dt</Input>   
     <Model            class = 'Models'    type = 'ExternalModel' >xtr_mdl</Model>
     <Output           class = 'DataObjects'     type = 'PointSet'  >nt_phy_dpt_dt</Output>            
     <SolutionExport   class = 'DataObjects'     type = 'PointSet'  >lmt_srf_dt</SolutionExport>

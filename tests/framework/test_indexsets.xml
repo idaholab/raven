@@ -164,22 +164,22 @@
 
         <MultiRun name='Amake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>ASG</Sampler>
-            <Input   class='DataObjects'      type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'      type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Output  class='DataObjects'      type='TimePointSet'         >Asolns</Output>
+            <Output  class='DataObjects'      type='PointSet'         >Asolns</Output>
         </MultiRun>
         <RomTrainer name='Atrain'>
-            <Input   class='DataObjects'      type='TimePointSet'         >Asolns</Input>
+            <Input   class='DataObjects'      type='PointSet'         >Asolns</Input>
             <Output  class='Models'           type='ROM'                  >AROM</Output>
         </RomTrainer>
         <MultiRun name='Atest' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>ASG</Sampler>
-            <Input   class='DataObjects'      type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'      type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >AROM</Model>
-            <Output  class='DataObjects'      type='TimePointSet'         >Atests</Output>
+            <Output  class='DataObjects'      type='PointSet'         >Atests</Output>
         </MultiRun>
         <IOStep name='Aprint'>
-            <Input   class='DataObjects'      type='TimePointSet'>Atests</Input>
+            <Input   class='DataObjects'      type='PointSet'>Atests</Input>
             <Output  class='OutStreamManager' type='Print'       >Adump</Output>
         </IOStep>
 
