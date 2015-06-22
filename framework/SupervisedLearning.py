@@ -406,14 +406,14 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.distDict   = idict.get('dists'  ,None)
     self.quads      = idict.get('quads'  ,None)
     self.polys      = idict.get('polys'  ,None)
-    self.indexSet   = idict.get('iset'   ,None)
+    self.indexSet   = idict.get('iSet'   ,None)
     self.numRuns    = idict.get('numRuns',None)
     #make sure requireds are not None
     if self.sparseGrid is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "SG"   ')
     if self.distDict   is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "dists"')
     if self.quads      is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "quads"')
     if self.polys      is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "polys"')
-    if self.indexSet   is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "iset" ')
+    if self.indexSet   is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "iSet" ')
 
   def _multiDPolyBasisEval(self,orders,pts):
     """Evaluates each polynomial set at given orders and points, returns product.

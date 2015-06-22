@@ -2182,7 +2182,7 @@ class SparseGridCollocation(Grid):
 
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType,self)
-    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder,self.messageHandler)
+    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
     if self.indexSet.type=='Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
 
@@ -2212,6 +2212,7 @@ class SparseGridCollocation(Grid):
     self.raiseADebug('Number of Runs Needed :'+str(self.limit-len(self.existing)))
     self.raiseADebug('Finished sampler generation.')
 
+    self.raiseADebug('indexset:',self.indexSet)
     for SVL in self.ROM.SupervisedEngine.values():
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.distDict,
@@ -2707,7 +2708,7 @@ class Sobol(SparseGridCollocation):
         polyDict[c]=self.polyDict[c]
         imptDict[c]=self.importanceDict[c]
       iset=IndexSets.returnInstance(SVL.indexSetType,self)
-      iset.initialize(distDict,imptDict,SVL.maxPolyOrder,self.messageHandler)
+      iset.initialize(distDict,imptDict,SVL.maxPolyOrder)
       self.SQs[combo] = Quadratures.SparseQuad()
       self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
       initDict={'IndexSet':iset.type, 'PolynomialOrder':SVL.maxPolyOrder, 'Interpolation':SVL.itpDict}

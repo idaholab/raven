@@ -420,9 +420,8 @@ class AdaptiveSet(IndexSet):
       @ Out, None
     """
     msg = '\n'.join(self.history)
-    outFile = FileObjects.FileObject('isethist.out') #TODO does this work?  What do file objects do?
+    outFile = FileObject.FileObject('isethist.out') #TODO does this work?  What do file objects do?
     outFile.writelines(msg)
-    outFile.close()
 
   def printHistory(self):
     """
