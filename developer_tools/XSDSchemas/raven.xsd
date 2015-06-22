@@ -10,6 +10,16 @@
     <xsd:include schemaLocation="Databases.xsd"/>
     <xsd:include schemaLocation="DataObjects.xsd"/>
 
+    <!-- Common simple types -->
+    <xsd:simpleType name="floatList">
+      <xsd:list itemType="xsd:float"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="intList">
+      <xsd:list itemType="xsd:integer"/>
+    </xsd:simpleType>
+    <!-- End Common simple types -->
+
     <xsd:element name="Simulation">
         <xsd:complexType>
             <xsd:all>

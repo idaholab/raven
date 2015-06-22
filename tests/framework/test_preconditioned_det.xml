@@ -42,7 +42,7 @@
 </Distributions>
 
 <Samplers>
-  <DynamicEventTree name='PreconditionedDET_test' print_end_xml="True">
+  <DynamicEventTree name='PreconditionedDET_test' print_end_xml="true">
       <PreconditionerSampler type='MonteCarlo'>
           <sampler_init>
               <limit>2</limit>
@@ -102,7 +102,7 @@
     <source>timepointset</source>
     <what>Output,Input|dummy_for_branch</what>
   </Print>
-  <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='True'>
+  <Plot name='2DHistoryPlot' dim='2' interactive='false' overwrite='true'>
         <plotSettings>
             <plot>
                 <type>line</type>
@@ -122,7 +122,7 @@
             </title>
         </actions>
   </Plot>
-  <Plot name='2DHistoryPlot_tps' dim='2' interactive='False' overwrite='True'>
+  <Plot name='2DHistoryPlot_tps' dim='2' interactive='false' overwrite='true'>
         <plotSettings>
             <plot>
                 <type>scatter</type>

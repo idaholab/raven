@@ -82,9 +82,9 @@
       <type>csv</type>
       <source>TimePointSets</source>
     </Print>
-   <Plot verbosity='debug' name='test' dim='2' overwrite='False'>
+   <Plot verbosity='debug' name='test' dim='2' overwrite='false'>
     <plotSettings>
-       <plot>
+      <plot>
         <type>line</type>
         <x>stories|Output|time</x>
         <y>stories|Output|pump_mass_flow_rate</y>
@@ -93,7 +93,7 @@
          <label>pipe1-Hw</label>
         </kwargs>
       </plot>
-       <plot>
+      <plot>
         <type>line</type>
         <x>stories|Output|time</x>
         <y>stories|Output|pump_mass_flow_rate</y>
@@ -108,7 +108,7 @@
     <actions>
       <how>png</how>
       <figureProperties>
-        <frameon>t</frameon>
+        <frameon>true</frameon>
       </figureProperties>
       <range>
         <xmin>0</xmin>
@@ -128,14 +128,14 @@
           <yscale>linear</yscale>
       </scale>
       <grid>
-        <b>on</b>
+        <b>true</b>
       </grid>
       <addText>
           <text> </text>
       </addText>
       <title>
         <text> </text>
-      </title> -->
+      </title>
       <!-- custom action (not predefined in the code -->
       <arrow>
           <x>0.0</x>
@@ -145,7 +145,7 @@
       </arrow>
     </actions>
   </Plot>
-   <Plot verbosity='debug' name='plot2' dim='3' overwrite='False'>
+   <Plot verbosity='debug' name='plot2' dim='3' overwrite='false'>
       <plotSettings>
           <plot>
               <type>line</type>
@@ -187,7 +187,7 @@
               <style>sci</style>
           </labelFormat>
           <grid>
-              <b>off</b>
+              <b>false</b>
           </grid>
           <scale>
               <xscale>linear</xscale>
@@ -202,11 +202,11 @@
               <text> </text>
           </addText>
           <autoscale>
-              <enable>f</enable>
+              <enable>false</enable>
           </autoscale>
       </actions>
   </Plot>
-   <Plot verbosity='debug' name='plot3' dim='2' overwrite='False'>
+   <Plot verbosity='debug' name='plot3' dim='2' overwrite='false'>
     <plotSettings>
        <plot>
         <type>scatter</type>
@@ -226,7 +226,7 @@
          <color>red</color>
          <label>pump mass flow rate</label>
         </kwargs>
-      </plot> -->
+      </plot>
       <xlabel>time [s]</xlabel>
       <ylabel>evolution</ylabel>
     </plotSettings>
@@ -237,7 +237,7 @@
       </title>
     </actions>
   </Plot>
-   <Plot verbosity='debug' name='plot4' dim='3' overwrite='False'>
+   <Plot verbosity='debug' name='plot4' dim='3' overwrite='false'>
       <plotSettings>
           <plot>
               <type>scatter</type>
@@ -269,11 +269,11 @@
               <elevation>10</elevation>
           </camera>
           <autoscale>
-              <enable>t</enable>
+              <enable>true</enable>
           </autoscale>
       </actions>
   </Plot>
-   <Plot verbosity='debug' name='plot5' dim='2' overwrite='False'>
+   <Plot verbosity='debug' name='plot5' dim='2' overwrite='false'>
       <plotSettings>
           <plot>
               <type>histogram</type>
@@ -289,7 +289,7 @@
           </title>
       </actions>
   </Plot>
-   <Plot verbosity='debug' name='plot6' dim='3' overwrite='False'>
+   <Plot verbosity='debug' name='plot6' dim='3' overwrite='false'>
       <plotSettings>
           <plot>
               <type>histogram</type>
@@ -307,7 +307,7 @@
       </actions>
   </Plot>
 
-   <Plot verbosity='debug' name='plot7' dim='2' overwrite='False'>
+   <Plot verbosity='debug' name='plot7' dim='2' overwrite='false'>
       <plotSettings>
           <plot>
               <type>stem</type>
@@ -324,7 +324,7 @@
           </title>
       </actions>
   </Plot>
-   <Plot verbosity='debug' name='plot8' dim='3' overwrite='False'>
+   <Plot verbosity='debug' name='plot8' dim='3' overwrite='false'>
       <plotSettings>
           <plot>
               <type>stem</type>
@@ -343,7 +343,7 @@
       </actions>
   </Plot>
 
- <Plot verbosity='debug' name='plot9' dim='2' overwrite='False'>
+ <Plot verbosity='debug' name='plot9' dim='2' overwrite='false'>
     <plotSettings>
         <plot>
             <type>stem</type>
@@ -360,7 +360,7 @@
         </title>
     </actions>
 </Plot>
- <Plot verbosity='debug' name='plot10' dim='3' overwrite='False'>
+ <Plot verbosity='debug' name='plot10' dim='3' overwrite='false'>
     <plotSettings>
         <plot>
             <type>stem</type>
@@ -378,7 +378,7 @@
         </title>
     </actions>
 </Plot>
- <Plot verbosity='debug' name='plot11' dim='2' overwrite='False'>
+ <Plot verbosity='debug' name='plot11' dim='2' overwrite='false'>
     <plotSettings>
         <plot>
             <type>step</type>
@@ -395,7 +395,7 @@
         </title>
     </actions>
 </Plot>
- <Plot verbosity='debug' name='plot12' dim='2' overwrite='False'>
+ <Plot verbosity='debug' name='plot12' dim='2' overwrite='false'>
     <plotSettings>
         <plot>
             <type>pseudocolor</type>
@@ -414,7 +414,7 @@
         </title>
     </actions>
 </Plot>
- <Plot verbosity='debug' name='plot13' dim='3' overwrite='False'>
+ <Plot verbosity='debug' name='plot13' dim='3' overwrite='false'>
     <plotSettings>
         <plot>
             <type>surface</type>
@@ -449,7 +449,7 @@
         </title>
     </actions>
 </Plot>
- <Plot verbosity='debug' name='plot14' dim='3' overwrite='False'>
+ <Plot verbosity='debug' name='plot14' dim='3' overwrite='false'>
     <plotSettings>
         <plot>
             <type>tri-surface</type>
@@ -480,7 +480,7 @@
         </title>
     </actions>
 </Plot>
- <Plot verbosity='debug' name='plot15' dim='3' overwrite='False'>
+ <Plot verbosity='debug' name='plot15' dim='3' overwrite='false'>
     <plotSettings>
         <plot>
             <type>wireframe</type>
@@ -514,7 +514,7 @@
 </Plot>
 
 
- <Plot verbosity='debug' name='plot16' dim='2' overwrite='False'>
+ <Plot verbosity='debug' name='plot16' dim='2' overwrite='false'>
     <plotSettings>
         <plot>
             <type>contour</type>
@@ -540,7 +540,7 @@
         </title>
     </actions>
 </Plot>
- <Plot verbosity='debug' name='plot17' dim='3' overwrite='False'>
+ <Plot verbosity='debug' name='plot17' dim='3' overwrite='false'>
     <plotSettings>
         <plot>
             <type>contour3D</type>
@@ -569,7 +569,7 @@
         </title>
     </actions>
 </Plot>
-  <Plot verbosity='debug' name='plot18' dim='2' overwrite='False'>
+  <Plot verbosity='debug' name='plot18' dim='2' overwrite='false'>
     <actions>
       <how>png</how>
     </actions>
@@ -587,7 +587,7 @@
       </kwargs>
     </plotSettings>
   </Plot>
-  <Plot verbosity='debug' name='plot19' dim='3' overwrite='False'>
+  <Plot verbosity='debug' name='plot19' dim='3' overwrite='false'>
     <actions>
       <how>png</how>
     </actions>
@@ -607,7 +607,7 @@
       </kwargs>
     </plotSettings>
   </Plot>
-  <Plot verbosity='debug' name='plot20' dim='3' overwrite='False'>
+  <Plot verbosity='debug' name='plot20' dim='3' overwrite='false'>
     <actions>
       <how>png</how>
     </actions>
@@ -627,7 +627,7 @@
       </kwargs>
     </plotSettings>
   </Plot>
- <Plot verbosity='debug' name='2DHistoryPlot' dim='2' overwrite='False'>
+ <Plot verbosity='debug' name='2DHistoryPlot' dim='2' overwrite='false'>
     <plotSettings>
         <plot>
             <type>histogram</type>
@@ -643,7 +643,7 @@
         </title>
     </actions>
 </Plot>
-   <Plot verbosity='debug' name='2DHistoryPlot2' dim='2' overwrite='False'>
+   <Plot verbosity='debug' name='2DHistoryPlot2' dim='2' overwrite='false'>
       <plotSettings>
           <plot>
               <type>histogram</type>

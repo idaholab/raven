@@ -37,9 +37,6 @@
         </xsd:all>
     </xsd:complexType>
 
-    <xsd:simpleType name="floatList">
-        <xsd:list itemType="xsd:float"/>
-    </xsd:simpleType>
     <xsd:simpleType name="variableDistributionType">
         <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
@@ -284,6 +281,4 @@
         <xsd:attribute name="mode"              type="modeAttr"  default="post"/>
         <xsd:attribute name="updateGrid"        type="RavenBool" default="true"/>
     </xsd:complexType>
-
-
 </xsd:schema>
