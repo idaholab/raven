@@ -2,5 +2,6 @@
   <ans>
     <mean>6.0</mean>
     <variance>8.0</variance>
+    <numRuns>9</numRuns>
   </ans>
 </ReducedOrderModel>

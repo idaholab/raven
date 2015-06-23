@@ -554,4 +554,13 @@
    output = 'dists_vars/PrintPointSet_dump.csv'
    csv = 'dists_vars/PrintPointSet_dump.csv'
  [../]
+
+ [./adaptiveStochasticPoly]
+   type = 'RavenFramework'
+   input = 'test_adaptive_stochpoly.xml'
+   output = 'AdaptiveStochasticPoly/dump.xml'
+   xml = 'AdaptiveStochasticPoly/dump.xml'
+   csv = 'AdaptiveStochasticPoly/data.csv'
+ [../]
+
 []
