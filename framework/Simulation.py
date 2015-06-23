@@ -20,6 +20,7 @@ import datetime
 #Internal Modules------------------------------------------------------------------------------------
 import Steps
 import DataObjects
+import FileObjects
 import Samplers
 import Models
 import Tests
@@ -345,6 +346,7 @@ class Simulation(MessageHandler.MessageUser):
     self.addWhatDict['Distributions'    ] = Distributions
     self.addWhatDict['Databases'        ] = Databases
     self.addWhatDict['Functions'        ] = Functions
+    self.addWhatDict['FileObjects'      ] = FileObjects
     self.addWhatDict['OutStreamManager' ] = {}
     self.addWhatDict['OutStreamManager' ]['Plot' ] = OutStreamManager
     self.addWhatDict['OutStreamManager' ]['Print'] = OutStreamManager
@@ -357,7 +359,7 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['Models'          ] = self.modelsDict
     self.whichDict['Tests'           ] = self.testsDict
     self.whichDict['RunInfo'         ] = self.runInfoDict
-    self.whichDict['Files'           ] = self.filesDict
+    self.whichDict['FileObjects'     ] = self.filesDict
     self.whichDict['Distributions'   ] = self.distributionsDict
     self.whichDict['Databases'       ] = self.dataBasesDict
     self.whichDict['Functions'       ] = self.functionsDict
@@ -438,6 +440,7 @@ class Simulation(MessageHandler.MessageUser):
 
   def initialize(self):
     """check/created working directory, check/set up the parallel environment, call step consistency checker"""
+    self.raiseADebug('whichDict Check:',self,whichDict['FileObjects'])
     #check/generate the existence of the working directory
     if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
     #move the full simulation environment in the working directory
