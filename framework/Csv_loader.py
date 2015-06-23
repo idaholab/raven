@@ -116,7 +116,7 @@ class CsvLoader(MessageHandler.MessageUser):
               <outputPivotValue>
               <inputPivotValue>
     """
-    inParam, outParam, inputRow, outputRow                 = options['inParam'], options['outParam'], options.get('inputRow',None), options.get('outputRow',None)
+    inParam, outParam, inputRow, outputRow                 = options['inParam'], options['outParam'], copy.deepcopy(options.get('inputRow',None)), copy.deepcopy(options.get('outputRow',None))
     SampledVars, inputPivotVal, outputPivotVal, operator   = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None), options.get('operator',None)
     pivotParameter                                         = options.get('pivotParameter',None)
 
@@ -129,8 +129,8 @@ class CsvLoader(MessageHandler.MessageUser):
         outputPivotVal_end, outputPivotVal = False,  float(outputPivotVal)
     else: outputPivotVal_end = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow != None  and inputRow  != -1: inputRow  = int(inputRow) - 1
-    if outputRow != None and outputRow != -1: outputRow = int(outputRow) - 1
+    if inputRow != None  and inputRow  > 0: inputRow  = int(inputRow) - 1
+    if outputRow != None and outputRow > 0: outputRow = int(outputRow) - 1
     inDict, outDict = {}, {}
 
     #load the data into the numpy array
@@ -224,7 +224,7 @@ class CsvLoader(MessageHandler.MessageUser):
               <outputPivotValue>
               <inputPivotValue>
     """
-    inParam, outParam, inputRow, outputRow                 = options['inParam'], options['outParam'], options.get('inputRow',None), options.get('outputRow',None)
+    inParam, outParam, inputRow, outputRow                 = options['inParam'], options['outParam'], copy.deepcopy(options.get('inputRow',None)), copy.deepcopy(options.get('outputRow',None))
     SampledVars, inputPivotVal, outputPivotVal, operator   = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None), options.get('operator',None)
     pivotParameter                                         = options.get('pivotParameter',None)
 
@@ -237,8 +237,8 @@ class CsvLoader(MessageHandler.MessageUser):
         outputPivotVal_end, outputPivotVal = False,  float(outputPivotVal)
     else: outputPivotVal_end = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow != None  and inputRow  != -1: inputRow  = int(inputRow) - 1
-    if outputRow != None and outputRow != -1: outputRow = int(outputRow) - 1
+    if inputRow != None  and inputRow  > 0: inputRow  = int(inputRow) - 1
+    if outputRow != None and outputRow > 0: outputRow = int(outputRow) - 1
     inDict, outDict = {}, {}
 
     for i in range(len(filesin)):
@@ -342,7 +342,7 @@ class CsvLoader(MessageHandler.MessageUser):
               <inputPivotValue>
 
     """
-    inParam, outParam, inputRow                 = options['inParam'], options['outParam'], options.get('inputRow',None)
+    inParam, outParam, inputRow                 = options['inParam'], options['outParam'], copy.deepcopy(options.get('inputRow',None))
     SampledVars, inputPivotVal, outputPivotVal  = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None)
     pivotParameter                              = options.get('pivotParameter',None)
     #load the data into the numpy array
@@ -363,7 +363,7 @@ class CsvLoader(MessageHandler.MessageUser):
         outputPivotVal_all, outputPivotVal = False,  [float(x) for x in outputPivotVal.split()]
     else: outputPivotVal_all = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow != None  and inputRow  != -1: inputRow  = int(inputRow) - 1
+    if inputRow != None  and inputRow  > 0: inputRow  = int(inputRow) - 1
     if inputRow > data[:,0].size-1  and inputRow != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual rows in file '+ str(filein) + '!')
     inDict, outDict = {}, {}
     self.field_names = self.all_field_names if self.all_out_param else outParam

@@ -5,7 +5,7 @@
     <WorkingDir>LHStestBisonParallel</WorkingDir>
     <Files>gap_perfect_transfer_test.i,gap_perfect_transfer_test.e</Files>
     <Sequence>myLHS</Sequence>
-    <batchSize>4</batchSize>
+    <batchSize>2</batchSize>
 </RunInfo>
 
 <Models>
@@ -56,7 +56,7 @@
 
 
 <Steps>
-    <MultiRun name='myLHS'>
+    <MultiRun name='myLHS' sleepTime="0.2">
         <Input   class = 'Files'          type=''          >gap_perfect_transfer_test.i</Input>
         <Input   class = 'Files'          type=''          >gap_perfect_transfer_test.e</Input>
         <Model   class = 'Models'         type='Code'      >Bison</Model>
