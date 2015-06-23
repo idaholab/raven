@@ -256,7 +256,6 @@ class CsvLoader(MessageHandler.MessageUser):
       if i == 0:
         if(self.all_out_param): self.field_names = self.all_field_names
         else: self.field_names = outParam
-
       #fill input param dictionary
       for key in inParam:
         if i == 0: inDict[key] = np.zeros(len(filesin))

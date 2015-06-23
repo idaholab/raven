@@ -713,8 +713,8 @@ class Code(Model):
       self.raiseAWarning('current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
       if utils.checkIfPathAreAccessedByAnotherProgram(self.workingDir,3.0): self.raiseAWarning('directory '+ self.workingDir + ' is likely used by another program!!! ')
       if utils.checkIfLockedRavenFileIsPresent(self.workingDir,self.lockedFileName): self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ self.workingDir+". Please check your input!")
-    # register function to remove the locked file at the end of execution
-    atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
+      # register function to remove the locked file at the end of execution
+      atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
     for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
     self.raiseADebug('original input files copied in the current working dir: '+self.workingDir)
     self.raiseADebug('files copied:')
