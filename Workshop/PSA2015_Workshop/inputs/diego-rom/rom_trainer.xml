@@ -23,10 +23,10 @@
 <Steps>
     <IOStep name='extract_data3'>
         <Input   class='Databases'   type='HDF5'        >out_db</Input>
-        <Output  class='DataObjects' type='TimePointSet'>outGRID_y3</Output>
+        <Output  class='DataObjects' type='PointSet'>outGRID_y3</Output>
     </IOStep>
     <RomTrainer name='rom_trainer3'>
-        <Input   class='DataObjects' type='TimePointSet'>outGRID_y3</Input>
+        <Input   class='DataObjects' type='PointSet'>outGRID_y3</Input>
         <Output  class='Models'      type='ROM'         >ROM3</Output>
     </RomTrainer>
     <IOStep name='pkDump3'>
@@ -42,10 +42,10 @@
 
 
 <DataObjects>
-    <TimePointSet name='outGRID_y3'>
+    <PointSet name='outGRID_y3'>
         <Input>x1,x2,x3</Input>
         <Output>y3</Output>
-    </TimePointSet>
+    </PointSet>
 </DataObjects>
 
 

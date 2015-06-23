@@ -78,37 +78,37 @@
 
 <Steps>
     <MultiRun name='FirstMRun'  re-seeding='200286'>
-        <Input   class='DataObjects'     type='TimePointSet'   >Dummy</Input>
+        <Input   class='DataObjects'     type='PointSet'   >Dummy</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='DataObjects'     type='TimePointSet'   >TimePointSetPostProcTest</Output>
-        <Output  class='OutStreamManager' type='Print'   >TimePointSetPostProcTest_dump</Output>
+        <Output  class='DataObjects'     type='PointSet'   >PointSetPostProcTest</Output>
+        <Output  class='OutStreamManager' type='Print'   >PointSetPostProcTest_dump</Output>
     </MultiRun >
     <PostProcess name='ComputeLimitSurfacePositive' >
-        <Input    class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Input    class='DataObjects'            type='PointSet'    >PointSetPostProcTest</Input>
         <Model    class='Models'           type='PostProcessor'   >computeLimitSurfacePositive</Model>
-        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfacePositive</Output>
+        <Output   class='DataObjects'            type='PointSet'    >LimitSurfacePositive</Output>
         <Output   class='OutStreamManager' type='Print'           >LimitSurfacePositive_dump</Output>
     </PostProcess>
     <PostProcess name='ComputeLimitSurfaceNegative' >
-        <Input    class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Input    class='DataObjects'            type='PointSet'    >PointSetPostProcTest</Input>
         <Model    class='Models'           type='PostProcessor'   >computeLimitSurfaceNegative</Model>
-        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfaceNegative</Output>
+        <Output   class='DataObjects'            type='PointSet'    >LimitSurfaceNegative</Output>
         <Output   class='OutStreamManager' type='Print'           >LimitSurfaceNegative_dump</Output>
     </PostProcess>
     <PostProcess name='ComputeLimitSurfacePositiveNegative' >
-        <Input    class='DataObjects'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Input    class='DataObjects'            type='PointSet'    >PointSetPostProcTest</Input>
         <Model    class='Models'           type='PostProcessor'   >computeLimitSurfacePositiveNegative</Model>
-        <Output   class='DataObjects'            type='TimePointSet'    >LimitSurfacePositiveNegative</Output>
+        <Output   class='DataObjects'            type='PointSet'    >LimitSurfacePositiveNegative</Output>
         <Output   class='OutStreamManager' type='Print'           >LimitSurfacePositiveNegative_dump</Output>
     </PostProcess>
 </Steps>
 
 <OutStreamManager>
     
-  <Print name='TimePointSetPostProcTest_dump'>
+  <Print name='PointSetPostProcTest_dump'>
     <type>csv</type>
-    <source>TimePointSetPostProcTest</source>
+    <source>PointSetPostProcTest</source>
   </Print>
   <Print name='LimitSurfacePositive_dump'>
       <type>csv</type>
@@ -125,26 +125,26 @@
 </OutStreamManager>
 
 <DataObjects>
-    <TimePointSet name='TimePointSetPostProcTest'>
+    <PointSet name='PointSetPostProcTest'>
         <Input>x0,y0</Input>
         <Output>z</Output>
-    </TimePointSet>
-    <TimePointSet name='LimitSurfacePositive'>
+    </PointSet>
+    <PointSet name='LimitSurfacePositive'>
         <Input>x0,y0</Input>
         <Output>OutputPlaceOrder</Output>
-    </TimePointSet>
-    <TimePointSet name='LimitSurfaceNegative'>
+    </PointSet>
+    <PointSet name='LimitSurfaceNegative'>
         <Input>x0,y0</Input>
         <Output>OutputPlaceOrder</Output>
-    </TimePointSet>
-    <TimePointSet name='LimitSurfacePositiveNegative'>
+    </PointSet>
+    <PointSet name='LimitSurfacePositiveNegative'>
         <Input>x0,y0</Input>
         <Output>OutputPlaceOrder</Output>
-    </TimePointSet>
-    <TimePointSet name='Dummy'>
+    </PointSet>
+    <PointSet name='Dummy'>
         <Input>x0,y0</Input>
         <Output>OutputPlaceHolder</Output>
-    </TimePointSet>
+    </PointSet>
 </DataObjects>
 
 </Simulation>

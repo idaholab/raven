@@ -85,39 +85,39 @@
   <Steps>
   <!-- Load the data from a csv into the hdf5 database used by this run -->
     <IOStep name='loadData' fromDirectory='.'>
-      <Input  class='DataObjects' type='TimePointSet'>testData</Input>
+      <Input  class='DataObjects' type='PointSet'>testData</Input>
       <Output class='Databases'   type='HDF5'        >myDB</Output>
     </IOStep>
   <!-- Load the data from a csv into the hdf5 database used by this run -->
     <MultiRun name='sampleData' pauseAtEnd='False'>
       <Sampler class='Samplers'    type='Grid'          >gridSampler</Sampler>
-      <Input   class='DataObjects' type='TimePointSet'  >dummyIN</Input>
+      <Input   class='DataObjects' type='PointSet'  >dummyIN</Input>
       <Model   class='Models'      type='ExternalModel' >testFunction</Model>
-      <Output  class='DataObjects' type='TimePointSet'  >testData</Output>
+      <Output  class='DataObjects' type='PointSet'  >testData</Output>
     </MultiRun>
   <!-- Perform the topological decomposition -->
     <PostProcess name='decompose1'>
-      <Input   class='DataObjects'      type='TimePointSet' >testData</Input>
+      <Input   class='DataObjects'      type='PointSet' >testData</Input>
       <Model   class='Models'           type='PostProcessor'>AMSC1</Model>
-      <Output  class='DataObjects'      type='TimePointSet' >outTPS1</Output>
+      <Output  class='DataObjects'      type='PointSet' >outTPS1</Output>
       <Output  class='OutStreamManager' type='Print'        >myDump1</Output>
     </PostProcess>
     <PostProcess name='decompose2'>
-      <Input   class='DataObjects'      type='TimePointSet' >testData</Input>
+      <Input   class='DataObjects'      type='PointSet' >testData</Input>
       <Model   class='Models'           type='PostProcessor'>AMSC2</Model>
-      <Output  class='DataObjects'      type='TimePointSet' >outTPS2</Output>
+      <Output  class='DataObjects'      type='PointSet' >outTPS2</Output>
       <Output  class='OutStreamManager' type='Print'        >myDump2</Output>
     </PostProcess>
     <PostProcess name='decompose3'>
-      <Input   class='DataObjects'      type='TimePointSet' >testData</Input>
+      <Input   class='DataObjects'      type='PointSet' >testData</Input>
       <Model   class='Models'           type='PostProcessor'>AMSC3</Model>
-      <Output  class='DataObjects'      type='TimePointSet' >outTPS3</Output>
+      <Output  class='DataObjects'      type='PointSet' >outTPS3</Output>
       <Output  class='OutStreamManager' type='Print'        >myDump3</Output>
     </PostProcess>
     <PostProcess name='decompose4'>
-      <Input   class='DataObjects'      type='TimePointSet' >testData</Input>
+      <Input   class='DataObjects'      type='PointSet' >testData</Input>
       <Model   class='Models'           type='PostProcessor'>AMSC4</Model>
-      <Output  class='DataObjects'      type='TimePointSet' >outTPS4</Output>
+      <Output  class='DataObjects'      type='PointSet' >outTPS4</Output>
       <Output  class='OutStreamManager' type='Print'        >myDump4</Output>
     </PostProcess>
   </Steps>
@@ -147,31 +147,31 @@
     <HDF5 name="myDB"/>
   </Databases>
   <DataObjects>
-  <!-- The input TimePointSet object -->
-    <TimePointSet name="dummyIN">
+  <!-- The input PointSet object -->
+    <PointSet name="dummyIN">
       <Input>X,Y</Input>
       <Output>OutputPlaceHolder</Output>
-    </TimePointSet>
-    <TimePointSet name='testData'>
+    </PointSet>
+    <PointSet name='testData'>
       <Input>X,Y</Input>
       <Output>Z</Output>
-    </TimePointSet>
-  <!-- The output TimePointSet objects -->
-    <TimePointSet name='outTPS1'>
+    </PointSet>
+  <!-- The output PointSet objects -->
+    <PointSet name='outTPS1'>
       <Input>X,Y</Input>
       <Output>Z</Output>
-    </TimePointSet>
-    <TimePointSet name='outTPS2'>
+    </PointSet>
+    <PointSet name='outTPS2'>
       <Input>X,Y</Input>
       <Output>Z</Output>
-    </TimePointSet>
-    <TimePointSet name='outTPS3'>
+    </PointSet>
+    <PointSet name='outTPS3'>
       <Input>X,Y</Input>
       <Output>Z</Output>
-    </TimePointSet>
-    <TimePointSet name='outTPS4'>
+    </PointSet>
+    <PointSet name='outTPS4'>
       <Input>X,Y</Input>
       <Output>Z</Output>
-    </TimePointSet>
+    </PointSet>
   </DataObjects>
 </Simulation>

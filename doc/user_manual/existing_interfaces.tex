@@ -615,13 +615,13 @@ We then need to specify which Sampler is used, and this can be done as follows:
 And lastly, we need to specify what kind of output the user wants.
 %
 For example the user might want to make a database (in RAVEN the database
-created is an HDF5 file) and a DataObject of type TimePointSet, to use in sub-sequential
+created is an HDF5 file) and a DataObject of type PointSet, to use in sub-sequential
 post-processing.
 %
 Here is a classical example:
 \begin{lstlisting}[style=XML,morekeywords={class,type}]
     <Output  class='Databases' type='HDF5'>MC_out</Output>
-    <Output  class='DataObjects' type='TimePointSet'>MCOutData</Output>
+    <Output  class='DataObjects' type='PointSet'>MCOutData</Output>
 \end{lstlisting}
 
 Following is the example of two MultiRun steps which use different sampling
@@ -637,7 +637,7 @@ one:
     <Model  class='Models'    type='Code'>MyMooseBasedApp</Model>
     <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
     <Output  class='Databases' type='HDF5'>Grid_out</Output>
-    <Output  class='DataObjects' type='TimePointSet'>gridOutData</Output>
+    <Output  class='DataObjects' type='PointSet'>gridOutData</Output>
   </MultiRun>
   <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
     <Input  class='Files' type=''>mooseBasedApp.i</Input>
@@ -647,7 +647,7 @@ one:
     <Model  class='Models'    type='Code'>MyMooseBasedApp</Model>
     <Sampler class='Samplers'  type='MonteCarlo' >MC_Sampler</Sampler>
     <Output  class='Databases' type='HDF5' >MC_out</Output>
-    <Output  class='DataObjects' type='TimePointSet'>MCOutData</Output>
+    <Output  class='DataObjects' type='PointSet'>MCOutData</Output>
   </MultiRun>
 </Steps>
 \end{lstlisting}
@@ -669,28 +669,28 @@ The files will have names corresponding to their \xmlAttr{name} appended with
 the .h5 extension (i.e. \texttt{Grid\_out.h5} and \texttt{MC\_out.h5}).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{DataObjects}
-As shown in the \xmlNode{Steps} block, the code is creating two DataObjects of type TimePointSet
+As shown in the \xmlNode{Steps} block, the code is creating two DataObjects of type PointSet
 called \texttt{gridOutData} and \texttt{MCOutData}.
 %
 So the user needs to input the following:
 \begin{lstlisting}[style=XML]
 <DataObjects>
-    <TimePointSet name='gridOutData'>
+    <PointSet name='gridOutData'>
       <Input>
           Materials|heatStructure2|thermal_conductivity,
           Materials|heatStructure1|specific_heat,
           Materials|heatStructure2|thermal_conductivity
       </Input>
       <Output>aveTempLeft</Output>
-    </TimePointSet>
-    <TimePointSet name='MCOutData'>
+    </PointSet>
+    <PointSet name='MCOutData'>
       <Input>
           Materials|heatStructure2|thermal_conductivity,
           Materials|heatStructure1|specific_heat,
           Materials|heatStructure2|thermal_conductivity
       </Input>
       <Output>aveTempLeft</Output>
-    </TimePointSet>
+    </PointSet>
 </DataObjects>
 \end{lstlisting}
 As listed before, this will create two DataObjects that can be used in sub-sequential post-processing.
