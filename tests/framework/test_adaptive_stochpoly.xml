@@ -58,11 +58,11 @@
     </Models>
 
     <DataObjects>
-        <PointSet name="dummyIN" verbosity='silent'>
+        <PointSet name="dummyIN">
             <Input>x1,x2</Input>
             <Output>OutputPlaceHolder</Output>
         </PointSet>
-        <PointSet name='solns' verbosity='silent'>
+        <PointSet name='solns'>
             <Input>x1,x2</Input>
             <Output>ans,ans2</Output>
         </PointSet>
