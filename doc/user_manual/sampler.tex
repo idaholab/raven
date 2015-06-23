@@ -343,6 +343,13 @@ An example of \xmlNode{dist\textunderscore init} node is provided below:
   </dist_init>
 \end{lstlisting}
 
+In the \xmlNode{sampler\textunderscore init}  node it is possible to add also the subnode \xmlNode{global\_grid}.
+The \xmlNode{global\_grid} can be used in two cases:
+\begin{itemize}
+\item 1D distributions: an identical grid that is associated to several distributions
+\item ND distribution: a grid associated to a single ND distribution. This is the case when a stratified sampling is performed on the CDF of an ND distribution: the  \xmlNode{global\_grid} is  shared among the variables associated to the Nd distribution
+\end{itemize}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Once-Through Samplers %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -706,7 +713,7 @@ Example:
 \end{lstlisting}
 
 For N-dimensional  (ND) distributions, when the sampling is performed on a grid on a CDF  the user it is required to specify the same CDF grid for all the dimensions of the ND distribution.
-This is possible by defining a global\_grid and associate such global grid to each variable belonging to the ND distribution as follows.
+This is possible by defining a \xmlNode{global\_grid node and associate such global\_grid to each variable belonging to the ND distribution as follows.
 
 \begin{lstlisting}[style=XML,morekeywords={ND,grid}]
 <Samplers>
