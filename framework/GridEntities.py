@@ -59,6 +59,7 @@ class GridEntity(BaseType):
     self.gridIterator                           = None               # the grid iterator
     self.gridInitDict                           = {}                 # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
     self.volumetricRatio                        = None               # volumetric ratio (optional if steplenght is read or passed in initDict)
+
   def _readMoreXml(self,xmlNode,dimensionTags=None,messageHandler=None,dimTagsPrefix=None):
     """
      XML reader for the grid statement.
@@ -208,7 +209,8 @@ class GridEntity(BaseType):
     self.gridContainer['gridMatrix']                = np.zeros(self.gridContainer['gridShape'])      # grid where the values of the goalfunction are stored
     self.gridContainer['gridCoorShape']             = tuple(pointByVar+[self.nVar])                  # shape of the matrix containing all coordinate of all points in the grid
     self.gridContainer['gridCoord']                 = np.zeros(self.gridContainer['gridCoorShape'])  # the matrix containing all coordinate of all points in the grid
-    self.uniqueCellNumber                           = self.gridContainer['gridLenght']/2**self.nVar
+    self.uniqueCellNumber                           = int(self.gridContainer['gridLenght']/2.0**float(self.nVar))
+    
     #filling the coordinate on the grid
     self.gridIterator = np.nditer(self.gridContainer['gridCoord'],flags=['multi_index'])
     while not self.gridIterator.finished:
@@ -216,8 +218,19 @@ class GridEntity(BaseType):
       dimName                               = self.gridContainer['dimensionNames'][coordinateID]
       valuePosition                         = self.gridIterator.multi_index[coordinateID]
       self.gridContainer['gridCoord'][self.gridIterator.multi_index] = self.gridContainer['gridVectors'][dimName][valuePosition]
+      
+      
+      self.gridContainer['gridCoord']
       self.gridIterator.iternext()
     self.resetIterator()
+
+  def constructCellIds(self):
+    """
+     This method is aimed to construct a mapping between Cell identifiers and 
+    """
+    ncoordsPerCell = int(2.0**float(self.nVar)) 
+    
+    
 
   def returnGridAsArrayOfCoordinates(self):
     """
@@ -357,28 +370,49 @@ class GridEntity(BaseType):
     #coordinate = self.gridContainer['gridCoord'][multiDimIndex]
     return coordinates
 
-# class MultiGridEntity(object):
-#   '''
-#     This class is dedicated to the creation and handling of N-Dimensional Grid.
-#     In addition, it handles an hirarchical multi-grid approach (creating a mapping from coarse and finer grids in
-#     an adaptive meshing approach
-#   '''
-#   def __init__(self):
-#     '''
-#       Constructor
-#     '''
-#     self.grid = TS.NodeTree(TS.Node("Level-0-grid"))
+class MultiGridEntity(BaseType):
+  '''
+    This class is dedicated to the creation and handling of N-Dimensional Grid.
+    In addition, it handles an hirarchical multi-grid approach (creating a mapping from coarse and finer grids in
+    an adaptive meshing approach)
+  '''
+  def __init__(self,messageHandler):
+    '''
+      Constructor
+    '''
+    if messageHandler != None: self.setMessageHandler(messageHandler)
+    #self.grid = TS.NodeTree(TS.Node("Level-0-grid"))
+    
+    
+    
+    
+    
+    
 
-
+"""
+ Internal Factory of Classes
+"""
 __base                             = 'GridEntities'
 __interFaceDict                    = {}
 __interFaceDict['GridEntity'     ] = GridEntity
-__interFaceDict['MultiGridEntity'] = GridEntity
+__interFaceDict['MultiGridEntity'] = MultiGridEntity
 __knownTypes                       = __interFaceDict.keys()
 
 def knownTypes():
+  """
+   Method to return the types known by this module
+   @ In, None
+   @ Out, __knownTypes, dict, dictionary of known types (e.g. [GridEntity, MultiGridEntity, etc.])
+  """
   return __knownTypes
 
 def returnInstance(Type,caller,messageHandler=None):
+  """
+   Method to return an instance of a class defined in this module
+   @ In, Type, string, Class name (e.g. GridEntity)
+   @ In, caller, instance, instance of the caller object
+   @ In, messageHandler, optional instance, instance of the messageHandler system 
+   @ Out, __interFaceDict[Type], instance, instance of the requested class
+  """
   try: return __interFaceDict[Type](messageHandler)
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
