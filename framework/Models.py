@@ -30,6 +30,7 @@ import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
 import TreeStructure
+from FileObject import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 #class Model(BaseType):
@@ -49,7 +50,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   #the possible inputs
   validateDict['Input'].append(testDict.copy())
   validateDict['Input'  ][0]['class'       ] = 'DataObjects'
-  validateDict['Input'  ][0]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
+  validateDict['Input'  ][0]['type'        ] = ['Point','PointSet','History','HistorySet']
   validateDict['Input'  ][0]['required'    ] = False
   validateDict['Input'  ][0]['multiplicity'] = 'n'
   validateDict['Input'].append(testDict.copy())
@@ -60,7 +61,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   #the possible outputs
   validateDict['Output'].append(testDict.copy())
   validateDict['Output' ][0]['class'       ] = 'DataObjects'
-  validateDict['Output' ][0]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
+  validateDict['Output' ][0]['type'        ] = ['Point','PointSet','History','HistorySet']
   validateDict['Output' ][0]['required'    ] = False
   validateDict['Output' ][0]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
@@ -96,7 +97,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   @classmethod
   def specializeValidateDict(cls):
-    ''' This method should be overridden to describe the types of input accepted with a certain role by the model class specialization'''
+    """ This method should be overridden to describe the types of input accepted with a certain role by the model class specialization"""
     raise NotImplementedError('The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
 
   @classmethod
@@ -218,10 +219,10 @@ class Dummy(Model):
   @classmethod
   def specializeValidateDict(cls):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
-    cls.validateDict['Input' ][0]['type'        ] = ['TimePoint','TimePointSet']
+    cls.validateDict['Input' ][0]['type'        ] = ['Point','PointSet']
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
 
   def _manipulateInput(self,dataIn):
     if len(dataIn)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name '+self.name)
@@ -251,8 +252,8 @@ class Dummy(Model):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-    here only TimePoint and TimePointSet are accepted a local copy of the values is performed.
-    For a TimePoint all value are copied, for a TimePointSet only the last set of entry
+    here only Point and PointSet are accepted a local copy of the values is performed.
+    For a Point all value are copied, for a PointSet only the last set of entry
     The copied values are returned as a dictionary back
     """
     if len(myInput)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
@@ -302,7 +303,7 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
 
   def __init__(self):
     Dummy.__init__(self)
@@ -705,7 +706,6 @@ class Code(Model):
   def initialize(self,runInfoDict,inputFiles,initDict=None):
     """initialize some of the current setting for the runs and generate the working
        directory with the starting input files"""
-
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
@@ -759,16 +759,15 @@ class Code(Model):
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
-    # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
-    attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
+    attributes={"input_file":self.currentInputFiles,"type":"csv","name":FileObject(os.path.join(self.workingDir,finisishedjob.output+'.csv'))}
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
-    #FIXME this try-except catches too many of the wrong kind of error -> do we want to check output type?
-    try: output.addGroup(attributes,attributes)
-    except AttributeError:
-      output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
+    if output.type == "HDF5"        : output.addGroup(attributes,attributes)
+    elif output.type in ['Point','PointSet','History','HistorySet']:
+      output.addOutput(FileObject(os.path.join(self.workingDir,finisishedjob.output) + ".csv"),attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
+    else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
 #
 #
 #
@@ -821,7 +820,7 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Input'  ][1]['multiplicity'] = 'n'
     cls.validateDict['Input'].append(cls.testDict.copy())
     cls.validateDict['Input'  ][2]['class'       ] = 'DataObjects'
-    cls.validateDict['Input'  ][2]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
+    cls.validateDict['Input'  ][2]['type'        ] = ['Point','PointSet','History','HistorySet']
     cls.validateDict['Input'  ][2]['required'    ] = False
     cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
@@ -830,7 +829,7 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Output' ][0]['required'    ] = False
     cls.validateDict['Output' ][0]['multiplicity'] = 'n'
     cls.validateDict['Output' ][1]['class'       ] = 'DataObjects'
-    cls.validateDict['Output' ][1]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
+    cls.validateDict['Output' ][1]['type'        ] = ['Point','PointSet','History','HistorySet']
     cls.validateDict['Output' ][1]['required'    ] = False
     cls.validateDict['Output' ][1]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
@@ -938,7 +937,7 @@ def knownTypes():
   return __knownTypes
 
 def returnInstance(Type,caller):
-  '''This function return an instance of the request model type'''
+  """This function return an instance of the request model type"""
   try: return __interFaceDict[Type]()
   except KeyError: caller.raiseAnError(NameError,'MODELS','not known '+__base+' type '+Type)
 

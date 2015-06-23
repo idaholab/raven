@@ -70,46 +70,45 @@
     </Models>
 
     <Steps>
-        <MultiRun name='makeTP' pauseAtEnd='false'>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
-            <Model   class='Models'           type='Dummy'                >MyDummy</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>TPSG</Sampler>
-            <Output  class='DataObjects'            type='TimePointSet'         >TPsolns</Output>
-        </MultiRun>
+      <MultiRun name='makeTP' pauseAtEnd='false'>
+        <Input   class='DataObjects' type='PointSet'             >dummyIN</Input>
+        <Model   class='Models'      type='Dummy'                >MyDummy</Model>
+        <Sampler class='Samplers'    type='SparseGridCollocation'>TPSG</Sampler>
+        <Output  class='DataObjects' type='PointSet'             >TPsolns</Output>
+      </MultiRun>
 
-        <MultiRun name='makeTD' pauseAtEnd='false'>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
-            <Model   class='Models'           type='Dummy'                >MyDummy</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>TDSG</Sampler>
-            <Output  class='DataObjects'            type='TimePointSet'         >TDsolns</Output>
-        </MultiRun>
+      <MultiRun name='makeTD' pauseAtEnd='false'>
+        <Input   class='DataObjects' type='PointSet'             >dummyIN</Input>
+        <Model   class='Models'      type='Dummy'                >MyDummy</Model>
+        <Sampler class='Samplers'    type='SparseGridCollocation'>TDSG</Sampler>
+        <Output  class='DataObjects' type='PointSet'             >TDsolns</Output>
+      </MultiRun>
 
-        <MultiRun name='makeHC' pauseAtEnd='false'>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
-            <Model   class='Models'           type='Dummy'                >MyDummy</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>HCSG</Sampler>
-            <Output  class='DataObjects'            type='TimePointSet'         >TDsolns</Output>
-        </MultiRun>
+      <MultiRun name='makeHC' pauseAtEnd='false'>
+        <Input   class='DataObjects' type='PointSet'             >dummyIN</Input>
+        <Model   class='Models'      type='Dummy'                >MyDummy</Model>
+        <Sampler class='Samplers'    type='SparseGridCollocation'>HCSG</Sampler>
+        <Output  class='DataObjects' type='PointSet'             >TDsolns</Output>
+      </MultiRun>
     </Steps>
 
-
     <DataObjects>
-        <TimePointSet name="dummyIN">
+        <PointSet name="dummyIN">
             <Input>x1,x2</Input>
             <Output>OutputPlaceHolder</Output>
-        </TimePointSet>
-        <TimePointSet name='TPsolns'>
+        </PointSet>
+        <PointSet name='TPsolns'>
             <Input>x1,x2</Input>
             <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='TDsolns'>
+        </PointSet>
+        <PointSet name='TDsolns'>
             <Input>x1,x2</Input>
             <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='HCsolns'>
+        </PointSet>
+        <PointSet name='HCsolns'>
             <Input>x1,x2</Input>
             <Output>ans</Output>
-        </TimePointSet>
+        </PointSet>
     </DataObjects>
 
     <OutStreamManager>

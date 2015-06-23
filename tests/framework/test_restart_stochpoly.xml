@@ -7,38 +7,38 @@
     </RunInfo>
 
     <Steps>
-        <MultiRun name='make1'>
-            <Input   class='DataObjects' type='TimePointSet'         >dummyIN</Input>
-            <Model   class='Models'      type='ExternalModel'        >poly</Model>
-            <Sampler class='Samplers'    type='SparseGridCollocation'>SG</Sampler>
-            <Output  class='DataObjects' type='TimePointSet'         >solns</Output>
-        </MultiRun>
-        <MultiRun name='make2'>
-            <Input   class='DataObjects' type='TimePointSet'         >solns</Input>
-            <Model   class='Models'      type='ExternalModel'        >poly</Model>
-            <Sampler class='Samplers'    type='SparseGridCollocation'>SG2</Sampler>
-            <Output  class='DataObjects' type='TimePointSet'         >solns</Output>
-            <Output  class='DataObjects' type='TimePointSet'         >solns2</Output>
-        </MultiRun>
+      <MultiRun name='make1'>
+        <Input   class='DataObjects' type='PointSet'             >dummyIN</Input>
+        <Model   class='Models'      type='ExternalModel'        >poly</Model>
+        <Sampler class='Samplers'    type='SparseGridCollocation'>SG</Sampler>
+        <Output  class='DataObjects' type='PointSet'             >solns</Output>
+      </MultiRun>
+      <MultiRun name='make2'>
+        <Input   class='DataObjects' type='PointSet'             >solns</Input>
+        <Model   class='Models'      type='ExternalModel'        >poly</Model>
+        <Sampler class='Samplers'    type='SparseGridCollocation'>SG2</Sampler>
+        <Output  class='DataObjects' type='PointSet'             >solns</Output>
+        <Output  class='DataObjects' type='PointSet'             >solns2</Output>
+      </MultiRun>
         <IOStep name='print1'>
-            <Input  class='DataObjects'      type='TimePointSet'>solns</Input>
-            <Output class='OutStreamManager' type='Print'       >SCdump1</Output>
+            <Input  class='DataObjects'      type='PointSet'>solns</Input>
+            <Output class='OutStreamManager' type='Print'   >SCdump1</Output>
         </IOStep>
         <IOStep name='print2'>
-            <Input  class='DataObjects'      type='TimePointSet'>solns2</Input>
-            <Output class='OutStreamManager' type='Print'       >SCdump2</Output>
+            <Input  class='DataObjects'      type='PointSet'>solns2</Input>
+            <Output class='OutStreamManager' type='Print'   >SCdump2</Output>
         </IOStep>
         <IOStep name='print3'>
-            <Input  class='DataObjects'      type='TimePointSet'>solns</Input>
-            <Output class='OutStreamManager' type='Print'       >SCdump3</Output>
+            <Input  class='DataObjects'      type='PointSet'>solns</Input>
+            <Output class='OutStreamManager' type='Print'   >SCdump3</Output>
         </IOStep>
         <RomTrainer name='train2'>
-            <Input   class='DataObjects' type='TimePointSet'>solns</Input>
-            <Output  class='Models'      type='ROM'         >rom2</Output>
+            <Input   class='DataObjects' type='PointSet'>solns</Input>
+            <Output  class='Models'      type='ROM'     >rom2</Output>
         </RomTrainer>
         <RomTrainer name='train1'>
-            <Input   class='DataObjects' type='TimePointSet'>solns</Input>
-            <Output  class='Models'      type='ROM'         >rom</Output>
+            <Input   class='DataObjects' type='PointSet'>solns</Input>
+            <Output  class='Models'      type='ROM'     >rom</Output>
         </RomTrainer>
     </Steps>
 
@@ -56,7 +56,7 @@
             <variable name="x1"><distribution>UniDist</distribution></variable>
             <variable name="x2"><distribution>UniDist</distribution></variable>
             <ROM              class='Models' type ='ROM'        >rom2</ROM>
-            <Restart          class='DataObjects'  type='TimePointSet'>solns</Restart>
+            <Restart          class='DataObjects'  type='PointSet'>solns</Restart>
         </SparseGridCollocation>
     </Samplers>
 
@@ -87,18 +87,18 @@
     </Models>
 
     <DataObjects>
-        <TimePointSet name="dummyIN">
+        <PointSet name="dummyIN">
             <Input>x1,x2</Input>
             <Output>OutputPlaceHolder</Output>
-        </TimePointSet>
-        <TimePointSet name='solns'>
+        </PointSet>
+        <PointSet name='solns'>
             <Input>x1,x2</Input>
             <Output>ans,ans2</Output>
-        </TimePointSet>
-        <TimePointSet name='solns2'>
+        </PointSet>
+        <PointSet name='solns2'>
             <Input>x1,x2</Input>
             <Output>ans,ans2</Output>
-        </TimePointSet>
+        </PointSet>
     </DataObjects>
 
     <OutStreamManager>

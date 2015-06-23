@@ -51,20 +51,11 @@
         <xsd:simpleContent>
             <xsd:extension base="xsd:string"> <!--base="floatList" due to global_grid-->
                 <xsd:attribute name="type"         type="xsd:string" use="required"/>
-                <xsd:attribute name="construction" type="xsd:string"/>
+                <xsd:attribute name="construction" type="xsd:string"/> <!--Due to global_grid use="required"/-->
                 <!-- The condition is not yet implemented -->
                 <xsd:attribute name="steps"        type="xsd:integer"/>
-                <xsd:attribute name="upperBound"   type="xsd:float"/>
-                <xsd:attribute name="lowerBound"   type="xsd:float"/>
             </xsd:extension>
         </xsd:simpleContent>
-    </xsd:complexType>
-    <xsd:complexType name="boundariesType">
-        <xsd:all>
-            <xsd:element name="lower" type="xsd:float" minOccurs="1"/>
-            <xsd:element name="upper" type="xsd:float" minOccurs="1"/>
-        </xsd:all>
-        <xsd:attribute name="type"         type="xsd:string" use="required"/>
     </xsd:complexType>
     <xsd:complexType name="variableType">
         <xsd:sequence>
@@ -75,10 +66,9 @@
     <xsd:complexType name="extendedVariableType">
         <xsd:complexContent>
             <xsd:extension base="variableType">
-                <xsd:choice>
-                    <xsd:element name="grid"       type="gridType"       minOccurs="0"/>
-                    <xsd:element name="boundaries" type="boundariesType" minOccurs="0"/>
-                </xsd:choice>
+              <xsd:sequence>
+                 <xsd:element name="grid"       type="gridType"       minOccurs="0"/>
+              </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -97,18 +87,16 @@
             <xsd:element name="sampler_init" type="samplerInitType"      minOccurs="0"/>
             <xsd:element name="variable"     type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Distribution" type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="global_grid"                           minOccurs="0">
+            <xsd:element name="global_grid"                              minOccurs="0">
                 <xsd:complexType mixed="true">
                     <xsd:sequence>
-                        <xsd:element name="grid"                           minOccurs="1">
+                        <xsd:element name="grid"                   minOccurs="1" maxOccurs="unbounded">
                             <xsd:complexType mixed="true">
-                                <xsd:attribute name="name"         type="xsd:string"/>
-                                <xsd:attribute name="type"         type="xsd:string"/>
-                                <xsd:attribute name="construction" type="xsd:string"/>
+                                <xsd:attribute name="name"         type="xsd:string" use="required"/>
+                                <xsd:attribute name="type"         type="xsd:string" use="required"/>
+                                <xsd:attribute name="construction" type="xsd:string" use="required"/>
                                 <!-- The condition is not yet implemented -->
-                                <xsd:attribute name="steps"        type="xsd:integer"/>
-                                <xsd:attribute name="upperBound"   type="xsd:float"/>
-                                <xsd:attribute name="lowerBound"   type="xsd:float"/>
+                                <xsd:attribute name="steps"        type="xsd:integer" />
                             </xsd:complexType>
                         </xsd:element>
                     </xsd:sequence>
@@ -124,7 +112,7 @@
             <xsd:element name="variable"        type="variableType"          minOccurs="0" maxOccurs="unbounded"/>
             <!--xsd:element name="Distribution" type="variableType"          minOccurs="0" maxOccurs="unbounded"/-->
             <xsd:element name="ROM"             type="AssemblerObjectType"   minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="Restart"         type="AssemblerObjectType"   minOccurs="0"  maxOccurs="unbounded"/>
+            <xsd:element name="Restart"         type="AssemblerObjectType"   minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name"     type="xsd:string" use="required"/>
         <xsd:attribute name="parallel" type="xsd:string"/>

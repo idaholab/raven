@@ -29,8 +29,11 @@ the recommended minimum versions are:
 \item matplotlib-1.4.0
 \end{enumerate}
 
-Older versions may work, but it is highly recommended to use these minimum
-versions.
+Older versions may work, but it is highly recommended to use these
+minimum versions.  For newer version of Fedora and Ubuntu, these (or
+newer) are available in the distribution repositories.  For OSX
+Yosemite, there is a package that can be used called
+raven\_libs\_version.dmg
 %
 You may install these dependencies yourself, or by running the
 \texttt{raven\_libs\_script.sh} script provided within the RAVEN distribution:
@@ -44,20 +47,23 @@ cd ../../
 
 \subsubsection{Compilation}
 
-First, CROW must be compiled. This can be done either with the python setup or
-with a script.
+First, the RAVEN modules must be compiled. This can be done either
+with the python setup or with the makefile.
 
 Using the setup.py file:
 \begin{lstlisting}[language=bash]
 cd trunk/crow/
 python setup.py build_ext build install \
 --install-platlib=`pwd`/install
+cd ../raven/
+python setup.py build_ext build  install \
+--install-platlib=`pwd`/src/contrib
 \end{lstlisting}
 
-Using the script:
+Using the Makefile:
 \begin{lstlisting}[language=bash]
-cd trunk/crow/
-./crow_build
+cd trunk/raven/
+make framework_modules
 \end{lstlisting}
 
 \subsubsection{Running the Test Suite}
@@ -67,7 +73,7 @@ command if you are not in the crow directory):
 
 \begin{lstlisting}[language=bash]
 cd ../raven/
-./run_tests --re=framework --skip-config-check
+./run_framework_tests
 \end{lstlisting}
 
 The output should describe why any tests failed.
@@ -120,7 +126,7 @@ Run the tests:
 
 \begin{lstlisting}[language=bash]
 cd trunk/raven/
-./run_tests --re=framework --skip-config-check
+./run_framework_tests
 \end{lstlisting}
 
 The output should describe why any tests failed.
@@ -151,7 +157,7 @@ yum install swig libtool gcc-c++ python-devel python3-devel \
 Optionally, if you want to be able to edit and rebuild the manual, you can
 install \TeX~Live and its related packages:
 \begin{lstlisting}[language=bash]
-yum install texlive texlive-subfigure texlive-stmaryrd 
+yum install texlive texlive-subfigure texlive-stmaryrd \
   texlive-titlesec texlive-preprint
 \end{lstlisting}
 
@@ -168,7 +174,7 @@ Run the tests:
 
 \begin{lstlisting}[language=bash]
 cd trunk/raven/
-./run_tests --re=framework --skip-config-check
+./run_framework_tests
 \end{lstlisting}
 
 The output should describe why any tests failed.
@@ -184,7 +190,7 @@ output will explain why each is skipped.
 
 \subsection{OSX Framework Install}
 
-Open up the file \texttt{raven\_libs\_framework\_and\_crow.dmg}.
+Open up the file \texttt{raven\_framework\_complete\_version.dmg}.
 %
 Next, Open up the \texttt{raven\_libs.pkg} inside, and install it.  If
 you get an error that the package is not signed, then Control click

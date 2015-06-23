@@ -29,27 +29,27 @@
 
   <Samplers>
     <Grid name='grid'>
-      <variable name="x"><distribution>xd</distribution><grid type='CDF' construction='equal' lowerBound='0.3' steps='1'>0.4</grid></variable>
-      <variable name="y"><distribution>yd</distribution><grid type='CDF' construction='equal' lowerBound='0.3' steps='1'>0.4</grid></variable>
+      <variable name="x"><distribution>xd</distribution><grid type='CDF' construction='equal' steps='1'>0.3 0.7</grid></variable>
+      <variable name="y"><distribution>yd</distribution><grid type='CDF' construction='equal' steps='1'>0.3 0.7</grid></variable>
     </Grid>
   </Samplers>
 
   <Steps>
     <MultiRun name="sample">
-      <Input   class="Files"     type=""            >gen.one</Input>
-      <Input   class="Files"     type=""            >gen.two</Input>
-      <Model   class="Models"    type="Code"        >poly</Model>
-      <Sampler class="Samplers"  type="Grid"        >grid</Sampler>
-      <Output  class='DataObjects'     type='TimePointSet'>samples</Output>
-      <Output  class='OutStreamManager' type='Print'>samples</Output>
+      <Input   class="Files"            type=""        >gen.one</Input>
+      <Input   class="Files"            type=""        >gen.two</Input>
+      <Model   class="Models"           type="Code"    >poly</Model>
+      <Sampler class="Samplers"         type="Grid"    >grid</Sampler>
+      <Output  class='DataObjects'      type='PointSet'>samples</Output>
+      <Output  class='OutStreamManager' type='Print'   >samples</Output>
     </MultiRun>
   </Steps>
 
   <DataObjects>
-    <TimePointSet name="samples">
+    <PointSet name="samples">
       <Input>x,y</Input>
       <Output>poly</Output>
-    </TimePointSet>
+    </PointSet>
   </DataObjects>
 
   <OutStreamManager>

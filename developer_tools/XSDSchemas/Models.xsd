@@ -159,7 +159,7 @@
                      </xsd:extension>
                      </xsd:complexContent>
                      </xsd:complexType>
-                     
+
                      <xsd:complexType name="HDMRRom">
                      <xsd:complexContent>
                      <xsd:extension base="ROM">
@@ -169,13 +169,13 @@
                      </xsd:extension>
                      </xsd:complexContent>
                      </xsd:complexType>
-                     
+
                      <xsd:simpleType  name="positiveInteger">
                      <xsd:restriction   base="xsd:integer">
                      <xsd:minExclusive value="0"/>
                      </xsd:restriction>
                      </xsd:simpleType>
-                     
+
                      <xsd:complexType name="NDinvDistWeight">
                      <xsd:complexContent>
                      <xsd:extension base="ROM">
@@ -185,7 +185,7 @@
                      </xsd:extension>
                      </xsd:complexContent>
                      </xsd:complexType>
-                     
+
                      <xsd:complexType name="SciKitLearn">
                      <xsd:complexContent>
                      <xsd:extension base="ROM">

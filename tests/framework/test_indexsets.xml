@@ -86,97 +86,97 @@
 
     <Steps>
         <MultiRun name='TPmake' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TPSG</Sampler>
-            <Output  class='DataObjects'      type='TimePointSet'         >TPsolns</Output>
+            <Output  class='DataObjects'      type='PointSet'             >TPsolns</Output>
         </MultiRun>
         <MultiRun name='TPtest' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >TPROM</Model>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TPSG</Sampler>
-            <Output  class='DataObjects'      type='TimePointSet'         >TPtests</Output>
+            <Output  class='DataObjects'      type='PointSet'             >TPtests</Output>
         </MultiRun>
         <MultiRun name='TDmake' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TDSG</Sampler>
-            <Output  class='DataObjects'      type='TimePointSet'         >TDsolns</Output>
+            <Output  class='DataObjects'      type='PointSet'             >TDsolns</Output>
         </MultiRun>
         <MultiRun name='TDtest' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >TDROM</Model>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TDSG</Sampler>
-            <Output  class='DataObjects'      type='TimePointSet'         >TDtests</Output>
+            <Output  class='DataObjects'      type='PointSet'             >TDtests</Output>
         </MultiRun>
         <MultiRun name='HCmake' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
             <Sampler class='Samplers'         type='SparseGridCollocation'>HCSG</Sampler>
-            <Output  class='DataObjects'      type='TimePointSet'         >HCsolns</Output>
+            <Output  class='DataObjects'      type='PointSet'             >HCsolns</Output>
         </MultiRun>
         <MultiRun name='HCtest' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >HCROM</Model>
             <Sampler class='Samplers'         type='SparseGridCollocation'>HCSG</Sampler>
-            <Output  class='DataObjects'      type='TimePointSet'         >HCtests</Output>
+            <Output  class='DataObjects'      type='PointSet'             >HCtests</Output>
         </MultiRun>
         <MultiRun name='Cmake' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
             <Sampler class='Samplers'         type='SparseGridCollocation'>CSG</Sampler>
-            <Output  class='DataObjects'      type='TimePointSet'         >Csolns</Output>
+            <Output  class='DataObjects'      type='PointSet'             >Csolns</Output>
         </MultiRun>
         <MultiRun name='Ctest' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='TimePointSet'         >dummyIN</Input>
+            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
             <Model   class='Models'           type='ROM'                  >CROM</Model>
             <Sampler class='Samplers'         type='SparseGridCollocation'>CSG</Sampler>
-            <Output  class='DataObjects'      type='TimePointSet'         >Ctests</Output>
+            <Output  class='DataObjects'      type='PointSet'             >Ctests</Output>
         </MultiRun>
         <IOStep name='TPprint'>
-            <Input   class='DataObjects'      type='TimePointSet'         >TPtests</Input>
-            <Output  class='OutStreamManager' type='Print'                >TPdump</Output>
+            <Input   class='DataObjects'      type='PointSet'>TPtests</Input>
+            <Output  class='OutStreamManager' type='Print'   >TPdump</Output>
         </IOStep>
         <IOStep name='TDprint'>
-            <Input   class='DataObjects'      type='TimePointSet'         >TDtests</Input>
-            <Output  class='OutStreamManager' type='Print'                >TDdump</Output>
+            <Input   class='DataObjects'      type='PointSet'>TDtests</Input>
+            <Output  class='OutStreamManager' type='Print'   >TDdump</Output>
         </IOStep>
         <IOStep name='HCprint'>
-            <Input   class='DataObjects'      type='TimePointSet'         >HCtests</Input>
-            <Output  class='OutStreamManager' type='Print'                >HCdump</Output>
+            <Input   class='DataObjects'      type='PointSet'>HCtests</Input>
+            <Output  class='OutStreamManager' type='Print'   >HCdump</Output>
         </IOStep>
         <IOStep name='Cprint'>
-            <Input   class='DataObjects'      type='TimePointSet'         >Ctests</Input>
-            <Output  class='OutStreamManager' type='Print'                >Cdump</Output>
+            <Input   class='DataObjects'      type='PointSet'>Ctests</Input>
+            <Output  class='OutStreamManager' type='Print'   >Cdump</Output>
         </IOStep>
         <RomTrainer name='TPtrain'>
-            <Input   class='DataObjects'      type='TimePointSet'         >TPsolns</Input>
-            <Output  class='Models'           type='ROM'                  >TPROM</Output>
+            <Input   class='DataObjects'      type='PointSet'>TPsolns</Input>
+            <Output  class='Models'           type='ROM'     >TPROM</Output>
         </RomTrainer>
         <RomTrainer name='TDtrain'>
-            <Input   class='DataObjects'      type='TimePointSet'         >TDsolns</Input>
-            <Output  class='Models'           type='ROM'                  >TDROM</Output>
+            <Input   class='DataObjects'      type='PointSet'>TDsolns</Input>
+            <Output  class='Models'           type='ROM'     >TDROM</Output>
         </RomTrainer>
         <RomTrainer name='HCtrain'>
-            <Input   class='DataObjects'      type='TimePointSet'         >HCsolns</Input>
-            <Output  class='Models'           type='ROM'                  >HCROM</Output>
+            <Input   class='DataObjects'      type='PointSet'>HCsolns</Input>
+            <Output  class='Models'           type='ROM'     >HCROM</Output>
         </RomTrainer>
         <RomTrainer name='Ctrain'>
-            <Input   class='DataObjects'      type='TimePointSet'         >Csolns</Input>
-            <Output  class='Models'           type='ROM'                  >CROM</Output>
+            <Input   class='DataObjects'      type='PointSet'>Csolns</Input>
+            <Output  class='Models'           type='ROM'     >CROM</Output>
         </RomTrainer>
     </Steps>
 
     <DataObjects>
-        <TimePointSet name="dummyIN"><Input>x1,x2</Input><Output>OutputPlaceHolder</Output></TimePointSet>
-        <TimePointSet name='TPtests'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='TPsolns'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='TDtests'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='TDsolns'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='HCtests'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='HCsolns'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Ctests'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
-        <TimePointSet name='Csolns'><Input>x1,x2</Input><Output>ans</Output></TimePointSet>
+        <PointSet name="dummyIN"><Input>x1,x2</Input><Output>OutputPlaceHolder</Output></PointSet>
+        <PointSet name='TPtests'><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='TPsolns'><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='TDtests'><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='TDsolns'><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='HCtests'><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='HCsolns'><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Ctests'><Input>x1,x2</Input><Output>ans</Output></PointSet>
+        <PointSet name='Csolns'><Input>x1,x2</Input><Output>ans</Output></PointSet>
     </DataObjects>
 
     <OutStreamManager>

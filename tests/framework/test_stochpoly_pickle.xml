@@ -18,11 +18,11 @@
         <Grid name='grid'>
             <variable name="x1">
                 <distribution>UniDist</distribution>
-                <grid type='CDF' construction='equal' lowerBound='0.0' steps='5'>0.2</grid>
+                <grid type='CDF' construction='equal' steps='5'>0.0 1.0</grid>
             </variable>
             <variable name="x2">
                 <distribution>UniDist</distribution>
-                <grid type='CDF' construction='equal' lowerBound='0.0' steps='5'>0.2</grid>
+                <grid type='CDF' construction='equal' steps='5'>0.0 1.0</grid>
             </variable>
         </Grid>
         <SparseGridCollocation name="SG" parallel="1">
@@ -63,22 +63,22 @@
 
     <Steps>
         <MultiRun name='make'>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
-            <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>SG</Sampler>
-            <Output  class='DataObjects'            type='TimePointSet'         >SGsolns</Output>
+            <Input   class='DataObjects' type='PointSet'             >dummyIN</Input>
+            <Model   class='Models'      type='ExternalModel'        >polynomial</Model>
+            <Sampler class='Samplers'    type='SparseGridCollocation'>SG</Sampler>
+            <Output  class='DataObjects' type='PointSet'             >SGsolns</Output>
         </MultiRun>
         <MultiRun name='sampleNatural'>
-            <Input   class='DataObjects'    type='TimePointSet'>dummyIN</Input>
-            <Model   class='Models'   type='ROM'         >UROM</Model>
-            <Sampler class='Samplers' type='Grid'        >grid</Sampler>
-            <Output  class='DataObjects'    type='TimePointSet'>Usolns</Output>
+            <Input   class='DataObjects' type='PointSet'>dummyIN</Input>
+            <Model   class='Models'      type='ROM'     >UROM</Model>
+            <Sampler class='Samplers'    type='Grid'    >grid</Sampler>
+            <Output  class='DataObjects' type='PointSet'>Usolns</Output>
         </MultiRun>
         <MultiRun name='samplePickle'>
-            <Input   class='DataObjects'    type='TimePointSet'>dummyIN</Input>
-            <Model   class='Models'   type='ROM'         >pROM</Model>
-            <Sampler class='Samplers' type='Grid'        >grid</Sampler>
-            <Output  class='DataObjects'    type='TimePointSet'>psolns</Output>
+            <Input   class='DataObjects' type='PointSet'>dummyIN</Input>
+            <Model   class='Models'      type='ROM'     >pROM</Model>
+            <Sampler class='Samplers'    type='Grid'    >grid</Sampler>
+            <Output  class='DataObjects' type='PointSet'>psolns</Output>
         </MultiRun>
         <IOStep name='pkDump'>
             <Input  class='Models' type='ROM'>UROM</Input>
@@ -89,34 +89,34 @@
             <Output class='Models' type='ROM'>pROM</Output>
         </IOStep>
         <IOStep name='write'>
-            <Input  class='DataObjects' type='TimePointSet'>Usolns</Input>
-            <Input  class='DataObjects' type='TimePointSet'>psolns</Input>
+            <Input  class='DataObjects' type='PointSet'>Usolns</Input>
+            <Input  class='DataObjects' type='PointSet'>psolns</Input>
             <Output class='OutStreamManager' type='Print'>Udump</Output>
             <Output class='OutStreamManager' type='Print'>pdump</Output>
         </IOStep>
         <RomTrainer name='train'>
-            <Input   class='DataObjects'            type='TimePointSet'         >SGsolns</Input>
-            <Output  class='Models'           type='ROM'                  >UROM</Output>
+            <Input   class='DataObjects'  type='PointSet'>SGsolns</Input>
+            <Output  class='Models'       type='ROM'     >UROM</Output>
         </RomTrainer>
     </Steps>
 
     <DataObjects>
-        <TimePointSet name="dummyIN">
+        <PointSet name="dummyIN">
             <Input>x1,x2</Input>
             <Output>OutputPlaceHolder</Output>
-        </TimePointSet>
-        <TimePointSet name='SGsolns'>
+        </PointSet>
+        <PointSet name='SGsolns'>
             <Input>x1,x2</Input>
             <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Usolns'>
+        </PointSet>
+        <PointSet name='Usolns'>
             <Input>x1,x2</Input>
             <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='psolns'>
+        </PointSet>
+        <PointSet name='psolns'>
             <Input>x1,x2</Input>
             <Output>ans</Output>
-        </TimePointSet>
+        </PointSet>
     </DataObjects>
 
     <OutStreamManager>

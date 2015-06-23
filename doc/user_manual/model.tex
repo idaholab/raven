@@ -4014,7 +4014,7 @@ to compute many of the most important statistical quantities.
     \item \textbf{NormalizedSensitivity} -- matrix of normalized sensitivity
     coefficients
     \item \textbf{VarianceDependentSensitivity} -- matrix of sensitivity coefficients dependent on the variance of the variables
-    \item \textbf{sensitivity} -- matrix of sensitivity coefficients of Output space to Input space
+    \item \textbf{sensitivity} -- matrix of sensitivity coefficients of Output space to Input space 
     \item \textbf{pearson} -- matrix of sensitivity coefficients
     \item \textbf{expectedValue} -- expected value or mean
     \item \textbf{sigma} -- standard deviation
@@ -4140,7 +4140,7 @@ and counts the numbers of data points in each bin.  From the numbers
 in each bin, it creates a cdf function numerically, and from the cdf
 takes the derivative to generate a pdf.  It also calculates statistics
 of the data such as mean and standard deviation. The post-processor
-can generate either a CSV file or a TimePointSet.
+can generate either a CSV file or a PointSet.
 
 The post-processor uses the generated pdf and cdf function to
 calculate various statistics.  The first is the cdf area difference which is:
@@ -4412,9 +4412,9 @@ zones that determine a change in the status of the system (Limit Surface).
 \label{LimitSurfaceIntegral}
 The \textbf{LimitSurfaceIntegral} post-processor is aimed to compute the likelihood (probability) of the event, whose boundaries are
 represented by the Limit Surface (either from the LimitSurface post-processor or Adaptive sampling strategies).
-The inputted Limit Surface needs to be, in the  \textbf{PostProcess} step, of type  \textbf{TimePointSet} and needs to contain
+The inputted Limit Surface needs to be, in the  \textbf{PostProcess} step, of type  \textbf{PointSet} and needs to contain
 both boundary sides (-1.0, +1.0).
-\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as outputs both files (CSV) and/or  \textbf{TimePointSet}s.
+\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as outputs both files (CSV) and/or  \textbf{PointSet}s.
 
 \ppType{LimitSurfaceIntegral}{LimitSurfaceIntegral}
 \begin{itemize}
@@ -4444,7 +4444,7 @@ both boundary sides (-1.0, +1.0).
                 \default{20021986}
      \item  \xmlNode{target}, \xmlDesc{string, optional field}, specifies the target name that represents
                 the $f\left ( \bar{x} \right )$ that needs to be integrated.
-                \default{last output found in the inputted TimePointSet}
+                \default{last output found in the inputted PointSet}
 \end{itemize}
 
 \textbf{Example:}

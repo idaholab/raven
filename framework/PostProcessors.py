@@ -3,7 +3,7 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function , unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -27,6 +27,8 @@ import mathUtils
 from Assembler import Assembler
 import SupervisedLearning
 import MessageHandler
+import GridEntities
+from FileObject import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -190,18 +192,18 @@ class LimitSurfaceIntegral(BasePostProcessor):
      @ Out, None, the resulting converted object is stored as an attribute of this class
     """
     for item in currentInput:
-      if item.type == 'TimePointSet':
+      if item.type == 'PointSet':
         self.matrixDict = {}
-        if not set(item.getParaKeys('inputs')) == set(self.variableDist.keys()): self.raiseAnError(IOError, 'The variables inputted and the features in the input TimePointSet ' + item.name + 'do not match!!!')
+        if not set(item.getParaKeys('inputs')) == set(self.variableDist.keys()): self.raiseAnError(IOError, 'The variables inputted and the features in the input PointSet ' + item.name + 'do not match!!!')
         if self.target == None: self.target = item.getParaKeys('outputs')[-1]
-        if self.target not in item.getParaKeys('outputs'): self.raiseAnError(IOError, 'The target ' + self.target + 'is not present among the outputs of the TimePointSet ' + item.name)
+        if self.target not in item.getParaKeys('outputs'): self.raiseAnError(IOError, 'The target ' + self.target + 'is not present among the outputs of the PointSet ' + item.name)
         # construct matrix
         for  varName in self.variableDist.keys(): self.matrixDict[varName] = item.getParam('input', varName)
         outputarr = item.getParam('output', self.target)
         if len(set(outputarr)) != 2: self.raiseAnError(IOError, 'The target ' + self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
         outputarr[outputarr == -1] = 0.0
         self.matrixDict[self.target] = outputarr
-      else: self.raiseAnError(IOError, 'Only TimePointSet is accepted as input!!!!')
+      else: self.raiseAnError(IOError, 'Only PointSet is accepted as input!!!!')
 
   def run(self, Input):
     """
@@ -234,7 +236,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     else:
       pb = finishedjob.returnEvaluation()[1]
       lms = finishedjob.returnEvaluation()[0][0]
-      if output.type == 'TimePointSet':
+      if output.type == 'PointSet':
         # we store back the limitsurface
         for key, value in lms.getParametersValues('input').items():
           for val in value: output.updateInputValue(key, val)
@@ -254,7 +256,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
         stack[headers.index('EventProbability')] = np.array([pb] * len(stack[outIndex])).flatten()
         stacked = np.column_stack(stack)
         np.savetxt(output, stacked, delimiter = ',', header = ','.join(headers))
-      else: self.raiseAnError(Exception, self.type + ' accepts TimePointSet or FileObject only')
+      else: self.raiseAnError(Exception, self.type + ' accepts PointSet or FileObject only')
 #
 #
 #
@@ -447,7 +449,7 @@ class SafestPoint(BasePostProcessor):
      @ Out, None, the resulting converted object is stored as an attribute of this class
     """
     for item in currentInput:
-      if item.type == 'TimePointSet':
+      if item.type == 'PointSet':
         self.surfPointsMatrix = np.zeros((len(item.getParam('output', item.getParaKeys('outputs')[-1])), len(self.gridInfo.keys()) + 1))
         k = 0
         for varName in self.controllableOrd:
@@ -462,11 +464,11 @@ class SafestPoint(BasePostProcessor):
     """
      This method executes the postprocessor action. In this case, it computes the safest point
      @ In,  Input, object, object contained the data to process. (inputToInternal output)
-     @ Out, TimePointSet, TimePointSet containing the elaborated data
+     @ Out, PointSet, PointSet containing the elaborated data
     """
     nearestPointsInd = []
-    dataCollector = DataObjects.returnInstance('TimePointSet', self)
-    dataCollector.type = 'TimePointSet'
+    dataCollector = DataObjects.returnInstance('PointSet', self)
+    dataCollector.type = 'PointSet'
     surfTree = spatial.KDTree(copy.copy(self.surfPointsMatrix[:, 0:self.surfPointsMatrix.shape[-1] - 1]))
     self.controllableSpace.shape = (np.prod(self.controllableSpace.shape[0:len(self.controllableSpace.shape) - 1]), self.controllableSpace.shape[-1])
     self.nonControllableSpace.shape = (np.prod(self.nonControllableSpace.shape[0:len(self.nonControllableSpace.shape) - 1]), self.nonControllableSpace.shape[-1])
@@ -529,8 +531,8 @@ class SafestPoint(BasePostProcessor):
       self.raiseAnError(RuntimeError, 'no available output to collect (the run is likely not over yet).')
     else:
       dataCollector = finishedjob.returnEvaluation()[1]
-      if output.type != 'TimePointSet':
-        self.raiseAnError(TypeError, 'output item type must be "TimePointSet".')
+      if output.type != 'PointSet':
+        self.raiseAnError(TypeError, 'output item type must be "PointSet".')
       else:
         if not output.isItEmpty():
           self.raiseAnError(ValueError, 'output item must be empty.')
@@ -671,11 +673,11 @@ class ComparisonStatistics(BasePostProcessor):
           foundDataObjects.append(data[rest[0]])
       dataToProcess.append((dataPulls, foundDataObjects, reference))
     generateCSV = False
-    generateTimePointSet = False
+    generatePointSet = False
     if output.type == 'FileObject':
       generateCSV = True
-    elif output.type == 'TimePointSet':
-      generateTimePointSet = True
+    elif output.type == 'PointSet':
+      generatePointSet = True
     else:
       self.raiseAnError(IOError, 'unsupported type ' + str(type(output)))
     if generateCSV:
@@ -752,7 +754,7 @@ class ComparisonStatistics(BasePostProcessor):
               utils.printCsv(csv, *([l[i] for l in value]))
           else:
             utils.printCsv(csv, '"' + key + '"', value)
-      if generateTimePointSet:
+      if generatePointSet:
         for key in graph_data:
           value = graph_data[key]
           if type(value).__name__ == 'list':
@@ -912,17 +914,17 @@ class PrintCSV(BasePostProcessor):
       #  Input source is a database (HDF5)
       #  Retrieve the ending groups' names
       endGroupNames = self.inObj.getEndingGroupNames()
-      histories = {}
+      HistorySet = {}
 
-      #  Construct a dictionary of all the histories
-      for index in range(len(endGroupNames)): histories[endGroupNames[index]] = self.inObj.returnHistory({'history':endGroupNames[index], 'filter':'whole'})
+      #  Construct a dictionary of all the HistorySet
+      for index in range(len(endGroupNames)): HistorySet[endGroupNames[index]] = self.inObj.returnHistory({'history':endGroupNames[index], 'filter':'whole'})
       #  If file, split the strings and add the working directory if present
-      for key in histories:
-        #  Loop over histories
+      for key in HistorySet:
+        #  Loop over HistorySet
         #  Retrieve the metadata (posion 1 of the history tuple)
-        attributes = histories[key][1]
+        attributes = HistorySet[key][1]
         #  Construct the header in csv format (first row of the file)
-        headers = b",".join([histories[key][1]['output_space_headers'][i] for i in
+        headers = b",".join([HistorySet[key][1]['output_space_headers'][i] for i in
                              range(len(attributes['output_space_headers']))])
         #  Construct history name
         hist = key
@@ -943,7 +945,7 @@ class PrintCSV(BasePostProcessor):
         #  Open the files and save the data
         with open(csvfilen, 'wb') as csvfile, open(addfile, 'wb') as addcsvfile:
           #  Add history to the csv file
-          np.savetxt(csvfile, histories[key][0], delimiter = ",", header = utils.toString(headers))
+          np.savetxt(csvfile, HistorySet[key][0], delimiter = ",", header = utils.toString(headers))
           csvfile.write(os.linesep)
           #  process the attributes in a different csv file (different kind of informations)
           #  Add metadata to additional info csv file
@@ -1012,11 +1014,11 @@ class BasicStatistics(BasePostProcessor):
     except:
       if type(currentInput).__name__ == 'list'    : inType = 'list'
       else: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
-    if inType not in ['FileObject', 'HDF5', 'TimePointSet', 'list']: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(inType) + '!!!!')
+    if inType not in ['FileObject', 'HDF5', 'PointSet', 'list']: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(inType) + '!!!!')
     if inType == 'FileObject':
       if currentInput.subtype == 'csv': pass
     if inType == 'HDF5': pass  # to be implemented
-    if inType in ['TimePointSet']:
+    if inType in ['PointSet']:
       for targetP in self.parameters['targets']:
         if   targetP in currentInput.getParaKeys('input'):
           inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
@@ -1060,6 +1062,7 @@ class BasicStatistics(BasePostProcessor):
       if child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
       if child.tag == "biased"       :
           if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
+      assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
 
   def collectOutput(self, finishedjob, output):
     """
@@ -1120,7 +1123,8 @@ class BasicStatistics(BasePostProcessor):
               else                       : basicStatdump.write('matrix' + separator + ''.join([str(item) + separator for item in sampledSet]) + os.linesep)
               for index in range(len(calculatedSet)):
                 if outputextension != 'csv': basicStatdump.write(calculatedSet[index] + ' ' * (maxLength - len(calculatedSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
-                else                       : basicStatdump.write(calculatedSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
+                else                       :
+                  basicStatdump.write(calculatedSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
         if self.externalFunction:
           self.raiseADebug('BasicStatistics postprocessor: writing External Function results')
           basicStatdump.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
@@ -1199,31 +1203,60 @@ class BasicStatistics(BasePostProcessor):
       if what == 'sigma':
         for myIndex, targetP in enumerate(parameterSet):
           outputDict[what][targetP] = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights))
+          if (outputDict[what][targetP] == 0):
+            self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
+            outputDict[what][targetP] = np.Infinity
       # variance
       if what == 'variance':
         for myIndex, targetP in enumerate(parameterSet):
           outputDict[what][targetP] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+          if (outputDict[what][targetP] == 0):
+            self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
+            outputDict[what][targetP] = np.Infinity
       # coefficient of variation (sigma/mu)
       if what == 'variationCoefficient':
         for myIndex, targetP in enumerate(parameterSet):
           sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights))
+          if (outputDict['expectedValue'][targetP] == 0):
+            self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient can not be calculated in PP: ' + self.name)
+            outputDict['expectedValue'][targetP] = np.Infinity
           outputDict[what][targetP] = sigma / outputDict['expectedValue'][targetP]
       # kurtosis
       if what == 'kurtosis':
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent:
-              sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights))
-              outputDict[what][targetP] = np.average(((Input['targets'][targetP] - expValues[myIndex]) ** 4), weights = pbweights) / sigma ** 4
+            sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights))
+            if (sigma == 0):
+              self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
+              sigma = np.Infinity
+            outputDict[what][targetP] = np.average(((Input['targets'][targetP] - expValues[myIndex]) ** 4), weights = pbweights) / sigma ** 4
           else:
-            outputDict[what][targetP] = -3.0 + (np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex]) ** 4) / (N[myIndex] - 1)) / (np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex]) ** 2) / float(N[myIndex] - 1)) ** 2
+            if (N[myIndex] == 1):
+              self.raiseAWarning('The number of samples is 1 for: ' + targetP + '! Please check your input in PP: ' + self.name)
+              N[myIndex] = no.Infinity
+            value = (np.asarray(Input['targets'][targetP]) - expValues[myIndex])
+            if not np.any(value):
+              self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
+              for i in range(len(value)): value[i] = np.Infinity
+            outputDict[what][targetP] = -3.0 + (np.sum(value ** 4) / (N[myIndex] - 1)) / (np.sum(value ** 2) / float(N[myIndex] - 1)) ** 2
       # skewness
       if what == 'skewness':
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent:
             sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights))
+            if (sigma == 0):
+              self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
+              sigma = np.Infinity
             outputDict[what][targetP] = np.average((((Input['targets'][targetP] - expValues[myIndex]) / sigma) ** 3), weights = pbweights)
           else:
-            outputDict[what][targetP] = (np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex]) ** 3) * (N[myIndex] - 1) ** -1) / (np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex]) ** 2) / float(N[myIndex] - 1)) ** 1.5
+            if (N[myIndex] == 1):
+              self.raiseAWarning('The number of samples is 1 for: ' + targetP + '! Please check your input in PP: ' + self.name)
+              N[myIndex] = np.Infinity
+            value = (np.asarray(Input['targets'][targetP]) - expValues[myIndex])
+            if not np.any(value):
+              self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
+              for i in range(len(value)): value[i] = np.Infinity
+            outputDict[what][targetP] = (np.sum(value ** 3) * (N[myIndex] - 1) ** -1) / (np.sum(value ** 2) / float(N[myIndex] - 1)) ** 1.5
       # median
       if what == 'median':
         for targetP in parameterSet: outputDict[what][targetP] = np.median(Input['targets'][targetP])
@@ -1253,11 +1286,24 @@ class BasicStatistics(BasePostProcessor):
           self.SupervisedEngine = {}  # dict of ROM instances (== number of targets => keys are the targets)
           for target in self.calculated:
             self.SupervisedEngine[target] = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'linear_model|LinearRegression',
-                                                                                                     'Features':','.join(self.sampled.keys()),
-                                                                                                     'Target':target})
-            self.SupervisedEngine[target].train(Input['targets'])
-          for myIndex in range(len(self.calculated)):
-            outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
+                                                                                                      'Features':','.join(self.sampled.keys()),
+                                                                                                      'Target':target})
+            var = np.average((Input['targets'][target] - outputDict['expectedValue'][target]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+            if (var == 0):
+              self.raiseAWarning('Sensitivity of a variable (' + target + ') with 0 variance is requested! in PP: ' + self.name)
+            else:
+              self.SupervisedEngine[target].train(Input['targets'])
+          for myIndex in range(len(self.calculated.keys())):
+            if self.SupervisedEngine[self.calculated.keys()[myIndex]].amITrained:
+              outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
+              features = self.sampled.keys()
+              for index in range(len(features)):
+                sigma = np.sqrt(np.average((Input['targets'][features[index]] - expValues[parameterSet.index(features[index])]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights))
+                outputDict[what][myIndex][index] = outputDict[what][myIndex][index] / sigma
+            else:
+              value = np.zeros(len(self.calculated.keys()))
+              for i in range(len(self.calculated.keys())): value[i] = np.Infinity
+              outputDict[what][myIndex] = value
       # VarianceDependentSensitivity matrix
       if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
@@ -1267,6 +1313,9 @@ class BasicStatistics(BasePostProcessor):
         for myIndex, targetP in enumerate(parameterSet):
           variance[myIndex] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
         for myIndex in range(len(parameterSet)):
+          if (variance[myIndex] == 0):
+             self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
+             variance[myIndex] = np.Infinity
           outputDict[what][myIndex] = covMatrix[myIndex, :] / (variance[myIndex])
       # Normalizzate sensitivity matrix: linear regression slopes normalizited by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
@@ -1276,6 +1325,9 @@ class BasicStatistics(BasePostProcessor):
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
           variance[myIndex] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+          if (variance[myIndex] is 0):
+            self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
+            variance[myIndex] = np.Infinity
         for myIndex in range(len(parameterSet)):
           outputDict[what][myIndex] = ((covMatrix[myIndex, :] / variance) * expValues) / expValues[myIndex]
 
@@ -1330,9 +1382,10 @@ class BasicStatistics(BasePostProcessor):
         msg += ' ' * maxLength + '*    I/O   Sensitivity      *' + os.linesep
         msg += ' ' * maxLength + '*****************************' + os.linesep
         msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in self.sampled]) + os.linesep
-        for index in range(len(self.sampled.keys())):
-          variable = self.sampled.keys()[index]
-          msg += self.calculated.keys()[index] + ' ' * (maxLength - len(variable)) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['sensitivity'][index] / outputDict['sigma'][variable]]) + os.linesep
+        sigma = {}
+        for indexCalculated in range(len(self.calculated.keys())):
+#          variable = self.sampled.keys()[indexSampled]
+          msg += self.calculated.keys()[indexCalculated] + ' ' * (maxLength) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['sensitivity'][indexCalculated]]) + os.linesep
 
     if self.externalFunction:
       msg += ' ' * maxLength + '+++++++++++++++++++++++++++++' + os.linesep
@@ -1466,7 +1519,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
         for key in metadata: attributes[key] = metadata[key]
       try:                   output.addGroup(attributes, attributes)
       except AttributeError:
-        output.addOutput(os.path.join(self.sourceDirectory, csvFile), attributes)
+        output.addOutput(FileObject(os.path.join(self.sourceDirectory, csvFile)), attributes)
         if metadata:
           for key, value in metadata.items(): output.updateMetadata(key, value, attributes)
 
@@ -1490,19 +1543,20 @@ class LimitSurface(BasePostProcessor):
      Constructor
      @ In, messageHandler, message handler object
     """
-    BasePostProcessor.__init__(self, messageHandler)
-    self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.surfPoint = None  # coordinate of the points considered on the limit surface
-    self.testMatrix = None  # This is the n-dimensional matrix representing the testing grid
-    # self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
-    self.functionValue = {}  # This a dictionary that contains np vectors with the value for each variable and for the goal function
-    self.ROM = None  # Pointer to a ROM
-    self.externalFunction = None  # Pointer to an external Function
-    self.subGridTol = 1.0e-4  # SubGrid tollerance
-    self.gridVectors = {}
-    self.gridFromOutside = False  # The grid has been passed from outside (self._initFromDict)?
-    self.lsSide = "negative"  # Limit surface side to compute the LS for (negative,positive,both)
-    self.requiredAssObject = (True, (['ROM', 'Function'], [-1, 1]))
+    BasePostProcessor.__init__(self,messageHandler)
+    self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
+    self.surfPoint         = None             #coordinate of the points considered on the limit surface
+    self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
+    self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
+    self.ROM               = None             #Pointer to a ROM
+    self.externalFunction  = None             #Pointer to an external Function
+    self.subGridTol        = 1.0e-4           #SubGrid tollerance
+    self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
+    self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
+    self.gridEntity        = None
+    self.bounds            = None
+    self.transfMethods     = {}
+    self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
 
   def inputToInternal(self, currentInp):
@@ -1523,7 +1577,7 @@ class LimitSurface(BasePostProcessor):
     if inType == 'FileObject':
       if currentInput.subtype == 'csv': pass
     if inType == 'HDF5': pass  # to be implemented
-    if inType in ['TimePointSet']:
+    if inType in ['PointSet']:
       for targetP in self.parameters['targets']:
         if   targetP in currentInput.getParaKeys('input'): inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
         elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
@@ -1539,18 +1593,19 @@ class LimitSurface(BasePostProcessor):
      @ In, initDict, dict, dictionary with initialization options
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.gridEntity = GridEntities.returnInstance("GridEntity",self,self.messageHandler)
+    self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
       mySrting = ','.join(list(self.parameters['targets']))
       self.ROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':mySrting, 'Target':self.externalFunction.name})
     else: self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()
-    self.__workingDir = runInfo['WorkingDir']
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
       if type(inp) in [str, bytes, unicode]: self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs!')
-      if inp.type in ['TimePointSet', 'TimePoint']: self.indexes = index
-    if self.indexes == -1: self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a TimePoint or TimePointSet as INPUT!!!!!!')
+      if inp.type in ['PointSet', 'Point']: self.indexes = index
+    if self.indexes == -1: self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a Point or PointSet as INPUT!!!!!!')
     else:
       # check if parameters are contained in the data
       inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
@@ -1560,53 +1615,13 @@ class LimitSurface(BasePostProcessor):
         if param not in inpKeys + outKeys: self.raiseAnError(IOError, 'LimitSurface PostProcessor: The param ' + param + ' not contained in Data ' + self.inputs[self.indexes].name + ' !')
         if param in inpKeys: self.paramType[param] = 'inputs'
         else:                self.paramType[param] = 'outputs'
-    self.nVar = len(self.parameters['targets'])  # Total number of variables
-    stepLength = self.subGridTol ** (1. / float(self.nVar))  # build the step size in 0-1 range such as the differential volume is equal to the tolerance
-    self.axisName = []  # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
-    # here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
-    stepParam = lambda x: [stepLength * (max(self.inputs[self.indexes].getParam(self.paramType[x], x)) - min(self.inputs[self.indexes].getParam(self.paramType[x], x))),
-                                       min(self.inputs[self.indexes].getParam(self.paramType[x], x)),
-                                       max(self.inputs[self.indexes].getParam(self.paramType[x], x))]
-    # moving forward building all the information set
-    pointByVar = [None] * self.nVar  # list storing the number of point by cooridnate
-    # building the grid point coordinates
-    for varId, varName in enumerate(self.parameters['targets']):
-      self.axisName.append(varName)
-      if not self.gridFromOutside:
-        [myStepLength, start, end] = stepParam(varName)
-        if start == end:
-          start = start - 0.001 * start
-          end = end + 0.001 * end
-          myStepLength = stepLength * (end - start)
-        start += 0.5 * myStepLength
-        self.gridVectors[varName] = np.arange(start, end, myStepLength)
-      pointByVar[varId] = np.shape(self.gridVectors[varName])[0]
-    self.gridShape = tuple   (pointByVar)  # tuple of the grid shape
-    self.testGridLength = np.prod (pointByVar)  # total number of point on the grid
-    self.testMatrix = np.zeros(self.gridShape)  # grid where the values of the goalfunction are stored
-    # self.oldTestMatrix            = np.zeros(self.gridShape)      #swap matrix fro convergence test
-    self.gridCoorShape = tuple(pointByVar + [self.nVar])  # shape of the matrix containing all coordinate of all points in the grid
-    self.gridCoord = np.zeros(self.gridCoorShape)  # the matrix containing all coordinate of all points in the grid
-    # filling the coordinate on the grid
-    myIterator = np.nditer(self.gridCoord, flags = ['multi_index'])
-    while not myIterator.finished:
-      coordinateID = myIterator.multi_index[-1]
-      axisName = self.axisName[coordinateID]
-      valuePosition = myIterator.multi_index[coordinateID]
-      self.gridCoord[myIterator.multi_index] = self.gridVectors[axisName][valuePosition]
-      myIterator.iternext()
-    self.axisStepSize = {}
-    for varName in self.parameters['targets']:
-      self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex + 1] - self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName]) - 1)])
-    self.raiseADebug('self.gridShape ' + str(self.gridShape))
-    self.raiseADebug('self.testGridLength ' + str(self.testGridLength))
-    self.raiseADebug('self.gridCoorShape ' + str(self.gridCoorShape))
-    for key in self.gridVectors.keys():
-      self.raiseADebug('the variable ' + key + ' has coordinate: ' + str(self.gridVectors[key]))
-    myIterator = np.nditer(self.testMatrix, flags = ['multi_index'])
-    while not myIterator.finished:
-      self.raiseADebug('Indexes: ' + str(myIterator.multi_index) + '    coordinate: ' + str(self.gridCoord[myIterator.multi_index]))
-      myIterator.iternext()
+    if self.bounds == None:
+      self.bounds = {"lowerBounds":{},"upperBounds":{}}
+      for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key)), max(self.inputs[self.indexes].getParam(self.paramType[key],key))
+    self.gridEntity.initialize(initDictionary={"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
+    self.nVar       = len(self.parameters['targets'])         #Total number of variables
+    self.axisName   = self.gridEntity.returnParameter("dimensionNames")                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
+    self.testMatrix = np.zeros(self.gridEntity.returnParameter("gridShape"))  # grid where the values of the goalfunction are stored
 
   def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
     """
@@ -1614,7 +1629,7 @@ class LimitSurface(BasePostProcessor):
      @ In, inp, Data(s) object, data object containing the training set
      @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
     """
-    self.raiseADebug('Initiate training')
+
     self.raiseADebug('Initiate training')
     if type(inp) == dict:
       self.functionValue.update(inp['inputs' ])
@@ -1682,11 +1697,9 @@ class LimitSurface(BasePostProcessor):
     if "tolerance" in dictIn.keys(): self.subGridTol = float(dictIn["tolerance"])
     if "side" in dictIn.keys(): self.lsSide = dictIn["side"]
     if self.lsSide not in ["negative", "positive", "both"]: self.raiseAnError(IOError, 'Computation side can be positive, negative, both only !!!!')
-    if "gridVectors" in dictIn.keys():
-      self.gridVectors = dictIn["gridVectors"]
-      self.gridFromOutside = True
+    if "bounds" in dictIn.keys(): self.bounds = dictIn["bounds"]
+    if "transformationMethods" in dictIn.keys(): self.transfMethods = dictIn["transformationMethods"]
     if "verbosity"       in dictIn.keys(): self.verbosity = dictIn['verbosity']
-    if "debug"           in dictIn.keys(): self.raiseAnError('"debug" attribute found, but has been deprecated.  Please change it to "verbosity."  Remove this error by the end of June 2015.')
 
   def getFunctionValue(self):
     """
@@ -1743,13 +1756,13 @@ class LimitSurface(BasePostProcessor):
      @ In ,returnListSurfCoord, boolean, True if listSurfaceCoordinate needs to be returned
      @ Out, dictionary, Dictionary containing the limitsurface
     """
-    self.testMatrix.shape = (self.testGridLength)  # rearrange the grid matrix such as is an array of values
-    self.gridCoord.shape = (self.testGridLength, self.nVar)  # rearrange the grid coordinate matrix such as is an array of coordinate values
-    tempDict = {}
-    for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:, varId]
-    self.testMatrix[:] = self.ROM.evaluate(tempDict)  # get the prediction on the testing grid
-    self.testMatrix.shape = self.gridShape  # bring back the grid structure
-    self.gridCoord.shape = self.gridCoorShape  # bring back the grid structure
+    self.testMatrix.shape     = (self.gridEntity.returnParameter("gridLenght"))    #rearrange the grid matrix such as is an array of values
+    self.gridCoord = self.gridEntity.returnGridAsArrayOfCoordinates()
+    tempDict ={}
+    for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
+    self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
+    self.testMatrix.shape     = self.gridEntity.returnParameter("gridShape")     #bring back the grid structure
+    self.gridCoord.shape      = self.gridEntity.returnParameter("gridCoorShape") #bring back the grid structure
     self.raiseADebug('LimitSurface: Prediction performed')
     # here next the points that are close to any change are detected by a gradient (it is a pre-screener)
     toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)), axis = 0))))
@@ -1781,7 +1794,6 @@ class LimitSurface(BasePostProcessor):
       for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
       self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
-
     # if the number of point on the limit surface is > than zero than save it
     evaluations = None
     if len(listsurfPoint) > 0:
@@ -1800,12 +1812,13 @@ class LimitSurface(BasePostProcessor):
     equals either -1 or 1, respectively.
     """
     listsurfPoint = []
+    gridShape = self.gridEntity.returnParameter("gridShape")
     myIdList = np.zeros(self.nVar)
     for coordinate in np.rollaxis(toBeTested, 0):
       myIdList[:] = coordinate
       if self.testMatrix[tuple(coordinate)] * sign > 0:
         for iVar in range(self.nVar):
-          if coordinate[iVar] + 1 < self.gridShape[iVar]:
+          if coordinate[iVar] + 1 < gridShape[iVar]:
             myIdList[iVar] += 1
             if self.testMatrix[tuple(myIdList)] * sign <= 0:
               listsurfPoint.append(copy.copy(coordinate))
@@ -1865,13 +1878,13 @@ class ExternalPostProcessor(BasePostProcessor):
       inType = None
       if hasattr(item, 'type')  : inType = item.type
       elif type(item) in [list]: inType = "list"
-      if inType not in ['FileObject', 'HDF5', 'TimePointSet', 'list']: self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not' + ' recognized. I am going to skip it.')
+      if inType not in ['FileObject', 'HDF5', 'PointSet', 'list']: self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not' + ' recognized. I am going to skip it.')
       elif inType == 'FileObject':
         if currentInput.subtype == 'csv': self.raiseAWarning(self, 'Input type ' + inType + ' not yet ' + 'implemented. I am going to skip it.')
       elif inType == 'HDF5':
         # TODO
           self.raiseAWarning(self, 'Input type ' + inType + ' not yet ' + 'implemented. I am going to skip it.')
-      elif inType == 'TimePointSet':
+      elif inType == 'PointSet':
         for param in item.getParaKeys('input') : inputDict['targets'][param] = item.getParam('input', param)
         for param in item.getParaKeys('output'): inputDict['targets'][param] = item.getParam('output', param)
         metadata.append(item.getAllMetadata())
@@ -1942,7 +1955,7 @@ class ExternalPostProcessor(BasePostProcessor):
     elif output.type == 'HDF5':
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
                                + ' yet implemented. I am going to skip it.')
-    elif output.type == 'TimePointSet':
+    elif output.type == 'PointSet':
       requestedInput = output.getParaKeys('input')
       requestedOutput = output.getParaKeys('output')
       # # The user can simply ask for a computation that may exist in multiple
@@ -2126,14 +2139,14 @@ class TopologicalDecomposition(BasePostProcessor):
                         ' postprocessor accepts files, HDF5, Data(s) only. ',
                         ' Requested: ', type(currentInput))
 
-    if inType not in ['FileObject', 'HDF5', 'TimePointSet', 'list']:
+    if inType not in ['FileObject', 'HDF5', 'PointSet', 'list']:
       self.raiseAnError(IOError, self, self.__class__.__name__ + ' post-processor only accepts files, HDF5, or DataObjects! Got ' + str(inType) + '!!!!')
     # FIXME: implement this feature
     if inType == 'FileObject':
       if currentInput.subtype == 'csv': pass
     # FIXME: implement this feature
     if inType == 'HDF5': pass  # to be implemented
-    if inType in ['TimePointSet']:
+    if inType in ['PointSet']:
       for targetP in self.parameters['features']:
         if   targetP in currentInput.getParaKeys('input'):
           inputDict['features'][targetP] = currentInput.getParam('input' , targetP)
@@ -2223,7 +2236,7 @@ class TopologicalDecomposition(BasePostProcessor):
     elif output.type == 'HDF5':
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
                          + ' yet implemented. I am going to skip it.')
-    elif output.type == 'TimePointSet':
+    elif output.type == 'PointSet':
       requestedInput = output.getParaKeys('input')
       requestedOutput = output.getParaKeys('output')
       dataLength = None

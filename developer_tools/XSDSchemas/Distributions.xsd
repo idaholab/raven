@@ -166,7 +166,7 @@
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="BinomialDistribution">
         <xsd:all>
             <xsd:element name="p" minOccurs="1">
@@ -187,21 +187,21 @@
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="PoissonDistribution">
         <xsd:all>
             <xsd:element name="mu" type="xsd:decimal" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
-    
+
     <xsd:simpleType name="typeAttr">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="PDF"/>
             <xsd:enumeration value="CDF"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:complexType name="data_filenameType">
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
@@ -209,7 +209,7 @@
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="NDInverseWeightDistribution">
         <xsd:all>
             <xsd:element name="p"             type="xsd:decimal"       minOccurs="1"/>

@@ -44,40 +44,40 @@
 
     <Steps>
         <MultiRun name='Nmake' pauseAtEnd='false'>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
-            <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
-            <Output  class='DataObjects'            type='TimePointSet'         >Nsolns</Output>
+            <Input   class='DataObjects' type='PointSet'             >dummyIN</Input>
+            <Model   class='Models'      type='ExternalModel'        >polynomial</Model>
+            <Sampler class='Samplers'    type='SparseGridCollocation'>NSG</Sampler>
+            <Output  class='DataObjects' type='PointSet'             >Nsolns</Output>
         </MultiRun>
         <MultiRun name='Ntest' pauseAtEnd='false'>
-            <Input   class='DataObjects'            type='TimePointSet'         >dummyIN</Input>
-            <Model   class='Models'           type='ROM'                  >NROM</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
-            <Output  class='DataObjects'            type='TimePointSet'         >Ntests</Output>
+            <Input   class='DataObjects' type='PointSet'             >dummyIN</Input>
+            <Model   class='Models'      type='ROM'                  >NROM</Model>
+            <Sampler class='Samplers'    type='SparseGridCollocation'>NSG</Sampler>
+            <Output  class='DataObjects' type='PointSet'             >Ntests</Output>
         </MultiRun>
         <IOStep name='Nprint'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Ntests</Input>
-            <Output  class='OutStreamManager' type='Print'                >Ndump</Output>
+            <Input   class='DataObjects'      type='PointSet'>Ntests</Input>
+            <Output  class='OutStreamManager' type='Print'   >Ndump</Output>
         </IOStep>
         <RomTrainer name='Ntrain'>
-            <Input   class='DataObjects'            type='TimePointSet'         >Nsolns</Input>
-            <Output  class='Models'           type='ROM'                  >NROM</Output>
+            <Input   class='DataObjects' type='PointSet'>Nsolns</Input>
+            <Output  class='Models'      type='ROM'     >NROM</Output>
         </RomTrainer>
     </Steps>
 
     <DataObjects>
-        <TimePointSet name="dummyIN">
+        <PointSet name="dummyIN">
             <Input>x1,x2</Input>
             <Output>OutputPlaceHolder</Output>
-        </TimePointSet>
-        <TimePointSet name='Ntests'>
+        </PointSet>
+        <PointSet name='Ntests'>
             <Input>x1,x2</Input>
             <Output>ans</Output>
-        </TimePointSet>
-        <TimePointSet name='Nsolns'>
+        </PointSet>
+        <PointSet name='Nsolns'>
             <Input>x1,x2</Input>
             <Output>ans</Output>
-        </TimePointSet>
+        </PointSet>
     </DataObjects>
 
     <OutStreamManager>

@@ -100,26 +100,26 @@
 
 
 <DataObjects>
-  <TimePointSet name='outStratified'>
+  <PointSet name='outStratified'>
       <Input>x1,x2,x3</Input>
       <Output>y1,y2,y3,y4,y5</Output>
-  </TimePointSet>
-  <TimePointSet name='outGrid'>
+  </PointSet>
+  <PointSet name='outGrid'>
       <Input>x1,x2,x3</Input>
       <Output>y1,y2,y3,y4,y5</Output>
-  </TimePointSet>
-  <TimePointSet name='outMC'>
+  </PointSet>
+  <PointSet name='outMC'>
       <Input>x1,x2,x3</Input>
       <Output>y1,y2,y3,y4,y5</Output>
-  </TimePointSet>
-  <TimePointSet name='outDoE'>
+  </PointSet>
+  <PointSet name='outDoE'>
       <Input>x1,x2,x3</Input>
       <Output>y1,y2,y3,y4,y5</Output>
-  </TimePointSet>
-  <TimePointSet name='dummy'>
+  </PointSet>
+  <PointSet name='dummy'>
       <Input>x1,x2,x3</Input>
       <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
+  </PointSet>
 </DataObjects>
 
 <Models>
@@ -141,43 +141,43 @@
 
 <Steps>
   <MultiRun name='runGrid' pauseAtEnd='True'>
-    <Input   class='DataObjects'      type='TimePointSet'         >dummy</Input>
+    <Input   class='DataObjects'      type='PointSet'         >dummy</Input>
     <Model   class='Models'           type='ExternalModel'        >PythonModule</Model>
     <Sampler class='Samplers'         type='Grid'                 >GridSampler</Sampler>
-    <Output  class='DataObjects'      type='TimePointSet'         >outGrid</Output>
+    <Output  class='DataObjects'      type='PointSet'         >outGrid</Output>
     <Output  class='OutStreamManager' type='Plot'                 >plotLocationGrid</Output>
   </MultiRun>
   <MultiRun name='runStratified' pauseAtEnd='True'>
-    <Input   class='DataObjects'      type='TimePointSet'         >dummy</Input>
+    <Input   class='DataObjects'      type='PointSet'         >dummy</Input>
     <Model   class='Models'           type='ExternalModel'        >PythonModule</Model>
     <Sampler class='Samplers'         type='LHS'                  >StratifiedSampler</Sampler>
-    <Output  class='DataObjects'      type='TimePointSet'         >outStratified</Output>
+    <Output  class='DataObjects'      type='PointSet'         >outStratified</Output>
     <Output  class='OutStreamManager' type='Plot'                 >plotLocationStratified</Output>
     <Output  class='OutStreamManager' type='Plot'                 >plotLocationStratifiedY4</Output>
   </MultiRun>
   <MultiRun name='runDoE' pauseAtEnd='True'>
-    <Input   class='DataObjects'      type='TimePointSet'          >dummy</Input>
+    <Input   class='DataObjects'      type='PointSet'          >dummy</Input>
     <Model   class='Models'           type='ExternalModel'         >PythonModule</Model>
     <Sampler class='Samplers'         type='ResponseSurfaceDesign' >DoESampler</Sampler>
-    <Output  class='DataObjects'      type='TimePointSet'          >outDoE</Output>
+    <Output  class='DataObjects'      type='PointSet'          >outDoE</Output>
   </MultiRun>
   <IOStep name='OutstreamDoE' pauseAtEnd='True'>
-    <Input   class='DataObjects'      type='TimePointSet'           >outDoE</Input>
+    <Input   class='DataObjects'      type='PointSet'           >outDoE</Input>
     <Output  class='OutStreamManager' type='Plot'                   >plotLocationDoE</Output>
   </IOStep>
   <MultiRun name='runMC'>
-    <Input   class='DataObjects'      type='TimePointSet'           >dummy</Input>
+    <Input   class='DataObjects'      type='PointSet'           >dummy</Input>
     <Model   class='Models'           type='ExternalModel'          >PythonModule</Model>
     <Sampler class='Samplers'         type='MonteCarlo'             >MC</Sampler>
-    <Output  class='DataObjects'      type='TimePointSet'           >outMC</Output>
+    <Output  class='DataObjects'      type='PointSet'           >outMC</Output>
   </MultiRun>
   <IOStep name='OutstreamMC' pauseAtEnd='True'>
-    <Input   class='DataObjects'      type='TimePointSet'           >outMC</Input>
+    <Input   class='DataObjects'      type='PointSet'           >outMC</Input>
     <Output  class='OutStreamManager' type='Plot'                   >plotLocationMC</Output>
     <Output  class='OutStreamManager' type='Print'                  >out_dump</Output>    
   </IOStep>
   <PostProcess name='PP'>
-    <Input    class='DataObjects'     type='TimePointSet'           >outMC</Input>
+    <Input    class='DataObjects'     type='PointSet'           >outMC</Input>
     <Model    class='Models'          type='PostProcessor'          >StatisticsOutput</Model>
     <Output   class='Files'           type=''                       >output_basicStatistics.csv</Output>
   </PostProcess>

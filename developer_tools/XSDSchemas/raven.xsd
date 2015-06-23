@@ -18,6 +18,15 @@
     <xsd:simpleType name="intList">
       <xsd:list itemType="xsd:integer"/>
     </xsd:simpleType>
+
+    <xsd:simpleType  name="verbosityAttr">
+      <xsd:restriction   base="xsd:string">
+        <xsd:enumeration value="silent"/>
+        <xsd:enumeration value="quiet" />
+        <xsd:enumeration value="all"   />
+        <xsd:enumeration value="debug" />
+      </xsd:restriction>
+    </xsd:simpleType>
     <!-- End Common simple types -->
 
     <xsd:element name="Simulation">
@@ -34,8 +43,8 @@
                 <xsd:element name="OutStreamManager" type="OutStreamData"    minOccurs="0"/>
             </xsd:all>
             <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
+            <xsd:attribute name="printTimeStamps" type="xsd:boolean" />
         </xsd:complexType>
-
         <xsd:key name="distName">
             <xsd:selector xpath="./Distributions/*"/>
             <xsd:field    xpath="@name"/>
@@ -53,15 +62,6 @@
             <xsd:field    xpath="@name"/>
         </xsd:key> -->
     </xsd:element>
-
-    <xsd:simpleType  name="verbosityAttr">
-        <xsd:restriction   base="xsd:string">
-            <xsd:enumeration value="silent"/>
-            <xsd:enumeration value="quiet" />
-            <xsd:enumeration value="all"   />
-            <xsd:enumeration value="debug" />
-        </xsd:restriction>
-    </xsd:simpleType>
 
     <xsd:complexType name="RunInfoData">
         <xsd:all>

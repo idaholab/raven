@@ -8,14 +8,14 @@
 
     <Steps>
         <MultiRun name='make' pauseAtEnd='false'>
-            <Input   class='DataObjects'            type='TimePointSet'>dummyIN</Input>
-            <Model   class='Models'           type='Dummy'       >MyDummy</Model>
-            <Sampler class='Samplers'         type='Sobol'       >sobol</Sampler>
-            <Output  class='DataObjects'            type='TimePointSet'>solns</Output>
+            <Input   class='DataObjects' type='PointSet'>dummyIN</Input>
+            <Model   class='Models'      type='Dummy'   >MyDummy</Model>
+            <Sampler class='Samplers'    type='Sobol'   >sobol</Sampler>
+            <Output  class='DataObjects' type='PointSet'>solns</Output>
         </MultiRun>
         <IOStep name='print'>
-            <Input   class='DataObjects'            type='TimePointSet'>solns</Input>
-            <Output  class='OutStreamManager' type='Print'       >dump</Output>
+            <Input   class='DataObjects'      type='PointSet'>solns</Input>
+            <Output  class='OutStreamManager' type='Print'   >dump</Output>
         </IOStep>
     </Steps>
 
@@ -56,14 +56,14 @@
     </Models>
 
     <DataObjects>
-        <TimePointSet name="dummyIN">
+        <PointSet name="dummyIN">
             <Input>x1,x2,x3,x4,x5,x6</Input>
             <Output>OutputPlaceHolder</Output>
-        </TimePointSet>
-        <TimePointSet name='solns'>
+        </PointSet>
+        <PointSet name='solns'>
             <Input>x1,x2,x3,x4,x5,x6</Input>
             <Output>OutputPlaceHolder</Output>
-        </TimePointSet>
+        </PointSet>
     </DataObjects>
 
     <OutStreamManager>

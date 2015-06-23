@@ -41,11 +41,11 @@
       </variable>
       <variable name='VarGauss1' >
         <distribution>Gauss1</distribution>
-        <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.3</grid>
+        <grid type='value' construction='equal' steps='3'>0.02 0.92</grid>
       </variable>
       <variable name='VarGauss2'>
         <distribution >Gauss2</distribution>
-        <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
+        <grid type='CDF' construction='equal' steps='3'>0.17 0.2</grid>
       </variable>
     </Stratified>
 </Samplers>
@@ -57,22 +57,22 @@
     </Print>
 </OutStreamManager>
 <DataObjects>
-    <TimePointSet name='outLHS'>
+    <PointSet name='outLHS'>
         <Input>VarGauss1,VarGauss2,VarTri1</Input>
         <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='dummyIN'>
+   </PointSet>
+   <PointSet name='dummyIN'>
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
       <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
+   </PointSet>
 </DataObjects>
 
 <Steps>
     <MultiRun name='myLHS'>
-        <Input   class='DataObjects'    type='TimePointSet' >dummyIN</Input>
+        <Input   class='DataObjects'    type='PointSet' >dummyIN</Input>
         <Model   class='Models'   type='Dummy'        >MyDummy</Model>
         <Sampler class='Samplers' type='Stratified'          >myLHS</Sampler>
-        <Output  class='DataObjects'    type='TimePointSet' >outLHS</Output>
+        <Output  class='DataObjects'    type='PointSet' >outLHS</Output>
         <Output  class='OutStreamManager' type='Print'>outLHS_dump</Output>
     </MultiRun >
 </Steps>

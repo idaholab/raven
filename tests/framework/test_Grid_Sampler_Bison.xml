@@ -4,7 +4,7 @@
 <RunInfo>
     <WorkingDir>GridTestBison</WorkingDir>
     <Files>gap_perfect_transfer_test.i,gap_perfect_transfer_test.e</Files>
-    <Sequence>CustomSampler</Sequence>
+    <Sequence>CustomSampler,IOStepTest</Sequence>
     <batchSize>1</batchSize>
 </RunInfo>
 
@@ -43,7 +43,7 @@
       </variable>
       <variable name='Materials|heat2|thermal_conductivity'>
         <distribution  >DistTri1</distribution>
-        <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
+        <grid type='value' construction='equal' steps='1'>3.5 4.0</grid>
       </variable>
     </Grid>
 </Samplers>
@@ -56,15 +56,22 @@
 </OutStreamManager>
 
 <DataObjects>
-    <TimePointSet name='outGrid'>
-      <Input>Materials|heat1|thermal_conductivity,Materials|heat1|specific_heat,Materials|heat2|thermal_conductivity</Input>
-      <Output>aveTempLeft,aveTempRight,time</Output>
-    </TimePointSet>
-
-    <Histories name='stories'>
+    <PointSet name='outGrid'>
+        <Input>Materials|heat1|thermal_conductivity,Materials|heat1|specific_heat,Materials|heat2|thermal_conductivity</Input>
+        <Output>aveTempLeft,aveTempRight,time</Output>
+    </PointSet>
+    <PointSet name='outGridFromHDF5'>
+        <Input>Materials|heat1|thermal_conductivity,Materials|heat1|specific_heat,Materials|heat2|thermal_conductivity,aveTempLeft</Input>
+        <Output>aveTempRight,time</Output>
+    </PointSet>
+    <HistorySet name='stories'>
         <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
         <Output>aveTempLeft,aveTempRight,time</Output>
-   </Histories>
+    </HistorySet>
+    <HistorySet name='storiesFromHDF5'>
+        <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity,aveTempLeft</Input>
+        <Output>aveTempRight,time</Output>
+    </HistorySet>
 </DataObjects>
 
 <Steps>
@@ -74,13 +81,19 @@
     <Model   class = 'Models'    type='Code'     >Bison</Model>
     <Sampler class = 'Samplers'  type='Grid'     >myGrid</Sampler>
     <Output  class = 'Databases' type='HDF5'     >test_bison_grid</Output>
-    <Output  class = 'DataObjects'     type='Histories'>stories</Output>
-    <Output  class='DataObjects'     type='TimePointSet'>outGrid</Output>
+    <Output  class = 'DataObjects'     type='HistorySet'>stories</Output>
+    <Output  class='DataObjects'     type='PointSet'>outGrid</Output>
     <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
-    </MultiRun >
+  </MultiRun>
+  <IOStep name='IOStepTest'>
+      <Input   class = 'Databases' type='HDF5'            >test_bison_grid</Input>
+      <Input   class = 'Databases' type='HDF5'            >test_bison_grid</Input>
+      <Output  class='DataObjects'     type='PointSet'>outGridFromHDF5</Output>
+      <Output  class='DataObjects'     type='HistorySet'>storiesFromHDF5</Output>
+  </IOStep>
 </Steps>
 <Databases>
-  <HDF5 name="test_bison_grid"/> 
+  <HDF5 name="test_bison_grid"/>
 </Databases>
 </Simulation>
 

@@ -7,25 +7,24 @@
   <batchSize>1</batchSize>
 </RunInfo>
 
-
 <Steps>
-  <MultiRun name = 'step1' pauseAtEnd = 'false'>
-    <Input    class = 'DataObjects'     type = 'TimePointSet'   >Data1</Input>
-    <Model    class = 'Models'    type = 'ExternalModel'  >XM1</Model>
-    <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
-    <Output   class = 'DataObjects'     type = 'TimePointSet'   >Data2</Output>
+  <MultiRun name='step1' pauseAtEnd='false'>
+    <Input    class='DataObjects' type='PointSet'     >Data1</Input>
+    <Model    class='Models'      type='ExternalModel'>XM1</Model>
+    <Sampler  class='Samplers'    type='Grid'         >grid1</Sampler>
+    <Output   class='DataObjects' type='PointSet'     >Data2</Output>
   </MultiRun>
-  <MultiRun name = 'step5' pauseAtEnd = 'false'>
-    <Input    class = 'DataObjects'     type = 'TimePointSet'   >Data1</Input>
-    <Model    class = 'Models'    type = 'ROM'            >ROM1</Model>
-    <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
-    <Output   class = 'DataObjects'     type = 'TimePointSet'   >Data3</Output>
+  <MultiRun name='step5' pauseAtEnd='false'>
+    <Input    class='DataObjects' type='PointSet'>Data1</Input>
+    <Model    class='Models'      type='ROM'     >ROM1</Model>
+    <Sampler  class='Samplers'    type='Grid'    >grid1</Sampler>
+    <Output   class='DataObjects' type='PointSet'>Data3</Output>
   </MultiRun>
-  <MultiRun name = 'step6' pauseAtEnd = 'false'>
-    <Input    class = 'DataObjects'     type = 'TimePointSet'   >Data1</Input>
-    <Model    class = 'Models'    type = 'ROM'            >ROM2</Model>
-    <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
-    <Output   class = 'DataObjects'     type = 'TimePointSet'   >Data4</Output>
+  <MultiRun name='step6' pauseAtEnd='false'>
+    <Input   class='DataObjects' type='PointSet'>Data1</Input>
+    <Model   class='Models'      type='ROM'         >ROM2</Model>
+    <Sampler class='Samplers'    type='Grid'        >grid1</Sampler>
+    <Output  class='DataObjects' type='PointSet'>Data4</Output>
   </MultiRun>
   <IOStep name='step3' pauseAtEnd='false'>
     <Input   class='Models'     type='ROM'>ROM1</Input>
@@ -36,51 +35,48 @@
     <Output  class='Models'     type='ROM'>ROM2</Output>
   </IOStep>
   <IOStep name='step7' pauseAtEnd='false'>
-    <Input  class='DataObjects'      type='TimePointSet'>Data3</Input>
-    <Input  class='DataObjects'      type='TimePointSet'>Data4</Input>
-    <Output class='OutStreamManager' type='Print'>PrintData</Output>
-    <Output class='OutStreamManager' type='Print'>PrintData_Pickle</Output>
+    <Input  class='DataObjects'      type='PointSet'>Data3</Input>
+    <Input  class='DataObjects'      type='PointSet'>Data4</Input>
+    <Output class='OutStreamManager' type='Print'   >PrintData</Output>
+    <Output class='OutStreamManager' type='Print'   >PrintData_Pickle</Output>
   </IOStep>
   <RomTrainer name='step2'>
-    <Input   class='DataObjects'  type='TimePointSet'>Data2</Input>
-    <Output  class='Models' type='ROM'         >ROM1</Output>
+    <Input   class='DataObjects' type='PointSet'>Data2</Input>
+    <Output  class='Models'      type='ROM'     >ROM1</Output>
   </RomTrainer>
 </Steps>
-
 
 <Samplers>
   <Grid name = 'grid1'>
     <variable name = 'x1' >
       <distribution>x1_dst</distribution>
-      <grid type = 'value' construction = 'equal' steps = '10' upperBound = '10'>2</grid>
+      <grid type = 'value' construction = 'equal' steps = '10' >-10 10</grid>
     </variable>
     <variable name='x2' >
       <distribution>x2_dst</distribution>
-      <grid type = 'value' construction = 'equal' steps = '10' upperBound = '10'>2</grid>
+      <grid type = 'value' construction = 'equal' steps = '10' >-10 10</grid>
     </variable>
   </Grid>
 </Samplers>
 
-
 <DataObjects>
-  <TimePointSet name = 'Data1'>
+  <PointSet name = 'Data1'>
     <Input>x1,x2</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
- <TimePointSet name = 'Data2'>
+  </PointSet>
+ <PointSet name = 'Data2'>
     <Input>x1,x2</Input>
     <Output>y</Output>
-  </TimePointSet>
-  <TimePointSet name = 'Data3'>
+  </PointSet>
+  <PointSet name = 'Data3'>
     <Input>x1,x2</Input>
     <Output>y</Output>
-  </TimePointSet>
-  <TimePointSet name = 'Data4'>
+  </PointSet>
+  <PointSet name = 'Data4'>
     <Input>x1,x2</Input>
     <Output>y</Output>
-  </TimePointSet>
+  </PointSet>
 </DataObjects>
-
 
 <Distributions>
   <Normal name = 'x1_dst'>
@@ -96,7 +92,6 @@
     <sigma>0.05</sigma>
   </Normal>
 </Distributions>
-
 
 <Models>
   <ExternalModel name = 'XM1' subType = '' ModuleToLoad = 'IO_ROM_PICKLE/XM1_model'>

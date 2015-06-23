@@ -114,101 +114,101 @@
    </PostProcessor>
 </Models>
 <DataObjects>
-  <TimePointSet name='dummyIN1a'>
+  <PointSet name='dummyIN1a'>
     <Input>PowHist,ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='dummyIN1b'>
+  </PointSet>
+  <PointSet name='dummyIN1b'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='dummyIN1c'>
+  </PointSet>
+  <PointSet name='dummyIN1c'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='dummyIN1d'>
+  </PointSet>
+  <PointSet name='dummyIN1d'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='dummyIN1e'>
+  </PointSet>
+  <PointSet name='dummyIN1e'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='dummyIN1f'>
+  </PointSet>
+  <PointSet name='dummyIN1f'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='dummyIN1g'>
+  </PointSet>
+  <PointSet name='dummyIN1g'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='dummyIN1h'>
+  </PointSet>
+  <PointSet name='dummyIN1h'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='out1a'>
+  </PointSet>
+  <PointSet name='out1a'>
     <Input>PowHist,ThExp,GrainRad</Input>
     <Output>sum,prod,sin</Output>
-  </TimePointSet>
-  <TimePointSet name='out1b'>
+  </PointSet>
+  <PointSet name='out1b'>
     <Input>ThExp,GrainRad</Input>
     <Output>sum,prod,sin</Output>
-  </TimePointSet>
-  <TimePointSet name='out1c'>
+  </PointSet>
+  <PointSet name='out1c'>
     <Input>ThExp,GrainRad</Input>
     <Output>sum,prod,sin</Output>
-  </TimePointSet>
-  <TimePointSet name='out1d'>
+  </PointSet>
+  <PointSet name='out1d'>
     <Input>ThExp,GrainRad</Input>
     <Output>sum,prod,sin</Output>
-  </TimePointSet>
-  <TimePointSet name='out1cCopy'>
+  </PointSet>
+  <PointSet name='out1cCopy'>
     <Input>ThExp,GrainRad</Input>
     <Output>sum,prod,sin</Output>
-  </TimePointSet>
-  <TimePointSet name='out1dCopy'>
+  </PointSet>
+  <PointSet name='out1dCopy'>
     <Input>ThExp,GrainRad</Input>
     <Output>sum,prod,sin</Output>
-  </TimePointSet>
-  <TimePointSet name='out1e'>
+  </PointSet>
+  <PointSet name='out1e'>
     <Input>ThExp,GrainRad</Input>
     <Output>sin</Output>
-  </TimePointSet>
-  <TimePointSet name='out1f'>
+  </PointSet>
+  <PointSet name='out1f'>
     <Input>ThExp,GrainRad</Input>
     <Output>sin</Output>
-  </TimePointSet>
-  <TimePointSet name='out1g'>
+  </PointSet>
+  <PointSet name='out1g'>
     <Input>ThExp,GrainRad</Input>
     <Output>sin</Output>
-  </TimePointSet>
-  <TimePointSet name='out1h'>
+  </PointSet>
+  <PointSet name='out1h'>
     <Input>ThExp,GrainRad</Input>
     <Output>sin</Output>
-  </TimePointSet>
-  <TimePointSet name='LimitSurf_e'>
+  </PointSet>
+  <PointSet name='LimitSurf_e'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='LimitSurf_f'>
+  </PointSet>
+  <PointSet name='LimitSurf_f'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='LimitSurf_g'>
+  </PointSet>
+  <PointSet name='LimitSurf_g'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='LimitSurf_h'>
+  </PointSet>
+  <PointSet name='LimitSurf_h'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
+  </PointSet>
 </DataObjects>
 <Steps>
   <MultiRun name='exercise1a' pauseAtEnd='True'>
     <Sampler class = 'Samplers'          type='MonteCarlo'   >exercise1a</Sampler>
-    <Input   class = 'DataObjects'             type='TimePointSet' >dummyIN1a</Input>    
+    <Input   class = 'DataObjects'             type='PointSet' >dummyIN1a</Input>    
     <Model   class = 'Models'            type='Dummy'        >exercise1</Model>
-    <Output  class = 'DataObjects'             type='TimePointSet' >out1a</Output>
+    <Output  class = 'DataObjects'             type='PointSet' >out1a</Output>
     <Output  class = 'OutStreamManager'  type='Print'        >DistriDump1a</Output>
     <Output  class = 'OutStreamManager'  type='Plot'         >HistogramPowerScaleFact1a</Output>
     <Output  class = 'OutStreamManager'  type='Plot'         >HistogramThExp1a</Output>
@@ -216,9 +216,9 @@
   </MultiRun >
   <MultiRun name='exercise1b' pauseAtEnd='True'>
     <Sampler class = 'Samplers'          type='Grid'         >exercise1b</Sampler>
-    <Input   class = 'DataObjects'             type='TimePointSet' >dummyIN1b</Input>    
+    <Input   class = 'DataObjects'             type='PointSet' >dummyIN1b</Input>    
     <Model   class = 'Models'            type='ExternalModel'>extExec1</Model>
-    <Output  class = 'DataObjects'             type='TimePointSet' >out1b</Output>
+    <Output  class = 'DataObjects'             type='PointSet' >out1b</Output>
     <Output  class = 'OutStreamManager'  type='Print'        >out1b</Output>
     <Output  class = 'OutStreamManager'  type='Plot'         >Sum1b</Output>
     <Output  class = 'OutStreamManager'  type='Plot'         >Prod1b</Output>
@@ -226,10 +226,10 @@
   </MultiRun >
   <MultiRun name='exercise1c' pauseAtEnd='True'>
     <Sampler class = 'Samplers'          type='Grid'         >exercise1c</Sampler>
-    <Input   class = 'DataObjects'             type='TimePointSet' >dummyIN1c</Input>    
+    <Input   class = 'DataObjects'             type='PointSet' >dummyIN1c</Input>    
     <Model   class = 'Models'            type='ExternalModel'>extExec1</Model>
-    <Output  class = 'DataObjects'             type='TimePointSet' >out1cCopy</Output>
-    <Output  class = 'DataObjects'             type='TimePointSet' >out1c</Output>
+    <Output  class = 'DataObjects'             type='PointSet' >out1cCopy</Output>
+    <Output  class = 'DataObjects'             type='PointSet' >out1c</Output>
     <Output  class = 'OutStreamManager'  type='Print'        >out1c</Output>
     <Output  class = 'OutStreamManager'  type='Plot'         >Sum1c</Output>
     <Output  class = 'OutStreamManager'  type='Plot'         >Prod1c</Output>
@@ -237,21 +237,21 @@
   </MultiRun >
   <MultiRun name='exercise1d' pauseAtEnd='True'>
     <Sampler class = 'Samplers'          type='Stratified'          >exercise1d</Sampler>
-    <Input   class = 'DataObjects'             type='TimePointSet' >dummyIN1d</Input>    
+    <Input   class = 'DataObjects'             type='PointSet' >dummyIN1d</Input>    
     <Model   class = 'Models'            type='ExternalModel'>extExec1</Model>
-    <Output  class = 'DataObjects'             type='TimePointSet' >out1dCopy</Output>
-    <Output  class = 'DataObjects'             type='TimePointSet' >out1d</Output>
+    <Output  class = 'DataObjects'             type='PointSet' >out1dCopy</Output>
+    <Output  class = 'DataObjects'             type='PointSet' >out1d</Output>
     <Output  class = 'OutStreamManager'  type='Print'        >out1d</Output>
     <Output  class = 'OutStreamManager'  type='Plot'         >Sum1d</Output>
     <Output  class = 'OutStreamManager'  type='Plot'         >Prod1d</Output>
     <Output  class = 'OutStreamManager'  type='Plot'         >Sin1d</Output>
   </MultiRun >
   <Adaptive name='exercise1e' pauseAtEnd='True'>
-    <Input             class = 'DataObjects'            type = 'TimePointSet' >dummyIN1e</Input>   
+    <Input             class = 'DataObjects'            type = 'PointSet' >dummyIN1e</Input>   
     <Sampler           class = 'Samplers'         type = 'Adaptive'     >exercise1AdapPb</Sampler>
-    <TargetEvaluation  class = 'DataObjects'            type = 'TimePointSet' >out1e</TargetEvaluation>
-    <Output            class = 'DataObjects'            type = 'TimePointSet' >out1e</Output>            
-    <SolutionExport    class = 'DataObjects'            type = 'TimePointSet' >LimitSurf_e</SolutionExport>
+    <TargetEvaluation  class = 'DataObjects'            type = 'PointSet' >out1e</TargetEvaluation>
+    <Output            class = 'DataObjects'            type = 'PointSet' >out1e</Output>            
+    <SolutionExport    class = 'DataObjects'            type = 'PointSet' >LimitSurf_e</SolutionExport>
     <Function          class = 'Functions'        type = 'External'     >sinThreshold</Function>
     <Model             class = 'Models'           type = 'ExternalModel'>extExec1</Model>
     <ROM               class = 'Models'           type = 'ROM'          >AccROM</ROM>
@@ -259,11 +259,11 @@
     <Output            class = 'OutStreamManager' type = 'Plot'         >testedPoint_e</Output>    
   </Adaptive>
   <Adaptive name='exercise1f' pauseAtEnd='True'>
-    <Input             class = 'DataObjects'            type = 'TimePointSet' >dummyIN1f</Input>   
+    <Input             class = 'DataObjects'            type = 'PointSet' >dummyIN1f</Input>   
     <Sampler           class = 'Samplers'         type = 'Adaptive'     >exercise1AdapValue</Sampler>
-    <TargetEvaluation  class = 'DataObjects'            type = 'TimePointSet' >out1f</TargetEvaluation>
-    <Output            class = 'DataObjects'            type = 'TimePointSet' >out1f</Output>            
-    <SolutionExport    class = 'DataObjects'            type = 'TimePointSet' >LimitSurf_f</SolutionExport>
+    <TargetEvaluation  class = 'DataObjects'            type = 'PointSet' >out1f</TargetEvaluation>
+    <Output            class = 'DataObjects'            type = 'PointSet' >out1f</Output>            
+    <SolutionExport    class = 'DataObjects'            type = 'PointSet' >LimitSurf_f</SolutionExport>
     <Function          class = 'Functions'        type = 'External'     >sinThreshold</Function>
     <Model             class = 'Models'           type = 'ExternalModel'>extExec1</Model>
     <ROM               class = 'Models'           type = 'ROM'          >AccROM</ROM>
@@ -271,11 +271,11 @@
     <Output            class = 'OutStreamManager' type = 'Plot'         >testedPoint_f</Output>    
   </Adaptive>
   <Adaptive name='exercise1g' pauseAtEnd='True'>
-    <Input             class = 'DataObjects'            type = 'TimePointSet' >dummyIN1g</Input>   
+    <Input             class = 'DataObjects'            type = 'PointSet' >dummyIN1g</Input>   
     <Sampler           class = 'Samplers'         type = 'Adaptive'     >exercise1AdapPb</Sampler>
-    <TargetEvaluation  class = 'DataObjects'            type = 'TimePointSet' >out1dCopy</TargetEvaluation>
-    <Output            class = 'DataObjects'            type = 'TimePointSet' >out1dCopy</Output>            
-    <SolutionExport    class = 'DataObjects'            type = 'TimePointSet' >LimitSurf_g</SolutionExport>
+    <TargetEvaluation  class = 'DataObjects'            type = 'PointSet' >out1dCopy</TargetEvaluation>
+    <Output            class = 'DataObjects'            type = 'PointSet' >out1dCopy</Output>            
+    <SolutionExport    class = 'DataObjects'            type = 'PointSet' >LimitSurf_g</SolutionExport>
     <Function          class = 'Functions'        type = 'External'     >sinThreshold</Function>
     <Model             class = 'Models'           type = 'ExternalModel'>extExec1</Model>
     <ROM               class = 'Models'           type = 'ROM'          >AccROM</ROM>
@@ -283,11 +283,11 @@
     <Output            class = 'OutStreamManager' type = 'Plot'         >testedPoint_g</Output>    
   </Adaptive>
   <Adaptive name='exercise1h' pauseAtEnd='True'>
-    <Input             class = 'DataObjects'            type = 'TimePointSet' >dummyIN1h</Input>   
+    <Input             class = 'DataObjects'            type = 'PointSet' >dummyIN1h</Input>   
     <Sampler           class = 'Samplers'         type = 'Adaptive'     >exercise1AdapValue</Sampler>
-    <TargetEvaluation  class = 'DataObjects'            type = 'TimePointSet' >out1cCopy</TargetEvaluation>
-    <Output            class = 'DataObjects'            type = 'TimePointSet' >out1cCopy</Output>            
-    <SolutionExport    class = 'DataObjects'            type = 'TimePointSet' >LimitSurf_h</SolutionExport>
+    <TargetEvaluation  class = 'DataObjects'            type = 'PointSet' >out1cCopy</TargetEvaluation>
+    <Output            class = 'DataObjects'            type = 'PointSet' >out1cCopy</Output>            
+    <SolutionExport    class = 'DataObjects'            type = 'PointSet' >LimitSurf_h</SolutionExport>
     <Function          class = 'Functions'        type = 'External'     >sinThreshold</Function>
     <Model             class = 'Models'           type = 'ExternalModel'>extExec1</Model>
     <ROM               class = 'Models'           type = 'ROM'          >AccROM</ROM>
@@ -295,22 +295,22 @@
     <Output            class = 'OutStreamManager' type = 'Plot'         >testedPoint_h</Output>    
   </Adaptive>
   <IODatabase name='exercise1i'>
-    <Input  class='DataObjects'     type='TimePointSet'>out1c</Input>
+    <Input  class='DataObjects'     type='PointSet'>out1c</Input>
     <Output class='Databases' type='HDF5'        >DB_GridValue</Output>
-    <Input  class='DataObjects'     type='TimePointSet'>out1d</Input>
+    <Input  class='DataObjects'     type='PointSet'>out1d</Input>
     <Output class='Databases' type='HDF5'        >DB_LHS</Output>
     <Output class='OutStreamManager' type='Print'>dumping</Output>
   </IODatabase>  
   <PostProcess name='PP1'>
-    <Input    class='DataObjects'            type='TimePointSet'    >out1b</Input>
+    <Input    class='DataObjects'            type='PointSet'    >out1b</Input>
     <Model    class='Models'           type='PostProcessor'   >autoCorrelationTest</Model>
   </PostProcess>
   <PostProcess name='PP2'>
-    <Input    class='DataObjects'            type='TimePointSet'    >out1c</Input>
+    <Input    class='DataObjects'            type='PointSet'    >out1c</Input>
     <Model    class='Models'           type='PostProcessor'   >autoCorrelationTest</Model>
   </PostProcess>
   <PostProcess name='PP3'>
-    <Input    class='DataObjects'            type='TimePointSet'    >out1d</Input>
+    <Input    class='DataObjects'            type='PointSet'    >out1d</Input>
     <Model    class='Models'           type='PostProcessor'   >autoCorrelationTest</Model>
   </PostProcess>
 </Steps>

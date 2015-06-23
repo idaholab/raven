@@ -71,24 +71,24 @@
         <Input   class='Files'              type=''               >lorentzAttractor.py</Input>
         <Model   class='Models'             type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'           type='Grid'           >grid_CDF_SP</Sampler>
-        <Output  class='DataObjects'              type='TimePointSet'   >testPrintTimePointSet</Output>
-        <Output  class='OutStreamManager'   type='Print'          >testPrintTimePointSet_dump</Output>
+        <Output  class='DataObjects'              type='PointSet'   >testPrintPointSet</Output>
+        <Output  class='OutStreamManager'   type='Print'          >testPrintPointSet_dump</Output>
     </MultiRun >
 </Steps>
 
 <OutStreamManager>
-    <Print name='testPrintTimePointSet_dump'>
+    <Print name='testPrintPointSet_dump'>
         <type>csv</type>
-        <source>testPrintTimePointSet</source>
+        <source>testPrintPointSet</source>
     </Print>
 </OutStreamManager>
 
 
 <DataObjects>
-    <TimePointSet name='testPrintTimePointSet'>
+    <PointSet name='testPrintPointSet'>
         <Input>x0,y0,z0,k0</Input>
         <Output>x,y,z,k</Output>
-    </TimePointSet>
+    </PointSet>
 </DataObjects>
 
 </Simulation>

@@ -67,7 +67,7 @@
             <grid type='global_grid'>name_grid1</grid>
         </variable>
         <global_grid>
-            <grid name='name_grid1' construction='custom'>0.1 1.0 0.2</grid>
+            <grid name='name_grid1' type='CDF' construction='custom'>0.1 1.0 0.2</grid>
         </global_grid>
     </Stratified>
 </Samplers>
@@ -77,24 +77,24 @@
         <Input   class='Files'              type=''               >lorentzAttractor.py</Input>
         <Model   class='Models'             type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'           type='Stratified'     >LHS_test</Sampler>
-        <Output  class='DataObjects'              type='TimePointSet'   >testPrintTimePointSet</Output>
-        <Output  class='OutStreamManager'   type='Print'          >testPrintTimePointSet_dump</Output>
+        <Output  class='DataObjects'              type='PointSet'   >testPrintPointSet</Output>
+        <Output  class='OutStreamManager'   type='Print'          >testPrintPointSet_dump</Output>
     </MultiRun >
 </Steps>
 
 <OutStreamManager>
-    <Print name='testPrintTimePointSet_dump'>
+    <Print name='testPrintPointSet_dump'>
         <type>csv</type>
-        <source>testPrintTimePointSet</source>
+        <source>testPrintPointSet</source>
     </Print>
 </OutStreamManager>
 
 
 <DataObjects>
-    <TimePointSet name='testPrintTimePointSet'>
+    <PointSet name='testPrintPointSet'>
         <Input>x0,y0,z0,k0</Input>
         <Output>x,y,z,k</Output>
-    </TimePointSet>
+    </PointSet>
 </DataObjects>
 
 </Simulation>

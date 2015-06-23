@@ -51,36 +51,36 @@
 
 <Steps>
     <MultiRun name='FirstMRun'>
-        <Input   class='DataObjects'        type='TimePointSet'   >inputPlaceHolder</Input>
+        <Input   class='DataObjects'        type='PointSet'   >inputPlaceHolder</Input>
         <Model   class='Models'             type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'           type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='DataObjects'        type='TimePointSet'   >testPrintTimePointSet</Output>
-        <Output  class='OutStreamManager'   type='Print'          >testPrintTimePointSet_dump</Output>
+        <Output  class='DataObjects'        type='PointSet'   >testPrintPointSet</Output>
+        <Output  class='OutStreamManager'   type='Print'          >testPrintPointSet_dump</Output>
     </MultiRun>
     <PostProcess name='PP'>
-        <Input   class='DataObjects'      type='TimePointSet'    >testPrintTimePointSet</Input>
+        <Input   class='DataObjects'      type='PointSet'    >testPrintPointSet</Input>
         <Model   class='Models'           type='PostProcessor'   >CorrelationTest</Model>
         <Output  class='Files'            type=''                >CorrelationTest_print.csv</Output>
     </PostProcess>
 </Steps>
 
 <OutStreamManager>
-    <Print name='testPrintTimePointSet_dump'>
+    <Print name='testPrintPointSet_dump'>
         <type>csv</type>
-        <source>testPrintTimePointSet</source>
+        <source>testPrintPointSet</source>
     </Print>
 </OutStreamManager>
 
 
 <DataObjects>
-    <TimePointSet name='testPrintTimePointSet'>
+    <PointSet name='testPrintPointSet'>
         <Input>x0,y0,z0</Input>
         <Output>x,y,z</Output>
-    </TimePointSet>
-    <TimePointSet name='inputPlaceHolder'>
+    </PointSet>
+    <PointSet name='inputPlaceHolder'>
         <Input>x0,y0,z0</Input>
         <Output>OutputPlaceHolder</Output>
-    </TimePointSet>
+    </PointSet>
 </DataObjects>
 
 </Simulation>
