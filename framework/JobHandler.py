@@ -74,7 +74,9 @@ class ExternalRunner(MessageHandler.MessageUser):
       self.identifier = 'generalOut'
     if workingDirI: self.__workingDir = workingDirI
     else          : self.__workingDir = workingDir
+    ####### WARNING: THIS DEEPCOPY MUST STAY!!!! DO NOT REMOVE IT ANYMORE. ANDREA #######
     self.__metadata   = copy.deepcopy(metadata)
+    ####### WARNING: THIS DEEPCOPY MUST STAY!!!! DO NOT REMOVE IT ANYMORE. ANDREA #######
     self.codePointer  = codePointer
 
 # BEGIN: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
