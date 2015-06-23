@@ -316,6 +316,40 @@ Example XML block to define the variables and associated distributions:
 </variable>
 \end{lstlisting}
 
+If the variable is associated to a multi-dimensional ND distribution, it is needed to specify which dimension of the ND distribution is associated to such variable. An example is shown below: the variable  ``variableX'' is associated to the third dimension of the ND distribution ``NDdistribution''.
+
+\begin{lstlisting}[style=XML]
+<variable name='variableX'>
+     <distribution dim='3'>NDdistribution</distribution>
+</variable>
+\end{lstlisting}
+
+In the sampler class a special node exists: the \xmlNode{sampler\textunderscore init} node.
+This node contains specific parameters that characterize each particular sampler. 
+In addition, \xmlNode{sampler\textunderscore init} might contains the information regarding the random generator function for each $N$-Dimensional distribution (specified in the \xmlNode{dist\textunderscore init} node):
+\begin{itemize}
+\item initial\textunderscore grid\textunderscore disc 
+\item tolerance
+\end{itemize}
+
+An example of \xmlNode{dist\textunderscore init} node is provided below:
+
+\begin{lstlisting}[style=XML]
+<dist_init>
+    <distribution name= 'ND_dist_name'>
+         <initial_grid_disc>5</initial_grid_disc>
+          <tolerance>0.2</tolerance>
+     </distribution>
+  </dist_init>
+\end{lstlisting}
+
+In the \xmlNode{sampler\textunderscore init}  node it is possible to add also the subnode \xmlNode{global\_grid}.
+The \xmlNode{global\_grid} can be used in two cases:
+\begin{itemize}
+\item 1D distributions: an identical grid that is associated to several distributions
+\item ND distribution: a grid associated to a single ND distribution. This is the case when a stratified sampling is performed on the CDF of an ND distribution: the  \xmlNode{global\_grid} is  shared among the variables associated to the Nd distribution
+\end{itemize}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Once-Through Samplers %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -345,6 +379,7 @@ ways to explore the input space.
 %
 In the following paragraphs, the input requirements and a small explanation of
 the different sampling methodologies are reported.
+
 
 %%% Once-Through Samplers: MonteCarlo
 \subsubsection{Monte Carlo}
@@ -678,7 +713,7 @@ Example:
 \end{lstlisting}
 
 For N-dimensional  (ND) distributions, when the sampling is performed on a grid on a CDF  the user it is required to specify the same CDF grid for all the dimensions of the ND distribution.
-This is possible by defining a global\_grid and associate such global grid to each variable belonging to the ND distribution as follows.
+This is possible by defining a \xmlNode{global\_grid node and associate such global\_grid to each variable belonging to the ND distribution as follows.
 
 \begin{lstlisting}[style=XML,morekeywords={ND,grid}]
 <Samplers>
