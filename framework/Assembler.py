@@ -35,8 +35,8 @@ class Assembler(MessageHandler.MessageUser):
     This method is used mainly by the Simulation class at the Step construction stage.
     It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
     be initialize.
-    @ In , None, None
-    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
+    @ In , None
+    @ Out, needDict, dict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
     """
     if '_localWhatDoINeed' in dir(self):
       needDict = self._localWhatDoINeed()
@@ -53,8 +53,8 @@ class Assembler(MessageHandler.MessageUser):
     This method is used mainly by the Simulation class at the Step construction stage.
     It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
     It is an abstract method -> It must be implemented in the derived class!
-    @ In , initDict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
-    @ Out, None, None
+    @ In , initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+    @ Out, None
     """
     if '_localGenerateAssembler' in dir(self):
       self._localGenerateAssembler(initDict)
