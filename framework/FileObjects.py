@@ -19,24 +19,29 @@ from BaseClasses import BaseType
 
 class FileObject(BaseType,str):
   """
-  This class is the implementation of the file object entity in RAVEN.
+  This class is the base implementation of the file object entity in RAVEN.
   This is needed in order to standardize the object manipulation in the RAVEN code
   """
-  def __init__(self,filename=None):
+  def __init__(self):
     """
     Constructor
     """
     BaseType.__init__(self)
-    if filename is not None: #constructor for no-xml case; else use _readMoreXML
-      self._setFilename(filename)
+    self.__isOpen = False
+    self.__file   = None  #when open, refers to open file, else None
+    #the source of the initialization input determines the class you want
+    #  if read from XML, you want the UserGenerated class, initialized by _readMoreXML(XMLNode)
+    #  if created internally by RAVEN, you want the RAVENGenerated class, initialized by initialize(filename)
 
-  def __iter__(self):
-    """Acts like iterating over file
-    @ In, None
-    @ Out, iterator
+  def __del__(self):
     """
-    return (l for l in file(self.filename,'r'))
+    Destructor.  Ensures file is closed before exit.
+    @ In,  None
+    @ Out, None
+    """
+    if self.isOpen(): self.__file.close()
 
+  ### STRING-LIKE FUNCTIONS ###
   def __add__(self, other) :
     """
     Overload add "+"
@@ -55,7 +60,7 @@ class FileObject(BaseType,str):
     """
     if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
     return len(self.filename) < len(str(other))
-  def ___le__(self, other) :
+  def __le__(self, other) :
     """
     Overload le "<="
     """
@@ -86,20 +91,7 @@ class FileObject(BaseType,str):
     if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
     return len(self.filename) >= len(str(other))
 
-  def _readMoreXML(self,xmlNode,msgHandler):
-    """
-      reads the xmlNode and sets parameters
-      @ In, xmlNode, XML node
-      @ In, msgHandler, MessageHandler object
-    """
-    self.messageHandler = msgHandler
-    for node in xmlNode:
-      if node.tag=='Input':
-        self.type = 'Input'
-        self._setFilename(node.attrib.get('name')) #TODO errorchecking or XSD?
-      elif node.tag=='Auxiliary':pass
-      if self.name is None: self.raiseAnError('Missing "name" attribute!')
-
+  ### HELPER FUNCTIONS ###
   def _setFilename(self,filename):
     """
     Sets name, extension from filename = 'name.ext'
@@ -108,10 +100,62 @@ class FileObject(BaseType,str):
     """
     str.__init__(filename.strip())
     self.filename = filename.strip()
-    if self.filename != '.': self.name = os.path.basename(self.filename).split()[0]
-    else                   : self.name = self.filename
+    if self.filename != '.': self.main = os.path.basename(self.filename).split()[0]
+    else                   : self.main = self.filename
     if len(filename.split(".")) > 1: self.ext = filename.split(".")[1].lower()
     else                           : self.ext = 'unknown'
+
+  ### ACCESS FUNCTIONS ###
+  def isOpen(self):
+    """
+    Checks the open status of the internal file
+    @ In,  None
+    @ Out, bool, True if file is open
+    """
+    return self.__isOpen
+
+  def checkExists(self):
+    """
+    Checks path for existence of the file, errors if not found.
+    @ In,  None
+    @ Out, None
+    """
+    path = os.path.normpath(os.path.join(self.path,self.filename)):
+    if not os.path.exists(path): self.raiseAnError(IOError,'File not found:',path)
+
+  ### FILE-LIKE FUNCTIONS ###
+  def __iter__(self):
+    """Acts like iterating over file
+    @ In, None
+    @ Out, iterator
+    """
+    if not self.isOpen(): self.open('r')
+    self.__file.seek(0)
+    return (l for l in self.__file)
+
+  def open(self,mode='rw'):
+    """
+    Opens the file if not open, else throws a warning
+    @ In,  mode, string (optional) the read-write mode according to python "file" method ('r','a','w','rw',etc) (default 'rw')
+    @ Out, None
+    """
+    #TODO check if file exists
+    if not self.__isOpen:
+      self.__file = file(filename,mode)
+      self.__isOpen = True
+    else: self.raiseAWarning('Tried to open',self.filename,'but file already open!')
+
+  def close(self):
+    """
+    Closes the file if open, else throws a warning.
+    @ In,  None
+    @ Out, None
+    """
+    if self.__isOpen:
+      self.__file.close()
+      self.__file = None
+      self.__isOpen = False
+    else: self.raiseAWarning('Tried to close',self.filename,'but file not open!')
 
   def writelines(self,string,overwrite=False):
     """
@@ -120,24 +164,62 @@ class FileObject(BaseType,str):
     @ In, overwrite, bool (optional), if true will open file in write mode instead of append
     @ Out, None
     """
-    mode = 'a' if not overwrite else 'w'
-    writeto = file(self.filename,mode)
-    writeto.writelines(string)
-    writeto.close()
+    if not self.isOpen(): self.open('a' if not overwrite else 'w')
+    self.__file.writelines(string)
 
-def Input(FileObjects):
-  pass
-
-def Output(FileObjects):
-  pass
+#
+#
+#
+#
+class RAVENGenerated(FileObject):
+  """
+  This class is for file objects that are created and used internally by RAVEN.
+  Initialization is through calling self.initialize
+  """
+  def initialize(self,filname,msgHandler,path='.',subtype=None):
+    self.messageHandler = msgHandler
+    self.path=path
+    self._setFilename(filename)
+    self.type = 'internal'
+    self.perturbed = False
+    self.subtype   = subtype
+    self.name      = filename
+    self.checkExists()
+#
+#
+#
+#
+class UserGenerated(FileObject):
+  """
+  This class is for file objects that are created and used internally by RAVEN.
+  Initialization is through self._readMoreXML
+  """
+  def _readMoreXML(self,xmlNode,msgHandler):
+    """
+      reads the xmlNode and sets parameters
+      @ In,  xmlNode, XML node
+      @ In,  msgHandler, MessageHandler object
+      @ Out, None
+    """
+    self.messageHandler = msgHandler
+    for node in xmlNode:
+      self.type = node.tag #XSD should confirm types as Input only valid type so far
+      self._setFilename(node.text.strip())
+      self.perturbed = node.attrib.get('perturbable',True)
+      self.subtype   = node.attrib.get('type'       ,None)
+      self.name      = node.attrib.get('name'       ,self.filename)
+#
+#
+#
+#
 
 """
   Interface Dictionary (factory)(private)
 """
 __base                        = 'Data'
 __interFaceDict               = {}
-__interFaceDict['Input']      = Input
-__interFaceDict['Output']     = Output
+__interFaceDict['RAVEN']      = RAVENGenerated
+__interFaceDict['User']       = UserGenerated
 __knownTypes                  = __interFaceDict.keys()
 
 def knownTypes():
@@ -145,4 +227,4 @@ def knownTypes():
 
 def returnInstance(Type,caller):
   try: return __interFaceDict[Type]()
-  except KeyError: caller.raiseAnError(NameError,'FileObjects: not known '+__base+' type '+Type)
+  except KeyError: caller.raiseAnError(NameError,'Files module does not recognize '+__base+' type '+Type)

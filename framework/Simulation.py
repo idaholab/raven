@@ -31,7 +31,7 @@ import OutStreamManager
 from JobHandler import JobHandler
 import MessageHandler
 import utils
-from FileObjects import FileObject
+import FileObjects
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------
@@ -387,11 +387,15 @@ class Simulation(MessageHandler.MessageUser):
     """assuming that the file in is already in the self.filesDict it places, as value, the absolute path"""
     if '~' in filein : filein = os.path.expanduser(filein)
     if not os.path.isabs(filein):
-      self.filesDict[filein] = FileObject(os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein)))
+      self.filesDict[filein] = FileObject.returnInstance('RAVEN')
+      path = os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein))
+      self.filesDict[filein].initialize(filein,path)
+      #originally self.filesDict[filein] = FileObject(os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein)))
 
-  def __checkExistPath(self,filein):
-    """ assuming that the file in is already in the self.filesDict it checks the existence """
-    if not os.path.exists(self.filesDict[filein]): self.raiseAnError(IOError,'The file '+ filein +' has not been found')
+  #deprecated
+  #def __checkExistPath(self,filein):
+  #  """ assuming that the file in is already in the self.filesDict it checks the existence """
+  #  if not os.path.exists(self.filesDict[filein]): self.raiseAnError(IOError,'The file '+ filein +' has not been found')
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     """parses the xml input file, instances the classes need to represent all objects in the simulation"""
@@ -440,7 +444,6 @@ class Simulation(MessageHandler.MessageUser):
 
   def initialize(self):
     """check/created working directory, check/set up the parallel environment, call step consistency checker"""
-    self.raiseADebug('whichDict Check:',self,whichDict['FileObjects'])
     #check/generate the existence of the working directory
     if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
     #move the full simulation environment in the working directory
@@ -540,10 +543,11 @@ class Simulation(MessageHandler.MessageUser):
       elif element.tag == 'expectedTime'      : self.runInfoDict['expectedTime'      ] = element.text.strip()
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','): self.stepSequenceList.append(stepName.strip())
-      elif element.tag == 'Files':
-        text = element.text.strip()
-        for fileName in text.split(','):
-          self.filesDict[fileName.strip()] = FileObject(fileName.strip())
+      # MOVING NODE to <Files> outside of RunInfo
+      #elif element.tag == 'Files':
+      #  text = element.text.strip()
+      #  for fileName in text.split(','):
+      #    self.filesDict[fileName.strip()] = FileObject(fileName.strip())
       elif element.tag == 'DefaultInputFile'  : self.runInfoDict['DefaultInputFile'] = element.text.strip()
       elif element.tag == 'CustomMode' :
         modeName = element.text.strip()
@@ -614,7 +618,12 @@ class Simulation(MessageHandler.MessageUser):
             if b == 'OutStreamManager': stepInputDict[key].append(self.whichDict[b][c][d])
             else:                       stepInputDict[key].append(self.whichDict[b][d])
         else: stepInputDict[key] = self.whichDict[b][d]
-        if key == 'Input' and b == 'Files': self.__checkExistPath(d) #if the input is a file, check if it exists
+        if key == 'Input' and b == 'Files':
+          # get file object from dict?
+          fileobj = self.whichDict[b][d]
+          fileobj.checkExists()
+          stepInputDict[key].append(fileobj)
+          # originally self.__checkExistPath(d) #if the input is a file, check if it exists
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler
       #generate the needed assembler to send to the step
@@ -628,7 +637,6 @@ class Simulation(MessageHandler.MessageUser):
             neededobjs    = {}
             neededObjects = stp.whatDoINeed()
             for mainClassStr in neededObjects.keys():
-              #FIXME I don't know that this always returns a useful error.  In my case it gave me a ROM name for the stp and 'Model' for mainClassStr
               if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal': self.raiseAnError(IOError,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
               neededobjs[mainClassStr] = {}
               for obj in neededObjects[mainClassStr]:
