@@ -44,14 +44,14 @@
 </Samplers>
 
 <DataObjects>
-    <HistorySet name='stories'>
-        <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
-        <Output>aveTempLeft,aveTempRight</Output>
-   </HistorySet>
     <PointSet name='LHSTS'>
         <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
         <Output>aveTempLeft,aveTempRight</Output>
     </PointSet>
+    <HistorySet name='stories'>
+        <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
+        <Output>aveTempLeft,aveTempRight</Output>
+   </HistorySet>
 </DataObjects>
 
 
