@@ -66,15 +66,15 @@
   </PointSet>
  <PointSet name = 'Data2'>
     <Input>x1,x2</Input>
-    <Output>y</Output>
+    <Output>y,z</Output>
   </PointSet>
   <PointSet name = 'Data3'>
     <Input>x1,x2</Input>
-    <Output>y</Output>
+    <Output>y,z</Output>
   </PointSet>
   <PointSet name = 'Data4'>
     <Input>x1,x2</Input>
-    <Output>y</Output>
+    <Output>y,z</Output>
   </PointSet>
 </DataObjects>
 
@@ -98,17 +98,18 @@
     <variable>x1</variable>
     <variable>x2</variable>
     <variable>y</variable>
+    <variable>z</variable>
   </ExternalModel>
   <ROM name = 'ROM1' subType = 'SciKitLearn'>
      <SKLtype>svm|SVR</SKLtype>
     <Features>x1,x2</Features>
-    <Target>y</Target>
+    <Target>y,z</Target>
   </ROM>
 
 <ROM name = 'ROM2' subType = 'SciKitLearn'>
      <SKLtype>svm|SVR</SKLtype>
     <Features>x1,x2</Features>
-    <Target>y</Target>
+    <Target>y,z</Target>
   </ROM>
 </Models>
 

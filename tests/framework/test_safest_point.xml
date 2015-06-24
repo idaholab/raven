@@ -15,13 +15,12 @@
     <Sampler class='Samplers'    type='Grid'         >grd_vl_ql_smp_dpt</Sampler>
     <Output  class='DataObjects' type='PointSet'     >nt_phy_dpt_dt</Output>
   </MultiRun >
-
   <MultiRun name = 'pth2' pauseAtEnd = 'true'>
-    <Input          class='DataObjects' type='PointSet'     >bln_smp_dt</Input>
-    <Model          class='Models'      type='ExternalModel'>xtr_mdl</Model>
-    <Sampler        class='Samplers'    type='Adaptive'     >dpt_smp</Sampler>
-    <SolutionExport class='DataObjects' type='PointSet'     >lmt_srf_dt</SolutionExport>
-    <Output         class='DataObjects' type='PointSet'     >nt_phy_dpt_dt</Output>
+    <Input          class='DataObjects' type='PointSet'          >bln_smp_dt</Input>
+    <Model          class='Models'      type='ExternalModel'     >xtr_mdl</Model>
+    <Sampler        class='Samplers'    type='LimitSurfaceSearch'>dpt_smp</Sampler>
+    <SolutionExport class='DataObjects' type='PointSet'          >lmt_srf_dt</SolutionExport>
+    <Output         class='DataObjects' type='PointSet'          >nt_phy_dpt_dt</Output>
   </MultiRun>
 
   <IOStep name = 'pth4' pauseAtEnd = 'true'>
@@ -106,7 +105,7 @@
     </variable>
   </Grid>
 
-  <Adaptive name = 'dpt_smp' verbosity='debug'>
+  <LimitSurfaceSearch name = 'dpt_smp' verbosity='debug'>
     <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
     <Function         class = 'Functions' type = 'External'      >g_zr</Function>
     <TargetEvaluation class = 'DataObjects'     type = 'PointSet'  >nt_phy_dpt_dt</TargetEvaluation>
@@ -120,7 +119,7 @@
       <variable name = 'gammay'>
         <distribution>gammay_dst</distribution>
       </variable>
-  </Adaptive>
+  </LimitSurfaceSearch>
 </Samplers>
 
 

@@ -83,11 +83,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                                 'DynamicEventTree',
                                                 'Stratified',
                                                 'Grid',
-                                                'Adaptive',
+                                                'LimitSurfaceSearch',
                                                 'AdaptiveDynamicEventTree',
                                                 'FactorialDesign',
                                                 'ResponseSurfaceDesign',
                                                 'SparseGridCollocation',
+                                                'AdaptiveSparseGrid',
                                                 'Sobol']
 
   @classmethod
@@ -329,12 +330,15 @@ class ROM(Dummy):
   def __setstate__(self, newstate):
     self.__dict__.update(newstate)
     if not self.amITrained:
+      #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
       targets = self.initializationOptionDict['Target'].split(',')
       self.howManyTargets = len(targets)
       self.SupervisedEngine = {}
       for target in targets:
         self.initializationOptionDict['Target'] = target
         self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+      #restore targets to initialization option dict
+      self.initializationOptionDict['Target'] = ','.join(targets)
 
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
@@ -358,6 +362,8 @@ class ROM(Dummy):
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
+    #restore targets to initialization option dict
+    self.initializationOptionDict['Target'] = ','.join(targets)
 
   def printXML(self,options=None):
     '''
@@ -713,8 +719,8 @@ class Code(Model):
       self.raiseAWarning('current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
       if utils.checkIfPathAreAccessedByAnotherProgram(self.workingDir,3.0): self.raiseAWarning('directory '+ self.workingDir + ' is likely used by another program!!! ')
       if utils.checkIfLockedRavenFileIsPresent(self.workingDir,self.lockedFileName): self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ self.workingDir+". Please check your input!")
-    # register function to remove the locked file at the end of execution
-    atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
+      # register function to remove the locked file at the end of execution
+      atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
     for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
     self.raiseADebug('original input files copied in the current working dir: '+self.workingDir)
     self.raiseADebug('files copied:')

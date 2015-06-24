@@ -80,7 +80,7 @@
         </AdaptiveDynamicEventTree>
     </Samplers>
     <Steps>
-        <Adaptive name='AdaptiveDETrunTest'>
+        <LimitSurfaceSearch name='AdaptiveDETrunTest'>
             <Input             class='Files'            type=''                          >TMI.i</Input>
             <Input             class='Files'            type=''                          >TMI_PRA_trans_DET_control.py</Input>
             <Input             class='Files'            type=''                          >TMI_steady_restart/0957.rd-0</Input>
@@ -96,8 +96,8 @@
             <Output            class='DataObjects'            type='PointSet'              >adaptiveOut</Output>
             <Output            class='Databases'        type='HDF5'                      >testAdaptiveBranchDatabase</Output>
             <Output            class='DataObjects'            type='HistorySet'                 >stories</Output>
-            <Output            class='DataObjects'            type='PointSet'              >Pointset</Output>
-        </Adaptive >
+            <Output            class='DataObjects'            type='PointSet'              >timepointset</Output>
+        </LimitSurfaceSearch>
         <!--
         <IOStep name='testOutstreamStep'>
             <Input   class='DataObjects'            type='HistorySet'       >stories</Input>

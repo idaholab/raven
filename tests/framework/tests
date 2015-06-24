@@ -217,6 +217,18 @@
   skip_if_env = BUILD_ROOT
  [../]
 
+ [./testLHSBisonParallel]
+  type = 'RavenFramework'
+  input = 'test_LHS_Sampler_Bison_parallel.xml'
+  output = 'LHStestBisonParallel/myLHS/out~1~gap_perfect_transfer_test LHStestBisonParallel/LHS_Bison_dump.csv'
+  csv = 'LHStestBisonParallel/LHS_Bison_dump.csv'
+  max_time = 500
+  rel_err = 0.001
+  required_executable = '../../../bison/bison-%METHOD%'
+  skip_if_env = BUILD_ROOT
+ [../]
+
+
  [./testLHSFerret]
   type = 'RavenFramework'
   input = 'test_LHS_Sampler_ferret.xml'
@@ -542,4 +554,13 @@
    output = 'dists_vars/PrintPointSet_dump.csv'
    csv = 'dists_vars/PrintPointSet_dump.csv'
  [../]
+
+ [./adaptiveStochasticPoly]
+   type = 'RavenFramework'
+   input = 'test_adaptive_stochpoly.xml'
+   output = 'AdaptiveStochasticPoly/dump.xml'
+   xml = 'AdaptiveStochasticPoly/dump.xml'
+   csv = 'AdaptiveStochasticPoly/data.csv'
+ [../]
+
 []
