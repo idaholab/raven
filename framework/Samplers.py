@@ -93,6 +93,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.toBeSampled                   = {}                        # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
     self.dependentSample               = {}                        # Sampling mapping dictionary for dependent variables {'Variable Name':'name of the external function'}
     self.distDict                      = {}                        # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
+    self.funcDict                      = {}                        # Contains the instance of the function     to be used, it is created every time the sampler is initialized. keys are the variable names
     self.values                        = {}                        # for each variable the current value {'var name':value}
     self.inputInfo                     = {}                        # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
     self.initSeed                      = None                      # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
@@ -122,7 +123,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def _localGenerateAssembler(self,initDict):
     """ see generateAssembler method """
     availableDist = initDict['Distributions']
-    self._generateDistributions(availableDist)
+    availableFunc = initDict['Functions']
+    self._generateDistributions(availableDist,availableFunc)
 
   def _addAssObject(self,name,flag):
     '''
@@ -143,9 +145,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     needDict = {}
     needDict['Distributions'] = [] # Every sampler requires Distributions OR a Function
-    needDict['Functions'] = [] # Every sampler requires Distributions OR a Function
+    needDict['Functions']     = [] # Every sampler requires Distributions OR a Function
     for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
-    for func in self.dependentSample.values(): needDict['Functions'].append((None,func))
+    for func in self.dependentSample.values():
+      needDict['Functions'].append((None,func))
     return needDict
 
   def _readMoreXML(self,xmlNode):
@@ -280,7 +283,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """use this function to export to the printer in the base class the additional PERMANENT your local class have"""
     pass
 
-  def _generateDistributions(self,availableDist):
+  def _generateDistributions(self,availableDist,availableFunc):
     """
     here the needed distribution are made available to the step as also the initialization
     of the seeding (the siding could be overriden by the step by calling the initialize method
@@ -292,6 +295,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if self.toBeSampled[key] not in availableDist.keys(): self.raiseAnError(IOError,'Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!')
       self.distDict[key] = availableDist[self.toBeSampled[key]]
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
+    for key,val in self.dependentSample.items():
+      if val not in availableFunc.keys(): self.raiseAnError('Function',val,'was not found amoung the available functions:',availableFunc.keys())
+      self.funcDict[key] = availableFunc[val]
 
   def initialize(self,externalSeeding=None,solutionExport=None):
     """
@@ -379,8 +385,13 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     #TODO generate the Function variable values
+    self.raiseADebug('indep. values:',self.values)
     for var,funcName in self.dependentSample.items():
-      pass
+      self.raiseADebug('doing dependence for',var)
+      test=self.funcDict[var].evaluate(var,self.values)
+      self.raiseADebug('test:',test)
+      self.values[var] = test
+    self.raiseADebug('indep and dep values:',self.values)
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 
   @abc.abstractmethod
