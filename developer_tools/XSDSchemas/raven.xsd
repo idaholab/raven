@@ -19,6 +19,25 @@
       <xsd:list itemType="xsd:integer"/>
     </xsd:simpleType>
 
+    <xsd:simpleType name="positiveFloat">
+      <xsd:restriction base="xsd:float">
+        <xsd:minExclusive value="0"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="unsignedFloat">
+      <xsd:restriction base="xsd:float">
+        <xsd:minInclusive value="0"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="percentFloat">
+      <xsd:restriction base="xsd:float">
+        <xsd:minInclusive value="0"/>
+        <xsd:maxInclusive value="1"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType  name="verbosityAttr">
       <xsd:restriction   base="xsd:string">
         <xsd:enumeration value="silent"/>
@@ -356,75 +375,4 @@
         </xsd:extension>
       </xsd:complexContent>
     </xsd:complexType>
-
-    <!--xsd:group name="MultiRunIOStep">
-     <xsd:sequence>
-     <xsd:element name="MultiRun"  type="MultiRunData" minOccurs="0" maxOccurs="unbounded"/>
-     <xsd:element name="IOStep"    type="IOStepData"   minOccurs="0" maxOccurs="unbounded"/>
-     </xsd:sequence>
-     </xsd:group>
-
-     <xsd:complexType name="StepsData">
-     <xsd:sequence>
-     <xsd:group ref="MultiRunIOStep" minOccurs="0" maxOccurs="unbounded"/>
-     </xsd:sequence>
-     </xsd:complexType>
-
-     <xsd:complexType name="MultiRunData">
-     <xsd:sequence>
-     <xsd:element name="Sampler" minOccurs="1">
-     <xsd:complexType mixed="true">
-     <xsd:attribute name="class" type="xsd:string" use="required"/>
-     <xsd:attribute name="type"  type="xsd:string" use="required"/>
-     </xsd:complexType>
-     </xsd:element>
-     <xsd:element name="Input" minOccurs="1">
-     <xsd:complexType mixed="true">
-     <xsd:attribute name="class" type="xsd:string" use="required"/>
-     <xsd:attribute name="type"  type="xsd:string" use="required"/>
-     </xsd:complexType>
-     </xsd:element>
-     <xsd:element name="Model" minOccurs="1">
-     <xsd:complexType mixed="true">
-     <xsd:attribute name="class" type="xsd:string" use="required"/>
-     <xsd:attribute name="type"  type="xsd:string" use="required"/>
-     </xsd:complexType>
-     </xsd:element>
-     <xsd:element name="Output" minOccurs="1" maxOccurs="unbounded">
-     <xsd:complexType mixed="true">
-     <xsd:attribute name="class" type="xsd:string" use="required"/>
-     <xsd:attribute name="type"  type="xsd:string" use="required"/>
-     </xsd:complexType>
-     </xsd:element>
-     <xsd:element name="SolutionExport" minOccurs="0">
-     <xsd:complexType mixed="true">
-     <xsd:attribute name="class" type="xsd:string" use="required"/>
-     <xsd:attribute name="type"  type="xsd:string" use="required"/>
-     </xsd:complexType>
-     </xsd:element>
-     </xsd:sequence>
-     <xsd:attribute name="name"        type="xsd:string" use="required"/>
-     <xsd:attribute name="pauseAtEnd"  type="xsd:string"/>
-     <xsd:attribute name="sleepTime"   type="xsd:string"/>
-     </xsd:complexType>
-
-     <xsd:complexType name="IOStepData">
-     <xsd:all>
-     <xsd:element name="Input" minOccurs="1">
-     <xsd:complexType mixed="true">
-     <xsd:attribute name="class" type="xsd:string" use="required"/>
-     <xsd:attribute name="type"  type="xsd:string" use="required"/>
-     </xsd:complexType>
-     </xsd:element>
-     <xsd:element name="Output" minOccurs="1">
-     <xsd:complexType mixed="true">
-     <xsd:attribute name="class" type="xsd:string" use="required"/>
-     <xsd:attribute name="type"  type="xsd:string" use="required"/>
-     </xsd:complexType>
-     </xsd:element>
-     </xsd:all>
-     <xsd:attribute name="name"        type="xsd:string" use="required"/>
-     <xsd:attribute name="pauseAtEnd"  type="xsd:string"/>
-     </xsd:complexType-->
-
 </xsd:schema>

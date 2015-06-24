@@ -3,41 +3,56 @@
 <!-- *********************************************************************** -->
 <!--                               DataObjects                               -->
 <!-- *********************************************************************** -->
-    <xsd:complexType name="DataObjectsData">
-      <xsd:sequence>
-        <xsd:element name="Point"    type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
-        <xsd:element name="PointSet" type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
-        <xsd:element name="History"      type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
-        <xsd:element name="HistorySet"    type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
-      </xsd:sequence>
-    </xsd:complexType>
+  <xsd:complexType name="DataObjectsData">
+    <xsd:sequence>
+      <xsd:element name="Point"    type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="PointSet" type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="History"      type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="HistorySet"    type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
 
- <xsd:complexType name="optionsType">
-   <xsd:all>
-     <xsd:element name="inputRow"         type="xsd:integer" minOccurs="0"/>
-     <xsd:element name="outputRow"        type="xsd:integer" minOccurs="0"/>
-     <xsd:element name="operator"         type="xsd:string"  minOccurs="0"/>
-     <xsd:element name="pivotParameter"   type="xsd:string"  minOccurs="0"/>
-     <xsd:element name="outputPivotValue" type="xsd:string"  minOccurs="0"/>
-     <xsd:element name="inputPivotValue"  type="xsd:float"   minOccurs="0"/>
-   </xsd:all>
- </xsd:complexType>
+  <xsd:simpleType  name="operatorType">
+    <xsd:restriction   base="xsd:string">
+      <xsd:enumeration value="min"/>
+      <xsd:enumeration value="max"/>
+      <xsd:enumeration value="average"/>
+    </xsd:restriction>
+  </xsd:simpleType>
 
-    <xsd:complexType name="commonDataObjectsData">
-        <xsd:all>
-            <xsd:element name="Input"   type="xsd:string"  minOccurs="1"/>
-            <xsd:element name="Output"  type="xsd:string"  minOccurs="1"/>
-            <xsd:element name="options" type="optionsType" minOccurs="0"/>
-        </xsd:all>
-        <xsd:attribute name="name"         type="xsd:string"  use="required"/>
-        <xsd:attribute name="hierarchical" type="xsd:string"/>
-    </xsd:complexType>
+  <xsd:complexType name="optionsType">
+    <xsd:sequence>
+      <!-- Either inputRow or inputPivotValue  will be specified (mutually exclusive) -->
+      <xsd:choice>
+        <xsd:element name="inputRow"         type="xsd:integer" minOccurs="0"/>
+        <xsd:element name="inputPivotValue"  type="xsd:float"   minOccurs="0"/>
+      </xsd:choice>
+      <xsd:element name="pivotParameter"   type="xsd:string"  minOccurs="0"/>
+      <!-- Either operator, outputRow, or outputPivotValue will be specified
+           We need a way to figure out how to do mutually exclusive events like this -->
+      <xsd:choice>
+        <xsd:element name="outputRow"        type="xsd:integer" minOccurs="0"/>
+        <xsd:element name="operator"         type="operatorType"  minOccurs="0"/>
+        <xsd:element name="outputPivotValue" type="xsd:string"  minOccurs="0"/>
+      </xsd:choice>
+   </xsd:sequence>
+  </xsd:complexType>
 
-    <xsd:complexType name="historyDataObjectsData">
-        <xsd:complexContent>
-            <xsd:extension base="commonDataObjectsData">
-                <xsd:attribute name="historyName" type="xsd:string"/>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
+  <xsd:complexType name="commonDataObjectsData">
+    <xsd:all>
+      <xsd:element name="Input"   type="xsd:string"  minOccurs="1"/>
+      <xsd:element name="Output"  type="xsd:string"  minOccurs="1"/>
+      <xsd:element name="options" type="optionsType" minOccurs="0"/>
+    </xsd:all>
+    <xsd:attribute name="name"         type="xsd:string"  use="required"/>
+    <xsd:attribute name="hierarchical" type="xsd:boolean"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="historyDataObjectsData">
+    <xsd:complexContent>
+      <xsd:extension base="commonDataObjectsData">
+        <xsd:attribute name="historyName" type="xsd:string"/>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
 </xsd:schema>

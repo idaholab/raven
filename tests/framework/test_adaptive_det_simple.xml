@@ -161,17 +161,17 @@
             <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
             <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
         </PointSet>
-        <PointSet name='AdaptiveDETPointsetHierarchical' hierarchical='t'>
+        <PointSet name='AdaptiveDETPointsetHierarchical' hierarchical='true'>
             <options><inputRow>-1</inputRow></options>
             <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
             <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
         </PointSet>
-        <PointSet name='adaptiveOutsimple' hierarchical='t'>
+        <PointSet name='adaptiveOutsimple' hierarchical='true'>
             <options><inputRow>-1</inputRow></options>
             <Input>PressureFailureValue,depressurizationOnTime</Input>
             <Output>systemFailed</Output>
         </PointSet>
-        <HistorySet name='adaptiveOutHistorySetimple' hierarchical='t'>
+        <HistorySet name='adaptiveOutHistorySetimple' hierarchical='true'>
             <options><inputRow>-1</inputRow></options>
             <Input>PressureFailureValue,depressurizationOnTime</Input>
             <Output>systemFailed</Output>

@@ -16,10 +16,10 @@
 
     <Distributions>
         <Beta name="BetaDist">
-            <low>0</low>
-            <high>1</high>
             <alpha>2</alpha>
             <beta>5</beta>
+            <low>0</low>
+            <high>1</high>
         </Beta>
         <Beta name="BetaNorm">
             <peakFactor>0.5</peakFactor>
