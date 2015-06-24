@@ -19,26 +19,26 @@
   </Samplers>
   <Steps>
     <IOStep name='test_read_in' fromDirectory='../output_check'>
-      <Input  class='DataObjects'    type='Histories'>fullprint_histories</Input>
+      <Input  class='DataObjects'    type='HistorySet'>fullprint_HistorySet</Input>
       <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
-      <Input  class='DataObjects'    type='TimePoint'>fullprint_timepoint</Input>
+      <Input  class='DataObjects'    type='Point'>fullprint_Point</Input>
       <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
       <Input  class='DataObjects'    type='History'>fullprint_history</Input>
       <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
-      <Input  class='DataObjects'    type='TimePointSet'>fullprint_timepointset</Input>
+      <Input  class='DataObjects'    type='PointSet'>fullprint_Pointset</Input>
       <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
     </IOStep>
     <IOStep name='test_rewrite'>
       <Input class='DataObjects' type='History'>fullprint_history</Input>
-      <Input class='DataObjects' type='Histories'>fullprint_histories</Input>
-      <Input class='DataObjects' type='TimePoint'>fullprint_timepoint</Input>
-      <Input class='DataObjects' type='TimePointSet'>fullprint_timepointset</Input>
+      <Input class='DataObjects' type='HistorySet'>fullprint_HistorySet</Input>
+      <Input class='DataObjects' type='Point'>fullprint_Point</Input>
+      <Input class='DataObjects' type='PointSet'>fullprint_Pointset</Input>
       <!-- <Input   class='Databases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>-->
-      <!-- <Output class='OutStreamManager' type='Print'>reprint_timepointset</Output>-->
-      <Output class='OutStreamManager' type='Print'>reprint_timepoint</Output>
-      <Output class='OutStreamManager' type='Print'>reprint_timepointset</Output>
+      <!-- <Output class='OutStreamManager' type='Print'>reprint_Pointset</Output>-->
+      <Output class='OutStreamManager' type='Print'>reprint_Point</Output>
+      <Output class='OutStreamManager' type='Print'>reprint_Pointset</Output>
       <Output class='OutStreamManager' type='Print'>reprint_history</Output>
-      <Output class='OutStreamManager' type='Print'>reprint_histories</Output>
+      <Output class='OutStreamManager' type='Print'>reprint_HistorySet</Output>
 
     </IOStep>
   </Steps>
@@ -48,49 +48,49 @@
 
 
   <DataObjects>
-      <TimePoint name='fullprint_timepoint'>
+      <Point name='fullprint_Point'>
           <Input>pipe1_Area,pipe1_Dh</Input>
           <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-      </TimePoint>
-      <TimePointSet name='fullprint_timepointset'>
+      </Point>
+      <PointSet name='fullprint_Pointset'>
           <Input>pipe1_Area,pipe1_Dh</Input>
           <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-      </TimePointSet>
+      </PointSet>
       <History name='fullprint_history'>
           <Input>pipe1_Area,pipe1_Dh</Input>
           <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
       </History>
-      <Histories name='fullprint_histories'>
+      <HistorySet name='fullprint_HistorySet'>
           <Input>pipe1_Area,pipe1_Dh</Input>
           <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-      </Histories>
+      </HistorySet>
  </DataObjects>
 
   <OutStreamManager>
-      <Print name='timepointset_from_database_dump'>
+      <Print name='Pointset_from_database_dump'>
           <type>csv</type>
-          <source>timepointset_from_database</source>
+          <source>Pointset_from_database</source>
       </Print>
-      <Print name='timepointset_IN_database_dump'>
+      <Print name='Pointset_IN_database_dump'>
           <type>csv</type>
-          <source>timepointset_IN_database</source>
+          <source>Pointset_IN_database</source>
       </Print>
       
-    <Print name='reprint_histories'>
+    <Print name='reprint_HistorySet'>
       <type>csv</type>
-      <source>fullprint_histories</source>
+      <source>fullprint_HistorySet</source>
     </Print>
     <Print name='reprint_history'>
       <type>csv</type>
       <source>fullprint_history</source>
     </Print>
-    <Print name='reprint_timepoint'>
+    <Print name='reprint_Point'>
       <type>csv</type>
-      <source>fullprint_timepoint</source>
+      <source>fullprint_Point</source>
     </Print>
-    <Print name='reprint_timepointset'>
+    <Print name='reprint_Pointset'>
       <type>csv</type>
-      <source>fullprint_timepointset</source>
+      <source>fullprint_Pointset</source>
     </Print>
   </OutStreamManager>
 </Simulation>

@@ -1,4 +1,4 @@
-<data name="expectedSolution" type="timepointset">
+<data name="expectedSolution" type="Pointset">
   <input>A,X,B</input>
   <output>advOps.Sum,Z,basicOps.Sum,Norm,advOps.Delta</output>
   <input_filename>expectedSolution.csv</input_filename>

@@ -173,7 +173,9 @@ class SparseQuad(MessageHandler.MessageUser):
     """
     #TODO optimize me!~~
     oldNames = self.varNames[:]
+    self.raiseADebug('REMAPPING SPARSE GRID from '+str(oldNames)+' to '+str(newNames))
     #check consistency
+    self.raiseADebug('old: '+str(oldNames)+' | new: '+str(newNames))
     if len(oldNames)!=len(newNames): self.raiseAnError(KeyError,'Remap mismatch! Dimensions are not the same!')
     for name in oldNames:
       if name not in newNames: self.raiseAnError(KeyError,'Remap mismatch! '+name+' not found in original variables!')
@@ -193,7 +195,6 @@ class SparseQuad(MessageHandler.MessageUser):
     newSG=collections.OrderedDict()
     for combo in newptwt:
       newSG[tuple(combo[:-1])]=combo[-1] #weight is last entry
-    self.oldsg.append(self.SG) #FIXME this could be expensive if not needed
     self.SG = newSG
     self.varNames = newNames
 
@@ -212,9 +213,29 @@ class SparseQuad(MessageHandler.MessageUser):
     return zip(*self.points())
 
   ##### PUBLIC MEMBERS #####
-  #FIXME remove maxPoly and polyDict, as they are no longer needed.
-  def initialize(self, indexSet, distDict, quadDict, handler, msgHandler):
+  def print(self):
+    """
+      Prints the existing quadrature points.
+      @ In, None
+      @ Out, None
+    """
+    self.raiseADebug('SparseQuad: (point) | weight')
+    msg=''
+    for p in range(len(self)):
+      msg+='    ('
+      pt,wt = self[p]
+      for i in pt:
+        if i<0:
+          msg+='%1.9f,' %i
+        else:
+          msg+=' %1.9f,' %i
+      msg=msg[:-1]+') | %1.9f'%wt
+      self.raiseADebug(msg)
+      msg=''
+
+  def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
     """Initializes sparse quad to be functional.
+    @ In varNames, the ordered list of grid dimension names
     @ In indexSet, IndexSet object, index set
     @ In distDict, dict{varName,Distribution object}, distributions
     @ In quadDict, dict{varName,Quadrature object}, quadratures
@@ -222,10 +243,11 @@ class SparseQuad(MessageHandler.MessageUser):
     @ In msgHandler, MessageHandler, output tool
     @ Out, None, None
     """
+    self.origIndexSet = indexSet
     self.indexSet = np.array(indexSet[:])
     self.distDict = distDict
     self.quadDict = quadDict
-    self.varNames = self.distDict.keys()
+    self.varNames = varNames
     self.N        = len(self.varNames)
     self.messageHandler = msgHandler
     #we know how this ends if it's tensor product index set
@@ -341,6 +363,7 @@ class SparseQuad(MessageHandler.MessageUser):
       for j in range(i+1,N):
         jdx = iSet[j]
         d = jdx-idx
+        if pflag:self.raiseAWarning('checking',d)
         if all(np.logical_and(d>=0,d<=1)):
           self.c[i]+=(-1)**sum(d)
 
@@ -392,8 +415,11 @@ class SparseQuad(MessageHandler.MessageUser):
     #m,idx = args
     pointLists=[]
     weightLists=[]
-    for n,distr in enumerate(self.distDict.values()):
-      quad = self.quadDict.values()[n]
+    #TODO FIXME nothing should be in the order of distDict
+    #for n,distr in enumerate(self.distDict.values()):
+    for n,var in enumerate(self.varNames):
+      distr = self.distDict[var]
+      quad = self.quadDict[var]
       mn = m[n]
       pts,wts=quad(mn)
       pts=pts.real

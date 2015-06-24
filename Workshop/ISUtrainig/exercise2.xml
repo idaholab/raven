@@ -73,91 +73,91 @@
    </PostProcessor>
 </Models>
 <DataObjects>
-  <TimePointSet name='DB_GridValue'>
+  <PointSet name='DB_GridValue'>
     <Input>ThExp,GrainRad</Input>
     <Output>sum,prod,sin</Output>
-  </TimePointSet>
-  <TimePointSet name='DB_LHS'>
+  </PointSet>
+  <PointSet name='DB_LHS'>
     <Input>ThExp,GrainRad</Input>
     <Output>sum,prod,sin</Output>
-  </TimePointSet>
-  <TimePointSet name='outMCsum'>
+  </PointSet>
+  <PointSet name='outMCsum'>
     <Input>ThExp,GrainRad</Input>
     <Output>sum</Output>
-  </TimePointSet>
-  <TimePointSet name='outMCsin'>
+  </PointSet>
+  <PointSet name='outMCsin'>
     <Input>ThExp,GrainRad</Input>
     <Output>sin</Output>
-  </TimePointSet>
-  <TimePointSet name='dummyMCsum'>
+  </PointSet>
+  <PointSet name='dummyMCsum'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='dummyMCsin'>
+  </PointSet>
+  <PointSet name='dummyMCsin'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='DummyLimitSurf'>
+  </PointSet>
+  <PointSet name='DummyLimitSurf'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='LimitSurf'>
+  </PointSet>
+  <PointSet name='LimitSurf'>
     <Input>ThExp,GrainRad</Input>
     <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='Sampled'>
+  </PointSet>
+  <PointSet name='Sampled'>
     <Input>ThExp,GrainRad</Input>
     <Output>sin</Output>
-  </TimePointSet>
+  </PointSet>
 </DataObjects>
 <Steps>
   <IODatabase name='extract_DB_GridValue' pauseAtEnd='True'>
     <Input   class='Databases'        type='HDF5'         >DB_GridValue</Input >
-    <Output  class='DataObjects'            type='TimePointSet' >DB_GridValue</Output>
+    <Output  class='DataObjects'            type='PointSet' >DB_GridValue</Output>
     <Output  class='OutStreamManager' type='Plot'         >GridValue</Output>
     <Output  class='OutStreamManager' type='Print'        >printGridValue</Output>
   </IODatabase>
   <IODatabase name='extract_DB_LHS' pauseAtEnd='True'>
     <Input   class ='Databases'        type ='HDF5'         >DB_LHS</Input >
-    <Output  class ='DataObjects'            type ='TimePointSet' >DB_LHS</Output>
+    <Output  class ='DataObjects'            type ='PointSet' >DB_LHS</Output>
     <Output  class='OutStreamManager'  type ='Plot'          >LHS</Output>   
   </IODatabase>
   <RomTrainer name='train_Sum_GridValues'>
-    <Input   class='DataObjects'             type='TimePointSet'>DB_GridValue</Input>
+    <Input   class='DataObjects'             type='PointSet'>DB_GridValue</Input>
     <Output  class='Models'            type='ROM'         >ROMforSumGridValue</Output>
   </RomTrainer> 
   <RomTrainer name='train_Sin_LHS'>
-    <Input   class='DataObjects'             type='TimePointSet'>DB_GridValue</Input>
+    <Input   class='DataObjects'             type='PointSet'>DB_GridValue</Input>
     <Output  class='Models'            type='ROM'         >ROMforSinLHS</Output>
   </RomTrainer>
   <MultiRun name='MCsum' pauseAtEnd='True'>
     <Sampler class = 'Samplers'          type='MonteCarlo'   >exercise1a</Sampler>
-    <Input   class = 'DataObjects'             type='TimePointSet' >dummyMCsum</Input>    
+    <Input   class = 'DataObjects'             type='PointSet' >dummyMCsum</Input>    
     <Model   class = 'Models'            type='ROM'          >ROMforSumGridValue</Model>
-    <Output  class = 'DataObjects'             type='TimePointSet' >outMCsum</Output>
+    <Output  class = 'DataObjects'             type='PointSet' >outMCsum</Output>
     <Output  class='OutStreamManager'    type ='Plot'        >MCforSum</Output>   
   </MultiRun >
   <MultiRun name='MCsin' pauseAtEnd='True'>
     <Sampler class = 'Samplers'          type='MonteCarlo'   >exercise1a</Sampler>
-    <Input   class = 'DataObjects'             type='TimePointSet' >dummyMCsin</Input>    
+    <Input   class = 'DataObjects'             type='PointSet' >dummyMCsin</Input>    
     <Model   class = 'Models'            type='ROM'          >ROMforSinLHS</Model>
-    <Output  class = 'DataObjects'             type='TimePointSet' >outMCsin</Output>
+    <Output  class = 'DataObjects'             type='PointSet' >outMCsin</Output>
     <Output  class='OutStreamManager'    type ='Plot'        >MCforSin</Output> 
   </MultiRun >
   <PostProcess name='PPsum'>
-    <Input    class='DataObjects'            type='TimePointSet'    >outMCsum</Input>
+    <Input    class='DataObjects'            type='PointSet'    >outMCsum</Input>
     <Model    class='Models'           type='PostProcessor'   >PPsum</Model>
   </PostProcess>
   <PostProcess name='PPsin'>
-    <Input    class='DataObjects'            type='TimePointSet'    >outMCsin</Input>
+    <Input    class='DataObjects'            type='PointSet'    >outMCsin</Input>
     <Model    class='Models'           type='PostProcessor'   >PPsin</Model>
   </PostProcess>
   <Adaptive name='adptive' pauseAtEnd='True'>
-    <Input             class = 'DataObjects'            type = 'TimePointSet' >DummyLimitSurf</Input>   
+    <Input             class = 'DataObjects'            type = 'PointSet' >DummyLimitSurf</Input>   
     <Sampler           class = 'Samplers'         type = 'Adaptive'     >exercise1AdapValue</Sampler>
-    <TargetEvaluation  class = 'DataObjects'            type = 'TimePointSet' >Sampled</TargetEvaluation>
-    <Output            class = 'DataObjects'            type = 'TimePointSet' >Sampled</Output>            
-    <SolutionExport    class = 'DataObjects'            type = 'TimePointSet' >LimitSurf</SolutionExport>
+    <TargetEvaluation  class = 'DataObjects'            type = 'PointSet' >Sampled</TargetEvaluation>
+    <Output            class = 'DataObjects'            type = 'PointSet' >Sampled</Output>            
+    <SolutionExport    class = 'DataObjects'            type = 'PointSet' >LimitSurf</SolutionExport>
     <Function          class = 'Functions'        type = 'External'     >sinThreshold</Function>
     <Model             class = 'Models'           type = 'ROM'          >ROMforSinLHS</Model>
     <Output            class = 'OutStreamManager' type = 'Plot'         >limitSurf</Output>

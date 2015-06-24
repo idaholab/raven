@@ -2,7 +2,7 @@
 <Simulation verbosity='debug'>
 <RunInfo>
     <WorkingDir>branch</WorkingDir>
-    <Files>ideal_pump.i,ideal_pump_control.py,DET_histories.csv</Files>
+    <Files>ideal_pump.i,ideal_pump_control.py,DET_HistorySet.csv</Files>
     <Sequence>DETrunTest,extract_hist_example</Sequence>
     <batchSize>4</batchSize>
 </RunInfo>
@@ -41,7 +41,7 @@
   </Print>
   <Print name='testprint_tpset_hier'>
     <type>csv</type>
-    <source>timepointset</source>
+    <source>Pointset</source>
   </Print>
   <Print name='testprint_hist_hier_variables'>
     <type>csv</type>
@@ -50,7 +50,7 @@
   </Print>
   <Print name='testprint_tpset_hier_variables'>
     <type>csv</type>
-    <source>timepointset</source>
+    <source>Pointset</source>
     <what>Output,Input|dummy_for_branch</what>
   </Print>
   <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
@@ -78,8 +78,8 @@
         <plotSettings>
             <plot>
                 <type>scatter</type>
-                <x>timepointset|Output|time</x>
-                <y>timepointset|Output|pump_mass_flow_rate</y>
+                <x>Pointset|Output|time</x>
+                <y>Pointset|Output|pump_mass_flow_rate</y>
                 <kwargs>
                     <color>green</color>
                     <label>pipe1-Hw</label>
@@ -103,8 +103,8 @@
         <Model   class='Models'           type='Code'            >MyRAVEN</Model>
         <Sampler class='Samplers'         type='DynamicEventTree'>DET_test</Sampler>
         <Output  class='Databases'        type='HDF5'            >testBranchDatabase</Output>
-        <Output  class='DataObjects'            type='Histories'       >stories</Output>
-        <Output  class='DataObjects'            type='TimePointSet'    >timepointset</Output>
+        <Output  class='DataObjects'            type='HistorySet'       >stories</Output>
+        <Output  class='DataObjects'            type='PointSet'    >Pointset</Output>
         <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier</Output>
         <Output  class='OutStreamManager' type='Print'           >testprint_tpset_hier</Output>
         <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier_variables</Output>
@@ -115,21 +115,21 @@
     <SingleRun name='extract_hist_example'>
         <Input   class='Databases'        type='HDF5'            >testBranchDatabase</Input>
         <Model   class='Models'           type='PostProcessor'   >csv_from_hdf5</Model>
-        <Output  class='Files'            type=''                >DET_histories.csv</Output>
+        <Output  class='Files'            type=''                >DET_HistorySet.csv</Output>
     </SingleRun>      
 </Steps>
 <Databases>
     <HDF5 name="testBranchDatabase"/> 
 </Databases>
 <DataObjects>
-    <TimePointSet name='timepointset' hierarchical='true'>
+    <PointSet name='Pointset' hierarchical='true'>
         <Input>dummy_for_branch</Input>
         <Output>pump_mass_flow_rate,time</Output>
-    </TimePointSet>
-    <Histories name='stories' hierarchical='true'>
+    </PointSet>
+    <HistorySet name='stories' hierarchical='true'>
         <Input>dummy_for_branch</Input>
         <Output>pump_mass_flow_rate,time</Output>
-   </Histories>
+   </HistorySet>
 </DataObjects>
 </Simulation>
 

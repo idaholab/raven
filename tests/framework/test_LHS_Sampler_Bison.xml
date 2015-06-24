@@ -44,10 +44,10 @@
 </Samplers>
 
 <DataObjects>
-    <Histories name='stories'>
+    <HistorySet name='stories'>
         <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
         <Output>aveTempLeft,aveTempRight</Output>
-   </Histories>
+   </HistorySet>
 </DataObjects>
 
 
@@ -58,7 +58,7 @@
       <Model   class = 'Models'     type='Code'      >Bison</Model>
       <Sampler class='Samplers' type='Stratified'         >myLHS</Sampler>
       <Output  class='Databases'    type='HDF5'>test_bison_lhs</Output>
-      <Output class='DataObjects' type='Histories'>stories</Output>
+      <Output class='DataObjects' type='HistorySet'>stories</Output>
       <Output class='OutStreamManager' type='Plot'>test</Output>
     </MultiRun >
 </Steps>
