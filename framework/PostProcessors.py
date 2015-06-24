@@ -192,18 +192,18 @@ class LimitSurfaceIntegral(BasePostProcessor):
      @ Out, None, the resulting converted object is stored as an attribute of this class
     """
     for item in currentInput:
-      if item.type == 'TimePointSet':
+      if item.type == 'PointSet':
         self.matrixDict = {}
-        if not set(item.getParaKeys('inputs')) == set(self.variableDist.keys()): self.raiseAnError(IOError, 'The variables inputted and the features in the input TimePointSet ' + item.name + 'do not match!!!')
+        if not set(item.getParaKeys('inputs')) == set(self.variableDist.keys()): self.raiseAnError(IOError, 'The variables inputted and the features in the input PointSet ' + item.name + 'do not match!!!')
         if self.target == None: self.target = item.getParaKeys('outputs')[-1]
-        if self.target not in item.getParaKeys('outputs'): self.raiseAnError(IOError, 'The target ' + self.target + 'is not present among the outputs of the TimePointSet ' + item.name)
+        if self.target not in item.getParaKeys('outputs'): self.raiseAnError(IOError, 'The target ' + self.target + 'is not present among the outputs of the PointSet ' + item.name)
         # construct matrix
         for  varName in self.variableDist.keys(): self.matrixDict[varName] = item.getParam('input', varName)
         outputarr = item.getParam('output', self.target)
         if len(set(outputarr)) != 2: self.raiseAnError(IOError, 'The target ' + self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
         outputarr[outputarr == -1] = 0.0
         self.matrixDict[self.target] = outputarr
-      else: self.raiseAnError(IOError, 'Only TimePointSet is accepted as input!!!!')
+      else: self.raiseAnError(IOError, 'Only PointSet is accepted as input!!!!')
 
   def run(self, Input):
     """
@@ -236,7 +236,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     else:
       pb = finishedjob.returnEvaluation()[1]
       lms = finishedjob.returnEvaluation()[0][0]
-      if output.type == 'TimePointSet':
+      if output.type == 'PointSet':
         # we store back the limitsurface
         for key, value in lms.getParametersValues('input').items():
           for val in value: output.updateInputValue(key, val)
@@ -256,7 +256,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
         stack[headers.index('EventProbability')] = np.array([pb] * len(stack[outIndex])).flatten()
         stacked = np.column_stack(stack)
         np.savetxt(output, stacked, delimiter = ',', header = ','.join(headers))
-      else: self.raiseAnError(Exception, self.type + ' accepts TimePointSet or FileObject only')
+      else: self.raiseAnError(Exception, self.type + ' accepts PointSet or FileObject only')
 #
 #
 #
@@ -449,7 +449,7 @@ class SafestPoint(BasePostProcessor):
      @ Out, None, the resulting converted object is stored as an attribute of this class
     """
     for item in currentInput:
-      if item.type == 'TimePointSet':
+      if item.type == 'PointSet':
         self.surfPointsMatrix = np.zeros((len(item.getParam('output', item.getParaKeys('outputs')[-1])), len(self.gridInfo.keys()) + 1))
         k = 0
         for varName in self.controllableOrd:
@@ -464,11 +464,11 @@ class SafestPoint(BasePostProcessor):
     """
      This method executes the postprocessor action. In this case, it computes the safest point
      @ In,  Input, object, object contained the data to process. (inputToInternal output)
-     @ Out, TimePointSet, TimePointSet containing the elaborated data
+     @ Out, PointSet, PointSet containing the elaborated data
     """
     nearestPointsInd = []
-    dataCollector = DataObjects.returnInstance('TimePointSet', self)
-    dataCollector.type = 'TimePointSet'
+    dataCollector = DataObjects.returnInstance('PointSet', self)
+    dataCollector.type = 'PointSet'
     surfTree = spatial.KDTree(copy.copy(self.surfPointsMatrix[:, 0:self.surfPointsMatrix.shape[-1] - 1]))
     self.controllableSpace.shape = (np.prod(self.controllableSpace.shape[0:len(self.controllableSpace.shape) - 1]), self.controllableSpace.shape[-1])
     self.nonControllableSpace.shape = (np.prod(self.nonControllableSpace.shape[0:len(self.nonControllableSpace.shape) - 1]), self.nonControllableSpace.shape[-1])
@@ -531,8 +531,8 @@ class SafestPoint(BasePostProcessor):
       self.raiseAnError(RuntimeError, 'no available output to collect (the run is likely not over yet).')
     else:
       dataCollector = finishedjob.returnEvaluation()[1]
-      if output.type != 'TimePointSet':
-        self.raiseAnError(TypeError, 'output item type must be "TimePointSet".')
+      if output.type != 'PointSet':
+        self.raiseAnError(TypeError, 'output item type must be "PointSet".')
       else:
         if not output.isItEmpty():
           self.raiseAnError(ValueError, 'output item must be empty.')
@@ -673,11 +673,11 @@ class ComparisonStatistics(BasePostProcessor):
           foundDataObjects.append(data[rest[0]])
       dataToProcess.append((dataPulls, foundDataObjects, reference))
     generateCSV = False
-    generateTimePointSet = False
+    generatePointSet = False
     if output.type == 'FileObject':
       generateCSV = True
-    elif output.type == 'TimePointSet':
-      generateTimePointSet = True
+    elif output.type == 'PointSet':
+      generatePointSet = True
     else:
       self.raiseAnError(IOError, 'unsupported type ' + str(type(output)))
     if generateCSV:
@@ -754,7 +754,7 @@ class ComparisonStatistics(BasePostProcessor):
               utils.printCsv(csv, *([l[i] for l in value]))
           else:
             utils.printCsv(csv, '"' + key + '"', value)
-      if generateTimePointSet:
+      if generatePointSet:
         for key in graph_data:
           value = graph_data[key]
           if type(value).__name__ == 'list':
@@ -786,9 +786,9 @@ class ComparisonStatistics(BasePostProcessor):
               dataPairs.append((key, value))
           extraCsv = open(newFileName, "w")
           extraCsv.write(",".join(['"' + str(x[0]) + '"' for x in dataPairs]))
-          extraCsv.write(os.linesep)
+          extraCsv.write("\n")
           extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
-          extraCsv.write(os.linesep)
+          extraCsv.write("\n")
           extraCsv.close()
         utils.printCsv(csv)
 
@@ -914,17 +914,17 @@ class PrintCSV(BasePostProcessor):
       #  Input source is a database (HDF5)
       #  Retrieve the ending groups' names
       endGroupNames = self.inObj.getEndingGroupNames()
-      histories = {}
+      HistorySet = {}
 
-      #  Construct a dictionary of all the histories
-      for index in range(len(endGroupNames)): histories[endGroupNames[index]] = self.inObj.returnHistory({'history':endGroupNames[index], 'filter':'whole'})
+      #  Construct a dictionary of all the HistorySet
+      for index in range(len(endGroupNames)): HistorySet[endGroupNames[index]] = self.inObj.returnHistory({'history':endGroupNames[index], 'filter':'whole'})
       #  If file, split the strings and add the working directory if present
-      for key in histories:
-        #  Loop over histories
+      for key in HistorySet:
+        #  Loop over HistorySet
         #  Retrieve the metadata (posion 1 of the history tuple)
-        attributes = histories[key][1]
+        attributes = HistorySet[key][1]
         #  Construct the header in csv format (first row of the file)
-        headers = b",".join([histories[key][1]['output_space_headers'][i] for i in
+        headers = b",".join([HistorySet[key][1]['output_space_headers'][i] for i in
                              range(len(attributes['output_space_headers']))])
         #  Construct history name
         hist = key
@@ -945,7 +945,7 @@ class PrintCSV(BasePostProcessor):
         #  Open the files and save the data
         with open(csvfilen, 'wb') as csvfile, open(addfile, 'wb') as addcsvfile:
           #  Add history to the csv file
-          np.savetxt(csvfile, histories[key][0], delimiter = ",", header = utils.toString(headers))
+          np.savetxt(csvfile, HistorySet[key][0], delimiter = ",", header = utils.toString(headers))
           csvfile.write(os.linesep)
           #  process the attributes in a different csv file (different kind of informations)
           #  Add metadata to additional info csv file
@@ -1014,11 +1014,11 @@ class BasicStatistics(BasePostProcessor):
     except:
       if type(currentInput).__name__ == 'list'    : inType = 'list'
       else: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
-    if inType not in ['FileObject', 'HDF5', 'TimePointSet', 'list']: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(inType) + '!!!!')
+    if inType not in ['FileObject', 'HDF5', 'PointSet', 'list']: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(inType) + '!!!!')
     if inType == 'FileObject':
       if currentInput.subtype == 'csv': pass
     if inType == 'HDF5': pass  # to be implemented
-    if inType in ['TimePointSet']:
+    if inType in ['PointSet']:
       for targetP in self.parameters['targets']:
         if   targetP in currentInput.getParaKeys('input'):
           inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
@@ -1577,7 +1577,7 @@ class LimitSurface(BasePostProcessor):
     if inType == 'FileObject':
       if currentInput.subtype == 'csv': pass
     if inType == 'HDF5': pass  # to be implemented
-    if inType in ['TimePointSet']:
+    if inType in ['PointSet']:
       for targetP in self.parameters['targets']:
         if   targetP in currentInput.getParaKeys('input'): inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
         elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
@@ -1604,8 +1604,8 @@ class LimitSurface(BasePostProcessor):
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
       if type(inp) in [str, bytes, unicode]: self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs!')
-      if inp.type in ['TimePointSet', 'TimePoint']: self.indexes = index
-    if self.indexes == -1: self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a TimePoint or TimePointSet as INPUT!!!!!!')
+      if inp.type in ['PointSet', 'Point']: self.indexes = index
+    if self.indexes == -1: self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a Point or PointSet as INPUT!!!!!!')
     else:
       # check if parameters are contained in the data
       inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
@@ -1878,13 +1878,13 @@ class ExternalPostProcessor(BasePostProcessor):
       inType = None
       if hasattr(item, 'type')  : inType = item.type
       elif type(item) in [list]: inType = "list"
-      if inType not in ['FileObject', 'HDF5', 'TimePointSet', 'list']: self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not' + ' recognized. I am going to skip it.')
+      if inType not in ['FileObject', 'HDF5', 'PointSet', 'list']: self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not' + ' recognized. I am going to skip it.')
       elif inType == 'FileObject':
         if currentInput.subtype == 'csv': self.raiseAWarning(self, 'Input type ' + inType + ' not yet ' + 'implemented. I am going to skip it.')
       elif inType == 'HDF5':
         # TODO
           self.raiseAWarning(self, 'Input type ' + inType + ' not yet ' + 'implemented. I am going to skip it.')
-      elif inType == 'TimePointSet':
+      elif inType == 'PointSet':
         for param in item.getParaKeys('input') : inputDict['targets'][param] = item.getParam('input', param)
         for param in item.getParaKeys('output'): inputDict['targets'][param] = item.getParam('output', param)
         metadata.append(item.getAllMetadata())
@@ -1955,7 +1955,7 @@ class ExternalPostProcessor(BasePostProcessor):
     elif output.type == 'HDF5':
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
                                + ' yet implemented. I am going to skip it.')
-    elif output.type == 'TimePointSet':
+    elif output.type == 'PointSet':
       requestedInput = output.getParaKeys('input')
       requestedOutput = output.getParaKeys('output')
       # # The user can simply ask for a computation that may exist in multiple
@@ -2139,14 +2139,14 @@ class TopologicalDecomposition(BasePostProcessor):
                         ' postprocessor accepts files, HDF5, Data(s) only. ',
                         ' Requested: ', type(currentInput))
 
-    if inType not in ['FileObject', 'HDF5', 'TimePointSet', 'list']:
+    if inType not in ['FileObject', 'HDF5', 'PointSet', 'list']:
       self.raiseAnError(IOError, self, self.__class__.__name__ + ' post-processor only accepts files, HDF5, or DataObjects! Got ' + str(inType) + '!!!!')
     # FIXME: implement this feature
     if inType == 'FileObject':
       if currentInput.subtype == 'csv': pass
     # FIXME: implement this feature
     if inType == 'HDF5': pass  # to be implemented
-    if inType in ['TimePointSet']:
+    if inType in ['PointSet']:
       for targetP in self.parameters['features']:
         if   targetP in currentInput.getParaKeys('input'):
           inputDict['features'][targetP] = currentInput.getParam('input' , targetP)
@@ -2236,7 +2236,7 @@ class TopologicalDecomposition(BasePostProcessor):
     elif output.type == 'HDF5':
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
                          + ' yet implemented. I am going to skip it.')
-    elif output.type == 'TimePointSet':
+    elif output.type == 'PointSet':
       requestedInput = output.getParaKeys('input')
       requestedOutput = output.getParaKeys('output')
       dataLength = None

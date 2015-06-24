@@ -2,7 +2,7 @@
 <Simulation>
 <RunInfo>
     <WorkingDir>../inputs/bison_uncertainty_3/Grid</WorkingDir>
-    <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv,histories.csv</Files>
+    <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv,HistorySet.csv</Files>
     <Sequence>Run0_lhs</Sequence>
     <batchSize>3</batchSize>
 </RunInfo>
@@ -54,8 +54,8 @@
     <plotSettings>
       <plot>
         <type>scatter</type>
-        <x>timepointset|Input|(Functions|power_history|scale_factor)</x>
-        <y>timepointset|Output|max_stress</y>
+        <x>Pointset|Input|(Functions|power_history|scale_factor)</x>
+        <y>Pointset|Output|max_stress</y>
       </plot>
       <xlabel>Power History Scale Factor</xlabel>
       <ylabel>Max Stress</ylabel>
@@ -69,9 +69,9 @@
     <plotSettings>
       <plot>
         <type>scatter</type>
-        <x>timepointset|Input|(Functions|power_history|scale_factor)</x>
-        <y>timepointset|Input|(Materials|fuel_creep|thermal_expansion)</y>
-        <z>timepointset|Output|max_stress</z>
+        <x>Pointset|Input|(Functions|power_history|scale_factor)</x>
+        <y>Pointset|Input|(Materials|fuel_creep|thermal_expansion)</y>
+        <z>Pointset|Output|max_stress</z>
       </plot>
       <xlabel>Power History Scale Factor</xlabel>
       <ylabel>Thermal Expansion</ylabel>
@@ -86,9 +86,9 @@
     <plotSettings>
       <plot>
         <type>wireframe</type>
-        <x>timepointset|Input|(Functions|power_history|scale_factor)</x>
-        <y>timepointset|Input|(Materials|fuel_creep|thermal_expansion)</y>
-        <z>timepointset|Output|max_stress</z>
+        <x>Pointset|Input|(Functions|power_history|scale_factor)</x>
+        <y>Pointset|Input|(Materials|fuel_creep|thermal_expansion)</y>
+        <z>Pointset|Output|max_stress</z>
       </plot>
       <xlabel>Power History Scale Factor</xlabel>
       <ylabel>Thermal Expansion</ylabel>
@@ -104,8 +104,8 @@
     <plotSettings>
       <plot>
         <type>scatter</type>
-        <x>timepointset|Input|(Materials|fuel_creep|thermal_expansion)</x>
-        <y>timepointset|Output|max_stress</y>
+        <x>Pointset|Input|(Materials|fuel_creep|thermal_expansion)</x>
+        <y>Pointset|Output|max_stress</y>
       </plot>
       <xlabel>Thermal Expansion</xlabel>
       <ylabel>Max Stress</ylabel>
@@ -119,8 +119,8 @@
     <plotSettings>
       <plot>
         <type>scatter</type>
-        <x>timepointset|Input|(Materials|fission_gas_release_and_swelling|grainradius_scalef)</x>
-        <y>timepointset|Output|max_stress</y>
+        <x>Pointset|Input|(Materials|fission_gas_release_and_swelling|grainradius_scalef)</x>
+        <y>Pointset|Output|max_stress</y>
       </plot>
       <xlabel>Initial Grain Radius</xlabel>
       <ylabel>Max Stress</ylabel>
@@ -142,8 +142,8 @@
         <Model   class = 'Models'     type='Code'      >Bison-opt</Model>
         <Sampler class = 'Samplers'   type='LHS'>Bison1</Sampler>
         <Output  class = 'Databases'  type='HDF5'      >MyDatabaseGrid3</Output>
-        <Output     class='DataObjects'      type='Histories' >stories</Output>
-        <Output     class='DataObjects'      type='TimePointSet' >timepointset</Output>
+        <Output     class='DataObjects'      type='HistorySet' >stories</Output>
+        <Output     class='DataObjects'      type='PointSet' >Pointset</Output>
         <Output    class='OutStreamManager' type='Plot'>Plot1</Output>
         <!-- <Output    class='OutStreamManager' type='Plot'>Plot2</Output>
         <Output    class='OutStreamManager' type='Plot'>Plot3</Output> -->
@@ -153,7 +153,7 @@
     <!-- <SingleRun name='extract_hist_lhs'>
       <Input   class='Databases' type='HDF5'   >MyDatabaseGrid3</Input>
       <Model   class='Models'    type='Filter' >csv_from_hdf5</Model>
-      <Output  class='Files'     type=''       >histories.csv</Output>
+      <Output  class='Files'     type=''       >HistorySet.csv</Output>
     </SingleRun> -->
     <!-- <PostProcessing name = 'printCSV'>
         <Input   class = 'Databases' type='HDF5'   >MyDatabaseGrid3</Input>
@@ -162,14 +162,14 @@
     </PostProcessing> -->
 </Steps>
 <DataObjects>
-    <Histories name='stories'>
+    <HistorySet name='stories'>
         <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
         <Output>max_stress,avg_clad_temp,ave_temp_interior,fis_gas_released</Output>
-   </Histories>
-   <TimePointSet name='timepointset'>
+   </HistorySet>
+   <PointSet name='Pointset'>
         <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
         <Output>max_stress,avg_clad_temp,ave_temp_interior,fis_gas_released</Output>
-   </TimePointSet>
+   </PointSet>
 </DataObjects>
 <Databases>
     <HDF5 name = 'MyDatabaseGrid3'/>

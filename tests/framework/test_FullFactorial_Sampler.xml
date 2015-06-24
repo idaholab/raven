@@ -88,30 +88,30 @@
 </Samplers>
 
 <DataObjects>
-     <TimePointSet name='2levelFactData'>
+     <PointSet name='2levelFactData'>
         <Input>VarGauss1,VarGauss2,VarTri1</Input>
         <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='2levelFactdummyIN'>
+   </PointSet>
+   <PointSet name='2levelFactdummyIN'>
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
       <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='pbData'>
+   </PointSet>
+   <PointSet name='pbData'>
        <Input>VarGauss1,VarGauss2,VarTri1</Input>
        <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='pbDatadummyIN'>
+   </PointSet>
+   <PointSet name='pbDatadummyIN'>
        <Input>VarGauss1,VarGauss2,VarTri1</Input>
        <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='fullFactData'>
+   </PointSet>
+   <PointSet name='fullFactData'>
        <Input>VarGauss1,VarGauss2,VarTri1</Input>
        <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='fullFactDatadummyIN'>
+   </PointSet>
+   <PointSet name='fullFactDatadummyIN'>
        <Input>VarGauss1,VarGauss2,VarTri1</Input>
        <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
+   </PointSet>
 </DataObjects>
     
 <OutStreamManager>
@@ -131,26 +131,26 @@
 
 <Steps>
      <MultiRun name='2levelFractFactorialStep'>
-        <Input   class='DataObjects'     type='TimePointSet'    >2levelFactdummyIN</Input>
+        <Input   class='DataObjects'     type='PointSet'    >2levelFactdummyIN</Input>
         <Model   class='Models'    type='Dummy'           >MyDummy1</Model>
         <Sampler class='Samplers'  type='FactorialDesign' >2levelFractFactorial</Sampler>
-        <Output  class='DataObjects'     type='TimePointSet'    >2levelFactData</Output>
+        <Output  class='DataObjects'     type='PointSet'    >2levelFactData</Output>
         <Output  class='Databases' type='HDF5'            >test_DummyModelFactorial_db</Output>
         <Output  class='OutStreamManager' type='Print'    >2levelFact_dump</Output>
     </MultiRun >
      <MultiRun name='pbFactorialStep'>
-         <Input   class='DataObjects'     type='TimePointSet'    >pbDatadummyIN</Input>
+         <Input   class='DataObjects'     type='PointSet'    >pbDatadummyIN</Input>
          <Model   class='Models'    type='Dummy'           >MyDummy2</Model>
          <Sampler class='Samplers'  type='FactorialDesign' >pbFactorial</Sampler>
-         <Output  class='DataObjects'     type='TimePointSet'    >pbData</Output>
+         <Output  class='DataObjects'     type='PointSet'    >pbData</Output>
          <Output  class='Databases' type='HDF5'            >test_DummyModelFactorial_db</Output>
          <Output  class='OutStreamManager' type='Print'    >pb_dump</Output>
      </MultiRun >
      <MultiRun name='fullFactStep'>
-         <Input   class='DataObjects'     type='TimePointSet'    >fullFactDatadummyIN</Input>
+         <Input   class='DataObjects'     type='PointSet'    >fullFactDatadummyIN</Input>
          <Model   class='Models'    type='Dummy'           >MyDummy3</Model>
          <Sampler class='Samplers'  type='FactorialDesign' >fullFactorial</Sampler>
-         <Output  class='DataObjects'     type='TimePointSet'    >fullFactData</Output>
+         <Output  class='DataObjects'     type='PointSet'    >fullFactData</Output>
          <Output  class='Databases' type='HDF5'            >test_DummyModelFactorial_db</Output>
          <Output  class='OutStreamManager' type='Print'    >fullFact_dump</Output>
      </MultiRun >

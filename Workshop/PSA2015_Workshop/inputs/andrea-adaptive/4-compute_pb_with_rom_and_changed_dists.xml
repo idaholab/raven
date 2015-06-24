@@ -74,59 +74,59 @@
 <Steps>
     <IOStep name='extract_data_adapt'>
         <Input   class='Databases'   type='HDF5'               >out_db_adaptive</Input>
-        <Output  class='DataObjects' type='TimePointSet'       >outAdapt_failure</Output>
+        <Output  class='DataObjects' type='PointSet'       >outAdapt_failure</Output>
     </IOStep>
     <RomTrainer name='rom_train_classifier'>
-        <Input   class='DataObjects' type='TimePointSet'       >outAdapt_failure</Input>
+        <Input   class='DataObjects' type='PointSet'       >outAdapt_failure</Input>
         <Output  class='Models'      type='ROM'                >ProbabilityROM</Output>
     </RomTrainer>
     <MultiRun name='rom_sample_pb' sleepTime="0.005" re-seeding="200286">
-        <Input   class='DataObjects'      type='TimePoint'     >inputPlaceHolder</Input>
+        <Input   class='DataObjects'      type='Point'     >inputPlaceHolder</Input>
         <Model   class='Models'           type='ExternalModel' >PythonModule</Model>
         <Sampler class='Samplers'         type='MonteCarlo'    >Montecarlo_sampling</Sampler>
-        <Output  class='DataObjects'      type='TimePointSet'  >outGrid_failure</Output>
+        <Output  class='DataObjects'      type='PointSet'  >outGrid_failure</Output>
     </MultiRun>
     <MultiRun name='montecarlo_sample_ext_model' sleepTime="0.005" re-seeding="200286">
-        <Input   class='DataObjects'      type='TimePoint'     >inputPlaceHolder</Input>
+        <Input   class='DataObjects'      type='Point'     >inputPlaceHolder</Input>
         <Model   class='Models'           type='ExternalModel' >PythonModule</Model>
         <Sampler class='Samplers'         type='MonteCarlo'    >Montecarlo_sampling</Sampler>
-        <Output  class='DataObjects'      type='TimePointSet'  >outMC_failure</Output>
+        <Output  class='DataObjects'      type='PointSet'  >outMC_failure</Output>
     </MultiRun>
     <PostProcess name='PostProcessorComputeROMPb'>
-        <Input   class='DataObjects'      type='TimePointSet'  >outGrid_failure</Input>
+        <Input   class='DataObjects'      type='PointSet'  >outGrid_failure</Input>
         <Model   class='Models'           type='PostProcessor' >computePb</Model>
         <Output  class='Files'            type=''              >output_failure_pb_ROM_from_Adapt_changedDist.csv</Output>
     </PostProcess>
     <PostProcess name='PostProcessorComputePbExtModel'>
-        <Input   class='DataObjects'      type='TimePointSet'  >outMC_failure</Input>
+        <Input   class='DataObjects'      type='PointSet'  >outMC_failure</Input>
         <Model   class='Models'           type='PostProcessor' >computePb</Model>
         <Output  class='Files'            type=''              >output_failure_pb_ExtModel_changedDist.csv</Output>
     </PostProcess>
     <IOStep name='plot_results' pauseAtEnd="True">
-        <Input   class='DataObjects'      type='TimePointSet' >outGrid_failure</Input>
-        <Input   class='DataObjects'      type='TimePointSet' >outMC_failure</Input>
+        <Input   class='DataObjects'      type='PointSet' >outGrid_failure</Input>
+        <Input   class='DataObjects'      type='PointSet' >outMC_failure</Input>
         <Output  class='OutStreamManager' type='Plot'         >plotGridFailureROMFromAdapt</Output>
         <Output  class='OutStreamManager' type='Plot'         >plotGridFailureMCExternalModel</Output>
     </IOStep>
 </Steps>
 
 <DataObjects>
-    <TimePointSet name='outAdapt_failure'>
+    <PointSet name='outAdapt_failure'>
         <Input>x1,x2,x3</Input>
         <Output>failure</Output>
-    </TimePointSet>
-    <TimePointSet name='outGrid_failure'>
+    </PointSet>
+    <PointSet name='outGrid_failure'>
         <Input>x1,x2,x3</Input>
         <Output>failure</Output>
-    </TimePointSet>
-    <TimePointSet name='outMC_failure'>
+    </PointSet>
+    <PointSet name='outMC_failure'>
         <Input>x1,x2,x3</Input>
         <Output>failure</Output>
-    </TimePointSet>
-    <TimePoint name='inputPlaceHolder'>
+    </PointSet>
+    <Point name='inputPlaceHolder'>
         <Input>x1,x2,x3</Input>
         <Output>OutputPlaceHolder</Output>
-    </TimePoint>
+    </Point>
 </DataObjects>
 
 <OutStreamManager>

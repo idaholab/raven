@@ -16,6 +16,7 @@ import abc
 import numpy as np
 import json
 from operator import mul
+from collections import OrderedDict
 from functools import reduce
 from scipy import spatial
 from scipy.interpolate import InterpolatedUnivariateSpline
@@ -37,6 +38,7 @@ import OrthoPolynomials
 import SupervisedLearning
 import IndexSets
 import PostProcessors
+import MessageHandler
 import GridEntities
 distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
@@ -89,7 +91,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     BaseType.__init__(self)
     self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.auxcnt                        = 0                         # Aux counter of samples performed (for its usage check initialize method)
-    self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of Histories to run, DET = Unlimited)
+    self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
     self.toBeSampled                   = {}                        # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
     self.dependentSample               = {}                        # Sampling mapping dictionary for dependent variables {'Variable Name':'name of the external function'}
     self.distDict                      = {}                        # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
@@ -127,12 +129,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self._generateDistributions(availableDist,availableFunc)
 
   def _addAssObject(self,name,flag):
-    '''
+    """
       Method to add required assembler objects to the requiredAssObject dictionary.
       @ In, name, the node name to search for
       @ In, flag, the number of nodes to look for (- means optional, n means any number)
       @ Out, None
-    '''
+    """
     self.requiredAssObject[1][0].append(name)
     self.requiredAssObject[1][1].append(flag)
 
@@ -239,6 +241,36 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           maxDim = var.values()[0]
       self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
     self.localInputAndChecks(xmlNode)
+
+
+  def read_sampler_init(self,xmlNode):
+    """
+    This method is responsible to read only the sampler_init block in the .xml file.
+    This method has been moved from the base sampler class since the sampler_init block is needed only for the MC and stratified (LHS) samplers
+    @ In xmlNode
+    """
+    for child in xmlNode:
+      if child.tag == "sampler_init":
+        self.initSeed = Distributions.randomIntegers(0,2**31,self)
+        for childChild in child:
+          if childChild.tag == "limit":
+            self.limit = childChild.text
+          elif childChild.tag == "initial_seed":
+            self.initSeed = int(childChild.text)
+          elif childChild.tag == "reseed_at_each_iteration":
+            if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
+          elif childChild.tag == "dist_init":
+            for childChildChild in childChild:
+              NDdistData = {}
+              for childChildChildChild in childChildChild:
+                if childChildChildChild.tag == 'initial_grid_disc':
+                  NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
+                elif childChildChildChild.tag == 'tolerance':
+                  NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
+                else:
+                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initial_grid_disc and tolerance!')
+              self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
+          else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')
 
   def endJobRunnable(self): return self._endJobRunnable
 
@@ -440,12 +472,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     @in myInput  : the generating input
     """
     pass
+
+class StaticSampler(Sampler):
+  """This is a general static, blind, once-through sampler"""
+  pass
 #
 #
 #
 #
 class AdaptiveSampler(Sampler):
-  '''This is a general adaptive sampler'''
+  """This is a general adaptive sampler"""
   pass
 
 class LimitSurfaceSearch(AdaptiveSampler):
@@ -528,8 +564,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
     if 'TargetEvaluation' in self.assemblerDict.keys(): self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
     #self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
-    # check if solutionExport is actually a "DataObjects" type "TimePointSet"
-    if type(solutionExport).__name__ != "TimePointSet": self.raiseAnError(IOError,'solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
+    # check if solutionExport is actually a "DataObjects" type "PointSet"
+    if type(solutionExport).__name__ != "PointSet": self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ type(solutionExport).__name__+'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
     self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
@@ -760,6 +796,11 @@ class MonteCarlo(Sampler):
     self.printTag = 'SAMPLER MONTECARLO'
 
   def localInputAndChecks(self,xmlNode):
+    """
+    xml additional parser for the MonteCarlo Class
+    """
+    Sampler.read_sampler_init(self,xmlNode)
+
     if xmlNode.find('sampler_init')!= None:
       if xmlNode.find('sampler_init').find('limit')!= None:
         try: self.limit = int(xmlNode.find('sampler_init').find('limit').text)
@@ -771,7 +812,7 @@ class MonteCarlo(Sampler):
       utils.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the sampler_init block')
 
   def localInitialize(self):
-    '''See base class.'''
+    """See base class."""
     if self.restartData:
       self.counter+=len(self.restartData)
       self.raiseAMessage('Number of points from restart: %i' %self.counter)
@@ -963,6 +1004,10 @@ class Stratified(Grid):
     self.globalGrid          = {}    # Dictionary for the global_grid. These grids are used only for Stratified for ND distributions.
 
   def localInputAndChecks(self,xmlNode):
+    """
+    xml additional parser for the Stratified Class
+    """
+    Sampler.read_sampler_init(self,xmlNode)
     Grid.localInputAndChecks(self,xmlNode)
     pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1: self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of point in each dimension')
@@ -1044,7 +1089,7 @@ class Stratified(Grid):
 #
 class DynamicEventTree(Grid):
   """
-  DYNAMIC EVENT TREE Sampler - "ANalysis of Dynamic REactor Accident evolution" module (DET)
+  DYNAMIC EVENT TREE Sampler (DET)
   """
   def __init__(self):
     Grid.__init__(self)
@@ -1646,7 +1691,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     @ In , None, None
     @ Out, needDict, list of objects needed
     """
-    adaptNeed = AdaptiveSampler._localWhatDoINeed(self)
+    adaptNeed = LimitSurfaceSearch._localWhatDoINeed(self)
     DETNeed   = DynamicEventTree._localWhatDoINeed(self)
     return dict(adaptNeed.items()+ DETNeed.items())
 
@@ -1855,7 +1900,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
             for key in histdict['outputs'].keys():
               if key not in lastOutDict['outputs'].keys(): lastOutDict['outputs'][key] = np.atleast_1d(histdict['outputs'][key])
               else                                       : lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),np.atleast_1d(histdict['outputs'][key])))
-        else: self.raiseAWarning('No Completed histories! Not possible to start an adaptive search! Something went wrong!')
+        else: self.raiseAWarning('No Completed HistorySet! Not possible to start an adaptive search! Something went wrong!')
       if len(completedHistNames) > self.completedHistCnt:
         self.actualLastOutput = self.lastOutput
         self.lastOutput       = self.actualLastOutput
@@ -2122,6 +2167,10 @@ class ResponseSurfaceDesign(Grid):
 #
 class SparseGridCollocation(Grid):
   def __init__(self):
+    """Initializes class.
+    @ In, None
+    @ Out, None
+    """
     Grid.__init__(self)
     self.type           = 'SparseGridCollocationSampler'
     self.printTag       = 'SAMPLER '+self.type.upper()
@@ -2142,12 +2191,21 @@ class SparseGridCollocation(Grid):
     self._addAssObject('ROM','1')
 
   def _localWhatDoINeed(self):
-    '''See base class.'''
+    """
+    This method is a local mirror of the general whatDoINeed method.
+    It is implemented by the samplers that need to request special objects
+    @ In , None, None
+    @ Out, needDict, list of objects needed
+    """
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
     return gridDict
 
   def _localGenerateAssembler(self,initDict):
+    """Generates the assembler.
+    @ In, initDict, dict of init objects
+    @ Out, None
+    """
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
     #do a distributions check for ND
@@ -2155,6 +2213,11 @@ class SparseGridCollocation(Grid):
       if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists not supported for this sampler (yet)!')
 
   def localInputAndChecks(self,xmlNode):
+    """
+    Reads in XML node
+    @ In, xmlNode, XML node, input xml
+    @ Out, None
+    """
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
     self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
     for child in xmlNode:
@@ -2165,6 +2228,10 @@ class SparseGridCollocation(Grid):
         self.axisName.append(varName)
 
   def localInitialize(self):
+    """Performs local initialization
+    @ In, None
+    @ Out, None
+    """
     for key in self.assemblerDict.keys():
       if 'ROM' in key:
         for value in self.assemblerDict[key]: self.ROM = value[3]
@@ -2183,7 +2250,7 @@ class SparseGridCollocation(Grid):
 
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType,self)
-    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder,self.messageHandler)
+    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
     if self.indexSet.type=='Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
 
@@ -2213,6 +2280,7 @@ class SparseGridCollocation(Grid):
     self.raiseADebug('Number of Runs Needed :'+str(self.limit-len(self.existing)))
     self.raiseADebug('Finished sampler generation.')
 
+    self.raiseADebug('indexset:',self.indexSet)
     for SVL in self.ROM.SupervisedEngine.values():
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.distDict,
@@ -2221,12 +2289,12 @@ class SparseGridCollocation(Grid):
                       'iSet':self.indexSet})
 
   def _generateQuadsAndPolys(self,SVL):
-    '''
+    """
       Builds the quadrature objects, polynomial objects, and importance weights for all
       the distributed variables.  Also sets maxPolyOrder.
       @ In, SVL, one of the SupervisedEngine objects from the ROM
       @ Out, None
-    '''
+    """
     ROMdata = SVL.interpolationInfo()
     self.maxPolyOrder = SVL.maxPolyOrder
     #check input space consistency
@@ -2308,7 +2376,10 @@ class SparseGridCollocation(Grid):
 #
 class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def __init__(self):
-    '''See base class.'''
+    """Initializes class.
+    @ In, None
+    @ Out, None
+    """
     SparseGridCollocation.__init__(self)
     self.type             = 'AdaptiveSparseGridSampler'
     self.printTag         = self.type
@@ -2326,25 +2397,25 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self._addAssObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
-    '''See base class.'''
+    """
+    Reads in XML node
+    @ In, xmlNode, XML node, input xml
+    @ Out, None
+    """
     SparseGridCollocation.localInputAndChecks(self,xmlNode)
-    foundConv = False
-    for child in xmlNode:
-      if child.tag == 'Convergence':
-        foundConv = True
-        self.convType     = child.attrib['target']
-        self.maxPolyOrder = int(child.attrib.get('maxPolyOrder',10))
-        self.persistence  = int(child.attrib.get('persistence',2))
-        self.convValue    = float(child.text)
-    if not foundConv:
-      self.raiseAnError(IOError,'Convergence node not found in input!')
+    if 'Convergence' not in list(c.tag for c in xmlNode): self.raiseAnError(IOError,'Convergence node not found in input!')
+    convnode = xmlNode.find('Convergence')
+    self.convType     = convnode.attrib['target']
+    self.maxPolyOrder = int(convnode.attrib.get('maxPolyOrder',10))
+    self.persistence  = int(convnode.attrib.get('persistence',2))
+    self.convValue    = float(convnode.text)
 
   def  localInitialize(self):
-    '''
-      Initializes basic tools for sampler.  See base class.
-    '''
+    """Performs local initialization
+    @ In, None
+    @ Out, None
+    """
     #set a pointer to the end-product ROM
-    self.raiseADebug(self.assemblerDict['ROM'][0])
     self.ROM = self.assemblerDict['ROM'][0][3]
     #obtain the DataObject that contains evaluations of the model
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
@@ -2366,7 +2437,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #create the index set
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance('AdaptiveSet',self)
-    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder,self.messageHandler)
+    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
 
     #set up the already-existing solutions (and re-order the inputs appropriately)
     self._updateExisting()
@@ -2381,29 +2452,29 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self.neededPoints.append(pt)
 
   def _makeSparseQuad(self,points=[]):
-    '''
+    """
       Generates a sparseGrid object using the self.indexSet adaptively established points
       as well as and additional points passed in (often the indexSet's adaptive points).
       Also returns the index set used to generate the sparse grid.
       @ In, points, list of tuples
       @ Out, (sparseGrid, indexSet) object tuple
-    '''
+    """
     sparseGrid = Quadratures.SparseQuad()
     iset = IndexSets.returnInstance('Custom',self)
-    iset.initialize(self.distDict,self.importanceDict,self.maxPolyOrder,self.messageHandler)
+    iset.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
     iset.addPoints(points)
     sparseGrid.initialize(self.features,iset,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
     return sparseGrid,iset
 
   def _makeARom(self,grid,inset):
-    '''
+    """
       Generates a GaussPolynomialRom object using the passed in sparseGrid and indexSet,
       otherwise fundamentally a copy of the end-target ROM.
       @ In, grid, a sparseGrid object
       @ In, inset, a indexSet object
       @ Out, a GaussPolynomialROM object
-    '''
+    """
     #deepcopy prevents overwriting
     rom  = copy.deepcopy(self.ROM)
     sg   = copy.deepcopy(grid)
@@ -2423,23 +2494,23 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     return rom
 
   def _impactParameter(self,new,old):
-    '''
+    """
       Calculates the impact factor g_k based on the Ayres-Eaton 2015 paper model.
       @ In, new, the new metric
       @ In, old, the old metric
       @ Out, the impact parameter
-    '''
+    """
     impact=0
     if abs(old)>1e-14: return((new-old)/old)
     else: return new
 
   def _updateExisting(self):
-    '''
-      Goes through the stores solutions TimePontSet and pulls out solutions, ordering them
+    """
+      Goes through the stores solutions PointSet and pulls out solutions, ordering them
       by the order the features we're evaluating.
       @ In, None
       @ Out, None
-    '''
+    """
     if not self.solns.isItEmpty():
       inps = self.solns.getInpParametersValues()
       outs = self.solns.getOutParametersValues()
@@ -2451,38 +2522,14 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       outvals = zip(*list(v for v in outs.values()))
       self.existing = dict(zip(existinginps,outvals))
 
-  def _writeRomToFile(self,sg,err=None):
-    '''
-      Debug tool to write specifics to file.
-      @ In, sg, sparseGrid object
-      @ In, err, optional float of error
-      @ Out, None
-    '''
-    outfile = file('rom'+'-'.join(str(s) for s in self.indexSet.newestPoint)+'.out','w')
-    outfile.writelines('**************\n')
-    outfile.writelines('* Index Set  *\n')
-    outfile.writelines('**************\n')
-    for pt in rom.indexSet.points:
-      outfile.writelines('  '+str(pt)+'\n')
-    outfile.writelines('**************\n')
-    outfile.writelines('* SparseGrid *\n')
-    outfile.writelines('**************\n')
-    outfile.writelines(str(sg)+'\n')
-    if err!=None:
-      outfile.writelines('**************\n')
-      outfile.writelines('*   Error    *\n')
-      outfile.writelines('**************\n')
-      outfile.writelines(str(err)+'\n')
-    outfile.close()
-
   def _integrateFunction(self,sg,r,i):
-    '''
+    """
       Uses the sparse grid sg to effectively integrate the r-th moment of the model.
       @ In, sg, sparseGrid object
       @ In, r, integer moment
       @ In, i, index of target to evaluate
       @ Out, float, approximate integral
-    '''
+    """
     tot=0
     for n in range(len(sg)):
       pt,wt = sg[n]
@@ -2491,14 +2538,14 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     return tot
 
   def _convergence(self,sparseGrid,iset,i):
-    '''
+    """
       Checks the convergence of the adaptive index set via one of several ways, currently "mean", "variance", or "coeffs",
       meaning the moment coefficients of the stochastic polynomial expansion.
       @ In, sparseGrid, sparseGrid object
       @ In, iset, indexSet object
       @ In, i, index of target to check convergence with respect to
       @ Out, estimated impact factor for this index set and sparse grid
-    '''
+    """
     if self.convType.lower()=='mean':
       new = self._integrateFunction(sparseGrid,1,i)
       if self.oldSG!=None: old = self._integrateFunction(self.oldSG,1,i)
@@ -2509,10 +2556,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       if self.oldSG!=None:
         old = self._integrateFunction(self.oldSG,2,i)
       else: old = 0
-      #self.raiseADebug('integrated new:',new,'old:',old)
       impact = self._impactParameter(new,old)
     elif self.convType.lower()=='coeffs':
-      new = self._makeARom(sparseGrid,iset).SupervisedEngine.values()[i] #TODO multitarget ROM?
+      new = self._makeARom(sparseGrid,iset).SupervisedEngine.values()[i]
       tot = 0 #for L2 norm of coeffs
       if self.oldSG != None:
         oSG,oSet = self._makeSparseQuad()
@@ -2523,18 +2569,18 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
           n = new.polyCoeffDict[coeff]
           o = old.polyCoeffDict[coeff]
           tot+= (n - o)**2
-          #if abs(n-o)>1e-13: self.raiseADebug('    ...old point:',coeff,'new-old:',n-o,'new:',n,'old:',o)
         else:
           tot+= new.polyCoeffDict[coeff]**2
-          #if abs(new.polyCoeffDict[coeff]) > 1e-13: self.raiseADebug('    ...new point:',coeff,new.polyCoeffDict[coeff])
-      impact = np.sqrt(tot)#/float(new.polyCoeffDict.values()[0])
+      impact = np.sqrt(tot)
     else: self.raiseAnError(KeyError,'Unexpected convergence criteria:',self.convType)
     return impact
 
   def localStillReady(self,ready):
-    '''
-      See base class.  Determines what additional points are necessary for RAVEN to run.
-    '''
+    """
+      Determines what additional points are necessary for RAVEN to run.
+      @ In, ready, bool, true if ready
+      @ Out, ready, bool, true if ready
+    """
     #update existing solutions
     self._updateExisting()
     #if we're not ready elsewhere, just be not ready
@@ -2555,13 +2601,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         #store it
         self.activeSGs[active]=sparseGrid
         #get impact from  convergence
-        #self.raiseADebug('')
-        #self.raiseADebug('  ...checking convergence on active',active)
         av_impact = 0
         for i,target in enumerate(self.ROM.SupervisedEngine.keys()):
           av_impact += self._convergence(sparseGrid,iset,i)
         impact = av_impact/float(len(self.ROM.SupervisedEngine.keys()))
-        #self.raiseADebug('')
         #stash the sparse grid, impact factor for future reference
         self.indexSet.setSG(active,sparseGrid)
         self.indexSet.setImpact(active,impact)
@@ -2601,11 +2644,11 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     return True
 
   def finalizeROM(self):
-    '''
+    """
       Initializes final target ROM with necessary objects for training.
       @ In, None
       @ Out, None
-    '''
+    """
     self.raiseADebug('No more samples to try! Declaring sampling complete.')
     #initialize final rom with final sparse grid and index set
     self.sparseGrid = Quadratures.SparseQuad()
@@ -2621,9 +2664,11 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.indexSet.writeHistory()
 
   def localGenerateInput(self,model,myInput):
-    '''
-      See base class.  Provides next point in input domain to evaluate.
-    '''
+    """
+      Generates an input. Parameters inherited.
+      @ In, model, unused
+      @ In, myInput, unused
+    """
     pt = self.neededPoints.pop() # [self.counter-1]
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
@@ -2637,11 +2682,11 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 #
 class Sobol(SparseGridCollocation):
   def __init__(self):
-    '''
+    """
       Initializes members to be used in the sampler.
       @ In, None
       @ Out, None
-    '''
+    """
     Grid.__init__(self)
     self.type           = 'SobolSampler'
     self.printTag       = 'SAMPLER SOBOL'
@@ -2662,21 +2707,30 @@ class Sobol(SparseGridCollocation):
     self._addAssObject('ROM','1')
 
   def _localWhatDoINeed(self):
-    '''
-      Used to obtain necessary objects.  See base class.
+    """
+      Used to obtain necessary objects.
       @ In, None
       @ Out, None
-    '''
+    """
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
     return gridDict
 
+  def _localGenerateAssembler(self,initDict):
+    """
+      Used to obtain necessary objects.
+      @ In, initDict, dictionary of objects required to initialize
+      @ Out, None
+    """
+    Grid._localGenerateAssembler(self, initDict)
+    self.jobHandler = initDict['internal']['jobHandler']
+
   def localInputAndChecks(self,xmlNode):
-    '''
+    """
       Extended readMoreXML after other objects are instantiated
       @ In, xmlNode, xmlNode object whose head should be Sobol under Sampler.
       @ Out, None
-    '''
+    """
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
     self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
     for child in xmlNode:
@@ -2687,12 +2741,12 @@ class Sobol(SparseGridCollocation):
         self.axisName.append(varName)
 
   def localInitialize(self):
-    '''
+    """
       Initializes Sampler, including building sub-ROMs for Sobol decomposition.  Note that re-using this
       sampler will destroy any ROM trained and attached to this sampler, and can be retrained after sampling.
       @ In, None
       @ Out, None
-    '''
+    """
     for key in self.assemblerDict.keys():
       if 'ROM' in key:
         indice = 0
@@ -2722,7 +2776,7 @@ class Sobol(SparseGridCollocation):
         polyDict[c]=self.polyDict[c]
         imptDict[c]=self.importanceDict[c]
       iset=IndexSets.returnInstance(SVL.indexSetType,self)
-      iset.initialize(distDict,imptDict,SVL.maxPolyOrder,self.messageHandler)
+      iset.initialize(distDict,imptDict,SVL.maxPolyOrder)
       self.SQs[combo] = Quadratures.SparseQuad()
       self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
       initDict={'IndexSet':iset.type, 'PolynomialOrder':SVL.maxPolyOrder, 'Interpolation':SVL.itpDict}
@@ -2773,11 +2827,11 @@ class Sobol(SparseGridCollocation):
     self.ROM.SupervisedEngine.values()[0].initialize(initdict) #TODO FIXME multitarget
 
   def localGenerateInput(self,model,myInput):
-    '''
-       Provide the next point in the sparse grid.  Note that this sampler cannot assign probabilty
-       weights to individual points, as several sub-ROMs will use them with different weights.
-       See base class.
-    '''
+    """
+      Generates an input. Parameters inherited.
+      @ In, model, unused
+      @ In, myInput, unused
+    """
     found=False
     while not found:
       try: pt = self.pointsToRun[self.counter-1]

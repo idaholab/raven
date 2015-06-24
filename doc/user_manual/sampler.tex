@@ -236,9 +236,9 @@ XML node and the requirements for other attributes change:
 {
     \begin{itemize}
       \item \xmlNode{Restart}, \xmlDesc{string, optional field}, the
-        body of this XML node must contain the name of an appropriate \textbf{TimePointSet} defined in the
+        body of this XML node must contain the name of an appropriate \textbf{PointSet} defined in the
         \xmlNode{DataObjects} block (see Section~\ref{subsec:models_ROM}).  It is used as a
-        ``restart'' tool, where it accepts pre-existing solutions in the TimePointSet instead
+        ``restart'' tool, where it accepts pre-existing solutions in the PointSet instead
         of recalculating solutions.
     \end{itemize}
 }
@@ -316,6 +316,40 @@ Example XML block to define the variables and associated distributions:
 </variable>
 \end{lstlisting}
 
+If the variable is associated to a multi-dimensional ND distribution, it is needed to specify which dimension of the ND distribution is associated to such variable. An example is shown below: the variable  ``variableX'' is associated to the third dimension of the ND distribution ``NDdistribution''.
+
+\begin{lstlisting}[style=XML]
+<variable name='variableX'>
+     <distribution dim='3'>NDdistribution</distribution>
+</variable>
+\end{lstlisting}
+
+In the sampler class a special node exists: the \xmlNode{sampler\textunderscore init} node.
+This node contains specific parameters that characterize each particular sampler. 
+In addition, \xmlNode{sampler\textunderscore init} might contains the information regarding the random generator function for each $N$-Dimensional distribution (specified in the \xmlNode{dist\textunderscore init} node):
+\begin{itemize}
+\item initial\textunderscore grid\textunderscore disc 
+\item tolerance
+\end{itemize}
+
+An example of \xmlNode{dist\textunderscore init} node is provided below:
+
+\begin{lstlisting}[style=XML]
+<dist_init>
+    <distribution name= 'ND_dist_name'>
+         <initial_grid_disc>5</initial_grid_disc>
+          <tolerance>0.2</tolerance>
+     </distribution>
+  </dist_init>
+\end{lstlisting}
+
+In the \xmlNode{sampler\textunderscore init}  node it is possible to add also the subnode \xmlNode{global\_grid}.
+The \xmlNode{global\_grid} can be used in two cases:
+\begin{itemize}
+\item 1D distributions: an identical grid that is associated to several distributions
+\item ND distribution: a grid associated to a single ND distribution. This is the case when a stratified sampling is performed on the CDF of an ND distribution: the  \xmlNode{global\_grid} is  shared among the variables associated to the Nd distribution
+\end{itemize}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Once-Through Samplers %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -345,6 +379,7 @@ ways to explore the input space.
 %
 In the following paragraphs, the input requirements and a small explanation of
 the different sampling methodologies are reported.
+
 
 %%% Once-Through Samplers: MonteCarlo
 \subsubsection{Monte Carlo}
@@ -545,7 +580,7 @@ Example:
       <distribution>myDist2</distribution>
     </variable>
     <ROM class = 'Models' type = 'ROM' >SCROM</ROM>
-    <Restart class = 'Datas' type = 'TimePointSet' >solns</Restart>
+    <Restart class = 'Datas' type = 'PointSet' >solns</Restart>
   </SparseGridCollocation>
   ...
 </Samplers>
@@ -678,7 +713,7 @@ Example:
 \end{lstlisting}
 
 For N-dimensional  (ND) distributions, when the sampling is performed on a grid on a CDF  the user it is required to specify the same CDF grid for all the dimensions of the ND distribution.
-This is possible by defining a global\_grid and associate such global grid to each variable belonging to the ND distribution as follows.
+This is possible by defining a \xmlNode{global\_grid node and associate such global\_grid to each variable belonging to the ND distribution as follows.
 
 \begin{lstlisting}[style=XML,morekeywords={ND,grid}]
 <Samplers>
@@ -1380,20 +1415,21 @@ small number of carefully selected sample points, limiting the number of
 expensive trials needed to understand features of the system space.
 %
 
-Currently, RAVEN provides support for two adaptive algorithms:
+Currently, RAVEN provides support for the following adaptive algorithms:
 
 \begin{itemize}
-  \item Adaptive Sampler for Limit Surface Search
+  \item Limit Surface Search
   \item Adaptive Dynamic Event Tree
+  \item Adaptive Sparse Grid
 \end{itemize}
 
 In the following paragraphs, the input requirements and a small explanation of
 the different sampling methods are reported.
 
 %%% Adaptive Samplers: Adaptive Sampling for Limit Surface search
-\subsubsection{Adaptive Sampler}
-\label{subsubsubsec:AdaptiveSampling}
-The \textbf{Adaptive Sampler} approach is an advanced methodology that employs
+\subsubsection{Limit Surface Search}
+\label{subsubsubsec:LimitSurfaceSearch}
+The \textbf{Limit Surface Search} approach is an advanced methodology that employs
 a smart sampling around transition zones that determine a change in the status
 of the system (limit surface).
 %
@@ -1402,7 +1438,7 @@ the location(s) of these transitions, in order to accelerate the exploration of
 the input space in proximity of the limit surface.
 %
 
-\specBlock{an}{Adaptive}
+\specBlock{an}{Limit Surface Search}
 %
 \attrIntro
 
@@ -1411,7 +1447,7 @@ the input space in proximity of the limit surface.
   \item \nameDescription
 \end{itemize}
 
-\variableIntro{Adaptive}
+\variableIntro{Limit Surface Search}
 
 \begin{itemize}
   \item \variableDescription
@@ -1427,8 +1463,8 @@ In addition to the \xmlNode{variable} nodes, the main XML node
 \begin{itemize}
   \item \convergenceDescription
 
-  % Assembler Objects
-  \item \assemblerDescription{Adaptive}
+  % Limit Surface Search Objects
+  \item \assemblerDescription{Limit Surface Search}
     \begin{itemize}
       \item \xmlNode{Function}, \xmlDesc{string, required field},  the
         body of this XML block needs to contain the name of an external
@@ -1456,8 +1492,8 @@ In addition to the \xmlNode{variable} nodes, the main XML node
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        The adaptive sampling accepts ``DataObjects'' of type ``TimePoint'' and
-        ``TimePointSet'' only.
+        The Limit Surface Search sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
     \end{itemize}
 \end{itemize}
 
@@ -1465,10 +1501,10 @@ Example:
 \begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
 <Samplers>
   ...
-  <Adaptive name='AdaptiveName'>
+  <LimitSurfaceSearch name='LSSName'>
     <ROM class='Models' type='ROM'>ROMname</ROM>
     <Function class='Functions' type='External' >FunctionName</Function>
-    <TargetEvaluation class='DataObjects' type='TimePointSet'>DataName</TargetEvaluation>
+    <TargetEvaluation class='DataObjects' type='PointSet'>DataName</TargetEvaluation>
     <Convergence limit='3000'  forceIteration='False' weight='none' persistence='5'>
       1e-2
     </Convergence>
@@ -1481,7 +1517,7 @@ Example:
     <variable name='var3'>
       <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
     </variable>
-  </Adaptive>
+  </LimitSurfaceSearch>
   ...
 </Samplers>
 \end{lstlisting}
@@ -1495,7 +1531,7 @@ def __residuumSign(self):
     return -1
 \end{lstlisting}
 
-%%% Adaptive Samplers: Adaptive Sampling for Limit Surface search
+%%% Adaptive Samplers: ADET
 \subsubsection{Adaptive Dynamic Event Tree}
 \label{subsubsubsec:ADET}
 The \textbf{Adaptive Dynamic Event Tree} approach is an advanced methodology
@@ -1606,8 +1642,8 @@ sub-nodes:
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        The adaptive sampling accepts ``DataObjects'' of type ``TimePoint'' and
-        ``TimePointSet'' only.
+        The adaptive sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
     \end{itemize}
 \end{itemize}
 
@@ -1619,7 +1655,7 @@ Example:
   <AdaptiveDynamicEventTree name = 'AdaptiveName'>
     <ROM class = 'Models' type = 'ROM'ROMname</ROM>
     <Function class = 'Functions' type = 'External'>FunctionName</Function>
-    <TargetEvaluation class = 'DataObjects' type = 'TimePointSet'>DataName</TargetEvaluation>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>DataName</TargetEvaluation>
     <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'none' persistence = '5'>
       1e-2
     </Convergence>
@@ -1653,4 +1689,109 @@ def __residuumSign(self):
     return  1
   else:
     return -1
+\end{lstlisting}
+
+
+%%% Adaptive Samplers: Adaptive Sparse Grid Collocation
+\subsubsection{Adaptive Sparse Grid}
+\label{subsubsubsec:AdaptiveSparseGrid}
+The \textbf{Adaptive Sparse Grid} approach is an advanced methodology that employs
+an intelligent search for the most suitable sparse grid quadrature to characterize a model.
+%
+To perform such sampling, RAVEN adaptively builds an index set and generates sparse grids
+in a similar manner to Sparse Grid Collocation samplers.  In each iterative step, the adaptive
+index set determines the next possible quadrature orders to add in each dimension, and
+determines the index set point that would offer the largest impact to one of the convergence
+metrics.  This process continues until the total impact of all the potential index set points is
+less than tolerance.  For many models, this function converges after fewer runs than a traditional
+Sparse Grid Collocation sampling.  However, it should be noted that this algorithm fails
+in the event that the partial derivative of the response surface with respect to any single
+input dimension is zero at the origin of the input domain.  For example, the adaptive
+algorithm fails for the model $f(x)=x\cdot y$.
+%
+
+\specBlock{an}{Adaptive Sparse Grid}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+
+\variableIntro{Adaptive Sparse Grid}
+
+\begin{itemize}
+  \item \variableDescription
+    \variableChildIntro
+    \begin{itemize}
+      \item \distributionDescription
+    \end{itemize}
+\end{itemize}
+
+In addition to the \xmlNode{variable} nodes, the main XML node 
+\xmlNode{Adaptive Sparse Grid} needs to contain two supplementary sub-nodes:
+
+\begin{itemize}
+  \item \xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence 
+    tolerance.
+    %
+    The meaning of this tolerance depends on the \xmlAttr{target} attribute of this node.
+    \begin{itemize}
+      \item \xmlAttr{target}, \xmlDesc{required string attribute}, the metric for convergence.
+        Currently there are three metrics.  In order of strictness: \xmlString{mean}, which converges the sparse 
+        quadrature integration of the first moment of the model; \xmlString{variance}, which
+        converges the sparse quadrature integration of the second moment of the model; and
+        \xmlString{coeffs}, which integrates the L2 norm of the coefficients of the polynomial
+        moments from a GaussPolynomialRom construction using the sparse grid.
+        %
+      \item \xmlAttr{maxPolyOrder}, \xmlDesc{optional integer attribute},
+        limits the maximum size equivalent polynomial for any one dimension.
+        %
+        \default{10}.
+      \item \xmlAttr{persistence}, \xmlDesc{optional integer attribute}, defines the number of
+        index set points that are required to be found before calculation can exit.  Setting this to a higher
+        value can help if the adaptive process is not finding significant indices on its own.
+        %
+        \default{2}.
+    \end{itemize}
+    In summary, this XML node contains the information that is needed in order
+    to control this sampler's convergence criterion.
+\end{itemize}
+  % Adaptive Sparse Grid Objects
+  %\assemblerDescription{Adaptive Sparse Grid}
+  %\ROMDescription{Adaptive Sparse Grid}
+  \assemblerDescription{Adaptive Sparse Grid}
+       \ROMDescription{Adaptive Sparse Grid}
+        %
+        \begin{itemize}
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field}, 
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The Adaptive Sparse Grid sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
+   % \end{itemize}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
+<Samplers>
+  ...
+  <AdaptiveSparseGrid name="ASG" verbosity='debug'>
+    <Convergence target='coeffs'>1e-2</Convergence>
+    <variable name="x1">
+      <distribution>UniDist</distribution>
+    </variable>
+    <variable name="x2">
+      <distribution>UniDist</distribution>
+    </variable>
+    <ROM class = 'Models' type = 'ROM'>gausspolyrom</ROM>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
+  </AdaptiveSparseGrid>
+  ...
+</Samplers>
 \end{lstlisting}

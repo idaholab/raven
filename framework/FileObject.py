@@ -35,6 +35,13 @@ class FileObject(BaseType,str):
     if len(filename.split(".")) > 1: self.subtype = filename.split(".")[1].lower()
     else                           : self.subtype = 'unknown'
 
+  def __iter__(self):
+    """Overwrites to iterate over lines in file
+      @ In, None
+      @ Out, iterator
+    """
+    return (l for l in file(self.filename,'r'))
+
   def __add__(self, other) :
     """
     Overload add "+"
@@ -84,6 +91,15 @@ class FileObject(BaseType,str):
     if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
     return len(self.filename) >= len(str(other))
 
-
-
+  def writelines(self,string,overwrite=False):
+    """
+    Writes to the file whose name is being stored
+    @ In, string, the string to write to the file
+    @ In, overwrite, bool (optional), if true will open file in write mode instead of append
+    @ Out, None
+    """
+    mode = 'a' if not overwrite else 'w'
+    writeto = file(self.filename,mode)
+    writeto.writelines(string)
+    writeto.close()
 

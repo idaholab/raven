@@ -15,6 +15,7 @@
             <xsd:element name="Bernoulli"     type="BernoulliDistribution"     minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Binomial"      type="BinomialDistribution"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Poisson"       type="PoissonDistribution"       minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Categorical"   type="CategoricalDistribution"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="NDInverseWeight"   type="NDInverseWeightDistribution"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="NDCartesianSpline" type="NDCartesianSplineDistribution" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="MultivariateNormal" type="MultivariateNormalDistribution" minOccurs="0" maxOccurs="unbounded"/>
@@ -194,7 +195,23 @@
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
+
+    <xsd:complexType name="stateType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:decimal">
+                <xsd:attribute name="outcome" type="xsd:decimal" use="required"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>    
     
+    <xsd:complexType name="CategoricalDistribution">
+        <xsd:sequence>
+            <xsd:element name="state" type="stateType" minOccurs="1" maxOccurs="200"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+ 
+ 
     <xsd:simpleType name="typeAttr">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="PDF"/>

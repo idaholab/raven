@@ -50,7 +50,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   #the possible inputs
   validateDict['Input'].append(testDict.copy())
   validateDict['Input'  ][0]['class'       ] = 'DataObjects'
-  validateDict['Input'  ][0]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
+  validateDict['Input'  ][0]['type'        ] = ['Point','PointSet','History','HistorySet']
   validateDict['Input'  ][0]['required'    ] = False
   validateDict['Input'  ][0]['multiplicity'] = 'n'
   validateDict['Input'].append(testDict.copy())
@@ -61,7 +61,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   #the possible outputs
   validateDict['Output'].append(testDict.copy())
   validateDict['Output' ][0]['class'       ] = 'DataObjects'
-  validateDict['Output' ][0]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
+  validateDict['Output' ][0]['type'        ] = ['Point','PointSet','History','HistorySet']
   validateDict['Output' ][0]['required'    ] = False
   validateDict['Output' ][0]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
@@ -83,11 +83,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                                 'DynamicEventTree',
                                                 'Stratified',
                                                 'Grid',
-                                                'Adaptive',
+                                                'LimitSurfaceSearch',
                                                 'AdaptiveDynamicEventTree',
                                                 'FactorialDesign',
                                                 'ResponseSurfaceDesign',
                                                 'SparseGridCollocation',
+                                                'AdaptiveSparseGrid',
                                                 'Sobol']
 
   @classmethod
@@ -219,10 +220,10 @@ class Dummy(Model):
   @classmethod
   def specializeValidateDict(cls):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
-    cls.validateDict['Input' ][0]['type'        ] = ['TimePoint','TimePointSet']
+    cls.validateDict['Input' ][0]['type'        ] = ['Point','PointSet']
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
 
   def _manipulateInput(self,dataIn):
     if len(dataIn)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name '+self.name)
@@ -252,8 +253,8 @@ class Dummy(Model):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-    here only TimePoint and TimePointSet are accepted a local copy of the values is performed.
-    For a TimePoint all value are copied, for a TimePointSet only the last set of entry
+    here only Point and PointSet are accepted a local copy of the values is performed.
+    For a Point all value are copied, for a PointSet only the last set of entry
     The copied values are returned as a dictionary back
     """
     if len(myInput)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
@@ -303,7 +304,7 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
 
   def __init__(self):
     Dummy.__init__(self)
@@ -329,12 +330,15 @@ class ROM(Dummy):
   def __setstate__(self, newstate):
     self.__dict__.update(newstate)
     if not self.amITrained:
+      #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
       targets = self.initializationOptionDict['Target'].split(',')
       self.howManyTargets = len(targets)
       self.SupervisedEngine = {}
       for target in targets:
         self.initializationOptionDict['Target'] = target
         self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+      #restore targets to initialization option dict
+      self.initializationOptionDict['Target'] = ','.join(targets)
 
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
@@ -358,6 +362,8 @@ class ROM(Dummy):
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
+    #restore targets to initialization option dict
+    self.initializationOptionDict['Target'] = ','.join(targets)
 
   def printXML(self,options=None):
     '''
@@ -713,8 +719,8 @@ class Code(Model):
       self.raiseAWarning('current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
       if utils.checkIfPathAreAccessedByAnotherProgram(self.workingDir,3.0): self.raiseAWarning('directory '+ self.workingDir + ' is likely used by another program!!! ')
       if utils.checkIfLockedRavenFileIsPresent(self.workingDir,self.lockedFileName): self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ self.workingDir+". Please check your input!")
-    # register function to remove the locked file at the end of execution
-    atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
+      # register function to remove the locked file at the end of execution
+      atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
     for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
     self.raiseADebug('original input files copied in the current working dir: '+self.workingDir)
     self.raiseADebug('files copied:')
@@ -763,7 +769,7 @@ class Code(Model):
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
-    elif output.type in ['TimePoint','TimePointSet','History','Histories']:
+    elif output.type in ['Point','PointSet','History','HistorySet']:
       output.addOutput(FileObject(os.path.join(self.workingDir,finisishedjob.output) + ".csv"),attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
@@ -820,7 +826,7 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Input'  ][1]['multiplicity'] = 'n'
     cls.validateDict['Input'].append(cls.testDict.copy())
     cls.validateDict['Input'  ][2]['class'       ] = 'DataObjects'
-    cls.validateDict['Input'  ][2]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
+    cls.validateDict['Input'  ][2]['type'        ] = ['Point','PointSet','History','HistorySet']
     cls.validateDict['Input'  ][2]['required'    ] = False
     cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
@@ -829,7 +835,7 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Output' ][0]['required'    ] = False
     cls.validateDict['Output' ][0]['multiplicity'] = 'n'
     cls.validateDict['Output' ][1]['class'       ] = 'DataObjects'
-    cls.validateDict['Output' ][1]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
+    cls.validateDict['Output' ][1]['type'        ] = ['Point','PointSet','History','HistorySet']
     cls.validateDict['Output' ][1]['required'    ] = False
     cls.validateDict['Output' ][1]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())

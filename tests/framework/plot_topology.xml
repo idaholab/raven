@@ -53,43 +53,43 @@
 <Steps>
 <!-- Load the data from a csv into the hdf5 database used by this run -->
     <IOStep name='load' fromDirectory='.'>
-      <Input  class='DataObjects'    type='TimePointSet'>testData</Input>
+      <Input  class='DataObjects'    type='PointSet'>testData</Input>
       <Output   class='Databases' type='HDF5'   >myDB</Output>
     </IOStep> 
 <!-- Perform the topological decomposition -->
     <PostProcess name='decompose'>
-        <Input   class='DataObjects'      type='TimePointSet'>testData</Input>
+        <Input   class='DataObjects'      type='PointSet'>testData</Input>
         <Model   class='Models'           type='PostProcessor'>AMSC</Model>
-        <Output  class='DataObjects'      type='TimePointSet'>outTPS</Output>
+        <Output  class='DataObjects'      type='PointSet'>outTPS</Output>
         <Output  class='OutStreamManager' type='Print'>myDump</Output>
     </PostProcess>
 <!-- Subselect data -->
     <PostProcess name='seg1'>
-        <Input   class='DataObjects' type='TimePointSet'>outTPS</Input>
+        <Input   class='DataObjects' type='PointSet'>outTPS</Input>
         <Model   class='Models'      type='PostProcessor'>seg1</Model>
-        <Output  class='DataObjects' type='TimePointSet'>seg1</Output>
+        <Output  class='DataObjects' type='PointSet'>seg1</Output>
     </PostProcess>
     <PostProcess name='seg2'>
-        <Input   class='DataObjects' type='TimePointSet'>outTPS</Input>
+        <Input   class='DataObjects' type='PointSet'>outTPS</Input>
         <Model   class='Models'      type='PostProcessor'>seg2</Model>
-        <Output  class='DataObjects' type='TimePointSet'>seg2</Output>
+        <Output  class='DataObjects' type='PointSet'>seg2</Output>
     </PostProcess>
     <PostProcess name='seg3'>
-        <Input   class='DataObjects' type='TimePointSet'>outTPS</Input>
+        <Input   class='DataObjects' type='PointSet'>outTPS</Input>
         <Model   class='Models'      type='PostProcessor'>seg3</Model>
-        <Output  class='DataObjects' type='TimePointSet'>seg3</Output>
+        <Output  class='DataObjects' type='PointSet'>seg3</Output>
     </PostProcess>
     <PostProcess name='seg4'>
-        <Input   class='DataObjects' type='TimePointSet'>outTPS</Input>
+        <Input   class='DataObjects' type='PointSet'>outTPS</Input>
         <Model   class='Models'      type='PostProcessor'>seg4</Model>
-        <Output  class='DataObjects' type='TimePointSet'>seg4</Output>
+        <Output  class='DataObjects' type='PointSet'>seg4</Output>
     </PostProcess>
 <!-- Plot the data -->
   <OutStreamStep name='plot' pauseAtEnd='True'>
-    <Input  class='DataObjects'      type='TimePointSet'>seg1</Input>
-    <Input  class='DataObjects'      type='TimePointSet'>seg2</Input>
-    <Input  class='DataObjects'      type='TimePointSet'>seg3</Input>
-    <Input  class='DataObjects'      type='TimePointSet'>seg4</Input>
+    <Input  class='DataObjects'      type='PointSet'>seg1</Input>
+    <Input  class='DataObjects'      type='PointSet'>seg2</Input>
+    <Input  class='DataObjects'      type='PointSet'>seg3</Input>
+    <Input  class='DataObjects'      type='PointSet'>seg4</Input>
     <Output class='OutStreamManager' type='Plot'        >Topological Decomposition</Output>
   </OutStreamStep>
 </Steps>
@@ -148,35 +148,35 @@
   <HDF5 name="myDB"/> 
 </Databases>
 <DataObjects>
-<!-- The input TimePointSet objects -->
-  <TimePointSet name='testData'>
+<!-- The input PointSet objects -->
+  <PointSet name='testData'>
     <Input>X,Y</Input>
     <Output>Z</Output>
-  </TimePointSet>
-<!-- The output TimePointSet objects -->
-  <TimePointSet name='outTPS'>
+  </PointSet>
+<!-- The output PointSet objects -->
+  <PointSet name='outTPS'>
     <Input>X,Y</Input>
     <Output>Z,minLabel,maxLabel</Output>
-  </TimePointSet>
+  </PointSet>
 <!-- The first segment -->
-  <TimePointSet name='seg1'>
+  <PointSet name='seg1'>
     <Input>X,Y</Input>
     <Output>Z</Output>
-  </TimePointSet>
+  </PointSet>
 <!-- The second segment -->
-  <TimePointSet name='seg2'>
+  <PointSet name='seg2'>
     <Input>X,Y</Input>
     <Output>Z</Output>
-  </TimePointSet>
+  </PointSet>
 <!-- The third segment -->
-  <TimePointSet name='seg3'>
+  <PointSet name='seg3'>
     <Input>X,Y</Input>
     <Output>Z</Output>
-  </TimePointSet>
+  </PointSet>
 <!-- The fourth segment -->
-  <TimePointSet name='seg4'>
+  <PointSet name='seg4'>
     <Input>X,Y</Input>
     <Output>Z</Output>
-  </TimePointSet>
+  </PointSet>
 </DataObjects>
 </Simulation>
