@@ -505,10 +505,10 @@ checkAnswer("ppoisson cdf(5.0)",ppoisson.cdf(5.0),0.7851303870304052)
 checkAnswer("ppoisson cdf(10.0)",ppoisson.cdf(10.0),0.997160233879)
 
 checkAnswer("poisson ppf(0.0915781944437)",poisson.ppf(0.0915781944437),1.0)
-checkAnswer("poisson ppf(0.7851303870304052)",poisson.ppf(0.7851303870304052),5.0)
+checkAnswer("poisson ppf(0.785130387030405)",poisson.ppf(0.785130387030405),5.0)
 checkAnswer("poisson ppf(0.997160233879)",poisson.ppf(0.997160233879),10.0)
 checkAnswer("ppoisson ppf(0.0915781944437)",ppoisson.ppf(0.0915781944437),1.0)
-checkAnswer("ppoisson ppf(0.7851303870304052)",ppoisson.ppf(0.7851303870304052),5.0)
+checkAnswer("ppoisson ppf(0.785130387030405)",ppoisson.ppf(0.785130387030405),5.0)
 checkAnswer("ppoisson ppf(0.997160233879)",ppoisson.ppf(0.997160233879),10.0)
 
 print(poisson.rvs(5),poisson.rvs())
