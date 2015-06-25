@@ -472,8 +472,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
     self.amITrained=True
-    #self.printPolyDict()
-    #self._printPolynomial()
 
   def printPolyDict(self,printZeros=False):
     """Human-readable version of the polynomial chaos expansion.
@@ -513,8 +511,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     for pt,wt in self.sparseGrid:
       tot+=self.__evaluateLocal__([pt])**r*wt
     tot*=self.norm
-    #self.raiseADebug('MOMENT:',tot)
-    #self.raiseADebug('SUM   :',sum(s**2 for s in self.polyCoeffDict.values()))
     return tot
 
   def __evaluateLocal__(self,featureVals):
