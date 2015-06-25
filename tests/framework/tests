@@ -563,4 +563,10 @@
    csv = 'AdaptiveStochasticPoly/data.csv'
  [../]
 
+ [./redundantInputs]
+   type = 'RavenFramework'
+   input = 'test_redundant_inputs.xml'
+   output = 'simp_py_out.xml'
+   csv = 'RedundantInputs/simp_py_out.csv'
+ [../]
 []
