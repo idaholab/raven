@@ -63,9 +63,10 @@
         </xsd:simpleContent>
     </xsd:complexType>
     <xsd:complexType name="variableType">
-        <xsd:sequence>
+        <xsd:choice>
             <xsd:element name="distribution" type="extendedVariableDistributionType" minOccurs="1"/>
-        </xsd:sequence>
+            <xsd:element name="Function"     type="xsd:string"                       minOccurs="1"/>
+        </xsd:choice>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
     <xsd:complexType name="extendedVariableType">

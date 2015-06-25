@@ -566,7 +566,7 @@
  [./redundantInputs]
    type = 'RavenFramework'
    input = 'test_redundant_inputs.xml'
-   output = 'simp_py_out.xml'
-   csv = 'RedundantInputs/simp_py_out.csv'
+   output = 'RedundantInputs/simp_imp_out.xml'
+   csv = 'RedundantInputs/simp_imp_out.csv'
  [../]
 []

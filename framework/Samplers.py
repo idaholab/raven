@@ -1559,9 +1559,9 @@ class DynamicEventTree(Grid):
       self.raiseADebug('A Branch ended!')
     return newerinput
 
-  def _generateDistributions(self,availableDist):
-    Grid._generateDistributions(self,availableDist)
-    for preconditioner in self.preconditionerToApply.values(): preconditioner._generateDistributions(availableDist)
+  def _generateDistributions(self,availableDist,availableFunc):
+    Grid._generateDistributions(self,availableDist,availableFunc)
+    for preconditioner in self.preconditionerToApply.values(): preconditioner._generateDistributions(availableDist,availableFunc)
 
   def localInputAndChecks(self,xmlNode):
     Grid.localInputAndChecks(self,xmlNode)
@@ -1982,8 +1982,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     if 'updateGrid' in xmlNode.attrib.keys():
       if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue(): self.insertAdaptBPb = True
 
-  def _generateDistributions(self,availableDist):
-    DynamicEventTree._generateDistributions(self,availableDist)
+  def _generateDistributions(self,availableDist,availableFunc):
+    DynamicEventTree._generateDistributions(self,availableDist,availableFunc)
 
   def localInitialize(self,solutionExport = None):
     if self.detAdaptMode == 2: self.startAdaptive = True
