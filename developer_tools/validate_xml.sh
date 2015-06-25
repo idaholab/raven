@@ -35,7 +35,6 @@ do
 done
 echo -e "\033[0m--------------------------------------------------"
 echo -e "\033[1;32mPassed $passed_tests \033[1;31mFailed $failed_tests\033[0m"
-# echo -e "\033[1;33m\033[42mPassed $passed_tests \033[1;37m\033[41mFailed $failed_tests\033[0m"
 exit $failed_tests
 
 
