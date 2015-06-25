@@ -299,6 +299,7 @@ developer of the ``code interface'' and is implemented in the interface only
 
 %\maljdan{Where does this type of input come from? Should the user care?}
 %\alfoa{Dan, this is an example (in this case, a YAML structure)}
+%\talbpaul{This seems really specific to the MooseBasedApp interface.  Do we want it here?}
 
 Example YAML based Input:
 \begin{lstlisting}
@@ -323,6 +324,46 @@ If the variable is associated to a multi-dimensional ND distribution, it is need
      <distribution dim='3'>NDdistribution</distribution>
 </variable>
 \end{lstlisting}
+
+For most codes, it is prudent that there are no redundant inputs; however there are
+cases where this is not reality.  For example, if there is a variable \xmlString{inner\_radius} and
+a variable \xmlString{outer\_radius}, there may be a third variable \xmlString{thickness} that
+is actually derived from the previous two, as \xmlString{thickness} = \xmlString{outer\_radius} - \xmlString{inner\_radius}.
+RAVEN supports this type of redundant input through a Function entity.  In this case,
+instead of a \xmlNode{distribution} node in the \xmlNode{variable} block, there is a
+\xmlNode{Function} node, specifying the name of the function (defined in the \xmlNode{Functions} block).
+In order to work properly, this function must have a method that is identical to the variable name
+that returns a single python float object.  For example,
+\begin{lstlisting}[style=XML]
+...
+<Functions>
+  <External name='torus_calcs' file='torus_calcs.py'>
+    <variable>outer_radius</variable>
+    <variable>inner_radius</variable>
+  </External>
+<Functions>
+...
+<Samplers>
+  <WhatEverSampler name='myExampleSampler'>
+    <variable name='inner_radius'>
+      <distribution>inner_dist</distribution>
+    </variable>
+    <variable name='outer_radius'>
+      <distribution>outer_dist</distribution>
+    </variable>
+    <variable name='thickness'>
+      <Function>torus_calcs</Function>
+    </variable>
+  </WhatEverSampler>
+</Samplers>
+\end{lstlisting}
+The corresponding function file \xmlString{torus\_calcs.py} needs the following method:
+\begin{lstlisting}
+def thickness(self):
+  return self.outer_radius - self.inner_radius
+\end{lstlisting}
+The \xmlString{thickness} parameter will still be treated as an input for the sake of csv
+printing and DataObjects storage.
 
 In the sampler class a special node exists: the \xmlNode{sampler\textunderscore init} node.
 This node contains specific parameters that characterize each particular sampler. 
@@ -713,7 +754,7 @@ Example:
 \end{lstlisting}
 
 For N-dimensional  (ND) distributions, when the sampling is performed on a grid on a CDF  the user it is required to specify the same CDF grid for all the dimensions of the ND distribution.
-This is possible by defining a \xmlNode{global\_grid node and associate such global\_grid to each variable belonging to the ND distribution as follows.
+This is possible by defining a \xmlNode{global\_grid} node and associate such global\_grid to each variable belonging to the ND distribution as follows.
 
 \begin{lstlisting}[style=XML,morekeywords={ND,grid}]
 <Samplers>
@@ -733,6 +774,7 @@ This is possible by defining a \xmlNode{global\_grid node and associate such glo
   </Stratified>
   ...
 </Samplers>
+...
 \end{lstlisting}
 
 %%% Once-Through Samplers: Response Surface Design
