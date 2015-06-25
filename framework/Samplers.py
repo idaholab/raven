@@ -317,9 +317,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def _generateDistributions(self,availableDist,availableFunc):
     """
-    here the needed distribution are made available to the step as also the initialization
-    of the seeding (the siding could be overriden by the step by calling the initialize method
-    @in availableDist: {'distribution name':instance}
+      Generates the distrbutions and functions.
+      @ In, availDist, dict of distributions
+      @ In, availDist, dict of functions
+      @Out, None
     """
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
@@ -672,8 +673,6 @@ class LimitSurfaceSearch(AdaptiveSampler):
       for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
       distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
       #the hanging point are added to the list of the already explored points so not to pick the same when in //
-      #      lastPoint = [self.functionValue[name][-1] for name in [key.replace('<distribution>','') for key in self.axisName]]
-      #      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
       tempDict = {}
       for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
         tempDict[varName]     = self.surfPoint[:,varIndex]
@@ -1556,6 +1555,12 @@ class DynamicEventTree(Grid):
     return newerinput
 
   def _generateDistributions(self,availableDist,availableFunc):
+    """
+      Generates the distrbutions and functions.
+      @ In, availDist, dict of distributions
+      @ In, availDist, dict of functions
+      @Out, None
+    """
     Grid._generateDistributions(self,availableDist,availableFunc)
     for preconditioner in self.preconditionerToApply.values(): preconditioner._generateDistributions(availableDist,availableFunc)
 
@@ -1979,6 +1984,12 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue(): self.insertAdaptBPb = True
 
   def _generateDistributions(self,availableDist,availableFunc):
+    """
+      Generates the distrbutions and functions.
+      @ In, availDist, dict of distributions
+      @ In, availDist, dict of functions
+      @Out, None
+    """
     DynamicEventTree._generateDistributions(self,availableDist,availableFunc)
 
   def localInitialize(self,solutionExport = None):
