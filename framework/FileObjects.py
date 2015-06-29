@@ -179,8 +179,8 @@ class RAVENGenerated(FileObject):
   This class is for file objects that are created and used internally by RAVEN.
   Initialization is through calling self.initialize
   """
-  def initialize(self,filname,msgHandler,path='.',subtype=None):
-    self.messageHandler = msgHandler
+  def initialize(self,filename,messageHandler,path='.',subtype=None):
+    self.messageHandler = messageHandler
     self.path=path
     self._setFilename(filename)
     self.type = 'internal'
@@ -197,20 +197,19 @@ class UserGenerated(FileObject):
   This class is for file objects that are created and used internally by RAVEN.
   Initialization is through self._readMoreXML
   """
-  def _readMoreXML(self,xmlNode,msgHandler):
+  def _readMoreXML(self,xmlNode):
     """
       reads the xmlNode and sets parameters
       @ In,  xmlNode, XML node
       @ In,  msgHandler, MessageHandler object
       @ Out, None
     """
-    self.messageHandler = msgHandler
     for node in xmlNode:
       self.type = node.tag #XSD should confirm types as Input only valid type so far
       self._setFilename(node.text.strip())
       self.perturbed = node.attrib.get('perturbable',True)
       self.subtype   = node.attrib.get('type'       ,None)
-      self.name      = node.attrib.get('name'       ,self.filename)
+      self.alias     = node.attrib.get('name'       ,self.filename)
 #
 #
 #
@@ -222,7 +221,7 @@ class UserGenerated(FileObject):
 __base                        = 'Data'
 __interFaceDict               = {}
 __interFaceDict['RAVEN']      = RAVENGenerated
-__interFaceDict['User']       = UserGenerated
+__interFaceDict['Input']      = UserGenerated
 __knownTypes                  = __interFaceDict.keys()
 
 def knownTypes():

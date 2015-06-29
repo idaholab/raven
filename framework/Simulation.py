@@ -346,7 +346,7 @@ class Simulation(MessageHandler.MessageUser):
     self.addWhatDict['Distributions'    ] = Distributions
     self.addWhatDict['Databases'        ] = Databases
     self.addWhatDict['Functions'        ] = Functions
-    self.addWhatDict['FileObjects'      ] = FileObjects
+    self.addWhatDict['Files'            ] = FileObjects
     self.addWhatDict['OutStreamManager' ] = {}
     self.addWhatDict['OutStreamManager' ]['Plot' ] = OutStreamManager
     self.addWhatDict['OutStreamManager' ]['Print'] = OutStreamManager
@@ -359,7 +359,7 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['Models'          ] = self.modelsDict
     self.whichDict['Tests'           ] = self.testsDict
     self.whichDict['RunInfo'         ] = self.runInfoDict
-    self.whichDict['FileObjects'     ] = self.filesDict
+    self.whichDict['Files'           ] = self.filesDict
     self.whichDict['Distributions'   ] = self.distributionsDict
     self.whichDict['Databases'       ] = self.dataBasesDict
     self.whichDict['Functions'       ] = self.functionsDict
@@ -387,9 +387,9 @@ class Simulation(MessageHandler.MessageUser):
     """assuming that the file in is already in the self.filesDict it places, as value, the absolute path"""
     if '~' in filein : filein = os.path.expanduser(filein)
     if not os.path.isabs(filein):
-      self.filesDict[filein] = FileObject.returnInstance('RAVEN')
+      self.filesDict[filein] = FileObjects.returnInstance('RAVEN',self)
       path = os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein))
-      self.filesDict[filein].initialize(filein,path)
+      self.filesDict[filein].initialize(filein,self.messageHandler,path=path)
       #originally self.filesDict[filein] = FileObject(os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein)))
 
   #deprecated
@@ -406,6 +406,8 @@ class Simulation(MessageHandler.MessageUser):
     except: self.raiseAnError(IOError,'The run info node is mandatory')
     self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
     for child in xmlNode:
+      if child.tag=='Files':
+        self.raiseADebug('\n\nDOING FILE OBJECTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
       if child.tag in list(self.whichDict.keys()):
         self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
