@@ -4,7 +4,7 @@
 <RunInfo>
   <WorkingDir>RedundantInputs</WorkingDir>
   <Files>simp_imp.py,input.py</Files>
-  <Sequence>sim_py_MC</Sequence>
+  <Sequence>sim_py_MC,sim_py_grid</Sequence>
   <batchSize>1</batchSize>
 </RunInfo>
 
@@ -13,8 +13,15 @@
     <Input   class='Files'            type=''               >input.py</Input>
     <Model   class='Models'           type='Code'           >py_script</Model>
     <Sampler class='Samplers'         type='MonteCarlo'     >5factMC</Sampler>
-    <Output  class='DataObjects'      type='PointSet'   >timepointset</Output>
-    <Output  class='OutStreamManager' type='Print'          >simp_imp_out</Output>
+    <Output  class='DataObjects'      type='PointSet'       >mcset</Output>
+    <Output  class='OutStreamManager' type='Print'          >mc_out</Output>
+  </MultiRun>
+  <MultiRun name='sim_py_grid'>
+    <Input   class='Files'            type=''               >input.py</Input>
+    <Model   class='Models'           type='Code'           >py_script</Model>
+    <Sampler class='Samplers'         type='Grid'           >grid</Sampler>
+    <Output  class='DataObjects'      type='PointSet'       >gridset</Output>
+    <Output  class='OutStreamManager' type='Print'          >grid_out</Output>
   </MultiRun>
 </Steps>
 
@@ -37,6 +44,22 @@
     <variable name='d'><function>raven_d_calc</function></variable>
     <variable name='e'><function>raven_e_calc</function></variable>
   </MonteCarlo>
+  <Grid name='grid'>
+      <variable name='a'>
+          <distribution>a_dist</distribution>
+          <grid type='CDF' contruction='equal' steps='3' lowerBound='0.0'>0.25</grid>
+      </variable>
+      <variable name='b'>
+          <distribution>b_dist</distribution>
+          <grid type='CDF' contruction='equal' steps='3' lowerBound='0.0'>0.25</grid>
+      </variable>
+      <variable name='c'>
+          <distribution>c_dist</distribution>
+          <grid type='CDF' contruction='equal' steps='3' lowerBound='0.0'>0.25</grid>
+      </variable>
+      <variable name='d'><function>raven_d_calc</function></variable>
+      <variable name='e'><function>raven_e_calc</function></variable>
+  </Grid>
 </Samplers>
 
 <Models>
@@ -62,16 +85,24 @@
 </Functions>
 
 <DataObjects>
-  <PointSet name='timepointset'>
+  <PointSet name='mcset'>
+    <Input>a,b,c,d,e</Input>
+    <Output>f,g,h</Output>
+  </PointSet>
+  <PointSet name='gridset'>
     <Input>a,b,c,d,e</Input>
     <Output>f,g,h</Output>
   </PointSet>
 </DataObjects>
 
 <OutStreamManager>
-  <Print name='simp_imp_out'>
+  <Print name='mc_out'>
     <type>csv</type>
-    <source>timepointset</source>
+    <source>mcset</source>
+  </Print>
+  <Print name='grid_out'>
+    <type>csv</type>
+    <source>gridset</source>
   </Print>
 </OutStreamManager>
 
