@@ -179,23 +179,23 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     return dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
 
   def printXML(self,rootnode,options=None):
-    '''
+    """
       Allows the SVE to put whatever it wants into an XML to print to file.
       @ In, rootnode, the root node of an XML tree to print to
       @ In, options, dict of string-based options to use, including filename, things to print, etc
       @ Out, treedict, dict of strings to be printed
-    '''
+    """
     node = TreeStructure.Node(self.target)
     rootnode.appendBranch(node)
     self._localPrintXML(node,options)
 
   def _localPrintXML(self,node,options=None):
-    '''
+    """
       Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
       @ In, node, the node to which strings should have text added
       @ In, options, dict of string-based options to use, including filename, things to print, etc
       @ Out, treedict, dict of strings to be printed
-    '''
+    """
     #if treedict=={}: treedict={'PrintOptions':'ROM of type '+str(self.printTag.strip())+' has no special output options.'}
     node.addText('ROM of type '+str(self.printTag.strip())+' has no special output options.')
 
@@ -275,14 +275,32 @@ class NDinterpolatorRom(superVisedLearning):
     self.raiseAnError(NotImplementedError,'NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!')
 
 class GaussPolynomialRom(NDinterpolatorRom):
-  def __confidenceLocal__(self,edict):pass #TODO
-
-  def __resetLocal__(self):
+  def __confidenceLocal__(self,edict):
+    """Require by inheritance, unused.
+    @ In, None
+    @ Out, None
+    """
     pass
 
-  def __returnCurrentSettingLocal__(self):pass #TODO
+  def __resetLocal__(self):
+    """Require by inheritance, unused.
+    @ In, None
+    @ Out, None
+    """
+    pass
+
+  def __returnCurrentSettingLocal__(self):
+    """Require by inheritance, unused.
+    @ In, None
+    @ Out, None
+    """
+    pass
 
   def __init__(self,messageHandler,**kwargs):
+    """Initializes class.
+    @ In, kwargs, dict of XML inputs from ROM
+    @ Out, None
+    """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.interpolator  = None #FIXME what's this?
     self.printTag      = 'GAUSSgpcROM('+self.target+')'
@@ -297,6 +315,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polys         = None #dict{varName: OrthoPolynomial object}, has polynomials for evaluation
     self.indexSet      = None #array of tuples, polynomial order combinations
     self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
+    self.numRuns       = None #number of runs to generate ROM; default is len(self.sparseGrid)
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
 
     for key,val in kwargs.items():
@@ -333,9 +352,15 @@ class GaussPolynomialRom(NDinterpolatorRom):
       self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
 
   def _localPrintXML(self,node,options=None):
+    """
+      Adds requested entries to XML node.
+      @ In, node, XML node to which entries will be added
+      @ In, options, dict (optional), list of requests and options
+      @Out, None
+    """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance']
+    canDo = ['mean','variance','numRuns']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
@@ -348,24 +373,47 @@ class GaussPolynomialRom(NDinterpolatorRom):
         elif request.lower() in ['variance']:
           if self.mean == None: self.mean = self.__evaluateMoment__(1)
           newnode.setText(self.__evaluateMoment__(2) - self.mean*self.mean)
+        elif request.lower() in ['numruns']:
+          if self.numRuns!=None: newnode.setText(self.numRuns)
+          else: newnode.setText(len(self.sparseGrid))
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
           newnode.setText('not found')
         node.appendBranch(newnode)
 
   def _localNormalizeData(self,values,names,feat):
+    """Overwrites default normalization procedure.
+    @ In, values, unused
+    @ In, names, unused
+    @ In, feat, feature to (not) normalize
+    @ Out, None
+    """
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   def interpolationInfo(self):
+    """Returns the interpolation information
+    @ In, None
+    @ Out, dictionary of interpolation information
+    """
     return dict(self.itpDict)
 
   def initialize(self,idict):
-    for key,value in idict.items():
-      if   key == 'SG'   : self.sparseGrid = value
-      elif key == 'dists': self.distDict   = value
-      elif key == 'quads': self.quads      = value
-      elif key == 'polys': self.polys      = value
-      elif key == 'iSet' : self.indexSet   = value
+    """Initializes the instance.
+    @ In, idict, dict of objects needed to initalize
+    @ Out, None
+    """
+    self.sparseGrid = idict.get('SG'     ,None)
+    self.distDict   = idict.get('dists'  ,None)
+    self.quads      = idict.get('quads'  ,None)
+    self.polys      = idict.get('polys'  ,None)
+    self.indexSet   = idict.get('iSet'   ,None)
+    self.numRuns    = idict.get('numRuns',None)
+    #make sure requireds are not None
+    if self.sparseGrid is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "SG"   ')
+    if self.distDict   is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "dists"')
+    if self.quads      is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "quads"')
+    if self.polys      is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "polys"')
+    if self.indexSet   is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "iSet" ')
 
   def _multiDPolyBasisEval(self,orders,pts):
     """Evaluates each polynomial set at given orders and points, returns product.
@@ -380,11 +428,11 @@ class GaussPolynomialRom(NDinterpolatorRom):
     return tot
 
   def __trainLocal__(self,featureVals,targetVals):
-    '''See base class.'''
+    """Trains ROM.
+    @ In, featureVals, list, feature values
+    @ In, targetVals, list, target values
+    """
     self.polyCoeffDict={}
-    #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
-    self.sparseGrid._remap(self.features)
-    self.raiseAMessage('types: '+str(type(self.sparseGrid.points()))+' | '+str(type(featureVals)))
     #check equality of point space
     fvs = []
     tvs=[]
@@ -403,6 +451,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
       for i in missing:
         msg+='  '+str(i)+'\n'
       self.raiseADebug(msg)
+      self.raiseADebug('sparse:',sgs)
+      self.raiseADebug('solns :',fvs)
       self.raiseAnError(IOError,'input values do not match required values!')
     #make translation matrix between lists
     translate={}
@@ -430,13 +480,24 @@ class GaussPolynomialRom(NDinterpolatorRom):
     """
     data=[]
     for idx,val in self.polyCoeffDict.items():
-      if val > 1e-14 or printZeros:
+      if abs(val) > 1e-12 or printZeros:
         data.append([idx,val])
     data.sort()
-    msg='polyDict for ['+self.target+'] with inputs '+str(self.features)+': \n'
+    self.raiseADebug('polyDict for ['+self.target+'] with inputs '+str(self.features)+':')
     for idx,val in data:
-      msg+='    '+str(idx)+' '+str(val)+'\n'
-    self.raiseAMessage(msg)
+      self.raiseADebug('    '+str(idx)+' '+str(val))
+
+  def checkForNonzeros(self,tol=1e-12):
+    """
+      Checks poly coefficient dictionary for nonzero entries.
+      @ In, tol, float(optional), the tolerance under which is zero (default 1e-12)
+      @Out, list(tuple), the indices and values of the nonzero coefficients
+    """
+    data=[]
+    for idx,val in self.polyCoeffDict.items():
+      if round(val,11) !=0:
+        data.append([idx,val])
+    return data
 
   def __evaluateMoment__(self,r):
     """Use the ROM's built-in method to calculate moments.
@@ -444,6 +505,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ Out, float, evaluation of moment
     """
     #TODO is there a faster way still to do this?
+    if r==1: return self.polyCoeffDict[tuple([0]*len(self.features))]
+    elif r==2: return sum(s**2 for s in self.polyCoeffDict.values())
     tot=0
     for pt,wt in self.sparseGrid:
       tot+=self.__evaluateLocal__([pt])**r*wt
@@ -451,6 +514,10 @@ class GaussPolynomialRom(NDinterpolatorRom):
     return tot
 
   def __evaluateLocal__(self,featureVals):
+    """ Evaluates a point.
+    @ In, featureVals, list of values at which to evaluate the ROM
+    @ Out, float, the evaluated point
+    """
     featureVals=featureVals[0]
     tot=0
     stdPt = np.zeros(len(featureVals))
@@ -461,27 +528,56 @@ class GaussPolynomialRom(NDinterpolatorRom):
       tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
     return tot
 
-  def __returnInitialParametersLocal__(self):
-    return {}#TODO 'IndexSet:':self.indexSetType,
-             #'PolynomialOrder':self.maxPolyOrder,
-             # 'Interpolation':interpolationInfo()}
+  def _printPolynomial(self):
+    """ Prints each polynomial for each coefficient.
+    @ In, None
+    @ Out, None
+    """
+    self.raiseADebug('Coeff Idx')
+    for idx,coeff in self.polyCoeffDict.items():
+      if abs(coeff)<1e-12: continue
+      self.raiseADebug(str(idx))
+      for i,ix in enumerate(idx):
+        var = self.features[i]
+        self.raiseADebug(self.polys[var][ix]*coeff,'|',var)
 
+  def __returnInitialParametersLocal__(self):
+    """Required by inheritance, but not used.
+    @ In, None
+    @ Out, None
+    """
+    return {}
 
 
 
 class HDMRRom(GaussPolynomialRom):
-  def __confidenceLocal__(self,edict):pass #TODO
-
-  def __resetLocal__(self):
+  """High-Dimention Model Reduction reduced order model.  Constructs model based on subsets of the input space."""
+  def __confidenceLocal__(self,edict):
+    """Require by inheritance, unused.
+    @ In, edict, unused
+    @ Out, None
+    """
     pass
 
-  def __returnCurrentSettingLocal__(self):pass #TODO
+  def __resetLocal__(self):
+    """Require by inheritance, unused.
+    @ In, None
+    @ Out, None
+    """
+    pass
 
-  def _localNormalizeData(self,values,names,feat):
-    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+  def __returnCurrentSettingLocal__(self):
+    """Require by inheritance, unused.
+    @ In, None
+    @ Out, None
+    """
+    pass
 
   def __init__(self,messageHandler,**kwargs):
-    '''Initializes SupervisedEngine. See base class.'''
+    """Initializes class.
+    @ In, kwargs, dict of XML inputs from ROM
+    @ Out, None
+    """
     GaussPolynomialRom.__init__(self,messageHandler,**kwargs)
     self.printTag      = 'HDMR_ROM('+self.target+')'
     self.sobolOrder    = None #depth of HDMR/Sobol expansion
@@ -494,6 +590,12 @@ class HDMRRom(GaussPolynomialRom):
       if key=='SobolOrder': self.sobolOrder = int(val)
 
   def _localPrintXML(self,node,options=None):
+    """
+      Adds requested entries to XML node.
+      @ In, node, XML node to which entries will be added
+      @ In, options, dict (optional), list of requests and options
+      @Out, None
+    """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
     canDo = ['mean','variance','indices']
@@ -537,16 +639,11 @@ class HDMRRom(GaussPolynomialRom):
           newnode.setText('not found')
         node.appendBranch(newnode)
 
-  def _localNormalizeData(self,values,names,feat):
-    '''Overwrite normalization. See base class.'''
-    self.muAndSigmaFeatures[feat] = (0.0,1.0)
-
-  def interpolationInfo(self):
-    '''See base class.'''
-    return dict(self.itpDict)
-
   def initialize(self,idict):
-    '''Called by sampler to pass necessary information along.  See base class.'''
+    """Initializes the instance.
+    @ In, idict, dict of objects needed to initalize
+    @ Out, None
+    """
     for key,value in idict.items():
       if   key == 'ROMs' : self.ROMs       = value
       elif key == 'dists': self.distDict   = value
@@ -555,11 +652,11 @@ class HDMRRom(GaussPolynomialRom):
       elif key == 'refs' : self.references = value
 
   def __trainLocal__(self,featureVals,targetVals):
-    '''
+    """
       Because HDMR rom is a collection of sub-roms, we call sub-rom "train" to do what we need it do.
       @ In, tdict, training dictionary
       @ Out, None
-    '''
+    """
     ft={}
     for i in range(len(featureVals)):
       ft[tuple(featureVals[i])]=targetVals[i]
@@ -595,13 +692,13 @@ class HDMRRom(GaussPolynomialRom):
     self.amITrained = True
 
   def __fillPointWithRef(self,combo,pt):
-    '''Given a "combo" subset of the full input space and a partially-filled
+    """Given a "combo" subset of the full input space and a partially-filled
        point within that space, fills the rest of space with the reference
        cut values.
        @ In, combo, tuple of strings, names of subset dimensions
        @ In, pt, list of floats, values of points in subset dimension
        @ Out, newpt, full point in input dimension space on cut-hypervolume
-    '''
+    """
     newpt=np.zeros(len(self.features))
     for v,var in enumerate(self.features):
       if var in combo:
@@ -611,7 +708,10 @@ class HDMRRom(GaussPolynomialRom):
     return newpt
 
   def __mean__(self):
-    '''The Cut-HDMR approximation can return its mean easily.'''
+    """The Cut-HDMR approximation can return its mean easily.
+    @ In, None
+    @ Out, float, the mean
+    """
     if self.mean != None: return self.mean
     vals={'':self.refSoln}
     for i,c in enumerate(self.combos):
@@ -627,7 +727,10 @@ class HDMRRom(GaussPolynomialRom):
     return tot
 
   def __variance__(self):
-    '''The Cut-HDMR approximation can return its variance easily.'''
+    """The Cut-HDMR approximation can return its variance easily.
+    @ In, None
+    @ Out, float, the variance
+    """
     if self.variance != None: return self.variance
     vals={}
     for i,c in enumerate(self.combos):
@@ -644,7 +747,10 @@ class HDMRRom(GaussPolynomialRom):
     return tot
 
   def __evaluateLocal__(self,featureVals):
-    '''Evaluates ROM at given points.  See base class.'''
+    """ Evaluates a point.
+    @ In, featureVals, list of values at which to evaluate the ROM
+    @ Out, float, the evaluated point
+    """
     #am I trained?
     if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate, as ROM is not trained!')
     fvals=dict(zip(self.features,featureVals[0]))
@@ -664,12 +770,12 @@ class HDMRRom(GaussPolynomialRom):
     return tot
 
   def getSensitivities(self,maxLevel=None,kind='variance'):
-    '''
+    """
       Generates dictionary of Sobol indices for the requested levels.
       Optionally the moment (r) to get sensitivity indices of can be requested.
       @ In, levels, list, levels to obtain indices for. Defaults to all available.
       @ In, kind, string, the metric to use when calculating sensitivity indices. Defaults to variance.
-    '''
+    """
     if kind.lower().strip() not in ['mean','variance']:
       self.raiseAnError(IOError,'Requested sensitivity benchmark is %s, but expected "mean" or "variance".' %kind)
     avail = max(list(len(combo) for combo in self.ROMs.keys()))
@@ -692,13 +798,13 @@ class HDMRRom(GaussPolynomialRom):
               self.sdx[i][combo]-=self.sdx[cl][doneCombo]
 
   def getPercentSensitivities(self,variance=None,returnTotal=False):
-    '''Calculates percent sensitivities.
+    """Calculates percent sensitivities.
     If variance specified, uses it as the bnechmark variance, otherwise uses ROM to calculate total variance approximately.
     If returnTotal specified, also returns percent of total variance and the total variance value.
     @ In, variance, float to represent user-provided total variance
     @ In, returnTotal, boolean to turn on returning total percent and total variance
     @ Out, pcts, percent=based Sobol sensitivity indices
-    '''
+    """
     if self.sdx == None or len(self.sdx)<1:
       self.getSensitivities()
     if variance==None or variance==0:

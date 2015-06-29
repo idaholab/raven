@@ -786,9 +786,9 @@ class ComparisonStatistics(BasePostProcessor):
               dataPairs.append((key, value))
           extraCsv = open(newFileName, "w")
           extraCsv.write(",".join(['"' + str(x[0]) + '"' for x in dataPairs]))
-          extraCsv.write(os.linesep)
+          extraCsv.write("\n")
           extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
-          extraCsv.write(os.linesep)
+          extraCsv.write("\n")
           extraCsv.close()
         utils.printCsv(csv)
 

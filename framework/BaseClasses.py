@@ -15,7 +15,9 @@ import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class BaseType(MessageHandler.MessageUser):
-  """this is the base class for each general type used by the simulation"""
+  """
+    this is the base class for each general type used by the simulation
+  """
   def __init__(self):
     self.name             = ''                  # name of this istance (alias)
     self.type             = type(self).__name__ # specific type within this class
@@ -45,7 +47,12 @@ class BaseType(MessageHandler.MessageUser):
     self.printMe()
 
   def _readMoreXML(self,xmlNode):
-    """method to be overloaded to collect the additional input"""
+    """
+    Function to read the portion of the xml input that belongs to this specialized class
+    and initialize some variables based on the inputs got.
+    @ In, xmlNode, xml.etree.ElementTree, XML element node that represents the portion of the input that belongs to this class
+    @ Out, None
+    """
     pass
 
   def setMessageHandler(self,handler):

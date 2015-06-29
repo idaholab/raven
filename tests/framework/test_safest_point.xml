@@ -14,10 +14,10 @@
     <Input    class = 'DataObjects'     type = 'PointSet'   >grd_vl_ql_smp_dpt_dt</Input>
     <Model    class = 'Models'    type = 'ExternalModel'  >xtr_mdl</Model>
     <Output   class = 'DataObjects'     type = 'PointSet'   >nt_phy_dpt_dt</Output>
-  </MultiRun >
+  </MultiRun>
 
   <MultiRun name = 'pth2' pauseAtEnd = 'True'>
-    <Sampler          class = 'Samplers'  type = 'Adaptive'      >dpt_smp</Sampler>
+    <Sampler          class = 'Samplers'  type = 'LimitSurfaceSearch'      >dpt_smp</Sampler>
     <Input            class = 'DataObjects'     type = 'PointSet'  >bln_smp_dt</Input>
     <Model            class = 'Models'    type = 'ExternalModel' >xtr_mdl</Model>
     <Output           class = 'DataObjects'     type = 'PointSet'  >nt_phy_dpt_dt</Output>
@@ -107,7 +107,7 @@
     </variable>
   </Grid>
 
-  <Adaptive name = 'dpt_smp' verbosity='debug'>
+  <LimitSurfaceSearch name = 'dpt_smp' verbosity='debug'>
     <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
     <Function         class = 'Functions' type = 'External'      >g_zr</Function>
     <TargetEvaluation class = 'DataObjects'     type = 'PointSet'  >nt_phy_dpt_dt</TargetEvaluation>
@@ -121,7 +121,7 @@
       <variable name = 'gammay'>
         <distribution>gammay_dst</distribution>
       </variable>
-  </Adaptive>
+  </LimitSurfaceSearch>
 </Samplers>
 
 

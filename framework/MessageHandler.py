@@ -21,6 +21,10 @@ import time
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
+
+#custom exceptions
+class NoMoreSamplesNeeded(GeneratorExit): pass
+
 '''
 HOW THIS MODULE WORKS
 
