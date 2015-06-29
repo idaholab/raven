@@ -30,7 +30,7 @@ import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
 import TreeStructure
-from FileObject import FileObject
+import FileObjects
 #Internal Modules End--------------------------------------------------------------------------------
 
 #class Model(BaseType):
@@ -54,7 +54,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Input'  ][0]['required'    ] = False
   validateDict['Input'  ][0]['multiplicity'] = 'n'
   validateDict['Input'].append(testDict.copy())
-  validateDict['Input'  ][1]['class'       ] = 'Files'
+  validateDict['Input'  ][1]['class'       ] = 'FileObjects'
   validateDict['Input'  ][1]['type'        ] = ['']
   validateDict['Input'  ][1]['required'    ] = False
   validateDict['Input'  ][1]['multiplicity'] = 'n'
@@ -115,10 +115,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       anItem['found'] = False
       for tester in cls.validateDict[who]:
         if anItem['class'] == tester['class']:
-          if anItem['type'] in tester['type']:
-            tester['tempCounter'] +=1
-            anItem['found']        = True
+          if anItem['class']=='FileObjects': #FIXME FileObjects can accept any type, including None.
+            tester['tempCounter']+=1
+            anItem['found']=True
             break
+          else:
+            if anItem['type'] in tester['type']:
+              tester['tempCounter'] +=1
+              anItem['found']        = True
+              break
     #testing if the multiplicity of the argument is correct
     for tester in cls.validateDict[who]:
       if tester['required']==True:
