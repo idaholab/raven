@@ -4112,9 +4112,9 @@ There are four nodes that are used in the post-processor.
   the bin width uniform or equal\_probability which makes the number
   of counts in each bin equal.  It can take the following attributes:
   \begin{itemize}
-  \item \textbf{num\_bins} which takes a number that directly
+  \item \xmlAttr{num\_bins} which takes a number that directly
     specifies the number of bins
-  \item \textbf{bin\_method} which takes a string that specifies the
+  \item \xmlAttr{bin\_method} which takes a string that specifies the
     method used to calculate the number of bins.  This can be either
     square-root or sturges.
   \end{itemize}
@@ -4186,7 +4186,7 @@ This should be 1.0, and if it is different that
 points to approximations in the calculation.
 
 
-\textbf{Example:} ----------------------------------------------
+\textbf{Example:}
 \begin{lstlisting}[style=XML]
 <Simulation>
    ...
@@ -4220,7 +4220,6 @@ points to approximations in the calculation.
       </Normal>
    </Distributions>
 </Simulation>
-----------------------------------------------
 \end{lstlisting}
 
 %%%%% PP SafestPoint %%%%%%%
@@ -4253,7 +4252,7 @@ At present only the ``equal'' grid type is available.
 
 \begin{itemize}
   \item \xmlNode{Distribution}, \xmlDesc{Required}, represents the probability
-  distributions of the ``controllable'' and ''non-controllable'' variables.
+  distributions of the ``controllable'' and ``non-controllable'' variables.
   %
   These are \textbf{Assembler Objects}, each of these nodes must contain 2
   attributes that are used to identify those within the simulation framework:
@@ -4500,11 +4499,14 @@ Section~\ref{sec:functions} for more details).
 \ppType{External}{External}
 
 \begin{itemize}
-  \item \xmlNode{method}, \xmlAttr{comma separated string, required field},
+  \item \xmlNode{method}, \xmlDesc{comma separated string, required field},
   lists the method names of an external Function that will be computed (each
   returning a post-processing value).
-  \item \xmlNode{Assembler}, \xmlAttr{xml node, required field}, contains a
-  ``list'' of Functions where the \textit{methods} listed above are defined.
+  \item \xmlNode{Function}, \xmlDesc{xml node, required string field}, specifies
+  the name of a Function where the \textit{methods} listed above are defined.
+  %
+  \nb This name should match one of the Functions defined in the
+  \xmlNode{Functions} block of the input file.
   %
   The objects must be listed with a rigorous syntax that, except for the xml
   node tag, is common among all the objects.
@@ -4513,12 +4515,12 @@ Section~\ref{sec:functions} for more details).
   within the simulation framework:
 
    \begin{itemize}
-     \item \xmlAttr{class}, \textit{required string attribute}, is the main
+     \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
      ``class'' the listed object is from, the only acceptable class for
-     this post-processor is \textit{Functions};
-     \item \xmlAttr{type}, \textit{required string attribute}, is the object
+     this post-processor is \xmlString{Functions};
+     \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
      identifier or sub-type, the only acceptable type for this post-processor is
-     \textit{External}.
+     \xmlString{External}.
   \end{itemize}
 \end{itemize}
 \textbf{Example:}
@@ -4529,14 +4531,12 @@ Section~\ref{sec:functions} for more details).
     ...
     <PostProcessor name="externalPP" subType='External' verbosity='debug'>
       <method>Delta,Sum</method>
-      <Assembler>
         <Function class='Functions' type='External'>operators</Function>
           <!--Here, you can add a Function defined in the
               Functions block. This should be present or
               else RAVEN will not know where to find the
               defined methods.
             -->
-      </Assembler>
     </PostProcessor>
     ...
   </Models>
