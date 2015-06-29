@@ -25,10 +25,13 @@ class FileObject(BaseType,str):
   def __init__(self):
     """
     Constructor
+    @ In,  None
+    @ Out, None
     """
     BaseType.__init__(self)
     self.__isOpen = False
     self.__file   = None  #when open, refers to open file, else None
+    # TODO HOWTO self.workingDir = runInfoDict['WorkingDir']
     #the source of the initialization input determines the class you want
     #  if read from XML, you want the UserGenerated class, initialized by _readMoreXML(XMLNode)
     #  if created internally by RAVEN, you want the RAVENGenerated class, initialized by initialize(filename)
@@ -120,7 +123,7 @@ class FileObject(BaseType,str):
     @ In,  None
     @ Out, None
     """
-    path = os.path.normpath(os.path.join(self.path,self.filename)):
+    path = os.path.normpath(os.path.join(self.path,self.filename))
     if not os.path.exists(path): self.raiseAnError(IOError,'File not found:',path)
 
   ### FILE-LIKE FUNCTIONS ###

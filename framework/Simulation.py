@@ -421,7 +421,7 @@ class Simulation(MessageHandler.MessageUser):
               self.raiseADebug('Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
-#              if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
+              #if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
               if Class != 'OutStreamManager':
                   if name not in self.whichDict[Class].keys():
                     if "needsRunInfo" in self.addWhatDict[Class].__dict__:
@@ -475,9 +475,10 @@ class Simulation(MessageHandler.MessageUser):
         self.raiseAnError(IOError,'For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
       if myClass != 'OutStreamManager':
           if name not in list(self.whichDict[myClass].keys()):
-            self.raiseADebug('name: '+name)
-            self.raiseADebug('list: '+str(list(self.whichDict[myClass].keys())))
-            self.raiseADebug(str(self.whichDict[myClass]))
+            self.raiseADebug('name:',name)
+            self.raiseADebug('myClass:',myClass)
+            self.raiseADebug('list:',list(self.whichDict[myClass].keys()))
+            self.raiseADebug('whichDict[myClass]',self.whichDict[myClass])
             self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
       else:
           if name not in list(self.whichDict[myClass][objectType].keys()):

@@ -100,10 +100,10 @@ class BaseType(MessageHandler.MessageUser):
     the instance of an object that inherit this class
     """
     tempDict = self.whoAreYou()
-    for key in tempDict.keys(): self.raiseADebug('{0:15}: {1}'.format(key,str(tempDict[key])))
+    for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myInitializzationParams()
-    self.raiseADebug('Initialization Parameters:')
-    for key in tempDict.keys(): self.raiseADebug('{0:15}: {1}'.format(key,str(tempDict[key])))
+    self.raiseADebug('       Initialization Parameters:')
+    for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myCurrentSetting()
-    self.raiseADebug('Current Setting:')
-    for key in tempDict.keys(): self.raiseADebug('{0:15}: {1}'.format(key,str(tempDict[key])))
+    self.raiseADebug('       Current Setting:')
+    for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
