@@ -549,7 +549,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     return {}
 
 
-
 class HDMRRom(GaussPolynomialRom):
   """High-Dimention Model Reduction reduced order model.  Constructs model based on subsets of the input space."""
   def __confidenceLocal__(self,edict):
