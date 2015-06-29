@@ -461,11 +461,11 @@ class AMSC_Object(object):
       temp_beta_hat = tempFit.coef_
       temp_yIntercept = tempFit.intercept_
 
-#      smX = sm.add_constant(X)
-#      model = sm.WLS(y, smX, w)
-#      results = model.fit()
-#      temp_beta_hat = results.params[1:]
-#      temp_yIntercept = results.params[0]
+     # smX = sm.add_constant(X)
+     # model = sm.WLS(y, smX, w)
+     # results = model.fit()
+     # temp_beta_hat = results.params[1:]
+     # temp_yIntercept = results.params[0]
 
       yHat = X.dot(temp_beta_hat) + temp_yIntercept
 
@@ -536,54 +536,55 @@ class AMSC_Object(object):
       linearModel = sklearn.linear_model.LinearRegression(fit_intercept=True,
                                                           normalize=False,
                                                           copy_X=True)
-#      linearModel = sklearn.linear_model.LinearRegression(fit_intercept=False,
-#                                                          normalize=False,
-#                                                          copy_X=True)
+     # linearModel = sklearn.linear_model.LinearRegression(fit_intercept=False,
+     #                                                     normalize=False,
+     #                                                     copy_X=True)
 
       lmFit = linearModel.fit(X,y)
       self.segmentFits[key] = np.hstack((lmFit.intercept_,lmFit.coef_))
-#      self.segmentFits[key] = lmFit.coef_
-#      print('SKL',self.segmentFits[key])
+     # self.segmentFits[key] = lmFit.coef_
+     # print('SKL',self.segmentFits[key])
 
-#      smX = sm.add_constant(X)
-#      # smX = X
-#      model = sm.WLS(y, smX, w)
-#      results = model.fit()
-#      self.segmentFits[key] = results.params
-#      print('SM',results.params)
+     # smX = sm.add_constant(X)
+     # # smX = X
+     # model = sm.WLS(y, smX, w)
+     # results = model.fit()
+     # self.segmentFits[key] = results.params
+     # print('SM',results.params)
 
       yHat = X.dot(self.segmentFits[key][1:]) + self.segmentFits[key][0]
-#      # yHat = X.dot(self.segmentFits[key][:]) + self.segmentFits[key][0]
+      # yHat = X.dot(self.segmentFits[key][:]) + self.segmentFits[key][0]
 
       self.segmentFitnesses[key] = linearModel.score(X,y)
 
-## Not actually implemented yet
-#  def BuildPolynomialModels(self, persistence=None):
-#    """ Forces the construction of a polynomial fit per stable/unstable manifold
-#        for the user-specified persistence level.
-#        @ In, persistence, a floating point value specifying the simplification
-#          level to use, if this value is None, then we will build models based
-#          on the internally set persistence level for this Morse-Smale object.
-#    """
-#    partitions = self.Partitions(persistence)
-#    for extType in [0,1]:
-#      count = 0
-#      extFlowSet = {}
-#      for key,items in partitions.iteritems():
-#        extIdx = key[extType]
-#        if extIdx not in extFlowSet.keys():
-#          extFlowSet[extIdx] = []
-#        for idx in items:
-#          extFlowSet[extIdx].append(idx)
+  ## Not actually implemented yet
+  def BuildPolynomialModels(self, persistence=None):
+   """ Forces the construction of a polynomial fit per stable/unstable manifold
+       for the user-specified persistence level.
+       @ In, persistence, a floating point value specifying the simplification
+         level to use, if this value is None, then we will build models based
+         on the internally set persistence level for this Morse-Smale object.
+   """
+   pass
+   # partitions = self.Partitions(persistence)
+   # for extType in [0,1]:
+   #   count = 0
+   #   extFlowSet = {}
+   #   for key,items in partitions.iteritems():
+   #     extIdx = key[extType]
+   #     if extIdx not in extFlowSet.keys():
+   #       extFlowSet[extIdx] = []
+   #     for idx in items:
+   #       extFlowSet[extIdx].append(idx)
 
-#      for extIdx,indices in extFlowSet.iteritems():
-#        X = self.Xnorm[np.array(indices),:]
-#        Y = self.Y[np.array(indices)]
-#        self.extremumFits[extIdx] = np.polyfit(X,Y,2)
-#        yHat = np.zeros(X.shape[0])
-#        for i in xrange(X.shape[0]):
-#          yHat[i] = 0 #FIXME
-#        self.extremumFitnesses[extIdx] = 1 - np.sum((yHat - Y)**2)/np.sum((Y - np.mean(Y))**2)
+   #   for extIdx,indices in extFlowSet.iteritems():
+   #     X = self.Xnorm[np.array(indices),:]
+   #     Y = self.Y[np.array(indices)]
+   #     self.extremumFits[extIdx] = np.polyfit(X,Y,2)
+   #     yHat = np.zeros(X.shape[0])
+   #     for i in xrange(X.shape[0]):
+   #       yHat[i] = 0 #FIXME
+   #     self.extremumFitnesses[extIdx] = 1 - np.sum((yHat - Y)**2)/np.sum((Y - np.mean(Y))**2)
 
   def BuildGaussianModels(self, persistence=None):
     """ Forces the construction of Gaussian fits per stable/unstable manifold
@@ -596,9 +597,9 @@ class AMSC_Object(object):
     # For now, if we are doing anything more than a moderate amount of
     # dimensions, use a constrained Gaussian
     constrainedGaussian = (dimCount > 10)
-#############DEBUG##############################################################
+    #########DEBUG##############################################################
     # constrainedGaussian = True
-#############END DEBUG##########################################################
+    #########END DEBUG##########################################################
 
     partitions = self.Partitions(self.persistence)
     for extType in [0,1]:
@@ -675,10 +676,10 @@ class AMSC_Object(object):
             try:
               np.linalg.cholesky(A)
             except np.linalg.LinAlgError as msg:
-#              if 'Matrix is not positive definite' in msg.args:
+             # if 'Matrix is not positive definite' in msg.args:
                 # Return a large value to penalize non-conformant solution.
                 return 1e50*np.ones(len(yvec))
-#                return sys.float_info.max*np.ones(len(yvec))
+               # return sys.float_info.max*np.ones(len(yvec))
 
             #Adet = np.linalg.det(np.linalg.inv(A))
             for idx in xrange(0,len(yvec)):
@@ -706,7 +707,7 @@ class AMSC_Object(object):
 
         test = scipy.optimize.leastsq(residuals, paramGuess, args=(X,Y),
                                       full_output=True)
-#        print(test)
+       # print(test)
 
         a = test[0][-1]
         if constrainedGaussian:
@@ -1239,7 +1240,7 @@ class AMSC_Object(object):
     for key,items in partitions.iteritems():
       X = self.Xnorm[np.array(items),:]
       y = self.Y[np.array(items)]
-#      w = self.w[np.array(items)]
+     # w = self.w[np.array(items)]
 
       self.pearson[key] = []
       self.spearman[key] = []

@@ -3,23 +3,22 @@
      has four local minima surrounding a global maximum, and each of the
      examples will showcase different levels of partitions using different
      persistence simplfication metrics -->
+<!-- <Simulation verbosity="silent"> -->
 <Simulation>
   <RunInfo>
     <WorkingDir>topologyPostProcessor</WorkingDir>
-    <Sequence>
-      sampleData,
-      decompose
-    </Sequence>
+    <!-- <Sequence>sampleData,decomposeProbability</Sequence> -->
+    <Sequence>sampleData,decomposeValue,decomposeProbability,decomposeCount,decomposeFull</Sequence>
   </RunInfo>
   <Models>
     <ExternalModel name='testFunction' subType=''
-                   ModuleToLoad = './topologyPostProcessor/Schwefel'>
+                   ModuleToLoad='./topologyPostProcessor/Schwefel'>
       <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>
     </ExternalModel>
   <!-- The definition of the topological partition and all of its parameters -->
-    <PostProcessor name='AMSC' subType='TopologicalDecomposition'>
+    <PostProcessor name='AMSC_Value' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
@@ -27,50 +26,114 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>0.005</simplification>
+      <simplification>575</simplification>
+      <persistence>difference</persistence>
+    </PostProcessor>
+
+    <PostProcessor name='AMSC_Count' subType='TopologicalDecomposition'>
+      <graph>Beta Skeleton</graph>
+      <gradient>steepest</gradient>
+      <beta>1</beta>
+      <knn>8</knn>
+      <normalization>None</normalization>
+      <parameters>X,Y</parameters>
+      <response>Z</response>
+      <simplification>300</simplification>
+      <persistence>count</persistence>
+    </PostProcessor>
+
+    <PostProcessor name='AMSC_Probability' subType='TopologicalDecomposition'>
+      <graph>Beta Skeleton</graph>
+      <gradient>steepest</gradient>
+      <beta>1</beta>
+      <knn>8</knn>
+      <normalization>None</normalization>
+      <parameters>X,Y</parameters>
+      <response>Z</response>
+      <simplification>0.1</simplification>
+      <weighted>true</weighted>
       <persistence>probability</persistence>
+    </PostProcessor>
+    <PostProcessor name='AMSC_Full' subType='TopologicalDecomposition'>
+      <graph>Beta Skeleton</graph>
+      <gradient>steepest</gradient>
+      <beta>1</beta>
+      <knn>8</knn>
+      <normalization>None</normalization>
+      <parameters>X,Y</parameters>
+      <response>Z</response>
     </PostProcessor>
   </Models>
   <Distributions>
     <Normal name="NormDist">
       <mean>0.5</mean>
-      <sigma>0.125</sigma>
+      <sigma>0.0125</sigma>
     </Normal>
   </Distributions>
   <Samplers>
     <Grid name="gridSampler">
       <variable name="X">
         <distribution>NormDist</distribution>
-        <grid type='value' construction='equal' steps='500'>0 1</grid>
+        <grid type='value' construction='equal' steps='50'>0 1</grid>
       </variable>
       <variable name="Y">
         <distribution>NormDist</distribution>
-        <grid type='value' construction='equal' steps='500'>0 1</grid>
+        <grid type='value' construction='equal' steps='50'>0 1</grid>
       </variable>
     </Grid>
   </Samplers>
   <Steps>
   <!-- Load the data from a csv into the hdf5 database used by this run -->
     <MultiRun name='sampleData' pauseAtEnd='False'>
-      <Sampler class='Samplers'    type='Grid'          >gridSampler</Sampler>
-      <Input   class='DataObjects' type='TimePointSet'  >dummyIN</Input>
-      <Model   class='Models'      type='ExternalModel' >testFunction</Model>
-      <Output  class='DataObjects' type='TimePointSet'  >testData</Output>
+      <Sampler class='Samplers'    type='Grid'         >gridSampler</Sampler>
+      <Input   class='DataObjects' type='PointSet'     >dummyIN</Input>
+      <Model   class='Models'      type='ExternalModel'>testFunction</Model>
+      <Output  class='DataObjects' type='PointSet'     >testData</Output>
     </MultiRun>
   <!-- Perform the topological decomposition -->
-    <PostProcess name='decompose1'>
-      <Input   class='DataObjects'      type='TimePointSet' >testData</Input>
-      <Model   class='Models'           type='PostProcessor'>AMSC</Model>
-      <Output  class='DataObjects'      type='TimePointSet' >outTPS</Output>
-      <Output  class='OutStreamManager' type='Print'        >myDump</Output>
+    <PostProcess name='decomposeValue'>
+      <Input   class='DataObjects'      type='PointSet'     >testData</Input>
+      <Model   class='Models'           type='PostProcessor'>AMSC_Value</Model>
+      <Output  class='DataObjects'      type='PointSet'     >outTPS1</Output>
+      <Output  class='OutStreamManager' type='Print'        >myDumpValue</Output>
+    </PostProcess>
+    <PostProcess name='decomposeProbability'>
+      <Input   class='DataObjects'      type='PointSet'     >testData</Input>
+      <Model   class='Models'           type='PostProcessor'>AMSC_Probability</Model>
+      <Output  class='DataObjects'      type='PointSet'     >outTPS2</Output>
+      <Output  class='OutStreamManager' type='Print'        >myDumpProb</Output>
+    </PostProcess>
+    <PostProcess name='decomposeCount'>
+      <Input   class='DataObjects'      type='PointSet'     >testData</Input>
+      <Model   class='Models'           type='PostProcessor'>AMSC_Count</Model>
+      <Output  class='DataObjects'      type='PointSet'     >outTPS3</Output>
+      <Output  class='OutStreamManager' type='Print'        >myDumpCount</Output>
+    </PostProcess>
+    <PostProcess name='decomposeFull'>
+      <Input   class='DataObjects'      type='PointSet'     >testData</Input>
+      <Model   class='Models'           type='PostProcessor'>AMSC_Full</Model>
+      <Output  class='DataObjects'      type='PointSet'     >outTPS4</Output>
+      <Output  class='OutStreamManager' type='Print'        >myDumpFull</Output>
     </PostProcess>
   </Steps>
 
   <OutStreamManager>
   <!-- A csv file containing the output of the example -->
-    <Print name='myDump'>
+    <Print name='myDumpValue'>
       <type>csv</type>
-      <source>outTPS</source>
+      <source>outTPS1</source>
+    </Print>
+    <Print name='myDumpProb'>
+      <type>csv</type>
+      <source>outTPS2</source>
+    </Print>
+    <Print name='myDumpCount'>
+      <type>csv</type>
+      <source>outTPS3</source>
+    </Print>
+    <Print name='myDumpFull'>
+      <type>csv</type>
+      <source>outTPS4</source>
     </Print>
   </OutStreamManager>
 
@@ -78,20 +141,33 @@
   <!-- The necessary database object -->
     <HDF5 name="schwefelDB"/>
   </Databases>
+
   <DataObjects>
   <!-- The input TimePointSet object -->
-    <TimePointSet name="dummyIN">
+    <PointSet name="dummyIN">
       <Input>X,Y</Input>
       <Output>OutputPlaceHolder</Output>
-    </TimePointSet>
-    <TimePointSet name='testData'>
+    </PointSet>
+    <PointSet name='testData'>
       <Input>X,Y</Input>
       <Output>Z</Output>
-    </TimePointSet>
+    </PointSet>
   <!-- The output TimePointSet objects -->
-    <TimePointSet name='outTPS'>
+    <PointSet name='outTPS1'>
       <Input>X,Y</Input>
       <Output>Z</Output>
-    </TimePointSet>
+    </PointSet>
+    <PointSet name='outTPS2'>
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </PointSet>
+    <PointSet name='outTPS3'>
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </PointSet>
+    <PointSet name='outTPS4'>
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </PointSet>
   </DataObjects>
 </Simulation>

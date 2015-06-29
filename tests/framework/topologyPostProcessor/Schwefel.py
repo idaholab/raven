@@ -6,7 +6,7 @@ def eval(inp):
   for xi in inp:
     xi *= 1000
     xi -= 500
-    retVal += -xi * (math.sin(math.sqrt(math.abs(xi))))
+    retVal += -xi * (math.sin(math.sqrt(math.fabs(xi))))
   return float('%.8f' % retVal)
 
 def run(self,Input):

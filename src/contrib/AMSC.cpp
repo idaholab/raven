@@ -297,7 +297,7 @@ boost::numeric::ublas::matrix<T> &distances)
   for(int i = 0; i < 2; i++)
     for(int j = 0; j < Size(); j++)
       G(i,j) = 0;
-//  G.Set(0);
+ // G.Set(0);
 
   //compute steepest asc/descending neighbors
   for(int i=0; i < (int)Size(); i++)
@@ -409,7 +409,7 @@ boost::numeric::ublas::matrix<T> &distances)
       }
     }
   }
-//  G.deallocate();
+ // G.deallocate();
 
   //compute for each point its minimum and maximum based on
   //steepest ascent/descent
@@ -435,7 +435,18 @@ boost::numeric::ublas::matrix<T> &distances)
       if(prev == -1)
       {
         ext = path.back();
-        maxHierarchy[ext] = Merge<T>(RangeY(),ext,ext);
+        if(this->persistenceType.compare("difference") == 0)
+        {
+          maxHierarchy[ext] = Merge<T>(RangeY(),ext,ext);
+        }
+        else if(this->persistenceType.compare("count") == 0)
+        {
+          maxHierarchy[ext] = Merge<T>(Size(),ext,ext);
+        }
+        else if(this->persistenceType.compare("probability") == 0)
+        {
+          maxHierarchy[ext] = Merge<T>(1,ext,ext);
+        }
       }
       else
         ext = flow[prev].up;
@@ -460,7 +471,18 @@ boost::numeric::ublas::matrix<T> &distances)
       if(prev == -1)
       {
         ext = path.back();
-        minHierarchy[ext] = Merge<T>(RangeY(),ext,ext);
+        if(this->persistenceType.compare("difference") == 0)
+        {
+          minHierarchy[ext] = Merge<T>(RangeY(),ext,ext);
+        }
+        else if(this->persistenceType.compare("count") == 0)
+        {
+          minHierarchy[ext] = Merge<T>(Size(),ext,ext);
+        }
+        else if(this->persistenceType.compare("probability") == 0)
+        {
+          minHierarchy[ext] = Merge<T>(1,ext,ext);
+        }
       }
       else
         ext = flow[prev].down;
@@ -558,8 +580,8 @@ void AMSC<T>::EstimateIntegralLines(std::string method,
 {
   if( method.compare("steepest") == 0)
     SteepestEdge(edges,distances);
-//  else if(method.compare("maxflow") == 0)
-//    MaxFlow(edges,distances);
+ // else if(method.compare("maxflow") == 0)
+ //   MaxFlow(edges,distances);
   else
   {
     //TODO
@@ -1132,7 +1154,7 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
     std::cerr << "\rEstimating Integral Lines..." << std::flush;
   }
   EstimateIntegralLines(gradientMethod, edges, distances);
-//  distances.deallocate();
+ // distances.deallocate();
 
   if (verbose)
   {
@@ -1164,7 +1186,7 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
     t = clock();
     std::cerr << "\rCleaning up..." << std::flush;
   }
-//  edges.deallocate();
+ // edges.deallocate();
 
   if (verbose)
   {
@@ -1199,11 +1221,11 @@ void AMSC<T>::ConnectComponents(std::set<int_pair> &ngraph, int &maxCount)
               << ngraph.size() << ")" << std::endl;
     for(int i = 0; i < reps.size(); i++)
       std::cerr << reps[i] << " ";
-//    std::cerr << std::endl << "EDGES:" << std::endl;
-//    for( std::set<int_pair>::iterator it = ngraph.begin();
-//         it != ngraph.end();
-//         it++)
-//      std::cerr << it->first << " " << it->second << std::endl;
+   // std::cerr << std::endl << "EDGES:" << std::endl;
+   // for( std::set<int_pair>::iterator it = ngraph.begin();
+   //      it != ngraph.end();
+   //      it++)
+   //   std::cerr << it->first << " " << it->second << std::endl;
   }
 
   while(numComponents > 1)
