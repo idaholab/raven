@@ -1,4 +1,5 @@
 from distutils.core import setup, Extension
+from distutils.command.build import build
 import os
 
 # Replicating the methods used in the RAVEN Makefile to find CROW_DIR,
@@ -16,6 +17,14 @@ else:
 BOOST_INCLUDE_DIR = os.path.join(CROW_DIR,'contrib','include')
 RAVEN_INCLUDE_DIR = os.path.join('include','contrib')
 
+# We need a custom build order in order to ensure that amsc.py is available
+# before we try to copy it to the target location
+class CustomBuild(build):
+    sub_commands = [('build_ext', build.has_ext_modules),
+                    ('build_py', build.has_pure_modules),
+                    ('build_clib', build.has_c_libraries),
+                    ('build_scripts', build.has_scripts)]
+
 include_dirs=[RAVEN_INCLUDE_DIR,BOOST_INCLUDE_DIR]
 swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR]
 setup(name='amsc',
@@ -24,4 +33,7 @@ setup(name='amsc',
       ext_modules=[Extension('_amsc',['src/contrib/amsc.i',
                                       'src/contrib/UnionFind.cpp',
                                       'src/contrib/AMSC.cpp'],
-                   include_dirs=include_dirs, swig_opts=swig_opts)])
+                             include_dirs=include_dirs, swig_opts=swig_opts)],
+      package_dir={'':'src/contrib'},
+      py_modules=['amsc'],
+      cmdclass={'build': CustomBuild})

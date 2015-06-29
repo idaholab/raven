@@ -36,17 +36,20 @@
 import sys
 import numpy as np
 import time
+import os
 
 ####################################################
-# There is probably a better way to do this
-import os
+# This is tenuous at best, if the the directory structure of RAVEN changes, this
+# will need to be updated, make sure you add this to the beginning of the search
+# path, so that you try to grab the locally built one before relying on an
+# installed version
 myPath = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(myPath+'/../../src/contrib/')
+sys.path.insert(0,myPath)
 try:
   import amsc
 except ImportError as e:
-  makeFilePath = os.path.realpath(myPath+'/../../amsc.mk')
-  sys.stderr.write('It appears you have not built the AMSC library. Try '
+  makeFilePath = os.path.realpath(os.path.join(myPath,'..','..','amsc.mk'))
+  sys.stderr.write('It appears you do not have the AMSC library. Try '
                    + 'running the following command:' + os.linesep
                    + '\tmake -f ' + makeFilePath + os.linesep)
   sys.exit(1)
