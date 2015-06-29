@@ -8,7 +8,7 @@ SCRIPT_DIRNAME=`dirname $0`
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 ORIGPYTHONPATH="$PYTHONPATH"
 
-maxlen=$(tput cols)
+maxlen=$(($(tput cols) < 100 ? $(tput cols) : 100))
 
 cd tests/framework
 
