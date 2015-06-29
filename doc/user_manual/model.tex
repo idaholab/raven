@@ -937,9 +937,10 @@ independent of the \xmlAttr{subType} specified:
 %  \nb These parameters are going to be requested for the training of this object
 %  (see Section~\ref{subsec:stepRomTrainer}).
   %
-   \item $<Features>$ \textbf{\textit{, comma separated string, required field.}}. In this node, the user needs to specify the names of the features of this ROM. NB. These parameters are going to be requested for the training of this object (see Section~\ref{subsec:stepRomTrainer});
-    \item $<Target>$ \textbf{\textit{, comma separated string, required field.}}. This XML node contains a comma separated list of the targets of this ROM. By Instance, these parameters are the Figure of Merits this ROM is supposed to predict.
-    \\NB. These parameters are going to be requested for the training of this
+   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features of this ROM.
+   \nb These parameters are going to be requested for the training of this object (see Section~\ref{subsec:stepRomTrainer});
+    \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, contains a comma separated list of the targets of this ROM. These parameters are the Figures of Merit (FOMs) this ROM is supposed to predict.
+    \nb These parameters are going to be requested for the training of this
     object (see Section \ref{subsec:stepRomTrainer}).
 
 \end{itemize}
@@ -1010,7 +1011,8 @@ two more nodes and can accept multiple entries of a third optional node.
 \begin{itemize}
   \item \xmlNode{IndexSet}, \xmlDesc{string, required field},
   specifies the rules by which to construct multidimensional polynomials.  The options are
-  ``TensorProduct,'' ``TotalDegree,'' ``HyperbolicCross,'' and ``Custom.''
+  \xmlString{TensorProduct}, \xmlString{TotalDegree},\\
+  \xmlString{HyperbolicCross}, and \xmlString{Custom}.
   %
   Total degree is efficient for
   uncertain inputs with a large degree of regularity, while hyperbolic cross is more efficient
@@ -4014,7 +4016,7 @@ to compute many of the most important statistical quantities.
     \item \textbf{NormalizedSensitivity} -- matrix of normalized sensitivity
     coefficients
     \item \textbf{VarianceDependentSensitivity} -- matrix of sensitivity coefficients dependent on the variance of the variables
-    \item \textbf{sensitivity} -- matrix of sensitivity coefficients of Output space to Input space 
+    \item \textbf{sensitivity} -- matrix of sensitivity coefficients of Output space to Input space
     \item \textbf{pearson} -- matrix of sensitivity coefficients
     \item \textbf{expectedValue} -- expected value or mean
     \item \textbf{sigma} -- standard deviation
