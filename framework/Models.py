@@ -30,7 +30,7 @@ import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
 import TreeStructure
-from FileObjects import FileObject
+from FileObject import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 #class Model(BaseType):
