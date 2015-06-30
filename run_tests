@@ -29,7 +29,6 @@ try:
   raven_libs_dir = raven_libs_dir.decode().strip()
   os.environ["PYTHONPATH"] = raven_libs_dir +":"+os.environ.get("PYTHONPATH","")
   sys.path.append(raven_libs_dir)
-  print "PYTHONPATH="+os.environ["PYTHONPATH"]
 except:
   sys.path.append(os.path.join("scripts","TestHarness","testers"))
   import RavenUtils
@@ -38,6 +37,13 @@ except:
     print "No raven_libs found and missing modules "+",".join(missing)
   if len(too_old) > 0:
     print "No raven_libs found and old version modules "+",".join(too_old)
+
+#add framework contrib path
+myPath = os.path.dirname(os.path.realpath(__file__))
+os.environ["PYTHONPATH"] = os.path.join(myPath,'framework','contrib') + ":" + os.environ.get("PYTHONPATH","")
+
+print "PYTHONPATH="+os.environ["PYTHONPATH"]
+
 coverage = False
 for i in sys.argv:
   if i == "--check_coverage": coverage = True
