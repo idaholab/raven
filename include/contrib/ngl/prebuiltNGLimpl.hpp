@@ -34,7 +34,7 @@
 #include "nglGeometry.hpp"
 #include <algorithm>
 
-namespace ngl 
+namespace ngl
 {
   template<typename T>
   class prebuiltNGLPointSet: public NGLPointSet<T>
@@ -45,20 +45,20 @@ namespace ngl
     int kmax;
 
   public:
-    prebuiltNGLPointSet() 
+    prebuiltNGLPointSet()
      : NGLPointSet<T>()
     {
     }
-    
+
     prebuiltNGLPointSet(T*datain, unsigned int numPoints,
                         std::vector<int> &edgeList)
       : NGLPointSet<T>(datain, numPoints)
     {
       int *neighborCounts = new int[numPoints];
-      for(int i = 0; i < numPoints; i++)
+      for(unsigned int i = 0; i < numPoints; i++)
         neighborCounts[i] = 0;
 
-      for(int i = 0; i < edgeList.size(); i+=2)
+      for(unsigned int i = 0; i < edgeList.size(); i+=2)
       {
         int e1 = edgeList[i];
         int e2 = edgeList[i+1];
@@ -70,14 +70,14 @@ namespace ngl
       neighborOffsets[0] = neighborCounts[0];
       //Re-zero the neighborCounts while storing the offsets for each index
       neighborCounts[0] = 0;
-      for(int i=1; i < numPoints; i++)
+      for(unsigned int i=1; i < numPoints; i++)
       {
         neighborOffsets[i] = neighborCounts[i] + neighborOffsets[i-1];
         neighborCounts[i] = 0;
       }
 
       neighborIndices = new int[neighborOffsets[numPoints-1]];
-      for(int i = 0; i < edgeList.size(); i+=2)
+      for(unsigned int i = 0; i < edgeList.size(); i+=2)
       {
         int e1 = edgeList[i];
         int e2 = edgeList[i+1];
@@ -98,13 +98,13 @@ namespace ngl
       delete [] neighborCounts;
     }
 
-    virtual void destroy() 
+    virtual void destroy()
     {
       delete [] neighborIndices;
       delete [] neighborOffsets;
     }
 
-    virtual void getNeighbors(NGLPoint<T> &p, IndexType **ptrIndices, 
+    virtual void getNeighbors(NGLPoint<T> &p, IndexType **ptrIndices,
                               int &numNeighbors)
     {
       //Find the point index otherwise return the full set of data by calling
@@ -130,7 +130,7 @@ namespace ngl
 
       *ptrIndices = new IndexType[numNeighbors];
       IndexType *indices = *ptrIndices;
-      for(IndexType i = 0; i < numNeighbors; i++)
+      for(int i = 0; i < numNeighbors; i++)
         indices[i] = neighborIndices[offset+i];
     }
   };
