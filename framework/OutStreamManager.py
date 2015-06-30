@@ -558,7 +558,7 @@ class OutStreamPlot(OutStreamManager):
         if 'epsilon' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['epsilon'] = '2'
         if 'smooth' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['smooth'] = '0.0'
         if 'cmap' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['cmap'] = 'None'
-#            else:             self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
+        #    else:             self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
         elif self.options['plotSettings']['plot'][pltindex]['cmap'] is not 'None' and self.options['plotSettings']['plot'][pltindex]['cmap'] not in self.mpl.cm.datad.keys(): raise('ERROR. The colorMap you specified does not exist... Available are ' + str(self.mpl.cm.datad.keys()))
         if 'interpolationTypeBackUp' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] = 'nearest'
         elif self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] not in self.interpAvail: self.raiseAnError(IOError,'surface interpolation (BackUp) unknown. Available are :' + str(self.interpAvail))
@@ -1202,7 +1202,8 @@ class OutStreamPrint(OutStreamManager):
           # TODO FIXME before merging go back to just try case
           self.sourceData[index].printXML(dictOptions)
           try: self.sourceData[index].printXML(dictOptions)
-          except AttributeError: raise IOError(self.printTag+': ERROR -> no implementation for source type '+str(type(self.sourceData[index]))+' and output type "xml"!')
+          except AttributeError:
+            self.raiseAnError(IOError,'no implementation for source type',type(self.sourceData[index]),'and output type "xml"!')
 
 """
  Interface Dictionary (factory) (private)

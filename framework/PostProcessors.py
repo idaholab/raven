@@ -2222,8 +2222,7 @@ class TopologicalDecomposition(BasePostProcessor):
     """
     if finishedJob.returnEvaluation() == -1:
       # TODO This does not feel right
-      raise Exception(self.errorString('No available Output to collect (Run '
-                                       + 'probably did not finish yet)'))
+      self.raiseAnError(RuntimeError,'No available output to collect (run probably did not finish yet)')
     inputList = finishedJob.returnEvaluation()[0]
     outputDict = finishedJob.returnEvaluation()[1]
 
@@ -2293,7 +2292,7 @@ class TopologicalDecomposition(BasePostProcessor):
           elif key.startswith('Gaussian'):
             output.updateMetadata(key, [value])
     else:
-      raise IOError(errorString('Unknown output type: ' + str(output.type)))
+      self.raiseAnError(IOError,'Unknown output type:',output.type)
 
   def run(self, InputIn):
     """
