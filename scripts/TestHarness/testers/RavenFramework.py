@@ -7,13 +7,6 @@ import os
 import subprocess
 import sys
 
-myPath = os.path.dirname(os.path.realpath(__file__))
-# This is tenuous at best, if the the directory structure of RAVEN changes, this
-# will need to be updated, make sure you add this to the beginning of the search
-# path, so that you try to grab the locally built one before relying on an
-# installed version
-sys.path.insert(0,os.path.join(myPath,'..','..','..','framework','contrib'))
-
 class RavenFramework(Tester):
 
   @staticmethod
@@ -58,9 +51,8 @@ class RavenFramework(Tester):
       return (False,'skipped (Old version python modules: '+" ".join(too_old)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
     for lib in self.required_libraries:
-      try:
-        __import__(lib)
-      except ImportError:
+      missing, too_old = RavenUtils.checkForMissingModule(lib,'','')
+      if len(missing) > 0:
         return (False,'skipped (Unable to import library: "'+lib+'")')
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
