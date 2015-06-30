@@ -1,2 +1,0 @@
-<data name="myDump3" type="timepointset"><input>Y,X</input><output>Z,maxLabel,minLabel</output><input_filename>myDump3.csv</input_filename><metadata><hierarchy>array( 'Minima,0.973802,0,0 Minima,5.02767e-07,10,0 Minima,7.55195e-08,110,0 Minima,2.23622e-09,120,110 Maxima,0.973802,74,74 ', 
-      dtype='|S118')</hierarchy><coefficients_0_74>array( 0.00062802,  0.06598657)</coefficients_0_74><R2_0_74>array( 0.48837944)</R2_0_74><coefficients_10_74>array( 0.14919861, -0.08999315)</coefficients_10_74><R2_10_74>array( 0.96162105)</R2_10_74></metadata></data>

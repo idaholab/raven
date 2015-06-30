@@ -2,7 +2,7 @@
 <!-- A Simple Example of the Approximate Morse-Smale Complex Interface -->
 <Simulation>
 <RunInfo>
-  <WorkingDir>topologyPostProcessor</WorkingDir>
+  <WorkingDir>topology</WorkingDir>
   <Sequence>
     load,
     decompose,
@@ -15,7 +15,7 @@
 </RunInfo>
 <Models>
 <!-- The definition of the topological partition and all of its parameters -->
-  <PostProcessor name='AMSC' subType='TopologicalDecomposition' debug='true'>
+  <PostProcessor name='AMSC' subType='TopologicalDecomposition'>
     <graph>Beta Skeleton</graph>
     <gradient>steepest</gradient>
     <beta>1</beta>
@@ -24,25 +24,25 @@
     <parameters>X,Y</parameters>
     <response>Z</response>
   </PostProcessor>
-  <PostProcessor name='seg1' subType='External' debug='true'>
+  <PostProcessor name='seg1' subType='External'>
     <method>seg1</method>
     <Function class='Functions' type='External'>segment</Function>
   </PostProcessor>
-  <PostProcessor name='seg2' subType='External' debug='true'>
+  <PostProcessor name='seg2' subType='External'>
     <method>seg2</method>
     <Function class='Functions' type='External'>segment</Function>
   </PostProcessor>
-  <PostProcessor name='seg3' subType='External' debug='true'>
+  <PostProcessor name='seg3' subType='External'>
     <method>seg3</method>
     <Function class='Functions' type='External'>segment</Function>
   </PostProcessor>
-  <PostProcessor name='seg4' subType='External' debug='true'>
+  <PostProcessor name='seg4' subType='External'>
     <method>seg4</method>
     <Function class='Functions' type='External'>segment</Function>
   </PostProcessor>
 </Models>
 <Functions>
-  <External name='segment' file='topologyPostProcessor/GrabSegments'>
+  <External name='segment' file='topology/GrabSegments'>
     <variable>X</variable>
     <variable>Y</variable>
     <variable>Z</variable>
@@ -55,7 +55,7 @@
     <IOStep name='load' fromDirectory='.'>
       <Input  class='DataObjects'    type='PointSet'>testData</Input>
       <Output   class='Databases' type='HDF5'   >myDB</Output>
-    </IOStep> 
+    </IOStep>
 <!-- Perform the topological decomposition -->
     <PostProcess name='decompose'>
         <Input   class='DataObjects'      type='PointSet'>testData</Input>
@@ -85,13 +85,13 @@
         <Output  class='DataObjects' type='PointSet'>seg4</Output>
     </PostProcess>
 <!-- Plot the data -->
-  <OutStreamStep name='plot' pauseAtEnd='True'>
+  <IOStep name='plot' pauseAtEnd='True'>
     <Input  class='DataObjects'      type='PointSet'>seg1</Input>
     <Input  class='DataObjects'      type='PointSet'>seg2</Input>
     <Input  class='DataObjects'      type='PointSet'>seg3</Input>
     <Input  class='DataObjects'      type='PointSet'>seg4</Input>
     <Output class='OutStreamManager' type='Plot'        >Topological Decomposition</Output>
-  </OutStreamStep>
+  </IOStep>
 </Steps>
 
 <OutStreamManager>
@@ -145,7 +145,7 @@
 
 <Databases>
 <!-- The necessary database object -->
-  <HDF5 name="myDB"/> 
+  <HDF5 name="myDB"/>
 </Databases>
 <DataObjects>
 <!-- The input PointSet objects -->

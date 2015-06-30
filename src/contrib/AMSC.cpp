@@ -631,12 +631,20 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
         }
         else if (this->persistenceType.compare("probability") == 0)
         {
-          //TODO: test
-          T probabilityIntegral = 0;
+          T probabilityIntegral = 0.;
+          int count = 0;
+
           for(int idx = 0; idx < Size(); idx++)
+          {
             if (flow[idx].up == p.first)
+            {
               probabilityIntegral += w(idx);
+              count++;
+            }
+          }
           pers = probabilityIntegral;
+          if (count > 0)
+            pers /= (T) count;
         }
         else if (this->persistenceType.compare("count") == 0)
         {
@@ -755,17 +763,32 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
     }
     else if (this->persistenceType.compare("probability") == 0)
     {
-      //TODO: test
       T newPersistence = 0;
       T oldPersistence = 0;
+
+      int newCount = 0;
+      int oldCount = 0;
+
       for(int idx = 0; idx < Size(); idx++)
       {
         int extIdx = followChain(flow[idx].up, merge);
         if (extIdx == p.first)
+        {
           newPersistence += w(idx);
+          newCount++;
+        }
         if (extIdx == pold.first)
+        {
           oldPersistence += w(idx);
+          oldCount++;
+        }
       }
+
+      if (newCount > 0)
+        newPersistence /= (T)newCount;
+
+      if (oldCount > 0)
+        oldPersistence /= (T)oldCount;
 
       //check if there is new merge pair with increased persistence (or same
       // persistence and a larger index maximum)
@@ -877,16 +900,23 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
         }
         else if (this->persistenceType.compare("probability") == 0)
         {
-          //TODO: test
           T probabilityIntegral = 0;
+          int count = 0;
+
           for(int idx = 0; idx < Size(); idx++)
+          {
             if (flow[idx].down == p.first)
+            {
               probabilityIntegral += w(idx);
+              count++;
+            }
+          }
           pers = probabilityIntegral;
+          if (count > 0)
+            pers /= (T) count;
         }
         else if (this->persistenceType.compare("count") == 0)
         {
-          //TODO: test
           int count = 0;
           for(int idx = 0; idx < Size(); idx++)
             if (flow[idx].down == p.first)
@@ -1001,17 +1031,33 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
     }
     else if (this->persistenceType.compare("probability") == 0)
     {
-      //TODO: test
       T newPersistence = 0;
       T oldPersistence = 0;
+
+      int newCount = 0;
+      int oldCount = 0;
+
       for(int idx = 0; idx < Size(); idx++)
       {
         int extIdx = followChain(flow[idx].down, merge);
         if (extIdx == p.first)
+        {
           newPersistence += w(idx);
+          newCount++;
+        }
+
         if (extIdx == pold.first)
+        {
           oldPersistence += w(idx);
+          oldCount++;
+        }
       }
+
+      if (newCount > 0)
+        newPersistence /= (T) newCount;
+      if (oldCount > 0)
+        oldPersistence /= (T) oldCount;
+
 
       T diff = newPersistence - oldPersistence;
       if( diff > 0 || (diff == 0 && p.first < pold.first ))
@@ -1112,18 +1158,28 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
 
   globalMinIdx = 0;
   globalMaxIdx = 0;
+  T sumW = 0;
   for(int n = 0; n < N; n++)
   {
     for(int m = 0; m < M; m++)
       X(m,n) = Xin[n*M+m];
     y(n) = yin[n];
     w(n) = win[n];
+    sumW += w(n);
 
     if(y(n) > y(globalMaxIdx))
       globalMaxIdx = n;
     if(y(n) < y(globalMinIdx))
       globalMinIdx = n;
   }
+
+  if (sumW > 0)
+    for(int n = 0; n < N; n++)
+    {
+      std::cerr << w(n) << " -> ";
+      w(n) /= (T) sumW;
+      std::cerr << w(n) << std::endl;
+    }
 
   boost::numeric::ublas::matrix<int> edges;
   boost::numeric::ublas::matrix<T> distances;

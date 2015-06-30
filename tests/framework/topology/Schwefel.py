@@ -1,3 +1,12 @@
+'''
+Created on 6/24/15
+
+@author: maljdan
+
+Test function with undulations of varying size used to test the new persistence
+algorithms
+
+'''
 import numpy as np
 import math
 

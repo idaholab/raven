@@ -5,7 +5,7 @@
      persistence simplfication metrics -->
 <Simulation>
   <RunInfo>
-    <WorkingDir>topologyPostProcessor</WorkingDir>
+    <WorkingDir>topology</WorkingDir>
     <Sequence>
       <!-- loadData, -->
       sampleData,
@@ -17,12 +17,12 @@
   </RunInfo>
   <Models>
     <ExternalModel name='testFunction' subType=''
-                   ModuleToLoad = './topologyPostProcessor/testFunction'>
+                   ModuleToLoad = './topology/testFunction'>
       <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>
     </ExternalModel>
-  <!-- The definition of the topological partition and all of its parameters -->
+    <!-- 4 Clusters (no simplification) -->
     <PostProcessor name='AMSC1' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -33,6 +33,7 @@
       <weighted>True</weighted>
       <response>Z</response>
     </PostProcessor>
+    <!-- 3 Clusters -->
     <PostProcessor name='AMSC2' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -44,6 +45,7 @@
       <simplification>0.005</simplification>
       <persistence>difference</persistence>
     </PostProcessor>
+    <!-- 2 Clusters -->
     <PostProcessor name='AMSC3' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -52,20 +54,19 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <weighted>True</weighted>
-      <simplification>1e-7</simplification>
-      <persistence>probability</persistence>
+      <simplification>0.05</simplification>
+      <persistence>difference</persistence>
     </PostProcessor>
+    <!-- 1 Clusters -->
     <PostProcessor name='AMSC4' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
       <knn>8</knn>
-      <!--normalization>None</normalization-->
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>0.1</simplification>
-      <!-- <persistence>count</persistence> -->
+      <simplification>0.5</simplification>
+      <persistence>difference</persistence>
     </PostProcessor>
   </Models>
   <Distributions>

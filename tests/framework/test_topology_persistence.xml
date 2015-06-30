@@ -1,23 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- A Simple Example of the Approximate Morse-Smale Complex Interface
-     has four local minima surrounding a global maximum, and each of the
-     examples will showcase different levels of partitions using different
-     persistence simplfication metrics -->
+<!-- A simple example of the Approximate Morse-Smale Complex (AMSC) interface
+     where each of the examples will showcase different partitions using
+     different persistence simplfication metrics -->
 <!-- <Simulation verbosity="silent"> -->
 <Simulation>
   <RunInfo>
-    <WorkingDir>topologyPostProcessor</WorkingDir>
-    <!-- <Sequence>sampleData,decomposeProbability</Sequence> -->
-    <Sequence>sampleData,decomposeValue,decomposeProbability,decomposeCount,decomposeFull</Sequence>
+    <WorkingDir>topology</WorkingDir>
+    <Sequence>
+      sampleData,
+      decomposeValue,
+      decomposeProbability,
+      decomposeCount,
+      decomposeFull
+    </Sequence>
   </RunInfo>
+
   <Models>
     <ExternalModel name='testFunction' subType=''
-                   ModuleToLoad='./topologyPostProcessor/Schwefel'>
+                   ModuleToLoad='./topology/Schwefel'>
       <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>
     </ExternalModel>
-  <!-- The definition of the topological partition and all of its parameters -->
+  <!-- The default standard definition of persistence -->
     <PostProcessor name='AMSC_Value' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -29,7 +34,7 @@
       <simplification>575</simplification>
       <persistence>difference</persistence>
     </PostProcessor>
-
+    <!-- Persistence related to relative size of each cluster -->
     <PostProcessor name='AMSC_Count' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -41,7 +46,7 @@
       <simplification>300</simplification>
       <persistence>count</persistence>
     </PostProcessor>
-
+    <!-- Persistence related to relative probability of each cluster -->
     <PostProcessor name='AMSC_Probability' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -50,10 +55,12 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>0.1</simplification>
+      <!-- <simplification>0.1</simplification> -->
+      <simplification>0.0009</simplification>
       <weighted>true</weighted>
       <persistence>probability</persistence>
     </PostProcessor>
+    <!-- The full segmentation with no simplification -->
     <PostProcessor name='AMSC_Full' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -64,12 +71,14 @@
       <response>Z</response>
     </PostProcessor>
   </Models>
+
   <Distributions>
     <Normal name="NormDist">
       <mean>0.5</mean>
       <sigma>0.0125</sigma>
     </Normal>
   </Distributions>
+
   <Samplers>
     <Grid name="gridSampler">
       <variable name="X">
@@ -82,6 +91,7 @@
       </variable>
     </Grid>
   </Samplers>
+
   <Steps>
   <!-- Load the data from a csv into the hdf5 database used by this run -->
     <MultiRun name='sampleData' pauseAtEnd='False'>
@@ -94,46 +104,46 @@
     <PostProcess name='decomposeValue'>
       <Input   class='DataObjects'      type='PointSet'     >testData</Input>
       <Model   class='Models'           type='PostProcessor'>AMSC_Value</Model>
-      <Output  class='DataObjects'      type='PointSet'     >outTPS1</Output>
-      <Output  class='OutStreamManager' type='Print'        >myDumpValue</Output>
+      <Output  class='DataObjects'      type='PointSet'     >dataValue</Output>
+      <Output  class='OutStreamManager' type='Print'        >segValue</Output>
     </PostProcess>
     <PostProcess name='decomposeProbability'>
       <Input   class='DataObjects'      type='PointSet'     >testData</Input>
       <Model   class='Models'           type='PostProcessor'>AMSC_Probability</Model>
-      <Output  class='DataObjects'      type='PointSet'     >outTPS2</Output>
-      <Output  class='OutStreamManager' type='Print'        >myDumpProb</Output>
+      <Output  class='DataObjects'      type='PointSet'     >dataProb</Output>
+      <Output  class='OutStreamManager' type='Print'        >segProb</Output>
     </PostProcess>
     <PostProcess name='decomposeCount'>
       <Input   class='DataObjects'      type='PointSet'     >testData</Input>
       <Model   class='Models'           type='PostProcessor'>AMSC_Count</Model>
-      <Output  class='DataObjects'      type='PointSet'     >outTPS3</Output>
-      <Output  class='OutStreamManager' type='Print'        >myDumpCount</Output>
+      <Output  class='DataObjects'      type='PointSet'     >dataCount</Output>
+      <Output  class='OutStreamManager' type='Print'        >segCount</Output>
     </PostProcess>
     <PostProcess name='decomposeFull'>
       <Input   class='DataObjects'      type='PointSet'     >testData</Input>
       <Model   class='Models'           type='PostProcessor'>AMSC_Full</Model>
-      <Output  class='DataObjects'      type='PointSet'     >outTPS4</Output>
-      <Output  class='OutStreamManager' type='Print'        >myDumpFull</Output>
+      <Output  class='DataObjects'      type='PointSet'     >dataFull</Output>
+      <Output  class='OutStreamManager' type='Print'        >segFull</Output>
     </PostProcess>
   </Steps>
 
   <OutStreamManager>
   <!-- A csv file containing the output of the example -->
-    <Print name='myDumpValue'>
+    <Print name='segValue'>
       <type>csv</type>
-      <source>outTPS1</source>
+      <source>dataValue</source>
     </Print>
-    <Print name='myDumpProb'>
+    <Print name='segProb'>
       <type>csv</type>
-      <source>outTPS2</source>
+      <source>dataProb</source>
     </Print>
-    <Print name='myDumpCount'>
+    <Print name='segCount'>
       <type>csv</type>
-      <source>outTPS3</source>
+      <source>dataCount</source>
     </Print>
-    <Print name='myDumpFull'>
+    <Print name='segFull'>
       <type>csv</type>
-      <source>outTPS4</source>
+      <source>dataFull</source>
     </Print>
   </OutStreamManager>
 
@@ -153,19 +163,19 @@
       <Output>Z</Output>
     </PointSet>
   <!-- The output TimePointSet objects -->
-    <PointSet name='outTPS1'>
+    <PointSet name='dataValue'>
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-    <PointSet name='outTPS2'>
+    <PointSet name='dataProb'>
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-    <PointSet name='outTPS3'>
+    <PointSet name='dataCount'>
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-    <PointSet name='outTPS4'>
+    <PointSet name='dataFull'>
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
