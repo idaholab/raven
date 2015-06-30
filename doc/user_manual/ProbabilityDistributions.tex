@@ -28,8 +28,8 @@
 
 RAVEN provides support for several probability distributions.
 %
-Currently, the user can choose among all of the most important 1-dimensional
-distributions and $N$-dimensional ones, either custom or multidimensional normal.
+Currently, the user can choose among several 1-dimensional distributions and
+$N$-dimensional ones, either custom or multidimensional normal.
 
 The user will specify the probability distributions, that need to be used during
 the simulation, within the \xmlNode{Distributions} XML block:
@@ -74,8 +74,8 @@ truncated by using the following keywords:
    </aDistributionType>
 </Distributions>
 \end{lstlisting}
-Obviously, each distribution already defines its support (domain). For example, the Normal
-distribution domain is $[-\infty,+\infty]$.
+Each distribution has a pre-defined support (domain) based on its definition.
+For example, the Normal distribution domain is $[-\infty,+\infty]$.
 %
 RAVEN currently provides support for 13 1-Dimensional distributions.
 %
@@ -86,15 +86,15 @@ commented.
 \paragraph{Beta Distribution}
 \label{Beta}
 The \distname{Beta} distribution is parameterized by two positive shape parameters, denoted by
-$\alpha$ and $\beta$, that appear as exponents of the random variable. Its default support 
+$\alpha$ and $\beta$, that appear as exponents of the random variable. Its default support
 (domain) is $x \in (0, 1)$.
 %
 The distribution domain can be changed, specifying new boundaries, to fit the user's needs.
 %
 The user can specify a \distname{Beta} distribution in two ways.  The standard
 is to provide the parameters \xmlNode{low}, \xmlNode{high}, \xmlNode{alpha},
-and \xmlNode{beta}.  Alternatively, to approximate a normal 
-distribution that falls to 0 at the endpoints, the user may provide 
+and \xmlNode{beta}.  Alternatively, to approximate a normal
+distribution that falls to 0 at the endpoints, the user may provide
 the parameters \xmlNode{low}, \xmlNode{high}, and \xmlNode{peakFactor}. The
 peak factor is a value between 0 and 1 that determines the peakedness of the
 distribution.  At 0 it is dome-like ($\alpha=\beta=4$) and at 1 it is very
@@ -707,10 +707,10 @@ For NDInverseWeight and NDCartesianSpline distributions, the user provides the s
 
 The user can initialize, for each $N$-Dimensional distribution, the parameters of the random number generator function:
 \begin{itemize}
-\item initial\textunderscore grid\textunderscore disc 
+\item initial\textunderscore grid\textunderscore disc
 \item tolerance
 \end{itemize}
-in the $<dist\textunderscore init>$ block defined in sampler block $<sampler\textunderscore init>$ (see Section~\ref{sec:Samplers}). 
+in the $<dist\textunderscore init>$ block defined in sampler block $<sampler\textunderscore init>$ (see Section~\ref{sec:Samplers}).
 
 \subsubsection{MultivariateNormal Distribution}
 \label{MultivariateNormal}
@@ -735,17 +735,15 @@ f_{\mathbf x}(x_1,\ldots,x_k) =
 \right),
 $
 
-The specifications of this distribution must be defined within the xml block $<MultivariateNormal>$.  In RAVEN the MultivariateNormal distribution can be initialized through the following keywords:
+The specifications of this distribution must be defined within the xml block \xmlNode{MultivariateNormal}.  In RAVEN the MultivariateNormal distribution can be initialized through the following keywords:
 \begin{itemize}
-\item $<mu>$, list of mean values of each dimension
-\item $<data\textunderscore filename>$, string, required parameter, name of the data file containing the covariance matrix (file type .txt).
-\item $<working\textunderscore dir>$, string, folder location of the data\textunderscore filename
+\item \xmlNode{mu}, list of mean values of each dimension
+\item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter}, name of the data file containing the covariance matrix (file type .txt).
+\item \xmlNode{working\textunderscore dir}, \xmlDesc{string}, folder location of the data\textunderscore filename
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
     <MultivariateNormal name='MultivariateNormal_test'>
@@ -755,18 +753,14 @@ Example:
     </MultivariateNormal>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 As an example, the following shows the data entries contained in data\textunderscore filename for a 2-dimensional covariance matrix
 
+Example covariance matrix data file:
 \begin{lstlisting}
-----------------------------
-Example: covrainace matrix data file
-----------------------------
 1.0 0.7
 0.7 1.0
-----------------------------
 \end{lstlisting}
 
 \subsubsection{NDInverseWeight Distribution}
@@ -792,15 +786,13 @@ In RAVEN the NDInverseWeight distribution can be initialized through the followi
 \item \xmlNode{p}, \xmlDesc{float, required parameter}, power parameter. Greater values of p assign greater influence to values closest to the interpolated point.
 \item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter},  name of the data file containing scattered values (file type '.txt').
 \begin{itemize}
-\item \xmlAttr{type}, \xmlDesc{required string attribute},  indicates if the data in indicated file is PDF or CDF. 
+\item \xmlAttr{type}, \xmlDesc{required string attribute},  indicates if the data in indicated file is PDF or CDF.
 \end{itemize}
 \item \xmlNode{working\textunderscore dir}, \xmlDesc{string, required parameter}, folder location of the data file
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
   <NDInverseWeight name='...'>
@@ -810,7 +802,6 @@ Example:
   </NDInverseWeight>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 Each data entry contained in data\textunderscore filename is listed row by row and must be listed as follows:
@@ -823,10 +814,8 @@ Each data entry contained in data\textunderscore filename is listed row by row a
 
 As an example, the following shows the data entries contained in data\textunderscore filename for a 3-dimensional data set that contained two sampled CDF values: ([0.0,0.0,0.0], 0.1) and ([1.0, 1.0,0.0], 0.8)
 
+Example scattered data file:
 \begin{lstlisting}
-----------------------------
-Example: scattered data file
-----------------------------
 3
 2
 0.0
@@ -837,7 +826,6 @@ Example: scattered data file
 0.0
 0.1
 0.8
-----------------------------
 \end{lstlisting}
 
 \subsubsection{NDCartesianSpline Distribution}
@@ -845,7 +833,7 @@ Example: scattered data file
 
 The NDCartesianSpline distribution creates a $N$-Dimensional distribution given a set of points
 regularly distributed on a cartesian grid. These points sample the PDF of the original distribution.
-Distribution values (PDF or CDF) are calculated using the ND spline 
+Distribution values (PDF or CDF) are calculated using the ND spline
 interpolation scheme.
 
 
@@ -864,15 +852,13 @@ In RAVEN the NDCartesianSpline distribution can be initialized through the follo
 \begin{itemize}
 \item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter},  name of the data file containing scattered values (file type '.txt').
 \begin{itemize}
-\item \xmlAttr{type}, \xmlDesc{required string attribute}, indicates if the data in indicated file is PDF or CDF. 
+\item \xmlAttr{type}, \xmlDesc{required string attribute}, indicates if the data in indicated file is PDF or CDF.
 \end{itemize}
 \item \xmlNode{working\textunderscore dir}, \xmlDesc{string, required parameter}, folder location of the data file
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
   <NDCartesianSpline name='...'>
@@ -881,7 +867,6 @@ Example:
   </NDCartesianSpline>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 Each data entry contained in data \textunderscore filename is listed row by row and must be listed as follows:
@@ -898,17 +883,15 @@ As an example, the following shows the data entries contained in data \textunder
 \item first dimension (y): 1.0 2.0 3.0
 \end{itemize}
 
+Example scattered data file:
 \begin{lstlisting}
-----------------------------
-Example: scattered data file
-----------------------------
 2
 2
 3
 -0.5
 0.5
-1.0 
-2.0 
+1.0
+2.0
 3.0
 CDF value of (-0.5,1.0)
 CDF value of (+0.5,1.0)
@@ -916,5 +899,4 @@ CDF value of (-0.5,2.0)
 CDF value of (+0.5,2.0)
 CDF value of (-0.5,3.0)
 CDF value of (+0.5,3.0)
-----------------------------
 \end{lstlisting}

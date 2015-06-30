@@ -325,10 +325,10 @@ If the variable is associated to a multi-dimensional ND distribution, it is need
 \end{lstlisting}
 
 In the sampler class a special node exists: the \xmlNode{sampler\textunderscore init} node.
-This node contains specific parameters that characterize each particular sampler. 
+This node contains specific parameters that characterize each particular sampler.
 In addition, \xmlNode{sampler\textunderscore init} might contains the information regarding the random generator function for each $N$-Dimensional distribution (specified in the \xmlNode{dist\textunderscore init} node):
 \begin{itemize}
-\item initial\textunderscore grid\textunderscore disc 
+\item initial\textunderscore grid\textunderscore disc
 \item tolerance
 \end{itemize}
 
@@ -592,7 +592,7 @@ Example:
 %\senrs{Assembler section updated}
 \label{subsubsubsec:SobolSampler}
 The \textbf{Sobol} sampler uses high-density model reduction (HDMR) a.k.a. Sobol decomposition to approximate a function as the sum of increasing-complexity
-interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At 
+interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At
 order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions
 of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos
 (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.  This Sobol sampler uses the associated HDMRRom
@@ -713,7 +713,7 @@ Example:
 \end{lstlisting}
 
 For N-dimensional  (ND) distributions, when the sampling is performed on a grid on a CDF  the user it is required to specify the same CDF grid for all the dimensions of the ND distribution.
-This is possible by defining a \xmlNode{global\_grid node and associate such global\_grid to each variable belonging to the ND distribution as follows.
+This is possible by defining a \xmlNode{global\_grid} node and associate such global\_grid to each variable belonging to the ND distribution as follows.
 
 \begin{lstlisting}[style=XML,morekeywords={ND,grid}]
 <Samplers>
@@ -1729,17 +1729,17 @@ algorithm fails for the model $f(x)=x\cdot y$.
     \end{itemize}
 \end{itemize}
 
-In addition to the \xmlNode{variable} nodes, the main XML node 
+In addition to the \xmlNode{variable} nodes, the main XML node
 \xmlNode{Adaptive Sparse Grid} needs to contain two supplementary sub-nodes:
 
 \begin{itemize}
-  \item \xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence 
+  \item \xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence
     tolerance.
     %
     The meaning of this tolerance depends on the \xmlAttr{target} attribute of this node.
     \begin{itemize}
       \item \xmlAttr{target}, \xmlDesc{required string attribute}, the metric for convergence.
-        Currently there are three metrics.  In order of strictness: \xmlString{mean}, which converges the sparse 
+        Currently there are three metrics.  In order of strictness: \xmlString{mean}, which converges the sparse
         quadrature integration of the first moment of the model; \xmlString{variance}, which
         converges the sparse quadrature integration of the second moment of the model; and
         \xmlString{coeffs}, which integrates the L2 norm of the coefficients of the polynomial
@@ -1765,7 +1765,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
        \ROMDescription{Adaptive Sparse Grid}
         %
         \begin{itemize}
-      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field}, 
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
         represents the container where the system evaluations are stored.
         %
         From a practical point of view, this XML node must contain the name of
