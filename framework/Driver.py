@@ -78,7 +78,9 @@ if __name__ == '__main__':
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
       simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]),xmlFilename=configFile)
     else:
-      raise IOError('DRIVER',str(configFile)+' should only have Simulation and inside it RunInfo')
+      e=IOError('DRIVER',str(configFile)+' should only have Simulation and inside it RunInfo')
+      print('\nERROR! In Driver,',e,'\n')
+      sys.exit()
 
   # Find the XML input file
   if len(sys.argv) == 1:
@@ -95,13 +97,19 @@ if __name__ == '__main__':
   simulation.setInputFiles(inputFiles)
   #Parse the input
   #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out
+  # what if I still print the error message out?
   for inputFile in inputFiles:
-    tree = ET.parse(inputFile)
+    try: tree = ET.parse(inputFile)
+    except ET.ParseError as e:
+      print('\nXML Parsing error!',e,'\n')
+      sys.exit()
     #except?  riseanIOError('not possible to parse (xml based) the input file '+inputFile)
     if verbosity=='debug': print('DRIVER','opened file '+inputFile)
     root = tree.getroot()
     if root.tag != 'Simulation':
-      raise IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
+      e=IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
+      print('\nInput XML Error!',e,'\n')
+      sys.exit()
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
