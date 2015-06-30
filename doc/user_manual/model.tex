@@ -4559,22 +4559,22 @@ The following is a list of acceptable sub-nodes:
   \item \xmlNode{graph} \xmlDesc{, string, optional field}, specifies the type
   of neighborhood graph used in the algorithm, available options are:
   \begin{itemize}
-    \item \xmlString{beta skeleton}
-    \item \xmlString{relaxed beta skeleton}
-    \item \xmlString{approximate knn}
+    \item \texttt{beta skeleton}
+    \item \texttt{relaxed beta skeleton}
+    \item \texttt{approximate knn}
     %\item Delaunay \textit{(disabled)}
   \end{itemize}
-  \default{\xmlString{beta skeleton}}
+  \default{\texttt{beta skeleton}}
   \item \xmlNode{gradient}, \xmlDesc{string, optional field}, specifies the
   method used for estimating the gradient, available options are:
   \begin{itemize}
-    \item \xmlString{steepest}
+    \item \texttt{steepest}
     %\item \xmlString{maxflow} \textit{(disabled)}
   \end{itemize}
-  \default{\xmlString{steepest}}
-  \item \xmlNode{beta}, \xmlDesc{float, optional field}, is only used when the
-  \texttt{graph} is set to \xmlString{beta skeleton} or \xmlString{relaxed beta
-  skeleton}.
+  \default{\texttt{steepest}}
+  \item \xmlNode{beta}, \xmlDesc{float in the range: (0,2], optional field}, is
+  only used when the \xmlNode{graph} is set to \texttt{beta skeleton} or
+  \texttt{relaxed beta skeleton}.
   \default{1.0}
   \item \xmlNode{knn}, \xmlDesc{integer, optional field}, is the number of
   neighbors when using the \xmlString{approximate knn} for the \xmlNode{graph}
@@ -4589,17 +4589,17 @@ The following is a list of acceptable sub-nodes:
   to define the hierarchical simplification by assigning a value to each local
   minimum and maximum according to the one of the strategy options below:
   \begin{itemize}
-    \item \xmlString{difference} - The function value difference between the
+    \item \texttt{difference} - The function value difference between the
     extremum and its closest-valued neighboring saddle.
-    \item \xmlString{probability} - The probability integral computed as the
+    \item \texttt{probability} - The probability integral computed as the
     sum of the probability of each point in a cluster divided by the count of
     the cluster.
-    \item \xmlString{count} - The count of points that flow to or from the
+    \item \texttt{count} - The count of points that flow to or from the
     extremum.
     % \item \xmlString{area} - The area enclosed by the manifold that flows to
     % or from the extremum.
   \end{itemize}
-  \default{\xmlString{difference}}
+  \default{\texttt{difference}}
   \item \xmlNode{simplification}, \xmlDesc{float, optional field}, specifies the
   amount of noise reduction to apply before returning labels.
   \default{0}
@@ -4615,13 +4615,16 @@ The following is a list of acceptable sub-nodes:
   <Models>
     ...
     <PostProcessor name="***" subType='TopologicalDecomposition'>
-      <graph>Beta Skeleton</graph>
-      <gradient>Steepest</gradient>
+      <graph>beta skeleton</graph>
+      <gradient>steepest</gradient>
       <beta>1</beta>
       <knn>8</knn>
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
+      <weighted>true</weighted>
+      <simplification>0.3</simplification>
+      <persistence>difference</persistence>
     </PostProcessor>
     ...
   <Models>
