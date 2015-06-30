@@ -173,7 +173,7 @@
 
     <Steps>
         <MultiRun name='Umake' pauseAtEnd='False'>
-            <SAmpler class='Samplers'         type='SparseGridCollocation'>USG</Sampler>
+            <Sampler class='Samplers'         type='SparseGridCollocation'>USG</Sampler>
             <Input   class='DataObjects'            type='PointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
             <Output  class='DataObjects'            type='PointSet'         >Usolns</Output>
