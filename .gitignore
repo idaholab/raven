@@ -48,6 +48,7 @@ work_in_progress/remote_tools/time
 framework/DatabaseStorage/
 tests/framework/LHStestFerret/myLHS/
 tests/framework/PreconditionedDynamicEventTree/PreconditionedDETrunTest/
+build/
 
 # eclipse
 .project

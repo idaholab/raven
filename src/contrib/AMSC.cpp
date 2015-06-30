@@ -91,12 +91,12 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
   //if(false)
   if(edgeIndices.size() > 0)
   {
-    time_t t0,t1;
+    time_t t0 = clock();
+    time_t t1;
     if (verbose)
     {
       std::cerr << " (Pruning an external graph)..." << std::endl
                 << "\tLoading Edges...";
-      t0 = clock();
     }
     P = new ngl::prebuiltNGLPointSet<T>(pts, numPts, edgeIndices);
     if (verbose)
@@ -127,12 +127,12 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
     exit(1);
   }
 
-  time_t t0, t1;
+  time_t t0 = clock();
+  time_t t1;
 
   if (verbose)
   {
     std::cerr << "\n\tConstructing graph...";
-    t0 = clock();
   }
   graphAlgorithms[type](*P,&indices,numEdges,params);
   if (verbose)
@@ -173,7 +173,7 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
     dists = boost::numeric::ublas::matrix<T>(kmax,Size());
 
     boost::numeric::ublas::vector<int> nextNeighborId(numPts);
-    for(unsigned int i = 0; i < numPts; i++)
+    for(int i = 0; i < numPts; i++)
     {
       nextNeighborId(i) = 0;
       for(int k = 0; k < kmax; k++)
@@ -188,7 +188,7 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
       int i1 = it->first;
       int i2 = it->second;
       double dist = 0;
-      for(unsigned int d = 0; d < dims; d++)
+      for(int d = 0; d < dims; d++)
           dist += ((X(d,i1)-X(d,i2))*(X(d,i1)-X(d,i2)));
 
       int j = nextNeighborId(i1);
@@ -224,7 +224,7 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
     dists = boost::numeric::ublas::matrix<T>(kmax,Size());
 
     boost::numeric::ublas::vector<int> nextNeighborId(numPts);
-    for(unsigned int i = 0; i < numPts; i++)
+    for(int i = 0; i < numPts; i++)
     {
       nextNeighborId(i) = 0;
       for(int k = 0; k < kmax; k++)
@@ -246,7 +246,7 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
       }
 
       double dist = 0;
-      for(unsigned int d = 0; d < dims; d++)
+      for(int d = 0; d < dims; d++)
           dist += ((X(d,i1)-X(d,i2))*(X(d,i1)-X(d,i2)));
 
       int j = nextNeighborId(i1);
@@ -261,7 +261,7 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
     }
   }
 
-  for(unsigned int i = 0; i < numPts; i++)
+  for(int i = 0; i < numPts; i++)
     //TODO: too many neighborhood representations floating around, this one is
     //      useful for later queries to the data, when the user wants to ask
     //      who is near point x?
@@ -417,7 +417,7 @@ boost::numeric::ublas::matrix<T> &distances)
     flow.push_back(FlowPair(-1,-1));
 
   std::list<int> path;
-  for(unsigned int i=0; i < Size(); i++)
+  for(int i=0; i < Size(); i++)
   {
     //If we have not identified this point's maximum, then we will do so now
     if( flow[i].up == -1)
@@ -456,7 +456,7 @@ boost::numeric::ublas::matrix<T> &distances)
     }
   }
 
-  for(unsigned int i=0; i < Size(); i++)
+  for(int i=0; i < Size(); i++)
   {
     if( flow[i].down == -1)
     {
@@ -1100,7 +1100,7 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
   // to be exposed to the user, for now I will enforce that it does not happen
   bool connect = false;
 
-  for(int i = 0; i < _names.size(); i++)
+  for(unsigned int i = 0; i < _names.size(); i++)
     names.push_back(_names[i]);
 
   int M = Xin.size() / yin.size();
@@ -1202,7 +1202,7 @@ template<typename T>
 void AMSC<T>::ConnectComponents(std::set<int_pair> &ngraph, int &maxCount)
 {
   UnionFind connectedComponents;
-  for(unsigned int i = 0; i < Size(); i++)
+  for(int i = 0; i < Size(); i++)
     connectedComponents.MakeSet(i);
 
   for(std::set<int_pair>::iterator iter= ngraph.begin();
@@ -1219,7 +1219,7 @@ void AMSC<T>::ConnectComponents(std::set<int_pair> &ngraph, int &maxCount)
   {
     std::cerr << "Connected Components: " << numComponents << "(Graph size: "
               << ngraph.size() << ")" << std::endl;
-    for(int i = 0; i < reps.size(); i++)
+    for(unsigned int i = 0; i < reps.size(); i++)
       std::cerr << reps[i] << " ";
    // std::cerr << std::endl << "EDGES:" << std::endl;
    // for( std::set<int_pair>::iterator it = ngraph.begin();
@@ -1251,17 +1251,17 @@ void AMSC<T>::ConnectComponents(std::set<int_pair> &ngraph, int &maxCount)
         {
           int AvIdx = components[a][i];
           std::vector<T> ai;
-          for(unsigned int d = 0; d < Dimension(); d++)
+          for(int d = 0; d < Dimension(); d++)
               ai.push_back(X(d,AvIdx));
           for(unsigned int j = 0; j < components[b].size(); j++)
           {
             int BvIdx = components[b][j];
             std::vector<T> bj;
-            for(unsigned int d = 0; d < Dimension(); d++)
+            for(int d = 0; d < Dimension(); d++)
               bj.push_back(X(d,BvIdx));
 
             T distance = 0;
-            for(unsigned int d = 0; d < Dimension(); d++)
+            for(int d = 0; d < Dimension(); d++)
               distance += (ai[d]-bj[d])*(ai[d]-bj[d]);
             if(minDistance == -1 || distance < minDistance)
             {
@@ -1296,7 +1296,7 @@ void AMSC<T>::ConnectComponents(std::set<int_pair> &ngraph, int &maxCount)
     delete [] components;
   }
   int *counts = new int[Size()];
-  for(unsigned int i = 0; i < Size(); i++)
+  for(int i = 0; i < Size(); i++)
     counts[i] = 0;
 
   for(std::set<int_pair>::iterator it = ngraph.begin();
@@ -1306,7 +1306,7 @@ void AMSC<T>::ConnectComponents(std::set<int_pair> &ngraph, int &maxCount)
     counts[it->first]+=1;
     counts[it->second]+=1;
   }
-  for(unsigned int i = 0; i < Size(); i++)
+  for(int i = 0; i < Size(); i++)
     maxCount = maxCount < counts[i] ? counts[i] : maxCount;
 
   delete [] counts;

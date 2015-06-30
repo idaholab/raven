@@ -5,7 +5,7 @@ from XMLDiff import XMLDiff
 import RavenUtils
 import os
 import subprocess
-import platform
+import sys
 
 class RavenFramework(Tester):
 
@@ -51,12 +51,9 @@ class RavenFramework(Tester):
       return (False,'skipped (Old version python modules: '+" ".join(too_old)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
     for lib in self.required_libraries:
-      if platform.system() == 'Windows':
-        lib += '.pyd'
-      else:
-        lib += '.so'
-      if not os.path.exists(lib):
-        return (False,'skipped (Missing library: "'+lib+'")')
+      missing, too_old = RavenUtils.checkForMissingModule(lib,'','')
+      if len(missing) > 0:
+        return (False,'skipped (Unable to import library: "'+lib+'")')
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
       return (False,'skipped (Missing executable: "'+self.required_executable+'")')
