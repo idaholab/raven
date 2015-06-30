@@ -227,7 +227,7 @@ class MessageHandler(object):
       if not self.suppressErrs and verbval==3: raise etype(msg) #DEBUG mode without suppression
       print('\n'+etype.__name__+':',msg,file=sys.stderr)
       if not self.suppressErrs: #exit after print
-        sys.exit()
+        sys.exit(1)
 
   def message(self,caller,message,tag,verbosity):
     """

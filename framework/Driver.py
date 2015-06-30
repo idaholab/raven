@@ -80,7 +80,7 @@ if __name__ == '__main__':
     else:
       e=IOError('DRIVER',str(configFile)+' should only have Simulation and inside it RunInfo')
       print('\nERROR! In Driver,',e,'\n')
-      sys.exit()
+      sys.exit(1)
 
   # Find the XML input file
   if len(sys.argv) == 1:
@@ -102,14 +102,14 @@ if __name__ == '__main__':
     try: tree = ET.parse(inputFile)
     except ET.ParseError as e:
       print('\nXML Parsing error!',e,'\n')
-      sys.exit()
+      sys.exit(1)
     #except?  riseanIOError('not possible to parse (xml based) the input file '+inputFile)
     if verbosity=='debug': print('DRIVER','opened file '+inputFile)
     root = tree.getroot()
     if root.tag != 'Simulation':
       e=IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
       print('\nInput XML Error!',e,'\n')
-      sys.exit()
+      sys.exit(1)
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)

@@ -99,9 +99,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   @classmethod
   def specializeValidateDict(cls):
     """ This method should be overridden to describe the types of input accepted with a certain role by the model class specialization"""
-    e=NotImplementedError('The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
-    print('\nValidation-not-implemented error!',e,'\n')
-    sys.exit()
+    raise NotImplementedError('The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
 
   @classmethod
   def localValidateMethod(cls,who,what):
