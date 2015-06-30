@@ -17,7 +17,7 @@ import os
 from BaseClasses import BaseType
 #Internal Modules End--------------------------------------------------------------------------------
 
-class FileObject(BaseType,str):
+class Files(BaseType,str):
   """
   This class is the base implementation of the file object entity in RAVEN.
   This is needed in order to standardize the object manipulation in the RAVEN code
@@ -50,13 +50,13 @@ class FileObject(BaseType,str):
     Overload add "+"
     """
     if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-    return FileObject(self.filename + other)
+    return Files(self.filename + other)
   def __radd__(self, other):
     """
     Overload radd "+"
     """
     if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-    return FileObject(other + self.filename)
+    return Files(other + self.filename)
   def __lt__(self, other)  :
     """
     Overload lt "<"
@@ -107,6 +107,13 @@ class FileObject(BaseType,str):
     else                   : self.main = self.filename
     if len(filename.split(".")) > 1: self.ext = filename.split(".")[1].lower()
     else                           : self.ext = 'unknown'
+    self.raiseADebug('in setFilename,filename is',self.filename)
+
+  def setPath(self,path=None):
+    if path==None: path=self.path
+    if '~' in path:
+      path = os.path.expanduser(path)
+    self.path = path
 
   ### ACCESS FUNCTIONS ###
   def isOpen(self):
@@ -124,6 +131,10 @@ class FileObject(BaseType,str):
     @ Out, None
     """
     path = os.path.normpath(os.path.join(self.path,self.filename))
+    self.raiseADebug('Checking path:',path)
+    self.raiseADebug('Filename:',self.filename)
+    self.raiseADebug('name:    ',self.name)
+    self.raiseADebug('alias:   ',self.alias)
     if not os.path.exists(path): self.raiseAnError(IOError,'File not found:',path)
 
   ### FILE-LIKE FUNCTIONS ###
@@ -174,7 +185,7 @@ class FileObject(BaseType,str):
 #
 #
 #
-class RAVENGenerated(FileObject):
+class RAVENGenerated(Files):
   """
   This class is for file objects that are created and used internally by RAVEN.
   Initialization is through calling self.initialize
@@ -192,24 +203,26 @@ class RAVENGenerated(FileObject):
 #
 #
 #
-class UserGenerated(FileObject):
+class UserGenerated(Files):
   """
   This class is for file objects that are created and used internally by RAVEN.
   Initialization is through self._readMoreXML
   """
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self,node):
     """
       reads the xmlNode and sets parameters
       @ In,  xmlNode, XML node
       @ In,  msgHandler, MessageHandler object
       @ Out, None
     """
-    for node in xmlNode:
-      self.type = node.tag #XSD should confirm types as Input only valid type so far
-      self._setFilename(node.text.strip())
-      self.perturbed = node.attrib.get('perturbable',True)
-      self.subtype   = node.attrib.get('type'       ,None)
-      self.alias     = node.attrib.get('name'       ,self.filename)
+    self.raiseADebug('READING UserGen xml!!!!!!!!')
+    #for node in xmlNode:
+    self.raiseADebug('NODE:',node.tag)
+    self.type = node.tag #XSD should confirm types as Input only valid type so far
+    self._setFilename(node.text.strip())
+    self.perturbed = node.attrib.get('perturbable',True)
+    self.subtype   = node.attrib.get('type'       ,None)
+    self.alias     = node.attrib.get('name'       ,self.filename)
 #
 #
 #

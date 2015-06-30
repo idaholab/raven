@@ -28,7 +28,7 @@ from Assembler import Assembler
 import SupervisedLearning
 import MessageHandler
 import GridEntities
-from FileObjects import FileObject
+import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
 """

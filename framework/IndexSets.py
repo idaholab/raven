@@ -9,7 +9,7 @@ import sys
 import operator
 
 import MessageHandler
-import FileObjects
+import Files
 
 class IndexSet(MessageHandler.MessageUser):
   """In stochastic collocation for generalised polynomial chaos, the Index Set
@@ -420,7 +420,8 @@ class AdaptiveSet(IndexSet):
       @ Out, None
     """
     msg = '\n'.join(self.history)
-    outFile = FileObjects.FileObject('isethist.out') #TODO does this work?  What do file objects do?
+    outFile = Files.returnInstance('RAVEN')
+    outFile.initialize('isethist.out') #TODO does this work?  What do files do?
     outFile.writelines(msg)
 
   def printHistory(self):

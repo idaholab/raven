@@ -347,7 +347,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if parent_id and self._dataParameters['hierarchical']:
           self.raiseAWarning('-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
-    elif (self._toLoadFromList[-1].type == 'FileObject'): tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
+    elif (self._toLoadFromList[-1].type == 'Files'): tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
     else: self.raiseAnError(ValueError, "Type "+self._toLoadFromList[-1].type+ "from which the DataObject "+ self.name +" should be constructed is unknown!!!")
 
     for hist in tupleVar[0].keys():
@@ -949,7 +949,7 @@ class PointSet(Data):
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
       if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-      elif 'FileObject' == sourceLoad.type: lenMustHave += 1
+      elif 'Files' == sourceLoad.type: lenMustHave += 1
       else: self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
 
     if'HDF5' == self._toLoadFromList[-1].type:
@@ -1495,7 +1495,7 @@ class HistorySet(Data):
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
       if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-      elif 'FileObject' == sourceLoad.type: lenMustHave += 1
+      elif 'Files' == sourceLoad.type: lenMustHave += 1
       else: self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
 
     if self._dataParameters['hierarchical']:

@@ -30,7 +30,7 @@ import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
 import TreeStructure
-import FileObjects
+import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
 #class Model(BaseType):
@@ -54,8 +54,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Input'  ][0]['required'    ] = False
   validateDict['Input'  ][0]['multiplicity'] = 'n'
   validateDict['Input'].append(testDict.copy())
-  validateDict['Input'  ][1]['class'       ] = 'FileObjects'
-  validateDict['Input'  ][1]['type'        ] = ['']
+  validateDict['Input'  ][1]['class'       ] = 'Files'
+  #validateDict['Input'  ][1]['type'        ] = ['']
   validateDict['Input'  ][1]['required'    ] = False
   validateDict['Input'  ][1]['multiplicity'] = 'n'
   #the possible outputs
@@ -117,7 +117,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       anItem['found'] = False
       for tester in cls.validateDict[who]:
         if anItem['class'] == tester['class']:
-          if anItem['class']=='FileObjects': #FIXME FileObjects can accept any type, including None.
+          if anItem['class']=='Files': #FIXME Files can accept any type, including None.
             tester['tempCounter']+=1
             anItem['found']=True
             break
@@ -772,12 +772,12 @@ class Code(Model):
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
-    attributes={"input_file":self.currentInputFiles,"type":"csv","name":FileObject(os.path.join(self.workingDir,finisishedjob.output+'.csv'))}
+    attributes={"input_file":self.currentInputFiles,"type":"csv","name":Files(os.path.join(self.workingDir,finisishedjob.output+'.csv'))}
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
     elif output.type in ['Point','PointSet','History','HistorySet']:
-      output.addOutput(FileObject(os.path.join(self.workingDir,finisishedjob.output) + ".csv"),attributes)
+      output.addOutput(Files(os.path.join(self.workingDir,finisishedjob.output) + ".csv"),attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
     else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)

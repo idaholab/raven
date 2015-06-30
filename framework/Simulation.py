@@ -20,7 +20,7 @@ import datetime
 #Internal Modules------------------------------------------------------------------------------------
 import Steps
 import DataObjects
-import FileObjects
+import Files
 import Samplers
 import Models
 import Tests
@@ -31,7 +31,6 @@ import OutStreamManager
 from JobHandler import JobHandler
 import MessageHandler
 import utils
-import FileObjects
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------
@@ -321,7 +320,7 @@ class Simulation(MessageHandler.MessageUser):
     self.distributionsDict    = {}
     self.dataBasesDict        = {}
     self.functionsDict        = {}
-    self.filesDict            = {} #  for each file returns an instance of a FileObject class
+    self.filesDict            = {} #  for each file returns an instance of a Files class
     self.OutStreamManagerPlotDict  = {}
     self.OutStreamManagerPrintDict = {}
     self.stepSequenceList     = [] #the list of step of the simulation
@@ -346,7 +345,7 @@ class Simulation(MessageHandler.MessageUser):
     self.addWhatDict['Distributions'    ] = Distributions
     self.addWhatDict['Databases'        ] = Databases
     self.addWhatDict['Functions'        ] = Functions
-    self.addWhatDict['Files'            ] = FileObjects
+    self.addWhatDict['Files'            ] = Files
     self.addWhatDict['OutStreamManager' ] = {}
     self.addWhatDict['OutStreamManager' ]['Plot' ] = OutStreamManager
     self.addWhatDict['OutStreamManager' ]['Print'] = OutStreamManager
@@ -385,12 +384,10 @@ class Simulation(MessageHandler.MessageUser):
 
   def __createAbsPath(self,filein):
     """assuming that the file in is already in the self.filesDict it places, as value, the absolute path"""
-    if '~' in filein : filein = os.path.expanduser(filein)
-    if not os.path.isabs(filein):
-      self.filesDict[filein] = FileObjects.returnInstance('RAVEN',self)
-      path = os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein))
-      self.filesDict[filein].initialize(filein,self.messageHandler,path=path)
-      #originally self.filesDict[filein] = FileObject(os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein)))
+    curfile = self.filesDict[filein]
+    path = os.path.normpath(self.runInfoDict['WorkingDir'])
+    curfile.setPath(path)
+    # FIXME originally self.filesDict[filein] = FileObject(os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein)))
 
   #deprecated
   #def __checkExistPath(self,filein):
@@ -418,6 +415,7 @@ class Simulation(MessageHandler.MessageUser):
         if Class != 'RunInfo':
           for childChild in child:
             subType = childChild.tag
+            self.raiseADebug('\n\nREADING SUBTYPE:',child.tag,'->',subType)
             if 'name' in childChild.attrib.keys():
               name = childChild.attrib['name']
               self.raiseADebug('Reading type '+str(childChild.tag)+' with name '+name)
@@ -430,6 +428,9 @@ class Simulation(MessageHandler.MessageUser):
                       self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
                     else:
                       self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
+                      if Class=='Files':
+                        self.raiseADebug('DEUBGGGG adddict',self.addWhatDict[Class],childChild.tag)
+                        self.raiseADebug('DEUBGGGG Added',self.whichDict[Class][name])
                   else: self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
               else:
                   if name not in self.whichDict[Class][subType].keys():  self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)
@@ -461,7 +462,7 @@ class Simulation(MessageHandler.MessageUser):
       self.runInfoDict['totalNumCoresUsed'] = oldTotalNumCoresUsed
     elif oldTotalNumCoresUsed > 1: #If 1, probably just default
       self.raiseAWarning("overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
-    #transform all files in absolute path
+    #transform all files in absolute path - FIXME not needed anymore?
     for key in self.filesDict.keys(): self.__createAbsPath(key)
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
@@ -615,12 +616,23 @@ class Simulation(MessageHandler.MessageUser):
       stepInputDict['Input' ]          = []                         #set the Input to an empty list
       stepInputDict['Output']          = []                         #set the Output to an empty list
       #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
+      self.raiseADebug('In step',stepName)
       for [key,b,c,d] in stepInstance.parList:
         #Only for input and output we allow more than one object passed to the step, so for those we build a list
+        self.raiseADebug('Doing key=',key)
         if key == 'Input' or key == 'Output':
-            if b == 'OutStreamManager': stepInputDict[key].append(self.whichDict[b][c][d])
-            else:                       stepInputDict[key].append(self.whichDict[b][d])
-        else: stepInputDict[key] = self.whichDict[b][d]
+            if b == 'OutStreamManager':
+              stepInputDict[key].append(self.whichDict[b][c][d])
+              #self.raiseADebug('What is in whichdict1|','b:',b,'c:',c,'d:',d,'dict:',self.whichDict[b][c][d])
+            else:
+              stepInputDict[key].append(self.whichDict[b][d])
+              #self.raiseADebug('What is in whichdict2|','b:',b,'d:',d,'dict:',self.whichDict[b][d])
+            if key=='Input':
+              self.raiseADebug('key %s b %s c %s d %s' %(key,b,c,d))
+              self.raiseADebug('dict:',self.whichDict[b])
+              self.raiseADebug('Added',stepInputDict[key])
+        else:
+          stepInputDict[key] = self.whichDict[b][d]
         if key == 'Input' and b == 'Files':
           # get file object from dict?
           fileobj = self.whichDict[b][d]
@@ -629,6 +641,8 @@ class Simulation(MessageHandler.MessageUser):
           # originally self.__checkExistPath(d) #if the input is a file, check if it exists
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler
+      #DEBUG FIXME
+      self.raiseADebug('Stuff in stepInputDict:','\n',stepInputDict)
       #generate the needed assembler to send to the step
       for key in stepInputDict.keys():
         if type(stepInputDict[key]) == list: stepindict = stepInputDict[key]

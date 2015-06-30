@@ -492,9 +492,9 @@ class IOStep(Step):
         if outputs[i].type == 'HDF5': self.actionType.append('dataObjects-HDF5')
         else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a DataObjects. Got ' + inDictionary['Output'][i].type)
       elif isinstance(inDictionary['Input'][i],Models.ROM):
-        if outputs[i].type == 'FileObject': self.actionType.append('ROM-FILES')
+        if outputs[i].type == 'Files': self.actionType.append('ROM-FILES')
         else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A Files as Output only, when the Input is a ROM. Got ' + inDictionary['Output'][i].type)
-      elif inDictionary['Input'][i].type == 'FileObject':
+      elif inDictionary['Input'][i].type == 'Files':
         if isinstance(outputs[i],Models.ROM): self.actionType.append('FILES-ROM')
         else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
       else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
