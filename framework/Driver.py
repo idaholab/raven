@@ -96,8 +96,9 @@ if __name__ == '__main__':
 
   simulation.setInputFiles(inputFiles)
   #Parse the input
-  #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out
-  # what if I still print the error message out?
+  #For future developers of this block, assure that useful, informative exceptions
+  #  are still thrown while parsing the XML tree.  Otherwise any error made by
+  #  the developer or user might be obfuscated.
   for inputFile in inputFiles:
     try: tree = ET.parse(inputFile)
     except ET.ParseError as e:
@@ -117,4 +118,3 @@ if __name__ == '__main__':
   simulation.initialize()
   # Run the simulation
   simulation.run()
-
