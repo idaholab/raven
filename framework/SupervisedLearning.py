@@ -40,7 +40,7 @@ interpolationND = utils.find_interpolationND()
 class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
   """
   This is the general interface to any superVisedLearning learning method.
-  Essentially it contains a train, and evaluate methods
+  Essentially it contains a train method and an evaluate method
   """
   returnType      = '' #this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
   qualityEstType  = [] #this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
@@ -58,6 +58,12 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     return (True,'')
 
   def __init__(self,messageHandler,**kwargs):
+    """
+    A constructor that will appropriately intialize a supervised learning object
+    @In, messageHandler: a MessageHandler object in charge of raising errors,
+                         and printing messages
+    @In, kwargs: an arbitrary list of kwargs
+    """
     self.printTag = 'SuperVised'
     self.messageHandler = messageHandler
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
@@ -125,6 +131,8 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     This call is used to get an estimate of the confidence in the prediction.
     The base class self.confidence will translate a dictionary into numpy array, then call the local confidence
+    @ In, edict, evaluation dictionary
+    @ Out, float, the confidence
     """
     if type(edict) != dict: self.raiseAnError(IOError,'method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values   = list(edict.keys()), list(edict.values())
@@ -145,7 +153,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     Method to perform the evaluation of a point or a set of points through the previous trained superVisedLearning algorithm
     NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
     the interface with the kernels requires.
-    @ In, tdict, evaluation dictionary
+    @ In, edict, evaluation dictionary
     @ Out, numpy array of evaluated points
     """
     if type(edict) != dict: self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
