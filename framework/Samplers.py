@@ -493,9 +493,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
 
   def localInputAndChecks(self,xmlNode):
     """
-    Class specific inputs will be read here and checked for validity.
+    Class specific xml inputs will be read here and checked for validity.
     @ In, xmlNode: The xml element node that will be checked against the
                    available options specific to this Sampler.
+    @ Out, None
     """
     if 'limit' in xmlNode.attrib.keys():
       try: self.limit = int(xmlNode.attrib['limit'])
@@ -813,6 +814,7 @@ class MonteCarlo(Sampler):
     Class specific xml inputs will be read here and checked for validity.
     @ In, xmlNode: The xml element node that will be checked against the
                    available options specific to this Sampler.
+    @ Out, None
     """
     Sampler.read_sampler_init(self,xmlNode)
 
@@ -908,6 +910,7 @@ class Grid(Sampler):
     Specifically, reading and construction of the grid for this Sampler.
     @ In, xmlNode: The xml element node that will be checked against the
                    available options specific to this Sampler.
+    @ Out, None
     """
     if 'limit' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
@@ -2204,7 +2207,13 @@ class FactorialDesign(Grid):
     self.designMatrix  = None                        # matrix container
 
   def localInputAndChecks(self,xmlNode):
-    """ reading and construction of the grid """
+    """
+    Class specific xml inputs will be read here and checked for validity.
+    Specifically, reading and construction of the grid.
+    @ In, xmlNode: The xml element node that will be checked against the
+                   available options specific to this Sampler.
+    @ Out, None
+    """
     Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("FactorialSettings")
     if factsettings == None: self.raiseAnError(IOError,'FactorialSettings xml node not found!')
@@ -2263,6 +2272,12 @@ class FactorialDesign(Grid):
       self.limit = self.designMatrix.shape[0]        # the limit is the number of rows
 
   def localGenerateInput(self,model,myInput):
+    """
+    Will generate an input and associate it with a probability
+      @ In, model, the model to evaluate
+      @ In, myInput, list of original inputs (unused)
+      @ Out, None
+    """
     if self.factOpt['algorithm_type'] == 'full':  Grid.localGenerateInput(self,model, myInput)
     else:
       self.gridCoordinate = self.designMatrix[self.counter - 1][:].tolist()
