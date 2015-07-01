@@ -58,8 +58,8 @@
     </xsd:all>
     <xsd:attribute name="name"        type="xsd:string" use="required"/>
     <xsd:attribute name="dim"         type="dimInteger" use="required"/>
-    <xsd:attribute name="interactive" type="xsd:boolean" default="false"/>
-    <xsd:attribute name="overwrite"   type="xsd:boolean" default="false"/>
+    <xsd:attribute name="interactive" type="RavenBool" default="false"/>
+    <xsd:attribute name="overwrite"   type="RavenBool" default="false"/>
     <!-- Does this exist? -->
     <xsd:attribute name="verbosity"   type="xsd:string"/>
   </xsd:complexType>
@@ -131,7 +131,7 @@
       <xsd:element name="scilimits" type="intList" minOccurs="0"/>
       <xsd:element name="useOffset" minOccurs="0">
         <xsd:simpleType>
-          <xsd:union memberTypes="xsd:float xsd:boolean" />
+          <xsd:union memberTypes="xsd:float MatPlotLibBool" />
         </xsd:simpleType>
       </xsd:element>
     </xsd:all>
@@ -144,7 +144,7 @@
       <xsd:element name="facecolor" type="xsd:string"  minOccurs="0"/>
       <xsd:element name="edgecolor" type="xsd:string"  minOccurs="0"/>
       <xsd:element name="linewidth" type="xsd:float"   minOccurs="0"/>
-      <xsd:element name="frameon"   type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="frameon"   type="MatPlotLibBool" minOccurs="0"/>
     </xsd:all>
   </xsd:complexType>
 
@@ -184,9 +184,9 @@
 
   <xsd:complexType name="autoscaleType">
     <xsd:all>
-      <xsd:element name="enable" type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="enable" type="MatPlotLibBool" minOccurs="0"/>
       <xsd:element name="aixs"   type="xsd:string"  minOccurs="0"/>
-      <xsd:element name="tight"  type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="tight"  type="MatPlotLibBool" minOccurs="0"/>
     </xsd:all>
   </xsd:complexType>
 
@@ -220,7 +220,7 @@
 
   <xsd:complexType name="plotGridType">
     <xsd:all>
-      <xsd:element name="b"      type="xsd:boolean"  minOccurs="0"/>
+      <xsd:element name="b"      type="MatPlotLibBool"  minOccurs="0"/>
       <xsd:element name="which"  type="xsd:float"  minOccurs="0"/>
       <xsd:element name="axis"   type="xsd:float"  minOccurs="0"/>
       <xsd:element name="kwargs" type="kwargsType" minOccurs="0"/>
@@ -319,16 +319,16 @@
       <!-- type=histogram -->
       <!-- bins can be an integer or a list of values -->
       <xsd:element name="bins" type="floatList" minOccurs="0"/>
-      <xsd:element name="normed" type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="normed" type="MatPlotLibBool" minOccurs="0"/>
       <xsd:element name="weights" type="floatList" minOccurs="0"/>
-      <xsd:element name="cumulative" type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="cumulative" type="MatPlotLibBool" minOccurs="0"/>
       <xsd:element name="histtype" type="histType" minOccurs="0"/>
       <xsd:element name="align" type="alignType" minOccurs="0"/>
       <xsd:element name="orientation" type="orientationType" minOccurs="0"/>
       <xsd:element name="rwidth" type="fractionType" minOccurs="0"/>
-      <xsd:element name="log" type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="log" type="MatPlotLibBool" minOccurs="0"/>
       <xsd:element name="color" type="xsd:string" minOccurs="0"/>
-      <xsd:element name="stacked" type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="stacked" type="MatPlotLibBool" minOccurs="0"/>
       <!-- type=stem -->
       <xsd:element name="linefmt" type="xsd:string" minOccurs="0"/>
       <xsd:element name="markerfmt" type="xsd:string" minOccurs="0"/>
@@ -342,11 +342,11 @@
       <!-- type=surface -->
       <xsd:element name="rstride" type="xsd:integer" minOccurs="0"/>
       <xsd:element name="cstride" type="xsd:integer" minOccurs="0"/>
-      <xsd:element name="antialiased" type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="antialiased" type="MatPlotLibBool" minOccurs="0"/>
       <xsd:element name="linewidth" type="xsd:integer" minOccurs="0"/>
       <!-- type=wireframe, similar to above -->
       <!-- type=tri-surface -->
-      <xsd:element name="shade" type="xsd:boolean" minOccurs="0"/>
+      <xsd:element name="shade" type="MatPlotLibBool" minOccurs="0"/>
       <!-- type=contour3D, all are specified above -->
     </xsd:all>
   </xsd:complexType>

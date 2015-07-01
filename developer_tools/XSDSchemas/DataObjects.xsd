@@ -45,7 +45,7 @@
       <xsd:element name="options" type="optionsType" minOccurs="0"/>
     </xsd:all>
     <xsd:attribute name="name"         type="xsd:string"  use="required"/>
-    <xsd:attribute name="hierarchical" type="xsd:boolean"/>
+    <xsd:attribute name="hierarchical" type="RavenBool"/>
   </xsd:complexType>
 
   <xsd:complexType name="historyDataObjectsData">

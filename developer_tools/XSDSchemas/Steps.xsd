@@ -35,7 +35,7 @@
       </xsd:element>
     </xsd:all>
     <xsd:attribute name="name"       type="xsd:string" use="required" />
-    <xsd:attribute name="pauseAtEnd" type="xsd:boolean" />
+    <xsd:attribute name="pauseAtEnd" type="RavenBool" />
   </xsd:complexType>
 
   <xsd:complexType name="MultiRunStepType">
@@ -76,7 +76,7 @@
       </xsd:element>
     </xsd:sequence>
     <xsd:attribute name="name"       type="xsd:string" use="required"/>
-    <xsd:attribute name="pauseAtEnd" type="xsd:boolean" />
+    <xsd:attribute name="pauseAtEnd" type="RavenBool" />
     <xsd:attribute name="sleepTime"  type="xsd:float"  default="0.05" />
     <xsd:attribute name="verbosity" type="xsd:string" default="all"/>
     <xsd:attribute name="re-seeding" type="xsd:string" />
@@ -100,7 +100,7 @@
       </xsd:element>
     </xsd:sequence>
     <xsd:attribute name="name"          type="xsd:string"  use="required"/>
-    <xsd:attribute name="pauseAtEnd"    type="xsd:boolean" />
+    <xsd:attribute name="pauseAtEnd"    type="RavenBool" />
     <xsd:attribute name="fromDirectory" type="xsd:string" />
     <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
   </xsd:complexType>
@@ -158,6 +158,6 @@
       </xsd:element>
     </xsd:sequence>
     <xsd:attribute name="name"       type="xsd:string" use="required"/>
-    <xsd:attribute name="pauseAtEnd" type="xsd:boolean" />
+    <xsd:attribute name="pauseAtEnd" type="RavenBool" />
   </xsd:complexType>
 </xsd:schema>

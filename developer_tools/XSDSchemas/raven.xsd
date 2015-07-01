@@ -46,6 +46,24 @@
         <xsd:enumeration value="debug" />
       </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:simpleType name="RavenBool">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="false"/>
+            <xsd:enumeration value="False"/>
+            <xsd:enumeration value="no"/>
+            <xsd:enumeration value="true"/>
+            <xsd:enumeration value="True"/>
+            <xsd:enumeration value="yes"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="MatPlotLibBool">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="False"/>
+            <xsd:enumeration value="True"/>
+        </xsd:restriction>
+    </xsd:simpleType>
     <!-- End Common simple types -->
 
     <xsd:element name="Simulation">
@@ -62,7 +80,7 @@
                 <xsd:element name="OutStreamManager" type="OutStreamData"    minOccurs="0"/>
             </xsd:all>
             <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
-            <xsd:attribute name="printTimeStamps" type="xsd:boolean" />
+            <xsd:attribute name="printTimeStamps" type="RavenBool" />
         </xsd:complexType>
         <xsd:key name="distName">
             <xsd:selector xpath="./Distributions/*"/>
@@ -110,7 +128,7 @@
             <xsd:element name="clusterParameters"  type="xsd:string"  minOccurs="0" default="None"/>
             <xsd:element name="MaxLogSize"         type="xsd:integer" minOccurs="0"/>
             <xsd:element name="deleteOutExtension" type="xsd:string"  minOccurs="0" default="None"/>
-            <xsd:element name="delSucLogFiles"     type="xsd:boolean" minOccurs="0" default="false"/>
+            <xsd:element name="delSucLogFiles"     type="RavenBool" minOccurs="0" default="false"/>
 
             <xsd:element name="NumNode"          type="xsd:integer" minOccurs="0"/>
             <xsd:element name="queueingSoftware" type="xsd:string"  minOccurs="0" default="PBS PROFESSIONAL"/>
@@ -176,7 +194,7 @@
         <xsd:extension base="PostProcessor">
           <xsd:all minOccurs="0">
             <xsd:element name="what" type="BasicStatsWhatType" minOccurs="1"></xsd:element>
-            <xsd:element name='biased' type='xsd:boolean' minOccurs="0" default='false'></xsd:element>
+            <xsd:element name='biased' type='RavenBool' minOccurs="0" default='false'></xsd:element>
             <xsd:element name='parameters' type='xsd:string' minOccurs="1"></xsd:element>
             <xsd:element name='methodsToRun' type='xsd:string' minOccurs="0"></xsd:element>
             <!-- TODO: Somehow point to the things existing in the function block-->
@@ -218,7 +236,7 @@
                 </xsd:all>
               </xsd:complexType>
             </xsd:element>
-            <xsd:element name="fz" type="xsd:boolean" />
+            <xsd:element name="fz" type="RavenBool" />
             <xsd:element name="interpolation" type="xsd:string" />
           </xsd:all>
         </xsd:extension>
@@ -366,7 +384,7 @@
             <xsd:element name="gradient" type="TopoGradient" default="steepest"/>
             <xsd:element name="beta" type="TopoBeta" default="1."/>
             <xsd:element name="knn" type="xsd:integer" default="-1"/>
-            <xsd:element name="weighted" type="xsd:boolean" default="false"/>
+            <xsd:element name="weighted" type="RavenBool" default="false"/>
             <xsd:element name="persistence" type="TopoPersistence" default="difference"/>
             <xsd:element name="simplification" type="xsd:float" default="0"/>
             <xsd:element name="parameters" type="xsd:string" minOccurs="1"/>
