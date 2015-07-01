@@ -1495,11 +1495,10 @@ class DynamicEventTree(Grid):
     return
 
   def _createRunningQueueBranch(self,model,myInput):
-    """
-
-    @ In, model  : Model instance. It can be a Code type, ROM, etc.
-    @ In, myInput: List of the original inputs
-    @ Out, None
+    """ Method to generate the running internal queue right after a branch occurred
+    It generates the the information to insatiate the branches' continuation of the Deterministic Dynamic Event Tree
+    @ In, model, Models object, the model that is used to explore the input space (e.g. a code, like RELAP-7)
+    @ In, myInput, list, list of inputs for the Models object (passed through the Steps XML block)
     """
     # The first DET calculation branch has already been run'
     # Start the manipulation:
@@ -1957,11 +1956,10 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
 
   def _constructEndInfoFromBranch(self,model, myInput, info, cdfValues):
     """
-    @In model    : Model instance. It can be a Code type, ROM, etc.
-    @In myInput  : List of the original inputs
-    @InOut info  : Dictionary object where we will add information
-    @In cdfValues: Dictionary object storing the CDF values for each sampled
-                   parameter
+    @ In, model, Models object, the model that is used to explore the input space (e.g. a code, like RELAP-7)
+    @ In, myInput, list, list of inputs for the Models object (passed through the Steps XML block)
+    @ In, info, dict, dictionary of information at the end of a branch (information collected by the method _retrieveBranchInfo)
+    @ In, cdfValues, dict, dictionary of CDF thresholds reached by the branch that just ended.
     """
     endInfo = info['parent_node'].get('endInfo')
     #branchedLevel = {}
