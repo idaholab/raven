@@ -796,12 +796,18 @@ class LimitSurfaceSearch(AdaptiveSampler):
 class MonteCarlo(Sampler):
   """MONTE CARLO Sampler"""
   def __init__(self):
+    """
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
+    """
     Sampler.__init__(self)
     self.printTag = 'SAMPLER MONTECARLO'
 
   def localInputAndChecks(self,xmlNode):
     """
-    xml additional parser for the MonteCarlo Class
+    Class specific xml inputs will be read here and checked for validity.
+    @ In, xmlNode: The xml element node that will be checked against the
+                   available options specific to this Sampler.
     """
     Sampler.read_sampler_init(self,xmlNode)
 
@@ -816,7 +822,11 @@ class MonteCarlo(Sampler):
       utils.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the sampler_init block')
 
   def localInitialize(self):
-    """See base class."""
+    """
+    Will perform all initialization specific to this Sampler. This will be
+    called at the beginning of each Step where this object is used. See base
+    class for more details.
+    """
     if self.restartData:
       self.counter+=len(self.restartData)
       self.raiseAMessage('Number of points from restart: %i' %self.counter)
@@ -824,7 +834,13 @@ class MonteCarlo(Sampler):
     #pass #TODO fix the limit based on restartData
 
   def localGenerateInput(self,model,myInput):
-    """set up self.inputInfo before being sent to the model"""
+    """
+    Will generate an input and associate it with a probability
+    (set up self.inputInfo before being sent to the model)
+      @ In, model, the model to evaluate
+      @ In, myInput, list of original inputs (unused)
+      @ Out, None
+    """
     # create values dictionary
     for key in self.distDict:
       # check if the key is a comma separated list of strings
@@ -2401,7 +2417,7 @@ class SparseGridCollocation(Grid):
     """
       Provide the next point in the sparse grid.
       @ In, model, the model to evaluate
-      @ In, myInput, list of oritinal inputs
+      @ In, myInput, list of original inputs
       @ Out, None
     """
     found=False
