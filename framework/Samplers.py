@@ -1948,8 +1948,9 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     """
     @In model    : Model instance. It can be a Code type, ROM, etc.
     @In myInput  : List of the original inputs
-    @InOut info  :
-    @In cdfValues:
+    @InOut info  : Dictionary object where we will add information
+    @In cdfValues: Dictionary object storing the CDF values for each sampled
+                   parameter
     """
     endInfo = info['parent_node'].get('endInfo')
     #branchedLevel = {}
