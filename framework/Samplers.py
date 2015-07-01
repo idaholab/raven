@@ -952,7 +952,6 @@ class Grid(Sampler):
   def localGenerateInput(self,model,myInput):
     """
     Will generate an input and associate it with a probability
-    (set up self.inputInfo before being sent to the model)
       @ In, model, the model to evaluate
       @ In, myInput, list of original inputs (unused)
       @ Out, None
@@ -1050,7 +1049,8 @@ class Grid(Sampler):
 #
 class Stratified(Grid):
   """
-  Stratified based sampler. Currently no special filling method are implemented
+  Stratified sampler, also known as Latin Hypercube Sampling (LHS). Currently no
+  special filling methods are implemented
   """
   def __init__(self):
     """
@@ -1066,7 +1066,10 @@ class Stratified(Grid):
 
   def localInputAndChecks(self,xmlNode):
     """
-    xml additional parser for the Stratified Class
+    Class specific xml inputs will be read here and checked for validity.
+    @ In, xmlNode: The xml element node that will be checked against the
+                   available options specific to this Sampler.
+    @ Out, None
     """
     Sampler.read_sampler_init(self,xmlNode)
     Grid.localInputAndChecks(self,xmlNode)
@@ -1078,8 +1081,10 @@ class Stratified(Grid):
 
   def localInitialize(self):
     """
-    the local initialize is used to generate test the box being within the distribution upper/lower bound
-    and filling mapping of the hyper cube.
+    the local initialize is used to generate test the box being within the
+    distribution upper/lower bound and filling mapping of the hyper cube.
+    @ In, None
+    @ Out, None
     """
     Grid.localInitialize(self)
     self.limit = (self.pointByVar-1)
@@ -1109,6 +1114,12 @@ class Stratified(Grid):
       self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
 
   def localGenerateInput(self,model,myInput):
+    """
+    Will generate an input and associate it with a probability
+      @ In, model, the model to evaluate
+      @ In, myInput, list of original inputs (unused)
+      @ Out, None
+    """
     varCount = 0
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
