@@ -217,6 +217,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     This should return an estimation of the quality of the prediction.
     This could be distance or probability or anything else, the type needs to be declared in the variable cls.qualityEstType
     @ In, featureVals, 2-D numpy array [n_samples,n_features]
+    @ Out, float, the confidence
     """
 
   @abc.abstractmethod
@@ -241,7 +242,16 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 #
 #
 class NDinterpolatorRom(superVisedLearning):
+  """
+  A Reduced Order Model for interpolating N-dimensional data
+  """
   def __init__(self,messageHandler,**kwargs):
+    """
+    A constructor that will appropriately intialize a supervised learning object
+    @In, messageHandler: a MessageHandler object in charge of raising errors,
+                         and printing messages
+    @In, kwargs: an arbitrary dictionary of keywords and values
+    """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.interpolator = None
     self.printTag = 'ND Interpolation ROM'
@@ -258,6 +268,11 @@ class NDinterpolatorRom(superVisedLearning):
     self.interpolator.fit(featv,targv)
 
   def __confidenceLocal__(self,featureVals):
+    """
+    This should return an estimation of the quality of the prediction.
+    @ In, featureVals, 2-D numpy array [n_samples,n_features]
+    @ Out, float, the confidence
+    """
     self.raiseAnError(NotImplementedError,'NDinterpRom   : __confidenceLocal__ method must be implemented!')
 
   def __evaluateLocal__(self,featureVals):
@@ -280,6 +295,7 @@ class NDinterpolatorRom(superVisedLearning):
     return localInitParam
 
   def __returnCurrentSettingLocal__(self):
+    """ Exposes access to the current settings of this ROM object """
     self.raiseAnError(NotImplementedError,'NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!')
 
 class GaussPolynomialRom(NDinterpolatorRom):
@@ -836,8 +852,17 @@ class HDMRRom(GaussPolynomialRom):
 #
 #
 class NDsplineRom(NDinterpolatorRom):
+  """
+  An N-dimensional Spline model
+  """
   ROMtype         = 'NDsplineRom'
   def __init__(self,messageHandler,**kwargs):
+    """
+    A constructor that will appropriately intialize a supervised learning object
+    @In, messageHandler: a MessageHandler object in charge of raising errors,
+                         and printing messages
+    @In, kwargs: an arbitrary dictionary of keywords and values
+    """
     NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ND-SPLINE ROM'
     self.interpolator = interpolationND.NDspline()
@@ -849,8 +874,18 @@ class NDsplineRom(NDinterpolatorRom):
 #
 #
 class NDinvDistWeight(NDinterpolatorRom):
+  """
+  An N-dimensional model that interpolates data based on a inverse weighting of
+  their training data points?
+  """
   ROMtype         = 'NDinvDistWeight'
   def __init__(self,messageHandler,**kwargs):
+    """
+    A constructor that will appropriately intialize a supervised learning object
+    @In, messageHandler: a MessageHandler object in charge of raising errors,
+                         and printing messages
+    @In, kwargs: an arbitrary dictionary of keywords and values
+    """
     NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ND-INVERSEWEIGHT ROM'
     if not 'p' in self.initOptionDict.keys(): self.raiseAnError(IOError,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
@@ -863,6 +898,9 @@ class NDinvDistWeight(NDinterpolatorRom):
 #
 #
 class SciKitLearn(superVisedLearning):
+  """
+  An Interface to the ROMs provided by skLearn
+  """
   ROMtype = 'SciKitLearn'
   availImpl = {}
   availImpl['lda'] = {}
@@ -955,6 +993,12 @@ class SciKitLearn(superVisedLearning):
       else                                                           : qualityEstTypeDict[key1][key2] = False
 
   def __init__(self,messageHandler,**kwargs):
+    """
+    A constructor that will appropriately intialize a supervised learning object
+    @In, messageHandler: a MessageHandler object in charge of raising errors,
+                         and printing messages
+    @In, kwargs: an arbitrary dictionary of keywords and values
+    """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag = 'SCIKITLEARN'
     if 'SKLtype' not in self.initOptionDict.keys(): self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.name+')')
@@ -1008,19 +1052,44 @@ class SciKitLearn(superVisedLearning):
       self.evaluate = self._readdressEvaluateConstResponse
 
   def __confidenceLocal__(self,edict):
+    """
+    This should return an estimation of the quality of the prediction.
+    @ In, featureVals, 2-D numpy array [n_samples,n_features]
+    @ Out, float, the confidence
+    """
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)
     else            : self.raiseAnError(IOError,'the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
 
   def __evaluateLocal__(self,featureVals):
+    """ Evaluates a point.
+    @ In, featureVals, list of values at which to evaluate the ROM
+    @ Out, float, the evaluated value
+    """
     return self.ROM.predict(featureVals)
 
   def __resetLocal__(self):
+    """
+    After this method the ROM should be described only by the initial
+    parameter settings
+    @In None
+    @Out None
+    """
     self.ROM = self.ROM.__class__(**self.initOptionDict)
 
   def __returnInitialParametersLocal__(self):
+    """
+    Returns a dictionary with the parameters and their initial values
+    @In None
+    @Out dictionary of parameter names and initial values
+    """
     return self.ROM.get_params()
 
   def __returnCurrentSettingLocal__(self):
+    """
+    Returns a dictionary with the parameters and their current values
+    @In None
+    @Out dictionary of parameter names and current values
+    """
     self.raiseADebug('here we need to collect some info on the ROM status')
     localInitParam = {}
     return localInitParam
