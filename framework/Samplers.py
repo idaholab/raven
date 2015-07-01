@@ -1423,11 +1423,17 @@ class DynamicEventTree(Grid):
 
   def _createRunningQueueBeginOne(self,rootTree,branchedLevel, model,myInput):
     """
-
-    @ In, rootTree     :
-    @ In, branchedLevel:
-    @ In, model        : Model instance. It can be a Code type, ROM, etc.
-    @ In, myInput      : List of the original inputs
+    Method to generate the running internal queue for one point in the epistemic
+    space. It generates the initial information to instantiate the root of a
+    Deterministic Dynamic Event Tree.
+    @ In, rootTree, TreeStructure object, the rootTree of the single coordinate in
+          the epistemic space.
+    @ In, branchedLevel, dict, dictionary of the levels reached by the rootTree
+          mapped in the internal grid dictionary (self.branchProbabilities)
+    @ In, model, Models object, the model that is used to explore the input space
+          (e.g. a code, like RELAP-7)
+    @ In, myInput, list, list of inputs for the Models object (passed through the
+          Steps XML block)
     @ Out, None
     """
     precSampled = rootTree.getrootnode().get('preconditionerSampled')
@@ -1469,9 +1475,14 @@ class DynamicEventTree(Grid):
 
   def _createRunningQueueBegin(self,model,myInput):
     """
-
-    @ In, model  : Model instance. It can be a Code type, ROM, etc.
-    @ In, myInput: List of the original inputs
+    Method to generate the running internal queue for all the points in
+    the epistemic space. It generates the initial information to
+    instantiate the roots of all the N-D coordinates to construct multiple
+    Deterministic Dynamic Event Trees.
+    @ In, model, Models object, the model that is used to explore the input
+          space (e.g. a code, like RELAP-7)
+    @ In, myInput, list, list of inputs for the Models object (passed through
+          the Steps XML block)
     @ Out, None
     """
     # We construct the input for the first DET branch calculation'
