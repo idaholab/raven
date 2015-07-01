@@ -903,7 +903,12 @@ class Grid(Sampler):
     self.gridEntity           = GridEntities.returnInstance('GridEntity',self)
 
   def localInputAndChecks(self,xmlNode):
-    """reading and construction of the grid"""
+    """
+    Class specific xml inputs will be read here and checked for validity.
+    Specifically, reading and construction of the grid for this Sampler.
+    @ In, xmlNode: The xml element node that will be checked against the
+                   available options specific to this Sampler.
+    """
     if 'limit' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
     self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable","Distribution"],messageHandler=self.messageHandler, dimTagsPrefix={"Distribution":"<distribution>"})
@@ -945,6 +950,13 @@ class Grid(Sampler):
       self.existing = zip(*list(v for v in inps.values()))
 
   def localGenerateInput(self,model,myInput):
+    """
+    Will generate an input and associate it with a probability
+    (set up self.inputInfo before being sent to the model)
+      @ In, model, the model to evaluate
+      @ In, myInput, list of original inputs (unused)
+      @ Out, None
+    """
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     weight = 1.0
