@@ -1224,6 +1224,12 @@ class DynamicEventTree(Grid):
     self.printTag = 'SAMPLER DYNAMIC ET'
 
   def _localWhatDoINeed(self):
+    """
+    This method is a local mirror of the general whatDoINeed method.
+    It is implmented here because this Sampler requests special objects
+    @ In , None, None
+    @ Out, needDict, list of objects needed
+    """
     needDict = Sampler._localWhatDoINeed(self)
     for preconditioner in self.preconditionerToApply.values():
       preneedDict = preconditioner.whatDoINeed()
@@ -1234,9 +1240,9 @@ class DynamicEventTree(Grid):
 
   def localStillReady(self, ready): #,lastOutput=None
     """
-    Function that inquires if there is at least an input the in the queue that needs to be run
-    @ In, None
-    @ Out, boolean
+    Function that inquires if there is at least an input the in the queue that
+    needs to be run
+    @ InOut, ready, boolean specifying whether the sampler is ready
     """
     if(len(self.RunQueue['queue']) != 0 or self.counter == 0): ready = True
     else:
@@ -1248,19 +1254,26 @@ class DynamicEventTree(Grid):
     return ready
 
   def _retrieveParentNode(self,idj):
+    """
+    Grants access to the parent node of a particular job
+    @ In, idj, the identifier of a job object
+    @ Out, the parent node of the job linked to idj
+    """
     if(idj == self.TreeInfo[self.rootToJob[idj]].getrootnode().name): parentNode = self.TreeInfo[self.rootToJob[idj]].getrootnode()
     else: parentNode = list(self.TreeInfo[self.rootToJob[idj]].getrootnode().iter(idj))[0]
     return parentNode
 
   def localFinalizeActualSampling(self,jobObject,model,myInput,genRunQueue=True):
     """
-    General function (available to all samplers) that finalize the sampling calculation just ended
-    In this case (DET), The function reads the information from the ended calculation, updates the
-    working variables, and creates the new inputs for the next branches
+    General function (available to all samplers) that finalize the sampling
+    calculation just ended. In this case (DET), The function reads the
+    information from the ended calculation, updates the working variables, and
+    creates the new inputs for the next branches
     @ In, jobObject: JobHandler Instance of the job (run) just finished
-    @ In, model        : Model Instance... It may be a Code Instance, a ROM, etc.
+    @ In, model        : Model Instance... It may be a Code Instance, ROM, etc.
     @ In, myInput      : List of the original input files
-    @ In, genRunQueue  : bool, generated Running queue at the end of the finalization?
+    @ In, genRunQueue  : bool, generated Running queue at the end of the
+                         finalization?
     @ Out, None
     """
     self.workingDir = model.workingDir
@@ -1336,6 +1349,7 @@ class DynamicEventTree(Grid):
     Function to compute Conditional probability of the branches that are going to be run.
     The conditional probabilities are stored in the self.endInfo object
     @ In, index: position in the self.endInfo list (optional). Default = 0
+    @ Out, None
     """
     if not index: index = len(self.endInfo)-1
     # parent_cond_pb = associated conditional probability of the Parent branch
@@ -1405,6 +1419,14 @@ class DynamicEventTree(Grid):
     return branch_present
 
   def _createRunningQueueBeginOne(self,rootTree,branchedLevel, model,myInput):
+    """
+
+    @ In, rootTree     :
+    @ In, branchedLevel:
+    @ In, model        : Model instance. It can be a Code type, ROM, etc.
+    @ In, myInput      : List of the original inputs
+    @ Out, None
+    """
     precSampled = rootTree.getrootnode().get('preconditionerSampled')
     rootnode    =  rootTree.getrootnode()
     rname       = rootnode.name
@@ -1443,6 +1465,12 @@ class DynamicEventTree(Grid):
     self.counter += 1
 
   def _createRunningQueueBegin(self,model,myInput):
+    """
+
+    @ In, model  : Model instance. It can be a Code type, ROM, etc.
+    @ In, myInput: List of the original inputs
+    @ Out, None
+    """
     # We construct the input for the first DET branch calculation'
     # Increase the counter
     # The root name of the xml element tree is the starting name for all the branches
@@ -1453,6 +1481,12 @@ class DynamicEventTree(Grid):
     return
 
   def _createRunningQueueBranch(self,model,myInput):
+    """
+
+    @ In, model  : Model instance. It can be a Code type, ROM, etc.
+    @ In, myInput: List of the original inputs
+    @ Out, None
+    """
     # The first DET calculation branch has already been run'
     # Start the manipulation:
 
@@ -1627,6 +1661,12 @@ class DynamicEventTree(Grid):
     return self.localGenerateInput(model, oldInput)
 
   def localGenerateInput(self,model,myInput):
+    """
+    Will generate an input and associate it with a probability
+      @ In, model, the model to evaluate
+      @ In, myInput, list of original inputs (unused)
+      @ Out, None
+    """
     if self.counter <= 1:
       # If first branch input, create the queue
       self._createRunningQueue(model, myInput)
@@ -1712,6 +1752,13 @@ class DynamicEventTree(Grid):
     tempDict['actual threshold levels are '] = self.branchedLevel[0]
 
   def localInitialize(self):
+    """
+    Will perform all initialization specific to this Sampler. This will be
+    called at the beginning of each Step where this object is used. See base
+    class for more details.
+    @ In None
+    @ Out None
+    """
     if len(self.preconditionerToApply.keys()) > 0: precondlistoflist = []
     for cnt, preckey  in enumerate(self.preconditionerToApply.keys()):
       preconditioner =  self.preconditionerToApply[preckey]
@@ -1787,7 +1834,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
 
   def _localWhatDoINeed(self):
     """
-    This method is a local mirrow of the general whatDoINeed method.
+    This method is a local mirror of the general whatDoINeed method.
     It is implmented by the samplers that need to request special objects
     @ In , None, None
     @ Out, needDict, list of objects needed
