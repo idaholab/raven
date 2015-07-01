@@ -88,6 +88,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   """
 
   def __init__(self):
+    """
+    Default constructor for the base class Sampler that will initialize member
+    variables with reasonable defaults or empty lists/dictionaries where
+    applicable.
+    """
     BaseType.__init__(self)
     self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.auxcnt                        = 0                         # Aux counter of samples performed (for its usage check initialize method)
@@ -235,7 +240,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
           else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')
 
-  def endJobRunnable(self): return self._endJobRunnable
+  def endJobRunnable(self):
+    """
+    Returns the maximum number of inputs allowed to be created by the sampler
+    right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
+    """
+    return self._endJobRunnable
 
   def localInputAndChecks(self,xmlNode):
     """place here the additional reading, remember to add initial parameters in the method localAddInitParams"""
@@ -408,7 +418,18 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     return newInputs
 
   def finalizeActualSampling(self,jobObject,model,myInput):
-    """just an API"""
+    """
+    This function is used by samplers that need to collect information from a
+    finished run.
+    Provides a generic interface that all samplers will use, for specifically
+    handling any sub-class, the localFinalizeActualSampling should be overridden
+    instead, as finalizeActualSampling provides only generic functionality
+    shared by all Samplers and will in turn call the localFinalizeActualSampling
+    before returning.
+    @in jobObject: an instance of a JobHandler
+    @in model    : an instance of a model
+    @in myInput  : the generating input
+    """
     self.localFinalizeActualSampling(jobObject,model,myInput)
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
@@ -437,7 +458,14 @@ class AdaptiveSampler(Sampler):
   pass
 
 class LimitSurfaceSearch(AdaptiveSampler):
+  """
+  A sampler that will adaptively locate the limit surface of a given problem
+  """
   def __init__(self):
+    """
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
+    """
     Sampler.__init__(self)
     self.goalFunction     = None             #this is the pointer to the function defining the goal
     self.tolerance        = None             #this is norm of the error threshold
@@ -461,6 +489,11 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self._addAssObject('Function','-n')
 
   def localInputAndChecks(self,xmlNode):
+    """
+    Class specific inputs will be read here and checked for validity.
+    @ In, xmlNode: The xml element node that will be checked against the
+                   available options specific to this Sampler.
+    """
     if 'limit' in xmlNode.attrib.keys():
       try: self.limit = int(xmlNode.attrib['limit'])
       except ValueError: self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
@@ -498,6 +531,12 @@ class LimitSurfaceSearch(AdaptiveSampler):
     if len(attribList)>0: self.raiseAnError(IOError,'There are unknown keywords in the convergence specifications: '+str(attribList))
 
   def localAddInitParams(self,tempDict):
+    """
+    Appends a given dictionary with class specific member variables and their
+    associated initialized values.
+    @ InOut, tempDict: The dictionary where we will add the initialization
+                       parameters specific to this Sampler.
+    """
     tempDict['Iter. forced'    ] = str(self.forceIteration)
     tempDict['Norm tolerance'  ] = str(self.tolerance)
     tempDict['Sub grid size'   ] = str(self.subGridTol)
@@ -505,12 +544,27 @@ class LimitSurfaceSearch(AdaptiveSampler):
     tempDict['Persistence'     ] = str(self.repetition)
 
   def localAddCurrentSetting(self,tempDict):
+    """
+    Appends a given dictionary with class specific information regarding the
+    current status of the object.
+    @ InOut, tempDict: The dictionary where we will add the parameters specific
+                       to this Sampler and their associated values.
+    """
     if self.solutionExport!=None:
       tempDict['The solution is exported in '    ] = 'Name: ' + self.solutionExport.name + 'Type: ' + self.solutionExport.type
     if self.goalFunction!=None:
       tempDict['The function used is '] = self.goalFunction.name
 
   def localInitialize(self,solutionExport=None):
+    """
+    Will perform all initialization specific to this Sampler. For instance,
+    creating an empty container to hold the identified surface points, error
+    checking the optionally provided solution export and other preset values,
+    and initializing the limit surface Post-Processor used by this sampler.
+
+    @ InOut, solutionExport: a PointSet to hold the solution (a list of limit
+                             surface points)
+    """
     self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface",self)
     if 'Function' in self.assemblerDict.keys(): self.goalFunction = self.assemblerDict['Function'][0][3]
     if 'TargetEvaluation' in self.assemblerDict.keys(): self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
@@ -833,10 +887,22 @@ class Grid(Sampler):
     self.axisName.sort()
 
   def localAddInitParams(self,tempDict):
+    """
+    Appends a given dictionary with class specific member variables and their
+    associated initialized values.
+    @ InOut, tempDict: The dictionary where we will add the initialization
+                       parameters specific to this Sampler.
+    """
     for variable,value in self.gridInfo.items():
       tempDict[variable+' is sampled using a grid in '] = value
 
   def localAddCurrentSetting(self,tempDict):
+    """
+    Appends a given dictionary with class specific information regarding the
+    current status of the object.
+    @ InOut, tempDict: The dictionary where we will add the parameters specific
+                       to this Sampler and their associated values.
+    """
     for var, value in self.values.items():
       tempDict['coordinate '+var+' has value'] = value
 
@@ -1514,6 +1580,11 @@ class DynamicEventTree(Grid):
     for preconditioner in self.preconditionerToApply.values(): preconditioner._generateDistributions(availableDist)
 
   def localInputAndChecks(self,xmlNode):
+    """
+    Class specific inputs will be read here and checked for validity.
+    @ In, xmlNode: The xml element node that will be checked against the
+                   available options specific to this Sampler.
+    """
     Grid.localInputAndChecks(self,xmlNode)
     if 'print_end_xml' in xmlNode.attrib.keys():
       if xmlNode.attrib['print_end_xml'].lower() in utils.stringsThatMeanTrue(): self.print_end_xml = True
@@ -1560,10 +1631,22 @@ class DynamicEventTree(Grid):
     self.branchedLevel.append(branchedLevel)
 
   def localAddInitParams(self,tempDict):
+    """
+    Appends a given dictionary with class specific member variables and their
+    associated initialized values.
+    @ InOut, tempDict: The dictionary where we will add the initialization
+                       parameters specific to this Sampler.
+    """
     for key in self.branchProbabilities.keys(): tempDict['Probability Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchProbabilities[key]]
     for key in self.branchValues.keys()       : tempDict['Values Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchValues[key]]
 
   def localAddCurrentSetting(self,tempDict):
+    """
+    Appends a given dictionary with class specific information regarding the
+    current status of the object.
+    @ InOut, tempDict: The dictionary where we will add the parameters specific
+                       to this Sampler and their associated values.
+    """
     tempDict['actual threshold levels are '] = self.branchedLevel[0]
 
   def localInitialize(self):
@@ -1919,6 +2002,11 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     return DynamicEventTree.localGenerateInput(self,model,myInput)
 
   def localInputAndChecks(self,xmlNode):
+    """
+    Class specific inputs will be read here and checked for validity.
+    @ In, xmlNode: The xml element node that will be checked against the
+                   available options specific to this Sampler.
+    """
     DynamicEventTree.localInputAndChecks(self,xmlNode)
     LimitSurfaceSearch.localInputAndChecks(self,xmlNode)
     if 'mode' in xmlNode.attrib.keys():
@@ -2000,6 +2088,12 @@ class FactorialDesign(Grid):
     else: self.externalgGridCoord = False
 
   def localAddInitParams(self,tempDict):
+    """
+    Appends a given dictionary with class specific member variables and their
+    associated initialized values.
+    @ InOut, tempDict: The dictionary where we will add the initialization
+                       parameters specific to this Sampler.
+    """
     Grid.localAddInitParams(self,tempDict)
     for key,value in self.factOpt.items():
       if key != 'options': tempDict['Factorial '+key] = value
@@ -2083,6 +2177,12 @@ class ResponseSurfaceDesign(Grid):
     self.externalgGridCoord = True
 
   def localAddInitParams(self,tempDict):
+    """
+    Appends a given dictionary with class specific member variables and their
+    associated initialized values.
+    @ InOut, tempDict: The dictionary where we will add the initialization
+                       parameters specific to this Sampler.
+    """
     Grid.localAddInitParams(self,tempDict)
     for key,value in self.respOpt.items():
       if key != 'options': tempDict['Response Design '+key] = value
