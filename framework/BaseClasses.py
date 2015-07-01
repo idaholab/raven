@@ -7,6 +7,7 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import abc
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -59,7 +60,9 @@ class BaseType(MessageHandler.MessageUser):
 
   def setMessageHandler(self,handler):
     if not isinstance(handler,MessageHandler.MessageHandler):
-      raise IOError('Attempted to set the message handler for '+str(self)+' to '+str(handler))
+      e=IOError('Attempted to set the message handler for '+str(self)+' to '+str(handler))
+      print('\nERROR! Setting MessageHandler in BaseClass,',e,'\n')
+      sys.exit(1)
     self.messageHandler = handler
 
   def whoAreYou(self):
