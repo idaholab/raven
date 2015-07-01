@@ -412,7 +412,7 @@ def find_crow(framework_dir):
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
         return
-    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+pmoduleDirs)
+    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+str(pmoduleDirs))
 
 def add_path(absolutepath):
   """ Add absolutepath path is in the python path. """
