@@ -1109,11 +1109,23 @@ __base                                  = 'superVisedLearning'
 #     __interfaceDict[key]=val
 
 def returnInstance(ROMclass,caller,**kwargs):
-  """This function return an instance of the request model type"""
+  """
+  This function return an instance of the request model type
+  @In ROMclass: string representing the instance to create
+  @In caller: object that will share its messageHandler instance
+  @In kwargs: a dictionary specifying the keywords and values needed to create
+              the instance.
+  @Out an instance of a ROM
+  """
   try: return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
 
 def returnClass(ROMclass,caller):
-  """This function return an instance of the request model type"""
+  """
+  This function return an instance of the request model type
+  @In ROMclass: string representing the class to retrieve
+  @In caller: object that will share its messageHandler instance
+  @Out the class definition of a ROM
+  """
   try: return __interfaceDict[ROMclass]
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+ROMclass)
