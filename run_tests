@@ -27,7 +27,7 @@ try:
   else:
     raven_libs_dir = subprocess.check_output("ls -d $HOME/raven_libs/pylibs/*/python*/site-packages",shell=True,stderr=subprocess.STDOUT)
   raven_libs_dir = raven_libs_dir.decode().strip()
-  os.environ["PYTHONPATH"] = raven_libs_dir +":"+os.environ.get("PYTHONPATH","")
+  os.environ["PYTHONPATH"] = raven_libs_dir + os.pathsep + os.environ.get("PYTHONPATH","")
   sys.path.append(raven_libs_dir)
 except:
   sys.path.append(os.path.join("scripts","TestHarness","testers"))
@@ -40,7 +40,7 @@ except:
 
 #add framework contrib path
 myPath = os.path.dirname(os.path.realpath(__file__))
-os.environ["PYTHONPATH"] = os.path.join(myPath,'framework','contrib') + ":" + os.environ.get("PYTHONPATH","")
+os.environ["PYTHONPATH"] = os.path.join(myPath,'framework','contrib') + os.pathsep + os.environ.get("PYTHONPATH","")
 
 print "PYTHONPATH="+os.environ["PYTHONPATH"]
 
