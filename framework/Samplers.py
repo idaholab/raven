@@ -1681,6 +1681,13 @@ class DynamicEventTree(Grid):
     return newerinput
 
   def _generateDistributions(self,availableDist):
+    """
+    The needed distributions are made available to the step and initialization
+    of the seeding
+    @In availableDist: a dictionary of distribution names where the value is the
+                       instance of the distribution.
+    @Out None
+    """
     Grid._generateDistributions(self,availableDist)
     for preconditioner in self.preconditionerToApply.values(): preconditioner._generateDistributions(availableDist)
 
@@ -1938,6 +1945,12 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     return info
 
   def _constructEndInfoFromBranch(self,model, myInput, info, cdfValues):
+    """
+    @In model    : Model instance. It can be a Code type, ROM, etc.
+    @In myInput  : List of the original inputs
+    @InOut info  :
+    @In cdfValues:
+    """
     endInfo = info['parent_node'].get('endInfo')
     #branchedLevel = {}
     #for distk, distpb in zip(info['initiator_distribution'],info['PbThreshold']): branchedLevel[distk] = index(self.branchProbabilities[distk],distpb)
@@ -2145,6 +2158,13 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue(): self.insertAdaptBPb = True
 
   def _generateDistributions(self,availableDist):
+    """
+    The needed distributions are made available to the step and initialization
+    of the seeding
+    @In availableDist: a dictionary of distribution names where the value is the
+                       instance of the distribution.
+    @Out None
+    """
     DynamicEventTree._generateDistributions(self,availableDist)
 
   def localInitialize(self,solutionExport = None):
