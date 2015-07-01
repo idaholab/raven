@@ -9,6 +9,7 @@ Created on Mar 30, 2015
 import numpy as np
 from scipy.interpolate import interp1d
 import sys
+import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -55,6 +56,7 @@ class GridEntity(BaseType):
     self.gridContainer['gridCoord']             = None               # the matrix containing all coordinate of all points in the grid
     self.gridContainer['nVar']                  = 0                  # this is the number of grid dimensions
     self.gridContainer['transformationMethods'] = None               # Dictionary of methods to transform the coordinate from 0-1 values to something else. These methods are pointed and passed into the initialize method. {varName:method}
+    self.gridContainer['cellIDs']               = {}                 # Cell IDs and verteces coordinates
     self.uniqueCellNumber                       = 0                  # number of unique cells
     self.gridIterator                           = None               # the grid iterator
     self.gridInitDict                           = {}                 # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
@@ -209,20 +211,46 @@ class GridEntity(BaseType):
     self.gridContainer['gridMatrix']                = np.zeros(self.gridContainer['gridShape'])      # grid where the values of the goalfunction are stored
     self.gridContainer['gridCoorShape']             = tuple(pointByVar+[self.nVar])                  # shape of the matrix containing all coordinate of all points in the grid
     self.gridContainer['gridCoord']                 = np.zeros(self.gridContainer['gridCoorShape'])  # the matrix containing all coordinate of all points in the grid
-    self.uniqueCellNumber                           = int(self.gridContainer['gridLenght']/2.0**float(self.nVar))
-    
+    self.uniqueCellNumber                           = np.prod([element-1 for element in pointByVar])
     #filling the coordinate on the grid
     self.gridIterator = np.nditer(self.gridContainer['gridCoord'],flags=['multi_index'])
+    gridIterCells = np.nditer(np.zeros(shape=(2,)*self.nVar,dtype=int),flags=['multi_index'])
+    origin = [-1]*self.nVar
+    #cellsCoordinates = [[None]*2**self.nVar]*self.uniqueCellNumber
+    cellID = 1
+    pp = [element - 1 for element in pointByVar]
     while not self.gridIterator.finished:
       coordinateID                          = self.gridIterator.multi_index[-1]
       dimName                               = self.gridContainer['dimensionNames'][coordinateID]
       valuePosition                         = self.gridIterator.multi_index[coordinateID]
       self.gridContainer['gridCoord'][self.gridIterator.multi_index] = self.gridContainer['gridVectors'][dimName][valuePosition]
-      
-      
-      self.gridContainer['gridCoord']
       self.gridIterator.iternext()
+      #if len(set(self.gridIterator.multi_index[:-1])) == 1: cellID = self.gridIterator.multi_index[0] + 1
+      #if cellID not in self.gridContainer['cellIDs'].keys():
+      #  origin = np.array(self.gridIterator.multi_index[:-1])
+      #  self.gridContainer['cellIDs'][cellID] =[]
+      #  while not self.gridIterCells.finished:
+      #    self.gridContainer['cellIDs'][cellID].append(origin+self.gridIterCells.multi_index)
+      #  self.gridIterCells.reset()
+      aaaa = list(self.gridIterator.multi_index[:-1])
+      print(all(element < i for element in aaaa for i in pp))
+      print(aaaa)
+      print(pp)
+      print(np.greater(pp,aaaa))
+      if all(element < i for element in list(self.gridIterator.multi_index[:-1]) for i in pp) and list(self.gridIterator.multi_index[:-1]) != origin:
+        self.gridContainer['cellIDs'][cellID] = []
+        origin = list(self.gridIterator.multi_index[:-1])
+        if cellID - 1 >  self.uniqueCellNumber:
+          print("heyyyyyy")
+        while not gridIterCells.finished:
+          self.gridContainer['cellIDs'][cellID].append(np.array(origin)+gridIterCells.multi_index)
+          gridIterCells.iternext()
+        gridIterCells.reset() 
+        cellID+=1
     self.resetIterator()
+      
+      
+    
 
   def constructCellIds(self):
     """
