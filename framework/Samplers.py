@@ -2021,7 +2021,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
   def localStillReady(self,ready): #, lastOutput= None
     """
     Function that inquires if there is at least an input the in the queue that needs to be run
-    @ In, None
+    @ InOut, ready, boolean
     @ Out, boolean
     """
     if(self.counter == 0): return True
@@ -2061,6 +2061,12 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     return detReady
 
   def localGenerateInput(self,model,myInput):
+    """
+    Will generate an input and associate it with a probability
+      @ In, model, the model to evaluate
+      @ In, myInput, list of original inputs
+      @ Out, None
+    """
     if self.startAdaptive:
       LimitSurfaceSearch.localGenerateInput(self,model,myInput)
       #the adaptive sampler created the next point sampled vars
@@ -2139,15 +2145,39 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     DynamicEventTree._generateDistributions(self,availableDist)
 
   def localInitialize(self,solutionExport = None):
+    """
+    Will perform all initialization specific to this Sampler. This will be
+    called at the beginning of each Step where this object is used. See base
+    class for more details.
+    @ InOut, solutionExport: a PointSet to hold the solution
+    @ Out None
+    """
     if self.detAdaptMode == 2: self.startAdaptive = True
     DynamicEventTree.localInitialize(self)
     LimitSurfaceSearch.localInitialize(self,solutionExport=solutionExport)
     self._endJobRunnable    = sys.maxsize
 
   def generateInput(self,model,oldInput):
+    """
+    Will generate an input
+    @in model   : it is the instance of a model
+    @in oldInput: [] a list of the original needed inputs for the model (e.g.
+                     list of files, etc. etc)
+    @return     : [] containing the new inputs -in reality it is the model that
+                     returns this, the Sampler generates the values to be placed
+                     in the model input
+    """
     return DynamicEventTree.generateInput(self, model, oldInput)
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
+    """
+    General function (available to all samplers) that finalizes the sampling
+    calculation just ended. See base class for more information.
+    @ In, jobObject    : JobHandler Instance of the job (run) just finished
+    @ In, model        : Model Instance... It may be a Code Instance, ROM, etc.
+    @ In, myInput      : List of the original input files
+    @ Out, None
+    """
     returncode = DynamicEventTree.localFinalizeActualSampling(self,jobObject,model,myInput,genRunQueue=False)
     if returncode:
       self._createRunningQueue(model,myInput)
