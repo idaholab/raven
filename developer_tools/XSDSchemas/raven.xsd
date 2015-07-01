@@ -49,19 +49,38 @@
 
     <xsd:simpleType name="RavenBool">
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="false"/>
-            <xsd:enumeration value="False"/>
-            <xsd:enumeration value="no"/>
+            <xsd:enumeration value="yes"/>
+            <xsd:enumeration value="y"/>
             <xsd:enumeration value="true"/>
             <xsd:enumeration value="True"/>
-            <xsd:enumeration value="yes"/>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="MatPlotLibBool">
-        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="t"/>
+            <xsd:enumeration value="si"/>
+            <xsd:enumeration value="vero"/>
+            <xsd:enumeration value="dajie"/>
+            <xsd:enumeration value="oui"/>
+            <xsd:enumeration value="ja"/>
+            <xsd:enumeration value="yao"/>
+            <xsd:enumeration value="verum"/>
+            <xsd:enumeration value="evet"/>
+            <xsd:enumeration value="dogru"/>
+            <xsd:enumeration value="1"/>
+            <xsd:enumeration value="on"/>
+            <xsd:enumeration value="no"/>
+            <xsd:enumeration value="n"/>
+            <xsd:enumeration value="false"/>
             <xsd:enumeration value="False"/>
-            <xsd:enumeration value="True"/>
+            <xsd:enumeration value="f"/>
+            <xsd:enumeration value="nono"/>
+            <xsd:enumeration value="falso"/>
+            <xsd:enumeration value="nahh"/>
+            <xsd:enumeration value="non"/>
+            <xsd:enumeration value="nicht"/>
+            <xsd:enumeration value="bu"/>
+            <xsd:enumeration value="falsus"/>
+            <xsd:enumeration value="hayir"/>
+            <xsd:enumeration value="yanlis"/>
+            <xsd:enumeration value="0"/>
+            <xsd:enumeration value="off"/>
         </xsd:restriction>
     </xsd:simpleType>
     <!-- End Common simple types -->

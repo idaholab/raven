@@ -74,7 +74,7 @@ class OutStreamManager(BaseType):
     @ Out, None
     """
     if 'overwrite' in xmlNode.attrib.keys():
-      if xmlNode.attrib['overwrite'].lower() in ['t','true','on']: self.overwrite = True
+      if xmlNode.attrib['overwrite'].lower() in utils.stringsThatMeanTrue(): self.overwrite = True
       else: self.overwrite = False
     self.localReadXML(xmlNode)
 
@@ -426,8 +426,8 @@ class OutStreamPlot(OutStreamManager):
           self.plt3D.text(float(self.options[key]['position'].split(',')[0]),float(self.options[key]['position'].split(',')[1]),float(self.options[key]['position'].split(',')[2]),self.options[key]['text'],fontdict=ast.literal_eval(self.options[key]['fontdict']),withdash=ast.literal_eval(self.options[key]['withdash']),**self.options[key].get('attributes',{}))
       elif key == 'autoscale':
           if 'enable' not in self.options[key].keys(): self.options[key]['enable'] = 'True'
-          elif self.options[key]['enable'].lower() in ['t','true']: self.options[key]['enable'] = 'True'
-          elif self.options[key]['enable'].lower() in ['f','false']: self.options[key]['enable'] = 'False'
+          elif self.options[key]['enable'].lower() in utils.stringsThatMeanTrue(): self.options[key]['enable'] = 'True'
+          elif self.options[key]['enable'].lower() in utils.stringsThatMeanFalse(): self.options[key]['enable'] = 'False'
           if 'axis' not in self.options[key].keys()  : self.options[key]['axis'] = 'both'
           if 'tight' not in self.options[key].keys() : self.options[key]['tight'] = 'None'
           if self.dim == 2  : self.plt.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
@@ -469,8 +469,8 @@ class OutStreamPlot(OutStreamManager):
         elif self.dim == 2: self.plt.box(self.options[key][key])
       elif key == 'grid':
         if 'b' not in self.options[key].keys()  : self.options[key]['b'] = 'off'
-        if self.options[key]['b'].lower() in ['on','t','true']: self.options[key]['b'] = 'on'
-        elif self.options[key]['b'].lower() in ['off','f','false']: self.options[key]['b'] = 'off'
+        if self.options[key]['b'].lower() in utils.stringsThatMeanTrue(): self.options[key]['b'] = 'on'
+        elif self.options[key]['b'].lower() in utils.stringsThatMeanFalse(): self.options[key]['b'] = 'off'
         if 'which' not in self.options[key].keys() : self.options[key]['which'] = 'major'
         if 'axis' not in self.options[key].keys() : self.options[key]['axis'] = 'both'
         if self.dim == 2:
@@ -527,8 +527,8 @@ class OutStreamPlot(OutStreamManager):
       if 'facecolor' not in self.options[key].keys(): self.options[key]['facecolor'] = 'None'
       if 'edgecolor' not in self.options[key].keys(): self.options[key]['edgecolor'] = 'None'
       if 'frameon' not in self.options[key].keys():   self.options[key]['frameon'  ] = 'True'
-      elif self.options[key]['frameon'].lower() in ['t','true']: self.options[key]['frameon'] = 'True'
-      elif self.options[key]['frameon'].lower() in ['f','false']: self.options[key]['frameon'] = 'False'
+      elif self.options[key]['frameon'].lower() in utils.stringsThatMeanTrue(): self.options[key]['frameon'] = 'True'
+      elif self.options[key]['frameon'].lower() in utils.stringsThatMeanFalse(): self.options[key]['frameon'] = 'False'
       self.fig = self.plt.figure(self.name, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']),**self.options[key].get('attributes',{}))
     else: self.fig = self.plt.figure(self.name)
     if self.dim == 3: self.plt3D = self.fig.add_subplot(111, projection='3d')
