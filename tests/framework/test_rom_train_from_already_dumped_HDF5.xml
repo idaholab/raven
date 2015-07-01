@@ -40,15 +40,7 @@
     </variable>
   </MonteCarlo>
 </Samplers>
-<Steps> 
-    <IOStep name='test_extract_for_rom_trainer'>
-        <Input   class='Databases' type='HDF5'                      >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-        <Output  class='DataObjects'    type='PointSet'               >Pointset_from_database_for_rom_trainer</Output>
-    </IOStep>  
-    <RomTrainer name='test_rom_trainer'>
-        <Input   class='DataObjects'  type='PointSet'>Pointset_from_database_for_rom_trainer</Input>
-        <Output  class='Models' type='ROM'         >ROM1</Output>
-    </RomTrainer> 
+<Steps>
     <MultiRun name='rom_MC'>
         <Input   class='DataObjects'    type='Point'   >data_for_sampling_empty_at_begin</Input>
         <Model   class='Models'   type='ROM'         >ROM1</Model>
@@ -56,6 +48,14 @@
         <Output  class='DataObjects'    type='PointSet'>outputMontecarloRom</Output>
         <Output  class='OutStreamManager' type='Print'>outputMontecarloRom_dump</Output>
     </MultiRun>
+    <IOStep name='test_extract_for_rom_trainer'>
+        <Input   class='Databases'   type='HDF5'     >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+        <Output  class='DataObjects' type='PointSet' >timepointset_from_database_for_rom_trainer</Output>
+    </IOStep>
+    <RomTrainer name='test_rom_trainer'>
+        <Input   class='DataObjects' type='PointSet'>Pointset_from_database_for_rom_trainer</Input>
+        <Output  class='Models'      type='ROM'     >ROM1</Output>
+    </RomTrainer>
 </Steps>
 <OutStreamManager>
   <Print name='outputMontecarloRom_dump'>
@@ -63,7 +63,7 @@
     <source>outputMontecarloRom</source>
   </Print>
 </OutStreamManager>
-    
+
 <Databases>
         <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" directory='DatabaseStorage' filename='MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5'/>
 </Databases>

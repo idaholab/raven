@@ -84,16 +84,16 @@
     <Output  class = 'DataObjects'     type='HistorySet'>stories</Output>
     <Output  class='DataObjects'     type='PointSet'>outGrid</Output>
     <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
-  </MultiRun >
+  </MultiRun>
   <IOStep name='IOStepTest'>
       <Input   class = 'Databases' type='HDF5'            >test_bison_grid</Input>
-      <Output  class='DataObjects'     type='PointSet'>outGridFromHDF5</Output>
       <Input   class = 'Databases' type='HDF5'            >test_bison_grid</Input>
+      <Output  class='DataObjects'     type='PointSet'>outGridFromHDF5</Output>
       <Output  class='DataObjects'     type='HistorySet'>storiesFromHDF5</Output>
   </IOStep>
 </Steps>
 <Databases>
-  <HDF5 name="test_bison_grid"/> 
+  <HDF5 name="test_bison_grid"/>
 </Databases>
 </Simulation>
 

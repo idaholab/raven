@@ -74,8 +74,14 @@ truncated by using the following keywords:
    </aDistributionType>
 </Distributions>
 \end{lstlisting}
-Each distribution has a pre-defined support (domain) based on its definition.
-For example, the Normal distribution domain is $[-\infty,+\infty]$.
+Each distribution has a pre-defined, default support (domain) based on its
+definition, however these domains can be shifted/stretched using the appropriate
+\xmlNode{low} and \xmlNode{high} parameters where applicable, and/or truncated
+using the nodes in the example above, namely \xmlNode{lowerBound} and
+\xmlNode{upperBound}.
+For example, the Normal distribution domain is $[-\infty,+\infty]$, and thus
+cannot be shifted or stretched, as it is already unbounded, but can be
+truncated.
 %
 RAVEN currently provides support for 13 1-Dimensional distributions.
 %
@@ -166,7 +172,8 @@ Example:
 %%%%%% Exponential
 \paragraph{Exponential Distribution}
 \label{Exponential}
-The \distname{Exponential} distribution support is $x \in [0, +\infty)$.
+The \distname{Exponential} distribution has a default support of
+$x \in [0, +\infty)$.
 
 \specBlock{an}{Exponential}
 %
@@ -206,7 +213,7 @@ probability distributions.
 The common exponential distribution and $\chi$-squared distribution are special
 cases of the gamma distribution.
 %
-Its support is $x \in (0,+\infty)$.
+Its default support is $x \in (0,+\infty)$.
 
 \specBlock{a}{Gamma}
 %
@@ -250,7 +257,7 @@ normal distribution with a CDF that is an instance of a logistic function ($Cdf(
 It resembles the normal distribution in shape but has heavier tails (higher
 kurtosis).
 %
-Its support is $x \in (-\infty,+\infty)$.
+Its default support is $x \in (-\infty,+\infty)$.
 
 \specBlock{a}{Logistic}
 %
@@ -291,7 +298,7 @@ Example:
 The \distname{LogNormal} distribution is a distribution with the
 logarithm of the random variable being normally distributed.
 %
-Its support is $x \in (0, +\infty)$.
+Its default support is $x \in (0, +\infty)$.
 
 \specBlock{a}{LogNormal}
 %
@@ -338,7 +345,7 @@ conditions, the mean of many random variables independently drawn from the same
 distribution is distributed approximately normally, irrespective of the form of
 the original distribution.
 %
-Its support is $x \in (-\infty, +\infty)$.
+Its default support is $x \in (-\infty, +\infty)$.
 
 \specBlock{a}{Normal}
 %
@@ -385,7 +392,7 @@ Like the uniform distribution, upper and lower limits are ``known,'' but a
 %
 It has been recommended as a ``proxy'' for the beta distribution.
 %
-Its support is $min \le x \le max$.
+Its default support is $min \le x \le max$.
 
 \specBlock{a}{Triangular}
 %
@@ -431,7 +438,7 @@ rectangular-shaped PDF.
 It is often used where the distribution is only vaguely known, but upper and
 lower limits are known.
 %
-Its support is $lower \le x \le upper$.
+Its default support is $lower \le x \le upper$.
 
 \specBlock{a}{Uniform}
 %
@@ -484,7 +491,7 @@ If the failure rate is:
   %
 \end{itemize}
 \vspace{-5mm}
-Its support is $x \in [0, +\infty)$.
+Its default support is $x \in [0, +\infty)$.
 
 \specBlock{a}{Weibull}
 %
@@ -538,7 +545,7 @@ sequences of independent Bernoulli trials can be based.
 Basically, it is the binomial distribution (k = 1, \distattrib{p}) with only
 one trial.
 %
-Its support is $k \in {0, 1}$.
+Its default support is $k \in {0, 1}$.
 
 \specBlock{a}{Bernoulli}
 %
@@ -573,7 +580,7 @@ The \distname{Binomial} distribution is the discrete probability distribution of
 the number of successes in a sequence of \distattrib{n} independent yes/no
 experiments, each of which yields success with probability \distattrib{p}.
 %
-Its support is $k \in {0, 1, 2, ..., n}$.
+Its default support is $k \in {0, 1, 2, ..., n}$.
 
 \specBlock{a}{Binomial}
 %
@@ -614,7 +621,7 @@ expresses the probability of a given number of events occurring in a fixed
 interval of time and/or space if these events occur with a known average rate
 and independently of the time since the last event.
 %
-Its support is $k \in {1, 2, 3, 4, ...}$.
+Its default support is $k \in {1, 2, 3, 4, ...}$.
 
 \specBlock{a}{Poisson}
 %

@@ -7,15 +7,15 @@
     </RunInfo>
 
     <Steps>
-        <MultiRun name='make' pauseAtEnd='False'>
-            <Sampler class='Samplers'         type='Sobol'       >sobol</Sampler>
-            <Input   class='DataObjects'            type='PointSet'>dummyIN</Input>
-            <Model   class='Models'           type='Dummy'       >MyDummy</Model>
-            <Output  class='DataObjects'            type='PointSet'>solns</Output>
+        <MultiRun name='make' pauseAtEnd='false'>
+            <Input   class='DataObjects' type='PointSet'>dummyIN</Input>
+            <Model   class='Models'      type='Dummy'   >MyDummy</Model>
+            <Sampler class='Samplers'    type='Sobol'   >sobol</Sampler>
+            <Output  class='DataObjects' type='PointSet'>solns</Output>
         </MultiRun>
         <IOStep name='print'>
-            <Input   class='DataObjects'            type='PointSet'>solns</Input>
-            <Output  class='OutStreamManager' type='Print'       >dump</Output>
+            <Input   class='DataObjects'      type='PointSet'>solns</Input>
+            <Output  class='OutStreamManager' type='Print'   >dump</Output>
         </IOStep>
     </Steps>
 

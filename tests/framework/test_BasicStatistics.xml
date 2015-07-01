@@ -25,7 +25,7 @@
     </ExternalModel>
     <PostProcessor name="autoCorrelationTest" subType='BasicStatistics'  verbosity='debug'>
         <!-- => you can here specify what type of figure of merit you need to compute
-           <what>expectedValue,sigma,variance,kurtois,pearson,covariance</what> 
+           <what>expectedValue,sigma,variance,kurtois,pearson,covariance</what>
          -->
         <what>expectedValue</what>
         <parameters>x01,x02</parameters>
@@ -97,8 +97,8 @@
     </MultiRun >
     <PostProcess name='PP1'>
         <Input    class='DataObjects'            type='PointSet'    >PointSetPostProcTest</Input>
-        <Model    class='Models'           type='PostProcessor'   >autoCorrelationTest</Model>
         <Function class='Functions'        type='External'        >testFunctionComputeProbability</Function>
+        <Model    class='Models'           type='PostProcessor'   >autoCorrelationTest</Model>
         <Output   class='Files'            type=''                >output_basicStatistics_PP1.csv</Output>
     </PostProcess>
     <PostProcess name='PP2'>
@@ -129,8 +129,8 @@
     <source>PointSetPostProcTest</source>
   </Print>
 </OutStreamManager>
-    
-    
+
+
 <DataObjects>
     <PointSet name='PointSetPostProcTest'>
         <Input>x0,y0,z0</Input>
