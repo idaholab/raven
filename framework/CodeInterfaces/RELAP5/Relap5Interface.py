@@ -73,6 +73,7 @@ class Relap5(CodeInterfaceBase):
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
     found = False
     for index, inputFile in enumerate(currentInputFiles):
+      inputFile = inputFile.getAbsFile()
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break

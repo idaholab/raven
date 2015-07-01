@@ -43,6 +43,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     self._samplersDictionary['SparseGridCollocation'] = self.pointSamplerForMooseBasedApp
     found = False
     for index, inputFile in enumerate(currentInputFiles):
+      inputFile = inputFile.getAbsFile()
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break

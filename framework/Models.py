@@ -728,12 +728,15 @@ class Code(Model):
       if utils.checkIfLockedRavenFileIsPresent(self.workingDir,self.lockedFileName): self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ self.workingDir+". Please check your input!")
       # register function to remove the locked file at the end of execution
       atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
-    for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
+    for inputFile in inputFiles:
+      self.raiseADebug('infile:',inputFile.filename)
+      shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.raiseADebug('original input files copied in the current working dir: '+self.workingDir)
     self.raiseADebug('files copied:')
     self.raiseADebug( '  '+str(inputFiles))
     self.oriInputFiles = []
-    for i in range(len(inputFiles)): self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
+    for i in range(len(inputFiles)):
+      self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i].getAbsFile())[1]))
     self.currentInputFiles        = None
     self.outFileRoot              = None
 
@@ -743,12 +746,12 @@ class Code(Model):
     Kwargs['executable'] = self.executable
     found = False
     for index, inputFile in enumerate(currentInput):
-      if inputFile.endswith(self.code.getInputExtension()):
+      if inputFile.getAbsFile().endswith(self.code.getInputExtension()):
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
+    Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index].getAbsFile())[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 

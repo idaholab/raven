@@ -431,6 +431,7 @@ class Simulation(MessageHandler.MessageUser):
                       if Class=='Files':
                         self.raiseADebug('DEUBGGGG adddict',self.addWhatDict[Class],childChild.tag)
                         self.raiseADebug('DEUBGGGG Added',self.whichDict[Class][name])
+                        self.raiseADebug(type(Files.returnInstance('Input',self)))
                   else: self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
               else:
                   if name not in self.whichDict[Class][subType].keys():  self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)

@@ -17,7 +17,7 @@ import os
 from BaseClasses import BaseType
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Files(BaseType,str):
+class Files(BaseType):
   """
   This class is the base implementation of the file object entity in RAVEN.
   This is needed in order to standardize the object manipulation in the RAVEN code
@@ -45,55 +45,55 @@ class Files(BaseType,str):
     if self.isOpen(): self.__file.close()
 
   ### STRING-LIKE FUNCTIONS ###
-  def __add__(self, other) :
-    """
-    Overload add "+"
-    """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-    return Files(self.filename + other)
-  def __radd__(self, other):
-    """
-    Overload radd "+"
-    """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-    return Files(other + self.filename)
-  def __lt__(self, other)  :
-    """
-    Overload lt "<"
-    """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-    return len(self.filename) < len(str(other))
-  def __le__(self, other) :
-    """
-    Overload le "<="
-    """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-    return len(self.filename) <= len(str(other))
-  def __eq__(self, other)  :
-    """
-    Overload eq "=="
-    """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes','NoneType']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-    return self.filename == other
-  def __ne__(self, other)  :
-    """
-    Overload ne "!="
-    """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes','NoneType']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-    return self.filename != other
-  def __gt__(self, other)  :
-    """
-    Overload gt ">"
-    """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-    return len(self.filename) > len(str(other))
-  def __ge__(self, other)  :
-    """
-    Overload ge ">"
-    """
-    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-    return len(self.filename) >= len(str(other))
-
+#  def __add__(self, other) :
+#    """
+#    Overload add "+"
+#    """
+#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
+#    return Files(self.filename + other)
+#  def __radd__(self, other):
+#    """
+#    Overload radd "+"
+#    """
+#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
+#    return Files(other + self.filename)
+#  def __lt__(self, other)  :
+#    """
+#    Overload lt "<"
+#    """
+#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
+#    return len(self.filename) < len(str(other))
+#  def __le__(self, other) :
+#    """
+#    Overload le "<="
+#    """
+#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
+#    return len(self.filename) <= len(str(other))
+#  def __eq__(self, other)  :
+#    """
+#    Overload eq "=="
+#    """
+#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes','NoneType']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
+#    return self.filename == other
+#  def __ne__(self, other)  :
+#    """
+#    Overload ne "!="
+#    """
+#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes','NoneType']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
+#    return self.filename != other
+#  def __gt__(self, other)  :
+#    """
+#    Overload gt ">"
+#    """
+#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
+#    return len(self.filename) > len(str(other))
+#  def __ge__(self, other)  :
+#    """
+#    Overload ge ">"
+#    """
+#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
+#    return len(self.filename) >= len(str(other))
+#
   ### HELPER FUNCTIONS ###
   def _setFilename(self,filename):
     """
@@ -114,6 +114,12 @@ class Files(BaseType,str):
     if '~' in path:
       path = os.path.expanduser(path)
     self.path = path
+
+  def getPath(self):
+    return self.path
+
+  def getAbsFile(self):
+    return os.path.normpath(os.path.join(self.path,self.filename))
 
   ### ACCESS FUNCTIONS ###
   def isOpen(self):
