@@ -89,9 +89,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def __init__(self):
     """
-    Default constructor for the base class Sampler that will initialize member
-    variables with reasonable defaults or empty lists/dictionaries where
-    applicable.
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
+    @ In, None
+    @ Out, None
     """
     BaseType.__init__(self)
     self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
@@ -465,6 +466,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
     """
     Default Constructor that will initialize member variables with reasonable
     defaults or empty lists/dictionaries where applicable.
+    @ In, None
+    @ Out, None
     """
     Sampler.__init__(self)
     self.goalFunction     = None             #this is the pointer to the function defining the goal
@@ -799,6 +802,8 @@ class MonteCarlo(Sampler):
     """
     Default Constructor that will initialize member variables with reasonable
     defaults or empty lists/dictionaries where applicable.
+    @ In, None
+    @ Out, None
     """
     Sampler.__init__(self)
     self.printTag = 'SAMPLER MONTECARLO'
@@ -882,6 +887,12 @@ class Grid(Sampler):
   Samples the model on a given (by input) set of points
   """
   def __init__(self):
+    """
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
+    @ In, None
+    @ Out, None
+    """
     Sampler.__init__(self)
     self.printTag = 'SAMPLER GRID'
     self.axisName             = []    # the name of each axis (variable)
@@ -1030,6 +1041,12 @@ class Stratified(Grid):
   Stratified based sampler. Currently no special filling method are implemented
   """
   def __init__(self):
+    """
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
+    @ In, None
+    @ Out, None
+    """
     Grid.__init__(self)
     self.sampledCoordinate    = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
     self.printTag = 'SAMPLER Stratified'
@@ -1124,6 +1141,12 @@ class DynamicEventTree(Grid):
   DYNAMIC EVENT TREE Sampler (DET)
   """
   def __init__(self):
+    """
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
+    @ In, None
+    @ Out, None
+    """
     Grid.__init__(self)
     # Working directory (Path of the directory in which all the outputs,etc. are stored)
     self.workingDir = ""
@@ -1715,6 +1738,12 @@ class DynamicEventTree(Grid):
 #
 class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
   def __init__(self):
+    """
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
+    @ In, None
+    @ Out, None
+    """
     DynamicEventTree.__init__(self)  # init DET
     LimitSurfaceSearch.__init__(self)   # init Adaptive
     self.detAdaptMode         = 1    # Adaptive Dynamic Event Tree method (=1 -> DynamicEventTree as preconditioner and subsequent LimitSurfaceSearch,=2 -> DynamicEventTree online adaptive)
@@ -2061,6 +2090,12 @@ class FactorialDesign(Grid):
   Samples the model on a given (by input) set of points
   """
   def __init__(self):
+    """
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
+    @ In, None
+    @ Out, None
+    """
     Grid.__init__(self)
     self.printTag = 'SAMPLER FACTORIAL DESIGN'
     # accepted types. full = full factorial, 2levelfract = 2-level fracional factorial, pb = Plackett-Burman design. NB. full factorial is equivalent to Grid sampling
@@ -2141,6 +2176,12 @@ class ResponseSurfaceDesign(Grid):
   Samples the model on a given (by input) set of points
   """
   def __init__(self):
+    """
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
+    @ In, None
+    @ Out, None
+    """
     Grid.__init__(self)
     self.limit    = 1
     self.printTag = 'SAMPLER RESPONSE SURF DESIGN'
@@ -2233,7 +2274,9 @@ class ResponseSurfaceDesign(Grid):
 #
 class SparseGridCollocation(Grid):
   def __init__(self):
-    """Initializes class.
+    """
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
     @ In, None
     @ Out, None
     """
@@ -2442,7 +2485,9 @@ class SparseGridCollocation(Grid):
 #
 class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def __init__(self):
-    """Initializes class.
+    """
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
     @ In, None
     @ Out, None
     """
@@ -2749,9 +2794,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 class Sobol(SparseGridCollocation):
   def __init__(self):
     """
-      Initializes members to be used in the sampler.
-      @ In, None
-      @ Out, None
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
+    @ In, None
+    @ Out, None
     """
     Grid.__init__(self)
     self.type           = 'SobolSampler'
