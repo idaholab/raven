@@ -1,79 +1,84 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>GridTestRaven</WorkingDir>
-    <Files>simple_flow_3eqn.i,
-    simple_flow_3eqn_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
+  <Files>
+    <Input name="simple_flow_3eqn.i" type="">simple_flow_3eqn.i</Input>
+    <Input name="simple_flow_3eqn_control.py" type="">simple_flow_3eqn_control.py</Input>
+  </Files>
+
   <Models>
-    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
+    <Code name="MyRAVEN" subType="RAVEN">
+      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
+    </Code>
   </Models>
 
   <Distributions>
-    <Normal name='Gauss1'>
+    <Normal name="Gauss1">
       <mean>310</mean>
       <sigma>3</sigma>
       <lowerBound>300</lowerBound>
       <upperBound>320</upperBound>
     </Normal>
-    <Normal name='ANormalDistribution'>
+    <Normal name="ANormalDistribution">
       <mean>-4</mean>
       <sigma>2</sigma>
     </Normal>
   </Distributions>
 
   <Samplers>
-    <Grid name='myGrid'>
+    <Grid name="myGrid">
       <sampler_init>
         <initial_seed>1</initial_seed>
       </sampler_init>
-      <variable name='Components|pipe|Tw'>
-        <distribution >Gauss1</distribution>
-        <grid type='value' construction='equal' steps='1'>300 303</grid>
+      <variable name="Components|pipe|Tw">
+        <distribution>Gauss1</distribution>
+        <grid construction="equal" steps="1" type="value">300 303</grid>
       </variable>
-      <Distribution name='Dummy1'>
-        <distribution >ANormalDistribution</distribution>
-        <grid type='CDF' construction='equal' steps='2'>0.88 0.9</grid>
+      <Distribution name="Dummy1">
+        <distribution>ANormalDistribution</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.88 0.9</grid>
       </Distribution>
     </Grid>
   </Samplers>
+
   <Steps>
-    <MultiRun name='FirstMRun'>
-      <Input      class='Files'      type=''          >simple_flow_3eqn.i</Input>
-      <Input      class='Files'      type=''          >simple_flow_3eqn_control.py</Input>
-      <Model      class='Models'     type='Code'      >MyRAVEN</Model>
-      <Sampler    class='Samplers'   type='Grid'>myGrid</Sampler>
-      <!-- <Databases  class='Databases'  type=''          >testMPIDatabase</Databases> -->
-      <Output     class='Databases'  type='HDF5'      >testGridRavenDatabase</Output>
-      <Output     class='DataObjects'      type='HistorySet' >stories</Output>
-      <Output  class='DataObjects'     type='PointSet'>outGrid</Output>
-      <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
-    </MultiRun >
+    <MultiRun name="FirstMRun">
+      <Input class="Files" type="">simple_flow_3eqn.i</Input>
+      <Input class="Files" type="">simple_flow_3eqn_control.py</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Output class="Databases" type="HDF5">testGridRavenDatabase</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+      <Output class="DataObjects" type="PointSet">outGrid</Output>
+      <Output class="OutStreamManager" type="Print">outGrid_dump</Output>
+    </MultiRun>
   </Steps>
+
   <Databases>
-    <HDF5 name="testGridRavenDatabase"/> 
+    <HDF5 name="testGridRavenDatabase"/>
   </Databases>
+
   <OutStreamManager>
-    <Print name='outGrid_dump'>
-        <type>csv</type>
-        <source>outGrid</source>
+    <Print name="outGrid_dump">
+      <type>csv</type>
+      <source>outGrid</source>
     </Print>
   </OutStreamManager>
+
   <DataObjects>
-    <PointSet name='outGrid'>
+    <PointSet name="outGrid">
       <Input>pipe_Area,pipe_Dh,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
-    
-    <HistorySet name='stories'>
+    <HistorySet name="stories">
       <Input>pipe_Area,pipe_Dh</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
   </DataObjects>
+
 </Simulation>
-
-
-

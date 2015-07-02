@@ -1,152 +1,155 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET</WorkingDir>
+    <Sequence>AdaptiveDETrunTest</Sequence>
+    <batchSize>8</batchSize>
+  </RunInfo>
 
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-    <RunInfo>
-        <WorkingDir>/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET</WorkingDir>
-        <Files>TMI_PRA_trans_DET_control.py,TMI.i,TMI_steady_restart/0957.rd-0,TMI_steady_restart/0957.xdr,TMI_steady_restart/0957.xdr.0000,TMI_steady_restart/0957_mesh.cpr</Files>
-        <Sequence>AdaptiveDETrunTest</Sequence>
-        <batchSize>8</batchSize>
-    </RunInfo>
-    <Models>
-        <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
-        <ROM name='Acc' subType='SciKitLearn'>
-            <Features>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime</Features>
-            <Target>relapFunction</Target>
-            <SKLtype>svm|SVC</SKLtype>
-            <kernel>rbf</kernel>
-            <gamma>0.8</gamma>
-            <tol>0.0001</tol>
-            <C>50</C>
-        </ROM>
-    </Models>
-    <Functions>
-        <External name='relapFunction' file='/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET/relapFunction.py'>
-            <variable type='numpy.float64'>DG1_time_ratio</variable>
-            <variable type='numpy.float64'>DG1recoveryTime</variable>
-            <variable type='numpy.float64'>CladTempBranched</variable>
-            <variable type='numpy.float64'>SecPGrecoveryTime</variable>
-            <variable type='numpy.float64'>PrimPGrecoveryTime</variable>
-            <variable type='numpy.float64'>CladDamaged</variable>
-        </External>
-    </Functions>
-    <Distributions>
-        <Normal name='crewSecPG'>
-            <mean>1400</mean>
-            <sigma>400</sigma>
-        </Normal>
-        <Uniform name='crew1DG2CoupledDG1'>
-            <lowerBound>0.5</lowerBound>
-            <upperBound>1</upperBound>
-        </Uniform>
-        <Normal name='crew1DG1'>
-            <mean>800</mean>
-            <sigma>200</sigma>
-            <lowerBound>0</lowerBound>
-            <upperBound>2500</upperBound>
-        </Normal>
-        <Triangular name='CladFailureDist'>
-            <apex>1277.59</apex>
-            <min>1055.3722</min>
-            <max>1499.8167</max>
-        </Triangular>
-        <Normal name='PrimPGrecovery'>
-            <mean>2000</mean>
-            <sigma>500</sigma>
-        </Normal>
-    </Distributions>
-    <Samplers>
-        <AdaptiveDynamicEventTree name='AdaptiveDET' print_end_xml='yes' maxSimulationTime='2500.0'>
-            <Convergence limit='1600' forceIteration='False' weight='CDF' persistence='20'>0.0001</Convergence>
-            <Distribution name='DG1recoveryTime'>
-                <distribution >crew1DG1</distribution>
-                <grid type='CDF' construction='custom'>0.1 0.9</grid>
-            </Distribution>
-            <Distribution name='DG1_time_ratio'>
-                <distribution >crew1DG2CoupledDG1</distribution>
-                <grid type='CDF' construction='custom'>0.1 0.9</grid>
-            </Distribution>
-            <Distribution name='SecPGrecoveryTime'>
-                <distribution >crewSecPG</distribution>
-                <grid type='CDF' construction='custom'>0.1 0.8</grid>
-            </Distribution>
-            <Distribution name='PrimPGrecoveryTime'>
-                <distribution >PrimPGrecovery</distribution>
-                <grid type='CDF' construction='custom'>0.1 0.8</grid>
-            </Distribution>
-            <Distribution name='CladTempBranched'>
-                <distribution >CladFailureDist</distribution>
-                <grid type='CDF' construction='custom'>0.01 0.1</grid>
-            </Distribution>
-        </AdaptiveDynamicEventTree>
-    </Samplers>
-    <Steps>
-        <LimitSurfaceSearch name='AdaptiveDETrunTest'>
-            <Input             class='Files'            type=''                          >TMI.i</Input>
-            <Input             class='Files'            type=''                          >TMI_PRA_trans_DET_control.py</Input>
-            <Input             class='Files'            type=''                          >TMI_steady_restart/0957.rd-0</Input>
-            <Input             class='Files'            type=''                          >TMI_steady_restart/0957.xdr</Input>
-            <Input             class='Files'            type=''                          >TMI_steady_restart/0957.xdr.0000</Input>
-            <Input             class='Files'            type=''                          >TMI_steady_restart/0957_mesh.cpr</Input>
-            <ROM               class='Models'           type='ROM'                       >Acc</ROM>
-            <Model             class='Models'           type='Code'                      >MyRAVEN</Model>
-            <TargetEvaluation  class='DataObjects'            type='PointSet'              >adaptiveOut</TargetEvaluation>
-            <SolutionExport    class='DataObjects'            type='PointSet'              >LimitSurf</SolutionExport>
-            <Function          class='Functions'        type='External'                  >relapFunction</Function>
-            <Sampler           class='Samplers'         type='AdaptiveDynamicEventTree'  >AdaptiveDET</Sampler>
-            <Output            class='DataObjects'            type='PointSet'              >adaptiveOut</Output>
-            <Output            class='Databases'        type='HDF5'                      >testAdaptiveBranchDatabase</Output>
-            <Output            class='DataObjects'            type='HistorySet'                 >stories</Output>
-            <Output            class='DataObjects'            type='PointSet'              >timepointset</Output>
-        </LimitSurfaceSearch>
-        <!--
-        <IOStep name='testOutstreamStep'>
-            <Input   class='DataObjects'            type='HistorySet'       >stories</Input>
-            <Input   class='DataObjects'            type='PointSet'    >Pointset</Input>
-            <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier</Output>
-            <Output  class='OutStreamManager' type='Print'           >testprint_tpset_hier</Output>
-            <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier_variables</Output>
-            <Output  class='OutStreamManager' type='Print'           >testprint_tpset_hier_variables</Output>
-            <Output  class='OutStreamManager' type='Plot'            >2DHistoryPlot</Output>
-            <Output  class='OutStreamManager' type='Plot'            >2DHistoryPlot_tps</Output>
-        </IOStep>
-         -->
-    </Steps>
-    <Databases>
-        <HDF5 name="testAdaptiveBranchDatabase" directory="/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET"/>
-    </Databases>
-    
-    <OutStreamManager>
-        <Print name='stories_from_database_dump'>
-            <type>csv</type>
-            <source>stories_from_database</source>
-        </Print>
-    </OutStreamManager>
-    <DataObjects>
-        <HistorySet name='stories' inputTs='1'>
-            <Input>CladFailureDistThreshold,CladTempBranched,DG1_time_ratio,DG1recoveryTime,DG2recoveryTime,DeltaTimeScramToAux</Input>
-        <Output>time,AuxSystemUp,CladDamaged,DownStreamSpeed,Head_PumpA,Head_PumpB,InitialMassFlowPrimary,MassFlowRateIn_SC_A,MassFlowRateIn_SC_B,PrimPGrecovery,PrimPGrecoveryThreshold,PrimPGrecoveryTime,ScramStatus,SecPGrecoveryTime,UpstreamSpeed,a_Head_PumpA,a_Head_PumpB,a_MassFlowRateIn_SC_A,a_MassFlowRateIn_SC_B,a_friction2_CL_A,a_friction2_CL_B,a_power_CH1,a_power_CH2,a_power_CH3,auxAbsolute,avg_Fluid_Vel_C_L_A,avg_Fluid_Vel_H_L-A,avg_out_temp_sec_A,avg_temp_clad_CH1,avg_temp_clad_CH2,avg_temp_clad_CH3,avg_temp_fuel_CH1,avg_temp_fuel_CH2,avg_temp_fuel_CH3,crew1DG1,crew1DG1Threshold,crew1DG2CoupledDG1,crew1DG2CoupledDG1Threshold,crewSecPG,crewSecPGThreshold,init_Power_Fraction_CH1,init_Power_Fraction_CH2,init_Power_Fraction_CH3,power_CH1,power_CH2,power_CH3,reactor:power,scram_start_time,sec_inlet_velocity</Output>
-        </HistorySet>
-        <PointSet name='Pointset' inputTs='1'>
-            <Input>CladFailureDistThreshold,CladTempBranched,DG1_time_ratio,DG1recoveryTime,DG2recoveryTime,DeltaTimeScramToAux</Input>
-            <Output>time,AuxSystemUp,CladDamaged,DownStreamSpeed,Head_PumpA,Head_PumpB,InitialMassFlowPrimary,MassFlowRateIn_SC_A,MassFlowRateIn_SC_B,PrimPGrecovery,PrimPGrecoveryThreshold,PrimPGrecoveryTime,ScramStatus,SecPGrecoveryTime,UpstreamSpeed,a_Head_PumpA,a_Head_PumpB,a_MassFlowRateIn_SC_A,a_MassFlowRateIn_SC_B,a_friction2_CL_A,a_friction2_CL_B,a_power_CH1,a_power_CH2,a_power_CH3,auxAbsolute,avg_Fluid_Vel_C_L_A,avg_Fluid_Vel_H_L-A,avg_out_temp_sec_A,avg_temp_clad_CH1,avg_temp_clad_CH2,avg_temp_clad_CH3,avg_temp_fuel_CH1,avg_temp_fuel_CH2,avg_temp_fuel_CH3,crew1DG1,crew1DG1Threshold,crew1DG2CoupledDG1,crew1DG2CoupledDG1Threshold,crewSecPG,crewSecPGThreshold,init_Power_Fraction_CH1,init_Power_Fraction_CH2,init_Power_Fraction_CH3,power_CH1,power_CH2,power_CH3,reactor:power,scram_start_time,sec_inlet_velocity</Output>
-        </PointSet>
-        <PointSet name='adapt_Pointset' inputTs='0' hierarchical='t'>
-            <Input>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime,crewSecPG</Input>
-            <Output>time,avg_temp_clad_CH1,avg_temp_fuel_CH1,Head_PumpB,CladDamaged</Output>
-        </PointSet>
-        <PointSet name='adaptiveOut' inputTs='0' hierarchical='t'>
-            <Input>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime,crewSecPG</Input>
-            <Output>CladDamaged</Output>
-        </PointSet>
-        <PointSet name='LimitSurf'>
-            <Input>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime,crewSecPG</Input>
-            <Output>OutputPlaceHolder</Output>
-        </PointSet>
-        <PointSet name='LimitSurfReduced'>
-            <Input>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime,crewSecPG</Input>
-            <Output>OutputPlaceHolder</Output>
-        </PointSet>
-    </DataObjects>
+  <Files>
+    <Input name="TMI_PRA_trans_DET_control.py" type="">TMI_PRA_trans_DET_control.py</Input>
+    <Input name="TMI.i" type="">TMI.i</Input>
+    <Input name="TMI_steady_restart/0957.rd-0" type="">TMI_steady_restart/0957.rd-0</Input>
+    <Input name="TMI_steady_restart/0957.xdr" type="">TMI_steady_restart/0957.xdr</Input>
+    <Input name="TMI_steady_restart/0957.xdr.0000" type="">TMI_steady_restart/0957.xdr.0000</Input>
+    <Input name="TMI_steady_restart/0957_mesh.cpr" type="">TMI_steady_restart/0957_mesh.cpr</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyRAVEN" subType="RAVEN">
+      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
+    </Code>
+    <ROM name="Acc" subType="SciKitLearn">
+      <Features>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime</Features>
+      <Target>relapFunction</Target>
+      <SKLtype>svm|SVC</SKLtype>
+      <kernel>rbf</kernel>
+      <gamma>0.8</gamma>
+      <tol>0.0001</tol>
+      <C>50</C>
+    </ROM>
+  </Models>
+
+  <Functions>
+    <External file="/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET/relapFunction.py" name="relapFunction">
+      <variable type="numpy.float64">DG1_time_ratio</variable>
+      <variable type="numpy.float64">DG1recoveryTime</variable>
+      <variable type="numpy.float64">CladTempBranched</variable>
+      <variable type="numpy.float64">SecPGrecoveryTime</variable>
+      <variable type="numpy.float64">PrimPGrecoveryTime</variable>
+      <variable type="numpy.float64">CladDamaged</variable>
+    </External>
+  </Functions>
+
+  <Distributions>
+    <Normal name="crewSecPG">
+      <mean>1400</mean>
+      <sigma>400</sigma>
+    </Normal>
+    <Uniform name="crew1DG2CoupledDG1">
+      <lowerBound>0.5</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+    <Normal name="crew1DG1">
+      <mean>800</mean>
+      <sigma>200</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2500</upperBound>
+    </Normal>
+    <Triangular name="CladFailureDist">
+      <apex>1277.59</apex>
+      <min>1055.3722</min>
+      <max>1499.8167</max>
+    </Triangular>
+    <Normal name="PrimPGrecovery">
+      <mean>2000</mean>
+      <sigma>500</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <AdaptiveDynamicEventTree maxSimulationTime="2500.0" name="AdaptiveDET" print_end_xml="yes">
+      <Convergence forceIteration="False" limit="1600" persistence="20" weight="CDF">0.0001</Convergence>
+      <Distribution name="DG1recoveryTime">
+        <distribution>crew1DG1</distribution>
+        <grid construction="custom" type="CDF">0.1 0.9</grid>
+      </Distribution>
+      <Distribution name="DG1_time_ratio">
+        <distribution>crew1DG2CoupledDG1</distribution>
+        <grid construction="custom" type="CDF">0.1 0.9</grid>
+      </Distribution>
+      <Distribution name="SecPGrecoveryTime">
+        <distribution>crewSecPG</distribution>
+        <grid construction="custom" type="CDF">0.1 0.8</grid>
+      </Distribution>
+      <Distribution name="PrimPGrecoveryTime">
+        <distribution>PrimPGrecovery</distribution>
+        <grid construction="custom" type="CDF">0.1 0.8</grid>
+      </Distribution>
+      <Distribution name="CladTempBranched">
+        <distribution>CladFailureDist</distribution>
+        <grid construction="custom" type="CDF">0.01 0.1</grid>
+      </Distribution>
+    </AdaptiveDynamicEventTree>
+  </Samplers>
+
+  <Steps>
+    <LimitSurfaceSearch name="AdaptiveDETrunTest">
+      <Input class="Files" type="">TMI.i</Input>
+      <Input class="Files" type="">TMI_PRA_trans_DET_control.py</Input>
+      <Input class="Files" type="">TMI_steady_restart/0957.rd-0</Input>
+      <Input class="Files" type="">TMI_steady_restart/0957.xdr</Input>
+      <Input class="Files" type="">TMI_steady_restart/0957.xdr.0000</Input>
+      <Input class="Files" type="">TMI_steady_restart/0957_mesh.cpr</Input>
+      <ROM class="Models" type="ROM">Acc</ROM>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOut</TargetEvaluation>
+      <SolutionExport class="DataObjects" type="PointSet">LimitSurf</SolutionExport>
+      <Function class="Functions" type="External">relapFunction</Function>
+      <Sampler class="Samplers" type="AdaptiveDynamicEventTree">AdaptiveDET</Sampler>
+      <Output class="DataObjects" type="PointSet">adaptiveOut</Output>
+      <Output class="Databases" type="HDF5">testAdaptiveBranchDatabase</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+      <Output class="DataObjects" type="PointSet">timepointset</Output>
+    </LimitSurfaceSearch>
+  </Steps>
+
+  <Databases>
+    <HDF5 directory="/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET" name="testAdaptiveBranchDatabase"/>
+  </Databases>
+
+  <OutStreamManager>
+    <Print name="stories_from_database_dump">
+      <type>csv</type>
+      <source>stories_from_database</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <HistorySet inputTs="1" name="stories">
+      <Input>CladFailureDistThreshold,CladTempBranched,DG1_time_ratio,DG1recoveryTime,DG2recoveryTime,DeltaTimeScramToAux</Input>
+      <Output>time,AuxSystemUp,CladDamaged,DownStreamSpeed,Head_PumpA,Head_PumpB,InitialMassFlowPrimary,MassFlowRateIn_SC_A,MassFlowRateIn_SC_B,PrimPGrecovery,PrimPGrecoveryThreshold,PrimPGrecoveryTime,ScramStatus,SecPGrecoveryTime,UpstreamSpeed,a_Head_PumpA,a_Head_PumpB,a_MassFlowRateIn_SC_A,a_MassFlowRateIn_SC_B,a_friction2_CL_A,a_friction2_CL_B,a_power_CH1,a_power_CH2,a_power_CH3,auxAbsolute,avg_Fluid_Vel_C_L_A,avg_Fluid_Vel_H_L-A,avg_out_temp_sec_A,avg_temp_clad_CH1,avg_temp_clad_CH2,avg_temp_clad_CH3,avg_temp_fuel_CH1,avg_temp_fuel_CH2,avg_temp_fuel_CH3,crew1DG1,crew1DG1Threshold,crew1DG2CoupledDG1,crew1DG2CoupledDG1Threshold,crewSecPG,crewSecPGThreshold,init_Power_Fraction_CH1,init_Power_Fraction_CH2,init_Power_Fraction_CH3,power_CH1,power_CH2,power_CH3,reactor:power,scram_start_time,sec_inlet_velocity</Output>
+    </HistorySet>
+    <PointSet inputTs="1" name="Pointset">
+      <Input>CladFailureDistThreshold,CladTempBranched,DG1_time_ratio,DG1recoveryTime,DG2recoveryTime,DeltaTimeScramToAux</Input>
+      <Output>time,AuxSystemUp,CladDamaged,DownStreamSpeed,Head_PumpA,Head_PumpB,InitialMassFlowPrimary,MassFlowRateIn_SC_A,MassFlowRateIn_SC_B,PrimPGrecovery,PrimPGrecoveryThreshold,PrimPGrecoveryTime,ScramStatus,SecPGrecoveryTime,UpstreamSpeed,a_Head_PumpA,a_Head_PumpB,a_MassFlowRateIn_SC_A,a_MassFlowRateIn_SC_B,a_friction2_CL_A,a_friction2_CL_B,a_power_CH1,a_power_CH2,a_power_CH3,auxAbsolute,avg_Fluid_Vel_C_L_A,avg_Fluid_Vel_H_L-A,avg_out_temp_sec_A,avg_temp_clad_CH1,avg_temp_clad_CH2,avg_temp_clad_CH3,avg_temp_fuel_CH1,avg_temp_fuel_CH2,avg_temp_fuel_CH3,crew1DG1,crew1DG1Threshold,crew1DG2CoupledDG1,crew1DG2CoupledDG1Threshold,crewSecPG,crewSecPGThreshold,init_Power_Fraction_CH1,init_Power_Fraction_CH2,init_Power_Fraction_CH3,power_CH1,power_CH2,power_CH3,reactor:power,scram_start_time,sec_inlet_velocity</Output>
+    </PointSet>
+    <PointSet hierarchical="t" inputTs="0" name="adapt_Pointset">
+      <Input>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime,crewSecPG</Input>
+      <Output>time,avg_temp_clad_CH1,avg_temp_fuel_CH1,Head_PumpB,CladDamaged</Output>
+    </PointSet>
+    <PointSet hierarchical="t" inputTs="0" name="adaptiveOut">
+      <Input>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime,crewSecPG</Input>
+      <Output>CladDamaged</Output>
+    </PointSet>
+    <PointSet name="LimitSurf">
+      <Input>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime,crewSecPG</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="LimitSurfReduced">
+      <Input>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime,crewSecPG</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
 </Simulation>
-
-

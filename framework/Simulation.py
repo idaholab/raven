@@ -634,11 +634,11 @@ class Simulation(MessageHandler.MessageUser):
               self.raiseADebug('Added',stepInputDict[key])
         else:
           stepInputDict[key] = self.whichDict[b][d]
-        if key == 'Input' and b == 'Files':
+        #if key == 'Input' and b == 'Files':
           # get file object from dict?
-          fileobj = self.whichDict[b][d]
-          fileobj.checkExists()
-          stepInputDict[key].append(fileobj)
+          #fileobj = self.whichDict[b][d]
+          #fileobj.checkExists()
+          #stepInputDict[key].append(fileobj)
           # originally self.__checkExistPath(d) #if the input is a file, check if it exists
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler

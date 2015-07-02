@@ -71,19 +71,19 @@ class RAVENInterface(CodeInterfaceBase):
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    parser = MOOSEparser.MOOSEparser(self.messageHandler,currentInputFiles[index])
+    parser = MOOSEparser.MOOSEparser(self.messageHandler,currentInputFiles[index].getAbsFile())
     Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
-    temp = str(oriInputFiles[index][:])
+    temp = str(oriInputFiles[index])
     newInputFiles = copy.copy(currentInputFiles)
     #TODO fix this? storing unwieldy amounts of data in 'prefix'
     if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
-      newInputFiles[index] = os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1])
+      newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
     else:
-      newInputFiles[index] = os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1])
-    parser.printInput(newInputFiles[index])
-    return newInputFiles
+      newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1]))
+    parser.printInput(newInputFiles[index].getAbsFile())
+    return list(n.getAbsFile() for n in newInputFiles)
 
   def stochasticCollocationForRAVEN(self,**Kwargs):
     if 'prefix' not in Kwargs['prefix']: self.raiseAnError(IOError,'a counter is (currently) needed for the StochColl sampler for RAVEN')

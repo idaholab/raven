@@ -78,7 +78,7 @@ class Relap5(CodeInterfaceBase):
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    parser = RELAPparser.RELAPparser(currentInputFiles[index],self.messageHandler)
+    parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile(),self.messageHandler)
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,True)
     temp = str(oriInputFiles[index][:])

@@ -1,78 +1,100 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>RedundantInputs</WorkingDir>
+    <Sequence>sim_py_MC</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
-<RunInfo>
-  <WorkingDir>RedundantInputs</WorkingDir>
-  <Files>simp_imp.py,input.py</Files>
-  <Sequence>sim_py_MC</Sequence>
-  <batchSize>1</batchSize>
-</RunInfo>
+  <Files>
+    <Input name="simp_imp.py" type="">simp_imp.py</Input>
+    <Input name="input.py" type="">input.py</Input>
+  </Files>
 
-<Steps>
-  <MultiRun name='sim_py_MC'>
-    <Input   class='Files'            type=''               >input.py</Input>
-    <Model   class='Models'           type='Code'           >py_script</Model>
-    <Sampler class='Samplers'         type='MonteCarlo'     >5factMC</Sampler>
-    <Output  class='DataObjects'      type='PointSet'   >timepointset</Output>
-    <Output  class='OutStreamManager' type='Print'          >simp_imp_out</Output>
-  </MultiRun>
-</Steps>
+  <Steps>
+    <MultiRun name="sim_py_MC">
+      <Input class="Files" type="">input.py</Input>
+      <Model class="Models" type="Code">py_script</Model>
+      <Sampler class="Samplers" type="MonteCarlo">5factMC</Sampler>
+      <Output class="DataObjects" type="PointSet">timepointset</Output>
+      <Output class="OutStreamManager" type="Print">simp_imp_out</Output>
+    </MultiRun>
+  </Steps>
 
-<Distributions>
-  <Uniform name='a_dist'><lowerBound>-3 </lowerBound><upperBound>6  </upperBound></Uniform>
-  <Uniform name='b_dist'><lowerBound>0.1</lowerBound><upperBound>7.6</upperBound></Uniform>
-  <Uniform name='c_dist'><lowerBound>155</lowerBound><upperBound>225</upperBound></Uniform>
-</Distributions>
+  <Distributions>
+    <Uniform name="a_dist">
+      <lowerBound>-3 </lowerBound>
+      <upperBound>6  </upperBound>
+    </Uniform>
+    <Uniform name="b_dist">
+      <lowerBound>0.1</lowerBound>
+      <upperBound>7.6</upperBound>
+    </Uniform>
+    <Uniform name="c_dist">
+      <lowerBound>155</lowerBound>
+      <upperBound>225</upperBound>
+    </Uniform>
+  </Distributions>
 
-<Samplers>
-  <MonteCarlo name='5factMC'>
-    <sampler_init>
-      <limit>20</limit>
-      <initial_seed>452508</initial_seed>
-      <reseed_at_each_iteration>false</reseed_at_each_iteration>
-    </sampler_init>
-    <variable name='a'><distribution>a_dist</distribution></variable>
-    <variable name='b'><distribution>b_dist</distribution></variable>
-    <variable name='c'><distribution>c_dist</distribution></variable>
-    <variable name='d'><Function>raven_d_calc</Function></variable>
-    <variable name='e'><Function>raven_e_calc</Function></variable>
-  </MonteCarlo>
-</Samplers>
+  <Samplers>
+    <MonteCarlo name="5factMC">
+      <sampler_init>
+        <limit>20</limit>
+        <initial_seed>452508</initial_seed>
+        <reseed_at_each_iteration>false</reseed_at_each_iteration>
+      </sampler_init>
+      <variable name="a">
+        <distribution>a_dist</distribution>
+      </variable>
+      <variable name="b">
+        <distribution>b_dist</distribution>
+      </variable>
+      <variable name="c">
+        <distribution>c_dist</distribution>
+      </variable>
+      <variable name="d">
+        <Function>raven_d_calc</Function>
+      </variable>
+      <variable name="e">
+        <Function>raven_e_calc</Function>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
 
-<Models>
-  <Code name='py_script' subType='GenericCode'>
-    <executable>RedundantInputs/simp_imp.py</executable>
-    <prepend>python</prepend>
-    <inputExtentions>.py</inputExtentions>
-    <clargs type='prepend' arg='python'/>
-    <clargs type='input'   arg='-i' extension='.py'/>
-    <clargs type='output'  arg='-o'/>
-  </Code>
-</Models>
+  <Models>
+    <Code name="py_script" subType="GenericCode">
+      <executable>RedundantInputs/simp_imp.py</executable>
+      <prepend>python</prepend>
+      <inputExtentions>.py</inputExtentions>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".py" type="input"/>
+      <clargs arg="-o" type="output"/>
+    </Code>
+  </Models>
 
-<Functions>
-  <External name='raven_d_calc' file='RedundantInputs/d_calc.py'>
-    <variable>a</variable>
-    <variable>c</variable>
-  </External>
-  <External name='raven_e_calc' file='RedundantInputs/e_calc.py'>
-    <variable>b</variable>
-    <variable>c</variable>
-  </External>
-</Functions>
+  <Functions>
+    <External file="RedundantInputs/d_calc.py" name="raven_d_calc">
+      <variable>a</variable>
+      <variable>c</variable>
+    </External>
+    <External file="RedundantInputs/e_calc.py" name="raven_e_calc">
+      <variable>b</variable>
+      <variable>c</variable>
+    </External>
+  </Functions>
 
-<DataObjects>
-  <PointSet name='timepointset'>
-    <Input>a,b,c,d,e</Input>
-    <Output>f,g,h</Output>
-  </PointSet>
-</DataObjects>
+  <DataObjects>
+    <PointSet name="timepointset">
+      <Input>a,b,c,d,e</Input>
+      <Output>f,g,h</Output>
+    </PointSet>
+  </DataObjects>
 
-<OutStreamManager>
-  <Print name='simp_imp_out'>
-    <type>csv</type>
-    <source>timepointset</source>
-  </Print>
-</OutStreamManager>
+  <OutStreamManager>
+    <Print name="simp_imp_out">
+      <type>csv</type>
+      <source>timepointset</source>
+    </Print>
+  </OutStreamManager>
 
 </Simulation>

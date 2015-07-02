@@ -34,7 +34,7 @@ class CsvLoader(MessageHandler.MessageUser):
     self.printTag           = self.type
     self.messageHandler     = messageHandler
 
-  def loadCsvFile(self,filein):
+  def loadCsvFile(self,myFile):
     """
     Function to load a csv file into a numpy array (2D)
     It also retrieves the headers
@@ -47,13 +47,13 @@ class CsvLoader(MessageHandler.MessageUser):
     @ Out, data, numpy.ndarray -> the loaded data
     """
     # open file
-    myFile = open (filein,'rb')
+    myFile.open(mode='rb')
     # read the field names
     head = myFile.readline().decode()
     self.all_field_names = head.split(',')
     for index in range(len(self.all_field_names)): self.all_field_names[index] = self.all_field_names[index].strip()
     # load the table data (from the csv file) into a numpy nd array
-    data = np.loadtxt(myFile,dtype='float',delimiter=',',ndmin=2)
+    data = np.loadtxt(myFile,dtype='float',delimiter=',',ndmin=2,skiprows=1)
     # close file
     myFile.close()
     return data

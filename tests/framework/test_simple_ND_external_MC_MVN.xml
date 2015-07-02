@@ -1,89 +1,90 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <Simulation>
-<RunInfo>
+  <RunInfo>
     <WorkingDir>ND_test_MC_MVN</WorkingDir>
-    <Files>lorentzAttractor_noK.py,covMatrix.txt,CorrelationTest_print.csv</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
-</RunInfo>
+  </RunInfo>
 
-<Models>
-    <ExternalModel name='PythonModule' subType='' ModuleToLoad='ND_test_MC_MVN/lorentzAttractor_noK'>
-        <variable>sigma</variable>
-        <variable>rho</variable>
-        <variable>beta</variable>
-        <variable>x</variable>
-        <variable>y</variable>
-        <variable>z</variable>
-        <variable>time</variable>
-        <variable>x0</variable>
-        <variable>y0</variable>
-        <variable>z0</variable>
+  <Files>
+    <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
+    <Input name="covMatrix.txt" type="">covMatrix.txt</Input>
+    <Input name="CorrelationTest_print.csv" type="">CorrelationTest_print.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="ND_test_MC_MVN/lorentzAttractor_noK" name="PythonModule" subType="">
+      <variable>sigma</variable>
+      <variable>rho</variable>
+      <variable>beta</variable>
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>z</variable>
+      <variable>time</variable>
+      <variable>x0</variable>
+      <variable>y0</variable>
+      <variable>z0</variable>
     </ExternalModel>
-    <PostProcessor name="CorrelationTest" subType='BasicStatistics'>
-        <what>all</what>
-        <parameters>x0,y0</parameters>
+    <PostProcessor name="CorrelationTest" subType="BasicStatistics">
+      <what>all</what>
+      <parameters>x0,y0</parameters>
     </PostProcessor>
-</Models>
+  </Models>
 
-<Distributions>
-    <MultivariateNormal name='MultivariateNormal_test'>
-        <data_filename>covMatrix.txt</data_filename>
-        <working_dir>ND_test_MC_MVN/</working_dir>
-        <mu>0.0 60.0</mu>
+  <Distributions>
+    <MultivariateNormal name="MultivariateNormal_test">
+      <data_filename>covMatrix.txt</data_filename>
+      <working_dir>ND_test_MC_MVN/</working_dir>
+      <mu>0.0 60.0</mu>
     </MultivariateNormal>
-</Distributions>
+  </Distributions>
 
-<Samplers>
-    <MonteCarlo name='MC_external'>
-        <sampler_init>
-            <limit>3</limit>
-            <initial_seed>1234</initial_seed>
-        </sampler_init>
-        <variable name='x0'>
-            <distribution dim='1'>MultivariateNormal_test</distribution>
-        </variable>
-        <variable name='y0,z0'>
-            <distribution dim='2'>MultivariateNormal_test</distribution>
-        </variable>
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <sampler_init>
+        <limit>3</limit>
+        <initial_seed>1234</initial_seed>
+      </sampler_init>
+      <variable name="x0">
+        <distribution dim="1">MultivariateNormal_test</distribution>
+      </variable>
+      <variable name="y0,z0">
+        <distribution dim="2">MultivariateNormal_test</distribution>
+      </variable>
     </MonteCarlo>
-</Samplers>
+  </Samplers>
 
-<Steps>
-    <MultiRun name='FirstMRun'>
-        <Input   class='DataObjects'        type='PointSet'   >inputPlaceHolder</Input>
-        <Model   class='Models'             type='ExternalModel'  >PythonModule</Model>
-        <Sampler class='Samplers'           type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='DataObjects'        type='PointSet'   >testPrintPointSet</Output>
-        <Output  class='OutStreamManager'   type='Print'          >testPrintPointSet_dump</Output>
+  <Steps>
+    <MultiRun name="FirstMRun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
+      <Output class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
     </MultiRun>
-    <PostProcess name='PP'>
-        <Input   class='DataObjects'      type='PointSet'    >testPrintPointSet</Input>
-        <Model   class='Models'           type='PostProcessor'   >CorrelationTest</Model>
-        <Output  class='Files'            type=''                >CorrelationTest_print.csv</Output>
+    <PostProcess name="PP">
+      <Input class="DataObjects" type="PointSet">testPrintPointSet</Input>
+      <Model class="Models" type="PostProcessor">CorrelationTest</Model>
+      <Output class="Files" type="">CorrelationTest_print.csv</Output>
     </PostProcess>
-</Steps>
+  </Steps>
 
-<OutStreamManager>
-    <Print name='testPrintPointSet_dump'>
-        <type>csv</type>
-        <source>testPrintPointSet</source>
+  <OutStreamManager>
+    <Print name="testPrintPointSet_dump">
+      <type>csv</type>
+      <source>testPrintPointSet</source>
     </Print>
-</OutStreamManager>
+  </OutStreamManager>
 
-
-<DataObjects>
-    <PointSet name='testPrintPointSet'>
-        <Input>x0,y0,z0</Input>
-        <Output>x,y,z</Output>
+  <DataObjects>
+    <PointSet name="testPrintPointSet">
+      <Input>x0,y0,z0</Input>
+      <Output>x,y,z</Output>
     </PointSet>
-    <PointSet name='inputPlaceHolder'>
-        <Input>x0,y0,z0</Input>
-        <Output>OutputPlaceHolder</Output>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
-</DataObjects>
+  </DataObjects>
 
 </Simulation>
-
-
-

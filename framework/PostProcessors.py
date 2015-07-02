@@ -243,11 +243,17 @@ class LimitSurfaceIntegral(BasePostProcessor):
         for key, value in lms.getParametersValues('output').items():
           for val in value: output.updateOutputValue(key, val)
         for _ in range(len(lms)): output.updateOutputValue('EventProbability', pb)
-      elif output.type == 'FileObject':
-        fileobject = open(output, 'w')
+      elif isinstance(output,Files.File):
         headers = lms.getParaKeys('inputs') + lms.getParaKeys('outputs') + ['EventProbability']
-        fileobject.write(','.join(headers))
+        #output.write(','.join(headers)) #TODO FIXME
+        #output.open('w')
+        #output.write('',overwrite=True)
+        #output.close()
+        #self.raiseADebug('whats in output')
+        #for line in output:
+        #  self.raiseADebug(line)
         stack = [None] * len(headers)
+        output.close()
         outIndex = 0
         for key, value in lms.getParametersValues('input').items() : stack[headers.index(key)] = np.asarray(value).flatten()
         for key, value in lms.getParametersValues('output').items():
@@ -255,8 +261,10 @@ class LimitSurfaceIntegral(BasePostProcessor):
           outIndex = headers.index(key)
         stack[headers.index('EventProbability')] = np.array([pb] * len(stack[outIndex])).flatten()
         stacked = np.column_stack(stack)
+        self.raiseADebug('\n\n\n\n\n\n\nHEADERS:',','.join(headers))
+        self.raiseADebug('\noutput:',output.getAbsFile())
         np.savetxt(output, stacked, delimiter = ',', header = ','.join(headers))
-      else: self.raiseAnError(Exception, self.type + ' accepts PointSet or FileObject only')
+      else: self.raiseAnError(Exception, self.type + ' accepts PointSet or File type only')
 #
 #
 #
@@ -674,14 +682,14 @@ class ComparisonStatistics(BasePostProcessor):
       dataToProcess.append((dataPulls, foundDataObjects, reference))
     generateCSV = False
     generatePointSet = False
-    if output.type == 'FileObject':
+    if isinstance(output,Files.File):
       generateCSV = True
     elif output.type == 'PointSet':
       generatePointSet = True
     else:
       self.raiseAnError(IOError, 'unsupported type ' + str(type(output)))
     if generateCSV:
-      csv = open(output, "w")
+      csv = output.open("w")
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "name" in reference:
@@ -775,7 +783,8 @@ class ComparisonStatistics(BasePostProcessor):
               return '_'.join([delist(x) for x in l])
             else:
               return str(l)
-          newFileName = output[:-4] + "_" + delist(dataPulls) + "_" + str(i) + ".csv"
+          newFileName = output.base + "_" + delist(dataPulls) + "_" + str(i) + ".csv"
+          #newFileName = output[:-4] + "_" + delist(dataPulls) + "_" + str(i) + ".csv"
           if type(dataStat).__name__ != 'dict':
             assert(False)
             continue
@@ -784,7 +793,9 @@ class ComparisonStatistics(BasePostProcessor):
             value = dataStat[key]
             if type(value).__name__ in ["int", "float"]:
               dataPairs.append((key, value))
-          extraCsv = open(newFileName, "w")
+          extraCsv = Files.returnInstance('CSV',self)
+          extraCsv.initialize(newFileName,self.messageHandler)
+          extraCsv.open("w")
           extraCsv.write(",".join(['"' + str(x[0]) + '"' for x in dataPairs]))
           extraCsv.write("\n")
           extraCsv.write(",".join([str(x[1]) for x in dataPairs]))
@@ -930,40 +941,51 @@ class PrintCSV(BasePostProcessor):
         hist = key
         #  If file, split the strings and add the working directory if present
         if self.workingDir:
-          if os.path.split(output)[1] == '': output = output[:-1]
-          splitted_1 = os.path.split(output)
-          output = splitted_1[1]
-        splitted = output.split('.')
+          if os.path.split(output.getAbsFile())[1] == '': output.setAbsFile(output.getAbsFile()[:-1])
+          splitted_1 = os.path.split(output.getAbsFile())
+          output.setAbsFile(splitted_1[1])
+        splitted = output.getAbsFile().split('.')
         #  Create csv files' names
-        addfile = splitted[0] + '_additional_info_' + hist + '.' + splitted[1]
-        csvfilen = splitted[0] + '_' + hist + '.' + splitted[1]
+        addfilename = splitted[0] + '_additional_info_' + hist + '.' + splitted[1]
+        csvfilename = splitted[0] + '_' + hist + '.' + splitted[1]
         #  Check if workingDir is present and in case join the two paths
         if self.workingDir:
-          addfile = os.path.join(self.workingDir, addfile)
-          csvfilen = os.path.join(self.workingDir, csvfilen)
+          addfilename = os.path.join(self.workingDir, addfilename)
+          csvfilename = os.path.join(self.workingDir, csvfilename)
+        self.raiseADebug('addfilename:',addfilename,os.path.split(addfilename))
+        self.raiseADebug('csvfilename:',csvfilename,os.path.split(csvfilename))
+        self.raiseADebug('hist:',hist)
 
         #  Open the files and save the data
-        with open(csvfilen, 'wb') as csvfile, open(addfile, 'wb') as addcsvfile:
-          #  Add history to the csv file
-          np.savetxt(csvfile, HistorySet[key][0], delimiter = ",", header = utils.toString(headers))
-          csvfile.write(os.linesep)
-          #  process the attributes in a different csv file (different kind of informations)
-          #  Add metadata to additional info csv file
-          addcsvfile.write(b'# History Metadata, ' + os.linesep)
-          addcsvfile.write(b'# ______________________________,' + b'_' * len(key) + b',' + os.linesep)
-          addcsvfile.write(b'#number of parameters,' + os.linesep)
-          addcsvfile.write(utils.toBytes(str(attributes['n_params'])) + b',' + os.linesep)
-          addcsvfile.write(b'#parameters,' + os.linesep)
-          addcsvfile.write(headers + os.linesep)
-          addcsvfile.write(b'#parent_id,' + os.linesep)
-          addcsvfile.write(utils.toBytes(attributes['parent_id']) + os.linesep)
-          addcsvfile.write(b'#start time,' + os.linesep)
-          addcsvfile.write(utils.toBytes(str(attributes['start_time'])) + os.linesep)
-          addcsvfile.write(b'#end time,' + os.linesep)
-          addcsvfile.write(utils.toBytes(str(attributes['end_time'])) + os.linesep)
-          addcsvfile.write(b'#number of time-steps,' + os.linesep)
-          addcsvfile.write(utils.toBytes(str(attributes['n_ts'])) + os.linesep)
-          addcsvfile.write(os.linesep)
+        csvfile    = Files.returnInstance('CSV',self)
+        addcsvfile = Files.returnInstance('CSV',self)
+        csvfile   .initialize(os.path.split(csvfilename)[1],self.messageHandler,path=os.path.split(csvfilename)[0])
+        addcsvfile.initialize(os.path.split(addfilename)[1],self.messageHandler,path=os.path.split(addfilename)[0])
+        csvfile   .open('wb')
+        addcsvfile.open('wb')
+        self.raiseADebug('csv object',   csvfile.getAbsFile())
+        self.raiseADebug('add object',addcsvfile.getAbsFile())
+        #with open(csvfilen, 'wb') as csvfile, open(addfile, 'wb') as addcsvfile:
+        #  Add history to the csv file
+        np.savetxt(csvfile, HistorySet[key][0], delimiter = ",", header = utils.toString(headers))
+        csvfile.write(os.linesep)
+        #  process the attributes in a different csv file (different kind of informations)
+        #  Add metadata to additional info csv file
+        addcsvfile.write(b'# History Metadata, ' + os.linesep)
+        addcsvfile.write(b'# ______________________________,' + b'_' * len(key) + b',' + os.linesep)
+        addcsvfile.write(b'#number of parameters,' + os.linesep)
+        addcsvfile.write(utils.toBytes(str(attributes['n_params'])) + b',' + os.linesep)
+        addcsvfile.write(b'#parameters,' + os.linesep)
+        addcsvfile.write(headers + os.linesep)
+        addcsvfile.write(b'#parent_id,' + os.linesep)
+        addcsvfile.write(utils.toBytes(attributes['parent_id']) + os.linesep)
+        addcsvfile.write(b'#start time,' + os.linesep)
+        addcsvfile.write(utils.toBytes(str(attributes['start_time'])) + os.linesep)
+        addcsvfile.write(b'#end time,' + os.linesep)
+        addcsvfile.write(utils.toBytes(str(attributes['end_time'])) + os.linesep)
+        addcsvfile.write(b'#number of time-steps,' + os.linesep)
+        addcsvfile.write(utils.toBytes(str(attributes['n_ts'])) + os.linesep)
+        addcsvfile.write(os.linesep)
     else: self.raiseAnError(NotImplementedError, 'for input type ' + self.inObj.type + ' not yet implemented.')
 
   def run(self, Input):  # inObj,workingDir=None):
@@ -1014,8 +1036,9 @@ class BasicStatistics(BasePostProcessor):
     except:
       if type(currentInput).__name__ == 'list'    : inType = 'list'
       else: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
-    if inType not in ['FileObject', 'HDF5', 'PointSet', 'list']: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(inType) + '!!!!')
-    if inType == 'FileObject':
+    if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(inType,Files.File):
+      self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(inType) + '!!!!')
+    if isinstance(inType,Files.File):
       if currentInput.subtype == 'csv': pass
     if inType == 'HDF5': pass  # to be implemented
     if inType in ['PointSet']:
@@ -1027,7 +1050,7 @@ class BasicStatistics(BasePostProcessor):
           inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
           self.calculated[targetP] = currentInput.getParam('output', targetP)
       inputDict['metadata'] = currentInput.getAllMetadata()
-#     # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
+      # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
       if inputDict['metadata'].keys().count('SamplerType') > 0: pass
 
     return inputDict
@@ -1079,60 +1102,63 @@ class BasicStatistics(BasePostProcessor):
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
-    if output.type == 'FileObject':
+    if isinstance(output,Files.File):
       availextens = ['csv', 'txt']
-      outputextension = output.split('.')[-1].lower()
+      outputextension = output.ext.lower() #split('.')[-1].lower()
       if outputextension not in availextens:
         self.raiseAWarning('BasicStatistics postprocessor output extension you input is ' + outputextension)
         self.raiseAWarning('Available are ' + str(availextens) + '. Convertint extension to ' + str(availextens[0]) + '!')
         outputextension = availextens[0]
+        output.setExtension(outputextension)
       if outputextension != 'csv': separator = ' '
       else                       : separator = ','
-      basicStatFilename = os.path.join(self.__workingDir, output[:output.rfind('.')] + '.' + outputextension)
-      self.raiseADebug("workingDir", self.__workingDir + " output " + str(output.split('.')))
-      self.raiseADebug('BasicStatistics postprocessor: dumping output in file named ' + basicStatFilename)
-      with open(basicStatFilename, 'wb') as basicStatdump:
-        basicStatdump.write('BasicStatistics ' + separator + str(self.name) + os.linesep)
-        basicStatdump.write('----------------' + separator + '-' * len(str(self.name)) + os.linesep)
-        for targetP in parameterSet:
-          self.raiseADebug('BasicStatistics postprocessor: writing variable ' + targetP)
-          basicStatdump.write('Variable' + separator + targetP + os.linesep)
-          basicStatdump.write('--------' + separator + '-' * len(targetP) + os.linesep)
-          for what in outputDict.keys():
-            if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-              self.raiseADebug('BasicStatistics postprocessor: writing variable ' + targetP + '. Parameter: ' + what)
-              basicStatdump.write(what + separator + '%.8E' % outputDict[what][targetP] + os.linesep)
-        maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
+      #basicStatFilename = os.path.join(self.__workingDir, output.base)#output[:output.rfind('.')] + '.' + outputextension)
+      output.setPath(self.__workingDir)#, output.base)#output[:output.rfind('.')] + '.' + outputextension)
+      #self.raiseADebug("workingDir", self.__workingDir + " output " + str(output.split('.')))
+      self.raiseADebug('BasicStatistics postprocessor: dumping output in file named ' + output.getAbsFile())
+      output.open('wb')
+      #with output as basicStatdump:
+      output.write('BasicStatistics ' + separator + str(self.name) + os.linesep)
+      output.write('----------------' + separator + '-' * len(str(self.name)) + os.linesep)
+      for targetP in parameterSet:
+        self.raiseADebug('BasicStatistics postprocessor: writing variable ' + targetP)
+        output.write('Variable' + separator + targetP + os.linesep)
+        output.write('--------' + separator + '-' * len(targetP) + os.linesep)
         for what in outputDict.keys():
-          if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity']:
+          if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
+            self.raiseADebug('BasicStatistics postprocessor: writing variable ' + targetP + '. Parameter: ' + what)
+            output.write(what + separator + '%.8E' % outputDict[what][targetP] + os.linesep)
+      maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
+      for what in outputDict.keys():
+        if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity']:
+          self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix ' + what)
+          output.write(what + os.linesep)
+          if outputextension != 'csv': output.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep)
+          else                       : output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
+          for index in range(len(parameterSet)):
+            if outputextension != 'csv': output.write(parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
+            else                       : output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
+        if what == 'sensitivity':
+          if not self.sampled: self.raiseAWarning('No sampled Input variable defined in ' + str(self.name) + ' PP. The I/O Sensitivity Matrix wil not be calculated.')
+          else:
             self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix ' + what)
-            basicStatdump.write(what + os.linesep)
-            if outputextension != 'csv': basicStatdump.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep)
-            else                       : basicStatdump.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
-            for index in range(len(parameterSet)):
-              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
-              else                       : basicStatdump.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
-          if what == 'sensitivity':
-            if not self.sampled: self.raiseAWarning('No sampled Input variable defined in ' + str(self.name) + ' PP. The I/O Sensitivity Matrix wil not be calculated.')
-            else:
-              self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix ' + what)
-              basicStatdump.write(what + os.linesep)
-              calculatedSet = list(set(list(self.calculated)))
-              sampledSet = list(set(list(self.sampled)))
-              if outputextension != 'csv': basicStatdump.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in sampledSet]) + os.linesep)
-              else                       : basicStatdump.write('matrix' + separator + ''.join([str(item) + separator for item in sampledSet]) + os.linesep)
-              for index in range(len(calculatedSet)):
-                if outputextension != 'csv': basicStatdump.write(calculatedSet[index] + ' ' * (maxLength - len(calculatedSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
-                else                       :
-                  basicStatdump.write(calculatedSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
-        if self.externalFunction:
-          self.raiseADebug('BasicStatistics postprocessor: writing External Function results')
-          basicStatdump.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
-          basicStatdump.write('------------' + os.linesep)
-          for what in self.methodsToRun:
-            if what not in self.acceptedCalcParam:
-              self.raiseADebug('BasicStatistics postprocessor: writing External Function parameter ' + what)
-              basicStatdump.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
+            output.write(what + os.linesep)
+            calculatedSet = list(set(list(self.calculated)))
+            sampledSet = list(set(list(self.sampled)))
+            if outputextension != 'csv': output.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in sampledSet]) + os.linesep)
+            else                       : output.write('matrix' + separator + ''.join([str(item) + separator for item in sampledSet]) + os.linesep)
+            for index in range(len(calculatedSet)):
+              if outputextension != 'csv': output.write(calculatedSet[index] + ' ' * (maxLength - len(calculatedSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
+              else                       :
+                output.write(calculatedSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
+      if self.externalFunction:
+        self.raiseADebug('BasicStatistics postprocessor: writing External Function results')
+        output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
+        output.write('------------' + os.linesep)
+        for what in self.methodsToRun:
+          if what not in self.acceptedCalcParam:
+            self.raiseADebug('BasicStatistics postprocessor: writing External Function parameter ' + what)
+            output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
     elif output.type == 'DataObjects':
       self.raiseADebug('BasicStatistics postprocessor: dumping output in data object named ' + output.name)
       for what in outputDict.keys():
@@ -1519,7 +1545,9 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
         for key in metadata: attributes[key] = metadata[key]
       try:                   output.addGroup(attributes, attributes)
       except AttributeError:
-        output.addOutput(FileObject(os.path.join(self.sourceDirectory, csvFile)), attributes)
+        outfile = Files.returnInstance('CSV',self)
+        outfile.initialize(csvFile,self.messageHandler,path=self.sourceDirectory)
+        output.addOutput(outfile, attributes)
         if metadata:
           for key, value in metadata.items(): output.updateMetadata(key, value, attributes)
 
@@ -1572,10 +1600,12 @@ class LimitSurface(BasePostProcessor):
     if type(currentInp) == dict:
       if 'targets' in currentInput.keys(): return
     inputDict = {'targets':{}, 'metadata':{}}
+    #FIXME I don't think this try-catch is checking for files, HDF5 and dataobjects
     try   : inType = currentInput.type
     except: self.raiseAnError(IOError, self, 'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
-    if inType == 'FileObject':
+    if isinstance(currentInp,Files.File):
       if currentInput.subtype == 'csv': pass
+      #FIXME else?  This seems like hollow code right now.
     if inType == 'HDF5': pass  # to be implemented
     if inType in ['PointSet']:
       for targetP in self.parameters['targets']:
@@ -1878,8 +1908,9 @@ class ExternalPostProcessor(BasePostProcessor):
       inType = None
       if hasattr(item, 'type')  : inType = item.type
       elif type(item) in [list]: inType = "list"
-      if inType not in ['FileObject', 'HDF5', 'PointSet', 'list']: self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not' + ' recognized. I am going to skip it.')
-      elif inType == 'FileObject':
+      if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(item,Files.File):
+        self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not' + ' recognized. I am going to skip it.')
+      elif isinstance(item,Files.File):
         if currentInput.subtype == 'csv': self.raiseAWarning(self, 'Input type ' + inType + ' not yet ' + 'implemented. I am going to skip it.')
       elif inType == 'HDF5':
         # TODO
@@ -1946,8 +1977,8 @@ class ExternalPostProcessor(BasePostProcessor):
     inputList = finishedJob.returnEvaluation()[0]
     outputDict = finishedJob.returnEvaluation()[1]
 
-    if output.type == 'FileObject':
-      self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
+    if isinstance(output,Files.File):
+      self.raiseAWarning('Output type File not'
                                + ' yet implemented. I am going to skip it.')
     elif output.type == 'DataObjects':
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
@@ -2139,10 +2170,10 @@ class TopologicalDecomposition(BasePostProcessor):
                         ' postprocessor accepts files, HDF5, Data(s) only. ',
                         ' Requested: ', type(currentInput))
 
-    if inType not in ['FileObject', 'HDF5', 'PointSet', 'list']:
+    if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(currentInput,Files.File):
       self.raiseAnError(IOError, self, self.__class__.__name__ + ' post-processor only accepts files, HDF5, or DataObjects! Got ' + str(inType) + '!!!!')
     # FIXME: implement this feature
-    if inType == 'FileObject':
+    if isinstance(currentInput,Files.File):
       if currentInput.subtype == 'csv': pass
     # FIXME: implement this feature
     if inType == 'HDF5': pass  # to be implemented

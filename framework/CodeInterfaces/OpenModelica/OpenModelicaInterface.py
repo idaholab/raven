@@ -182,7 +182,6 @@ class OpenModelicaInterface(CodeInterfaceBase):
     #   times.  Start with the original input file, which we have to find first.
     found = False
     for index, inputFile in enumerate(oriInputFiles):
-      inputFile = inputFile.getAbsFile()
       if self._isValidInput(inputFile):
         found = True
         break

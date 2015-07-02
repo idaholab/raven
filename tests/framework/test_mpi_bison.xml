@@ -1,69 +1,76 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
     <WorkingDir>mpi_bison_test</WorkingDir>
-    <Files>case_1.i,case_1.e</Files>
     <Sequence>myLHS</Sequence>
     <batchSize>9</batchSize>
-    <NumThreads>2</NumThreads>    
+    <NumThreads>2</NumThreads>
     <mode>mpi</mode>
     <NumMPI>2</NumMPI>
-</RunInfo>
+  </RunInfo>
 
-<Models>
-    <Code name='Bison' subType='MooseBasedApp'><executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable></Code>
-</Models>
+  <Files>
+    <Input name="case_1.i" type="">case_1.i</Input>
+    <Input name="case_1.e" type="">case_1.e</Input>
+  </Files>
 
-<Distributions>
-    <Normal name='Gauss1'>
-        <mean>1273.0</mean>
-        <sigma>100.</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>3000.0</upperBound>
+  <Models>
+    <Code name="Bison" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>1273.0</mean>
+      <sigma>100.</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>3000.0</upperBound>
     </Normal>
-    <Normal name='Gauss2'>
-        <mean>0.1e6</mean>
-        <sigma>0.1e5</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>0.2e6</upperBound>
+    <Normal name="Gauss2">
+      <mean>0.1e6</mean>
+      <sigma>0.1e5</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>0.2e6</upperBound>
     </Normal>
-</Distributions>
-<Samplers>
-    <Stratified name='myLHS'>
+  </Distributions>
+
+  <Samplers>
+    <Stratified name="myLHS">
       <sampler_init>
         <initial_seed>1</initial_seed>
       </sampler_init>
-      <variable name='BCs|freesurf_temp|value' >
-        <distribution  >Gauss1</distribution>
-        <grid type='CDF' construction='equal' steps='9'>0.01 0.91</grid>
+      <variable name="BCs|freesurf_temp|value">
+        <distribution>Gauss1</distribution>
+        <grid construction="equal" steps="9" type="CDF">0.01 0.91</grid>
       </variable>
-      <variable name='BCs|exterior_pressure_y|factor'>
-        <distribution  >Gauss2</distribution>
-        <grid type='CDF' construction='equal' steps='9'>0.09 0.99</grid>
+      <variable name="BCs|exterior_pressure_y|factor">
+        <distribution>Gauss2</distribution>
+        <grid construction="equal" steps="9" type="CDF">0.09 0.99</grid>
       </variable>
     </Stratified>
-</Samplers>
+  </Samplers>
 
-<DataObjects>
-    <HistorySet name='stories'>
-        <Input>BCs|freesurf_temp|value,BCs|exterior_pressure_y|factor</Input>
-        <Output>dt</Output>
-   </HistorySet>
-</DataObjects>
+  <DataObjects>
+    <HistorySet name="stories">
+      <Input>BCs|freesurf_temp|value,BCs|exterior_pressure_y|factor</Input>
+      <Output>dt</Output>
+    </HistorySet>
+  </DataObjects>
 
-<Steps>
-    <MultiRun name='myLHS'>
-      <Input   class = 'Files'      type=''          >case_1.i</Input>
-      <Input   class = 'Files'      type=''          >case_1.e</Input>
-      <Model   class = 'Models'     type='Code'      >Bison</Model>
-      <Sampler class='Samplers' type='Stratified'         >myLHS</Sampler>
-      <Output  class='Databases'    type='HDF5'>test_bison_mpi_lhs</Output>
-      <Output class='DataObjects' type='HistorySet'>stories</Output>
-    </MultiRun >
-</Steps>
+  <Steps>
+    <MultiRun name="myLHS">
+      <Input class="Files" type="">case_1.i</Input>
+      <Input class="Files" type="">case_1.e</Input>
+      <Model class="Models" type="Code">Bison</Model>
+      <Sampler class="Samplers" type="Stratified">myLHS</Sampler>
+      <Output class="Databases" type="HDF5">test_bison_mpi_lhs</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+    </MultiRun>
+  </Steps>
 
-<Databases>
-  <HDF5 name="test_bison_mpi_lhs"/> 
-</Databases>
+  <Databases>
+    <HDF5 name="test_bison_mpi_lhs"/>
+  </Databases>
 
 </Simulation>

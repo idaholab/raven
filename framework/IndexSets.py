@@ -420,8 +420,8 @@ class AdaptiveSet(IndexSet):
       @ Out, None
     """
     msg = '\n'.join(self.history)
-    outFile = Files.returnInstance('RAVEN')
-    outFile.initialize('isethist.out') #TODO does this work?  What do files do?
+    outFile = Files.returnInstance('RAVEN',self)
+    outFile.initialize('isethist.out',self.messageHandler) #TODO does this work?  What do files do?
     outFile.writelines(msg)
 
   def printHistory(self):

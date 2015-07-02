@@ -775,12 +775,14 @@ class Code(Model):
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
-    attributes={"input_file":self.currentInputFiles,"type":"csv","name":Files(os.path.join(self.workingDir,finisishedjob.output+'.csv'))}
+    attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
     elif output.type in ['Point','PointSet','History','HistorySet']:
-      output.addOutput(Files(os.path.join(self.workingDir,finisishedjob.output) + ".csv"),attributes)
+      outfile = Files.returnInstance('CSV',self)
+      outfile.initialize(finisishedjob.output+'.csv',self.messageHandler,path=self.workingDir)
+      output.addOutput(outfile,attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
     else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
