@@ -1,8 +1,8 @@
-'''
+"""
 Created on Mar 30, 2015
 
 @author: alfoa
-'''
+"""
 
 #External Modules------------------------------------------------------------------------------------
 #import itertools
@@ -16,6 +16,7 @@ import itertools
 from utils import UreturnPrintTag,partialEval,compare
 from BaseClasses import BaseType
 from MessageHandler import MessageHandler
+import TreeStructure as ETS
 #import TreeStructure as TS
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -57,6 +58,7 @@ class GridEntity(BaseType):
     self.gridContainer['nVar']                  = 0                  # this is the number of grid dimensions
     self.gridContainer['transformationMethods'] = None               # Dictionary of methods to transform the coordinate from 0-1 values to something else. These methods are pointed and passed into the initialize method. {varName:method}
     self.gridContainer['cellIDs']               = {}                 # Cell IDs and verteces coordinates
+    self.gridContainer['vertexToCellIds']       = {}
     self.uniqueCellNumber                       = 0                  # number of unique cells
     self.gridIterator                           = None               # the grid iterator
     self.gridInitDict                           = {}                 # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
@@ -140,15 +142,18 @@ class GridEntity(BaseType):
       {lowerBounds:{}}, required, dictionary of lower bounds for each dimension
       {upperBounds:{}}, required, dictionary of upper bounds for each dimension
       {volumetriRatio:float or stepLenght:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLenghts ({'varName:list,etc'}
+      {computeCells:bool},optional, boolean to ask to compute the cells ids and verteces coordinates, default = False
       {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate
       !!!!!!
       if the self.gridInitDict is != None (info read from XML node), this method looks for the information in that dictionary first and after it checks the initDict object
       !!!!!!
     """
+    self.raiseAMessage("Starting initialization grid...")
     if len(self.gridInitDict.keys()) == 0 and initDictionary == None: self.raiseAnError(Exception,'No initialization parameters have been provided!!')
     # grep the keys that have been read
     readKeys = []
     initDict = initDictionary if initDictionary != None else {}
+    computeCells = bool(initDict['computeCells']) if 'computeCells' in initDict.keys() else False
     if  len(self.gridInitDict.keys()) != 0: readKeys = self.gridInitDict.keys()
     if initDict != None:
       if type(initDict).__name__ != "dict": self.raiseAnError(Exception,'The in argument is not a dictionary!')
@@ -215,50 +220,44 @@ class GridEntity(BaseType):
     #filling the coordinate on the grid
     self.gridIterator = np.nditer(self.gridContainer['gridCoord'],flags=['multi_index'])
     gridIterCells = np.nditer(np.zeros(shape=(2,)*self.nVar,dtype=int),flags=['multi_index'])
-    origin = [-1]*self.nVar
-    #cellsCoordinates = [[None]*2**self.nVar]*self.uniqueCellNumber
-    cellID = 1
-    pp = [element - 1 for element in pointByVar]
+  
+    origin, pp, cellID = [-1]*self.nVar, [element - 1 for element in pointByVar], 1
     while not self.gridIterator.finished:
       coordinateID                          = self.gridIterator.multi_index[-1]
       dimName                               = self.gridContainer['dimensionNames'][coordinateID]
       valuePosition                         = self.gridIterator.multi_index[coordinateID]
       self.gridContainer['gridCoord'][self.gridIterator.multi_index] = self.gridContainer['gridVectors'][dimName][valuePosition]
-      self.gridIterator.iternext()
-      #if len(set(self.gridIterator.multi_index[:-1])) == 1: cellID = self.gridIterator.multi_index[0] + 1
-      #if cellID not in self.gridContainer['cellIDs'].keys():
-      #  origin = np.array(self.gridIterator.multi_index[:-1])
-      #  self.gridContainer['cellIDs'][cellID] =[]
-      #  while not self.gridIterCells.finished:
-      #    self.gridContainer['cellIDs'][cellID].append(origin+self.gridIterCells.multi_index)
-      #  self.gridIterCells.reset()
-      aaaa = list(self.gridIterator.multi_index[:-1])
-      print(all(element < i for element in aaaa for i in pp))
-      print(aaaa)
-      print(pp)
-      print(np.greater(pp,aaaa))
-      if all(element < i for element in list(self.gridIterator.multi_index[:-1]) for i in pp) and list(self.gridIterator.multi_index[:-1]) != origin:
-        self.gridContainer['cellIDs'][cellID] = []
-        origin = list(self.gridIterator.multi_index[:-1])
-        if cellID - 1 >  self.uniqueCellNumber:
-          print("heyyyyyy")
-        while not gridIterCells.finished:
-          self.gridContainer['cellIDs'][cellID].append(np.array(origin)+gridIterCells.multi_index)
-          gridIterCells.iternext()
-        gridIterCells.reset() 
-        cellID+=1
+      if computeCells:
+        if all(np.greater(pp,list(self.gridIterator.multi_index[:-1]))) and list(self.gridIterator.multi_index[:-1]) != origin:
+          self.gridContainer['cellIDs'][cellID] = []
+          origin = list(self.gridIterator.multi_index[:-1])
+          while not gridIterCells.finished:
+            vertex = tuple(np.array(origin)+gridIterCells.multi_index)
+            self.gridContainer['cellIDs'][cellID].append(vertex)
+            #if vertex not in self.gridContainer['vertexToCellIds'].keys(): 
+            #  self.gridContainer['vertexToCellIds'][vertex] = []
+            try   : self.gridContainer['vertexToCellIds'][vertex].append(cellID)
+            except: self.gridContainer['vertexToCellIds'][vertex] = [cellID]
+            gridIterCells.iternext()
+          gridIterCells.reset() 
+          cellID+=1
+      self.gridIterator.iternext()  
+    if len(self.gridContainer['cellIDs'].keys()) != self.uniqueCellNumber and computeCells: self.raiseAnError(IOError, "number of cells detected != than the number of actual cells!")
     self.resetIterator()
-      
-      
-    
+    self.raiseAMessage("Grid initialized...")
 
-  def constructCellIds(self):
+  def retrieveCellIds(self,listOfPoints):
     """
-     This method is aimed to construct a mapping between Cell identifiers and 
+     This method is aimed to retrieve the cell IDs that are contained in certain bounaried provided as list of points
+     @ In, listOfPoints, list, list of points that represent the boundaries ([listOfFirstBound, listOfSecondBound])
     """
-    ncoordsPerCell = int(2.0**float(self.nVar)) 
-    
-    
+    cellIds = []
+    for cntb, bound in enumerate(listOfPoints):
+      cellIds.append([])
+      for point in bound: cellIds[cntb].extend(self.gridContainer['vertexToCellIds'][tuple(point)])
+      if cntb == 0: previousSet = set(cellIds[cntb])
+      previousSet = set(previousSet).intersection(cellIds[cntb])
+    return list(previousSet)
 
   def returnGridAsArrayOfCoordinates(self):
     """
@@ -353,7 +352,6 @@ class GridEntity(BaseType):
     for varName in shiftingSteps.keys(): outputCoordinates[varName] = outputCoors[varName]
     return outputCoordinates
 
-
   def returnPointAndAdvanceIterator(self, returnDict=False, recastMethods={}):
     """
     Method to return a point in the grid. This method will return the coordinates of the point to which the iterator is pointing
@@ -398,23 +396,23 @@ class GridEntity(BaseType):
     #coordinate = self.gridContainer['gridCoord'][multiDimIndex]
     return coordinates
 
-class MultiGridEntity(BaseType):
-  '''
+class MultiGridEntity(GridEntity):
+  """
     This class is dedicated to the creation and handling of N-Dimensional Grid.
     In addition, it handles an hirarchical multi-grid approach (creating a mapping from coarse and finer grids in
     an adaptive meshing approach)
-  '''
+  """
   def __init__(self,messageHandler):
-    '''
+    """
       Constructor
-    '''
+    """
     if messageHandler != None: self.setMessageHandler(messageHandler)
-    #self.grid = TS.NodeTree(TS.Node("Level-0-grid"))
+    self.multiGridActivated = False                 # boolean flag to check if the multigrid approach has been activated
     
     
-    
-    
-    
+    self.grid = ETS.NodeTree(ETS.Node("-1"))
+    self.grid.getrootnode().add("grid",self.returnInstance("GridEntity",self,messageHandler))
+  
     
 
 """
