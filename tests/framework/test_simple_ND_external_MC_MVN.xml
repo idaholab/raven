@@ -28,9 +28,11 @@
 
 <Distributions>
     <MultivariateNormal name='MultivariateNormal_test'>
-        <data_filename>covMatrix.txt</data_filename>
-        <working_dir>ND_test_MC_MVN/</working_dir>
         <mu>0.0 60.0</mu>
+        <covariance>
+            1.0 0.2
+            0.2 1.0
+        </covariance>
     </MultivariateNormal>
 </Distributions>
 
