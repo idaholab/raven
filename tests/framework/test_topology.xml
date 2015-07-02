@@ -84,17 +84,17 @@
   </Samplers>
   <Steps>
   <!-- Load the data from a csv into the hdf5 database used by this run -->
+    <MultiRun name='sampleData' pauseAtEnd='false'>
+      <Input   class='DataObjects' type='PointSet'  >dummyIN</Input>
+      <Model   class='Models'      type='ExternalModel' >testFunction</Model>
+      <Sampler class='Samplers'    type='Grid'          >gridSampler</Sampler>
+      <Output  class='DataObjects' type='PointSet'  >testData</Output>
+    </MultiRun>
+  <!-- Load the data from a csv into the hdf5 database used by this run -->
     <IOStep name='loadData' fromDirectory='.'>
       <Input  class='DataObjects' type='PointSet'>testData</Input>
       <Output class='Databases'   type='HDF5'        >myDB</Output>
     </IOStep>
-  <!-- Load the data from a csv into the hdf5 database used by this run -->
-    <MultiRun name='sampleData' pauseAtEnd='False'>
-      <Sampler class='Samplers'    type='Grid'          >gridSampler</Sampler>
-      <Input   class='DataObjects' type='PointSet'  >dummyIN</Input>
-      <Model   class='Models'      type='ExternalModel' >testFunction</Model>
-      <Output  class='DataObjects' type='PointSet'  >testData</Output>
-    </MultiRun>
   <!-- Perform the topological decomposition -->
     <PostProcess name='decompose1'>
       <Input   class='DataObjects'      type='PointSet' >testData</Input>

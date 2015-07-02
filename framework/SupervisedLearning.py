@@ -760,7 +760,7 @@ class HDMRRom(GaussPolynomialRom):
         myVals = [list(featureVals[0][self.features.index(j)] for j in combo)]
         rom = self.ROMs[combo]
         #check if rom is trained
-        if not rom.amITrained: raise IOError('ROM for subset %s is not trained!' %combo)
+        if not rom.amITrained: self.raiseAnError(IOError,'ROM for subset %s is not trained!' %combo)
         vals[combo] = rom.__evaluateLocal__(myVals) - vals['']
         for cl in range(i):
           for doneCombo in self.combos[cl]:

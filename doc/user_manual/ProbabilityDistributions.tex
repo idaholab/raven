@@ -28,8 +28,8 @@
 
 RAVEN provides support for several probability distributions.
 %
-Currently, the user can choose among all of the most important 1-dimensional
-distributions and $N$-dimensional ones, either custom or multidimensional normal.
+Currently, the user can choose among several 1-dimensional distributions and
+$N$-dimensional ones, either custom or multidimensional normal.
 
 The user will specify the probability distributions, that need to be used during
 the simulation, within the \xmlNode{Distributions} XML block:
@@ -74,8 +74,14 @@ truncated by using the following keywords:
    </aDistributionType>
 </Distributions>
 \end{lstlisting}
-Obviously, each distribution already defines its support (domain). For example, the Normal
-distribution domain is $[-\infty,+\infty]$.
+Each distribution has a pre-defined, default support (domain) based on its
+definition, however these domains can be shifted/stretched using the appropriate
+\xmlNode{low} and \xmlNode{high} parameters where applicable, and/or truncated
+using the nodes in the example above, namely \xmlNode{lowerBound} and
+\xmlNode{upperBound}.
+For example, the Normal distribution domain is $[-\infty,+\infty]$, and thus
+cannot be shifted or stretched, as it is already unbounded, but can be
+truncated.
 %
 RAVEN currently provides support for 13 1-Dimensional distributions.
 %
@@ -86,15 +92,15 @@ commented.
 \paragraph{Beta Distribution}
 \label{Beta}
 The \distname{Beta} distribution is parameterized by two positive shape parameters, denoted by
-$\alpha$ and $\beta$, that appear as exponents of the random variable. Its default support 
+$\alpha$ and $\beta$, that appear as exponents of the random variable. Its default support
 (domain) is $x \in (0, 1)$.
 %
 The distribution domain can be changed, specifying new boundaries, to fit the user's needs.
 %
 The user can specify a \distname{Beta} distribution in two ways.  The standard
 is to provide the parameters \xmlNode{low}, \xmlNode{high}, \xmlNode{alpha},
-and \xmlNode{beta}.  Alternatively, to approximate a normal 
-distribution that falls to 0 at the endpoints, the user may provide 
+and \xmlNode{beta}.  Alternatively, to approximate a normal
+distribution that falls to 0 at the endpoints, the user may provide
 the parameters \xmlNode{low}, \xmlNode{high}, and \xmlNode{peakFactor}. The
 peak factor is a value between 0 and 1 that determines the peakedness of the
 distribution.  At 0 it is dome-like ($\alpha=\beta=4$) and at 1 it is very
@@ -166,7 +172,8 @@ Example:
 %%%%%% Exponential
 \paragraph{Exponential Distribution}
 \label{Exponential}
-The \distname{Exponential} distribution support is $x \in [0, +\infty)$.
+The \distname{Exponential} distribution has a default support of
+$x \in [0, +\infty)$.
 
 \specBlock{an}{Exponential}
 %
@@ -206,7 +213,7 @@ probability distributions.
 The common exponential distribution and $\chi$-squared distribution are special
 cases of the gamma distribution.
 %
-Its support is $x \in (0,+\infty)$.
+Its default support is $x \in (0,+\infty)$.
 
 \specBlock{a}{Gamma}
 %
@@ -250,7 +257,7 @@ normal distribution with a CDF that is an instance of a logistic function ($Cdf(
 It resembles the normal distribution in shape but has heavier tails (higher
 kurtosis).
 %
-Its support is $x \in (-\infty,+\infty)$.
+Its default support is $x \in (-\infty,+\infty)$.
 
 \specBlock{a}{Logistic}
 %
@@ -291,7 +298,7 @@ Example:
 The \distname{LogNormal} distribution is a distribution with the
 logarithm of the random variable being normally distributed.
 %
-Its support is $x \in (0, +\infty)$.
+Its default support is $x \in (0, +\infty)$.
 
 \specBlock{a}{LogNormal}
 %
@@ -338,7 +345,7 @@ conditions, the mean of many random variables independently drawn from the same
 distribution is distributed approximately normally, irrespective of the form of
 the original distribution.
 %
-Its support is $x \in (-\infty, +\infty)$.
+Its default support is $x \in (-\infty, +\infty)$.
 
 \specBlock{a}{Normal}
 %
@@ -385,7 +392,7 @@ Like the uniform distribution, upper and lower limits are ``known,'' but a
 %
 It has been recommended as a ``proxy'' for the beta distribution.
 %
-Its support is $min \le x \le max$.
+Its default support is $min \le x \le max$.
 
 \specBlock{a}{Triangular}
 %
@@ -431,7 +438,7 @@ rectangular-shaped PDF.
 It is often used where the distribution is only vaguely known, but upper and
 lower limits are known.
 %
-Its support is $lower \le x \le upper$.
+Its default support is $lower \le x \le upper$.
 
 \specBlock{a}{Uniform}
 %
@@ -484,7 +491,7 @@ If the failure rate is:
   %
 \end{itemize}
 \vspace{-5mm}
-Its support is $x \in [0, +\infty)$.
+Its default support is $x \in [0, +\infty)$.
 
 \specBlock{a}{Weibull}
 %
@@ -538,7 +545,7 @@ sequences of independent Bernoulli trials can be based.
 Basically, it is the binomial distribution (k = 1, \distattrib{p}) with only
 one trial.
 %
-Its support is $k \in {0, 1}$.
+Its default support is $k \in {0, 1}$.
 
 \specBlock{a}{Bernoulli}
 %
@@ -573,7 +580,7 @@ The \distname{Binomial} distribution is the discrete probability distribution of
 the number of successes in a sequence of \distattrib{n} independent yes/no
 experiments, each of which yields success with probability \distattrib{p}.
 %
-Its support is $k \in {0, 1, 2, ..., n}$.
+Its default support is $k \in {0, 1, 2, ..., n}$.
 
 \specBlock{a}{Binomial}
 %
@@ -614,7 +621,7 @@ expresses the probability of a given number of events occurring in a fixed
 interval of time and/or space if these events occur with a known average rate
 and independently of the time since the last event.
 %
-Its support is $k \in {1, 2, 3, 4, ...}$.
+Its default support is $k \in {1, 2, 3, 4, ...}$.
 
 \specBlock{a}{Poisson}
 %
@@ -707,10 +714,10 @@ For NDInverseWeight and NDCartesianSpline distributions, the user provides the s
 
 The user can initialize, for each $N$-Dimensional distribution, the parameters of the random number generator function:
 \begin{itemize}
-\item initial\textunderscore grid\textunderscore disc 
+\item initial\textunderscore grid\textunderscore disc
 \item tolerance
 \end{itemize}
-in the $<dist\textunderscore init>$ block defined in sampler block $<sampler\textunderscore init>$ (see Section~\ref{sec:Samplers}). 
+in the $<dist\textunderscore init>$ block defined in sampler block $<sampler\textunderscore init>$ (see Section~\ref{sec:Samplers}).
 
 \subsubsection{MultivariateNormal Distribution}
 \label{MultivariateNormal}
@@ -735,17 +742,15 @@ f_{\mathbf x}(x_1,\ldots,x_k) =
 \right),
 $
 
-The specifications of this distribution must be defined within the xml block $<MultivariateNormal>$.  In RAVEN the MultivariateNormal distribution can be initialized through the following keywords:
+The specifications of this distribution must be defined within the xml block \xmlNode{MultivariateNormal}.  In RAVEN the MultivariateNormal distribution can be initialized through the following keywords:
 \begin{itemize}
-\item $<mu>$, list of mean values of each dimension
-\item $<data\textunderscore filename>$, string, required parameter, name of the data file containing the covariance matrix (file type .txt).
-\item $<working\textunderscore dir>$, string, folder location of the data\textunderscore filename
+\item \xmlNode{mu}, list of mean values of each dimension
+\item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter}, name of the data file containing the covariance matrix (file type .txt).
+\item \xmlNode{working\textunderscore dir}, \xmlDesc{string}, folder location of the data\textunderscore filename
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
     <MultivariateNormal name='MultivariateNormal_test'>
@@ -755,18 +760,14 @@ Example:
     </MultivariateNormal>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 As an example, the following shows the data entries contained in data\textunderscore filename for a 2-dimensional covariance matrix
 
+Example covariance matrix data file:
 \begin{lstlisting}
-----------------------------
-Example: covrainace matrix data file
-----------------------------
 1.0 0.7
 0.7 1.0
-----------------------------
 \end{lstlisting}
 
 \subsubsection{NDInverseWeight Distribution}
@@ -792,15 +793,13 @@ In RAVEN the NDInverseWeight distribution can be initialized through the followi
 \item \xmlNode{p}, \xmlDesc{float, required parameter}, power parameter. Greater values of p assign greater influence to values closest to the interpolated point.
 \item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter},  name of the data file containing scattered values (file type '.txt').
 \begin{itemize}
-\item \xmlAttr{type}, \xmlDesc{required string attribute},  indicates if the data in indicated file is PDF or CDF. 
+\item \xmlAttr{type}, \xmlDesc{required string attribute},  indicates if the data in indicated file is PDF or CDF.
 \end{itemize}
 \item \xmlNode{working\textunderscore dir}, \xmlDesc{string, required parameter}, folder location of the data file
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
   <NDInverseWeight name='...'>
@@ -810,7 +809,6 @@ Example:
   </NDInverseWeight>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 Each data entry contained in data\textunderscore filename is listed row by row and must be listed as follows:
@@ -823,10 +821,8 @@ Each data entry contained in data\textunderscore filename is listed row by row a
 
 As an example, the following shows the data entries contained in data\textunderscore filename for a 3-dimensional data set that contained two sampled CDF values: ([0.0,0.0,0.0], 0.1) and ([1.0, 1.0,0.0], 0.8)
 
+Example scattered data file:
 \begin{lstlisting}
-----------------------------
-Example: scattered data file
-----------------------------
 3
 2
 0.0
@@ -837,7 +833,6 @@ Example: scattered data file
 0.0
 0.1
 0.8
-----------------------------
 \end{lstlisting}
 
 \subsubsection{NDCartesianSpline Distribution}
@@ -845,7 +840,7 @@ Example: scattered data file
 
 The NDCartesianSpline distribution creates a $N$-Dimensional distribution given a set of points
 regularly distributed on a cartesian grid. These points sample the PDF of the original distribution.
-Distribution values (PDF or CDF) are calculated using the ND spline 
+Distribution values (PDF or CDF) are calculated using the ND spline
 interpolation scheme.
 
 
@@ -864,15 +859,13 @@ In RAVEN the NDCartesianSpline distribution can be initialized through the follo
 \begin{itemize}
 \item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter},  name of the data file containing scattered values (file type '.txt').
 \begin{itemize}
-\item \xmlAttr{type}, \xmlDesc{required string attribute}, indicates if the data in indicated file is PDF or CDF. 
+\item \xmlAttr{type}, \xmlDesc{required string attribute}, indicates if the data in indicated file is PDF or CDF.
 \end{itemize}
 \item \xmlNode{working\textunderscore dir}, \xmlDesc{string, required parameter}, folder location of the data file
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------
 Example:
-----------------------------
+\begin{lstlisting}[style=XML]
 <Distributions>
   ...
   <NDCartesianSpline name='...'>
@@ -881,7 +874,6 @@ Example:
   </NDCartesianSpline>
   ...
 </Distributions>
-----------------------------
 \end{lstlisting}
 
 Each data entry contained in data \textunderscore filename is listed row by row and must be listed as follows:
@@ -898,17 +890,15 @@ As an example, the following shows the data entries contained in data \textunder
 \item first dimension (y): 1.0 2.0 3.0
 \end{itemize}
 
+Example scattered data file:
 \begin{lstlisting}
-----------------------------
-Example: scattered data file
-----------------------------
 2
 2
 3
 -0.5
 0.5
-1.0 
-2.0 
+1.0
+2.0
 3.0
 CDF value of (-0.5,1.0)
 CDF value of (+0.5,1.0)
@@ -916,5 +906,4 @@ CDF value of (-0.5,2.0)
 CDF value of (+0.5,2.0)
 CDF value of (-0.5,3.0)
 CDF value of (+0.5,3.0)
-----------------------------
 \end{lstlisting}

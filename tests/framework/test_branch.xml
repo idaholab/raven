@@ -30,9 +30,9 @@
       <!--
       <variable name='zeroToOne' >
         <distribution ProbabilityThresholds='0.1 0.5 0.8'>zeroToOne</distribution>
-      </variable> 
+      </variable>
       -->
-  </DynamicEventTree>   
+  </DynamicEventTree>
 </Samplers>
 <OutStreamManager>
   <Print name='testprint_hist_hier'>
@@ -53,7 +53,7 @@
     <source>Pointset</source>
     <what>Output,Input|dummy_for_branch</what>
   </Print>
-  <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
+  <Plot name='2DHistoryPlot' dim='2' interactive='false' overwrite='false'>
         <plotSettings>
             <plot>
                 <type>line</type>
@@ -74,7 +74,7 @@
             </title>
         </actions>
   </Plot>
-    <Plot name='2DHistoryPlot_tps' dim='2' interactive='False' overwrite='False'>
+    <Plot name='2DHistoryPlot_tps' dim='2' interactive='false' overwrite='false'>
         <plotSettings>
             <plot>
                 <type>scatter</type>
@@ -103,8 +103,8 @@
         <Model   class='Models'           type='Code'            >MyRAVEN</Model>
         <Sampler class='Samplers'         type='DynamicEventTree'>DET_test</Sampler>
         <Output  class='Databases'        type='HDF5'            >testBranchDatabase</Output>
-        <Output  class='DataObjects'            type='HistorySet'       >stories</Output>
-        <Output  class='DataObjects'            type='PointSet'    >Pointset</Output>
+        <Output  class='DataObjects'      type='HistorySet'      >stories</Output>
+        <Output  class='DataObjects'      type='PointSet'        >Pointset</Output>
         <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier</Output>
         <Output  class='OutStreamManager' type='Print'           >testprint_tpset_hier</Output>
         <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier_variables</Output>
@@ -116,10 +116,10 @@
         <Input   class='Databases'        type='HDF5'            >testBranchDatabase</Input>
         <Model   class='Models'           type='PostProcessor'   >csv_from_hdf5</Model>
         <Output  class='Files'            type=''                >DET_HistorySet.csv</Output>
-    </SingleRun>      
+    </SingleRun>
 </Steps>
 <Databases>
-    <HDF5 name="testBranchDatabase"/> 
+    <HDF5 name="testBranchDatabase"/>
 </Databases>
 <DataObjects>
     <PointSet name='Pointset' hierarchical='true'>

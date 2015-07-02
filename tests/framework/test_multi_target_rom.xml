@@ -61,45 +61,45 @@
         </variable>
     </MonteCarlo>
 </Samplers>
-<Steps verbosity='debug'> 
+<Steps verbosity='debug'>
     <MultiRun name='MC_for_rom_trainer' verbosity='debug'>
-        <Input   class='Files'      type=''                >TMI.i</Input>
-        <Input   class='Files'      type=''                >TMI_PRA_trans_MC_control.py</Input>
-        <Input   class='Files'      type=''                >TMI_steady_restart/1863.rd-0</Input>
-        <Input   class='Files'      type=''                >TMI_steady_restart/1863.xdr</Input>
-        <Input   class='Files'      type=''                >TMI_steady_restart/1863.xdr.0000</Input>
-        <Input   class='Files'      type=''                >TMI_steady_restart/1863_mesh.cpr</Input>
-        <Model   class='Models'     type='Code'            >MyRAVEN</Model>
-        <Sampler class='Samplers'   type='MonteCarlo'      >RAVENmcCode3</Sampler>
-        <Output  class='Databases'  type='HDF5'            >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
-    </MultiRun>  
-    <IOStep name='test_extract_for_rom_trainer' verbosity='debug'>
-        <Input   class='Databases' type='HDF5'        >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-        <Output  class='DataObjects'     type='PointSet'>Pointset_from_database_for_rom_trainer</Output>
-        <Output  class='OutStreamManager' type='Print'>ciccio</Output>
-    </IOStep>  
-    <RomTrainer name='test_rom_trainer' verbosity='debug'>
-        <Input   class='DataObjects'  type='PointSet'>Pointset_from_database_for_rom_trainer</Input>
-        <Output  class='Models' type='ROM'         >ROM1</Output>
-    </RomTrainer>
-    <RomTrainer name='test_rom_trainer_nd_interp'>
-        <Input   class='DataObjects'  type='PointSet'>Pointset_from_database_for_rom_trainer</Input>
-        <Output  class='Models' type='ROM'         >ROM2</Output>
-    </RomTrainer>
+        <Input   class='Files'     type=''          >TMI.i</Input>
+        <Input   class='Files'     type=''          >TMI_PRA_trans_MC_control.py</Input>
+        <Input   class='Files'     type=''          >TMI_steady_restart/1863.rd-0</Input>
+        <Input   class='Files'     type=''          >TMI_steady_restart/1863.xdr</Input>
+        <Input   class='Files'     type=''          >TMI_steady_restart/1863.xdr.0000</Input>
+        <Input   class='Files'     type=''          >TMI_steady_restart/1863_mesh.cpr</Input>
+        <Model   class='Models'    type='Code'      >MyRAVEN</Model>
+        <Sampler class='Samplers'  type='MonteCarlo'>RAVENmcCode3</Sampler>
+        <Output  class='Databases' type='HDF5'      >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
+    </MultiRun>
     <MultiRun name='rom_MC' re-seeding='200286'>
-        <Input   class='DataObjects'    type='Point'   >data_for_sampling_empty_at_begin</Input>
-        <Model   class='Models'   type='ROM'         >ROM1</Model>
-        <Sampler class='Samplers' type='MonteCarlo'  >RAVENmc3</Sampler>
-        <Output  class='DataObjects'    type='PointSet'>outputMontecarloRom</Output>
-        <Output  class='OutStreamManager' type='Print'>outputMontecarloMultiTargetRom_dump</Output>
+        <Input   class='DataObjects'      type='Point'     >data_for_sampling_empty_at_begin</Input>
+        <Model   class='Models'           type='ROM'       >ROM1</Model>
+        <Sampler class='Samplers'         type='MonteCarlo'>RAVENmc3</Sampler>
+        <Output  class='DataObjects'      type='PointSet'  >outputMontecarloRom</Output>
+        <Output  class='OutStreamManager' type='Print'     >outputMontecarloMultiTargetRom_dump</Output>
     </MultiRun>
     <MultiRun name='rom_MC_nd_interpolator'>
-        <Input   class='DataObjects'    type='Point'   >data_for_sampling_empty_at_begin_nd</Input>
-        <Model   class='Models'   type='ROM'         >ROM2</Model>
-        <Sampler class='Samplers' type='MonteCarlo'  >RAVENmcND</Sampler>
-        <Output  class='DataObjects'    type='PointSet'>outputMontecarloRomND</Output>
-        <Output  class='OutStreamManager' type='Print'>outputMontecarloMultiTargetRomND_dump</Output>
+        <Input   class='DataObjects'      type='Point'     >data_for_sampling_empty_at_begin_nd</Input>
+        <Model   class='Models'           type='ROM'       >ROM2</Model>
+        <Sampler class='Samplers'         type='MonteCarlo'>RAVENmcND</Sampler>
+        <Output  class='DataObjects'      type='PointSet'  >outputMontecarloRomND</Output>
+        <Output  class='OutStreamManager' type='Print'     >outputMontecarloMultiTargetRomND_dump</Output>
     </MultiRun>
+    <IOStep name='test_extract_for_rom_trainer' verbosity='debug'>
+        <Input   class='Databases'        type='HDF5'    >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+        <Output  class='DataObjects'      type='PointSet'>timepointset_from_database_for_rom_trainer</Output>
+        <Output  class='OutStreamManager' type='Print'   >ciccio</Output>
+    </IOStep>
+    <RomTrainer name='test_rom_trainer' verbosity='debug'>
+        <Input   class='DataObjects' type='PointSet'>timepointset_from_database_for_rom_trainer</Input>
+        <Output  class='Models'      type='ROM'     >ROM1</Output>
+    </RomTrainer>
+    <RomTrainer name='test_rom_trainer_nd_interp'>
+        <Input   class='DataObjects' type='PointSet'>timepointset_from_database_for_rom_trainer</Input>
+        <Output  class='Models'      type='ROM'     >ROM2</Output>
+    </RomTrainer>
 </Steps>
 
 <OutStreamManager>
@@ -116,9 +116,9 @@
     <source>Pointset_from_database_for_rom_trainer</source>
   </Print>
 </OutStreamManager>
-    
+
 <Databases>
-  <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/> 
+  <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/>
 </Databases>
 <DataObjects>
    <Point name='data_for_sampling_empty_at_begin' historyName="1">
@@ -148,6 +148,3 @@
     </PointSet>
 </DataObjects>
 </Simulation>
-
-
-
