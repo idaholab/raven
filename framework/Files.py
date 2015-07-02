@@ -42,7 +42,10 @@ class File(BaseType):
     @ In,  None
     @ Out, None
     """
-    if self.isOpen(): self.__file.close()
+    try:
+      if self.isOpen(): self.__file.close()
+    except AttributeError as e:
+      print('Had a problem with closing file',self.filename,'|',e)
 
   def __getstate__(self):
     """Pickle dump method hook.
