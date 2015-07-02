@@ -119,7 +119,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.assemblerObjects               = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
     #self.requiredAssObject             = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for objects;
                                                                    # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
-    self.requiredAssObject              = (True,(['Restart','Function'],['-n','-n']))
+    self.requiredAssObject              = (True,(['Restart','function'],['-n','-n']))
     self.assemblerDict                  = {}                       # {'class':[['subtype','name',instance]]}
 
   def _localGenerateAssembler(self,initDict):
@@ -148,9 +148,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     needDict = {}
     needDict['Distributions'] = [] # Every sampler requires Distributions OR a Function
     needDict['Functions']     = [] # Every sampler requires Distributions OR a Function
-    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
-    for func in self.dependentSample.values():
-      needDict['Functions'].append((None,func))
+    for dist in self.toBeSampled.values():     needDict['Distributions'].append((None,dist))
+    for func in self.dependentSample.values(): needDict['Functions'].append((None,func))
     return needDict
 
   def _readMoreXML(self,xmlNode):
@@ -189,13 +188,13 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             varData['dim']=int(dim)
             self.variables2distributionsMapping[child.attrib['name']] = varData
             self.toBeSampled[prefix+child.attrib['name']] = tobesampled
-          elif childChild.tag == 'Function':
+          elif childChild.tag == 'function':
             if not foundDistOrFunc: foundDistOrFunc = True
             else: self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
             tobesampled = childChild.text
             varData['name']=childChild.text
             self.dependentSample[prefix+child.attrib['name']] = tobesampled
-        if not foundDistOrFunc: self.raiseAnError(IOError,'Sampled variable',child.attrib['name'],'has neither a <distribution> nor <Function> node specified!')
+        if not foundDistOrFunc: self.raiseAnError(IOError,'Sampled variable',child.attrib['name'],'has neither a <distribution> nor <function> node specified!')
       elif child.tag == "sampler_init":
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
@@ -417,7 +416,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.inputInfo['prefix'] = str(self.counter)
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
-    # generate the Function variable values
+    # generate the function variable values
     for var,funcName in self.dependentSample.items():
       test=self.funcDict[var].evaluate(var,self.values)
       self.values[var] = test

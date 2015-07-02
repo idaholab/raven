@@ -107,7 +107,7 @@ available attributes:
 %  %
 %  \default{None}
 
-  \item \xmlAttr{historyName}, \xmlDesc{optional string attribute}, in the case  the 
+  \item \xmlAttr{historyName}, \xmlDesc{optional string attribute}, in the case  the
    ``DataObject'' type is either a \textit{Point} or an
   \textit{History}, this XML node contains the name of the associated history needs to be placed in.
   \\\nb This attribute is a required parameter when the  \xmlNode{Point} or \xmlNode{History}
@@ -145,7 +145,7 @@ contain the following optional XML sub-nodes:
        \xmlNode{operator} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
      \\\nb This XML node is available for DataObjects of type \xmlNode{Point} and \xmlNode{PointSet} only;
   %
-  \item \xmlNode{operator}, \xmlDesc{string, optional field}, is aimed to perform 
+  \item \xmlNode{operator}, \xmlDesc{string, optional field}, is aimed to perform
        simple operations on the data to be stored.
        The 3 options currently available are:
        \begin{itemize}
@@ -157,10 +157,17 @@ contain the following optional XML sub-nodes:
        \xmlNode{outputRow} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
        \\\nb This XML node is available for DataObjects of type \xmlNode{Point} and \xmlNode{PointSet} only;
   %
-  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field} the name of the parameter whose values
-    need to be used as reference of the values specified in the XML nodes  \xmlNode{inputPivotValue},  \xmlNode{outputPivotValue} and  \xmlNode{inputPivotValue} (if inputted). This field can be used, for example, if the driven code output CSVs call the variable ``time'' differently 
-  from the default name ``time'' or to specify a different reference parameter (e.g. PRESSURE). Default value is ``time''.
-   \\\nb the variable specified here should be monotonic; the code does not check for eventual oscillation and is going to take the first occurance for the values specified in the XML nodes \xmlNode{inputPivotValue},  \xmlNode{outputPivotValue} and  \xmlNode{inputPivotValue} ;
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field} the name of
+    the parameter whose values need to be used as reference for the values
+    specified in the XML nodes \xmlNode{inputPivotValue},
+    \xmlNode{outputPivotValue}, or \xmlNode{inputPivotValue} (if inputted).
+    This field can be used, for example, if the driven code output file uses  a
+    different name for the variable ``time'' or to specify a different reference
+    parameter (e.g. PRESSURE). Default value is \xmlString{time}.
+    \\\nb The variable specified here should be monotonic; the code does not
+    check for eventual oscillation and is going to take the first occurance for
+    the values specified in the XML nodes \xmlNode{inputPivotValue},
+    \xmlNode{outputPivotValue}, and  \xmlNode{inputPivotValue};
   %
   \item \xmlNode{inputPivotValue}, \xmlDesc{float, optional field}, the value of the \xmlNode{pivotParameter} at which the input space needs to be retrieved
     If this node is inputted, the node  \xmlNode{inputRow} can not be inputted (mutually exclusive).
@@ -170,7 +177,7 @@ contain the following optional XML sub-nodes:
       \item if \xmlNode{History} or \xmlNode{HistorySet},\xmlNode{outputPivotValue}, \xmlDesc{list of floats, optional field},  list of values of the
                           \xmlNode{pivotParameter} at which the output space needs to be retrieved;
       \item if \xmlNode{Point} or \xmlNode{PointSet},\xmlNode{outputPivotValue}, \xmlDesc{float, optional field},  the value of the \xmlNode{pivotParameter}
-         at which the output space needs to be retrieved. If this node is inputted, the node  \xmlNode{outputRow} can not be inputted (mutually exclusive); 
+         at which the output space needs to be retrieved. If this node is inputted, the node  \xmlNode{outputRow} can not be inputted (mutually exclusive);
    \end{itemize}
   %
   It needs to be noticed that if the optional nodes in the block \xmlNode{options} are not inputted, the following default are applied:

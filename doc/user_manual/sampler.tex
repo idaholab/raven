@@ -110,7 +110,16 @@ XML node and the requirements for other attributes change:
   \xmlNode{distribution}, \xmlDesc{string,
   required field}, name of the distribution that is associated to this variable.
   Its name needs to be contained in the \xmlNode{Distributions} block explained
-  in Section \ref{sec:distributions}.
+  in Section \ref{sec:distributions}. \nb{Alternatively, this node can be ommitted
+  if the \xmlNode{function} node is supplied.}
+}
+\newcommand{\functionDescription}
+{
+  \xmlNode{function}, \xmlDesc{string, required field}, name of the function that
+  defines the calculation of this variable from other distributed variables.  Its name
+  needs to be contained in the \xmlNode{Functions} block explained in Section
+  \ref{sef:functions}.  \nb{Alternatively, this node can be ommitted
+  if the \xmlNode{distribution} node is supplied.}
 }
 
 
@@ -133,6 +142,9 @@ XML node and the requirements for other attributes change:
       \xmlString{CDF} or \xmlString{value}).
   \end{itemize}
   \constructionGridDescriptionOnlyCustom
+  \nb{The \xmlNode{grid} node is only required if a \xmlNode{distribution}
+  node is supplied.  In the case of a \xmlNode{function} node, no grid
+  information is requested.}
 }
 
 
@@ -154,6 +166,9 @@ XML node and the requirements for other attributes change:
       \xmlString{CDF} or \xmlString{value}).
   \end{itemize}
   \constructionGridDescription
+  \nb{The \xmlNode{grid} node is only required if a \xmlNode{distribution}
+  node is supplied.  In the case of a \xmlNode{function} node, no grid
+  information is requested.}
 }
 
 \newcommand{\convergenceDescription}
@@ -299,7 +314,6 @@ developer of the ``code interface'' and is implemented in the interface only
 
 %\maljdan{Where does this type of input come from? Should the user care?}
 %\alfoa{Dan, this is an example (in this case, a YAML structure)}
-%\talbpaul{This seems really specific to the MooseBasedApp interface.  Do we want it here?}
 
 Example YAML based Input:
 \begin{lstlisting}
@@ -366,10 +380,10 @@ The \xmlString{thickness} parameter will still be treated as an input for the sa
 printing and DataObjects storage.
 
 In the sampler class a special node exists: the \xmlNode{sampler\textunderscore init} node.
-This node contains specific parameters that characterize each particular sampler. 
+This node contains specific parameters that characterize each particular sampler.
 In addition, \xmlNode{sampler\textunderscore init} might contains the information regarding the random generator function for each $N$-Dimensional distribution (specified in the \xmlNode{dist\textunderscore init} node):
 \begin{itemize}
-\item initial\textunderscore grid\textunderscore disc 
+\item initial\textunderscore grid\textunderscore disc
 \item tolerance
 \end{itemize}
 
@@ -457,9 +471,10 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
 \end{itemize}
 \begin{itemize}
 \item \variableDescription
- \variableChildIntro
+ \variableChildrenIntro
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
   \end{itemize}
 \end{itemize}
 %\end{itemize}
@@ -527,6 +542,7 @@ Regarding the N-dimensional distributions, the user can specify for each dimensi
  \variableChildrenIntro
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
     \item \gridDescription
   \end{itemize}
 \end{itemize}
@@ -600,6 +616,7 @@ which use reduced combinations of polynomial orders to reduce the necessary samp
  In the variable node, the following xml-node needs to be specified:
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
  \end{itemize} \end{itemize}
 Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}).
 
@@ -633,7 +650,7 @@ Example:
 %\senrs{Assembler section updated}
 \label{subsubsubsec:SobolSampler}
 The \textbf{Sobol} sampler uses high-density model reduction (HDMR) a.k.a. Sobol decomposition to approximate a function as the sum of increasing-complexity
-interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At 
+interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At
 order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions
 of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos
 (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.  This Sobol sampler uses the associated HDMRRom
@@ -653,6 +670,7 @@ it is not compatible with NDDistribution objects.}
  In the variable node, the following xml-node needs to be specified:
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
  \end{itemize} \end{itemize}
 Because of the tight coupling between the Sobol sampler and the HDMRRom, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, Sobol order, and importance weights to use in each dimension (see \ref{subsubsec:HDMRRom}).
 
@@ -714,6 +732,7 @@ constructed in equally-probable CDF bins.
  \variableChildrenIntro
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
     \item \gridDescription
   \end{itemize}
 \end{itemize}
@@ -848,8 +867,9 @@ defined within a \xmlNode{ResponseSurfaceDesign} block.
  \variableChildrenIntro
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
      \item \gridDescriptionOnlyCustom
-     It needs to be noticed that only the construction ``custom'' is available. In the \xmlNode{grid} body only the lower and upper bounds can be inputted (2 numbers only).
+     \nb{Only the construction ``custom'' is available. In the \xmlNode{grid} body only the lower and upper bounds can be inputted (2 numbers only).}
  \end{itemize}
 \end{itemize}
 The main XML block \xmlNode{ResponseSurfaceDesign} needs to contain an
@@ -1009,6 +1029,7 @@ defined within a \xmlNode{FactorialDesign} block.
     \variableChildrenIntro
     \begin{itemize}
       \item \distributionDescription
+      \item \functionDescription
       \item \gridDescription
     \end{itemize}
 \end{itemize}
@@ -1209,6 +1230,7 @@ space.
   \variableChildrenIntro
   \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
     \item \gridDescription
   \end{itemize}
 \end{itemize}
@@ -1317,6 +1339,7 @@ For this reason, its specifications must be defined within a
   \variableChildrenIntro
   \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
     \item \gridDescription
   \end{itemize}
 \end{itemize}
@@ -1350,9 +1373,10 @@ As already mentioned, these variables are specified within consecutive
 
 \begin{itemize}
   \item \variableDescription
-    \variableChildIntro
+    \variableChildrenIntro
     \begin{itemize}
       \item \distributionDescription
+      \item \functionDescription
     \end{itemize}
  \end{itemize}
 
@@ -1493,9 +1517,10 @@ the input space in proximity of the limit surface.
 
 \begin{itemize}
   \item \variableDescription
-    \variableChildIntro
+    \variableChildrenIntro
     \begin{itemize}
       \item \distributionDescription
+    \item \functionDescription
     \end{itemize}
 \end{itemize}
 
@@ -1645,6 +1670,7 @@ the input space in proximity of the limit surface.
   \variableChildrenIntro
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
     \item \gridDescription
   \end{itemize}
 \end{itemize}
@@ -1765,23 +1791,24 @@ algorithm fails for the model $f(x)=x\cdot y$.
 
 \begin{itemize}
   \item \variableDescription
-    \variableChildIntro
+    \variableChildrenIntro
     \begin{itemize}
       \item \distributionDescription
+    \item \functionDescription
     \end{itemize}
 \end{itemize}
 
-In addition to the \xmlNode{variable} nodes, the main XML node 
+In addition to the \xmlNode{variable} nodes, the main XML node
 \xmlNode{Adaptive Sparse Grid} needs to contain two supplementary sub-nodes:
 
 \begin{itemize}
-  \item \xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence 
+  \item \xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence
     tolerance.
     %
     The meaning of this tolerance depends on the \xmlAttr{target} attribute of this node.
     \begin{itemize}
       \item \xmlAttr{target}, \xmlDesc{required string attribute}, the metric for convergence.
-        Currently there are three metrics.  In order of strictness: \xmlString{mean}, which converges the sparse 
+        Currently there are three metrics.  In order of strictness: \xmlString{mean}, which converges the sparse
         quadrature integration of the first moment of the model; \xmlString{variance}, which
         converges the sparse quadrature integration of the second moment of the model; and
         \xmlString{coeffs}, which integrates the L2 norm of the coefficients of the polynomial
@@ -1807,7 +1834,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
        \ROMDescription{Adaptive Sparse Grid}
         %
         \begin{itemize}
-      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field}, 
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
         represents the container where the system evaluations are stored.
         %
         From a practical point of view, this XML node must contain the name of
