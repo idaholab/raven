@@ -1618,7 +1618,7 @@ class LimitSurface(BasePostProcessor):
     if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
       for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key)), max(self.inputs[self.indexes].getParam(self.paramType[key],key))
-    self.gridEntity.initialize(initDictionary={"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
+    self.gridEntity.initialize(initDictionary={"computeCells":True,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
     self.nVar       = len(self.parameters['targets'])         #Total number of variables
     self.axisName   = self.gridEntity.returnParameter("dimensionNames")                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     self.testMatrix = np.zeros(self.gridEntity.returnParameter("gridShape"))  # grid where the values of the goalfunction are stored
@@ -1796,6 +1796,9 @@ class LimitSurface(BasePostProcessor):
     #printing----------------------
     # if the number of point on the limit surface is > than zero than save it
     evaluations = None
+    if self.lsSide == 'both':
+      aaa = self.gridEntity.retrieveCellIds([listsurfPointNegative,listsurfPointPositive])
+      print(aaa)
     if len(listsurfPoint) > 0:
       self.surfPoint = np.ndarray((len(listsurfPoint), self.nVar))
       for pointID, coordinate in enumerate(listsurfPoint):
@@ -2158,7 +2161,7 @@ class TopologicalDecomposition(BasePostProcessor):
         elif targetP in currentInput.getParaKeys('output'):
           inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
       inputDict['metadata'] = currentInput.getAllMetadata()
-     # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
+    # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
     if inputDict['metadata'].keys().count('SamplerType') > 0: pass
     return inputDict
 
