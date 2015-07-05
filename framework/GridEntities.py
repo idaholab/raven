@@ -9,11 +9,12 @@ Created on Mar 30, 2015
 import numpy as np
 from scipy.interpolate import interp1d
 import sys
+import abc
 import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import UreturnPrintTag,partialEval,compare
+from utils import UreturnPrintTag,partialEval,compare, metaclass_insert
 from BaseClasses import BaseType
 from MessageHandler import MessageHandler
 import TreeStructure as ETS
@@ -21,7 +22,179 @@ import TreeStructure as ETS
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class GridEntity(BaseType):
+class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
+  """
+  Base Class that needs to be used when a new Grid class is generated
+  It provides all the methods to create, modify, and handle a grid in the phase space.
+  """
+  @classmethod
+  def __len__(self):
+    """
+    Overload __len__ method.
+    @ In, None
+    @ Out, integer, total number of nodes
+    """
+    return 0
+
+  def __init__(self,messageHandler=None):
+    """
+      Constructor
+    """
+    if messageHandler != None: self.setMessageHandler(messageHandler)
+    self.printTag                               = UreturnPrintTag("GRID ENTITY")
+    self.gridContainer                          = {}                             # dictionary that contains all the key feature of the grid
+
+  @classmethod
+  def _readMoreXml(self,xmlNode,dimensionTags=None,messageHandler=None,dimTagsPrefix=None):
+    """
+     XML reader for the grid statement.
+     @ In, ETree object, xml node from where the info need to be retrieved
+     @ In, dimensionTag, optional, list, names of the tag that represents the grid dimensions
+     @ In, dimTagsPrefix, optional, dict, eventual prefix to use for defining the dimName
+     @ Out, None
+    """
+    pass
+  
+  @classmethod
+  def initialize(self,initDictionary=None):
+    """
+    Initialization method. The full grid is created in this method.
+    @ In, initDictionary, dictionary, optional, dictionary of input arguments needed to create a Grid:
+      {dimensionNames:[]}, required,list of axis names (dimensions' IDs)
+      {lowerBounds:{}}, required, dictionary of lower bounds for each dimension
+      {upperBounds:{}}, required, dictionary of upper bounds for each dimension
+      {volumetriRatio:float or stepLenght:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLenghts ({'varName:list,etc'}
+      {computeCells:bool},optional, boolean to ask to compute the cells ids and verteces coordinates, default = False
+      {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate
+      !!!!!!
+      if the self.gridInitDict is != None (info read from XML node), this method looks for the information in that dictionary first and after it checks the initDict object
+      !!!!!!
+    """
+    pass
+
+  @classmethod
+  def retrieveCellIds(self,listOfPoints):
+    """
+     This method is aimed to retrieve the cell IDs that are contained in certain bounaried provided as list of points
+     @ In, listOfPoints, list, list of points that represent the boundaries ([listOfFirstBound, listOfSecondBound])
+    """
+    pass
+
+  @classmethod
+  def returnGridAsArrayOfCoordinates(self):
+    """
+    Return the grid as an array of coordinates
+    """
+    pass
+
+  @classmethod
+  def returnCoordinatesReshaped(self,newShape):
+    """
+     Method to return the grid Coordinates reshaped with respect an in Shape
+     @ In, newShape, tuple, newer shape
+    """
+    pass
+
+  def returnParameter(self,parameterName):
+    """
+    Method to return one of the initialization parameters
+    @ In, string, parameterName, name of the parameter to be returned
+    @ Out, object, pointer to the requested parameter
+    """
+    if parameterName not in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'unknown among ones in GridEntity class.')
+    return self.gridContainer[parameterName]
+
+  def updateParameter(self,parameterName, newValue, upContainer=True):
+    """
+    Method to update one of the initialization parameters
+    @ In, string, parameterName, name of the parameter to be updated
+    @ In, boolean, optional, upContainer, True if gridContainer needs to be updated, else gridInit
+    @ Out, None
+    """
+    if upContainer: self.gridContainer[parameterName] = newValue
+    else          : self.gridInitDict[parameterName ] = newValue
+
+  def addCustomParameter(self,parameterName, Value):
+    """
+    Method to add a new parameter in the Grid Entity
+    @ In, string, parameterName, name of the parameter to be added
+    @ Out, None
+    """
+    if parameterName in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'already present in GridEntity!')
+    self.updateParameter(parameterName, Value)
+  
+  @classmethod
+  def resetIterator(self):
+    """
+    Reset internal iterator
+    @ In, None
+    @ Out, None
+    """
+    pass
+  
+  @classmethod
+  def returnIteratorIndexes(self,returnDict = True):
+    """
+    Return the iterator indexes
+    @ In, boolean,returnDict if true, the Indexes are returned in dictionary format
+    @ Out, tuple or dictionary
+    """
+    pass
+  
+  @classmethod
+  def returnIteratorIndexesFromIndex(self, listOfIndexes):
+    """
+    Return internal iterator indexes from list of coordinates in the list
+    @ In, list,listOfIndexes, list of grid coordinates
+    @ Out, dictionary
+    """
+    pass
+  
+  @classmethod
+  def returnShiftedCoordinate(self,coordinates,shiftingSteps):
+    """
+    Method to return the coordinate that is a # shiftingStep away from the input coordinate
+    For example, if 1D grid= {'dimName':[1,2,3,4]}, coordinate is 3 and  shiftingStep is -2,
+    the returned coordinate will be 1
+    @ In,  dict, coordinates, dictionary of coordinates. {'dimName1':startingCoordinate1,dimName2:startingCoordinate2,...}
+    @ In,  dict, shiftingSteps, dict of shifiting steps. {'dimName1':shiftingStep1,dimName2:shiftingStep2,...}
+    @ Out, dict, outputCoordinates, dictionary of shifted coordinates' values {dimName:value1,...}
+    """
+    pass
+  
+  @classmethod
+  def returnPointAndAdvanceIterator(self, returnDict=False, recastMethods={}):
+    """
+    Method to return a point in the grid. This method will return the coordinates of the point to which the iterator is pointing
+    In addition, it advances the iterator in order to point to the following coordinate
+    @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not.
+                               if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
+                               if False a tuple is riturned (coordinate1,coordinate2,etc
+    @ In, dict, optional, recastMethods, dictionary containing the methods that need to be used for trasforming the coordinates
+                                         ex. {'dimName1':[methodToTransformCoordinate,*args]}
+    @ Out, tuple, coordinate, tuple containing the coordinates
+    """
+    pass
+  
+  @classmethod
+  def returnCoordinateFromIndex(self, multiDimIndex, returnDict=False, recastMethods={}):
+    """
+    Method to return a point in the grid. This method will return the coordinates of the point is requested by multiDimIndex
+    In addition, it advances the iterator in order to point to the following coordinate
+    @ In, tuple, multiDimIndex, tuple containing the Id of the point needs to be returned (e.g. 3 dim grid,  (xID,yID,zID))
+    @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not.
+                                         if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
+                                         if False a tuple is riturned (coordinate1,coordinate2,etc)
+    @ In, dict, optional, recastMethods, dictionary containing the methods that need to be used for trasforming the coordinates
+                                         ex. {'dimName1':[methodToTransformCoordinate,*args]}
+    @ Out, tuple or dict, coordinate, tuple containing the coordinates
+    """
+    pass
+
+
+
+
+class GridEntity(GridBase):
   """
   Class that defines a Grid in the phase space. This class should be used by all the Classes that need a Grid entity.
   It provides all the methods to create, modify, and handle a grid in the phase space.
@@ -44,9 +217,7 @@ class GridEntity(BaseType):
     return self.gridContainer['gridLenght'] if 'gridLenght' in self.gridContainer.keys() else 0
 
   def __init__(self,messageHandler):
-    if messageHandler != None: self.setMessageHandler(messageHandler)
-    self.printTag                               = UreturnPrintTag("GRID ENTITY")
-    self.gridContainer                          = {}                 # dictionary that contains all the key feature of the grid
+    GridBase.__init__(self,messageHandler)
     self.gridContainer['dimensionNames']        = []                 # this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
     self.gridContainer['gridVectors']           = {}                 # {'name of the variable':numpy.ndarray['the coordinate']}
     self.gridContainer['bounds']                = {'upperBounds':{},'lowerBounds':{}} # dictionary of lower and upper bounds
@@ -274,34 +445,6 @@ class GridEntity(BaseType):
     returnCoordinates.shape = newShape
     return returnCoordinates
 
-  def returnParameter(self,parameterName):
-    """
-    Method to return one of the initialization parameters
-    @ In, string, parameterName, name of the parameter to be returned
-    @ Out, object, pointer to the requested parameter
-    """
-    if parameterName not in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'unknown among ones in GridEntity class.')
-    return self.gridContainer[parameterName]
-
-  def updateParameter(self,parameterName, newValue, upContainer=True):
-    """
-    Method to update one of the initialization parameters
-    @ In, string, parameterName, name of the parameter to be updated
-    @ In, boolean, optional, upContainer, True if gridContainer needs to be updated, else gridInit
-    @ Out, None
-    """
-    if upContainer: self.gridContainer[parameterName] = newValue
-    else          : self.gridInitDict[parameterName ] = newValue
-
-  def addCustomParameter(self,parameterName, Value):
-    """
-    Method to add a new parameter in the Grid Entity
-    @ In, string, parameterName, name of the parameter to be added
-    @ Out, None
-    """
-    if parameterName in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'already present in GridEntity!')
-    self.updateParameter(parameterName, Value)
-
   def resetIterator(self):
     """
     Reset internal iterator
@@ -396,23 +539,144 @@ class GridEntity(BaseType):
     #coordinate = self.gridContainer['gridCoord'][multiDimIndex]
     return coordinates
 
-class MultiGridEntity(GridEntity):
+class MultiGridEntity(GridBase):
   """
     This class is dedicated to the creation and handling of N-Dimensional Grid.
-    In addition, it handles an hirarchical multi-grid approach (creating a mapping from coarse and finer grids in
-    an adaptive meshing approach)
+    In addition, it handles an hierarchical multi-grid approach (creating a mapping from coarse and finer grids in
+    an adaptive meshing approach). The strategy for mesh(grid) refining is driven from outside.
   """
   def __init__(self,messageHandler):
     """
       Constructor
     """
-    if messageHandler != None: self.setMessageHandler(messageHandler)
+    GridBase.__init__(self, messageHandler)
     self.multiGridActivated = False                 # boolean flag to check if the multigrid approach has been activated
-    
-    
-    self.grid = ETS.NodeTree(ETS.Node("-1"))
-    self.grid.getrootnode().add("grid",self.returnInstance("GridEntity",self,messageHandler))
+    node                    = ETS.Node("InitialGrid")
+    node.add("grid",returnInstance("GridEntity",self.messageHandler))
+    node.add("level","1")
+    self.grid               = ETS.NodeTree(node)    # grid hierarchical Container
+   
+  def __len__(self):
+    """
+    Overload __len__ method. It iterates over all the hierarchical structure of grids
+    @ In, None
+    @ Out, totalLenght, integer, total number of nodes
+    """
+    totalLenght = 0
+    for node in self.grid.iterEnding():
+      for se in list(self.grid.iterWholeBackTrace(node)): totalLenght += len(se.get('grid'))
+    return totalLenght
+
+  def _readMoreXml(self,xmlNode,dimensionTags=None,messageHandler=None,dimTagsPrefix=None):
+    """
+     XML reader for the Multi-grid statement.
+     @ In, ETree object, xml node from where the info need to be retrieved
+     @ In, dimensionTag, optional, list, names of the tag that represents the grid dimensions
+     @ In, dimTagsPrefix, optional, dict, eventual prefix to use for defining the dimName
+     @ Out, None
+    """
+    self.grid.getrootnode().get("grid")._readMoreXml(xmlNode,dimensionTags,messageHandler,dimTagsPrefix)
+
+  def initialize(self,initDictionary=None):
+    """
+    Initialization method. The full grid is created in this method.
+    @ In, initDictionary, dictionary, optional, dictionary of input arguments needed to create a Grid:
+      {dimensionNames:[]}, required,list of axis names (dimensions' IDs)
+      {lowerBounds:{}}, required, dictionary of lower bounds for each dimension
+      {upperBounds:{}}, required, dictionary of upper bounds for each dimension
+      {volumetriRatio:float or stepLenght:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLenghts ({'varName:list,etc'}
+      {subGridVolumetricRatio:float}, optional, p.u. volumetric ratio of the subGrid, default  1.e5
+      {computeCells:bool},optional, boolean to ask to compute the cells ids and verteces coordinates, default = False
+      {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate
+      !!!!!!
+      if the self.gridInitDict is != None (info read from XML node), this method looks for the information in that dictionary first and after it checks the initDict object
+      !!!!!!
+    """
+    self.grid.getrootnode().get("grid").initialize(initDictionary)
+    if initDictionary != None: self.subGridVolumetricRatio = float(initDictionary['subGridVolumetricRatio']) if 'subGridVolumetricRatio' in initDictionary.keys() else 1.e-5
+
+  def retrieveCellIds(self,listOfPoints):
+    """
+     This method is aimed to retrieve the cell IDs that are contained in certain boundaries provided as list of points
+     @ In, listOfPoints, list, list of points that represent the boundaries ([listOfFirstBound, listOfSecondBound])
+    """
+    pass
+
+  def returnGridAsArrayOfCoordinates(self):
+    """
+    Return the grid as an array of coordinates
+    """
+    pass
+
+  def returnCoordinatesReshaped(self,newShape):
+    """
+     Method to return the grid Coordinates reshaped with respect an in Shape
+     @ In, newShape, tuple, newer shape
+    """
+    pass
   
+  def resetIterator(self):
+    """
+    Reset internal iterator
+    @ In, None
+    @ Out, None
+    """
+    pass
+  
+  def returnIteratorIndexes(self,returnDict = True):
+    """
+    Return the iterator indexes
+    @ In, boolean,returnDict if true, the Indexes are returned in dictionary format
+    @ Out, tuple or dictionary
+    """
+    pass
+  
+  def returnIteratorIndexesFromIndex(self, listOfIndexes):
+    """
+    Return internal iterator indexes from list of coordinates in the list
+    @ In, list,listOfIndexes, list of grid coordinates
+    @ Out, dictionary
+    """
+    pass
+  
+  def returnShiftedCoordinate(self,coordinates,shiftingSteps):
+    """
+    Method to return the coordinate that is a # shiftingStep away from the input coordinate
+    For example, if 1D grid= {'dimName':[1,2,3,4]}, coordinate is 3 and  shiftingStep is -2,
+    the returned coordinate will be 1
+    @ In,  dict, coordinates, dictionary of coordinates. {'dimName1':startingCoordinate1,dimName2:startingCoordinate2,...}
+    @ In,  dict, shiftingSteps, dict of shifiting steps. {'dimName1':shiftingStep1,dimName2:shiftingStep2,...}
+    @ Out, dict, outputCoordinates, dictionary of shifted coordinates' values {dimName:value1,...}
+    """
+    pass
+  
+  def returnPointAndAdvanceIterator(self, returnDict=False, recastMethods={}):
+    """
+    Method to return a point in the grid. This method will return the coordinates of the point to which the iterator is pointing
+    In addition, it advances the iterator in order to point to the following coordinate
+    @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not.
+                               if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
+                               if False a tuple is riturned (coordinate1,coordinate2,etc
+    @ In, dict, optional, recastMethods, dictionary containing the methods that need to be used for trasforming the coordinates
+                                         ex. {'dimName1':[methodToTransformCoordinate,*args]}
+    @ Out, tuple, coordinate, tuple containing the coordinates
+    """
+    pass
+  
+  def returnCoordinateFromIndex(self, multiDimIndex, returnDict=False, recastMethods={}):
+    """
+    Method to return a point in the grid. This method will return the coordinates of the point is requested by multiDimIndex
+    In addition, it advances the iterator in order to point to the following coordinate
+    @ In, tuple, multiDimIndex, tuple containing the Id of the point needs to be returned (e.g. 3 dim grid,  (xID,yID,zID))
+    @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not.
+                                         if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
+                                         if False a tuple is riturned (coordinate1,coordinate2,etc)
+    @ In, dict, optional, recastMethods, dictionary containing the methods that need to be used for trasforming the coordinates
+                                         ex. {'dimName1':[methodToTransformCoordinate,*args]}
+    @ Out, tuple or dict, coordinate, tuple containing the coordinates
+    """
+    pass
+
     
 
 """
