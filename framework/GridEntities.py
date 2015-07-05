@@ -87,14 +87,6 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
     """
     pass
 
-  @classmethod
-  def returnCoordinatesReshaped(self,newShape):
-    """
-     Method to return the grid Coordinates reshaped with respect an in Shape
-     @ In, newShape, tuple, newer shape
-    """
-    pass
-
   def returnParameter(self,parameterName):
     """
     Method to return one of the initialization parameters
@@ -382,12 +374,12 @@ class GridEntity(GridBase):
         if varName in self.gridContainer['transformationMethods'].keys():
           self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName](coor) for coor in self.gridContainer['gridVectors'][varName]])
       pointByVar[varId]                               = np.shape(self.gridContainer['gridVectors'][varName])[0]
-    self.gridContainer['gridShape']                 = tuple   (pointByVar)          # tuple of the grid shape
-    self.gridContainer['gridLenght']                = np.prod (pointByVar)          # total number of point on the grid
-    self.gridContainer['gridMatrix']                = np.zeros(self.gridContainer['gridShape'])      # grid where the values of the goalfunction are stored
-    self.gridContainer['gridCoorShape']             = tuple(pointByVar+[self.nVar])                  # shape of the matrix containing all coordinate of all points in the grid
-    self.gridContainer['gridCoord']                 = np.zeros(self.gridContainer['gridCoorShape'])  # the matrix containing all coordinate of all points in the grid
-    self.uniqueCellNumber                           = np.prod([element-1 for element in pointByVar])
+    self.gridContainer['gridShape']                 = tuple   (pointByVar)                            # tuple of the grid shape
+    self.gridContainer['gridLenght']                = np.prod (pointByVar)                            # total number of point on the grid
+    self.gridContainer['gridMatrix']                = np.zeros(self.gridContainer['gridShape'])       # grid where the values of the goalfunction are stored
+    self.gridContainer['gridCoorShape']             = tuple   (pointByVar+[self.nVar])                # shape of the matrix containing all coordinate of all points in the grid
+    self.gridContainer['gridCoord']                 = np.zeros(self.gridContainer['gridCoorShape'])   # the matrix containing all coordinate of all points in the grid
+    self.uniqueCellNumber                           = np.prod ([element-1 for element in pointByVar]) # number of unique cells
     #filling the coordinate on the grid
     self.gridIterator = np.nditer(self.gridContainer['gridCoord'],flags=['multi_index'])
     gridIterCells = np.nditer(np.zeros(shape=(2,)*self.nVar,dtype=int),flags=['multi_index'])
@@ -405,8 +397,6 @@ class GridEntity(GridBase):
           while not gridIterCells.finished:
             vertex = tuple(np.array(origin)+gridIterCells.multi_index)
             self.gridContainer['cellIDs'][cellID].append(vertex)
-            #if vertex not in self.gridContainer['vertexToCellIds'].keys(): 
-            #  self.gridContainer['vertexToCellIds'][vertex] = []
             try   : self.gridContainer['vertexToCellIds'][vertex].append(cellID)
             except: self.gridContainer['vertexToCellIds'][vertex] = [cellID]
             gridIterCells.iternext()
@@ -434,9 +424,9 @@ class GridEntity(GridBase):
     """
     Return the grid as an array of coordinates
     """
-    return self.returnCoordinatesReshaped((self.gridContainer['gridLenght'],self.nVar))
+    return self.__returnCoordinatesReshaped((self.gridContainer['gridLenght'],self.nVar))
 
-  def returnCoordinatesReshaped(self,newShape):
+  def __returnCoordinatesReshaped(self,newShape):
     """
      Method to return the grid Coordinates reshaped with respect an in Shape
      @ In, newShape, tuple, newer shape
@@ -550,11 +540,12 @@ class MultiGridEntity(GridBase):
       Constructor
     """
     GridBase.__init__(self, messageHandler)
-    self.multiGridActivated = False                 # boolean flag to check if the multigrid approach has been activated
-    node                    = ETS.Node("InitialGrid")
+    self.multiGridActivated     = False                   # boolean flag to check if the multigrid approach has been activated
+    self.subGridVolumetricRatio = None                    # initial subgrid volumetric ratio
+    node = ETS.Node("InitialGrid")
     node.add("grid",returnInstance("GridEntity",self.messageHandler))
     node.add("level","1")
-    self.grid               = ETS.NodeTree(node)    # grid hierarchical Container
+    self.grid               = ETS.NodeTree(node)         # grid hierarchical Container
    
   def __len__(self):
     """
@@ -594,6 +585,7 @@ class MultiGridEntity(GridBase):
     """
     self.grid.getrootnode().get("grid").initialize(initDictionary)
     if initDictionary != None: self.subGridVolumetricRatio = float(initDictionary['subGridVolumetricRatio']) if 'subGridVolumetricRatio' in initDictionary.keys() else 1.e-5
+    self.nVar = self.grid.getrootnode().get("grid").nVar
 
   def retrieveCellIds(self,listOfPoints):
     """
@@ -605,15 +597,14 @@ class MultiGridEntity(GridBase):
   def returnGridAsArrayOfCoordinates(self):
     """
     Return the grid as an array of coordinates
+    @ In, None
+    @ Out, fullReshapedCoordinates, ndarray, numpy array containing all the coordinates shaped as (fullGridLenght,self.nVar)
     """
-    pass
-
-  def returnCoordinatesReshaped(self,newShape):
-    """
-     Method to return the grid Coordinates reshaped with respect an in Shape
-     @ In, newShape, tuple, newer shape
-    """
-    pass
+    fullReshapedCoordinates = np.zeros((0,self.nVar))
+    for node in self.grid.iterEnding():
+      for se in list(self.grid.iterWholeBackTrace(node)): 
+        fullReshapedCoordinates = np.concatenate((fullReshapedCoordinates,se.get('grid').returnGridAsArrayOfCoordinates()))                  
+    return fullReshapedCoordinates
   
   def resetIterator(self):
     """
@@ -621,7 +612,25 @@ class MultiGridEntity(GridBase):
     @ In, None
     @ Out, None
     """
-    pass
+    for node in self.grid.iterEnding():
+      for se in list(self.grid.iterWholeBackTrace(node)): se.get('grid').resetIterator()  
+
+#   def __returnFullShape(self):
+#     """
+#      Method to return the full shape
+#      @ In, None
+#      @ Out, fullShape, tuple, tuple containing the full shape of the MultiGrid  (except the last dimension that contains the numb  of variables)
+#     """
+#     fullShape = []
+#     for node in self.grid.iterEnding():
+#       for se in list(self.grid.iterWholeBackTrace(node)): 
+#         gridCoordinates = se.get('grid').getParameter('gridCoord')
+#         if len(fullShape) == 0: fullShape = list(gridCoordinates.shape[:-1])
+#         else:
+#           for cnt, coorLenght in enumerate(gridCoordinates.shape[:-1]): fullShape[cnt] += coorLenght    
+#     return tuple(fullShape)
+  
+
   
   def returnIteratorIndexes(self,returnDict = True):
     """
@@ -629,7 +638,11 @@ class MultiGridEntity(GridBase):
     @ In, boolean,returnDict if true, the Indexes are returned in dictionary format
     @ Out, tuple or dictionary
     """
-    pass
+    currentIndexes = self.gridIterator.multi_index
+    if not returnDict: return currentIndexes
+    coordinates = {}
+    for cnt, key in enumerate(self.gridContainer['dimensionNames']): coordinates[key] = currentIndexes[cnt]
+    return coordinates
   
   def returnIteratorIndexesFromIndex(self, listOfIndexes):
     """

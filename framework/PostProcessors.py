@@ -1756,7 +1756,7 @@ class LimitSurface(BasePostProcessor):
      @ In ,returnListSurfCoord, boolean, True if listSurfaceCoordinate needs to be returned
      @ Out, dictionary, Dictionary containing the limitsurface
     """
-    self.testMatrix.shape     = (self.gridEntity.returnParameter("gridLenght"))    #rearrange the grid matrix such as is an array of values
+    self.testMatrix.shape     = (len(self.gridEntity))    #rearrange the grid matrix such as is an array of values
     self.gridCoord = self.gridEntity.returnGridAsArrayOfCoordinates()
     tempDict ={}
     for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
