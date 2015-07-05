@@ -9,34 +9,32 @@
 
 
 <Steps>
-  <MultiRun name = 'pth1' pauseAtEnd = 'False'>
-    <Sampler  class = 'Samplers'  type = 'Grid'           >grd_vl_ql_smp_dpt</Sampler>
-    <Input    class = 'DataObjects'     type = 'PointSet'   >grd_vl_ql_smp_dpt_dt</Input>
-    <Model    class = 'Models'    type = 'ExternalModel'  >xtr_mdl</Model>
-    <Output   class = 'DataObjects'     type = 'PointSet'   >nt_phy_dpt_dt</Output>
+  <MultiRun name='pth1' pauseAtEnd='false'>
+    <Input   class='DataObjects' type='PointSet'     >grd_vl_ql_smp_dpt_dt</Input>
+    <Model   class='Models'      type='ExternalModel'>xtr_mdl</Model>
+    <Sampler class='Samplers'    type='Grid'         >grd_vl_ql_smp_dpt</Sampler>
+    <Output  class='DataObjects' type='PointSet'     >nt_phy_dpt_dt</Output>
+  </MultiRun >
+  <MultiRun name = 'pth2' pauseAtEnd = 'true'>
+    <Input          class='DataObjects' type='PointSet'          >bln_smp_dt</Input>
+    <Model          class='Models'      type='ExternalModel'     >xtr_mdl</Model>
+    <Sampler        class='Samplers'    type='LimitSurfaceSearch'>dpt_smp</Sampler>
+    <SolutionExport class='DataObjects' type='PointSet'          >lmt_srf_dt</SolutionExport>
+    <Output         class='DataObjects' type='PointSet'          >nt_phy_dpt_dt</Output>
   </MultiRun>
 
-  <MultiRun name = 'pth2' pauseAtEnd = 'True'>
-    <Sampler          class = 'Samplers'  type = 'LimitSurfaceSearch'      >dpt_smp</Sampler>
-    <Input            class = 'DataObjects'     type = 'PointSet'  >bln_smp_dt</Input>
-    <Model            class = 'Models'    type = 'ExternalModel' >xtr_mdl</Model>
-    <Output           class = 'DataObjects'     type = 'PointSet'  >nt_phy_dpt_dt</Output>
-    <SolutionExport   class = 'DataObjects'     type = 'PointSet'  >lmt_srf_dt</SolutionExport>
-  </MultiRun>
+  <IOStep name = 'pth4' pauseAtEnd = 'true'>
+    <Input  class='DataObjects'      type='PointSet'>lmt_srf_dt</Input>
+    <Input  class='DataObjects'      type='PointSet'>sfs_pnt_dt</Input>
+    <Output class='OutStreamManager' type='Print'   >lmt_srf_dmp</Output>
+    <Output class='OutStreamManager' type='Print'   >sfs_pnt_dmp</Output>
+  </IOStep>
 
-  <PostProcess name='pth3' pauseAtEnd = 'False'>
+  <PostProcess name='pth3' pauseAtEnd = 'false'>
     <Input    class = 'DataObjects'          type = 'PointSet'   >lmt_srf_dt</Input>
     <Model    class = 'Models'         type = 'PostProcessor'  >SP</Model>
     <Output   class = 'DataObjects'          type = 'PointSet'   >sfs_pnt_dt</Output>
   </PostProcess>
-
-  <IOStep name = 'pth4' pauseAtEnd = 'True'>
-        <Input  class = 'DataObjects'            type = 'PointSet'  >lmt_srf_dt</Input>
-        <Output class = 'OutStreamManager' type = 'Print'         >lmt_srf_dmp</Output>
-    <Input  class = 'DataObjects'            type = 'PointSet'  >sfs_pnt_dt</Input>
-        <Output class = 'OutStreamManager' type = 'Print'         >sfs_pnt_dmp</Output>
-  </IOStep>
-
 </Steps>
 
 <DataObjects>
@@ -96,7 +94,7 @@
     <variable name = 'x1' >
       <distribution>x1_dst</distribution>
       <grid type = 'value' construction = 'equal' steps = '10' >-10.0 10.0</grid>
-    </variable>  
+    </variable>
     <variable name='x2' >
       <distribution>x2_dst</distribution>
       <grid type = 'value' construction = 'equal' steps = '10' >-10.0 10.0</grid>

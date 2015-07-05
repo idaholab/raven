@@ -13,7 +13,7 @@
        <variable>t2</variable>
        <variable>out</variable>
     </ExternalModel>
-</Models> 
+</Models>
 
 <Distributions>
     <Exponential name='t1_distrib'>

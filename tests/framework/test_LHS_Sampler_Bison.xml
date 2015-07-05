@@ -64,12 +64,12 @@
 </Steps>
 
 <Databases>
-  <HDF5 name="test_bison_lhs"/> 
+  <HDF5 name="test_bison_lhs"/>
 </Databases>
 
 
 <OutStreamManager>
-    <Plot verbosity='debug' name='test' dim='2' overwrite='False'>
+    <Plot verbosity='debug' name='test' dim='2' overwrite='false'>
         <plotSettings>
             <plot>
                 <type>scatter</type>

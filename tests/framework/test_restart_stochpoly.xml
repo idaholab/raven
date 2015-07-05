@@ -7,39 +7,39 @@
     </RunInfo>
 
     <Steps>
-        <MultiRun name='make1'>
-            <Sampler class='Samplers'    type='SparseGridCollocation'>SG</Sampler>
-            <Input   class='DataObjects' type='PointSet'         >dummyIN</Input>
-            <Model   class='Models'      type='ExternalModel'        >poly</Model>
-            <Output  class='DataObjects' type='PointSet'         >solns</Output>
-        </MultiRun>
-        <RomTrainer name='train1'>
-            <Input   class='DataObjects' type='PointSet'>solns</Input>
-            <Output  class='Models'      type='ROM'         >rom</Output>
-        </RomTrainer>
+      <MultiRun name='make1'>
+        <Input   class='DataObjects' type='PointSet'             >dummyIN</Input>
+        <Model   class='Models'      type='ExternalModel'        >poly</Model>
+        <Sampler class='Samplers'    type='SparseGridCollocation'>SG</Sampler>
+        <Output  class='DataObjects' type='PointSet'             >solns</Output>
+      </MultiRun>
+      <MultiRun name='make2'>
+        <Input   class='DataObjects' type='PointSet'             >solns</Input>
+        <Model   class='Models'      type='ExternalModel'        >poly</Model>
+        <Sampler class='Samplers'    type='SparseGridCollocation'>SG2</Sampler>
+        <Output  class='DataObjects' type='PointSet'             >solns</Output>
+        <Output  class='DataObjects' type='PointSet'             >solns2</Output>
+      </MultiRun>
         <IOStep name='print1'>
             <Input  class='DataObjects'      type='PointSet'>solns</Input>
-            <Output class='OutStreamManager' type='Print'       >SCdump1</Output>
+            <Output class='OutStreamManager' type='Print'   >SCdump1</Output>
         </IOStep>
-        <MultiRun name='make2'>
-            <Sampler class='Samplers'    type='SparseGridCollocation'>SG2</Sampler>
-            <Input   class='DataObjects' type='PointSet'         >solns</Input>
-            <Model   class='Models'      type='ExternalModel'        >poly</Model>
-            <Output  class='DataObjects' type='PointSet'         >solns</Output>
-            <Output  class='DataObjects' type='PointSet'         >solns2</Output>
-        </MultiRun>
-        <RomTrainer name='train2'>
-            <Input   class='DataObjects' type='PointSet'>solns</Input>
-            <Output  class='Models'      type='ROM'         >rom2</Output>
-        </RomTrainer>
         <IOStep name='print2'>
             <Input  class='DataObjects'      type='PointSet'>solns2</Input>
-            <Output class='OutStreamManager' type='Print'       >SCdump2</Output>
+            <Output class='OutStreamManager' type='Print'   >SCdump2</Output>
         </IOStep>
         <IOStep name='print3'>
             <Input  class='DataObjects'      type='PointSet'>solns</Input>
-            <Output class='OutStreamManager' type='Print'       >SCdump3</Output>
+            <Output class='OutStreamManager' type='Print'   >SCdump3</Output>
         </IOStep>
+        <RomTrainer name='train2'>
+            <Input   class='DataObjects' type='PointSet'>solns</Input>
+            <Output  class='Models'      type='ROM'     >rom2</Output>
+        </RomTrainer>
+        <RomTrainer name='train1'>
+            <Input   class='DataObjects' type='PointSet'>solns</Input>
+            <Output  class='Models'      type='ROM'     >rom</Output>
+        </RomTrainer>
     </Steps>
 
     <Distributions>

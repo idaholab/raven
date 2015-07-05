@@ -25,61 +25,43 @@
     <!--                              Distributions                              -->
     <!-- *********************************************************************** -->
     <xsd:complexType name="BetaDistribution">
-        <xsd:all>
-            <xsd:element name="lowerBound"                    minOccurs="0">
-                <xsd:simpleType>
-                    <xsd:restriction base="xsd:float">
-                        <xsd:minInclusive value="0"/>
-                    </xsd:restriction>
-                </xsd:simpleType>
-            </xsd:element>
-            <xsd:element name="upperBound"                    minOccurs="0">
-                <xsd:simpleType>
-                    <xsd:restriction base="xsd:float">
-                        <xsd:maxInclusive value="1"/>
-                    </xsd:restriction>
-                </xsd:simpleType>
-            </xsd:element>
+        <xsd:sequence>
+            <!-- either both alpha and beta or peak factor must be specified -->
+            <xsd:choice>
+                <xsd:sequence>
+                    <xsd:element name="alpha"      type="xsd:float" minOccurs="0"/>
+                    <xsd:element name="beta"       type="xsd:float" minOccurs="0"/>
+                </xsd:sequence>
+                <xsd:element name="peakFactor" type="xsd:float" minOccurs="0"/>
+            </xsd:choice>
             <xsd:element name="low"        type="xsd:float" minOccurs="1"/>
             <!-- low cannot be less than lowerBound -->
             <xsd:element name="high"       type="xsd:float" minOccurs="1"/>
             <!-- high cannot be larger than upperBound -->
-            <xsd:element name="alpha"      type="xsd:float" minOccurs="0"/>
-            <xsd:element name="beta"       type="xsd:float" minOccurs="0"/>
-            <!-- either both alpha and beta or peak factor must be specified -->
-            <xsd:element name="peakFactor" type="xsd:float" minOccurs="0"/>
-        </xsd:all>
+            <xsd:element name="lowerBound" type="xsd:float" minOccurs="0" />
+            <xsd:element name="upperBound" type="xsd:float" minOccurs="0" />
+        </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
 
     <xsd:complexType name="ExponentialDistribution">
         <xsd:all>
-            <xsd:element name="lowerBound"                    minOccurs="0">
-                <xsd:simpleType>
-                    <xsd:restriction base="xsd:float">
-                        <xsd:minInclusive value="0"/>
-                    </xsd:restriction>
-                </xsd:simpleType>
-            </xsd:element>
-            <xsd:element name="upperBound" type="xsd:float" minOccurs="0"/>
-            <xsd:element name="lambda"     type="xsd:float" minOccurs="1"/>
+            <xsd:element name="upperBound" type="xsd:float"     minOccurs="0"/>
+            <xsd:element name="lowerBound" type="xsd:float"     minOccurs="0"/>
+            <xsd:element name="lambda"     type="xsd:float"     minOccurs="1"/>
+            <xsd:element name="low"        type="unsignedFloat" minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
 
     <xsd:complexType name="GammaDistribution">
         <xsd:all>
-            <xsd:element name="lowerBound"                    minOccurs="0">
-                <xsd:simpleType>
-                    <xsd:restriction base="xsd:decimal">
-                        <xsd:minInclusive value="0"/>
-                    </xsd:restriction>
-                </xsd:simpleType>
-            </xsd:element>
-            <xsd:element name="upperBound" type="xsd:decimal" minOccurs="0"/>
-            <xsd:element name="alpha"      type="xsd:decimal" minOccurs="1"/>
-            <xsd:element name="beta"       type="xsd:decimal" minOccurs="0"/>
-            <xsd:element name="low"        type="xsd:float" minOccurs="1"/>
+            <!-- I am assuming this translates and stretches the distribution, thus it is unbounded -->
+            <xsd:element name="upperBound" type="xsd:float"     minOccurs="0"/>
+            <xsd:element name="lowerBound" type="xsd:float"     minOccurs="0"/>
+            <xsd:element name="alpha"      type="positiveFloat" minOccurs="1"/>
+            <xsd:element name="beta"       type="positiveFloat" minOccurs="0"/>
+            <xsd:element name="low"        type="xsd:float" minOccurs="0"/>
             <!-- low cannot be less than lowerBound -->
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
@@ -89,21 +71,15 @@
         <xsd:all>
             <xsd:element name="upperBound" type="xsd:decimal" minOccurs="0"/>
             <xsd:element name="lowerBound" type="xsd:decimal" minOccurs="0"/>
-            <xsd:element name="location"      type="xsd:decimal" minOccurs="1"/>
-            <xsd:element name="scale"         type="xsd:decimal" minOccurs="1"/>
+            <xsd:element name="location"   type="xsd:decimal" minOccurs="1"/>
+            <xsd:element name="scale"      type="xsd:decimal" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
 
     <xsd:complexType name="LogNormalDistribution">
         <xsd:all>
-            <xsd:element name="lowerBound"                    minOccurs="0">
-                <xsd:simpleType>
-                    <xsd:restriction base="xsd:decimal">
-                        <xsd:minInclusive value="0"/>
-                    </xsd:restriction>
-                </xsd:simpleType>
-            </xsd:element>
+            <xsd:element name="lowerBound" type="xsd:decimal" minOccurs="0"/>
             <xsd:element name="upperBound" type="xsd:decimal" minOccurs="0"/>
             <xsd:element name="mean"       type="xsd:decimal" minOccurs="1"/>
             <xsd:element name="sigma"      type="xsd:decimal" minOccurs="1"/>
@@ -140,13 +116,7 @@
 
     <xsd:complexType name="WeibullDistribution">
         <xsd:all>
-            <xsd:element name="lowerBound"                    minOccurs="0">
-                <xsd:simpleType>
-                    <xsd:restriction base="xsd:decimal">
-                        <xsd:minInclusive value="0"/>
-                    </xsd:restriction>
-                </xsd:simpleType>
-            </xsd:element>
+            <xsd:element name="lowerBound" type="xsd:decimal" minOccurs="0"/>
             <xsd:element name="upperBound" type="xsd:decimal" minOccurs="0"/>
             <xsd:element name="k"          type="xsd:decimal" minOccurs="1"/>
             <xsd:element name="lambda"     type="xsd:decimal" minOccurs="1"/>
@@ -156,39 +126,19 @@
 
     <xsd:complexType name="BernoulliDistribution">
         <xsd:all>
-            <xsd:element name="p" minOccurs="1">
-                <xsd:simpleType>
-                    <xsd:restriction base="xsd:decimal">
-                        <xsd:minInclusive value="0"/>
-                        <xsd:maxInclusive value="1"/>
-                    </xsd:restriction>
-                </xsd:simpleType>
-            </xsd:element>
+            <xsd:element name="p" type="percentFloat" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="BinomialDistribution">
         <xsd:all>
-            <xsd:element name="p" minOccurs="1">
-                <xsd:simpleType>
-                    <xsd:restriction base="xsd:decimal">
-                        <xsd:minInclusive value="0"/>
-                        <xsd:maxInclusive value="1"/>
-                    </xsd:restriction>
-                </xsd:simpleType>
-            </xsd:element>
-            <xsd:element name="n" minOccurs="1">
-                <xsd:simpleType>
-                    <xsd:restriction base="xsd:integer">
-                        <xsd:minExclusive value="0"/>
-                    </xsd:restriction>
-                </xsd:simpleType>
-            </xsd:element>
+            <xsd:element name="p" type="percentFloat" minOccurs="1"/>
+            <xsd:element name="n" type="xsd:positiveInteger" minOccurs="1" />
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="PoissonDistribution">
         <xsd:all>
             <xsd:element name="mu" type="xsd:decimal" minOccurs="1"/>
@@ -202,23 +152,21 @@
                 <xsd:attribute name="outcome" type="xsd:decimal" use="required"/>
             </xsd:extension>
         </xsd:simpleContent>
-    </xsd:complexType>    
-    
-    <xsd:complexType name="CategoricalDistribution">
+    </xsd:complexType>
+        <xsd:complexType name="CategoricalDistribution">
         <xsd:sequence>
             <xsd:element name="state" type="stateType" minOccurs="1" maxOccurs="200"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
- 
- 
+
     <xsd:simpleType name="typeAttr">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="PDF"/>
             <xsd:enumeration value="CDF"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:complexType name="data_filenameType">
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
@@ -226,7 +174,7 @@
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="NDInverseWeightDistribution">
         <xsd:all>
             <xsd:element name="p"             type="xsd:decimal"       minOccurs="1"/>

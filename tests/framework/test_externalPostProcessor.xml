@@ -32,7 +32,7 @@
   </Sequence>
 </RunInfo>
 <Models>
-<!-- This post-processor will call methods defined in two external python 
+<!-- This post-processor will call methods defined in two external python
      scripts compatible with RAVEN -->
   <PostProcessor name='functionPP' subType='External' verbosity='debug'>
     <method>Delta,Sum,Norm,Mean,Max,Min,DoesNotExist</method>
@@ -59,11 +59,16 @@
     <IOStep name='loadData1' fromDirectory='.'>
       <Input  class='DataObjects'    type='PointSet'>testData</Input>
       <Output   class='Databases' type='HDF5'   >myDB</Output>
-    </IOStep> 
+    </IOStep>
     <IOStep name='loadData2' fromDirectory='.'>
       <Input  class='DataObjects'    type='PointSet'>testData2</Input>
       <Output   class='Databases' type='HDF5'   >myDB</Output>
-    </IOStep> 
+    </IOStep>
+<!-- Write the results to a csv -->
+    <IOStep name='saveData'>
+      <Input  class='DataObjects'            type='PointSet'>outTPS</Input>
+      <Output class='OutStreamManager' type='Print'       >myDump</Output>
+    </IOStep>
 <!-- Perform the sum and difference operators using the function interface -->
     <PostProcess name='applyFunctions'>
         <Input    class='DataObjects'     type='PointSet' >testData2</Input>
@@ -71,11 +76,6 @@
         <Model    class='Models'    type='PostProcessor'>functionPP</Model>
         <Output   class='DataObjects'     type='PointSet' >outTPS</Output>
     </PostProcess>
-<!-- Write the results to a csv -->
-    <IOStep name='saveData'>
-      <Input  class='DataObjects'            type='PointSet'>outTPS</Input>
-      <Output class='OutStreamManager' type='Print'       >myDump</Output>
-    </IOStep> 
 </Steps>
 
 <OutStreamManager>
@@ -88,7 +88,7 @@
 
 <Databases>
 <!-- The necessary database object -->
-  <HDF5 name="myDB"/> 
+  <HDF5 name="myDB"/>
 </Databases>
 <DataObjects>
 <!-- The input PointSet objects -->
