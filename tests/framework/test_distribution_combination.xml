@@ -1,97 +1,100 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <Simulation verbosity="debug">
-  <RunInfo>
+<RunInfo>
     <WorkingDir>dists_vars/</WorkingDir>
     <Files>dist_var.py,2DgaussianCartesianPDF.txt</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
-  </RunInfo>
+</RunInfo>
 
-  <Models>
-    <ExternalModel ModuleToLoad="dists_vars/dist_var" name="PythonModule" subType="">
-      <variable>t1</variable>
-      <variable>t2</variable>
-      <variable>out</variable>
+<Models>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='dists_vars/dist_var'>
+       <variable>t1</variable>
+       <variable>t2</variable>
+       <variable>out</variable>
     </ExternalModel>
-  </Models>
+</Models>
 
-  <Distributions>
-    <Exponential name="t1_distrib">
-      <lambda>8.7E-4</lambda>
+<Distributions>
+    <Exponential name='t1_distrib'>
+        <lambda>8.7E-4</lambda>
     </Exponential>
-    <Exponential name="t2_distrib">
-      <lambda>8.7E-4</lambda>
+    <Exponential name='t2_distrib'>
+        <lambda>8.7E-4</lambda>
     </Exponential>
-    <Exponential name="t34_distrib">
-      <lambda>8.7E-4</lambda>
+    <Exponential name='t34_distrib'>
+        <lambda>8.7E-4</lambda>
     </Exponential>
-    <NDCartesianSpline name="ND_CartesianSpline_P">
-      <data_filename type="PDF">2DgaussianCartesianPDF.txt</data_filename>
-      <working_dir>dists_vars</working_dir>
+    <NDCartesianSpline name='ND_CartesianSpline_P'>
+        <data_filename type='PDF'>2DgaussianCartesianPDF.txt</data_filename>
+        <working_dir>dists_vars</working_dir>
     </NDCartesianSpline>
-  </Distributions>
+</Distributions>
 
-  <Samplers>
-    <MonteCarlo name="MC_external">
-      <sampler_init>
-        <limit>1</limit>
-        <dist_init>
-          <distribution name="ND_CartesianSpline_P">
-            <initial_grid_disc>5</initial_grid_disc>
-            <tolerance>0.2</tolerance>
-          </distribution>
-        </dist_init>
-      </sampler_init>
-      <variable name="t1">
-        <distribution>t1_distrib</distribution>
-      </variable>
-      <variable name="t2">
-        <distribution>t1_distrib</distribution>
-      </variable>
-      <variable name="t3,t4">
-        <distribution>t34_distrib</distribution>
-      </variable>
-      <variable name="x0">
-        <distribution dim="1">ND_CartesianSpline_P</distribution>
-      </variable>
-      <variable name="y0,z0">
-        <distribution dim="2">ND_CartesianSpline_P</distribution>
-      </variable>
-      <variable name="x1">
-        <distribution dim="1">ND_CartesianSpline_P</distribution>
-      </variable>
-      <variable name="y1,z1">
-        <distribution dim="2">ND_CartesianSpline_P</distribution>
-      </variable>
+<Samplers>
+    <MonteCarlo name='MC_external'>
+        <sampler_init>
+            <limit>1</limit>
+            <dist_init>
+                <distribution name= 'ND_CartesianSpline_P'>
+                    <initial_grid_disc>5</initial_grid_disc>
+                    <tolerance>0.2</tolerance>
+                </distribution>
+            </dist_init>
+        </sampler_init>
+        <variable name='t1' >
+            <distribution>t1_distrib</distribution>
+        </variable>
+        <variable name='t2' >
+            <distribution>t1_distrib</distribution>
+        </variable>
+        <variable name='t3,t4' >
+            <distribution>t34_distrib</distribution>
+        </variable>
+        <variable name='x0'>
+            <distribution dim='1'>ND_CartesianSpline_P</distribution>
+        </variable>
+        <variable name='y0,z0'>
+            <distribution dim='2'>ND_CartesianSpline_P</distribution>
+        </variable>
+        <variable name='x1'>
+            <distribution dim='1'>ND_CartesianSpline_P</distribution>
+        </variable>
+        <variable name='y1,z1'>
+            <distribution dim='2'>ND_CartesianSpline_P</distribution>
+        </variable>
     </MonteCarlo>
-  </Samplers>
+</Samplers>
 
-  <Steps>
-    <MultiRun name="FirstMRun">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
-      <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="PointSet">PointSet</Output>
-      <Output class="OutStreamManager" type="Print">PrintPointSet_dump</Output>
+<Steps>
+    <MultiRun name='FirstMRun'>
+        <Input   class='DataObjects'      type='Point'      >inputPlaceHolder</Input>
+        <Model   class='Models'           type='ExternalModel'  >PythonModule</Model>
+        <Sampler class='Samplers'         type='MonteCarlo'     >MC_external</Sampler>
+        <Output  class='DataObjects'      type='PointSet'   >PointSet</Output>
+        <Output  class='OutStreamManager' type='Print'          >PrintPointSet_dump</Output>
     </MultiRun>
-  </Steps>
+</Steps>
 
-  <DataObjects>
-    <Point name="inputPlaceHolder">
-      <Input>t1,t2</Input>
-      <Output>out</Output>
+<DataObjects>
+    <Point name='inputPlaceHolder'>
+        <Input>t1,t2</Input>
+        <Output>out</Output>
     </Point>
-    <PointSet name="PointSet">
-      <Input>t1,t2,t3,t4,x0,y0,z0,x1,y1,z1</Input>
-      <Output>out</Output>
-    </PointSet>
-  </DataObjects>
+    <PointSet name='PointSet'>
+        <Input>t1,t2,t3,t4,x0,y0,z0,x1,y1,z1</Input>
+        <Output>out</Output>
+   </PointSet>
+</DataObjects>
 
-  <OutStreamManager>
-    <Print name="PrintPointSet_dump">
-      <type>csv</type>
-      <source>PointSet</source>
+<OutStreamManager>
+    <Print name='PrintPointSet_dump'>
+        <type>csv</type>
+        <source>PointSet</source>
     </Print>
-  </OutStreamManager>
+</OutStreamManager>
 
 </Simulation>
+
+
+

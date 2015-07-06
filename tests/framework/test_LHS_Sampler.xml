@@ -1,81 +1,83 @@
-<?xml version="1.0" ?>
-<Simulation verbosity="debug">
-  <RunInfo>
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation verbosity='debug'>
+
+<RunInfo>
     <WorkingDir>LHStest</WorkingDir>
     <Sequence>myLHS</Sequence>
     <batchSize>1</batchSize>
-  </RunInfo>
+</RunInfo>
 
-  <Models>
-    <Dummy name="MyDummy" subType=""/>
-  </Models>
+<Models>
+    <Dummy name='MyDummy' subType=''/>
+</Models>
 
-  <Distributions>
-    <Normal name="Gauss1">
-      <mean>1</mean>
-      <sigma>0.001</sigma>
-      <lowerBound>0</lowerBound>
-      <upperBound>2</upperBound>
+<Distributions>
+    <Normal name='Gauss1'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
     </Normal>
-    <Normal name="Gauss2">
-      <mean>1</mean>
-      <sigma>0.4</sigma>
-      <lowerBound>0</lowerBound>
-      <upperBound>2</upperBound>
+    <Normal name='Gauss2'>
+        <mean>1</mean>
+        <sigma>0.4</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
     </Normal>
-    <Triangular name="DistTri1">
-      <apex>1</apex>
-      <min>-0.1</min>
-      <max>3</max>
+    <Triangular name='DistTri1'>
+        <apex>1</apex>
+        <min>-0.1</min>
+        <max>3</max>
     </Triangular>
-  </Distributions>
-
-  <Samplers>
-    <Stratified name="myLHS">
+</Distributions>
+<Samplers>
+    <Stratified name='myLHS'>
       <sampler_init>
         <initial_seed>1</initial_seed>
       </sampler_init>
-      <variable name="VarTri1">
-        <distribution>DistTri1</distribution>
-        <grid construction="custom" type="value">0.02 0.5 0.6 0.8</grid>
+      <variable name='VarTri1' >
+        <distribution  >DistTri1</distribution>
+        <grid         type='value'      construction='custom'>0.02 0.5 0.6 0.8</grid>
       </variable>
-      <variable name="VarGauss1">
+      <variable name='VarGauss1' >
         <distribution>Gauss1</distribution>
-        <grid construction="equal" steps="3" type="value">0.02 0.92</grid>
+        <grid type='value' construction='equal' steps='3'>0.02 0.92</grid>
       </variable>
-      <variable name="VarGauss2">
-        <distribution>Gauss2</distribution>
-        <grid construction="equal" steps="3" type="CDF">0.17 0.2</grid>
+      <variable name='VarGauss2'>
+        <distribution >Gauss2</distribution>
+        <grid type='CDF' construction='equal' steps='3'>0.17 0.2</grid>
       </variable>
     </Stratified>
-  </Samplers>
+</Samplers>
 
-  <OutStreamManager>
-    <Print name="outLHS_dump">
-      <type>csv</type>
-      <source>outLHS</source>
+<OutStreamManager>
+    <Print name='outLHS_dump'>
+        <type>csv</type>
+        <source>outLHS</source>
     </Print>
-  </OutStreamManager>
-
-  <DataObjects>
-    <PointSet name="outLHS">
+</OutStreamManager>
+<DataObjects>
+    <PointSet name='outLHS'>
+        <Input>VarGauss1,VarGauss2,VarTri1</Input>
+        <Output>OutputPlaceHolder</Output>
+   </PointSet>
+   <PointSet name='dummyIN'>
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
       <Output>OutputPlaceHolder</Output>
-    </PointSet>
-    <PointSet name="dummyIN">
-      <Input>VarGauss1,VarGauss2,VarTri1</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
-  </DataObjects>
+   </PointSet>
+</DataObjects>
 
-  <Steps>
-    <MultiRun name="myLHS">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="Dummy">MyDummy</Model>
-      <Sampler class="Samplers" type="Stratified">myLHS</Sampler>
-      <Output class="DataObjects" type="PointSet">outLHS</Output>
-      <Output class="OutStreamManager" type="Print">outLHS_dump</Output>
-    </MultiRun>
-  </Steps>
+<Steps>
+    <MultiRun name='myLHS'>
+        <Input   class='DataObjects'    type='PointSet' >dummyIN</Input>
+        <Model   class='Models'   type='Dummy'        >MyDummy</Model>
+        <Sampler class='Samplers' type='Stratified'          >myLHS</Sampler>
+        <Output  class='DataObjects'    type='PointSet' >outLHS</Output>
+        <Output  class='OutStreamManager' type='Print'>outLHS_dump</Output>
+    </MultiRun >
+</Steps>
 
 </Simulation>
+
+
+

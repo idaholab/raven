@@ -1,93 +1,96 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <Simulation>
-  <RunInfo>
+<RunInfo>
     <WorkingDir>ND_test_Grid_cdf</WorkingDir>
     <Files>lorentzAttractor.py,TriangularExponential2D_scattered.txt,TriangularExponential2D_cartesian.txt,covMatrix.txt</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
-  </RunInfo>
+</RunInfo>
 
-  <Models>
-    <ExternalModel ModuleToLoad="ND_test_Grid_cdf/lorentzAttractor" name="PythonModule" subType="">
-      <variable>sigma</variable>
-      <variable>rho</variable>
-      <variable>beta</variable>
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>z</variable>
-      <variable>k</variable>
-      <variable>time</variable>
-      <variable>x0</variable>
-      <variable>y0</variable>
-      <variable>z0</variable>
-      <variable>k0</variable>
+<Models>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='ND_test_Grid_cdf/lorentzAttractor'>
+        <variable>sigma</variable>
+        <variable>rho</variable>
+        <variable>beta</variable>
+        <variable>x</variable>
+        <variable>y</variable>
+        <variable>z</variable>
+        <variable>k</variable>
+        <variable>time</variable>
+        <variable>x0</variable>
+        <variable>y0</variable>
+        <variable>z0</variable>
+        <variable>k0</variable>
     </ExternalModel>
-  </Models>
+</Models>
 
-  <Distributions>
-    <Normal name="k0_distrib">
-      <mean>4</mean>
-      <sigma>1</sigma>
+<Distributions>
+    <Normal name='k0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
     </Normal>
-    <NDInverseWeight name="ND_InverseWeight_P">
-      <p>3.0</p>
-      <data_filename type="PDF">2DgaussianScatteredPDF.txt</data_filename>
-      <working_dir>ND_test_Grid_cdf/</working_dir>
+    <NDInverseWeight name='ND_InverseWeight_P'>
+        <p>3.0</p>
+        <data_filename type='PDF'>2DgaussianScatteredPDF.txt</data_filename>
+        <working_dir>ND_test_Grid_cdf/</working_dir>
     </NDInverseWeight>
-    <NDInverseWeight name="ND_InverseWeight_C">
-      <p>2.5</p>
-      <data_filename type="CDF">2DgaussianScatteredCDF.txt</data_filename>
-      <working_dir>ND_test_Grid_cdf/</working_dir>
+    <NDInverseWeight name='ND_InverseWeight_C'>
+        <p>2.5</p>
+        <data_filename type='CDF'>2DgaussianScatteredCDF.txt</data_filename>
+        <working_dir>ND_test_Grid_cdf/</working_dir>
     </NDInverseWeight>
-    <NDCartesianSpline name="ND_CartesianSpline_P">
-      <data_filename type="PDF">2DgaussianCartesianPDF.txt</data_filename>
-      <working_dir>ND_test_Grid_cdf/</working_dir>
+    <NDCartesianSpline name='ND_CartesianSpline_P'>
+        <data_filename type='PDF'>2DgaussianCartesianPDF.txt</data_filename>
+        <working_dir>ND_test_Grid_cdf/</working_dir>
     </NDCartesianSpline>
-    <NDCartesianSpline name="ND_CartesianSpline_C">
-      <data_filename type="CDF">2DgaussianCartesianCDF.txt</data_filename>
-      <working_dir>ND_test_Grid_cdf/</working_dir>
+    <NDCartesianSpline name='ND_CartesianSpline_C'>
+        <data_filename type='CDF'>2DgaussianCartesianCDF.txt</data_filename>
+        <working_dir>ND_test_Grid_cdf/</working_dir>
     </NDCartesianSpline>
-  </Distributions>
+</Distributions>
 
-  <Samplers>
-    <Grid name="grid_CDF_SP">
-      <variable name="k0">
-        <distribution>k0_distrib</distribution>
-        <grid construction="custom" type="CDF">0.5 0.3</grid>
-      </variable>
-      <variable name="x0">
-        <distribution dim="1">ND_CartesianSpline_P</distribution>
-        <grid construction="custom" type="CDF">0.1 0.4</grid>
-      </variable>
-      <variable name="y0,z0">
-        <distribution dim="2">ND_CartesianSpline_P</distribution>
-        <grid construction="custom" type="CDF">0.2 0.5</grid>
-      </variable>
+<Samplers>
+    <Grid name='grid_CDF_SP'>
+        <variable name='k0'>
+            <distribution>k0_distrib</distribution>
+            <grid type='CDF' construction='custom'>0.5 0.3</grid>
+        </variable>
+        <variable name='x0'>
+            <distribution dim='1'>ND_CartesianSpline_P</distribution>
+            <grid type='CDF' construction='custom'>0.1 0.4</grid>
+        </variable>
+        <variable name='y0,z0'>
+            <distribution dim='2'>ND_CartesianSpline_P</distribution>
+            <grid type='CDF' construction='custom'>0.2 0.5</grid>
+        </variable>
     </Grid>
-  </Samplers>
+</Samplers>
 
-  <Steps>
-    <MultiRun name="FirstMRun" re-seeding="1">
-      <Input class="Files" type="">lorentzAttractor.py</Input>
-      <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="Grid">grid_CDF_SP</Sampler>
-      <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
-      <Output class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
-    </MultiRun>
-  </Steps>
+<Steps>
+    <MultiRun name='FirstMRun' re-seeding='1'>
+        <Input   class='Files'              type=''               >lorentzAttractor.py</Input>
+        <Model   class='Models'             type='ExternalModel'  >PythonModule</Model>
+        <Sampler class='Samplers'           type='Grid'           >grid_CDF_SP</Sampler>
+        <Output  class='DataObjects'              type='PointSet'   >testPrintPointSet</Output>
+        <Output  class='OutStreamManager'   type='Print'          >testPrintPointSet_dump</Output>
+    </MultiRun >
+</Steps>
 
-  <OutStreamManager>
-    <Print name="testPrintPointSet_dump">
-      <type>csv</type>
-      <source>testPrintPointSet</source>
+<OutStreamManager>
+    <Print name='testPrintPointSet_dump'>
+        <type>csv</type>
+        <source>testPrintPointSet</source>
     </Print>
-  </OutStreamManager>
+</OutStreamManager>
 
-  <DataObjects>
-    <PointSet name="testPrintPointSet">
-      <Input>x0,y0,z0,k0</Input>
-      <Output>x,y,z,k</Output>
+
+<DataObjects>
+    <PointSet name='testPrintPointSet'>
+        <Input>x0,y0,z0,k0</Input>
+        <Output>x,y,z,k</Output>
     </PointSet>
-  </DataObjects>
+</DataObjects>
 
 </Simulation>
+
+
