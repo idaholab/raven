@@ -31,6 +31,10 @@ class File(BaseType):
     BaseType.__init__(self)
     self.__isOpen = False
     self.__file   = None  #when open, refers to open file, else None
+    self.path=''
+    self.base=''
+    self.ext=''
+    self.filename=''
     # TODO HOWTO self.workingDir = runInfoDict['WorkingDir']
     #the source of the initialization input determines the class you want
     #  if read from XML, you want the UserGenerated class, initialized by _readMoreXML(XMLNode)
@@ -76,19 +80,21 @@ class File(BaseType):
     """
     self.filename = '.'.join([self.base,self.ext])
 
-
   def setFilename(self,filename):
     """
     Sets name, extension from filename = 'name.ext'
     @ In, filename, string, full filename
     @ Out, None
     """
+    self.raiseADebug('CHANGING MY FILENAME! ...')
+    self.raiseADebug('...from',self.getAbsFile())
     if self.__isOpen: self.raiseAnError('Tried to change the name of an open file: %s! Close it first.' %self.getAbsFile())
     self.filename = filename.strip()
-    if self.filename != '.': self.base = os.path.basename(self.filename).split()[0]
+    if self.filename != '.': self.base = os.path.basename(self.filename).split()[0].split('.')[0]
     else                   : self.base = self.filename
     if len(filename.split(".")) > 1: self.ext = filename.split(".")[1].lower()
     else                           : self.ext = 'unknown'
+    self.raiseADebug('... to ',self.getAbsFile())
 
   def setExtension(self,ext):
     """Sets the extension of the file.
@@ -115,6 +121,7 @@ class File(BaseType):
     @ In, pathandfile, string, path to file and the filename itself in a single string
     @Out, None
     """
+    self.raiseADebug('SETTING ABSOLUTE FILE!')
     if self.__isOpen: self.raiseAnError('Tried to change the path/name of an open file: %s! Close it first.' %self.getAbsFile())
     self.path,filename = os.path.split(pathandfile)
     self.setFilename(filename)
@@ -123,6 +130,7 @@ class File(BaseType):
     return self.path
 
   def getAbsFile(self):
+    self.updateFilename()
     return os.path.normpath(os.path.join(self.path,self.filename))
 
   ### ACCESS FUNCTIONS ###
@@ -215,6 +223,8 @@ class File(BaseType):
       @Out, string, next line from file
     """
     return self.__file.readline()
+    self.type = 'internal'
+    self.printTag = 'Internal File'
 
 #
 #
@@ -234,9 +244,11 @@ class RAVENGenerated(File):
     @Out, None
     """
     self.messageHandler = messageHandler
-    self.path=path
-    self.setFilename(filename)
     self.type = 'internal'
+    self.printTag = 'Internal File'
+    self.path=path
+    self.raiseADebug('FIRST FILENAME SET!')
+    self.setFilename(filename)
     self.perturbed = False
     self.subtype   = subtype
     self.name      = filename
@@ -255,6 +267,7 @@ class CSV(RAVENGenerated):
     """
     RAVENGenerated.initialize(self,filename,messageHandler,path,subtype)
     self.type='csv'
+    self.printTag = 'Internal CSV'
 #
 #
 #
@@ -275,6 +288,7 @@ class UserGenerated(File):
     #for node in xmlNode:
     self.raiseADebug('NODE:',node.tag)
     self.type = node.tag #XSD should confirm types as Input only valid type so far
+    self.printTag = self.type+' File'
     self.setFilename(node.text.strip())
     self.perturbed = node.attrib.get('perturbable',True)
     self.subtype   = node.attrib.get('type'       ,None)

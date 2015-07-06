@@ -397,7 +397,9 @@ class Simulation(MessageHandler.MessageUser):
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     """parses the xml input file, instances the classes need to represent all objects in the simulation"""
     self.verbosity = xmlNode.attrib.get('verbosity','all')
-    if 'printTimeStamps' in xmlNode.attrib.keys(): self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
+    if 'printTimeStamps' in xmlNode.attrib.keys():
+      self.raiseADebug('Setting "printTimeStamps" to',xmlNode.attrib['printTimeStamps'])
+      self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
     self.messageHandler.verbosity = self.verbosity
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: self.raiseAnError(IOError,'The run info node is mandatory')
@@ -411,7 +413,7 @@ class Simulation(MessageHandler.MessageUser):
         if len(child.attrib.keys()) == 0: globalAttributes = {}
         else:
           globalAttributes = child.attrib
-          if 'verbosity' in globalAttributes.keys(): self.verbosity = globalAttributes['verbosity']
+          #if 'verbosity' in globalAttributes.keys(): self.verbosity = globalAttributes['verbosity']
         if Class != 'RunInfo':
           for childChild in child:
             subType = childChild.tag
@@ -624,10 +626,10 @@ class Simulation(MessageHandler.MessageUser):
         if key == 'Input' or key == 'Output':
             if b == 'OutStreamManager':
               stepInputDict[key].append(self.whichDict[b][c][d])
-              #self.raiseADebug('What is in whichdict1|','b:',b,'c:',c,'d:',d,'dict:',self.whichDict[b][c][d])
+              self.raiseADebug('What is in whichdict1|','b:',b,'c:',c,'d:',d,'dict:',self.whichDict[b][c][d])
             else:
               stepInputDict[key].append(self.whichDict[b][d])
-              #self.raiseADebug('What is in whichdict2|','b:',b,'d:',d,'dict:',self.whichDict[b][d])
+              self.raiseADebug('What is in whichdict2|','b:',b,'d:',d,'dict:',self.whichDict[b][d])
             if key=='Input':
               self.raiseADebug('key %s b %s c %s d %s' %(key,b,c,d))
               self.raiseADebug('dict:',self.whichDict[b])

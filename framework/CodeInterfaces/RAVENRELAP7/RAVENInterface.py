@@ -79,7 +79,10 @@ class RAVENInterface(CodeInterfaceBase):
     newInputFiles = copy.copy(currentInputFiles)
     #TODO fix this? storing unwieldy amounts of data in 'prefix'
     if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
-      newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
+      self.raiseADebug('\n\n')
+      newfilename = Kwargs['prefix']+"~"+os.path.split(temp)[1]
+      self.raiseADebug('newfilename:',newfilename)
+      newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0],newfilename))
     else:
       newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1]))
     parser.printInput(newInputFiles[index].getAbsFile())

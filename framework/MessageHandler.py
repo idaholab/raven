@@ -170,14 +170,18 @@ class MessageHandler(object):
         @ In, msg, the string that means true or false
         @ Out, None
       '''
-      if msg in utils.stringsThatMeanTrue():
+      if msg.lower() in utils.stringsThatMeanTrue():
+          print('Time step printing enabled.')
           self.callerLength = 40
           self.tagLength = 30
           self.printTime = True
-      elif msg in utils.stringsThatMeanFalse():
+      elif msg.lower() in utils.stringsThatMeanFalse():
+          print('Time step printing disabled.')
           self.callerLength = 25
           self.tagLength = 15
           self.printTime = False
+      else:
+          print('Not recognized:',msg)
 
   def getStringFromCaller(self,obj):
     """
