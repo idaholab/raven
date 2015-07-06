@@ -5,6 +5,11 @@ import sys
 
 
 def createBackup(filename):
+  """
+    Creates a backup file based on the file at filename.  If it exists, prints an error message and returns.
+    @ In, filename, string (to be appended with '.bak')
+    @Out, bool int, 0 on success or 1 on fail
+  """
   bakname = filename+'.bak'
   if not os.path.isfile(bakname):
     bak = file(bakname,'w')
