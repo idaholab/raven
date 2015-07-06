@@ -24,7 +24,7 @@
 
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
 }
 
@@ -327,7 +327,7 @@ for a Plot, based on XML instructions.
 In order to create a plot, the user needs to add, within the
 \xmlNode{OutStreamManager} block, a \xmlNode{Plot} sub-block.
 %
-As for the \xmlNode{Print} OutStream, the user needs to specify a 
+Similar to the \xmlNode{Print} OutStream, the user needs to specify a
 \xmlAttr{name} as an attribute of the plot.
 %
 This name will then be used to request the plot in the \xmlNode{Steps} block.
@@ -386,7 +386,7 @@ In the following list, all the predefined ``actions'' are reported:
   \item \xmlNode{how}, comma separated list of output types:
      \begin{itemize}
     \item \texttt{screen}, show the figure on the screen in interactive mode
-    \item \texttt{pdf}, save the figure as a Portable Document Format file (PDF). 
+    \item \texttt{pdf}, save the figure as a Portable Document Format file (PDF).
     \nb The pdf format does not support multiple layers that lay on the same pixel. If the
     user gets an error about this, he/she should move to another format.
     \item \texttt{png}, save the figure as a Portable Network Graphics file
@@ -423,7 +423,7 @@ In the following list, all the predefined ``actions'' are reported:
 
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
     %
     For reference regarding the available kwargs, see
@@ -494,9 +494,9 @@ In the following list, all the predefined ``actions'' are reported:
   %
   All the keywords in the body of this block are optional:
   \begin{itemize}
-    \item \xmlNode{ymin}, \xmlDesc{double (optional)}, lower boundary for the 
+    \item \xmlNode{ymin}, \xmlDesc{double (optional)}, lower boundary for the
     y axis.
-    \item \xmlNode{ymax}, \xmlDesc{double (optional)}, upper boundary for the 
+    \item \xmlNode{ymax}, \xmlDesc{double (optional)}, upper boundary for the
     y axis.
     \item \xmlNode{xmin}, \xmlDesc{double (optional)}, lower boundary for the
     x axis.
@@ -609,7 +609,7 @@ In the following list, all the predefined ``actions'' are reported:
 
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
     %
     For reference regarding the available kwargs, see
@@ -651,7 +651,7 @@ In the following list, all the predefined ``actions'' are reported:
 
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
     %
     For reference regarding the available kwargs, see
@@ -693,7 +693,7 @@ In the following list, all the predefined ``actions'' are reported:
 
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
     %
     For reference regarding the available kwargs, see
@@ -735,7 +735,7 @@ In the following list, all the predefined ``actions'' are reported:
 
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
     %
     For reference regarding the available kwargs, see
@@ -764,8 +764,8 @@ In the following list, all the predefined ``actions'' are reported:
   %
   The following keywords can be inputted:
   \begin{itemize}
-    \item \xmlNode{b}, \xmlDesc{double (required)}, starting coordinate on the x
-    axis.
+    \item \xmlNode{b}, \xmlDesc{boolean (required)}, toggles the grid lines on
+    or off.
     \item \xmlNode{which}, \xmlDesc{double (required)}, ending coordinate on the
     x axis.
     \item \xmlNode{axis}, \xmlDesc{double (optional)}, starting coordinate on
@@ -784,7 +784,7 @@ In the following list, all the predefined ``actions'' are reported:
 
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1}\texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
     %
   \end{itemize}
@@ -806,7 +806,7 @@ equal to the number of plots that need to be placed in the same figure.
 For example, in the following XML cut, a ``line'' and a ``scatter'' type are
 combined in the same figure.
 %
-\begin{lstlisting}[style=XML,morekeywords={dim,name}]
+\begin{lstlisting}[style=XML,morekeywords={dim,name},deletekeywords={type}]
 <OutStreamManager>
   <Plot name='example2PlotsCombined' dim='2'>
     <actions>
@@ -894,13 +894,13 @@ node:
     array.
     %
     The two dimensional array is built creating a mesh from \xmlNode{x} and
-    \xmlNode{y} data, in conjunction with the data specified in the 
+    \xmlNode{y} data, in conjunction with the data specified in the
     \xmlNode{colorMap} node.
     \item \texttt{contour} builds a contour plot creating a plot from
     \xmlNode{x} and \xmlNode{y} data, in conjunction with the data specified in
     the \xmlNode{colorMap} node.
     \item \texttt{filledContour} creates a filled contour plot from \xmlNode{x}
-    and \xmlNode{y} data, in conjunction with the data specified in the 
+    and \xmlNode{y} data, in conjunction with the data specified in the
     \xmlNode{colorMap} node.
   \end{itemize}
   \item \textit{3 Dimensional plots}:
@@ -963,7 +963,7 @@ are reported.
     %
     \xmlNode{c} can be a 2D array in which the rows are RGB or RGBA.
      %
-    \nb \xmlNode{colorMap} will  overwrite \xmlNode{c}.  If \xmlNode{colorMap} is defined then the color set used can be defined by \xmlNode{cmap}. 
+    \nb \xmlNode{colorMap} will  overwrite \xmlNode{c}.  If \xmlNode{colorMap} is defined then the color set used can be defined by \xmlNode{cmap}.
     If no \xmlNode{cmap} is given then the default color set of  ``matplotlib.pyplot.scatter'' method in~\cite{MatPlotLib} is used.
     If \xmlNode{colorMap} is not defined then the plot is in solid color (default \textit{blue}) as defined with \xmlNode{color} in \xmlNode{kwargs}.
   %
@@ -994,7 +994,7 @@ are reported.
 
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2}\texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
     %
     For reference regarding the available kwargs, see
@@ -1071,7 +1071,7 @@ are reported.
     \item \textbf{right} bars are centered on the right bin edges.
   \end{itemize}
   \default{mid}
-  \item \xmlNode{orientation}, \xmlDesc{string, optional field}, specifies the 
+  \item \xmlNode{orientation}, \xmlDesc{string, optional field}, specifies the
   orientation of the histogram:
   \begin{itemize}
     \item \textbf{horizontal}
@@ -1106,7 +1106,7 @@ are reported.
 \end{lstlisting}
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2}\texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see ``matplotlib.pyplot.hist''
@@ -1140,7 +1140,7 @@ are reported.
 \end{lstlisting}
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
   %
 
@@ -1152,7 +1152,7 @@ are reported.
 \subsubsection{2D Step plot}
   \plotTwoIntro{step}
   \begin{itemize}
-    \item \xmlNode{where}, \xmlDesc{string, optional field}, specifies the 
+    \item \xmlNode{where}, \xmlDesc{string, optional field}, specifies the
     positioning:
     \begin{itemize}
       \item \textbf{pre}, the interval from x[i] to x[i+1] has level y[i+1]
@@ -1171,7 +1171,7 @@ are reported.
 \end{lstlisting}
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
     %
     For reference regarding the available kwargs, see ``matplotlib.pyplot.step''
@@ -1195,10 +1195,10 @@ are reported.
 \end{lstlisting}
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
     %
-    For reference regarding the available kwargs, see 
+    For reference regarding the available kwargs, see
     ``matplotlib.pyplot.pcolor'' method in~\cite{MatPlotLib}.
     %
   \end{itemize}
@@ -1210,14 +1210,15 @@ respectively.
 %
 In order to customize the plot, the user can define the following XML sub-nodes:
 \begin{itemize}
-  \item \xmlNode{numberBins}, \xmlDesc{integer, optional field}, sets the 
+  \item \xmlNode{numberBins}, \xmlDesc{integer, optional field}, sets the
   number of bins.
   %
   \default{5}
   \item \interpolationDescription{linear}
   \item \interpXYDescription{x}
-  \item \xmlNode{colorMap} vector is the array to visualize.  If \xmlNode{colorMap} is defined then the color set used can be defined by \xmlNode{cmap}. 
+  \item \xmlNode{colorMap} vector is the array to visualize.  If \xmlNode{colorMap} is defined then the color set used can be defined by \xmlNode{cmap}.
   If no \xmlNode{cmap} is given then the plot is in solid color (default \textit{blue}) as defined with \xmlNode{color} in \xmlNode{kwargs}.
+  \item \cmapDescription{None}
   %
   \item \xmlNode{kwargs}, within this block the user can specify optional
   parameters with the following format:
@@ -1230,7 +1231,7 @@ In order to customize the plot, the user can define the following XML sub-nodes:
 \end{lstlisting}
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see
@@ -1245,21 +1246,21 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   array row stride (step size).
   %
   \default{1}
-  \item \xmlNode{cstride}, \xmlDesc{integer, optional field}, specifies the 
+  \item \xmlNode{cstride}, \xmlDesc{integer, optional field}, specifies the
   array column stride (step size).
   %
   \default{1}
   \item \cmapDescription{None}
   %
-   \nb If \xmlNode{colorMap} is defined then the plot will always use a color set even if no \xmlNode{cmap} is given. 
+   \nb If \xmlNode{colorMap} is defined then the plot will always use a color set even if no \xmlNode{cmap} is given.
   In such a case, if no \xmlNode{cmap} is given, then the default color set of  ``matplotlib.pyplot.surface'' method in~\cite{MatPlotLib} is used.
-  If \xmlNode{colorMap} and \xmlNode{cmap} are both not defined then the plot is in solid color (\textit{default blue}) as defined with \xmlNode{color} in   \xmlNode{kwargs}.
+  If \xmlNode{colorMap} and \xmlNode{cmap} are both not defined then the plot is in solid color (\textit{default blue}) as defined with \xmlNode{color} in \xmlNode{kwargs}.
   %
   \item \xmlNode{antialiased}, \xmlDesc{boolean, optional field}, determines
   whether or not the rendering should be antialiased.
   %
   \default{False}
-  \item \xmlNode{linewidth}, \xmlDesc{integer, optional field}, defines the 
+  \item \xmlNode{linewidth}, \xmlDesc{integer, optional field}, defines the
   widths of lines rendered on the plot.
   %
   \default{0}
@@ -1278,7 +1279,7 @@ In order to customize the plot, the user can define the following XML sub-nodes:
 
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see
@@ -1299,9 +1300,9 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   \default{1}
   \item \cmapDescription{None}
   %
-  \nb \xmlNode{cmap} is not applicable in the current version of MatPlotLib  for wireframe plots. 
+  \nb \xmlNode{cmap} is not applicable in the current version of MatPlotLib  for wireframe plots.
   However, if the colorMap option is set then a surface plot is plotted with a transparency of 0.4 on top of wireframe to give a visual colormap.
-  \nb If \xmlNode{colorMap} is defined then the plot will always use a color set even if no \xmlNode{cmap} is given. 
+  \nb If \xmlNode{colorMap} is defined then the plot will always use a color set even if no \xmlNode{cmap} is given.
   In such a case, if no \xmlNode{cmap} is given, then the default color set of  ``matplotlib.pyplot.surface'' method in~\cite{MatPlotLib} is used.
   If \xmlNode{colorMap} and \xmlNode{cmap} are both not defined then the plot is in solid color (\textit{default blue}) as defined with \xmlNode{color} in   \xmlNode{kwargs}.
   \item \interpolationDescription{linear}
@@ -1319,7 +1320,7 @@ In order to customize the plot, the user can define the following XML sub-nodes:
 
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see
@@ -1334,12 +1335,12 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   surface patches.
   %
   \default{b}
-  \item \xmlNode{shade}, \xmlDesc{boolean, optional field}, determines whether 
+  \item \xmlNode{shade}, \xmlDesc{boolean, optional field}, determines whether
   to apply shading or not.
   %
   \default{False}
   \item \cmapDescription{None}
-  \nb If \xmlNode{colorMap} is defined then the plot will always use a color set even if no \xmlNode{cmap} is given. 
+  \nb If \xmlNode{colorMap} is defined then the plot will always use a color set even if no \xmlNode{cmap} is given.
   In such a case, if no \xmlNode{cmap} is given, then the default color set of  ``matplotlib.pyplot.trisurface'' method in~\cite{MatPlotLib} is used.
   If \xmlNode{colorMap} and \xmlNode{cmap} are both not defined then the plot is in solid color (\textit{default blue}) as defined with \xmlNode{color} in   \xmlNode{kwargs}.
   \item \xmlNode{kwargs}, within this block the user can specify optional
@@ -1354,7 +1355,7 @@ In order to customize the plot, the user can define the following XML sub-nodes:
 
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see
@@ -1376,7 +1377,7 @@ nodes:
   \item \interpolationDescription{linear}
   \item \interpXYDescription{x}
   \item \interpXYDescription{y}
-  \item \xmlNode{colorMap} vector is the array to visualize.  If \xmlNode{colorMap} is defined then the color set used can be defined by \xmlNode{cmap}. 
+  \item \xmlNode{colorMap} vector is the array to visualize.  If \xmlNode{colorMap} is defined then the color set used can be defined by \xmlNode{cmap}.
   If no \xmlNode{cmap} is given then the plot is in solid color (default \textit{blue}) as defined with \xmlNode{color} in \xmlNode{kwargs}.
   %
   \item \xmlNode{kwargs}, within this block the user can specify optional
@@ -1391,7 +1392,7 @@ nodes:
 
   The kwargs block is able to convert whatever string into a python type (for
   example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
-  be converted into a dictionary, 
+  be converted into a dictionary,
   \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see

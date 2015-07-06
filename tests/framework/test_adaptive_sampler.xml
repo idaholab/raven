@@ -1,5 +1,5 @@
 <Simulation>
-	
+
 
 <RunInfo>
   <WorkingDir>Adapt</WorkingDir>
@@ -8,38 +8,35 @@
 </RunInfo>
 
 
-<Steps>  
-
-  <MultiRun name = 'adapt' pauseAtEnd = 'True'>
-    <Sampler          class = 'Samplers'  type = 'LimitSurfaceSearch'      >dpt_smp</Sampler>
-    <Input            class = 'DataObjects'     type = 'PointSet'  >bln_smp_dt</Input>   
-    <Model            class = 'Models'    type = 'ExternalModel' >xtr_mdl</Model>
-    <Output           class = 'DataObjects'     type = 'PointSet'  >nt_phy_dpt_dt</Output>            
-    <SolutionExport   class = 'DataObjects'     type = 'PointSet'  >lmt_srf_dt</SolutionExport>
+<Steps>
+  <MultiRun name = 'adapt' pauseAtEnd = 'true'>
+    <Input          class='DataObjects'      type='PointSet'          >bln_smp_dt</Input>
+    <Model          class='Models'           type='ExternalModel'     >xtr_mdl</Model>
+    <Sampler          class='Samplers'       type='LimitSurfaceSearch'>dpt_smp</Sampler>
+    <SolutionExport class='DataObjects'      type='PointSet'          >lmt_srf_dt</SolutionExport>
+    <Output         class='DataObjects'      type='PointSet'          >nt_phy_dpt_dt</Output>
   </MultiRun>
-  <IOStep name = 'adaptdump' pauseAtEnd = 'True'>
-  	<Input  class = 'DataObjects'            type = 'PointSet'  >lmt_srf_dt</Input>
-  	<Output class = 'OutStreamManager' type = 'Print'         >limitSurfaceDump</Output>
+  <IOStep name = 'adaptdump' pauseAtEnd = 'true'>
+  	<Input          class='DataObjects'      type='PointSet'      >lmt_srf_dt</Input>
+  	<Output         class='OutStreamManager' type='Print'         >limitSurfaceDump</Output>
   </IOStep>
 </Steps>
 
-<DataObjects> 
-  
-  <PointSet name = 'nt_phy_dpt_dt'>
+<DataObjects>
+  <PointSet name='nt_phy_dpt_dt'>
     <Input>x1,x2,gammay</Input>
     <Output>g</Output>
   </PointSet>
-    
-  <PointSet name = 'bln_smp_dt'>
+
+  <PointSet name='bln_smp_dt'>
     <Input>x1,x2,gammay</Input>
     <Output>OutputPlaceHolder</Output>
   </PointSet>
-    
-  <PointSet name = 'lmt_srf_dt'>
+
+  <PointSet name='lmt_srf_dt'>
     <Input>x1,x2,gammay</Input>
     <Output>g_zr</Output>
   </PointSet>
-  
 </DataObjects>
 
 
@@ -50,14 +47,14 @@
   	<mean>0.5</mean>
     <sigma>0.1</sigma>
   </Normal>
-  
+
   <Normal name = 'x2_dst'>
     <upperBound>10</upperBound>
     <lowerBound>-10</lowerBound>
     <mean>-0.15</mean>
     <sigma>0.05</sigma>
   </Normal>
-  
+
   <Normal name = 'gammay_dst'>
     <upperBound>20</upperBound>
     <lowerBound>-20</lowerBound>
@@ -67,7 +64,7 @@
 </Distributions>
 
 
-<Samplers>  
+<Samplers>
 
   <LimitSurfaceSearch name = 'dpt_smp'>
     <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
@@ -87,14 +84,14 @@
 </Samplers>
 
 
-<Models>  
+<Models>
   <ExternalModel name = 'xtr_mdl' subType = '' ModuleToLoad = 'Adapt/adaptive_test_model'>
     <variable>x1</variable>
     <variable>x2</variable>
     <variable>gammay</variable>
     <variable>g</variable>
   </ExternalModel>
-  
+
   <ROM name = 'accelerated_ROM' subType = 'SciKitLearn'>
     <Features>x1,x2,gammay</Features>
     <Target>g_zr</Target>
@@ -103,8 +100,8 @@
     <gamma>10</gamma>
     <tol>1e-5</tol>
     <C>50</C>
-  </ROM>  
-  
+  </ROM>
+
 </Models>
 
 
@@ -115,12 +112,12 @@
 </Functions>
 
 
-<OutStreamManager> 
+<OutStreamManager>
   <Print name = 'limitSurfaceDump'>
   	<type>csv</type>
   	<source>lmt_srf_dt</source>
   </Print>
-  
+
 </OutStreamManager>
 
 

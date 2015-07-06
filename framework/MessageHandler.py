@@ -12,7 +12,7 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import platform
+import sys
 import os
 import time
 #External Modules End--------------------------------------------------------------------------------
@@ -221,11 +221,13 @@ class MessageHandler(object):
       @ OPTIONAL In, verbosity, the print priority of the message (default 'silent', highest priority)
       @ Out, None
     """
-    verbval = self.checkVerbosity(verbosity)
-    okay,msg = self._printMessage(caller,message,tag,verbval)
+    okay,msg = self._printMessage(caller,message,tag,self.checkVerbosity(verbosity))
+    verbval = max(self.getDesiredVerbosity(caller),self.checkVerbosity(self.verbosity))
     if okay:
-      if not self.suppressErrs: raise etype(msg)
-      else: print(msg)
+      if not self.suppressErrs and verbval==3: raise etype(msg) #DEBUG mode without suppression
+      print('\n'+etype.__name__+':',msg,file=sys.stderr)
+      if not self.suppressErrs: #exit after print
+        sys.exit(1)
 
   def message(self,caller,message,tag,verbosity):
     """
