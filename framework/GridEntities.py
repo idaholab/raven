@@ -546,6 +546,7 @@ class MultiGridEntity(GridBase):
     node.add("grid",returnInstance("GridEntity",self.messageHandler))
     node.add("level","1")
     self.grid               = ETS.NodeTree(node)         # grid hierarchical Container
+    self.multiGridIterator  = [node.get("level"), None]  # multi grid iterator [first position is the level ID, the second it the multi-index]     
    
   def __len__(self):
     """
@@ -586,6 +587,7 @@ class MultiGridEntity(GridBase):
     self.grid.getrootnode().get("grid").initialize(initDictionary)
     if initDictionary != None: self.subGridVolumetricRatio = float(initDictionary['subGridVolumetricRatio']) if 'subGridVolumetricRatio' in initDictionary.keys() else 1.e-5
     self.nVar = self.grid.getrootnode().get("grid").nVar
+    self.multiGridIterator[1] = self.grid.getrootnode().returnIteratorIndexes(False)
 
   def retrieveCellIds(self,listOfPoints):
     """
@@ -614,24 +616,8 @@ class MultiGridEntity(GridBase):
     """
     for node in self.grid.iterEnding():
       for se in list(self.grid.iterWholeBackTrace(node)): se.get('grid').resetIterator()  
+    self.multiGridIterator = [self.grid.getrootnode().get("level"),self.grid.getrootnode().returnIteratorIndexes(False)]
 
-#   def __returnFullShape(self):
-#     """
-#      Method to return the full shape
-#      @ In, None
-#      @ Out, fullShape, tuple, tuple containing the full shape of the MultiGrid  (except the last dimension that contains the numb  of variables)
-#     """
-#     fullShape = []
-#     for node in self.grid.iterEnding():
-#       for se in list(self.grid.iterWholeBackTrace(node)): 
-#         gridCoordinates = se.get('grid').getParameter('gridCoord')
-#         if len(fullShape) == 0: fullShape = list(gridCoordinates.shape[:-1])
-#         else:
-#           for cnt, coorLenght in enumerate(gridCoordinates.shape[:-1]): fullShape[cnt] += coorLenght    
-#     return tuple(fullShape)
-  
-
-  
   def returnIteratorIndexes(self,returnDict = True):
     """
     Return the iterator indexes
