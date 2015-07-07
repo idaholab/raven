@@ -48,10 +48,18 @@ def standardMain(argv,convert):
     @ In, argv, the system arguments from sys.argv
     @ In, convert, the convert method to be applied
     @Out, integer, 0 on success or (number of failures) on failure
+
+    The possible arguments to pass through argv and their effects are:
+    --remove-comments , does not preserve comments in the file
   """
   #require a list of files to act on
   if len(argv)==0:
     raise IOError('No filenames listed to modify! Usage: python path/to/script.py infile1.xml infile2.xml infile3.xml')
+  #keep comments?  True by default, turn off with argv '--remove-comments'
+  if '--remove-comments' in argv:
+    keep_comments=False
+    argv.remove('--remove-comments')
+  else: keep_comments = True
   #track the failed attempts
   failures = 0
   #remove the script name itself from the list
@@ -68,10 +76,11 @@ def standardMain(argv,convert):
       print ('Converting '+fname+'...').ljust(14+maxname,'.'),
       #change comments to comment nodes
       strfile = ''.join(line for line in open(fname,'r'))
-      modfile = convertToRavenComment(strfile)
-      tree = ET.ElementTree(ET.fromstring(modfile))
+      if keep_comments: strfile = convertToRavenComment(strfile)
+      tree = ET.ElementTree(ET.fromstring(strfile))
       convert(tree)
-      towrite = convertFromRavenComment(prettify(tree))
+      towrite = prettify(tree)
+      if keep_comments: towrite = convertFromRavenComment(towrite)
       file(fname,'w').writelines(towrite)
       print 'converted.'
     else:
