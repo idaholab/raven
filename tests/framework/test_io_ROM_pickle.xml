@@ -7,53 +7,51 @@
   <batchSize>1</batchSize>
 </RunInfo>
 
-
-<Steps> 
-  <MultiRun name = 'step1' pauseAtEnd = 'False'>
-    <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
-    <Input    class = 'DataObjects'     type = 'PointSet'   >Data1</Input>
-    <Model    class = 'Models'    type = 'ExternalModel'  >XM1</Model>
-    <Output   class = 'DataObjects'     type = 'PointSet'   >Data2</Output>    
+<Steps>
+  <MultiRun name='step1' pauseAtEnd='false'>
+    <Input    class='DataObjects' type='PointSet'     >Data1</Input>
+    <Model    class='Models'      type='ExternalModel'>XM1</Model>
+    <Sampler  class='Samplers'    type='Grid'         >grid1</Sampler>
+    <Output   class='DataObjects' type='PointSet'     >Data2</Output>
   </MultiRun>
+  <MultiRun name='step5' pauseAtEnd='false'>
+    <Input    class='DataObjects' type='PointSet'>Data1</Input>
+    <Model    class='Models'      type='ROM'     >ROM1</Model>
+    <Sampler  class='Samplers'    type='Grid'    >grid1</Sampler>
+    <Output   class='DataObjects' type='PointSet'>Data3</Output>
+  </MultiRun>
+  <MultiRun name='step6' pauseAtEnd='false'>
+    <Input   class='DataObjects' type='PointSet'>Data1</Input>
+    <Model   class='Models'      type='ROM'         >ROM2</Model>
+    <Sampler class='Samplers'    type='Grid'        >grid1</Sampler>
+    <Output  class='DataObjects' type='PointSet'>Data4</Output>
+  </MultiRun>
+  <IOStep name='step3' pauseAtEnd='false'>
+    <Input   class='Models'     type='ROM'>ROM1</Input>
+    <Output  class='Files'      type=''>pickle1</Output>
+  </IOStep>
+  <IOStep name='step4' pauseAtEnd='false'>
+    <Input   class='Files'      type=''>pickle1</Input>
+    <Output  class='Models'     type='ROM'>ROM2</Output>
+  </IOStep>
+  <IOStep name='step7' pauseAtEnd='false'>
+    <Input  class='DataObjects'      type='PointSet'>Data3</Input>
+    <Input  class='DataObjects'      type='PointSet'>Data4</Input>
+    <Output class='OutStreamManager' type='Print'   >PrintData</Output>
+    <Output class='OutStreamManager' type='Print'   >PrintData_Pickle</Output>
+  </IOStep>
   <RomTrainer name='step2'>
-        <Input   class='DataObjects'  type='PointSet'>Data2</Input>
-        <Output  class='Models' type='ROM'         >ROM1</Output>
+    <Input   class='DataObjects' type='PointSet'>Data2</Input>
+    <Output  class='Models'      type='ROM'     >ROM1</Output>
   </RomTrainer>
-  <IOStep name='step3' pauseAtEnd='False'>
-        <Input   class='Models'     type='ROM'>ROM1</Input>
-        <Output  class='Files'      type=''>pickle1</Output>
-  </IOStep>
-  <IOStep name='step4' pauseAtEnd='False'>
-        <Input   class='Files'      type=''>pickle1</Input>
-        <Output  class='Models'     type='ROM'>ROM2</Output>
-  </IOStep>
-  <MultiRun name = 'step5' pauseAtEnd = 'False'>
-    <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
-    <Input    class = 'DataObjects'     type = 'PointSet'   >Data1</Input>
-    <Model    class = 'Models'    type = 'ROM'            >ROM1</Model>
-    <Output   class = 'DataObjects'     type = 'PointSet'   >Data3</Output>    
-  </MultiRun>
-  <MultiRun name = 'step6' pauseAtEnd = 'False'>
-    <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
-    <Input    class = 'DataObjects'     type = 'PointSet'   >Data1</Input>
-    <Model    class = 'Models'    type = 'ROM'            >ROM2</Model>
-    <Output   class = 'DataObjects'     type = 'PointSet'   >Data4</Output>    
-  </MultiRun>
-  <IOStep name='step7' pauseAtEnd='False'>
-        <Input   class='DataObjects'      type='PointSet'>Data3</Input>
-        <Input   class='DataObjects'      type='PointSet'>Data4</Input>
-        <Output class='OutStreamManager' type='Print'>PrintData</Output>
-        <Output class='OutStreamManager' type='Print'>PrintData_Pickle</Output>
-  </IOStep>
 </Steps>
 
-
-<Samplers>  
+<Samplers>
   <Grid name = 'grid1'>
     <variable name = 'x1' >
       <distribution>x1_dst</distribution>
       <grid type = 'value' construction = 'equal' steps = '10' >-10 10</grid>
-    </variable>  
+    </variable>
     <variable name='x2' >
       <distribution>x2_dst</distribution>
       <grid type = 'value' construction = 'equal' steps = '10' >-10 10</grid>
@@ -61,8 +59,7 @@
   </Grid>
 </Samplers>
 
-
-<DataObjects> 
+<DataObjects>
   <PointSet name = 'Data1'>
     <Input>x1,x2</Input>
     <Output>OutputPlaceHolder</Output>
@@ -81,7 +78,6 @@
   </PointSet>
 </DataObjects>
 
-
 <Distributions>
   <Normal name = 'x1_dst'>
     <upperBound>10</upperBound>
@@ -94,9 +90,8 @@
     <lowerBound>-10</lowerBound>
     <mean>-0.15</mean>
     <sigma>0.05</sigma>
-  </Normal>  
+  </Normal>
 </Distributions>
-
 
 <Models>
   <ExternalModel name = 'XM1' subType = '' ModuleToLoad = 'IO_ROM_PICKLE/XM1_model'>
@@ -109,7 +104,7 @@
      <SKLtype>svm|SVR</SKLtype>
     <Features>x1,x2</Features>
     <Target>y,z</Target>
-  </ROM> 
+  </ROM>
 
 <ROM name = 'ROM2' subType = 'SciKitLearn'>
      <SKLtype>svm|SVR</SKLtype>

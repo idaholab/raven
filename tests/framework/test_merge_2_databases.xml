@@ -27,45 +27,47 @@
     </MultiRun>
     <IOStep name='test_extract'>
         <Input   class='Databases' type='HDF5'   >MC_MERGE_EXTRACT_STEP</Input>
-        <Output  class='DataObjects'    type='HistorySet'>HistorySet_from_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_MERGE_EXTRACT_STEP</Input>
-        <Output  class='DataObjects'    type='HistorySet'>HistorySet_from_database</Output>
-        
         <Input   class='Databases' type='HDF5'   >MC_MERGE_EXTRACT_STEP</Input>
-        <Output  class='DataObjects'    type='Point'>Point_from_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_MERGE_EXTRACT_STEP</Input>
-        <Output  class='DataObjects'    type='Point'>Point_from_database</Output>
-        
         <Input   class='Databases' type='HDF5'   >MC_MERGE_EXTRACT_STEP</Input>
-        <Output  class='DataObjects'    type='History'>history_from_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_MERGE_EXTRACT_STEP</Input>
-        <Output  class='DataObjects'    type='History'>history_from_database</Output>
-        
         <Input   class='Databases' type='HDF5'   >MC_MERGE_EXTRACT_STEP</Input>
-        <Output  class='DataObjects'    type='PointSet'>Pointset_from_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_MERGE_EXTRACT_STEP</Input>
-        <Output  class='DataObjects'    type='PointSet'>Pointset_from_database</Output>
-        <Output    class='OutStreamManager' type='Print'     >Pointset_from_database_dump</Output>
+
+        <Output  class='DataObjects'      type='HistorySet'>HistorySet_from_database</Output>
+        <Output  class='DataObjects'      type='HistorySet'>HistorySet_from_database</Output>
+        <Output  class='DataObjects'      type='Point'     >Point_from_database</Output>
+        <Output  class='DataObjects'      type='Point'     >Point_from_database</Output>
+        <Output  class='DataObjects'      type='History'   >history_from_database</Output>
+        <Output  class='DataObjects'      type='History'   >history_from_database</Output>
+        <Output  class='DataObjects'      type='PointSet'  >Pointset_from_database</Output>
+        <Output  class='DataObjects'      type='PointSet'  >Pointset_from_database</Output>
+
+        <Output  class='OutStreamManager' type='Print'     >Pointset_from_database_dump</Output>
     </IOStep>
     <IOStep name='test_push_in'>
-        <Input  class='DataObjects'    type='HistorySet'>HistorySet_from_database</Input>
-        <Output   class='Databases' type='HDF5'   >MC_MERGE_PUSH_STEP</Output>
-        <Input  class='DataObjects'    type='Point'>Point_from_database</Input>
-        <Output   class='Databases' type='HDF5'   >MC_MERGE_PUSH_STEP</Output>
-        <Input  class='DataObjects'    type='History'>history_from_database</Input>
-        <Output   class='Databases' type='HDF5'   >MC_MERGE_PUSH_STEP</Output>
-        <Input  class='DataObjects'    type='PointSet'>Pointset_from_database</Input>
-        <Output   class='Databases' type='HDF5'   >MC_MERGE_PUSH_STEP</Output>
+        <Input  class='DataObjects' type='HistorySet'>HistorySet_from_database</Input>
+        <Input  class='DataObjects' type='Point'     >Point_from_database</Input>
+        <Input  class='DataObjects' type='History'   >history_from_database</Input>
+        <Input  class='DataObjects' type='PointSet'  >Pointset_from_database</Input>
+
+        <Output class='Databases'   type='HDF5'      >MC_MERGE_PUSH_STEP</Output>
+        <Output class='Databases'   type='HDF5'      >MC_MERGE_PUSH_STEP</Output>
+        <Output class='Databases'   type='HDF5'      >MC_MERGE_PUSH_STEP</Output>
+        <Output class='Databases'   type='HDF5'      >MC_MERGE_PUSH_STEP</Output>
     </IOStep>
     <IOStep name='test_extract_again'>
         <Input   class='Databases' type='HDF5'   >MC_MERGE_PUSH_STEP</Input>
-        <Output  class='DataObjects'    type='HistorySet'>HistorySet_IN_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_MERGE_PUSH_STEP</Input>
-        <Output  class='DataObjects'    type='Point'>Point_IN_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_MERGE_PUSH_STEP</Input>
-        <Output  class='DataObjects'    type='History'>history_IN_database</Output>
         <Input   class='Databases' type='HDF5'   >MC_MERGE_PUSH_STEP</Input>
-        <Output  class='DataObjects'    type='PointSet'>Pointset_IN_database</Output>
+
+        <Output  class='DataObjects'      type='HistorySet'>HistorySet_IN_database</Output>
+        <Output  class='DataObjects'      type='Point'     >Point_IN_database</Output>
+        <Output  class='DataObjects'      type='History'   >history_IN_database</Output>
+        <Output  class='DataObjects'      type='PointSet'  >Pointset_IN_database</Output>
+
         <Output  class='OutStreamManager' type='Print'     >Pointset_IN_database_dump</Output>
     </IOStep>
 </Steps>

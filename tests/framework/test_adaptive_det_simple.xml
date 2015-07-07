@@ -57,37 +57,37 @@
             <Input             class='Files'            type=''                          >ideal_pump.i</Input>
             <Input             class='Files'            type=''                          >ideal_pump_control.py</Input>
             <Model             class='Models'           type='Code'                      >MyRAVEN</Model>
-            <SolutionExport    class='DataObjects'            type='PointSet'              >LimitSurfSimple</SolutionExport>
             <Sampler           class='Samplers'         type='AdaptiveDynamicEventTree'  >AdaptiveDETsimple</Sampler>
-            <Output            class='DataObjects'            type='PointSet'              >adaptiveOutsimple</Output>
+            <SolutionExport    class='DataObjects'      type='PointSet'                  >LimitSurfSimple</SolutionExport>
+            <Output            class='DataObjects'      type='PointSet'                  >adaptiveOutsimple</Output>
             <Output            class='Databases'        type='HDF5'                      >AdaptiveDETsimpleDatabase</Output>
-            <Output            class='DataObjects'            type='HistorySet'                 >AdaptiveDETHistorySet</Output>
-            <Output            class='DataObjects'            type='PointSet'              >AdaptiveDETPointset</Output>
-            <Output            class='DataObjects'            type='PointSet'              >AdaptiveDETPointsetHierarchical</Output>
-            <Output            class='DataObjects'            type='HistorySet'                 >adaptiveOutHistorySetimple</Output>
+            <Output            class='DataObjects'      type='HistorySet'                >AdaptiveDETHistorySet</Output>
+            <Output            class='DataObjects'      type='PointSet'                  >AdaptiveDETPointset</Output>
+            <Output            class='DataObjects'      type='PointSet'                  >AdaptiveDETPointsetHierarchical</Output>
+            <Output            class='DataObjects'      type='HistorySet'                >adaptiveOutHistorySetimple</Output>
         </MultiRun>
         <IOStep name='DumpResults'>
-            <Input   class='DataObjects'            type='PointSet'    >AdaptiveDETPointset</Input>
-            <Input   class='DataObjects'            type='PointSet'    >adaptiveOutsimple</Input>
-            <Input   class='DataObjects'            type='PointSet'    >LimitSurfSimple</Input>
-            <Input   class='DataObjects'            type='HistorySet'       >adaptiveOutHistorySetimple</Input>
-            <Output  class='OutStreamManager' type='Print'           >adaptiveNoHierarchicalDump</Output>
+            <Input   class='DataObjects'      type='PointSet'    >AdaptiveDETPointset</Input>
+            <Input   class='DataObjects'      type='PointSet'    >adaptiveOutsimple</Input>
+            <Input   class='DataObjects'      type='PointSet'    >LimitSurfSimple</Input>
+            <Input   class='DataObjects'      type='HistorySet'  >adaptiveOutHistorySetimple</Input>
+            <Output  class='OutStreamManager' type='Print'       >adaptiveNoHierarchicalDump</Output>
             <!-- <Output  class='OutStreamManager' type='Plot'            >limitSurfDump</Output> -->
-            <Output  class='OutStreamManager' type='Print'           >adaptiveNoHierarchicalDump</Output>
-            <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier</Output>
-            <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier_selective_Output</Output>
-            <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier_selective_Input</Output>
-            <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier_selective_Input_var</Output>
-            <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier_selective_Output_Input_var</Output>
-            <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier_selective_Input_Output_var</Output>
-            <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier_selective_Output_var</Output>
-            <Output  class='OutStreamManager' type='Print'           >adaptiveOutsimpleHier_HistorySetselective_Input_Output_var</Output>
+            <Output  class='OutStreamManager' type='Print'       >adaptiveNoHierarchicalDump</Output>
+            <Output  class='OutStreamManager' type='Print'       >adaptiveOutsimpleHier</Output>
+            <Output  class='OutStreamManager' type='Print'       >adaptiveOutsimpleHier_selective_Output</Output>
+            <Output  class='OutStreamManager' type='Print'       >adaptiveOutsimpleHier_selective_Input</Output>
+            <Output  class='OutStreamManager' type='Print'       >adaptiveOutsimpleHier_selective_Input_var</Output>
+            <Output  class='OutStreamManager' type='Print'       >adaptiveOutsimpleHier_selective_Output_Input_var</Output>
+            <Output  class='OutStreamManager' type='Print'       >adaptiveOutsimpleHier_selective_Input_Output_var</Output>
+            <Output  class='OutStreamManager' type='Print'       >adaptiveOutsimpleHier_selective_Output_var</Output>
+            <Output  class='OutStreamManager' type='Print'       >adaptiveOutsimpleHier_HistorySetselective_Input_Output_var</Output>
         </IOStep>
     </Steps>
     <Databases>
         <HDF5 name="AdaptiveDETsimpleDatabase" directory="AdaptiveDET"/>
     </Databases>
-    
+
     <OutStreamManager>
         <Print name='adaptiveNoHierarchicalDump'>
             <type>csv</type>
@@ -161,17 +161,17 @@
             <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
             <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
         </PointSet>
-        <PointSet name='AdaptiveDETPointsetHierarchical' hierarchical='t'>
+        <PointSet name='AdaptiveDETPointsetHierarchical' hierarchical='true'>
             <options><inputRow>-1</inputRow></options>
             <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
             <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
         </PointSet>
-        <PointSet name='adaptiveOutsimple' hierarchical='t'>
+        <PointSet name='adaptiveOutsimple' hierarchical='true'>
             <options><inputRow>-1</inputRow></options>
             <Input>PressureFailureValue,depressurizationOnTime</Input>
             <Output>systemFailed</Output>
         </PointSet>
-        <HistorySet name='adaptiveOutHistorySetimple' hierarchical='t'>
+        <HistorySet name='adaptiveOutHistorySetimple' hierarchical='true'>
             <options><inputRow>-1</inputRow></options>
             <Input>PressureFailureValue,depressurizationOnTime</Input>
             <Output>systemFailed</Output>
