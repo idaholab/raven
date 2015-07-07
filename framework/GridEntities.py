@@ -555,8 +555,8 @@ class MultiGridEntity(GridBase):
     @ Out, totalLenght, integer, total number of nodes
     """
     totalLenght = 0
-    for node in self.grid.iterEnding():
-      for se in list(self.grid.iterWholeBackTrace(node)): totalLenght += len(se.get('grid'))
+    for node in self.grid.iter():
+      totalLenght += len(node.get('grid'))
     return totalLenght
 
   def _readMoreXml(self,xmlNode,dimensionTags=None,messageHandler=None,dimTagsPrefix=None):
@@ -587,7 +587,7 @@ class MultiGridEntity(GridBase):
     self.grid.getrootnode().get("grid").initialize(initDictionary)
     if initDictionary != None: self.subGridVolumetricRatio = float(initDictionary['subGridVolumetricRatio']) if 'subGridVolumetricRatio' in initDictionary.keys() else 1.e-5
     self.nVar = self.grid.getrootnode().get("grid").nVar
-    self.multiGridIterator[1] = self.grid.getrootnode().returnIteratorIndexes(False)
+    self.multiGridIterator[1] = self.grid.getrootnode().get("grid").returnIteratorIndexes(False)
 
   def retrieveCellIds(self,listOfPoints):
     """
@@ -603,9 +603,8 @@ class MultiGridEntity(GridBase):
     @ Out, fullReshapedCoordinates, ndarray, numpy array containing all the coordinates shaped as (fullGridLenght,self.nVar)
     """
     fullReshapedCoordinates = np.zeros((0,self.nVar))
-    for node in self.grid.iterEnding():
-      for se in list(self.grid.iterWholeBackTrace(node)): 
-        fullReshapedCoordinates = np.concatenate((fullReshapedCoordinates,se.get('grid').returnGridAsArrayOfCoordinates()))                  
+    for node in self.grid.iter():
+      fullReshapedCoordinates = np.concatenate((fullReshapedCoordinates,node.get('grid').returnGridAsArrayOfCoordinates()))                  
     return fullReshapedCoordinates
   
   def resetIterator(self):
@@ -614,9 +613,9 @@ class MultiGridEntity(GridBase):
     @ In, None
     @ Out, None
     """
-    for node in self.grid.iterEnding():
-      for se in list(self.grid.iterWholeBackTrace(node)): se.get('grid').resetIterator()  
-    self.multiGridIterator = [self.grid.getrootnode().get("level"),self.grid.getrootnode().returnIteratorIndexes(False)]
+    for node in self.grid.iter():
+      node.get('grid').resetIterator()  
+    self.multiGridIterator = [self.grid.getrootnode().get("level"),self.grid.getrootnode().get("grid").returnIteratorIndexes(False)]
 
   def returnIteratorIndexes(self,returnDict = True):
     """
@@ -627,25 +626,33 @@ class MultiGridEntity(GridBase):
     node = self.grid.find(self.mappingLevelName[self.multiGridIterator[0]])
     return node.get('grid').returnIteratorIndexes(returnDict)
 
-  def returnIteratorIndexesFromIndex(self, listOfIndexes):
+  def returnIteratorIndexesFromIndex(self, Indexes):
     """
     Return internal iterator indexes from list of coordinates in the list
-    @ In, list,listOfIndexes, list of grid coordinates
+    @ In, Indexes, list or tuple, if tuple -> tuple[0] multi-grid level, tuple[1] list of grid coordinates
+                                  if list  -> list of grid coordinates. The multi-grid level is gonna be taken from self.multiGridIterator
     @ Out, dictionary
     """
-    node = self.grid.find(self.mappingLevelName[self.multiGridIterator[0]])
+    if   type(Indexes) == tuple : level, listOfIndexes = Indexes[0], Indexes[1]
+    elif type(Indexes) == list  : level, listOfIndexes = self.multiGridIterator[0], Indexes
+    else                        : self.raiseAnError(Exception,"returnIteratorIndexesFromIndex method accepts a list or tuple only!")
+    node = self.grid.find(self.mappingLevelName[level])
     return node.get('grid').returnIteratorIndexesFromIndex(listOfIndexes)
 
-  def returnShiftedCoordinate(self,coordinates,shiftingSteps):
+  def returnShiftedCoordinate(self,coords,shiftingSteps):
     """
     Method to return the coordinate that is a # shiftingStep away from the input coordinate
     For example, if 1D grid= {'dimName':[1,2,3,4]}, coordinate is 3 and  shiftingStep is -2,
     the returned coordinate will be 1
-    @ In,  dict, coordinates, dictionary of coordinates. {'dimName1':startingCoordinate1,dimName2:startingCoordinate2,...}
+    @ In,  dict or tuple, coords, if  dict  -> dictionary of coordinates. {'dimName1':startingCoordinate1,dimName2:startingCoordinate2,...}.The multi-grid level is gonna be taken from self.multiGridIterator
+                                  if  tuple -> tuple[0] multi-grid level, tuple[1] dictionary of coordinates. {'dimName1':startingCoordinate1,dimName2:startingCoordinate2,...}
     @ In,  dict, shiftingSteps, dict of shifiting steps. {'dimName1':shiftingStep1,dimName2:shiftingStep2,...}
     @ Out, dict, outputCoordinates, dictionary of shifted coordinates' values {dimName:value1,...}
     """
-    node = self.grid.find(self.mappingLevelName[self.multiGridIterator[0]])
+    if   type(coords) == tuple  : level, coordinates = coords[0], coords[1]
+    elif type(coords) == dict   : level, coordinates = self.multiGridIterator[0], coords
+    else                        : self.raiseAnError(Exception,"returnShiftedCoordinate method accepts a coords or tuple only!")    
+    node = self.grid.find(self.mappingLevelName[level])
     return node.get('grid').returnShiftedCoordinate(coordinates,shiftingSteps)
 
   def returnPointAndAdvanceIterator(self, returnDict=False, recastMethods={}):
@@ -659,12 +666,15 @@ class MultiGridEntity(GridBase):
                                          ex. {'dimName1':[methodToTransformCoordinate,*args]}
     @ Out, tuple, coordinate, tuple containing the coordinates
     """
-    node = self.grid.find(self.mappingLevelName[self.multiGridIterator[0]])
-    subGrid = node.get('grid')
-    if not subGrid.gridIterator.finished:
-      coordinates = subGrid.returnCoordinateFromIndex(subGrid.gridIterator.multi_index,returnDict,recastMethods)
-      for _ in range(self.nVar): subGrid.gridIterator.iternext()
-    else: coordinates = None
+    startingNode = self.grid.find(self.mappingLevelName[self.multiGridIterator[0]])
+    coordinates = None
+    for node in startingNode.iter():
+      subGrid =  node.get('grid')
+      if not subGrid.gridIterator.finished:
+        coordinates = subGrid.returnCoordinateFromIndex(subGrid.gridIterator.multi_index,returnDict,recastMethods)
+        for _ in range(self.nVar): subGrid.gridIterator.iternext()
+        break
+      self.multiGridIterator[0], self.multiGridIterator[1] = node.get("level"), node.get("grid").returnIteratorIndexes(False)
     return coordinates
 
   def returnCoordinateFromIndex(self, multiDimIndex, returnDict=False, recastMethods={}):
@@ -691,7 +701,6 @@ class MultiGridEntity(GridBase):
         else                          : coordinates[vvkey] = self.gridContainer['gridVectors'][key][multiDimIndex[cnt]]
 
     if not returnDict: coordinates = tuple(coordinates)
-    #coordinate = self.gridContainer['gridCoord'][multiDimIndex]
     return coordinates
 
 
