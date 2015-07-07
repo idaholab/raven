@@ -6,7 +6,7 @@
     <batchSize>4</batchSize>
   </RunInfo>
 
-  <Files verbosity='debug'>
+  <Files>
     <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
     <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
     <Input name="DET_HistorySet.csv" type="">DET_HistorySet.csv</Input>

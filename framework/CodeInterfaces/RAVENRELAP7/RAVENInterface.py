@@ -83,8 +83,10 @@ class RAVENInterface(CodeInterfaceBase):
       newfilename = Kwargs['prefix']+"~"+os.path.split(temp)[1]
       self.raiseADebug('newfilename:',newfilename)
       newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0],newfilename))
+      self.raiseADebug('abs file set:',newInputFiles[index].getAbsFile())
     else:
       newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1]))
+      self.raiseADebug('abs file set:',newInputFiles[index].getAbsFile())
     parser.printInput(newInputFiles[index].getAbsFile())
     return list(n.getAbsFile() for n in newInputFiles)
 
