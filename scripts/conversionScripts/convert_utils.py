@@ -66,8 +66,14 @@ def standardMain(argv,convert):
       continue
     if createBackup(fname)==0:
       print ('Converting '+fname+'...').ljust(14+maxname,'.'),
-      tree = convert(ET.parse(fname))
-      file(fname,'w').writelines(prettify(tree))
+      #change comments to comment nodes
+      strfile = ''.join(line for line in open(fname,'r'))
+      modfile = convertToRavenComment(strfile)
+      print modfile
+      tree = ET.ElementTree(ET.fromstring(modfile))
+      convert(tree)
+      towrite = convertFromRavenComment(prettify(tree))
+      file(fname,'w').writelines(towrite)
       print 'converted.'
     else:
       #backup was not successfully created
@@ -75,4 +81,60 @@ def standardMain(argv,convert):
   if failures>0: print '\n%i files converted, but there were %i failures.  See messages above.' %(len(filelist)-failures,failures)
   else: print '\nConversion script completed successfully.  %i files converted.' %len(filelist)
   return failures
+
+def convertFromRavenComment(msg):
+  """
+    Converts fake comment nodes back into real comments
+    @ In, msg, converted file contents as a string (with line seperators)
+    @ Out, string, string contents of a file
+  """
+  msg=msg.replace('<ravenTEMPcomment>','<!--')
+  msg=msg.replace('</ravenTEMPcomment>','-->')
+  return msg
+
+def convertToRavenComment(msg):
+  """
+    Converts existing comments temporarily into nodes.
+    @ In, msg, string contents of a file
+    @ Out, string, converted file contents as a string (with line seperators)
+  """
+  msg=msg.replace('<!--','<ravenTEMPcomment>')
+  msg=msg.replace('-->' ,'</ravenTEMPcomment>')
+  return msg
+
+
+def oldconvertToRavenComment(msg):
+  """
+    Old way that Converts existing comments temporarily into nodes.  Keeping code just in case parts of it are useful later.
+    @ In, msg, string contents of a file
+    @ Out, string, converted file contents as a string (with line seperators)
+  """
+  depth = 0                                                #for nested comments
+  numreplaced=0                                            #tracks number of edits made, for tracking reading index position
+  #find first comment-related event
+  next_open = msg.find('<!--',0)
+  next_close = msg.find('-->',0)
+  if next_close == next_open == -1: next_idx=-1            #no more comment events
+  elif next_open<0: next_idx = next_close                  #no more opens, but close still exist
+  elif next_close<0: raise IOError('Mismatched comments!') #more opens but no close events!
+  else: next_idx = min(next_open,next_close)               #both opens and closes still exist, so just take nearest
+  while next_idx > 0:
+    if next_idx == next_open:                              #open event is next
+      if depth==0: start_place = next_idx                  #new comment patch, so track start place
+      depth+=1
+    else:                                                  #next event is a closure
+      depth -= 1
+      if depth==0:                                         #close off comment, make replacement
+        end_place = next_idx+len('-->')
+        msg=msg[:start_place]+'<ravenTEMPcomment>'+msg[start_place+len('<!--'):end_place-len('-->')]+'</ravenTEMPcomment>'+msg[end_place:]
+        next_idx += 2*len('<ravenTEMPcomment>')+1-len('<!--')-len('<--')
+    #find next event, as above, reading from new index place
+    startreadplace = next_idx + 2
+    next_open = msg.find('<!--',startreadplace)
+    next_close= msg.find('-->' ,startreadplace)
+    if next_close==next_open and next_close==-1: next_idx=-1
+    elif next_open<0: next_idx = next_close
+    elif next_close<0: raise IOError('Mismatched comments!')
+    else: next_idx = min(next_open,next_close)
+  return msg
 

@@ -46,6 +46,23 @@ The main input blocks are as follows:
 Each of these blocks are explained in dedicated sections in the following
 chapters.
 %
+\subsection{Comments}
+Comments may be included in the RAVEN input using standard XML comments,
+using \verb|<!--| and \verb|-->| as shown in the example below.
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <!-- An Example Comment -->
+  <Samplers>
+  ...
+\end{lstlisting}
+Comments may be placed anywhere \emph{except} before the \xmlNode{Simulation}
+node or after the \xmlNode{/Simulation} node.
+%
+Comments outside the root node will cause errors in maintaining input file
+compatability.
+
+\subsection{Verbosity}
 Each block within RAVEN also makes use of a \xmlAttr{verbosity} system,
 which allows a user to control the level of output to the user interface.
 These settings are declared globally as attributes in the \xmlNode{Simulation} node,
