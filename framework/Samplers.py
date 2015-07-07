@@ -99,7 +99,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.auxcnt                        = 0                         # Aux counter of samples performed (for its usage check initialize method)
     self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
     self.toBeSampled                   = {}                        # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
+    self.dependentSample               = {}                        # Sampling mapping dictionary for dependent variables {'Variable Name':'name of the external function'}
     self.distDict                      = {}                        # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
+    self.funcDict                      = {}                        # Contains the instance of the function     to be used, it is created every time the sampler is initialized. keys are the variable names
     self.values                        = {}                        # for each variable the current value {'var name':value}
     self.inputInfo                     = {}                        # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
     self.initSeed                      = None                      # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
@@ -123,13 +125,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.assemblerObjects               = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
     #self.requiredAssObject             = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for objects;
                                                                    # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
-    self.requiredAssObject              = (True,(['Restart'],['-n']))
+    self.requiredAssObject              = (True,(['Restart','function'],['-n','-n']))
     self.assemblerDict                  = {}                       # {'class':[['subtype','name',instance]]}
 
   def _localGenerateAssembler(self,initDict):
     """ see generateAssembler method """
     availableDist = initDict['Distributions']
-    self._generateDistributions(availableDist)
+    availableFunc = initDict['Functions']
+    self._generateDistributions(availableDist,availableFunc)
 
   def _addAssObject(self,name,flag):
     """
@@ -149,8 +152,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     @ Out, needDict, list of objects needed
     """
     needDict = {}
-    needDict['Distributions'] = [] # Every sampler requires Distributions
-    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
+    needDict['Distributions'] = [] # Every sampler requires Distributions OR a Function
+    needDict['Functions']     = [] # Every sampler requires Distributions OR a Function
+    for dist in self.toBeSampled.values():     needDict['Distributions'].append((None,dist))
+    for func in self.dependentSample.values(): needDict['Functions'].append((None,func))
     return needDict
 
   def _readMoreXML(self,xmlNode):
@@ -174,8 +179,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             tobesampled = childChild.text
         self.toBeSampled[prefix+child.attrib['name']] = tobesampled
       elif child.tag == 'variable':
+        foundDistOrFunc = False
         for childChild in child:
           if childChild.tag =='distribution':
+            if not foundDistOrFunc: foundDistOrFunc = True
+            else: self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
             tobesampled = childChild.text
             varData={}
             varData['name']=childChild.text
@@ -185,7 +193,35 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               dim=childChild.attrib['dim']
             varData['dim']=int(dim)
             self.variables2distributionsMapping[child.attrib['name']] = varData
-        self.toBeSampled[prefix+child.attrib['name']] = tobesampled
+            self.toBeSampled[prefix+child.attrib['name']] = tobesampled
+          elif childChild.tag == 'function':
+            if not foundDistOrFunc: foundDistOrFunc = True
+            else: self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
+            tobesampled = childChild.text
+            varData['name']=childChild.text
+            self.dependentSample[prefix+child.attrib['name']] = tobesampled
+        if not foundDistOrFunc: self.raiseAnError(IOError,'Sampled variable',child.attrib['name'],'has neither a <distribution> nor <function> node specified!')
+      elif child.tag == "sampler_init":
+        self.initSeed = Distributions.randomIntegers(0,2**31,self)
+        for childChild in child:
+          if childChild.tag == "limit":
+            self.limit = childChild.text
+          elif childChild.tag == "initial_seed":
+            self.initSeed = int(childChild.text)
+          elif childChild.tag == "reseed_at_each_iteration":
+            if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
+          elif childChild.tag == "dist_init":
+            for childChildChild in childChild:
+              NDdistData = {}
+              for childChildChildChild in childChildChild:
+                if childChildChildChild.tag == 'initial_grid_disc':
+                  NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
+                elif childChildChildChild.tag == 'tolerance':
+                  NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
+                else:
+                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initial_grid_disc and tolerance!')
+              self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
+          else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')
 
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
@@ -289,11 +325,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """use this function to export to the printer in the base class the additional PERMANENT your local class have"""
     pass
 
-  def _generateDistributions(self,availableDist):
+  def _generateDistributions(self,availableDist,availableFunc):
     """
-    here the needed distribution are made available to the step as also the initialization
-    of the seeding (the siding could be overriden by the step by calling the initialize method
-    @in availableDist: {'distribution name':instance}
+      Generates the distrbutions and functions.
+      @ In, availDist, dict of distributions
+      @ In, availDist, dict of functions
+      @Out, None
     """
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
@@ -301,6 +338,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if self.toBeSampled[key] not in availableDist.keys(): self.raiseAnError(IOError,'Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!')
       self.distDict[key] = availableDist[self.toBeSampled[key]]
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
+    for key,val in self.dependentSample.items():
+      if val not in availableFunc.keys(): self.raiseAnError('Function',val,'was not found amoung the available functions:',availableFunc.keys())
+      self.funcDict[key] = availableFunc[val]
 
   def initialize(self,externalSeeding=None,solutionExport=None):
     """
@@ -387,6 +427,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.inputInfo['prefix'] = str(self.counter)
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
+    # generate the function variable values
+    for var,funcName in self.dependentSample.items():
+      test=self.funcDict[var].evaluate(var,self.values)
+      self.values[var] = test
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 
   @abc.abstractmethod
@@ -1690,16 +1734,15 @@ class DynamicEventTree(Grid):
       self.raiseADebug('A Branch ended!')
     return newerinput
 
-  def _generateDistributions(self,availableDist):
+  def _generateDistributions(self,availableDist,availableFunc):
     """
-    The needed distributions are made available to the step and initialization
-    of the seeding
-    @In availableDist: a dictionary of distribution names where the value is the
-                       instance of the distribution.
-    @Out None
+      Generates the distrbutions and functions.
+      @ In, availDist, dict of distributions
+      @ In, availDist, dict of functions
+      @Out, None
     """
-    Grid._generateDistributions(self,availableDist)
-    for preconditioner in self.preconditionerToApply.values(): preconditioner._generateDistributions(availableDist)
+    Grid._generateDistributions(self,availableDist,availableFunc)
+    for preconditioner in self.preconditionerToApply.values(): preconditioner._generateDistributions(availableDist,availableFunc)
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -2167,15 +2210,14 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     if 'updateGrid' in xmlNode.attrib.keys():
       if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue(): self.insertAdaptBPb = True
 
-  def _generateDistributions(self,availableDist):
+  def _generateDistributions(self,availableDist,availableFunc):
     """
-    The needed distributions are made available to the step and initialization
-    of the seeding
-    @In availableDist: a dictionary of distribution names where the value is the
-                       instance of the distribution.
-    @Out None
+      Generates the distrbutions and functions.
+      @ In, availDist, dict of distributions
+      @ In, availDist, dict of functions
+      @Out, None
     """
-    DynamicEventTree._generateDistributions(self,availableDist)
+    DynamicEventTree._generateDistributions(self,availableDist,availableFunc)
 
   def localInitialize(self,solutionExport = None):
     """
@@ -3081,7 +3123,7 @@ class Sobol(SparseGridCollocation):
               'quads':self.quadDict,
               'polys':self.polyDict,
               'refs':self.references}
-    self.ROM.SupervisedEngine.values()[0].initialize(initdict)
+    self.ROM.SupervisedEngine.values()[0].initialize(initdict) #TODO FIXME multitarget
 
   def localGenerateInput(self,model,myInput):
     """
@@ -3108,6 +3150,8 @@ class Sobol(SparseGridCollocation):
 #
 #
 #
+
+
 """
  Interface Dictionary (factory) (private)
 """
