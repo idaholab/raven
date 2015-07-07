@@ -630,23 +630,17 @@ class MultiGridEntity(GridBase):
             lowerBounds = {k: min(i for i in (lowerBounds.get(k), coordinates.get(k)) if i) for k in lowerBounds.viewkeys() | coordinates}
             upperBounds = {k: max(i for i in (lowerBounds.get(k), coordinates.get(k)) if i) for k in lowerBounds.viewkeys() | coordinates}
           initDict["lowerBounds"], initDict["upperBounds"] = lowerBounds, upperBounds
-          
+          if "refiningNumSteps" not in refineDict.keys(): self.raiseAnError(IOError, "the refining Number of steps has not been provided!!!")
+          initDict["stepLenght"] = {}  
+          for key in lowerBounds.keys(): initDict["stepLenght"][key] = [(upperBounds[key] - lowerBounds[key])/float(refineDict["refiningNumSteps"])]
           newGrid.initialize(initDict)
           refinedNode        = self.__createNewNode(node.name+"_cell:"+str(fcellId),{"grid":newGrid,"level":level+"."+str(idcnt)})
-          "transformationMethods"
-          
-          
-          initDictionary={"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods}
-          
-          initialize(initDictionary={"computeCells":True,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
-          
-          
-          node = ETS.Node("InitialGrid")
-          node.add("grid",returnInstance("GridEntity",self.messageHandler))
-          node.add("level","1")
-          
-          self.grid.getrootnode().get("grid").initialize(initDictionary)
-  
+          node.appendBranch(refinedNode)
+      foundAll = all(item == True for item in set(didWeFoundCells.values()))
+      if foundAll: break
+    if not foundAll: self.raiseAnError(Exception,"the following cell IDs have not been found: " + ' '.join([cellId for cellId, value in didWeFoundCells.items() if value == True]))  
+
+
   def returnGridAsArrayOfCoordinates(self):
     """
     Return the grid as an array of coordinates
