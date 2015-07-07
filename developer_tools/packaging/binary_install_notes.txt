@@ -1,0 +1,28 @@
+There are three different binary packages for the framework:
+
+OSX:
+
+install the package.  After that,
+raven_framework
+in the command line will run raven inputs.
+
+
+Ubuntu:
+
+Install the following from the distribution repository:
+
+apt-get install subversion libtool python-dev swig g++ python3-dev python-numpy python-sklearn python-h5py 
+
+Untar the file.
+
+Then it works.
+
+Fedora:
+
+Install the following from the distribution repository:
+
+yum install svn swig libtool gcc-c++ python-devel python3-devel numpy h5py scipy python-scikit-learn python-matplotlib-qt4
+
+untar the file.
+
+Then it works.

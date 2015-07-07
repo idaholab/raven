@@ -1,0 +1,15 @@
+yum install svn swig libtool gcc-c++ python-devel python3-devel numpy h5py scipy python-scikit-learn python-matplotlib-qt4
+
+#If you want to be able to edit the manual, install:
+yum install texlive texlive-subfigure texlive-stmaryrd texlive-titlesec texlive-preprint
+
+svn checkout https://cogljj@hpcsc.inl.gov/svn/herd/trunk
+
+cd trunk/crow
+make -f Makefile.linux
+cd ../raven
+cd tests/framework/
+python ../../framework/Driver.py test_Grid_Sampler.xml
+cd ../../framework
+python TestDistributions.py
+
