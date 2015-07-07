@@ -42,6 +42,12 @@
     <xsd:simpleType name="variableDistributionType">
         <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
+    <!-- ************************** -->
+    <!-- Insufficiently Implemented -->
+    <!-- ************************** -->
+    <!-- The extendedVariableDistributionType adds <grid> onto BOTH the <var><dist> node as well as <var><function>,
+              when it really should only be <var><dist>. This can mostly be resolved, except in the
+              HybridDET Preconditioner samplers, where it's impossible to tell if the precon is grid or non-grid type.-->
     <xsd:complexType name="extendedVariableDistributionType">
         <xsd:simpleContent>
             <xsd:extension base="variableDistributionType">
@@ -60,9 +66,10 @@
         </xsd:simpleContent>
     </xsd:complexType>
     <xsd:complexType name="variableType">
-        <xsd:sequence>
+        <xsd:choice>
             <xsd:element name="distribution" type="extendedVariableDistributionType" minOccurs="1"/>
-        </xsd:sequence>
+            <xsd:element name="function"     type="xsd:string"                       minOccurs="1"/>
+        </xsd:choice>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
     <xsd:complexType name="extendedVariableType">
