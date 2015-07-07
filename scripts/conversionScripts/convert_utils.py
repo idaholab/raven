@@ -8,7 +8,7 @@ def createBackup(filename):
   """
     Creates a backup file based on the file at filename.  If it exists, prints an error message and returns.
     @ In, filename, string (to be appended with '.bak')
-    @Out, bool int, 0 on success or 1 on fail
+    @Out, bool, False on success or True on fail
   """
   bakname = filename+'.bak'
   if not os.path.isfile(bakname):
@@ -16,11 +16,11 @@ def createBackup(filename):
     for line in file(filename,'r'):
       bak.writelines(line)
     bak.close()
-    return 0
+    return False
   else:
     print 'ERROR! Backup file already exists:',bakname
     print '    If you wish to continue, remove the backup and rerun the script.'
-    return 1
+    return True
 
 
 def prettify(tree):
@@ -72,7 +72,7 @@ def standardMain(argv,convert):
       print 'ERROR!  File not found:',fname
       failures+=1
       continue
-    if createBackup(fname)==0:
+    if createBackup(fname)==False: #sucessful operation
       print ('Converting '+fname+'...').ljust(14+maxname,'.'),
       #change comments to comment nodes
       strfile = ''.join(line for line in open(fname,'r'))
@@ -145,4 +145,3 @@ def oldconvertToRavenComment(msg):
     elif next_close<0: raise IOError('Mismatched comments!')
     else: next_idx = min(next_open,next_close)
   return msg
-
