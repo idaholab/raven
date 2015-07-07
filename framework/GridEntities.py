@@ -600,12 +600,16 @@ class MultiGridEntity(GridBase):
     return setOfCells
   
   def refineGrid(self,refineDict):
-    cellIdsToRefine = refineDict['cellIDs']
+    """
+    aaaaaa
+    """
+    cellIdsToRefine, didWeFoundCells = refineDict['cellIDs'], dict.fromkeys(refineDict['cellIDs'], False)
     for node in self.grid.iter():
       level, nodeCellIds = node.get("level"), node.get("grid").returnParameter('cellIDs').keys()
       foundCells = set(nodeCellIds).intersection(cellIdsToRefine)
       if len(foundCells) > 0:
-        
+        for idcnt, fcellId in enumerate(foundCells):
+          didWeFoundCells[fcellId] = True
       
       
       self.grid.getrootnode().get("grid").initialize(initDictionary)
