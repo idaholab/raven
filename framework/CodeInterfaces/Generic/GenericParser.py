@@ -127,7 +127,7 @@ class GenericParser(MessageHandler.MessageUser):
                 else: self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
             else: self.segments[inputFile][place] = self.defaults[var][inputFile]
           elif var in iovars: continue #this gets handled in writeNewInput
-          else: self.raiseAnError(IOError,'For variable '+var+' no distribution was sampled and no default given!')
+          else: self.raiseAnError(IOError,'Variable '+var+' was not sampled and no default given!')
 
   def writeNewInput(self,infileNames,origNames):
     '''
