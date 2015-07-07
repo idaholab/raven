@@ -1,147 +1,141 @@
-<?xml version="1.0" ?>
-<Simulation verbosity="debug">
-  <RunInfo>
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation verbosity='debug'>
+<RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_steady_restart/1863.rd-0,TMI_steady_restart/1863.xdr,TMI_steady_restart/1863.xdr.0000,TMI_steady_restart/1863_mesh.cpr</Files>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>
     <batchSize>3</batchSize>
-  </RunInfo>
-
-  <Distributions>
-    <Uniform name="auxbackup">
-      <lowerBound>0</lowerBound>
-      <upperBound>2000</upperBound>
+</RunInfo>
+<Distributions>
+    <Uniform name='auxbackup'>
+        <lowerBound>0</lowerBound>
+        <upperBound>2000</upperBound>
     </Uniform>
-    <Uniform name="DG1backup">
-      <lowerBound>0</lowerBound>
-      <upperBound>1000</upperBound>
+    <Uniform name='DG1backup'>
+        <lowerBound>0</lowerBound>
+        <upperBound>1000</upperBound>
     </Uniform>
-  </Distributions>
-
-  <Models>
-    <Code name="MyRAVEN" subType="RAVEN">
-      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
-    </Code>
-    <ROM name="ROM1" subType="SciKitLearn">
+</Distributions>
+<Models>
+    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
+    <ROM  name='ROM1' subType='SciKitLearn'>
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
       <Target>CladTempTreshold</Target>
       <SKLtype>svm|LinearSVC</SKLtype>
       <C>10.0</C>
       <tol>0.0001</tol>
     </ROM>
-    <ROM name="ROM2" subType="NDinvDistWeight">
-      <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
-      <Target>CladTempTreshold</Target>
-      <p>3</p>
+    <ROM  name='ROM2' subType='NDinvDistWeight'>
+        <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
+        <Target>CladTempTreshold</Target>
+        <p>3</p>
     </ROM>
-  </Models>
-
-  <Samplers>
-    <MonteCarlo name="RAVENmc3">
-      <sampler_init>
-        <limit>3</limit>
-      </sampler_init>
-      <variable name="DeltaTimeScramToAux">
-        <distribution>auxbackup</distribution>
-      </variable>
-      <variable name="DG1recoveryTime">
-        <distribution>DG1backup</distribution>
-      </variable>
-    </MonteCarlo>
-    <MonteCarlo limit="3" name="RAVENmcCode3">
+</Models>
+<Samplers>
+  <MonteCarlo     name='RAVENmc3'>
+    <sampler_init>
+      <limit>3</limit>
+    </sampler_init>
+    <variable name='DeltaTimeScramToAux'>
+      <distribution  >auxbackup</distribution>
+    </variable>
+    <variable name='DG1recoveryTime'>
+      <distribution >DG1backup</distribution>
+    </variable>
   </MonteCarlo>
-
-    <MonteCarlo initial_seed="200286" limit="3" name="RAVENmcND">
-      <variable name="DeltaTimeScramToAux">
-        <distribution>auxbackup</distribution>
-      </variable>
-      <variable name="DG1recoveryTime">
-        <distribution>DG1backup</distribution>
-      </variable>
+  <MonteCarlo     name='RAVENmcCode3'  limit='3'>
+  </MonteCarlo>
+    <MonteCarlo     name='RAVENmcND'  limit='3' initial_seed='200286'>
+        <variable name='DeltaTimeScramToAux'>
+            <distribution  >auxbackup</distribution>
+        </variable>
+        <variable name='DG1recoveryTime'>
+            <distribution  >DG1backup</distribution>
+        </variable>
     </MonteCarlo>
-  </Samplers>
-
-  <Steps verbosity="debug">
-    <MultiRun name="MC_for_rom_trainer" verbosity="debug">
-      <Input class="Files" type="">TMI.i</Input>
-      <Input class="Files" type="">TMI_PRA_trans_MC_control.py</Input>
-      <Input class="Files" type="">TMI_steady_restart/1863.rd-0</Input>
-      <Input class="Files" type="">TMI_steady_restart/1863.xdr</Input>
-      <Input class="Files" type="">TMI_steady_restart/1863.xdr.0000</Input>
-      <Input class="Files" type="">TMI_steady_restart/1863_mesh.cpr</Input>
-      <Model class="Models" type="Code">MyRAVEN</Model>
-      <Sampler class="Samplers" type="MonteCarlo">RAVENmcCode3</Sampler>
-      <Output class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
-    </MultiRun>
-    <IOStep name="test_extract_for_rom_trainer" verbosity="debug">
-      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-      <Output class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Output>
-      <Output class="OutStreamManager" type="Print">ciccio</Output>
-    </IOStep>
-    <RomTrainer name="test_rom_trainer" verbosity="debug">
-      <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
-      <Output class="Models" type="ROM">ROM1</Output>
+</Samplers>
+<Steps verbosity='debug'> 
+    <MultiRun name='MC_for_rom_trainer' verbosity='debug'>
+        <Input   class='Files'      type=''                >TMI.i</Input>
+        <Input   class='Files'      type=''                >TMI_PRA_trans_MC_control.py</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/1863.rd-0</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/1863.xdr</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/1863.xdr.0000</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/1863_mesh.cpr</Input>
+        <Model   class='Models'     type='Code'            >MyRAVEN</Model>
+        <Sampler class='Samplers'   type='MonteCarlo'      >RAVENmcCode3</Sampler>
+        <Output  class='Databases'  type='HDF5'            >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
+    </MultiRun>  
+    <IOStep name='test_extract_for_rom_trainer' verbosity='debug'>
+        <Input   class='Databases' type='HDF5'        >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+        <Output  class='DataObjects'     type='PointSet'>Pointset_from_database_for_rom_trainer</Output>
+        <Output  class='OutStreamManager' type='Print'>ciccio</Output>
+    </IOStep>  
+    <RomTrainer name='test_rom_trainer' verbosity='debug'>
+        <Input   class='DataObjects'  type='PointSet'>Pointset_from_database_for_rom_trainer</Input>
+        <Output  class='Models' type='ROM'         >ROM1</Output>
     </RomTrainer>
-    <RomTrainer name="test_rom_trainer_nd_interp">
-      <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
-      <Output class="Models" type="ROM">ROM2</Output>
+    <RomTrainer name='test_rom_trainer_nd_interp'>
+        <Input   class='DataObjects'  type='PointSet'>Pointset_from_database_for_rom_trainer</Input>
+        <Output  class='Models' type='ROM'         >ROM2</Output>
     </RomTrainer>
-    <MultiRun name="rom_MC" re-seeding="200286">
-      <Input class="DataObjects" type="Point">data_for_sampling_empty_at_begin</Input>
-      <Model class="Models" type="ROM">ROM1</Model>
-      <Sampler class="Samplers" type="MonteCarlo">RAVENmc3</Sampler>
-      <Output class="DataObjects" type="PointSet">outputMontecarloRom</Output>
-      <Output class="OutStreamManager" type="Print">outputMontecarloRom_dump</Output>
+    <MultiRun name='rom_MC' re-seeding='200286'>
+        <Input   class='DataObjects'    type='Point'   >data_for_sampling_empty_at_begin</Input>
+        <Model   class='Models'   type='ROM'         >ROM1</Model>
+        <Sampler class='Samplers' type='MonteCarlo'  >RAVENmc3</Sampler>
+        <Output  class='DataObjects'    type='PointSet'>outputMontecarloRom</Output>
+        <Output  class='OutStreamManager' type='Print'>outputMontecarloRom_dump</Output>
     </MultiRun>
-    <MultiRun name="rom_MC_nd_interpolator">
-      <Input class="DataObjects" type="Point">data_for_sampling_empty_at_begin_nd</Input>
-      <Model class="Models" type="ROM">ROM2</Model>
-      <Sampler class="Samplers" type="MonteCarlo">RAVENmcND</Sampler>
-      <Output class="DataObjects" type="PointSet">outputMontecarloRomND</Output>
-      <Output class="OutStreamManager" type="Print">outputMontecarloRomND_dump</Output>
+    <MultiRun name='rom_MC_nd_interpolator'>
+        <Input   class='DataObjects'    type='Point'   >data_for_sampling_empty_at_begin_nd</Input>
+        <Model   class='Models'   type='ROM'         >ROM2</Model>
+        <Sampler class='Samplers' type='MonteCarlo'  >RAVENmcND</Sampler>
+        <Output  class='DataObjects'    type='PointSet'>outputMontecarloRomND</Output>
+        <Output  class='OutStreamManager' type='Print'>outputMontecarloRomND_dump</Output>
     </MultiRun>
-  </Steps>
+</Steps>
 
-  <OutStreamManager>
-    <Print name="outputMontecarloRom_dump">
-      <type>csv</type>
-      <source>outputMontecarloRom</source>
-    </Print>
-    <Print name="outputMontecarloRomND_dump">
-      <type>csv</type>
-      <source>outputMontecarloRomND</source>
-    </Print>
-    <Print name="ciccio">
-      <type>csv</type>
-      <source>Pointset_from_database_for_rom_trainer</source>
-    </Print>
-  </OutStreamManager>
-
-  <Databases>
-    <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/>
-  </Databases>
-
-  <DataObjects>
-    <PointSet inputTs="2" name="Pointset_from_database_for_rom_trainer">
-      <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-      <Output>CladTempTreshold</Output>
-    </PointSet>
-    <Point historyName="1" inputTs="2" name="data_for_sampling_empty_at_begin">
-      <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-      <Output>OutputPlaceHolder</Output>
+<OutStreamManager>
+  <Print name='outputMontecarloRom_dump'>
+    <type>csv</type>
+    <source>outputMontecarloRom</source>
+  </Print>
+  <Print name='outputMontecarloRomND_dump'>
+    <type>csv</type>
+    <source>outputMontecarloRomND</source>
+  </Print>
+  <Print name='ciccio'>
+    <type>csv</type>
+    <source>Pointset_from_database_for_rom_trainer</source>
+  </Print>
+</OutStreamManager>
+    
+<Databases>
+  <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/> 
+</Databases>
+<DataObjects>
+   <PointSet name='Pointset_from_database_for_rom_trainer' inputTs='2'>
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>CladTempTreshold</Output>
+   </PointSet>
+   <Point name='data_for_sampling_empty_at_begin' inputTs='2' historyName="1">
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>OutputPlaceHolder</Output>
+   </Point>
+    <Point name='data_for_sampling_empty_at_begin_nd' inputTs='2' historyName="1">
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>OutputPlaceHolder</Output>
     </Point>
-    <Point historyName="1" inputTs="2" name="data_for_sampling_empty_at_begin_nd">
-      <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-      <Output>OutputPlaceHolder</Output>
-    </Point>
-    <PointSet inputTs="2" name="outputMontecarloRom">
-      <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-      <Output>CladTempTreshold</Output>
+   <PointSet name='outputMontecarloRom' inputTs='2'>
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>CladTempTreshold</Output>
+   </PointSet>
+    <PointSet name='outputMontecarloRomND' inputTs='2'>
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>CladTempTreshold</Output>
     </PointSet>
-    <PointSet inputTs="2" name="outputMontecarloRomND">
-      <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-      <Output>CladTempTreshold</Output>
-    </PointSet>
-  </DataObjects>
-
+</DataObjects>
 </Simulation>
+
+
+

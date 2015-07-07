@@ -1,8 +1,10 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A Simple Example of the Approximate Morse-Smale Complex Interface -->
 <Simulation>
   <RunInfo>
     <WorkingDir>topologyPostProcessor</WorkingDir>
     <Sequence>
+      <!-- loadData, -->
       sampleData,
       decompose1,
       decompose2,
@@ -10,14 +12,15 @@
       decompose4
     </Sequence>
   </RunInfo>
-
   <Models>
-    <ExternalModel ModuleToLoad="./topologyPostProcessor/testFunction" name="testFunction" subType="">
+    <ExternalModel name='testFunction' subType=''
+                   ModuleToLoad = './topologyPostProcessor/testFunction'>
       <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>
     </ExternalModel>
-    <PostProcessor name="AMSC1" subType="TopologicalDecomposition">
+  <!-- The definition of the topological partition and all of its parameters -->
+    <PostProcessor name='AMSC1' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
@@ -27,7 +30,7 @@
       <weighted>True</weighted>
       <response>Z</response>
     </PostProcessor>
-    <PostProcessor name="AMSC2" subType="TopologicalDecomposition">
+    <PostProcessor name='AMSC2' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
@@ -38,7 +41,7 @@
       <simplification>0.005</simplification>
       <persistence>difference</persistence>
     </PostProcessor>
-    <PostProcessor name="AMSC3" subType="TopologicalDecomposition">
+    <PostProcessor name='AMSC3' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
@@ -47,123 +50,128 @@
       <parameters>X,Y</parameters>
       <response>Z</response>
       <simplification>0.04</simplification>
+      <!-- <persistence>probability</persistence> -->
     </PostProcessor>
-    <PostProcessor name="AMSC4" subType="TopologicalDecomposition">
+    <PostProcessor name='AMSC4' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
       <knn>8</knn>
+      <!--normalization>None</normalization-->
       <parameters>X,Y</parameters>
       <response>Z</response>
       <simplification>0.1</simplification>
+      <!-- <persistence>count</persistence> -->
     </PostProcessor>
   </Models>
-
   <Distributions>
     <Normal name="NormDist">
       <mean>0.5</mean>
       <sigma>0.125</sigma>
     </Normal>
   </Distributions>
-
   <Samplers>
     <Grid name="gridSampler">
       <variable name="X">
         <distribution>NormDist</distribution>
-        <grid construction="equal" steps="10" type="value">0 10</grid>
+        <grid type='value' construction='equal' steps='10'>0 10</grid>
       </variable>
       <variable name="Y">
         <distribution>NormDist</distribution>
-        <grid construction="equal" steps="10" type="value">0 10</grid>
+        <grid type='value' construction='equal' steps='10'>0 10</grid>
       </variable>
     </Grid>
   </Samplers>
-
   <Steps>
-    <MultiRun name="sampleData" pauseAtEnd="false">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">testFunction</Model>
-      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">testData</Output>
+  <!-- Load the data from a csv into the hdf5 database used by this run -->
+    <MultiRun name='sampleData' pauseAtEnd='false'>
+      <Input   class='DataObjects' type='PointSet'  >dummyIN</Input>
+      <Model   class='Models'      type='ExternalModel' >testFunction</Model>
+      <Sampler class='Samplers'    type='Grid'          >gridSampler</Sampler>
+      <Output  class='DataObjects' type='PointSet'  >testData</Output>
     </MultiRun>
-    <IOStep fromDirectory="." name="loadData">
-      <Input class="DataObjects" type="PointSet">testData</Input>
-      <Output class="Databases" type="HDF5">myDB</Output>
+  <!-- Load the data from a csv into the hdf5 database used by this run -->
+    <IOStep name='loadData' fromDirectory='.'>
+      <Input  class='DataObjects' type='PointSet'>testData</Input>
+      <Output class='Databases'   type='HDF5'        >myDB</Output>
     </IOStep>
-    <PostProcess name="decompose1">
-      <Input class="DataObjects" type="PointSet">testData</Input>
-      <Model class="Models" type="PostProcessor">AMSC1</Model>
-      <Output class="DataObjects" type="PointSet">outTPS1</Output>
-      <Output class="OutStreamManager" type="Print">myDump1</Output>
+  <!-- Perform the topological decomposition -->
+    <PostProcess name='decompose1'>
+      <Input   class='DataObjects'      type='PointSet' >testData</Input>
+      <Model   class='Models'           type='PostProcessor'>AMSC1</Model>
+      <Output  class='DataObjects'      type='PointSet' >outTPS1</Output>
+      <Output  class='OutStreamManager' type='Print'        >myDump1</Output>
     </PostProcess>
-    <PostProcess name="decompose2">
-      <Input class="DataObjects" type="PointSet">testData</Input>
-      <Model class="Models" type="PostProcessor">AMSC2</Model>
-      <Output class="DataObjects" type="PointSet">outTPS2</Output>
-      <Output class="OutStreamManager" type="Print">myDump2</Output>
+    <PostProcess name='decompose2'>
+      <Input   class='DataObjects'      type='PointSet' >testData</Input>
+      <Model   class='Models'           type='PostProcessor'>AMSC2</Model>
+      <Output  class='DataObjects'      type='PointSet' >outTPS2</Output>
+      <Output  class='OutStreamManager' type='Print'        >myDump2</Output>
     </PostProcess>
-    <PostProcess name="decompose3">
-      <Input class="DataObjects" type="PointSet">testData</Input>
-      <Model class="Models" type="PostProcessor">AMSC3</Model>
-      <Output class="DataObjects" type="PointSet">outTPS3</Output>
-      <Output class="OutStreamManager" type="Print">myDump3</Output>
+    <PostProcess name='decompose3'>
+      <Input   class='DataObjects'      type='PointSet' >testData</Input>
+      <Model   class='Models'           type='PostProcessor'>AMSC3</Model>
+      <Output  class='DataObjects'      type='PointSet' >outTPS3</Output>
+      <Output  class='OutStreamManager' type='Print'        >myDump3</Output>
     </PostProcess>
-    <PostProcess name="decompose4">
-      <Input class="DataObjects" type="PointSet">testData</Input>
-      <Model class="Models" type="PostProcessor">AMSC4</Model>
-      <Output class="DataObjects" type="PointSet">outTPS4</Output>
-      <Output class="OutStreamManager" type="Print">myDump4</Output>
+    <PostProcess name='decompose4'>
+      <Input   class='DataObjects'      type='PointSet' >testData</Input>
+      <Model   class='Models'           type='PostProcessor'>AMSC4</Model>
+      <Output  class='DataObjects'      type='PointSet' >outTPS4</Output>
+      <Output  class='OutStreamManager' type='Print'        >myDump4</Output>
     </PostProcess>
   </Steps>
 
   <OutStreamManager>
-    <Print name="myDump1">
+  <!-- A csv file containing the output of the example -->
+    <Print name='myDump1'>
       <type>csv</type>
       <source>outTPS1</source>
     </Print>
-    <Print name="myDump2">
+    <Print name='myDump2'>
       <type>csv</type>
       <source>outTPS2</source>
     </Print>
-    <Print name="myDump3">
+    <Print name='myDump3'>
       <type>csv</type>
       <source>outTPS3</source>
     </Print>
-    <Print name="myDump4">
+    <Print name='myDump4'>
       <type>csv</type>
       <source>outTPS4</source>
     </Print>
   </OutStreamManager>
 
   <Databases>
+  <!-- The necessary database object -->
     <HDF5 name="myDB"/>
   </Databases>
-
   <DataObjects>
+  <!-- The input PointSet object -->
     <PointSet name="dummyIN">
       <Input>X,Y</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="testData">
+    <PointSet name='testData'>
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-    <PointSet name="outTPS1">
+  <!-- The output PointSet objects -->
+    <PointSet name='outTPS1'>
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-    <PointSet name="outTPS2">
+    <PointSet name='outTPS2'>
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-    <PointSet name="outTPS3">
+    <PointSet name='outTPS3'>
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-    <PointSet name="outTPS4">
+    <PointSet name='outTPS4'>
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
   </DataObjects>
-
 </Simulation>

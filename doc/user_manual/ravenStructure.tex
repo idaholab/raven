@@ -61,6 +61,28 @@ node or after the \xmlNode{/Simulation} node.
 %
 Comments outside the root node will cause errors in maintaining input file
 compatability.
+%
+Additionally, comments must completely surround any nodes they comment out.
+%
+Comments are intended to completely remove blocks of code, or to add readability.
+%
+For instance, the following is INCORRECT usage:
+\begin{lstlisting}[style=XML]
+  <!--<Assembler> -->
+  <!--</Assembler> -->
+\end{lstlisting}
+%
+and the following is compatible usage for a code block:
+%
+\begin{lstlisting}[style=XML]
+  <!--<Samplers>
+    <Monte Carlo name='mc'>
+      ...
+    </Monte Carlo>
+    ...
+  </Samplers> -->
+\end{lstlisting}
+
 
 \subsection{Verbosity}
 Each block within RAVEN also makes use of a \xmlAttr{verbosity} system,
