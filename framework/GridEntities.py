@@ -221,7 +221,8 @@ class GridEntity(GridBase):
     self.gridContainer['nVar']                  = 0                  # this is the number of grid dimensions
     self.gridContainer['transformationMethods'] = None               # Dictionary of methods to transform the coordinate from 0-1 values to something else. These methods are pointed and passed into the initialize method. {varName:method}
     self.gridContainer['cellIDs']               = {}                 # Cell IDs and verteces coordinates
-    self.gridContainer['vertexToCellIds']       = {}
+    self.gridContainer['vertexToCellIds']       = {}                 # mapping between verteces and cell ids
+    self.gridContainer['initDictionary']        = None               # dictionary of initialization parameters passed in the initialize method
     self.uniqueCellNumber                       = 0                  # number of unique cells
     self.gridIterator                           = None               # the grid iterator
     self.gridInitDict                           = {}                 # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
@@ -351,7 +352,8 @@ class GridEntity(GridBase):
       stepLenght = []
       for dimName in self.gridContainer['dimensionNames']: stepLenght.append(initDict["stepLenght"][dimName] if  "stepLenght" not in readKeys else self.gridInitDict["stepLenght"][dimName])
     #moving forward building all the information set
-    pointByVar                                   = [None]*self.nVar  #list storing the number of point by cooridnate
+    pointByVar                           = [None]*self.nVar  #list storing the number of point by cooridnate
+    self.gridContainer['initDictionary'] = initDict
     #building the grid point coordinates
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
       if len(stepLenght[varId]) == 1:
@@ -405,6 +407,7 @@ class GridEntity(GridBase):
       self.gridIterator.iternext()  
     if len(self.gridContainer['cellIDs'].keys()) != self.uniqueCellNumber and computeCells: self.raiseAnError(IOError, "number of cells detected != than the number of actual cells!")
     self.resetIterator()
+    
     self.raiseAMessage("Grid initialized...")
 
   def retrieveCellIds(self,listOfPoints):
@@ -539,14 +542,14 @@ class MultiGridEntity(GridBase):
       Constructor
     """
     GridBase.__init__(self, messageHandler)
-    self.multiGridActivated     = False                   # boolean flag to check if the multigrid approach has been activated
-    self.subGridVolumetricRatio = None                    # initial subgrid volumetric ratio
-    node = ETS.Node("InitialGrid")
-    node.add("grid",returnInstance("GridEntity",self.messageHandler))
-    node.add("level","1")
-    self.grid               = ETS.NodeTree(node)         # grid hierarchical Container
-    self.multiGridIterator  = [node.get("level"), None]  # multi grid iterator [first position is the level ID, the second it the multi-index]   
-    self.mappingLevelName   = {'1':'InitialGrid'}        # mapping between grid level and node name  
+    self.multiGridActivated     = False                                # boolean flag to check if the multigrid approach has been activated
+    self.subGridVolumetricRatio = None                                 # initial subgrid volumetric ratio
+    self.grid                   = ETS.NodeTree(
+                                  self.__createNewNode("InitialGrid",
+                                  {"grid":returnInstance("GridEntity",
+                                   self.messageHandler),"level":"1"})) # grid hierarchical Container      
+    self.multiGridIterator      = ["1", None]                          # multi grid iterator [first position is the level ID, the second it the multi-index]   
+    self.mappingLevelName       = {'1':'InitialGrid'}                  # mapping between grid level and node name  
    
   def __len__(self):
     """
@@ -599,20 +602,50 @@ class MultiGridEntity(GridBase):
       setOfCells.extend(node.get('grid').retrieveCellIds(listOfPoints))
     return setOfCells
   
+  def __createNewNode(self, nodeName, attributes={}):
+    node = ETS.Node(nodeName)
+    node.add("grid",returnInstance("GridEntity",self.messageHandler))
+    for key, attribute in attributes.items():
+      node.add(key,attribute)
+    return node
+
   def refineGrid(self,refineDict):
     """
     aaaaaa
     """
     cellIdsToRefine, didWeFoundCells = refineDict['cellIDs'], dict.fromkeys(refineDict['cellIDs'], False)
     for node in self.grid.iter():
-      level, nodeCellIds = node.get("level"), node.get("grid").returnParameter('cellIDs').keys()
+      parentNodeCellIds  = node.get("grid").returnParameter('cellIDs')
+      level, nodeCellIds = node.get("level"), parentNodeCellIds.keys()
       foundCells = set(nodeCellIds).intersection(cellIdsToRefine)
       if len(foundCells) > 0:
+        parentGrid = node.get("grid")
         for idcnt, fcellId in enumerate(foundCells):
           didWeFoundCells[fcellId] = True
-      
-      
-      self.grid.getrootnode().get("grid").initialize(initDictionary)
+          initDict, newGrid        = parentGrid.returnParameter("initDictionary"), returnInstance("GridEntity", self.messageHandler)
+          verteces                 = parentNodeCellIds[fcellId]
+          lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), 0.0), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), 0.0)
+          for vertex in verteces:
+            coordinates = parentGrid.returnCoordinateFromIndex(vertex, True, recastMethods=initDict["transformationMethods"] if "transformationMethods" in initDict.keys() else {})
+            lowerBounds = {k: min(i for i in (lowerBounds.get(k), coordinates.get(k)) if i) for k in lowerBounds.viewkeys() | coordinates}
+            upperBounds = {k: max(i for i in (lowerBounds.get(k), coordinates.get(k)) if i) for k in lowerBounds.viewkeys() | coordinates}
+          initDict["lowerBounds"], initDict["upperBounds"] = lowerBounds, upperBounds
+          
+          newGrid.initialize(initDict)
+          refinedNode        = self.__createNewNode(node.name+"_cell:"+str(fcellId),{"grid":newGrid,"level":level+"."+str(idcnt)})
+          "transformationMethods"
+          
+          
+          initDictionary={"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods}
+          
+          initialize(initDictionary={"computeCells":True,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
+          
+          
+          node = ETS.Node("InitialGrid")
+          node.add("grid",returnInstance("GridEntity",self.messageHandler))
+          node.add("level","1")
+          
+          self.grid.getrootnode().get("grid").initialize(initDictionary)
   
   def returnGridAsArrayOfCoordinates(self):
     """
