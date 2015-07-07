@@ -1,241 +1,294 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation >
-    <RunInfo>
-        <WorkingDir>IndexSetTest</WorkingDir>
-        <Sequence>
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>IndexSetTest</WorkingDir>
+    <Sequence>
             TPmake,TPtrain,TPtest,TPprint,
             TDmake,TDtrain,TDtest,TDprint,
             HCmake,HCtrain,HCtest,HCprint,
             Cmake,Ctrain,Ctest,Cprint,
             Amake,Atrain,Atest,Aprint
         </Sequence>
-        <batchSize>1</batchSize>
-    </RunInfo>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
-    <Distributions>
-        <Uniform name="UniDist"><lowerBound>1</lowerBound><upperBound>5</upperBound></Uniform>
-    </Distributions>
+  <Distributions>
+    <Uniform name="UniDist">
+      <lowerBound>1</lowerBound>
+      <upperBound>5</upperBound>
+    </Uniform>
+  </Distributions>
 
-    <Samplers>
-        <SparseGridCollocation name="TPSG" parallel="1">
-            <variable name="x1"><distribution>UniDist</distribution></variable>
-            <variable name="x2"><distribution>UniDist</distribution></variable>
-            <ROM  class='Models' type='ROM' >TPROM</ROM>
-        </SparseGridCollocation>
+  <Samplers>
+    <SparseGridCollocation name="TPSG" parallel="1">
+      <variable name="x1">
+        <distribution>UniDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>UniDist</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">TPROM</ROM>
+    </SparseGridCollocation>
+    <SparseGridCollocation name="TDSG" parallel="0">
+      <variable name="x1">
+        <distribution>UniDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>UniDist</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">TDROM</ROM>
+    </SparseGridCollocation>
+    <SparseGridCollocation name="HCSG" parallel="1">
+      <variable name="x1">
+        <distribution>UniDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>UniDist</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">HCROM</ROM>
+    </SparseGridCollocation>
+    <SparseGridCollocation name="ASG" parallel="1">
+      <variable name="x1">
+        <distribution>UniDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>UniDist</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">AROM</ROM>
+    </SparseGridCollocation>
+    <SparseGridCollocation name="CSG">
+      <variable name="x1">
+        <distribution>UniDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>UniDist</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">CROM</ROM>
+    </SparseGridCollocation>
+  </Samplers>
 
-        <SparseGridCollocation name="TDSG" parallel="0">
-            <variable name="x1"><distribution>UniDist</distribution></variable>
-            <variable name="x2"><distribution>UniDist</distribution></variable>
-            <ROM  class='Models' type='ROM' >TDROM</ROM>
-        </SparseGridCollocation>
-
-        <SparseGridCollocation name="HCSG" parallel="1">
-            <variable name="x1"><distribution>UniDist</distribution></variable>
-            <variable name="x2"><distribution>UniDist</distribution></variable>
-            <ROM  class='Models' type='ROM' >HCROM</ROM>
-        </SparseGridCollocation>
-
-        <SparseGridCollocation name="ASG" parallel="1">
-            <variable name="x1"><distribution>UniDist</distribution></variable>
-            <variable name="x2"><distribution>UniDist</distribution></variable>
-            <ROM  class='Models' type='ROM' >AROM</ROM>
-        </SparseGridCollocation>
-        <SparseGridCollocation name="CSG">
-            <variable name="x1"><distribution>UniDist</distribution></variable>
-            <variable name="x2"><distribution>UniDist</distribution></variable>
-            <ROM  class='Models' type='ROM' >CROM</ROM>
-        </SparseGridCollocation>
-      </Samplers>
-
-    <Models>
-        <Dummy name="MyDummy" subType=""/>
-        <ExternalModel name='polynomial' subType='' ModuleToLoad = './IndexSetTest/polynomial'>
-            <variable>x1</variable>
-            <variable>x2</variable>
-            <variable>ans</variable>
-        </ExternalModel>
-        <ROM name='TPROM' subType='GaussPolynomialRom'>
-            <Target>ans</Target>
-            <Features>x1,x2</Features>
-            <IndexSet>TensorProduct</IndexSet>
-            <PolynomialOrder>4</PolynomialOrder>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1'>x2</Interpolation>
-        </ROM>
-        <ROM name='TDROM' subType='GaussPolynomialRom' verbosity='debug'>
-            <Target>ans</Target>
-            <Features>x1,x2</Features>
-            <IndexSet>TotalDegree</IndexSet>
-            <PolynomialOrder>4</PolynomialOrder>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x1</Interpolation>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x2</Interpolation>
-        </ROM>
-        <ROM name='HCROM' subType='GaussPolynomialRom' verbosity='debug'>
-            <Target>ans</Target>
-            <Features>x1,x2</Features>
-            <IndexSet>HyperbolicCross</IndexSet>
-            <PolynomialOrder>4</PolynomialOrder>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x1</Interpolation>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1'>x2</Interpolation>
-        </ROM>
-        <ROM name='CROM' subType='GaussPolynomialRom' verbosity='debug'>
-            <Target>ans</Target>
-            <Features>x1,x2</Features>
-            <IndexSet>Custom</IndexSet>
-            <IndexPoints>
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="./IndexSetTest/polynomial" name="polynomial" subType="">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>ans</variable>
+    </ExternalModel>
+    <ROM name="TPROM" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TensorProduct</IndexSet>
+      <PolynomialOrder>4</PolynomialOrder>
+      <Interpolation poly="Legendre" quad="Legendre" weight="1">x1</Interpolation>
+      <Interpolation poly="Legendre" quad="Legendre" weight="1">x2</Interpolation>
+    </ROM>
+    <ROM name="TDROM" subType="GaussPolynomialRom" verbosity="debug">
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>4</PolynomialOrder>
+      <Interpolation poly="Legendre" quad="ClenshawCurtis" weight="1">x1</Interpolation>
+      <Interpolation poly="Legendre" quad="ClenshawCurtis" weight="1">x2</Interpolation>
+    </ROM>
+    <ROM name="HCROM" subType="GaussPolynomialRom" verbosity="debug">
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>HyperbolicCross</IndexSet>
+      <PolynomialOrder>4</PolynomialOrder>
+      <Interpolation poly="Legendre" quad="ClenshawCurtis" weight="1">x1</Interpolation>
+      <Interpolation poly="Legendre" quad="ClenshawCurtis" weight="1">x2</Interpolation>
+    </ROM>
+    <ROM name="CROM" subType="GaussPolynomialRom" verbosity="debug">
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>Custom</IndexSet>
+      <IndexPoints>
                 (0,0),(0,1),(0,2),
                 (1,0),(1,1)
             </IndexPoints>
-            <PolynomialOrder>4</PolynomialOrder>
-        </ROM>
-        <ROM name='AROM' subType='GaussPolynomialRom' verbosity="debug">
-            <Target>ans</Target>
-            <Features>x1,x2</Features>
-            <IndexSet>HyperbolicCross</IndexSet>
-            <PolynomialOrder>4</PolynomialOrder>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='5'>x1</Interpolation>
-            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='7'>x2</Interpolation>
-        </ROM>
-    </Models>
+      <PolynomialOrder>4</PolynomialOrder>
+    </ROM>
+    <ROM name="AROM" subType="GaussPolynomialRom" verbosity="debug">
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>HyperbolicCross</IndexSet>
+      <PolynomialOrder>4</PolynomialOrder>
+      <Interpolation poly="Legendre" quad="ClenshawCurtis" weight="5">x1</Interpolation>
+      <Interpolation poly="Legendre" quad="ClenshawCurtis" weight="7">x2</Interpolation>
+    </ROM>
+  </Models>
 
-    <Steps>
-        <MultiRun name='TPmake' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
-            <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>TPSG</Sampler>
-            <Output  class='DataObjects'      type='PointSet'             >TPsolns</Output>
-        </MultiRun>
-        <MultiRun name='TPtest' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
-            <Model   class='Models'           type='ROM'                  >TPROM</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>TPSG</Sampler>
-            <Output  class='DataObjects'      type='PointSet'             >TPtests</Output>
-        </MultiRun>
-        <MultiRun name='TDmake' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
-            <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>TDSG</Sampler>
-            <Output  class='DataObjects'      type='PointSet'             >TDsolns</Output>
-        </MultiRun>
-        <MultiRun name='TDtest' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
-            <Model   class='Models'           type='ROM'                  >TDROM</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>TDSG</Sampler>
-            <Output  class='DataObjects'      type='PointSet'             >TDtests</Output>
-        </MultiRun>
-        <MultiRun name='HCmake' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
-            <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>HCSG</Sampler>
-            <Output  class='DataObjects'      type='PointSet'             >HCsolns</Output>
-        </MultiRun>
-        <MultiRun name='HCtest' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
-            <Model   class='Models'           type='ROM'                  >HCROM</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>HCSG</Sampler>
-            <Output  class='DataObjects'      type='PointSet'             >HCtests</Output>
-        </MultiRun>
-        <MultiRun name='Amake' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='PointSet'         >dummyIN</Input>
-            <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>ASG</Sampler>
-            <Output  class='DataObjects'      type='PointSet'         >Asolns</Output>
-        </MultiRun>
-        <MultiRun name='Atest' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='PointSet'         >dummyIN</Input>
-            <Model   class='Models'           type='ROM'                  >AROM</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>ASG</Sampler>
-            <Output  class='DataObjects'      type='PointSet'         >Atests</Output>
-        </MultiRun>
-        <MultiRun name='Cmake' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
-            <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>CSG</Sampler>
-            <Output  class='DataObjects'      type='PointSet'             >Csolns</Output>
-        </MultiRun>
-        <MultiRun name='Ctest' pauseAtEnd='false'>
-            <Input   class='DataObjects'      type='PointSet'             >dummyIN</Input>
-            <Model   class='Models'           type='ROM'                  >CROM</Model>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>CSG</Sampler>
-            <Output  class='DataObjects'      type='PointSet'             >Ctests</Output>
-        </MultiRun>
-        <IOStep name='TPprint'>
-            <Input   class='DataObjects'      type='PointSet'>TPtests</Input>
-            <Output  class='OutStreamManager' type='Print'   >TPdump</Output>
-        </IOStep>
-        <IOStep name='TDprint'>
-            <Input   class='DataObjects'      type='PointSet'>TDtests</Input>
-            <Output  class='OutStreamManager' type='Print'   >TDdump</Output>
-        </IOStep>
-        <IOStep name='HCprint'>
-            <Input   class='DataObjects'      type='PointSet'>HCtests</Input>
-            <Output  class='OutStreamManager' type='Print'   >HCdump</Output>
-        </IOStep>
-        <IOStep name='Aprint'>
-            <Input   class='DataObjects'      type='PointSet'>Atests</Input>
-            <Output  class='OutStreamManager' type='Print'       >Adump</Output>
-        </IOStep>
-        <IOStep name='Cprint'>
-            <Input   class='DataObjects'      type='PointSet'>Ctests</Input>
-            <Output  class='OutStreamManager' type='Print'   >Cdump</Output>
-        </IOStep>
-        <RomTrainer name='TPtrain'>
-            <Input   class='DataObjects'      type='PointSet'>TPsolns</Input>
-            <Output  class='Models'           type='ROM'     >TPROM</Output>
-        </RomTrainer>
-        <RomTrainer name='TDtrain'>
-            <Input   class='DataObjects'      type='PointSet'>TDsolns</Input>
-            <Output  class='Models'           type='ROM'     >TDROM</Output>
-        </RomTrainer>
-        <RomTrainer name='HCtrain'>
-            <Input   class='DataObjects'      type='PointSet'>HCsolns</Input>
-            <Output  class='Models'           type='ROM'     >HCROM</Output>
-        </RomTrainer>
-        <RomTrainer name='Ctrain'>
-            <Input   class='DataObjects'      type='PointSet'>Csolns</Input>
-            <Output  class='Models'           type='ROM'     >CROM</Output>
-        </RomTrainer>
-        <RomTrainer name='Atrain'>
-            <Input   class='DataObjects'      type='PointSet'         >Asolns</Input>
-            <Output  class='Models'           type='ROM'                  >AROM</Output>
-        </RomTrainer>
-    </Steps>
+  <Steps>
+    <MultiRun name="TPmake" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">TPSG</Sampler>
+      <Output class="DataObjects" type="PointSet">TPsolns</Output>
+    </MultiRun>
+    <MultiRun name="TPtest" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">TPROM</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">TPSG</Sampler>
+      <Output class="DataObjects" type="PointSet">TPtests</Output>
+    </MultiRun>
+    <MultiRun name="TDmake" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">TDSG</Sampler>
+      <Output class="DataObjects" type="PointSet">TDsolns</Output>
+    </MultiRun>
+    <MultiRun name="TDtest" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">TDROM</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">TDSG</Sampler>
+      <Output class="DataObjects" type="PointSet">TDtests</Output>
+    </MultiRun>
+    <MultiRun name="HCmake" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">HCSG</Sampler>
+      <Output class="DataObjects" type="PointSet">HCsolns</Output>
+    </MultiRun>
+    <MultiRun name="HCtest" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">HCROM</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">HCSG</Sampler>
+      <Output class="DataObjects" type="PointSet">HCtests</Output>
+    </MultiRun>
+    <MultiRun name="Amake" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">ASG</Sampler>
+      <Output class="DataObjects" type="PointSet">Asolns</Output>
+    </MultiRun>
+    <MultiRun name="Atest" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">AROM</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">ASG</Sampler>
+      <Output class="DataObjects" type="PointSet">Atests</Output>
+    </MultiRun>
+    <MultiRun name="Cmake" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">CSG</Sampler>
+      <Output class="DataObjects" type="PointSet">Csolns</Output>
+    </MultiRun>
+    <MultiRun name="Ctest" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">CROM</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">CSG</Sampler>
+      <Output class="DataObjects" type="PointSet">Ctests</Output>
+    </MultiRun>
+    <IOStep name="TPprint">
+      <Input class="DataObjects" type="PointSet">TPtests</Input>
+      <Output class="OutStreamManager" type="Print">TPdump</Output>
+    </IOStep>
+    <IOStep name="TDprint">
+      <Input class="DataObjects" type="PointSet">TDtests</Input>
+      <Output class="OutStreamManager" type="Print">TDdump</Output>
+    </IOStep>
+    <IOStep name="HCprint">
+      <Input class="DataObjects" type="PointSet">HCtests</Input>
+      <Output class="OutStreamManager" type="Print">HCdump</Output>
+    </IOStep>
+    <IOStep name="Aprint">
+      <Input class="DataObjects" type="PointSet">Atests</Input>
+      <Output class="OutStreamManager" type="Print">Adump</Output>
+    </IOStep>
+    <IOStep name="Cprint">
+      <Input class="DataObjects" type="PointSet">Ctests</Input>
+      <Output class="OutStreamManager" type="Print">Cdump</Output>
+    </IOStep>
+    <RomTrainer name="TPtrain">
+      <Input class="DataObjects" type="PointSet">TPsolns</Input>
+      <Output class="Models" type="ROM">TPROM</Output>
+    </RomTrainer>
+    <RomTrainer name="TDtrain">
+      <Input class="DataObjects" type="PointSet">TDsolns</Input>
+      <Output class="Models" type="ROM">TDROM</Output>
+    </RomTrainer>
+    <RomTrainer name="HCtrain">
+      <Input class="DataObjects" type="PointSet">HCsolns</Input>
+      <Output class="Models" type="ROM">HCROM</Output>
+    </RomTrainer>
+    <RomTrainer name="Ctrain">
+      <Input class="DataObjects" type="PointSet">Csolns</Input>
+      <Output class="Models" type="ROM">CROM</Output>
+    </RomTrainer>
+    <RomTrainer name="Atrain">
+      <Input class="DataObjects" type="PointSet">Asolns</Input>
+      <Output class="Models" type="ROM">AROM</Output>
+    </RomTrainer>
+  </Steps>
 
-    <DataObjects>
-        <PointSet name="dummyIN"><Input>x1,x2</Input><Output>OutputPlaceHolder</Output></PointSet>
-        <PointSet name='TPtests'><Input>x1,x2</Input><Output>ans</Output></PointSet>
-        <PointSet name='TPsolns'><Input>x1,x2</Input><Output>ans</Output></PointSet>
-        <PointSet name='TDtests'><Input>x1,x2</Input><Output>ans</Output></PointSet>
-        <PointSet name='TDsolns'><Input>x1,x2</Input><Output>ans</Output></PointSet>
-        <PointSet name='HCtests'><Input>x1,x2</Input><Output>ans</Output></PointSet>
-        <PointSet name='HCsolns'><Input>x1,x2</Input><Output>ans</Output></PointSet>
-        <PointSet name='Atests'><Input>x1,x2</Input><Output>ans</Output></PointSet>
-        <PointSet name='Asolns'><Input>x1,x2</Input><Output>ans</Output></PointSet>
-        <PointSet name='Ctests'><Input>x1,x2</Input><Output>ans</Output></PointSet>
-        <PointSet name='Csolns'><Input>x1,x2</Input><Output>ans</Output></PointSet>
-    </DataObjects>
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="TPtests">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="TPsolns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="TDtests">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="TDsolns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="HCtests">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="HCsolns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="Atests">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="Asolns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="Ctests">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="Csolns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
 
-    <OutStreamManager>
-        <Print name='TPdump'>
-            <type>csv</type>
-            <source>TPtests</source>
-        </Print>
-        <Print name='TDdump'>
-            <type>csv</type>
-            <source>TDtests</source>
-        </Print>
-        <Print name='HCdump'>
-            <type>csv</type>
-            <source>HCtests</source>
-        </Print>
-        <Print name='Adump'>
-            <type>csv</type>
-            <source>Atests</source>
-        </Print>
-        <Print name='Cdump'>
-            <type>csv</type>
-            <source>Ctests</source>
-        </Print>
-    </OutStreamManager>
+  <OutStreamManager>
+    <Print name="TPdump">
+      <type>csv</type>
+      <source>TPtests</source>
+    </Print>
+    <Print name="TDdump">
+      <type>csv</type>
+      <source>TDtests</source>
+    </Print>
+    <Print name="HCdump">
+      <type>csv</type>
+      <source>HCtests</source>
+    </Print>
+    <Print name="Adump">
+      <type>csv</type>
+      <source>Atests</source>
+    </Print>
+    <Print name="Cdump">
+      <type>csv</type>
+      <source>Ctests</source>
+    </Print>
+  </OutStreamManager>
 
 </Simulation>
