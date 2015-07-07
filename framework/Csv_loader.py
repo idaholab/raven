@@ -131,10 +131,10 @@ class CsvLoader(MessageHandler.MessageUser):
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow != None :
       inputRow = int(inputRow)
-      if inputRow  > 0: inputRow  = int(inputRow) - 1
+      if inputRow  > 0: inputRow  -= 1
     if outputRow != None:
       outputRow = int(outputRow)
-      if outputRow > 0: outputRow = int(outputRow) - 1
+      if outputRow > 0: outputRow -= 1
     inDict, outDict = {}, {}
 
     #load the data into the numpy array
@@ -244,10 +244,10 @@ class CsvLoader(MessageHandler.MessageUser):
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow != None :
       inputRow = int(inputRow)
-      if inputRow  > 0: inputRow  = int(inputRow) - 1
+      if inputRow  > 0: inputRow  -= 1
     if outputRow != None:
       outputRow = int(outputRow)
-      if outputRow > 0: outputRow = int(outputRow) - 1
+      if outputRow > 0: outputRow -= 1
     inDict, outDict = {}, {}
 
     for i in range(len(filesin)):
@@ -375,7 +375,7 @@ class CsvLoader(MessageHandler.MessageUser):
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow != None :
       inputRow = int(inputRow)
-      if inputRow  > 0: inputRow  = int(inputRow) - 1
+      if inputRow  > 0: inputRow  -= 1
     if inputRow > data[:,0].size-1  and inputRow != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual rows in file '+ str(filein) + '!')
     inDict, outDict = {}, {}
     self.field_names = self.all_field_names if self.all_out_param else outParam
