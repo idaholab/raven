@@ -69,7 +69,6 @@ def standardMain(argv,convert):
       #change comments to comment nodes
       strfile = ''.join(line for line in open(fname,'r'))
       modfile = convertToRavenComment(strfile)
-      print modfile
       tree = ET.ElementTree(ET.fromstring(modfile))
       convert(tree)
       towrite = convertFromRavenComment(prettify(tree))
