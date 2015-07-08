@@ -546,7 +546,7 @@ class MultiGridEntity(GridBase):
     self.subGridVolumetricRatio = None                                 # initial subgrid volumetric ratio
     self.grid                   = ETS.NodeTree(
                                   self.__createNewNode("InitialGrid",
-                                  {"grid":returnInstance("GridEntity",
+                                  {"grid":returnInstance("GridEntity",self,
                                    self.messageHandler),"level":"1"})) # grid hierarchical Container      
     self.multiGridIterator      = ["1", None]                          # multi grid iterator [first position is the level ID, the second it the multi-index]   
     self.mappingLevelName       = {'1':'InitialGrid'}                  # mapping between grid level and node name  
@@ -608,12 +608,43 @@ class MultiGridEntity(GridBase):
     for key, attribute in attributes.items():
       node.add(key,attribute)
     return node
+  
+  def _getMaxCellIds(self):
+    """
+     This method is aimed to retrieve the maximum cell Ids among all the nodes
+     @ In, None
+     @ Out, maxCellId, integer, the maximum cell id
+    """
+    maxCellId = 0
+    for node in self.grid.iter():
+      maxLocalCellId = max(node.get('grid').returnParameter('cellIDs').keys())
+      maxCellId = maxLocalCellId if maxLocalCellId > maxCellId else maxCellId
+    return maxCellId
 
+  def updateSubGrid(self,parentNode, refineDict):
+    """
+     Method aimed to update all the sub-grids of a parent Node.
+     This method is going to delete the sub-grids of the parent Node and reconstruct them 
+     @ In, parentNode, string, name of the parent node whose sub-grids need to be updated
+     @ In, refineDict, dict, dictionary with information to refine the parentNode grid
+     @ Out, None
+    """
+    parentNode = self.grid.find(parentNode)
+    if parentNode == -1: self.raiseAnError(Exception,"parent Node named "+ parentNode + " has not been found!")
+    parentNode.clearBranch()
+    self.refineGrid(refineDict)
+    
   def refineGrid(self,refineDict):
     """
-    aaaaaa
+     Method aimed to refine all the grids that are related to the cellIds specified in the refineDict
+     @ In, refineDict, dict, dictionary with information to refine the parentNode grid:
+           {cellIDs:listOfCellIdsToBeRefined} 
+           {refiningNumSteps:numberOfStepsToUseForTheRefinement}
+     @ Out, None
     """
+    if "refiningNumSteps" not in refineDict.keys() and "volumetricRation" not in refineDict.keys(): self.raiseAnError(IOError, "the refining Number of steps or the volumetricRatio has not been provided!!!")
     cellIdsToRefine, didWeFoundCells = refineDict['cellIDs'], dict.fromkeys(refineDict['cellIDs'], False)
+    maxCellId = self._getMaxCellIds()
     for node in self.grid.iter():
       parentNodeCellIds  = node.get("grid").returnParameter('cellIDs')
       level, nodeCellIds = node.get("level"), parentNodeCellIds.keys()
@@ -622,24 +653,28 @@ class MultiGridEntity(GridBase):
         parentGrid = node.get("grid")
         for idcnt, fcellId in enumerate(foundCells):
           didWeFoundCells[fcellId] = True
-          initDict, newGrid        = parentGrid.returnParameter("initDictionary"), returnInstance("GridEntity", self.messageHandler)
+          initDict, newGrid        = parentGrid.returnParameter("initDictionary"), returnInstance("GridEntity", self, self.messageHandler)
           verteces                 = parentNodeCellIds[fcellId]
-          lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), 0.0), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), 0.0)
+          lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), sys.float_info.max), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), -sys.float_info.max)
+          
           for vertex in verteces:
             coordinates = parentGrid.returnCoordinateFromIndex(vertex, True, recastMethods=initDict["transformationMethods"] if "transformationMethods" in initDict.keys() else {})
             lowerBounds = {k: min(i for i in (lowerBounds.get(k), coordinates.get(k)) if i) for k in lowerBounds.viewkeys() | coordinates}
             upperBounds = {k: max(i for i in (lowerBounds.get(k), coordinates.get(k)) if i) for k in lowerBounds.viewkeys() | coordinates}
           initDict["lowerBounds"], initDict["upperBounds"] = lowerBounds, upperBounds
-          if "refiningNumSteps" not in refineDict.keys(): self.raiseAnError(IOError, "the refining Number of steps has not been provided!!!")
-          initDict["stepLenght"] = {}  
-          for key in lowerBounds.keys(): initDict["stepLenght"][key] = [(upperBounds[key] - lowerBounds[key])/float(refineDict["refiningNumSteps"])]
+          if "volumetricRatio" in refineDict.keys(): initDict["volumetricRatio"] = refineDict["volumetricRatio"]
+          else:
+            if "volumetricRatio" in initDict.keys(): initDict.pop("volumetricRatio")
+            initDict["stepLenght"] = {}
+            for key in lowerBounds.keys(): initDict["stepLenght"][key] = [(upperBounds[key] - lowerBounds[key])/float(refineDict["refiningNumSteps"])]
+          initDict["startingCellId"] = maxCellId+1
           newGrid.initialize(initDict)
-          refinedNode        = self.__createNewNode(node.name+"_cell:"+str(fcellId),{"grid":newGrid,"level":level+"."+str(idcnt)})
+          maxCellId   = max(newGrid.returnParameter('cellIDs').keys())
+          refinedNode = self.__createNewNode(node.name+"_cell:"+str(fcellId),{"grid":newGrid,"level":level+"."+str(idcnt)})
           node.appendBranch(refinedNode)
       foundAll = all(item == True for item in set(didWeFoundCells.values()))
       if foundAll: break
     if not foundAll: self.raiseAnError(Exception,"the following cell IDs have not been found: " + ' '.join([cellId for cellId, value in didWeFoundCells.items() if value == True]))  
-
 
   def returnGridAsArrayOfCoordinates(self):
     """

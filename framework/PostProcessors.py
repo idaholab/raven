@@ -1594,6 +1594,9 @@ class LimitSurface(BasePostProcessor):
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.gridEntity = GridEntities.returnInstance("GridEntity",self,self.messageHandler)
+    
+    self.multiGridEntity = GridEntities.returnInstance("MultiGridEntity",self,self.messageHandler) 
+    
     self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
@@ -1619,6 +1622,13 @@ class LimitSurface(BasePostProcessor):
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
       for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key)), max(self.inputs[self.indexes].getParam(self.paramType[key],key))
     self.gridEntity.initialize(initDictionary={"computeCells":True,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
+    
+    
+    
+    self.multiGridEntity.initialize(initDictionary={"computeCells":True,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
+    
+    
+    
     self.nVar       = len(self.parameters['targets'])         #Total number of variables
     self.axisName   = self.gridEntity.returnParameter("dimensionNames")                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     self.testMatrix = np.zeros(self.gridEntity.returnParameter("gridShape"))  # grid where the values of the goalfunction are stored
@@ -1757,6 +1767,11 @@ class LimitSurface(BasePostProcessor):
      @ Out, dictionary, Dictionary containing the limitsurface
     """
     self.testMatrix.shape     = (len(self.gridEntity))    #rearrange the grid matrix such as is an array of values
+    
+    lenMultiGrid, lenGrid = len(self.multiGridEntity), len(self.gridEntity)
+    multigridCoord = self.multiGridEntity.returnGridAsArrayOfCoordinates()
+    
+    
     self.gridCoord = self.gridEntity.returnGridAsArrayOfCoordinates()
     tempDict ={}
     for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
@@ -1799,6 +1814,7 @@ class LimitSurface(BasePostProcessor):
     if self.lsSide == 'both':
       aaa = self.gridEntity.retrieveCellIds([listsurfPointNegative,listsurfPointPositive])
       print(aaa)
+      self.multiGridEntity.refineGrid({"cellIDs":aaa,"refiningNumSteps":2})
     if len(listsurfPoint) > 0:
       self.surfPoint = np.ndarray((len(listsurfPoint), self.nVar))
       for pointID, coordinate in enumerate(listsurfPoint):
