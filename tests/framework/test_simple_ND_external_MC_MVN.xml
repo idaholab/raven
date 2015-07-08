@@ -2,15 +2,10 @@
 <Simulation>
   <RunInfo>
     <WorkingDir>ND_test_MC_MVN</WorkingDir>
+    <Files>lorentzAttractor_noK.py,covMatrix.txt,CorrelationTest_print.csv</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
-    <Input name="covMatrix.txt" type="">covMatrix.txt</Input>
-    <Input name="CorrelationTest_print.csv" type="">CorrelationTest_print.csv</Input>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="ND_test_MC_MVN/lorentzAttractor_noK" name="PythonModule" subType="">

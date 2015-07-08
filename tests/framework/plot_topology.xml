@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <!-- A Simple Example of the Approximate Morse-Smale Complex Interface -->
   <RunInfo>
     <WorkingDir>topologyPostProcessor</WorkingDir>
     <Sequence>
@@ -15,6 +16,7 @@
   </RunInfo>
 
   <Models>
+    <!-- The definition of the topological partition and all of its parameters -->
     <PostProcessor debug="true" name="AMSC" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -53,16 +55,19 @@
   </Functions>
 
   <Steps>
+    <!-- Load the data from a csv into the hdf5 database used by this run -->
     <IOStep fromDirectory="." name="load">
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Output class="Databases" type="HDF5">myDB</Output>
     </IOStep>
+    <!-- Perform the topological decomposition -->
     <PostProcess name="decompose">
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">AMSC</Model>
       <Output class="DataObjects" type="PointSet">outTPS</Output>
       <Output class="OutStreamManager" type="Print">myDump</Output>
     </PostProcess>
+    <!-- Subselect data -->
     <PostProcess name="seg1">
       <Input class="DataObjects" type="PointSet">outTPS</Input>
       <Model class="Models" type="PostProcessor">seg1</Model>
@@ -83,6 +88,7 @@
       <Model class="Models" type="PostProcessor">seg4</Model>
       <Output class="DataObjects" type="PointSet">seg4</Output>
     </PostProcess>
+    <!-- Plot the data -->
     <OutStreamStep name="plot" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">seg1</Input>
       <Input class="DataObjects" type="PointSet">seg2</Input>
@@ -93,6 +99,7 @@
   </Steps>
 
   <OutStreamManager>
+    <!-- A csv file containing the output of the example -->
     <Print name="myDump">
       <type>csv</type>
       <source>outTPS</source>
@@ -108,6 +115,12 @@
           <y>seg1|Input|Y</y>
           <z>seg1|Output|Z</z>
           <c>yellow</c>
+          <!--
+            <colorMap>seg1|Output|Z</colorMap>
+          -->
+          <!--
+            <cmap>jet</cmap>
+          -->
           <kwargs/>
         </plot>
         <plot>
@@ -139,30 +152,37 @@
   </OutStreamManager>
 
   <Databases>
+    <!-- The necessary database object -->
     <HDF5 name="myDB"/>
   </Databases>
 
   <DataObjects>
+    <!-- The input PointSet objects -->
     <PointSet name="testData">
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
+    <!-- The output PointSet objects -->
     <PointSet name="outTPS">
       <Input>X,Y</Input>
       <Output>Z,minLabel,maxLabel</Output>
     </PointSet>
+    <!-- The first segment -->
     <PointSet name="seg1">
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
+    <!-- The second segment -->
     <PointSet name="seg2">
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
+    <!-- The third segment -->
     <PointSet name="seg3">
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
+    <!-- The fourth segment -->
     <PointSet name="seg4">
       <Input>X,Y</Input>
       <Output>Z</Output>

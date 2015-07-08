@@ -60,7 +60,7 @@ class BaseType(MessageHandler.MessageUser):
     if not isinstance(handler,MessageHandler.MessageHandler):
       e=IOError('Attempted to set the message handler for '+str(self)+' to '+str(handler))
       print('\nERROR! Setting MessageHandler in BaseClass,',e,'\n')
-      sys.exit()
+      sys.exit(1)
     self.messageHandler = handler
 
   def whoAreYou(self):

@@ -72,27 +72,27 @@
 
   <Steps>
     <MultiRun name="make">
-      <Sampler class="Samplers" type="Sobol">sobol</Sampler>
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="Sobol">sobol</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="Models" type="ROM">rom</Output>
-    </RomTrainer>
     <MultiRun name="test">
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ROM">rom</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">tests</Output>
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">tests</Input>
-      <Output class="OutStreamManager" type="Print">dump</Output>
       <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreamManager" type="Print">dump</Output>
       <Output class="OutStreamManager" type="Print">dumprom</Output>
     </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
   </Steps>
 
   <DataObjects>

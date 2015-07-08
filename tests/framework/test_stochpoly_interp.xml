@@ -43,26 +43,26 @@
   </Models>
 
   <Steps>
-    <MultiRun name="Nmake" pauseAtEnd="False">
-      <Sampler class="Samplers" type="SparseGridCollocation">NSG</Sampler>
+    <MultiRun name="Nmake" pauseAtEnd="false">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">NSG</Sampler>
       <Output class="DataObjects" type="PointSet">Nsolns</Output>
     </MultiRun>
-    <RomTrainer name="Ntrain">
-      <Input class="DataObjects" type="PointSet">Nsolns</Input>
-      <Output class="Models" type="ROM">NROM</Output>
-    </RomTrainer>
-    <MultiRun name="Ntest" pauseAtEnd="False">
-      <Sampler class="Samplers" type="SparseGridCollocation">NSG</Sampler>
+    <MultiRun name="Ntest" pauseAtEnd="false">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ROM">NROM</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">NSG</Sampler>
       <Output class="DataObjects" type="PointSet">Ntests</Output>
     </MultiRun>
     <IOStep name="Nprint">
       <Input class="DataObjects" type="PointSet">Ntests</Input>
       <Output class="OutStreamManager" type="Print">Ndump</Output>
     </IOStep>
+    <RomTrainer name="Ntrain">
+      <Input class="DataObjects" type="PointSet">Nsolns</Input>
+      <Output class="Models" type="ROM">NROM</Output>
+    </RomTrainer>
   </Steps>
 
   <DataObjects>

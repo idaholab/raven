@@ -7,10 +7,10 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="make" pauseAtEnd="False">
-      <Sampler class="Samplers" type="Sobol">sobol</Sampler>
+    <MultiRun name="make" pauseAtEnd="false">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="Sobol">sobol</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
     <IOStep name="print">

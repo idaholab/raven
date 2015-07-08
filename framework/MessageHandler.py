@@ -171,17 +171,13 @@ class MessageHandler(object):
         @ Out, None
       '''
       if msg.lower() in utils.stringsThatMeanTrue():
-          print('Time step printing enabled.')
           self.callerLength = 40
           self.tagLength = 30
           self.printTime = True
       elif msg.lower() in utils.stringsThatMeanFalse():
-          print('Time step printing disabled.')
           self.callerLength = 25
           self.tagLength = 15
           self.printTime = False
-      else:
-          print('Not recognized:',msg)
 
   def getStringFromCaller(self,obj):
     """
@@ -231,7 +227,7 @@ class MessageHandler(object):
       if not self.suppressErrs and verbval==3: raise etype(msg) #DEBUG mode without suppression
       print('\n'+etype.__name__+':',msg,file=sys.stderr)
       if not self.suppressErrs: #exit after print
-        sys.exit()
+        sys.exit(1)
 
   def message(self,caller,message,tag,verbosity):
     """

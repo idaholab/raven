@@ -2,14 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>output_check</WorkingDir>
+    <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>FirstMRun,testOutstreamStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
-    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
-  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">
@@ -84,7 +80,7 @@
       <type>csv</type>
       <source>PointSets</source>
     </Print>
-    <Plot dim="2" name="test" overwrite="False" verbosity="debug">
+    <Plot dim="2" name="test" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -108,7 +104,7 @@
       <actions>
         <how>png</how>
         <figureProperties>
-          <frameon>t</frameon>
+          <frameon>true</frameon>
         </figureProperties>
         <range>
           <xmin>0</xmin>
@@ -128,7 +124,7 @@
           <yscale>linear</yscale>
         </scale>
         <grid>
-          <b>on</b>
+          <b>true</b>
         </grid>
         <addText>
           <text> </text>
@@ -136,7 +132,7 @@
         <title>
           <text> </text>
         </title>
-         --&gt;
+        <!-- custom action (not predefined in the code -->
         <arrow>
           <x>0.0</x>
           <y>0.0</y>
@@ -145,7 +141,7 @@
         </arrow>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot2" overwrite="False" verbosity="debug">
+    <Plot dim="3" name="plot2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -187,7 +183,7 @@
           <style>sci</style>
         </labelFormat>
         <grid>
-          <b>off</b>
+          <b>false</b>
         </grid>
         <scale>
           <xscale>linear</xscale>
@@ -202,11 +198,11 @@
           <text> </text>
         </addText>
         <autoscale>
-          <enable>f</enable>
+          <enable>false</enable>
         </autoscale>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot3" overwrite="False" verbosity="debug">
+    <Plot dim="2" name="plot3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -227,7 +223,6 @@
             <label>pump mass flow rate</label>
           </kwargs>
         </plot>
-         --&gt;
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
       </plotSettings>
@@ -238,7 +233,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot4" overwrite="False" verbosity="debug">
+    <Plot dim="3" name="plot4" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -270,11 +265,11 @@
           <elevation>10</elevation>
         </camera>
         <autoscale>
-          <enable>t</enable>
+          <enable>true</enable>
         </autoscale>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot5" overwrite="False" verbosity="debug">
+    <Plot dim="2" name="plot5" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -290,7 +285,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot6" overwrite="False" verbosity="debug">
+    <Plot dim="3" name="plot6" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -307,7 +302,7 @@
         </camera>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot7" overwrite="False" verbosity="debug">
+    <Plot dim="2" name="plot7" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -324,7 +319,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot8" overwrite="False" verbosity="debug">
+    <Plot dim="3" name="plot8" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -342,7 +337,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot9" overwrite="False" verbosity="debug">
+    <Plot dim="2" name="plot9" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -359,7 +354,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot10" overwrite="False" verbosity="debug">
+    <Plot dim="3" name="plot10" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -377,7 +372,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot11" overwrite="False" verbosity="debug">
+    <Plot dim="2" name="plot11" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>step</type>
@@ -394,7 +389,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot12" overwrite="False" verbosity="debug">
+    <Plot dim="2" name="plot12" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>pseudocolor</type>
@@ -413,7 +408,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot13" overwrite="False" verbosity="debug">
+    <Plot dim="3" name="plot13" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>surface</type>
@@ -448,7 +443,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot14" overwrite="False" verbosity="debug">
+    <Plot dim="3" name="plot14" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>tri-surface</type>
@@ -479,7 +474,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot15" overwrite="False" verbosity="debug">
+    <Plot dim="3" name="plot15" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>wireframe</type>
@@ -511,7 +506,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot16" overwrite="False" verbosity="debug">
+    <Plot dim="2" name="plot16" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>contour</type>
@@ -537,7 +532,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot17" overwrite="False" verbosity="debug">
+    <Plot dim="3" name="plot17" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>contour3D</type>
@@ -566,7 +561,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot18" overwrite="False" verbosity="debug">
+    <Plot dim="2" name="plot18" overwrite="false" verbosity="debug">
       <actions>
         <how>png</how>
       </actions>
@@ -584,7 +579,7 @@
       </kwargs>
       </plotSettings>
     </Plot>
-    <Plot dim="3" name="plot19" overwrite="False" verbosity="debug">
+    <Plot dim="3" name="plot19" overwrite="false" verbosity="debug">
       <actions>
         <how>png</how>
       </actions>
@@ -604,7 +599,7 @@
       </kwargs>
       </plotSettings>
     </Plot>
-    <Plot dim="3" name="plot20" overwrite="False" verbosity="debug">
+    <Plot dim="3" name="plot20" overwrite="false" verbosity="debug">
       <actions>
         <how>png</how>
       </actions>
@@ -624,7 +619,7 @@
       </kwargs>
       </plotSettings>
     </Plot>
-    <Plot dim="2" name="2DHistoryPlot" overwrite="False" verbosity="debug">
+    <Plot dim="2" name="2DHistoryPlot" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -640,7 +635,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="2DHistoryPlot2" overwrite="False" verbosity="debug">
+    <Plot dim="2" name="2DHistoryPlot2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -659,7 +654,7 @@
   </OutStreamManager>
 
   <Steps>
-    <MultiRun name="FirstMRun" pauseAtEnd="False">
+    <MultiRun name="FirstMRun" pauseAtEnd="false">
       <Input class="Files" type="">ideal_pump.i</Input>
       <Input class="Files" type="">ideal_pump_control.py</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
@@ -670,7 +665,7 @@
       <Output class="DataObjects" type="Point">Pointt</Output>
       <Output class="DataObjects" type="History">Historyy</Output>
     </MultiRun>
-    <IOStep name="testOutstreamStep" pauseAtEnd="False">
+    <IOStep name="testOutstreamStep" pauseAtEnd="false">
       <Input class="DataObjects" type="HistorySet">stories</Input>
       <Input class="DataObjects" type="PointSet">PointSets</Input>
       <Input class="DataObjects" type="Point">Pointt</Input>

@@ -2,13 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>LHStestFerret</WorkingDir>
+    <Files>simple_diffusion.i</Files>
     <Sequence>myLHS</Sequence>
     <batchSize>9</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="simple_diffusion.i" type="">simple_diffusion.i</Input>
-  </Files>
 
   <Models>
     <Code name="Ferret" subType="MooseBasedApp">

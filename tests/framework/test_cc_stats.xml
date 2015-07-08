@@ -2,15 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>test_cc_stats</WorkingDir>
+    <Files>ideal_pump.i,ideal_pump_control.py,output.csv</Files>
     <Sequence>test_read_in,test_stats_step,dump_data</Sequence>
     <batchSize>3</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
-    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
-    <Input name="output.csv" type="">output.csv</Input>
-  </Files>
 
   <Models>
     <PostProcessor name="test_stats" subType="ComparisonStatistics">
@@ -21,12 +16,16 @@
       </compare>
       <compare>
         <data>fullprint_Pointset|outputs|normal2</data>
+        <!-- Note that normal2 actually is mean=20, sigma = 3.0 -->
         <reference name="normal_30_5"/>
       </compare>
       <compare>
         <data>fullprint_Pointset|outputs|uniform1</data>
         <data>fullprint_Pointset|outputs|uniform2p</data>
       </compare>
+      <!--
+        <fz>True</fz>
+      -->
       <Distribution class="Distributions" type="Normal">normal_20_3</Distribution>
       <Distribution class="Distributions" type="Normal">normal_30_5</Distribution>
     </PostProcessor>
@@ -43,21 +42,35 @@
     </Normal>
   </Distributions>
 
+  <!--
+    <Samplers>
+      <MonteCarlo name="RAVENmc3">
+        <sampler_init>
+          <limit>1</limit>
+          <initial_seed>1</initial_seed>
+        </sampler_init>
+      </MonteCarlo>
+    </Samplers>
+  -->
+
   <Steps>
     <IOStep fromDirectory="../input_for_test_cc" name="test_read_in">
       <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
       <Output class="Databases" type="HDF5">MC_TEST_REWRITE</Output>
     </IOStep>
-    <PostProcess name="test_stats_step">
-      <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
-      <Model class="Models" type="PostProcessor">test_stats</Model>
-      <Output class="Files" type="">output.csv</Output>
-      <Output class="DataObjects" type="PointSet">out_data</Output>
-    </PostProcess>
     <IOStep name="dump_data">
       <Input class="DataObjects" type="PointSet">out_data</Input>
       <Output class="OutStreamManager" type="Print">out_data</Output>
     </IOStep>
+    <PostProcess name="test_stats_step">
+      <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
+      <!--
+        <Input class="Databases" type="HDF5">MC_TEST_REWRITE</Input>
+      -->
+      <Model class="Models" type="PostProcessor">test_stats</Model>
+      <Output class="Files" type="">output.csv</Output>
+      <Output class="DataObjects" type="PointSet">out_data</Output>
+    </PostProcess>
   </Steps>
 
   <Databases>

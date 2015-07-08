@@ -2,18 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>basicStatistics</WorkingDir>
+    <Files>basicStatisticsExternalModelTest.py,output_basicStatistics_PP1.csv,output_basicStatistics_PP2.csv,output_basicStatistics_PP3.csv,output_basicStatistics_PP4.csv,output_basicStatistics_PP5.csv</Files>
     <Sequence>FirstMRun,PP1,PP2,PP3,PP4,PP5</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
-    <Input name="output_basicStatistics_PP1.csv" type="">output_basicStatistics_PP1.csv</Input>
-    <Input name="output_basicStatistics_PP2.csv" type="">output_basicStatistics_PP2.csv</Input>
-    <Input name="output_basicStatistics_PP3.csv" type="">output_basicStatistics_PP3.csv</Input>
-    <Input name="output_basicStatistics_PP4.csv" type="">output_basicStatistics_PP4.csv</Input>
-    <Input name="output_basicStatistics_PP5.csv" type="">output_basicStatistics_PP5.csv</Input>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="basicStatistics/basicStatisticsExternalModelTest" name="PythonModule" subType="">
@@ -32,6 +24,10 @@
       <variable>z01</variable>
     </ExternalModel>
     <PostProcessor name="autoCorrelationTest" subType="BasicStatistics" verbosity="debug">
+      <!--
+         =&gt; you can here specify what type of figure of merit you need to compute
+        <what>expectedValue,sigma,variance,kurtois,pearson,covariance</what>
+      -->
       <what>expectedValue</what>
       <parameters>x01,x02</parameters>
       <methodsToRun>failureProbability</methodsToRun>
@@ -103,8 +99,8 @@
     </MultiRun>
     <PostProcess name="PP1">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
-      <Model class="Models" type="PostProcessor">autoCorrelationTest</Model>
       <Function class="Functions" type="External">testFunctionComputeProbability</Function>
+      <Model class="Models" type="PostProcessor">autoCorrelationTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1.csv</Output>
     </PostProcess>
     <PostProcess name="PP2">

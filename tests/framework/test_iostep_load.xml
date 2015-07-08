@@ -2,14 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir runRelative="True">test_iostep_load</WorkingDir>
+    <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>test_read_in,test_rewrite</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
-    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
-  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">
@@ -29,12 +25,12 @@
   <Steps>
     <IOStep fromDirectory="../output_check" name="test_read_in">
       <Input class="DataObjects" type="HistorySet">fullprint_HistorySet</Input>
-      <Output class="Databases" type="HDF5">MC_TEST_REWRITE</Output>
       <Input class="DataObjects" type="Point">fullprint_Point</Input>
-      <Output class="Databases" type="HDF5">MC_TEST_REWRITE</Output>
       <Input class="DataObjects" type="History">fullprint_history</Input>
-      <Output class="Databases" type="HDF5">MC_TEST_REWRITE</Output>
       <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
+      <Output class="Databases" type="HDF5">MC_TEST_REWRITE</Output>
+      <Output class="Databases" type="HDF5">MC_TEST_REWRITE</Output>
+      <Output class="Databases" type="HDF5">MC_TEST_REWRITE</Output>
       <Output class="Databases" type="HDF5">MC_TEST_REWRITE</Output>
     </IOStep>
     <IOStep name="test_rewrite">
@@ -42,6 +38,12 @@
       <Input class="DataObjects" type="HistorySet">fullprint_HistorySet</Input>
       <Input class="DataObjects" type="Point">fullprint_Point</Input>
       <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
+      <!--
+        <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
+      -->
+      <!--
+        <Output class="OutStreamManager" type="Print">reprint_Pointset</Output>
+      -->
       <Output class="OutStreamManager" type="Print">reprint_Point</Output>
       <Output class="OutStreamManager" type="Print">reprint_Pointset</Output>
       <Output class="OutStreamManager" type="Print">reprint_history</Output>

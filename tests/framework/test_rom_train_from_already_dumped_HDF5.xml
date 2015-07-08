@@ -2,18 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
+    <Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_steady_restart/1863.rd-0,TMI_steady_restart/1863.xdr,TMI_steady_restart/1863.xdr.0000,TMI_steady_restart/1863_mesh.cpr</Files>
     <Sequence>test_extract_for_rom_trainer,test_rom_trainer,rom_MC</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="TMI_PRA_trans_MC_control.py" type="">TMI_PRA_trans_MC_control.py</Input>
-    <Input name="TMI.i" type="">TMI.i</Input>
-    <Input name="TMI_steady_restart/1863.rd-0" type="">TMI_steady_restart/1863.rd-0</Input>
-    <Input name="TMI_steady_restart/1863.xdr" type="">TMI_steady_restart/1863.xdr</Input>
-    <Input name="TMI_steady_restart/1863.xdr.0000" type="">TMI_steady_restart/1863.xdr.0000</Input>
-    <Input name="TMI_steady_restart/1863_mesh.cpr" type="">TMI_steady_restart/1863_mesh.cpr</Input>
-  </Files>
 
   <Distributions>
     <Uniform name="auxbackup">
@@ -55,14 +47,6 @@
   </Samplers>
 
   <Steps>
-    <IOStep name="test_extract_for_rom_trainer">
-      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-      <Output class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Output>
-    </IOStep>
-    <RomTrainer name="test_rom_trainer">
-      <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
-      <Output class="Models" type="ROM">ROM1</Output>
-    </RomTrainer>
     <MultiRun name="rom_MC">
       <Input class="DataObjects" type="Point">data_for_sampling_empty_at_begin</Input>
       <Model class="Models" type="ROM">ROM1</Model>
@@ -70,6 +54,14 @@
       <Output class="DataObjects" type="PointSet">outputMontecarloRom</Output>
       <Output class="OutStreamManager" type="Print">outputMontecarloRom_dump</Output>
     </MultiRun>
+    <IOStep name="test_extract_for_rom_trainer">
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+      <Output class="DataObjects" type="PointSet">timepointset_from_database_for_rom_trainer</Output>
+    </IOStep>
+    <RomTrainer name="test_rom_trainer">
+      <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
+      <Output class="Models" type="ROM">ROM1</Output>
+    </RomTrainer>
   </Steps>
 
   <OutStreamManager>

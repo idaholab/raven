@@ -1,18 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <!-- The purpose of this test is to exercise the OpenModelica external code interface without needing to have a built -->
+  <!--   executable.  It is directly modeled on the test_relap5_code_interface.xml test and works by making sure that -->
+  <!--   1) The input files are perturbed correctly -->
+  <!--   2) That the raw output CSV files are properly processed for reading by RAVEN -->
   <RunInfo>
     <WorkingDir>OMInterfaceTest</WorkingDir>
+    <Files>BouncingBall_init.xml</Files>
     <Sequence>testDummyStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
-  <Files>
-    <Input name="BouncingBall_init.xml" type="">BouncingBall_init.xml</Input>
-  </Files>
-
   <Models>
     <Code name="BouncingBall" subType="OpenModelica">
-      <executable>  </executable>
+      <executable>
+        <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
+      </executable>
     </Code>
   </Models>
 

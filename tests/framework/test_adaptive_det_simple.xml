@@ -2,14 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>AdaptiveDET</WorkingDir>
+    <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>AdaptiveDETrunTest,DumpResults</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
-    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
-  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">
@@ -67,8 +63,8 @@
       <Input class="Files" type="">ideal_pump.i</Input>
       <Input class="Files" type="">ideal_pump_control.py</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
-      <SolutionExport class="DataObjects" type="PointSet">LimitSurfSimple</SolutionExport>
       <Sampler class="Samplers" type="AdaptiveDynamicEventTree">AdaptiveDETsimple</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">LimitSurfSimple</SolutionExport>
       <Output class="DataObjects" type="PointSet">adaptiveOutsimple</Output>
       <Output class="Databases" type="HDF5">AdaptiveDETsimpleDatabase</Output>
       <Output class="DataObjects" type="HistorySet">AdaptiveDETHistorySet</Output>
@@ -82,6 +78,9 @@
       <Input class="DataObjects" type="PointSet">LimitSurfSimple</Input>
       <Input class="DataObjects" type="HistorySet">adaptiveOutHistorySetimple</Input>
       <Output class="OutStreamManager" type="Print">adaptiveNoHierarchicalDump</Output>
+      <!--
+        <Output class="OutStreamManager" type="Plot">limitSurfDump</Output>
+      -->
       <Output class="OutStreamManager" type="Print">adaptiveNoHierarchicalDump</Output>
       <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier</Output>
       <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Output</Output>
@@ -142,6 +141,24 @@
       <source>adaptiveOutsimple</source>
       <what>Output|systemFailed</what>
     </Print>
+    <!--
+      <Plot dim="2" name="limitSurfDump" overwrite="False" verbosity="debug">
+        <plotSettings>
+          <plot>
+            <type>scatter</type>
+            <x>LimitSurfSimple|Input|PressureFailureValue</x>
+            <y>LimitSurfSimple|Input|depressurizationOnTime</y>
+            <colorMap>LimitSurfSimple|Output|relapFunctionSimple</colorMap>
+          </plot>
+        </plotSettings>
+        <actions>
+          <how>png</how>
+          <title>
+            <text> </text>
+          </title>
+        </actions>
+      </Plot>
+    -->
   </OutStreamManager>
 
   <DataObjects>
@@ -156,21 +173,21 @@
       <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
       <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
     </PointSet>
-    <PointSet hierarchical="t" name="AdaptiveDETPointsetHierarchical">
+    <PointSet hierarchical="true" name="AdaptiveDETPointsetHierarchical">
       <options>
         <inputRow>-1</inputRow>
       </options>
       <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
       <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
     </PointSet>
-    <PointSet hierarchical="t" name="adaptiveOutsimple">
+    <PointSet hierarchical="true" name="adaptiveOutsimple">
       <options>
         <inputRow>-1</inputRow>
       </options>
       <Input>PressureFailureValue,depressurizationOnTime</Input>
       <Output>systemFailed</Output>
     </PointSet>
-    <HistorySet hierarchical="t" name="adaptiveOutHistorySetimple">
+    <HistorySet hierarchical="true" name="adaptiveOutHistorySetimple">
       <options>
         <inputRow>-1</inputRow>
       </options>

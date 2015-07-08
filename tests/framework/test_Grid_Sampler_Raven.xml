@@ -2,14 +2,11 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>GridTestRaven</WorkingDir>
+    <Files>simple_flow_3eqn.i,
+    simple_flow_3eqn_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="simple_flow_3eqn.i" type="">simple_flow_3eqn.i</Input>
-    <Input name="simple_flow_3eqn_control.py" type="">simple_flow_3eqn_control.py</Input>
-  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">
@@ -52,6 +49,9 @@
       <Input class="Files" type="">simple_flow_3eqn_control.py</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <!--
+        <Databases class="Databases" type="">testMPIDatabase</Databases>
+      -->
       <Output class="Databases" type="HDF5">testGridRavenDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">outGrid</Output>

@@ -7,14 +7,14 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="adapt" pauseAtEnd="True">
-      <Sampler class="Samplers" type="LimitSurfaceSearch">dpt_smp</Sampler>
+    <MultiRun name="adapt" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">bln_smp_dt</Input>
       <Model class="Models" type="ExternalModel">xtr_mdl</Model>
-      <Output class="DataObjects" type="PointSet">nt_phy_dpt_dt</Output>
+      <Sampler class="Samplers" type="LimitSurfaceSearch">dpt_smp</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">lmt_srf_dt</SolutionExport>
+      <Output class="DataObjects" type="PointSet">nt_phy_dpt_dt</Output>
     </MultiRun>
-    <IOStep name="adaptdump" pauseAtEnd="True">
+    <IOStep name="adaptdump" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">lmt_srf_dt</Input>
       <Output class="OutStreamManager" type="Print">limitSurfaceDump</Output>
     </IOStep>

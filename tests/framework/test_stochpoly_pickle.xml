@@ -3,12 +3,9 @@
   <RunInfo>
     <WorkingDir>StochasticPolyPickleTest</WorkingDir>
     <Sequence>make,train,pkDump,pkLoad,sampleNatural,samplePickle,write</Sequence>
+    <Files>ROMpk</Files>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="ROMpk" type="">ROMpk</Input>
-  </Files>
 
   <Distributions>
     <Uniform name="UniDist">
@@ -66,15 +63,23 @@
 
   <Steps>
     <MultiRun name="make">
-      <Sampler class="Samplers" type="SparseGridCollocation">SG</Sampler>
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">SG</Sampler>
       <Output class="DataObjects" type="PointSet">SGsolns</Output>
     </MultiRun>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="PointSet">SGsolns</Input>
-      <Output class="Models" type="ROM">UROM</Output>
-    </RomTrainer>
+    <MultiRun name="sampleNatural">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">UROM</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">Usolns</Output>
+    </MultiRun>
+    <MultiRun name="samplePickle">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">pROM</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">psolns</Output>
+    </MultiRun>
     <IOStep name="pkDump">
       <Input class="Models" type="ROM">UROM</Input>
       <Output class="Files" type="">ROMpk</Output>
@@ -83,24 +88,16 @@
       <Input class="Files" type="">ROMpk</Input>
       <Output class="Models" type="ROM">pROM</Output>
     </IOStep>
-    <MultiRun name="sampleNatural">
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ROM">UROM</Model>
-      <Output class="DataObjects" type="PointSet">Usolns</Output>
-    </MultiRun>
-    <MultiRun name="samplePickle">
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ROM">pROM</Model>
-      <Output class="DataObjects" type="PointSet">psolns</Output>
-    </MultiRun>
     <IOStep name="write">
       <Input class="DataObjects" type="PointSet">Usolns</Input>
       <Input class="DataObjects" type="PointSet">psolns</Input>
       <Output class="OutStreamManager" type="Print">Udump</Output>
       <Output class="OutStreamManager" type="Print">pdump</Output>
     </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">SGsolns</Input>
+      <Output class="Models" type="ROM">UROM</Output>
+    </RomTrainer>
   </Steps>
 
   <DataObjects>

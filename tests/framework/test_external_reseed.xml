@@ -2,13 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
+    <Files>Functions.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="Functions.py" type="">Functions.py</Input>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="externalModel/Functions" name="PythonModule" subType="">

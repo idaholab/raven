@@ -1,8 +1,10 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <!-- A Simple Example of the Approximate Morse-Smale Complex Interface -->
   <RunInfo>
     <WorkingDir>topologyPostProcessor</WorkingDir>
     <Sequence>
+      <!-- loadData, -->
       sampleData,
       decompose1,
       decompose2,
@@ -17,6 +19,7 @@
       <variable>Y</variable>
       <variable>Z</variable>
     </ExternalModel>
+    <!-- The definition of the topological partition and all of its parameters -->
     <PostProcessor name="AMSC1" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -80,21 +83,31 @@
   </Samplers>
 
   <Steps>
+    <!-- Load the data from a csv into the hdf5 database used by this run -->
+    <MultiRun name="sampleData" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">testFunction</Model>
+      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">testData</Output>
+    </MultiRun>
+    <!-- Load the data from a csv into the hdf5 database used by this run -->
     <IOStep fromDirectory="." name="loadData">
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Output class="Databases" type="HDF5">myDB</Output>
     </IOStep>
-    <MultiRun name="sampleData" pauseAtEnd="False">
-      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">testFunction</Model>
-      <Output class="DataObjects" type="PointSet">testData</Output>
+  <!-- Load the data from a csv into the hdf5 database used by this run -->
+    <MultiRun name='sampleData' pauseAtEnd='False'>
+      <Sampler class='Samplers'    type='Grid'          >gridSampler</Sampler>
+      <Input   class='DataObjects' type='PointSet'  >dummyIN</Input>
+      <Model   class='Models'      type='ExternalModel' >testFunction</Model>
+      <Output  class='DataObjects' type='PointSet'  >testData</Output>
     </MultiRun>
-    <PostProcess name="decompose1">
-      <Input class="DataObjects" type="PointSet">testData</Input>
-      <Model class="Models" type="PostProcessor">AMSC1</Model>
-      <Output class="DataObjects" type="PointSet">outTPS1</Output>
-      <Output class="OutStreamManager" type="Print">myDump1</Output>
+  <!-- Perform the topological decomposition -->
+    <PostProcess name='decompose1'>
+      <Input   class='DataObjects'      type='PointSet' >testData</Input>
+      <Model   class='Models'           type='PostProcessor'>AMSC1</Model>
+      <Output  class='DataObjects'      type='PointSet' >outTPS1</Output>
+      <Output  class='OutStreamManager' type='Print'        >myDump1</Output>
     </PostProcess>
     <PostProcess name="decompose2">
       <Input class="DataObjects" type="PointSet">testData</Input>
@@ -117,6 +130,7 @@
   </Steps>
 
   <OutStreamManager>
+    <!-- A csv file containing the output of the example -->
     <Print name="myDump1">
       <type>csv</type>
       <source>outTPS1</source>
@@ -136,10 +150,12 @@
   </OutStreamManager>
 
   <Databases>
+    <!-- The necessary database object -->
     <HDF5 name="myDB"/>
   </Databases>
 
   <DataObjects>
+    <!-- The input PointSet object -->
     <PointSet name="dummyIN">
       <Input>X,Y</Input>
       <Output>OutputPlaceHolder</Output>
@@ -148,6 +164,7 @@
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
+    <!-- The output PointSet objects -->
     <PointSet name="outTPS1">
       <Input>X,Y</Input>
       <Output>Z</Output>

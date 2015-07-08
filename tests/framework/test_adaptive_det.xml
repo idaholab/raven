@@ -2,18 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET</WorkingDir>
+    <Files>TMI_PRA_trans_DET_control.py,TMI.i,TMI_steady_restart/0957.rd-0,TMI_steady_restart/0957.xdr,TMI_steady_restart/0957.xdr.0000,TMI_steady_restart/0957_mesh.cpr</Files>
     <Sequence>AdaptiveDETrunTest</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="TMI_PRA_trans_DET_control.py" type="">TMI_PRA_trans_DET_control.py</Input>
-    <Input name="TMI.i" type="">TMI.i</Input>
-    <Input name="TMI_steady_restart/0957.rd-0" type="">TMI_steady_restart/0957.rd-0</Input>
-    <Input name="TMI_steady_restart/0957.xdr" type="">TMI_steady_restart/0957.xdr</Input>
-    <Input name="TMI_steady_restart/0957.xdr.0000" type="">TMI_steady_restart/0957.xdr.0000</Input>
-    <Input name="TMI_steady_restart/0957_mesh.cpr" type="">TMI_steady_restart/0957_mesh.cpr</Input>
-  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">
@@ -112,6 +104,18 @@
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">timepointset</Output>
     </LimitSurfaceSearch>
+    <!--
+      <IOStep name="testOutstreamStep">
+        <Input class="DataObjects" type="HistorySet">stories</Input>
+        <Input class="DataObjects" type="PointSet">Pointset</Input>
+        <Output class="OutStreamManager" type="Print">testprint_hist_hier</Output>
+        <Output class="OutStreamManager" type="Print">testprint_tpset_hier</Output>
+        <Output class="OutStreamManager" type="Print">testprint_hist_hier_variables</Output>
+        <Output class="OutStreamManager" type="Print">testprint_tpset_hier_variables</Output>
+        <Output class="OutStreamManager" type="Plot">2DHistoryPlot</Output>
+        <Output class="OutStreamManager" type="Plot">2DHistoryPlot_tps</Output>
+      </IOStep>
+    -->
   </Steps>
 
   <Databases>

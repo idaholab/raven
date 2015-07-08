@@ -2,15 +2,11 @@
 <Simulation>
   <RunInfo>
     <JobName>testGenericCodeInterface</JobName>
+    <Files>gen.one,gen.two</Files>
     <Sequence>sample</Sequence>
     <WorkingDir>GenericInterface</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="gen.one" type="">gen.one</Input>
-    <Input name="gen.two" type="">gen.two</Input>
-  </Files>
 
   <Models>
     <Code name="poly" subType="GenericCode">
@@ -51,8 +47,8 @@
     <MultiRun name="sample">
       <Input class="Files" type="">gen.one</Input>
       <Input class="Files" type="">gen.two</Input>
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Model class="Models" type="Code">poly</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">samples</Output>
       <Output class="OutStreamManager" type="Print">samples</Output>
     </MultiRun>

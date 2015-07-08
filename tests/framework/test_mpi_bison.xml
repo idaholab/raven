@@ -2,17 +2,13 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>mpi_bison_test</WorkingDir>
+    <Files>case_1.i,case_1.e</Files>
     <Sequence>myLHS</Sequence>
     <batchSize>9</batchSize>
     <NumThreads>2</NumThreads>
     <mode>mpi</mode>
     <NumMPI>2</NumMPI>
   </RunInfo>
-
-  <Files>
-    <Input name="case_1.i" type="">case_1.i</Input>
-    <Input name="case_1.e" type="">case_1.e</Input>
-  </Files>
 
   <Models>
     <Code name="Bison" subType="MooseBasedApp">

@@ -2,14 +2,21 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>./revirD_tset</WorkingDir>
+    <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
+    <!--
+      <ParallelCommand/>
+      <NumMPI/>
+      <ThreadingCommand/>
+      <NumThreads/>
+      <numNode/>
+      <queueingSoftware/>
+      <procByNode/>
+      <numProcByRun/>
+      <totalNumCoresUsed/>
+    -->
   </RunInfo>
-
-  <Files>
-    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
-    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
-  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">

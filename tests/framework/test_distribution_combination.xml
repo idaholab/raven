@@ -2,14 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>dists_vars/</WorkingDir>
+    <Files>dist_var.py,2DgaussianCartesianPDF.txt</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="dist_var.py" type="">dist_var.py</Input>
-    <Input name="2DgaussianCartesianPDF.txt" type="">2DgaussianCartesianPDF.txt</Input>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="dists_vars/dist_var" name="PythonModule" subType="">

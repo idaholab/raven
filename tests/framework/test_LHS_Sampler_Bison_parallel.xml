@@ -2,14 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>LHStestBisonParallel</WorkingDir>
+    <Files>gap_perfect_transfer_test.i,gap_perfect_transfer_test.e</Files>
     <Sequence>myLHS</Sequence>
     <batchSize>2</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="gap_perfect_transfer_test.i" type="">gap_perfect_transfer_test.i</Input>
-    <Input name="gap_perfect_transfer_test.e" type="">gap_perfect_transfer_test.e</Input>
-  </Files>
 
   <Models>
     <Code name="Bison" subType="MooseBasedApp">
@@ -81,7 +77,7 @@
       <type>csv</type>
       <source>LHSTS</source>
     </Print>
-    <Plot dim="2" name="test" overwrite="False" verbosity="debug">
+    <Plot dim="2" name="test" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>

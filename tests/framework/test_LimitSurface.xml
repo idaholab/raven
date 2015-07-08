@@ -2,14 +2,10 @@
 <Simulation>
   <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>
+    <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py</Files>
     <Sequence>FirstMRun,ComputeLimitSurfacePositive,ComputeLimitSurfaceNegative,ComputeLimitSurfacePositiveNegative</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="limitSurfaceTestExternalModel.py" type="">limitSurfaceTestExternalModel.py</Input>
-    <Input name="goalFunctionTest.py" type="">goalFunctionTest.py</Input>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="limitSurface/limitSurfaceTestExternalModel" name="PythonModule" subType="">
@@ -21,18 +17,21 @@
       <parameters>x0,y0</parameters>
       <side>positive</side>
       <ROM class="Models" type="ROM">Acc</ROM>
+      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <PostProcessor name="computeLimitSurfaceNegative" subType="LimitSurface">
       <parameters>x0,y0</parameters>
       <side>negative</side>
       <ROM class="Models" type="ROM">Acc</ROM>
+      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <PostProcessor name="computeLimitSurfacePositiveNegative" subType="LimitSurface">
       <parameters>x0,y0</parameters>
       <side>both</side>
       <ROM class="Models" type="ROM">Acc</ROM>
+      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <ROM name="Acc" subType="SciKitLearn">

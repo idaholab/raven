@@ -2,24 +2,29 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>MCTestBison</WorkingDir>
+    <Files>gap_perfect_transfer_test.i,gap_perfect_transfer_test.e</Files>
     <Sequence>CustomSampler,CustomSampler_noalias</Sequence>
     <batchSize>2</batchSize>
   </RunInfo>
 
-  <Files>
-    <Input name="gap_perfect_transfer_test.i" type="">gap_perfect_transfer_test.i</Input>
-    <Input name="gap_perfect_transfer_test.e" type="">gap_perfect_transfer_test.e</Input>
-  </Files>
-
   <Models>
+    <!--
+       I added here the two different codes (from the framework point of view) in order to show how the input changes when we use the alias system.
+                                      Search for 'noalias' in order to compare. Andrea
+     -->
     <Code name="Bison" subType="MooseBasedApp">
       <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
       <alias variable="tc_heat1">Materials|heat1|thermal_conductivity</alias>
       <alias variable="tc_heat2">Materials|heat2|thermal_conductivity</alias>
     </Code>
+    <!-- You can define the code, when there are no alias, in the following way -->
     <Code name="Bison_code_noalias" subType="MooseBasedApp">
       <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
     </Code>
+    <!--
+       or
+      <Code executable="%FRAMEWORK_DIR%/../../bison/bison-%METHOD%" name="Bison" subType="MooseBasedApp"/>
+    -->
   </Models>
 
   <Distributions>
@@ -45,6 +50,7 @@
         <distribution>FlatHeat2</distribution>
       </variable>
     </MonteCarlo>
+    <!-- Sampler noalias -->
     <MonteCarlo name="Bison_sampler_noalias">
       <sampler_init>
         <limit>3</limit>
@@ -64,6 +70,7 @@
       <Input>tc_heat1,tc_heat2</Input>
       <Output>aveTempLeft,aveTempRight</Output>
     </HistorySet>
+    <!-- Data noalias-->
     <HistorySet name="stories_noalias">
       <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
       <Output>aveTempLeft,aveTempRight</Output>
@@ -80,6 +87,7 @@
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="OutStreamManager" type="Print">testprint</Output>
     </MultiRun>
+    <!-- Step noalias-->
     <MultiRun name="CustomSampler_noalias">
       <Input class="Files" type="">gap_perfect_transfer_test.i</Input>
       <Input class="Files" type="">gap_perfect_transfer_test.e</Input>

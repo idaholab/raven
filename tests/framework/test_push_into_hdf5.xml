@@ -2,14 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>test_extract_data_s_from_hdf5</WorkingDir>
+    <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>MonteCarlo,test_extract,test_push_in,test_extract_again</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
-    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
-  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">
@@ -36,33 +32,33 @@
     </MultiRun>
     <IOStep name="test_extract">
       <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
       <Output class="DataObjects" type="HistorySet">HistorySet_from_database</Output>
-      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
       <Output class="DataObjects" type="Point">Point_from_database</Output>
-      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
       <Output class="DataObjects" type="History">history_from_database</Output>
-      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
       <Output class="DataObjects" type="PointSet">Pointset_from_database</Output>
       <Output class="OutStreamManager" type="Print">Pointset_from_database_dump</Output>
     </IOStep>
     <IOStep name="test_push_in">
       <Input class="DataObjects" type="HistorySet">HistorySet_from_database</Input>
-      <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
       <Input class="DataObjects" type="Point">Point_from_database</Input>
-      <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
       <Input class="DataObjects" type="History">history_from_database</Input>
-      <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
       <Input class="DataObjects" type="PointSet">Pointset_from_database</Input>
+      <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
+      <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
+      <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
       <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
     </IOStep>
     <IOStep name="test_extract_again">
       <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
+      <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
+      <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
+      <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
       <Output class="DataObjects" type="HistorySet">HistorySet_IN_database</Output>
-      <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
       <Output class="DataObjects" type="Point">Point_IN_database</Output>
-      <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
       <Output class="DataObjects" type="History">history_IN_database</Output>
-      <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
       <Output class="DataObjects" type="PointSet">Pointset_IN_database</Output>
       <Output class="OutStreamManager" type="Print">Pointset_IN_database_dump</Output>
     </IOStep>

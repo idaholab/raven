@@ -39,9 +39,6 @@
         </xsd:all>
     </xsd:complexType>
 
-    <xsd:simpleType name="floatList">
-        <xsd:list itemType="xsd:float"/>
-    </xsd:simpleType>
     <xsd:simpleType name="variableDistributionType">
         <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
@@ -205,16 +202,6 @@
             <xsd:enumeration value="coeffs"/>
         </xsd:restriction>
     </xsd:simpleType>
-    <xsd:simpleType name="RavenBool">
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="false"/>
-            <xsd:enumeration value="False"/>
-            <xsd:enumeration value="no"/>
-            <xsd:enumeration value="true"/>
-            <xsd:enumeration value="True"/>
-            <xsd:enumeration value="yes"/>
-        </xsd:restriction>
-    </xsd:simpleType>
     <xsd:complexType name="LSSSampler">
         <xsd:sequence>
             <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="0" maxOccurs="unbounded"/>
@@ -304,6 +291,4 @@
         <xsd:attribute name="mode"              type="modeAttr"  default="post"/>
         <xsd:attribute name="updateGrid"        type="RavenBool" default="true"/>
     </xsd:complexType>
-
-
 </xsd:schema>

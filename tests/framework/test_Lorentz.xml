@@ -1,15 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
+    <Files>lorentzAttractor.py</Files>
     <Sequence>FirstMRun,FirstMRun2</Sequence>
     <batchSize>2</batchSize>
   </RunInfo>
 
-  <Files>
-    <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
-  </Files>
-
+  <!-- STEPS -->
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="25061978">
       <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
@@ -32,6 +31,7 @@
     </MultiRun>
   </Steps>
 
+  <!-- MODELS -->
   <Models>
     <ExternalModel ModuleToLoad="externalModel/lorentzAttractor" name="PythonModule" subType="">
       <variable>sigma</variable>
@@ -47,6 +47,7 @@
     </ExternalModel>
   </Models>
 
+  <!-- DISTRIBUTIONS -->
   <Distributions>
     <Normal name="x0_distrib">
       <mean>4</mean>
@@ -62,6 +63,7 @@
     </Normal>
   </Distributions>
 
+  <!-- SAMPLERS -->
   <Samplers>
     <MonteCarlo name="MC_external">
       <sampler_init>
@@ -93,10 +95,12 @@
     </Grid>
   </Samplers>
 
+  <!-- DATABASES -->
   <Databases>
     <HDF5 name="test_external_db"/>
   </Databases>
 
+  <!-- OUTSTREAMS -->
   <OutStreamManager>
     <Print name="testPrintHistorySet_dump">
       <type>csv</type>
@@ -108,6 +112,7 @@
     </Print>
   </OutStreamManager>
 
+  <!-- DATA OBJECTS -->
   <DataObjects>
     <Point name="inputPlaceHolder">
       <Input>x0,y0,z0</Input>

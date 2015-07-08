@@ -2,22 +2,29 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>mpi_driver_test</WorkingDir>
+    <Files>simple_flow_3eqn.i,simple_flow_3eqn_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
     <NumThreads>4</NumThreads>
     <mode>mpi</mode>
     <NumMPI>2</NumMPI>
+    <!--
+      <ParallelCommand/>
+      <ThreadingCommand/>
+      <queueingSoftware/>
+      <procByNode/>
+      <numProcByRun/>
+      <totalNumCoresUsed/>
+    -->
   </RunInfo>
-
-  <Files>
-    <Input name="simple_flow_3eqn.i" type="">simple_flow_3eqn.i</Input>
-    <Input name="simple_flow_3eqn_control.py" type="">simple_flow_3eqn_control.py</Input>
-  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
+    <!--
+      <Code name="MyRAVEN" type="RAVEN">%FRAMEWORK_DIR%/fix_stdin.sh %FRAMEWORK_DIR%/../RAVEN-%METHOD% </Code>
+    -->
   </Models>
 
   <Distributions>
