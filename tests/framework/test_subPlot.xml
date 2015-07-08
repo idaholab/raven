@@ -1,0 +1,242 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <RunInfo>
+    <WorkingDir>subPlot_output</WorkingDir>
+    <Files>ideal_pump.i,ideal_pump_control.py</Files>
+    <Sequence>FirstMRun,testOutstreamStep</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Code name="MyRAVEN" subType="RAVEN">
+      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="zeroToOne">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="RAVENGrid">
+      <Distribution name="Dummy1">
+        <distribution>zeroToOne</distribution>
+        <grid construction="equal" steps="15" type="CDF">0.15  0.9</grid>
+      </Distribution>
+    </Grid>
+  </Samplers>
+
+  <OutStreamManager>
+    <Plot dim="2" name="subPlot1" overwrite="false" verbosity="silent">
+        <plotSettings>
+            <gridSpace>3 3 </gridSpace>
+            <plot>
+                <type>stem</type>
+                <x>PointSets|Input|pipe1_Area</x>
+                <y>PointSets|Output|pipe1_Hw</y>
+                <gridLocation>
+                    <x>0 </x>
+                    <y>0 3</y>
+                </gridLocation>
+                <xlabel>time [s]</xlabel>
+                <ylabel>evolution</ylabel>
+            </plot>
+            <plot>
+                <type>stem</type>
+                <x>PointSets|Input|pipe1_Area</x>
+                <y>PointSets|Output|pipe1_Hw</y>
+                <gridLocation>
+                    <x>1</x>
+                    <y>0 3</y>
+                </gridLocation>
+                <xlabel>time [s]</xlabel>
+                <ylabel>evolution</ylabel>
+            </plot>
+            <plot>
+                <type>stem</type>
+                <x>PointSets|Input|pipe1_Area</x>
+                <y>PointSets|Output|pipe1_Hw</y>
+                <gridLocation>
+                    <x>2</x>
+                    <y>0 3</y>
+                </gridLocation>
+                <xlabel>time [s]</xlabel>
+                <ylabel>evolution</ylabel>
+            </plot>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
+    </Plot>
+    <Plot dim="2" name="subPlot2" overwrite="false" verbosity="silent">
+      <plotSettings>
+        <gridSpace>3 3 </gridSpace>
+        <plot>
+          <type>stem</type>
+          <x>PointSets|Input|pipe1_Area</x>
+          <y>PointSets|Output|pump_mass_flow_rate</y>
+          <gridLocation>
+              <x>0 3 </x>
+              <y>0</y>
+          </gridLocation>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+        </plot>
+        <plot>
+            <type>stem</type>
+            <x>PointSets|Input|pipe1_Area</x>
+            <y>PointSets|Output|pump_mass_flow_rate</y>
+            <gridLocation>
+                <x>0 3</x>
+                <y>1</y>
+            </gridLocation>
+            <xlabel>time [s]</xlabel>
+            <ylabel>evolution</ylabel>
+        </plot>
+        <plot>
+            <type>stem</type>
+            <x>PointSets|Input|pipe1_Area</x>
+            <y>PointSets|Output|pump_mass_flow_rate</y>
+            <gridLocation>
+                <x>0 3</x>
+                <y>2</y>
+            </gridLocation>
+            <xlabel>time [s]</xlabel>
+            <ylabel>evolution</ylabel>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
+    </Plot>
+    <Plot dim="2" name="subPlot3" overwrite="false" verbosity="silent">
+        <plotSettings>
+            <gridSpace>3 3 </gridSpace>
+            <plot>
+                <type>stem</type>
+                <x>PointSets|Input|pipe1_Area</x>
+                <y>PointSets|Output|pump_mass_flow_rate</y>
+                <gridLocation>
+                    <x>0 3 </x>
+                    <y>0</y>
+                </gridLocation>
+                <xlabel>time [s]</xlabel>
+                <ylabel>evolution</ylabel>
+            </plot>
+            <plot>
+                <type>stem</type>
+                <x>PointSets|Input|pipe1_Area</x>
+                <y>PointSets|Output|pump_mass_flow_rate</y>
+                <gridLocation>
+                    <x>0 2</x>
+                    <y>1</y>
+                </gridLocation>
+                <xlabel>time [s]</xlabel>
+                <ylabel>evolution</ylabel>
+            </plot>
+            <plot>
+                <type>stem</type>
+                <x>PointSets|Input|pipe1_Area</x>
+                <y>PointSets|Output|pump_mass_flow_rate</y>
+                <gridLocation>
+                    <x>0 2</x>
+                    <y>2</y>
+                </gridLocation>
+                <xlabel>time [s]</xlabel>
+                <ylabel>evolution</ylabel>
+            </plot>
+            <plot>
+                <type>stem</type>
+                <x>PointSets|Input|pipe1_Area</x>
+                <y>PointSets|Output|pump_mass_flow_rate</y>
+                <gridLocation>
+                    <x>2</x>
+                    <y>1</y>
+                </gridLocation>
+                <xlabel>time [s]</xlabel>
+                <ylabel>evolution</ylabel>
+            </plot>
+            <plot>
+                <type>stem</type>
+                <x>PointSets|Input|pipe1_Area</x>
+                <y>PointSets|Output|pump_mass_flow_rate</y>
+                <gridLocation>
+                    <x>2</x>
+                    <y>2</y>
+                </gridLocation>
+                <xlabel>time [s]</xlabel>
+                <ylabel>evolution</ylabel>
+            </plot>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
+    </Plot>
+  </OutStreamManager>
+
+  <Steps>
+    <MultiRun name="FirstMRun" pauseAtEnd="false">
+      <Input class="Files" type="">ideal_pump.i</Input>
+      <Input class="Files" type="">ideal_pump_control.py</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="Grid">RAVENGrid</Sampler>
+      <Output class="Databases" type="HDF5">testOutputDatabase</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+      <Output class="DataObjects" type="PointSet">PointSets</Output>
+      <Output class="DataObjects" type="Point">Pointt</Output>
+      <Output class="DataObjects" type="History">Historyy</Output>
+    </MultiRun>
+    <IOStep name="testOutstreamStep" pauseAtEnd="true">
+      <Input class="DataObjects" type="HistorySet">stories</Input>
+      <Input class="DataObjects" type="PointSet">PointSets</Input>
+      <Input class="DataObjects" type="Point">Pointt</Input>
+      <Input class="DataObjects" type="History">Historyy</Input>
+      <Output class="OutStreamManager" type="Plot">subPlot1</Output>
+      <Output class="OutStreamManager" type="Plot">subPlot2</Output>
+      <Output class="OutStreamManager" type="Plot">subPlot3</Output>
+    </IOStep>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="testOutputDatabase" type="MC"/>
+  </Databases>
+
+  <DataObjects>
+    <Point name="Pointt">
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </Point>
+    <PointSet name="PointSets">
+      <Input>pipe1_Area, pipe1_Dh</Input>
+      <Output>pipe1_Hw,
+                pump_mass_flow_rate,
+                time
+        </Output>
+    </PointSet>
+    <History name="Historyy">
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </History>
+    <HistorySet name="stories">
+      <Input>pipe1_Area,
+               pipe1_Dh</Input>
+      <Output>pipe1_Hw,
+                pump_mass_flow_rate,
+                time
+        </Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>
