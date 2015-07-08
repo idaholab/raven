@@ -40,6 +40,7 @@ git checkout $RAVEN_BRANCH -- .
 
 cd $MAIN_DIR/moose
 git checkout $MOOSE_BRANCH -- framework/scripts
+git checkout $MOOSE_BRANCH -- framework/Makefile
 git checkout $MOOSE_BRANCH -- python
 git checkout $MOOSE_BRANCH -- framework/build.mk
 git checkout $MOOSE_BRANCH -- framework/moose.mk
