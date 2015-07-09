@@ -30,24 +30,38 @@
   </Samplers>
 
   <OutStreamManager>
-    <Plot dim="2" name="subPlot1" overwrite="false" verbosity="silent">
+    <Plot dim="3" name="subPlot1" overwrite="false" verbosity="silent">
         <plotSettings>
             <gridSpace>3 3 </gridSpace>
             <plot>
-                <type>stem</type>
-                <x>PointSets|Input|pipe1_Area</x>
-                <y>PointSets|Output|pipe1_Hw</y>
+                <type>surface</type>
+                <x>PointSets|Output|pipe1_Hw</x>
+                <z>PointSets|Output|pump_mass_flow_rate</z>
+                <y>PointSets|Input|pipe1_Dh</y>
+                <interpolationType>nearest</interpolationType>
+                <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+                <cmap>summer</cmap>
+                <kwargs>
+                    <label>pump mass flow rate</label>
+                </kwargs>
                 <gridLocation>
-                    <x>0 </x>
+                    <x>0</x>
                     <y>0 3</y>
                 </gridLocation>
                 <xlabel>time [s]</xlabel>
                 <ylabel>evolution</ylabel>
             </plot>
             <plot>
-                <type>stem</type>
-                <x>PointSets|Input|pipe1_Area</x>
-                <y>PointSets|Output|pipe1_Hw</y>
+                <type>surface</type>
+                <x>PointSets|Output|pipe1_Hw</x>
+                <z>PointSets|Output|pump_mass_flow_rate</z>
+                <y>PointSets|Input|pipe1_Dh</y>
+                <interpolationType>nearest</interpolationType>
+                <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+                <cmap>summer</cmap>
+                <kwargs>
+                    <label>pump mass flow rate</label>
+                </kwargs>
                 <gridLocation>
                     <x>1</x>
                     <y>0 3</y>
@@ -56,9 +70,16 @@
                 <ylabel>evolution</ylabel>
             </plot>
             <plot>
-                <type>stem</type>
-                <x>PointSets|Input|pipe1_Area</x>
-                <y>PointSets|Output|pipe1_Hw</y>
+                <type>surface</type>
+                <x>PointSets|Output|pipe1_Hw</x>
+                <z>PointSets|Output|pump_mass_flow_rate</z>
+                <y>PointSets|Input|pipe1_Dh</y>
+                <interpolationType>nearest</interpolationType>
+                <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+                <cmap>summer</cmap>
+                <kwargs>
+                    <label>pump mass flow rate</label>
+                </kwargs>
                 <gridLocation>
                     <x>2</x>
                     <y>0 3</y>

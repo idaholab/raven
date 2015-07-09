@@ -588,7 +588,7 @@ class OutStreamPlot(OutStreamManager):
         self.options[subnode.tag]['plot'] = []
         for subsub in subnode:
           if subsub.tag == 'gridSpace':
-            if self.dim == 3: self.raiseAnError(IOError, 'SubPlot option can not be used with 3-dimensional plots!')
+            # if self.dim == 3: self.raiseAnError(IOError, 'SubPlot option can not be used with 3-dimensional plots!')
             self.options[subnode.tag][subsub.tag] = subsub.text.strip()
           elif subsub.tag == 'plot':
             tempDict = {}
@@ -662,10 +662,18 @@ class OutStreamPlot(OutStreamManager):
         else:                                                                             x = None
         if 'y' in  self.options['plotSettings']['plot'][pltindex]['gridLocation'].keys(): y = map(int, self.options['plotSettings']['plot'][pltindex]['gridLocation']['y'].strip().split(' '))
         else:                                                                             y = None
-        if   (len(x) == 1 and len(y) == 1): self.plt.subplot(self.gridSpace[x[0], y[0]])
-        elif (len(x) == 1 and len(y) != 1): self.plt.subplot(self.gridSpace[x[0], y[0]:y[-1]])
-        elif (len(x) != 1 and len(y) == 1): self.plt.subplot(self.gridSpace[x[0]:x[-1], y[0]])
-        else:                               self.plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]])
+        if   (len(x) == 1 and len(y) == 1):
+          if self.dim == 2: self.plt.subplot(self.gridSpace[x[0], y[0]])
+          else:             self.plt3D = self.plt.subplot(self.gridSpace[x[0], y[0]], projection = '3d')
+        elif (len(x) == 1 and len(y) != 1):
+          if self.dim == 2: self.plt.subplot(self.gridSpace[x[0], y[0]:y[-1]])
+          else:             self.plt3D = self.plt.subplot(self.gridSpace[x[0], y[0]:y[-1]], projection = '3d')
+        elif (len(x) != 1 and len(y) == 1):
+          if self.dim == 2: self.plt.subplot(self.gridSpace[x[0]:x[-1], y[0]])
+          else:             self.plt3D = self.plt.subplot(self.gridSpace[x[0]:x[-1], y[0]], projection = '3d')
+        else:
+          if self.dim == 2: self.plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]])
+          else:             self.plt3D = self.plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]], projection = '3d')
       # If the number of plots to be shown in this figure > 1, hold the old ones (They are going to be shown together... because unity is much better than separation)
       if len(self.outStreamTypes) > 1: self.plt.hold(True)
       if 'xlabel' not in self.options['plotSettings']['plot'][pltindex].keys():
