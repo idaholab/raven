@@ -37,7 +37,7 @@ class MOOSEparser(MessageHandler.MessageUser):
         if line.startswith(b'[]') or line.startswith(b'[../]'):
           current = parents.pop(len(parents)-1)
         else:
-#          name = line.strip(b'[').strip(b']').strip(b'../')
+          #name = line.strip(b'[').strip(b']').strip(b'../')
           name = line[line.index(b'[')+1:line.index(b']')].strip(b'../').strip(b'./')
           parents.append(current)
           current      = ET.SubElement(current,name)
@@ -181,6 +181,7 @@ class MOOSEparser(MessageHandler.MessageUser):
     '''ModiDictionaryList is a list of dictionaries of the required addition or modification
     -name- key should return a ordered list of the name e.g. ['Components','Pipe']
     the other keywords possible are used as attribute names'''
+    self.raiseADebug('\n\n\n\n\nMODIFY OR ADD DICTIONARY',modiDictionaryList,'\n\n\n\n\n')
     if save: returnElement = copy.deepcopy(self.root)         #make a copy if save is requested
     else: returnElement = self.root                           #otherwise return the original modified
     #print(modiDictionaryList)

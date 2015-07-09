@@ -485,20 +485,20 @@ class Simulation(MessageHandler.MessageUser):
             self.raiseADebug('myClass:',myClass)
             self.raiseADebug('list:',list(self.whichDict[myClass].keys()))
             self.raiseADebug('whichDict[myClass]',self.whichDict[myClass])
-            self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
+            #self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
       else:
           if name not in list(self.whichDict[myClass][objectType].keys()):
             self.raiseADebug('name: '+name)
             self.raiseADebug('list: '+str(list(self.whichDict[myClass][objectType].keys())))
             self.raiseADebug(str(self.whichDict[myClass][objectType]))
-            self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
+            #self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
 
       if myClass != 'Files':  # check if object type is consistent
         if myClass != 'OutStreamManager': objtype = self.whichDict[myClass][name].type
         else:                             objtype = self.whichDict[myClass][objectType][name].type
         if objectType != objtype.replace("OutStream",""):
           objtype = self.whichDict[myClass][name].type
-          self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
+          #self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
 
   def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
     """reads the xml input file for the RunInfo block"""
@@ -622,14 +622,14 @@ class Simulation(MessageHandler.MessageUser):
       self.raiseADebug('In step',stepName)
       for [key,b,c,d] in stepInstance.parList:
         #Only for input and output we allow more than one object passed to the step, so for those we build a list
-        self.raiseADebug('Doing key=',key)
+        #self.raiseADebug('Doing key=',key)
         if key == 'Input' or key == 'Output':
             if b == 'OutStreamManager':
               stepInputDict[key].append(self.whichDict[b][c][d])
-              self.raiseADebug('What is in whichdict1|','b:',b,'c:',c,'d:',d,'dict:',self.whichDict[b][c][d])
+              #self.raiseADebug('What is in whichdict1|','b:',b,'c:',c,'d:',d,'dict:',self.whichDict[b][c][d])
             else:
               stepInputDict[key].append(self.whichDict[b][d])
-              self.raiseADebug('What is in whichdict2|','b:',b,'d:',d,'dict:',self.whichDict[b][d])
+              #self.raiseADebug('What is in whichdict2|','b:',b,'d:',d,'dict:',self.whichDict[b][d])
             if key=='Input':
               self.raiseADebug('key %s b %s c %s d %s' %(key,b,c,d))
               self.raiseADebug('dict:',self.whichDict[b])
@@ -645,7 +645,9 @@ class Simulation(MessageHandler.MessageUser):
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler
       #DEBUG FIXME
-      self.raiseADebug('Stuff in stepInputDict:','\n',stepInputDict)
+      #self.raiseADebug('\n\n\n\nStuff in stepInputDict:','\n')
+      #for fo in stepInputDict['Input']:
+      #  self.raiseADebug('File:',fo.getAbsFile())
       #generate the needed assembler to send to the step
       for key in stepInputDict.keys():
         if type(stepInputDict[key]) == list: stepindict = stepInputDict[key]

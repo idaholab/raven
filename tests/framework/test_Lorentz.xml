@@ -1,9 +1,12 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <!-- RUNINFO -->
+  <Files>
+    <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
+  </Files>
+
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
-    <Files>lorentzAttractor.py</Files>
     <Sequence>FirstMRun,FirstMRun2</Sequence>
     <batchSize>2</batchSize>
   </RunInfo>

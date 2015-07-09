@@ -159,6 +159,11 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     This should work for everybody just split the step in an initialization and the run itself
     inDictionary[role]=instance or list of instance
     '''
+    self.raiseADebug('')
+    self.raiseADebug('')
+    self.raiseADebug('')
+    self.raiseADebug('Taking a Step...')
+    self.raiseADebug('inDictionary:',inDictionary)
     self.raiseAMessage('***  Beginning initialization ***')
     self._initializeStep(inDictionary)
     self.raiseAMessage('***    Initialization done    ***')
@@ -276,6 +281,7 @@ class MultiRun(SingleRun):
     for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
       if inDictionary['Sampler'].amIreadyToProvideAnInput():
         try:
+          self.raiseADebug('localInitStep|Making a new input',inDictionary['Input'])
           newinp = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
           inDictionary["Model"].run(newinp,inDictionary['jobHandler'])
           self.raiseADebug('Submitted input '+str(inputIndex+1))
@@ -305,6 +311,7 @@ class MultiRun(SingleRun):
           #if sampler.amIreadyToProvideAnInput(inLastOutput=self.targetOutput):
           if sampler.amIreadyToProvideAnInput():
             try:
+              self.raiseADebug('localTakeAstepRun|inputs',inputs)
               newInput =sampler.generateInput(model,inputs)
               model.run(newInput,jobHandler)
               self.raiseADebug('New input generated')

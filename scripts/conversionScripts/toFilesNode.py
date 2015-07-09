@@ -10,7 +10,7 @@ def convert(tree):
     @Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN input file
   """
   simulation = tree.getroot()
-  if simulation.tag!='Simulation': return tree #this isn't and input file
+  if simulation.tag!='Simulation': return tree #this isn't an input file
   runinfo = simulation.find('RunInfo')
   oldFilesNode = runinfo.find('Files')
   if oldFilesNode is not None:
@@ -30,4 +30,4 @@ def convert(tree):
 if __name__=='__main__':
   import convert_utils
   import sys
-  failures = convert_utils.standardMain(sys.argv,convert)
+  convert_utils.standardMain(sys.argv,convert)

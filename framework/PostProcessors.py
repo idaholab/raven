@@ -263,7 +263,8 @@ class LimitSurfaceIntegral(BasePostProcessor):
         stacked = np.column_stack(stack)
         self.raiseADebug('\n\n\n\n\n\n\nHEADERS:',','.join(headers))
         self.raiseADebug('\noutput:',output.getAbsFile())
-        np.savetxt(output, stacked, delimiter = ',', header = ','.join(headers))
+        np.savetxt(output, stacked, delimiter = ',', header = ','.join(headers),comments='')
+        #N.B. without comments='' you get a "# " at the top of the header row
       else: self.raiseAnError(Exception, self.type + ' accepts PointSet or File type only')
 #
 #
@@ -1410,7 +1411,7 @@ class BasicStatistics(BasePostProcessor):
         msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in self.sampled]) + os.linesep
         sigma = {}
         for indexCalculated in range(len(self.calculated.keys())):
-#          variable = self.sampled.keys()[indexSampled]
+          #variable = self.sampled.keys()[indexSampled]
           msg += self.calculated.keys()[indexCalculated] + ' ' * (maxLength) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['sensitivity'][indexCalculated]]) + os.linesep
 
     if self.externalFunction:
@@ -2402,17 +2403,17 @@ class TopologicalDecomposition(BasePostProcessor):
       output += str(key) + os.linesep
       coefficients = linearFits[key]
       rSquared = linearFitnesses[key]
-#      output += '\t' + u"\u03B2\u0302: " + str(coefficients) + '\n'
-#      output += '\t' + u"R\u00B2: " + str(rSquared) + '\n' + '\n'
+      #output += '\t' + u"\u03B2\u0302: " + str(coefficients) + '\n'
+      #output += '\t' + u"R\u00B2: " + str(rSquared) + '\n' + '\n'
       output += '\t' + "beta: " + str(coefficients) + os.linesep
       output += '\t' + "R^2: " + str(rSquared) + 2 * os.linesep
       outputDict['coefficients_%d_%d' % (key[0], key[1])] = coefficients
       outputDict['R2_%d_%d' % (key[0], key[1])] = rSquared
 
-#    output += 'RMSD  = %f\n' % (self.linearNRMSD)
+    #output += 'RMSD  = %f\n' % (self.linearNRMSD)
     output += '========== Gaussian Fits: ==========' + os.linesep
-#    output += u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - '
-#          + u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)\n'
+    #output += u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - '
+    #      + u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)\n'
     output += 'a/sqrt(2*(pi)^d|M|)*e^(-(x-mu)TM(x-mu)) + c - a'
     output += '\t(mu & c are fixed, M and a are estimated)' + os.linesep
 
@@ -2423,13 +2424,13 @@ class TopologicalDecomposition(BasePostProcessor):
     for key in exts:
       output += str(key) + ':' + os.linesep
       (mu, c, a, A) = self.__amsc.GetExtremumFitCoefficients(key)
-#      output += u':\t\u03BC=' + str(mu) + '\n'
+      #output += u':\t\u03BC=' + str(mu) + '\n'
       output += u':\tmu=' + str(mu) + os.linesep
       output += '\tc=' + str(c) + os.linesep
       output += '\ta=' + str(a) + os.linesep
       output += '\tM=' + os.linesep + str(A) + 2 * os.linesep
-#      output += '\t\u03A3=\n' + str(A)+'\n\n'
-#      output += '\t' + u"R\u00B2: " + str(rSquared) + '\n\n'
+      #output += '\t\u03A3=\n' + str(A)+'\n\n'
+      #output += '\t' + u"R\u00B2: " + str(rSquared) + '\n\n'
 
       outputDict['mu_' + str(key)] = mu
       outputDict['c_' + str(key)] = c
@@ -2437,7 +2438,7 @@ class TopologicalDecomposition(BasePostProcessor):
       outputDict['Sigma_' + str(key)] = A
       outputDict['R2_' + str(key)] = rSquared
 
-#    output += 'RMSD  = %f and %f\n' % (self.gaussianNRMSD[0],self.gaussianNRMSD[1])
+    #output += 'RMSD  = %f and %f\n' % (self.gaussianNRMSD[0],self.gaussianNRMSD[1])
     self.raiseAMessage(output)
     return outputDict
 

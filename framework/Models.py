@@ -727,7 +727,7 @@ class Code(Model):
       # register function to remove the locked file at the end of execution
       atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
     for inputFile in inputFiles:
-      self.raiseADebug('infile:',inputFile.filename)
+      #self.raiseADebug('infile:',inputFile.filename)
       shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.raiseADebug('original input files copied in the current working dir: '+self.workingDir)
     self.raiseADebug('files copied:')
@@ -741,6 +741,11 @@ class Code(Model):
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     """ This function creates a new input
         It is called from a sampler to get the implementation specific for this model"""
+    self.raiseADebug('Creating a new input...')
+    import inspect
+    print('stack:')
+    for i in inspect.stack():
+      print('  ',i)
     Kwargs['executable'] = self.executable
     found = False
     for index, inputFile in enumerate(currentInput):
@@ -749,7 +754,12 @@ class Code(Model):
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
+    #FIXME this was not a faithful conversion...maybe?
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index].getAbsFile())[1].split('.')[0]
+    self.raiseAWarning('createNewInput|currentInput:',currentInput[index])
+    self.raiseAWarning('createNewInput|os.path.split:',os.path.split(currentInput[index].getAbsFile()))
+    self.raiseAWarning('createNewInput|outfile:',Kwargs['outfile'])
+    #self.raiseAnError(RuntimeError,'DEBUGGING')
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 

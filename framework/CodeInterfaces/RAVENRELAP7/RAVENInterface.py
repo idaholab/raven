@@ -76,14 +76,18 @@ class RAVENInterface(CodeInterfaceBase):
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index])
-    newInputFiles = copy.copy(currentInputFiles)
+    newInputFiles = copy.deepcopy(currentInputFiles)
     #TODO fix this? storing unwieldy amounts of data in 'prefix'
     if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
       self.raiseADebug('\n\n')
-      newfilename = Kwargs['prefix']+"~"+os.path.split(temp)[1]
-      self.raiseADebug('newfilename:',newfilename)
-      newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0],newfilename))
-      self.raiseADebug('abs file set:',newInputFiles[index].getAbsFile())
+      newpath = os.path.split(temp)[0]
+      newname = Kwargs['prefix']+"~"+os.path.split(temp)[1]
+      newInputFiles[index].setPath(newpath)
+      newInputFiles[index].setFilename(newname)
+      #newfilename = os.path.split(Kwargs['prefix']+"~"+os.path.split(temp)[1]
+      #self.raiseADebug('createInput|newfilename:',newfilename)
+      #newInputFiles[index].setAbsFile(newfilename)
+      self.raiseADebug('createInput|newfilename:',newInputFiles[index].getAbsFile())
     else:
       newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1]))
       self.raiseADebug('abs file set:',newInputFiles[index].getAbsFile())
@@ -159,7 +163,16 @@ class RAVENInterface(CodeInterfaceBase):
           for i in range(n_zeros):
             end_ts_str = "0" + end_ts_str
         splitted = Kwargs['outfile'].split('~')
+        self.raiseADebug('')
+        self.raiseADebug('')
+        self.raiseADebug('')
+        self.raiseADebug('')
+        self.raiseADebug('')
+        self.raiseADebug('detForRaven|splitted:',splitted)
+        self.raiseADebug('detForRaven|parentid:',toString(Kwargs['parent_id']))
         output_parent = splitted[0] + '~' + toString(Kwargs['parent_id']) + '~' + splitted[1]
+        self.raiseADebug('detForRaven|outputparent',output_parent)
+        #self.raiseAnError(RuntimeError,'')
         #restart_file_base = output_parent + "_restart_" + end_ts_str
         restart_file_base = output_parent + "_cp/" + end_ts_str
         modifDict['name'] = ['Executioner']

@@ -11,6 +11,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import os
+from copy import copy,deepcopy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -33,7 +34,7 @@ class File(BaseType):
     self.__file   = None  #when open, refers to open file, else None
     self.path=''
     self.base=''
-    self.ext=''
+    self.ext=None
     self.filename=''
     # TODO HOWTO self.workingDir = runInfoDict['WorkingDir']
     #the source of the initialization input determines the class you want
@@ -50,6 +51,20 @@ class File(BaseType):
       if self.isOpen(): self.__file.close()
     except AttributeError as e:
       print('Had a problem with closing file',self.filename,'|',e)
+
+  def __copy__(self):
+    cls = self.__class__
+    new = cls.__new__(cls)
+    new.__dict__.update(self.__dict__)
+    return new
+
+  def __deepcopy__(self,memo):
+    cls = self.__class__
+    new = cls.__new__(cls)
+    memo[id(self)] = new
+    for k,v in self.__dict__.items():
+      setattr(new,k,deepcopy(v,memo))
+    return new
 
   def __getstate__(self):
     """Pickle dump method hook.
@@ -71,6 +86,13 @@ class File(BaseType):
     self.ext  = statedict['ext' ]
     self.updateFilename()
 
+  def __repr__(self):
+    """Overwrite of string representation.
+    @ In, None
+    @Out, string, full file path and name in string
+    """
+    return self.getAbsFile()
+
   ### HELPER FUNCTIONS ###
   def updateFilename(self):
     """
@@ -78,7 +100,8 @@ class File(BaseType):
     @ In, None
     @Out, None
     """
-    self.filename = '.'.join([self.base,self.ext])
+    if self.ext is not None: self.filename = '.'.join([self.base,self.ext])
+    else: self.filename = self.base
 
   def setFilename(self,filename):
     """
@@ -93,7 +116,7 @@ class File(BaseType):
     if self.filename != '.': self.base = os.path.basename(self.filename).split()[0].split('.')[0]
     else                   : self.base = self.filename
     if len(filename.split(".")) > 1: self.ext = filename.split(".")[1].lower()
-    else                           : self.ext = 'unknown'
+    else                           : self.ext = None
     self.raiseADebug('... to ',self.getAbsFile())
 
   def setExtension(self,ext):
@@ -127,9 +150,17 @@ class File(BaseType):
     self.setFilename(filename)
 
   def getPath(self):
+    """Retriever for path.
+    @ In, None
+    @Out, string, path
+    """
     return self.path
 
   def getAbsFile(self):
+    """Retriever for path/file.
+    @ In, None
+    @Out, string, path/file
+    """
     self.updateFilename()
     return os.path.normpath(os.path.join(self.path,self.filename))
 
