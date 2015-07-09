@@ -254,7 +254,6 @@ class hdf5Database(MessageHandler.MessageUser):
               grp.attrs[b'input_space_headers'] = inpHeaders
               grp.attrs[b'input_space_values' ] = inpValues
         objectToConvert = utils.convertNumpyToLists(attributes[attr])
-        self.raiseADebug('to convert:',objectToConvert)
         for o,obj in enumerate(objectToConvert):
           if isinstance(obj,Files.File): objectToConvert[o]=obj.filename
         converted = json.dumps(objectToConvert)

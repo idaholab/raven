@@ -101,19 +101,6 @@
       <Output class="DataObjects" type="PointSet">outputMontecarloRomND</Output>
       <Output class="OutStreamManager" type="Print">outputMontecarloMultiTargetRomND_dump</Output>
     </MultiRun>
-    <IOStep name="test_extract_for_rom_trainer" verbosity="debug">
-      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-      <Output class="DataObjects" type="PointSet">timepointset_from_database_for_rom_trainer</Output>
-      <Output class="OutStreamManager" type="Print">ciccio</Output>
-    </IOStep>
-    <RomTrainer name="test_rom_trainer" verbosity="debug">
-      <Input class="DataObjects" type="PointSet">timepointset_from_database_for_rom_trainer</Input>
-      <Output class="Models" type="ROM">ROM1</Output>
-    </RomTrainer>
-    <RomTrainer name="test_rom_trainer_nd_interp">
-      <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
-      <Output class="Models" type="ROM">ROM2</Output>
-    </RomTrainer>
     <MultiRun name="rom_MC" re-seeding="200286">
       <Input class="DataObjects" type="Point">data_for_sampling_empty_at_begin</Input>
       <Model class="Models" type="ROM">ROM1</Model>
@@ -128,6 +115,19 @@
       <Output class="DataObjects" type="PointSet">outputMontecarloRomND</Output>
       <Output class="OutStreamManager" type="Print">outputMontecarloMultiTargetRomND_dump</Output>
     </MultiRun>
+    <IOStep name="test_extract_for_rom_trainer" verbosity="debug">
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+      <Output class="DataObjects" type="PointSet">timepointset_from_database_for_rom_trainer</Output>
+      <Output class="OutStreamManager" type="Print">ciccio</Output>
+    </IOStep>
+    <RomTrainer name="test_rom_trainer" verbosity="debug">
+      <Input class="DataObjects" type="PointSet">timepointset_from_database_for_rom_trainer</Input>
+      <Output class="Models" type="ROM">ROM1</Output>
+    </RomTrainer>
+    <RomTrainer name="test_rom_trainer_nd_interp">
+      <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
+      <Output class="Models" type="ROM">ROM2</Output>
+    </RomTrainer>
   </Steps>
 
   <OutStreamManager>
