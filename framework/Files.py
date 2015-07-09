@@ -36,10 +36,6 @@ class File(BaseType):
     self.base=''
     self.ext=None
     self.filename=''
-    # TODO HOWTO self.workingDir = runInfoDict['WorkingDir']
-    #the source of the initialization input determines the class you want
-    #  if read from XML, you want the UserGenerated class, initialized by _readMoreXML(XMLNode)
-    #  if created internally by RAVEN, you want the RAVENGenerated class, initialized by initialize(filename)
 
   def __del__(self):
     """
@@ -53,12 +49,22 @@ class File(BaseType):
       print('Had a problem with closing file',self.filename,'|',e)
 
   def __copy__(self):
+    """
+    Overwite of shallow copy method, to ensure less pass-by-reference.
+    @ In, None
+    @ Out, new File instance
+    """
     cls = self.__class__
     new = cls.__new__(cls)
     new.__dict__.update(self.__dict__)
     return new
 
   def __deepcopy__(self,memo):
+    """
+    Overwite of deep copy method, to ensure no pass-by-reference.
+    @ In, memo, dictionary to fill (see copy module documentation)
+    @ Out, new File instance
+    """
     cls = self.__class__
     new = cls.__new__(cls)
     memo[id(self)] = new
@@ -109,15 +115,12 @@ class File(BaseType):
     @ In, filename, string, full filename
     @ Out, None
     """
-    self.raiseADebug('CHANGING MY FILENAME! ...')
-    self.raiseADebug('...from',self.getAbsFile())
     if self.__isOpen: self.raiseAnError('Tried to change the name of an open file: %s! Close it first.' %self.getAbsFile())
     self.filename = filename.strip()
     if self.filename != '.': self.base = os.path.basename(self.filename).split()[0].split('.')[0]
-    else                   : self.base = self.filename
+    else: self.base = self.filename
     if len(filename.split(".")) > 1: self.ext = filename.split(".")[1].lower()
-    else                           : self.ext = None
-    self.raiseADebug('... to ',self.getAbsFile())
+    else: self.ext = None
 
   def setExtension(self,ext):
     """Sets the extension of the file.
@@ -144,7 +147,6 @@ class File(BaseType):
     @ In, pathandfile, string, path to file and the filename itself in a single string
     @Out, None
     """
-    self.raiseADebug('SETTING ABSOLUTE FILE!')
     if self.__isOpen: self.raiseAnError('Tried to change the path/name of an open file: %s! Close it first.' %self.getAbsFile())
     self.path,filename = os.path.split(pathandfile)
     self.setFilename(filename)
@@ -198,7 +200,6 @@ class File(BaseType):
     @ In,  mode, string (optional) the read-write mode according to python "file" method ('r','a','w','rw',etc) (default 'rw')
     @ Out, None
     """
-    #TODO check if file exists
     if not self.__isOpen:
       self.__file = file(self.getAbsFile(),mode)
       self.__isOpen = True
@@ -278,16 +279,17 @@ class RAVENGenerated(File):
     self.type = 'internal'
     self.printTag = 'Internal File'
     self.path=path
-    self.raiseADebug('FIRST FILENAME SET!')
     self.setFilename(filename)
     self.perturbed = False
     self.subtype   = subtype
     self.name      = filename
-    #self.checkExists()
-    #TODO we need a way to distinguish if it should already exist or not
 
+#
+#
+#
+#
 class CSV(RAVENGenerated):
-  """Specialized class specific to CSVs.  Was useful, may not be now."""
+  """Specialized class specific to CSVs.  Was useful, may not be now, might be again."""
   def initialize(self,filename,messageHandler,path='.',subtype=None):
     """Since this is internally generated, set up all the basic information.
     @ In, filename, string, name of the file
@@ -315,70 +317,17 @@ class UserGenerated(File):
       @ In,  msgHandler, MessageHandler object
       @ Out, None
     """
-    self.raiseADebug('READING UserGen xml!!!!!!!!')
-    #for node in xmlNode:
-    self.raiseADebug('NODE:',node.tag)
-    self.type = node.tag #XSD should confirm types as Input only valid type so far
+    self.type = node.tag #XSD should confirm valid types
     self.printTag = self.type+' File'
     self.setFilename(node.text.strip())
     self.perturbed = node.attrib.get('perturbable',True)
     self.subtype   = node.attrib.get('type'       ,None)
     self.alias     = node.attrib.get('name'       ,self.filename)
-#
-#
-#
-#
-  ### STRING-LIKE FUNCTIONS ###
-#  def __add__(self, other) :
-#    """
-#    Overload add "+"
-#    """
-#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-#    return Files(self.filename + other)
-#  def __radd__(self, other):
-#    """
-#    Overload radd "+"
-#    """
-#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-#    return Files(other + self.filename)
-#  def __lt__(self, other)  :
-#    """
-#    Overload lt "<"
-#    """
-#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-#    return len(self.filename) < len(str(other))
-#  def __le__(self, other) :
-#    """
-#    Overload le "<="
-#    """
-#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-#    return len(self.filename) <= len(str(other))
-#  def __eq__(self, other)  :
-#    """
-#    Overload eq "=="
-#    """
-#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes','NoneType']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-#    return self.filename == other
-#  def __ne__(self, other)  :
-#    """
-#    Overload ne "!="
-#    """
-#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes','NoneType']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-#    return self.filename != other
-#  def __gt__(self, other)  :
-#    """
-#    Overload gt ">"
-#    """
-#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-#    return len(self.filename) > len(str(other))
-#  def __ge__(self, other)  :
-#    """
-#    Overload ge ">"
-#    """
-#    if type(other).__name__ not in [type(self).__name__,'str','unicode','bytes']: self.raiseAnError(ValueError,"other is not a string like type! Got "+ type(other).__name__)
-#    return len(self.filename) >= len(str(other))
-#
 
+#
+#
+#
+#
 """
   Interface Dictionary (factory)(private)
 """

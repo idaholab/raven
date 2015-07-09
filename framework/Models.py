@@ -55,6 +55,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Input'  ][0]['multiplicity'] = 'n'
   validateDict['Input'].append(testDict.copy())
   validateDict['Input'  ][1]['class'       ] = 'Files'
+  # FIXME there's lots of types that Files can be, so until XSD replaces this, commenting this out
   #validateDict['Input'  ][1]['type'        ] = ['']
   validateDict['Input'  ][1]['required'    ] = False
   validateDict['Input'  ][1]['multiplicity'] = 'n'
@@ -727,11 +728,7 @@ class Code(Model):
       # register function to remove the locked file at the end of execution
       atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
     for inputFile in inputFiles:
-      #self.raiseADebug('infile:',inputFile.filename)
       shutil.copy(inputFile.getAbsFile(),self.workingDir)
-    self.raiseADebug('original input files copied in the current working dir: '+self.workingDir)
-    self.raiseADebug('files copied:')
-    self.raiseADebug( '  '+str(inputFiles))
     self.oriInputFiles = []
     for i in range(len(inputFiles)):
       self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i].getAbsFile())[1]))
@@ -741,11 +738,6 @@ class Code(Model):
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     """ This function creates a new input
         It is called from a sampler to get the implementation specific for this model"""
-    self.raiseADebug('Creating a new input...')
-    import inspect
-    print('stack:')
-    for i in inspect.stack():
-      print('  ',i)
     Kwargs['executable'] = self.executable
     found = False
     for index, inputFile in enumerate(currentInput):
@@ -754,12 +746,7 @@ class Code(Model):
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    #FIXME this was not a faithful conversion...maybe?
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index].getAbsFile())[1].split('.')[0]
-    self.raiseAWarning('createNewInput|currentInput:',currentInput[index])
-    self.raiseAWarning('createNewInput|os.path.split:',os.path.split(currentInput[index].getAbsFile()))
-    self.raiseAWarning('createNewInput|outfile:',Kwargs['outfile'])
-    #self.raiseAnError(RuntimeError,'DEBUGGING')
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 
@@ -767,7 +754,6 @@ class Code(Model):
     """append a run at the externalRunning list of the jobHandler"""
     self.currentInputFiles = inputFiles[0]
     executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs)
-    #executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):

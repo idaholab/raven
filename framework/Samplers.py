@@ -1659,8 +1659,6 @@ class DynamicEventTree(Grid):
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
       # Call the model function  "createNewInput" with the "values" dictionary just filled.
       # Add the new input path into the RunQueue system
-      self.raiseADebug('Creating a branch input...')
-      self.raiseADebug('...myinput:',myInput)
       self.RunQueue['queue'].append(model.createNewInput(myInput,self.type,**self.inputInfo))
       self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
       for key,value in self.inputInfo.items(): subGroup.add(key,value)
@@ -1731,10 +1729,6 @@ class DynamicEventTree(Grid):
       self._createRunningQueue(model, myInput)
     # retrieve the input from the queue
     newerinput = self.__getQueueElement()
-    self.raiseADebug('localGenerateInput|newerinput')
-    for i in newerinput:
-      self.raiseADebug('  ',i)
-    #self.raiseAnError(RuntimeError)
     if not newerinput:
       # If no inputs are present in the queue => a branch is finished
       self.raiseADebug('A Branch ended!')

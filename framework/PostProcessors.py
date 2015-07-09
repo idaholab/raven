@@ -245,13 +245,6 @@ class LimitSurfaceIntegral(BasePostProcessor):
         for _ in range(len(lms)): output.updateOutputValue('EventProbability', pb)
       elif isinstance(output,Files.File):
         headers = lms.getParaKeys('inputs') + lms.getParaKeys('outputs') + ['EventProbability']
-        #output.write(','.join(headers)) #TODO FIXME
-        #output.open('w')
-        #output.write('',overwrite=True)
-        #output.close()
-        #self.raiseADebug('whats in output')
-        #for line in output:
-        #  self.raiseADebug(line)
         stack = [None] * len(headers)
         output.close()
         outIndex = 0
@@ -261,8 +254,6 @@ class LimitSurfaceIntegral(BasePostProcessor):
           outIndex = headers.index(key)
         stack[headers.index('EventProbability')] = np.array([pb] * len(stack[outIndex])).flatten()
         stacked = np.column_stack(stack)
-        self.raiseADebug('\n\n\n\n\n\n\nHEADERS:',','.join(headers))
-        self.raiseADebug('\noutput:',output.getAbsFile())
         np.savetxt(output, stacked, delimiter = ',', header = ','.join(headers),comments='')
         #N.B. without comments='' you get a "# " at the top of the header row
       else: self.raiseAnError(Exception, self.type + ' accepts PointSet or File type only')
@@ -785,7 +776,6 @@ class ComparisonStatistics(BasePostProcessor):
             else:
               return str(l)
           newFileName = output.base + "_" + delist(dataPulls) + "_" + str(i) + ".csv"
-          #newFileName = output[:-4] + "_" + delist(dataPulls) + "_" + str(i) + ".csv"
           if type(dataStat).__name__ != 'dict':
             assert(False)
             continue
@@ -953,9 +943,6 @@ class PrintCSV(BasePostProcessor):
         if self.workingDir:
           addfilename = os.path.join(self.workingDir, addfilename)
           csvfilename = os.path.join(self.workingDir, csvfilename)
-        self.raiseADebug('addfilename:',addfilename,os.path.split(addfilename))
-        self.raiseADebug('csvfilename:',csvfilename,os.path.split(csvfilename))
-        self.raiseADebug('hist:',hist)
 
         #  Open the files and save the data
         csvfile    = Files.returnInstance('CSV',self)
@@ -964,9 +951,6 @@ class PrintCSV(BasePostProcessor):
         addcsvfile.initialize(os.path.split(addfilename)[1],self.messageHandler,path=os.path.split(addfilename)[0])
         csvfile   .open('wb')
         addcsvfile.open('wb')
-        self.raiseADebug('csv object',   csvfile.getAbsFile())
-        self.raiseADebug('add object',addcsvfile.getAbsFile())
-        #with open(csvfilen, 'wb') as csvfile, open(addfile, 'wb') as addcsvfile:
         #  Add history to the csv file
         np.savetxt(csvfile, HistorySet[key][0], delimiter = ",", header = utils.toString(headers))
         csvfile.write(os.linesep)
@@ -1115,10 +1099,8 @@ class BasicStatistics(BasePostProcessor):
       else                       : separator = ','
       #basicStatFilename = os.path.join(self.__workingDir, output.base)#output[:output.rfind('.')] + '.' + outputextension)
       output.setPath(self.__workingDir)#, output.base)#output[:output.rfind('.')] + '.' + outputextension)
-      #self.raiseADebug("workingDir", self.__workingDir + " output " + str(output.split('.')))
       self.raiseADebug('BasicStatistics postprocessor: dumping output in file named ' + output.getAbsFile())
       output.open('wb')
-      #with output as basicStatdump:
       output.write('BasicStatistics ' + separator + str(self.name) + os.linesep)
       output.write('----------------' + separator + '-' * len(str(self.name)) + os.linesep)
       for targetP in parameterSet:

@@ -181,7 +181,6 @@ class MOOSEparser(MessageHandler.MessageUser):
     '''ModiDictionaryList is a list of dictionaries of the required addition or modification
     -name- key should return a ordered list of the name e.g. ['Components','Pipe']
     the other keywords possible are used as attribute names'''
-    self.raiseADebug('\n\n\n\n\nMODIFY OR ADD DICTIONARY',modiDictionaryList,'\n\n\n\n\n')
     if save: returnElement = copy.deepcopy(self.root)         #make a copy if save is requested
     else: returnElement = self.root                           #otherwise return the original modified
     #print(modiDictionaryList)

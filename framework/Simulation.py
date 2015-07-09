@@ -387,12 +387,6 @@ class Simulation(MessageHandler.MessageUser):
     curfile = self.filesDict[filein]
     path = os.path.normpath(self.runInfoDict['WorkingDir'])
     curfile.setPath(path)
-    # FIXME originally self.filesDict[filein] = FileObject(os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein)))
-
-  #deprecated
-  #def __checkExistPath(self,filein):
-  #  """ assuming that the file in is already in the self.filesDict it checks the existence """
-  #  if not os.path.exists(self.filesDict[filein]): self.raiseAnError(IOError,'The file '+ filein +' has not been found')
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     """parses the xml input file, instances the classes need to represent all objects in the simulation"""
@@ -405,8 +399,6 @@ class Simulation(MessageHandler.MessageUser):
     except: self.raiseAnError(IOError,'The run info node is mandatory')
     self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
     for child in xmlNode:
-      if child.tag=='Files':
-        self.raiseADebug('\n\nDOING FILE OBJECTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
       if child.tag in list(self.whichDict.keys()):
         self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
@@ -417,7 +409,6 @@ class Simulation(MessageHandler.MessageUser):
         if Class != 'RunInfo':
           for childChild in child:
             subType = childChild.tag
-            self.raiseADebug('\n\nREADING SUBTYPE:',child.tag,'->',subType)
             if 'name' in childChild.attrib.keys():
               name = childChild.attrib['name']
               self.raiseADebug('Reading type '+str(childChild.tag)+' with name '+name)
@@ -430,10 +421,6 @@ class Simulation(MessageHandler.MessageUser):
                       self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
                     else:
                       self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
-                      if Class=='Files':
-                        self.raiseADebug('DEUBGGGG adddict',self.addWhatDict[Class],childChild.tag)
-                        self.raiseADebug('DEUBGGGG Added',self.whichDict[Class][name])
-                        self.raiseADebug(type(Files.returnInstance('Input',self)))
                   else: self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
               else:
                   if name not in self.whichDict[Class][subType].keys():  self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)
@@ -465,7 +452,7 @@ class Simulation(MessageHandler.MessageUser):
       self.runInfoDict['totalNumCoresUsed'] = oldTotalNumCoresUsed
     elif oldTotalNumCoresUsed > 1: #If 1, probably just default
       self.raiseAWarning("overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
-    #transform all files in absolute path - FIXME not needed anymore?
+    #transform all files in absolute path
     for key in self.filesDict.keys(): self.__createAbsPath(key)
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
@@ -485,13 +472,13 @@ class Simulation(MessageHandler.MessageUser):
             self.raiseADebug('myClass:',myClass)
             self.raiseADebug('list:',list(self.whichDict[myClass].keys()))
             self.raiseADebug('whichDict[myClass]',self.whichDict[myClass])
-            #self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
+            self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
       else:
           if name not in list(self.whichDict[myClass][objectType].keys()):
             self.raiseADebug('name: '+name)
             self.raiseADebug('list: '+str(list(self.whichDict[myClass][objectType].keys())))
             self.raiseADebug(str(self.whichDict[myClass][objectType]))
-            #self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
+            self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
 
       if myClass != 'Files':  # check if object type is consistent
         if myClass != 'OutStreamManager': objtype = self.whichDict[myClass][name].type
@@ -550,11 +537,6 @@ class Simulation(MessageHandler.MessageUser):
       elif element.tag == 'expectedTime'      : self.runInfoDict['expectedTime'      ] = element.text.strip()
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','): self.stepSequenceList.append(stepName.strip())
-      # MOVING NODE to <Files> outside of RunInfo
-      #elif element.tag == 'Files':
-      #  text = element.text.strip()
-      #  for fileName in text.split(','):
-      #    self.filesDict[fileName.strip()] = FileObject(fileName.strip())
       elif element.tag == 'DefaultInputFile'  : self.runInfoDict['DefaultInputFile'] = element.text.strip()
       elif element.tag == 'CustomMode' :
         modeName = element.text.strip()
@@ -619,35 +601,17 @@ class Simulation(MessageHandler.MessageUser):
       stepInputDict['Input' ]          = []                         #set the Input to an empty list
       stepInputDict['Output']          = []                         #set the Output to an empty list
       #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
-      self.raiseADebug('In step',stepName)
       for [key,b,c,d] in stepInstance.parList:
         #Only for input and output we allow more than one object passed to the step, so for those we build a list
-        #self.raiseADebug('Doing key=',key)
         if key == 'Input' or key == 'Output':
             if b == 'OutStreamManager':
               stepInputDict[key].append(self.whichDict[b][c][d])
-              #self.raiseADebug('What is in whichdict1|','b:',b,'c:',c,'d:',d,'dict:',self.whichDict[b][c][d])
             else:
               stepInputDict[key].append(self.whichDict[b][d])
-              #self.raiseADebug('What is in whichdict2|','b:',b,'d:',d,'dict:',self.whichDict[b][d])
-            if key=='Input':
-              self.raiseADebug('key %s b %s c %s d %s' %(key,b,c,d))
-              self.raiseADebug('dict:',self.whichDict[b])
-              self.raiseADebug('Added',stepInputDict[key])
         else:
           stepInputDict[key] = self.whichDict[b][d]
-        #if key == 'Input' and b == 'Files':
-          # get file object from dict?
-          #fileobj = self.whichDict[b][d]
-          #fileobj.checkExists()
-          #stepInputDict[key].append(fileobj)
-          # originally self.__checkExistPath(d) #if the input is a file, check if it exists
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler
-      #DEBUG FIXME
-      #self.raiseADebug('\n\n\n\nStuff in stepInputDict:','\n')
-      #for fo in stepInputDict['Input']:
-      #  self.raiseADebug('File:',fo.getAbsFile())
       #generate the needed assembler to send to the step
       for key in stepInputDict.keys():
         if type(stepInputDict[key]) == list: stepindict = stepInputDict[key]
