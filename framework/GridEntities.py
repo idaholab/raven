@@ -306,7 +306,11 @@ class GridEntity(GridBase):
       {upperBounds:{}}, required, dictionary of upper bounds for each dimension
       {volumetriRatio:float or stepLenght:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLenghts ({'varName:list,etc'}
       {computeCells:bool},optional, boolean to ask to compute the cells ids and verteces coordinates, default = False
-      {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate
+      {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate. the transformationMethods dictionary needs to be provided as follow:
+                                  {"dimensionName1":[instanceOfMethod,optional *args (in case the method takes as input other parameters in addition to a coordinate],
+                                   or
+                                   "dimensionName2":[instanceOfMethod]
+                                  }
       !!!!!!
       if the self.gridInitDict is != None (info read from XML node), this method looks for the information in that dictionary first and after it checks the initDict object
       !!!!!!
@@ -373,7 +377,7 @@ class GridEntity(GridBase):
                                                                                                                                       " > minValue in grid: "+str(min(self.gridContainer['gridVectors'][varName])))
       if self.gridContainer['transformationMethods'] != None:
         if varName in self.gridContainer['transformationMethods'].keys():
-          self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName](coor) for coor in self.gridContainer['gridVectors'][varName]])
+          self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName][0](coor) for coor in self.gridContainer['gridVectors'][varName]])
       pointByVar[varId]                               = np.shape(self.gridContainer['gridVectors'][varName])[0]
     self.gridContainer['gridShape']                 = tuple   (pointByVar)                            # tuple of the grid shape
     self.gridContainer['gridLenght']                = np.prod (pointByVar)                            # total number of point on the grid
@@ -528,7 +532,6 @@ class GridEntity(GridBase):
       else:
         if key in recastMethods.keys(): coordinates[vvkey] = recastMethods[key][0](self.gridContainer['gridVectors'][key][multiDimIndex[cnt]],*recastMethods[key][1] if len(recastMethods[key]) > 1 else [])
         else                          : coordinates[vvkey] = self.gridContainer['gridVectors'][key][multiDimIndex[cnt]]
-
     if not returnDict: coordinates = tuple(coordinates)
     return coordinates
 
@@ -665,12 +668,13 @@ class MultiGridEntity(GridBase):
       foundCells = set(nodeCellIds).intersection(cellIdsToRefine)
       if len(foundCells) > 0:
         parentGrid = node.get("grid")
+        initDict   = parentGrid.returnParameter("initDictionary") 
+        if "transformationMethods" in initDict.keys(): initDict.pop("transformationMethods")
         for idcnt, fcellId in enumerate(foundCells):
           didWeFoundCells[fcellId] = True
-          initDict, newGrid        = parentGrid.returnParameter("initDictionary"), returnInstance("GridEntity", self, self.messageHandler)
+          newGrid                  = returnInstance("GridEntity", self, self.messageHandler)
           verteces                 = parentNodeCellIds[fcellId]
-          lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), sys.float_info.max), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), -sys.float_info.max)
-          
+          lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), sys.float_info.max), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), -sys.float_info.max) 
           for vertex in verteces:
             coordinates = parentGrid.returnCoordinateFromIndex(vertex, True, recastMethods=initDict["transformationMethods"] if "transformationMethods" in initDict.keys() else {})
             lowerBounds = {k: min(i for i in (lowerBounds.get(k), coordinates.get(k)) if i) for k in lowerBounds.viewkeys() | coordinates}

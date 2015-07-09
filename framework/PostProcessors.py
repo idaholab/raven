@@ -1551,7 +1551,7 @@ class LimitSurface(BasePostProcessor):
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.ROM               = None             #Pointer to a ROM
     self.externalFunction  = None             #Pointer to an external Function
-    self.subGridTol        = 1.0e-4           #SubGrid tollerance
+    self.tolerance           = 1.0e-4           #SubGrid tollerance
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
     self.gridEntity        = None
@@ -1619,7 +1619,7 @@ class LimitSurface(BasePostProcessor):
     if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
       for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key)), max(self.inputs[self.indexes].getParam(self.paramType[key],key))
-    self.gridEntity.initialize(initDictionary={"rootName":self.name,"computeCells":True,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
+    self.gridEntity.initialize(initDictionary={"rootName":self.name,"computeCells":True,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
     self.nVar                  = len(self.parameters['targets'])                                  # Total number of variables
     self.axisName              = self.gridEntity.returnParameter("dimensionNames",self.name)      # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     self.testMatrix[self.name] = np.zeros(self.gridEntity.returnParameter("gridShape",self.name)) # grid where the values of the goalfunction are stored
@@ -1692,16 +1692,17 @@ class LimitSurface(BasePostProcessor):
       calculations
       @ In, dictIn, dict, dictionary of initialization options
     """
-    if "parameters" not in dictIn.keys(): self.raiseAnError(IOError, 'No Parameters specified in XML input!!!!')
-    if type(dictIn["parameters"]) == list: self.parameters['targets'] = dictIn["parameters"]
-    else                                 : self.parameters['targets'] = dictIn["parameters"].split(",")
-    if "tolerance" in dictIn.keys(): self.subGridTol = float(dictIn["tolerance"])
-    if "side" in dictIn.keys(): self.lsSide = dictIn["side"]
+    if "parameters" not in dictIn.keys()       : self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
+    if "name"                  in dictIn.keys(): self.name          = dictIn["name"]
+    if type(dictIn["parameters"]).__name__ == "list" : self.parameters['targets'] = dictIn["parameters"]
+    else                                             : self.parameters['targets'] = dictIn["parameters"].split(",")
+    if "bounds"                in dictIn.keys()      : self.bounds        = dictIn["bounds"]
+    if "transformationMethods" in dictIn.keys()      : self.transfMethods = dictIn["transformationMethods"]
+    if "verbosity"             in dictIn.keys()      : self.verbosity     = dictIn['verbosity']
+    if "side"                  in dictIn.keys()      : self.lsSide        = dictIn["side"]
+    if "tolerance"             in dictIn.keys()      : self.tolerance     = float(dictIn["tolerance"])
     if self.lsSide not in ["negative", "positive", "both"]: self.raiseAnError(IOError, 'Computation side can be positive, negative, both only !!!!')
-    if "bounds" in dictIn.keys(): self.bounds = dictIn["bounds"]
-    if "transformationMethods" in dictIn.keys(): self.transfMethods = dictIn["transformationMethods"]
-    if "verbosity"       in dictIn.keys(): self.verbosity = dictIn['verbosity']
- 
+    
   def getFunctionValue(self):
     """
     Method to get a pointer to the dictionary self.functionValue
@@ -1758,7 +1759,7 @@ class LimitSurface(BasePostProcessor):
      @ Out, None
     """
     cellIds = self.gridEntity.retrieveCellIds([self.listsurfPointNegative,self.listsurfPointPositive],self.name)
-    self.raiseADebug("Limit Surface cell IDs are: "+ " ".join([str(cellID) for cellID in cellIds]))
+    self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID) for cellID in cellIds]))
     self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(min([refinementSteps,2]))})
 
   def run(self, InputIn = None, returnListSurfCoord = False, skipMainGrid=False):
@@ -1838,7 +1839,7 @@ class LimitSurface(BasePostProcessor):
     """
     listsurfPoint = []
     gridShape = self.gridEntity.returnParameter("gridShape",nodeName)
-    myIdList = np.zeros(self.nVar)
+    myIdList = np.zeros(self.nVar,dtype=int)
     for coordinate in np.rollaxis(toBeTested, 0):
       myIdList[:] = coordinate
       if self.testMatrix[nodeName][tuple(coordinate)] * sign > 0:
