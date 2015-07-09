@@ -599,7 +599,7 @@ class MultiGridEntity(GridBase):
     """
      This method is aimed to retrieve the cell IDs that are contained in certain bounaried provided as list of points
      @ In, listOfPoints, list, list of points that represent the boundaries ([listOfFirstBound, listOfSecondBound])
-     @ In, nodeName, string, optional, node from which the cell IDs needs to be retrived. If not present, all the cells are going to be retrieved
+     @ In, nodeName, string, optional, node from which the cell IDs needs to be retrieved. If not present, all the cells are going to be retrieved
      @ In, containedOnly, bool, optional, flag to ask for cells contained in the listOfPoints or just cells that touch the listOfPoints, default True
     """
     setOfCells = []

@@ -22,6 +22,7 @@ from scipy import spatial
 from scipy.interpolate import InterpolatedUnivariateSpline
 import xml.etree.ElementTree as ET
 import itertools
+from math import ceil
 from sklearn import neighbors
 #External Modules End--------------------------------------------------------------------------------
 
@@ -527,7 +528,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.nVar             = 0                #this is the number of the variable sampled
     self.surfPoint        = None             #coordinate of the points considered on the limit surface
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
-    # postprocessor to compute the limit surface
+    self.refinedPerformed = False
+    # post-processor to compute the limit surface
     self.limitSurfacePP   = None
     self.printTag         = 'SAMPLER ADAPTIVE'
 
@@ -680,7 +682,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
     np.copyto(self.oldTestMatrix,self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
     self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
-
+    if self.subGridTol != self.tolerance and evaluations != None and self.refinedPerformed != True: 
+      self.limitSurfacePP.refineGrid(int(ceil((self.tolerance/self.subGridTol)**(1.0/self.nVar))))
+      self.refinedPerformed = True
     self.raiseADebug('Prediction finished')
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1

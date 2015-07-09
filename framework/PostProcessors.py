@@ -1626,7 +1626,7 @@ class LimitSurface(BasePostProcessor):
 
   def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
     """
-     Method to initialize the LS accellation rom
+     Method to initialize the LS accelleration rom
      @ In, inp, Data(s) object, data object containing the training set
      @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
     """
@@ -1758,8 +1758,8 @@ class LimitSurface(BasePostProcessor):
      @ Out, None
     """
     cellIds = self.gridEntity.retrieveCellIds([self.listsurfPointNegative,self.listsurfPointPositive],self.name)
-    self.raiseADebug("Limit Surface cell IDs are: "+ " ".join(cellIds))
-    self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(refinementSteps)})
+    self.raiseADebug("Limit Surface cell IDs are: "+ " ".join([str(cellID) for cellID in cellIds]))
+    self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(min([refinementSteps,2]))})
 
   def run(self, InputIn = None, returnListSurfCoord = False, skipMainGrid=False):
     """
