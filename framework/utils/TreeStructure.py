@@ -286,7 +286,17 @@ class NodeTree(object):
       @ In, the newer node
     """
     self._rootnode = node
-
+  
+  def updateNodeName(self,path, newName):
+    """
+      Method to update the name of a node
+      @ In, path, string, the node name or full path
+      @ In, newName, string, the new name 
+    """
+    if path == "root": node = self.getrootnode()
+    else             : node = self.find(path)
+    if node != None: node.name = newName
+  
   def iter(self, name=None):
     """
       Method for creating a tree iterator for the root node
@@ -324,9 +334,10 @@ class NodeTree(object):
       @ In, path, string, the path or name
       @ Out, first matching node or None if no node was found
     """
+    if self._rootnode.name == path: return self.getrootnode()
     if path[:1] == "/":
       path = "." + path
-    return self._rootnode.find(path)
+    return self._rootnode.findBranch(path)
 
   def findall(self, path):
     """
@@ -334,9 +345,10 @@ class NodeTree(object):
       @ In, path, string, the path or name
       @ Out, A list or iterator containing all matching nodes
     """
+    if self._rootnode.name == path: return [self.getrootnode()]
     if path[:1] == "/":
       path = "." + path
-    return self._rootnode.findall(path)
+    return self._rootnode.findallBranch(path)
 
   def iterfind(self, path):
     """
@@ -376,7 +388,7 @@ class NodeTree(object):
 ####################
 class NodePath(object):
   def find(self, node, name):
-    for nod in node:
+    for nod in node._branches:
       if nod.name == name:
         return nod
     return None

@@ -1546,7 +1546,8 @@ class LimitSurface(BasePostProcessor):
     BasePostProcessor.__init__(self,messageHandler)
     self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
-    self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
+    self.testMatrix        = {}               #This is the n-dimensional matrix representing the testing grid
+    self.gridCoord         = {}               #Grid coordinates
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.ROM               = None             #Pointer to a ROM
     self.externalFunction  = None             #Pointer to an external Function
@@ -1593,10 +1594,7 @@ class LimitSurface(BasePostProcessor):
      @ In, initDict, dict, dictionary with initialization options
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.gridEntity = GridEntities.returnInstance("GridEntity",self,self.messageHandler)
-    
-    self.multiGridEntity = GridEntities.returnInstance("MultiGridEntity",self,self.messageHandler) 
-    
+    self.gridEntity = GridEntities.returnInstance("MultiGridEntity",self,self.messageHandler)     
     self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
@@ -1621,17 +1619,10 @@ class LimitSurface(BasePostProcessor):
     if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
       for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key)), max(self.inputs[self.indexes].getParam(self.paramType[key],key))
-    self.gridEntity.initialize(initDictionary={"computeCells":True,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
-    
-    
-    
-    self.multiGridEntity.initialize(initDictionary={"computeCells":True,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
-    
-    
-    
-    self.nVar       = len(self.parameters['targets'])         #Total number of variables
-    self.axisName   = self.gridEntity.returnParameter("dimensionNames")                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
-    self.testMatrix = np.zeros(self.gridEntity.returnParameter("gridShape"))  # grid where the values of the goalfunction are stored
+    self.gridEntity.initialize(initDictionary={"rootName":self.name,"computeCells":True,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.subGridTol,"transformationMethods":self.transfMethods})
+    self.nVar                  = len(self.parameters['targets'])                                  # Total number of variables
+    self.axisName              = self.gridEntity.returnParameter("dimensionNames",self.name)      # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
+    self.testMatrix[self.name] = np.zeros(self.gridEntity.returnParameter("gridShape",self.name)) # grid where the values of the goalfunction are stored
 
   def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
     """
@@ -1710,7 +1701,7 @@ class LimitSurface(BasePostProcessor):
     if "bounds" in dictIn.keys(): self.bounds = dictIn["bounds"]
     if "transformationMethods" in dictIn.keys(): self.transfMethods = dictIn["transformationMethods"]
     if "verbosity"       in dictIn.keys(): self.verbosity = dictIn['verbosity']
-
+ 
   def getFunctionValue(self):
     """
     Method to get a pointer to the dictionary self.functionValue
@@ -1719,13 +1710,14 @@ class LimitSurface(BasePostProcessor):
     """
     return self.functionValue
 
-  def getTestMatrix(self):
+  def getTestMatrix(self, nodeName=None):
     """
     Method to get a pointer to the testMatrix object (evaluation grid)
     @ In, None
     @ Out, ndarray , self.testMatrix
     """
-    return self.testMatrix
+    if nodeName == None: return self.testMatrix[self.name]
+    else               : return self.testMatrix[nodeName]
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -1759,93 +1751,107 @@ class LimitSurface(BasePostProcessor):
       output.removeOutputValue(self.externalFunction.name)
       for value in limitSurf[1]: output.updateOutputValue(self.externalFunction.name, copy.copy(value))
 
-  def run(self, InputIn = None, returnListSurfCoord = False):  # inObj,workingDir=None):
+  def refineGrid(self,refinementSteps=2):
+    """
+     Method to refine the internal grid based on the limit surface previously computed
+     @ In, refinementSteps, int, number of refinement steps
+     @ Out, None
+    """
+    cellIds = self.gridEntity.retrieveCellIds([self.listsurfPointNegative,self.listsurfPointPositive],self.name)
+    self.raiseADebug("Limit Surface cell IDs are: "+ " ".join(cellIds))
+    self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(refinementSteps)})
+
+  def run(self, InputIn = None, returnListSurfCoord = False, skipMainGrid=False):
     """
      This method executes the postprocessor action. In this case it computes the limit surface.
      @ In ,InputIn, dictionary, dictionary of data to process
      @ In ,returnListSurfCoord, boolean, True if listSurfaceCoordinate needs to be returned
      @ Out, dictionary, Dictionary containing the limitsurface
     """
-    self.testMatrix.shape     = (len(self.gridEntity))    #rearrange the grid matrix such as is an array of values
-    
-    lenMultiGrid, lenGrid = len(self.multiGridEntity), len(self.gridEntity)
-    multigridCoord = self.multiGridEntity.returnGridAsArrayOfCoordinates()
-    
-    
-    self.gridCoord = self.gridEntity.returnGridAsArrayOfCoordinates()
-    tempDict ={}
-    for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
-    self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
-    self.testMatrix.shape     = self.gridEntity.returnParameter("gridShape")     #bring back the grid structure
-    self.gridCoord.shape      = self.gridEntity.returnParameter("gridCoorShape") #bring back the grid structure
-    self.raiseADebug('LimitSurface: Prediction performed')
-    # here next the points that are close to any change are detected by a gradient (it is a pre-screener)
-    toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)), axis = 0))))
-    #printing----------------------
-    self.raiseADebug('LimitSurface:  Limit surface candidate points')
-    for coordinate in np.rollaxis(toBeTested, 0):
-      myStr = ''
-      for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
-      self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[tuple(coordinate)]))
-    #printing----------------------
-    # check which one of the preselected points is really on the limit surface
-    nNegPoints = 0
-    nPosPoints = 0
-    listsurfPointNegative = []
-    listsurfPointPositive = []
-    if self.lsSide in ["negative", "both"]:
-      # it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
-      listsurfPointNegative = self.__localLimitStateSearch__(toBeTested, -1)
-      nNegPoints = len(listsurfPointNegative)
-    if self.lsSide in ["positive", "both"]:
-      # it returns the list of points belonging to the limit state surface and resulting in a positive response by the ROM
-      listsurfPointPositive = self.__localLimitStateSearch__(toBeTested, 1)
-      nPosPoints = len(listsurfPointPositive)
-    listsurfPoint = listsurfPointNegative + listsurfPointPositive
-    #printing----------------------
-    if len(listsurfPoint) > 0: self.raiseADebug('LimitSurface: Limit surface points:')
-    for coordinate in listsurfPoint:
-      myStr = ''
-      for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
-      self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[tuple(coordinate)]))
-    #printing----------------------
-    # if the number of point on the limit surface is > than zero than save it
-    evaluations = None
-    if self.lsSide == 'both':
-      aaa = self.gridEntity.retrieveCellIds([listsurfPointNegative,listsurfPointPositive])
-      print(aaa)
-      self.multiGridEntity.refineGrid({"cellIDs":aaa,"refiningNumSteps":2})
-    if len(listsurfPoint) > 0:
-      self.surfPoint = np.ndarray((len(listsurfPoint), self.nVar))
-      for pointID, coordinate in enumerate(listsurfPoint):
-        self.surfPoint[pointID, :] = self.gridCoord[tuple(coordinate)]
-      evaluations = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
+    evaluations   = None
+    appendSurface = False
+    for nodeName in self.gridEntity.getAllNodesNames(self.name):
+      if skipMainGrid == True and nodeName == self.name: continue
+      self.testMatrix[nodeName] = np.zeros(self.gridEntity.returnParameter("gridShape",nodeName))
+      self.gridCoord[nodeName] = self.gridEntity.returnGridAsArrayOfCoordinates(nodeName=nodeName)
+      tempDict ={}
+      for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[nodeName][:,varId]
+      self.testMatrix[nodeName].shape     = (self.gridCoord[nodeName].shape[0])                       #rearrange the grid matrix such as is an array of values
+      self.testMatrix[nodeName][:]        = self.ROM.evaluate(tempDict)                               #get the prediction on the testing grid
+      self.testMatrix[nodeName].shape     = self.gridEntity.returnParameter("gridShape",nodeName)     #bring back the grid structure
+      self.gridCoord[nodeName].shape      = self.gridEntity.returnParameter("gridCoorShape",nodeName) #bring back the grid structure
+      self.raiseADebug('LimitSurface: Prediction performed')
+      # here next the points that are close to any change are detected by a gradient (it is a pre-screener)
+      toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
+      #printing----------------------
+      self.raiseADebug('LimitSurface:  Limit surface candidate points')
+      for coordinate in np.rollaxis(toBeTested, 0):
+        myStr = ''
+        for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
+        self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[nodeName][tuple(coordinate)]))
+      #printing----------------------
+      # check which one of the preselected points is really on the limit surface
+      nNegPoints = 0
+      nPosPoints = 0
+      listsurfPointNegative = []
+      listsurfPointPositive = []
+      if self.lsSide in ["negative", "both"]:
+        # it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
+        listsurfPointNegative = self.__localLimitStateSearch__(toBeTested, -1, nodeName)
+        nNegPoints = len(listsurfPointNegative)
+      if self.lsSide in ["positive", "both"]:
+        # it returns the list of points belonging to the limit state surface and resulting in a positive response by the ROM
+        listsurfPointPositive = self.__localLimitStateSearch__(toBeTested, 1, nodeName)
+        nPosPoints = len(listsurfPointPositive)
+      listsurfPoint = listsurfPointNegative + listsurfPointPositive
+      #printing----------------------
+      if len(listsurfPoint) > 0: self.raiseADebug('LimitSurface: Limit surface points:')
+      for coordinate in listsurfPoint:
+        myStr = ''
+        for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
+        self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[nodeName][tuple(coordinate)]))
+      #printing----------------------
+      # if the number of point on the limit surface is > than zero than save it
+      if len(listsurfPoint) > 0:
+        if appendSurface == False: 
+          self.surfPoint = np.ndarray((len(listsurfPoint), self.nVar))
+          startPoint = 0
+          evaluations = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
+          appendSurface = True
+        else: 
+          startPoint = self.surfPoint.shape[0]
+          self.surfPoint = np.concatenate((self.surfPoint,np.zeros((len(listsurfPoint), self.nVar))),axis=0)
+          if evaluations == None: evaluations = np.zeros(0)
+          evaluations = np.concatenate((evaluations,np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)), axis=0)
+        for pointID, coordinate in enumerate(listsurfPoint):
+          self.surfPoint[pointID+startPoint, :] = self.gridCoord[nodeName][tuple(coordinate)]
+    self.listsurfPointNegative, self.listsurfPointPositive = listsurfPointNegative,listsurfPointPositive
     if returnListSurfCoord: return self.surfPoint, evaluations, listsurfPoint
     else                  : return self.surfPoint, evaluations
 
 
-  def __localLimitStateSearch__(self, toBeTested, sign):
+  def __localLimitStateSearch__(self, toBeTested, sign, nodeName):
     """
     It returns the list of points belonging to the limit state surface and resulting in
     positive or negative responses by the ROM, depending on whether ''sign''
     equals either -1 or 1, respectively.
     """
     listsurfPoint = []
-    gridShape = self.gridEntity.returnParameter("gridShape")
+    gridShape = self.gridEntity.returnParameter("gridShape",nodeName)
     myIdList = np.zeros(self.nVar)
     for coordinate in np.rollaxis(toBeTested, 0):
       myIdList[:] = coordinate
-      if self.testMatrix[tuple(coordinate)] * sign > 0:
+      if self.testMatrix[nodeName][tuple(coordinate)] * sign > 0:
         for iVar in range(self.nVar):
           if coordinate[iVar] + 1 < gridShape[iVar]:
             myIdList[iVar] += 1
-            if self.testMatrix[tuple(myIdList)] * sign <= 0:
+            if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
               listsurfPoint.append(copy.copy(coordinate))
               break
             myIdList[iVar] -= 1
             if coordinate[iVar] > 0:
               myIdList[iVar] -= 1
-              if self.testMatrix[tuple(myIdList)] * sign <= 0:
+              if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
                 listsurfPoint.append(copy.copy(coordinate))
                 break
               myIdList[iVar] += 1

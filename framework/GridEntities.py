@@ -16,7 +16,6 @@ import itertools
 #Internal Modules------------------------------------------------------------------------------------
 from utils import UreturnPrintTag,partialEval,compare, metaclass_insert
 from BaseClasses import BaseType
-from MessageHandler import MessageHandler
 import TreeStructure as ETS
 #import TreeStructure as TS
 #Internal Modules End--------------------------------------------------------------------------------
@@ -410,17 +409,19 @@ class GridEntity(GridBase):
     
     self.raiseAMessage("Grid initialized...")
 
-  def retrieveCellIds(self,listOfPoints):
+  def retrieveCellIds(self,listOfPoints,containedOnly=True):
     """
      This method is aimed to retrieve the cell IDs that are contained in certain bounaried provided as list of points
      @ In, listOfPoints, list, list of points that represent the boundaries ([listOfFirstBound, listOfSecondBound])
+     @ In, containedOnly, bool, optional, flag to ask for cells contained in the listOfPoints or just cells that touch the listOfPoints, default True
     """
     cellIds = []
     for cntb, bound in enumerate(listOfPoints):
       cellIds.append([])
       for point in bound: cellIds[cntb].extend(self.gridContainer['vertexToCellIds'][tuple(point)])
       if cntb == 0: previousSet = set(cellIds[cntb])
-      previousSet = set(previousSet).intersection(cellIds[cntb])
+      if containedOnly == True: previousSet = set(previousSet).intersection(cellIds[cntb])
+      else                    : previousSet.update(cellIds[cntb])
     return list(previousSet)
 
   def returnGridAsArrayOfCoordinates(self):
@@ -549,7 +550,7 @@ class MultiGridEntity(GridBase):
                                   {"grid":returnInstance("GridEntity",self,
                                    self.messageHandler),"level":"1"})) # grid hierarchical Container      
     self.multiGridIterator      = ["1", None]                          # multi grid iterator [first position is the level ID, the second it the multi-index]   
-    self.mappingLevelName       = {'1':'InitialGrid'}                  # mapping between grid level and node name  
+    self.mappingLevelName       = {'1':None}                           # mapping between grid level and node name  
    
   def __len__(self):
     """
@@ -587,20 +588,33 @@ class MultiGridEntity(GridBase):
       if the self.gridInitDict is != None (info read from XML node), this method looks for the information in that dictionary first and after it checks the initDict object
       !!!!!!
     """
+    if "rootName" in initDictionary.keys(): 
+      self.grid.updateNodeName("root",initDictionary["rootName"])
+      self.mappingLevelName['1'] = initDictionary["rootName"]
     self.grid.getrootnode().get("grid").initialize(initDictionary)
-    if initDictionary != None: self.subGridVolumetricRatio = float(initDictionary['subGridVolumetricRatio']) if 'subGridVolumetricRatio' in initDictionary.keys() else 1.e-5
     self.nVar = self.grid.getrootnode().get("grid").nVar
     self.multiGridIterator[1] = self.grid.getrootnode().get("grid").returnIteratorIndexes(False)
 
-  def retrieveCellIds(self,listOfPoints):
+  def retrieveCellIds(self,listOfPoints,nodeName=None, containedOnly = True):
     """
      This method is aimed to retrieve the cell IDs that are contained in certain bounaried provided as list of points
      @ In, listOfPoints, list, list of points that represent the boundaries ([listOfFirstBound, listOfSecondBound])
+     @ In, nodeName, string, optional, node from which the cell IDs needs to be retrived. If not present, all the cells are going to be retrieved
+     @ In, containedOnly, bool, optional, flag to ask for cells contained in the listOfPoints or just cells that touch the listOfPoints, default True
     """
     setOfCells = []
-    for node in self.grid.iter():
-      setOfCells.extend(node.get('grid').retrieveCellIds(listOfPoints))
-    return setOfCells
+    if nodeName == None:
+      for node in self.grid.iter(): setOfCells.extend(node.get('grid').retrieveCellIds(listOfPoints,containedOnly))
+    else:
+      node = self.grid.find(nodeName)
+      setOfCells.extend(node.get('grid').retrieveCellIds(listOfPoints,containedOnly))
+    return setOfCells  
+  
+  def getAllNodesNames(self,startingNode = None):
+    if startingNode != None:
+      snode = self.grid.find(startingNode)
+      return [node.name for node in snode.iter()]                 
+    else: return self.mappingLevelName.values()
   
   def __createNewNode(self, nodeName, attributes={}):
     node = ETS.Node(nodeName)
@@ -642,7 +656,7 @@ class MultiGridEntity(GridBase):
            {refiningNumSteps:numberOfStepsToUseForTheRefinement}
      @ Out, None
     """
-    if "refiningNumSteps" not in refineDict.keys() and "volumetricRation" not in refineDict.keys(): self.raiseAnError(IOError, "the refining Number of steps or the volumetricRatio has not been provided!!!")
+    if "refiningNumSteps" not in refineDict.keys() and "volumetricRatio" not in refineDict.keys(): self.raiseAnError(IOError, "the refining Number of steps or the volumetricRatio has not been provided!!!")
     cellIdsToRefine, didWeFoundCells = refineDict['cellIDs'], dict.fromkeys(refineDict['cellIDs'], False)
     maxCellId = self._getMaxCellIds()
     for node in self.grid.iter():
@@ -671,20 +685,28 @@ class MultiGridEntity(GridBase):
           newGrid.initialize(initDict)
           maxCellId   = max(newGrid.returnParameter('cellIDs').keys())
           refinedNode = self.__createNewNode(node.name+"_cell:"+str(fcellId),{"grid":newGrid,"level":level+"."+str(idcnt)})
+          self.mappingLevelName[level+"."+str(idcnt)] = node.name+"_cell:"+str(fcellId)
           node.appendBranch(refinedNode)
       foundAll = all(item == True for item in set(didWeFoundCells.values()))
       if foundAll: break
     if not foundAll: self.raiseAnError(Exception,"the following cell IDs have not been found: " + ' '.join([cellId for cellId, value in didWeFoundCells.items() if value == True]))  
 
-  def returnGridAsArrayOfCoordinates(self):
+  def returnGridAsArrayOfCoordinates(self,nodeName = None, returnDict = False):
     """
     Return the grid as an array of coordinates
-    @ In, None
-    @ Out, fullReshapedCoordinates, ndarray, numpy array containing all the coordinates shaped as (fullGridLenght,self.nVar)
+    @ In, returnDict, bool, return a dictionary with the coordinates for all sub-grid, default = False
+    @ Out, fullReshapedCoordinates, ndarray or dict (dependeing on returnDict flag), numpy array or dictionary of numpy arrays containing all the coordinates shaped as (fullGridLenght,self.nVar) or (sub-gridLenght, self.nVar)
     """
-    fullReshapedCoordinates = np.zeros((0,self.nVar))
-    for node in self.grid.iter():
-      fullReshapedCoordinates = np.concatenate((fullReshapedCoordinates,node.get('grid').returnGridAsArrayOfCoordinates()))                  
+    if not returnDict: 
+      fullReshapedCoordinates = np.zeros((0,self.nVar))
+      if nodeName == None:
+        for node in self.grid.iter(): fullReshapedCoordinates = np.concatenate((fullReshapedCoordinates,node.get('grid').returnGridAsArrayOfCoordinates()))
+      else: fullReshapedCoordinates = self.grid.find(nodeName).get('grid').returnGridAsArrayOfCoordinates()    
+    else:
+      fullReshapedCoordinates = {}
+      if nodeName == None:
+        for node in self.grid.iter(): fullReshapedCoordinates[node.name] = node.get('grid').returnGridAsArrayOfCoordinates()
+      else: fullReshapedCoordinates[nodeName] = self.grid.find(nodeName).get('grid').returnGridAsArrayOfCoordinates()    
     return fullReshapedCoordinates
   
   def resetIterator(self):
@@ -776,6 +798,62 @@ class MultiGridEntity(GridBase):
       level, multiDimIndex = multiDimNDIndex[0], multiDimNDIndex[1]
     node = self.grid.find(self.mappingLevelName[level])
     return node.get('grid').returnCoordinateFromIndex(multiDimIndex, returnDict, recastMethods)
+
+  def returnParameter(self,parameterName,nodeName = None):
+    """
+    Method to return one of the initialization parameters
+    @ In, string, parameterName, name of the parameter to be returned
+    @ In, string, nodeName, optional, name of the node from which we need to retrieve the parameter. If not present, the parameter is going to be retrieved from all nodes (and subnodes). If nodeName == *, the parameter is gonna retrieved from the self
+    @ Out, object, pointer to the requested parameter
+    """
+    if nodeName != None and nodeName != "*": 
+      node = self.grid.find(nodeName)
+      if node == None: self.raiseAnError(Exception,'node  '+nodeName+' has not been found in the MultiGrid hierarchal tree!')
+      return node.get("grid").returnParameter(parameterName)
+    elif nodeName == "*":
+      if parameterName not in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'unknown among ones in MultiGridEntity class.')
+      return self.gridContainer[parameterName]
+    else:
+      paramDict = {}
+      for node in self.grid.iter(): paramDict[node.name] = node.get("grid").returnParameter(parameterName)
+    return paramDict
+
+  def updateParameter(self,parameterName, newValue, upContainer=True, nodeName = None):
+    """
+    Method to update one of the initialization parameters
+    @ In, string, parameterName, name of the parameter to be updated
+    @ In, object, newValue, newer value
+    @ In, boolean, optional, upContainer, True if gridContainer needs to be updated, else gridInit
+    @ In, string, nodeName, optional, name of the node in which we need to update the parameter. If not present, the parameter is going to be updated in all nodes (and subnodes).If nodeName == *, the parameter is gonna updated in self
+    @ Out, None
+    """
+    if nodeName != None: 
+      node = self.grid.find(nodeName)
+      if node == None: self.raiseAnError(Exception,'node  '+nodeName+' has not been found in the MultiGrid hierarchal tree!')
+      node.get("grid").updateParameter(parameterName, newValue, upContainer)
+    elif nodeName == "*":
+      if upContainer: self.gridContainer[parameterName] = newValue
+      else          : self.gridInitDict[parameterName ] = newValue    
+    else:
+      for node in self.grid.iter(): 
+        node.get("grid").updateParameter(parameterName, newValue, upContainer)
+
+  def addCustomParameter(self,parameterName, value, nodeName = None):
+    """
+    Method to add a new parameter in the MultiGrid Entity
+    @ In, string, parameterName, name of the parameter to be added
+    @ In, string, nodeName, optional, name of the node in which we need to update the parameter. If not present, the parameter is going to be updated in all nodes (and subnodes).If nodeName == *, the parameter is gonna updated in self
+    @ Out, None
+    """
+    if nodeName != None: 
+      node = self.grid.find(nodeName)
+      if node == None: self.raiseAnError(Exception,'node  '+nodeName+' has not been found in the MultiGrid hierarchal tree!')
+    elif nodeName == "*":
+      if parameterName in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'already present in MultiGridEntity!')   
+    else:
+      for node in self.grid.iter():
+        if parameterName in node.get("grid").gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'already present in MultiGridEntity subnode '+ node.name + '!')   
+    self.updateParameter(parameterName, value, True, nodeName)
 
 """
  Internal Factory of Classes
