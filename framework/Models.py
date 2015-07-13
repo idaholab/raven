@@ -30,7 +30,7 @@ import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
 import TreeStructure
-from FileObject import FileObject
+import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
 #class Model(BaseType):
@@ -55,7 +55,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Input'  ][0]['multiplicity'] = 'n'
   validateDict['Input'].append(testDict.copy())
   validateDict['Input'  ][1]['class'       ] = 'Files'
-  validateDict['Input'  ][1]['type'        ] = ['']
+  # FIXME there's lots of types that Files can be, so until XSD replaces this, commenting this out
+  #validateDict['Input'  ][1]['type'        ] = ['']
   validateDict['Input'  ][1]['required'    ] = False
   validateDict['Input'  ][1]['multiplicity'] = 'n'
   #the possible outputs
@@ -116,10 +117,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       anItem['found'] = False
       for tester in cls.validateDict[who]:
         if anItem['class'] == tester['class']:
-          if anItem['type'] in tester['type']:
-            tester['tempCounter'] +=1
-            anItem['found']        = True
+          if anItem['class']=='Files': #FIXME Files can accept any type, including None.
+            tester['tempCounter']+=1
+            anItem['found']=True
             break
+          else:
+            if anItem['type'] in tester['type']:
+              tester['tempCounter'] +=1
+              anItem['found']        = True
+              break
     #testing if the multiplicity of the argument is correct
     for tester in cls.validateDict[who]:
       if tester['required']==True:
@@ -722,12 +728,11 @@ class Code(Model):
       if utils.checkIfLockedRavenFileIsPresent(self.workingDir,self.lockedFileName): self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ self.workingDir+". Please check your input!")
       # register function to remove the locked file at the end of execution
       atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
-    for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
-    self.raiseADebug('original input files copied in the current working dir: '+self.workingDir)
-    self.raiseADebug('files copied:')
-    self.raiseADebug( '  '+str(inputFiles))
+    for inputFile in inputFiles:
+      shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.oriInputFiles = []
-    for i in range(len(inputFiles)): self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
+    for i in range(len(inputFiles)):
+      self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i].getAbsFile())[1]))
     self.currentInputFiles        = None
     self.outFileRoot              = None
 
@@ -736,13 +741,16 @@ class Code(Model):
         It is called from a sampler to get the implementation specific for this model"""
     Kwargs['executable'] = self.executable
     found = False
+    #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
+    #  objects.  However, this might require some updating of many Code Interfaces as well.
     for index, inputFile in enumerate(currentInput):
-      if inputFile.endswith(self.code.getInputExtension()):
+      self.raiseAWarning('inputfile,codegetinp:',inputFile.getExt(),'|',self.code.getInputExtension())
+      if '.'+inputFile.getExt() in self.code.getInputExtension():
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
+    Kwargs['outfile'] = 'out~'+currentInput[index].getBase()
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 
@@ -750,7 +758,6 @@ class Code(Model):
     """append a run at the externalRunning list of the jobHandler"""
     self.currentInputFiles = inputFiles[0]
     executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs)
-    #executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
@@ -766,12 +773,14 @@ class Code(Model):
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
-    attributes={"input_file":self.currentInputFiles,"type":"csv","name":FileObject(os.path.join(self.workingDir,finisishedjob.output+'.csv'))}
+    attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
     elif output.type in ['Point','PointSet','History','HistorySet']:
-      output.addOutput(FileObject(os.path.join(self.workingDir,finisishedjob.output) + ".csv"),attributes)
+      outfile = Files.returnInstance('CSV',self)
+      outfile.initialize(finisishedjob.output+'.csv',self.messageHandler,path=self.workingDir)
+      output.addOutput(outfile,attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
     else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
