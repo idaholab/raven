@@ -2,10 +2,15 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>test_cc_stats</WorkingDir>
-    <Files>ideal_pump.i,ideal_pump_control.py,output.csv</Files>
     <Sequence>test_read_in,test_stats_step,dump_data</Sequence>
     <batchSize>3</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
+    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
+    <Input name="output.csv" type="">output.csv</Input>
+  </Files>
 
   <Models>
     <PostProcessor name="test_stats" subType="ComparisonStatistics">

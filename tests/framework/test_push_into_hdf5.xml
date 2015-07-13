@@ -2,10 +2,14 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>test_extract_data_s_from_hdf5</WorkingDir>
-    <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>MonteCarlo,test_extract,test_push_in,test_extract_again</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
+    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
+  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">

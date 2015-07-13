@@ -19,6 +19,7 @@ from serialization import cloudpickle
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
+import Files
 import utils
 import Models
 from OutStreamManager import OutStreamManager
@@ -481,7 +482,10 @@ class IOStep(Step):
     outputs         = self.__getOutputs(inDictionary)
     databases       = set()
     self.actionType = []
-    if len(inDictionary['Input']) != len(outputs) and len(outputs) > 0: self.raiseAnError(IOError,'In Step named ' + self.name + ', the number of Inputs != number of Outputs and the number of Outputs > 0')
+    if len(inDictionary['Input']) != len(outputs) and len(outputs) > 0:
+      self.raiseAnError(IOError,'In Step named ' + self.name + \
+          ', the number of Inputs != number of Outputs, and there are Outputs. '+\
+          'Inputs: %i Outputs: %i'%(len(inDictionary['Input']),len(outputs)) )
     #determine if this is a DATAS->HDF5, HDF5->DATAS or both.
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
@@ -492,9 +496,9 @@ class IOStep(Step):
         if outputs[i].type == 'HDF5': self.actionType.append('dataObjects-HDF5')
         else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a DataObjects. Got ' + inDictionary['Output'][i].type)
       elif isinstance(inDictionary['Input'][i],Models.ROM):
-        if outputs[i].type == 'FileObject': self.actionType.append('ROM-FILES')
+        if isinstance(outputs[i],Files.File): self.actionType.append('ROM-FILES')
         else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A Files as Output only, when the Input is a ROM. Got ' + inDictionary['Output'][i].type)
-      elif inDictionary['Input'][i].type == 'FileObject':
+      elif isinstance(inDictionary['Input'][i],Files.File):
         if isinstance(outputs[i],Models.ROM): self.actionType.append('FILES-ROM')
         else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
       else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
@@ -532,13 +536,23 @@ class IOStep(Step):
         outputs[i].addGroupDataObjects({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
-        fileobj = open(outputs[i],'wb+')
+        fileobj = outputs[i]
+        fileobj.open(mode='wb+')
+        self.raiseAWarning('dump|open?',fileobj.isOpen())
         cloudpickle.dump(inDictionary['Input'][i],fileobj)
+        fileobj.flush()
         fileobj.close()
+        import os
+        self.raiseAWarning('dump|size:',os.path.getsize(fileobj.getAbsFile()))
+        self.raiseAWarning('dump|file:',fileobj.getAbsFile())
+        test=pickle.load(file(fileobj.getAbsFile(),'rb+'))
+        self.raiseAWarning('dump|loaded:',test)
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
-        fileobj = open(inDictionary['Input'][i],'rb+')
-        unpickledObj = pickle.load(fileobj)
+        fileobj = inDictionary['Input'][i]
+        #fileobj.open(mode='rb+')
+        #unpickledObj = pickle.load(fileobj) #FIXME this fails with EOFError, and I don't know why
+        unpickledObj = pickle.load(file(fileobj.getAbsFile(),'rb+'))
         outputs[i].train(unpickledObj)
         fileobj.close()
       else:
