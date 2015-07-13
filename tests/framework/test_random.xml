@@ -1,134 +1,132 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
     <WorkingDir>RandomTest</WorkingDir>
     <Sequence>Sampler1,Sampler2,Sampler3,Sampler4,Sampler5</Sequence>
     <batchSize>1</batchSize>
-</RunInfo>
+  </RunInfo>
 
-<Models>
-    <Dummy name='MyDummy' subType=''/>
-</Models>
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+  </Models>
 
-<Distributions>
-  <Uniform name='simple'>
-    <lowerBound>0.0</lowerBound>
-    <upperBound>1.0</upperBound>
-  </Uniform>
-</Distributions>
+  <Distributions>
+    <Uniform name="simple">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
 
-<Samplers>
-  <MonteCarlo name='MC1'>
-    <sampler_init>
-      <limit>3</limit>
-    </sampler_init>
-    <variable name='simple_var'>
-      <distribution >simple</distribution>
-    </variable>
-  </MonteCarlo>
-  <MonteCarlo name='MC2'>
-    <sampler_init>
-      <limit>3</limit>
-    </sampler_init>
-    <variable name='simple_var'>
-      <distribution >simple</distribution>
-    </variable>
-  </MonteCarlo>
-  <MonteCarlo name='MC3'>
-    <sampler_init>
-      <limit>3</limit>
-    </sampler_init>
-    <variable name='simple_var'>
-      <distribution  >simple</distribution>
-    </variable>
-  </MonteCarlo>
-  <MonteCarlo name='MC4'>
-    <sampler_init>
-      <limit>3</limit>
-    </sampler_init>
-    <variable name='simple_var'>
-      <distribution >simple</distribution>
-    </variable>
-  </MonteCarlo>
-  <MonteCarlo name='MC5'>
-    <sampler_init>
-      <limit>3</limit>
-    </sampler_init>
-    <variable name='simple_var'>
-      <distribution  >simple</distribution>
-    </variable>
-  </MonteCarlo>
-</Samplers>
+  <Samplers>
+    <MonteCarlo name="MC1">
+      <sampler_init>
+        <limit>3</limit>
+      </sampler_init>
+      <variable name="simple_var">
+        <distribution>simple</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="MC2">
+      <sampler_init>
+        <limit>3</limit>
+      </sampler_init>
+      <variable name="simple_var">
+        <distribution>simple</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="MC3">
+      <sampler_init>
+        <limit>3</limit>
+      </sampler_init>
+      <variable name="simple_var">
+        <distribution>simple</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="MC4">
+      <sampler_init>
+        <limit>3</limit>
+      </sampler_init>
+      <variable name="simple_var">
+        <distribution>simple</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="MC5">
+      <sampler_init>
+        <limit>3</limit>
+      </sampler_init>
+      <variable name="simple_var">
+        <distribution>simple</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
 
-<DataObjects>
-  <TimePointSet name='outSet'>
-    <Input>simple_var</Input>
-    <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='dummyIN'>
-    <Input>simple_var</Input>
-    <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-</DataObjects>
-    
-<OutStreamManager>
-    <Print name='outSet_dump'>
-        <type>csv</type>
-        <source>outSet</source>
+  <DataObjects>
+    <PointSet name="outSet">
+      <Input>simple_var</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="dummyIN">
+      <Input>simple_var</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="outSet_dump">
+      <type>csv</type>
+      <source>outSet</source>
     </Print>
-</OutStreamManager>
+  </OutStreamManager>
 
-<Steps>
-  <MultiRun name='Sampler1'>
-    <Input   class='DataObjects'            type='TimePointSet'>dummyIN</Input>
-    <Model   class='Models'           type='Dummy'       >MyDummy</Model>
-    <Sampler class='Samplers'         type='MonteCarlo'  >MC1</Sampler>
-    <Output  class='DataObjects'            type='TimePointSet'>outSet</Output>
-    <Output  class='Databases'        type='HDF5'        >test_RandomTest1_db</Output>
-    <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
-  </MultiRun >
-  <MultiRun name='Sampler2' re-seeding='continue'>
-    <Input   class='DataObjects'            type='TimePointSet'>dummyIN</Input>
-    <Model   class='Models'           type='Dummy'       >MyDummy</Model>
-    <Sampler class='Samplers'         type='MonteCarlo'  >MC2</Sampler>
-    <Output  class='DataObjects'            type='TimePointSet'>outSet</Output>
-    <Output  class='Databases'        type='HDF5'        >test_RandomTest2_db</Output>
-    <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
-  </MultiRun >
-  <MultiRun name='Sampler3'>
-    <Input   class='DataObjects'            type='TimePointSet'>dummyIN</Input>
-    <Model   class='Models'           type='Dummy'       >MyDummy</Model>
-    <Sampler class='Samplers'         type='MonteCarlo'  >MC3</Sampler>
-    <Output  class='DataObjects'            type='TimePointSet'>outSet</Output>
-    <Output  class='Databases'        type='HDF5'        >test_RandomTest3_db</Output>
-    <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
-  </MultiRun >
-  <MultiRun name='Sampler4' re-seeding='continue'>
-    <Input   class='DataObjects'            type='TimePointSet'>dummyIN</Input>
-    <Model   class='Models'           type='Dummy'       >MyDummy</Model>
-    <Sampler class='Samplers'         type='MonteCarlo'  >MC4</Sampler>
-    <Output  class='DataObjects'            type='TimePointSet'>outSet</Output>
-    <Output  class='Databases'        type='HDF5'        >test_RandomTest4_db</Output>
-    <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
-  </MultiRun >
-  <MultiRun name='Sampler5' re-seeding='continue'>
-    <Input   class='DataObjects'            type='TimePointSet'>dummyIN</Input>
-    <Model   class='Models'           type='Dummy'       >MyDummy</Model>
-    <Sampler class='Samplers'         type='MonteCarlo'  >MC5</Sampler>
-    <Output  class='DataObjects'            type='TimePointSet'>outSet</Output>
-    <Output  class='Databases'        type='HDF5'        >test_RandomTest5_db</Output>
-    <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
-  </MultiRun >
-</Steps>
-<Databases>
-  <HDF5 name="test_RandomTest1_db"/> 
-  <HDF5 name="test_RandomTest2_db"/> 
-  <HDF5 name="test_RandomTest3_db"/> 
-  <HDF5 name="test_RandomTest4_db"/> 
-  <HDF5 name="test_RandomTest5_db"/> 
-</Databases>
+  <Steps>
+    <MultiRun name="Sampler1">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC1</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="Databases" type="HDF5">test_RandomTest1_db</Output>
+      <Output class="OutStreamManager" type="Print">outSet_dump</Output>
+    </MultiRun>
+    <MultiRun name="Sampler2" re-seeding="continue">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC2</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="Databases" type="HDF5">test_RandomTest2_db</Output>
+      <Output class="OutStreamManager" type="Print">outSet_dump</Output>
+    </MultiRun>
+    <MultiRun name="Sampler3">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC3</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="Databases" type="HDF5">test_RandomTest3_db</Output>
+      <Output class="OutStreamManager" type="Print">outSet_dump</Output>
+    </MultiRun>
+    <MultiRun name="Sampler4" re-seeding="continue">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC4</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="Databases" type="HDF5">test_RandomTest4_db</Output>
+      <Output class="OutStreamManager" type="Print">outSet_dump</Output>
+    </MultiRun>
+    <MultiRun name="Sampler5" re-seeding="continue">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC5</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="Databases" type="HDF5">test_RandomTest5_db</Output>
+      <Output class="OutStreamManager" type="Print">outSet_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="test_RandomTest1_db"/>
+    <HDF5 name="test_RandomTest2_db"/>
+    <HDF5 name="test_RandomTest3_db"/>
+    <HDF5 name="test_RandomTest4_db"/>
+    <HDF5 name="test_RandomTest5_db"/>
+  </Databases>
+
 </Simulation>
-
-
-

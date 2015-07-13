@@ -937,9 +937,10 @@ independent of the \xmlAttr{subType} specified:
 %  \nb These parameters are going to be requested for the training of this object
 %  (see Section~\ref{subsec:stepRomTrainer}).
   %
-   \item $<Features>$ \textbf{\textit{, comma separated string, required field.}}. In this node, the user needs to specify the names of the features of this ROM. NB. These parameters are going to be requested for the training of this object (see Section~\ref{subsec:stepRomTrainer});
-    \item $<Target>$ \textbf{\textit{, comma separated string, required field.}}. This XML node contains a comma separated list of the targets of this ROM. By Instance, these parameters are the Figure of Merits this ROM is supposed to predict.
-    \\NB. These parameters are going to be requested for the training of this
+   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features of this ROM.
+   \nb These parameters are going to be requested for the training of this object (see Section~\ref{subsec:stepRomTrainer});
+    \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, contains a comma separated list of the targets of this ROM. These parameters are the Figures of Merit (FOMs) this ROM is supposed to predict.
+    \nb These parameters are going to be requested for the training of this
     object (see Section \ref{subsec:stepRomTrainer}).
 
 \end{itemize}
@@ -1010,7 +1011,8 @@ two more nodes and can accept multiple entries of a third optional node.
 \begin{itemize}
   \item \xmlNode{IndexSet}, \xmlDesc{string, required field},
   specifies the rules by which to construct multidimensional polynomials.  The options are
-  ``TensorProduct,'' ``TotalDegree,'' ``HyperbolicCross,'' and ``Custom.''
+  \xmlString{TensorProduct}, \xmlString{TotalDegree},\\
+  \xmlString{HyperbolicCross}, and \xmlString{Custom}.
   %
   Total degree is efficient for
   uncertain inputs with a large degree of regularity, while hyperbolic cross is more efficient
@@ -4014,7 +4016,7 @@ to compute many of the most important statistical quantities.
     \item \textbf{NormalizedSensitivity} -- matrix of normalized sensitivity
     coefficients
     \item \textbf{VarianceDependentSensitivity} -- matrix of sensitivity coefficients dependent on the variance of the variables
-    \item \textbf{sensitivity} -- matrix of sensitivity coefficients of Output space to Input space 
+    \item \textbf{sensitivity} -- matrix of sensitivity coefficients of Output space to Input space
     \item \textbf{pearson} -- matrix of sensitivity coefficients
     \item \textbf{expectedValue} -- expected value or mean
     \item \textbf{sigma} -- standard deviation
@@ -4110,9 +4112,9 @@ There are four nodes that are used in the post-processor.
   the bin width uniform or equal\_probability which makes the number
   of counts in each bin equal.  It can take the following attributes:
   \begin{itemize}
-  \item \textbf{num\_bins} which takes a number that directly
+  \item \xmlAttr{num\_bins} which takes a number that directly
     specifies the number of bins
-  \item \textbf{bin\_method} which takes a string that specifies the
+  \item \xmlAttr{bin\_method} which takes a string that specifies the
     method used to calculate the number of bins.  This can be either
     square-root or sturges.
   \end{itemize}
@@ -4140,7 +4142,7 @@ and counts the numbers of data points in each bin.  From the numbers
 in each bin, it creates a cdf function numerically, and from the cdf
 takes the derivative to generate a pdf.  It also calculates statistics
 of the data such as mean and standard deviation. The post-processor
-can generate either a CSV file or a TimePointSet.
+can generate either a CSV file or a PointSet.
 
 The post-processor uses the generated pdf and cdf function to
 calculate various statistics.  The first is the cdf area difference which is:
@@ -4184,7 +4186,7 @@ This should be 1.0, and if it is different that
 points to approximations in the calculation.
 
 
-\textbf{Example:} ----------------------------------------------
+\textbf{Example:}
 \begin{lstlisting}[style=XML]
 <Simulation>
    ...
@@ -4218,7 +4220,6 @@ points to approximations in the calculation.
       </Normal>
    </Distributions>
 </Simulation>
-----------------------------------------------
 \end{lstlisting}
 
 %%%%% PP SafestPoint %%%%%%%
@@ -4251,7 +4252,7 @@ At present only the ``equal'' grid type is available.
 
 \begin{itemize}
   \item \xmlNode{Distribution}, \xmlDesc{Required}, represents the probability
-  distributions of the ``controllable'' and ''non-controllable'' variables.
+  distributions of the ``controllable'' and ``non-controllable'' variables.
   %
   These are \textbf{Assembler Objects}, each of these nodes must contain 2
   attributes that are used to identify those within the simulation framework:
@@ -4412,9 +4413,9 @@ zones that determine a change in the status of the system (Limit Surface).
 \label{LimitSurfaceIntegral}
 The \textbf{LimitSurfaceIntegral} post-processor is aimed to compute the likelihood (probability) of the event, whose boundaries are
 represented by the Limit Surface (either from the LimitSurface post-processor or Adaptive sampling strategies).
-The inputted Limit Surface needs to be, in the  \textbf{PostProcess} step, of type  \textbf{TimePointSet} and needs to contain
+The inputted Limit Surface needs to be, in the  \textbf{PostProcess} step, of type  \textbf{PointSet} and needs to contain
 both boundary sides (-1.0, +1.0).
-\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as outputs both files (CSV) and/or  \textbf{TimePointSet}s.
+\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as outputs both files (CSV) and/or  \textbf{PointSet}s.
 
 \ppType{LimitSurfaceIntegral}{LimitSurfaceIntegral}
 \begin{itemize}
@@ -4444,7 +4445,7 @@ both boundary sides (-1.0, +1.0).
                 \default{20021986}
      \item  \xmlNode{target}, \xmlDesc{string, optional field}, specifies the target name that represents
                 the $f\left ( \bar{x} \right )$ that needs to be integrated.
-                \default{last output found in the inputted TimePointSet}
+                \default{last output found in the inputted PointSet}
 \end{itemize}
 
 \textbf{Example:}
@@ -4498,11 +4499,14 @@ Section~\ref{sec:functions} for more details).
 \ppType{External}{External}
 
 \begin{itemize}
-  \item \xmlNode{method}, \xmlAttr{comma separated string, required field},
+  \item \xmlNode{method}, \xmlDesc{comma separated string, required field},
   lists the method names of an external Function that will be computed (each
   returning a post-processing value).
-  \item \xmlNode{Assembler}, \xmlAttr{xml node, required field}, contains a
-  ``list'' of Functions where the \textit{methods} listed above are defined.
+  \item \xmlNode{Function}, \xmlDesc{xml node, required string field}, specifies
+  the name of a Function where the \textit{methods} listed above are defined.
+  %
+  \nb This name should match one of the Functions defined in the
+  \xmlNode{Functions} block of the input file.
   %
   The objects must be listed with a rigorous syntax that, except for the xml
   node tag, is common among all the objects.
@@ -4511,12 +4515,12 @@ Section~\ref{sec:functions} for more details).
   within the simulation framework:
 
    \begin{itemize}
-     \item \xmlAttr{class}, \textit{required string attribute}, is the main
+     \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
      ``class'' the listed object is from, the only acceptable class for
-     this post-processor is \textit{Functions};
-     \item \xmlAttr{type}, \textit{required string attribute}, is the object
+     this post-processor is \xmlString{Functions};
+     \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
      identifier or sub-type, the only acceptable type for this post-processor is
-     \textit{External}.
+     \xmlString{External}.
   \end{itemize}
 \end{itemize}
 \textbf{Example:}
@@ -4527,14 +4531,12 @@ Section~\ref{sec:functions} for more details).
     ...
     <PostProcessor name="externalPP" subType='External' verbosity='debug'>
       <method>Delta,Sum</method>
-      <Assembler>
         <Function class='Functions' type='External'>operators</Function>
           <!--Here, you can add a Function defined in the
               Functions block. This should be present or
               else RAVEN will not know where to find the
               defined methods.
             -->
-      </Assembler>
     </PostProcessor>
     ...
   </Models>

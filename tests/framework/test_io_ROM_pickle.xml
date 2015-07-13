@@ -1,132 +1,126 @@
+<?xml version="1.0" ?>
 <Simulation>
+  <RunInfo>
+    <WorkingDir>IO_ROM_PICKLE</WorkingDir>
+    <Files>pickle1</Files>
+    <Sequence>step1,step2,step3,step4,step5,step6,step7</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
-<RunInfo>
-  <WorkingDir>IO_ROM_PICKLE</WorkingDir>
-  <Files>pickle1</Files>
-  <Sequence>step1,step2,step3,step4,step5,step6,step7</Sequence>
-  <batchSize>1</batchSize>
-</RunInfo>
+  <Steps>
+    <MultiRun name="step1" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">Data1</Input>
+      <Model class="Models" type="ExternalModel">XM1</Model>
+      <Sampler class="Samplers" type="Grid">grid1</Sampler>
+      <Output class="DataObjects" type="PointSet">Data2</Output>
+    </MultiRun>
+    <MultiRun name="step5" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">Data1</Input>
+      <Model class="Models" type="ROM">ROM1</Model>
+      <Sampler class="Samplers" type="Grid">grid1</Sampler>
+      <Output class="DataObjects" type="PointSet">Data3</Output>
+    </MultiRun>
+    <MultiRun name="step6" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">Data1</Input>
+      <Model class="Models" type="ROM">ROM2</Model>
+      <Sampler class="Samplers" type="Grid">grid1</Sampler>
+      <Output class="DataObjects" type="PointSet">Data4</Output>
+    </MultiRun>
+    <IOStep name="step3" pauseAtEnd="false">
+      <Input class="Models" type="ROM">ROM1</Input>
+      <Output class="Files" type="">pickle1</Output>
+    </IOStep>
+    <IOStep name="step4" pauseAtEnd="false">
+      <Input class="Files" type="">pickle1</Input>
+      <Output class="Models" type="ROM">ROM2</Output>
+    </IOStep>
+    <IOStep name="step7" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">Data3</Input>
+      <Input class="DataObjects" type="PointSet">Data4</Input>
+      <Output class="OutStreamManager" type="Print">PrintData</Output>
+      <Output class="OutStreamManager" type="Print">PrintData_Pickle</Output>
+    </IOStep>
+    <RomTrainer name="step2">
+      <Input class="DataObjects" type="PointSet">Data2</Input>
+      <Output class="Models" type="ROM">ROM1</Output>
+    </RomTrainer>
+  </Steps>
 
+  <Samplers>
+    <Grid name="grid1">
+      <variable name="x1">
+        <distribution>x1_dst</distribution>
+        <grid construction="equal" steps="10" type="value">-10 10</grid>
+      </variable>
+      <variable name="x2">
+        <distribution>x2_dst</distribution>
+        <grid construction="equal" steps="10" type="value">-10 10</grid>
+      </variable>
+    </Grid>
+  </Samplers>
 
-<Steps> 
-  <MultiRun name = 'step1' pauseAtEnd = 'False'>
-    <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
-    <Input    class = 'DataObjects'     type = 'TimePointSet'   >Data1</Input>
-    <Model    class = 'Models'    type = 'ExternalModel'  >XM1</Model>
-    <Output   class = 'DataObjects'     type = 'TimePointSet'   >Data2</Output>    
-  </MultiRun>
-  <RomTrainer name='step2'>
-        <Input   class='DataObjects'  type='TimePointSet'>Data2</Input>
-        <Output  class='Models' type='ROM'         >ROM1</Output>
-  </RomTrainer>
-  <IOStep name='step3' pauseAtEnd='False'>
-        <Input   class='Models'     type='ROM'>ROM1</Input>
-        <Output  class='Files'      type=''>pickle1</Output>
-  </IOStep>
-  <IOStep name='step4' pauseAtEnd='False'>
-        <Input   class='Files'      type=''>pickle1</Input>
-        <Output  class='Models'     type='ROM'>ROM2</Output>
-  </IOStep>
-  <MultiRun name = 'step5' pauseAtEnd = 'False'>
-    <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
-    <Input    class = 'DataObjects'     type = 'TimePointSet'   >Data1</Input>
-    <Model    class = 'Models'    type = 'ROM'            >ROM1</Model>
-    <Output   class = 'DataObjects'     type = 'TimePointSet'   >Data3</Output>    
-  </MultiRun>
-  <MultiRun name = 'step6' pauseAtEnd = 'False'>
-    <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
-    <Input    class = 'DataObjects'     type = 'TimePointSet'   >Data1</Input>
-    <Model    class = 'Models'    type = 'ROM'            >ROM2</Model>
-    <Output   class = 'DataObjects'     type = 'TimePointSet'   >Data4</Output>    
-  </MultiRun>
-  <IOStep name='step7' pauseAtEnd='False'>
-        <Input   class='DataObjects'      type='TimePointSet'>Data3</Input>
-        <Input   class='DataObjects'      type='TimePointSet'>Data4</Input>
-        <Output class='OutStreamManager' type='Print'>PrintData</Output>
-        <Output class='OutStreamManager' type='Print'>PrintData_Pickle</Output>
-  </IOStep>
-</Steps>
+  <DataObjects>
+    <PointSet name="Data1">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="Data2">
+      <Input>x1,x2</Input>
+      <Output>y,z</Output>
+    </PointSet>
+    <PointSet name="Data3">
+      <Input>x1,x2</Input>
+      <Output>y,z</Output>
+    </PointSet>
+    <PointSet name="Data4">
+      <Input>x1,x2</Input>
+      <Output>y,z</Output>
+    </PointSet>
+  </DataObjects>
 
+  <Distributions>
+    <Normal name="x1_dst">
+      <upperBound>10</upperBound>
+      <lowerBound>-10</lowerBound>
+      <mean>0.5</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+    <Normal name="x2_dst">
+      <upperBound>10</upperBound>
+      <lowerBound>-10</lowerBound>
+      <mean>-0.15</mean>
+      <sigma>0.05</sigma>
+    </Normal>
+  </Distributions>
 
-<Samplers>  
-  <Grid name = 'grid1'>
-    <variable name = 'x1' >
-      <distribution>x1_dst</distribution>
-      <grid type = 'value' construction = 'equal' steps = '10' >-10 10</grid>
-    </variable>  
-    <variable name='x2' >
-      <distribution>x2_dst</distribution>
-      <grid type = 'value' construction = 'equal' steps = '10' >-10 10</grid>
-    </variable>
-  </Grid>
-</Samplers>
+  <Models>
+    <ExternalModel ModuleToLoad="IO_ROM_PICKLE/XM1_model" name="XM1" subType="">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>y</variable>
+      <variable>z</variable>
+    </ExternalModel>
+    <ROM name="ROM1" subType="SciKitLearn">
+      <SKLtype>svm|SVR</SKLtype>
+      <Features>x1,x2</Features>
+      <Target>y,z</Target>
+    </ROM>
+    <ROM name="ROM2" subType="SciKitLearn">
+      <SKLtype>svm|SVR</SKLtype>
+      <Features>x1,x2</Features>
+      <Target>y,z</Target>
+    </ROM>
+  </Models>
 
-
-<DataObjects> 
-  <TimePointSet name = 'Data1'>
-    <Input>x1,x2</Input>
-    <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
- <TimePointSet name = 'Data2'>
-    <Input>x1,x2</Input>
-    <Output>y,z</Output>
-  </TimePointSet>
-  <TimePointSet name = 'Data3'>
-    <Input>x1,x2</Input>
-    <Output>y,z</Output>
-  </TimePointSet>
-  <TimePointSet name = 'Data4'>
-    <Input>x1,x2</Input>
-    <Output>y,z</Output>
-  </TimePointSet>
-</DataObjects>
-
-
-<Distributions>
-  <Normal name = 'x1_dst'>
-    <upperBound>10</upperBound>
-    <lowerBound>-10</lowerBound>
-  	<mean>0.5</mean>
-    <sigma>0.1</sigma>
-  </Normal>
-  <Normal name = 'x2_dst'>
-    <upperBound>10</upperBound>
-    <lowerBound>-10</lowerBound>
-    <mean>-0.15</mean>
-    <sigma>0.05</sigma>
-  </Normal>  
-</Distributions>
-
-
-<Models>
-  <ExternalModel name = 'XM1' subType = '' ModuleToLoad = 'IO_ROM_PICKLE/XM1_model'>
-    <variable>x1</variable>
-    <variable>x2</variable>
-    <variable>y</variable>
-    <variable>z</variable>
-  </ExternalModel>
-  <ROM name = 'ROM1' subType = 'SciKitLearn'>
-     <SKLtype>svm|SVR</SKLtype>
-    <Features>x1,x2</Features>
-    <Target>y,z</Target>
-  </ROM> 
-
-<ROM name = 'ROM2' subType = 'SciKitLearn'>
-     <SKLtype>svm|SVR</SKLtype>
-    <Features>x1,x2</Features>
-    <Target>y,z</Target>
-  </ROM>
-</Models>
-
-<OutStreamManager>
-    <Print name='PrintData'>
+  <OutStreamManager>
+    <Print name="PrintData">
       <type>csv</type>
       <source>Data3</source>
     </Print>
-    <Print name='PrintData_Pickle'>
+    <Print name="PrintData_Pickle">
       <type>csv</type>
       <source>Data4</source>
     </Print>
-</OutStreamManager>
+  </OutStreamManager>
 
 </Simulation>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
     <JobName>testGenericCodeInterface</JobName>
@@ -6,56 +6,66 @@
     <Sequence>sample</Sequence>
     <WorkingDir>GenericInterfaceIO</WorkingDir>
     <batchSize>1</batchSize>
-    <!--mode>mpi<runQSUB/></mode>
-    <NumMPI>24</NumMPI>
-    <expectedTime>8:48:00</expectedTime-->
   </RunInfo>
 
   <Models>
     <Code name="poly" subType="GenericCode">
       <executable>GenericInterfaceIO/poly_inp_io.py</executable>
-      <clargs   type='prepend' arg='python'/>
-      <clargs   type='input'   arg='-i'     extension='.one'/>
-      <fileargs type='input'   arg='aux'    extension='.two'/>
-      <fileargs type='output'  arg='output'                 />
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".one" type="input"/>
+      <fileargs arg="aux" extension=".two" type="input"/>
+      <fileargs arg="output" type="output"/>
       <prepend>python</prepend>
     </Code>
   </Models>
 
   <Distributions>
-      <Uniform name='xd'><lowerBound>0.0</lowerBound><upperBound>1.0</upperBound></Uniform>
-      <Uniform name='yd'><lowerBound>1.0</lowerBound><upperBound>2.0</upperBound></Uniform>
+    <Uniform name="xd">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+    <Uniform name="yd">
+      <lowerBound>1.0</lowerBound>
+      <upperBound>2.0</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
-    <Grid name='grid'>
-      <variable name="x"><distribution>xd</distribution><grid type='CDF' construction='equal' steps='1'>0.3 0.7</grid></variable>
-      <variable name="y"><distribution>yd</distribution><grid type='CDF' construction='equal' steps='1'>0.3 0.7</grid></variable>
+    <Grid name="grid">
+      <variable name="x">
+        <distribution>xd</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.3 0.7</grid>
+      </variable>
+      <variable name="y">
+        <distribution>yd</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.3 0.7</grid>
+      </variable>
     </Grid>
   </Samplers>
 
   <Steps>
     <MultiRun name="sample">
-      <Input   class="Files"     type=""            >gen.one</Input>
-      <Input   class="Files"     type=""            >gen.two</Input>
-      <Sampler class="Samplers"  type="Grid"        >grid</Sampler>
-      <Model   class="Models"    type="Code"        >poly</Model>
-      <Output  class='DataObjects'     type='TimePointSet'>samples</Output>
-      <Output  class='OutStreamManager' type='Print'>samples</Output>
+      <Input class="Files" type="">gen.one</Input>
+      <Input class="Files" type="">gen.two</Input>
+      <Model class="Models" type="Code">poly</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="OutStreamManager" type="Print">samples</Output>
     </MultiRun>
   </Steps>
 
   <DataObjects>
-    <TimePointSet name="samples">
+    <PointSet name="samples">
       <Input>x,y</Input>
       <Output>poly</Output>
-    </TimePointSet>
+    </PointSet>
   </DataObjects>
 
   <OutStreamManager>
-      <Print name='samples'>
-          <type>csv</type>
-          <source>samples</source>
-      </Print>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
   </OutStreamManager>
+
 </Simulation>

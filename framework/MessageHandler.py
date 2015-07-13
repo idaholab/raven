@@ -12,7 +12,7 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import platform
+import sys
 import os
 import time
 #External Modules End--------------------------------------------------------------------------------
@@ -21,11 +21,6 @@ import time
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
-# set a global variable for backend default setting
-if platform.system() == 'Windows': disAvail = True
-else:
-  if os.getenv('DISPLAY'): disAvail = True
-  else:                    disAvail = False
 
 #custom exceptions
 class NoMoreSamplesNeeded(GeneratorExit): pass
@@ -175,11 +170,11 @@ class MessageHandler(object):
         @ In, msg, the string that means true or false
         @ Out, None
       '''
-      if msg in utils.stringsThatMeanTrue():
+      if msg.lower() in utils.stringsThatMeanTrue():
           self.callerLength = 40
           self.tagLength = 30
           self.printTime = True
-      elif msg in utils.stringsThatMeanFalse():
+      elif msg.lower() in utils.stringsThatMeanFalse():
           self.callerLength = 25
           self.tagLength = 15
           self.printTime = False
@@ -226,11 +221,13 @@ class MessageHandler(object):
       @ OPTIONAL In, verbosity, the print priority of the message (default 'silent', highest priority)
       @ Out, None
     """
-    verbval = self.checkVerbosity(verbosity)
-    okay,msg = self._printMessage(caller,message,tag,verbval)
+    okay,msg = self._printMessage(caller,message,tag,self.checkVerbosity(verbosity))
+    verbval = max(self.getDesiredVerbosity(caller),self.checkVerbosity(self.verbosity))
     if okay:
-      if not self.suppressErrs: raise etype(msg)
-      else: print(msg)
+      if not self.suppressErrs and verbval==3: raise etype(msg) #DEBUG mode without suppression
+      print('\n'+etype.__name__+':',msg,file=sys.stderr)
+      if not self.suppressErrs: #exit after print
+        sys.exit(1)
 
   def message(self,caller,message,tag,verbosity):
     """

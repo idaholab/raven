@@ -41,6 +41,7 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
     """Returns the polynomial with order 'order';
        for example poly[2] returns the orthonormal 2nd-order polynomial object.
     @ In order, int, order of polynomial to return
+    @ In var, str (optional), name of variable to be used in return (default 'x')
     @ Out orthopoly1d object, requested polynomial
     """
     if var==None: return self._poly(order,*self.params) * self.norm(order)

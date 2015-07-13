@@ -1,129 +1,128 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
     <WorkingDir>ResponseDesign</WorkingDir>
     <Sequence>BoxBehnkenRespDesignStep,CentralCompositeRespDesignStep</Sequence>
     <batchSize>1</batchSize>
-</RunInfo>
-<Models>
-    <Dummy name='MyDummy1' subType=''/>
-    <Dummy name='MyDummy2' subType=''/>
-</Models>
+  </RunInfo>
 
-<Distributions>
-    <Normal name='Gauss1'>
-        <mean>1</mean>
-        <sigma>0.123456789</sigma>
-        <lowerBound>0.987654321</lowerBound>
-        <upperBound>2.123456789</upperBound>
+  <Models>
+    <Dummy name="MyDummy1" subType=""/>
+    <Dummy name="MyDummy2" subType=""/>
+  </Models>
+
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>1</mean>
+      <sigma>0.123456789</sigma>
+      <lowerBound>0.987654321</lowerBound>
+      <upperBound>2.123456789</upperBound>
     </Normal>
-    <Normal name='Gauss2'>
-        <mean>1</mean>
-        <sigma>0.4</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
+    <Normal name="Gauss2">
+      <mean>1</mean>
+      <sigma>0.4</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
     </Normal>
-    <Triangular name='DistTri1'>
-        <apex>1</apex>
-        <min>-0.1</min>
-        <max>4</max>
+    <Triangular name="DistTri1">
+      <apex>1</apex>
+      <min>-0.1</min>
+      <max>4</max>
     </Triangular>
-</Distributions>
+  </Distributions>
 
-<Samplers>
-    <ResponseSurfaceDesign name='BoxBehnkenRespDesign'>
-        <ResponseSurfaceDesignSettings>
-            <algorithm_type>BoxBehnken</algorithm_type>
-            <ncenters>1</ncenters>
-        </ResponseSurfaceDesignSettings>
-        <variable name='VarGauss1' >
-            <distribution >Gauss1</distribution>
-            <grid type='CDF' construction='custom' >0.0 1.0</grid>
-        </variable>
-        <variable name='VarGauss2' >
-            <distribution  >Gauss2</distribution>
-            <grid type='value' construction='custom' >0.1 1.5</grid>
-        </variable>
-        <variable name='VarTri1'>
-            <distribution  >DistTri1</distribution>
-            <grid type='value' construction='custom' >0.1 0.9</grid>
-        </variable>
+  <Samplers>
+    <ResponseSurfaceDesign name="BoxBehnkenRespDesign">
+      <ResponseSurfaceDesignSettings>
+        <algorithm_type>BoxBehnken</algorithm_type>
+        <ncenters>1</ncenters>
+      </ResponseSurfaceDesignSettings>
+      <variable name="VarGauss1">
+        <distribution>Gauss1</distribution>
+        <grid construction="custom" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="VarGauss2">
+        <distribution>Gauss2</distribution>
+        <grid construction="custom" type="value">0.1 1.5</grid>
+      </variable>
+      <variable name="VarTri1">
+        <distribution>DistTri1</distribution>
+        <grid construction="custom" type="value">0.1 0.9</grid>
+      </variable>
     </ResponseSurfaceDesign>
-    <ResponseSurfaceDesign name='CentralCompositeRespDesign'>
-        <ResponseSurfaceDesignSettings>
-            <algorithm_type>CentralComposite</algorithm_type>
-            <centers>1,2</centers>
-            <alpha>orthogonal</alpha>
-            <face>circumscribed</face>
-        </ResponseSurfaceDesignSettings>
-        <variable name='VarGauss1' >
-            <distribution >Gauss1</distribution>
-            <grid type='CDF' construction='custom' >0.0 1.0</grid>
-        </variable>
-        <variable name='VarGauss2' >
-            <distribution  >Gauss2</distribution>
-            <grid type='value' construction='custom' >0.1 1.5</grid>
-        </variable>
-        <variable name='VarTri1'>
-            <distribution  >DistTri1</distribution>
-            <grid type='value' construction='custom' >0.1 0.9</grid>
-        </variable>
+    <ResponseSurfaceDesign name="CentralCompositeRespDesign">
+      <ResponseSurfaceDesignSettings>
+        <algorithm_type>CentralComposite</algorithm_type>
+        <centers>1,2</centers>
+        <alpha>orthogonal</alpha>
+        <face>circumscribed</face>
+      </ResponseSurfaceDesignSettings>
+      <variable name="VarGauss1">
+        <distribution>Gauss1</distribution>
+        <grid construction="custom" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="VarGauss2">
+        <distribution>Gauss2</distribution>
+        <grid construction="custom" type="value">0.1 1.5</grid>
+      </variable>
+      <variable name="VarTri1">
+        <distribution>DistTri1</distribution>
+        <grid construction="custom" type="value">0.1 0.9</grid>
+      </variable>
     </ResponseSurfaceDesign>
-</Samplers>
+  </Samplers>
 
-<DataObjects>
-     <TimePointSet name='CentralCompositeRespDesignData'>
-        <Input>VarGauss1,VarGauss2,VarTri1</Input>
-        <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='CentralCompositeRespDesignDatadummyIN'>
+  <DataObjects>
+    <PointSet name="CentralCompositeRespDesignData">
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
       <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='BoxBehnkenRespDesignData'>
-       <Input>VarGauss1,VarGauss2,VarTri1</Input>
-       <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-   <TimePointSet name='BoxBehnkenRespDesigndummyIN'>
-       <Input>VarGauss1,VarGauss2,VarTri1</Input>
-       <Output>OutputPlaceHolder</Output>
-   </TimePointSet>
-</DataObjects>
+    </PointSet>
+    <PointSet name="CentralCompositeRespDesignDatadummyIN">
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="BoxBehnkenRespDesignData">
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="BoxBehnkenRespDesigndummyIN">
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
 
-<OutStreamManager>
-    <Print name='CentralCompositeRespDesign_dump'>
-        <type>csv</type>
-        <source>CentralCompositeRespDesignData</source>
+  <OutStreamManager>
+    <Print name="CentralCompositeRespDesign_dump">
+      <type>csv</type>
+      <source>CentralCompositeRespDesignData</source>
     </Print>
-    <Print name='BoxBehnkenRespDesign_dump'>
-        <type>csv</type>
-        <source>BoxBehnkenRespDesignData</source>
+    <Print name="BoxBehnkenRespDesign_dump">
+      <type>csv</type>
+      <source>BoxBehnkenRespDesignData</source>
     </Print>
-</OutStreamManager>
+  </OutStreamManager>
 
-<Steps>
-     <MultiRun name='BoxBehnkenRespDesignStep'>
-        <Input   class='DataObjects'     type='TimePointSet'          >BoxBehnkenRespDesigndummyIN</Input>
-        <Model   class='Models'    type='Dummy'                 >MyDummy1</Model>
-        <Sampler class='Samplers'  type='ResponseSurfaceDesign' >BoxBehnkenRespDesign</Sampler>
-        <Output  class='DataObjects'     type='TimePointSet'          >BoxBehnkenRespDesignData</Output>
-        <Output  class='Databases' type='HDF5'                  >test_DummyModelResponseSurfDesign_db</Output>
-        <Output  class='OutStreamManager' type='Print'          >BoxBehnkenRespDesign_dump</Output>
-    </MultiRun >
-     <MultiRun name='CentralCompositeRespDesignStep'>
-         <Input   class='DataObjects'     type='TimePointSet'          >CentralCompositeRespDesignDatadummyIN</Input>
-         <Model   class='Models'    type='Dummy'                 >MyDummy2</Model>
-         <Sampler class='Samplers'  type='ResponseSurfaceDesign' >CentralCompositeRespDesign</Sampler>
-         <Output  class='DataObjects'     type='TimePointSet'          >CentralCompositeRespDesignData</Output>
-         <Output  class='Databases' type='HDF5'                  >test_DummyModelResponseSurfDesign_db</Output>
-         <Output  class='OutStreamManager' type='Print'          >CentralCompositeRespDesign_dump</Output>
-     </MultiRun >
-</Steps>
-<Databases>
-        <HDF5 name="test_DummyModelResponseSurfDesign_db"/>
-</Databases>
+  <Steps>
+    <MultiRun name="BoxBehnkenRespDesignStep">
+      <Input class="DataObjects" type="PointSet">BoxBehnkenRespDesigndummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy1</Model>
+      <Sampler class="Samplers" type="ResponseSurfaceDesign">BoxBehnkenRespDesign</Sampler>
+      <Output class="DataObjects" type="PointSet">BoxBehnkenRespDesignData</Output>
+      <Output class="Databases" type="HDF5">test_DummyModelResponseSurfDesign_db</Output>
+      <Output class="OutStreamManager" type="Print">BoxBehnkenRespDesign_dump</Output>
+    </MultiRun>
+    <MultiRun name="CentralCompositeRespDesignStep">
+      <Input class="DataObjects" type="PointSet">CentralCompositeRespDesignDatadummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy2</Model>
+      <Sampler class="Samplers" type="ResponseSurfaceDesign">CentralCompositeRespDesign</Sampler>
+      <Output class="DataObjects" type="PointSet">CentralCompositeRespDesignData</Output>
+      <Output class="Databases" type="HDF5">test_DummyModelResponseSurfDesign_db</Output>
+      <Output class="OutStreamManager" type="Print">CentralCompositeRespDesign_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="test_DummyModelResponseSurfDesign_db"/>
+  </Databases>
+
 </Simulation>
-
-
-

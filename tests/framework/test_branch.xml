@@ -1,137 +1,141 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
     <WorkingDir>branch</WorkingDir>
-    <Files>ideal_pump.i,ideal_pump_control.py,DET_histories.csv</Files>
+    <Files>ideal_pump.i,ideal_pump_control.py,DET_HistorySet.csv</Files>
     <Sequence>DETrunTest,extract_hist_example</Sequence>
     <batchSize>4</batchSize>
-</RunInfo>
+  </RunInfo>
 
-<Models>
-    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
-    <PostProcessor name="csv_from_hdf5" subType='PrintCSV'>
-        <paramters>all</paramters>
+  <Models>
+    <Code name="MyRAVEN" subType="RAVEN">
+      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
+    </Code>
+    <PostProcessor name="csv_from_hdf5" subType="PrintCSV">
+      <paramters>all</paramters>
     </PostProcessor>
-</Models>
+  </Models>
 
-<Distributions>
-  <Uniform name="zeroToOne">
-    <lowerBound>0.0</lowerBound>
-    <upperBound>1.0</upperBound>
-  </Uniform>
-</Distributions>
+  <Distributions>
+    <Uniform name="zeroToOne">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
 
-<Samplers>
-  <DynamicEventTree name='DET_test' print_end_xml="True">
-      <Distribution name='zeroToOne'>
-          <distribution >zeroToOne</distribution>
-          <grid type='CDF' construction='custom'>0.1 0.5 0.8</grid>
+  <Samplers>
+    <DynamicEventTree name="DET_test" print_end_xml="True">
+      <Distribution name="zeroToOne">
+        <distribution>zeroToOne</distribution>
+        <grid construction="custom" type="CDF">0.1 0.5 0.8</grid>
       </Distribution>
       <!--
-      <variable name='zeroToOne' >
-        <distribution ProbabilityThresholds='0.1 0.5 0.8'>zeroToOne</distribution>
-      </variable> 
+        <variable name="zeroToOne">
+          <distribution ProbabilityThresholds="0.1 0.5 0.8">zeroToOne</distribution>
+        </variable>
       -->
-  </DynamicEventTree>   
-</Samplers>
-<OutStreamManager>
-  <Print name='testprint_hist_hier'>
-    <type>csv</type>
-    <source>stories</source>
-  </Print>
-  <Print name='testprint_tpset_hier'>
-    <type>csv</type>
-    <source>timepointset</source>
-  </Print>
-  <Print name='testprint_hist_hier_variables'>
-    <type>csv</type>
-    <source>stories</source>
-    <what>Output,Input|dummy_for_branch</what>
-  </Print>
-  <Print name='testprint_tpset_hier_variables'>
-    <type>csv</type>
-    <source>timepointset</source>
-    <what>Output,Input|dummy_for_branch</what>
-  </Print>
-  <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
-        <plotSettings>
-            <plot>
-                <type>line</type>
-                <x>stories|Output|time</x>
-                <y>stories|Output|pump_mass_flow_rate</y>
-                <kwargs>
-                    <color>green</color>
-                    <label>pipe1-Hw</label>
-                </kwargs>
-            </plot>
-            <xlabel>time [s]</xlabel>
-            <ylabel>evolution</ylabel>
-        </plotSettings>
-        <actions>
-            <how>pdf</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
-  </Plot>
-    <Plot name='2DHistoryPlot_tps' dim='2' interactive='False' overwrite='False'>
-        <plotSettings>
-            <plot>
-                <type>scatter</type>
-                <x>timepointset|Output|time</x>
-                <y>timepointset|Output|pump_mass_flow_rate</y>
-                <kwargs>
-                    <color>green</color>
-                    <label>pipe1-Hw</label>
-                </kwargs>
-            </plot>
-            <xlabel>time [s]</xlabel>
-            <ylabel>evolution</ylabel>
-        </plotSettings>
-        <actions>
-            <how>pdf</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+    </DynamicEventTree>
+  </Samplers>
+
+  <OutStreamManager>
+    <Print name="testprint_hist_hier">
+      <type>csv</type>
+      <source>stories</source>
+    </Print>
+    <Print name="testprint_tpset_hier">
+      <type>csv</type>
+      <source>Pointset</source>
+    </Print>
+    <Print name="testprint_hist_hier_variables">
+      <type>csv</type>
+      <source>stories</source>
+      <what>Output,Input|dummy_for_branch</what>
+    </Print>
+    <Print name="testprint_tpset_hier_variables">
+      <type>csv</type>
+      <source>Pointset</source>
+      <what>Output,Input|dummy_for_branch</what>
+    </Print>
+    <Plot dim="2" interactive="false" name="2DHistoryPlot" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>stories|Output|time</x>
+          <y>stories|Output|pump_mass_flow_rate</y>
+          <kwargs>
+            <color>green</color>
+            <label>pipe1-Hw</label>
+          </kwargs>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
-</OutStreamManager>
-<Steps>
-    <MultiRun name='DETrunTest'>
-        <Input   class='Files'            type=''                >ideal_pump.i</Input>
-        <Input   class='Files'            type=''                >ideal_pump_control.py</Input>
-        <Model   class='Models'           type='Code'            >MyRAVEN</Model>
-        <Sampler class='Samplers'         type='DynamicEventTree'>DET_test</Sampler>
-        <Output  class='Databases'        type='HDF5'            >testBranchDatabase</Output>
-        <Output  class='DataObjects'            type='Histories'       >stories</Output>
-        <Output  class='DataObjects'            type='TimePointSet'    >timepointset</Output>
-        <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier</Output>
-        <Output  class='OutStreamManager' type='Print'           >testprint_tpset_hier</Output>
-        <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier_variables</Output>
-        <Output  class='OutStreamManager' type='Print'           >testprint_tpset_hier_variables</Output>
-        <Output  class='OutStreamManager' type='Plot'            >2DHistoryPlot</Output>
-        <Output  class='OutStreamManager' type='Plot'            >2DHistoryPlot_tps</Output>
-    </MultiRun >
-    <SingleRun name='extract_hist_example'>
-        <Input   class='Databases'        type='HDF5'            >testBranchDatabase</Input>
-        <Model   class='Models'           type='PostProcessor'   >csv_from_hdf5</Model>
-        <Output  class='Files'            type=''                >DET_histories.csv</Output>
-    </SingleRun>      
-</Steps>
-<Databases>
-    <HDF5 name="testBranchDatabase"/> 
-</Databases>
-<DataObjects>
-    <TimePointSet name='timepointset' hierarchical='true'>
-        <Input>dummy_for_branch</Input>
-        <Output>pump_mass_flow_rate,time</Output>
-    </TimePointSet>
-    <Histories name='stories' hierarchical='true'>
-        <Input>dummy_for_branch</Input>
-        <Output>pump_mass_flow_rate,time</Output>
-   </Histories>
-</DataObjects>
+    <Plot dim="2" interactive="false" name="2DHistoryPlot_tps" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>Pointset|Output|time</x>
+          <y>Pointset|Output|pump_mass_flow_rate</y>
+          <kwargs>
+            <color>green</color>
+            <label>pipe1-Hw</label>
+          </kwargs>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
+    </Plot>
+  </OutStreamManager>
+
+  <Steps>
+    <MultiRun name="DETrunTest">
+      <Input class="Files" type="">ideal_pump.i</Input>
+      <Input class="Files" type="">ideal_pump_control.py</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="DynamicEventTree">DET_test</Sampler>
+      <Output class="Databases" type="HDF5">testBranchDatabase</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+      <Output class="DataObjects" type="PointSet">Pointset</Output>
+      <Output class="OutStreamManager" type="Print">testprint_hist_hier</Output>
+      <Output class="OutStreamManager" type="Print">testprint_tpset_hier</Output>
+      <Output class="OutStreamManager" type="Print">testprint_hist_hier_variables</Output>
+      <Output class="OutStreamManager" type="Print">testprint_tpset_hier_variables</Output>
+      <Output class="OutStreamManager" type="Plot">2DHistoryPlot</Output>
+      <Output class="OutStreamManager" type="Plot">2DHistoryPlot_tps</Output>
+    </MultiRun>
+    <SingleRun name="extract_hist_example">
+      <Input class="Databases" type="HDF5">testBranchDatabase</Input>
+      <Model class="Models" type="PostProcessor">csv_from_hdf5</Model>
+      <Output class="Files" type="">DET_HistorySet.csv</Output>
+    </SingleRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="testBranchDatabase"/>
+  </Databases>
+
+  <DataObjects>
+    <PointSet hierarchical="true" name="Pointset">
+      <Input>dummy_for_branch</Input>
+      <Output>pump_mass_flow_rate,time</Output>
+    </PointSet>
+    <HistorySet hierarchical="true" name="stories">
+      <Input>dummy_for_branch</Input>
+      <Output>pump_mass_flow_rate,time</Output>
+    </HistorySet>
+  </DataObjects>
+
 </Simulation>
-
-
-

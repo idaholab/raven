@@ -1,128 +1,108 @@
+<?xml version="1.0" ?>
 <Simulation>
-	
+  <RunInfo>
+    <WorkingDir>Adapt</WorkingDir>
+    <Sequence>adapt,adaptdump</Sequence>
+    <batchSize>50</batchSize>
+  </RunInfo>
 
-<RunInfo>
-  <WorkingDir>Adapt</WorkingDir>
-  <Sequence>adapt,adaptdump</Sequence>
-  <batchSize>50</batchSize>
-</RunInfo>
+  <Steps>
+    <MultiRun name="adapt" pauseAtEnd="true">
+      <Input class="DataObjects" type="PointSet">bln_smp_dt</Input>
+      <Model class="Models" type="ExternalModel">xtr_mdl</Model>
+      <Sampler class="Samplers" type="LimitSurfaceSearch">dpt_smp</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">lmt_srf_dt</SolutionExport>
+      <Output class="DataObjects" type="PointSet">nt_phy_dpt_dt</Output>
+    </MultiRun>
+    <IOStep name="adaptdump" pauseAtEnd="true">
+      <Input class="DataObjects" type="PointSet">lmt_srf_dt</Input>
+      <Output class="OutStreamManager" type="Print">limitSurfaceDump</Output>
+    </IOStep>
+  </Steps>
 
+  <DataObjects>
+    <PointSet name="nt_phy_dpt_dt">
+      <Input>x1,x2,gammay</Input>
+      <Output>g</Output>
+    </PointSet>
+    <PointSet name="bln_smp_dt">
+      <Input>x1,x2,gammay</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="lmt_srf_dt">
+      <Input>x1,x2,gammay</Input>
+      <Output>g_zr</Output>
+    </PointSet>
+  </DataObjects>
 
-<Steps>  
+  <Distributions>
+    <Normal name="x1_dst">
+      <upperBound>10</upperBound>
+      <lowerBound>-10</lowerBound>
+      <mean>0.5</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+    <Normal name="x2_dst">
+      <upperBound>10</upperBound>
+      <lowerBound>-10</lowerBound>
+      <mean>-0.15</mean>
+      <sigma>0.05</sigma>
+    </Normal>
+    <Normal name="gammay_dst">
+      <upperBound>20</upperBound>
+      <lowerBound>-20</lowerBound>
+      <mean>0</mean>
+      <sigma>15</sigma>
+    </Normal>
+  </Distributions>
 
-  <MultiRun name = 'adapt' pauseAtEnd = 'True'>
-    <Sampler          class = 'Samplers'  type = 'LimitSurfaceSearch'      >dpt_smp</Sampler>
-    <Input            class = 'DataObjects'     type = 'TimePointSet'  >bln_smp_dt</Input>   
-    <Model            class = 'Models'    type = 'ExternalModel' >xtr_mdl</Model>
-    <Output           class = 'DataObjects'     type = 'TimePointSet'  >nt_phy_dpt_dt</Output>            
-    <SolutionExport   class = 'DataObjects'     type = 'TimePointSet'  >lmt_srf_dt</SolutionExport>
-  </MultiRun>
-  <IOStep name = 'adaptdump' pauseAtEnd = 'True'>
-  	<Input  class = 'DataObjects'            type = 'TimePointSet'  >lmt_srf_dt</Input>
-  	<Output class = 'OutStreamManager' type = 'Print'         >limitSurfaceDump</Output>
-  </IOStep>
-</Steps>
-
-<DataObjects> 
-  
-  <TimePointSet name = 'nt_phy_dpt_dt'>
-    <Input>x1,x2,gammay</Input>
-    <Output>g</Output>
-  </TimePointSet>
-    
-  <TimePointSet name = 'bln_smp_dt'>
-    <Input>x1,x2,gammay</Input>
-    <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-    
-  <TimePointSet name = 'lmt_srf_dt'>
-    <Input>x1,x2,gammay</Input>
-    <Output>g_zr</Output>
-  </TimePointSet>
-  
-</DataObjects>
-
-
-<Distributions>
-  <Normal name = 'x1_dst'>
-    <upperBound>10</upperBound>
-    <lowerBound>-10</lowerBound>
-  	<mean>0.5</mean>
-    <sigma>0.1</sigma>
-  </Normal>
-  
-  <Normal name = 'x2_dst'>
-    <upperBound>10</upperBound>
-    <lowerBound>-10</lowerBound>
-    <mean>-0.15</mean>
-    <sigma>0.05</sigma>
-  </Normal>
-  
-  <Normal name = 'gammay_dst'>
-    <upperBound>20</upperBound>
-    <lowerBound>-20</lowerBound>
-    <mean>0</mean>
-    <sigma>15</sigma>
-  </Normal>
-</Distributions>
-
-
-<Samplers>  
-
-  <LimitSurfaceSearch name = 'dpt_smp'>
-    <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
-    <Function         class = 'Functions' type = 'External'      >g_zr</Function>
-    <TargetEvaluation class = 'DataObjects'     type = 'TimePointSet'  >nt_phy_dpt_dt</TargetEvaluation>
-    <Convergence limit = '3000' forceIteration = 'False' weight = 'value' persistence = '25'>9e-2</Convergence>
-      <variable name = 'x1'>
+  <Samplers>
+    <LimitSurfaceSearch name="dpt_smp">
+      <ROM class="Models" type="ROM">accelerated_ROM</ROM>
+      <Function class="Functions" type="External">g_zr</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">nt_phy_dpt_dt</TargetEvaluation>
+      <Convergence forceIteration="False" limit="3000" persistence="25" weight="value">9e-2</Convergence>
+      <variable name="x1">
         <distribution>x1_dst</distribution>
       </variable>
-      <variable name = 'x2'>
+      <variable name="x2">
         <distribution>x2_dst</distribution>
       </variable>
-      <variable name = 'gammay'>
+      <variable name="gammay">
         <distribution>gammay_dst</distribution>
       </variable>
-  </LimitSurfaceSearch>
-</Samplers>
+    </LimitSurfaceSearch>
+  </Samplers>
 
+  <Models>
+    <ExternalModel ModuleToLoad="Adapt/adaptive_test_model" name="xtr_mdl" subType="">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>gammay</variable>
+      <variable>g</variable>
+    </ExternalModel>
+    <ROM name="accelerated_ROM" subType="SciKitLearn">
+      <Features>x1,x2,gammay</Features>
+      <Target>g_zr</Target>
+      <SKLtype>svm|SVC</SKLtype>
+      <kernel>rbf</kernel>
+      <gamma>10</gamma>
+      <tol>1e-5</tol>
+      <C>50</C>
+    </ROM>
+  </Models>
 
-<Models>  
-  <ExternalModel name = 'xtr_mdl' subType = '' ModuleToLoad = 'Adapt/adaptive_test_model'>
-    <variable>x1</variable>
-    <variable>x2</variable>
-    <variable>gammay</variable>
-    <variable>g</variable>
-  </ExternalModel>
-  
-  <ROM name = 'accelerated_ROM' subType = 'SciKitLearn'>
-    <Features>x1,x2,gammay</Features>
-    <Target>g_zr</Target>
-    <SKLtype>svm|SVC</SKLtype>
-    <kernel>rbf</kernel>
-    <gamma>10</gamma>
-    <tol>1e-5</tol>
-    <C>50</C>
-  </ROM>  
-  
-</Models>
+  <Functions>
+    <External file="Adapt/adaptive_test_goal" name="g_zr">
+      <variable>g</variable>
+    </External>
+  </Functions>
 
-
-<Functions>
-  <External name='g_zr' file='Adapt/adaptive_test_goal'>
-    <variable>g</variable>
-  </External>
-</Functions>
-
-
-<OutStreamManager> 
-  <Print name = 'limitSurfaceDump'>
-  	<type>csv</type>
-  	<source>lmt_srf_dt</source>
-  </Print>
-  
-</OutStreamManager>
-
-
+  <OutStreamManager>
+    <Print name="limitSurfaceDump">
+      <type>csv</type>
+      <source>lmt_srf_dt</source>
+    </Print>
+  </OutStreamManager>
 
 </Simulation>

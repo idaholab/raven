@@ -57,21 +57,21 @@
 <Steps>
     <IOStep name='extract_data4'>
         <Input   class='Databases'   type='HDF5'         >out_db</Input>
-        <Output  class='DataObjects' type='TimePointSet' >outGRID_y4</Output>
+        <Output  class='DataObjects' type='PointSet' >outGRID_y4</Output>
     </IOStep>
     <RomTrainer name='rom_trainer4'>
-        <Input   class='DataObjects' type='TimePointSet' >outGRID_y4</Input>
+        <Input   class='DataObjects' type='PointSet' >outGRID_y4</Input>
         <Output  class='Models'      type='ROM'          >ROM4</Output>
     </RomTrainer>
     <MultiRun name='RunROM4'>
-        <Input   class='DataObjects' type='TimePointSet' >Data1</Input>
+        <Input   class='DataObjects' type='PointSet' >Data1</Input>
         <Model   class='Models'      type='ROM'          >ROM4</Model>
         <Sampler class='Samplers'    type='Grid'         >Grid_ROM</Sampler>
-        <Output  class='DataObjects' type='TimePointSet' >outROM_y4</Output>
+        <Output  class='DataObjects' type='PointSet' >outROM_y4</Output>
     </MultiRun>
     <IOStep name='plot_data_4' pauseAtEnd='True'>
-        <Input   class='DataObjects'      type='TimePointSet' >outROM_y4</Input>
-        <Input   class='DataObjects'      type='TimePointSet' >outGRID_y4</Input>
+        <Input   class='DataObjects'      type='PointSet' >outROM_y4</Input>
+        <Input   class='DataObjects'      type='PointSet' >outGRID_y4</Input>
         <Output  class='OutStreamManager' type='Plot'         >plot_ROM_RSy4</Output>
         <Output  class='OutStreamManager' type='Plot'         >plot_RSy4</Output>
     </IOStep>
@@ -84,18 +84,18 @@
 
 
 <DataObjects>
-    <TimePointSet name = 'Data1'>
+    <PointSet name = 'Data1'>
         <Input>x1,x2,x3</Input>
         <Output>OutputPlaceHolder</Output>
-    </TimePointSet>
-    <TimePointSet name='outGRID_y4'>
+    </PointSet>
+    <PointSet name='outGRID_y4'>
         <Input>x1,x2,x3</Input>
         <Output>y4</Output>
-    </TimePointSet>
-    <TimePointSet name='outROM_y4'>
+    </PointSet>
+    <PointSet name='outROM_y4'>
         <Input>x1,x2,x3</Input>
         <Output>y4</Output>
-    </TimePointSet>
+    </PointSet>
 </DataObjects>
 
 <OutStreamManager>

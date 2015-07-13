@@ -1,49 +1,55 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>LHStestRaven</WorkingDir>
     <Files>simple_flow_3eqn.i,simple_flow_3eqn_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
-    <!-- <NumThreads>4</NumThreads>    
-    <mode>mpi</mode>
-    <NumMPI>2</NumMPI> -->
-    <!--<ParallelCommand></ParallelCommand>
-        <ThreadingCommand></ThreadingCommand>
-        <queueingSoftware></queueingSoftware>
-        <procByNode></procByNode>
-        <numProcByRun></numProcByRun>
-        <totalNumCoresUsed></totalNumCoresUsed>-->
+    <!--
+      <NumThreads>4</NumThreads>
+      <mode>mpi</mode>
+      <NumMPI>2</NumMPI>
+    -->
+    <!--
+      <ParallelCommand/>
+      <ThreadingCommand/>
+      <queueingSoftware/>
+      <procByNode/>
+      <numProcByRun/>
+      <totalNumCoresUsed/>
+    -->
   </RunInfo>
 
   <Models>
-    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
+    <Code name="MyRAVEN" subType="RAVEN">
+      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
+    </Code>
   </Models>
 
   <Distributions>
-    <Normal name='Gauss1'>
+    <Normal name="Gauss1">
       <mean>1</mean>
       <sigma>0.001</sigma>
       <lowerBound>0</lowerBound>
       <upperBound>2</upperBound>
     </Normal>
-    <Normal name='auxBackUpTimeDist'>
+    <Normal name="auxBackUpTimeDist">
       <mean>1</mean>
       <sigma>0.001</sigma>
       <lowerBound>0</lowerBound>
       <upperBound>2</upperBound>
     </Normal>
-    <Normal name='Gauss2'>
+    <Normal name="Gauss2">
       <mean>1</mean>
       <sigma>0.4</sigma>
       <lowerBound>0</lowerBound>
       <upperBound>2</upperBound>
     </Normal>
-    <Normal name='ANormalDistribution'>
-        <mean>-4</mean>
-        <sigma>2</sigma>
+    <Normal name="ANormalDistribution">
+      <mean>-4</mean>
+      <sigma>2</sigma>
     </Normal>
-    <Triangular name='CladFailureDist'>
+    <Triangular name="CladFailureDist">
       <apex>1</apex>
       <min>-0.1</min>
       <max>3</max>
@@ -51,53 +57,54 @@
   </Distributions>
 
   <Samplers>
-    <Stratified name='myLHS'>
+    <Stratified name="myLHS">
       <sampler_init>
         <initial_seed>1</initial_seed>
       </sampler_init>
-      <variable name='Components|pipe|Tw'>
-        <distribution >Gauss1</distribution>
-        <grid type='value' construction='equal' steps='3'>0.02 0.92</grid>
+      <variable name="Components|pipe|Tw">
+        <distribution>Gauss1</distribution>
+        <grid construction="equal" steps="3" type="value">0.02 0.92</grid>
       </variable>
-      <Distribution name='Dummy1'>
-        <distribution >ANormalDistribution</distribution>
-        <grid type='CDF' construction='equal' steps='3'>0.87 0.9</grid>
+      <Distribution name="Dummy1">
+        <distribution>ANormalDistribution</distribution>
+        <grid construction="equal" steps="3" type="CDF">0.87 0.9</grid>
       </Distribution>
     </Stratified>
   </Samplers>
+
   <Steps>
-    <MultiRun name='FirstMRun'>
-      <Input      class='Files'      type=''          >simple_flow_3eqn.i</Input>
-      <Input      class='Files'      type=''          >simple_flow_3eqn_control.py</Input>
-      <Model      class='Models'     type='Code'      >MyRAVEN</Model>
-      <Sampler    class='Samplers'   type='Stratified'>myLHS</Sampler>
-      <Output     class='Databases'  type='HDF5'      >testLHSRavenDatabase</Output>
-      <Output     class='DataObjects'      type='Histories' >stories</Output>
-      <Output  class='DataObjects'     type='TimePointSet'>outGrid</Output>
-      <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
-    </MultiRun >
+    <MultiRun name="FirstMRun">
+      <Input class="Files" type="">simple_flow_3eqn.i</Input>
+      <Input class="Files" type="">simple_flow_3eqn_control.py</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="Stratified">myLHS</Sampler>
+      <Output class="Databases" type="HDF5">testLHSRavenDatabase</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+      <Output class="DataObjects" type="PointSet">outGrid</Output>
+      <Output class="OutStreamManager" type="Print">outGrid_dump</Output>
+    </MultiRun>
   </Steps>
+
   <Databases>
-    <HDF5 name="testLHSRavenDatabase"/> 
+    <HDF5 name="testLHSRavenDatabase"/>
   </Databases>
+
   <OutStreamManager>
-    <Print name='outGrid_dump'>
-        <type>csv</type>
-        <source>outGrid</source>
+    <Print name="outGrid_dump">
+      <type>csv</type>
+      <source>outGrid</source>
     </Print>
   </OutStreamManager>
+
   <DataObjects>
-    <TimePointSet name='outGrid'>
+    <PointSet name="outGrid">
       <Input>pipe_Area,pipe_Dh,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
-    </TimePointSet>
-    
-    <Histories name='stories'>
+    </PointSet>
+    <HistorySet name="stories">
       <Input>pipe_Area,pipe_Dh</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
-    </Histories>
+    </HistorySet>
   </DataObjects>
+
 </Simulation>
-
-
-

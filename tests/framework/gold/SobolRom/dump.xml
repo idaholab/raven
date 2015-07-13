@@ -1,4 +1,4 @@
-<data name="dump" type="timepointset"><input>x2,x3,x1</input><output>ans</output><input_filename>dump.csv</input_filename><metadata><SamplerType>array(u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid',
+<data name="dump" type="Pointset"><input>x2,x3,x1</input><output>ans2,ans</output><input_filename>dump.csv</input_filename><metadata><SamplerType>array(u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid',
        u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid',
        u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid',
        u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', 

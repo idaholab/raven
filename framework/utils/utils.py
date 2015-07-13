@@ -121,11 +121,11 @@ def convertMultipleToBytes(sizeString):
 
 def stringsThatMeanTrue():
   '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
-  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1'])
+  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
 
 def stringsThatMeanFalse():
   '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
-  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0'])
+  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
 
 def stringsThatMeanSilent():
   '''return list of strings that indicate a verbosity of the lowest level (just errors). You linguists add what you wish.'''
@@ -412,7 +412,7 @@ def find_crow(framework_dir):
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
         return
-    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+pmoduleDirs)
+    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+str(pmoduleDirs))
 
 def add_path(absolutepath):
   """ Add absolutepath path is in the python path. """
