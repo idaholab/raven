@@ -775,7 +775,7 @@ class ComparisonStatistics(BasePostProcessor):
               return '_'.join([delist(x) for x in l])
             else:
               return str(l)
-          newFileName = output.base + "_" + delist(dataPulls) + "_" + str(i) + ".csv"
+          newFileName = output.getBase() + "_" + delist(dataPulls) + "_" + str(i) + ".csv"
           if type(dataStat).__name__ != 'dict':
             assert(False)
             continue
@@ -1089,7 +1089,7 @@ class BasicStatistics(BasePostProcessor):
       if key not in self.acceptedCalcParam: methodToTest.append(key)
     if isinstance(output,Files.File):
       availextens = ['csv', 'txt']
-      outputextension = output.ext.lower() #split('.')[-1].lower()
+      outputextension = output.getExt().lower() #split('.')[-1].lower()
       if outputextension not in availextens:
         self.raiseAWarning('BasicStatistics postprocessor output extension you input is ' + outputextension)
         self.raiseAWarning('Available are ' + str(availextens) + '. Convertint extension to ' + str(availextens[0]) + '!')

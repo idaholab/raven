@@ -30,12 +30,10 @@ class File(BaseType):
     @ Out, None
     """
     BaseType.__init__(self)
-    self.__isOpen = False
     self.__file   = None  #when open, refers to open file, else None
-    self.path=''
-    self.base=''
-    self.ext=None
-    self.filename=''
+    self.__path=''
+    self.__base=''
+    self.__ext=None
 
   def __del__(self):
     """
@@ -44,9 +42,9 @@ class File(BaseType):
     @ Out, None
     """
     try:
-      if self.isOpen(): self.__file.close()
+      if self.isOpen(): self.close()
     except AttributeError as e:
-      print('Had a problem with closing file',self.filename,'|',e)
+      print('Had a problem with closing file',self.getFilename(),'|',e)
 
   def __copy__(self):
     """
@@ -77,9 +75,9 @@ class File(BaseType):
     @ In, None
     @ Out, dict, dict of objets needed to restore instance
     """
-    statedict={'path':self.path,
-               'base':self.base,
-               'ext' :self.ext}
+    statedict={'path':self.__path,
+               'base':self.__base,
+               'ext' :self.__ext}
     return statedict
 
   def __setstate__(self,statedict):
@@ -87,9 +85,9 @@ class File(BaseType):
     @ In, statedict, dict of objets needed to restore instance
     @ Out, None
     """
-    self.path = statedict['path']
-    self.base = statedict['base']
-    self.ext  = statedict['ext' ]
+    self.__path = statedict['path']
+    self.__base = statedict['base']
+    self.__ext  = statedict['ext' ]
     self.updateFilename()
 
   def __repr__(self):
@@ -99,72 +97,104 @@ class File(BaseType):
     """
     return self.getAbsFile()
 
+  def __enter__(self):
+    self.__file.open(self.getAbsFile())
+    return self.__file
+
+  def __exit__(self,*args):
+    self.__file.close()
+
   ### HELPER FUNCTIONS ###
-  def updateFilename(self):
-    """
-    Based on changes, recreates filename from self.base and self.ext
-    @ In, None
-    @Out, None
-    """
-    if self.ext is not None: self.filename = '.'.join([self.base,self.ext])
-    else: self.filename = self.base
-
-  def setFilename(self,filename):
-    """
-    Sets name, extension from filename = 'name.ext'
-    @ In, filename, string, full filename
-    @ Out, None
-    """
-    if self.__isOpen: self.raiseAnError('Tried to change the name of an open file: %s! Close it first.' %self.getAbsFile())
-    self.filename = filename.strip()
-    if self.filename != '.': self.base = os.path.basename(self.filename).split()[0].split('.')[0]
-    else: self.base = self.filename
-    if len(filename.split(".")) > 1: self.ext = filename.split(".")[1].lower()
-    else: self.ext = None
-
-  def setExtension(self,ext):
-    """Sets the extension of the file.
-    @ In, ext, string, extension to change file to
-    @Out, None
-    """
-    if self.__isOpen: self.raiseAnError('Tried to change the name of an open file: %s! Close it first.' %self.getAbsFile())
-    self.ext = ext
-    self.updateFilename()
-
-  def setPath(self,path=None):
-    """Sets the path to the file object.
-    @ In, path, string, optional, path to set
-    @Out, None
-    """
-    if self.__isOpen: self.raiseAnError('Tried to change the path of an open file: %s! Close it first.' %self.getAbsFile())
-    if path==None: path=self.path
-    if '~' in path:
-      path = os.path.expanduser(path)
-    self.path = path
-
-  def setAbsFile(self,pathandfile):
-    """Sets the path AND the filename.
-    @ In, pathandfile, string, path to file and the filename itself in a single string
-    @Out, None
-    """
-    if self.__isOpen: self.raiseAnError('Tried to change the path/name of an open file: %s! Close it first.' %self.getAbsFile())
-    self.path,filename = os.path.split(pathandfile)
-    self.setFilename(filename)
-
+  ## the base elements for the file are path, base, and extension ##
+  # retrieval tools #
   def getPath(self):
     """Retriever for path.
     @ In, None
     @Out, string, path
     """
-    return self.path
+    return self.__path
+
+  def getBase(self):
+    """Retriever for file base.
+    @ In, None
+    @ Out, string path
+    """
+    return self.__base
+
+  def getExt(self):
+    """Retriever for file base.
+    @ In, None
+    @ Out, string path
+    """
+    return self.__ext
+
+  # setting tools #
+  def setPath(self,path):
+    """Sets the path to the file object.
+    @ In, path, string, optional, path to set
+    @Out, None
+    """
+    if self.isOpen(): self.raiseAnError('Tried to change the path of an open file: %s! Close it first.' %self.getAbsFile())
+    #if path==None: path=self.__path #FIXME is this useful?
+    if '~' in path: path = os.path.expanduser(path)
+    self.__path = path
+
+  def setBase(self,base):
+    """Sets the base name of the file.
+    @ In, base, string, base to change file to
+    @Out, None
+    """
+    if self.isOpen(): self.raiseAnError('Tried to change the base name of an open file: %s! Close it first.' %self.getAbsFile())
+    self.__base = base
+
+  def setExt(self,ext):
+    """Sets the extension of the file.
+    @ In, ext, string, extension to change file to
+    @Out, None
+    """
+    if self.isOpen(): self.raiseAnError('Tried to change the extension of an open file: %s! Close it first.' %self.getAbsFile())
+    self.__ext = ext
+
+  ## the base elements for the file are path, base, and extension ##
+  # getters #
+  def getFilename(self):
+    """Retriever for full filename.
+    @ In, None
+    @Out, string, filename
+    """
+    if self.__ext is not None: return '.'.join([self.__base,self.__ext])
+    else: return self.__base
 
   def getAbsFile(self):
     """Retriever for path/file.
     @ In, None
     @Out, string, path/file
     """
-    self.updateFilename()
-    return os.path.normpath(os.path.join(self.path,self.filename))
+    return os.path.normpath(os.path.join(self.getPath(),self.getFilename()))
+
+  # setters #
+  def setFilename(self,filename):
+    """
+    Sets base, extension from filename = 'name.ext'
+    @ In, filename, string, full filename (without path)
+    @ Out, None
+    """
+    if self.isOpen(): self.raiseAnError('Tried to change the name of an open file: %s! Close it first.' %self.getAbsFile())
+    filename = filename.strip()
+    if filename != '.': self.setBase(os.path.basename(filename).split()[0].split('.')[0])
+    else: self.setBase(filename)
+    if len(filename.split(".")) > 1: self.setExt(filename.split(".")[1].lower())
+    else: self.setExt(None)
+
+  def setAbsFile(self,pathandfile):
+    """Sets the path AND the filename.
+    @ In, pathandfile, string, path to file and the filename itself in a single string
+    @Out, None
+    """
+    if self.isOpen(): self.raiseAnError('Tried to change the path/name of an open file: %s! Close it first.' %self.getAbsFile())
+    path,filename = os.path.split(pathandfile)
+    self.setFilename(filename)
+    self.setPath(path)
 
   ### ACCESS FUNCTIONS ###
   def isOpen(self):
@@ -173,7 +203,7 @@ class File(BaseType):
     @ In,  None
     @ Out, bool, True if file is open
     """
-    return self.__isOpen
+    return self.__file is not None
 
   def checkExists(self):
     """
@@ -181,41 +211,101 @@ class File(BaseType):
     @ In,  None
     @ Out, None
     """
-    path = os.path.normpath(os.path.join(self.path,self.filename))
+    path = os.path.normpath(os.path.join(self.path,self.getFilename()))
     if not os.path.exists(path): self.raiseAnError(IOError,'File not found:',path)
 
   ### FILE-LIKE FUNCTIONS ###
-  def __iter__(self):
-    """Acts like iterating over file
-    @ In, None
-    @ Out, iterator
-    """
-    if not self.isOpen(): self.open('r')
-    self.__file.seek(0)
-    return (l for l in self.__file)
-
-  def open(self,mode='rw'):
-    """
-    Opens the file if not open, else throws a warning
-    @ In,  mode, string (optional) the read-write mode according to python "file" method ('r','a','w','rw',etc) (default 'rw')
-    @ Out, None
-    """
-    if not self.__isOpen:
-      self.__file = file(self.getAbsFile(),mode)
-      self.__isOpen = True
-    else: self.raiseAWarning('Tried to open',self.filename,'but file already open!')
-
   def close(self):
     """
     Closes the file if open, else throws a warning.
     @ In,  None
     @ Out, None
     """
-    if self.__isOpen:
+    if self.isOpen():
       self.__file.close()
+      del self.__file
       self.__file = None
-      self.__isOpen = False
-    else: self.raiseAWarning('Tried to close',self.filename,'but file not open!')
+    else: self.raiseAWarning('Tried to close',self.getFilename(),'but file not open!')
+
+  def flush(self):
+    """Provides access to the python file method of the same name.
+      @  In, None
+      @ Out, integer file descriptor
+    """
+    return self.__file.flush()
+
+  def fileno(self):
+    """Provides access to the python file method of the same name.
+      @  In, None
+      @ Out, integer, file descriptor
+    """
+    return self.__file.fileno()
+
+  def isatty(self):
+    """Provides access to the python file method of the same name.
+      @  In, None
+      @ Out, Boolean, true of file connected to tty-like device
+    """
+    return self.__file.isatty()
+
+  def next(self):
+    """Provides access to the python file method of the same name.
+      @  In, None
+      @ Out, next line in iteration (or StopIteration if EOF)
+    """
+    return self.__file.next()
+
+  def read(self,mode='r',size=None):
+    """
+      Mimics the "read" function of a python file object.
+      @ In, size, integer (optional), number of bytes to read
+      @Out, string, bytes read from file
+    """
+    if not self.isOpen(): self.open(mode)
+    if size is None: return self.__file.read()
+    else: return self.__file.read(size)
+
+  def readline(self,mode='r',size=None):
+    """
+      Mimics the "readline" function of a python file object.
+      @ In, None
+      @Out, string, next line from file
+    """
+    if not self.isOpen(): self.open(mode)
+    if size is None: return self.__file.readline()
+    else: return self.__file.readline(size)
+
+  def readlines(self,sizehint=None):
+    """Provides access to the python file method of the same name.
+      @  In, sizehint, bytes to read up to
+      @ Out, list, lines read
+    """
+    if sizehint is None: return self.__file.readlines()
+    else: return self.__file.readlines(sizehint)
+
+  def seek(self,offset,whence=None):
+    """Provides access to the python file method of the same name.
+      @  In, offset, location in file to seek
+      @  In, whence, integer indicator (see python file documentation)
+      @ Out, None
+    """
+    if whence is None: return self.__file.seek(offset)
+    else: return self.__file.seek(offset,whence)
+
+  def tell(self):
+    """Provides access to the python file method of the same name.
+      @  In, None
+      @ Out, int, file's current position
+    """
+    return self.__file.tell()
+
+  def truncate(self,size=None):
+    """Provides access to the python file method of the same name.
+      @  In, size, maximum file size after truncation
+      @ Out, None
+    """
+    if size is None: return self.__file.truncate()
+    else: return self.__file.truncate(size)
 
   def write(self,string,overwrite=False):
     """
@@ -237,26 +327,32 @@ class File(BaseType):
     if not self.isOpen(): self.open('a' if not overwrite else 'w')
     self.__file.writelines(string)
 
-  def read(self,size=None):
+  ### FILE-EXPECTED FUNCTIONS ###
+  # N.B. these don't show up in the python file docs, but are needed to act like files
+  def open(self,mode='rw'):
     """
-      Mimics the "read" function of a python file object.
-      @ In, size, integer (optional), number of bytes to read
-      @Out, string, bytes read from file
+    Opens the file if not open, else throws a warning
+    @ In,  mode, string (optional) the read-write mode according to python "file" method ('r','a','w','rw',etc) (default 'rw')
+    @ Out, None
     """
-    if size is None:
-      return self.__file.read()
-    else:
-      return self.__file.read(size)
+    if not self.isOpen(): self.__file = file(self.getAbsFile(),mode)
+    else: self.raiseAWarning('Tried to open',self.getFilename(),'but file already open!')
 
-  def readline(self):
+  def __iter__(self): #MIGHT NEED TO REMOVE
+    """Acts like iterating over file
+    @ In, None
+    @ Out, iterator
     """
-      Mimics the "readline" function of a python file object.
-      @ In, None
-      @Out, string, next line from file
-    """
-    return self.__file.readline()
-    self.type = 'internal'
-    self.printTag = 'Internal File'
+    if not self.isOpen(): self.open('r')
+    self.__file.seek(0)
+    return self.__file.__iter__()
+    #return (l for l in self.__file)
+
+
+
+
+
+
 
 #
 #
@@ -278,7 +374,7 @@ class RAVENGenerated(File):
     self.messageHandler = messageHandler
     self.type = 'internal'
     self.printTag = 'Internal File'
-    self.path=path
+    self.setPath(path)
     self.setFilename(filename)
     self.perturbed = False
     self.subtype   = subtype
@@ -322,7 +418,7 @@ class UserGenerated(File):
     self.setFilename(node.text.strip())
     self.perturbed = node.attrib.get('perturbable',True)
     self.subtype   = node.attrib.get('type'       ,None)
-    self.alias     = node.attrib.get('name'       ,self.filename)
+    self.alias     = node.attrib.get('name'       ,self.getFilename())
 
 #
 #

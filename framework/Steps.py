@@ -537,14 +537,22 @@ class IOStep(Step):
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         fileobj = outputs[i]
-        fileobj.open('wb+')
+        fileobj.open(mode='wb+')
+        self.raiseAWarning('dump|open?',fileobj.isOpen())
         cloudpickle.dump(inDictionary['Input'][i],fileobj)
+        fileobj.flush()
         fileobj.close()
+        import os
+        self.raiseAWarning('dump|size:',os.path.getsize(fileobj.getAbsFile()))
+        self.raiseAWarning('dump|file:',fileobj.getAbsFile())
+        test=pickle.load(file(fileobj.getAbsFile(),'rb+'))
+        self.raiseAWarning('dump|loaded:',test)
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
         fileobj = inDictionary['Input'][i]
-        fileobj.open('rb+')
-        unpickledObj = pickle.load(fileobj)
+        #fileobj.open(mode='rb+')
+        #unpickledObj = pickle.load(fileobj) #FIXME this fails with EOFError, and I don't know why
+        unpickledObj = pickle.load(file(fileobj.getAbsFile(),'rb+'))
         outputs[i].train(unpickledObj)
         fileobj.close()
       else:
