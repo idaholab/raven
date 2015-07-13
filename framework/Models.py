@@ -740,13 +740,16 @@ class Code(Model):
         It is called from a sampler to get the implementation specific for this model"""
     Kwargs['executable'] = self.executable
     found = False
+    #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
+    #  objects.  However, this might require some updating of many Code Interfaces as well.
     for index, inputFile in enumerate(currentInput):
-      if inputFile.getAbsFile().endswith(self.code.getInputExtension()):
+      self.raiseAWarning('inputfile,codegetinp:',inputFile.getExt(),'|',self.code.getInputExtension())
+      if '.'+inputFile.getExt() in self.code.getInputExtension():
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index].getAbsFile())[1].split('.')[0]
+    Kwargs['outfile'] = 'out~'+currentInput[index].getBase()
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 

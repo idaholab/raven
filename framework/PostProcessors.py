@@ -932,45 +932,47 @@ class PrintCSV(BasePostProcessor):
         hist = key
         #  If file, split the strings and add the working directory if present
         if self.workingDir:
-          if os.path.split(output.getAbsFile())[1] == '': output.setAbsFile(output.getAbsFile()[:-1])
-          splitted_1 = os.path.split(output.getAbsFile())
-          output.setAbsFile(splitted_1[1])
-        splitted = output.getAbsFile().split('.')
-        #  Create csv files' names
-        addfilename = splitted[0] + '_additional_info_' + hist + '.' + splitted[1]
-        csvfilename = splitted[0] + '_' + hist + '.' + splitted[1]
+          output.setPath(self.workingDir)
+          # original if os.path.split(output.getAbsFile())[1] == '': output.setAbsFile(output.getAbsFile()[:-1])
+          # I don't think this applies anymore # if output.getFilename() == '': output.setAbsFile(output.getAbsFile()[:-1])
+          #splitted_1 = (output.getPath,output.getFilename() #os.path.split(output.getAbsFile())
+          #output.setAbsFile(splitted_1[1])
+        #splitted = output.getAbsFile().split('.')
+        #  Create csv files
+        addfile = Files.returnInstance('CSV',self)
+        csvfile = Files.returnInstance('CSV',self)
+        addfilename = output.getBase() + '_additional_info_' + hist + '.' + output.getExt()
+        csvfilename = output.getBase() + '_'                 + hist + '.' + output.getExt()
+        addfile.initialize(addfilename,self.messageHandler,output.getPath(),subtype='AdditionalInfo')
+        csvfile.initialize(csvfilename,self.messageHandler,output.getPath(),subtype='AdditionalInfo')
         #  Check if workingDir is present and in case join the two paths
         if self.workingDir:
-          addfilename = os.path.join(self.workingDir, addfilename)
-          csvfilename = os.path.join(self.workingDir, csvfilename)
+          addfile.setPath(os.path.join(self.workingDir,addfile.getPath()))
+          csvfile.setPath(os.path.join(self.workingDir,csvfile.getPath()))
 
-        #  Open the files and save the data
-        csvfile    = Files.returnInstance('CSV',self)
-        addcsvfile = Files.returnInstance('CSV',self)
-        csvfile   .initialize(os.path.split(csvfilename)[1],self.messageHandler,path=os.path.split(csvfilename)[0])
-        addcsvfile.initialize(os.path.split(addfilename)[1],self.messageHandler,path=os.path.split(addfilename)[0])
-        csvfile   .open('wb')
-        addcsvfile.open('wb')
+        #  Save the data
+        csvfile.open('wb')
+        addfile.open('wb')
         #  Add history to the csv file
         np.savetxt(csvfile, HistorySet[key][0], delimiter = ",", header = utils.toString(headers))
         csvfile.write(os.linesep)
         #  process the attributes in a different csv file (different kind of informations)
         #  Add metadata to additional info csv file
-        addcsvfile.write(b'# History Metadata, ' + os.linesep)
-        addcsvfile.write(b'# ______________________________,' + b'_' * len(key) + b',' + os.linesep)
-        addcsvfile.write(b'#number of parameters,' + os.linesep)
-        addcsvfile.write(utils.toBytes(str(attributes['n_params'])) + b',' + os.linesep)
-        addcsvfile.write(b'#parameters,' + os.linesep)
-        addcsvfile.write(headers + os.linesep)
-        addcsvfile.write(b'#parent_id,' + os.linesep)
-        addcsvfile.write(utils.toBytes(attributes['parent_id']) + os.linesep)
-        addcsvfile.write(b'#start time,' + os.linesep)
-        addcsvfile.write(utils.toBytes(str(attributes['start_time'])) + os.linesep)
-        addcsvfile.write(b'#end time,' + os.linesep)
-        addcsvfile.write(utils.toBytes(str(attributes['end_time'])) + os.linesep)
-        addcsvfile.write(b'#number of time-steps,' + os.linesep)
-        addcsvfile.write(utils.toBytes(str(attributes['n_ts'])) + os.linesep)
-        addcsvfile.write(os.linesep)
+        addfile.write(b'# History Metadata, ' + os.linesep)
+        addfile.write(b'# ______________________________,' + b'_' * len(key) + b',' + os.linesep)
+        addfile.write(b'#number of parameters,' + os.linesep)
+        addfile.write(utils.toBytes(str(attributes['n_params'])) + b',' + os.linesep)
+        addfile.write(b'#parameters,' + os.linesep)
+        addfile.write(headers + os.linesep)
+        addfile.write(b'#parent_id,' + os.linesep)
+        addfile.write(utils.toBytes(attributes['parent_id']) + os.linesep)
+        addfile.write(b'#start time,' + os.linesep)
+        addfile.write(utils.toBytes(str(attributes['start_time'])) + os.linesep)
+        addfile.write(b'#end time,' + os.linesep)
+        addfile.write(utils.toBytes(str(attributes['end_time'])) + os.linesep)
+        addfile.write(b'#number of time-steps,' + os.linesep)
+        addfile.write(utils.toBytes(str(attributes['n_ts'])) + os.linesep)
+        addfile.write(os.linesep)
     else: self.raiseAnError(NotImplementedError, 'for input type ' + self.inObj.type + ' not yet implemented.')
 
   def run(self, Input):  # inObj,workingDir=None):
