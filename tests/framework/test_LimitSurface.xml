@@ -2,10 +2,14 @@
 <Simulation>
   <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>
-    <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py</Files>
     <Sequence>FirstMRun,ComputeLimitSurfacePositive,ComputeLimitSurfaceNegative,ComputeLimitSurfacePositiveNegative</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="limitSurfaceTestExternalModel.py" type="">limitSurfaceTestExternalModel.py</Input>
+    <Input name="goalFunctionTest.py" type="">goalFunctionTest.py</Input>
+  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="limitSurface/limitSurfaceTestExternalModel" name="PythonModule" subType="">
