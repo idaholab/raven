@@ -3339,7 +3339,7 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
       polyDict[c]=self.polyDict[c]
       imptDict[c]=self.importanceDict[c]
     iset = IndexSets.returnInstance('AdaptiveSet',self)
-    iset.initialize(distDict,imptDict,self.maxPolyOrder,self.messageHandler)
+    iset.initialize(distDict,imptDict,self.maxPolyOrder)
     initDict={'IndexSet':iset.type, 'PolynomialOrder':SVL.maxPolyOrder, 'Interpolation':SVL.itpDict}
     initDict['Features']=','.join(combo)
     initDict['Target']=SVL.target #TODO make it work for multitarget
