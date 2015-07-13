@@ -848,6 +848,22 @@ combined in the same figure.
   </Plot>
 </OutStreamManager>
 \end{lstlisting}
+
+The axis labels  are conditionally optional nodes
+that can be defined under the \xmlNode{plotSetting}. If the plot does not contain any sub-plots, 
+i.e. \xmlNode{gridSpace} is not defined then the axis labels are global parameters for the figure 
+which are deifned under \xmlNode{plotSettings}, otherwise the axis labels can be defined under \xmlNode{plot}
+for each sub-plot seperately.
+\begin{itemize}
+  \item \xmlNode{xlabel}, \xmlDesc{string, optional parameter}, the x axis
+  label.
+  \item \xmlNode{ylabel}, \xmlDesc{string, optional parameter}, the y axis
+  label.
+  \item \xmlNode{zlabel}, \xmlDesc{string, optional parameter (3D plots only)},
+  the z axis label.
+\end{itemize}
+%
+
 As already mentioned, within the \xmlNode{plotSettings} block, at least a
 \xmlNode{plot} sub-block needs to be specified.
 %

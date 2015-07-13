@@ -676,22 +676,40 @@ class OutStreamPlot(OutStreamManager):
           else:             self.plt3D = self.plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]], projection = '3d')
       # If the number of plots to be shown in this figure > 1, hold the old ones (They are going to be shown together... because unity is much better than separation)
       if len(self.outStreamTypes) > 1: self.plt.hold(True)
-      if 'xlabel' not in self.options['plotSettings']['plot'][pltindex].keys():
-        if self.dim == 2  : self.plt.xlabel('x')
-        elif self.dim == 3: self.plt3D.set_xlabel('x')
+      if 'gridSpace' in self.options['plotSettings'].keys():
+        if 'xlabel' not in self.options['plotSettings']['plot'][pltindex].keys():
+          if self.dim == 2  : self.plt.xlabel('x')
+          elif self.dim == 3: self.plt3D.set_xlabel('x')
+        else:
+          if self.dim == 2  : self.plt.xlabel(self.options['plotSettings']['plot'][pltindex]['xlabel'])
+          elif self.dim == 3: self.plt3D.set_xlabel(self.options['plotSettings']['plot'][pltindex]['xlabel'])
+        if 'ylabel' not in self.options['plotSettings']['plot'][pltindex].keys():
+          if self.dim == 2  : self.plt.ylabel('y')
+          elif self.dim == 3: self.plt3D.set_ylabel('y')
+        else:
+          if self.dim == 2  : self.plt.ylabel(self.options['plotSettings']['plot'][pltindex]['ylabel'])
+          elif self.dim == 3: self.plt3D.set_ylabel(self.options['plotSettings']['plot'][pltindex]['ylabel'])
+        if 'zlabel' in self.options['plotSettings']['plot'][pltindex].keys():
+          if   self.dim == 2  : self.raiseAWarning('zlabel keyword does not make sense in 2-D Plots!')
+          elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel(self.options['plotSettings']['plot'][pltindex]['zlabel'])
+        elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel('z')
       else:
-        if self.dim == 2  : self.plt.xlabel(self.options['plotSettings']['plot'][pltindex]['xlabel'])
-        elif self.dim == 3: self.plt3D.set_xlabel(self.options['plotSettings']['plot'][pltindex]['xlabel'])
-      if 'ylabel' not in self.options['plotSettings']['plot'][pltindex].keys():
-        if self.dim == 2  : self.plt.ylabel('y')
-        elif self.dim == 3: self.plt3D.set_ylabel('y')
-      else:
-        if self.dim == 2  : self.plt.ylabel(self.options['plotSettings']['plot'][pltindex]['ylabel'])
-        elif self.dim == 3: self.plt3D.set_ylabel(self.options['plotSettings']['plot'][pltindex]['ylabel'])
-      if 'zlabel' in self.options['plotSettings']['plot'][pltindex].keys():
-        if self.dim == 2  : self.raiseAWarning('zlabel keyword does not make sense in 2-D Plots!')
-        elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel(self.options['plotSettings']['plot'][pltindex]['zlabel'])
-      elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel('z')
+        if 'xlabel' not in self.options['plotSettings'].keys():
+          if self.dim == 2  : self.plt.xlabel('x')
+          elif self.dim == 3: self.plt3D.set_xlabel('x')
+        else:
+          if self.dim == 2  : self.plt.xlabel(self.options['plotSettings']['xlabel'])
+          elif self.dim == 3: self.plt3D.set_xlabel(self.options['plotSettings']['xlabel'])
+        if 'ylabel' not in self.options['plotSettings'].keys():
+          if self.dim == 2  : self.plt.ylabel('y')
+          elif self.dim == 3: self.plt3D.set_ylabel('y')
+        else:
+          if self.dim == 2  : self.plt.ylabel(self.options['plotSettings']['ylabel'])
+          elif self.dim == 3: self.plt3D.set_ylabel(self.options['plotSettings']['ylabel'])
+        if 'zlabel' in self.options['plotSettings'].keys():
+          if   self.dim == 2  : self.raiseAWarning('zlabel keyword does not make sense in 2-D Plots!')
+          elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel(self.options['plotSettings']['zlabel'])
+        elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel('z')
       # Let's start plotting
       #################
       #  SCATTER PLOT #
