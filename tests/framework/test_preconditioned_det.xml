@@ -1,183 +1,192 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
     <WorkingDir>PreconditionedDynamicEventTree</WorkingDir>
-    <Files>ideal_pump.i,ideal_pump_control.py,DET_HistorySet.csv</Files>
     <Sequence>PreconditionedDETrunTest,testOutstreamStep</Sequence>
     <batchSize>4</batchSize>
-</RunInfo>
+  </RunInfo>
 
-<Models>
-    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
-    <PostProcessor name="csv_from_hdf5" subType='PrintCSV'>
-        <paramters>all</paramters>
+  <Files>
+    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
+    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
+    <Input name="DET_HistorySet.csv" type="">DET_HistorySet.csv</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyRAVEN" subType="RAVEN">
+      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
+    </Code>
+    <PostProcessor name="csv_from_hdf5" subType="PrintCSV">
+      <paramters>all</paramters>
     </PostProcessor>
-</Models>
+  </Models>
 
-<Distributions>
-  <Uniform name="zeroToOne">
-    <lowerBound>0.0</lowerBound>
-    <upperBound>1.0</upperBound>
-  </Uniform>
-  <Uniform name="testPreconditionerMonteCarloDist1">
+  <Distributions>
+    <Uniform name="zeroToOne">
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
-  </Uniform>
-  <Uniform name="testPreconditionerGridDist1">
+    </Uniform>
+    <Uniform name="testPreconditionerMonteCarloDist1">
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
-  </Uniform>
-  <Uniform name="testPreconditionerGridDist2">
+    </Uniform>
+    <Uniform name="testPreconditionerGridDist1">
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
-  </Uniform>
-  <Uniform name="testPreconditionerLHSDist1">
+    </Uniform>
+    <Uniform name="testPreconditionerGridDist2">
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
-  </Uniform>
-  <Uniform name="testPreconditionerLHSDist2">
+    </Uniform>
+    <Uniform name="testPreconditionerLHSDist1">
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
-  </Uniform>
-</Distributions>
+    </Uniform>
+    <Uniform name="testPreconditionerLHSDist2">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
 
-<Samplers>
-  <DynamicEventTree name='PreconditionedDET_test' print_end_xml="true">
-      <PreconditionerSampler type='MonteCarlo'>
-          <sampler_init>
-              <limit>2</limit>
-          </sampler_init>
-          <variable name='Auxiliary|testMCpreconditioned1|initial_value' >
-              <distribution>testPreconditionerMonteCarloDist1</distribution>
-          </variable>
-          <!-- The second sampled variable is directly performed in RAVEN (since we perform the seeding)-->
+  <Samplers>
+    <DynamicEventTree name="PreconditionedDET_test" print_end_xml="true">
+      <PreconditionerSampler type="MonteCarlo">
+        <sampler_init>
+          <limit>2</limit>
+        </sampler_init>
+        <variable name="Auxiliary|testMCpreconditioned1|initial_value">
+          <distribution>testPreconditionerMonteCarloDist1</distribution>
+        </variable>
+        <!-- The second sampled variable is directly performed in RAVEN (since we perform the seeding)-->
       </PreconditionerSampler>
-      <PreconditionerSampler type='Grid'>
-          <!-- Point sampler way (directly sampling the variable) -->
-          <variable name='Auxiliary|testGridpreconditioned1|initial_value' >
-              <distribution>testPreconditionerGridDist1</distribution>
-              <grid type='CDF' construction='equal' steps='1' >0.1 0.2</grid>
-          </variable>
-          <!-- RAVEN way for the second distribution-->
-          <Distribution name='testPreconditionerMonteCarloDist2'>
-              <distribution>testPreconditionerGridDist2</distribution>
-              <grid type='CDF' construction='equal' steps='1' >0.1 0.2</grid>
-          </Distribution>
+      <PreconditionerSampler type="Grid">
+        <!-- Point sampler way (directly sampling the variable) -->
+        <variable name="Auxiliary|testGridpreconditioned1|initial_value">
+          <distribution>testPreconditionerGridDist1</distribution>
+          <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
+        </variable>
+        <!-- RAVEN way for the second distribution-->
+        <Distribution name="testPreconditionerMonteCarloDist2">
+          <distribution>testPreconditionerGridDist2</distribution>
+          <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
+        </Distribution>
       </PreconditionerSampler>
-      <PreconditionerSampler type='Stratified'>
-          <!-- Point sampler way (directly sampling the variable ) -->
-          <variable name='Auxiliary|testLHSpreconditioned1|initial_value' >
-              <distribution>testPreconditionerLHSDist1</distribution>
-              <grid type='CDF' construction='equal' steps='1' >0.1 0.2</grid>
-          </variable>
-          <!-- RAVEN way for the second distribution-->
-          <Distribution name='testPreconditionerMonteCarloDist2'>
-              <distribution>testPreconditionerLHSDist2</distribution>
-              <grid type='CDF' construction='equal' steps='1' >0.1 0.2</grid>
-          </Distribution>
+      <PreconditionerSampler type="Stratified">
+        <!-- Point sampler way (directly sampling the variable ) -->
+        <variable name="Auxiliary|testLHSpreconditioned1|initial_value">
+          <distribution>testPreconditionerLHSDist1</distribution>
+          <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
+        </variable>
+        <!-- RAVEN way for the second distribution-->
+        <Distribution name="testPreconditionerMonteCarloDist2">
+          <distribution>testPreconditionerLHSDist2</distribution>
+          <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
+        </Distribution>
       </PreconditionerSampler>
       <!-- DYNAMIC EVENT TREE INPUT (it goes outside an inner block like PreconditionerSampler) -->
-        <Distribution name='zeroToOne'>
-          <distribution >zeroToOne</distribution>
-          <grid type='CDF' construction='custom'>0.1 0.8</grid>
-        </Distribution>
-  </DynamicEventTree>
-</Samplers>
-<OutStreamManager>
-  <Print name='testprint_hist_hier'>
-    <type>csv</type>
-    <source>stories</source>
-  </Print>
-  <Print name='testprint_tpset_hier'>
-    <type>csv</type>
-    <source>Pointset</source>
-  </Print>
-  <Print name='testprint_hist_hier_variables'>
-    <type>csv</type>
-    <source>stories</source>
-    <what>Output,Input|dummy_for_branch</what>
-  </Print>
-  <Print name='testprint_tpset_hier_variables'>
-    <type>csv</type>
-    <source>Pointset</source>
-    <what>Output,Input|dummy_for_branch</what>
-  </Print>
-  <Plot name='2DHistoryPlot' dim='2' interactive='false' overwrite='true'>
-        <plotSettings>
-            <plot>
-                <type>line</type>
-                <x>stories|Output|time</x>
-                <y>stories|Output|pump_mass_flow_rate</y>
-                <kwargs>
-                    <color>green</color>
-                </kwargs>
-            </plot>
-            <xlabel>time [s]</xlabel>
-            <ylabel>evolution</ylabel>
-        </plotSettings>
-        <actions>
-            <how>pdf</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
-  </Plot>
-  <Plot name='2DHistoryPlot_tps' dim='2' interactive='false' overwrite='true'>
-        <plotSettings>
-            <plot>
-                <type>scatter</type>
-                <x>Pointset|Output|time</x>
-                <y>Pointset|Output|pump_mass_flow_rate</y>
-                <kwargs>
-                    <color>green</color>
-                </kwargs>
-            </plot>
-            <xlabel>time [s]</xlabel>
-            <ylabel>evolution</ylabel>
-        </plotSettings>
-        <actions>
-            <how>pdf</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
-  </Plot>
-</OutStreamManager>
-<Steps>
-    <MultiRun name='PreconditionedDETrunTest'>
-        <Input   class='Files'            type=''                  >ideal_pump.i</Input>
-        <Input   class='Files'            type=''                  >ideal_pump_control.py</Input>
-        <Model   class='Models'           type='Code'              >MyRAVEN</Model>
-        <Sampler class='Samplers'         type='DynamicEventTree'  >PreconditionedDET_test</Sampler>
-        <Output  class='Databases'        type='HDF5'              >testPreconditionedBranchDatabase</Output>
-        <Output  class='DataObjects'            type='HistorySet'         >stories</Output>
-        <Output  class='DataObjects'            type='PointSet'      >Pointset</Output>
-    </MultiRun >
-    <IOStep name='testOutstreamStep'>
-      <Input   class='DataObjects'            type='HistorySet'       >stories</Input>
-      <Input   class='DataObjects'            type='PointSet'    >Pointset</Input>
-      <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier</Output>
-      <Output  class='OutStreamManager' type='Print'           >testprint_tpset_hier</Output>
-      <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier_variables</Output>
-      <Output  class='OutStreamManager' type='Print'           >testprint_tpset_hier_variables</Output>
-      <Output  class='OutStreamManager' type='Plot'            >2DHistoryPlot</Output>
-      <Output  class='OutStreamManager' type='Plot'            >2DHistoryPlot_tps</Output>
+      <Distribution name="zeroToOne">
+        <distribution>zeroToOne</distribution>
+        <grid construction="custom" type="CDF">0.1 0.8</grid>
+      </Distribution>
+    </DynamicEventTree>
+  </Samplers>
+
+  <OutStreamManager>
+    <Print name="testprint_hist_hier">
+      <type>csv</type>
+      <source>stories</source>
+    </Print>
+    <Print name="testprint_tpset_hier">
+      <type>csv</type>
+      <source>Pointset</source>
+    </Print>
+    <Print name="testprint_hist_hier_variables">
+      <type>csv</type>
+      <source>stories</source>
+      <what>Output,Input|dummy_for_branch</what>
+    </Print>
+    <Print name="testprint_tpset_hier_variables">
+      <type>csv</type>
+      <source>Pointset</source>
+      <what>Output,Input|dummy_for_branch</what>
+    </Print>
+    <Plot dim="2" interactive="false" name="2DHistoryPlot" overwrite="true">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>stories|Output|time</x>
+          <y>stories|Output|pump_mass_flow_rate</y>
+          <kwargs>
+            <color>green</color>
+          </kwargs>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
+    </Plot>
+    <Plot dim="2" interactive="false" name="2DHistoryPlot_tps" overwrite="true">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>Pointset|Output|time</x>
+          <y>Pointset|Output|pump_mass_flow_rate</y>
+          <kwargs>
+            <color>green</color>
+          </kwargs>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
+    </Plot>
+  </OutStreamManager>
+
+  <Steps>
+    <MultiRun name="PreconditionedDETrunTest">
+      <Input class="Files" type="">ideal_pump.i</Input>
+      <Input class="Files" type="">ideal_pump_control.py</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="DynamicEventTree">PreconditionedDET_test</Sampler>
+      <Output class="Databases" type="HDF5">testPreconditionedBranchDatabase</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+      <Output class="DataObjects" type="PointSet">Pointset</Output>
+    </MultiRun>
+    <IOStep name="testOutstreamStep">
+      <Input class="DataObjects" type="HistorySet">stories</Input>
+      <Input class="DataObjects" type="PointSet">Pointset</Input>
+      <Output class="OutStreamManager" type="Print">testprint_hist_hier</Output>
+      <Output class="OutStreamManager" type="Print">testprint_tpset_hier</Output>
+      <Output class="OutStreamManager" type="Print">testprint_hist_hier_variables</Output>
+      <Output class="OutStreamManager" type="Print">testprint_tpset_hier_variables</Output>
+      <Output class="OutStreamManager" type="Plot">2DHistoryPlot</Output>
+      <Output class="OutStreamManager" type="Plot">2DHistoryPlot_tps</Output>
     </IOStep>
-</Steps>
-<Databases>
+  </Steps>
+
+  <Databases>
     <HDF5 name="testPreconditionedBranchDatabase"/>
-</Databases>
-<DataObjects>
-    <PointSet name='Pointset' hierarchical='true'>
-        <Input>dummy_for_branch</Input>
-        <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,pipe2_f,inlet_TDV_p_bc,time</Output>
+  </Databases>
+
+  <DataObjects>
+    <PointSet hierarchical="true" name="Pointset">
+      <Input>dummy_for_branch</Input>
+      <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,pipe2_f,inlet_TDV_p_bc,time</Output>
     </PointSet>
-    <HistorySet name='stories' hierarchical='true'>
-        <Input>dummy_for_branch</Input>
-        <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,pipe2_f,inlet_TDV_p_bc,time</Output>
-   </HistorySet>
-</DataObjects>
+    <HistorySet hierarchical="true" name="stories">
+      <Input>dummy_for_branch</Input>
+      <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,pipe2_f,inlet_TDV_p_bc,time</Output>
+    </HistorySet>
+  </DataObjects>
+
 </Simulation>
-
-
-

@@ -1,57 +1,66 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <Simulation>
-<RunInfo>
+  <RunInfo>
     <WorkingDir>RELAP5interfaceTest</WorkingDir>
-    <Files>snc01.i,tpfh2o</Files>
     <Sequence>testDummyStep</Sequence>
     <batchSize>1</batchSize>
-</RunInfo>
+  </RunInfo>
 
-<Models>
-    <Code name='MyRELAP' subType='Relap5'>
-        <executable> <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty --> </executable>
+  <Files>
+    <Input name="snc01.i" type="">snc01.i</Input>
+    <Input name="tpfh2o" type="">tpfh2o</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyRELAP" subType="Relap5">
+      <executable>
+        <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
+      </executable>
     </Code>
-</Models>
+  </Models>
 
-<Distributions>
-    <Normal name='Prim_Pres'>
-        <mean>69.618</mean>
-        <sigma>14.5037</sigma>
-        <lowerBound>67</lowerBound>
-        <!--<upperBound>84</upperBound>-->
-    </Normal>   
-    <Normal name='Core_Power'>
-        <mean>0.0327</mean>
-        <sigma>0.001</sigma>
-        <upperBound>0.034</upperBound>
+  <Distributions>
+    <Normal name="Prim_Pres">
+      <mean>69.618</mean>
+      <sigma>14.5037</sigma>
+      <lowerBound>67</lowerBound>
+      <!--
+        <upperBound>84</upperBound>
+      -->
     </Normal>
-</Distributions>
+    <Normal name="Core_Power">
+      <mean>0.0327</mean>
+      <sigma>0.001</sigma>
+      <upperBound>0.034</upperBound>
+    </Normal>
+  </Distributions>
 
-<Samplers>
-    <MonteCarlo     name='MC_samp'>
-     <sampler_init>
-       <limit>5</limit>
-     </sampler_init>
-     <variable name='9890201:2'>
-       <distribution>Prim_Pres</distribution>
-     </variable>
-     <variable name='20290000:4'>
-       <distribution>Core_Power</distribution>
-     </variable>
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <sampler_init>
+        <limit>5</limit>
+      </sampler_init>
+      <variable name="9890201:2">
+        <distribution>Prim_Pres</distribution>
+      </variable>
+      <variable name="20290000:4">
+        <distribution>Core_Power</distribution>
+      </variable>
     </MonteCarlo>
-</Samplers>
+  </Samplers>
 
-<Steps>
-    <MultiRun name='testDummyStep' re-seeding='1'>
-        <Input   class='Files'     type=''          >snc01.i</Input>
-        <Input   class='Files'     type=''          >tpfh2o</Input>
-        <Model   class='Models'    type='Code'      >MyRELAP</Model>
-        <Sampler class='Samplers'  type='MonteCarlo'>MC_samp</Sampler>
-        <Output  class='Databases' type='HDF5'      >DataB_REL5_1</Output>
-    </MultiRun >
-</Steps>
-<Databases>
+  <Steps>
+    <MultiRun name="testDummyStep" re-seeding="1">
+      <Input class="Files" type="">snc01.i</Input>
+      <Input class="Files" type="">tpfh2o</Input>
+      <Model class="Models" type="Code">MyRELAP</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Output class="Databases" type="HDF5">DataB_REL5_1</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
     <HDF5 name="DataB_REL5_1"/>
-</Databases>
+  </Databases>
 
 </Simulation>
