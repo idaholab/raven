@@ -2,11 +2,14 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>GridTestRaven</WorkingDir>
-    <Files>simple_flow_3eqn.i,
-    simple_flow_3eqn_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="simple_flow_3eqn.i" type="">simple_flow_3eqn.i</Input>
+    <Input name="simple_flow_3eqn_control.py" type="">simple_flow_3eqn_control.py</Input>
+  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">
