@@ -1,79 +1,83 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
     <WorkingDir>./revirD_tset</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
-    <!--<ParallelCommand></ParallelCommand>
-    <NumMPI></NumMPI>
-    <ThreadingCommand></ThreadingCommand>
-    <NumThreads></NumThreads>
-    <numNode></numNode>
-    <queueingSoftware></queueingSoftware>
-    <procByNode></procByNode>
-    <numProcByRun></numProcByRun>
-    <totalNumCoresUsed></totalNumCoresUsed>-->
-</RunInfo>
+    <!--
+      <ParallelCommand/>
+      <NumMPI/>
+      <ThreadingCommand/>
+      <NumThreads/>
+      <numNode/>
+      <queueingSoftware/>
+      <procByNode/>
+      <numProcByRun/>
+      <totalNumCoresUsed/>
+    -->
+  </RunInfo>
 
-<Models>
-    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
-</Models>
+  <Models>
+    <Code name="MyRAVEN" subType="RAVEN">
+      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
+    </Code>
+  </Models>
 
-<Distributions>
-    <Normal name='Gauss1'>
-        <mean>1</mean>
-        <sigma>0.001</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
     </Normal>
-    <Normal name='auxBackUpTimeDist'>
-        <mean>1</mean>
-        <sigma>0.001</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
+    <Normal name="auxBackUpTimeDist">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
     </Normal>
-    <Normal name='Gauss2'>
-        <mean>1</mean>
-        <sigma>0.4</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
+    <Normal name="Gauss2">
+      <mean>1</mean>
+      <sigma>0.4</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
     </Normal>
-    <Triangular name='CladFailureDist'>
-        <apex>1</apex>
-        <min>-0.1</min>
-        <max>3</max>
+    <Triangular name="CladFailureDist">
+      <apex>1</apex>
+      <min>-0.1</min>
+      <max>3</max>
     </Triangular>
-</Distributions>
+  </Distributions>
 
-<Samplers>
-    <MonteCarlo     name='RAVENmc6'>
+  <Samplers>
+    <MonteCarlo name="RAVENmc6">
       <sampler_init>
         <limit>6</limit>
       </sampler_init>
     </MonteCarlo>
-</Samplers>
+  </Samplers>
 
-<Steps>
-    <MultiRun name='FirstMRun' re-seeding='1'>
-        <Input   class='Files'     type=''>ideal_pump.i</Input>
-        <Input   class='Files'     type=''>ideal_pump_control.py</Input>
-        <Model   class='Models'    type='Code'      >MyRAVEN</Model>
-        <Sampler class='Samplers'  type='MonteCarlo'>RAVENmc6</Sampler>
-        <Output  class='Databases' type='HDF5' >testMCDatabase</Output>
-        <Output  class='DataObjects'     type='HistorySet' >stories</Output>
-    </MultiRun >
-</Steps>
-<Databases>
-    <HDF5 name="testMCDatabase"/> 
-</Databases>
-<DataObjects>
-    <HistorySet name='stories'>
-        <Input>pipe1_Area</Input>
-        <Output>pipe1_Hw</Output>
-   </HistorySet>
-</DataObjects>
+  <Steps>
+    <MultiRun name="FirstMRun" re-seeding="1">
+      <Input class="Files" type="">ideal_pump.i</Input>
+      <Input class="Files" type="">ideal_pump_control.py</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
+      <Output class="Databases" type="HDF5">testMCDatabase</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="testMCDatabase"/>
+  </Databases>
+
+  <DataObjects>
+    <HistorySet name="stories">
+      <Input>pipe1_Area</Input>
+      <Output>pipe1_Hw</Output>
+    </HistorySet>
+  </DataObjects>
+
 </Simulation>
-
-
-

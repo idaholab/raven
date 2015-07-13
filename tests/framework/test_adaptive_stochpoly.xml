@@ -1,83 +1,91 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
-    <RunInfo>
-        <WorkingDir>AdaptiveStochasticPoly</WorkingDir>
-        <Sequence>make,train,print,print2</Sequence>
-        <batchSize>1</batchSize>
-    </RunInfo>
+  <RunInfo>
+    <WorkingDir>AdaptiveStochasticPoly</WorkingDir>
+    <Sequence>make,train,print,print2</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
-    <Steps>
-        <MultiRun name='make' verbosity='silent'>
-            <Sampler class='Samplers'    type='AdaptiveSparseGrid'   >SG</Sampler>
-            <Input   class='DataObjects' type='PointSet'         >dummyIN</Input>
-            <Model   class='Models'      type='ExternalModel'        >poly</Model>
-            <Output  class='DataObjects' type='PointSet'         >solns</Output>
-        </MultiRun>
-        <RomTrainer name='train' verbosity='silent'>
-            <Input   class='DataObjects' type='PointSet'>solns</Input>
-            <Output  class='Models'      type='ROM'         >rom</Output>
-        </RomTrainer>
-        <IOStep name='print' verbosity='silent'>
-            <Input  class='Models'           type='ROM'         >rom</Input>
-            <Output class='OutStreamManager' type='Print'       >dump</Output>
-        </IOStep>
-        <IOStep name='print2' verbosity='silent'>
-            <Input  class='DataObjects'      type='PointSet'>solns</Input>
-            <Output class='OutStreamManager' type='Print'       >data</Output>
-        </IOStep>
-    </Steps>
+  <Steps>
+    <MultiRun name="make" verbosity="silent">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="AdaptiveSparseGrid">SG</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </MultiRun>
+    <IOStep name="print" verbosity="silent">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreamManager" type="Print">dump</Output>
+    </IOStep>
+    <IOStep name="print2" verbosity="silent">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="OutStreamManager" type="Print">data</Output>
+    </IOStep>
+    <RomTrainer name="train" verbosity="silent">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+  </Steps>
 
-    <Distributions>
-        <Uniform name="UniDist"><lowerBound>-1</lowerBound><upperBound>1</upperBound></Uniform>
-    </Distributions>
+  <Distributions>
+    <Uniform name="UniDist">
+      <lowerBound>-1</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
 
-    <Samplers>
-        <AdaptiveSparseGrid name="SG" verbosity='debug'>
-            <Convergence target='coeffs'>1e-2</Convergence>
-            <variable name="x1"><distribution>UniDist</distribution></variable>
-            <variable name="x2"><distribution>UniDist</distribution></variable>
-            <ROM              class = 'Models'      type = 'ROM'         >rom</ROM>
-            <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
-        </AdaptiveSparseGrid>
-    </Samplers>
+  <Samplers>
+    <AdaptiveSparseGrid name="SG" verbosity="debug">
+      <Convergence target="coeffs">1e-2</Convergence>
+      <variable name="x1">
+        <distribution>UniDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>UniDist</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">rom</ROM>
+      <TargetEvaluation class="DataObjects" type="PointSet">solns</TargetEvaluation>
+    </AdaptiveSparseGrid>
+  </Samplers>
 
-    <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
-        <ExternalModel name='poly' subType='' ModuleToLoad='AdaptiveStochasticPoly/polynomial' verbosity='silent'>
-            <variable>x1</variable>
-            <variable>x2</variable>
-            <variable>ans</variable>
-            <variable>ans2</variable>
-        </ExternalModel>
-        <ROM name='rom' subType='GaussPolynomialRom' verbosity='silent'>
-            <Target>ans,ans2</Target>
-            <Features>x1,x2</Features>
-            <IndexSet>TotalDegree</IndexSet>
-            <PolynomialOrder>1</PolynomialOrder>
-        </ROM>
-    </Models>
+  <Models>
+    <Dummy name="MyDummy" print="true" subType=""/>
+    <ExternalModel ModuleToLoad="AdaptiveStochasticPoly/polynomial" name="poly" subType="" verbosity="silent">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>ans</variable>
+      <variable>ans2</variable>
+    </ExternalModel>
+    <ROM name="rom" subType="GaussPolynomialRom" verbosity="silent">
+      <Target>ans,ans2</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
+  </Models>
 
-    <DataObjects>
-        <PointSet name="dummyIN">
-            <Input>x1,x2</Input>
-            <Output>OutputPlaceHolder</Output>
-        </PointSet>
-        <PointSet name='solns'>
-            <Input>x1,x2</Input>
-            <Output>ans,ans2</Output>
-        </PointSet>
-    </DataObjects>
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="solns">
+      <Input>x1,x2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+  </DataObjects>
 
-    <OutStreamManager>
-        <Print name='dump' verbosity='silent'>
-           <type>xml</type>
-           <source>rom</source>
-           <what>mean,variance</what>
-           <target>all</target>
-        </Print>
-        <Print name='data' verbosity='silent'>
-           <type>csv</type>
-           <source>solns</source>
-        </Print>
-    </OutStreamManager>
+  <OutStreamManager>
+    <Print name="dump" verbosity="silent">
+      <type>xml</type>
+      <source>rom</source>
+      <what>mean,variance</what>
+      <target>all</target>
+    </Print>
+    <Print name="data" verbosity="silent">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+  </OutStreamManager>
+
 </Simulation>

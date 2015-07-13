@@ -110,7 +110,16 @@ XML node and the requirements for other attributes change:
   \xmlNode{distribution}, \xmlDesc{string,
   required field}, name of the distribution that is associated to this variable.
   Its name needs to be contained in the \xmlNode{Distributions} block explained
-  in Section \ref{sec:distributions}.
+  in Section \ref{sec:distributions}. \nb{Alternatively, this node must be ommitted
+  if the \xmlNode{function} node is supplied.}
+}
+\newcommand{\functionDescription}
+{
+  \xmlNode{function}, \xmlDesc{string, required field}, name of the function that
+  defines the calculation of this variable from other distributed variables.  Its name
+  needs to be contained in the \xmlNode{Functions} block explained in Section
+  \ref{sef:functions}.  \nb{Alternatively, this node must be ommitted
+  if the \xmlNode{distribution} node is supplied.}
 }
 
 
@@ -133,6 +142,9 @@ XML node and the requirements for other attributes change:
       \xmlString{CDF} or \xmlString{value}).
   \end{itemize}
   \constructionGridDescriptionOnlyCustom
+  \nb{The \xmlNode{grid} node is only required if a \xmlNode{distribution}
+  node is supplied.  In the case of a \xmlNode{function} node, no grid
+  information is requested.}
 }
 
 
@@ -154,6 +166,9 @@ XML node and the requirements for other attributes change:
       \xmlString{CDF} or \xmlString{value}).
   \end{itemize}
   \constructionGridDescription
+  \nb{The \xmlNode{grid} node is only required if a \xmlNode{distribution}
+  node is supplied.  In the case of a \xmlNode{function} node, no grid
+  information is requested.}
 }
 
 \newcommand{\convergenceDescription}
@@ -324,6 +339,46 @@ If the variable is associated to a multi-dimensional ND distribution, it is need
 </variable>
 \end{lstlisting}
 
+For most codes, it is prudent that there are no redundant inputs; however there are
+cases where this is not reality.  For example, if there is a variable \xmlString{inner\_radius} and
+a variable \xmlString{outer\_radius}, there may be a third variable \xmlString{thickness} that
+is actually derived from the previous two, as \xmlString{thickness} = \xmlString{outer\_radius} - \xmlString{inner\_radius}.
+RAVEN supports this type of redundant input through a Function entity.  In this case,
+instead of a \xmlNode{distribution} node in the \xmlNode{variable} block, there is a
+\xmlNode{Function} node, specifying the name of the function (defined in the \xmlNode{Functions} block).
+In order to work properly, this function must have a method that is identical to the variable name
+that returns a single python float object.  For example,
+\begin{lstlisting}[style=XML]
+...
+<Functions>
+  <External name='torus_calcs' file='torus_calcs.py'>
+    <variable>outer_radius</variable>
+    <variable>inner_radius</variable>
+  </External>
+<Functions>
+...
+<Samplers>
+  <WhatEverSampler name='myExampleSampler'>
+    <variable name='inner_radius'>
+      <distribution>inner_dist</distribution>
+    </variable>
+    <variable name='outer_radius'>
+      <distribution>outer_dist</distribution>
+    </variable>
+    <variable name='thickness'>
+      <Function>torus_calcs</Function>
+    </variable>
+  </WhatEverSampler>
+</Samplers>
+\end{lstlisting}
+The corresponding function file \xmlString{torus\_calcs.py} needs the following method:
+\begin{lstlisting}
+def thickness(self):
+  return self.outer_radius - self.inner_radius
+\end{lstlisting}
+The \xmlString{thickness} parameter will still be treated as an input for the sake of csv
+printing and DataObjects storage.
+
 In the sampler class a special node exists: the \xmlNode{sampler\textunderscore init} node.
 This node contains specific parameters that characterize each particular sampler.
 In addition, \xmlNode{sampler\textunderscore init} might contains the information regarding the random generator function for each $N$-Dimensional distribution (specified in the \xmlNode{dist\textunderscore init} node):
@@ -416,9 +471,10 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
 \end{itemize}
 \begin{itemize}
 \item \variableDescription
- \variableChildIntro
+ \variableChildrenIntro
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
   \end{itemize}
 \end{itemize}
 %\end{itemize}
@@ -486,6 +542,7 @@ Regarding the N-dimensional distributions, the user can specify for each dimensi
  \variableChildrenIntro
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
     \item \gridDescription
   \end{itemize}
 \end{itemize}
@@ -559,6 +616,7 @@ which use reduced combinations of polynomial orders to reduce the necessary samp
  In the variable node, the following xml-node needs to be specified:
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
  \end{itemize} \end{itemize}
 Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}).
 
@@ -612,6 +670,7 @@ it is not compatible with NDDistribution objects.}
  In the variable node, the following xml-node needs to be specified:
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
  \end{itemize} \end{itemize}
 Because of the tight coupling between the Sobol sampler and the HDMRRom, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, Sobol order, and importance weights to use in each dimension (see \ref{subsubsec:HDMRRom}).
 
@@ -673,6 +732,7 @@ constructed in equally-probable CDF bins.
  \variableChildrenIntro
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
     \item \gridDescription
   \end{itemize}
 \end{itemize}
@@ -733,6 +793,7 @@ This is possible by defining a \xmlNode{global\_grid} node and associate such gl
   </Stratified>
   ...
 </Samplers>
+...
 \end{lstlisting}
 
 %%% Once-Through Samplers: Response Surface Design
@@ -806,62 +867,62 @@ defined within a \xmlNode{ResponseSurfaceDesign} block.
  \variableChildrenIntro
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
      \item \gridDescriptionOnlyCustom
-     It needs to be noticed that only the construction ``custom'' is available. In the \xmlNode{grid} body only the lower and upper bounds can be inputted (2 numbers only).
+     \nb{Only the construction ``custom'' is available. In the \xmlNode{grid} body only the lower and upper bounds can be inputted (2 numbers only).}
  \end{itemize}
-\end{itemize}
-The main XML block \xmlNode{ResponseSurfaceDesign} needs to contain an
-additional sub-node called \xmlNode{ResponseSurfaceDesignSettings}.
+\item \xmlNode{ResponseSurfaceDesignSettings}, \xmlDesc{required},
 In this sub-node, the user needs to specify different settings depending on the
 algorithm being used:
+ \begin{itemize}
+  \item \xmlNode{algorithm\_type}, \xmlDesc{string, required field}, this XML node
+    will contain the name of the algorithm to be used.
+    Based on the chosen algorithm, other nodes need to be defined:
+    \begin{itemize}
+      \item \xmlNode{algorithm\_type}\texttt{BoxBehnken}\xmlNode{algorithm\_type/}. If Box-Behnken
+        is specified, the following additional node is recognized:
      \begin{itemize}
-      \item \xmlNode{algorithm\_type}, \xmlDesc{string, required field}, this XML node
-        will contain the name of the algorithm to be used.
-        Based on the chosen algorithm, other nodes need to be defined:
-        \begin{itemize}
-          \item \xmlNode{algorithm\_type}\texttt{BoxBehnken}\xmlNode{algorithm\_type/}. If Box-Behnken
-            is specified, the following additional node is recognized:
-         \begin{itemize}
-          \item \xmlNode{ncenters}, \xmlDesc{integer, optional field}, the
-            number of center points to include in the box.
-            If this parameter is not specified, then a pre-determined number of
-            points are automatically included.
-            \default{Automatic Generation}.
-         \end{itemize}
-         \nb In order to employ the ``Box-Behnken'' design, at least 3 variables
-         must be used.
-         \item \xmlNode{algorithm\_type}\texttt{CentralComposite}\xmlNode{algorithm\_type/}. If
-           Central Composite is specified, the following additional nodes will
-           be recognized:
-         \begin{itemize}
-          \item \xmlNode{centers}, \xmlDesc{comma separated integers, optional
-            field}, the number of center points to be included.
-            This block needs to contain 2 integers values separated by a comma.
-            The first entry represents the number of centers to be added for the
-            factorial block; the second one is the one for the star block.
-            \default{4,4}.
-          \item \xmlNode{alpha}, \xmlDesc{string, optional field}, in this node,
-            the user decides how an $\alpha$ factor needs to be determined.
-            Two options are available:
-            \begin{itemize}
-              \item \texttt{orthogonal}, for orthogonal design.
-              \item \texttt{rotatable}, for rotatable design.
-            \end{itemize}
-            \default{orthogonal}.
-          \item \xmlNode{face}, \xmlDesc{string, optional field}, in this node,
-            the user defines how faces should be constructed.
-            Three options are available:
-            \begin{itemize}
-              \item \texttt{circumscribed}, for circumscribed facing
-              \item \texttt{inscribed}, for inscribed facing
-              \item \texttt{faced}, for faced facing.
-            \end{itemize}
-            \default{circumscribed}.
-         \end{itemize}
-      \end{itemize}
-      \nb In order to employ the ``Central Composite'' design, at least 2
-      variables must be used.
-    \end{itemize}
+      \item \xmlNode{ncenters}, \xmlDesc{integer, optional field}, the
+        number of center points to include in the box.
+        If this parameter is not specified, then a pre-determined number of
+        points are automatically included.
+        \default{Automatic Generation}.
+     \end{itemize}
+     \nb In order to employ the ``Box-Behnken'' design, at least 3 variables
+     must be used.
+     \item \xmlNode{algorithm\_type}\texttt{CentralComposite}\xmlNode{algorithm\_type/}. If
+       Central Composite is specified, the following additional nodes will
+       be recognized:
+     \begin{itemize}
+      \item \xmlNode{centers}, \xmlDesc{comma separated integers, optional
+        field}, the number of center points to be included.
+        This block needs to contain 2 integers values separated by a comma.
+        The first entry represents the number of centers to be added for the
+        factorial block; the second one is the one for the star block.
+        \default{4,4}.
+      \item \xmlNode{alpha}, \xmlDesc{string, optional field}, in this node,
+        the user decides how an $\alpha$ factor needs to be determined.
+        Two options are available:
+        \begin{description}
+          \item[\texttt{orthogonal}] for orthogonal design.
+          \item[\texttt{rotatable}] for rotatable design.
+        \end{description}
+        \default{orthogonal}.
+      \item \xmlNode{face}, \xmlDesc{string, optional field}, in this node,
+        the user defines how faces should be constructed.
+        Three options are available:
+        \begin{description}
+          \item[\texttt{circumscribed}] for circumscribed facing
+          \item[\texttt{inscribed}] for inscribed facing
+          \item[\texttt{faced}] for faced facing.
+        \end{description}
+        \default{circumscribed}.
+     \end{itemize}
+  \end{itemize}
+  \nb In order to employ the ``Central Composite'' design, at least 2
+  variables must be used.
+\end{itemize}
+\end{itemize}
 
 %\maljdan{Is it weird that one of these uses ncenters and the other uses centers?}
 %\alfoa{The names of those parameters are different in order to avoid confusion, since the meaning (and the way ) to input them is different}
@@ -967,6 +1028,7 @@ defined within a \xmlNode{FactorialDesign} block.
     \variableChildrenIntro
     \begin{itemize}
       \item \distributionDescription
+      \item \functionDescription
       \item \gridDescription
     \end{itemize}
 \end{itemize}
@@ -1167,6 +1229,7 @@ space.
   \variableChildrenIntro
   \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
     \item \gridDescription
   \end{itemize}
 \end{itemize}
@@ -1275,6 +1338,7 @@ For this reason, its specifications must be defined within a
   \variableChildrenIntro
   \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
     \item \gridDescription
   \end{itemize}
 \end{itemize}
@@ -1308,9 +1372,10 @@ As already mentioned, these variables are specified within consecutive
 
 \begin{itemize}
   \item \variableDescription
-    \variableChildIntro
+    \variableChildrenIntro
     \begin{itemize}
       \item \distributionDescription
+      \item \functionDescription
     \end{itemize}
  \end{itemize}
 
@@ -1451,9 +1516,10 @@ the input space in proximity of the limit surface.
 
 \begin{itemize}
   \item \variableDescription
-    \variableChildIntro
+    \variableChildrenIntro
     \begin{itemize}
       \item \distributionDescription
+    \item \functionDescription
     \end{itemize}
 \end{itemize}
 
@@ -1603,6 +1669,7 @@ the input space in proximity of the limit surface.
   \variableChildrenIntro
  \begin{itemize}
     \item \distributionDescription
+    \item \functionDescription
     \item \gridDescription
   \end{itemize}
 \end{itemize}
@@ -1723,9 +1790,10 @@ algorithm fails for the model $f(x)=x\cdot y$.
 
 \begin{itemize}
   \item \variableDescription
-    \variableChildIntro
+    \variableChildrenIntro
     \begin{itemize}
       \item \distributionDescription
+    \item \functionDescription
     \end{itemize}
 \end{itemize}
 

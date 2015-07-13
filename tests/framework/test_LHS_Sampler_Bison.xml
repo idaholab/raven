@@ -1,88 +1,84 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
     <WorkingDir>LHStestBison</WorkingDir>
     <Files>gap_perfect_transfer_test.i,gap_perfect_transfer_test.e</Files>
     <Sequence>myLHS</Sequence>
     <batchSize>1</batchSize>
-</RunInfo>
+  </RunInfo>
 
-<Models>
-    <Code name='Bison' subType='MooseBasedApp'>
-        <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
+  <Models>
+    <Code name="Bison" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
     </Code>
-</Models>
+  </Models>
 
-<Distributions>
-    <Normal name='Gauss1'>
-        <mean>1</mean>
-        <sigma>0.4</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>1</mean>
+      <sigma>0.4</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
     </Normal>
-    <Triangular name='DistTri1'>
-        <apex>1</apex>
-        <min>-0.1</min>
-        <max>3</max>
+    <Triangular name="DistTri1">
+      <apex>1</apex>
+      <min>-0.1</min>
+      <max>3</max>
     </Triangular>
-</Distributions>
-<Samplers>
-    <Stratified name='myLHS'>
+  </Distributions>
+
+  <Samplers>
+    <Stratified name="myLHS">
       <sampler_init>
         <initial_seed>1</initial_seed>
       </sampler_init>
-      <variable name='Materials|heat1|thermal_conductivity' >
-        <distribution >DistTri1</distribution>
-        <grid         type='value'      construction='custom'>0.02 0.5 0.6 0.8</grid>
+      <variable name="Materials|heat1|thermal_conductivity">
+        <distribution>DistTri1</distribution>
+        <grid construction="custom" type="value">0.02 0.5 0.6 0.8</grid>
       </variable>
-      <variable name='Materials|heat2|thermal_conductivity'>
-        <distribution >Gauss1</distribution>
-        <grid type='CDF' construction='equal'   steps='3'>0.17 0.2</grid>
+      <variable name="Materials|heat2|thermal_conductivity">
+        <distribution>Gauss1</distribution>
+        <grid construction="equal" steps="3" type="CDF">0.17 0.2</grid>
       </variable>
     </Stratified>
-</Samplers>
+  </Samplers>
 
-<DataObjects>
-    <HistorySet name='stories'>
-        <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
-        <Output>aveTempLeft,aveTempRight</Output>
-   </HistorySet>
-</DataObjects>
+  <DataObjects>
+    <HistorySet name="stories">
+      <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
+      <Output>aveTempLeft,aveTempRight</Output>
+    </HistorySet>
+  </DataObjects>
 
+  <Steps>
+    <MultiRun name="myLHS">
+      <Input class="Files" type="">gap_perfect_transfer_test.i</Input>
+      <Input class="Files" type="">gap_perfect_transfer_test.e</Input>
+      <Model class="Models" type="Code">Bison</Model>
+      <Sampler class="Samplers" type="Stratified">myLHS</Sampler>
+      <Output class="Databases" type="HDF5">test_bison_lhs</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+      <Output class="OutStreamManager" type="Plot">test</Output>
+    </MultiRun>
+  </Steps>
 
-<Steps>
-    <MultiRun name='myLHS'>
-      <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.i</Input>
-      <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.e</Input>
-      <Model   class = 'Models'     type='Code'      >Bison</Model>
-      <Sampler class='Samplers' type='Stratified'         >myLHS</Sampler>
-      <Output  class='Databases'    type='HDF5'>test_bison_lhs</Output>
-      <Output class='DataObjects' type='HistorySet'>stories</Output>
-      <Output class='OutStreamManager' type='Plot'>test</Output>
-    </MultiRun >
-</Steps>
+  <Databases>
+    <HDF5 name="test_bison_lhs"/>
+  </Databases>
 
-<Databases>
-  <HDF5 name="test_bison_lhs"/> 
-</Databases>
-
-
-<OutStreamManager>
-    <Plot verbosity='debug' name='test' dim='2' overwrite='False'>
-        <plotSettings>
-            <plot>
-                <type>scatter</type>
-                <x>stories|Input|{Materials|heat1|thermal_conductivity}</x>
-                <y>stories|Input|{Materials|heat2|thermal_conductivity}</y>
-            </plot>
-        </plotSettings>
-        <actions> <how>png</how> </actions>
+  <OutStreamManager>
+    <Plot dim="2" name="test" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>stories|Input|{Materials|heat1|thermal_conductivity}</x>
+          <y>stories|Input|{Materials|heat2|thermal_conductivity}</y>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
     </Plot>
-</OutStreamManager>
-
+  </OutStreamManager>
 
 </Simulation>
-
-
-

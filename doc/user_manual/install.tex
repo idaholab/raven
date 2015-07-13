@@ -33,7 +33,8 @@ Older versions may work, but it is highly recommended to use these
 minimum versions.  For newer version of Fedora and Ubuntu, these (or
 newer) are available in the distribution repositories.  For OSX
 Yosemite, there is a package that can be used called
-raven\_libs\_version.dmg
+raven\_libs\_version.dmg For OSX Yosemite and OSX Mavericks there is a
+package available called raven\_miniconda.dmg
 %
 You may install these dependencies yourself, or by running the
 \texttt{raven\_libs\_script.sh} script provided within the RAVEN distribution:
@@ -289,3 +290,16 @@ At the end, there should be a line that looks similar to the output below:
 Normally there are skipped tests because either some of the codes are
 not available, or some of the test are not currently working.  The
 output will explain why each is skipped.
+
+\subsection{Troubleshooting the Installation}
+
+Often the problems result from one or more of the libraries being
+incorrect or missing.  In the raven directory, the command:
+
+\begin{lstlisting}[language=bash]
+./run_tests --library_report
+\end{lstlisting}
+can be used to check if all the libraries are available, and which
+ones are being used.  If amsc, distribution1D or interpolationND are
+missing, then the RAVEN modules need to be compiled or recompiled.
+Otherwise, the RAVEN dependencies need to be fixed.
