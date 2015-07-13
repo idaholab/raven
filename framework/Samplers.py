@@ -3093,7 +3093,6 @@ class Sobol(SparseGridCollocation):
                       'polys':polyDict,             # polynomials
                       'iSet' :iset}                 # index set
       for name,SVL in self.ROM.SupervisedEngine.items():
-        #self.ROMs[target] = {}
         initDict['Target']     = SVL.target
         self.ROMs[name][combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
         self.ROMs[name][combo].initialize(initializeDict)
@@ -3114,7 +3113,6 @@ class Sobol(SparseGridCollocation):
     #if tuple(newpt) not in existing:
     self.pointsToRun.append(tuple(newpt))
     #now do the rest
-    #for targetName,targetROMs in self.ROMs.items():
     for combo,rom in self.ROMs.values()[0].items(): #each target is the same, so just for each combo
       SG = rom.sparseGrid #they all should have the same sparseGrid
       SG._remap(combo)
