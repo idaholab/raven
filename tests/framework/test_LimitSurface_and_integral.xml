@@ -1,11 +1,17 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="quiet">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>limitSurface_integral</WorkingDir>
-    <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py,LimitSurfaceUnWeightedPb_FileObj.csv,LimitSurfaceWeightedPb_FileObj.csv</Files>
     <Sequence>FirstMRun,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted,ComputeLimitSurfaceIntegralUnWeighted</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="limitSurfaceTestExternalModel.py" type="">limitSurfaceTestExternalModel.py</Input>
+    <Input name="goalFunctionTest.py" type="">goalFunctionTest.py</Input>
+    <Input name="LimitSurfaceUnWeightedPb_FileObj.csv" type="">LimitSurfaceUnWeightedPb_FileObj.csv</Input>
+    <Input name="LimitSurfaceWeightedPb_FileObj.csv" type="">LimitSurfaceWeightedPb_FileObj.csv</Input>
+  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="limitSurface_integral/limitSurfaceTestExternalModel" name="PythonModule" subType="">

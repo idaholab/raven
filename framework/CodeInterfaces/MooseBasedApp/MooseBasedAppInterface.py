@@ -43,11 +43,12 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     self._samplersDictionary['SparseGridCollocation'] = self.pointSamplerForMooseBasedApp
     found = False
     for index, inputFile in enumerate(currentInputFiles):
+      inputFile = inputFile.getAbsFile()
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    parser = MOOSEparser.MOOSEparser(self.messageHandler,currentInputFiles[index])
+    parser = MOOSEparser.MOOSEparser(self.messageHandler,currentInputFiles[index].getAbsFile())
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])

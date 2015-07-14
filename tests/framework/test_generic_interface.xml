@@ -2,11 +2,15 @@
 <Simulation>
   <RunInfo>
     <JobName>testGenericCodeInterface</JobName>
-    <Files>gen.one,gen.two</Files>
     <Sequence>sample</Sequence>
     <WorkingDir>GenericInterface</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="gen.one" type="">gen.one</Input>
+    <Input name="gen.two" type="">gen.two</Input>
+  </Files>
 
   <Models>
     <Code name="poly" subType="GenericCode">
