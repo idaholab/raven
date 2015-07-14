@@ -360,9 +360,9 @@ class GridEntity(GridBase):
     #building the grid point coordinates
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
       if len(stepLenght[varId]) == 1:
-        # equally spaced or volumetriRatio. (the substruction of stepLenght*10e-3 is only to avoid that for roundoff error, the dummy upperbound is included in the mesh)
+        # equally spaced or volumetriRatio. (the substruction of stepLenght/2.0 is only to avoid that for roundoff error, the dummy upperbound is included in the mesh)
         if self.volumetricRatio != None: self.gridContainer['gridVectors'][varName] = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName],stepLenght[varId][-1])
-        else                           : self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName]-self.gridContainer['bounds']["upperBounds" ][varName]*1.e-3,stepLenght[varId][-1]),np.atleast_1d(self.gridContainer['bounds']["upperBounds" ][varName])))
+        else                           : self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName]-stepLenght[varId][-1]/2.0,stepLenght[varId][-1]),np.atleast_1d(self.gridContainer['bounds']["upperBounds" ][varName])))
       else:
         # custom grid
         # it is not very efficient, but this approach is only for custom grids => limited number of discretizations
@@ -675,10 +675,14 @@ class MultiGridEntity(GridBase):
           newGrid                  = returnInstance("GridEntity", self, self.messageHandler)
           verteces                 = parentNodeCellIds[fcellId]
           lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), sys.float_info.max), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), -sys.float_info.max) 
+          print(fcellId)
+          if fcellId == 23:
+            pass
           for vertex in verteces:
             coordinates = parentGrid.returnCoordinateFromIndex(vertex, True, recastMethods=initDict["transformationMethods"] if "transformationMethods" in initDict.keys() else {})
+            print(coordinates)
             lowerBounds = {k: min(i for i in (lowerBounds.get(k), coordinates.get(k)) if i) for k in lowerBounds.viewkeys() | coordinates}
-            upperBounds = {k: max(i for i in (lowerBounds.get(k), coordinates.get(k)) if i) for k in lowerBounds.viewkeys() | coordinates}
+            upperBounds = {k: max(i for i in (upperBounds.get(k), coordinates.get(k)) if i) for k in upperBounds.viewkeys() | coordinates}
           initDict["lowerBounds"], initDict["upperBounds"] = lowerBounds, upperBounds
           if "volumetricRatio" in refineDict.keys(): initDict["volumetricRatio"] = refineDict["volumetricRatio"]
           else:
@@ -686,6 +690,7 @@ class MultiGridEntity(GridBase):
             initDict["stepLenght"] = {}
             for key in lowerBounds.keys(): initDict["stepLenght"][key] = [(upperBounds[key] - lowerBounds[key])/float(refineDict["refiningNumSteps"])]
           initDict["startingCellId"] = maxCellId+1
+          print(initDict)
           newGrid.initialize(initDict)
           maxCellId   = max(newGrid.returnParameter('cellIDs').keys())
           refinedNode = self.__createNewNode(node.name+"_cell:"+str(fcellId),{"grid":newGrid,"level":level+"."+str(idcnt)})
