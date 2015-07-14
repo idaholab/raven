@@ -20,6 +20,7 @@ import datetime
 #Internal Modules------------------------------------------------------------------------------------
 import Steps
 import DataObjects
+import Files
 import Samplers
 import Models
 import Tests
@@ -30,7 +31,6 @@ import OutStreamManager
 from JobHandler import JobHandler
 import MessageHandler
 import utils
-from FileObject import FileObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------
@@ -320,7 +320,7 @@ class Simulation(MessageHandler.MessageUser):
     self.distributionsDict    = {}
     self.dataBasesDict        = {}
     self.functionsDict        = {}
-    self.filesDict            = {} #  for each file returns an instance of a FileObject class
+    self.filesDict            = {} #  for each file returns an instance of a Files class
     self.OutStreamManagerPlotDict  = {}
     self.OutStreamManagerPrintDict = {}
     self.stepSequenceList     = [] #the list of step of the simulation
@@ -345,6 +345,7 @@ class Simulation(MessageHandler.MessageUser):
     self.addWhatDict['Distributions'    ] = Distributions
     self.addWhatDict['Databases'        ] = Databases
     self.addWhatDict['Functions'        ] = Functions
+    self.addWhatDict['Files'            ] = Files
     self.addWhatDict['OutStreamManager' ] = {}
     self.addWhatDict['OutStreamManager' ]['Plot' ] = OutStreamManager
     self.addWhatDict['OutStreamManager' ]['Print'] = OutStreamManager
@@ -383,18 +384,16 @@ class Simulation(MessageHandler.MessageUser):
 
   def __createAbsPath(self,filein):
     """assuming that the file in is already in the self.filesDict it places, as value, the absolute path"""
-    if '~' in filein : filein = os.path.expanduser(filein)
-    if not os.path.isabs(filein):
-      self.filesDict[filein] = FileObject(os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein)))
-
-  def __checkExistPath(self,filein):
-    """ assuming that the file in is already in the self.filesDict it checks the existence """
-    if not os.path.exists(self.filesDict[filein]): self.raiseAnError(IOError,'The file '+ filein +' has not been found')
+    curfile = self.filesDict[filein]
+    path = os.path.normpath(self.runInfoDict['WorkingDir'])
+    curfile.setPath(path)
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     """parses the xml input file, instances the classes need to represent all objects in the simulation"""
     self.verbosity = xmlNode.attrib.get('verbosity','all')
-    if 'printTimeStamps' in xmlNode.attrib.keys(): self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
+    if 'printTimeStamps' in xmlNode.attrib.keys():
+      self.raiseADebug('Setting "printTimeStamps" to',xmlNode.attrib['printTimeStamps'])
+      self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
     self.messageHandler.verbosity = self.verbosity
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: self.raiseAnError(IOError,'The run info node is mandatory')
@@ -406,7 +405,7 @@ class Simulation(MessageHandler.MessageUser):
         if len(child.attrib.keys()) == 0: globalAttributes = {}
         else:
           globalAttributes = child.attrib
-          if 'verbosity' in globalAttributes.keys(): self.verbosity = globalAttributes['verbosity']
+          #if 'verbosity' in globalAttributes.keys(): self.verbosity = globalAttributes['verbosity']
         if Class != 'RunInfo':
           for childChild in child:
             subType = childChild.tag
@@ -415,7 +414,7 @@ class Simulation(MessageHandler.MessageUser):
               self.raiseADebug('Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
-#              if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
+              #if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
               if Class != 'OutStreamManager':
                   if name not in self.whichDict[Class].keys():
                     if "needsRunInfo" in self.addWhatDict[Class].__dict__:
@@ -469,9 +468,10 @@ class Simulation(MessageHandler.MessageUser):
         self.raiseAnError(IOError,'For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
       if myClass != 'OutStreamManager':
           if name not in list(self.whichDict[myClass].keys()):
-            self.raiseADebug('name: '+name)
-            self.raiseADebug('list: '+str(list(self.whichDict[myClass].keys())))
-            self.raiseADebug(str(self.whichDict[myClass]))
+            self.raiseADebug('name:',name)
+            self.raiseADebug('myClass:',myClass)
+            self.raiseADebug('list:',list(self.whichDict[myClass].keys()))
+            self.raiseADebug('whichDict[myClass]',self.whichDict[myClass])
             self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
       else:
           if name not in list(self.whichDict[myClass][objectType].keys()):
@@ -485,7 +485,7 @@ class Simulation(MessageHandler.MessageUser):
         else:                             objtype = self.whichDict[myClass][objectType][name].type
         if objectType != objtype.replace("OutStream",""):
           objtype = self.whichDict[myClass][name].type
-          self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
+          #self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
 
   def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
     """reads the xml input file for the RunInfo block"""
@@ -537,10 +537,6 @@ class Simulation(MessageHandler.MessageUser):
       elif element.tag == 'expectedTime'      : self.runInfoDict['expectedTime'      ] = element.text.strip()
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','): self.stepSequenceList.append(stepName.strip())
-      elif element.tag == 'Files':
-        text = element.text.strip()
-        for fileName in text.split(','):
-          self.filesDict[fileName.strip()] = FileObject(fileName.strip())
       elif element.tag == 'DefaultInputFile'  : self.runInfoDict['DefaultInputFile'] = element.text.strip()
       elif element.tag == 'CustomMode' :
         modeName = element.text.strip()
@@ -608,10 +604,12 @@ class Simulation(MessageHandler.MessageUser):
       for [key,b,c,d] in stepInstance.parList:
         #Only for input and output we allow more than one object passed to the step, so for those we build a list
         if key == 'Input' or key == 'Output':
-            if b == 'OutStreamManager': stepInputDict[key].append(self.whichDict[b][c][d])
-            else:                       stepInputDict[key].append(self.whichDict[b][d])
-        else: stepInputDict[key] = self.whichDict[b][d]
-        if key == 'Input' and b == 'Files': self.__checkExistPath(d) #if the input is a file, check if it exists
+            if b == 'OutStreamManager':
+              stepInputDict[key].append(self.whichDict[b][c][d])
+            else:
+              stepInputDict[key].append(self.whichDict[b][d])
+        else:
+          stepInputDict[key] = self.whichDict[b][d]
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler
       #generate the needed assembler to send to the step

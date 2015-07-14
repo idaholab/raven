@@ -2,10 +2,14 @@
 <Simulation>
   <RunInfo>
     <WorkingDir>RELAP5interfaceTest</WorkingDir>
-    <Files>snc01.i,tpfh2o</Files>
     <Sequence>testDummyStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="snc01.i" type="">snc01.i</Input>
+    <Input name="tpfh2o" type="">tpfh2o</Input>
+  </Files>
 
   <Models>
     <Code name="MyRELAP" subType="Relap5">

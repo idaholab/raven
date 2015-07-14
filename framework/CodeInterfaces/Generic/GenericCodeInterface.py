@@ -74,6 +74,7 @@ class GenericCodeInterface(CodeInterfaceBase):
       @Out, ext, the string extension that the desired filename ends with.
       '''
       for index,inputFile in enumerate(fileList):
+        # already handled inputFile = inputFile.getAbsFile()
         if inputFile.endswith(ext):
           found=True
           break
@@ -121,6 +122,7 @@ class GenericCodeInterface(CodeInterfaceBase):
     infiles=[]
     #FIXME possible danger here from reading binary files
     for index,inputFile in enumerate(currentInputFiles):
+      inputFile = inputFile.getAbsFile()
       if inputFile.endswith(self.getInputExtension()):
         indexes.append(index)
         infiles.append(inputFile)
