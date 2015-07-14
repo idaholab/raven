@@ -1488,11 +1488,6 @@ class MultivariateNormal(NDimensionalDistributions):
 
   def _readMoreXML(self,xmlNode):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
-
-    #data_filename = xmlNode.find('data_filename')
-    #if data_filename != None: self.data_filename = self.working_dir+data_filename.text
-    #else: self.raiseAnError(IOError,'<data_filename> parameter needed for MultivariateNormal Distributions!!!!')
-
     mu = xmlNode.find('mu')
     if mu != None: self.mu = [float(i) for i in mu.text.split()]
     else: self.raiseAnError(IOError,'<mu> parameter needed for MultivariateNormal Distributions!!!!')
@@ -1512,8 +1507,6 @@ class MultivariateNormal(NDimensionalDistributions):
     covariance = distribution1D.vectord_cxx(len(self.covariance))
     for i in range(len(self.covariance)):
       covariance[i] = self.covariance[i]
-
-    #self._distribution = distribution1D.BasicMultivariateNormal(str(self.data_filename), mu)
     self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
 
   def cdf(self,x):
