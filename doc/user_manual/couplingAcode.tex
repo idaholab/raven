@@ -6,20 +6,18 @@
 \caption{Code Interface Location.}
 \label{fig:codeinterface}
 \end{figure}
-The procedure of coupling a new code/application with RAVEN is quite a straightforward process. 
-As for all the systems codes currently supported by RAVEN (e.g. RELAP-7, RELAP5-3D, 
-BISON, MOOSE, etc.), the coupling is performed through a Python Interface that is in
- charge of interpreting the information coming from RAVEN and translating them in the
-  input of the system code under consideration. 
-The coupling procedure does not require to modify RAVEN itself. As already mentioned,
- the developer needs to create a new Python interface that is going to be embedded 
+The procedure of coupling a new code/application with RAVEN is a straightforward process. 
+For all the systems codes currently supported by RAVEN (e.g. RELAP-7, RELAP5-3D, 
+BISON, MOOSE), the coupling is performed through a Python interface that interprets the information coming from RAVEN and translates them to the
+  input of the system code. 
+The coupling procedure does not require modifying RAVEN itself. Instead, the developer creates a new Python interface that is going to be embedded 
  in RAVEN at run-time (no need to introduce  hard-coded coupling statements). 
  This interface needs to be placed in a folder (whatever name) located in (see figure~\ref{fig:codeinterface}):
 \begin{lstlisting}[language=bash]
- path_to_raven_distribution/raven/framework/CodeInterfaces/
+ path/to/raven/distribution/raven/framework/CodeInterfaces/
 \end{lstlisting}
-At the initialization stage, RAVEN imports all the Interfaces that are contained in the directory above and performs some preliminary cross-checks.
-In the following sub-sections, a step-by-step procedure is reported.
+At the initialization stage, RAVEN imports all the Interfaces that are contained in this directory and performs some preliminary cross-checks.
+In the following sub-sections, a step-by-step procedure for coupling a code to RAVEN is outlined.
 \subsection{Pre-requisites.} 
 \label{subsec:prerequisites}
 In order to couple a newer application to the RAVEN code, some pre-requisites need to be satisfied.
@@ -163,26 +161,31 @@ class NewCode(CodeInterfaceBase):
 \end{lstlisting} 
 In the following sub-sections all the methods are fully explained, providing examples
  (referring to the simple code used as example for the previous sections)
-\subsubsection{Method: \textit{def generateCommand(self, inputFiles, executable, clargs=None, fargs=None)}} 
+
+
+\subsubsection{Method: \texttt{generateCommand}}
 \label{subsubsec:generateCommand}
-The \textbf{generateCommand} method is used to retrieve the command 
-(in string format) needed to launch the driven Code and the root of the newer output (string).
+\begin{lstlisting}[language=python]
+def generateCommand(self, inputFiles, executable, clargs=None, fargs=None)
+\end{lstlisting} 
+The \textbf{generateCommand} method is used to generate the command 
+(in \texttt{string} format) needed to launch the driven Code, as well as the root name of the output of the perturbed inputs (in \texttt{string} format).
  In other words, this 
 method needs to return a string containing the full command 
 that the internal JobHandler is going to use to run the Code this interface refers to. 
-Hence, the return data type must be a TUPLE.
+The return data type must be a Python \texttt{tuple} with two strings: (\texttt{command, outfileRoot}).
 \\RAVEN is going to call this function passing in the following arguments:
 \begin{itemize}
-  \item \textbf{\textit{inputFiles}}, data type = list: List of input files (length of the list depends on the 
-           number of inputs  have been added in the Step is running this code);
-  \item \textbf{\textit{executable}}, data type = string, executable name with absolute 
+  \item \textbf{\texttt{inputFiles}}, data type = list: List of input files (length of the list depends on the 
+           number of inputs listed in the Step which is running this code);
+  \item \textbf{\texttt{executable}}, data type = string, executable name with absolute 
             path \\(e.g. /home/path\_to\_executable/code.exe);
-  \item  \textbf{\textit{clargs}}, \emph{optional}, data type = dict, a dictionary containing the command-line flags the 
+  \item  \textbf{\texttt{clargs}}, \emph{optional}, data type = dictionary, a dictionary containing the command-line flags the 
                user can specify in the input (e.g. under the node $<Code><clargs type='input' arg='-i' extension='.inp'/></Code>$).
-  \item  \textbf{\textit{fargs}}, \emph{optional}, data type = dict, a dictionary containing the axuiliary input file variables the 
+  \item  \textbf{\texttt{fargs}}, \emph{optional}, data type = dictionary, a dictionary containing the axuiliary input file variables the 
                user can specify in the input (e.g. under the node $<Code><clargs type='input' arg='aux' extension='.aux'/></Code>$).
 \end{itemize}
-For the example referred in the previous section, this method would be implemented as follows:
+For the example referred to in the previous section, this method would be implemented as follows:
 \newline
 \begin{lstlisting}[language=python]
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
@@ -191,30 +194,35 @@ For the example referred in the previous section, this method would be implement
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raiseAnError(IOError,'MOOSEBASEDAPP_INTERFACE',
+    if not found: self.raiseAnError(IOError,
           `None of the input files has one of the following extensions: ` +
            ` `.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     executeCommand = (executable+ ` -i ` +os.path.split(inputFiles[index])[1])
     return executeCommand,outputfile
 \end{lstlisting} 
-\subsubsection{Method: \textit{def createNewInput(self,currentInputFiles,
-                                       \\oriInputFiles, samplerType,**Kwargs)}} 
+
+
+\subsubsection{Method: \texttt{createNewInput}}
 \label{subsubsec:createNewInput}
+\begin{lstlisting}[language=python]
+def createNewInput(self,currentInputFiles,oriInputFiles, samplerType,**Kwargs)
+\end{lstlisting} 
 The \textbf{createNewInput} method is used to generate an input based 
 on the information RAVEN passes in. In this function the developer needs to 
 call the driven code input parser in order to modify the input file, accordingly with
 respect to the variables RAVEN is providing. This method needs to return a list containing 
 the path and filenames of the modified input files. \nb RAVEN expects that at least one input 
 file of the original list gets modified and re-named.
-\\RAVEN is going to call this function passing in the following arguments:
+
+RAVEN is going to call this function passing in the following arguments:
 \begin{itemize}
-  \item \textbf{\textit{currentInputFiles}}, data type = list: List of current 
+  \item \textbf{\texttt{currentInputFiles}}, data type = list: List of current 
               input files (input files from last this method call);
-  \item \textbf{\textit{oriInputFiles}} , data type = list, List of the original input files; 
-  \item  \textbf{\textit{samplerType}} , data type = string, Sampler type (e.g. MonteCarlo,
+  \item \textbf{\texttt{oriInputFiles}} , data type = list, List of the original input files; 
+  \item  \textbf{\texttt{samplerType}} , data type = string, Sampler type (e.g. MonteCarlo,
                Adaptive, etc.). \nb None if no Sampler has been used;
-  \item  \textbf{\textit{Kwargs}} , data type = kwarded dictionary, dictionary of parameters.
+  \item  \textbf{\texttt{Kwargs}} , data type = kwarded dictionary, dictionary of parameters.
                In this dictionary there is another dictionary
                called "SampledVars" where RAVEN stores the 
                variables that got sampled 
@@ -237,8 +245,13 @@ For the example referred in the previous section, this method would implemented 
     parser.writeNewInput(newInputFiles[index])
     return newInputFiles
 \end{lstlisting} 
-\subsubsection{Method: \textit{getInputExtension(self)}} 
+
+
+\subsubsection{Method: \texttt{getInputExtension}} 
 \label{subsubsec:getInputExtension}
+\begin{lstlisting}[language=python]
+def getInputExtension(self)
+\end{lstlisting}
 The \textbf{getInputExtension} function is an optional method. If present, it is called 
 by RAVEN code at run time.  This function can be considered an utility method, since its
 main goal is to return a tuple of strings, where the developer can place all the input extensions
@@ -250,30 +263,38 @@ For the example referred in the previous section, this method would implemented 
 \begin{lstlisting}[language=python]
 def getInputExtension(self):
     return (".i",".input")
-\end{lstlisting} 
-\subsubsection{Method: \textit{finalizeCodeOutput(self, command, output, workingDir)}} 
+\end{lstlisting}
+
+
+\subsubsection{Method: \texttt{finalizeCodeOutput}} 
 \label{subsubsec:finializeCodeOutput}
+\begin{lstlisting}[language=python]
+def finalizeCodeOutput(self, command, output, workingDir)
+\end{lstlisting}
 The \textbf{finalizeCodeOutput} function is an optional method. If present, it is called 
 by RAVEN code at the end of each run. It can be used for those codes, that do not create CSV 
 files as output to convert the whatever output format into a CSV. RAVEN checks if a string is returned; 
 if so, RAVEN interprets that string as the new output file name (CSV).
 \\RAVEN is going to call this function passing in the following arguments:
 \begin{itemize}
-  \item \textbf{\textit{command}}, data type = string: the command used to run 
+  \item \textbf{\texttt{command}}, data type = string: the command used to run 
                     the just ended job;
-  \item \textbf{\textit{output}}, data type = string,the Output name root;
-  \item  \textbf{\textit{workingDir}}, data type = string, current working directory.
+  \item \textbf{\texttt{output}}, data type = string, the Output name root;
+  \item  \textbf{\texttt{workingDir}}, data type = string, current working directory.
 \end{itemize}
 For the example referred in the previous section, this method would implemented as follows:
 \newline
 \begin{lstlisting}[language=python]
-def finalizeCodeOutput(self, command, output, workingDir)
+def finalizeCodeOutput(self, command, output, workingDir):
     outfile = os.path.join(workingDir,output+".o")
     convertOutputFileToCSV(outfile)
  \end{lstlisting} 
  
- \subsubsection{Method: \textit{checkForOutputFailure(self, output, workingDir)}} 
+ \subsubsection{Method: \texttt{checkForOutputFailure}} 
 \label{subsubsec:checkForOutputFailure}
+\begin{lstlisting}[language=python]
+def checkForOutputFailure(self, output, workingDir)
+\end{lstlisting}
 The \textbf{checkForOutputFailure} function is an optional method. If present, it is called 
 by RAVEN code at the end of each run. This method needs to be implemented by the codes that, if a run fails, return a ``returncode'' = 0. 
 This can happen in those codes that record the failure of a run (e.g. not converged, etc.) as normal termination (returncode == 0)
@@ -281,18 +302,95 @@ This method can be used, for example, to parse the outputfile looking for a spec
  (e.g. in RELAP5 would be the keyword "********"). This method MUST return a boolean (True if failed, False otherwise).
 \\RAVEN is going to call this function passing in the following arguments:
 \begin{itemize}
-  \item \textbf{\textit{output}}, data type = string,the Output name root;
-  \item  \textbf{\textit{workingDir}}, data type = string, current working directory.
+  \item \textbf{\texttt{output}}, data type = string,the Output name root;
+  \item  \textbf{\texttt{workingDir}}, data type = string, current working directory.
 \end{itemize}
 For the example referred in the previous section, this method would implemented as follows:
 \newline
 \begin{lstlisting}[language=python]
-def checkForOutputFailure(self, command, output, workingDir)
+def checkForOutputFailure(self, command, output, workingDir):
     from  __builtin__ import any 
     errorWord = "ERROR"
     return any(errorWord in x for x in 
       open(os.path.join(workingDir,output+'.o'),"r").readlines())
  \end{lstlisting} 
  
+\subsection{Tools for Developing Code Interfaces}
+To make generating a code interface as simple as possible, there are several tools RAVEN makes available within the Code Interface objects.
+\subsubsection{Message Handler}
+RAVEN's optional internal message and error system is exposed to a Code Interface developer through the \texttt{CodeInterfaceBaseClass}, making it available to all inheriting Interfaces.  While using the internal message handling system is not required, it provides a simple, formatted method for printing messages to \texttt{stdout} and raising errors.
 
+There are four primary methods used to print messages in RAVEN.  They respect the \xmlAttr{verbosity} XML attribute in RAVEN input files (see section \ref{sec:verbosity}), and each takes a string (\texttt{msg}) which is printed to \texttt{stdout}.
+\begin{itemize}
+\item \texttt{self.raiseADebug(msg)}, only prints \texttt{msg} if \xmlAttr{verbosity} is \xmlString{debug}.
+\item \texttt{self.raiseAMessage(msg)}, prints \texttt{msg} if \xmlAttr{verbosity} is \xmlString{all}, or \xmlString{debug}.
+\item \texttt{self.raiseAWarning(msg)}, prints \texttt{msg} if \xmlAttr{verbosity} is \xmlString{quiet}, \xmlString{all}, or \xmlString{debug}.
+\item \texttt{self.raiseAnError(error,msg)}, raises the Python Exception given in \texttt{error} and prints the \texttt{msg} to \texttt{stderr}, regardless of the \xmlAttr{verbosity} level.  \nb If \xmlAttr{verbosity} is \xmlString{debug}, the stack trace is also printed to \texttt{stderr}.
+\end{itemize}
+For example, each of the following is a valid use of the internal message system:
+\begin{lstlisting}[language=python,showstringspaces=false]
+def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+  if len(inputFiles)==1:
+    self.raiseAWarning('Only one input file was passed in.')
+  found = False
+  self.raiseAMessage('Looking for the correct input file ending in .i')
+  for fileName in inputFiles:
+    if fileName.rsplit('.')[1] == 'i':
+      self.raiseADebug('found it!')
+      found = True
+      myinp = fileName
+      break
+  if not found:
+    self.raiseAnError(IOError,'The desired input file (*.i) was not found!')
+\end{lstlisting}
+%TODO do we want to explain how to set self.printType = `MyAppInterfaceName' for prettier messages?
 
+\subsubsection{File Objects}
+RAVEN has created a wrapper for files within Python in order to carry along some additional information.  This allows the user to tag particular files for reference in the Code Interface, using the \xmlAttr{type} XML attribute in \xmlNode{Files} nodes.  To differentiate, RAVEN file objects will use the capital Files, whereas typical files will use the lowercase files.
+
+When the Files are passed in to \texttt{createNewInput}, they are passed in as Files objects. To access the xmlAttr{type} of a file, use the method \texttt{getType}.  For instance, instead of looking for an extension, a Code Interface might identify an input file by looking for a particular type, as shown in the example below. \nb RAVEN does not access a File's \xmlAttr{type}; it is exclusively an optional tool for Code Interface developers.
+
+\begin{lstlisting}[language=python,showstringspaces=false]
+found = False
+for inFile in inputFiles:
+  if inFile.getType()=='mainInput':
+    found = True
+    break
+if not found:
+  self.raiseAnError(IOError,'Desired file with type ``mainInput'' not found!')
+\end{lstlisting}
+Using Files \xmlAttr{type} attributes can especially help when multiple input files have the same extension.  For example, say a Code execution command normally has the following appearance on the command line:
+\begin{lstlisting}[language=bash]
+/home/path/to/executable/myexec.sh -i mainInp.xml -a auxInp.xml --mesh cube.e
+\end{lstlisting}
+The \xmlNode{Files} block in the RAVEN XML might appear as follows:
+\begin{lstlisting}[language=XML]
+<Files>
+  <Input name='main' type='base'>mainInp.xml</Input>
+  <Input name='two'  type='aux' >auxInp.xml</Input>
+  <Input name='cube' type='mesh' perturbable='False'>cube.e</Input>
+</Files>
+\end{lstlisting}
+The search for these files in the Code Interface might then look like the example below, assuming one file per type:
+\begin{lstlisting}[language=python,showstringspaces=false]
+# populate a type dictionary
+typesDict={}
+for inFile in inputFiles:
+  typesDict[inFile.getType()]=inFile
+# check all the necessary files are there
+if 'base' not in typesDict.keys():
+  self.raiseAnError(IOError,'File type ``base'' not listed in input file!')
+if 'aux' not in typesDict.keys():
+  self.raiseAnError(IOError,'File type ``aux'' not listed in input file!')
+if 'mesh' not in typesDict.keys():
+  self.raiseAnError(IOError,'File type ``mesh'' not listed in input file!')
+mainFile = typesDict['base']
+# do operations on file, etc.
+\end{lstlisting}
+
+Additionally, a Code Interface developer can access the \xmlAttr{perturbable} through the \texttt{getPerturbable()} method of a Files object.  This can be useful, for example, in preventing searching binary files for variable names when creating new input. For example,
+\begin{lstlisting}[language=python]
+for inFile in inputFiles:
+  if not inFile.getPerturbable(): continue
+  # etc
+\end{lstlisting}

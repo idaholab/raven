@@ -34,6 +34,7 @@ class File(BaseType):
     self.__path=''
     self.__base=''
     self.__ext=None
+    self.subtype=None
 
   def __del__(self):
     """
@@ -171,6 +172,15 @@ class File(BaseType):
     @Out, string, path/file
     """
     return os.path.normpath(os.path.join(self.getPath(),self.getFilename()))
+
+  def getType(self):
+    """Retrieves the subtype set in the XML (UserGenerated) or by the developer.
+       Note that this gives the subtype, since type is reserved for internal RAVEN use.
+       @ In, None
+       @ Out, string, subtype if not None, else ''
+    """
+    if self.subtype is None: return ''
+    else return self.subtype
 
   # setters #
   def setFilename(self,filename):
