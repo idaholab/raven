@@ -563,4 +563,12 @@
    csv = 'AdaptiveStochasticPoly/data.csv'
  [../]
 
+ [./dataObject_metadata]
+   type = 'RavenFramework'
+   input = 'test_DataObject_metadata.xml'
+   output = 'dataObject_metadata/PointProbability_dump.xml'
+   xml = 'dataObject_metadata/PointProbability_dump.xml'
+   csv = 'dataObject_metadata/PointProbability_dump.csv'
+ [../]
+
 []

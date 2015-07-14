@@ -48,7 +48,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._toLoadFromList                 = []                         # loading source
     self._dataContainer                  = {'inputs':{},'outputs':{}} # Dict that contains the actual data. self._dataContainer['inputs'] contains the input space, self._dataContainer['output'] the output space
     self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
-    self.metaExclXml                     = ['probability']            # list of metadata keys that are excluded from xml outputter, and included in the CSV one
+    self.metaExclXml                     = []            # list of metadata keys that are excluded from xml outputter, and included in the CSV one
+    self.metaAdditionalInOrOut           = ['PointProbability','ProbabilityWeight']            # list of metadata keys that will be printed in the CSV one
     self.acceptHierarchy                 = False                      # flag to tell if a sub-type accepts hierarchy
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
     self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
@@ -56,7 +57,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #   have some type or another (ie. Windows doesn't have np.float128, but does have np.float96)
     self.metatype = []
     for typeString in ["float","bool","int","np.ndarray","np.float16","np.float32","np.float64","np.float96","np.float128",
-                       "np.int16","np.int32","np.int64","np.bool8"]:
+                       "np.int16","np.int32","np.int64","np.bool8","c1darray"]:
       try:
         self.metatype.append(eval(typeString))  # eval turns the string into the internal type
       except AttributeError:
@@ -212,17 +213,29 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     Returns a list of variables to print.
     Takes the variable and either 'input' or 'output'
+    In addition, if the variable belong to the metadata and metaAdditionalInOrOut, it will also return to print 
     """
     variables_to_print = []
     lvar = var.lower()
-    if type(list(self._dataContainer[inOrOut+'s'].values())[0]) == dict: varKeys = list(self._dataContainer[inOrOut+'s'].values())[0].keys()
-    else: varKeys = self._dataContainer[inOrOut+'s'].keys()
+    inOrOuts = inOrOut + 's'
     if lvar == inOrOut:
+      if type(list(self._dataContainer[inOrOuts].values())[0]) == dict: varKeys = list(self._dataContainer[inOrOuts].values())[0].keys()
+      else: varKeys = self._dataContainer[inOrOuts].keys()
       for invar in varKeys: variables_to_print.append(inOrOut+'|'+str(invar))
     elif '|' in var and lvar.startswith(inOrOut+'|'):
       varName = var.split('|')[1]
-      if varName not in varKeys: self.raiseAnError(RuntimeError,'variable ' + varName + ' is not present among the '+inOrOut+'s of Data ' + self.name)
-      else: variables_to_print.append(inOrOut+'|'+str(varName))
+      # get the variables from the metadata if the variables are in the list metaAdditionalInOrOut 
+      if varName in self.metaAdditionalInOrOut:
+        varKeys = self._dataContainer['metadata'].keys()
+        if varName not in varKeys: self.raiseAnError(RuntimeError,'variable ' + varName + ' is not present among the ' +inOrOuts+' of Data ' + self.name)
+        if type(self._dataContainer['metadata'][varName]) not in self.metatype:
+          self.raiseAnError(NotConsistentData,inOrOut + var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+        else: variables_to_print.append('metadata'+'|'+str(varName))
+      else:
+        if type(list(self._dataContainer[inOrOuts].values())[0]) == dict: varKeys = list(self._dataContainer[inOrOuts].values())[0].keys()
+        else: varKeys = self._dataContainer[inOrOuts].keys()
+        if varName not in varKeys: self.raiseAnError(RuntimeError,'variable ' + varName + ' is not present among the '+inOrOuts+' of Data ' + self.name)
+        else: variables_to_print.append(inOrOut+'|'+str(varName))
     else: self.raiseAnError(RuntimeError,'unexpected variable '+ var)
     return variables_to_print
 
@@ -249,6 +262,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             variables_to_print.extend(self.__getVariablesToPrint(var,'input'))
           elif lvar.startswith('output'):
             variables_to_print.extend(self.__getVariablesToPrint(var,'output'))
+          #elif lvar.startswith('metadata'): # print the variables inside metadata into a csv file 
+          #  variables_to_print.extend(self.__getVariablesToPrint(var,'metadata'))
           else: self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
         options_int['what'] = variables_to_print
     else:   filenameLocal = self.name + '_dump'
@@ -843,6 +858,9 @@ class Point(Data):
           outKeys.append(var.split('|')[1])
           outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
         if var.split('|')[0] == 'metadata':
+          inpKeys.append(var.split('|')[1])
+          inpValues.append(self._dataContainer['metadata'][var.split('|')[1]])
+        if var.split('|')[0] == 'metadata':
           if var.split('|')[1] in self.metaExclXml:
             if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
               self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
@@ -1115,6 +1133,13 @@ class PointSet(Data):
               for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][var.split('|')[1]][0]
               outValues[-1].append(axa)
             if var.split('|')[0] == 'metadata':
+              inpKeys[-1].append(var.split('|')[1])
+              if type(O_o[key][index]['metadata'][var.split('|')[1]]) not in self.metatype:
+                self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1] +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
+                axa = np.zeros(len(O_o[key]))
+                for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][var.split('|')[1]]))[0]
+                inpValues[-1].append(axa)
+            if var.split('|')[0] == 'metadata':
               if var.split('|')[1] in self.metaExclXml:
                 if type(O_o[key][index]['metadata'][var.split('|')[1]]) not in self.metatype:
                   self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1] +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
@@ -1202,7 +1227,7 @@ class PointSet(Data):
               if type(value) not in self.metatype:
                 self.raiseAnError(NotConsistentData,'metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
               inpKeys.append(key)
-              if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(value)))
+              if type(value) != c1darray: inpValues.append(np.atleast_1d(np.float(value)))
               else: inpValues.append(np.atleast_1d(value))
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
       else: return
@@ -1359,6 +1384,9 @@ class History(Data):
         if var.split('|')[0] == 'output':
           outKeys.append(var.split('|')[1])
           outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
+        if var.split('|')[0] == 'metadata':
+          inpKeys.append(var.split('|')[1])
+          inpValues.append(self._dataContainer['metadata'][var.split('|')[1]])
         if var.split('|')[0] == 'metadata':
           if var.split('|')[1] in self.metaExclXml:
             if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
