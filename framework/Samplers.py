@@ -530,9 +530,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.nVar                = 0                #this is the number of the variable sampled
     self.surfPoint           = None             #coordinate of the points considered on the limit surface
     self.hangingPoints       = []               #list of the points already submitted for evaluation for which the result is not yet available
-    self.refinedPerformed    = False
-    # post-processor to compute the limit surface
-    self.limitSurfacePP      = None
+    self.refinedPerformed    = False            # has the grid refinement been performed?
+    self.limitSurfacePP      = None             # post-processor to compute the limit surface
+    self.exceptionGrid       = None             # which cell should be not considered in the limit surface computation? set by refinement       
     self.printTag            = 'SAMPLER ADAPTIVE'
     self._addAssObject('TargetEvaluation','n')
     self._addAssObject('ROM','n')
@@ -680,12 +680,12 @@ class LimitSurfaceSearch(AdaptiveSampler):
     else:
       if not self.lastOutput.isItEmpty(): self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     self.raiseADebug('Training finished')
-    self.oldTestMatrix = copy.deepcopy(self.limitSurfacePP.getTestMatrix("all"))    #copy the old solution (contained in the limit surface PP) for convergence check
+    self.oldTestMatrix = copy.deepcopy(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid))    #copy the old solution (contained in the limit surface PP) for convergence check
 
     #np.copyto(self.oldTestMatrix[self.name+"LSpp"],self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
     
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
-    self.surfPoint, evaluations, listsurfPoints = self.limitSurfacePP.run(returnListSurfCoord = True, merge=False)
+    self.surfPoint, evaluations, listsurfPoints = self.limitSurfacePP.run(returnListSurfCoord = True, exceptionGrid=self.exceptionGrid, merge=False)
     self.raiseADebug('Prediction finished')
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
@@ -696,10 +696,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
     for myIndex in range(indexLast+1,indexEnd+1):
       for key, value in self.limitSurfacePP.getFunctionValue().items(): tempDict[key] = value[myIndex]
       if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
-    for key,value in self.limitSurfacePP.getTestMatrix("all").items(): 
+    for key,value in self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).items(): 
       self.persistenceMatrix[key] += value
     # test error
-    testError = np.sum(np.abs(np.subtract(self.limitSurfacePP.getTestMatrix("all").values(),self.oldTestMatrix.values()))) # compute the error
+    testError = np.sum(np.abs(np.subtract(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values(),self.oldTestMatrix.values()))) # compute the error
     if (testError > self.tolerance/self.subGridTol): ready, self.repetition = True, 0                                      # we still have error
     else              : self.repetition +=1                                                                                # we are increasing persistence
     if self.persistence<self.repetition: 
@@ -709,10 +709,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
         # that the volumetric cell weight is <= of the subGridTol
         self.raiseAMessage("Grid refinement activated! Refining the evaluation grid!")
         self.limitSurfacePP.refineGrid(int(ceil((self.tolerance/self.subGridTol)**(1.0/self.nVar))))
-        self.refinedPerformed, ready = True, True
-        testMatrices = copy.deepcopy(self.limitSurfacePP.getTestMatrix("all"))
-        testMatrices.pop(self.name+"LSpp")
-        self.persistenceMatrix.update(testMatrices)
+        self.exceptionGrid, self.refinedPerformed, ready = self.name + "LSpp", True, True 
+        self.persistenceMatrix.update(copy.deepcopy(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid)))
     self.raiseADebug('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
     #if the number of point on the limit surface is > than compute persistence
     for gridID,listsurfPoint in listsurfPoints.items():
@@ -755,12 +753,15 @@ class LimitSurfaceSearch(AdaptiveSampler):
       #distLast = np.sqrt(distLast)
       maxDistance, maxGridId, maxId =  0.0, "", 0
       for key, value in self.invPointPersistence.items():
-        distance, _ = distanceTree.query(self.surfPoint[key])
-        distance = np.multiply(distance,value)
-        localMax = np.max(distance)
-        if localMax > maxDistance: maxDistance, maxGridId, maxId  = localMax, key,  np.argmax(distance)
+        if key != self.exceptionGrid and self.surfPoint[key] != None:
+          print(key)
+          print(self.surfPoint[key])
+          distance, _ = distanceTree.query(self.surfPoint[key])
+          distance = np.multiply(distance,value)
+          localMax = np.max(distance)
+          if localMax > maxDistance: maxDistance, maxGridId, maxId  = localMax, key,  np.argmax(distance)
       if maxDistance > 0.0:
-        for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
+        for varIndex, _ in enumerate([key.replace('<distribution>','') for key in self.axisName]):
           self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True

@@ -1726,14 +1726,20 @@ class LimitSurface(BasePostProcessor):
     """
     return self.functionValue
 
-  def getTestMatrix(self, nodeName=None):
+  def getTestMatrix(self, nodeName=None,exceptionGrid=None):
     """
     Method to get a pointer to the testMatrix object (evaluation grid)
-    @ In, None
+    @ In, nodeName, string, optional, which grid node should be returned. If None, the self.name one, If "all", all of theme, else the nodeName
+    @ In, exceptionGrid, string, optional, which grid node should should not returned in case nodeName is "all"
     @ Out, ndarray , self.testMatrix
     """
     if nodeName == None  : return self.testMatrix[self.name]
-    elif nodeName =="all": return self.testMatrix
+    elif nodeName =="all": 
+      if exceptionGrid == None: return self.testMatrix
+      else:
+        wantedKeys = self.testMatrix.keys()
+        wantedKeys.pop(wantedKeys.index(exceptionGrid))
+        return {key: self.testMatrix[key] for key in wantedKeys }
     else                 : return self.testMatrix[nodeName]
 
   def _localReadMoreXML(self, xmlNode):
@@ -1780,7 +1786,7 @@ class LimitSurface(BasePostProcessor):
     for nodeName in self.gridEntity.getAllNodesNames(self.name):
       if nodeName != self.name: self.testMatrix[nodeName] = np.zeros(self.gridEntity.returnParameter("gridShape",nodeName))
 
-  def run(self, InputIn = None, returnListSurfCoord = False, skipMainGrid = False, merge = True):
+  def run(self, InputIn = None, returnListSurfCoord = False, exceptionGrid = None, merge = True):
     """
      This method executes the postprocessor action. In this case it computes the limit surface.
      @ In ,InputIn, dictionary, dictionary of data to process
@@ -1788,8 +1794,8 @@ class LimitSurface(BasePostProcessor):
      @ Out, dictionary, Dictionary containing the limitsurface
     """
     allGridNames = self.gridEntity.getAllNodesNames(self.name)
-    if skipMainGrid == True:
-      try   : allGridNames.pop(self.name)
+    if exceptionGrid != None:
+      try   : allGridNames.pop(exceptionGrid)
       except: pass 
     self.surfPoint, evaluations, listsurfPoint = dict.fromkeys(allGridNames), dict.fromkeys(allGridNames) ,dict.fromkeys(allGridNames)
     for nodeName in allGridNames:
