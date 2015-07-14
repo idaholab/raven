@@ -35,6 +35,7 @@ class File(BaseType):
     self.__base=''
     self.__ext=None
     self.subtype=None
+    self.perturbable=False
 
   def __del__(self):
     """
@@ -181,6 +182,13 @@ class File(BaseType):
     """
     if self.subtype is None: return ''
     else return self.subtype
+
+  def getPerturbable(self):
+    """Retrieves the "perturbable" boolean attribute.  Defaults to True for UserGenerated, False for others.
+       @ In, None
+       @ Out, boolean, perturbable
+    """
+    return self.perturbable
 
   # setters #
   def setFilename(self,filename):
@@ -426,9 +434,9 @@ class UserGenerated(File):
     self.type = node.tag #XSD should confirm valid types
     self.printTag = self.type+' File'
     self.setFilename(node.text.strip())
-    self.perturbed = node.attrib.get('perturbable',True)
-    self.subtype   = node.attrib.get('type'       ,None)
-    self.alias     = node.attrib.get('name'       ,self.getFilename())
+    self.perturbable = node.attrib.get('perturbable',True)
+    self.subtype     = node.attrib.get('type'       ,None)
+    self.alias       = node.attrib.get('name'       ,self.getFilename())
 
 #
 #
