@@ -1717,8 +1717,9 @@ class LimitSurface(BasePostProcessor):
     @ In, None
     @ Out, ndarray , self.testMatrix
     """
-    if nodeName == None: return self.testMatrix[self.name]
-    else               : return self.testMatrix[nodeName]
+    if nodeName == None  : return self.testMatrix[self.name]
+    elif nodeName =="all": return self.testMatrix
+    else                 : return self.testMatrix[nodeName]
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -1761,18 +1762,23 @@ class LimitSurface(BasePostProcessor):
     cellIds = self.gridEntity.retrieveCellIds([self.listsurfPointNegative,self.listsurfPointPositive],self.name)
     self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID) for cellID in cellIds]))
     self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(min([refinementSteps,2]))})
+    for nodeName in self.gridEntity.getAllNodesNames(self.name):
+      if nodeName != self.name: self.testMatrix[nodeName] = np.zeros(self.gridEntity.returnParameter("gridShape",nodeName))
 
-  def run(self, InputIn = None, returnListSurfCoord = False, skipMainGrid=False):
+  def run(self, InputIn = None, returnListSurfCoord = False, skipMainGrid = False, merge = True):
     """
      This method executes the postprocessor action. In this case it computes the limit surface.
      @ In ,InputIn, dictionary, dictionary of data to process
      @ In ,returnListSurfCoord, boolean, True if listSurfaceCoordinate needs to be returned
      @ Out, dictionary, Dictionary containing the limitsurface
     """
-    evaluations   = None
-    appendSurface = False
-    for nodeName in self.gridEntity.getAllNodesNames(self.name):
-      if skipMainGrid == True and nodeName == self.name: continue
+    allGridNames = self.gridEntity.getAllNodesNames(self.name)
+    if skipMainGrid == True:
+      try   : allGridNames.pop(self.name)
+      except: pass 
+    self.surfPoint, evaluations, listsurfPoint = dict.fromkeys(allGridNames), dict.fromkeys(allGridNames) ,dict.fromkeys(allGridNames)
+    for nodeName in allGridNames:
+      #if skipMainGrid == True and nodeName == self.name: continue
       self.testMatrix[nodeName] = np.zeros(self.gridEntity.returnParameter("gridShape",nodeName))
       self.gridCoord[nodeName] = self.gridEntity.returnGridAsArrayOfCoordinates(nodeName=nodeName)
       tempDict ={}
@@ -1790,12 +1796,11 @@ class LimitSurface(BasePostProcessor):
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
         self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[nodeName][tuple(coordinate)]))
-      #printing----------------------
+      # printing----------------------
       # check which one of the preselected points is really on the limit surface
-      nNegPoints = 0
-      nPosPoints = 0
-      listsurfPointNegative = []
-      listsurfPointPositive = []
+      nNegPoints, nPosPoints                       =  0, 0
+      listsurfPointNegative, listsurfPointPositive = [], []
+
       if self.lsSide in ["negative", "both"]:
         # it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
         listsurfPointNegative = self.__localLimitStateSearch__(toBeTested, -1, nodeName)
@@ -1804,31 +1809,31 @@ class LimitSurface(BasePostProcessor):
         # it returns the list of points belonging to the limit state surface and resulting in a positive response by the ROM
         listsurfPointPositive = self.__localLimitStateSearch__(toBeTested, 1, nodeName)
         nPosPoints = len(listsurfPointPositive)
-      listsurfPoint = listsurfPointNegative + listsurfPointPositive
+      listsurfPoint[nodeName] = listsurfPointNegative + listsurfPointPositive
       #printing----------------------
-      if len(listsurfPoint) > 0: self.raiseADebug('LimitSurface: Limit surface points:')
-      for coordinate in listsurfPoint:
+      if len(listsurfPoint[nodeName]) > 0: self.raiseADebug('LimitSurface: Limit surface points:')
+      for coordinate in listsurfPoint[nodeName]:
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
         self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[nodeName][tuple(coordinate)]))
       #printing----------------------
       # if the number of point on the limit surface is > than zero than save it
-      if len(listsurfPoint) > 0:
-        if appendSurface == False: 
-          self.surfPoint = np.ndarray((len(listsurfPoint), self.nVar))
-          startPoint = 0
-          evaluations = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
-          appendSurface = True
-        else: 
-          startPoint = self.surfPoint.shape[0]
-          self.surfPoint = np.concatenate((self.surfPoint,np.zeros((len(listsurfPoint), self.nVar))),axis=0)
-          if evaluations == None: evaluations = np.zeros(0)
-          evaluations = np.concatenate((evaluations,np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)), axis=0)
-        for pointID, coordinate in enumerate(listsurfPoint):
-          self.surfPoint[pointID+startPoint, :] = self.gridCoord[nodeName][tuple(coordinate)]
-    self.listsurfPointNegative, self.listsurfPointPositive = listsurfPointNegative,listsurfPointPositive
-    if returnListSurfCoord: return self.surfPoint, evaluations, listsurfPoint
-    else                  : return self.surfPoint, evaluations
+      if len(listsurfPoint[nodeName]) > 0:
+        self.surfPoint[nodeName] = np.ndarray((len(listsurfPoint[nodeName]), self.nVar))
+        evaluations[nodeName] = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
+        for pointID, coordinate in enumerate(listsurfPoint[nodeName]):
+          self.surfPoint[nodeName][pointID, :] = self.gridCoord[nodeName][tuple(coordinate)]
+    self.listsurfPointNegative, self.listsurfPointPositive = listsurfPoint[self.name][:nNegPoints-1],listsurfPoint[self.name][nNegPoints:]
+    if merge == True:
+      evals = np.hstack(evaluations.values())
+      listsurfPoints = np.hstack(listsurfPoint.values())
+      surfPoint = np.hstack(self.surfPoint.values())
+      if returnListSurfCoord: return surfPoint, evals, listsurfPoints
+      else                  : return surfPoint, evals
+    else:
+      if returnListSurfCoord: return self.surfPoint, evaluations, listsurfPoint
+      else                  : return self.surfPoint, evaluations      
+
 
 
   def __localLimitStateSearch__(self, toBeTested, sign, nodeName):
