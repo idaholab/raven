@@ -345,8 +345,8 @@
  [./test_IO_CSVtoPointSet]
    type='RavenFramework'
    input = 'test_iostep_PointSetFromCSV.xml'
-   output = 'PointSetFromCSV/dump.xml PointSetFromCSV/dump2.xml'
-   csv = 'PointSetFromCSV/dump.csv PointSetFromCSV/dump2.csv'
+   output = 'PointSetFromCSV/dump2.xml'
+   csv = 'PointSetFromCSV/dump2.csv'
   [../]
 
  [./adaptive_sampler_ext_model]

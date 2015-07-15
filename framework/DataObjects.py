@@ -1222,7 +1222,8 @@ class PointSet(Data):
     #The CSV file will have a header with the input names and output
     #names, and multiple lines of data with the input and output
     #numeric values, one line for each input.
-    name = options.get('nameToLoad',self.name)
+    if options is not None and 'nameToLoad' in options.keys(): name = options['nameToLoad']
+    else: name=self.name
     filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "Pointset")
