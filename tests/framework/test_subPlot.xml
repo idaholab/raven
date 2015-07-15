@@ -2,10 +2,14 @@
 <Simulation verbosity="silent">
   <RunInfo>
     <WorkingDir>subplot_output</WorkingDir>
-    <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>FirstMRun,testOutstreamStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
+    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
+  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">
@@ -31,69 +35,69 @@
 
   <OutStreamManager>
     <Plot dim="3" name="subPlot1" overwrite="false" verbosity="silent">
-        <plotSettings>
-            <gridSpace>3 3 </gridSpace>
-            <plot>
-                <type>surface</type>
-                <x>PointSets|Output|pipe1_Hw</x>
-                <z>PointSets|Output|pump_mass_flow_rate</z>
-                <y>PointSets|Input|pipe1_Dh</y>
-                <interpolationType>nearest</interpolationType>
-                <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
-                <cmap>summer</cmap>
-                <kwargs>
-                    <label>pump mass flow rate</label>
-                </kwargs>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0 3</y>
-                </gridLocation>
-                <xlabel>time [s]</xlabel>
-                <ylabel>evolution</ylabel>
-            </plot>
-            <plot>
-                <type>surface</type>
-                <x>PointSets|Output|pipe1_Hw</x>
-                <z>PointSets|Output|pump_mass_flow_rate</z>
-                <y>PointSets|Input|pipe1_Dh</y>
-                <interpolationType>nearest</interpolationType>
-                <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
-                <cmap>summer</cmap>
-                <kwargs>
-                    <label>pump mass flow rate</label>
-                </kwargs>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0 3</y>
-                </gridLocation>
-                <xlabel>time [s]</xlabel>
-                <ylabel>evolution</ylabel>
-            </plot>
-            <plot>
-                <type>surface</type>
-                <x>PointSets|Output|pipe1_Hw</x>
-                <z>PointSets|Output|pump_mass_flow_rate</z>
-                <y>PointSets|Input|pipe1_Dh</y>
-                <interpolationType>nearest</interpolationType>
-                <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
-                <cmap>summer</cmap>
-                <kwargs>
-                    <label>pump mass flow rate</label>
-                </kwargs>
-                <gridLocation>
-                    <x>2</x>
-                    <y>0 3</y>
-                </gridLocation>
-                <xlabel>time [s]</xlabel>
-                <ylabel>evolution</ylabel>
-            </plot>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <plotSettings>
+        <gridSpace>3 3 </gridSpace>
+        <plot>
+          <type>surface</type>
+          <x>PointSets|Output|pipe1_Hw</x>
+          <z>PointSets|Output|pump_mass_flow_rate</z>
+          <y>PointSets|Input|pipe1_Dh</y>
+          <interpolationType>nearest</interpolationType>
+          <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+          <cmap>summer</cmap>
+          <kwargs>
+            <label>pump mass flow rate</label>
+          </kwargs>
+          <gridLocation>
+            <x>0</x>
+            <y>0 3</y>
+          </gridLocation>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+        </plot>
+        <plot>
+          <type>surface</type>
+          <x>PointSets|Output|pipe1_Hw</x>
+          <z>PointSets|Output|pump_mass_flow_rate</z>
+          <y>PointSets|Input|pipe1_Dh</y>
+          <interpolationType>nearest</interpolationType>
+          <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+          <cmap>summer</cmap>
+          <kwargs>
+            <label>pump mass flow rate</label>
+          </kwargs>
+          <gridLocation>
+            <x>1</x>
+            <y>0 3</y>
+          </gridLocation>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+        </plot>
+        <plot>
+          <type>surface</type>
+          <x>PointSets|Output|pipe1_Hw</x>
+          <z>PointSets|Output|pump_mass_flow_rate</z>
+          <y>PointSets|Input|pipe1_Dh</y>
+          <interpolationType>nearest</interpolationType>
+          <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+          <cmap>summer</cmap>
+          <kwargs>
+            <label>pump mass flow rate</label>
+          </kwargs>
+          <gridLocation>
+            <x>2</x>
+            <y>0 3</y>
+          </gridLocation>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot dim="2" name="subPlot2" overwrite="false" verbosity="silent">
       <plotSettings>
@@ -103,33 +107,33 @@
           <x>PointSets|Input|pipe1_Area</x>
           <y>PointSets|Output|pump_mass_flow_rate</y>
           <gridLocation>
-              <x>0 3 </x>
-              <y>0</y>
+            <x>0 3 </x>
+            <y>0</y>
           </gridLocation>
           <xlabel>time [s]</xlabel>
           <ylabel>evolution</ylabel>
         </plot>
         <plot>
-            <type>stem</type>
-            <x>PointSets|Input|pipe1_Area</x>
-            <y>PointSets|Output|pump_mass_flow_rate</y>
-            <gridLocation>
-                <x>0 3</x>
-                <y>1</y>
-            </gridLocation>
-            <xlabel>time [s]</xlabel>
-            <ylabel>evolution</ylabel>
+          <type>stem</type>
+          <x>PointSets|Input|pipe1_Area</x>
+          <y>PointSets|Output|pump_mass_flow_rate</y>
+          <gridLocation>
+            <x>0 3</x>
+            <y>1</y>
+          </gridLocation>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
         </plot>
         <plot>
-            <type>stem</type>
-            <x>PointSets|Input|pipe1_Area</x>
-            <y>PointSets|Output|pump_mass_flow_rate</y>
-            <gridLocation>
-                <x>0 3</x>
-                <y>2</y>
-            </gridLocation>
-            <xlabel>time [s]</xlabel>
-            <ylabel>evolution</ylabel>
+          <type>stem</type>
+          <x>PointSets|Input|pipe1_Area</x>
+          <y>PointSets|Output|pump_mass_flow_rate</y>
+          <gridLocation>
+            <x>0 3</x>
+            <y>2</y>
+          </gridLocation>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
         </plot>
       </plotSettings>
       <actions>
@@ -140,70 +144,70 @@
       </actions>
     </Plot>
     <Plot dim="2" name="subPlot3" overwrite="false" verbosity="silent">
-        <plotSettings>
-            <gridSpace>3 3 </gridSpace>
-            <plot>
-                <type>stem</type>
-                <x>PointSets|Input|pipe1_Area</x>
-                <y>PointSets|Output|pump_mass_flow_rate</y>
-                <gridLocation>
-                    <x>0 3 </x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>time [s]</xlabel>
-                <ylabel>evolution</ylabel>
-            </plot>
-            <plot>
-                <type>stem</type>
-                <x>PointSets|Input|pipe1_Area</x>
-                <y>PointSets|Output|pump_mass_flow_rate</y>
-                <gridLocation>
-                    <x>0 2</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>time [s]</xlabel>
-                <ylabel>evolution</ylabel>
-            </plot>
-            <plot>
-                <type>stem</type>
-                <x>PointSets|Input|pipe1_Area</x>
-                <y>PointSets|Output|pump_mass_flow_rate</y>
-                <gridLocation>
-                    <x>0 2</x>
-                    <y>2</y>
-                </gridLocation>
-                <xlabel>time [s]</xlabel>
-                <ylabel>evolution</ylabel>
-            </plot>
-            <plot>
-                <type>stem</type>
-                <x>PointSets|Input|pipe1_Area</x>
-                <y>PointSets|Output|pump_mass_flow_rate</y>
-                <gridLocation>
-                    <x>2</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>time [s]</xlabel>
-                <ylabel>evolution</ylabel>
-            </plot>
-            <plot>
-                <type>stem</type>
-                <x>PointSets|Input|pipe1_Area</x>
-                <y>PointSets|Output|pump_mass_flow_rate</y>
-                <gridLocation>
-                    <x>2</x>
-                    <y>2</y>
-                </gridLocation>
-                <xlabel>time [s]</xlabel>
-                <ylabel>evolution</ylabel>
-            </plot>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <plotSettings>
+        <gridSpace>3 3 </gridSpace>
+        <plot>
+          <type>stem</type>
+          <x>PointSets|Input|pipe1_Area</x>
+          <y>PointSets|Output|pump_mass_flow_rate</y>
+          <gridLocation>
+            <x>0 3 </x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+        </plot>
+        <plot>
+          <type>stem</type>
+          <x>PointSets|Input|pipe1_Area</x>
+          <y>PointSets|Output|pump_mass_flow_rate</y>
+          <gridLocation>
+            <x>0 2</x>
+            <y>1</y>
+          </gridLocation>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+        </plot>
+        <plot>
+          <type>stem</type>
+          <x>PointSets|Input|pipe1_Area</x>
+          <y>PointSets|Output|pump_mass_flow_rate</y>
+          <gridLocation>
+            <x>0 2</x>
+            <y>2</y>
+          </gridLocation>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+        </plot>
+        <plot>
+          <type>stem</type>
+          <x>PointSets|Input|pipe1_Area</x>
+          <y>PointSets|Output|pump_mass_flow_rate</y>
+          <gridLocation>
+            <x>2</x>
+            <y>1</y>
+          </gridLocation>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+        </plot>
+        <plot>
+          <type>stem</type>
+          <x>PointSets|Input|pipe1_Area</x>
+          <y>PointSets|Output|pump_mass_flow_rate</y>
+          <gridLocation>
+            <x>2</x>
+            <y>2</y>
+          </gridLocation>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
   </OutStreamManager>
 
