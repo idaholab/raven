@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
   <RunInfo>
-    <WorkingDir>subPlot_output</WorkingDir>
+    <WorkingDir>subplot_output</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>FirstMRun,testOutstreamStep</Sequence>
     <batchSize>1</batchSize>
