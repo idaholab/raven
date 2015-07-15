@@ -315,7 +315,7 @@ class GridEntity(GridBase):
       if the self.gridInitDict is != None (info read from XML node), this method looks for the information in that dictionary first and after it checks the initDict object
       !!!!!!
     """
-    self.raiseAMessage("Starting initialization grid...")
+    self.raiseAMessage("Starting initialization of grid ")
     if len(self.gridInitDict.keys()) == 0 and initDictionary == None: self.raiseAnError(Exception,'No initialization parameters have been provided!!')
     # grep the keys that have been read
     readKeys = []
@@ -411,7 +411,7 @@ class GridEntity(GridBase):
     if len(self.gridContainer['cellIDs'].keys()) != self.uniqueCellNumber and computeCells: self.raiseAnError(IOError, "number of cells detected != than the number of actual cells!")
     self.resetIterator()
     
-    self.raiseAMessage("Grid initialized...")
+    self.raiseAMessage("Grid "+"initialized...")
 
   def retrieveCellIds(self,listOfPoints,containedOnly=True):
     """
@@ -671,18 +671,14 @@ class MultiGridEntity(GridBase):
         initDict   = parentGrid.returnParameter("initDictionary") 
         if "transformationMethods" in initDict.keys(): initDict.pop("transformationMethods")
         for idcnt, fcellId in enumerate(foundCells):
+          print(fcellId)
           didWeFoundCells[fcellId] = True
           newGrid                  = returnInstance("GridEntity", self, self.messageHandler)
           verteces                 = parentNodeCellIds[fcellId]
           lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), sys.float_info.max), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), -sys.float_info.max) 
-          print(fcellId)
-          if fcellId == 23:
-            pass
           for vertex in verteces:
             coordinates = parentGrid.returnCoordinateFromIndex(vertex, True, recastMethods=initDict["transformationMethods"] if "transformationMethods" in initDict.keys() else {})
-            print(coordinates)
-            lowerBounds = {k: min(i for i in (lowerBounds.get(k), coordinates.get(k)) if i) for k in lowerBounds.viewkeys() | coordinates}
-            upperBounds = {k: max(i for i in (upperBounds.get(k), coordinates.get(k)) if i) for k in upperBounds.viewkeys() | coordinates}
+            for key in lowerBounds.keys(): lowerBounds[key], upperBounds[key] = min(lowerBounds[key],coordinates[key]), max(upperBounds[key],coordinates[key])
           initDict["lowerBounds"], initDict["upperBounds"] = lowerBounds, upperBounds
           if "volumetricRatio" in refineDict.keys(): initDict["volumetricRatio"] = refineDict["volumetricRatio"]
           else:
@@ -690,7 +686,6 @@ class MultiGridEntity(GridBase):
             initDict["stepLenght"] = {}
             for key in lowerBounds.keys(): initDict["stepLenght"][key] = [(upperBounds[key] - lowerBounds[key])/float(refineDict["refiningNumSteps"])]
           initDict["startingCellId"] = maxCellId+1
-          print(initDict)
           newGrid.initialize(initDict)
           maxCellId   = max(newGrid.returnParameter('cellIDs').keys())
           refinedNode = self.__createNewNode(node.name+"_cell:"+str(fcellId),{"grid":newGrid,"level":level+"."+str(idcnt)})

@@ -8,22 +8,22 @@ import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
-import sys
+#import sys
 import numpy as np
-from sklearn import tree
+#from sklearn import tree
 from scipy import spatial
-# from scipy import interpolate
-from scipy import integrate
+#from scipy import integrate
 import os
 from glob import glob
 import copy
-import DataObjects
 import math
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
 import mathUtils
+import DataObjects
 from Assembler import Assembler
 import SupervisedLearning
 import MessageHandler
@@ -1559,12 +1559,12 @@ class LimitSurface(BasePostProcessor):
     BasePostProcessor.__init__(self,messageHandler)
     self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
-    self.testMatrix        = {}               #This is the n-dimensional matrix representing the testing grid
+    self.testMatrix        = OrderedDict()    #This is the n-dimensional matrix representing the testing grid
     self.gridCoord         = {}               #Grid coordinates
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.ROM               = None             #Pointer to a ROM
     self.externalFunction  = None             #Pointer to an external Function
-    self.tolerance           = 1.0e-4           #SubGrid tollerance
+    self.tolerance         = 1.0e-4           #SubGrid tollerance
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
     self.gridEntity        = None
@@ -1737,9 +1737,11 @@ class LimitSurface(BasePostProcessor):
     elif nodeName =="all": 
       if exceptionGrid == None: return self.testMatrix
       else:
+        returnDict = OrderedDict()
         wantedKeys = self.testMatrix.keys()
         wantedKeys.pop(wantedKeys.index(exceptionGrid))
-        return {key: self.testMatrix[key] for key in wantedKeys }
+        for key in wantedKeys: returnDict[key] = self.testMatrix[key]
+        return returnDict
     else                 : return self.testMatrix[nodeName]
 
   def _localReadMoreXML(self, xmlNode):
@@ -1781,7 +1783,8 @@ class LimitSurface(BasePostProcessor):
      @ Out, None
     """
     cellIds = self.gridEntity.retrieveCellIds([self.listsurfPointNegative,self.listsurfPointPositive],self.name)
-    self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID) for cellID in cellIds]))
+    if self.getLocalVerbosity() == 'debug': self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID) for cellID in cellIds]))
+    self.raiseAMessage("Number of cells to be refined are "+str(len(cellIds))+". RefinementSteps = "+str(min([refinementSteps,2]))+"!")
     self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(min([refinementSteps,2]))})
     for nodeName in self.gridEntity.getAllNodesNames(self.name):
       if nodeName != self.name: self.testMatrix[nodeName] = np.zeros(self.gridEntity.returnParameter("gridShape",nodeName))
@@ -1795,9 +1798,9 @@ class LimitSurface(BasePostProcessor):
     """
     allGridNames = self.gridEntity.getAllNodesNames(self.name)
     if exceptionGrid != None:
-      try   : allGridNames.pop(exceptionGrid)
+      try   : allGridNames.pop(allGridNames.index(exceptionGrid))
       except: pass 
-    self.surfPoint, evaluations, listsurfPoint = dict.fromkeys(allGridNames), dict.fromkeys(allGridNames) ,dict.fromkeys(allGridNames)
+    self.surfPoint, evaluations, listsurfPoint = OrderedDict().fromkeys(allGridNames), OrderedDict().fromkeys(allGridNames) ,OrderedDict().fromkeys(allGridNames)
     for nodeName in allGridNames:
       #if skipMainGrid == True and nodeName == self.name: continue
       self.testMatrix[nodeName] = np.zeros(self.gridEntity.returnParameter("gridShape",nodeName))
@@ -1813,10 +1816,11 @@ class LimitSurface(BasePostProcessor):
       toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
       #printing----------------------
       self.raiseADebug('LimitSurface:  Limit surface candidate points')
-      for coordinate in np.rollaxis(toBeTested, 0):
-        myStr = ''
-        for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
-        self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[nodeName][tuple(coordinate)]))
+      if self.getLocalVerbosity() == 'debug':
+        for coordinate in np.rollaxis(toBeTested, 0):
+          myStr = ''
+          for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
+          self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[nodeName][tuple(coordinate)]))
       # printing----------------------
       # check which one of the preselected points is really on the limit surface
       nNegPoints, nPosPoints                       =  0, 0
@@ -1832,19 +1836,19 @@ class LimitSurface(BasePostProcessor):
         nPosPoints = len(listsurfPointPositive)
       listsurfPoint[nodeName] = listsurfPointNegative + listsurfPointPositive
       #printing----------------------
-      if len(listsurfPoint[nodeName]) > 0: self.raiseADebug('LimitSurface: Limit surface points:')
-      for coordinate in listsurfPoint[nodeName]:
-        myStr = ''
-        for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
-        self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[nodeName][tuple(coordinate)]))
-      #printing----------------------
+      if self.getLocalVerbosity() == 'debug':
+        if len(listsurfPoint[nodeName]) > 0: self.raiseADebug('LimitSurface: Limit surface points:')
+        for coordinate in listsurfPoint[nodeName]:
+          myStr = ''
+          for iVar, varnName in enumerate(self.axisName): myStr += varnName + ': ' + str(coordinate[iVar]) + '      '
+          self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[nodeName][tuple(coordinate)]))
       # if the number of point on the limit surface is > than zero than save it
       if len(listsurfPoint[nodeName]) > 0:
         self.surfPoint[nodeName] = np.ndarray((len(listsurfPoint[nodeName]), self.nVar))
         evaluations[nodeName] = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
         for pointID, coordinate in enumerate(listsurfPoint[nodeName]):
           self.surfPoint[nodeName][pointID, :] = self.gridCoord[nodeName][tuple(coordinate)]
-    self.listsurfPointNegative, self.listsurfPointPositive = listsurfPoint[self.name][:nNegPoints-1],listsurfPoint[self.name][nNegPoints:]
+    if self.name != exceptionGrid: self.listsurfPointNegative, self.listsurfPointPositive = listsurfPoint[self.name][:nNegPoints-1],listsurfPoint[self.name][nNegPoints:]
     if merge == True:
       evals = np.hstack(evaluations.values())
       listsurfPoints = np.hstack(listsurfPoint.values())
