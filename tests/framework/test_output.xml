@@ -2,10 +2,14 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>output_check</WorkingDir>
-    <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>FirstMRun,testOutstreamStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
+    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
+  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">
@@ -573,11 +577,11 @@
           <colorMap>stories|Input|pipe1_Dh</colorMap>
           <cmap>rainbow</cmap>
         </plot>
+        <kwargs>
+        </kwargs>
         <xlabel>Time (s)</xlabel>
         <ylabel>Mass Flow Rate</ylabel>
-        <kwargs>
-      </kwargs>
-      </plotSettings>
+     </plotSettings>
     </Plot>
     <Plot dim="3" name="plot19" overwrite="false" verbosity="debug">
       <actions>
@@ -592,11 +596,11 @@
           <colorMap>stories|Output|pipe1_Hw</colorMap>
           <cmap>summer</cmap>
         </plot>
+        <kwargs>
+        </kwargs>
         <xlabel>Time (s)</xlabel>
         <ylabel>Hydraulic Diameter</ylabel>
         <zlabel>Mass Flow Rate</zlabel>
-        <kwargs>
-      </kwargs>
       </plotSettings>
     </Plot>
     <Plot dim="3" name="plot20" overwrite="false" verbosity="debug">
@@ -612,11 +616,11 @@
           <colorMap>Historyy|Output|pipe1_Hw</colorMap>
           <cmap>Accent</cmap>
         </plot>
+        <kwargs>
+        </kwargs>
         <xlabel>Time (s)</xlabel>
         <ylabel>Hydraulic Diameter</ylabel>
         <zlabel>Mass Flow Rate</zlabel>
-        <kwargs>
-      </kwargs>
       </plotSettings>
     </Plot>
     <Plot dim="2" name="2DHistoryPlot" overwrite="false" verbosity="debug">

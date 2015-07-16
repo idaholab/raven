@@ -37,7 +37,7 @@ class MOOSEparser(MessageHandler.MessageUser):
         if line.startswith(b'[]') or line.startswith(b'[../]'):
           current = parents.pop(len(parents)-1)
         else:
-#          name = line.strip(b'[').strip(b']').strip(b'../')
+          #name = line.strip(b'[').strip(b']').strip(b'../')
           name = line[line.index(b'[')+1:line.index(b']')].strip(b'../').strip(b'./')
           parents.append(current)
           current      = ET.SubElement(current,name)

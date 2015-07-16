@@ -26,6 +26,7 @@ from Csv_loader import CsvLoader as ld
 import utils
 import TreeStructure as TS
 from cached_ndarray import c1darray
+import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
 # Custom exceptions
@@ -347,7 +348,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if parent_id and self._dataParameters['hierarchical']:
           self.raiseAWarning('-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
-    elif (self._toLoadFromList[-1].type == 'FileObject'): tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
+    elif (isinstance(self._toLoadFromList[-1],Files.File)): tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
     else: self.raiseAnError(ValueError, "Type "+self._toLoadFromList[-1].type+ "from which the DataObject "+ self.name +" should be constructed is unknown!!!")
 
     for hist in tupleVar[0].keys():
@@ -949,7 +950,7 @@ class PointSet(Data):
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
       if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-      elif 'FileObject' == sourceLoad.type: lenMustHave += 1
+      elif isinstance(sourceLoad,Files.File): lenMustHave += 1
       else: self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
 
     if'HDF5' == self._toLoadFromList[-1].type:
@@ -974,7 +975,6 @@ class PointSet(Data):
         for key in self._dataContainer['outputs'].keys():
           if (self._dataContainer['outputs'][key].size) != lenMustHave:
             self.raiseAnError(NotConsistentData,'The output parameter value, for key ' + key + ' has not a consistent shape for PointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
-
 
   def _updateSpecializedInputValue(self,name,value,options=None):
     """
@@ -1222,7 +1222,9 @@ class PointSet(Data):
     #The CSV file will have a header with the input names and output
     #names, and multiple lines of data with the input and output
     #numeric values, one line for each input.
-    filenameLocal = os.path.join(filenameRoot,self.name)
+    if options is not None and 'nameToLoad' in options.keys(): name = options['nameToLoad']
+    else: name=self.name
+    filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "Pointset")
     if "metadata" in xmlData:
@@ -1495,8 +1497,9 @@ class HistorySet(Data):
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
       if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-      elif 'FileObject' == sourceLoad.type: lenMustHave += 1
-      else: self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
+      elif isinstance(sourceLoad,Files.File): lenMustHave += 1
+      else:
+        self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
 
     if self._dataParameters['hierarchical']:
       for key in self._dataContainer['inputs'].keys():

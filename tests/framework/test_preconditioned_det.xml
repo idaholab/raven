@@ -2,10 +2,15 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>PreconditionedDynamicEventTree</WorkingDir>
-    <Files>ideal_pump.i,ideal_pump_control.py,DET_HistorySet.csv</Files>
     <Sequence>PreconditionedDETrunTest,testOutstreamStep</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
+    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
+    <Input name="DET_HistorySet.csv" type="">DET_HistorySet.csv</Input>
+  </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">
@@ -114,9 +119,9 @@
           <kwargs>
             <color>green</color>
           </kwargs>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
       </plotSettings>
       <actions>
         <how>pdf</how>
@@ -134,9 +139,9 @@
           <kwargs>
             <color>green</color>
           </kwargs>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
       </plotSettings>
       <actions>
         <how>pdf</how>

@@ -66,23 +66,27 @@ class RAVENInterface(CodeInterfaceBase):
     self._samplersDictionary['StochasticCollocation'   ] = self.stochasticCollocationForRAVEN
     found = False
     for index, inputFile in enumerate(currentInputFiles):
+      inputFile = inputFile.getAbsFile()
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    parser = MOOSEparser.MOOSEparser(self.messageHandler,currentInputFiles[index])
+    parser = MOOSEparser.MOOSEparser(self.messageHandler,currentInputFiles[index].getAbsFile())
     Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
-    temp = str(oriInputFiles[index][:])
-    newInputFiles = copy.copy(currentInputFiles)
+    temp = str(oriInputFiles[index])
+    newInputFiles = copy.deepcopy(currentInputFiles)
     #TODO fix this? storing unwieldy amounts of data in 'prefix'
     if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
-      newInputFiles[index] = os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1])
+      newpath = os.path.split(temp)[0]
+      newname = Kwargs['prefix']+"~"+os.path.split(temp)[1]
+      newInputFiles[index].setPath(newpath)
+      newInputFiles[index].setFilename(newname)
     else:
-      newInputFiles[index] = os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1])
-    parser.printInput(newInputFiles[index])
-    return newInputFiles
+      newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1]))
+    parser.printInput(newInputFiles[index].getAbsFile())
+    return list(n.getAbsFile() for n in newInputFiles)
 
   def stochasticCollocationForRAVEN(self,**Kwargs):
     if 'prefix' not in Kwargs['prefix']: self.raiseAnError(IOError,'a counter is (currently) needed for the StochColl sampler for RAVEN')
@@ -154,7 +158,6 @@ class RAVENInterface(CodeInterfaceBase):
             end_ts_str = "0" + end_ts_str
         splitted = Kwargs['outfile'].split('~')
         output_parent = splitted[0] + '~' + toString(Kwargs['parent_id']) + '~' + splitted[1]
-        #restart_file_base = output_parent + "_restart_" + end_ts_str
         restart_file_base = output_parent + "_cp/" + end_ts_str
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restart_file_base

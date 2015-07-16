@@ -2,10 +2,13 @@
 <Simulation>
   <RunInfo>
     <WorkingDir>IO_ROM_PICKLE</WorkingDir>
-    <Files>pickle1</Files>
     <Sequence>step1,step2,step3,step4,step5,step6,step7</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="pickle1" type="">pickle1</Input>
+  </Files>
 
   <Steps>
     <MultiRun name="step1" pauseAtEnd="false">
