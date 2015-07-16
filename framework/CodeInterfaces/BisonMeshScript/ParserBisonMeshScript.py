@@ -24,7 +24,7 @@ class ParserBisonMeshScript(MessageHandler.MessageUser):
     '''Open and read file content into a dictionary'''
     self.printTag = 'BISONMESHSCRIPT_PARSER'
     self.messageHandler = messageHandler
-    if not os.path.exists(inputFile): self.raiseAnError(IOError,'Input file not found: '+inputFile)
+    if not os.path.exists(inputFile.getAbsFile()): self.raiseAnError(IOError,'Input file not found: '+inputFile.getAbsFile())
     # Initialize file dictionary, storage order, and internal variables
     self.AllVarDict = collections.OrderedDict()
     self.fileOrderStorage = []
@@ -37,14 +37,13 @@ class ParserBisonMeshScript(MessageHandler.MessageUser):
     between_str = ''
 
     # Open file
-    IOfile = open(inputFile)
-    self.inputfile = inputFile
+    self.inputfile = inputFile.getAbsFile()
 
     # Store lines into a list
-    lines = IOfile.readlines()
+ #   lines = inputFile.readlines()
 
     # self.keywordDictionary dictionary
-    for line in lines:
+    for line in inputFile:
       if '"""' in line or "'''" in line:
         if '"""' in line and quote_comment == True:
           quote_comment_line = True
@@ -122,11 +121,11 @@ class ParserBisonMeshScript(MessageHandler.MessageUser):
               self.AllVarDict[dictname] = collections.OrderedDict()
               self.AllVarDict[dictname][varname] = varvalue.strip()
     if len(between_str) > 0: self.fileOrderStorage.append(between_str)
-    IOfile.close()
+#    IOfile.close()
 
-  def modifyInternalDictionary(self,inDictionary):
+  def modifyInternalDictionary(self,**inDictionary):
     # Parse the input dictionary and replace matching keywords in internal dictionary
-    for keyword, newvlaue in inDictionary.items():
+    for keyword, newvalue in inDictionary.items():
       garb, keyword1, keyword2 = keyword.split('|')
       self.AllVarDict[keyword1][keyword2] = newvalue
 
