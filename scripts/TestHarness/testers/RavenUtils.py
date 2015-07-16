@@ -63,13 +63,17 @@ def checkForMissingModule(i,fv,ev):
     python = 'python3'
   else:
     python = 'python'
-  result = subprocess.call([python,'-c','import '+i])
+
+  suppressedOutput = open(os.devnull, 'w')
+  result = subprocess.call([python,'-c','import '+i],stdout=suppressedOutput,stderr=suppressedOutput)
+
   if result != 0:
     missing.append(i)
   else:
-    result = subprocess.call([python,'-c','import '+i+check])
+    result = subprocess.call([python,'-c','import '+i+check],stdout=suppressedOutput,stderr=suppressedOutput)
     if result != 0:
       too_old.append(i+" should be at least version "+ev)
+  suppressedOutput.close()
   return missing, too_old
 
 
