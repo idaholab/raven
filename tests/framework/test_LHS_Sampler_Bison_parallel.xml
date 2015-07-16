@@ -59,7 +59,7 @@
   </DataObjects>
 
   <Steps>
-    <MultiRun name="myLHS" sleepTime="0.2">
+    <MultiRun name="myLHS">
       <Input class="Files" type="">gap_perfect_transfer_test.i</Input>
       <Input class="Files" type="">gap_perfect_transfer_test.e</Input>
       <Model class="Models" type="Code">Bison</Model>
