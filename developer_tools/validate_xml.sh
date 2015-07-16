@@ -39,8 +39,7 @@ do
         fi
     done
     echo -e "\033[0m--------------------------------------------------"
-    echo -e "\033[1;32mPassed $passed_tests \033[1;31mFailed $failed_tests\033[0m"
 done
+echo -e "\033[1;32mPassed $passed_tests \033[1;31mFailed $failed_tests\033[0m"
+
 exit $failed_tests
-
-
