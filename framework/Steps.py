@@ -559,7 +559,7 @@ class IOStep(Step):
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]
-        options = {'nameToLoad':infile.getBase()}
+        options = {'fileToLoad':infile}
         outputs[i].loadXML_CSV(inDictionary['Input'][i].getPath(),options)
       else:
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
