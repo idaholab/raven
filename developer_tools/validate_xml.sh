@@ -16,7 +16,7 @@ failed_tests=0
 passed_tests=0
 
 for testdir in ${TEST_DIRS}
-do 
+do
     echo -e "\033[1;32mValidating $testdir "
     cd $testdir
     for I in $(python ${SCRIPT_DIR}/get_coverage_tests.py)
