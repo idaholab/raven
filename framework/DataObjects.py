@@ -976,7 +976,6 @@ class PointSet(Data):
           if (self._dataContainer['outputs'][key].size) != lenMustHave:
             self.raiseAnError(NotConsistentData,'The output parameter value, for key ' + key + ' has not a consistent shape for PointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
 
-
   def _updateSpecializedInputValue(self,name,value,options=None):
     """
       This function performs the updating of the values (input space) into this Data
@@ -1223,7 +1222,9 @@ class PointSet(Data):
     #The CSV file will have a header with the input names and output
     #names, and multiple lines of data with the input and output
     #numeric values, one line for each input.
-    filenameLocal = os.path.join(filenameRoot,self.name)
+    if options is not None and 'nameToLoad' in options.keys(): name = options['nameToLoad']
+    else: name=self.name
+    filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "Pointset")
     if "metadata" in xmlData:
