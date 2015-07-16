@@ -1218,6 +1218,13 @@ class PointSet(Data):
       self._createXMLFile(filenameLocal,'Pointset',inpKeys,outKeys)
 
   def _specializedLoadXML_CSV(self, filenameRoot, options):
+    """
+    Loads a CSV-XML file pair into a PointSet.
+    @ In, filenameRoot, path to files
+    @ In, options, can optionally contain the following:
+        - nameToLoad, filename base (no extension) of CSV-XML pair
+    @Out, None
+    """
     #For Pointset it will create an XML file and one CSV file.
     #The CSV file will have a header with the input names and output
     #names, and multiple lines of data with the input and output

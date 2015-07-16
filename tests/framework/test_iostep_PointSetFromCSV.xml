@@ -21,7 +21,6 @@
         </IOStep>
     </Steps>
 
-
     <DataObjects>
         <PointSet name='solns'>
             <Input>x1,x2</Input>
