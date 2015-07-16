@@ -68,7 +68,7 @@ class parserCubit(MessageHandler.MessageUser):
       garb, keyword = keyword.split('|')
       self.keywordDictionary[keyword] = newvalue
 
-  def printInput(self.outfile=None):
+  def writeNewInput(self,outfile=None):
     if outfile == None: outfile = self.inputfile
     IOfile = open(outfile,'w')
     for e, entry in enumerate(self.fileOrderStorage):
@@ -78,4 +78,3 @@ class parserCubit(MessageHandler.MessageUser):
         for key, value in self.keywordDictionary.items():
           IOfile.writelines('#{ '+key+' = '+value+'}'+'\n')
     IOfile.close()
-

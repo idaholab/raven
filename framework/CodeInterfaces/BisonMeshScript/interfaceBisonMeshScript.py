@@ -1,5 +1,5 @@
 '''
-Created on July 13, 2015
+created on July 13, 2015
 
 @author: tompjame
 '''
@@ -20,7 +20,7 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
   '''This class is used to couple raven to the Bison Mesh Generation Script using cubit (python syntax, NOT Cubit journal file)'''
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
-    '''seek which is which of the input files and generate According the running command'''
+    '''seek which is which of the input files and generate according to the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
       if inputfile.endswith(self.getInputExtension):
@@ -33,15 +33,15 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     # CHECK THIS DEFINITION
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
-    import ParserBisonMeshScript
+    import parserBisonMeshScript
     for index, inputFile in enumerate(oriInputFiles):
       if inputFile.endswith(self.getInputExtension()):
         break
-    parser = ParserBisonMeshScript.ParserBisonMeshScript(self.messageHandler,currentInputFiles[index])
+    parser = parserBisonMeshScript.parserBisonMeshScript(self.messageHandler,currentInputFiles[index])
     parser.modifyInternalDictionary(**Kwargs['SampledVars'])
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.copy(currentInputFiles)
-    newInputFiles[index] = os.path.join(os.path.split(temp) [0], os.path.split(temp)[1]+'_'+Kwargs['prefix'])
+    newInputFiles[index] = os.path.join(os.path.split(temp)[0]+'_'+Kwargs['prefix'], os.path.split(temp)[1])
     parser.writeNewInput(newInputFiles[index])
     return newInputFiles
     # CHECK THIS DEFINITION

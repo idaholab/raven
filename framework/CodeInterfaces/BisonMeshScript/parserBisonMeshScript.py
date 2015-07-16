@@ -131,7 +131,7 @@ class ParserBisonMeshScript(MessageHandler.MessageUser):
       self.AllVarDict[keyword1][keyword2] = newvalue
 
 
-  def printInput(self,outfile=None):
+  def writeNewInput(self,outfile=None):
     if outfile==None: outfile = self.inputfile
     IOfile = open(outfile,'w')
     for e, entry in enumerate(self.fileOrderStorage):
