@@ -201,12 +201,8 @@ class File(BaseType):
     """
     if self.isOpen(): self.raiseAnError('Tried to change the path/name of an open file: %s! Close it first.' %self.getAbsFile())
     path,filename = os.path.split(pathandfile)
-    self.raiseADebug('prepath    :',path)
-    self.raiseADebug('prefilename:',filename)
     self.setFilename(filename)
     self.setPath(path)
-    self.raiseADebug('postpath    :',self.getPath())
-    self.raiseADebug('postfilename:',self.getFilename())
 
   ### ACCESS FUNCTIONS ###
   def isOpen(self):
@@ -424,7 +420,6 @@ class UserGenerated(File):
     """
     self.type = node.tag #XSD should confirm valid types
     self.printTag = self.type+' File'
-    #self.setFilename(node.text.strip())
     self.setAbsFile(node.text.strip())
     self.perturbed = node.attrib.get('perturbable',True)
     self.subtype   = node.attrib.get('type'       ,None)
