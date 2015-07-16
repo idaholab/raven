@@ -128,7 +128,7 @@ def createAndRunQSUB(simulation):
              "-l","place=free","-v",
              'COMMAND="python Driver.py '+
              " ".join(simulation.runInfoDict["SimulationFiles"])+'"',
-             os.path.join(frameworkDir,"raven_qsub_command.py")]
+             os.path.join(frameworkDir,"raven_qsub_command.sh")]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
   simulation.raiseAMessage(os.getcwd()+' '+str(command))
