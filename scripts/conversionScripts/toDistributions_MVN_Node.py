@@ -13,7 +13,7 @@ def convert(tree):
   if simulation.tag!='Simulation': return tree #this isn't an input file
   for child in simulation:
     if child.tag == 'Distributions':
-      MVNNode = child.find('MultivariateNormal')    
+      MVNNode = child.find('MultivariateNormal')
       if MVNNode is not None:
         dataFileNameNode = MVNNode.find('data_filename')
         covFileName = dataFileNameNode.text
