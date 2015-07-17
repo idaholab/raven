@@ -137,9 +137,17 @@ class File(BaseType):
     @Out, None
     """
     if self.isOpen(): self.raiseAnError('Tried to change the path of an open file: %s! Close it first.' %self.getAbsFile())
-    #if path==None: path=self.__path #FIXME is this useful?
     if '~' in path: path = os.path.expanduser(path)
     self.__path = path
+
+  def prependPath(self,addpath):
+    """Prepends path to existing path.
+    @ In, addpath, string, new path to prepend
+    @ Out, None
+    """
+    if self.isOpen(): self.raiseAnError('Tried to change the path of an open file: %s! Close it first.' %self.getAbsFile())
+    if '~' in addpath: addpath = os.path.expanduser(addpath)
+    self.__path = os.path.join(addpath,self.getPath())
 
   def setBase(self,base):
     """Sets the base name of the file.
@@ -369,9 +377,6 @@ class File(BaseType):
 
 
 
-
-
-
 #
 #
 #
@@ -433,10 +438,10 @@ class UserGenerated(File):
     """
     self.type = node.tag #XSD should confirm valid types
     self.printTag = self.type+' File'
-    self.setFilename(node.text.strip())
-    self.perturbable = node.attrib.get('perturbable',True)
-    self.subtype     = node.attrib.get('type'       ,None)
-    self.alias       = node.attrib.get('name'       ,self.getFilename())
+    self.setAbsFile(node.text.strip())
+    self.perturbed = node.attrib.get('perturbable',True)
+    self.subtype   = node.attrib.get('type'       ,None)
+    self.alias     = node.attrib.get('name'       ,self.getFilename())
 
 #
 #

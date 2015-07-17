@@ -1484,18 +1484,16 @@ class MultivariateNormal(NDimensionalDistributions):
     NDimensionalDistributions.__init__(self)
     self.type = 'MultivariateNormal'
     self.mu  = None
+    self.covariance = None
 
   def _readMoreXML(self,xmlNode):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
-
-    data_filename = xmlNode.find('data_filename')
-    if data_filename != None: self.data_filename = self.working_dir+data_filename.text
-    else: self.raiseAnError(IOError,'<data_filename> parameter needed for MultivariateNormal Distributions!!!!')
-
     mu = xmlNode.find('mu')
-    if data_filename != None: self.mu = [float(i) for i in mu.text.split()]
+    if mu != None: self.mu = [float(i) for i in mu.text.split()]
     else: self.raiseAnError(IOError,'<mu> parameter needed for MultivariateNormal Distributions!!!!')
-
+    covariance = xmlNode.find('covariance')
+    if covariance != None: self.covariance = [float(i) for i in covariance.text.split()]
+    else: self.raiseAnError(IOError,'<covariance> parameter needed for MultivariateNormal Distributions!!!!')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -1506,7 +1504,10 @@ class MultivariateNormal(NDimensionalDistributions):
     mu = distribution1D.vectord_cxx(len(self.mu))
     for i in range(len(self.mu)):
       mu[i] = self.mu[i]
-    self._distribution = distribution1D.BasicMultivariateNormal(str(self.data_filename), mu)
+    covariance = distribution1D.vectord_cxx(len(self.covariance))
+    for i in range(len(self.covariance)):
+      covariance[i] = self.covariance[i]
+    self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
 
   def cdf(self,x):
     coordinate = distribution1D.vectord_cxx(len(x))
