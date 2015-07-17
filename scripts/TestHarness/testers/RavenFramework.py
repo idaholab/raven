@@ -98,7 +98,7 @@ class RavenFramework(Tester):
 
     #unordered csv
     ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],self.ucsv_files)
-    ucsv_same,csv_messages = ucsv_diff.diff()
+    ucsv_same,ucsv_messages = ucsv_diff.diff()
     if not ucsv_same:
       return ucsv_messages,output
     return ('',output)

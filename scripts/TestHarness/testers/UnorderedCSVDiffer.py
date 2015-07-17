@@ -1,6 +1,5 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import sys,os
-import numpy as np
 
 num_tol = 1e-10 #effectively zero for our purposes
 
@@ -74,17 +73,16 @@ class UnorderedCSVDiffer:
           self.__same = False
           self.__messages+='\nTest has %i rows, but Gold has %i rows.' %(len(testData),len(goldData))
         while len(testData)>0:
-          #take out the first row, equivalent to pop()
-          datarow = testData[-1]
-          testData= testData[:-1]
+          #take out the first row
+          datarow = testData.pop()
           #search for match in gold
           found = False
           for g,goldrow in enumerate(goldData):
+            #establish a baseline magnitude
             denom = sum(goldrow)
-            if denom == 0: denom = 1.0
-            #if sum(datarow - goldrow)/denom < num_tol: #match found
+            if denom == 0: denom = 1.0 #protection from div by zero
             if sum(abs(d-g)/g for d,g in zip(datarow,goldrow)) < num_tol: #match found
-              goldData = np.delete(goldData,(g),axis=0) #remove row from gold
+              goldData.remove(goldrow)
               found = True
               break
           if not found:
@@ -99,5 +97,7 @@ class UnorderedCSVDiffer:
   def loadCSV(self,filename):
     f = file(filename,'r')
     header = f.readline()
-    data = np.loadtxt(f,delimiter=',')
+    data=[]
+    for l,line in enumerate(f):
+      data.append(list(float(e) for e in line.strip().split(',')))
     return header.strip(),data
