@@ -23,25 +23,28 @@ class CubitInterface(CodeInterfaceBase):
     '''seek which is which of the inputs files and generate according to the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
-      if inputfile.endswith(self.getInputExtension):
+      if inputFile.endswith(self.getInputExtension()):
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    outputfile = 'mesh~'+os.path.split(inputFiles[index])[1].split('.')[0]+'.e'
-    executeCommand = (executable+ ' -batch ' + os.path.split(inputFiles[index])[1]) # Still need a way to specify output file name
-    return executeCommand, outputfile
+    executeCommand = (executable+ ' -batch ' + os.path.split(inputFiles[index])[1])
+    self.raiseADebug(executeCommand)
+    return executeCommand, self.outputfile
     # CHECK THIS DEFINITION
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     import ParserCubit
-    for index, inputFile in enumerate(orInputFiles):
+    for index, inputFile in enumerate(oriInputFiles):
       if inputFile.endswith(self.getInputExtension()):
         break
-    parser = ParserCubit.ParserCubit(self.messageHandler, currentInputFiles[index])
-    parser.modifyInternalDictionary(**Kwargs['SampledVars'])
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.copy(currentInputFiles)
-    newInputFiles[index] = os.path.join(os.path.split(temp)[0]+'_'+Kwargs['prefix'], os.path.split(temp)[1]) # Fix file path on this line!!!
+    newInputFiles[index] = os.path.join(os.path.split(temp)[0], os.path.split(temp)[1].split('.')[0] \
+        +'_'+Kwargs['prefix']+'.'+os.path.split(temp)[1].split('.')[1])
+    self.outputfile = ('mesh~'+os.path.split(temp)[1].split('.')[0])+'_'+Kwargs['prefix']
+    Kwargs['SampledVars']['Cubit|out_name'] = "\"'"+self.outputfile+".e'\""
+    parser = ParserCubit.ParserCubit(self.messageHandler, currentInputFiles[index])
+    parser.modifyInternalDictionary(**Kwargs['SampledVars'])
     parser.writeNewInput(newInputFiles[index])
     return newInputFiles
     # CHECK THIS DEFINITION

@@ -17,14 +17,14 @@ import collections
 from utils import toBytes, toStrish, compare
 import MessageHandler
 
-class parserCubit(MessageHandler.MessageUser):
+class ParserCubit(MessageHandler.MessageUser):
   '''Import Cubit journal file input, provide methods to add/change entries and print input back'''
 
   def __init__(self,messageHandler, inputFile):
     '''Open and read file content into an ordered dictionary'''
     self.printTag = 'CUBIT_PARSER'
     self.messageHandler = messageHandler
-    if not os.path.exists(inputFile): self.raiseAnError(IOError,'Input file not found: '+inputFile)
+    if not os.path.exists(inputFile.getAbsFile()): self.raiseAnError(IOError,'Input file not found: '+inputFile.getAbsFile())
     # Initialize file dictionary, storage order, and internal variables
     self.keywordDictionary = collections.OrderedDict()
     self.fileOrderStorage = []
@@ -33,14 +33,10 @@ class parserCubit(MessageHandler.MessageUser):
     dict_stored = False
 
     # Open file
-    IOfile = open(inputFile)
-    self.inputfile = inputFile
-
-    # Store lines into a list
-    lines = IOfile.readlines()
+    self.inputfile = inputFile.getAbsFile()
 
     # Generate Global Input Dictionary
-    for line in lines:
+    for line in inputFile:
       clear_ws = line.replace(" ", "")
       if clear_ws.startswith('#{'):
         # Catch Aprepro logic
@@ -60,9 +56,8 @@ class parserCubit(MessageHandler.MessageUser):
       else:
         between_str += line
     if len(between_str) > 0: self.fileOrderStorage.append(between_str)
-    IOfile.close()
 
-  def modifyInternalDictionary(self,inDictionary):
+  def modifyInternalDictionary(self,**inDictionary):
     # Parse the input dictionary and replace matching keywords in internal dictionary
     for keyword, newvalue in inDictionary.items():
       garb, keyword = keyword.split('|')
@@ -72,9 +67,9 @@ class parserCubit(MessageHandler.MessageUser):
     if outfile == None: outfile = self.inputfile
     IOfile = open(outfile,'w')
     for e, entry in enumerate(self.fileOrderStorage):
-      if type(entry) == str:
+      if type(entry) == unicode:
         IOfile.writelines(entry)
       elif type(entry) == list:
         for key, value in self.keywordDictionary.items():
-          IOfile.writelines('#{ '+key+' = '+value+'}'+'\n')
+          IOfile.writelines('#{ '+key+' = '+str(value)+'}'+'\n')
     IOfile.close()

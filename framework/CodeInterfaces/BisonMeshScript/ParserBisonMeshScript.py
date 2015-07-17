@@ -39,9 +39,6 @@ class ParserBisonMeshScript(MessageHandler.MessageUser):
     # Open file
     self.inputfile = inputFile.getAbsFile()
 
-    # Store lines into a list
- #   lines = inputFile.readlines()
-
     # self.keywordDictionary dictionary
     for line in inputFile:
       if '"""' in line or "'''" in line:
@@ -121,7 +118,6 @@ class ParserBisonMeshScript(MessageHandler.MessageUser):
               self.AllVarDict[dictname] = collections.OrderedDict()
               self.AllVarDict[dictname][varname] = varvalue.strip()
     if len(between_str) > 0: self.fileOrderStorage.append(between_str)
-#    IOfile.close()
 
   def modifyInternalDictionary(self,**inDictionary):
     # Parse the input dictionary and replace matching keywords in internal dictionary
@@ -134,11 +130,11 @@ class ParserBisonMeshScript(MessageHandler.MessageUser):
     if outfile==None: outfile = self.inputfile
     IOfile = open(outfile,'w')
     for e, entry in enumerate(self.fileOrderStorage):
-      if type(entry) == str:
+      if type(entry) == unicode:
         IOfile.writelines(entry)
       elif type(entry) == list:
         DictBlockName = self.fileOrderStorage[e][0]
         DictBlock = self.AllVarDict[DictBlockName]
         for key, value in DictBlock.items():
-          IOfile.writelines(DictBlockName + "['" + key + "'] = " + value + '\n')
+          IOfile.writelines(DictBlockName + "['" + key + "'] = " + str(value) + '\n')
     IOfile.close()
