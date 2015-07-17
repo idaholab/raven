@@ -13,7 +13,7 @@ import Files
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from MooseBasedAppInterface import MooseBasedAppInterface
 
-class CubitMooseInterface(CodeInterfaceBase,MooseBasedAppInterface): #TODO also CubitInterface
+class BisonAndMeshInterface(CodeInterfaceBase,MooseBasedAppInterface,BisonMeshScriptInterface):
   """This class provides the means to generate a stochastic-input-based mesh using the MOOSE
      standard Cubit python script in addition to uncertain inputs for the MOOSE app."""
 
@@ -22,7 +22,6 @@ class CubitMooseInterface(CodeInterfaceBase,MooseBasedAppInterface): #TODO also 
     @ In, inputFiles, list of Files objects
     @Out, (File,File), Moose and Cubit input files
     """
-    #TODO FIXME currently inputFiles are strings; we need the objects! is this fixed?
     foundMooseInp = False
     foundCubitInp = False
     for index,inFile in enumerate(inputFiles):
