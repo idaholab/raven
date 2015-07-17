@@ -128,7 +128,7 @@ def createAndRunQSUB(simulation):
              "-l","place=free","-v",
              'COMMAND="python Driver.py '+
              " ".join(simulation.runInfoDict["SimulationFiles"])+'"',
-             os.path.join(frameworkDir,"raven_qsub_command.py")]
+             os.path.join(frameworkDir,"raven_qsub_command.sh")]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
   simulation.raiseAMessage(os.getcwd()+' '+str(command))
@@ -386,7 +386,7 @@ class Simulation(MessageHandler.MessageUser):
     """assuming that the file in is already in the self.filesDict it places, as value, the absolute path"""
     curfile = self.filesDict[filein]
     path = os.path.normpath(self.runInfoDict['WorkingDir'])
-    curfile.setPath(path)
+    curfile.prependPath(path) #this respects existing path from the user input, if any
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     """parses the xml input file, instances the classes need to represent all objects in the simulation"""

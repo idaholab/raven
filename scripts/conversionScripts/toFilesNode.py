@@ -18,6 +18,7 @@ def convert(tree):
     runinfo.remove(oldFilesNode)
     newFiles = ET.Element('Files')
     for name in fileNameList:
+      name = name.strip()
       newfile = ET.Element('Input')
       newfile.set('name',name)
       newfile.set('type','')
