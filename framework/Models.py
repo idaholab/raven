@@ -687,7 +687,7 @@ class Code(Model):
     if os.path.exists(abspath):
       self.executable = abspath
     else: self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
-    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self,self.messageHandler)
+    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
     self.code.readMoreXML(xmlNode)
     self.code.setInputExtension(list(a for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a for b in (c for c in self.fargs ['input'].values()) for a in b))
