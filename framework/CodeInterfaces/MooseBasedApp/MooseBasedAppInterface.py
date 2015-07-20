@@ -67,27 +67,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     # the position in, eventually, a vector variable is not available yet...
     # the MOOSEparser needs to be modified in order to accept this variable type
     # for now the position (i.e. ':' at the end of a variable name) is discarded
-    for var in Kwargs['SampledVars']:
-        if 'alias' in Kwargs.keys():
-          # for understending the alias system, plase check module Models.py (class Code)
-          if var in Kwargs['alias'].keys():
-            key = Kwargs['alias'][var].split(':')
-            varname = var
-        else:
-          key = var.split(':')
-          varname = key[0]
-        modifDict = {}
-        modifDict['name'] = []
-        modifDict['name'] = key[0].split('|')[:-1]
-        modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
-        listDict.append(modifDict)
-        del modifDict
-        #if 'raven' not in Kwargs['executable'].lower():
-        #  listDict.append({'name':['AuxVariables',varname],'family':'SCALAR'})
-        #  listDict.append({'name':['AuxVariables',varname],'initial_condition':Kwargs['SampledVars'][var]})
-        #  listDict.append({'name':['Postprocessors',varname],'type':'ScalarVariable'})
-        #  listDict.append({'name':['Postprocessors',varname],'variable':varname})
-    return listDict
+    return self.expandVarNames(**Kwargs)
 
   def dynamicEventTreeForMooseBasedApp(self,**Kwargs):
     self.raiseAnError(IOError,'dynamicEventTreeForMooseBasedApp not yet implemented')

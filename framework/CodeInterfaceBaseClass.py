@@ -29,7 +29,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),MessageHandle
     self.messageHandler = msgHandler
     self.verbosity = self.messageHandler.verbosity
 
-  def genCommand(self,inputFiles,executable,flags=None, fileargs=None):
+  def genCommand(self,inputFiles,executable,flags=None, fileargs=None, preexec=None):
     """
       This method is used to retrieve the command (in string format) needed to launch the Code.
       This method checks a bolean enviroment variable called 'RAVENinterfaceCheck':
@@ -40,7 +40,8 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),MessageHandle
       @ In , flags, string, a string containing the flags the user can specify in the input (e.g. under the node <Code> <executable> <flags>-u -r</flags> </executable> </Code>)
       @ Out, string, string containing the full command that the internal JobHandler is going to use to run the Code this interface refers to
     """
-    subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileargs)
+    if preexec is None: subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileargs)
+    else: subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileargs,preexec=preexec)
     if os.environ['RAVENinterfaceCheck'].lower() in utils.stringsThatMeanTrue(): return '',outputfileroot
     return subcodeCommand,outputfileroot
 
@@ -147,3 +148,33 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),MessageHandle
     @ return bool, required, True if the job is failed, False otherwise
     """
     return False
+
+  def expandVarNames(self,**Kwargs):
+    """
+    This method will assure the full proper variable names are returned in a modificaton dictionary.
+    It primarily expands aliases. I will admit I don't know what colons do.
+    @ In, Kwargs, keywords arguments, including:
+        - alias, the alias -> TrueName dictionary
+        - SampleVars, short name -> sampled value dictionary
+    @ Out, list(dict), dicts contains:
+             ['name'][path,to,name]
+             [short varname][var value]
+    """
+    listDict=[]
+    modifDict={}
+    for var in Kwargs['SampledVars']:
+        if 'alias' in Kwargs.keys():
+          # for understending the alias system, plase check module Models.py (class Code)
+          if var in Kwargs['alias'].keys():
+            key = Kwargs['alias'][var].split(':')
+            varname = var
+        else:
+          key = var.split(':')
+          varname = key[0]
+        modifDict = {}
+        modifDict['name'] = []
+        modifDict['name'] = key[0].split('|')[:-1]
+        modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
+        listDict.append(modifDict)
+        del modifDict
+    return listDict

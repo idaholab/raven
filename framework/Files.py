@@ -189,7 +189,7 @@ class File(BaseType):
        @ Out, string, subtype if not None, else ''
     """
     if self.subtype is None: return ''
-    else return self.subtype
+    else: return self.subtype
 
   def getPerturbable(self):
     """Retrieves the "perturbable" boolean attribute.  Defaults to True for UserGenerated, False for others.
