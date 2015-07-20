@@ -72,9 +72,10 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     @ In, Kwargs, dictionary of key-val pairs
     @Out, list of perturbed Files
     """
-    # TODO FIXME origInputFiles are unicodes!@!!!!!!!!!!
     mooseInp,cubitInp = self.findInps(currentInputFiles)
-    origMooseInp,origCubitInp = self.findInps(origInputFiles)
+    #origInputFiles are strings, so just use indices
+    origMooseInp = origInputFiles[currentInputFiles.index(mooseInp)]
+    origCubitInp = origInputFiles[currentInputFiles.index(cubitInp)]
     #split up sampledvars in kwargs between moose and Cubit script
     #  NOTE This works by checking the pipe split for the keyword Cubit at first!
     margs = Kwargs.copy()

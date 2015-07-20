@@ -614,7 +614,6 @@ class Code(Model):
   def __init__(self):
     Model.__init__(self)
     self.executable         = ''   #name of the executable (abs path)
-    self.preexec            = None #name of the executable (abs path)
     self.oriInputFiles      = []   #list of the original input files (abs path)
     self.workingDir         = ''   #location where the code is currently running
     self.outFileRoot        = ''   #root to be used to generate the sequence of output files
@@ -637,8 +636,6 @@ class Code(Model):
     for child in xmlNode:
       if child.tag =='executable':
         self.executable = str(child.text)
-      elif child.tag == 'preexec':
-        self.preexec = str(child.text)
       elif child.tag =='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
@@ -690,11 +687,6 @@ class Code(Model):
     if os.path.exists(abspath):
       self.executable = abspath
     else: self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
-    if self.preexec is not None:
-      if '~' in self.preexec: self.preexec = os.path.expanduser(self.preexec)
-      abspath = os.path.abspath(self.preexec)
-      if os.path.exists(abspath): self.preexec = abspath
-      else: self.raiseAMessage('not found preexec '+self.preexec,'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self,self.messageHandler)
     self.code.readMoreXML(xmlNode)
     self.code.setInputExtension(list(a for b in (c for c in self.clargs['input'].values()) for a in b))
@@ -705,7 +697,6 @@ class Code(Model):
     """extension of addInitParams for the Code(model)"""
     Model.addInitParams(self, tempDict)
     tempDict['executable']=self.executable
-    tempDict['preexec'   ]=self.preexec
     for key, value in self.alias.items():
       tempDict['The code variable '+str(value)+' it is filled using the framework variable '] = key
 
@@ -738,10 +729,9 @@ class Code(Model):
       atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
     for inputFile in inputFiles:
       shutil.copy(inputFile.getAbsFile(),self.workingDir)
-    #TODO does this work if oriInputFiles are files instead of strings?
-    self.oriInputFiles = list(i for i in inputFiles)#[]
-    #for i in range(len(inputFiles)):
-    #  self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i].getAbsFile())[1]))
+    self.oriInputFiles = []
+    for i in range(len(inputFiles)):
+      self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i].getAbsFile())[1]))
     self.currentInputFiles        = None
     self.outFileRoot              = None
 
@@ -749,11 +739,11 @@ class Code(Model):
     """ This function creates a new input
         It is called from a sampler to get the implementation specific for this model"""
     Kwargs['executable'] = self.executable
-    Kwargs['preexec'   ] = self.preexec
     found = False
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
     #  objects.  However, this might require some updating of many Code Interfaces as well.
     for index, inputFile in enumerate(currentInput):
+      self.raiseAWarning('inputfile,codegetinp:',inputFile.getExt(),'|',self.code.getInputExtension())
       if '.'+inputFile.getExt() in self.code.getInputExtension():
         found = True
         break
@@ -766,7 +756,7 @@ class Code(Model):
   def run(self,inputFiles,jobHandler):
     """append a run at the externalRunning list of the jobHandler"""
     self.currentInputFiles = inputFiles[0]
-    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs, preexec =self.preexec)
+    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
