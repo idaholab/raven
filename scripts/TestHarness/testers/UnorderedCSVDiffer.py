@@ -72,6 +72,7 @@ class UnorderedCSVDiffer:
         if len(testData) != len(goldData):
           self.__same = False
           self.__messages+='\nTest has %i rows, but Gold has %i rows.' %(len(testData),len(goldData))
+          return (self.__same,self.__messages.strip())
         while len(testData)>0:
           #take out the first row
           datarow = testData.pop()
@@ -81,18 +82,26 @@ class UnorderedCSVDiffer:
             #establish a baseline magnitude
             denom = sum(goldrow)
             if denom == 0: denom = 1.0 #protection from div by zero
-            if sum(abs(d-g)/g for d,g in zip(datarow,goldrow)) < num_tol: #match found
+            allfound = True
+            for d,g in zip(datarow,goldrow):
+              check = abs(d-g)
+              #div by 0 error handling
+              if abs(g)>1e-15: check/=abs(g)
+              if check > num_tol:
+                allfound = False
+            # if sum(abs(d-g)/g for d,g in zip(datarow,goldrow)) < num_tol: #match found -> old method, div by 0 error
+            if allfound:
               goldData.remove(goldrow)
               found = True
               break
           if not found:
             self.__same = False
-            self.__messages+='\nRow in Test not found in Gold: '+str(datarow)
+            self.__messages+='\nRow in Test not found in Gold: %s' %str(datarow).strip('[]')
         if len(goldData)>0:
           self.__same = False
           for row in goldData:
-            self.__messages+='\nRow in Gold not found in Test: '+str(row)
-    return (self.__same,self.__messages.strip())
+            self.__messages+='\nRow in Gold not found in Test: %s' %str(row).strip('[]')
+    return (self.__same,self.__messages)
 
   def loadCSV(self,filename):
     f = file(filename,'r')
