@@ -182,7 +182,7 @@ class OpenModelicaInterface(CodeInterfaceBase):
     #   times.  Start with the original input file, which we have to find first.
     found = False
     for index, inputFile in enumerate(oriInputFiles):
-      if self._isValidInput(inputFile):
+      if self._isValidInput(inputFile.getAbsFile()):
         found = True
         break
     if not found:
@@ -190,7 +190,7 @@ class OpenModelicaInterface(CodeInterfaceBase):
 
     # Figure out the new file name and put it into the proper place in the return list
     newInputFiles = copy.copy(currentInputFiles)
-    originalPath = str(oriInputFiles[index][:])
+    originalPath = str(oriInputFiles[index].getAbsFile())
     newPath = os.path.join(os.path.split(originalPath)[0],
                            "OM" + Kwargs['prefix'] + os.path.split(originalPath)[1])
     newInputFiles[index] = newPath

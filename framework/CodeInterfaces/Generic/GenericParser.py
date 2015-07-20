@@ -170,5 +170,5 @@ class GenericParser(MessageHandler.MessageUser):
     #now just write the files.
     for f,fileName in enumerate(infileNames):
       outfile = file(fileName,'w')
-      outfile.writelines(toBytes(''.join(self.segments[os.path.basename(origNames[f])])))
+      outfile.writelines(toBytes(''.join(self.segments[origNames[f].getFilename()])))
       outfile.close()

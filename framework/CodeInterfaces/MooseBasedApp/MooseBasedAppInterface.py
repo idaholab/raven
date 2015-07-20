@@ -51,7 +51,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     parser = MOOSEparser.MOOSEparser(self.messageHandler,currentInputFiles[index].getAbsFile())
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
-    temp = str(oriInputFiles[index][:])
+    temp = str(oriInputFiles[index].getAbsFile())#[:])
     newInputFiles = copy.copy(currentInputFiles)
     #TODO fix this? storing unwieldy amounts of data in 'prefix'
     if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3

@@ -128,7 +128,7 @@ class GenericCodeInterface(CodeInterfaceBase):
         infiles.append(inputFile)
     parser = GenericParser.GenericParser(self.messageHandler,infiles)
     parser.modifyInternalDictionary(**Kwargs)#['SampledVars'],**Kwargs['additionalEdits']) #TODO also need to send io vars (input, output filenames)
-    temps = list(str(origInputFiles[i][:]) for i in indexes)
+    temps = list(str(origInputFiles[i].getAbsFile()) for i in indexes)
     newInFiles = copy.deepcopy(currentInputFiles)
     for i in indexes:
       newInFiles[i] = os.path.join(os.path.split(temps[i])[0],Kwargs['prefix']+'~'+os.path.split(temps[i])[1])

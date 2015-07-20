@@ -738,9 +738,10 @@ class Code(Model):
       atexit.register(lambda filenamelocked: os.remove(filenamelocked),os.path.join(self.workingDir,self.lockedFileName))
     for inputFile in inputFiles:
       shutil.copy(inputFile.getAbsFile(),self.workingDir)
-    self.oriInputFiles = []
-    for i in range(len(inputFiles)):
-      self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i].getAbsFile())[1]))
+    #TODO does this work if oriInputFiles are files instead of strings?
+    self.oriInputFiles = list(i for i in inputFiles)#[]
+    #for i in range(len(inputFiles)):
+    #  self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i].getAbsFile())[1]))
     self.currentInputFiles        = None
     self.outFileRoot              = None
 
@@ -753,7 +754,6 @@ class Code(Model):
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
     #  objects.  However, this might require some updating of many Code Interfaces as well.
     for index, inputFile in enumerate(currentInput):
-      self.raiseAWarning('inputfile,codegetinp:',inputFile.getExt(),'|',self.code.getInputExtension())
       if '.'+inputFile.getExt() in self.code.getInputExtension():
         found = True
         break

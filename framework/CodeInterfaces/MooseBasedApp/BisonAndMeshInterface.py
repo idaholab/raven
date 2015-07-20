@@ -73,8 +73,6 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     @Out, list of perturbed Files
     """
     # TODO FIXME origInputFiles are unicodes!@!!!!!!!!!!
-    for f in origInputFiles:
-      self.raiseADebug('wtf raven',type(f))
     mooseInp,cubitInp = self.findInps(currentInputFiles)
     origMooseInp,origCubitInp = self.findInps(origInputFiles)
     #split up sampledvars in kwargs between moose and Cubit script
@@ -83,14 +81,15 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     cargs = Kwargs.copy()
     for vname,var in Kwargs['SampledVars'].items():
       if 'alias' in Kwargs.keys():
-        if vname in Kwargs['alias'].keys(): fullname = Kwargs['alias'][var]
-        else: fullname = vname
+        fullname = Kwargs['alias'].get(vname,vname)
+        #if vname in Kwargs['alias'].keys(): fullname = Kwargs['alias'][varname]
+        #else: fullname = vname
       if fullname.split('|')[0]=='Cubit':
         del margs['SampledVars'][vname]
       else:
         del cargs['SampledVars'][vname]
-    newMooseInputs = self.MooseInterface    .createNewInput([mooseInp.getAbsFile()],[origMooseInp.getAbsFile()],samplerType,**mwargs)
-    newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp]             ,[origCubitInp]             ,samplerType,**cwargs)
+    newMooseInputs = self.MooseInterface    .createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
+    newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp],[origCubitInp],samplerType,**cargs)
     #make carbon copy of original input files
     newInputFiles = copy.copy(currentInputFiles)
     #replace old with new perturbed files, in place TODO is that necessary, really? Does order matter?
