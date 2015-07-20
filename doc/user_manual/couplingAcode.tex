@@ -194,7 +194,7 @@ For the example referred to in the previous section, this method would be implem
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: self.raiseAnError(IOError,
+    if not found: raise IOError(
           `None of the input files has one of the following extensions: ` +
            ` `.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
