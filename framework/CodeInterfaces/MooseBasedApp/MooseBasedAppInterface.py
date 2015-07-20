@@ -20,7 +20,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: self.raiseAnError(IOError,'None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
                         ' Outputs/file_base='+ outputfile +
@@ -47,7 +47,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: self.raiseAnError(IOError,'None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
@@ -90,6 +90,6 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     return listDict
 
   def dynamicEventTreeForMooseBasedApp(self,**Kwargs):
-    self.raiseAnError(IOError,'dynamicEventTreeForMooseBasedApp not yet implemented')
+    raise IOError('dynamicEventTreeForMooseBasedApp not yet implemented')
     listDict = []
     return listDict

@@ -109,7 +109,7 @@ class GenericCodeInterface(CodeInterfaceBase):
     #postpend
     todo+=' '+clargs['post']
     executeCommand = (todo)
-    self.raiseADebug('Execution Command: '+str(executeCommand))
+    print('Execution Command: '+str(executeCommand))
     return executeCommand,outfile
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
