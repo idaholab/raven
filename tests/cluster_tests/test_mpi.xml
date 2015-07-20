@@ -1,84 +1,93 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <Simulation>
-<RunInfo>
+  <RunInfo>
     <WorkingDir>.</WorkingDir>
-    <Files>simple_flow_3eqn.i,simple_flow_3eqn_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
     <NumThreads>4</NumThreads>
     <mode>mpi</mode>
     <NumMPI>2</NumMPI>
-    <!--<ParallelCommand></ParallelCommand>
-    <ThreadingCommand></ThreadingCommand>
-    <queueingSoftware></queueingSoftware>
-    <procByNode></procByNode>
-    <numProcByRun></numProcByRun>
-    <totalNumCoresUsed></totalNumCoresUsed>-->
-</RunInfo>
+    <!--
+      <ParallelCommand/>
+      <ThreadingCommand/>
+      <queueingSoftware/>
+      <procByNode/>
+      <numProcByRun/>
+      <totalNumCoresUsed/>
+    -->
+  </RunInfo>
 
-<Models>
-  <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD% </executable></Code>
-</Models>
+  <Files>
+    <Input name="simple_flow_3eqn.i" type="">simple_flow_3eqn.i</Input>
+    <Input name="simple_flow_3eqn_control.py" type="">simple_flow_3eqn_control.py</Input>
+  </Files>
 
-<Distributions>
-    <Normal name='Gauss1'>
-        <mean>1</mean>
-        <sigma>0.001</sigma>
+  <Models>
+    <Code name="MyRAVEN" subType="RAVEN">
+      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD% </executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Normal name="auxBackUpTimeDist">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Normal name="Gauss2">
+      <mean>1</mean>
+      <sigma>0.4</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Triangular name="CladFailureDist">
+      <apex>1</apex>
+      <min>-0.1</min>
+      <max>3</max>
+      <!--
         <lowerBound>0</lowerBound>
+         This is not yet supported
         <upperBound>2</upperBound>
         <adjustement>up</adjustement>
-    </Normal>
-    <Normal name='auxBackUpTimeDist'>
-        <mean>1</mean>
-        <sigma>0.001</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
-    </Normal>    
-    <Normal name='Gauss2'>
-        <mean>1</mean>
-        <sigma>0.4</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
-        <adjustement>scaling</adjustement>
-    </Normal>
-    <Triangular name='CladFailureDist'>
-        <apex>1</apex>
-        <min>-0.1</min>
-        <max>3</max>
-<!--         <lowerBound>0</lowerBound> This is not yet supported
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement>  -->
+      -->
     </Triangular>
-</Distributions>
+  </Distributions>
 
-<Samplers>
-  <MonteCarlo     name='RAVENmc6'>
-    <sampler_init>
-      <limit>6</limit>
-    </sampler_init>
-  </MonteCarlo>
-</Samplers>
-<Steps>
-    <MultiRun name='FirstMRun'>
-        <Input   class='Files'    type=''>simple_flow_3eqn.i</Input>
-        <Input   class='Files'    type=''>simple_flow_3eqn_control.py</Input>
-        <Model   class='Models'   type='Code'      >MyRAVEN</Model>
-        <Sampler class= 'Samplers' type='MonteCarlo'>RAVENmc6</Sampler>
-        <Output  class='Databases' type='HDF5' >testDatabase</Output>
-        <Output  class='DataObjects'    type='HistorySet' >stories</Output>
-    </MultiRun >
-</Steps>
-<Databases>
-    <HDF5 name="testDatabase" type="MC"/> 
-</Databases>
-<DataObjects>
-    <HistorySet name='stories'>
-        <Input>pipe_Area,pipe_Dh</Input>
-        <Output>pipe_Hw,pipe_Tw</Output>
-   </HistorySet>
-</DataObjects>
+  <Samplers>
+    <MonteCarlo name="RAVENmc6">
+      <sampler_init>
+        <limit>6</limit>
+      </sampler_init>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun">
+      <Input class="Files" type="">simple_flow_3eqn.i</Input>
+      <Input class="Files" type="">simple_flow_3eqn_control.py</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
+      <Output class="Databases" type="HDF5">testDatabase</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="testDatabase" type="MC"/>
+  </Databases>
+
+  <DataObjects>
+    <HistorySet name="stories">
+      <Input>pipe_Area,pipe_Dh</Input>
+      <Output>pipe_Hw,pipe_Tw</Output>
+    </HistorySet>
+  </DataObjects>
+
 </Simulation>
-
-
-

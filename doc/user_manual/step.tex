@@ -370,6 +370,8 @@ This step type is used to:
 \begin{itemize}
  \item construct/update a \textit{Database} from a \textit{DataObjects} object, and
    vice versa;
+ \item construct/update a \textit{DataObject} from a
+   \textit{CSV} file contained in a directory;
  \item construct/update a \textit{Database} or a \textit{DataObjects} object from
    \textit{CSV} files contained in a directory;
  \item stream the content of a \textit{Database} or a \textit{DataObjects} out through
@@ -483,17 +485,21 @@ below):
     <Output class='Databases' type='HDF5'>aDatabase</Output>
     <Output class='Databases' type='HDF5'>aDatabase</Output>
   </IOStep>
+  <IOStep name='ConstructDataObjectsFromCSV'>
+    <Input class='Files' type=''>aCSVFile</Input>
+    <Output class='DataObjects' type='PointSet'>aPS</Output>
+  </IOStep>
   <IOStep name='ConstructDataObjectsFromDatabase'>
     <Input class='Databases' type='HDF5'>aDatabase</Input>
     <Input class='Databases' type='HDF5'>aDatabase</Input>
     <Output class='DataObjects'    type='HistorySet'>aHistorySet</Output>
     <Output class='DataObjects'    type='PointSet'>aTPS</Output>
   </IOStep>
-<IOStep name='PushROMIntoFile'>
+  <IOStep name='PushROMIntoFile'>
     <Input class='Models'  type='ROM'>aROM</Input>
     <Output class='Files'  type=''>aFile</Output>
   </IOStep>
-<IOStep name='ImportROMFromFile'>
+  <IOStep name='ImportROMFromFile'>
     <Input class='Files'  type=''>zFile</Input>
     <Output class='Models'  type='ROM'>zROM</Output>
   </IOStep>

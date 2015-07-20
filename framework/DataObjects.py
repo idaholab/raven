@@ -880,7 +880,10 @@ class Point(Data):
     #CSV file will have a header with the input names and output
     #names, and one line of data with the input and output numeric
     #values.
-    filenameLocal = os.path.join(filenameRoot,self.name)
+    if options is not None and 'fileToLoad' in options.keys():
+      name = os.path.join(options['fileToLoad'].getPath(),options['fileToLoad'].getBase())
+    else: name = self.name
+    filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "Point")
     if "metadata" in xmlData:
@@ -901,7 +904,6 @@ class Point(Data):
       self._dataContainer["inputs"][key] = np.array([inoutDict[key]])
     for key in xmlData["outKeys"]:
       self._dataContainer["outputs"][key] = np.array([inoutDict[key]])
-
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """override of the method in the base class DataObjects"""
@@ -975,7 +977,6 @@ class PointSet(Data):
         for key in self._dataContainer['outputs'].keys():
           if (self._dataContainer['outputs'][key].size) != lenMustHave:
             self.raiseAnError(NotConsistentData,'The output parameter value, for key ' + key + ' has not a consistent shape for PointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
-
 
   def _updateSpecializedInputValue(self,name,value,options=None):
     """
@@ -1219,11 +1220,21 @@ class PointSet(Data):
       self._createXMLFile(filenameLocal,'Pointset',inpKeys,outKeys)
 
   def _specializedLoadXML_CSV(self, filenameRoot, options):
+    """
+    Loads a CSV-XML file pair into a PointSet.
+    @ In, filenameRoot, path to files
+    @ In, options, can optionally contain the following:
+        - nameToLoad, filename base (no extension) of CSV-XML pair
+    @Out, None
+    """
     #For Pointset it will create an XML file and one CSV file.
     #The CSV file will have a header with the input names and output
     #names, and multiple lines of data with the input and output
     #numeric values, one line for each input.
-    filenameLocal = os.path.join(filenameRoot,self.name)
+    if options is not None and 'fileToLoad' in options.keys():
+      name = os.path.join(options['fileToLoad'].getPath(),options['fileToLoad'].getBase())
+    else: name = self.name
+    filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "Pointset")
     if "metadata" in xmlData:
@@ -1412,7 +1423,10 @@ class History(Data):
     #filename, and has the output names for a header, a column for
     #time, and the rest of the file is data for different times.
 
-    filenameLocal = os.path.join(filenameRoot,self.name)
+    if options is not None and 'fileToLoad' in options.keys():
+      name = os.path.join(options['fileToLoad'].getPath(),options['fileToLoad'].getBase())
+    else: name = self.name
+    filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "history")
     if "metadata" in xmlData:
@@ -1832,7 +1846,10 @@ class HistorySet(Data):
     #data line in the first CSV and they are named with the
     #filename.  They have the output names for a header, a column
     #for time, and the rest of the file is data for different times.
-    filenameLocal = os.path.join(filenameRoot,self.name)
+    if options is not None and 'fileToLoad' in options.keys():
+      name = os.path.join(options['fileToLoad'].getPath(),options['fileToLoad'].getBase())
+    else: name = self.name
+    filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "HistorySet")
     if "metadata" in xmlData:
