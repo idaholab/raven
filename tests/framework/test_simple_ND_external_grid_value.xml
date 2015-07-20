@@ -2,10 +2,16 @@
 <Simulation>
   <RunInfo>
     <WorkingDir>ND_test_Grid_value</WorkingDir>
-    <Files>lorentzAttractor.py,TriangularExponential2D_scattered.txt,TriangularExponential2D_cartesian.txt,covMatrix.txt</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
+    <Input name="TriangularExponential2D_scattered.txt" type="">TriangularExponential2D_scattered.txt</Input>
+    <Input name="TriangularExponential2D_cartesian.txt" type="">TriangularExponential2D_cartesian.txt</Input>
+    <Input name="covMatrix.txt" type="">covMatrix.txt</Input>
+  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="ND_test_Grid_value/lorentzAttractor" name="PythonModule" subType="">

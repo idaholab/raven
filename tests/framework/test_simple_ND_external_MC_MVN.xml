@@ -2,10 +2,15 @@
 <Simulation>
   <RunInfo>
     <WorkingDir>ND_test_MC_MVN</WorkingDir>
-    <Files>lorentzAttractor_noK.py,covMatrix.txt,CorrelationTest_print.csv</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
+    <Input name="covMatrix.txt" type="">covMatrix.txt</Input>
+    <Input name="CorrelationTest_print.csv" type="">CorrelationTest_print.csv</Input>
+  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="ND_test_MC_MVN/lorentzAttractor_noK" name="PythonModule" subType="">
@@ -26,11 +31,13 @@
     </PostProcessor>
   </Models>
 
-  <Distributions>
-    <MultivariateNormal name="MultivariateNormal_test">
-      <data_filename>covMatrix.txt</data_filename>
-      <working_dir>ND_test_MC_MVN/</working_dir>
-      <mu>0.0 60.0</mu>
+<Distributions>
+    <MultivariateNormal name='MultivariateNormal_test'>
+        <mu>0.0 60.0</mu>
+        <covariance>
+            1.0 0.2
+            0.2 1.0
+        </covariance>
     </MultivariateNormal>
   </Distributions>
 

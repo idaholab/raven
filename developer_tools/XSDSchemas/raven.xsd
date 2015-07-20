@@ -5,6 +5,7 @@
     <xsd:include schemaLocation="Samplers.xsd"/>
     <xsd:include schemaLocation="Models.xsd"/>
     <xsd:include schemaLocation="Functions.xsd"/>
+    <xsd:include schemaLocation="Files.xsd"/>
     <xsd:include schemaLocation="OutstreamManager.xsd"/>
     <xsd:include schemaLocation="Steps.xsd"/>
     <xsd:include schemaLocation="Databases.xsd"/>
@@ -89,8 +90,9 @@
         <xsd:complexType>
             <xsd:all>
                 <xsd:element name="RunInfo"          type="RunInfoData"      minOccurs="1"/>
-                <xsd:element name="Models"           type="ModelsData"       minOccurs="1"/>
                 <xsd:element name="Steps"            type="StepType"         minOccurs="1"/>
+                <xsd:element name="Models"           type="ModelsData"       minOccurs="0"/>
+                <xsd:element name="Files"            type="FilesType"        minOccurs="0"/>
                 <xsd:element name="Samplers"         type="SamplerData"      minOccurs="0"/>
                 <xsd:element name="DataObjects"      type="DataObjectsData"  minOccurs="0"/>
                 <xsd:element name="Distributions"    type="DistributionData" minOccurs="0"/>
@@ -126,7 +128,6 @@
                     <xsd:attribute name="runRelative" type="xsd:string"/>
                 </xsd:complexType>
             </xsd:element>
-            <xsd:element name="Files"              type="xsd:string"  minOccurs="0"/>
             <xsd:element name="Sequence"           type="xsd:string"  minOccurs="1"/>
             <xsd:element name="batchSize"          type="xsd:integer" minOccurs="0" default="1"/>
             <xsd:element name="JobName"            type="xsd:string"  minOccurs="0"/>
