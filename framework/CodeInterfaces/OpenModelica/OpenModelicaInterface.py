@@ -125,7 +125,7 @@ from CodeInterfaceBaseClass import CodeInterfaceBase
 class OpenModelicaInterface(CodeInterfaceBase):
   '''Provides code to interface RAVEN to OpenModelica'''
 
-  def __init__(self, messageHandler):
+  def __init__(self):
     '''Initializes the GenericCode Interface.
        @ In, None
        @Out, None
