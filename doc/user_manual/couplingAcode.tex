@@ -330,7 +330,7 @@ for inFile in inputFiles:
     found = True
     break
 if not found:
-  self.raiseAnError(IOError,'Desired file with type ``mainInput'' not found!')
+  raise IOError('Desired file with type ``mainInput'' not found!')
 \end{lstlisting}
 Using Files \xmlAttr{type} attributes can especially help when multiple input files have the same extension.  For example, say a Code execution command normally has the following appearance on the command line:
 \begin{lstlisting}[language=bash]
@@ -352,11 +352,11 @@ for inFile in inputFiles:
   typesDict[inFile.getType()]=inFile
 # check all the necessary files are there
 if 'base' not in typesDict.keys():
-  self.raiseAnError(IOError,'File type ``base'' not listed in input file!')
+  raise IOError('File type ``base'' not listed in input file!')
 if 'aux' not in typesDict.keys():
-  self.raiseAnError(IOError,'File type ``aux'' not listed in input file!')
+  raise IOError('File type ``aux'' not listed in input file!')
 if 'mesh' not in typesDict.keys():
-  self.raiseAnError(IOError,'File type ``mesh'' not listed in input file!')
+  raise IOError('File type ``mesh'' not listed in input file!')
 mainFile = typesDict['base']
 # do operations on file, etc.
 \end{lstlisting}
