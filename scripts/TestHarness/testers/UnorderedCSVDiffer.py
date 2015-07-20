@@ -99,5 +99,6 @@ class UnorderedCSVDiffer:
     header = f.readline()
     data=[]
     for l,line in enumerate(f):
+      if line.strip()=='': continue #sometimes a newline at and of file)
       data.append(list(float(e) for e in line.strip().split(',')))
     return header.strip(),data
