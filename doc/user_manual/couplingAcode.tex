@@ -194,7 +194,7 @@ For the example referred to in the previous section, this method would be implem
       if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: self.raiseAnError(IOError,
+    if not found: raise IOError(
           `None of the input files has one of the following extensions: ` +
            ` `.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
@@ -317,33 +317,6 @@ def checkForOutputFailure(self, command, output, workingDir):
  
 \subsection{Tools for Developing Code Interfaces}
 To make generating a code interface as simple as possible, there are several tools RAVEN makes available within the Code Interface objects.
-\subsubsection{Message Handler}
-RAVEN's optional internal message and error system is exposed to a Code Interface developer through the \texttt{CodeInterfaceBaseClass}, making it available to all inheriting Interfaces.  While using the internal message handling system is not required, it provides a simple, formatted method for printing messages to \texttt{stdout} and raising errors.
-
-There are four primary methods used to print messages in RAVEN.  They respect the \xmlAttr{verbosity} XML attribute in RAVEN input files (see section \ref{sec:verbosity}), and each takes a string (\texttt{msg}) which is printed to \texttt{stdout}.
-\begin{itemize}
-\item \texttt{self.raiseADebug(msg)}, only prints \texttt{msg} if \xmlAttr{verbosity} is \xmlString{debug}.
-\item \texttt{self.raiseAMessage(msg)}, prints \texttt{msg} if \xmlAttr{verbosity} is \xmlString{all}, or \xmlString{debug}.
-\item \texttt{self.raiseAWarning(msg)}, prints \texttt{msg} if \xmlAttr{verbosity} is \xmlString{quiet}, \xmlString{all}, or \xmlString{debug}.
-\item \texttt{self.raiseAnError(error,msg)}, raises the Python Exception given in \texttt{error} and prints the \texttt{msg} to \texttt{stderr}, regardless of the \xmlAttr{verbosity} level.  \nb If \xmlAttr{verbosity} is \xmlString{debug}, the stack trace is also printed to \texttt{stderr}.
-\end{itemize}
-For example, each of the following is a valid use of the internal message system:
-\begin{lstlisting}[language=python,showstringspaces=false]
-def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
-  if len(inputFiles)==1:
-    self.raiseAWarning('Only one input file was passed in.')
-  found = False
-  self.raiseAMessage('Looking for the correct input file ending in .i')
-  for fileName in inputFiles:
-    if fileName.rsplit('.')[1] == 'i':
-      self.raiseADebug('found it!')
-      found = True
-      myinp = fileName
-      break
-  if not found:
-    self.raiseAnError(IOError,'The desired input file (*.i) was not found!')
-\end{lstlisting}
-%TODO do we want to explain how to set self.printType = `MyAppInterfaceName' for prettier messages?
 
 \subsubsection{File Objects}
 RAVEN has created a wrapper for files within Python in order to carry along some additional information.  This allows the user to tag particular files for reference in the Code Interface, using the \xmlAttr{type} XML attribute in \xmlNode{Files} nodes.  To differentiate, RAVEN file objects will use the capital Files, whereas typical files will use the lowercase files.
@@ -357,7 +330,7 @@ for inFile in inputFiles:
     found = True
     break
 if not found:
-  self.raiseAnError(IOError,'Desired file with type ``mainInput'' not found!')
+  raise IOError('Desired file with type ``mainInput'' not found!')
 \end{lstlisting}
 Using Files \xmlAttr{type} attributes can especially help when multiple input files have the same extension.  For example, say a Code execution command normally has the following appearance on the command line:
 \begin{lstlisting}[language=bash]
@@ -379,11 +352,11 @@ for inFile in inputFiles:
   typesDict[inFile.getType()]=inFile
 # check all the necessary files are there
 if 'base' not in typesDict.keys():
-  self.raiseAnError(IOError,'File type ``base'' not listed in input file!')
+  raise IOError('File type ``base'' not listed in input file!')
 if 'aux' not in typesDict.keys():
-  self.raiseAnError(IOError,'File type ``aux'' not listed in input file!')
+  raise IOError('File type ``aux'' not listed in input file!')
 if 'mesh' not in typesDict.keys():
-  self.raiseAnError(IOError,'File type ``mesh'' not listed in input file!')
+  raise IOError('File type ``mesh'' not listed in input file!')
 mainFile = typesDict['base']
 # do operations on file, etc.
 \end{lstlisting}

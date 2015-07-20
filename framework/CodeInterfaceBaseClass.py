@@ -13,10 +13,9 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
-import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),MessageHandler.MessageUser):
+class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
   """
   Code Interface base class. This class should be the base class for all the code interfaces.
   In this way some methods are forced to be implemented and some automatic checking features
@@ -25,9 +24,6 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),MessageHandle
         of a newer code interface can decide to avoid to inherit from this class if he does not want
         to exploit the automatic checking of the code interface's functionalities
   """
-  def __init__(self,msgHandler):
-    self.messageHandler = msgHandler
-    self.verbosity = self.messageHandler.verbosity
 
   def genCommand(self,inputFiles,executable,flags=None, fileargs=None, preexec=None):
     """

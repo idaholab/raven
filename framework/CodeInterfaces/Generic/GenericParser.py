@@ -14,11 +14,10 @@ import os
 import sys
 import copy
 from utils import toBytes, toStrish, compare
-import MessageHandler
 
-class GenericParser(MessageHandler.MessageUser):
+class GenericParser():
   '''import the user-edited input file, build list of strings with replacable parts'''
-  def __init__(self,messageHandler,inputFiles,prefix='$RAVEN-',postfix='$',defaultDelim=':', formatDelim='|'):
+  def __init__(self,inputFiles,prefix='$RAVEN-',postfix='$',defaultDelim=':', formatDelim='|'):
     '''
     Accept the input file and parse it by the prefix-postfix breaks. Someday might be able to change prefix,postfix,defaultDelim from input file, but not yet.
     @ In, inputFiles, string list of input filenames that might need parsing.
@@ -29,7 +28,6 @@ class GenericParser(MessageHandler.MessageUser):
     @Out, None.
     '''
     self.inputFiles = inputFiles
-    self.messageHandler = messageHandler
     self.prefixKey=prefix
     self.postfixKey=postfix
     self.varPlaces = {} # varPlaces[var][inputFile]
@@ -41,7 +39,7 @@ class GenericParser(MessageHandler.MessageUser):
     for inputFile in self.inputFiles:
       infileName = os.path.basename(inputFile)
       self.segments[infileName] = []
-      if not os.path.exists(inputFile): self.raiseAnError(IOError,'Input file not found: '+inputFile)
+      if not os.path.exists(inputFile): raise IOError('Input file not found: '+inputFile)
       IOfile = open(inputFile,'rb')
       foundSome = False
       seg = ''
@@ -60,8 +58,8 @@ class GenericParser(MessageHandler.MessageUser):
             defval    = var[optionalPos[0]+1:min(optionalPos[1],len(var))] if optionalPos[0] < optionalPos[1] else var[min(optionalPos[0]+1,len(var)):len(var)]
             varformat = var[min(optionalPos[1]+1,len(var)):len(var)] if optionalPos[0] < optionalPos[1] else var[optionalPos[1]+1:min(optionalPos[0],len(var))]
             var = var[0:min(optionalPos)]
-            if var in self.defaults.keys() and optionalPos[0] != sys.maxint: self.raiseAWarning('multiple default values given for variable',var)
-            if var in self.formats.keys() and optionalPos[1] != sys.maxint: self.raiseAWarning('multiple format values given for variable',var)
+            if var in self.defaults.keys() and optionalPos[0] != sys.maxint: print('multiple default values given for variable',var)
+            if var in self.formats.keys() and optionalPos[1] != sys.maxint: print('multiple format values given for variable',var)
             #TODO allow the user to specify take-last or take-first?
             if var not in self.defaults.keys() and optionalPos[0] != sys.maxint : self.defaults[var] = {}
             if var not in self.formats.keys()  and optionalPos[1] != sys.maxint : self.formats[var ] = {}
@@ -70,7 +68,7 @@ class GenericParser(MessageHandler.MessageUser):
               # check if the format is valid
               if not any(formVal in varformat for formVal in self.acceptFormats.keys()):
                 try              : int(varformat)
-                except ValueError: self.raiseAnError(ValueError,"the format specified for wildcard "+ line[start+len(self.prefixKey):end] +
+                except ValueError: raise ValueError("the format specified for wildcard "+ line[start+len(self.prefixKey):end] +
                                                      " is unknown. Available are either a plain integer or the following "+" ".join(self.acceptFormats.keys()))
                 self.formats[var][infileName ]=varformat,int
               else:
@@ -127,7 +125,7 @@ class GenericParser(MessageHandler.MessageUser):
                 else: self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
             else: self.segments[inputFile][place] = self.defaults[var][inputFile]
           elif var in iovars: continue #this gets handled in writeNewInput
-          else: self.raiseAnError(IOError,'Variable '+var+' was not sampled and no default given!')
+          else: raise IOError('Variable '+var+' was not sampled and no default given!')
 
   def writeNewInput(self,infileNames,origNames):
     '''
@@ -149,7 +147,7 @@ class GenericParser(MessageHandler.MessageUser):
         if inputFile.endswith(ext):
           found=True
           break
-      if not found: self.raiseAnError(IOError,'No InputFile with extension '+ext+' found!')
+      if not found: raise IOError('No InputFile with extension '+ext+' found!')
       return index,inputFile
 
     for var in self.varPlaces.keys():
@@ -170,5 +168,5 @@ class GenericParser(MessageHandler.MessageUser):
     #now just write the files.
     for f,fileName in enumerate(infileNames):
       outfile = file(fileName,'w')
-      outfile.writelines(toBytes(''.join(self.segments[origNames[f].getFilename()])))
+      outfile.writelines(toBytes(''.join(self.segments[os.path.basename(origNames[f])])))
       outfile.close()
