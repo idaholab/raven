@@ -5,7 +5,7 @@
 <!-- <Simulation verbosity="silent"> -->
 <Simulation>
   <RunInfo>
-    <WorkingDir>topology</WorkingDir>
+    <WorkingDir>topology2</WorkingDir>
     <Sequence>
       sampleData,
       decomposeValue,
@@ -17,7 +17,7 @@
 
   <Models>
     <ExternalModel name='testFunction' subType=''
-                   ModuleToLoad='./topology/Schwefel'>
+                   ModuleToLoad='./topology2/Schwefel'>
       <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>

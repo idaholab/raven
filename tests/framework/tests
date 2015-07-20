@@ -390,8 +390,8 @@
 [./topology_persistence]
   type = 'RavenFramework'
   input = 'test_topology_persistence.xml'
-  csv = 'topology/segCount.csv topology/segFull.csv topology/segProb.csv topology/segValue.csv'
-  output = 'topology/segCount.xml topology/segFull.xml topology/segProb.xml topology/segValue.xml'
+  csv = 'topology2/segCount.csv topology2/segFull.csv topology2/segProb.csv topology2/segValue.csv'
+  output = 'topology2/segCount.xml topology2/segFull.xml topology2/segProb.xml topology2/segValue.xml'
   required_libraries = 'amsc'
  [../]
 
