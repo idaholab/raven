@@ -1569,9 +1569,30 @@ class LimitSurface(BasePostProcessor):
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
     self.gridEntity        = None
     self.bounds            = None
+    self.jobHandler        = None
     self.transfMethods     = {}
     self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
+
+  def _localWhatDoINeed(self):
+    """
+    This method is a local mirror of the general whatDoINeed method.
+    It is implemented by the samplers that need to request special objects
+    @ In , None, None
+    @ Out, needDict, list of objects needed
+    """
+    LSDict = BasePostProcessor._localWhatDoINeed(self)
+    LSDict['internal'] = [(None,'jobHandler')]
+    return LSDict
+
+  def _localGenerateAssembler(self,initDict):
+    """
+    Generates the assembler.
+    @ In, initDict, dict of init objects
+    @ Out, None
+    """
+    BasePostProcessor._localGenerateAssembler(self, initDict)
+    self.jobHandler = initDict['internal']['jobHandler']
 
   def inputToInternal(self, currentInp):
     """
@@ -1784,8 +1805,8 @@ class LimitSurface(BasePostProcessor):
     """
     cellIds = self.gridEntity.retrieveCellIds([self.listsurfPointNegative,self.listsurfPointPositive],self.name)
     if self.getLocalVerbosity() == 'debug': self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID) for cellID in cellIds]))
-    self.raiseAMessage("Number of cells to be refined are "+str(len(cellIds))+". RefinementSteps = "+str(min([refinementSteps,2]))+"!")
-    self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(min([refinementSteps,2]))})
+    self.raiseAMessage("Number of cells to be refined are "+str(len(cellIds))+". RefinementSteps = "+str(max([refinementSteps,2]))+"!")
+    self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(max([refinementSteps,2]))})
     for nodeName in self.gridEntity.getAllNodesNames(self.name):
       if nodeName != self.name: self.testMatrix[nodeName] = np.zeros(self.gridEntity.returnParameter("gridShape",nodeName))
 
@@ -1848,6 +1869,7 @@ class LimitSurface(BasePostProcessor):
         evaluations[nodeName] = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
         for pointID, coordinate in enumerate(listsurfPoint[nodeName]):
           self.surfPoint[nodeName][pointID, :] = self.gridCoord[nodeName][tuple(coordinate)]
+    
     if self.name != exceptionGrid: self.listsurfPointNegative, self.listsurfPointPositive = listsurfPoint[self.name][:nNegPoints-1],listsurfPoint[self.name][nNegPoints:]
     if merge == True:
       evals = np.hstack(evaluations.values())
