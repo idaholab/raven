@@ -18,13 +18,12 @@ class GenericCodeInterface(CodeInterfaceBase):
      use of the 'clargs', 'fileargs', 'prepend', 'text', and 'postpend' nodes in the input
      XML file.  See base class for more details.
   '''
-  def __init__(self,messageHandler):
+  def __init__(self):
     '''Initializes the GenericCode Interface.
        @ In, None
        @Out, None
     '''
-    CodeInterfaceBase.__init__(self,messageHandler) #The base class doesn't actually implement this, but futureproofing.
-    self.printTag         = 'GENERIC CODE INTERFACE'
+    CodeInterfaceBase.__init__(self) #The base class doesn't actually implement this, but futureproofing.
     self.inputExtensions  = [] #list of extensions for RAVEN to edit as inputs
     self.outputExtensions = [] #list of extensions for RAVEN to gather data from?
     self.execPrefix       = '' #executioner command prefix (e.g., 'python ')
@@ -43,15 +42,15 @@ class GenericCodeInterface(CodeInterfaceBase):
     See base class.  Collects all the clargs and the executable to produce the command-line call.
     '''
     if clargs==None:
-      self.raiseAnError(IOError,'No input file was specified in clargs!')
+      raise IOError('No input file was specified in clargs!')
     #check for output either in clargs or fargs
     if len(fargs['output'])<1 and 'output' not in clargs.keys():
-      self.raiseAnError(IOError,'No output file was specified, either in clargs or fileargs!')
+      raise IOError('No output file was specified, either in clargs or fileargs!')
     #check for duplicate extension use
     usedExt=[]
     for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
       if ext not in usedExt: usedExt.append(ext)
-      else: self.raiseAnError(IOError,'GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
+      else: raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
 
     #check all required input files are there
     inFiles=inputFiles[:]
@@ -63,7 +62,7 @@ class GenericCodeInterface(CodeInterfaceBase):
             found=True
             inFiles.remove(inf)
             break
-        if not found: self.raiseAnError(IOError,'input extension "'+ext+'" listed in input but not in inputFiles!')
+        if not found: raise IOError('input extension "'+ext+'" listed in input but not in inputFiles!')
     #TODO if any remaining, check them against valid inputs
 
     #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
@@ -78,7 +77,7 @@ class GenericCodeInterface(CodeInterfaceBase):
         if inputFile.endswith(ext):
           found=True
           break
-      if not found: self.raiseAnError(IOError,'No InputFile with extension '+ext+'found!')
+      if not found: raise IOError('No InputFile with extension '+ext+'found!')
       return index,inputFile
 
     #prepend
@@ -110,7 +109,7 @@ class GenericCodeInterface(CodeInterfaceBase):
     #postpend
     todo+=' '+clargs['post']
     executeCommand = (todo)
-    self.raiseADebug('Execution Command: '+str(executeCommand))
+    print('Execution Command: '+str(executeCommand))
     return executeCommand,outfile
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
@@ -126,8 +125,8 @@ class GenericCodeInterface(CodeInterfaceBase):
       if inputFile.endswith(self.getInputExtension()):
         indexes.append(index)
         infiles.append(inputFile)
-    parser = GenericParser.GenericParser(self.messageHandler,infiles)
-    parser.modifyInternalDictionary(**Kwargs)#['SampledVars'],**Kwargs['additionalEdits']) #TODO also need to send io vars (input, output filenames)
+    parser = GenericParser.GenericParser(infiles)
+    parser.modifyInternalDictionary(**Kwargs)
     temps = list(str(origInputFiles[i][:]) for i in indexes)
     newInFiles = copy.deepcopy(currentInputFiles)
     for i in indexes:

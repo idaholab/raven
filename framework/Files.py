@@ -34,6 +34,8 @@ class File(BaseType):
     self.__path=''
     self.__base=''
     self.__ext=None
+    self.subtype=None
+    self.perturbable=False
 
   def __del__(self):
     """
@@ -179,6 +181,22 @@ class File(BaseType):
     @Out, string, path/file
     """
     return os.path.normpath(os.path.join(self.getPath(),self.getFilename()))
+
+  def getType(self):
+    """Retrieves the subtype set in the XML (UserGenerated) or by the developer.
+       Note that this gives the subtype, since type is reserved for internal RAVEN use.
+       @ In, None
+       @ Out, string, subtype if not None, else ''
+    """
+    if self.subtype is None: return ''
+    else: return self.subtype
+
+  def getPerturbable(self):
+    """Retrieves the "perturbable" boolean attribute.  Defaults to True for UserGenerated, False for others.
+       @ In, None
+       @ Out, boolean, perturbable
+    """
+    return self.perturbable
 
   # setters #
   def setFilename(self,filename):
