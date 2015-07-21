@@ -5,6 +5,7 @@ Created on July 10, 2013
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
 import warnings
+from __builtin__ import None
 warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
@@ -845,6 +846,90 @@ class ComparisonStatistics(BasePostProcessor):
       ret['omega'] = omega
       ret['xi'] = xi
       return ret
+#
+#
+#
+class DataConversion(BasePostProcessor):
+  """
+  Class which converts dataObjects into dataObjects
+  """
+  def __init__(self, messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
+    BasePostProcessor.__init__(self, messageHandler)
+    self.paramters = ['all']
+    self.inObj = None
+    self.workingDir = None
+    self.printTag = 'POSTPROCESSOR DATA_CONVERSION'
+    
+    self.function = None
+    self.sampling = {}
+    
+    
+  def inputToInternal(self, currentInput):
+    """
+     Method to convert an input object into the internal format that is understandable by this pp.
+     @ In, currentInput, object, an object that needs to be converted
+     @ Out, None, the resulting converted object is stored as an attribute of this class
+    """
+    return [(currentInput)]
+
+  def initialize(self, runInfo, inputs, initDict):
+    """
+     Method to initialize the PrintCSV pp. In here, the workingdir is collected and eventually created
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+  
+  def _localReadMoreXML(self, xmlNode):
+    """
+    Function to read the portion of the xml input that belongs to this specialized class
+    and initialize some stuff based on the inputs got
+    @ In, xmlNode    : Xml element node
+    @ Out, None
+    """
+    for child in xmlNode:
+      if child.tag == 'function':
+        self.function = child.text
+        if self.function != 'HS2HS':
+          self.raiseAnError(IOError, 'DataConversion Post-Processor: function' + str(self.function) + 'is not valid')
+      elif child.tag == 'sampling':
+        self.sampling['n_samples'] = child.text
+        self.sampling['type'] = child.attrib('type')
+        if child.attrib('type') == 'derivative':
+          self.sampling['outVariables'] = child.attrib('outVariables')
+      else:
+        self.raiseAnError(IOError, 'DataConversion Post-Processor: node' + str(child.tag) + 'is not valid')
+
+  def run(self, Input):
+    """
+     This method executes the postprocessor action.
+     @ In,  Input, object, object contained the data to process. (inputToInternal output)
+     @ Out, dictionary, Dictionary containing the evaluated data
+    """
+    Input = self.inputToInternal(InputIn)
+    outputDict = {}
+    
+    if self.function == 'HS2HS':
+      if self.sampling['type'] == 'uniform':
+        []
+      elif self.sampling['type'] == 'derivative':
+        []
+      else:  
+        self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type' + str(self.sampling['type']) + 'is not valid') 
+        
+  def collectOutput(self, finishedjob, output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob: A JobHandler object that is in charge of running this
+                         post-processor
+      @ In, output: The object where we want to place our computed results
+      @ Out, None  
+    """                                 
 #
 #
 #

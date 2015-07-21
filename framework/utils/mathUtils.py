@@ -192,6 +192,21 @@ def calculateStats(data):
   ret["skewness"] = skewness
   ret["kurtosis"] = kurtosis
   return ret
+
+def uniformTempInterp(numSamples, time, vars):
+  t_min=time[0,0]
+  t_max=time[0,time.size]
+  
+  dt=(t_max-t_min)/numSamples
+  
+  newTime=zeros((1,5))
+  
+  for i in newTime:
+    newTime[0,i]=i
+    
+  
+  return newTime, newVars
+
 #
 # I need to convert it in multi-dimensional
 # Not a priority yet. Andrea
