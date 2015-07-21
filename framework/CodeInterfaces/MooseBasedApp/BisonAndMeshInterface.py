@@ -56,15 +56,15 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
       raise IOError('No preexec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...')
     mooseInp,cubitInp = self.findInps(inputFiles)
     #get the cubit part
-    cubitCommand,cubitOut = self.BisonMeshInterface.generateCommand(self,cubitInp,preexec,clargs,fargs)
+    cubitCommand,cubitOut = self.BisonMeshInterface.generateCommand([cubitInp],preexec,clargs,fargs)
     #get the moose part
-    mooseCommand,mooseOut = self.MooseInterface.generateCommand(self,mooseInp,executable,clargs,fargs)
+    mooseCommand,mooseOut = self.MooseInterface.generateCommand([mooseInp],executable,clargs,fargs)
     #append the new mesh file to the command for moose
     mooseCommand+=' Mesh/file='+cubitOut+'.e'
     #combine them
-    executeCommand = ' && '.join(cubitCommand,mooseCommand)
+    executeCommand = ' && '.join([cubitCommand,mooseCommand])
     print('\n\n\nExecutionCommand:\n',executeCommand,'\n\n\n\n')
-    return executeCommand,(cubitOut,mooseOut)
+    return executeCommand,mooseOut #can only send one...#(cubitOut,mooseOut)
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
     """Generates new perturbed input files.
@@ -93,11 +93,14 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
         del cargs['SampledVars'][vname]
     newMooseInputs = self.MooseInterface    .createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
     newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp],[origCubitInp],samplerType,**cargs)
+    print('fromMoose:',newMooseInputs)
+    print('fromCubit:',newCubitInputs)
     #make carbon copy of original input files
     newInputFiles = copy.copy(currentInputFiles)
     #replace old with new perturbed files, in place TODO is that necessary, really? Does order matter?
     #  if order doesn't matter, can loop through and check for type else copy directly
     newInputFiles[newInputFiles.index(mooseInp)] = newMooseInputs[0]
     newInputFiles[newInputFiles.index(cubitInp)] = newCubitInputs[0]
+    print('New input files:',newInputFiles)
     return newInputFiles
 

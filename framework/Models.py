@@ -740,7 +740,8 @@ class Code(Model):
       shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.oriInputFiles = []
     for i in range(len(inputFiles)):
-      self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i].getAbsFile())[1]))
+      self.oriInputFiles.append(inputFiles[i])
+      self.oriInputFiles[-1].setPath(self.workingDir)
     self.currentInputFiles        = None
     self.outFileRoot              = None
 
@@ -752,7 +753,6 @@ class Code(Model):
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
     #  objects.  However, this might require some updating of many Code Interfaces as well.
     for index, inputFile in enumerate(currentInput):
-      self.raiseAWarning('inputfile,codegetinp:',inputFile.getExt(),'|',self.code.getInputExtension())
       if '.'+inputFile.getExt() in self.code.getInputExtension():
         found = True
         break
@@ -764,17 +764,17 @@ class Code(Model):
 
   def run(self,inputFiles,jobHandler):
     """append a run at the externalRunning list of the jobHandler"""
-    self.currentInputFiles = inputFiles[0]
+    self.currentInputFiles = list(self.oriInputFiles[inputFiles[0].index(i)] for i in inputFiles[0])
     executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs, preexec=self.preexec)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
-      if inputFile.endswith(self.code.getInputExtension()):
+      if '.'+inputFile.getExt() in self.code.getInputExtension():
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
-    self.raiseAMessage('job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
+    self.raiseAMessage('job "'+ self.currentInputFiles[index].getBase() +'" submitted!')
 
   def collectOutput(self,finisishedjob,output):
     """collect the output file in the output object"""

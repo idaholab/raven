@@ -17,12 +17,12 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     '''seek which is which of the input files and generate According the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
-      if inputFile.endswith(self.getInputExtension()):
+      if '.'+inputFile.getExt() in self.getInputExtension():
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
+    outputfile = 'out~'+inputFiles[index].getBase()
+    executeCommand = (executable+' -i '+inputFiles[index].getFilename() +
                         ' Outputs/file_base='+ outputfile +
                         ' Outputs/interval=1'+ ' Outputs/output_initial=true' + ' Outputs/csv=true')
 
@@ -41,6 +41,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['SparseGridCollocation'] = self.pointSamplerForMooseBasedApp
+    print('WARNING: Sampler type not found in MooseBasedApp Interface dictionaries; continuing with default...')
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       inputFile = inputFile.getAbsFile()
@@ -51,7 +52,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
-    temp = str(oriInputFiles[index][:])
+    temp = str(oriInputFiles[index])[:]
     newInputFiles = copy.copy(currentInputFiles)
     #TODO fix this? storing unwieldy amounts of data in 'prefix'
     if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
