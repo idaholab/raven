@@ -18,10 +18,12 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
   """This class provides the means to generate a stochastic-input-based mesh using the MOOSE
      standard Cubit python script in addition to uncertain inputs for the MOOSE app."""
 
-  def __init__(self,msgHandler):
-    CodeInterfaceBase.__init__(self,msgHandler)
-    self.MooseInterface = MooseBasedAppInterface(msgHandler)
-    self.BisonMeshInterface = BisonMeshScriptInterface(msgHandler)
+  def __init__(self):
+    CodeInterfaceBase.__init__(self)
+    self.MooseInterface     = MooseBasedAppInterface()
+    self.BisonMeshInterface = BisonMeshScriptInterface()
+    self.MooseInterface    .addDefaultExtension()
+    self.BisonMeshInterface.addDefaultExtension()
 
   def findInps(self,inputFiles):
     """Locates the input files for Moose, Cubit
@@ -37,8 +39,8 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
       elif inFile.subtype == 'BisonMeshInput':
         foundCubitInp = True
         cubitInp = inFile
-    if not foundMooseInp: self.raiseAnError(IOError,'None of the input Files has the type "MooseInput"! CubitMoose interface requires one.')
-    if not foundCubitInp: self.raiseAnError(IOError,'None of the input Files has the type "CubitInput"! CubitMoose interface requires one.')
+    if not foundMooseInp: raise IOError('None of the input Files has the type "MooseInput"! CubitMoose interface requires one.')
+    if not foundCubitInp: raise IOError('None of the input Files has the type "CubitInput"! CubitMoose interface requires one.')
     return mooseInp,cubitInp
 
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preexec = None):
@@ -51,7 +53,7 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
        @Out, (string, string), execution command and output filename
     """
     if preexec is None:
-      self.raiseAnError(IOError, 'No preexec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...')
+      raise IOError('No preexec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...')
     mooseInp,cubitInp = self.findInps(inputFiles)
     #get the cubit part
     cubitCommand,cubitOut = self.BisonMeshInterface.generateCommand(self,cubitInp,preexec,clargs,fargs)
@@ -61,7 +63,7 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     mooseCommand+=' Mesh/file='+cubitOut+'.e'
     #combine them
     executeCommand = ' && '.join(cubitCommand,mooseCommand)
-    self.raiseADebug('\n\n\nExecutionCommand:\n',executeCommand,'\n\n\n\n')
+    print('\n\n\nExecutionCommand:\n',executeCommand,'\n\n\n\n')
     return executeCommand,(cubitOut,mooseOut)
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):

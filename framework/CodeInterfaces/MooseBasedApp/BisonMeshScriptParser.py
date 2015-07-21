@@ -19,10 +19,9 @@ from utils import toBytes, toStrish, compare
 class BisonMeshScriptParser():
   '''Import Bison Mesh Script input, provide methods to add/change entries and print input back'''
 
-  def __init__(self,messageHandler,inputFile):
+  def __init__(self,inputFile):
     '''Open and read file content into a dictionary'''
     self.printTag = 'BISONMESHSCRIPT_PARSER'
-    self.messageHandler = messageHandler
     if not os.path.exists(inputFile.getAbsFile()): raise IOError('Input file not found: '+inputFile.getAbsFile())
     # Initialize file dictionary, storage order, and internal variables
     self.AllVarDict = collections.OrderedDict()

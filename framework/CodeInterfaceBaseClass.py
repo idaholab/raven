@@ -24,6 +24,8 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
         of a newer code interface can decide to avoid to inherit from this class if he does not want
         to exploit the automatic checking of the code interface's functionalities
   """
+  def __init__(self):
+    self.inputExtensions = []
 
   def genCommand(self,inputFiles,executable,flags=None, fileargs=None, preexec=None):
     """

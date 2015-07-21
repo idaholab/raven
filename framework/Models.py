@@ -614,6 +614,7 @@ class Code(Model):
   def __init__(self):
     Model.__init__(self)
     self.executable         = ''   #name of the executable (abs path)
+    self.preexec            = ''   #name of the pre-executable, if any
     self.oriInputFiles      = []   #list of the original input files (abs path)
     self.workingDir         = ''   #location where the code is currently running
     self.outFileRoot        = ''   #root to be used to generate the sequence of output files
@@ -636,6 +637,8 @@ class Code(Model):
     for child in xmlNode:
       if child.tag =='executable':
         self.executable = str(child.text)
+      if child.tag =='preexec':
+        self.preexec = str(child.text)
       elif child.tag =='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
@@ -687,6 +690,12 @@ class Code(Model):
     if os.path.exists(abspath):
       self.executable = abspath
     else: self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
+    if self.preexec is not None:
+      if '~' in self.preexec: self.preexec = os.path.expanduser(self.preexec)
+      abspath = os.path.abspath(self.preexec)
+      if os.path.exists(abspath):
+        self.preexec = abspath
+      else: self.raiseAMessage('not found preexec '+self.preexec,'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
     self.code.readMoreXML(xmlNode)
     self.code.setInputExtension(list(a for b in (c for c in self.clargs['input'].values()) for a in b))
@@ -756,7 +765,7 @@ class Code(Model):
   def run(self,inputFiles,jobHandler):
     """append a run at the externalRunning list of the jobHandler"""
     self.currentInputFiles = inputFiles[0]
-    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs)
+    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs, preexec=self.preexec)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):

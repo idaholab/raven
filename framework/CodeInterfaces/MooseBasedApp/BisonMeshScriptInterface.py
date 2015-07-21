@@ -31,12 +31,12 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     return executeCommand,outputfile
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
-    import ParserBisonMeshScript
+    import BisonMeshScriptParser
     for index, inputFile in enumerate(oriInputFiles):
       if inputFile.endswith(self.getInputExtension()):
         break
     moddict = self.expandVarNames(**Kwargs)
-    parser = ParserBisonMeshScript.ParserBisonMeshScript(currentInputFiles[index])
+    parser = BisonMeshScriptParser.BisonMeshScriptParser(currentInputFiles[index])
     parser.modifyInternalDictionary(**Kwargs['SampledVars'])
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.copy(currentInputFiles)
