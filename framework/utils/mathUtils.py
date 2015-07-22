@@ -210,7 +210,7 @@ def uniformTempInterp(numSamples, time, vars):
     pivot=np.searchsorted(time,i)
     
     for j in enumerate(c):
-      newVars[i,j] = 
+      newVars[i,j] = (vars[pivot+1,j]-vars[pivot,j])/(time[pivot+1]-time[pivot]) * (i-time[pivot]) + vars[pivot,j]
   
   return newTime, newVars
 
