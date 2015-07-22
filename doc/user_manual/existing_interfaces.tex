@@ -107,29 +107,6 @@ Where,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{RELAP5 Interface}
 
-\subsubsection{Files}
-In the \xmlNode{Files} section, as specified before, all of the files needed for
-the code to run should be specified.
-%
-In the case of RELAP5, the files typically needed are:
-\begin{itemize}
-  \item RELAP5 Input file
-  \item Table file or files that RELAP needs to run
-  \item The Relap5 executable
-\end{itemize}
-Example:
-\begin{lstlisting}[style=XML]
-<Files>X10.i,tpfh2o,r5executable.x</Files>
-\end{lstlisting}
-
-It is a good practice to put inside the working directory all of these files and
-also:
-\begin{itemize}
-  \item the RAVEN input file
-  \item the license for the executable of RELAP5
-\end{itemize}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \subsubsection{Sequence}
 In the \xmlNode{Sequence} section, the names of the steps declared in the
 \xmlNode{Steps} block should be specified.
@@ -152,7 +129,6 @@ look like the example below:
 \begin{lstlisting}[style=XML]
 <RunInfo>
   <WorkingDir>~/working_dir</WorkingDir>
-  <Files>inputfilerelap.i,tpfh2o,executablerelap5.x</Files>
   <Sequence>Grid_Sampler,MC_Sampler</Sequence>
   <batchSize>1</batchSize>
   <mode>mpi</mode>
@@ -161,6 +137,28 @@ look like the example below:
 </RunInfo>
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+In the \xmlNode{Files} section, as specified before, all of the files needed for
+the code to run should be specified.
+%
+In the case of RELAP5, the files typically needed are:
+\begin{itemize}
+  \item RELAP5 Input file
+  \item Table file or files that RELAP needs to run
+  \item The Relap5 executable
+\end{itemize}
+Example:
+\begin{lstlisting}[style=XML]
+<Files>inputfilerelap.i,tpfh2o,executablerelap5.x</Files>
+\end{lstlisting}
+
+It is a good practice to put inside the working directory all of these files and
+also:
+\begin{itemize}
+  \item the RAVEN input file
+  \item the license for the executable of RELAP5
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
 For the \xmlNode{Models} block here is a standard example of how it would look
 when using RELAP5 as the external model:
@@ -763,10 +761,10 @@ the BouncingBall model previously mentioned on the Windows operating system, the
 <Simulation>
   <RunInfo>
       ...
-    <Files>BouncingBall_init.xml,BouncingBall.exe</Files>
-      ...
   </RunInfo>
-    ...
+  ...
+  <Files>BouncingBall_init.xml,BouncingBall.exe</Files>
+  ...
 </Simulation>
 \end{lstlisting}
 \subsubsection{Models}
