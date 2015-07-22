@@ -918,7 +918,7 @@ class DataConversion(BasePostProcessor):
       if self.sampling['type'] == 'uniform':
         []
       elif self.sampling['type'] == 'derivative':
-        []
+        self.raiseAnError(IOError, 'DataConversion Post-Processor: derivative type not yet implemented')
       else:  
         self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type' + str(self.sampling['type']) + 'is not valid') 
         
