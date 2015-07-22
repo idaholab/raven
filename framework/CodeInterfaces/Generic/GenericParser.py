@@ -37,13 +37,15 @@ class GenericParser():
     self.segments  = {} # segments[inputFile]
     self.printTag = 'GENERIC_PARSER'
     for inputFile in self.inputFiles:
-      infileName = os.path.basename(inputFile)
+      infileName = inputFile.getFilename()#os.path.basename(inputFile)
       self.segments[infileName] = []
-      if not os.path.exists(inputFile): raise IOError('Input file not found: '+inputFile)
-      IOfile = open(inputFile,'rb')
+      if not os.path.exists(inputFile.getAbsFile()): raise IOError('Input file not found: '+inputFile)
+      #IOfile = open(inputFile,'rb')
       foundSome = False
       seg = ''
-      lines = IOfile.readlines()
+      print('inputFile',type(inputFile))
+      lines = inputFile.readlines()
+      inputFile.close()
       for line in lines:
         while self.prefixKey in line and self.postfixKey in line:
           self.segments[infileName].append(toBytes(seg))

@@ -122,13 +122,13 @@ class GenericCodeInterface(CodeInterfaceBase):
     infiles=[]
     #FIXME possible danger here from reading binary files
     for index,inputFile in enumerate(currentInputFiles):
-      inputFile = inputFile.getAbsFile()
-      if inputFile.endswith(self.getInputExtension()):
+      #inputFile = inputFile.getAbsFile()
+      if '.'+inputFile.getExt() in self.getInputExtension():
         indexes.append(index)
         infiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles)
     parser.modifyInternalDictionary(**Kwargs)
-    temps = list(str(origInputFiles[i])[:] for i in indexes)
+    #temps = list(str(origInputFiles[i])[:] for i in indexes)
     newInFiles = copy.deepcopy(currentInputFiles)
     for i in indexes:
       newInFiles[i].setFilename(Kwargs['prefix']+'~'+newInFiles[i].getFilename())

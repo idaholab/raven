@@ -301,11 +301,12 @@ class File(BaseType):
     if size is None: return self.__file.readline()
     else: return self.__file.readline(size)
 
-  def readlines(self,sizehint=None):
+  def readlines(self,sizehint=None,mode='r'):
     """Provides access to the python file method of the same name.
       @  In, sizehint, bytes to read up to
       @ Out, list, lines read
     """
+    if not self.isOpen(): self.open(mode)
     if sizehint is None: return self.__file.readlines()
     else: return self.__file.readlines(sizehint)
 
