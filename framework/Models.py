@@ -614,7 +614,7 @@ class Code(Model):
   def __init__(self):
     Model.__init__(self)
     self.executable         = ''   #name of the executable (abs path)
-    self.preexec            = ''   #name of the pre-executable, if any
+    self.preexec            = None   #name of the pre-executable, if any
     self.oriInputFiles      = []   #list of the original input files (abs path)
     self.workingDir         = ''   #location where the code is currently running
     self.outFileRoot        = ''   #root to be used to generate the sequence of output files
@@ -764,10 +764,13 @@ class Code(Model):
 
   def run(self,inputFiles,jobHandler):
     """append a run at the externalRunning list of the jobHandler"""
-    self.currentInputFiles = list(self.oriInputFiles[inputFiles[0].index(i)] for i in inputFiles[0])
+    #TODO this is the problem step -> we're not preserving the prefixes!
+    #FIXME createNewInput should return Files objects, not names!
+    self.currentInputFiles = inputFiles #list(self.oriInputFiles[inputFiles[0].index(i)] for i in inputFiles[0])
     executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs, preexec=self.preexec)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
     found = False
+    self.raiseADebug(self.currentInputFiles)
     for index, inputFile in enumerate(self.currentInputFiles):
       if '.'+inputFile.getExt() in self.code.getInputExtension():
         found = True

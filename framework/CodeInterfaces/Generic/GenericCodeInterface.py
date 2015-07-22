@@ -53,12 +53,13 @@ class GenericCodeInterface(CodeInterfaceBase):
       else: raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
 
     #check all required input files are there
-    inFiles=inputFiles[:]
+    inFiles=list(inputFiles[0])
     for exts in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
       for ext in exts:
         found=False
-        for inf in inputFiles:
-          if inf.endswith(ext):
+        for inf in inputFiles[0]:
+          print('inf:',type(inf),inf) #why is this a string?
+          if '.'+inf.getExt() == ext:
             found=True
             inFiles.remove(inf)
             break
@@ -72,12 +73,12 @@ class GenericCodeInterface(CodeInterfaceBase):
       @ In, fileList, the string list of filenames to pick from.
       @Out, ext, the string extension that the desired filename ends with.
       '''
+      found = False
       for index,inputFile in enumerate(fileList):
-        # already handled inputFile = inputFile.getAbsFile()
-        if inputFile.endswith(ext):
+        if '.'+inputFile.getExt() == ext:
           found=True
           break
-      if not found: raise IOError('No InputFile with extension '+ext+'found!')
+      if not found: raise IOError('No InputFile with extension '+ext+' found!')
       return index,inputFile
 
     #prepend
@@ -95,12 +96,12 @@ class GenericCodeInterface(CodeInterfaceBase):
         continue
       todo += ' '+flag
       for ext in exts:
-        idx,fname = getFileWithExtension(inputFiles,ext)
-        todo+=' '+fname
+        idx,fname = getFileWithExtension(inputFiles[0],ext)
+        todo+=' '+fname.getFilename()
         if index == None: index = idx
     #outputs
     #FIXME I think if you give multiple output flags this could result in overwriting
-    self.caseName = os.path.split(inputFiles[index])[1].split('.')[0]
+    self.caseName = inputFiles[0][index].getBase()
     outfile = 'out~'+self.caseName
     if 'output' in clargs.keys():
       todo+=' '+clargs['output']+' '+outfile
@@ -127,10 +128,11 @@ class GenericCodeInterface(CodeInterfaceBase):
         infiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles)
     parser.modifyInternalDictionary(**Kwargs)
-    temps = list(str(origInputFiles[i][:]) for i in indexes)
+    temps = list(str(origInputFiles[i])[:] for i in indexes)
     newInFiles = copy.deepcopy(currentInputFiles)
     for i in indexes:
-      newInFiles[i] = os.path.join(os.path.split(temps[i])[0],Kwargs['prefix']+'~'+os.path.split(temps[i])[1])
-    parser.writeNewInput(list(newInFiles[i] for i in indexes),list(origInputFiles[i] for i in indexes))
+      newInFiles[i].setFilename(Kwargs['prefix']+'~'+newInFiles[i].getFilename())
+      #newInFiles[i] = os.path.join(os.path.split(temps[i])[0],Kwargs['prefix']+'~'+os.path.split(temps[i])[1])
+    parser.writeNewInput(newInFiles,origInputFiles)
     #except TypeError: parser.writeNewInput(list(newInFiles[i] for i in indexes))
     return newInFiles

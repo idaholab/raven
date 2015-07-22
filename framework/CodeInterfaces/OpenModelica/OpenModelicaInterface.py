@@ -166,7 +166,7 @@ class OpenModelicaInterface(CodeInterfaceBase):
     return executeCommand, outputfile
 
   def _isValidInput(self, inputFile):
-    if inputFile.endswith(('.xml', '.XML', '.Xml')):
+    if inputFile.getExt() in ('xml', 'XML', 'Xml'):
       return True
     return False
 
@@ -190,7 +190,7 @@ class OpenModelicaInterface(CodeInterfaceBase):
 
     # Figure out the new file name and put it into the proper place in the return list
     newInputFiles = copy.copy(currentInputFiles)
-    originalPath = str(oriInputFiles[index][:])
+    originalPath = str(oriInputFiles[index])[:]
     newPath = os.path.join(os.path.split(originalPath)[0],
                            "OM" + Kwargs['prefix'] + os.path.split(originalPath)[1])
     newInputFiles[index] = newPath

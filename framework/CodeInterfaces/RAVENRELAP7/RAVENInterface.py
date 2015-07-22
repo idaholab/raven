@@ -24,15 +24,15 @@ class RAVENInterface(CodeInterfaceBase):
     '''seek which is which of the input files and generate According the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
-      if inputFile.endswith(self.getInputExtension()):
+      if '.'+inputFile.getExt() in self.getInputExtension():
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
 
-    outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
+    outputfile = 'out~'+inputFiles[index].getBase()
     if clargs: precommand = executable + clargs['text']
     else     : precommand = executable
-    executeCommand = (precommand + ' -i '+os.path.split(inputFiles[index])[1] +
+    executeCommand = (precommand + ' -i '+inputFiles[index].getFilename() +
                       ' Outputs/file_base='+ outputfile +
                       ' Outputs/interval=1'+
                       ' Outputs/csv=false' +
