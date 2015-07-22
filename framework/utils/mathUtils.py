@@ -193,17 +193,24 @@ def calculateStats(data):
   ret["kurtosis"] = kurtosis
   return ret
 
+
 def uniformTempInterp(numSamples, time, vars):
-  t_min=time[0,0]
-  t_max=time[0,time.size]
+  t_min=time[0]
+  t_max=time[time.size-1]
   
   dt=(t_max-t_min)/numSamples
   
-  newTime=zeros((1,5))
+  newTime = np.arange(t_min,t_max+dt,dt)
   
-  for i in newTime:
-    newTime[0,i]=i
+  r,c = vars.shape  
+  
+  newVars=np.zeros((r,c))
+  
+  for i in nditer(newTime):
+    pivot=np.searchsorted(time,i)
     
+    for j in enumerate(c):
+      newVars[i,j] = 
   
   return newTime, newVars
 
