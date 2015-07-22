@@ -149,7 +149,12 @@ In the case of RELAP5, the files typically needed are:
 \end{itemize}
 Example:
 \begin{lstlisting}[style=XML]
-<Files>inputfilerelap.i,tpfh2o,executablerelap5.x</Files>
+<Files>
+  <Input name='inputrelap.i' type=''>inputfilerelap.i</Input>
+  <Input name='tpfh2o' type=''>tpfh2o</Input>
+  <Input name='r5executable.x' type=''>r5executabler.x</Input>
+  <Input name='X10.i' type=''>X10.i</Input>
+</Files>
 \end{lstlisting}
 
 It is a good practice to put inside the working directory all of these files and
@@ -367,7 +372,10 @@ In the case of RELAP7, the files typically needed are the following:
 \end{itemize}
 Example:
 \begin{lstlisting}[style=XML]
-<Files>nat_circ,control_logic.py</Files>
+<Files>
+  <Input name='nat_circ' type=''>nat_circ</Input>
+  <Input name='control_logic.py' type='''>control_logic.py</Input>
+</Files>
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
@@ -453,7 +461,12 @@ In the case of any MooseBasedApp, the files typically needed are the following:
 \end{itemize}
 Example:
 \begin{lstlisting}[style=XML]
-<Files>mooseBasedApp.i,0020_mesh.cpr,0020.xdr.0000,0020.rd-0</Files>
+<Files>
+  <Input name='mooseBasedApp.i' type=''>mooseBasedApp.i</Input>
+  <Input name='0020_mesh.cpr' type=''>0020_mesh.cpr</Input>
+  <Input name='0020.xdr.0000'>0020.xdr.0000</Input>
+  <Input name='0020.rd-0'>0020.rd-0</Input>
+</Files>
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
@@ -760,10 +773,13 @@ the BouncingBall model previously mentioned on the Windows operating system, the
 \begin{lstlisting}[style=XML]
 <Simulation>
   <RunInfo>
-      ...
+    ...
   </RunInfo>
   ...
-  <Files>BouncingBall_init.xml,BouncingBall.exe</Files>
+  <Files>
+    <Input name='BouncingBall_init.xml' type=''>BouncingBall_init.xml</Input>
+    <Input name='BouncingBall.exe' type=''>BouncingBall.exe</Input>
+  </Files>
   ...
 </Simulation>
 \end{lstlisting}
