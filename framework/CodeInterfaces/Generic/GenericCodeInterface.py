@@ -54,7 +54,7 @@ class GenericCodeInterface(CodeInterfaceBase):
 
     #check all required input files are there
     print('genInt genCom inpFile',type(inputFiles),inputFiles)
-    inFiles=inputFiles[:]#FIXME this shouldn't be postpended with [0]
+    inFiles=inputFiles[:]
     for exts in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
       for ext in exts:
         found=False
@@ -129,11 +129,8 @@ class GenericCodeInterface(CodeInterfaceBase):
         infiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles)
     parser.modifyInternalDictionary(**Kwargs)
-    #temps = list(str(origInputFiles[i])[:] for i in indexes)
     newInFiles = copy.deepcopy(currentInputFiles)
     for i in indexes:
       newInFiles[i].setFilename(Kwargs['prefix']+'~'+newInFiles[i].getFilename())
-      #newInFiles[i] = os.path.join(os.path.split(temps[i])[0],Kwargs['prefix']+'~'+os.path.split(temps[i])[1])
     parser.writeNewInput(newInFiles,origInputFiles)
-    #except TypeError: parser.writeNewInput(list(newInFiles[i] for i in indexes))
     return newInFiles

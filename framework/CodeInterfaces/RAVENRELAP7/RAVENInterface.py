@@ -66,8 +66,8 @@ class RAVENInterface(CodeInterfaceBase):
     self._samplersDictionary['StochasticCollocation'   ] = self.stochasticCollocationForRAVEN
     found = False
     for index, inputFile in enumerate(currentInputFiles):
-      inputFile = inputFile.getAbsFile()
-      if inputFile.endswith(self.getInputExtension()):
+      print('ext:',inputFile.getExt())
+      if '.'+inputFile.getExt() in self.getInputExtension():
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
