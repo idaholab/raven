@@ -15,6 +15,12 @@
   prereq = simple_framework
  [../]
 
+ [./external_xml]
+   type = 'RavenFramework'
+   input = 'test_External_XML.xml'
+   output = 'ExternalXMLTest/outGrid_dump.xml'
+   csv = 'ExternalXMLTest/outGrid_dump.csv'
+ [../]
 
  [./test_output]
   type = 'RavenFramework'
@@ -569,4 +575,6 @@
    output = 'RedundantInputs/mc_out.xml RedundantInputs/grid_out.xml'
    csv = 'RedundantInputs/mc_out.csv RedundantInputs/grid_out.csv'
  [../]
+
+
 []

@@ -34,7 +34,7 @@ The main input blocks are as follows:
   \item \textbf{\textless Steps\textgreater}: Combines other blocks to detail a
   step in the RAVEN workflow including I/O and computations to be performed.
   %
-  \item \textbf{\textless Data\textgreater}: Specifies internal data objects
+  \item \textbf{\textless DataObjects\textgreater}: Specifies internal data objects
   used by RAVEN.
   %
   \item \textbf{\textless Databases\textgreater}: Lists the HDF5 databases used
@@ -103,3 +103,43 @@ Examples of verbosity usage are included in many examples throughout this manual
 At the \xmlNode{Simulation} node, global variables can be set, including \xmlAttr{verbosity}.  In addition, the
 attribute \xmlAttr{printTimeStamps} can be used to either enable or disable prepending RAVEN output with time stamps
 by setting it to \xmlString{true} or \xmlString{false}.
+
+
+\subsection{External Input Files}
+The \xmlNode{ExternalXML} node defines external input file (XML format) that can be used to replace any XML nodes 
+under \xmlNode{Simulation} in the RAVEN input file. This node allows a user to load any external input file that contains 
+the required XML nodes into the RAVEN input file. Each \xmlNode{ExternalXML} node has the following attributes:
+\begin{itemize}
+\item \xmlAttr{node}, \xmlDesc{required string attribute}, user-defined XML node of RAVEN input file. 
+\item \xmlAttr{xmlToLoad}, \xmlDesc{required string attribute}, file name with its absolute or relative path. Note: if a 
+relative path is specified, it must be relative with respect to the RAVEN input file.
+\end{itemize}
+%
+For example, if the file \texttt{Models.xml} contain the required RAVEN input XML node \xmlNode{Models}, 
+the RAVEN input file might appear as: 
+%
+\begin{lstlisting}[style=XML,morekeywords={node,xmlToLoad}]  
+<Simulation>
+  ...
+  <Steps>
+    ...
+  </Steps>
+  ...
+  <ExternalXML node='Models' xmlToLoad='external_input/Models.xml'/>
+  ...
+</Simulation>
+\end{lstlisting}
+%
+Another example, if the file \texttt{MultiRun.xml} contain the required RAVEN input XML node \xmlNode{MultiRun} 
+under node \xmlNode{Steps}, the RAVEN input file might appear as:
+\begin{lstlisting}[style=XML,morekeywords={node,xmlToLoad}]  
+<Simulation>
+  ...
+  <Steps>
+    ...
+    <ExternalXML node='MultiRun' xmlToLoad='external_input/MultiRun.xml'/>
+    ...
+  </Steps>
+  ...
+</Simulation>
+\end{lstlisting}
