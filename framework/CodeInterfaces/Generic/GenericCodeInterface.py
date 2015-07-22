@@ -53,11 +53,12 @@ class GenericCodeInterface(CodeInterfaceBase):
       else: raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
 
     #check all required input files are there
-    inFiles=list(inputFiles[0])
+    print('genInt genCom inpFile',type(inputFiles),inputFiles)
+    inFiles=inputFiles[:]#FIXME this shouldn't be postpended with [0]
     for exts in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
       for ext in exts:
         found=False
-        for inf in inputFiles[0]:
+        for inf in inputFiles:
           print('inf:',type(inf),inf) #why is this a string?
           if '.'+inf.getExt() == ext:
             found=True
@@ -91,17 +92,17 @@ class GenericCodeInterface(CodeInterfaceBase):
       if flag == 'noarg':
         for ext in exts:
           idx,fname = getFileWithExtension(inputFiles,ext)
-          todo+=' '+fname
+          todo+=' '+fname.getFilename()
           if index == None: index = idx
         continue
       todo += ' '+flag
       for ext in exts:
-        idx,fname = getFileWithExtension(inputFiles[0],ext)
+        idx,fname = getFileWithExtension(inputFiles,ext)
         todo+=' '+fname.getFilename()
         if index == None: index = idx
     #outputs
     #FIXME I think if you give multiple output flags this could result in overwriting
-    self.caseName = inputFiles[0][index].getBase()
+    self.caseName = inputFiles[index].getBase()
     outfile = 'out~'+self.caseName
     if 'output' in clargs.keys():
       todo+=' '+clargs['output']+' '+outfile

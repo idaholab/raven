@@ -766,7 +766,8 @@ class Code(Model):
     """append a run at the externalRunning list of the jobHandler"""
     #TODO this is the problem step -> we're not preserving the prefixes!
     #FIXME createNewInput should return Files objects, not names!
-    self.currentInputFiles = copy.deepcopy(inputFiles) #list(self.oriInputFiles[inputFiles[0].index(i)] for i in inputFiles[0])
+    self.currentInputFiles = copy.deepcopy(inputFiles[0]) #list(self.oriInputFiles[inputFiles[0].index(i)] for i in inputFiles[0])
+    self.raiseADebug('model run type inpfile:',type(self.currentInputFiles[0]))
     executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs, preexec=self.preexec)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
     found = False
