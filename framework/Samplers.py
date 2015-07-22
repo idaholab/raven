@@ -677,7 +677,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # initialize LimitSurface PP
     self.limitSurfacePP._initFromDict({"name":self.name+"LSpp","parameters":[key.replace('<distribution>','') for key in self.axisName],"tolerance":self.tolerance,"side":"both","transformationMethods":transformMethod,"bounds":bounds})
     self.limitSurfacePP.assemblerDict = self.assemblerDict
-    self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{})
+    self.limitSurfacePP._initializeLSpp({'WorkingDir':None,'computeCells':True},[self.lastOutput],{})
     self.persistenceMatrix[self.name+"LSpp"]  = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #matrix that for each point of the testing grid tracks the persistence of the limit surface position
     self.oldTestMatrix[self.name+"LSpp"]      = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #swap matrix fro convergence test
     self.hangingPoints                        = np.ndarray((0, self.nVar))

@@ -1581,9 +1581,7 @@ class LimitSurface(BasePostProcessor):
     @ In , None, None
     @ Out, needDict, list of objects needed
     """
-    LSDict = BasePostProcessor._localWhatDoINeed(self)
-    LSDict['internal'] = [(None,'jobHandler')]
-    return LSDict
+    return {'internal':[(None,'jobHandler')]}
 
   def _localGenerateAssembler(self,initDict):
     """
@@ -1591,7 +1589,6 @@ class LimitSurface(BasePostProcessor):
     @ In, initDict, dict of init objects
     @ Out, None
     """
-    BasePostProcessor._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
 
   def inputToInternal(self, currentInp):
@@ -1655,7 +1652,7 @@ class LimitSurface(BasePostProcessor):
     if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
       for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key)), max(self.inputs[self.indexes].getParam(self.paramType[key],key))
-    self.gridEntity.initialize(initDictionary={"rootName":self.name,"computeCells":True,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
+    self.gridEntity.initialize(initDictionary={"rootName":self.name,"computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
     self.nVar                  = len(self.parameters['targets'])                                  # Total number of variables
     self.axisName              = self.gridEntity.returnParameter("dimensionNames",self.name)      # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     self.testMatrix[self.name] = np.zeros(self.gridEntity.returnParameter("gridShape",self.name)) # grid where the values of the goalfunction are stored
