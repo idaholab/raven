@@ -1,25 +1,40 @@
-<data name="MCdump1" type="Pointset"><input>x2,x1</input><output>ans2,ans</output><input_filename>MCdump1.csv</input_filename><metadata><SamplerType>array(u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', 
-      dtype='&lt;U2')</SamplerType><crowDist>array( u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
-       u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
-       u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
-       u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
-       u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
-       u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
-       u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
-       u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
-       u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
-       u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0', dtype=object)</crowDist><SampledVars>array(u'x2': 2.5388167320142538, u'x1': 1.8463109184164348,
-       u'x2': 2.5388167320142538, u'x1': 1.8463109184164348,
-       u'x2': 2.5388167320142538, u'x1': 1.8463109184164348,
-       u'x2': 2.5388167320142538, u'x1': 1.8463109184164348,
-       u'x2': 2.5388167320142538, u'x1': 1.8463109184164348,
-       u'x2': 2.5388167320142538, u'x1': 1.8463109184164348,
-       u'x2': 2.5388167320142538, u'x1': 1.8463109184164348,
-       u'x2': 2.5388167320142538, u'x1': 1.8463109184164348,
-       u'x2': 2.5388167320142538, u'x1': 1.8463109184164348,
-       u'x2': 2.5388167320142538, u'x1': 1.8463109184164348, dtype=object)</SampledVars><prefix>array('1', '2', '3', '4', '5', '6', '7', '8', '9', '1', 
-      dtype='|S1')</prefix><SampledVarsPb>array(u'x2': 1.0, u'x1': 1.0, u'x2': 1.0, u'x1': 1.0,
-       u'x2': 1.0, u'x1': 1.0, u'x2': 1.0, u'x1': 1.0,
-       u'x2': 1.0, u'x1': 1.0, u'x2': 1.0, u'x1': 1.0,
-       u'x2': 1.0, u'x1': 1.0, u'x2': 1.0, u'x1': 1.0,
-       u'x2': 1.0, u'x1': 1.0, u'x2': 1.0, u'x1': 1.0, dtype=object)</SampledVarsPb><PointProbability>array( 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.)</PointProbability></metadata></data>
+<data name="MCdump1" type="Pointset">
+  <input>x2,x1</input>
+  <output>ans2,ans</output>
+  <input_filename>MCdump1.csv</input_filename>
+  <metadata>
+    <SamplerType>array([u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC'], 
+      dtype='&lt;U2')
+    </SamplerType>
+    <crowDist>array([ {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
+       {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
+       {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
+       {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
+       {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
+       {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
+       {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
+       {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
+       {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
+       {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'}], dtype=object)
+    </crowDist>
+    <SampledVars>array([{u'x2': 2.5388167320142538, u'x1': 1.8463109184164348},
+       {u'x2': 2.5388167320142538, u'x1': 1.8463109184164348},
+       {u'x2': 2.5388167320142538, u'x1': 1.8463109184164348},
+       {u'x2': 2.5388167320142538, u'x1': 1.8463109184164348},
+       {u'x2': 2.5388167320142538, u'x1': 1.8463109184164348},
+       {u'x2': 2.5388167320142538, u'x1': 1.8463109184164348},
+       {u'x2': 2.5388167320142538, u'x1': 1.8463109184164348},
+       {u'x2': 2.5388167320142538, u'x1': 1.8463109184164348},
+       {u'x2': 2.5388167320142538, u'x1': 1.8463109184164348},
+       {u'x2': 2.5388167320142538, u'x1': 1.8463109184164348}], dtype=object)
+    </SampledVars>
+    <prefix>array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '1'], dtype='|S1')</prefix>
+    <SampledVarsPb>array([{u'x2': 1.0, u'x1': 1.0}, {u'x2': 1.0, u'x1': 1.0},
+       {u'x2': 1.0, u'x1': 1.0}, {u'x2': 1.0, u'x1': 1.0},
+       {u'x2': 1.0, u'x1': 1.0}, {u'x2': 1.0, u'x1': 1.0},
+       {u'x2': 1.0, u'x1': 1.0}, {u'x2': 1.0, u'x1': 1.0},
+       {u'x2': 1.0, u'x1': 1.0}, {u'x2': 1.0, u'x1': 1.0}], dtype=object)
+    </SampledVarsPb>
+    <PointProbability>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</PointProbability>
+  </metadata>
+</data>

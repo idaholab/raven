@@ -32,6 +32,7 @@ class c1darray(object):
       self.size = 0
     self.capacity = self.values.shape[0]
     self.ndim = self.values.ndim
+    print('ndim, cached array...',self.ndim)
 
   def __iter__(self): return self.values[:self.size].__iter__()
 
@@ -60,6 +61,7 @@ class c1darray(object):
     @ Out, None, appending in place
     """
     if type(x).__name__ != 'ndarray':
+      #print('not in else...',x)
       if self.size  == self.capacity:
         self.capacity *= 4
         newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
@@ -68,10 +70,17 @@ class c1darray(object):
       self.values[self.size] = x
       self.size  += 1
     else:
+      #print('in else...',x)
       if (self.capacity - self.size) < x.size:
+        print('resize...')
         # to be safer
         self.capacity += max(self.capacity*4,x.size) #self.capacity + x.size*4
         newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
+        if np.prod(self.values.shape)<500:
+          print('old shape:',self.values.shape,'vals:',self.values)
+        else:
+          print('old shape:',self.values.shape,'vals omitted')
+        print('new shape:',newdata.shape,'vals:',newdata)
         newdata[:self.size] = self.values[:]
         self.values = newdata
       #for index in range(x.size):

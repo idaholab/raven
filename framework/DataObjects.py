@@ -297,7 +297,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       for key,value in self._dataContainer['metadata'].items():
         if key not in self.metaExclXml:
           submetadataNodes.append(ET.SubElement(metadataNode,key))
-          submetadataNodes[-1].text = utils.toString(str(value)).replace('[','').replace(']','').replace('{','').replace('}','')
+          # TODO FIXME why? submetadataNodes[-1].text = utils.toString(str(value)).replace('[','').replace(']','').replace('{','').replace('}','')
+          submetadataNodes[-1].text = utils.toString(str(value))
     myXMLFile.write(utils.toString(ET.tostring(root)))
     myXMLFile.write('\n')
     myXMLFile.close()
@@ -322,10 +323,25 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     retDict["filenameCSV"] = filenameNode.text
     metadataNode = root.find("metadata")
     if metadataNode:
+      import ast
       metadataDict = {}
+      self.raiseADebug('trying to parse:')
       for child in metadataNode:
         key = child.tag
         value = child.text
+        print(value)
+        dtype=''
+        value.replace('\n','')
+        if value.startswith('array('):
+          isArray=True
+          value=value.split('dtype')[0].lstrip('aray(').rstrip('),\n ')
+        else: isArray = False
+        print(value)
+        value = ast.literal_eval(value)
+        value = np.array(value)
+        print(type(value),value,value.size)
+        if isArray:
+          value = c1darray(values=value)
         metadataDict[key] = value
       retDict["metadata"] = metadataDict
     return retDict
@@ -1008,7 +1024,7 @@ class PointSet(Data):
     else:
       if name in self._dataContainer['inputs'].keys():
         #popped = self._dataContainer['inputs'].pop(name)
-        self.raiseADebug('checking type:',type(self._dataContainer['inputs'][name]))
+        self.raiseADebug('name,value:',name,value)
         self._dataContainer['inputs'][name].append(np.atleast_1d(np.atleast_1d(value)[-1]))
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
@@ -1238,6 +1254,8 @@ class PointSet(Data):
     filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     self.raiseADebug('\n\n\nchecking xmlData...',type(xmlData))
+    #for k,v in xmlData.items():
+    #  print(k,v)
     assert(xmlData["fileType"] == "Pointset")
     if "metadata" in xmlData:
       self._dataContainer['metadata'] = xmlData["metadata"]
@@ -1256,9 +1274,9 @@ class PointSet(Data):
     for key,value in zip(inoutKeys,inoutValues):
       inoutDict[key] = value
     for key in xmlData["inpKeys"]:
-      self._dataContainer["inputs"][key] = np.array(inoutDict[key])
+      self._dataContainer["inputs"][key] = c1darray(np.array(inoutDict[key]))
     for key in xmlData["outKeys"]:
-      self._dataContainer["outputs"][key] = np.array(inoutDict[key])
+      self._dataContainer["outputs"][key] = c1darray(np.array(inoutDict[key]))
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """override of the method in the base class DataObjects"""
