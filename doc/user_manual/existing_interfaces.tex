@@ -374,7 +374,7 @@ Example:
 \begin{lstlisting}[style=XML]
 <Files>
   <Input name='nat_circ' type=''>nat_circ</Input>
-  <Input name='control_logic.py' type='''>control_logic.py</Input>
+  <Input name='control_logic.py' type=''>control_logic.py</Input>
 </Files>
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -771,17 +771,10 @@ A separate XML file containing model parameters and initial conditions is also g
 modifies input parameters by changing copies of this file.  Both the executable and XML parameter file names must be provided to RAVEN.  In the case of 
 the BouncingBall model previously mentioned on the Windows operating system, the \textless Files\textgreater  specification would look like:
 \begin{lstlisting}[style=XML]
-<Simulation>
-  <RunInfo>
-    ...
-  </RunInfo>
-  ...
-  <Files>
-    <Input name='BouncingBall_init.xml' type=''>BouncingBall_init.xml</Input>
-    <Input name='BouncingBall.exe' type=''>BouncingBall.exe</Input>
-  </Files>
-  ...
-</Simulation>
+<Files>
+  <Input name='BouncingBall_init.xml' type=''>BouncingBall_init.xml</Input>
+  <Input name='BouncingBall.exe' type=''>BouncingBall.exe</Input>
+</Files>
 \end{lstlisting}
 \subsubsection{Models}
 OpenModelica models may provide simulation output in a number of formats.  The particular format used is specified during the model generation
