@@ -329,17 +329,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       for child in metadataNode:
         key = child.tag
         value = child.text
-        print(value)
-        dtype=''
         value.replace('\n','')
         if value.startswith('array('):
           isArray=True
           value=value.split('dtype')[0].lstrip('aray(').rstrip('),\n ')
         else: isArray = False
-        print(value)
         value = ast.literal_eval(value)
         value = np.array(value)
-        print(type(value),value,value.size)
         if isArray:
           value = c1darray(values=value)
         metadataDict[key] = value
@@ -1254,8 +1250,6 @@ class PointSet(Data):
     filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     self.raiseADebug('\n\n\nchecking xmlData...',type(xmlData))
-    #for k,v in xmlData.items():
-    #  print(k,v)
     assert(xmlData["fileType"] == "Pointset")
     if "metadata" in xmlData:
       self._dataContainer['metadata'] = xmlData["metadata"]
@@ -1274,9 +1268,9 @@ class PointSet(Data):
     for key,value in zip(inoutKeys,inoutValues):
       inoutDict[key] = value
     for key in xmlData["inpKeys"]:
-      self._dataContainer["inputs"][key] = c1darray(np.array(inoutDict[key]))
+      self._dataContainer["inputs"][key] = c1darray(values=np.array(inoutDict[key]))
     for key in xmlData["outKeys"]:
-      self._dataContainer["outputs"][key] = c1darray(np.array(inoutDict[key]))
+      self._dataContainer["outputs"][key] = c1darray(values=np.array(inoutDict[key]))
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """override of the method in the base class DataObjects"""
