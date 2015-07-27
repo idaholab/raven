@@ -146,7 +146,7 @@ class GenericParser():
       '''
       found=False
       for index,inputFile in enumerate(fileList):
-        if inputFile.getExt() == ext:
+        if '.'+inputFile.getExt() == ext:
           found=True
           break
       if not found: raise IOError('No InputFile with extension '+ext+' found!')
@@ -170,5 +170,6 @@ class GenericParser():
     #now just write the files.
     for f,outfile in enumerate(inFiles):
       #outfile = file(fileName,'w')
+      print('keys:',origFiles.keys)
       outfile.writelines(toBytes(''.join(self.segments[origFiles[f].getFilename()])))
       outfile.close()

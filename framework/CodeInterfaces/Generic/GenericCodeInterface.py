@@ -124,6 +124,7 @@ class GenericCodeInterface(CodeInterfaceBase):
     #FIXME possible danger here from reading binary files
     for index,inputFile in enumerate(currentInputFiles):
       #inputFile = inputFile.getAbsFile()
+      print('ext check:',inputFile,inputFile.getExt(),self.getInputExtension())
       if '.'+inputFile.getExt() in self.getInputExtension():
         indexes.append(index)
         infiles.append(inputFile)
