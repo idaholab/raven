@@ -895,7 +895,7 @@ class DataConversion(BasePostProcessor):
     for child in xmlNode:
       if child.tag == 'function':
         self.function = child.text
-        if self.function != 'HS2HS':
+        if self.function != 'HS2HS' and self.function != 'HS2PS':
           self.raiseAnError(IOError, 'DataConversion Post-Processor: function' + str(self.function) + 'is not valid')
       elif child.tag == 'sampling':
         self.sampling['n_samples'] = child.text
@@ -912,16 +912,24 @@ class DataConversion(BasePostProcessor):
      @ Out, dictionary, Dictionary containing the evaluated data
     """
     Input = self.inputToInternal(InputIn)
-    outputDict = {}
+    outputDict = Input.copy()
     
-    if self.function == 'HS2HS':
-      if self.sampling['type'] == 'uniform':
-        []
-      elif self.sampling['type'] == 'derivative':
-        self.raiseAnError(IOError, 'DataConversion Post-Processor: derivative type not yet implemented')
-      else:  
-        self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type' + str(self.sampling['type']) + 'is not valid') 
-        
+    if self.function == 'HS2HS':      
+      outKeys   = []
+      outKeys   = Input._dataContainer['outputs'].keys()
+      for n in range(len(outKeys)): # loop for all histories
+        outValues = list(Input._dataContainer['outputs'].values())
+        outValues_h = []
+        outValues_h = list(outValues[n].values())
+        for item in outValues_h:    # loop for all dimensions of the history
+          if self.sampling['type'] == 'uniform':
+            item = uniformTempInterp()
+          elif self.sampling['type'] == 'derivative':
+            self.raiseAnError(IOError, 'DataConversion Post-Processor: derivative type not yet implemented')
+          else:  
+            self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type' + str(self.sampling['type']) + 'is not valid') 
+            
+                  
   def collectOutput(self, finishedjob, output):
     """
       Function to place all of the computed data into the output object
