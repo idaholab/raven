@@ -1008,6 +1008,7 @@ class PointSet(Data):
     else:
       if name in self._dataContainer['inputs'].keys():
         #popped = self._dataContainer['inputs'].pop(name)
+        self.raiseADebug('checking type:',type(self._dataContainer['inputs'][name]))
         self._dataContainer['inputs'][name].append(np.atleast_1d(np.atleast_1d(value)[-1]))
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
@@ -1236,6 +1237,7 @@ class PointSet(Data):
     else: name = self.name
     filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
+    self.raiseADebug('\n\n\nchecking xmlData...',type(xmlData))
     assert(xmlData["fileType"] == "Pointset")
     if "metadata" in xmlData:
       self._dataContainer['metadata'] = xmlData["metadata"]
