@@ -33,14 +33,14 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     foundMooseInp = False
     foundCubitInp = False
     for index,inFile in enumerate(inputFiles):
-      if inFile.subtype == 'MooseInput':
+      if inFile.getType() == 'MooseInput':
         foundMooseInp = True
         mooseInp = inFile
-      elif inFile.subtype == 'BisonMeshInput':
+      elif inFile.getType() == 'BisonMeshInput':
         foundCubitInp = True
         cubitInp = inFile
-    if not foundMooseInp: raise IOError('None of the input Files has the type "MooseInput"! CubitMoose interface requires one.')
-    if not foundCubitInp: raise IOError('None of the input Files has the type "CubitInput"! CubitMoose interface requires one.')
+    if not foundMooseInp: raise IOError('None of the input Files has the type "MooseInput"! BisonAndMesh interface requires one.')
+    if not foundCubitInp: raise IOError('None of the input Files has the type "BisonMeshInput"! BisonAndMesh interface requires one.')
     return mooseInp,cubitInp
 
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preexec = None):
@@ -63,7 +63,7 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     mooseCommand+=' Mesh/file='+cubitOut+'.e'
     #combine them
     executeCommand = ' && '.join([cubitCommand,mooseCommand])
-    print('\n\n\nExecutionCommand:\n',executeCommand,'\n\n\n\n')
+    print('ExecutionCommand:',executeCommand,'\n')
     return executeCommand,mooseOut #can only send one...#(cubitOut,mooseOut)
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
@@ -93,14 +93,14 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
         del cargs['SampledVars'][vname]
     newMooseInputs = self.MooseInterface    .createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
     newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp],[origCubitInp],samplerType,**cargs)
-    print('fromMoose:',newMooseInputs)
-    print('fromCubit:',newCubitInputs)
     #make carbon copy of original input files
-    newInputFiles = copy.copy(currentInputFiles)
+    for f in currentInputFiles:
+      if f.isOpen(): f.close()
+    newInputFiles = copy.deepcopy(currentInputFiles)
     #replace old with new perturbed files, in place TODO is that necessary, really? Does order matter?
     #  if order doesn't matter, can loop through and check for type else copy directly
-    newInputFiles[newInputFiles.index(mooseInp)] = newMooseInputs[0]
-    newInputFiles[newInputFiles.index(cubitInp)] = newCubitInputs[0]
-    print('New input files:',newInputFiles)
+    newMooseInp,newCubitInp = self.findInps(newInputFiles)
+    newMooseInp.setAbsFile(newMooseInputs[0])
+    newCubitInp.setAbsFile(newCubitInputs[0])
     return newInputFiles
 
