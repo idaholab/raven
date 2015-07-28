@@ -913,9 +913,9 @@ class Point(Data):
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     for key in xmlData["inpKeys"]:
-      self._dataContainer["inputs"][key] = np.array([inoutDict[key]])
+      self._dataContainer["inputs"][key] = c1darray(values=np.array([inoutDict[key]]))
     for key in xmlData["outKeys"]:
-      self._dataContainer["outputs"][key] = np.array([inoutDict[key]])
+      self._dataContainer["outputs"][key] = c1darray(values=np.array([inoutDict[key]]))
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """override of the method in the base class DataObjects"""
@@ -1020,7 +1020,6 @@ class PointSet(Data):
     else:
       if name in self._dataContainer['inputs'].keys():
         #popped = self._dataContainer['inputs'].pop(name)
-        self.raiseADebug('name,value:',name,value)
         self._dataContainer['inputs'][name].append(np.atleast_1d(np.atleast_1d(value)[-1]))
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
@@ -1464,9 +1463,9 @@ class History(Data):
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     for key,value in zip(inpKeys,inpValues):
-      self._dataContainer['inputs'][key] = [value]*len(outValues[0])
+      self._dataContainer['inputs'][key] = c1darray(values=[value]*len(outValues[0]))
     for key,value in zip(outKeys,outValues):
-      self._dataContainer['outputs'][key] = np.array(value)
+      self._dataContainer['outputs'][key] = c1darray(values=np.array(value))
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """override of the method in the base class DataObjects"""
@@ -1899,9 +1898,9 @@ class HistorySet(Data):
       subInput = {}
       subOutput = {}
       for key,value in zip(inpKeys,inpValues[i]):
-        subInput[key] = [value]*len(outValues[0][0])
+        subInput[key] = c1darray(values=[value]*len(outValues[0][0]))
       for key,value in zip(outKeys[i],outValues[i]):
-        subOutput[key] = np.array(value)
+        subOutput[key] = c1darray(values=np.array(value))
       self._dataContainer['inputs'][mainKey] = subInput
       self._dataContainer['outputs'][mainKey] = subOutput
 
