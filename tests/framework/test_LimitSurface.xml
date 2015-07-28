@@ -1,153 +1,156 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation >
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>
-    <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py</Files>
     <Sequence>FirstMRun,ComputeLimitSurfacePositive,ComputeLimitSurfaceNegative,ComputeLimitSurfacePositiveNegative</Sequence>
     <batchSize>1</batchSize>
-</RunInfo>
+  </RunInfo>
 
-<Models>
-    <ExternalModel name='PythonModule' subType='' ModuleToLoad='limitSurface/limitSurfaceTestExternalModel'>
-       <variable>z</variable>
-       <variable>x0</variable>
-       <variable>y0</variable>
+  <Files>
+    <Input name="limitSurfaceTestExternalModel.py" type="">limitSurfaceTestExternalModel.py</Input>
+    <Input name="goalFunctionTest.py" type="">goalFunctionTest.py</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="limitSurface/limitSurfaceTestExternalModel" name="PythonModule" subType="">
+      <variable>z</variable>
+      <variable>x0</variable>
+      <variable>y0</variable>
     </ExternalModel>
-    <PostProcessor name="computeLimitSurfacePositive" subType='LimitSurface' >
-        <parameters>x0,y0</parameters>
-        <side>positive</side>
-        <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
-        <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
+    <PostProcessor name="computeLimitSurfacePositive" subType="LimitSurface">
+      <parameters>x0,y0</parameters>
+      <side>positive</side>
+      <ROM class="Models" type="ROM">Acc</ROM>
+      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+      <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
-    <PostProcessor name="computeLimitSurfaceNegative" subType='LimitSurface' >
-        <parameters>x0,y0</parameters>
-        <side>negative</side>
-        <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
-        <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
+    <PostProcessor name="computeLimitSurfaceNegative" subType="LimitSurface">
+      <parameters>x0,y0</parameters>
+      <side>negative</side>
+      <ROM class="Models" type="ROM">Acc</ROM>
+      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+      <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
-    <PostProcessor name="computeLimitSurfacePositiveNegative" subType='LimitSurface' >
-        <parameters>x0,y0</parameters>
-        <side>both</side>
-        <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
-        <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
+    <PostProcessor name="computeLimitSurfacePositiveNegative" subType="LimitSurface">
+      <parameters>x0,y0</parameters>
+      <side>both</side>
+      <ROM class="Models" type="ROM">Acc</ROM>
+      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+      <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
-    <ROM name='Acc' subType='SciKitLearn'>
-        <Features>x0,y0</Features>
-        <Target>goalFunctionForLimitSurface</Target>
-        <SKLtype>svm|LinearSVC</SKLtype>
-        <verbose>1</verbose>
-        <tol>0.0001</tol>
-        <C>10</C>
+    <ROM name="Acc" subType="SciKitLearn">
+      <Features>x0,y0</Features>
+      <Target>goalFunctionForLimitSurface</Target>
+      <SKLtype>svm|LinearSVC</SKLtype>
+      <verbose>1</verbose>
+      <tol>0.0001</tol>
+      <C>10</C>
     </ROM>
-</Models>
+  </Models>
 
-<Functions>
-    <External name='goalFunctionForLimitSurface' file='limitSurface/goalFunctionTest'>
-        <variable>z</variable>
+  <Functions>
+    <External file="limitSurface/goalFunctionTest" name="goalFunctionForLimitSurface">
+      <variable>z</variable>
     </External>
-</Functions>
+  </Functions>
 
-<Distributions>
-    <Normal name='x0_distrib'>
-        <mean>4</mean>
-        <sigma>2</sigma>
-        <lowerBound>0.0</lowerBound>
-        <upperBound>8.0</upperBound>
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>2</sigma>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>8.0</upperBound>
     </Normal>
-    <Normal name='y0_distrib'>
-        <mean>5</mean>
-        <sigma>2</sigma>
-        <lowerBound>0.0</lowerBound>
-        <upperBound>10.0</upperBound>
+    <Normal name="y0_distrib">
+      <mean>5</mean>
+      <sigma>2</sigma>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>10.0</upperBound>
     </Normal>
-</Distributions>
+  </Distributions>
 
-<Samplers>
-    <MonteCarlo name='MC_external'>
+  <Samplers>
+    <MonteCarlo name="MC_external">
       <sampler_init>
         <limit>150</limit>
       </sampler_init>
-      <variable name='x0' >
-        <distribution >x0_distrib</distribution>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
       </variable>
-      <variable name='y0' >
-        <distribution >y0_distrib</distribution>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
       </variable>
     </MonteCarlo>
-</Samplers>
+  </Samplers>
 
-<Steps>
-    <MultiRun name='FirstMRun'  re-seeding='200286'>
-        <Input   class='DataObjects'     type='PointSet'   >Dummy</Input>
-        <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
-        <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='DataObjects'     type='PointSet'   >PointSetPostProcTest</Output>
-        <Output  class='OutStreamManager' type='Print'   >PointSetPostProcTest_dump</Output>
-    </MultiRun >
-    <PostProcess name='ComputeLimitSurfacePositive' >
-        <Input    class='DataObjects'            type='PointSet'    >PointSetPostProcTest</Input>
-        <Model    class='Models'           type='PostProcessor'   >computeLimitSurfacePositive</Model>
-        <Output   class='DataObjects'            type='PointSet'    >LimitSurfacePositive</Output>
-        <Output   class='OutStreamManager' type='Print'           >LimitSurfacePositive_dump</Output>
+  <Steps>
+    <MultiRun name="FirstMRun" re-seeding="200286">
+      <Input class="DataObjects" type="PointSet">Dummy</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
+      <Output class="OutStreamManager" type="Print">PointSetPostProcTest_dump</Output>
+    </MultiRun>
+    <PostProcess name="ComputeLimitSurfacePositive">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">computeLimitSurfacePositive</Model>
+      <Output class="DataObjects" type="PointSet">LimitSurfacePositive</Output>
+      <Output class="OutStreamManager" type="Print">LimitSurfacePositive_dump</Output>
     </PostProcess>
-    <PostProcess name='ComputeLimitSurfaceNegative' >
-        <Input    class='DataObjects'            type='PointSet'    >PointSetPostProcTest</Input>
-        <Model    class='Models'           type='PostProcessor'   >computeLimitSurfaceNegative</Model>
-        <Output   class='DataObjects'            type='PointSet'    >LimitSurfaceNegative</Output>
-        <Output   class='OutStreamManager' type='Print'           >LimitSurfaceNegative_dump</Output>
+    <PostProcess name="ComputeLimitSurfaceNegative">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">computeLimitSurfaceNegative</Model>
+      <Output class="DataObjects" type="PointSet">LimitSurfaceNegative</Output>
+      <Output class="OutStreamManager" type="Print">LimitSurfaceNegative_dump</Output>
     </PostProcess>
-    <PostProcess name='ComputeLimitSurfacePositiveNegative' >
-        <Input    class='DataObjects'            type='PointSet'    >PointSetPostProcTest</Input>
-        <Model    class='Models'           type='PostProcessor'   >computeLimitSurfacePositiveNegative</Model>
-        <Output   class='DataObjects'            type='PointSet'    >LimitSurfacePositiveNegative</Output>
-        <Output   class='OutStreamManager' type='Print'           >LimitSurfacePositiveNegative_dump</Output>
+    <PostProcess name="ComputeLimitSurfacePositiveNegative">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">computeLimitSurfacePositiveNegative</Model>
+      <Output class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Output>
+      <Output class="OutStreamManager" type="Print">LimitSurfacePositiveNegative_dump</Output>
     </PostProcess>
-</Steps>
+  </Steps>
 
-<OutStreamManager>
-    
-  <Print name='PointSetPostProcTest_dump'>
-    <type>csv</type>
-    <source>PointSetPostProcTest</source>
-  </Print>
-  <Print name='LimitSurfacePositive_dump'>
+  <OutStreamManager>
+    <Print name="PointSetPostProcTest_dump">
+      <type>csv</type>
+      <source>PointSetPostProcTest</source>
+    </Print>
+    <Print name="LimitSurfacePositive_dump">
       <type>csv</type>
       <source>LimitSurfacePositive</source>
-  </Print>
-  <Print name='LimitSurfaceNegative_dump'>
+    </Print>
+    <Print name="LimitSurfaceNegative_dump">
       <type>csv</type>
       <source>LimitSurfaceNegative</source>
-  </Print>
-  <Print name='LimitSurfacePositiveNegative_dump'>
+    </Print>
+    <Print name="LimitSurfacePositiveNegative_dump">
       <type>csv</type>
       <source>LimitSurfacePositiveNegative</source>
-  </Print>
-</OutStreamManager>
+    </Print>
+  </OutStreamManager>
 
-<DataObjects>
-    <PointSet name='PointSetPostProcTest'>
-        <Input>x0,y0</Input>
-        <Output>z</Output>
+  <DataObjects>
+    <PointSet name="PointSetPostProcTest">
+      <Input>x0,y0</Input>
+      <Output>z</Output>
     </PointSet>
-    <PointSet name='LimitSurfacePositive'>
-        <Input>x0,y0</Input>
-        <Output>OutputPlaceOrder</Output>
+    <PointSet name="LimitSurfacePositive">
+      <Input>x0,y0</Input>
+      <Output>OutputPlaceOrder</Output>
     </PointSet>
-    <PointSet name='LimitSurfaceNegative'>
-        <Input>x0,y0</Input>
-        <Output>OutputPlaceOrder</Output>
+    <PointSet name="LimitSurfaceNegative">
+      <Input>x0,y0</Input>
+      <Output>OutputPlaceOrder</Output>
     </PointSet>
-    <PointSet name='LimitSurfacePositiveNegative'>
-        <Input>x0,y0</Input>
-        <Output>OutputPlaceOrder</Output>
+    <PointSet name="LimitSurfacePositiveNegative">
+      <Input>x0,y0</Input>
+      <Output>OutputPlaceOrder</Output>
     </PointSet>
-    <PointSet name='Dummy'>
-        <Input>x0,y0</Input>
-        <Output>OutputPlaceHolder</Output>
+    <PointSet name="Dummy">
+      <Input>x0,y0</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
-</DataObjects>
+  </DataObjects>
 
 </Simulation>
-
-
-

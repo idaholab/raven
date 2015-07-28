@@ -203,7 +203,7 @@ namespace ngl
 					if(!NGMethod<T>::isValid(idx))
             continue;
 					indices[k] = candidateNeighbors[k];
-					if(k>=K)
+					if(k >= (int)K)
             break;
 				}
 				numNeighbors = K;

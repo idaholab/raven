@@ -1,90 +1,110 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
-    <Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_steady_restart/1863.rd-0,TMI_steady_restart/1863.xdr,TMI_steady_restart/1863.xdr.0000,TMI_steady_restart/1863_mesh.cpr</Files>
     <Sequence>test_extract_for_rom_trainer,test_rom_trainer,rom_MC</Sequence>
     <batchSize>1</batchSize>
-</RunInfo>
-<Distributions>
-    <Uniform name='auxbackup'>
-        <lowerBound>0</lowerBound>
-        <upperBound>2000</upperBound>
+  </RunInfo>
+
+  <Files>
+    <Input name="TMI_PRA_trans_MC_control.py" type="">TMI_PRA_trans_MC_control.py</Input>
+    <Input name="TMI.i" type="">TMI.i</Input>
+    <Input name="TMI_steady_restart/1863.rd-0" type="">TMI_steady_restart/1863.rd-0</Input>
+    <Input name="TMI_steady_restart/1863.xdr" type="">TMI_steady_restart/1863.xdr</Input>
+    <Input name="TMI_steady_restart/1863.xdr.0000" type="">TMI_steady_restart/1863.xdr.0000</Input>
+    <Input name="TMI_steady_restart/1863_mesh.cpr" type="">TMI_steady_restart/1863_mesh.cpr</Input>
+  </Files>
+
+  <Distributions>
+    <Uniform name="auxbackup">
+      <lowerBound>0</lowerBound>
+      <upperBound>2000</upperBound>
     </Uniform>
-    <Uniform name='DG1backup'>
-        <lowerBound>0</lowerBound>
-        <upperBound>1000</upperBound>
+    <Uniform name="DG1backup">
+      <lowerBound>0</lowerBound>
+      <upperBound>1000</upperBound>
     </Uniform>
-</Distributions>
-<Models>
-    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
-    <ROM  name='ROM1' subType='SciKitLearn'>
+  </Distributions>
+
+  <Models>
+    <Code name="MyRAVEN" subType="RAVEN">
+      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
+    </Code>
+    <ROM name="ROM1" subType="SciKitLearn">
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
       <Target>CladTempTreshold</Target>
       <SKLtype>svm|LinearSVC</SKLtype>
       <C>1.0</C>
       <tol>0.0001</tol>
     </ROM>
-</Models>
-<Samplers>
-  <MonteCarlo     name='RAVENmc3'>
-    <sampler_init>
-      <limit>3</limit>
-      <initial_seed>200286</initial_seed>
-    </sampler_init>
-    <variable name='DeltaTimeScramToAux'>
-      <distribution  >auxbackup</distribution>
-    </variable>
-    <variable name='DG1recoveryTime'>
-      <distribution  >DG1backup</distribution>
-    </variable>
-  </MonteCarlo>
-</Samplers>
-<Steps>
-    <MultiRun name='rom_MC'>
-        <Input   class='DataObjects'    type='Point'   >data_for_sampling_empty_at_begin</Input>
-        <Model   class='Models'   type='ROM'         >ROM1</Model>
-        <Sampler class='Samplers' type='MonteCarlo'  >RAVENmc3</Sampler>
-        <Output  class='DataObjects'    type='PointSet'>outputMontecarloRom</Output>
-        <Output  class='OutStreamManager' type='Print'>outputMontecarloRom_dump</Output>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="RAVENmc3">
+      <sampler_init>
+        <limit>3</limit>
+        <initial_seed>200286</initial_seed>
+      </sampler_init>
+      <variable name="DeltaTimeScramToAux">
+        <distribution>auxbackup</distribution>
+      </variable>
+      <variable name="DG1recoveryTime">
+        <distribution>DG1backup</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="rom_MC">
+      <Input class="DataObjects" type="Point">data_for_sampling_empty_at_begin</Input>
+      <Model class="Models" type="ROM">ROM1</Model>
+      <Sampler class="Samplers" type="MonteCarlo">RAVENmc3</Sampler>
+      <Output class="DataObjects" type="PointSet">outputMontecarloRom</Output>
+      <Output class="OutStreamManager" type="Print">outputMontecarloRom_dump</Output>
     </MultiRun>
-    <IOStep name='test_extract_for_rom_trainer'>
-        <Input   class='Databases'   type='HDF5'     >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-        <Output  class='DataObjects' type='PointSet' >timepointset_from_database_for_rom_trainer</Output>
+    <IOStep name="test_extract_for_rom_trainer">
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+      <Output class="DataObjects" type="PointSet">timepointset_from_database_for_rom_trainer</Output>
     </IOStep>
-    <RomTrainer name='test_rom_trainer'>
-        <Input   class='DataObjects' type='PointSet'>Pointset_from_database_for_rom_trainer</Input>
-        <Output  class='Models'      type='ROM'     >ROM1</Output>
+    <RomTrainer name="test_rom_trainer">
+      <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
+      <Output class="Models" type="ROM">ROM1</Output>
     </RomTrainer>
-</Steps>
-<OutStreamManager>
-  <Print name='outputMontecarloRom_dump'>
-    <type>csv</type>
-    <source>outputMontecarloRom</source>
-  </Print>
-</OutStreamManager>
+  </Steps>
 
-<Databases>
-        <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" directory='DatabaseStorage' filename='MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5'/>
-</Databases>
-<DataObjects>
-   <Point name='data_for_sampling_empty_at_begin' historyName="1">
-       <options><inputRow>2</inputRow></options>
-        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-        <Output>OutputPlaceHolder</Output>
-   </Point>
-   <PointSet name='Pointset_from_database_for_rom_trainer'>
-       <options><inputRow>2</inputRow></options>
-        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-        <Output>CladTempTreshold</Output>
-   </PointSet>
-   <PointSet name='outputMontecarloRom'>
-       <options><inputRow>2</inputRow></options>
-        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-        <Output>CladTempTreshold</Output>
-   </PointSet>
-</DataObjects>
+  <OutStreamManager>
+    <Print name="outputMontecarloRom_dump">
+      <type>csv</type>
+      <source>outputMontecarloRom</source>
+    </Print>
+  </OutStreamManager>
+
+  <Databases>
+    <HDF5 directory="DatabaseStorage" filename="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5" name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/>
+  </Databases>
+
+  <DataObjects>
+    <Point historyName="1" name="data_for_sampling_empty_at_begin">
+      <options>
+        <inputRow>2</inputRow>
+      </options>
+      <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Output>OutputPlaceHolder</Output>
+    </Point>
+    <PointSet name="Pointset_from_database_for_rom_trainer">
+      <options>
+        <inputRow>2</inputRow>
+      </options>
+      <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Output>CladTempTreshold</Output>
+    </PointSet>
+    <PointSet name="outputMontecarloRom">
+      <options>
+        <inputRow>2</inputRow>
+      </options>
+      <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Output>CladTempTreshold</Output>
+    </PointSet>
+  </DataObjects>
+
 </Simulation>
-
-
-

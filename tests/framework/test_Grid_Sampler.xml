@@ -1,84 +1,83 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
     <WorkingDir>GridTest</WorkingDir>
     <Sequence>CustomSampler</Sequence>
     <batchSize>1</batchSize>
-</RunInfo>
+  </RunInfo>
 
-<Models>
-    <Dummy name='MyDummy' subType=''/>
-</Models>
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+  </Models>
 
-<Distributions>
-    <Normal name='Gauss1'>
-        <mean>1</mean>
-        <sigma>0.001</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
     </Normal>
-    <Normal name='Gauss2'>
-        <mean>1</mean>
-        <sigma>0.4</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
+    <Normal name="Gauss2">
+      <mean>1</mean>
+      <sigma>0.4</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
     </Normal>
-    <Triangular name='DistTri1'>
-        <apex>1</apex>
-        <min>-0.1</min>
-        <max>4</max>
+    <Triangular name="DistTri1">
+      <apex>1</apex>
+      <min>-0.1</min>
+      <max>4</max>
     </Triangular>
-</Distributions>
-<Samplers>
-    <Grid name='myGrid'>
-      <variable name='VarGauss1' >
-        <distribution >Gauss1</distribution>
-        <grid         type='value' construction='custom' >0.02 0.5 0.6</grid>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="VarGauss1">
+        <distribution>Gauss1</distribution>
+        <grid construction="custom" type="value">0.02 0.5 0.6</grid>
       </variable>
-      <variable name='VarGauss2' >
-        <distribution  >Gauss2</distribution>
-        <grid         type='CDF'    construction='custom'>0.5 1.0 0.0</grid>
+      <variable name="VarGauss2">
+        <distribution>Gauss2</distribution>
+        <grid construction="custom" type="CDF">0.5 1.0 0.0</grid>
       </variable>
-      <variable name='VarTri1'>
-        <distribution  >DistTri1</distribution>
-        <grid type='value' construction='equal' steps='1'>3.5 4.0</grid>
+      <variable name="VarTri1">
+        <distribution>DistTri1</distribution>
+        <grid construction="equal" steps="1" type="value">3.5 4.0</grid>
       </variable>
     </Grid>
-</Samplers>
+  </Samplers>
 
-<DataObjects>
-     <PointSet name='outGrid'>
-        <Input>VarGauss1,VarGauss2,VarTri1</Input>
-        <Output>OutputPlaceHolder</Output>
-   </PointSet>
-   <PointSet name='dummyIN'>
+  <DataObjects>
+    <PointSet name="outGrid">
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
       <Output>OutputPlaceHolder</Output>
-   </PointSet>
-</DataObjects>
-    
-<OutStreamManager>
-    <Print name='outGrid_dump'>
-        <type>csv</type>
-        <source>outGrid</source>
+    </PointSet>
+    <PointSet name="dummyIN">
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="outGrid_dump">
+      <type>csv</type>
+      <source>outGrid</source>
     </Print>
-</OutStreamManager>
+  </OutStreamManager>
 
-<Steps>
-     <MultiRun name='CustomSampler'>
-        <Input   class='DataObjects'     type='PointSet'>dummyIN</Input>
-        <Model   class='Models'    type='Dummy'       >MyDummy</Model>
-        <Sampler class='Samplers'  type='Grid'        >myGrid</Sampler>
-        <Output  class='DataObjects'     type='PointSet'>outGrid</Output>
-        <Output  class='Databases' type='HDF5'        >test_DummyModel_db</Output>
-        <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
-    </MultiRun >
-</Steps>
-<Databases>
-        <HDF5 name="test_DummyModel_db"/> 
-</Databases>
+  <Steps>
+    <MultiRun name="CustomSampler">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Output class="DataObjects" type="PointSet">outGrid</Output>
+      <Output class="Databases" type="HDF5">test_DummyModel_db</Output>
+      <Output class="OutStreamManager" type="Print">outGrid_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="test_DummyModel_db"/>
+  </Databases>
+
 </Simulation>
-
-
-
