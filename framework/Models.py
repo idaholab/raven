@@ -357,9 +357,16 @@ class ROM(Dummy):
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
-    for target in targets:
-      self.initializationOptionDict['Target'] = target
-      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+    
+    #andrea
+    for ts in whatver:
+      tsDict = {}
+      for target in targets:
+        self.initializationOptionDict['Target'] = target
+        tsDict[target]= SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)}
+      self.SupervisedEngine.append(tsDict)
+    #andrea close
+    
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
     #restore targets to initialization option dict
@@ -400,6 +407,7 @@ class ROM(Dummy):
     @ In,  None
     @ Out, None
     """
+    # fare reset (per all ts)
     for instrom in self.SupervisedEngine.values(): instrom.reset()
     self.amITrained   = False
 
@@ -453,13 +461,17 @@ class ROM(Dummy):
 
   def __externalRun(self,inRun):
     returnDict = {}
-    for target in self.SupervisedEngine.keys(): returnDict[target] = self.evaluate(inRun,target)
+    for ts in grid
+      for target in self.SupervisedEngine.keys(): 
+        returnDict[target] = self.evaluate(inRun,target)
     return returnDict
 
   def run(self,Input,jobHandler):
     """This call run a ROM as a model"""
     inRun = self._manipulateInput(Input[0])
     jobHandler.submitDict['Internal']((inRun,),self.__externalRun,str(Input[1]['prefix']),metadata=Input[1],modulesToImport=self.mods, globs = self.globs)
+
+    
 #
 #
 #

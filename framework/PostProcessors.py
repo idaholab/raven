@@ -923,6 +923,7 @@ class DataConversion(BasePostProcessor):
         outValues_h = list(outValues[n].values())
         for item in outValues_h:    # loop for all dimensions of the history
           if self.sampling['type'] == 'uniform':
+            #def uniformTempInterp(numSamples, time, vars)
             item = uniformTempInterp()
           elif self.sampling['type'] == 'derivative':
             self.raiseAnError(IOError, 'DataConversion Post-Processor: derivative type not yet implemented')
