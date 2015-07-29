@@ -80,8 +80,8 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     origCubitInp = origInputFiles[currentInputFiles.index(cubitInp)]
     #split up sampledvars in kwargs between moose and Cubit script
     #  NOTE This works by checking the pipe split for the keyword Cubit at first!
-    margs = Kwargs.copy()
-    cargs = Kwargs.copy()
+    margs = copy.deepcopy(Kwargs)
+    cargs = copy.deepcopy(Kwargs)
     for vname,var in Kwargs['SampledVars'].items():
       if 'alias' in Kwargs.keys():
         fullname = Kwargs['alias'].get(vname,vname)

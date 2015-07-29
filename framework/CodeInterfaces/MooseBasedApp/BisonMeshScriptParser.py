@@ -120,6 +120,8 @@ class BisonMeshScriptParser():
   def modifyInternalDictionary(self,**inDictionary):
     # Parse the input dictionary and replace matching keywords in internal dictionary
     for keyword, newvalue in inDictionary.items():
+      #FIXME the keyword here is "cub", but that's probably the alias.  You should unfold that
+      #   either here or before calling modifyInternalDictionary
       garb, keyword1, keyword2 = keyword.split('|')
       self.AllVarDict[keyword1][keyword2] = newvalue
 
