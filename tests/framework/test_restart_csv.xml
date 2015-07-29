@@ -52,7 +52,7 @@
     <Grid name="grid">
       <Distribution name="Dummy1">
         <distribution>zeroToOne</distribution>
-        <grid construction="equal" steps=
+        <grid construction="equal" steps="20" type="CDF">0.15 0.9</grid>
       </Distribution>
     </Grid>
   </Samplers>
