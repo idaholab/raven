@@ -328,7 +328,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         key = child.tag
         value = child.text
         value.replace('\n','')
-        # ast.literal_eval can't handly numpy arrays, so we'll handle that.
+        # ast.literal_eval can't handle numpy arrays, so we'll handle that.
         if value.startswith('array('):
           isArray=True
           value=value.split('dtype')[0].lstrip('aray(').rstrip('),\n ')
