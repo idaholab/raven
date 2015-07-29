@@ -996,7 +996,7 @@ class Grid(Sampler):
     """
     self.gridEntity.initialize()
     self.limit = len(self.gridEntity)
-    if self.restartData:
+    if self.restartData is not None:
       inps = self.restartData.getInpParametersValues()
       self.existing = zip(*list(v for v in inps.values()))
 
