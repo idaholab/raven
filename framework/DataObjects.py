@@ -325,7 +325,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if metadataNode:
       import ast
       metadataDict = {}
-      self.raiseADebug('trying to parse:')
       for child in metadataNode:
         key = child.tag
         value = child.text
@@ -334,9 +333,15 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           isArray=True
           value=value.split('dtype')[0].lstrip('aray(').rstrip('),\n ')
         else: isArray = False
-        value = ast.literal_eval(value)
-        value = np.array(value)
+        try: value = ast.literal_eval(value)
+        except ValueError as e:
+          self.raiseAWarning('ast.literal_eval failed on "',value,'"')
+          self.raiseAWarning('ValueError was "',e,'", but continuing on...')
+        except SyntaxError as e:
+          self.raiseAWarning('ast.literal_eval failed on "',value,'"')
+          self.raiseAWarning('SyntaxError was "',e,'", but continuing on...')
         if isArray:
+          value = np.array(value)
           value = c1darray(values=value)
         metadataDict[key] = value
       retDict["metadata"] = metadataDict
@@ -1463,7 +1468,7 @@ class History(Data):
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     for key,value in zip(inpKeys,inpValues):
-      self._dataContainer['inputs'][key] = c1darray(values=[value]*len(outValues[0]))
+      self._dataContainer['inputs'][key] = c1darray(values=np.array([value]*len(outValues[0])))
     for key,value in zip(outKeys,outValues):
       self._dataContainer['outputs'][key] = c1darray(values=np.array(value))
 
@@ -1898,7 +1903,7 @@ class HistorySet(Data):
       subInput = {}
       subOutput = {}
       for key,value in zip(inpKeys,inpValues[i]):
-        subInput[key] = c1darray(values=[value]*len(outValues[0][0]))
+        subInput[key] = c1darray(values=np.array([value]*len(outValues[0][0])))
       for key,value in zip(outKeys[i],outValues[i]):
         subOutput[key] = c1darray(values=np.array(value))
       self._dataContainer['inputs'][mainKey] = subInput
