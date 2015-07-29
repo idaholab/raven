@@ -214,7 +214,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     Returns a list of variables to print.
     Takes the variable and either 'input' or 'output'
-    In addition, if the variable belong to the metadata and metaAdditionalInOrOut, it will also return to print 
+    In addition, if the variable belong to the metadata and metaAdditionalInOrOut, it will also return to print
     """
     variables_to_print = []
     lvar = var.lower()
@@ -225,7 +225,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       for invar in varKeys: variables_to_print.append(inOrOut+'|'+str(invar))
     elif '|' in var and lvar.startswith(inOrOut+'|'):
       varName = var.split('|')[1]
-      # get the variables from the metadata if the variables are in the list metaAdditionalInOrOut 
+      # get the variables from the metadata if the variables are in the list metaAdditionalInOrOut
       if varName in self.metaAdditionalInOrOut:
         varKeys = self._dataContainer['metadata'].keys()
         if varName not in varKeys: self.raiseAnError(RuntimeError,'variable ' + varName + ' is not present among the ' +inOrOuts+' of Data ' + self.name)
@@ -263,7 +263,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             variables_to_print.extend(self.__getVariablesToPrint(var,'input'))
           elif lvar.startswith('output'):
             variables_to_print.extend(self.__getVariablesToPrint(var,'output'))
-          #elif lvar.startswith('metadata'): # print the variables inside metadata into a csv file 
+          #elif lvar.startswith('metadata'): # print the variables inside metadata into a csv file
           #  variables_to_print.extend(self.__getVariablesToPrint(var,'metadata'))
           else: self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
         options_int['what'] = variables_to_print
