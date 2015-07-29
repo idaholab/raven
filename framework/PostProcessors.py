@@ -658,7 +658,6 @@ class ComparisonStatistics(BasePostProcessor):
       @ In, output: The object where we want to place our computed results
       @ Out, None
     """
-    self.raiseADebug('OUTPUT:',output.name)
     self.raiseADebug("finishedjob: " + str(finishedjob) + ", output " + str(output))
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
     else: self.dataDict.update(finishedjob.returnEvaluation()[1])
@@ -742,9 +741,7 @@ class ComparisonStatistics(BasePostProcessor):
         dataKeys -= set({'num_bins', 'counts', 'bins'})
         if generateCSV:
           for key in dataKeys:
-            self.raiseADebug('printing header to csv',csv,':',key)
             utils.printCsv(csv, '"' + key + '"', dataStats[key])
-        self.raiseADebug("data_stats:",dataStats)
         graphData.append((dataStats, cdfFunc, pdfFunc, str(dataPull)))
       graph_data = mathUtils.getGraphs(graphData, self.f_z_stats)
       if generateCSV:
@@ -784,7 +781,7 @@ class ComparisonStatistics(BasePostProcessor):
           dataPairs = []
           for key in sorted(dataStat.keys()):
             value = dataStat[key]
-            if type(value).__name__ in ["int", "float"]:
+            if np.isscalar(value):
               dataPairs.append((key, value))
           extraCsv = Files.returnInstance('CSV',self)
           extraCsv.initialize(newFileName,self.messageHandler)

@@ -1,2 +1,2 @@
-"mean","min_bin_size","pdf_area","stdev"
-20.0,1.5,0.999999426697,3.0
+"cdf_area_difference","mean","min_bin_size","pdf_area","pdf_common_area","stdev"
+1.00916370591,20.0,1.5,0.999999426697,0.555713437194,3.0
