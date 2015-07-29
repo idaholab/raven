@@ -46,16 +46,10 @@ def compare_element(a,b,*args,**kwargs):
       if valtest > num_tol:
         same=False
         fail_message("mismatch text value ",repr(a.text),repr(b.text),'rel. diff',valtest)
-        if '[' in message or ']' in message:
-          message=message.replace('[','(')
-          message=message.replace(']',')')
         return (same,message)
     else:
       same = False
       fail_message("mismatch text ",repr(a.text),repr(b.text))
-      if '[' in message or ']' in message:
-        message=message.replace('[','(')
-        message=message.replace(']',')')
       return (same,message)
   different_keys = set(a.keys()).symmetric_difference(set(b.keys()))
   same_keys = set(a.keys()).intersection(set(b.keys()))
@@ -75,9 +69,6 @@ def compare_element(a,b,*args,**kwargs):
         (same_child,message_child) = compare_element(a[i],b[i],*options,path=path)
         same = same and same_child
         message.extend(message_child)
-  if '[' in message or ']' in message:
-    message=message.replace('[','(')
-    message=message.replace(']',')')
   return (same,message)
 
 def isANumber(x):

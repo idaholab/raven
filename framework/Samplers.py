@@ -363,7 +363,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseAMessage('Restarting from '+self.restartData.name)
       #check consistency of data
       try:
-        rdata = self.restartData.getAllMetadata()['crowDist'] #actually a list
+        rdata = self.restartData.getAllMetadata()['crowDist']
         sdata = self.inputInfo['crowDist']
         self.raiseAMessage('sampler inputs:')
         for sk,sv in sdata.items():
@@ -376,7 +376,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               self.raiseAMessage('|   '+str(rk)+': '+str(rv))
             self.raiseAnError(IOError,'Restart "%s" data[%i] does not have same inputs as sampler!' %(self.restartData.name,i))
       except KeyError as e:
-        self.raiseAWarning("No CROW distribution available in restart",e) 
+        self.raiseAWarning("No CROW distribution available in restart -",e)
     else:
       self.raiseAMessage('No restart for '+self.printTag)
 

@@ -681,7 +681,7 @@ class ComparisonStatistics(BasePostProcessor):
     else:
       self.raiseAnError(IOError, 'unsupported type ' + str(type(output)))
     if generateCSV:
-      csv = output#.open("w")
+      csv = output
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "name" in reference:
@@ -742,6 +742,7 @@ class ComparisonStatistics(BasePostProcessor):
         if generateCSV:
           for key in dataKeys:
             utils.printCsv(csv, '"' + key + '"', dataStats[key])
+        self.raiseADebug("data_stats: " + str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc, str(dataPull)))
       graph_data = mathUtils.getGraphs(graphData, self.f_z_stats)
       if generateCSV:

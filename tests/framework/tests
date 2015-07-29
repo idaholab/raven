@@ -452,42 +452,44 @@
   type = 'RavenFramework'
   input = 'test_restart_MC.xml'
   output = 'SamplerRestarts/MCdump1.xml SamplerRestarts/MCdump2.xml SamplerRestarts/MCdump3.xml'
-  # xml = 'SamplerRestarts/MCdump1.xml SamplerRestarts/MCdump2.xml SamplerRestarts/MCdump3.xml'
+  xml = 'SamplerRestarts/MCdump1.xml SamplerRestarts/MCdump2.xml SamplerRestarts/MCdump3.xml'
   csv = 'SamplerRestarts/MCdump1.csv SamplerRestarts/MCdump2.csv SamplerRestarts/MCdump3.csv'
  [../]
  [./samplerRestartStratified]
   type = 'RavenFramework'
   input = 'test_restart_Strat.xml'
   output = 'SamplerRestarts/STRATdump1.xml SamplerRestarts/STRATdump2.xml SamplerRestarts/STRATdump3.xml'
-  # xml = 'SamplerRestarts/STRATdump1.xml SamplerRestarts/STRATdump2.xml SamplerRestarts/STRATdump3.xml'
+  xml = 'SamplerRestarts/STRATdump1.xml SamplerRestarts/STRATdump2.xml SamplerRestarts/STRATdump3.xml'
   csv = 'SamplerRestarts/STRATdump1.csv SamplerRestarts/STRATdump2.csv SamplerRestarts/STRATdump3.csv'
  [../]
  [./samplerRestartStochPoly]
   type = 'RavenFramework'
   input = 'test_restart_stochpoly.xml'
   output = 'SamplerRestarts/SCdump1.xml SamplerRestarts/SCdump2.xml SamplerRestarts/SCdump3.xml'
-  # xml = 'SamplerRestarts/SCdump1.xml SamplerRestarts/SCdump2.xml SamplerRestarts/SCdump3.xml'
+  xml = 'SamplerRestarts/SCdump1.xml SamplerRestarts/SCdump2.xml SamplerRestarts/SCdump3.xml'
   csv = 'SamplerRestarts/SCdump1.csv SamplerRestarts/SCdump2.csv SamplerRestarts/SCdump3.csv'
  [../]
  [./samplerRestartSobolNoRom]
   type = 'RavenFramework'
   input = 'test_restart_sobol_norom.xml'
   output = 'SamplerRestarts/SOBOLdump1.xml SamplerRestarts/SOBOLdump2.xml SamplerRestarts/SOBOLdump3.xml'
-  # xml = 'SamplerRestarts/SOBOLdump1.xml SamplerRestarts/SOBOLdump2.xml SamplerRestarts/SOBOLdump3.xml'
+  xml = 'SamplerRestarts/SOBOLdump1.xml SamplerRestarts/SOBOLdump2.xml SamplerRestarts/SOBOLdump3.xml'
   csv = 'SamplerRestarts/SOBOLdump1.csv SamplerRestarts/SOBOLdump2.csv SamplerRestarts/SOBOLdump3.csv'
  [../]
  [./samplerRestartGrid]
   type = 'RavenFramework'
   input = 'test_restart_Grid.xml'
   output = 'SamplerRestarts/GRIDdump1.xml SamplerRestarts/GRIDdump2.xml SamplerRestarts/GRIDdump3.xml'
-  # xml = 'SamplerRestarts/GRIDdump1.xml SamplerRestarts/GRIDdump2.xml SamplerRestarts/GRIDdump3.xml'
+  xml = 'SamplerRestarts/GRIDdump1.xml SamplerRestarts/GRIDdump2.xml SamplerRestarts/GRIDdump3.xml'
   csv = 'SamplerRestarts/GRIDdump1.csv SamplerRestarts/GRIDdump2.csv SamplerRestarts/GRIDdump3.csv'
  [../]
+
  [./samplerRestartCSV]
   type = 'RavenFramework'
   input = 'test_restart_csv.xml'
   output = 'SamplerRestarts/CSVdump.xml'
   csv = 'SamplerRestarts/CSVdump.csv'
+  prereq = samplerRestartMC
  [../]
 
  [./ND_external_MC]

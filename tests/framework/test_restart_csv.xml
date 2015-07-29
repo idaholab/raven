@@ -1,88 +1,100 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>SamplerRestarts</WorkingDir>
-    <Sequence>load,make,print</Sequence>
+    <WorkingDir runRelative="True">CsvRestart</WorkingDir>
+    <Sequence>read_in,sample,write</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name='csv' type=''>restartMC.csv</Input>
+    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
+    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
+    <Input name="point"   >../output_check/fullprint_Point.csv</Input>
+    <Input name="pointset">../output_check/fullprint_Pointset.csv</Input>
+    <Input name="hist"    >../output_check/fullprint_history.csv</Input>
+    <Input name="histset" >../output_check/fullprint_HistorySet.csv</Input>
   </Files>
-  
+
   <Steps>
-    <IOStep name="load">
-      <Input class='Files' type=''>csv</Input>
-      <Output class='DataObjects' type='PointSet'>solns</Output>
+    <IOStep name="read_in">
+      <Input  class='Files'       type=''>point</Input>
+      <Input  class='Files'       type=''>pointset</Input>
+      <Input  class='Files'       type=''>hist</Input>
+      <Input  class='Files'       type=''>histset</Input>
+      <Output class="DataObjects" type="Point">fullprint_Point</Output>
+      <Output class="DataObjects" type="PointSet">fullprint_Pointset</Output>
+      <Output class="DataObjects" type="History">fullprint_history</Output>
+      <Output class="DataObjects" type="HistorySet">fullprint_HistorySet</Output>
     </IOStep>
-    <MultiRun name="make">
-      <Input class="DataObjects" type="PointSet">solns</Input>
-      <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
-      <Output class="DataObjects" type="PointSet">solns</Output>
+    <MultiRun name='sample'>
+      <Input class="Files" type="">ideal_pump.i</Input>
+      <Input class="Files" type="">ideal_pump_control.py</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="HistorySet">histset</Output>
+      <Output class="DataObjects" type="PointSet">pointset</Output>
+      <Output class="DataObjects" type="Point">point</Output>
+      <Output class="DataObjects" type="History">hist</Output>
     </MultiRun>
-    <IOStep name="print">
-      <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">CSVdump</Output>
+    <IOStep name="write">
+      <Input class="DataObjects" type="History">hist</Input>
+      <Input class="DataObjects" type="HistorySet">histset</Input>
+      <Input class="DataObjects" type="Point">point</Input>
+      <Input class="DataObjects" type="PointSet">pointset</Input>
+      <Output class="OutStreamManager" type="Print">newPoint</Output>
+      <Output class="OutStreamManager" type="Print">newPointset</Output>
+      <Output class="OutStreamManager" type="Print">newHistory</Output>
+      <Output class="OutStreamManager" type="Print">newHistorySet</Output>
     </IOStep>
   </Steps>
 
-  <Distributions>
-    <Uniform name="u1">
-      <lowerBound>1</lowerBound>
-      <upperBound>2</upperBound>
-    </Uniform>
-    <Uniform name="u2">
-      <lowerBound>2</lowerBound>
-      <upperBound>3</upperBound>
-    </Uniform>
-  </Distributions>
-
   <Samplers>
-    <MonteCarlo name="mc">
-      <sampler_init>
-        <limit>15</limit>
-        <initial_seed>1</initial_seed>
-      </sampler_init>
-      <variable name="x1">
-        <distribution>u1</distribution>
-      </variable>
-      <variable name="x2">
-        <distribution>u2</distribution>
-      </variable>
-      <Restart class='DataObjects' type='PointSet'>solns</Restart>
-    </MonteCarlo>
+    <Grid name="grid">
+      <Distribution name="Dummy1">
+        <distribution>zeroToOne</distribution>
+        <grid construction="equal" steps=
+      </Distribution>
+    </Grid>
   </Samplers>
 
   <Models>
-    <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="./SamplerRestarts/polynomial" name="poly" subType="">
-      <variable>x1</variable>
-      <variable>x2</variable>
-      <variable>ans</variable>
-      <variable>ans2</variable>
-    </ExternalModel>
   </Models>
 
   <DataObjects>
-    <PointSet name="dummyIN">
-      <Input>x1,x2</Input>
-      <Output>OutputPlaceHolder</Output>
+    <Point name="point">
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </Point>
+    <PointSet name="pointset">
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
     </PointSet>
-    <PointSet name="solns">
-      <Input>x1,x2</Input>
-      <Output>ans,ans2</Output>
-    </PointSet>
-    <PointSet name="solns2">
-      <Input>x1,x2</Input>
-      <Output>ans,ans2</Output>
-    </PointSet>
+    <History name="hist">
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </History>
+    <HistorySet name="histset">
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </HistorySet>
   </DataObjects>
 
   <OutStreamManager>
-    <Print name="CSVdump">
+    <Print name="newHistorySet">
       <type>csv</type>
-      <source>solns</source>
+      <source>histset</source>
+    </Print>
+    <Print name="newHistory">
+      <type>csv</type>
+      <source>hist</source>
+    </Print>
+    <Print name="newPoint">
+      <type>csv</type>
+      <source>point</source>
+    </Print>
+    <Print name="newPointset">
+      <type>csv</type>
+      <source>pointset</source>
     </Print>
   </OutStreamManager>
 
