@@ -362,18 +362,21 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.restartData = self.assemblerDict['Restart'][0][3]
       self.raiseAMessage('Restarting from '+self.restartData.name)
       #check consistency of data
-      rdata = self.restartData.getAllMetadata()['crowDist'] #actually a list
-      sdata = self.inputInfo['crowDist']
-      self.raiseAMessage('sampler inputs:')
-      for sk,sv in sdata.items():
-        self.raiseAMessage('|   '+str(sk)+': '+str(sv))
-      for i,r in enumerate(rdata):
-        if type(r) != dict: continue
-        if not r==sdata:
-          self.raiseAMessage('restart inputs %i:' %i)
-          for rk,rv in r.items():
-            self.raiseAMessage('|   '+str(rk)+': '+str(rv))
-          self.raiseAnError(IOError,'Restart "%s" data[%i] does not have same inputs as sampler!' %(self.restartData.name,i))
+      try:
+        rdata = self.restartData.getAllMetadata()['crowDist'] #actually a list
+        sdata = self.inputInfo['crowDist']
+        self.raiseAMessage('sampler inputs:')
+        for sk,sv in sdata.items():
+          self.raiseAMessage('|   '+str(sk)+': '+str(sv))
+        for i,r in enumerate(rdata):
+          if type(r) != dict: continue
+          if not r==sdata:
+            self.raiseAMessage('restart inputs %i:' %i)
+            for rk,rv in r.items():
+              self.raiseAMessage('|   '+str(rk)+': '+str(rv))
+            self.raiseAnError(IOError,'Restart "%s" data[%i] does not have same inputs as sampler!' %(self.restartData.name,i))
+      except KeyError as e:
+        self.raiseAWarning("No CROW distribution available in restart",e) 
     else:
       self.raiseAMessage('No restart for '+self.printTag)
 
