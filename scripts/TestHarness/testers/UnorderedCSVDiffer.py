@@ -19,10 +19,14 @@ class UnorderedCSVDiffer:
   """ Used for comparing a bunch of xml files.
   """
   def __init__(self, test_dir, out_files,*args):
-    """ Create an XMLDiff class
-    test_dir: the directory where the test takes place
-    out_files: the files to be compared.  They will be in test_dir + out_files
+    """ Create an UnorderedCSVDiffer class
+    test_dir:
+    out_files:
     and test_dir + gold + out_files
+    @ In, test_dir, the directory where the test takes place
+    @ In, out_files, the files to be compared.  They will be in test_dir + out_files
+    @ In, *args, unused.
+    @ Out, None.
     """
     self.__out_files = out_files
     self.__messages = ""
@@ -33,8 +37,10 @@ class UnorderedCSVDiffer:
   def diff(self):
     """ Run the comparison.
     returns (same,messages) where same is true if all the
-    xml files are the same, and messages is a string with all the
+    csv files are the same, and messages is a string with all the
     differences.
+    @ In, None
+    @ Out, (bool,string), (same) and (messages)
     """
     # read in files
     for out_file in self.__out_files:
@@ -104,6 +110,10 @@ class UnorderedCSVDiffer:
     return (self.__same,self.__messages)
 
   def loadCSV(self,filename):
+    """Method to load CSVs in lieu of using Numpy's method.
+    @ In, filename, string file name to load
+    @ Out, (list of string,list of lists of floats), (header row) and the body data
+    """
     f = file(filename,'r')
     header = f.readline()
     data=[]
