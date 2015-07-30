@@ -359,11 +359,12 @@ class ROM(Dummy):
     self.howManyTargets = len(targets)
     
     #andrea
-    for ts in whatver:
+    n_timeSteps = self.initializationOptionDict['t_Discs']
+    for ts in range(n_timeSteps):
       tsDict = {}
       for target in targets:
         self.initializationOptionDict['Target'] = target
-        tsDict[target]= SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)}
+        tsDict[target]= SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
       self.SupervisedEngine.append(tsDict)
     #andrea close
     
