@@ -269,7 +269,7 @@ class SparseQuad(MessageHandler.MessageUser):
       for j,cof in enumerate(self.c):
         idx = self.indexSet[j]
         m = self.quadRule(idx)+1
-        new = self.tensorGrid((m,idx))
+        new = self.tensorGrid(m,idx)
         for i in range(len(new[0])):
           newpt=tuple(new[0][i])
           newwt=new[1][i]*cof

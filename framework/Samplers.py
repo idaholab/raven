@@ -41,6 +41,7 @@ import PostProcessors
 import MessageHandler
 import GridEntities
 import DataObjects
+import Models
 distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -2622,6 +2623,8 @@ class SparseGridCollocation(Grid):
         self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1'}
     #establish all the right names for the desired types
     for varName,dat in self.gridInfo.items():
+      self.raiseADebug('checking dat',dat.keys())
+      self.raiseADebug('checking distDict',self.distDict.keys())
       if dat['poly'] == 'DEFAULT': dat['poly'] = self.distDict[varName].preferredPolynomials
       if dat['quad'] == 'DEFAULT': dat['quad'] = self.distDict[varName].preferredQuadrature
       polyType=dat['poly']
@@ -2721,11 +2724,11 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     @ Out, None
     """
     #set a pointer to the end-product ROM
-    self.raiseADebug(self.assemblerDict['ROM'][0])
     self.ROM = self.assemblerDict['ROM'][0][3]
     #obtain the DataObject that contains evaluations of the model
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     #set a pointer to the GaussPolynomialROM object
+    self.raiseADebug('my rom:',self.ROM)
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #sampler doesn't always care about which target
     self.features=SVL.features #the input space variables
@@ -3184,6 +3187,9 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     self.printTag = 'SAMPLER ADAPTIVE SOBOL'
     self.maxComboCard = None
 
+    self.SQs     = {} #stores sparse grid quadrature objects
+    self.sampler = {} #stores adaptive sparse grid sampling objects
+
     self._addAssObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
@@ -3234,6 +3240,8 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     for c in self.first_combos:
       self.raiseADebug('  ',c)
       self._makeComboParts(c)
+      self.raiseADebug('first set combo c:',c)
+      self.raiseADebug('sampler keys:',self.samplers.keys())
       self.inTraining[c]=self.samplers[c]
     #establish reference cut
     self.references={}
@@ -3320,11 +3328,12 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
       @ In, combo, tuple(string) subset description, i.e. ('x','y')
       @ Out, GaussPolynomialROM object
     '''
-    node = ET.Element('sampler')
-    node.append(ET.Element('Convergence',text=self.convValue))
-    for c in combo:
-        var = str(c)
-        vnode = ET.Element('variable',text=var)
+    self.raiseADebug('Generating sub-combos for combo',combo)
+    #node = ET.Element('sampler')
+    #node.append(ET.Element('Convergence',text=self.convValue))
+    #for c in combo:
+    #    var = str(c)
+    #    vnode = ET.Element('variable',text=var)
     SVL = self.ROM.SupervisedEngine.values()[0] #FIXME multitarget
     distDict={}
     quadDict={}
@@ -3338,10 +3347,24 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
       imptDict[c]=self.importanceDict[c]
     iset = IndexSets.returnInstance('AdaptiveSet',self)
     iset.initialize(distDict,imptDict,self.maxPolyOrder)
-    initDict={'IndexSet':iset.type, 'PolynomialOrder':SVL.maxPolyOrder, 'Interpolation':SVL.itpDict}
-    initDict['Features']=','.join(combo)
-    initDict['Target']=SVL.target #TODO make it work for multitarget
+    #TODO intialize sparse quad! FIXME does this work?  We need adaptive sparse grid
+    # I'm pretty sure this is a dummy quadrature that will get replaced.
+    self.SQs[combo] = Quadratures.SparseQuad()
+    self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
+    #initDict       is for SVL.__init__
+    #initializeDict is for SVL.initialize()
+    initDict = {      'IndexSet'       : iset.type,         # type of the index set
+                      'PolynomialOrder': SVL.maxPolyOrder,  # largest polynomial
+                      'Interpolation'  : SVL.itpDict,       # poly,quads per input
+                      'Features'       : ','.join(combo),   # input variables
+                      'Target'         : SVL.target}        # TODO make it work for multitarget
+    initializeDict = {'SG'             : self.SQs[combo],   # sparse grid
+                      'dists'          : distDict,          # distributions
+                      'quads'          : quadDict,          # quadratures
+                      'polys'          : polyDict,          # polynomials
+                      'iSet'           : iset}              # index set
     self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
+    self.ROMs[combo].initialize(initializeDict)
     #set up for adaptive sampling
     #  make xmlnode for sampler
     nsamp = AdaptiveSparseGrid()
@@ -3353,9 +3376,18 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     nsamp.maxPolyOrder = self.maxPolyOrder
     nsamp.persistence = 2
     nsamp.convValue = self.convValue
+    nsamp.distDict = distDict
     # from localInitialize
-    nsamp.assemblerDict['ROM']              = [['','','',self.ROMs[combo] ]]
-    nsamp.assemblerDict['TargetEvaluation'] = [['','','',self.solns       ]] #FIXME this can't work.  Needs to be guided. Overwritten later.
+    #FIXME the assemblerDict expects a ROM object, not a GaussPolyROM object
+    romshell = Models.returnInstance('ROM',self)
+    romshell.SupervisedEngine[SVL.target] = self.ROMs[combo]
+    #write some XML for initialization
+    #node = ET.Element('ROM')
+    #node.set('name','dummyROM')
+    #node.set('subType','GaussPolynomialRom')
+    #node.append(ET.Element('Target',text=','.join([])))
+    nsamp.assemblerDict['ROM']              = [['','','',romshell   ]]
+    nsamp.assemblerDict['TargetEvaluation'] = [['','','',self.solns ]] #FIXME this can't work.  Needs to be guided. Overwritten later.
     nsamp.localInitialize()
     self.sampler[combo] = nsamp
     #make the rom
