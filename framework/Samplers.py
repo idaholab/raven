@@ -2728,7 +2728,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #obtain the DataObject that contains evaluations of the model
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     #set a pointer to the GaussPolynomialROM object
-    self.raiseADebug('my rom:',self.ROM)
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #sampler doesn't always care about which target
     self.features=SVL.features #the input space variables
@@ -2738,9 +2737,12 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
     #print out the setup for each variable.
     self.raiseADebug(' INTERPOLATION INFO:')
-    self.raiseADebug('    Variable | Distribution | Quadrature | Polynomials')
+    self.raiseADebug(' {:^15} | {:^15} | {:^15} | {:^15}'.format('Variable','Distribution','Quadrature','Polynomials'))
+    self.raiseADebug(' {0:*^16}|{0:*^17}|{0:*^17}|{0:*^17}'.format(''))
+    #self.raiseADebug(' {:*^69}'.format(''))
     for v in self.quadDict.keys():
-      self.raiseADebug('   '+' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
+      self.raiseADebug(' {:^15} | {:^15} | {:^15} | {:^15}'.format(v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type))
+        #self.raiseADebug('   '+' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
     self.raiseADebug('    Polynomial Set Type  : adaptive')
 
     #create the index set
@@ -3175,7 +3177,7 @@ class Sobol(SparseGridCollocation):
 #
 #
 #
-class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
+class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
   def __init__(self):
     '''
       Initializes members to be used in the sampler.
@@ -3187,8 +3189,9 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     self.printTag = 'SAMPLER ADAPTIVE SOBOL'
     self.maxComboCard = None
 
-    self.SQs     = {} #stores sparse grid quadrature objects
-    self.sampler = {} #stores adaptive sparse grid sampling objects
+    self.SQs      = {} #stores sparse grid quadrature objects
+    self.samplers = {} #stores adaptive sparse grid sampling objects
+    self.romshell = {} #stores Model.ROM objects for each combo
 
     self._addAssObject('TargetEvaluation','1')
 
@@ -3234,14 +3237,12 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     self.expImpact    = {} #dict of predicted impacts by combo
     #calculate first order combos
     self.raiseADebug('features:',self.features)
-    self.first_combos = itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in [1,2])
+    self.first_combos = itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in [1,1])
     #return itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(low,high+1))
     self.raiseADebug('first set:')
     for c in self.first_combos:
       self.raiseADebug('  ',c)
       self._makeComboParts(c)
-      self.raiseADebug('first set combo c:',c)
-      self.raiseADebug('sampler keys:',self.samplers.keys())
       self.inTraining[c]=self.samplers[c]
     #establish reference cut
     self.references={}
@@ -3252,7 +3253,7 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     self._updateExisting()
     #collect first set of runs needed
     self.neededPoints=[tuple(self.references[var] for var in self.features)]
-    self._collectNeededPoints(first_combos)
+    self._collectNeededPoints(self.first_combos)
 
   def _convergence(self):
     pass #TODO
@@ -3316,7 +3317,9 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
       @In, combos, list of tuples to collect needed points from (probably usually all the untrained combos)
     '''
     for c in combos:
+      self.raiseADebug('checking needs for combo',c)
       if self.expImpact.get(c,self.convValue+1)>self.convValue:
+        self.raiseADebug('...passed if...',self.expImpact.get(c,None))
         for pt in self.samplers[c].neededPoints:
           fullpt = self._fillCutPoint(combo,pt)
           if fullpt not in self.neededPoints and fullpt not in self.existing:
@@ -3347,13 +3350,15 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
       imptDict[c]=self.importanceDict[c]
     iset = IndexSets.returnInstance('AdaptiveSet',self)
     iset.initialize(distDict,imptDict,self.maxPolyOrder)
+    self.raiseADebug('iset pts:',iset)
     #TODO intialize sparse quad! FIXME does this work?  We need adaptive sparse grid
     # I'm pretty sure this is a dummy quadrature that will get replaced.
+    #  ...on the other hand, it appears we're getting empty sparse grid quadratures...
     self.SQs[combo] = Quadratures.SparseQuad()
     self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
     #initDict       is for SVL.__init__
     #initializeDict is for SVL.initialize()
-    initDict = {      'IndexSet'       : iset.type,         # type of the index set
+    initDict =       {'IndexSet'       : iset.type,         # type of the index set
                       'PolynomialOrder': SVL.maxPolyOrder,  # largest polynomial
                       'Interpolation'  : SVL.itpDict,       # poly,quads per input
                       'Features'       : ','.join(combo),   # input variables
@@ -3366,10 +3371,13 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
     self.ROMs[combo].initialize(initializeDict)
     #set up for adaptive sampling
-    #  make xmlnode for sampler
+    #...make the shell ROM for this combo
+    self.romshell[combo] = Models.returnInstance('ROM',self)
+    self.romshell[combo].messageHandler = self.messageHandler
+    self.romshell[combo].SupervisedEngine[SVL.target] = self.ROMs[combo]
+    #...make adaptive SG sampler,simulate localInputAndChecks
     nsamp = AdaptiveSparseGrid()
     nsamp.messageHandler = self.messageHandler
-    # from localInputsAndChecks
     nsamp.doInParallel = self.doInParallel
     for var in combo: nsamp.axisName.append(var)
     nsamp.convType='variance'
@@ -3377,21 +3385,14 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     nsamp.persistence = 2
     nsamp.convValue = self.convValue
     nsamp.distDict = distDict
-    # from localInitialize
-    #FIXME the assemblerDict expects a ROM object, not a GaussPolyROM object
-    romshell = Models.returnInstance('ROM',self)
-    romshell.SupervisedEngine[SVL.target] = self.ROMs[combo]
-    #write some XML for initialization
-    #node = ET.Element('ROM')
-    #node.set('name','dummyROM')
-    #node.set('subType','GaussPolynomialRom')
-    #node.append(ET.Element('Target',text=','.join([])))
-    nsamp.assemblerDict['ROM']              = [['','','',romshell   ]]
-    nsamp.assemblerDict['TargetEvaluation'] = [['','','',self.solns ]] #FIXME this can't work.  Needs to be guided. Overwritten later.
+    nsamp.assemblerDict['ROM']              = [['','','',self.romshell[combo] ]]
+    nsamp.assemblerDict['TargetEvaluation'] = [['','','',self.solns           ]]
     nsamp.localInitialize()
-    self.sampler[combo] = nsamp
-    #make the rom
-    #TODO
+    #propogate sparse grid back from sampler
+    self.SQs[combo] = nsamp.sparseGrid
+    self.ROMs[combo].sparseGrid = nsamp.sparseGrid
+    self.raiseADebug('SG:',nsamp.sparseGrid)
+    self.samplers[combo] = nsamp
 
   def _updateExisting(self):
     '''
@@ -3399,25 +3400,39 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
       @ In, None
       @ Out, None
     '''
-    AdaptiveSparseGrid._updateExisting()
+    AdaptiveSparseGrid._updateExisting(self)
     #make subset solns for subsets
     #solns={}
     for combo,sampler in self.samplers.items():
       #solns[combo] = []
       counter = 0
-      dataObj = DataObjects.returnInstance('TimePointSet',self)
-      dataObj.type='TimePointSet'
-      datanode = ET.Element('TimePointSet',{'name':str(combo)})
-      datanode.append(ET.Element('Input' ,text=','.join(str(c) for c in combo)))
-      datanode.append(ET.Element('Output',text=','.join(self.features)))
-      dataObj.initialize(datanode)
-      for inp,soln in self.existing.items():
-        if self._checkCutPoint(combo,inp): #indicates it's part of the desired cut hyperplane
-          #solns[combo].append(soln)
-          for i,c in enumerate(combo):
-            dataObj._updateInputValue(c,inp[i])
-          for i,c in enumerate(self.targets):
-             dataObj._updateOutputValue(c,soln[i])
+      self.raiseADebug('DataObject for combo',combo,self.samplers[combo].solns)
+      if self.samplers[combo].solns is None:
+        dataObj = DataObjects.returnInstance('PointSet',self)
+        dataObj.type='PointSet'
+        #write XML for intializing
+        datanode = ET.Element('PointSet',{'name':str(combo)})
+        #inputs
+        inpnode = ET.Element('Input')
+        inpnode.text=','.join(c for c in combo)
+        datanode.append(inpnode)
+        #outputs
+        outnode = ET.Element('Output')
+        outnode.text=','.join(self.targets)
+        datanode.append(outnode)
+        #initialize
+        dataObj.readXML(datanode,self.messageHandler)
+      else:
+        dataObj = self.samplers[combo].solns
+      #add in relevant cut-hyperplane data
+      if len(self.existing)>0:
+        for inp,soln in self.existing.items():
+          if self._checkCutPoint(combo,inp): #indicates it's part of the desired cut hyperplane
+            #solns[combo].append(soln)
+            for i,c in enumerate(combo):
+              dataObj.updateInputValue(c,inp[i])
+            for i,c in enumerate(self.targets):
+               dataObj.updateOutputValue(c,soln[i])
       self.samplers[combo].solns = dataObj
 
   def _calcActualImpact(self,combo):
@@ -3460,6 +3475,8 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
     return abs(sum2-sum1)/abs(sum1)
 
   def _initializeROM(self):
+    #used?
+    self.raiseAnError(RuntimeError,'I get used!')
     initdict={'ROMs':self.useSet,
             'dists':self.distDict,
             'quads':self.quadDict,
@@ -3483,8 +3500,8 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
         if done:
           self.doneTraining[combo]=sampler
           del self.inTraining[combo]
-          self.ROMs[combo].train(self.ROMs[combo].solns)
-          self.actImpact[combo] = self_calcActualImpact(combo)
+          self.romshell[combo].train(self.samplers[combo].solns)
+          self.actImpact[combo] = self._calcActualImpact(combo)
       else:
         alldone=False #FIXME wait and re-call?
       #TODO FIXME convergence tests not yet implemented!
@@ -3506,6 +3523,13 @@ class AdaptiveSobol(AdaptiveSparseGrid,Sobol):
       return False
     return True
 
+  def localGenerateInput(self,model,oldInput):
+    pt = self.neededPoints.pop()
+    for v,varName in enumerate(self.distDict.keys()):
+      self.values[varName] = pt[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['SamplerType'] = 'Adaptive Sobol Sparse Grid'
 
 
 """

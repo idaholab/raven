@@ -46,6 +46,7 @@ class IndexSet(MessageHandler.MessageUser):
     @ In, None, None
     @ Out, string, visual representation of index set
     """
+    if len(self.points)<1: return "Index set is empty!"
     msg='IndexSet Printout:\n'
     if len(self.points[0])==2: #graphical block visualization
       left=0

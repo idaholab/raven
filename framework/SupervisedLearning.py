@@ -108,7 +108,10 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-        if values[names.index(feat)].size != featureValues[:,0].size: self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
+        if values[names.index(feat)].size != featureValues[:,0].size:
+          self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
+          self.raiseAWarning('target values:',values[names.index(feat)].size,tag='ERROR')
+          self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
@@ -456,11 +459,15 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ In, featureVals, list, feature values
     @ In, targetVals, list, target values
     """
+    self.raiseADebug('training',self.features,'->',self.target)
+    self.raiseADebug('...using',featureVals)
     self.polyCoeffDict={}
     #check equality of point space
     fvs = []
     tvs=[]
     sgs = self.sparseGrid.points()[:]
+    self.raiseADebug('sg:',self.sparseGrid)
+    self.raiseADebug('sgs:',sgs)
     missing=[]
     for pt in sgs:
       found,idx,point = utils.NDInArray(featureVals,pt)
@@ -523,12 +530,22 @@ class GaussPolynomialRom(NDinterpolatorRom):
         data.append([idx,val])
     return data
 
+  def __variance__(self):
+    """returns the variance of the ROM.
+    @ In, None
+    @ Out, float, variance
+    """
+    mean = self.__evaluateMoment__(1)
+    return self.__evaluateMoment__(2) - mean*mean
+
   def __evaluateMoment__(self,r):
     """Use the ROM's built-in method to calculate moments.
     @ In r, int, moment to calculate
     @ Out, float, evaluation of moment
     """
     #TODO is there a faster way still to do this?
+    self.raiseADebug('polyCoeffDict:',self.polyCoeffDict)
+    self.raiseADebug('...trained?:',self.amITrained)
     if r==1: return self.polyCoeffDict[tuple([0]*len(self.features))]
     elif r==2: return sum(s**2 for s in self.polyCoeffDict.values())
     tot=0
