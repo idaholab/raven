@@ -21,6 +21,7 @@
 "omega",7.40105736327
 "mean",20.227985789
 "pdf_common_area",0.555713437194
+"pdf_area_[u'fullprint_Pointset', u'outputs', [u'normal1']]",0.876190755574
 "z","f_z(z)"
 -9.22798578904,0.00322246917747
 -8.32798578904,0.00554079471313
@@ -42,9 +43,8 @@
 6.07201421096,0.0224757644334
 6.97201421096,0.0131936932036
 7.87201421096,0.00715390715682
-"pdf_area_ref",0.999999426697
-"pdf_area_[u'fullprint_Pointset', u'outputs', [u'normal1']]",0.876190755574
-"x","ref_cdf","ref_pdf","[u'fullprint_Pointset', u'outputs', [u'normal1']]_cdf","[u'fullprint_Pointset', u'outputs', [u'normal1']]_pdf"
+"pdf_area_ref_normal_20_3",0.999999426697
+"x","ref_normal_20_3_cdf","ref_normal_20_3_pdf","[u'fullprint_Pointset', u'outputs', [u'normal1']]_cdf","[u'fullprint_Pointset', u'outputs', [u'normal1']]_pdf"
 11.0,0.00134989803163,0.00147728280398,0.0,0.0
 12.5,0.00620966532578,0.00584276683119,0.0,0.0
 14.0,0.0227501319482,0.0179969888377,0.0,0.0
@@ -104,8 +104,8 @@
 22.3872694649,0.00637363709559
 23.8872694649,0.00327949516126
 "pdf_area_[u'fullprint_Pointset', u'outputs', [u'normal2']]",0.914289591162
-"pdf_area_ref",0.999999426697
-"x","ref_cdf","ref_pdf","[u'fullprint_Pointset', u'outputs', [u'normal2']]_cdf","[u'fullprint_Pointset', u'outputs', [u'normal2']]_pdf"
+"pdf_area_ref_normal_30_5",0.999999426697
+"x","ref_normal_30_5_cdf","ref_normal_30_5_pdf","[u'fullprint_Pointset', u'outputs', [u'normal2']]_cdf","[u'fullprint_Pointset', u'outputs', [u'normal2']]_pdf"
 12.0074439282,0.000160022026281,0.000123037923919,0.0,0.0
 13.5785180269,0.000511186700505,0.000362793103312,0.0,0.0
 15.1495921255,0.00148860339693,0.000969171741077,0.115354323923,0.0172675325151
@@ -173,9 +173,9 @@
 "variance",41.754699656
 "omega",92.1200418899
 "mean",12.9819613872
-"pdf_common_area",0.346568145591
 "pdf_area_[u'fullprint_Pointset', u'outputs', [u'uniform1']]",0.890478422887
 "pdf_area_[u'fullprint_Pointset', u'outputs', [u'uniform2p']]",1.12381281614
+"pdf_common_area",0.346568145591
 "z","f_z(z)"
 -22.977053547,0.0
 -21.0102159545,0.0
