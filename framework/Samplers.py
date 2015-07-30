@@ -2828,10 +2828,13 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       #make reorder map
       reordmap=list(inps.keys().index(i) for i in self.features)
       solns = list(v for v in inps.values())
-      ordsolns = [solns[i] for i in reordmap]
+      ordsolns = [tuple(solns[i] for i in reordmap)]
+      self.raiseADebug('      solns:',ordsolns)
       existinginps = zip(*ordsolns)
       outvals = zip(*list(v for v in outs.values()))
       self.existing = dict(zip(existinginps,outvals))
+    else:
+      self.raiseADebug('solns is empty!')
 
   def _integrateFunction(self,sg,r,i):
     """
@@ -2893,13 +2896,18 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ Out, ready, bool, true if ready
     """
     #update existing solutions
+    self.raiseAWarning('...checking local still ready: start')
     self._updateExisting()
+    self.raiseAWarning('...checking local still ready: neededPoints')
+    self.raiseAWarning('     ',self.neededPoints)
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
     #if we still have a list of points to sample, just keep on trucking.
     if len(self.neededPoints)>0: return True
+    self.raiseAWarning('...checking local still ready: no needed points')
     #if no points to check right now, search for points to sample
     while len(self.neededPoints)<1:
+      self.raiseAWarning('checking local still ready 3')
       self.raiseADebug('')
       self.raiseADebug('Evaluating new points...')
       #update QoIs and impact parameters
@@ -3319,10 +3327,12 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     for c in combos:
       self.raiseADebug('checking needs for combo',c)
       if self.expImpact.get(c,self.convValue+1)>self.convValue:
-        self.raiseADebug('...passed if...',self.expImpact.get(c,None))
-        for pt in self.samplers[c].neededPoints:
-          fullpt = self._fillCutPoint(combo,pt)
+        while len(self.samplers[c].neededPoints) > 0:
+          pt = self.samplers[c].neededPoints.pop()
+          self.raiseADebug('...checking on point',pt)
+          fullpt = self._fillCutPoint(c,pt)
           if fullpt not in self.neededPoints and fullpt not in self.existing:
+            self.raiseADebug('...adding point',pt)
             self.neededPoints.append(fullpt)
 
   def _makeComboParts(self,combo):
@@ -3407,7 +3417,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       #solns[combo] = []
       counter = 0
       self.raiseADebug('DataObject for combo',combo,self.samplers[combo].solns)
-      if self.samplers[combo].solns is None:
+      if self.samplers[combo].solns is None or self.samplers[combo].solns.isItEmpty():
+        self.raiseADebug('Creating DataObject for combo',combo)
         dataObj = DataObjects.returnInstance('PointSet',self)
         dataObj.type='PointSet'
         #write XML for intializing
@@ -3426,6 +3437,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         dataObj = self.samplers[combo].solns
       #add in relevant cut-hyperplane data
       if len(self.existing)>0:
+        self.raiseADebug('in existing:',self.existing)
+        self.raiseADebug('targets:',self.targets)
         for inp,soln in self.existing.items():
           if self._checkCutPoint(combo,inp): #indicates it's part of the desired cut hyperplane
             #solns[combo].append(soln)
@@ -3496,17 +3509,24 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       #check local ready on outstanding ROMs
       alldone = True
       for combo,sampler in self.inTraining.items():
-        done=sampler.localStillReady(True)
-        if done:
+        self.raiseADebug('checking ready on',combo)
+        stillrunning=sampler.localStillReady(True) #this might have added more points to sampler.neededPoints
+        if not stillrunning: #aka if done sampling
           self.doneTraining[combo]=sampler
           del self.inTraining[combo]
+          self.raiseADebug('training dataobj print:',self.samplers[combo].solns.name)
+          self.samplers[combo].solns.printCSV()
           self.romshell[combo].train(self.samplers[combo].solns)
           self.actImpact[combo] = self._calcActualImpact(combo)
-      else:
-        alldone=False #FIXME wait and re-call?
+        else:
+          alldone=False #FIXME wait and re-call?
+      if not alldone:
+        self._collectNeededPoints(self.inTraining.keys())
+        self.raiseAnError(IOError,'break')
       #TODO FIXME convergence tests not yet implemented!
       #check total convergence
-      impcombo = self.expImpact.keys()[-1]
+      if len(self.expImpact)>0: impcombo = self.expImpact.keys()[-1]
+      # ELSE? TODO FIXME
       while impcombo in self.doneTraining.keys(): #expected highest-impact is done
         totconv = self._calcConvergence(impcombo)
         del self.expImpact

@@ -490,6 +490,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
     for i in range(len(fvs)):
       translate[tuple(fvs[i])]=sgs[i]
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
+    #make polynomials
+    self.raiseADebug('training, indexSet:',self.indexSet)
     for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
