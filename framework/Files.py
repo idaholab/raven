@@ -34,6 +34,8 @@ class File(BaseType):
     self.__path=''
     self.__base=''
     self.__ext=None
+    self.subtype=None
+    self.perturbable=False
 
   def __del__(self):
     """
@@ -135,9 +137,17 @@ class File(BaseType):
     @Out, None
     """
     if self.isOpen(): self.raiseAnError('Tried to change the path of an open file: %s! Close it first.' %self.getAbsFile())
-    #if path==None: path=self.__path #FIXME is this useful?
     if '~' in path: path = os.path.expanduser(path)
     self.__path = path
+
+  def prependPath(self,addpath):
+    """Prepends path to existing path.
+    @ In, addpath, string, new path to prepend
+    @ Out, None
+    """
+    if self.isOpen(): self.raiseAnError('Tried to change the path of an open file: %s! Close it first.' %self.getAbsFile())
+    if '~' in addpath: addpath = os.path.expanduser(addpath)
+    self.__path = os.path.join(addpath,self.getPath())
 
   def setBase(self,base):
     """Sets the base name of the file.
@@ -171,6 +181,22 @@ class File(BaseType):
     @Out, string, path/file
     """
     return os.path.normpath(os.path.join(self.getPath(),self.getFilename()))
+
+  def getType(self):
+    """Retrieves the subtype set in the XML (UserGenerated) or by the developer.
+       Note that this gives the subtype, since type is reserved for internal RAVEN use.
+       @ In, None
+       @ Out, string, subtype if not None, else ''
+    """
+    if self.subtype is None: return ''
+    else: return self.subtype
+
+  def getPerturbable(self):
+    """Retrieves the "perturbable" boolean attribute.  Defaults to True for UserGenerated, False for others.
+       @ In, None
+       @ Out, boolean, perturbable
+    """
+    return self.perturbable
 
   # setters #
   def setFilename(self,filename):
@@ -351,9 +377,6 @@ class File(BaseType):
 
 
 
-
-
-
 #
 #
 #
@@ -415,7 +438,7 @@ class UserGenerated(File):
     """
     self.type = node.tag #XSD should confirm valid types
     self.printTag = self.type+' File'
-    self.setFilename(node.text.strip())
+    self.setAbsFile(node.text.strip())
     self.perturbed = node.attrib.get('perturbable',True)
     self.subtype   = node.attrib.get('type'       ,None)
     self.alias     = node.attrib.get('name'       ,self.getFilename())

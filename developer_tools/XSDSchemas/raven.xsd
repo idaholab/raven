@@ -90,8 +90,8 @@
         <xsd:complexType>
             <xsd:all>
                 <xsd:element name="RunInfo"          type="RunInfoData"      minOccurs="1"/>
-                <xsd:element name="Models"           type="ModelsData"       minOccurs="1"/>
                 <xsd:element name="Steps"            type="StepType"         minOccurs="1"/>
+                <xsd:element name="Models"           type="ModelsData"       minOccurs="0"/>
                 <xsd:element name="Files"            type="FilesType"        minOccurs="0"/>
                 <xsd:element name="Samplers"         type="SamplerData"      minOccurs="0"/>
                 <xsd:element name="DataObjects"      type="DataObjectsData"  minOccurs="0"/>

@@ -1,0 +1,12 @@
+ [./test_mpi]
+   input=test_mpi.xml
+   skip = 'not real test'
+ [../]
+ [./test_pbsdsh]
+   input=test_pbs.xml
+   skip = 'not real test'
+ [../]
+ [./test_mpiqsub]
+   input=test_mpiqsub_local.xml
+   skip = 'not real test'
+ [../]
