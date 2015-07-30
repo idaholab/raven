@@ -331,7 +331,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         # ast.literal_eval can't handle numpy arrays, so we'll handle that.
         if value.startswith('array('):
           isArray=True
-          value=value.split('dtype')[0].lstrip('aray(').rstrip('),\n ')
+          value=value.split('dtype')[0].lstrip('ary(').rstrip('),\n ')
         else: isArray = False
         try: value = ast.literal_eval(value)
         except ValueError as e:
