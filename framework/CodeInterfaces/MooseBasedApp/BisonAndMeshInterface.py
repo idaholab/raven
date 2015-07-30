@@ -89,8 +89,15 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
         #else: fullname = vname
       if fullname.split('|')[0]=='Cubit':
         del margs['SampledVars'][vname]
+        if 'alias' in Kwargs.keys():
+          if vname in Kwargs['alias']:
+            del margs['alias'][vname]
       else:
         del cargs['SampledVars'][vname]
+        if 'alias' in Kwargs.keys():
+          if vname in Kwargs['alias']:
+            del cargs['alias'][vname]
+
     newMooseInputs = self.MooseInterface    .createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
     newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp],[origCubitInp],samplerType,**cargs)
     #make carbon copy of original input files

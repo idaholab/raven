@@ -1,8 +1,8 @@
-'''
+"""
 created on Jul 15, 2015
 
 @author: tompjame
-'''
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -17,11 +17,14 @@ import collections
 from utils import toBytes, toStrish, compare
 import MessageHandler
 
-class ParserCubit(MessageHandler.MessageUser):
-  '''Import Cubit journal file input, provide methods to add/change entries and print input back'''
+class CUBITparser(MessageHandler.MessageUser):
+  """Import Cubit journal file input, provide methods to add/change entries and print input back"""
 
   def __init__(self,messageHandler, inputFile):
-    '''Open and read file content into an ordered dictionary'''
+    """Open and read file content into an ordered dictionary
+       @ In, messageHandler, Error message system
+       @ In, inputFile, object with information about the template input file
+    """
     self.printTag = 'CUBIT_PARSER'
     self.messageHandler = messageHandler
     if not os.path.exists(inputFile.getAbsFile()): self.raiseAnError(IOError,'Input file not found: '+inputFile.getAbsFile())
@@ -58,12 +61,17 @@ class ParserCubit(MessageHandler.MessageUser):
     if len(between_str) > 0: self.fileOrderStorage.append(between_str)
 
   def modifyInternalDictionary(self,**inDictionary):
-    # Parse the input dictionary and replace matching keywords in internal dictionary
+    """Parse the input dictionary and replace matching keywords in internal dictionary.
+       @ In, inDictionary, Dictionary containing full longform name and raven sampled var value
+    """
     for keyword, newvalue in inDictionary.items():
       garb, keyword = keyword.split('|')
       self.keywordDictionary[keyword] = newvalue
 
   def writeNewInput(self,outfile=None):
+    """Using the fileOrderStorage list, reconstruct the template input with modified
+       keywordDictionary.
+    """
     if outfile == None: outfile = self.inputfile
     IOfile = open(outfile,'w')
     for e, entry in enumerate(self.fileOrderStorage):

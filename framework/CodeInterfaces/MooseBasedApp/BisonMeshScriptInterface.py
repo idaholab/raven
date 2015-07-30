@@ -16,10 +16,17 @@ from utils import toBytes, toStrish, compare
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class BisonMeshScriptInterface(CodeInterfaceBase):
-  '''This class is used to couple raven to the Bison Mesh Generation Script using cubit (python syntax, NOT Cubit journal file)'''
+  """This class is used to couple raven to the Bison Mesh Generation Script using cubit (python syntax, NOT Cubit journal file)"""
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
-    '''seek which is which of the input files and generate according to the running command'''
+    """Generate a command to run cubit using an input with sampled variables to output
+       the perturbed mesh as an exodus file.
+       @ In, inputFiles, the perturbed input files (list of Files) along with pass-through files from RAVEN.
+       @ In, executable, the Cubit executable to run (string)
+       @ In, clargs, command line arguments
+       @ In, fargs, file-based arguments
+       @Out, (string, string), execution command and output file name
+    """
     found = False
     for index, inputFile in enumerate(inputFiles):
       if '.'+inputFile.getExt() in self.getInputExtension():
@@ -31,13 +38,25 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     return executeCommand,outputfile
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
-    import BisonMeshScriptParser
+    """Generates new perturbed input files.
+       @ In, currentInputFiles, list of Files objects, most recently perturbed files
+       @ In, originInputFiles, the template input files originally shown
+       @ In, samplerType, the sampler type used (not used in this algorithm)
+       @ In, Kwargs, dictionary of key-val pairs
+       @Out, list of perturbed files
+    """
+    import BISONMESHSCRIPTparser
     for index, inputFile in enumerate(oriInputFiles):
       if inputFile.getExt() == self.getInputExtension():
         break
-    moddict = self.expandVarNames(**Kwargs)
-    parser = BisonMeshScriptParser.BisonMeshScriptParser(currentInputFiles[index])
-    parser.modifyInternalDictionary(**Kwargs['SampledVars'])
+    parser = BISONMESHSCRIPTparser.BISONMESHSCRIPTparser(currentInputFiles[index])
+    # Copy dictionary of sampled vars sent to interface and change name of alias (if it exists)
+    sampledDict = copy.deepcopy(Kwargs['SampledVars'])
+    for alias,var in Kwargs['alias'].items():
+      sampledDict[var] = Kwargs['SampledVars'][alias]
+      del sampledDict[alias]
+    parser.modifyInternalDictionary(**sampledDict)
+    # Copy original mesh generation input file and write new input from sampled vars
     temp = str(oriInputFiles[index])[:]
     newInputFiles = copy.copy(currentInputFiles)
     newInputFiles[index] = os.path.join(os.path.split(temp)[0], os.path.split(temp)[1].split('.')[0] \
@@ -46,4 +65,5 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     return newInputFiles
 
   def addDefaultExtension(self):
+    """Adds sets the extension of input files in the list of strings addInputExtension."""
     self.addInputExtension(['.py'])

@@ -1,8 +1,8 @@
-'''
+"""
 Created on Jul 09, 2015
 
 @author: tompjame
-'''
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -16,11 +16,14 @@ import re
 import collections
 from utils import toBytes, toStrish, compare
 
-class BisonMeshScriptParser():
-  '''Import Bison Mesh Script input, provide methods to add/change entries and print input back'''
+class BISONMESHSCRIPTparser():
+  """Import Bison Mesh Script input, provide methods to add/change entries and print input back"""
 
   def __init__(self,inputFile):
-    '''Open and read file content into a dictionary'''
+    """Open and read file content into an ordered dictionary
+       @ In, messageHandler, Error message system
+       @ In, inputFile, object with information about the template input file
+    """
     self.printTag = 'BISONMESHSCRIPT_PARSER'
     if not os.path.exists(inputFile.getAbsFile()): raise IOError('Input file not found: '+inputFile.getAbsFile())
     # Initialize file dictionary, storage order, and internal variables
@@ -118,15 +121,18 @@ class BisonMeshScriptParser():
     if len(between_str) > 0: self.fileOrderStorage.append(between_str)
 
   def modifyInternalDictionary(self,**inDictionary):
-    # Parse the input dictionary and replace matching keywords in internal dictionary
+    """Parse the input dictionary and replace matching keywords in internal dictionary.
+       @ In, inDictionary, Dictionary containing full longform name and raven sampled var value
+    """
     for keyword, newvalue in inDictionary.items():
-      #FIXME the keyword here is "cub", but that's probably the alias.  You should unfold that
-      #   either here or before calling modifyInternalDictionary
       garb, keyword1, keyword2 = keyword.split('|')
       self.AllVarDict[keyword1][keyword2] = newvalue
 
 
   def writeNewInput(self,outfile=None):
+    """Using the fileOrderStorage list, reconstruct the template input with modified
+       keywordDictionary.
+    """
     if outfile==None: outfile = self.inputfile
     IOfile = open(outfile,'w')
     for e, entry in enumerate(self.fileOrderStorage):
