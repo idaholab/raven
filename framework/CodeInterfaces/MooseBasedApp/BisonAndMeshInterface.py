@@ -60,7 +60,7 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     #get the moose part
     mooseCommand,mooseOut = self.MooseInterface.generateCommand([mooseInp],executable,clargs,fargs)
     #append the new mesh file to the command for moose
-    mooseCommand+=' Mesh/file='+cubitOut+'.e'
+    #mooseCommand+=' Mesh/file='+cubitOut+'.e'
     #combine them
     executeCommand = ' && '.join([cubitCommand,mooseCommand])
     print('ExecutionCommand:',executeCommand,'\n')
@@ -97,9 +97,12 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
         if 'alias' in Kwargs.keys():
           if vname in Kwargs['alias']:
             del cargs['alias'][vname]
-
-    newMooseInputs = self.MooseInterface    .createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
+    # Generate new cubit input files and extract exodus file name to add to SampledVars going to moose
     newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp],[origCubitInp],samplerType,**cargs)
+    margs['SampledVars']['Mesh|file'] = "".join(os.path.split(newCubitInputs[0])[1].split('.')[:-1])+'.e'
+    for key,var in margs['SampledVars'].items():
+      print(key, var)
+    newMooseInputs = self.MooseInterface    .createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
     #make carbon copy of original input files
     for f in currentInputFiles:
       if f.isOpen(): f.close()

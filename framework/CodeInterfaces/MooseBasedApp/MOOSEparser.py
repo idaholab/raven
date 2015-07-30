@@ -89,13 +89,17 @@ class MOOSEparser():
   def __findInXML(self,element,name):
     """Checks if there is a tag with name or binary name in
     element, and returns the (found,actual_name)"""
+    print('searching for: ',name,element.tag)
     if element.find(name) is not None:
+      print('found')
       return (True,name)
     else:
       binary_name = toBytes(name)
       if element.find(binary_name) is not None:
+        print('found binary')
         return (True,binary_name)
       else:
+        print('not found binary')
         return (False,None)
 
   def __updateDict(self,dictionary,other):
