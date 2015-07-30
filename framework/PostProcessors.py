@@ -681,7 +681,7 @@ class ComparisonStatistics(BasePostProcessor):
     else:
       self.raiseAnError(IOError, 'unsupported type ' + str(type(output)))
     if generateCSV:
-      csv = output.open("w")
+      csv = output
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "name" in reference:
@@ -782,7 +782,7 @@ class ComparisonStatistics(BasePostProcessor):
           dataPairs = []
           for key in sorted(dataStat.keys()):
             value = dataStat[key]
-            if type(value).__name__ in ["int", "float"]:
+            if np.isscalar(value):
               dataPairs.append((key, value))
           extraCsv = Files.returnInstance('CSV',self)
           extraCsv.initialize(newFileName,self.messageHandler)

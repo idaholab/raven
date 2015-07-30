@@ -166,5 +166,8 @@ class XMLDiff:
             self.__messages += separator.join(messages) + "\n"
         else:
           self.__same = False
+    if '[' in self.__messages or ']' in self.__messages:
+      self.__messages = self.__messages.replace('[','(')
+      self.__messages = self.__messages.replace(']',')')
     return (self.__same,self.__messages)
 
