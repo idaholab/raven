@@ -1,10 +1,9 @@
 <?xml version="1.0" ?>
 <Simulation>
-  <!-- The purpose of this test is to exercise the OpenModelica external code interface without needing to have a built -->
   <Files>
     <Input name="BouncingBall_init.xml" type="">BouncingBall_init.xml</Input>
   </Files>
-
+  <!-- The purpose of this test is to exercise the OpenModelica external code interface without needing to have a built -->
   <!--   executable.  It is directly modeled on the test_relap5_code_interface.xml test and works by making sure that -->
   <!--   1) The input files are perturbed correctly -->
   <!--   2) That the raw output CSV files are properly processed for reading by RAVEN -->
