@@ -80,15 +80,16 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     # Remove Cubit Journal files
     cubitjour_files = os.path.join(workingDir,'cubit*')
     pyc_files = os.path.join(workingDir,'*.pyc')
-    print('files to be removed: ',cubitjour_files,pyc_files)
-    rmUnwantedFiles(cubitjour_files)
-    rmUnwantedFiles(pyc_files)
+    exodus_meshes = os.path.join(workingDir,'*.e')
+    print('files being removed:\n'+cubitjour_files+'\n'+pyc_files+'\n'+exodus_meshes)
+    self.rmUnwantedFiles(cubitjour_files)
+    self.rmUnwantedFiles(pyc_files)
+    self.rmUnwantedFiles(exodus_meshes)
 
   def rmUnwantedFiles(self, path_to_files):
     """Method to remove unwanted files after completing the run
        @ In, path_to_files, (string), path to the files to be removed
     """
-    try:
-      os.remove(path_to_files)
-    except OSError:
-      pass
+    success = os.system('rm '+path_to_files)
+    if success != 0:
+      print(success,"Error removing ",path_to_files)

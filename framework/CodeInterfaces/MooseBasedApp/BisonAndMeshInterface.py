@@ -99,7 +99,7 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
             del cargs['alias'][vname]
     # Generate new cubit input files and extract exodus file name to add to SampledVars going to moose
     newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp],[origCubitInp],samplerType,**cargs)
-    margs['SampledVars']['Mesh|file'] = newCubitInputs[0].getBase()+'.e'#"".join(os.path.split(newCubitInputs[0])[1].split('.')[:-1])+'.e'
+    margs['SampledVars']['Mesh|file'] = 'mesh~'+newCubitInputs[0].getBase()+'.e'#"".join(os.path.split(newCubitInputs[0])[1].split('.')[:-1])+'.e'
     newMooseInputs = self.MooseInterface.createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
     #make carbon copy of original input files
     for f in currentInputFiles:
@@ -118,5 +118,4 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
        @ In, output, (string), the Output name root
        @ In, workingDir, (string), the current working directory
     """
-    print('\n\n\n\n\n\n Here we should call finalizeCodeOutput \n\n\n\n')
-    BisonMeshScriptInterface.finalizeCodeOutput(command, output, workingDir)
+    self.BisonMeshInterface.finalizeCodeOutput(command, output, workingDir)
