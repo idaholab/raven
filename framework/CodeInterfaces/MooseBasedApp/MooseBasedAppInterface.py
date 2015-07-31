@@ -70,10 +70,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     # the position in, eventually, a vector variable is not available yet...
     # the MOOSEparser needs to be modified in order to accept this variable type
     # for now the position (i.e. ':' at the end of a variable name) is discarded
-    #return self.expandVarNames(**Kwargs)
-    dum =  self.expandVarNames(**Kwargs)
-    print('dum: ',dum)
-    return dum
+    return self.expandVarNames(**Kwargs)
 
   def dynamicEventTreeForMooseBasedApp(self,**Kwargs):
     raise IOError('dynamicEventTreeForMooseBasedApp not yet implemented')

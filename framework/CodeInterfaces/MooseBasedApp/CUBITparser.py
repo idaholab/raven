@@ -15,19 +15,16 @@ import copy
 import re
 import collections
 from utils import toBytes, toStrish, compare
-import MessageHandler
 
-class CUBITparser(MessageHandler.MessageUser):
+class CUBITparser():
   """Import Cubit journal file input, provide methods to add/change entries and print input back"""
 
-  def __init__(self,messageHandler, inputFile):
+  def __init__(self,inputFile):
     """Open and read file content into an ordered dictionary
-       @ In, messageHandler, Error message system
        @ In, inputFile, object with information about the template input file
     """
     self.printTag = 'CUBIT_PARSER'
-    self.messageHandler = messageHandler
-    if not os.path.exists(inputFile.getAbsFile()): self.raiseAnError(IOError,'Input file not found: '+inputFile.getAbsFile())
+    if not os.path.exists(inputFile.getAbsFile()): raise IOError('Input file not found: '+inputFile.getAbsFile())
     # Initialize file dictionary, storage order, and internal variables
     self.keywordDictionary = collections.OrderedDict()
     self.fileOrderStorage = []

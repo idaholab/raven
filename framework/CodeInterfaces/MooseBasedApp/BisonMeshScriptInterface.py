@@ -1,8 +1,8 @@
-'''
+"""
 created on July 13, 2015
 
 @author: tompjame
-'''
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -68,7 +68,7 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     return newInputFiles
 
   def addDefaultExtension(self):
-    """Adds the extension of input files into addInputExtension."""
+    """Adds the given extension to list of input file extensions."""
     self.addInputExtension(['.py'])
 
   def finalizeCodeOutput(self, command, output, workingDir):
@@ -77,13 +77,17 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
        @ In, output, (string), the Output name root
        @ In, workingDir, (string), the current working directory
     """
-    # Remove Cubit Journal files
+    # Append wildcard strings to workingDir for files wanted to be removed
     cubitjour_files = os.path.join(workingDir,'cubit*')
     pyc_files = os.path.join(workingDir,'*.pyc')
     exodus_meshes = os.path.join(workingDir,'*.e')
+    # Inform user which files will be removed
     print('files being removed:\n'+cubitjour_files+'\n'+pyc_files+'\n'+exodus_meshes)
+    # Remove Cubit generated journal files
     self.rmUnwantedFiles(cubitjour_files)
+    # Remove .pyc files created when running BMS python inputs
     self.rmUnwantedFiles(pyc_files)
+    # Remove exodus mesh (.e) files TODO create an optional node to allow user to keep .e files
     self.rmUnwantedFiles(exodus_meshes)
 
   def rmUnwantedFiles(self, path_to_files):

@@ -21,7 +21,6 @@ class BISONMESHSCRIPTparser():
 
   def __init__(self,inputFile):
     """Open and read file content into an ordered dictionary
-       @ In, messageHandler, Error message system
        @ In, inputFile, object with information about the template input file
     """
     self.printTag = 'BISONMESHSCRIPT_PARSER'
