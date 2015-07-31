@@ -29,6 +29,7 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     """
     found = False
     for index, inputFile in enumerate(inputFiles):
+      print('inputFile',type(inputFile),inputFile)
       if '.'+inputFile.getExt() in self.getInputExtension():
         found = True
         break
@@ -58,10 +59,12 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     parser.modifyInternalDictionary(**sampledDict)
     # Copy original mesh generation input file and write new input from sampled vars
     temp = str(oriInputFiles[index])[:]
-    newInputFiles = copy.copy(currentInputFiles)
-    newInputFiles[index] = os.path.join(os.path.split(temp)[0], os.path.split(temp)[1].split('.')[0] \
-	+'_'+Kwargs['prefix']+'.'+os.path.split(temp)[1].split('.')[1])
-    parser.writeNewInput(newInputFiles[index])
+    newInputFiles = copy.deepcopy(currentInputFiles)
+    newInputFiles[index].close()
+    newInputFiles[index].setBase(currentInputFiles[index].getBase()+'_'+Kwargs['prefix'])
+    #newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0], os.path.split(temp)[1].split('.')[0] \
+    #+'_'+Kwargs['prefix']+'.'+os.path.split(temp)[1].split('.')[1])) #this could be simplified using Files methods
+    parser.writeNewInput(newInputFiles[index].getAbsFile())
     return newInputFiles
 
   def addDefaultExtension(self):

@@ -99,8 +99,8 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
             del cargs['alias'][vname]
     # Generate new cubit input files and extract exodus file name to add to SampledVars going to moose
     newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp],[origCubitInp],samplerType,**cargs)
-    margs['SampledVars']['Mesh|file'] = "".join(os.path.split(newCubitInputs[0])[1].split('.')[:-1])+'.e'
-    newMooseInputs = self.MooseInterface    .createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
+    margs['SampledVars']['Mesh|file'] = newCubitInputs[0].getBase()+'.e'#"".join(os.path.split(newCubitInputs[0])[1].split('.')[:-1])+'.e'
+    newMooseInputs = self.MooseInterface.createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
     #make carbon copy of original input files
     for f in currentInputFiles:
       if f.isOpen(): f.close()
@@ -108,8 +108,8 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     #replace old with new perturbed files, in place TODO is that necessary, really? Does order matter?
     #  if order doesn't matter, can loop through and check for type else copy directly
     newMooseInp,newCubitInp = self.findInps(newInputFiles)
-    newMooseInp.setAbsFile(newMooseInputs[0])
-    newCubitInp.setAbsFile(newCubitInputs[0])
+    newMooseInp.setAbsFile(newMooseInputs[0].getAbsFile())
+    newCubitInp.setAbsFile(newCubitInputs[0].getAbsFile())
     return newInputFiles
 
   def finalizeCodeOutput(self, command, output, workingDir):
