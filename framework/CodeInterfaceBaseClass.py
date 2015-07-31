@@ -161,18 +161,18 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     listDict=[]
     modifDict={}
     for var in Kwargs['SampledVars']:
-        if 'alias' in Kwargs.keys():
-          # for understending the alias system, plase check module Models.py (class Code)
-          if var in Kwargs['alias'].keys():
-            key = Kwargs['alias'][var].split(':')
-            varname = var
+      if 'alias' in Kwargs.keys():
+        # for understending the alias system, plase check module Models.py (class Code)
+        if var in Kwargs['alias'].keys():
+          key = Kwargs['alias'][var].split(':')
+          varname = var
         else:
           key = var.split(':')
           varname = key[0]
-        modifDict = {}
-        modifDict['name'] = []
-        modifDict['name'] = key[0].split('|')[:-1]
-        modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
-        listDict.append(modifDict)
-        del modifDict
+      modifDict = {}
+      #modifDict['name'] = []
+      modifDict['name'] = key[0].split('|')[:-1]
+      modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
+      listDict.append(modifDict)
+      del modifDict
     return listDict
