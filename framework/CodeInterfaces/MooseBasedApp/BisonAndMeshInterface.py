@@ -112,3 +112,11 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     newCubitInp.setAbsFile(newCubitInputs[0])
     return newInputFiles
 
+  def finalizeCodeOutput(self, command, output, workingDir):
+    """Calls finalizeCodeOutput from Bison Mesh Script Interface to clean up files
+       @ In, command, (string), command used to run the just ended job
+       @ In, output, (string), the Output name root
+       @ In, workingDir, (string), the current working directory
+    """
+    print('\n\n\n\n\n\n Here we should call finalizeCodeOutput \n\n\n\n')
+    BisonMeshScriptInterface.finalizeCodeOutput(command, output, workingDir)

@@ -780,6 +780,7 @@ class Code(Model):
 
   def collectOutput(self,finisishedjob,output):
     """collect the output file in the output object"""
+    self.raiseADebug('checking dir', 'finalizeCodeOutput' in dir(self.code))
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
