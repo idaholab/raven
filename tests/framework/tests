@@ -484,6 +484,14 @@
   csv = 'SamplerRestarts/GRIDdump1.csv SamplerRestarts/GRIDdump2.csv SamplerRestarts/GRIDdump3.csv'
  [../]
 
+ [./samplerRestartCSV]
+  type = 'RavenFramework'
+  input = 'test_restart_csv.xml'
+  output = 'SamplerRestarts/CSVdump.xml'
+  csv = 'SamplerRestarts/CSVdump.csv'
+  prereq = samplerRestartMC
+ [../]
+
  [./ND_external_MC]
   type = 'RavenFramework'
   input = 'test_simple_ND_external_MC.xml'
