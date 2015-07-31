@@ -100,8 +100,6 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     # Generate new cubit input files and extract exodus file name to add to SampledVars going to moose
     newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp],[origCubitInp],samplerType,**cargs)
     margs['SampledVars']['Mesh|file'] = "".join(os.path.split(newCubitInputs[0])[1].split('.')[:-1])+'.e'
-    for key,var in margs['SampledVars'].items():
-      print(key, var)
     newMooseInputs = self.MooseInterface    .createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
     #make carbon copy of original input files
     for f in currentInputFiles:

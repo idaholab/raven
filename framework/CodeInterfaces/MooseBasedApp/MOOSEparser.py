@@ -89,17 +89,13 @@ class MOOSEparser():
   def __findInXML(self,element,name):
     """Checks if there is a tag with name or binary name in
     element, and returns the (found,actual_name)"""
-    print('searching for: ',name,element.tag)
     if element.find(name) is not None:
-      print('found')
       return (True,name)
     else:
       binary_name = toBytes(name)
       if element.find(binary_name) is not None:
-        print('found binary')
         return (True,binary_name)
       else:
-        print('not found binary')
         return (False,None)
 
   def __updateDict(self,dictionary,other):
@@ -185,7 +181,6 @@ class MOOSEparser():
     the other keywords possible are used as attribute names'''
     if save: returnElement = copy.deepcopy(self.root)         #make a copy if save is requested
     else: returnElement = self.root                           #otherwise return the original modified
-    #print(modiDictionaryList)
     for i in xrange(len(modiDictionaryList)):
       name = modiDictionaryList[i]['name']
       del modiDictionaryList[i]['name']
