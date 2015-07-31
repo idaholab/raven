@@ -68,5 +68,27 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     return newInputFiles
 
   def addDefaultExtension(self):
-    """Adds sets the extension of input files in the list of strings addInputExtension."""
+    """Adds the extension of input files into addInputExtension."""
     self.addInputExtension(['.py'])
+
+  def finalizeCodeOutput(self, command, output, workingDir):
+    """Cleans up files in the working directory that are not needed after the run
+       @ In, command, (string), command used to run the just ended job
+       @ In, output, (string), the Output name root
+       @ In, workingDir, (string), the current working directory
+    """
+    # Remove Cubit Journal files
+    cubitjour_files = os.path.join(workingDir,'cubit*')
+    pyc_files = os.path.join(workingDir,'*.pyc')
+    print('files to be removed: ',cubitjour_files,pyc_files)
+    rmUnwantedFiles(cubitjour_files)
+    rmUnwantedFiles(pyc_files)
+
+  def rmUnwantedFiles(self, path_to_files):
+    """Method to remove unwanted files after completing the run
+       @ In, path_to_files, (string), path to the files to be removed
+    """
+    try:
+      os.remove(path_to_files)
+    except OSError:
+      pass
