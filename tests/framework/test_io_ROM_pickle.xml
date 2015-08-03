@@ -106,12 +106,12 @@
       <variable>z</variable>
     </ExternalModel>
     <ROM name="ROM1" subType="SciKitLearn">
-      <SKLtype>svm|SVR</SKLtype>
+      <SKLtype>svm|SVC</SKLtype>
       <Features>x1,x2</Features>
       <Target>y,z</Target>
     </ROM>
     <ROM name="ROM2" subType="SciKitLearn">
-      <SKLtype>svm|SVR</SKLtype>
+      <SKLtype>svm|SVC</SKLtype>
       <Features>x1,x2</Features>
       <Target>y,z</Target>
     </ROM>
