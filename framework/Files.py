@@ -209,7 +209,7 @@ class File(BaseType):
     filename = filename.strip()
     if filename != '.': self.setBase(os.path.basename(filename).split()[0].split('.')[0])
     else: self.setBase(filename)
-    if len(filename.split(".")) > 1: self.setExt(filename.split(".")[1].lower())
+    if len(filename.split(".")) > 1: self.setExt(filename.split(".")[-1].lower())
     else: self.setExt(None)
 
   def setAbsFile(self,pathandfile):
