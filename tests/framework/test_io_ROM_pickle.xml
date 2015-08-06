@@ -38,8 +38,10 @@
       <Output class="Models" type="ROM">ROM2</Output>
     </IOStep>
     <IOStep name="step7" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">Data2</Input>
       <Input class="DataObjects" type="PointSet">Data3</Input>
       <Input class="DataObjects" type="PointSet">Data4</Input>
+      <Output class="OutStreamManager" type="Print">PrintData_data2</Output>
       <Output class="OutStreamManager" type="Print">PrintData</Output>
       <Output class="OutStreamManager" type="Print">PrintData_Pickle</Output>
     </IOStep>
@@ -104,18 +106,26 @@
       <variable>z</variable>
     </ExternalModel>
     <ROM name="ROM1" subType="SciKitLearn">
-      <SKLtype>svm|SVR</SKLtype>
+      <SKLtype>svm|SVC</SKLtype>
       <Features>x1,x2</Features>
       <Target>y,z</Target>
     </ROM>
     <ROM name="ROM2" subType="SciKitLearn">
-      <SKLtype>svm|SVR</SKLtype>
+      <SKLtype>svm|SVC</SKLtype>
       <Features>x1,x2</Features>
       <Target>y,z</Target>
     </ROM>
   </Models>
 
   <OutStreamManager>
+    <Print name="PrintData_data2">
+      <type>csv</type>
+      <source>Data2</source>
+    </Print>
+    <Print name="PrintData_data1">
+      <type>csv</type>
+      <source>Data1</source>
+    </Print>
     <Print name="PrintData">
       <type>csv</type>
       <source>Data3</source>
