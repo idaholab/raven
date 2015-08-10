@@ -1,7 +1,7 @@
 \section{Existing Interfaces}
 \label{sec:existingInterface}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% Gneric  INTERFACE  %%%%%%
+%%%%%% Generic  INTERFACE  %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Generic Interface}
 The GenericCode interface is meant to handle a wide variety of generic codes 
@@ -732,7 +732,9 @@ utilize curly brackets.
 </OutStreamManager>
 \end{lstlisting}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% OPENMODELICA INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{OpenModelica Interface}
 OpenModelica (\url{http://www.openmodelica.org}) is an open souce implementation of the Modelica simulation language.  Modelica is "a non-proprietary, 
 object-oriented, equation based language to conveniently model complex physical systems containing, e.g., mechanical, electrical, electronic, hydraulic, 
@@ -833,3 +835,33 @@ RAVEN will not properly read this file as-generated for two reasons:
 \end{itemize}
  The OpenModelica inteface will automatically remove the double-quotes and trailing commas through its implementation of the 
 finalizeCodeOutput function.  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% MESH GENERATION COUPLED INTERFACES %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Mesh Generation Coupled Interfaces}
+Many utilize software that requires a provided mesh or are interested in solving problems that are beyond the meshing capabilities of automatic mesh generation software packaged a code and able to be called within input files.  In these cases, one would desire to use sampled geometric variables to generate a new mesh for each problem, then run the input with the remainder of the perturbed parameters and the mesh.  To facilitate this type of use, several mesh generation coupled interfaces are provided with RAVEN software.
+
+\subsubsection{MooseBasedApp and Cubit Interface}
+Cubit (\url{https://cubit.sandia.gov}) is a toolkit developed at Sandia National Laboratory used to create two- and three-dimensional finite element meshes with various options for defining geometric properties as a part of the grid. It is capable of reading and writing a variety of standard mesh file types, including Genesis or Exodus II (*.e) files.  As MOOSE applications use Exodus II files for meshes and results, Cubit is commonly used to generate meshes for problems with complex geometry.  Cubit journal files (*.jou) are used to create the geometry, mesh the object, and identify volumes, sidesets, and nodesets for a mesh.  Parameter values in a journal file are typically hardcoded into the Cubit command syntax, but variables may be predefined in a journal file through Aprepro syntax.  An example of a journal file that generates a rectangle of given height and width, meshes it, defines its volume and sidesets, lists its element type, and writes it as an Exodus file is given:
+
+\begin{lstlisting}
+#{x = 3}
+#{y = 3}
+#{out_name = "'out_mesh.e'"}
+create surface rectangle width {x} height {y} zplane
+mesh surface 1
+set duplicate block elements off
+block 1 surface 1
+Sideset 1 curve 3
+Sideset 2 curve 4
+Sideset 3 curve 1
+Sideset 4 curve 2
+Block all element type QUAD4
+export genesis {out_name} overwrite
+\end{lstlisting}
+
+The first three lines are the Aprepro variables that RAVEN requires to insert sampled variables.  All variables that RAVEN samples and one would like to use in mesh generation will need to be defined as Aprepro variables in the journal file.  These are typically geometric parameters, though almost anything that Cubit quantifies in a command may be defined as a variable and sampled through RAVEN such as mesh refinement values Cubit uses internally.  One VERY IMPORTANT feature to note that is REQUIRED for this interface to work correctly  
+
+\subsubsection{MooseBasedApp and Bison Mesh Script Interface}
+
