@@ -166,9 +166,9 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
         if var in Kwargs['alias'].keys():
           key = Kwargs['alias'][var].split(':')
           varname = var
-        else:
-          key = var.split(':')
-          varname = key[0]
+      else:
+        key = var.split(':')
+        varname = key[0]
       modifDict = {}
       #modifDict['name'] = []
       modifDict['name'] = key[0].split('|')[:-1]
