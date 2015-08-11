@@ -51,7 +51,8 @@ class CUBITparser():
           elif splitline_clear_ws[1] == splitline[1].strip():
             if len(between_str) > 0: self.fileOrderStorage.append(between_str); between_str = ''
             if dict_stored == False: self.fileOrderStorage.append(['dict_location']); dict_stored = True
-            beg_garb, varname, varvalue, end_garb = re.split('{|=|}',clear_ws)
+            beg_garb, keywordAndValue, end_garb = re.split('#{|}',clear_ws)
+            varname, varvalue = keywordAndValue.split('=')
             self.keywordDictionary[varname] = varvalue
       else:
         between_str += line
