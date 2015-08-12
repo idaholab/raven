@@ -23,6 +23,7 @@ git checkout $RAVEN_REV -- raven_libs_script.sh
 git checkout $RAVEN_REV -- developer_tools/py3_raven_libs_script.sh
 git checkout $RAVEN_REV -- developer_tools/backend_raven_libs_script.sh
 git checkout $RAVEN_REV -- tests/framework
+git checkout $RAVEN_REV -- tests/cluster_tests
 git checkout $RAVEN_REV -- run_tests
 git checkout $RAVEN_REV -- run_framework_tests
 git checkout $RAVEN_REV -- scripts
