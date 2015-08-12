@@ -79,7 +79,8 @@ class File(BaseType):
     """
     statedict={'path':self.__path,
                'base':self.__base,
-               'ext' :self.__ext}
+               'ext' :self.__ext,
+               'subtype':self.subtype}
     return statedict
 
   def __setstate__(self,statedict):
@@ -87,9 +88,10 @@ class File(BaseType):
     @ In, statedict, dict of objets needed to restore instance
     @ Out, None
     """
-    self.__path = statedict['path']
-    self.__base = statedict['base']
-    self.__ext  = statedict['ext' ]
+    self.__path  = statedict['path']
+    self.__base  = statedict['base']
+    self.__ext   = statedict['ext' ]
+    self.subtype = statedict['subtype' ]
     self.updateFilename()
 
   def __repr__(self):
@@ -97,7 +99,7 @@ class File(BaseType):
     @ In, None
     @Out, string, full file path and name in string
     """
-    return self.getAbsFile()
+    return "(FILE) "+self.getAbsFile()+" (END FILE)"
 
   def __enter__(self):
     self.__file.open(self.getAbsFile())
