@@ -313,6 +313,8 @@ class ROM(Dummy):
     self.howManyTargets            = 0          # how many targets?
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
+    
+    self.howManyTimeSteps          = 0          # how many time steps? (for temporal reduced order models)
 
   def __getstate__(self):
     """
@@ -358,15 +360,15 @@ class ROM(Dummy):
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
     
-    #andrea
-    n_timeSteps = self.initializationOptionDict['t_Discs']
-    for ts in range(n_timeSteps):
+    #XXX
+    self.howManyTimeSteps  = self.initializationOptionDict['t_Discs']
+    for ts in range(self.howManyTimeSteps ):
       tsDict = {}
       for target in targets:
         self.initializationOptionDict['Target'] = target
         tsDict[target]= SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
       self.SupervisedEngine.append(tsDict)
-    #andrea close
+    #XXX
     
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
