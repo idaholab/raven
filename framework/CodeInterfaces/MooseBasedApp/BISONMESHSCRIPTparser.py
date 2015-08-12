@@ -127,7 +127,6 @@ class BISONMESHSCRIPTparser():
       garb, keyword1, keyword2 = keyword.split('|')
       self.AllVarDict[keyword1][keyword2] = newvalue
 
-
   def writeNewInput(self,outfile=None):
     """Using the fileOrderStorage list, reconstruct the template input with modified
        keywordDictionary.

@@ -80,15 +80,12 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     # Append wildcard strings to workingDir for files wanted to be removed
     cubitjour_files = os.path.join(workingDir,'cubit*')
     pyc_files = os.path.join(workingDir,'*.pyc')
-    exodus_meshes = os.path.join(workingDir,'*.e')
     # Inform user which files will be removed
-    print('files being removed:\n'+cubitjour_files+'\n'+pyc_files+'\n'+exodus_meshes)
+    print('files being removed:\n'+cubitjour_files+'\n'+pyc_files)
     # Remove Cubit generated journal files
     self.rmUnwantedFiles(cubitjour_files)
     # Remove .pyc files created when running BMS python inputs
     self.rmUnwantedFiles(pyc_files)
-    # Remove exodus mesh (.e) files TODO create an optional node to allow user to keep .e files
-    self.rmUnwantedFiles(exodus_meshes)
 
   def rmUnwantedFiles(self, path_to_files):
     """Method to remove unwanted files after completing the run
