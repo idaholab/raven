@@ -29,8 +29,7 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     """
     found = False
     for index, inputFile in enumerate(inputFiles):
-      print('inputFile',type(inputFile),inputFile)
-      if '.'+inputFile.getExt() in self.getInputExtension():
+      if inputFile.getExt() in self.getInputExtension():
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))

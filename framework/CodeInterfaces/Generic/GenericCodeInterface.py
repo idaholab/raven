@@ -58,7 +58,6 @@ class GenericCodeInterface(CodeInterfaceBase):
       for ext in exts:
         found=False
         for inf in inputFiles:
-          #print('inf:',type(inf),inf) #why is this a string?
           if '.'+inf.getExt() == ext:
             found=True
             inFiles.remove(inf)
@@ -122,8 +121,6 @@ class GenericCodeInterface(CodeInterfaceBase):
     infiles=[]
     #FIXME possible danger here from reading binary files
     for index,inputFile in enumerate(currentInputFiles):
-      #inputFile = inputFile.getAbsFile()
-      #print('ext check:',inputFile,inputFile.getExt(),self.getInputExtension())
       if inputFile.getExt() in self.getInputExtension():
         indexes.append(index)
         infiles.append(inputFile)

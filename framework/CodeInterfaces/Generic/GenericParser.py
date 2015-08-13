@@ -40,7 +40,6 @@ class GenericParser():
       infileName = inputFile.getFilename()#os.path.basename(inputFile)
       self.segments[infileName] = []
       if not os.path.exists(inputFile.getAbsFile()): raise IOError('Input file not found: '+inputFile)
-      #IOfile = open(inputFile,'rb')
       foundSome = False
       seg = ''
       lines = inputFile.readlines()
@@ -131,8 +130,8 @@ class GenericParser():
   def writeNewInput(self,inFiles,origFiles):
     '''
     Generates a new input file with the existing parsed dictionary.
-    @ In, infiles, Files list of new input files to return
-    @ In, origNames, the original list of Files, used for key names
+    @ In, inFiles, Files list of new input files to return
+    @ In, origFiles, the original list of Files, used for key names
     @Out, None.
     '''
     #get the right IO names put in
@@ -144,8 +143,9 @@ class GenericParser():
       @Out, ext, the string extension that the desired filename ends with.
       '''
       found=False
+      print('finding ext:',ext)
       for index,inputFile in enumerate(fileList):
-        if '.'+inputFile.getExt() == ext:
+        if inputFile.getExt() == ext:
           found=True
           break
       if not found: raise IOError('No InputFile with extension '+ext+' found!')
@@ -161,17 +161,10 @@ class GenericParser():
                 break
             elif iotype=='input':
               if var in self.adldict[iotype].keys():
-                self.segments[inputFile][place] = getFileWithExtension(inFiles,self.adldict[iotype][var][0])[1].getAbsFile()
+                self.segments[inputFile][place] = getFileWithExtension(inFiles,self.adldict[iotype][var][0].strip('.'))[1].getAbsFile()
                 break
-    #for var,place in self.varPlaces.items():
-      #for inputFile in self.segments.keys():
-        #for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
     #now just write the files.
-    print('segment keys',self.segments.keys())
     for f,inFile in enumerate(origFiles):
       outfile = inFiles[f]
-      #outfile = file(fileName,'w')
-      print('file:',origFiles[f],outfile)
-      print('segment:',self.segments[inFile.getFilename()])
       outfile.writelines(toBytes(''.join(self.segments[inFile.getFilename()])))
       outfile.close()

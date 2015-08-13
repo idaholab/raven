@@ -19,6 +19,10 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
      standard Cubit python script in addition to uncertain inputs for the MOOSE app."""
 
   def __init__(self):
+    """Constructor.
+    @ In, None
+    @Out, None
+    """
     CodeInterfaceBase.__init__(self)
     self.MooseInterface     = MooseBasedAppInterface()
     self.BisonMeshInterface = BisonMeshScriptInterface()
@@ -59,8 +63,6 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     cubitCommand,cubitOut = self.BisonMeshInterface.generateCommand([cubitInp],preexec,clargs,fargs)
     #get the moose part
     mooseCommand,mooseOut = self.MooseInterface.generateCommand([mooseInp],executable,clargs,fargs)
-    #append the new mesh file to the command for moose
-    #mooseCommand+=' Mesh/file='+cubitOut+'.e'
     #combine them
     executeCommand = ' && '.join([cubitCommand,mooseCommand])
     print('ExecutionCommand:',executeCommand,'\n')
@@ -75,7 +77,6 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     @Out, list of perturbed Files
     """
     mooseInp,cubitInp = self.findInps(currentInputFiles)
-    #origInputFiles are strings, so just use indices
     origMooseInp = origInputFiles[currentInputFiles.index(mooseInp)]
     origCubitInp = origInputFiles[currentInputFiles.index(cubitInp)]
     #split up sampledvars in kwargs between moose and Cubit script
@@ -85,8 +86,6 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     for vname,var in Kwargs['SampledVars'].items():
       if 'alias' in Kwargs.keys():
         fullname = Kwargs['alias'].get(vname,vname)
-        #if vname in Kwargs['alias'].keys(): fullname = Kwargs['alias'][varname]
-        #else: fullname = vname
       if fullname.split('|')[0]=='Cubit':
         del margs['SampledVars'][vname]
         if 'alias' in Kwargs.keys():
@@ -105,8 +104,7 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     for f in currentInputFiles:
       if f.isOpen(): f.close()
     newInputFiles = copy.deepcopy(currentInputFiles)
-    #replace old with new perturbed files, in place TODO is that necessary, really? Does order matter?
-    #  if order doesn't matter, can loop through and check for type else copy directly
+    #replace old with new perturbed files, in place
     newMooseInp,newCubitInp = self.findInps(newInputFiles)
     newMooseInp.setAbsFile(newMooseInputs[0].getAbsFile())
     newCubitInp.setAbsFile(newCubitInputs[0].getAbsFile())
