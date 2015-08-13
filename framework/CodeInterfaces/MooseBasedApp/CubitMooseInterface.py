@@ -112,5 +112,6 @@ class CubitMooseInterface(CodeInterfaceBase): #MooseBasedAppInterface,CubitInter
        @ In, command, (string), command used to run the just ended job
        @ In, output, (string), the Output name root
        @ In, workingDir, (string), the current working directory
+       @Out, None
     """
     self.CubitInterface.finalizeCodeOutput(command, output, workingDir)

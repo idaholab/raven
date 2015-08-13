@@ -840,7 +840,7 @@ finalizeCodeOutput function.
 %%%%%% MESH GENERATION COUPLED INTERFACES %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Mesh Generation Coupled Interfaces}
-Some use software requires a provided mesh that requires a separate code run to generate.  
+Some software requires a provided mesh that requires a separate code run to generate.  
 In these cases, we use sampled geometric 
 variables to generate a new mesh for each perturbation of the original problem, then run the input with 
 the remainder of the perturbed parameters and the perturbed mesh.  RAVEN currently provides two interfaces for
@@ -849,12 +849,13 @@ this type of calculation, listed below.
 %%%%%%%%%% CUBIT MOOSE INTERFACE %%%%%%%%%%
 \subsubsection{MooseBasedApp and Cubit Interface}
 Many MOOSE-based applications use Cubit (\url{https://cubit.sandia.gov}) to generate Exodus II files as
-geometry and meshing for calculations.  The input parameters for Cubit can be listed in a journal
+geometry and meshing for calculations.  To use the developed interface, Cubit's
+bin directory must be added to the user's PYTHONPATH.  Input parameters for Cubit can be listed in a journal
 (\texttt{.jou}) file.  Parameter values 
 are typically hardcoded into the Cubit command syntax, but variables may be 
 predefined in a journal file through Aprepro syntax.  This is an example of a journal 
 file that generates a rectangle of given height and width, meshes it, defines its 
-volume and sidesets, lists its element type, and writes it as an Exodus file is given:
+volume and sidesets, lists its element type, and writes it as an Exodus file:
 
 %Cubit (\url{https://cubit.sandia.gov}) is a toolkit developed at Sandia National 
 %Laboratory used to create two- and three-dimensional finite element meshes with 
@@ -1044,7 +1045,8 @@ the \%BISON\_DIR\%/tools/UO2/ directory.  This script generates
 3D or 2D (RZ) meshes for nuclear fuel rods using Cubit with 
 templated commands.  The BISON Mesh Script (BMS) is capable of 
 generating rods with discrete fuel pellets of various size in 
-assorted configurations.
+assorted configurations.  To use this interface, Cubit's bin
+directory must be added to the user's PYTHONPATH.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Files}

@@ -75,6 +75,7 @@ class CubitInterface(CodeInterfaceBase):
        @ In, command, (string), command used to run the just ended job
        @ In, output, (string), the Output name root
        @ In, workingDir, (string), the current working directory
+       @Out, None
     """
     # Append wildcard strings to workingDir for files wanted to be removed
     cubitjour_files = os.path.join(workingDir,'cubit*')
@@ -86,6 +87,7 @@ class CubitInterface(CodeInterfaceBase):
   def rmUnwantedFiles(self, path_to_files):
     """Method to remove unwanted files after completing the run
        @ In, path_to_files, (string), path to the files to be removed
+       @Out, None
     """
     success = os.system('rm '+path_to_files)
     if success != 0:
