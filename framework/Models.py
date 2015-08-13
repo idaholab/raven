@@ -764,12 +764,8 @@ class Code(Model):
 
   def run(self,inputFiles,jobHandler):
     """append a run at the externalRunning list of the jobHandler"""
-    #TODO this is the problem step -> we're not preserving the prefixes!
-    #FIXME createNewInput should return Files objects, not names!
-    self.currentInputFiles = copy.deepcopy(inputFiles[0]) #list(self.oriInputFiles[inputFiles[0].index(i)] for i in inputFiles[0])
-    self.raiseAWarning('executable:',self.executable)
+    self.currentInputFiles = copy.deepcopy(inputFiles[0])
     executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs, preexec=self.preexec)
-    self.raiseAWarning('stuff in inputFiles:',inputFiles[1])
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
@@ -783,12 +779,10 @@ class Code(Model):
   def collectOutput(self,finisishedjob,output):
     """collect the output file in the output object"""
     #can we revise the spelling to something more English?
-    self.raiseADebug('checking dir', 'finalizeCodeOutput' in dir(self.code))
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
-    self.raiseADebug('finishedjob:',finisishedjob)
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)

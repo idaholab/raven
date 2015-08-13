@@ -513,15 +513,12 @@ class hdf5Database(MessageHandler.MessageUser):
             if len(inpHeaders) > 0:
               sgrp.attrs[b'input_space_headers'] = inpHeaders
               sgrp.attrs[b'input_space_values' ] = inpValues
-        print('pre-convert attribs:',attr,attributes.keys())
-        print('pre-convert attrib:',attributes[attr])
         #Files objects are not JSON serializable, so we have to cover that.
         #this doesn't cover all possible circumstance, but it covers the DET case.
         if attr == 'input_file' and isinstance(attributes[attr][0],Files.File):
           objectToConvert = list(a.__getstate__() for a in attributes[attr])
         else:
           objectToConvert = utils.convertNumpyToLists(attributes[attr])
-        print('to convert:',objectToConvert)
         converted = json.dumps(objectToConvert)
         if converted and attr != 'name': sgrp.attrs[utils.toBytes(attr)]=converted
     else: pass

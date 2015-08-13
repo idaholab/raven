@@ -277,7 +277,6 @@ class MultiRun(SingleRun):
       if inDictionary['Sampler'].amIreadyToProvideAnInput():
         try:
           newinp = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
-          self.raiseADebug('type of newinp:',type(newinp[0][0]))
           inDictionary["Model"].run(newinp,inDictionary['jobHandler'])
           self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:

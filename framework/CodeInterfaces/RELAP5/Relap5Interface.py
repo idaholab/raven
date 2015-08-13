@@ -22,16 +22,9 @@ class Relap5(CodeInterfaceBase):
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    #outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     outputfile = 'out~'+inputFiles[index].getBase()
     if clargs: addflags = clargs['text']
     else     : addflags = ''
-    #raise IOError('exec:',executable)
-    #executeCommand = executable
-    #                 + ' -i ' + os.path.split(inputFiles[index])[1] \
-    #                 + ' -o ' + os.path.split(inputFiles[index])[1] + '.o' \
-    #                 + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '\
-    #                 + addflags
     executeCommand = executable \
                      + ' -i ' + inputFiles[index].getFilename() \
                      + ' -o ' + os.path.join(inputFiles[index].getPath(), inputFiles[index].getBase() + '.o') \
@@ -83,7 +76,6 @@ class Relap5(CodeInterfaceBase):
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
     found = False
     for index, inputFile in enumerate(currentInputFiles):
-      #inputFile = inputFile.getAbsFile()
       if inputFile.getExt() in self.getInputExtension():
         found = True
         break
@@ -91,9 +83,7 @@ class Relap5(CodeInterfaceBase):
     parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile())
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,True)
-    #temp = str(oriInputFiles[index][:])
     newInputFiles = copy.deepcopy(currentInputFiles)
-    #newInputFiles[index] = copy.copy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
     newInputFiles[index].setBase(Kwargs['prefix']+'~'+currentInputFiles[index].getBase())
     parser.printInput(newInputFiles[index])
     return newInputFiles
@@ -139,12 +129,12 @@ class Relap5(CodeInterfaceBase):
 
       if str(Kwargs['start_time']) != 'Initial':
         modifDict = {}
-#        restart_parent = Kwargs['parent_id']+'~restart.r'
-#        new_restart = Kwargs['prefix']+'~restart.r'
-#        shutil.copyfile(restart_parent,new_restart)
+        #restart_parent = Kwargs['parent_id']+'~restart.r'
+        #new_restart = Kwargs['prefix']+'~restart.r'
+        #shutil.copyfile(restart_parent,new_restart)
         modifDict['name'] = ['Executioner']
-#        modifDict['restart_file_base'] = new_restart
-#        print('CODE INTERFACE: Restart file name base is "' + new_restart + '"')
+        #modifDict['restart_file_base'] = new_restart
+        #print('CODE INTERFACE: Restart file name base is "' + new_restart + '"')
         listDict.append(modifDict)
         del modifDict
     # max simulation time (if present)
