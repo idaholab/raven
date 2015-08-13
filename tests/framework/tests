@@ -603,14 +603,15 @@
    # command line that the test harness doesn't know how to deal with. For now, we're just
    # going to test for the existence of moose_test-opt to run.
    required_executable = '../../../moose/test/moose_test-%METHOD%'
+   required_libraries = 'cubit'
  [../]
 
 [./BisonAndMeshInterface]
    type = 'RavenFramework'
    input = 'test_BISON_and_MESH.xml'
-   output = 'BISON_and_MESH_test/grid_run/mesh~coarse_input_1.e BISON_and_MESH_test/grid_run/mesh~coarse_input_2.e
-BISON_and_MESH_test/grid_run/mesh~coarse_input_3.e BISON_and_MESH_test/grid_run/mesh~coarse_input_4.e BISON_and_MESH_test/grid_run/mesh~coarse_input_5.e BISON_and_MESH_test/grid_run/mesh~coarse_input_6.e BISON_and_MESH_test/grid_run/mesh~coarse_input_7.e BISON_and_MESH_test/grid_run/mesh~coarse_input_8.e BISON_and_MESH_test/grid_run/mesh~coarse_input_9.e BISON_and_MESH_test/grid_run/mesh~coarse_input_10.e BISON_and_MESH_test/grid_run/mesh~coarse_input_11.e BISON_and_MESH_test/grid_run/mesh~coarse_input_12.e BISON_and_MESH_test/grid_run/mesh~coarse_input_13.e BISON_and_MESH_test/grid_run/mesh~coarse_input_14.e BISON_and_MESH_test/grid_run/mesh~coarse_input_15.e BISON_and_MESH_test/grid_run/mesh~coarse_input_16.e'
+   output = 'BISON_and_MESH_test/grid_run/mesh~coarse_input_1.e BISON_and_MESH_test/grid_run/mesh~coarse_input_2.e BISON_and_MESH_test/grid_run/mesh~coarse_input_3.e BISON_and_MESH_test/grid_run/mesh~coarse_input_4.e BISON_and_MESH_test/grid_run/mesh~coarse_input_5.e BISON_and_MESH_test/grid_run/mesh~coarse_input_6.e BISON_and_MESH_test/grid_run/mesh~coarse_input_7.e BISON_and_MESH_test/grid_run/mesh~coarse_input_8.e BISON_and_MESH_test/grid_run/mesh~coarse_input_9.e BISON_and_MESH_test/grid_run/mesh~coarse_input_10.e BISON_and_MESH_test/grid_run/mesh~coarse_input_11.e BISON_and_MESH_test/grid_run/mesh~coarse_input_12.e BISON_and_MESH_test/grid_run/mesh~coarse_input_13.e BISON_and_MESH_test/grid_run/mesh~coarse_input_14.e BISON_and_MESH_test/grid_run/mesh~coarse_input_15.e BISON_and_MESH_test/grid_run/mesh~coarse_input_16.e'
    csv = 'BISON_and_MESH_test/print_data.csv'
    required_executable = '../../../bison/bison-%METHOD%'
+   required_libraries = 'cubit'
  [../]
 []
