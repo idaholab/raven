@@ -121,7 +121,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In , None
       @ Out, None
     """
-    self.addInputExtension(['.i','.inp','.in'])
+    self.addInputExtension(['i','inp','in'])
 
   def finalizeCodeOutput(self,command,output,workingDir):
     """

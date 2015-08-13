@@ -698,8 +698,8 @@ class Code(Model):
       else: self.raiseAMessage('not found preexec '+self.preexec,'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
     self.code.readMoreXML(xmlNode)
-    self.code.setInputExtension(list(a for b in (c for c in self.clargs['input'].values()) for a in b))
-    self.code.addInputExtension(list(a for b in (c for c in self.fargs ['input'].values()) for a in b))
+    self.code.setInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
+    self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
 
   def addInitParams(self,tempDict):
@@ -753,7 +753,7 @@ class Code(Model):
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
     #  objects.  However, this might require some updating of many Code Interfaces as well.
     for index, inputFile in enumerate(currentInput):
-      if '.'+inputFile.getExt() in self.code.getInputExtension():
+      if inputFile.getExt() in self.code.getInputExtension():
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
@@ -767,11 +767,13 @@ class Code(Model):
     #TODO this is the problem step -> we're not preserving the prefixes!
     #FIXME createNewInput should return Files objects, not names!
     self.currentInputFiles = copy.deepcopy(inputFiles[0]) #list(self.oriInputFiles[inputFiles[0].index(i)] for i in inputFiles[0])
+    self.raiseAWarning('executable:',self.executable)
     executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs, preexec=self.preexec)
+    self.raiseAWarning('stuff in inputFiles:',inputFiles[1])
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
-      if '.'+inputFile.getExt() in self.code.getInputExtension():
+      if inputFile.getExt() in self.code.getInputExtension():
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
@@ -780,11 +782,13 @@ class Code(Model):
 
   def collectOutput(self,finisishedjob,output):
     """collect the output file in the output object"""
+    #can we revise the spelling to something more English?
     self.raiseADebug('checking dir', 'finalizeCodeOutput' in dir(self.code))
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
+    self.raiseADebug('finishedjob:',finisishedjob)
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)

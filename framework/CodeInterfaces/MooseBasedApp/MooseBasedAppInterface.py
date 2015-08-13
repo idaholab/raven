@@ -17,7 +17,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     '''seek which is which of the input files and generate According the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
-      if '.'+inputFile.getExt() in self.getInputExtension():
+      if inputFile.getExt() in self.getInputExtension():
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))

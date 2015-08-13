@@ -18,15 +18,25 @@ class Relap5(CodeInterfaceBase):
     '''seek which is which of the input files and generate According the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
-      if inputFile.endswith(self.getInputExtension()):
+      if inputFile.getExt() in self.getInputExtension():
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
+    #outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
+    outputfile = 'out~'+inputFiles[index].getBase()
     if clargs: addflags = clargs['text']
     else     : addflags = ''
-    #executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[1] + '.o' + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '+ addflags
-    executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.join(os.path.split(inputFiles[index])[0],outputfile + '.o') + ' -r ' + os.path.join(os.path.split(inputFiles[index])[0], outputfile + '.r ') + addflags
+    #raise IOError('exec:',executable)
+    #executeCommand = executable
+    #                 + ' -i ' + os.path.split(inputFiles[index])[1] \
+    #                 + ' -o ' + os.path.split(inputFiles[index])[1] + '.o' \
+    #                 + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '\
+    #                 + addflags
+    executeCommand = executable \
+                     + ' -i ' + inputFiles[index].getFilename() \
+                     + ' -o ' + os.path.join(inputFiles[index].getPath(), inputFiles[index].getBase() + '.o') \
+                     + ' -r ' + os.path.join(inputFiles[index].getPath(), inputFiles[index].getBase() + '.r') \
+                     + addflags
     return executeCommand,outputfile
 
   def finalizeCodeOutput(self,command,output,workingDir):
@@ -73,17 +83,18 @@ class Relap5(CodeInterfaceBase):
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
     found = False
     for index, inputFile in enumerate(currentInputFiles):
-      inputFile = inputFile.getAbsFile()
-      if inputFile.endswith(self.getInputExtension()):
+      #inputFile = inputFile.getAbsFile()
+      if inputFile.getExt() in self.getInputExtension():
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile())
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,True)
-    temp = str(oriInputFiles[index][:])
-    newInputFiles = copy.copy(currentInputFiles)
-    newInputFiles[index] = copy.copy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
+    #temp = str(oriInputFiles[index][:])
+    newInputFiles = copy.deepcopy(currentInputFiles)
+    #newInputFiles[index] = copy.copy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
+    newInputFiles[index].setBase(Kwargs['prefix']+'~'+currentInputFiles[index].getBase())
     parser.printInput(newInputFiles[index])
     return newInputFiles
 

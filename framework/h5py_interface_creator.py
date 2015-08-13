@@ -513,12 +513,17 @@ class hdf5Database(MessageHandler.MessageUser):
             if len(inpHeaders) > 0:
               sgrp.attrs[b'input_space_headers'] = inpHeaders
               sgrp.attrs[b'input_space_values' ] = inpValues
-        objectToConvert = utils.convertNumpyToLists(attributes[attr])
-        #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
-        #else:                                      objectToConvert = attributes[attr]
+        print('pre-convert attribs:',attr,attributes.keys())
+        print('pre-convert attrib:',attributes[attr])
+        #Files objects are not JSON serializable, so we have to cover that.
+        #this doesn't cover all possible circumstance, but it covers the DET case.
+        if attr == 'input_file' and isinstance(attributes[attr][0],Files.File):
+          objectToConvert = list(a.__getstate__() for a in attributes[attr])
+        else:
+          objectToConvert = utils.convertNumpyToLists(attributes[attr])
+        print('to convert:',objectToConvert)
         converted = json.dumps(objectToConvert)
         if converted and attr != 'name': sgrp.attrs[utils.toBytes(attr)]=converted
-      if "input_file" in attributes: grp.attrs[utils.toString("input_file")] = utils.toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else utils.toString(attributes["input_file"])
     else: pass
     # The sub-group is the new ending group
     if parent_group_name != "/":
