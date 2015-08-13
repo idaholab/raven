@@ -508,7 +508,7 @@ Here we give a general example of three different distributions:
         <min>0.1</min>
         <max>4</max>
     </Triangular>
-(see~\ref{sec:distributions})</Distributions>
+</Distributions>
 \end{lstlisting}
 
 It is good practice to name the distribution something similar to what kind of
@@ -840,30 +840,35 @@ finalizeCodeOutput function.
 %%%%%% MESH GENERATION COUPLED INTERFACES %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Mesh Generation Coupled Interfaces}
-Many utilize software that requires a provided mesh or are interested in 
-solving problems that are beyond the meshing capabilities of automatic 
-mesh generation software packaged with a code and able to be called within 
-input files.  In these cases, one would desire to use sampled geometric 
-variables to generate a new mesh for each problem, then run the input with 
-the remainder of the perturbed parameters and the mesh.  To facilitate this 
-type of use, several mesh generation coupled interfaces are provided with 
-RAVEN software.
+Some use software requires a provided mesh that requires a separate code run to generate.  
+In these cases, we use sampled geometric 
+variables to generate a new mesh for each perturbation of the original problem, then run the input with 
+the remainder of the perturbed parameters and the perturbed mesh.  RAVEN currently provides two interfaces for
+this type of calculation, listed below.
 
 %%%%%%%%%% CUBIT MOOSE INTERFACE %%%%%%%%%%
 \subsubsection{MooseBasedApp and Cubit Interface}
-Cubit (\url{https://cubit.sandia.gov}) is a toolkit developed at Sandia National 
-Laboratory used to create two- and three-dimensional finite element meshes with 
-various options for defining geometric properties as a part of the grid. It is 
-capable of reading and writing a variety of standard mesh file types, including 
-Genesis or Exodus II (*.e) files.  As MOOSE applications use Exodus II files for 
-meshes and results, Cubit is commonly used to generate meshes for problems of 
-interest.  Cubit commands are used to create the geometry, mesh the object, and 
-identify volumes, sidesets, and nodesets for a mesh.  These commands may be 
-placed in journal files (*.jou) to be used as input to Cubit.  Parameter values 
+Many MOOSE-based applications use Cubit (\url{https://cubit.sandia.gov}) to generate Exodus II files as
+geometry and meshing for calculations.  The input parameters for Cubit can be listed in a journal
+(\texttt{.jou}) file.  Parameter values 
 are typically hardcoded into the Cubit command syntax, but variables may be 
-predefined in a journal file through Aprepro syntax.  An example of a journal 
+predefined in a journal file through Aprepro syntax.  This is an example of a journal 
 file that generates a rectangle of given height and width, meshes it, defines its 
 volume and sidesets, lists its element type, and writes it as an Exodus file is given:
+
+%Cubit (\url{https://cubit.sandia.gov}) is a toolkit developed at Sandia National 
+%Laboratory used to create two- and three-dimensional finite element meshes with 
+%various options for defining geometric properties as a part of the grid. It is 
+%capable of reading and writing a variety of standard mesh file types, including 
+%Genesis or Exodus II (*.e) files.  As MOOSE applications use Exodus II files for 
+%meshes and results, Cubit is commonly used to generate meshes for problems of 
+%interest.  Cubit commands are used to create the geometry, mesh the object, and 
+%identify volumes, sidesets, and nodesets for a mesh.  These commands may be 
+%placed in journal files (*.jou) to be used as input to Cubit.  Parameter values 
+%are typically hardcoded into the Cubit command syntax, but variables may be 
+%predefined in a journal file through Aprepro syntax.  An example of a journal 
+%file that generates a rectangle of given height and width, meshes it, defines its 
+%volume and sidesets, lists its element type, and writes it as an Exodus file is given:
 
 \begin{lstlisting}
 #{x = 3}
@@ -882,11 +887,13 @@ export genesis {out_name} overwrite
 \end{lstlisting}
 
 The first three lines are the Aprepro variable definitions that RAVEN requires to 
-insert sampled variables.  All variables that RAVEN samples and one would like to 
-use in mesh generation will need to be defined as Aprepro variables in the journal 
-file.  These are typically geometric parameters, though almost anything that Cubit 
-quantifies in a command may be defined as a variable and sampled through RAVEN 
-such as internal mesh refinement values.  One VERY IMPORTANT caveat to running 
+insert sampled variables.  All variables that RAVEN samples 
+need to be defined as Aprepro variables in the journal 
+file.
+%These are typically geometric parameters, though almost anything that Cubit 
+%quantifies in a command may be defined as a variable and sampled through RAVEN 
+%such as internal mesh refinement values.  
+One essential caveat to running 
 this interface is that an Aprepro variable MUST be defined with the name "out\_name". 
 In order to run this script without RAVEN inserting the correct syntax for the 
 output file name and properly generate the Exodus file for a mesh, the output file 
@@ -896,11 +903,11 @@ extension appended to the end of the file base name (e.g. '"output\_file.e"').
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Files}
 \xmlNode{Files} works the same as in other interfaces with name and type 
-attributes for each node entry.  The name attribute is a user chosen internal 
-name for the file contained in the node, and type identifies which base-level 
-interface the file is used within.  Type should only be specified for inputs 
-that raven will perturb.  For moose input files, type is MooseInput and for 
-cubit journal files, the type is CubitInput.  The node should contain the 
+attributes for each node entry.  The \xmlAttr{name} attribute is a user-chosen internal 
+name for the file contained in the node, and \xmlAttr{type} identifies which base-level 
+interface the file is used within.  \xmlNode{type} should only be specified for inputs 
+that RAVEN will perturb.  For Moose input files, \xmlNode{type} should be \xmlString{MooseInput} and for 
+Cubit journal files, the \xmlNode{type} should be \xmlString{CubitInput}.  The node should contain the 
 path to the file from the working directory.  The following is an example 
 of a typical \xmlNode{Files} block.
 
@@ -920,9 +927,9 @@ subType.  Name identifies that particular \xmlNode{Code} model within RAVEN, and
 subType specifies which code interface the model will use. The \xmlNode{executable} 
 block should contain the absolute or relative (with respect to the current working 
 directory) path to the MooseBasedApp that RAVEN will use to run generated input 
-files.  The absolute or relative path to the cubit executable is specified within 
-\xmlNode{preexec}.  If the \xmlNode{preexec} block is not needed, use the 
-MooseBasedApp interface.
+files.  The absolute or relative path to the Cubit executable is specified within 
+\xmlNode{preexec}.  If the \xmlNode{preexec} block is not needed, the 
+MooseBasedApp interface is probably preferable to the Cubit-Moose interface.
 
 Aliases are defined by specifying the variable attribute in an \xmlNode{alias} node with 
 the internal RAVEN variable name chosen with the node containing the model 
@@ -932,7 +939,7 @@ with the highest YAML block going down to the individual parameter that RAVEN
 will change.  To specify variables that are going to be used in the Cubit 
 journal file, the syntax is "Cubit|aprepro\_var".  The Cubit-Moose interface 
 will look for the Cubit tag in all variables passed to it and upon finding it, 
-send it to the Cubit interface.  If the model variable does not begin with Cubit, 
+send it to the Cubit interface.  If the model variable does not begin with \xmlString{Cubit}, 
 the variable MUST be specified in the MooseBasedApp input file.  While the model 
 variable names are not required to have aliases defined (the \xmlNode{alias} 
 blocks are optional), it is highly suggested to do so not only to ensure brevity 
@@ -1013,7 +1020,7 @@ unwanted after the RAVEN run reaches completion. Cubit has been described as
 "talkative" due to additional journal files with execution information
 being generated by the program after every completed journal file run.  
 The quantity of these files can quickly become unwieldly if the working
-directory is not kept clean, thus these files are removed.  Some users
+directory is not kept clean; thus these files are removed.  In addition, some users
 may wish to remove Exodus files after the RAVEN run is complete as
 the typical size of each file is quite large and it is assumed that any
 output quantities of interest will be collected by appropriate postprocessors
@@ -1060,9 +1067,9 @@ in another attribute of the \xmlNode{Input} node.  An example follows.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Models}
 A user provides paths to executables and aliases for sampled variables within the
-\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes name and
-subType.  Name identifies that particular \xmlNode{Code} model within RAVEN, and
-subType specifies which code interface the model will use. The \xmlNode{executable}
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes \xmlAttr{name} and
+\xmlAttr{subType}.  \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
+\xmlAttr{subType} specifies which code interface the model will use. The \xmlNode{executable}
 block should contain the absolute or relative (with respect to the current working
 directory) path to the MooseBasedApp that RAVEN will use to run generated input
 files.  The absolute or relative path to the mesh script python file is specified within
@@ -1118,7 +1125,7 @@ The \xmlNode{Samplers} block defines the variables to be sampled.
 After defining a sampling scheme, the variables to be sampled and
 their distributions are identified in the \xmlNode{variable} blocks.
 The name attribute in the \xmlNode{variable} block must either be the
-full MooseBasedApp model variable name or the alias name specifed in
+full MooseBasedApp model variable name or the alias name specified in
 \xmlNode{Models}.  If the sampled variable is a geometric property
 that will be used to generate a mesh with Cubit, remember the syntax for
 variables being passed to journal files (Cubit|aprepro\_var).
