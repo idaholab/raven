@@ -34,10 +34,10 @@
   </DataObjects>
 
   <Distributions>
-    <Beta name="pellet_r_dist"      ><low>0.0038</low><hi>0.0045</hi><peakFactor>0.5</peakFactor></Beta>
-    <Beta name="clad_thickness_dist"><low>4.8e-4</low><hi>6.1e-4</hi><peakFactor>0.5</peakFactor></Beta>
-    <Beta name="fuel_k_dist"        ><low>4.8   </low><hi>5.3   </hi><peakFactor>0.5</peakFactor></Beta>
-    <Beta name="clad_k_dist"        ><low>15.7  </low><hi>16.5  </hi><peakFactor>0.5</peakFactor></Beta>
+    <Beta name="pellet_r_dist"      ><peakFactor>0.5</peakFactor><low>0.0038</low><high>0.0045</high></Beta>
+    <Beta name="clad_thickness_dist"><peakFactor>0.5</peakFactor><low>4.8e-4</low><high>6.1e-4</high></Beta>
+    <Beta name="fuel_k_dist"        ><peakFactor>0.5</peakFactor><low>4.8   </low><high>5.3   </high></Beta>
+    <Beta name="clad_k_dist"        ><peakFactor>0.5</peakFactor><low>15.7  </low><high>16.5  </high></Beta>
   </Distributions>
 
   <Samplers>
@@ -76,8 +76,8 @@
     <MultiRun name="grid_run">
       <Input   class="Files"            type=""        >bison_test</Input>
       <Input   class="Files"            type=""        >mesh_in</Input>
-      <Sampler class="Samplers"         type="Grid"    >Grid_sampling</Sampler>
       <Model   class="Models"           type="Code"    >Bison-opt</Model>
+      <Sampler class="Samplers"         type="Grid"    >Grid_sampling</Sampler>
       <Output  class="DataObjects"      type="PointSet">collset</Output>
       <Output  class="OutStreamManager" type="Print"   >print_data</Output>
     </MultiRun>

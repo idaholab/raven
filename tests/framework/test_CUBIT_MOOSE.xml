@@ -64,8 +64,8 @@
     <MultiRun name="grid_run">
       <Input   class="Files"            type=""        >moose_test</Input>
       <Input   class="Files"            type=""        >mesh_in</Input>
-      <Sampler class="Samplers"         type="Grid"    >Grid_sampling</Sampler>
       <Model   class="Models"           type="Code"    >moose-modules</Model>
+      <Sampler class="Samplers"         type="Grid"    >Grid_sampling</Sampler>
       <Output  class="DataObjects"      type="PointSet">collset</Output>
       <Output  class="OutStreamManager" type="Print"   >print_data</Output>
     </MultiRun>
