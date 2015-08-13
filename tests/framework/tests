@@ -592,4 +592,25 @@
    output = 'RedundantInputs/mc_out.xml RedundantInputs/grid_out.xml'
    csv = 'RedundantInputs/mc_out.csv RedundantInputs/grid_out.csv'
  [../]
+
+[./CubitMooseInterface]
+   type = 'RavenFramework'
+   input = 'test_CUBIT_MOOSE.xml'
+   output = 'CUBIT_MOOSE_test/grid_run/mesh~rectangle_1.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_2.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_3.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_4.e'
+   csv = 'CUBIT_MOOSE_test/print_data.csv'
+   # Need to be able to check that cubit executable exists, but listing in required_executable
+   # searches for existence of file then runs it. Running cubit by itself starts a cubit 
+   # command line that the test harness doesn't know how to deal with. For now, we're just
+   # going to test for the existence of moose_test-opt to run.
+   required_executable = '../../../moose/test/moose_test-%METHOD%'
+ [../]
+
+[./BisonAndMeshInterface]
+   type = 'RavenFramework'
+   input = 'test_BISON_and_MESH.xml'
+   output = 'BISON_and_MESH_test/grid_run/mesh~coarse_input_1.e BISON_and_MESH_test/grid_run/mesh~coarse_input_2.e
+BISON_and_MESH_test/grid_run/mesh~coarse_input_3.e BISON_and_MESH_test/grid_run/mesh~coarse_input_4.e BISON_and_MESH_test/grid_run/mesh~coarse_input_5.e BISON_and_MESH_test/grid_run/mesh~coarse_input_6.e BISON_and_MESH_test/grid_run/mesh~coarse_input_7.e BISON_and_MESH_test/grid_run/mesh~coarse_input_8.e BISON_and_MESH_test/grid_run/mesh~coarse_input_9.e BISON_and_MESH_test/grid_run/mesh~coarse_input_10.e BISON_and_MESH_test/grid_run/mesh~coarse_input_11.e BISON_and_MESH_test/grid_run/mesh~coarse_input_12.e BISON_and_MESH_test/grid_run/mesh~coarse_input_13.e BISON_and_MESH_test/grid_run/mesh~coarse_input_14.e BISON_and_MESH_test/grid_run/mesh~coarse_input_15.e BISON_and_MESH_test/grid_run/mesh~coarse_input_16.e'
+   csv = 'BISON_and_MESH_test/print_data.csv'
+   required_executable = '../../../bison/bison-%METHOD%'
+ [../]
 []

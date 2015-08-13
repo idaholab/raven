@@ -1,0 +1,80 @@
+<Simulation verbosity='debug'>
+  <!--CubitMoose Interface Test
+  This test is designed to ensure the CubitMoose interface runs correctly.
+  It will only run if a cubit executable is found.  At this time, the 
+  cubit executable directory is specified only for INL HPC machines, thus the 
+  test will not run on machines where cubit is not installed in the 
+  /hpc-common/apps/local/cubit/13.2/bin/ directory. This will need to change 
+  to accomodate variations in the exeucutable's location across platforms.
+
+  Two variables are sampled in this test: one boundary condition value and 
+  one geometric property (length) that will be sent to the MOOSE input file
+  and Cubit journal file respectively.  Variables are sampled in a grid with
+  specified values for each parameter.
+
+  The test checks for generated exodus meshes and diffs the generated csv with
+  the gold one. -->  
+
+  <RunInfo>
+    <WorkingDir>CUBIT_MOOSE_test</WorkingDir>
+    <Sequence>grid_run</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+      <Input name='moose_test' type='MooseInput'>simple_diffusion.i</Input>
+      <Input name='mesh_in' type='CubitInput'>rectangle.jou</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="collset">
+      <Input>length,bot_BC</Input>
+      <Output>center_node_value</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <Uniform name="length_dist"><lowerBound>1.0</lowerBound><upperBound>2.0</upperBound></Uniform>
+    <Uniform name="bot_BC_dist"><lowerBound>3.0</lowerBound><upperBound>6.0</upperBound></Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="Grid_sampling">
+      <variable name="length" >
+        <distribution>length_dist</distribution>
+        <grid type="value" construction="custom">1.0 2.0</grid>
+      </variable>
+      <variable name="bot_BC">
+        <distribution>bot_BC_dist</distribution>
+        <grid type="value" construction="custom">3.0 6.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Models>
+    <Code name="moose-modules" subType="CubitMoose">
+      <executable>%FRAMEWORK_DIR%/../../moose/test/moose_test-%METHOD%</executable>
+      <preexec>/hpc-common/apps/local/cubit/13.2/bin/cubit</preexec>
+      <alias variable="length">Cubit|y</alias>
+      <alias variable="bot_BC">BCs|bottom|value</alias>
+    </Code>
+  </Models>
+
+  <Steps>
+    <MultiRun name="grid_run">
+      <Input   class="Files"            type=""        >moose_test</Input>
+      <Input   class="Files"            type=""        >mesh_in</Input>
+      <Sampler class="Samplers"         type="Grid"    >Grid_sampling</Sampler>
+      <Model   class="Models"           type="Code"    >moose-modules</Model>
+      <Output  class="DataObjects"      type="PointSet">collset</Output>
+      <Output  class="OutStreamManager" type="Print"   >print_data</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreamManager>
+      <Print name='print_data'>
+          <type>csv</type>
+          <source>collset</source>
+      </Print>
+  </OutStreamManager>
+</Simulation>

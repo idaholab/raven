@@ -1,0 +1,13 @@
+#{x = 3}
+#{y = 3}
+#{out_name = "'out_mesh.e'"}
+create surface rectangle width {x} height {y} zplane 
+mesh surface 1 
+set duplicate block elements off
+block 1 surface 1  
+Sideset 1 curve 3  
+Sideset 2 curve 4 
+Sideset 3 curve 1 
+Sideset 4 curve 2
+Block all element type QUAD4
+export genesis {out_name} overwrite
