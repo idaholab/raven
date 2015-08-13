@@ -30,7 +30,7 @@ class CubitInterface(CodeInterfaceBase):
     """
     found = False
     for index, inputFile in enumerate(inputFiles):
-      if '.'+inputFile.getExt() in self.getInputExtension():
+      if inputFile.getExt() in self.getInputExtension():
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
@@ -54,8 +54,6 @@ class CubitInterface(CodeInterfaceBase):
     newInputFiles = copy.deepcopy(currentInputFiles)
     newInputFiles[index].close()
     newInputFiles[index].setBase(currentInputFiles[index].getBase()+'_'+Kwargs['prefix'])
-    #newInputFiles[index] = os.path.join(os.path.split(temp)[0], os.path.split(temp)[1].split('.')[0] \
-    #    +'_'+Kwargs['prefix']+'.'+os.path.split(temp)[1].split('.')[1])
     self.outputfile = 'mesh~'+newInputFiles[index].getBase()
     Kwargs['SampledVars']['Cubit|out_name'] = "\"'"+self.outputfile+".e'\""
     # Copy dictionary of sampled vars sent to interface and change name of alias (if it exists)
@@ -70,7 +68,7 @@ class CubitInterface(CodeInterfaceBase):
 
   def getInputExtension(self):
     """Returns the output extension of input files to be perturbed as a string."""
-    return(".jou")
+    return("jou")
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """Cleans up files in the working directory that are not needed after the run

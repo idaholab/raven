@@ -61,14 +61,12 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     newInputFiles = copy.deepcopy(currentInputFiles)
     newInputFiles[index].close()
     newInputFiles[index].setBase(currentInputFiles[index].getBase()+'_'+Kwargs['prefix'])
-    #newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0], os.path.split(temp)[1].split('.')[0] \
-    #+'_'+Kwargs['prefix']+'.'+os.path.split(temp)[1].split('.')[1])) #this could be simplified using Files methods
     parser.writeNewInput(newInputFiles[index].getAbsFile())
     return newInputFiles
 
   def addDefaultExtension(self):
     """Adds the given extension to list of input file extensions."""
-    self.addInputExtension(['.py'])
+    self.addInputExtension(['py'])
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """Cleans up files in the working directory that are not needed after the run
