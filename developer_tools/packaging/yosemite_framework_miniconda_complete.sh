@@ -13,9 +13,9 @@ hdiutil detach /Volumes/Raven\ Libraries/
 ./crow_compile.sh
 export CHECKOUT_DIR=$INSTALL_DIR/framework
 ./raven_framework_git.sh
-cp ../../doc/user_manual/raven_user_manual.pdf $CHECKOUT_DIR/trunk/raven/doc/user_manual/
-rm -Rf $CHECKOUT_DIR/trunk/*/.git
-ln -s $CHECKOUT_DIR/trunk/raven/raven_framework $INSTALL_DIR/bin
+cp ../../doc/user_manual/raven_user_manual.pdf $CHECKOUT_DIR/raven/doc/user_manual/
+rm -Rf $CHECKOUT_DIR/*/.git
+ln -s $CHECKOUT_DIR/raven/raven_framework $INSTALL_DIR/bin
 ls $INSTALL_DIR/bin
 rm -Rvf $HOME/raven_libs/root/opt
 mkdir -p $HOME/raven_libs/root/opt
