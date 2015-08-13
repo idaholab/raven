@@ -53,13 +53,12 @@ class GenericCodeInterface(CodeInterfaceBase):
       else: raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
 
     #check all required input files are there
-    print('genInt genCom inpFile',type(inputFiles),inputFiles)
     inFiles=inputFiles[:]
     for exts in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
       for ext in exts:
         found=False
         for inf in inputFiles:
-          print('inf:',type(inf),inf) #why is this a string?
+          #print('inf:',type(inf),inf) #why is this a string?
           if '.'+inf.getExt() == ext:
             found=True
             inFiles.remove(inf)
@@ -76,7 +75,7 @@ class GenericCodeInterface(CodeInterfaceBase):
       '''
       found = False
       for index,inputFile in enumerate(fileList):
-        if '.'+inputFile.getExt() == ext:
+        if inputFile.getExt() == ext:
           found=True
           break
       if not found: raise IOError('No InputFile with extension '+ext+' found!')
@@ -91,13 +90,13 @@ class GenericCodeInterface(CodeInterfaceBase):
     for flag,exts in clargs['input'].items():
       if flag == 'noarg':
         for ext in exts:
-          idx,fname = getFileWithExtension(inputFiles,ext)
+          idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
           todo+=' '+fname.getFilename()
           if index == None: index = idx
         continue
       todo += ' '+flag
       for ext in exts:
-        idx,fname = getFileWithExtension(inputFiles,ext)
+        idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
         todo+=' '+fname.getFilename()
         if index == None: index = idx
     #outputs
@@ -124,14 +123,14 @@ class GenericCodeInterface(CodeInterfaceBase):
     #FIXME possible danger here from reading binary files
     for index,inputFile in enumerate(currentInputFiles):
       #inputFile = inputFile.getAbsFile()
-      print('ext check:',inputFile,inputFile.getExt(),self.getInputExtension())
-      if '.'+inputFile.getExt() in self.getInputExtension():
+      #print('ext check:',inputFile,inputFile.getExt(),self.getInputExtension())
+      if inputFile.getExt() in self.getInputExtension():
         indexes.append(index)
         infiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles)
     parser.modifyInternalDictionary(**Kwargs)
     newInFiles = copy.deepcopy(currentInputFiles)
     for i in indexes:
-      newInFiles[i].setFilename(Kwargs['prefix']+'~'+newInFiles[i].getFilename())
+      newInFiles[i].setBase(Kwargs['prefix']+'~'+newInFiles[i].getBase())
     parser.writeNewInput(newInFiles,origInputFiles)
     return newInFiles

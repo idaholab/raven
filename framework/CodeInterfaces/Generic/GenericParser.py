@@ -43,7 +43,6 @@ class GenericParser():
       #IOfile = open(inputFile,'rb')
       foundSome = False
       seg = ''
-      print('inputFile',type(inputFile))
       lines = inputFile.readlines()
       inputFile.close()
       for line in lines:
@@ -162,14 +161,17 @@ class GenericParser():
                 break
             elif iotype=='input':
               if var in self.adldict[iotype].keys():
-                self.segments[inputFile][place] = getFileWithExtension(inFiles,self.adldict[iotype][var][0])[1]
+                self.segments[inputFile][place] = getFileWithExtension(inFiles,self.adldict[iotype][var][0])[1].getAbsFile()
                 break
     #for var,place in self.varPlaces.items():
       #for inputFile in self.segments.keys():
         #for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
     #now just write the files.
-    for f,outfile in enumerate(inFiles):
+    print('segment keys',self.segments.keys())
+    for f,inFile in enumerate(origFiles):
+      outfile = inFiles[f]
       #outfile = file(fileName,'w')
-      #print('keys:',origFiles.keys)
-      outfile.writelines(toBytes(''.join(self.segments[origFiles[f].getFilename()])))
+      print('file:',origFiles[f],outfile)
+      print('segment:',self.segments[inFile.getFilename()])
+      outfile.writelines(toBytes(''.join(self.segments[inFile.getFilename()])))
       outfile.close()

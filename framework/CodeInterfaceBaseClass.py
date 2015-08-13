@@ -121,7 +121,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In , None
       @ Out, None
     """
-    self.addInputExtension(['.i','.inp','.in'])
+    self.addInputExtension(['i','inp','in'])
 
   def finalizeCodeOutput(self,command,output,workingDir):
     """
@@ -161,11 +161,14 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     listDict=[]
     modifDict={}
     for var in Kwargs['SampledVars']:
-      if 'alias' in Kwargs.keys():
+      if 'alias' in Kwargs.keys() and var in Kwargs['alias'].keys():
         # for understending the alias system, plase check module Models.py (class Code)
-        if var in Kwargs['alias'].keys():
-          key = Kwargs['alias'][var].split(':')
-          varname = var
+        #if var in Kwargs['alias'].keys():
+        key = Kwargs['alias'][var].split(':')
+        varname = var
+        #else:
+        #  key = var.split(':')
+        #  varname = key[0]
       else:
         key = var.split(':')
         varname = key[0]

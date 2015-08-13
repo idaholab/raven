@@ -24,7 +24,7 @@ class RAVENInterface(CodeInterfaceBase):
     '''seek which is which of the input files and generate According the running command'''
     found = False
     for index, inputFile in enumerate(inputFiles):
-      if '.'+inputFile.getExt() in self.getInputExtension():
+      if inputFile.getExt() in self.getInputExtension():
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
@@ -67,7 +67,7 @@ class RAVENInterface(CodeInterfaceBase):
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       print('ext:',inputFile.getExt())
-      if '.'+inputFile.getExt() in self.getInputExtension():
+      if inputFile.getExt() in self.getInputExtension():
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
@@ -75,18 +75,13 @@ class RAVENInterface(CodeInterfaceBase):
     Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
-    temp = str(oriInputFiles[index])
     newInputFiles = copy.deepcopy(currentInputFiles)
-    #TODO fix this? storing unwieldy amounts of data in 'prefix'
     if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
-      newpath = os.path.split(temp)[0]
-      newname = Kwargs['prefix']+"~"+os.path.split(temp)[1]
-      newInputFiles[index].setPath(newpath)
-      newInputFiles[index].setFilename(newname)
+      newInputFiles[index].setBase(Kwargs['prefix']+"~"+newInputFiles[index].getBase())
     else:
-      newInputFiles[index].setAbsFile(os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1]))
+      newInputFiles[index].setBase(str(Kwargs['prefix'][1][0])+'~'+newInputFiles[index].getBase())
     parser.printInput(newInputFiles[index].getAbsFile())
-    return list(n.getAbsFile() for n in newInputFiles)
+    return newInputFiles
 
   def stochasticCollocationForRAVEN(self,**Kwargs):
     if 'prefix' not in Kwargs['prefix']: raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
