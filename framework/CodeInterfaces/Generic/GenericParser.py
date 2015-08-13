@@ -143,7 +143,6 @@ class GenericParser():
       @Out, ext, the string extension that the desired filename ends with.
       '''
       found=False
-      print('finding ext:',ext)
       for index,inputFile in enumerate(fileList):
         if inputFile.getExt() == ext:
           found=True
