@@ -1120,91 +1120,150 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     self.axisName = self.distDict.keys()
     self.axisName.sort()
     # initialize LimitSurface PP
-    self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.axisName],"tolerance":self.subGridTol,"side":"both","transformationMethods":transformMethod,"bounds":bounds})
+    parameters = [key.replace('<distribution>','') for key in self.axisName]
+    self.limitSurfacePP._initFromDict({"parameters":parameters,
+                                       "tolerance":self.subGridTol,
+                                       "side":"both",
+                                       "transformationMethods":transformMethod,
+                                       "bounds":bounds})
     self.limitSurfacePP.assemblerDict = self.assemblerDict
-    self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{})
-    self.persistenceMatrix        = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    self.oldTestMatrix            = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #swap matrix fro convergence test
+    self.limitSurfacePP._initializeLSpp({'WorkingDir':None},
+                                        [self.lastOutput], {})
+    matrixShape = self.limitSurfacePP.getTestMatrix().shape
+    self.persistenceMatrix = np.zeros(matrixShape) # Matrix that for each point
+                                                   #  of the testing grid
+                                                   #  tracks the persistence of
+                                                   #  the limit surface position
+    self.oldTestMatrix = np.zeros(matrixShape)     # Swap matrix for the
+                                                   #  convergence test
     self.hangingPoints            = np.ndarray((0, self.nVar))
     self.raiseADebug('Initialization done')
 
   def localStillReady(self,ready): #,lastOutput=None
     """
-    first perform some check to understand what it needs to be done possibly perform an early return
-    ready is returned
-    lastOutput should be present when the next point should be chosen on previous iteration and convergence checked
-    lastOutput it is not considered to be present during the test performed for generating an input batch
-    ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
+    first perform some checks to understand what it needs to be done, possibly
+    perform an early return. ready is returned.
+    lastOutput should be present when the next point should be chosen on
+    previous iteration and the convergence checked.
+    lastOutput is not considered to be present during the test performed for
+    generating an input batch.
+    ROM if passed in it is used to construct the test matrix otherwise the
+    nearest neightburn value is used.
     """
     self.raiseADebug('From method localStillReady...')
     #test on what to do
-    if ready      == False : return ready #if we exceeded the limit just return that we are done
+    if not ready:
+      return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
-      if self.lastOutput == None and self.limitSurfacePP.ROM.amITrained==False: return ready
+      if self.lastOutput is None and not self.limitSurfacePP.ROM.amITrained:
+        return ready
     else:
-      #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
-      if self.lastOutput.isItEmpty() and self.limitSurfacePP.ROM.amITrained==False: return ready
-    #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
+      #if the last output is not provided I am still generating an input batch,
+      #  if the rom was not trained before we need to start clean
+      if self.lastOutput.isItEmpty() and not self.limitSurfacePP.ROM.amITrained:
+        return ready
+    #first evaluate the goal function on the newly sampled points and store them
+    #  in mapping description self.functionValue RecontructEnding
     if type(self.lastOutput) == dict:
-      if self.lastOutput != None: self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
+      if self.lastOutput is not None:
+        self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     else:
-      if not self.lastOutput.isItEmpty(): self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
+      if not self.lastOutput.isItEmpty():
+        self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     self.raiseADebug('Training finished')
-    np.copyto(self.oldTestMatrix,self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
-    # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
+    #copy the old solution (contained in the limit surface PP) for convergence
+    # check
+    np.copyto(self.oldTestMatrix,self.limitSurfacePP.getTestMatrix())
+    # evaluate the Limit Surface coordinates (return input space coordinates,
+    #  evaluation vector and grid indexing)
     self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
 
     self.raiseADebug('Prediction finished')
     # check hanging points
-    if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
-    else                                                                      : indexLast = -1
-    #index of last set of point tested and ready to perform the function evaluation
-    indexEnd  = len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])-1
+    if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys():
+      indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
+    else:
+      indexLast = -1
+
+    # DM: This sequence gets used repetitively, so I am promoting it to its own
+    #  variable
+    axisNames = [key.replace('<distribution>','') for key in self.axisName]
+    #index of last set of point tested and ready to perform the function
+    #  evaluation
+
+    # DM: Test this is the same thing
+    indexEnd  = len(self.limitSurfacePP.getFunctionValue()[axisNames[0]])-1
+    # works for my test case
+    # print('indexEnd (Dan)', indexEnd)
+    # indexEnd  = len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])-1
+    # print('indexEnd (Andrea)', indexEnd)
     tempDict  = {}
     for myIndex in range(indexLast+1,indexEnd+1):
-      for key, value in self.limitSurfacePP.getFunctionValue().items(): tempDict[key] = value[myIndex]
-      if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
+      for key, value in self.limitSurfacePP.getFunctionValue().items():
+        tempDict[key] = value[myIndex]
+      if len(self.hangingPoints) > 0:
+        # This line looks cute, but is hard to parse...
+        self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in axisNames])).all(axis=1)][:]
     self.persistenceMatrix += self.limitSurfacePP.getTestMatrix()
     # test error
-    testError = np.sum(np.abs(np.subtract(self.limitSurfacePP.getTestMatrix(),self.oldTestMatrix))) # compute the error
-    if (testError > self.tolerance/self.subGridTol): ready, self.repetition = True, 0                         # we still have error
-    else              : self.repetition +=1                                                                   # we are increasing persistence
-    if self.persistence<self.repetition: ready =  False                                                       # we are done
-    self.raiseADebug('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
+    # compute the error
+    testError = np.sum(np.abs(np.subtract(self.limitSurfacePP.getTestMatrix(),
+                                          self.oldTestMatrix)))
+    if (testError > self.tolerance/self.subGridTol):
+      ready, self.repetition = True, 0                     # we still have error
+    else:
+      self.repetition +=1                        # we are increasing persistence
+    if self.persistence<self.repetition:
+      ready =  False                                               # we are done
+    self.raiseADebug('counter: ' + str(self.counter) + '       Error: '
+                     + str(testError) + ' Repetition: ' + str(self.repetition))
     #if the number of point on the limit surface is > than compute persistence
     if len(listsurfPoint)>0:
       self.invPointPersistence = np.ndarray(len(listsurfPoint))
       for pointID, coordinate in enumerate(listsurfPoint):
-        self.invPointPersistence[pointID]=abs(self.persistenceMatrix[tuple(coordinate)])
+        self.invPointPersistence[pointID] = abs(self.persistenceMatrix[tuple(coordinate)])
       maxPers = np.max(self.invPointPersistence)
       self.invPointPersistence = (maxPers-self.invPointPersistence)/maxPers
       if self.solutionExport!=None:
         for varName in self.solutionExport.getParaKeys('inputs'):
           for varIndex in range(len(self.axisName)):
-            if varName == [key.replace('<distribution>','') for key in self.axisName][varIndex]:
+            if varName == axisNames[varIndex]:
               self.solutionExport.removeInputValue(varName)
-              for value in self.surfPoint[:,varIndex]: self.solutionExport.updateInputValue(varName,copy.copy(value))
+              for value in self.surfPoint[:,varIndex]:
+                self.solutionExport.updateInputValue(varName,copy.copy(value))
         # to be fixed
         self.solutionExport.removeOutputValue(self.goalFunction.name)
-        for index in range(len(evaluations)): self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[index]))
+        for index in range(len(evaluations)):
+          self.solutionExport.updateOutputValue(self.goalFunction.name,
+                                                copy.copy(evaluations[index]))
     return ready
 
   def localGenerateInput(self,model,oldInput):
     # create values dictionary
-    """compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
-     check the points where the derivative probability is the lowest"""
+    """compute the direction normal to the surface, compute the derivative
+       normal to the surface of the probability, check the points where the
+       derivative probability is the lowest"""
 
-    self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
-    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+    self.inputInfo['distributionName'] = {} # Used to determine which
+                                            # distribution to change if needed.
+    self.inputInfo['distributionType'] = {} # Used to determine which
+                                            # distribution type is used
     self.raiseADebug('generating input')
     varSet=False
+
+    # DM: This sequence gets used repetitively, so I am promoting it to its own
+    #  variable
+    axisNames = [key.replace('<distribution>','') for key in self.axisName]
+
     if self.surfPoint is not None and len(self.surfPoint)>0:
       sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
-      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
+      for varIndex, name in enumerate(axisNames):
+        sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
       distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
-      #the hanging point are added to the list of the already explored points so not to pick the same when in //
+      # The hanging point are added to the list of the already explored points
+      # so as not to pick the same when in //
       tempDict = {}
-      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
+      for varIndex, varName in enumerate(axisNames):
         tempDict[varName]     = self.surfPoint[:,varIndex]
         self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
         self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
@@ -1212,7 +1271,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
       distance, _ = distanceTree.query(self.surfPoint)
       distance = np.multiply(distance,self.invPointPersistence)
       if np.max(distance)>0.0:
-        for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
+        for varIndex, varName in enumerate(axisNames):
           self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
@@ -1221,9 +1280,9 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
       #here we are still generating the batch
       for key in self.distDict.keys():
         if self.toleranceWeight=='cdf':
-          self.values[key]                      = self.distDict[key].ppf(float(Distributions.random()))
+          self.values[key] = self.distDict[key].ppf(float(Distributions.random()))
         else:
-          self.values[key]                      = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
+          self.values[key] = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
         self.inputInfo['distributionName'][key] = self.toBeSampled[key]
         self.inputInfo['distributionType'][key] = self.distDict[key].type
         self.inputInfo['SampledVarsPb'   ][key] = self.distDict[key].pdf(self.values[key])
