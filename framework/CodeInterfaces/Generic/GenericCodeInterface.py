@@ -58,7 +58,7 @@ class GenericCodeInterface(CodeInterfaceBase):
       for ext in exts:
         found=False
         for inf in inputFiles:
-          if inf.endswith(ext):
+          if '.'+inf.getExt() == ext:
             found=True
             inFiles.remove(inf)
             break
@@ -72,12 +72,12 @@ class GenericCodeInterface(CodeInterfaceBase):
       @ In, fileList, the string list of filenames to pick from.
       @Out, ext, the string extension that the desired filename ends with.
       '''
+      found = False
       for index,inputFile in enumerate(fileList):
-        # already handled inputFile = inputFile.getAbsFile()
-        if inputFile.endswith(ext):
+        if inputFile.getExt() == ext:
           found=True
           break
-      if not found: raise IOError('No InputFile with extension '+ext+'found!')
+      if not found: raise IOError('No InputFile with extension '+ext+' found!')
       return index,inputFile
 
     #prepend
@@ -89,18 +89,18 @@ class GenericCodeInterface(CodeInterfaceBase):
     for flag,exts in clargs['input'].items():
       if flag == 'noarg':
         for ext in exts:
-          idx,fname = getFileWithExtension(inputFiles,ext)
-          todo+=' '+fname
+          idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
+          todo+=' '+fname.getFilename()
           if index == None: index = idx
         continue
       todo += ' '+flag
       for ext in exts:
-        idx,fname = getFileWithExtension(inputFiles,ext)
-        todo+=' '+fname
+        idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
+        todo+=' '+fname.getFilename()
         if index == None: index = idx
     #outputs
     #FIXME I think if you give multiple output flags this could result in overwriting
-    self.caseName = os.path.split(inputFiles[index])[1].split('.')[0]
+    self.caseName = inputFiles[index].getBase()
     outfile = 'out~'+self.caseName
     if 'output' in clargs.keys():
       todo+=' '+clargs['output']+' '+outfile
@@ -121,16 +121,13 @@ class GenericCodeInterface(CodeInterfaceBase):
     infiles=[]
     #FIXME possible danger here from reading binary files
     for index,inputFile in enumerate(currentInputFiles):
-      inputFile = inputFile.getAbsFile()
-      if inputFile.endswith(self.getInputExtension()):
+      if inputFile.getExt() in self.getInputExtension():
         indexes.append(index)
         infiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles)
     parser.modifyInternalDictionary(**Kwargs)
-    temps = list(str(origInputFiles[i][:]) for i in indexes)
     newInFiles = copy.deepcopy(currentInputFiles)
     for i in indexes:
-      newInFiles[i] = os.path.join(os.path.split(temps[i])[0],Kwargs['prefix']+'~'+os.path.split(temps[i])[1])
-    parser.writeNewInput(list(newInFiles[i] for i in indexes),list(origInputFiles[i] for i in indexes))
-    #except TypeError: parser.writeNewInput(list(newInFiles[i] for i in indexes))
+      newInFiles[i].setBase(Kwargs['prefix']+'~'+newInFiles[i].getBase())
+    parser.writeNewInput(newInFiles,origInputFiles)
     return newInFiles
