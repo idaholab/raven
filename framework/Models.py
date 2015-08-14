@@ -85,6 +85,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                                 'Stratified',
                                                 'Grid',
                                                 'LimitSurfaceSearch',
+                                                'LimitSurfaceBatchSearch',
                                                 'AdaptiveDynamicEventTree',
                                                 'FactorialDesign',
                                                 'ResponseSurfaceDesign',

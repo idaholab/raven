@@ -3,14 +3,14 @@
   <RunInfo>
     <WorkingDir>topology</WorkingDir>
     <Sequence>adapt,adaptdump</Sequence>
-    <batchSize>50</batchSize>
+    <batchSize>8</batchSize>
   </RunInfo>
 
   <Steps>
     <MultiRun name="adapt">
       <Input class="DataObjects" type="PointSet">dummyIn</Input>
       <Model class="Models" type="ExternalModel">circle</Model>
-      <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
+      <Sampler class="Samplers" type="LimitSurfaceBatchSearch">adaptiveSearch</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limit_surface</SolutionExport>
       <Output class="DataObjects" type="PointSet">function</Output>
     </MultiRun>
@@ -43,18 +43,21 @@
   </Distributions>
 
   <Samplers>
-    <LimitSurfaceSearch name="adaptiveSearch">
+    <LimitSurfaceBatchSearch name="adaptiveSearch">
       <ROM      class="Models"    type="ROM"     >mySVM</ROM>
       <Function class="Functions" type="External">label</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">function</TargetEvaluation>
       <Convergence forceIteration="False" limit="3000" persistence="25" weight="value">9e-5</Convergence>
+      <batchSize>8</batchSize>
+      <scoring>distance</scoring>
+      <batchStrategy>naive</batchStrategy>
       <variable name="x1">
         <distribution>uniform</distribution>
       </variable>
       <variable name="x2">
         <distribution>uniform</distribution>
       </variable>
-    </LimitSurfaceSearch>
+    </LimitSurfaceBatchSearch>
   </Samplers>
 
   <Models>

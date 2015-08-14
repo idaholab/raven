@@ -842,6 +842,403 @@ class LimitSurfaceSearch(AdaptiveSampler):
     """generate representation of goal function"""
     pass
 
+class LimitSurfaceBatchSearch(AdaptiveSampler):
+  """
+  A sampler that will adaptively locate the limit surface of a given problem
+  with potentially more than one sample being drawn at a time, and with the
+  capacity to use different scoring functions
+  """
+  def __init__(self):
+    """
+    Default Constructor that will initialize member variables with reasonable
+    defaults or empty lists/dictionaries where applicable.
+    @ In, None
+    @ Out, None
+    """
+    Sampler.__init__(self)
+    self.printTag         = 'SAMPLER BATCH ADAPTIVE'
+    self.goalFunction     = None             # Pointer to the function defining
+                                             #  the goal
+    self.tolerance        = None             # Norm of the error threshold
+    self.subGridTol       = None             # Tolerance used to construct the
+                                             #  testing sub grid
+    self.toleranceWeight  = 'cdf'            # Flag: is convergence checked on
+                                             #  the hyper-volume or the
+                                             #  probability?
+    self.persistence      = 5                # Number of times the error needs
+                                             #  to fall below the tolerance
+                                             #  before it's considered converged
+    self.repetition       = 0                # Actual number of times the error
+                                             #  was below the requested
+                                             #  threshold
+    self.forceIteration   = False            # Flag: Should at least a
+                                             #  self.limit number of iteration
+                                             #  should be done?
+    self.axisName         = None             # Ordered list of the variable
+                                             #  names (ordering match
+                                             #  self.gridStepSize anfd the
+                                             #  ordering in the test matrixes)
+    self.oldTestMatrix    = None             # Test matrix to use to store the
+                                             #  old evaluation of the function
+    self.solutionExport   = None             # Data used to export the solution
+                                             #  (it could also not be present)
+    self.nVar             = 0                # Number of the variable sampled
+    self.surfPoint        = None             # Coordinate of the points
+                                             #  considered on the limit surface
+    self.hangingPoints    = []               # List of the points already
+                                             #  submitted for evaluation for
+                                             #  which the result is not yet
+                                             #  available
+    self.scoringMethod    = 'distance'       # Name of the scoring method used
+    self.batchStrategy    = 'naive'          # Name of the batch strategy used
+    self.batchSize        = 1                # Size of the batch to submit
+                                             #  before rebuilding the model
+    self.toProcess        = []               # List of the top batchSize
+                                             #  candidates that will be
+                                             #  populated and depopulated during
+                                             #  subsequent calls of
+                                             #  localGenerateInput
+    self.limitSurfacePP   = None             # Postprocessor to compute the
+                                             #  limit surface
+
+    self._addAssObject('TargetEvaluation','n')
+    self._addAssObject('ROM','n')
+    self._addAssObject('Function','-n')
+
+    self.acceptedScoringParam = ['distance','persistence','straddle']
+    self.acceptedBatchParam = ['naive','believer','topology']
+
+  def localInputAndChecks(self,xmlNode):
+    """
+    Class specific xml inputs will be read here and checked for validity.
+    @ In, xmlNode: The xml element node that will be checked against the
+                   available options specific to this Sampler.
+    @ Out, None
+    """
+    if 'limit' in xmlNode.attrib.keys():
+      try:
+        self.limit = int(xmlNode.attrib['limit'])
+      except ValueError:
+        self.raiseAnError(IOError,'reading the attribute for the sampler '
+                          + self.name + ' it was not possible to perform the '
+                          + 'conversion to integer for the attribute limit '
+                          + 'with value ' + xmlNode.attrib['limit'])
+    # convergence Node
+    convergenceNode = xmlNode.find('Convergence')
+    if convergenceNode is None:
+      self.raiseAnError(IOError,'the node Convergence was missed in the '
+                                + 'definition of the adaptive sampler '
+                                + self.name)
+    try:
+      self.tolerance = float(convergenceNode.text)
+    except:
+      self.raiseAnError(IOError,'Failed to convert ' + convergenceNode.text
+                                + ' to a meaningful number for the convergence')
+    attribList = list(convergenceNode.attrib.keys())
+    if 'limit' in convergenceNode.attrib.keys():
+      attribList.pop(attribList.index('limit'))
+      try:
+        self.limit = int (convergenceNode.attrib['limit'])
+      except:
+        self.raiseAnError(IOError,'Failed to convert the limit value '
+                                  + convergenceNode.attrib['limit'] + ' to a '
+                                  + 'meaningful number for the convergence')
+    if 'persistence' in convergenceNode.attrib.keys():
+      attribList.pop(attribList.index('persistence'))
+      try:
+        self.persistence = int (convergenceNode.attrib['persistence'])
+      except:
+        self.raiseAnError(IOError,'Failed to convert the persistence value '
+                                  + convergenceNode.attrib['persistence']
+                                  + ' to a meaningful number for the '
+                                  + 'convergence')
+    if 'weight' in convergenceNode.attrib.keys():
+      attribList.pop(attribList.index('weight'))
+      try:
+        self.toleranceWeight = str(convergenceNode.attrib['weight']).lower()
+      except:
+        self.raiseAnError(IOError,'Failed to convert the weight type '
+                                  + convergenceNode.attrib['weight'] + ' to a '
+                                  + 'meaningful string for the convergence')
+    if 'subGridTol' in convergenceNode.attrib.keys():
+      attribList.pop(attribList.index('subGridTol'))
+      try:
+        self.subGridTol = float (convergenceNode.attrib['subGridTol'])
+      except:
+        self.raiseAnError(IOError, 'Failed to convert the subGridTol '
+                                   + convergenceNode.attrib['subGridTol']
+                                   + ' to a meaningful float for the '
+                                   + 'convergence')
+    if 'forceIteration' in convergenceNode.attrib.keys():
+      attribList.pop(attribList.index('forceIteration'))
+      if convergenceNode.attrib['forceIteration']=='True':
+        self.forceIteration   = True
+      elif convergenceNode.attrib['forceIteration']=='False':
+        self.forceIteration   = False
+      else:
+        self.raiseAnError(RuntimeError, 'Reading the convergence setting for '
+                                        + 'the adaptive sampler ' + self.name
+                                        + ' the forceIteration keyword had an '
+                                        + 'unknown value: '
+                                + str(convergenceNode.attrib['forceIteration']))
+    for child in xmlNode:
+      if child.tag == "scoring":
+        self.scoringMethod = child.text.encode('ascii').lower()
+        if self.scoringMethod not in self.acceptedScoringParam:
+          self.raiseAnError(IOError, 'Requested unknown scoring type: ',
+                            self.scoringMethod, '. Available options: ',
+                            self.acceptedScoringParam)
+      if child.tag == "batchStrategy":
+        self.batchStrategy = child.text.encode('ascii').lower()
+        if self.batchStrategy not in self.acceptedBatchParam:
+          self.raiseAnError(IOError, 'Requested unknown batch strategy: ',
+                            self.batchStrategy, '. Available options: ',
+                            self.acceptedBatchParam)
+      if child.tag == "batchSize":
+        try:
+          self.batchSize = int(child.text)
+        except:
+          self.raiseAnError(IOError, 'Failed to convert the batchSize value: '
+                                     + child.text
+                                     + ' into a meaningful integer')
+        if self.batchSize < 0:
+          self.raiseAnError(IOError, 'Requested an invalid batch size: ',
+                            self.batchSize, '. Batch size should be a '
+                            + 'non-negative integer value')
+    #assembler node: Hidden from User
+    # set subgrid
+    if self.subGridTol is None:
+      self.subGridTol = self.tolerance
+    if self.subGridTol > self.tolerance:
+      self.raiseAnError(IOError,'The sub grid tolerance ' + str(self.subGridTol)
+                                + ' must be smaller than the tolerance: '
+                                + str(self.tolerance))
+    if len(attribList)>0:
+      self.raiseAnError(IOError,'There are unknown keywords in the convergence'
+                                + ' specifications: ' + str(attribList))
+
+  def localAddInitParams(self,tempDict):
+    """
+    Appends a given dictionary with class specific member variables and their
+    associated initialized values.
+    @ InOut, tempDict: The dictionary where we will add the initialization
+                       parameters specific to this Sampler.
+    """
+    tempDict['Iter. forced'    ] = str(self.forceIteration)
+    tempDict['Norm tolerance'  ] = str(self.tolerance)
+    tempDict['Sub grid size'   ] = str(self.subGridTol)
+    tempDict['Error Weight'    ] = str(self.toleranceWeight)
+    tempDict['Persistence'     ] = str(self.repetition)
+    tempDict['scoring'         ] = str(self.scoringMethod)
+    tempDict['batchStrategy'   ] = self.batchStrategy
+    tempDict['batchSize'       ] = str(self.batchSize)
+
+  def localAddCurrentSetting(self,tempDict):
+    """
+    Appends a given dictionary with class specific information regarding the
+    current status of the object.
+    @ InOut, tempDict: The dictionary where we will add the parameters specific
+                       to this Sampler and their associated values.
+    """
+    if self.solutionExport is not None:
+      tempDict['The solution is exported in '    ] = 'Name: ' \
+                                                    + self.solutionExport.name \
+                                                    + 'Type: ' \
+                                                    + self.solutionExport.type
+    if self.goalFunction is not None:
+      tempDict['The function used is '] = self.goalFunction.name
+
+  def localInitialize(self,solutionExport=None):
+    """
+    Will perform all initialization specific to this Sampler. For instance,
+    creating an empty container to hold the identified surface points, error
+    checking the optionally provided solution export and other preset values,
+    and initializing the limit surface Post-Processor used by this sampler.
+
+    @ InOut, solutionExport: a PointSet to hold the solution (a list of limit
+                             surface points)
+    """
+    self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface",self)
+    if 'Function' in self.assemblerDict.keys():
+      self.goalFunction = self.assemblerDict['Function'][0][3]
+    if 'TargetEvaluation' in self.assemblerDict.keys():
+      self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
+    # self.memoryStep        = 5  # number of steps for which the memory is kept
+    self.solutionExport    = solutionExport
+    # check if solutionExport is actually a "DataObjects" type "PointSet"
+    if type(solutionExport).__name__ != "PointSet":
+      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '
+                                + type(solutionExport).__name__ + ' instead.')
+    self.surfPoint         = None             # Coordinate of the points
+                                              #  considered on the limit surface
+    self.oldTestMatrix     = None             # Test matrix used to store the
+                                              #  old evaluation of the function
+    self.persistenceMatrix = None             # Matrix that for each point of
+                                              #  the testing grid tracks the
+                                              #  persistence of the limit
+                                              #  surface position
+    if self.goalFunction.name not in self.solutionExport.getParaKeys('output'):
+      self.raiseAnError(IOError,'Goal function name does not match solution '
+                                + 'export data output.')
+    # set number of job requestable after a new evaluation
+    self._endJobRunnable   = 1
+    # check if convergence is not on probability if all variables are bounded in
+    # value otherwise the problem is unbounded
+    if self.toleranceWeight=='value':
+      for varName in self.distDict.keys():
+        if not(self.distDict[varName].upperBoundUsed \
+          and self.distDict[varName].lowerBoundUsed):
+          self.raiseAnError(TypeError, 'It is impossible to converge on an '
+                                      + 'unbounded domain (variable ' + varName
+                                      + ' with distribution '
+                                      + self.distDict[varName].name
+                                      + ') as requested by the sampler '
+                                      + self.name)
+    elif self.toleranceWeight=='cdf':
+      pass
+    else:
+      self.raiseAnError(IOError,'Unknown weight string descriptor: '
+                                + self.toleranceWeight)
+
+    # Setup the grid: The grid is built such that each element has a volume
+    #  equal to the sub grid tolerance. The grid is build in such a way that a
+    #  unit change in each node within the grid corresponds to a change equal to
+    #  the tolerance
+    self.nVar         = len(self.distDict.keys())    # Total number of variables
+    bounds          = {"lowerBounds":{},"upperBounds":{}}
+    transformMethod = {}
+    for varName in self.distDict.keys():
+      name = varName.replace('<distribution>','')
+      if self.toleranceWeight!='cdf':
+        bounds["lowerBounds"][name] = self.distDict[varName].lowerBound
+        bounds["upperBounds"][name] = self.distDict[varName].upperBound
+      else:
+        bounds["lowerBounds"][name] = 0.0
+        bounds["upperBounds"][name] = 1.0
+        transformMethod[name] = self.distDict[varName].ppf
+    #moving forward building all the information set
+    self.axisName = self.distDict.keys()
+    self.axisName.sort()
+    # initialize LimitSurface PP
+    self.limitSurfacePP._initFromDict({"parameters":[key.replace('<distribution>','') for key in self.axisName],"tolerance":self.subGridTol,"side":"both","transformationMethods":transformMethod,"bounds":bounds})
+    self.limitSurfacePP.assemblerDict = self.assemblerDict
+    self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{})
+    self.persistenceMatrix        = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #matrix that for each point of the testing grid tracks the persistence of the limit surface position
+    self.oldTestMatrix            = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #swap matrix fro convergence test
+    self.hangingPoints            = np.ndarray((0, self.nVar))
+    self.raiseADebug('Initialization done')
+
+  def localStillReady(self,ready): #,lastOutput=None
+    """
+    first perform some check to understand what it needs to be done possibly perform an early return
+    ready is returned
+    lastOutput should be present when the next point should be chosen on previous iteration and convergence checked
+    lastOutput it is not considered to be present during the test performed for generating an input batch
+    ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
+    """
+    self.raiseADebug('From method localStillReady...')
+    #test on what to do
+    if ready      == False : return ready #if we exceeded the limit just return that we are done
+    if type(self.lastOutput) == dict:
+      if self.lastOutput == None and self.limitSurfacePP.ROM.amITrained==False: return ready
+    else:
+      #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
+      if self.lastOutput.isItEmpty() and self.limitSurfacePP.ROM.amITrained==False: return ready
+    #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
+    if type(self.lastOutput) == dict:
+      if self.lastOutput != None: self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
+    else:
+      if not self.lastOutput.isItEmpty(): self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
+    self.raiseADebug('Training finished')
+    np.copyto(self.oldTestMatrix,self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
+    # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
+    self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
+
+    self.raiseADebug('Prediction finished')
+    # check hanging points
+    if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
+    else                                                                      : indexLast = -1
+    #index of last set of point tested and ready to perform the function evaluation
+    indexEnd  = len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])-1
+    tempDict  = {}
+    for myIndex in range(indexLast+1,indexEnd+1):
+      for key, value in self.limitSurfacePP.getFunctionValue().items(): tempDict[key] = value[myIndex]
+      if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
+    self.persistenceMatrix += self.limitSurfacePP.getTestMatrix()
+    # test error
+    testError = np.sum(np.abs(np.subtract(self.limitSurfacePP.getTestMatrix(),self.oldTestMatrix))) # compute the error
+    if (testError > self.tolerance/self.subGridTol): ready, self.repetition = True, 0                         # we still have error
+    else              : self.repetition +=1                                                                   # we are increasing persistence
+    if self.persistence<self.repetition: ready =  False                                                       # we are done
+    self.raiseADebug('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
+    #if the number of point on the limit surface is > than compute persistence
+    if len(listsurfPoint)>0:
+      self.invPointPersistence = np.ndarray(len(listsurfPoint))
+      for pointID, coordinate in enumerate(listsurfPoint):
+        self.invPointPersistence[pointID]=abs(self.persistenceMatrix[tuple(coordinate)])
+      maxPers = np.max(self.invPointPersistence)
+      self.invPointPersistence = (maxPers-self.invPointPersistence)/maxPers
+      if self.solutionExport!=None:
+        for varName in self.solutionExport.getParaKeys('inputs'):
+          for varIndex in range(len(self.axisName)):
+            if varName == [key.replace('<distribution>','') for key in self.axisName][varIndex]:
+              self.solutionExport.removeInputValue(varName)
+              for value in self.surfPoint[:,varIndex]: self.solutionExport.updateInputValue(varName,copy.copy(value))
+        # to be fixed
+        self.solutionExport.removeOutputValue(self.goalFunction.name)
+        for index in range(len(evaluations)): self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[index]))
+    return ready
+
+  def localGenerateInput(self,model,oldInput):
+    # create values dictionary
+    """compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
+     check the points where the derivative probability is the lowest"""
+
+    self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
+    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+    self.raiseADebug('generating input')
+    varSet=False
+    if self.surfPoint is not None and len(self.surfPoint)>0:
+      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
+      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
+      distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
+      #the hanging point are added to the list of the already explored points so not to pick the same when in //
+      tempDict = {}
+      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
+        tempDict[varName]     = self.surfPoint[:,varIndex]
+        self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
+        self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
+      #distLast = np.sqrt(distLast)
+      distance, _ = distanceTree.query(self.surfPoint)
+      distance = np.multiply(distance,self.invPointPersistence)
+      if np.max(distance)>0.0:
+        for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
+          self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
+          self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+        varSet=True
+      else: self.raiseADebug('np.max(distance)=0.0')
+    if not varSet:
+      #here we are still generating the batch
+      for key in self.distDict.keys():
+        if self.toleranceWeight=='cdf':
+          self.values[key]                      = self.distDict[key].ppf(float(Distributions.random()))
+        else:
+          self.values[key]                      = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
+        self.inputInfo['distributionName'][key] = self.toBeSampled[key]
+        self.inputInfo['distributionType'][key] = self.distDict[key].type
+        self.inputInfo['SampledVarsPb'   ][key] = self.distDict[key].pdf(self.values[key])
+    self.inputInfo['PointProbability'    ]      = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
+    self.inputInfo['ProbabilityWeight']         = 1.0
+    self.hangingPoints                          = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
+    self.raiseADebug('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
+    self.inputInfo['SamplerType'] = 'Adaptive'
+    self.inputInfo['subGridTol' ] = self.subGridTol
+
+  def localFinalizeActualSampling(self,jobObject,model,myInput):
+    """generate representation of goal function"""
+    pass
+
 #
 #
 #
@@ -3181,6 +3578,7 @@ __interFaceDict['DynamicEventTree'        ] = DynamicEventTree
 __interFaceDict['Stratified'              ] = Stratified
 __interFaceDict['Grid'                    ] = Grid
 __interFaceDict['LimitSurfaceSearch'      ] = LimitSurfaceSearch
+__interFaceDict['LimitSurfaceBatchSearch' ] = LimitSurfaceBatchSearch
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
 __interFaceDict['FactorialDesign'         ] = FactorialDesign
 __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
