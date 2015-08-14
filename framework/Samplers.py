@@ -893,6 +893,12 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     self.batchStrategy    = 'naive'          # Name of the batch strategy used
     self.batchSize        = 1                # Size of the batch to submit
                                              #  before rebuilding the model
+    self.trainSize        = 10               # Size of the initial training set
+                                             #  before attempting to do adaptive
+                                             #  these points will be picked
+                                             #  based on a Monte Carlo sampling?
+    self.generateCSVs     = False            # Flag: should intermediate results
+                                             #  be stored?
     self.toProcess        = []               # List of the top batchSize
                                              #  candidates that will be
                                              #  populated and depopulated during
@@ -982,6 +988,8 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
                                         + 'unknown value: '
                                 + str(convergenceNode.attrib['forceIteration']))
     for child in xmlNode:
+      if child.tag == "generateCSVs":
+        self.generateCSVs = True
       if child.tag == "scoring":
         self.scoringMethod = child.text.encode('ascii').lower()
         if self.scoringMethod not in self.acceptedScoringParam:
@@ -1005,6 +1013,18 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
           self.raiseAnError(IOError, 'Requested an invalid batch size: ',
                             self.batchSize, '. Batch size should be a '
                             + 'non-negative integer value')
+      if child.tag == "trainSize":
+        try:
+          self.trainSize = int(child.text)
+        except:
+          self.raiseAnError(IOError, 'Failed to convert the trainSize value: '
+                                     + child.text
+                                     + ' into a meaningful integer')
+        if self.trainSize < 0:
+          self.raiseAnError(IOError, 'Requested an invalid training size: ',
+                            self.trainSize, '. Training size should be a '
+                            + 'non-negative integer value')
+
     #assembler node: Hidden from User
     # set subgrid
     if self.subGridTol is None:
@@ -1158,9 +1178,12 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
       if self.lastOutput is None and not self.limitSurfacePP.ROM.amITrained:
         return ready
     else:
-      #if the last output is not provided I am still generating an input batch,
-      #  if the rom was not trained before we need to start clean
-      if self.lastOutput.isItEmpty() and not self.limitSurfacePP.ROM.amITrained:
+      # If the last output is not provided I am still generating an initial
+      #  training input batch, if the rom was not trained before we need to start
+      #  clean
+      if self.lastOutput.isItEmpty() and not self.limitSurfacePP.ROM.amITrained \
+      or self.counter < self.trainSize:
+        self.raiseADebug('initial training')
         return ready
     #first evaluate the goal function on the newly sampled points and store them
     #  in mapping description self.functionValue RecontructEnding
@@ -1178,6 +1201,28 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     #  evaluation vector and grid indexing)
     self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
 
+    # DM: This sequence gets used repetitively, so I am promoting it to its own
+    #  variable
+    axisNames = [key.replace('<distribution>','') for key in self.axisName]
+
+    if self.generateCSVs and self.surfPoint is not None:
+      # DM: HACK until I figure out how to get the actual working directory
+      self.workingDir = os.path.abspath(os.curdir)
+      fout = open(os.path.join(self.workingDir,'limit_surface_'
+                               + str(self.counter) + '.csv'), 'w')
+      sep = ''
+      for varName in axisNames:
+        fout.write(sep+varName)
+        sep = ','
+      fout.write(sep+'label\n')
+      for i,row in enumerate(self.surfPoint):
+        sep = ''
+        for value in row:
+          fout.write(sep+str(value))
+          sep = ','
+        fout.write(sep+str(evaluations[i])+'\n')
+      fout.close()
+
     self.raiseADebug('Prediction finished')
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys():
@@ -1185,12 +1230,8 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     else:
       indexLast = -1
 
-    # DM: This sequence gets used repetitively, so I am promoting it to its own
-    #  variable
-    axisNames = [key.replace('<distribution>','') for key in self.axisName]
     #index of last set of point tested and ready to perform the function
     #  evaluation
-
     # DM: Test this is the same thing
     indexEnd  = len(self.limitSurfacePP.getFunctionValue()[axisNames[0]])-1
     # works for my test case

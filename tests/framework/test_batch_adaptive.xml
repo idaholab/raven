@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>topology</WorkingDir>
     <Sequence>adapt,adaptdump</Sequence>
-    <batchSize>8</batchSize>
+    <batchSize>4</batchSize>
   </RunInfo>
 
   <Steps>
@@ -14,7 +14,7 @@
       <SolutionExport class="DataObjects" type="PointSet">limit_surface</SolutionExport>
       <Output class="DataObjects" type="PointSet">function</Output>
     </MultiRun>
-    <IOStep name="adaptdump">
+    <IOStep name="adaptdump" verbosity='silent'>
       <Input class="DataObjects" type="PointSet">limit_surface</Input>
       <Output class="OutStreamManager" type="Print">limitSurfaceDump</Output>
       <Input class="DataObjects" type="PointSet">function</Input>
@@ -22,23 +22,23 @@
     </IOStep>
   </Steps>
 
-  <DataObjects>
-    <PointSet name="dummyIn">
+  <DataObjects verbosity='silent'>
+    <PointSet name="dummyIn" verbosity='silent'>
       <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="function">
+    <PointSet name="function" verbosity='silent'>
       <Input>x1,x2</Input>
       <Output>y</Output>
     </PointSet>
-    <PointSet name="limit_surface">
+    <PointSet name="limit_surface" verbosity='silent'>
       <Input>x1,x2</Input>
       <Output>label</Output>
     </PointSet>
   </DataObjects>
 
-  <Distributions>
-    <Uniform name="uniform">
+  <Distributions verbosity='silent'>
+    <Uniform name="uniform" verbosity='silent'>
       <upperBound>1</upperBound>
       <lowerBound>-1</lowerBound>
     </Uniform>
@@ -49,7 +49,10 @@
       <ROM      class="Models"    type="ROM"     >mySVM</ROM>
       <Function class="Functions" type="External">label</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">function</TargetEvaluation>
-      <Convergence forceIteration="False" limit="3000" persistence="25" weight="value">9e-5</Convergence>
+      <Convergence forceIteration="False" limit="30" persistence="25" weight="value">9e-5</Convergence>
+      <!-- <Convergence forceIteration="False" limit="3000" persistence="25" weight="value">9e-5</Convergence> -->
+      <generateCSVs />
+      <trainSize>10</trainSize>
       <batchSize>8</batchSize>
       <scoring>distance</scoring>
       <batchStrategy>naive</batchStrategy>
@@ -62,13 +65,13 @@
     </LimitSurfaceBatchSearch>
   </Samplers>
 
-  <Models>
-    <ExternalModel ModuleToLoad="topology/circle" name="circle" subType="">
+  <Models verbosity='silent'>
+    <ExternalModel ModuleToLoad="topology/circle" name="circle" subType="" verbosity='silent'>
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>y</variable>
     </ExternalModel>
-    <ROM name="mySVM" subType="SciKitLearn">
+    <ROM name="mySVM" subType="SciKitLearn" verbosity='silent'>
       <Features>x1,x2</Features>
       <Target>label</Target>
       <SKLtype>svm|SVC</SKLtype>
@@ -79,18 +82,18 @@
     </ROM>
   </Models>
 
-  <Functions>
-    <External file="topology/goal" name="label">
+  <Functions verbosity='silent'>
+    <External file="topology/goal" name="label" verbosity='silent'>
       <variable>y</variable>
     </External>
   </Functions>
 
-  <OutStreamManager>
-    <Print name="limitSurfaceDump">
+  <OutStreamManager verbosity='silent'>
+    <Print name="limitSurfaceDump" verbosity='silent'>
       <type>csv</type>
       <source>limit_surface</source>
     </Print>
-    <Print name="samplesDump">
+    <Print name="samplesDump" verbosity='silent'>
       <type>csv</type>
       <source>function</source>
     </Print>

@@ -10,6 +10,7 @@ iterations of adaptive sampling
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+from glob import glob
 
 ## Paul Tol's colorblind safe colors
 colors1 = ['#88CCEE', '#DDCC77', '#AA4499', '#117733', '#332288', '#999933',
@@ -29,13 +30,23 @@ colors6 = ['#e41a1c', '#88CCEE', '#377eb8', '#DDCC77', '#4daf4a', '#AA4499',
 
 colorList = colors1
 
-for i in xrange(1):
-  lsFile = open('limitSurfaceDump.csv')
+samplesX = []
+samplesY = []
+sFile = open('samplesDump.csv')
+sFile.readline()
+for line in sFile:
+  tokens = line.strip().split(',')
+  samplesX.append(float(tokens[0]))
+  samplesY.append(float(tokens[1]))
+sFile.close()
+
+inputs = glob('limit_surface_*.csv')
+for fin in inputs:
+  i = int(fin.split('_')[-1].replace('.csv',''))
+  lsFile = open(fin)
   lsFile.readline()
   limitX = []
   limitY = []
-  samplesX = []
-  samplesY = []
   limitColor = []
   for line in lsFile:
     tokens = line.strip().split(',')
@@ -47,16 +58,10 @@ for i in xrange(1):
       limitColor.append(colorList[1])
   lsFile.close()
 
-  sFile = open('samplesDump.csv')
-  sFile.readline()
-  for line in sFile:
-    tokens = line.strip().split(',')
-    samplesX.append(float(tokens[0]))
-    samplesY.append(float(tokens[1]))
-  sFile.close()
-
   plt.scatter(limitX,limitY,c=limitColor,linewidths=0)
-  plt.scatter(samplesX,samplesY,c=colorList[2],linewidths=0,marker='^')
+  plt.scatter(samplesX[0:i],samplesY[0:i],c=colorList[2],linewidths=0,marker='^')
   plt.xlim(-1,1)
   plt.ylim(-1,1)
   plt.savefig('limitSurface'+str(i)+'.png')
+  plt.clf()
+  plt.cla()
