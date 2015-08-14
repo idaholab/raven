@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 from glob import glob
+import os
 
 ## Paul Tol's colorblind safe colors
 colors1 = ['#88CCEE', '#DDCC77', '#AA4499', '#117733', '#332288', '#999933',
@@ -59,9 +60,14 @@ for fin in inputs:
   lsFile.close()
 
   plt.scatter(limitX,limitY,c=limitColor,linewidths=0)
-  plt.scatter(samplesX[0:i],samplesY[0:i],c=colorList[2],linewidths=0,marker='^')
+  plt.scatter(samplesX[0:(i-1)],samplesY[0:(i-1)],c=colorList[2],linewidths=0,marker='^')
+  plt.scatter(samplesX[i-1],samplesY[i-1],c=colorList[3],linewidths=1,marker='^')
   plt.xlim(-1,1)
   plt.ylim(-1,1)
   plt.savefig('limitSurface'+str(i)+'.png')
   plt.clf()
   plt.cla()
+
+#Comment next two lines out if you don't have imagemagick installed
+os.system('convert -delay 100 -loop 0 limitSurface*.png limitSurface.gif')
+os.system('rm limitSurface*.png')
