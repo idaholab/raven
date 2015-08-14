@@ -307,7 +307,6 @@ class MultiRun(SingleRun):
             try:
               newInput =sampler.generateInput(model,inputs)
               model.run(newInput,jobHandler)
-              self.raiseADebug('New input generated')
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break

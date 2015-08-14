@@ -79,7 +79,8 @@ class File(BaseType):
     """
     statedict={'path':self.__path,
                'base':self.__base,
-               'ext' :self.__ext}
+               'ext' :self.__ext,
+               'subtype':self.subtype}
     return statedict
 
   def __setstate__(self,statedict):
@@ -87,9 +88,10 @@ class File(BaseType):
     @ In, statedict, dict of objets needed to restore instance
     @ Out, None
     """
-    self.__path = statedict['path']
-    self.__base = statedict['base']
-    self.__ext  = statedict['ext' ]
+    self.__path  = statedict['path']
+    self.__base  = statedict['base']
+    self.__ext   = statedict['ext' ]
+    self.subtype = statedict['subtype' ]
     self.updateFilename()
 
   def __repr__(self):
@@ -97,7 +99,7 @@ class File(BaseType):
     @ In, None
     @Out, string, full file path and name in string
     """
-    return self.getAbsFile()
+    return "(FILE) "+self.getAbsFile()+" (END FILE)"
 
   def __enter__(self):
     self.__file.open(self.getAbsFile())
@@ -209,7 +211,7 @@ class File(BaseType):
     filename = filename.strip()
     if filename != '.': self.setBase(os.path.basename(filename).split()[0].split('.')[0])
     else: self.setBase(filename)
-    if len(filename.split(".")) > 1: self.setExt(filename.split(".")[1].lower())
+    if len(filename.split(".")) > 1: self.setExt(filename.split(".")[-1].lower())
     else: self.setExt(None)
 
   def setAbsFile(self,pathandfile):
@@ -301,11 +303,12 @@ class File(BaseType):
     if size is None: return self.__file.readline()
     else: return self.__file.readline(size)
 
-  def readlines(self,sizehint=None):
+  def readlines(self,sizehint=None,mode='r'):
     """Provides access to the python file method of the same name.
       @  In, sizehint, bytes to read up to
       @ Out, list, lines read
     """
+    if not self.isOpen(): self.open(mode)
     if sizehint is None: return self.__file.readlines()
     else: return self.__file.readlines(sizehint)
 
