@@ -34,14 +34,16 @@ the settings of the calculation flow that is being performed through RAVEN:
 
 %%%%%% Files -> moved to own node
 %\item \xmlNode{Files}, \xmlDesc{comma separated string, optional field}, lists
-%the paths to any files required by the code. If no file is needed (either as input or output), 
+%the paths to any files required by the code. If no file is needed (either as input or output),
 %this node could be omitted.
 %string from the \emph{WorkingDir}.
 
 %%%%%% BATCH SIZE
-\item \xmlNode{batchSize}, \xmlDesc{integer, optional field}, specifies the
-number of parallel runs executed simultaneously (e.g., the number of driven
-code instances, e.g. RELAP5-3D, that RAVEN will spawn at the same time).
+\item \xmlNode{batchSize}, \xmlDesc{integer, optional field},
+  specifies the number of parallel runs executed simultaneously (e.g.,
+  the number of driven code instances, e.g. RELAP5-3D, that RAVEN will
+  spawn at the same time).  Each parallel run will use
+  \texttt{NumThreads} $*$ \texttt{NumMPI} cores.
 %
 \default{1}
 
@@ -223,13 +225,6 @@ RAVEN currently supports one pre-defined ``mode'':
 %         \end{itemize}
 %     \end{itemize}
 %     In the mode ``mpi''  Mode ``MPI'' can be used without any PBS support.
-
-%%%%%% NUMBER OF NODES
-\item \xmlNode{NumNode}, \xmlDesc{integer, optional field}, specifies
-the number of nodes RAVEN should request when running on High Performance
-Computing (HPC) systems.
-%
-\default{None}
 
 %%%%%% CUSTOM MODE
 \item \xmlNode{CustomMode}, \xmlDesc{xml node, optional field}, is an
