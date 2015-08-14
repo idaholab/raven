@@ -1240,9 +1240,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
 
   def localGenerateInput(self,model,oldInput):
     # create values dictionary
-    """compute the direction normal to the surface, compute the derivative
-       normal to the surface of the probability, check the points where the
-       derivative probability is the lowest"""
+    """Get the next input"""
 
     self.inputInfo['distributionName'] = {} # Used to determine which
                                             # distribution to change if needed.

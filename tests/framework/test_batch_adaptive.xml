@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity='debug'>
   <RunInfo>
     <WorkingDir>topology</WorkingDir>
     <Sequence>adapt,adaptdump</Sequence>
@@ -17,6 +17,8 @@
     <IOStep name="adaptdump">
       <Input class="DataObjects" type="PointSet">limit_surface</Input>
       <Output class="OutStreamManager" type="Print">limitSurfaceDump</Output>
+      <Input class="DataObjects" type="PointSet">function</Input>
+      <Output class="OutStreamManager" type="Print">samplesDump</Output>
     </IOStep>
   </Steps>
 
@@ -87,6 +89,10 @@
     <Print name="limitSurfaceDump">
       <type>csv</type>
       <source>limit_surface</source>
+    </Print>
+    <Print name="samplesDump">
+      <type>csv</type>
+      <source>function</source>
     </Print>
   </OutStreamManager>
 

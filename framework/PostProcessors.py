@@ -1835,12 +1835,18 @@ class LimitSurface(BasePostProcessor):
         for iVar in range(self.nVar):
           if coordinate[iVar] + 1 < gridShape[iVar]:
             myIdList[iVar] += 1
+            # DM: TODO: this line generates a warning: "DeprecationWarning:
+            #  using a non-integer number instead of an integer will result in
+            #  an error in the future"
             if self.testMatrix[tuple(myIdList)] * sign <= 0:
               listsurfPoint.append(copy.copy(coordinate))
               break
             myIdList[iVar] -= 1
             if coordinate[iVar] > 0:
               myIdList[iVar] -= 1
+            # DM: TODO: this line generates a warning: "DeprecationWarning:
+            #  using a non-integer number instead of an integer will result in
+            #  an error in the future"
               if self.testMatrix[tuple(myIdList)] * sign <= 0:
                 listsurfPoint.append(copy.copy(coordinate))
                 break
