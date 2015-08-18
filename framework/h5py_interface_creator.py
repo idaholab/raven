@@ -6,6 +6,7 @@ Created on Mar 25, 2013
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
+from datetime import datetime
 warnings.simplefilter('default',DeprecationWarning)
 if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
@@ -21,6 +22,7 @@ import json
 #Internal Modules------------------------------------------------------------------------------------
 import utils
 import MessageHandler
+import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -160,7 +162,8 @@ class hdf5Database(MessageHandler.MessageUser):
   def addGroupInit(self,gname,attributes=None,upGroup=False):
     """
     Function to add an empty group to the database
-    This function is generally used when the user provides a rootname in the input
+    This function is generally used when the user provides a rootname in the input.
+    It uses the gname + it appends the date and time.
     @ In, attributes : dictionary of attributes that must be added as metadata
     @ In, gname      : group name
     @ Out, None
@@ -170,17 +173,18 @@ class hdf5Database(MessageHandler.MessageUser):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         if len(splittedPath) > 0:
-          if gname == splittedPath[0]: self.raiseAnError(IOError,"Group named " + gname + " already present as root group in database " + self.name + ". new group " + gname + " is equal to old group " + splittedPath[0])
-    self.parent_group_name = "/" + gname
+          if gname+"_"+datetime.now().strftime("%m-%d-%Y-%H") == splittedPath[0]: return
+            # self.raiseAnError(IOError,"Group named " + gname + " already present as root group in database " + self.name + ". new group " + gname + " is equal to old group " + splittedPath[0])
+    self.parent_group_name = "/" + gname+"_"+datetime.now().strftime("%m_%d_%Y_%H")
     # Create the group
-    grp = self.h5_file_w.create_group(gname)
+    grp = self.h5_file_w.create_group(gname+"_"+datetime.now().strftime("%m_%d_%Y_%H"))
     # Add metadata
     if attributes:
       for key in attributes.keys(): grp.attrs[key] = attributes[key]
     grp.attrs['rootname'] = True
     grp.attrs['EndGroup'] = False
-    self.allGroupPaths.append("/" + gname)
-    self.allGroupEnds["/" + gname] = False
+    self.allGroupPaths.append("/" + gname+"_"+datetime.now().strftime("%m_%d_%Y_%H"))
+    self.allGroupEnds["/" + gname+"_"+datetime.now().strftime("%m_%d_%Y_%H")] = False
     self.h5_file_w.flush()
 
   def __addGroupRootLevel(self,gname,attributes,source,upGroup=False):
@@ -250,6 +254,8 @@ class hdf5Database(MessageHandler.MessageUser):
               grp.attrs[b'input_space_headers'] = inpHeaders
               grp.attrs[b'input_space_values' ] = inpValues
         objectToConvert = utils.convertNumpyToLists(attributes[attr])
+        for o,obj in enumerate(objectToConvert):
+          if isinstance(obj,Files.File): objectToConvert[o]=obj.getFilename()
         converted = json.dumps(objectToConvert)
         if converted and attr != 'name': grp.attrs[utils.toBytes(attr)]=converted
         #decoded = json.loads(grp.attrs[utils.toBytes(attr)])
@@ -264,21 +270,28 @@ class hdf5Database(MessageHandler.MessageUser):
       self.allGroupPaths.append("/" + gname)
       self.allGroupEnds["/" + gname] = True
 
-  def addGroupDataObjects(self,gname,attributes,source,upGroup=False):
+  def addGroupDataObjects(self,gnam,attributes,source,upGroup=False):
     """
-    Function to add a data (class Datas) or Dictionary into the DataBase
-    @ In, gname      : group name
+    Function to add a data (class DataObjects) or Dictionary into the Database
+    @ In, gnam       : group name
     @ In, attributes : dictionary of attributes that must be added as metadata
     @ In, source     : data source (for example, a PointSet)
     @ In, upGroup    : update Group????
     @ Out, None
     """
+    gname = gnam
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         for splgroup in splittedPath:
-          if gname == splgroup and splittedPath[0] == self.parent_group_name: self.raiseAnError(IOError,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
+          if gname == splgroup and splittedPath[0] == self.parent_group_name:
+            found = True
+            while found:
+              if gname in splittedPath: found = True
+              else: found = False
+              gname = gname + "_"+ str(index)
+            #self.raiseAnError(IOError,"Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     parent_name = self.parent_group_name.replace('/', '')
     # Create the group
     if parent_name != '/':
@@ -500,12 +513,14 @@ class hdf5Database(MessageHandler.MessageUser):
             if len(inpHeaders) > 0:
               sgrp.attrs[b'input_space_headers'] = inpHeaders
               sgrp.attrs[b'input_space_values' ] = inpValues
-        objectToConvert = utils.convertNumpyToLists(attributes[attr])
-        #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
-        #else:                                      objectToConvert = attributes[attr]
+        #Files objects are not JSON serializable, so we have to cover that.
+        #this doesn't cover all possible circumstance, but it covers the DET case.
+        if attr == 'input_file' and isinstance(attributes[attr][0],Files.File):
+          objectToConvert = list(a.__getstate__() for a in attributes[attr])
+        else:
+          objectToConvert = utils.convertNumpyToLists(attributes[attr])
         converted = json.dumps(objectToConvert)
         if converted and attr != 'name': sgrp.attrs[utils.toBytes(attr)]=converted
-      if "input_file" in attributes: grp.attrs[utils.toString("input_file")] = utils.toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else utils.toString(attributes["input_file"])
     else: pass
     # The sub-group is the new ending group
     if parent_group_name != "/":

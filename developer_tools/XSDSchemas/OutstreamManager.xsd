@@ -284,14 +284,21 @@
   </xsd:simpleType>
 
   <xsd:complexType name="plotSettingsType">
-    <xsd:sequence>
-      <xsd:element name="plot" type="plotBlock" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:sequence>
+          <xsd:element name="gridSpace" type="intList" minOccurs="0" maxOccurs="1" />
+          <xsd:element name="plot"      type="plotBlock" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="kwargs"    type="kwargsType" minOccurs="0"/>
+          <xsd:element name="xlabel"    type="xsd:string" minOccurs="0"/>
+          <xsd:element name="ylabel"    type="xsd:string" minOccurs="0"/>
+          <xsd:element name="zlabel"    type="xsd:string" minOccurs="0"/>
+      </xsd:sequence>
+  </xsd:complexType>
 
-      <xsd:element name="xlabel" type="xsd:string" minOccurs="0"/>
-      <xsd:element name="ylabel" type="xsd:string" minOccurs="0"/>
-      <xsd:element name="zlabel" type="xsd:string" minOccurs="0"/>
-      <xsd:element name="kwargs" type="kwargsType" minOccurs="0"/>
-    </xsd:sequence>
+  <xsd:complexType name="gridLocationType">
+      <xsd:all>
+          <xsd:element name="x" type="intList" minOccurs="1"/>
+          <xsd:element name="y" type="intList" minOccurs="1"/>
+      </xsd:all>
   </xsd:complexType>
 
   <xsd:complexType name="plotBlock">
@@ -303,8 +310,11 @@
       <!-- Required only if dim=3 -->
       <xsd:element name="z"      type="xsd:string" minOccurs="0"/>
       <!-- can be a color or a vector? -->
-      <xsd:element name="colorMap" type="xsd:string" minOccurs="0"/>
-
+      <xsd:element name="xlabel"    type="xsd:string" minOccurs="0"/>
+      <xsd:element name="ylabel"    type="xsd:string" minOccurs="0"/>
+      <xsd:element name="zlabel"    type="xsd:string" minOccurs="0"/>
+      <xsd:element name="colorMap"  type="xsd:string" minOccurs="0"/>
+      <xsd:element name="gridLocation" type="gridLocationType" minOccurs="0"/>
       <xsd:element name="kwargs" type="kwargsType" minOccurs="0"/>
       <!-- type=scatter -->
       <xsd:element name="s" type="xsd:integer" minOccurs="0"/>

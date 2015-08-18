@@ -27,7 +27,8 @@ echo "Started" > $HOME/raven/logs/cron_started_${DATE_STRING}
 
 source /etc/profile #2>&1 | tee -a $HOME/raven/logs/cron_output_${DATE_STRING}
 
-eval `/usr/bin/modulecmd bash load pbs raven-devel-gcc` #2>&1 | tee -a $HOME/raven/logs/cron_output_${DATE_STRING}
+#eval `/usr/bin/modulecmd bash load pbs raven-devel-gcc` #2>&1 | tee -a $HOME/raven/logs/cron_output_${DATE_STRING}
+module load pbs raven-devel-gcc
 
 env 2>&1 | tee -a $HOME/raven/logs/cron_output_${DATE_STRING}
 

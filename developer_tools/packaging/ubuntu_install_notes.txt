@@ -1,0 +1,14 @@
+apt-get install subversion libtool python-dev swig g++ python3-dev python-numpy python-sklearn python-h5py 
+
+
+svn checkout https://cogljj@hpcsc.inl.gov/svn/herd/trunk
+
+
+cd trunk/crow
+make -f Makefile.linux
+cd ../raven
+cd tests/framework
+python ../../framework/Driver.py test_Grid_Sampler.xml
+cd ../../framework
+python TestDistributions.py
+

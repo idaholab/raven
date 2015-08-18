@@ -745,8 +745,7 @@ $
 The specifications of this distribution must be defined within the xml block \xmlNode{MultivariateNormal}.  In RAVEN the MultivariateNormal distribution can be initialized through the following keywords:
 \begin{itemize}
 \item \xmlNode{mu}, list of mean values of each dimension
-\item \xmlNode{data\textunderscore filename}, \xmlDesc{string, required parameter}, name of the data file containing the covariance matrix (file type .txt).
-\item \xmlNode{working\textunderscore dir}, \xmlDesc{string}, folder location of the data\textunderscore filename
+\item \xmlNode{covariance}, list of element values in the covariance matrix
 \end{itemize}
 
 Example:
@@ -754,21 +753,16 @@ Example:
 <Distributions>
   ...
     <MultivariateNormal name='MultivariateNormal_test'>
-        <data_filename>covMatrix.txt</data_filename>
-        <working_dir>ND_test_Grid_value_MVN/</working_dir>
         <mu>0.0 60.0</mu>
+        <covariance>
+	1.0 0.7
+	0.7 1.0
+        </covariance>
     </MultivariateNormal>
   ...
 </Distributions>
 \end{lstlisting}
 
-As an example, the following shows the data entries contained in data\textunderscore filename for a 2-dimensional covariance matrix
-
-Example covariance matrix data file:
-\begin{lstlisting}
-1.0 0.7
-0.7 1.0
-\end{lstlisting}
 
 \subsubsection{NDInverseWeight Distribution}
 \label{NDInverseWeight}

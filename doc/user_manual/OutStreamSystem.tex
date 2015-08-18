@@ -794,6 +794,7 @@ In the following list, all the predefined ``actions'' are reported:
 %Plot block sub-sub-sub section
 %%%%%%%%%%%%%
 \paragraph{``plotSettings'' input block \label{sec:plotSettings}}
+
 The sub-block identified by the keyword \xmlNode{plotSettings} is used to
 define the plot characteristics.
 %
@@ -803,6 +804,12 @@ the \xmlNode{plot} sub-section may not be unique within the
 \xmlNode{plotSettings} definition; the number of \xmlNode{plot} sub-blocks is
 equal to the number of plots that need to be placed in the same figure.
 %
+
+If sub-plots are to be defined then \xmlNode{gridSpace} needs to be present.
+\xmlNode{gridSpace} specifies the geometry of the grid that a subplot will be placed.
+The number of rows and number of columns of the grid need to be set.
+%
+
 For example, in the following XML cut, a ``line'' and a ``scatter'' type are
 combined in the same figure.
 %
@@ -813,22 +820,50 @@ combined in the same figure.
       <!-- Actions -->
     </actions>
     <plotSettings>
-       <plot>
+      <gridSpace>2 2</gridSpace>
+      <plot>
         <type>line</type>
         <x>d-type|Output|x1</x>
         <y>d-type|Output|y1</y>
+        <xlabel>label X</xlabel>
+        <ylabel>label Y</ylabel>
+        <gridLocation>
+          <x>0 2</x>
+          <y>0</y>
+        </gridLocation>
       </plot>
-       <plot>
+      <plot>
         <type>scatter</type>
         <x>d-type|Output|x2</x>
         <y>d-type|Output|y2</y>
+        <xlabel>label X</xlabel>
+        <ylabel>label Y</ylabel>
+        <gridLocation>
+          <x>0 2</x>
+          <y>1</y>
+        </gridLocation>
       </plot>
-      <xlabel>label X</xlabel>
-      <ylabel>label Y</ylabel>
+      </plot>
     </plotSettings>
   </Plot>
 </OutStreamManager>
 \end{lstlisting}
+
+The axis labels  are conditionally optional nodes
+that can be defined under the \xmlNode{plotSetting}. If the plot does not contain any sub-plots, 
+i.e. \xmlNode{gridSpace} is not defined then the axis labels are global parameters for the figure 
+which are deifned under \xmlNode{plotSettings}, otherwise the axis labels can be defined under \xmlNode{plot}
+for each sub-plot seperately.
+\begin{itemize}
+  \item \xmlNode{xlabel}, \xmlDesc{string, optional parameter}, the x axis
+  label.
+  \item \xmlNode{ylabel}, \xmlDesc{string, optional parameter}, the y axis
+  label.
+  \item \xmlNode{zlabel}, \xmlDesc{string, optional parameter (3D plots only)},
+  the z axis label.
+\end{itemize}
+%
+
 As already mentioned, within the \xmlNode{plotSettings} block, at least a
 \xmlNode{plot} sub-block needs to be specified.
 %
@@ -847,8 +882,7 @@ Independent of the plot type, some keywords are mandatory:
 In addition, other plot-dependent keywords, reported in
 Section~\ref{sec:23Dplotting}, can be provided.
 
-Under the \xmlNode{plotSettings} block other keywords, common to all of the
-plots the user decided to combine in the figure, can be specified, such as:
+Under the \xmlNode{plot} sub-block other optional keywords can be specified, such as:
 \begin{itemize}
   \item \xmlNode{xlabel}, \xmlDesc{string, optional parameter}, the x axis
   label.
@@ -856,10 +890,22 @@ plots the user decided to combine in the figure, can be specified, such as:
   label.
   \item \xmlNode{zlabel}, \xmlDesc{string, optional parameter (3D plots only)},
   the z axis label.
-  \item \xmlNode{colorMap}, \xmlDesc{string}, this parameter will be used to
+  \item \xmlNode{gridLocation}, \xmlDesc{xmlNode, optional xmlNode (depending on the 
+  grid geometry)}
+  \begin{itemize}
+	\item \xmlNode{x}, \xmlDesc{integer, required parameter}, the position of the subPlot in the grid Space.
+	if this node has a single value then the subplot occupies a single node at the specified location, otherwise
+        the second integer represents the number of nodes that this subplot occupies, i.e. in the example above the 
+        first subplot occupies 2 nodes starting from the zero node in x direction.
+	\item \xmlNode{y}, \xmlDesc{integer, required parameter}, the position of the subPlot in the grid Space.
+	if this node has a single value then the subplot occupies a single node at the specified location, otherwise
+        the second integer represents the number of nodes that this subplot occupies, i.e. in the example above the 
+        first subplot occupies a single node at the zero node in y direction.
+  \end{itemize}
+  \item \xmlNode{colorMap}, \xmlDesc{string, optional parameter}, this parameter will be used to
   define a color map.
-  %
-\end{itemize}
+ \end{itemize}
+
 As already mentioned, the Plot system accepts as input for the visual parameters
 (i.e., x, y, z, colorMap), data only from a \textbf{DataObjects} object.
 %

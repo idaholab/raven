@@ -1,58 +1,58 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
     <WorkingDir>LHStestFerret</WorkingDir>
-    <Files>simple_diffusion.i</Files>
     <Sequence>myLHS</Sequence>
     <batchSize>9</batchSize>
-</RunInfo>
+  </RunInfo>
 
-<Models>
-    <Code name='Ferret' subType='MooseBasedApp'><executable>%FRAMEWORK_DIR%/../../ferret/ferret-%METHOD%</executable></Code>
-</Models>
+  <Files>
+    <Input name="simple_diffusion.i" type="">simple_diffusion.i</Input>
+  </Files>
 
-<Distributions>
-    <Normal name='Gauss1'>
-        <mean>0.5</mean>
-        <sigma>0.001</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>1</upperBound>
+  <Models>
+    <Code name="Ferret" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../ferret/ferret-%METHOD%</executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>0.5</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
     </Normal>
-    <Uniform name='Uniform1'>
-        <lowerBound>0</lowerBound>
-        <upperBound>1.0</upperBound>
+    <Uniform name="Uniform1">
+      <lowerBound>0</lowerBound>
+      <upperBound>1.0</upperBound>
     </Uniform>
-</Distributions>
-<Samplers>
-    <Stratified name='myLHS'>
-      <variable name='BCs|left|value' >
-        <distribution >Gauss1</distribution>
-        <grid type='value' construction='equal' steps='3'>0.02 0.92</grid>
+  </Distributions>
+
+  <Samplers>
+    <Stratified name="myLHS">
+      <variable name="BCs|left|value">
+        <distribution>Gauss1</distribution>
+        <grid construction="equal" steps="3" type="value">0.02 0.92</grid>
       </variable>
-      <variable name='BCs|right|value'>
-        <distribution >Uniform1</distribution>
-        <grid type='CDF' construction='equal' steps='3'>0.17 0.2</grid>
+      <variable name="BCs|right|value">
+        <distribution>Uniform1</distribution>
+        <grid construction="equal" steps="3" type="CDF">0.17 0.2</grid>
       </variable>
     </Stratified>
-</Samplers>
+  </Samplers>
 
+  <Steps>
+    <MultiRun name="myLHS">
+      <Input class="Files" type="">simple_diffusion.i</Input>
+      <Model class="Models" type="Code">Ferret</Model>
+      <Sampler class="Samplers" type="Stratified">myLHS</Sampler>
+      <Output class="Databases" type="HDF5">test_ferret_lhs</Output>
+    </MultiRun>
+  </Steps>
 
-
-<Steps>
-    <MultiRun name='myLHS'>
-      <Input   class = 'Files'      type=''          >simple_diffusion.i</Input>
-      <Model   class = 'Models'     type='Code'      >Ferret</Model>
-      <Sampler class='Samplers' type='Stratified'         >myLHS</Sampler>
-      <Output  class='Databases'    type='HDF5'>test_ferret_lhs</Output>
-    </MultiRun >
-</Steps>
-
-<Databases>
-  <HDF5 name="test_ferret_lhs"/> 
-</Databases>
+  <Databases>
+    <HDF5 name="test_ferret_lhs"/>
+  </Databases>
 
 </Simulation>
-
-
-

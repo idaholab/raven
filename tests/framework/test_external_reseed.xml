@@ -1,96 +1,95 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
-    <Files>Functions.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
-</RunInfo>
+  </RunInfo>
 
-<Models>
-    <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/Functions'>  
-       <variable>sigma</variable>
-       <variable>rho</variable>
-       <variable>beta</variable>
-       <variable>x</variable>
-       <variable>y</variable>
-       <variable>z</variable>
-       <variable>time</variable>
-       <variable>x0</variable>
-       <variable>y0</variable>
-       <variable>z0</variable>
+  <Files>
+    <Input name="Functions.py" type="">Functions.py</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="externalModel/Functions" name="PythonModule" subType="">
+      <variable>sigma</variable>
+      <variable>rho</variable>
+      <variable>beta</variable>
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>z</variable>
+      <variable>time</variable>
+      <variable>x0</variable>
+      <variable>y0</variable>
+      <variable>z0</variable>
     </ExternalModel>
-</Models> 
+  </Models>
 
-<Distributions>
-    <Normal name='x0_distrib'>
-        <mean>4</mean>
-        <sigma>1</sigma>
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
     </Normal>
-    <Normal name='y0_distrib'>
-        <mean>4</mean>
-        <sigma>1</sigma>
+    <Normal name="y0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
     </Normal>
-    <Normal name='z0_distrib'>
-        <mean>4</mean>
-        <sigma>1</sigma>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
     </Normal>
-</Distributions>
+  </Distributions>
 
-<Samplers>
-    <MonteCarlo name='MC_external'>
+  <Samplers>
+    <MonteCarlo name="MC_external">
       <sampler_init>
         <limit>3</limit>
         <initial_seed>1234</initial_seed>
         <reseed_at_each_iteration>True</reseed_at_each_iteration>
       </sampler_init>
-      <variable name='x0' >
-        <distribution  >x0_distrib</distribution>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
       </variable>
-      <variable name='y0' >
-        <distribution  >y0_distrib</distribution>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
       </variable>
-      <variable name='z0' >
-        <distribution  >z0_distrib</distribution>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
       </variable>
     </MonteCarlo>
-</Samplers>
+  </Samplers>
 
-<Steps>
-    <MultiRun name='FirstMRun'  re-seeding='200286'>
-        <Input   class='DataObjects'     type='Point'               >inputPlaceHolder</Input>
-        <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
-        <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='DataObjects'     type='HistorySet'      >testPrintHistorySet</Output>
-        <Output  class='Databases' type='HDF5'           >test_external_db</Output>
-        <Output  class='OutStreamManager' type='Print'   >testPrintHistorySet_dump</Output>
-    </MultiRun >
-</Steps>
-<Databases>
-        <HDF5 name="test_external_db"/> 
-</Databases>
+  <Steps>
+    <MultiRun name="FirstMRun" re-seeding="200286">
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
+      <Output class="Databases" type="HDF5">test_external_db</Output>
+      <Output class="OutStreamManager" type="Print">testPrintHistorySet_dump</Output>
+    </MultiRun>
+  </Steps>
 
-<OutStreamManager>
-  <Print name='testPrintHistorySet_dump'>
-    <type>csv</type>
-    <source>testPrintHistorySet</source>
-  </Print>
-</OutStreamManager>
-    
-    
-<DataObjects>
-    <Point name='inputPlaceHolder'>
-        <Input>x0,y0,z0</Input>
-        <Output>OutputPlaceHolder</Output>
+  <Databases>
+    <HDF5 name="test_external_db"/>
+  </Databases>
+
+  <OutStreamManager>
+    <Print name="testPrintHistorySet_dump">
+      <type>csv</type>
+      <source>testPrintHistorySet</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <Point name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
     </Point>
-    <HistorySet name='testPrintHistorySet'>
-        <Input>x0,y0,z0</Input>
-        <Output>time,x,y,z</Output>
-   </HistorySet>
-</DataObjects>
-
+    <HistorySet name="testPrintHistorySet">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
 
 </Simulation>
-
-
-

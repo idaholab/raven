@@ -32,10 +32,10 @@ the settings of the calculation flow that is being performed through RAVEN:
 %
 \default{None}
 
-%%%%%% Files
-\item \xmlNode{Files}, \xmlDesc{comma separated string, optional field}, lists
-the paths to any files required by the code. If no file is needed (either as input or output), 
-this node could be omitted.
+%%%%%% Files -> moved to own node
+%\item \xmlNode{Files}, \xmlDesc{comma separated string, optional field}, lists
+%the paths to any files required by the code. If no file is needed (either as input or output), 
+%this node could be omitted.
 %string from the \emph{WorkingDir}.
 
 %%%%%% BATCH SIZE
@@ -397,13 +397,16 @@ Here we present a few examples using different components of the RunInfo node:
 \begin{lstlisting}[style=XML]
 <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
-    <Files>lorentzAttractor.py</Files>
     <Sequence>MonteCarlo</Sequence>
     <batchSize>100</batchSize>
     <NumThreads>4</NumThreads>
     <mode>mpi</mode>
     <NumMPI>2</NumMPI>
 </RunInfo>
+
+<Files>
+    <Input name='lorentzAttractor.py' type=''>lorentzAttractor.py</Input>
+</Files>
 \end{lstlisting}
 This examples specifies the working directory (\texttt{WorkingDir}) where the
 necessary file (\texttt{Files}) is located and to run a series of 100
