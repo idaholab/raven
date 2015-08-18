@@ -13,10 +13,11 @@ hdiutil detach /Volumes/Raven\ Libraries/
 ./crow_compile.sh
 export CHECKOUT_DIR=$INSTALL_DIR/framework
 ./raven_framework_git.sh
-cp ../../doc/user_manual/raven_user_manual.pdf $CHECKOUT_DIR/trunk/raven/doc/user_manual/
-rm -Rf $CHECKOUT_DIR/trunk/*/.git
-ln -s $CHECKOUT_DIR/trunk/raven/raven_framework $INSTALL_DIR/bin
+cp ../../doc/user_manual/raven_user_manual.pdf $CHECKOUT_DIR/raven/doc/user_manual/
+rm -Rf $CHECKOUT_DIR/*/.git
+ln -s $CHECKOUT_DIR/raven/raven_framework $INSTALL_DIR/bin
 ls $INSTALL_DIR/bin
+rm -Rvf $HOME/raven_libs/root/opt
 mkdir -p $HOME/raven_libs/root/opt
 mv $INSTALL_DIR $HOME/raven_libs/root/opt
 mkdir -p $HOME/raven_libs/root/opt/raven_libs/environments
@@ -54,7 +55,7 @@ rm -Rf raven_libs.pkg
 pkgbuild --root $HOME/raven_libs/root --identifier raven_libs  --scripts $HOME/raven_libs/scripts raven_libs.pkg
 
 #Create dmg file.
-rm -f raven_libs_base.dmg raven_framework_complete.dmg
+rm -f raven_libs_base.dmg raven_framework_miniconda_complete.dmg
 hdiutil create -size 500m -fs HFS+ -volname "Raven Libraries" raven_libs_base.dmg
 hdiutil attach raven_libs_base.dmg
 cp -a raven_libs.pkg /Volumes/Raven\ Libraries
