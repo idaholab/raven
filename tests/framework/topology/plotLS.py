@@ -37,8 +37,8 @@ sFile = open('samplesDump.csv')
 sFile.readline()
 for line in sFile:
   tokens = line.strip().split(',')
-  samplesX.append(float(tokens[0]))
-  samplesY.append(float(tokens[1]))
+  samplesX.append(float(tokens[1]))
+  samplesY.append(float(tokens[0]))
 sFile.close()
 
 inputs = glob('limit_surface_*.csv')
@@ -64,10 +64,10 @@ for fin in inputs:
   plt.scatter(samplesX[i-1],samplesY[i-1],c=colorList[3],linewidths=1,marker='^')
   plt.xlim(-1,1)
   plt.ylim(-1,1)
-  plt.savefig('limitSurface'+str(i)+'.png')
+  plt.savefig('example/limitSurface'+str(i)+'.png')
   plt.clf()
   plt.cla()
 
 #Comment next two lines out if you don't have imagemagick installed
-os.system('convert -delay 100 -loop 0 limitSurface*.png limitSurface.gif')
-os.system('rm limitSurface*.png')
+os.system('convert -delay 100 -loop 0 example/limitSurface*.png example/limitSurface.gif')
+os.system('rm example/limitSurface*.png')

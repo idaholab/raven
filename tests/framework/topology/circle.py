@@ -3,13 +3,14 @@ Created on 8/13/15
 
 @author: maljdan
 '''
-#test comment being added...
 
 import numpy as np
 import math
+import time
 
 def eval(inp):
   retVal = math.sqrt(inp[0]*inp[0] + inp[1]*inp[1])
+  # time.sleep(5)
   return float('%.8f' % retVal)
 
 def run(self,Input):

@@ -1176,9 +1176,9 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
   if (sumW > 0)
     for(int n = 0; n < N; n++)
     {
-      std::cerr << w(n) << " -> ";
+      // std::cerr << w(n) << " -> ";
       w(n) /= (T) sumW;
-      std::cerr << w(n) << std::endl;
+      // std::cerr << w(n) << std::endl;
     }
 
   boost::numeric::ublas::matrix<int> edges;

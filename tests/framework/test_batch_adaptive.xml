@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='debug'>
+<Simulation verbosity='silent'>
   <RunInfo>
     <WorkingDir>topology</WorkingDir>
     <Sequence>adapt,adaptdump</Sequence>
@@ -49,11 +49,10 @@
       <ROM      class="Models"    type="ROM"     >mySVM</ROM>
       <Function class="Functions" type="External">label</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">function</TargetEvaluation>
-      <Convergence forceIteration="False" limit="30" persistence="25" weight="value">9e-5</Convergence>
+      <Convergence forceIteration="False" limit="100" persistence="25" weight="value">9e-5</Convergence>
       <!-- <Convergence forceIteration="False" limit="3000" persistence="25" weight="value">9e-5</Convergence> -->
       <generateCSVs />
       <trainSize>10</trainSize>
-      <batchSize>8</batchSize>
       <scoring>distance</scoring>
       <batchStrategy>naive</batchStrategy>
       <variable name="x1">

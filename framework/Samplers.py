@@ -891,8 +891,6 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
                                              #  available
     self.scoringMethod    = 'distance'       # Name of the scoring method used
     self.batchStrategy    = 'naive'          # Name of the batch strategy used
-    self.batchSize        = 1                # Size of the batch to submit
-                                             #  before rebuilding the model
     self.trainSize        = 10               # Size of the initial training set
                                              #  before attempting to do adaptive
                                              #  these points will be picked
@@ -911,7 +909,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     self._addAssObject('ROM','n')
     self._addAssObject('Function','-n')
 
-    self.acceptedScoringParam = ['distance','persistence','straddle']
+    self.acceptedScoringParam = ['distance','straddle']
     self.acceptedBatchParam = ['naive','believer','topology']
 
   def localInputAndChecks(self,xmlNode):
@@ -1002,17 +1000,6 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
           self.raiseAnError(IOError, 'Requested unknown batch strategy: ',
                             self.batchStrategy, '. Available options: ',
                             self.acceptedBatchParam)
-      if child.tag == "batchSize":
-        try:
-          self.batchSize = int(child.text)
-        except:
-          self.raiseAnError(IOError, 'Failed to convert the batchSize value: '
-                                     + child.text
-                                     + ' into a meaningful integer')
-        if self.batchSize < 0:
-          self.raiseAnError(IOError, 'Requested an invalid batch size: ',
-                            self.batchSize, '. Batch size should be a '
-                            + 'non-negative integer value')
       if child.tag == "trainSize":
         try:
           self.trainSize = int(child.text)
@@ -1051,7 +1038,6 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     tempDict['Persistence'     ] = str(self.repetition)
     tempDict['scoring'         ] = str(self.scoringMethod)
     tempDict['batchStrategy'   ] = self.batchStrategy
-    tempDict['batchSize'       ] = str(self.batchSize)
 
   def localAddCurrentSetting(self,tempDict):
     """
@@ -1093,10 +1079,14 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
                                               #  considered on the limit surface
     self.oldTestMatrix     = None             # Test matrix used to store the
                                               #  old evaluation of the function
+    self.scores            = None             # Matrix that for each point of
+                                              #  the testing grid tracks the
+                                              #  score of that position
     self.persistenceMatrix = None             # Matrix that for each point of
                                               #  the testing grid tracks the
                                               #  persistence of the limit
                                               #  surface position
+
     if self.goalFunction.name not in self.solutionExport.getParaKeys('output'):
       self.raiseAnError(IOError,'Goal function name does not match solution '
                                 + 'export data output.')
@@ -1150,14 +1140,81 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     self.limitSurfacePP._initializeLSpp({'WorkingDir':None},
                                         [self.lastOutput], {})
     matrixShape = self.limitSurfacePP.getTestMatrix().shape
+    self.scores = np.zeros(matrixShape)       # Matrix that for each point
+                                                   #  of the testing grid tracks
+                                                   #  the score of the limit
+                                                   #  surface position
     self.persistenceMatrix = np.zeros(matrixShape) # Matrix that for each point
-                                                   #  of the testing grid
-                                                   #  tracks the persistence of
-                                                   #  the limit surface position
+                                                   #  of the testing grid tracks
+                                                   #  the persistence of the
+                                                   #  limit surface position
     self.oldTestMatrix = np.zeros(matrixShape)     # Swap matrix for the
                                                    #  convergence test
     self.hangingPoints            = np.ndarray((0, self.nVar))
     self.raiseADebug('Initialization done')
+
+  def ScoreCandidates(self):
+    # DM: This sequence gets used repetitively, so I am promoting it to its own
+    #  variable
+    axisNames = [key.replace('<distribution>','') for key in self.axisName]
+
+    matrixShape = self.limitSurfacePP.getTestMatrix().shape
+    self.scores = np.zeros(matrixShape)
+    if self.scoringMethod == 'distance':
+      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
+      for varIndex, name in enumerate(axisNames):
+        sampledMatrix[:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
+      distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
+      # The hanging point are added to the list of the already explored points
+      # so as not to pick the same when in //
+      tempDict = {}
+      for varIndex, varName in enumerate(axisNames):
+        tempDict[varName]     = self.surfPoint[:,varIndex]
+        self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
+        self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
+      #distLast = np.sqrt(distLast)
+      distance, _ = distanceTree.query(self.surfPoint)
+      if max(self.invPointPersistence) == 0:
+        self.scores = distance
+      else:
+        self.scores = np.multiply(distance,self.invPointPersistence)
+
+      if self.generateCSVs and self.surfPoint is not None:
+        # DM: HACK until I figure out how to get the actual working directory
+        self.workingDir = os.path.abspath(os.curdir)
+        fout = open(os.path.join(self.workingDir,'scores_'
+                                 + str(self.counter) + '.csv'), 'w')
+        sep = ''
+        for varName in axisNames:
+          fout.write(sep+varName)
+          sep = ','
+        fout.write(sep+'score\n')
+        for i in xrange(len(self.surfPoint)):
+          sep = ''
+          for varIndex, name in enumerate(axisNames):
+            fout.write(sep+str(self.surfPoint[i,varIndex]))
+            sep = ','
+          fout.write(sep+str(self.scores[i])+'\n')
+        fout.close()
+
+        fout = open(os.path.join(self.workingDir,'sampledMatrix_'
+                                 + str(self.counter) + '.csv'), 'w')
+        sep = ''
+        for varName in axisNames:
+          fout.write(sep+varName)
+          sep = ','
+        fout.write('\n')
+        for i in xrange(len(sampledMatrix)):
+          sep = ''
+          for varIndex, name in enumerate(axisNames):
+            fout.write(sep+str(sampledMatrix[i,varIndex]))
+            sep = ','
+          fout.write('\n')
+        fout.close()
+
+    else:
+      self.raiseAnError(self.scoringMethod + ' scoring method is not '
+                        + 'implemented yet')
 
   def localStillReady(self,ready): #,lastOutput=None
     """
@@ -1199,7 +1256,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     np.copyto(self.oldTestMatrix,self.limitSurfacePP.getTestMatrix())
     # evaluate the Limit Surface coordinates (return input space coordinates,
     #  evaluation vector and grid indexing)
-    self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
+    self.surfPoint, evaluations, self.listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
 
     # DM: This sequence gets used repetitively, so I am promoting it to its own
     #  variable
@@ -1234,7 +1291,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     #  evaluation
     # DM: Test this is the same thing
     indexEnd  = len(self.limitSurfacePP.getFunctionValue()[axisNames[0]])-1
-    # works for my test case
+    # DM: It looks the same to me.
     # print('indexEnd (Dan)', indexEnd)
     # indexEnd  = len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])-1
     # print('indexEnd (Andrea)', indexEnd)
@@ -1243,7 +1300,9 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
       for key, value in self.limitSurfacePP.getFunctionValue().items():
         tempDict[key] = value[myIndex]
       if len(self.hangingPoints) > 0:
-        # This line looks cute, but is hard to parse...
+        # This line looks cute, but is hard to parse and does not appear to ever
+        # be hit... What does it do?
+        print('DM: Never gets hit')
         self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in axisNames])).all(axis=1)][:]
     self.persistenceMatrix += self.limitSurfacePP.getTestMatrix()
     # test error
@@ -1258,10 +1317,10 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
       ready =  False                                               # we are done
     self.raiseADebug('counter: ' + str(self.counter) + '       Error: '
                      + str(testError) + ' Repetition: ' + str(self.repetition))
-    #if the number of point on the limit surface is > than compute persistence
-    if len(listsurfPoint)>0:
-      self.invPointPersistence = np.ndarray(len(listsurfPoint))
-      for pointID, coordinate in enumerate(listsurfPoint):
+    #if the number of point on the limit surface is > 0 then compute persistence
+    if len(self.listsurfPoint)>0:
+      self.invPointPersistence = np.ndarray(len(self.listsurfPoint))
+      for pointID, coordinate in enumerate(self.listsurfPoint):
         self.invPointPersistence[pointID] = abs(self.persistenceMatrix[tuple(coordinate)])
       maxPers = np.max(self.invPointPersistence)
       self.invPointPersistence = (maxPers-self.invPointPersistence)/maxPers
@@ -1294,27 +1353,46 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     #  variable
     axisNames = [key.replace('<distribution>','') for key in self.axisName]
 
-    if self.surfPoint is not None and len(self.surfPoint)>0:
-      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
-      for varIndex, name in enumerate(axisNames):
-        sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
-      distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
-      # The hanging point are added to the list of the already explored points
-      # so as not to pick the same when in //
-      tempDict = {}
-      for varIndex, varName in enumerate(axisNames):
-        tempDict[varName]     = self.surfPoint[:,varIndex]
-        self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
-        self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
-      #distLast = np.sqrt(distLast)
-      distance, _ = distanceTree.query(self.surfPoint)
-      distance = np.multiply(distance,self.invPointPersistence)
-      if np.max(distance)>0.0:
+    self.raiseADebug('Generating input')
+    if self.surfPoint is not None and len(self.surfPoint) > 0:
+      self.ScoreCandidates()
+      edges = []
+      for i,iCoords in enumerate(self.listsurfPoint):
+        for j in xrange(i+1, len(self.listsurfPoint)):
+          jCoords = self.listsurfPoint[i]
+          ijValidNeighbors = True
+          for d in xrange(len(jCoords)):
+            if abs(iCoords[d] - jCoords[d]) > 1:
+              ijValidNeighbors = False
+              break
+          if ijValidNeighbors:
+            edges.append((i,j))
+            edges.append((j,i))
+
+      names = [ name.encode('ascii', 'ignore') for name in axisNames]
+      names.append('score'.encode('ascii','ignore'))
+      amsc = AMSC_Object(X=np.array(self.surfPoint), Y=self.scores, w=None,
+                         names=names, graph='relaxed beta skeleton',
+                         gradient='steepest', beta=1.0, normalization='feature',
+                         persistence='difference', edges=edges, debug=False)
+      partitions = amsc.Partitions()
+      mergeSequence = amsc.GetMergeSequence()
+      maxIdxs = list(set([ pair[1] for pair in partitions.keys() ]))
+
+      # Sort the maxima based on decreasing persistence value, thus the top
+      # candidate is the first element.
+      sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1],
+                            reverse=True)
+
+      if np.max(self.scores)>0.0:
+        topIdx = np.argmax(self.scores)
+        print(topIdx, sortedMaxima)
         for varIndex, varName in enumerate(axisNames):
-          self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
+          self.values[self.axisName[varIndex]] = float(self.surfPoint[topIdx,varIndex])
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
-      else: self.raiseADebug('np.max(distance)=0.0')
+      else:
+        self.raiseADebug('Selected score <= 0.0')
     if not varSet:
       #here we are still generating the batch
       for key in self.distDict.keys():
