@@ -160,18 +160,18 @@ class OpenModelicaInterface(CodeInterfaceBase):
     #   input file passed in: /path/to/file/<Base Name>.ext.  'rawout' indicates that this is the direct
     #   output from running the OpenModelica executable.
     #
-    outputfile = 'rawout~' + os.path.splitext(os.path.basename(inputFiles[index]))[0]
-    executeCommand = (executable+' -f '+os.path.split(inputFiles[index])[1] + ' -r '+ outputfile + '.csv')
+    outputfile = 'rawout~' + inputFiles[index].getBase() #os.path.splitext(os.path.basename(inputFiles[index]))[0]
+    executeCommand = (executable+' -f '+inputFiles[index].getFilename() + ' -r '+ outputfile + '.csv')
 
     return executeCommand, outputfile
 
   def _isValidInput(self, inputFile):
-    if inputFile.endswith(('.xml', '.XML', '.Xml')):
+    if inputFile.getExt() in ('xml', 'XML', 'Xml'):
       return True
     return False
 
   def getInputExtension(self):
-    return ('.xml', '.XML', '.Xml')
+    return ('xml', 'XML', 'Xml')
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     '''Generate a new OpenModelica input file (XML format) from the original, changing parameters
@@ -189,11 +189,11 @@ class OpenModelicaInterface(CodeInterfaceBase):
       raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
 
     # Figure out the new file name and put it into the proper place in the return list
-    newInputFiles = copy.copy(currentInputFiles)
-    originalPath = str(oriInputFiles[index][:])
+    newInputFiles = copy.deepcopy(currentInputFiles)
+    originalPath = oriInputFiles[index].getAbsFile()
     newPath = os.path.join(os.path.split(originalPath)[0],
                            "OM" + Kwargs['prefix'] + os.path.split(originalPath)[1])
-    newInputFiles[index] = newPath
+    newInputFiles[index].setAbsFile(newPath)
 
     # Since the input file is XML we can load and edit it directly using etree
     # Load the original XML into a tree:
@@ -229,6 +229,7 @@ class OpenModelicaInterface(CodeInterfaceBase):
     #   to it, stripping trailing commas in the process.
     tempOutputFD, tempOutputFileName = tempfile.mkstemp(dir = workingDir, text = True)
     sourceFileName = os.path.join(workingDir, output)         # The source file comes in without .csv on it
+    print('sourcefilename:',sourceFileName)
     destFileName = sourceFileName.replace('rawout~', 'out~')  # When fix the CSV, change rawout~ to out~
     sourceFileName += '.csv'
     inputFile = open(sourceFileName)
