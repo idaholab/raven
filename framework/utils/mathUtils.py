@@ -214,6 +214,13 @@ def uniformTempInterp(numSamples, time, vars):
   
   return newTime, newVars
 
+
+def derivativeTempInterp(numSamples, time, vars):
+  t_min=time[0]
+  t_max=time[time.size-1]
+  
+  return newTime, newVars
+  
 #
 # I need to convert it in multi-dimensional
 # Not a priority yet. Andrea
