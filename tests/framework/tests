@@ -398,8 +398,8 @@
 [./topology_graph]
   type = 'RavenFramework'
   input = 'test_topology_graphs.xml'
-  csv = 'topology/segNN.csv topology/segBS.csv topology/segRBS.csv'
-  output = 'topology/segNN.xml topology/segBS.xml topology/segRBS.xml'
+  csv = 'topology3/segNN.csv topology3/segBS.csv topology3/segRBS.csv'
+  output = 'topology3/segNN.xml topology3/segBS.xml topology3/segRBS.xml'
   required_libraries = 'amsc'
  [../]
 
