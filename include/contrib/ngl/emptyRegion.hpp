@@ -31,6 +31,8 @@
 
 #include <assert.h>
 #include <vector>
+#include <utility>
+ #include <algorithm>
 
 #include "nglGeometry.hpp"
 
@@ -263,7 +265,20 @@ namespace ngl
 			// (say, KNN with k = kMax) Or if it doesn't, the subset equals the entire
 			//  set
 			// Assume these points are ordered by distance?
+			// DM: Assume nothing, sort them now!
 			points.getNeighbors(p, &candidateNeighbors, candidateSize);
+
+			std::vector< std::pair<T,int> > sortedIndices;
+			for (int k = 0; k < candidateSize; k++)
+			{
+				IndexType idx = candidateNeighbors[k];
+				T distance = Geometry<T>::distanceL2sqr(p,points[idx]);
+				sortedIndices.push_back(std::pair<T,int>(distance,idx));
+			}
+			std::sort(sortedIndices.begin(),sortedIndices.end());
+			//DM: Now just put them back and be done with the vector
+			for (int k = 0; k < candidateSize; k++)
+				candidateNeighbors[k] = sortedIndices[k].second;
 
 			EdgeInfo<T> edgeInfo;
 			edgeInfo.initialize();
@@ -333,6 +348,19 @@ namespace ngl
 			// Assume these points are ordered by distance?
 			points.getNeighbors(queryIndex, &candidateNeighbors, candidateSize);
       NGLPoint<T> p = points[queryIndex];
+
+			// DM: Assume nothing, sort them now!
+			std::vector< std::pair<T,int> > sortedIndices;
+			for (int k = 0; k < candidateSize; k++)
+			{
+				IndexType idx = candidateNeighbors[k];
+				T distance = Geometry<T>::distanceL2sqr(p,points[idx]);
+				sortedIndices.push_back(std::pair<T,int>(distance,idx));
+			}
+			std::sort(sortedIndices.begin(),sortedIndices.end());
+			//DM: Now just put them back and be done with the vector
+			for (int k = 0; k < candidateSize; k++)
+				candidateNeighbors[k] = sortedIndices[k].second;
 
 			EdgeInfo<T> edgeInfo;
 			edgeInfo.initialize();

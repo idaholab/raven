@@ -395,6 +395,14 @@
   required_libraries = 'amsc'
  [../]
 
+[./topology_graph]
+  type = 'RavenFramework'
+  input = 'test_topology_graphs.xml'
+  csv = 'topology3/segNN.csv topology3/segBS.csv topology3/segRBS.csv'
+  output = 'topology3/segNN.xml topology3/segBS.xml topology3/segRBS.xml'
+  required_libraries = 'amsc'
+ [../]
+
  [./io_ROM_pickle]
   type = 'RavenFramework'
   input = 'test_io_ROM_pickle.xml'
@@ -599,7 +607,7 @@
    output = 'CUBIT_MOOSE_test/grid_run/mesh~rectangle_1.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_2.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_3.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_4.e'
    csv = 'CUBIT_MOOSE_test/print_data.csv'
    # Need to be able to check that cubit executable exists, but listing in required_executable
-   # searches for existence of file then runs it. Running cubit by itself starts a cubit 
+   # searches for existence of file then runs it. Running cubit by itself starts a cubit
    # command line that the test harness doesn't know how to deal with. For now, we're just
    # going to test for the existence of moose_test-opt to run.
    required_executable = '../../../moose/test/moose_test-%METHOD%'
