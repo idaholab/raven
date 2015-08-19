@@ -81,12 +81,15 @@ void AMSC<T>::DebugTimerStart(time_t &t0, std::string text)
 }
 
 template<typename T>
-void AMSC<T>::DebugTimerStop(time_t &t0)
+void AMSC<T>::DebugTimerStop(time_t &t0, std::string text)
 {
   if(!verbose)
     return;
   time_t endTime = clock();
   std::stringstream ss;
+  // Possibly use text here, for now it works since each DebugTimerStart will
+  // be followed by a DebugTimerEnd, and thus the combined output can be printed
+  // on one line
   std::cerr << "Done!" << " (" << ((float)endTime-t0)/CLOCKS_PER_SEC << "s)"
             << std::endl;
 }
@@ -821,7 +824,6 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
     }
     else if (this->persistenceType.compare("count") == 0)
     {
-      //TODO: test
       int newPersistence = 0;
       int oldPersistence = 0;
       for(int idx = 0; idx < Size(); idx++)
@@ -865,11 +867,11 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
       //FIXME: implement this & test
     }
   }
+
+  DebugPrint("pers saddleIdx : merged -> parent\n");
   if (verbose)
-    DebugPrint("pers saddleIdx : merged -> parent\n");
-  for(map_pi_pfi_it it = pinv2.begin(); it != pinv2.end(); it++)
   {
-    if (verbose)
+    for(map_pi_pfi_it it = pinv2.begin(); it != pinv2.end(); it++)
     {
       std::stringstream ss;
       ss << (*it).second.first << " " << (*it).second.second << ":"
@@ -1096,7 +1098,6 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
     }
     else if (this->persistenceType.compare("count") == 0)
     {
-      //TODO: test
       int newPersistence = 0;
       int oldPersistence = 0;
       for(int idx = 0; idx < Size(); idx++)
@@ -1137,11 +1138,11 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
       //FIXME: implement this & test
     }
   }
+
+  DebugPrint("pers saddleIdx : merged -> parent\n");
   if (verbose)
-    DebugPrint("pers saddleIdx : merged -> parent\n");
-  for(map_pi_pfi_it it = pinv2.begin(); it != pinv2.end(); it++)
   {
-    if (verbose)
+    for(map_pi_pfi_it it = pinv2.begin(); it != pinv2.end(); it++)
     {
       std::stringstream ss;
       ss << (*it).second.first << " " << (*it).second.second << ":"

@@ -330,7 +330,7 @@ class AMSC
    * on the verbosity of this object
    * @param t0 reference time_t struct that will be used as the start time
    */
-  void DebugTimerStop(time_t &t0);
+  void DebugTimerStop(time_t &t0, std::string text="");
 
   /**
    * Returns the ascending neighbor of the sample specified by index
