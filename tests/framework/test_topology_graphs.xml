@@ -23,11 +23,11 @@
     <PostProcessor name='AMSC_NN' subType='TopologicalDecomposition'>
       <graph>Approximate KNN</graph>
       <gradient>steepest</gradient>
-      <knn>25</knn>
+      <knn>8</knn>
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>0.09</simplification>
+      <simplification>0.3</simplification>
       <persistence>difference</persistence>
     </PostProcessor>
     <!-- Beta Skeleton (beta=1, Gabriel) -->
@@ -39,7 +39,7 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>0.09</simplification>
+      <simplification>0.3</simplification>
       <persistence>difference</persistence>
     </PostProcessor>
     <!-- Relaxed Beta Skeleton (beta=1, Relaxed Gabriel) -->
@@ -51,7 +51,7 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>0.09</simplification>
+      <simplification>0.3</simplification>
       <persistence>difference</persistence>
     </PostProcessor>
   </Models>

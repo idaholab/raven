@@ -692,11 +692,6 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
   for(map_pi_pfi_it it = pinv.begin(); it != pinv.end(); ++it)
   {
     persistence[(*it).second] = (*it).first;
-    std::stringstream ss;
-    ss << '\t' << (*it).second.first << "," << (*it).second.second << ":"
-       << persistence[(*it).second].first << ","
-       << persistence[(*it).second].second << std::endl;
-    DebugPrint(ss.str());
   }
 
   //compute final persistences - recursively merge smallest persistence
@@ -870,6 +865,18 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
       //FIXME: implement this & test
     }
   }
+  if (verbose)
+    DebugPrint("pers saddleIdx : merged -> parent\n");
+  for(map_pi_pfi_it it = pinv2.begin(); it != pinv2.end(); it++)
+  {
+    if (verbose)
+    {
+      std::stringstream ss;
+      ss << (*it).second.first << " " << (*it).second.second << ":"
+         << (*it).first.first << " -> " << (*it).first.second << std::endl;
+      DebugPrint(ss.str());
+    }
+  }
 }
 
 template<typename T>
@@ -964,11 +971,6 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
   for(map_pi_pfi_it it = pinv.begin(); it != pinv.end(); ++it)
   {
     persistence[(*it).second] = (*it).first;
-    std::stringstream ss;
-    ss << '\t' << (*it).second.first << "," << (*it).second.second << ":"
-       << persistence[(*it).second].first << ","
-       << persistence[(*it).second].second << std::endl;
-    DebugPrint(ss.str());
   }
 
   //compute final persistences - recursively merge smallest persistence
@@ -1133,6 +1135,18 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
     else if (this->persistenceType.compare("area") == 0)
     {
       //FIXME: implement this & test
+    }
+  }
+  if (verbose)
+    DebugPrint("pers saddleIdx : merged -> parent\n");
+  for(map_pi_pfi_it it = pinv2.begin(); it != pinv2.end(); it++)
+  {
+    if (verbose)
+    {
+      std::stringstream ss;
+      ss << (*it).second.first << " " << (*it).second.second << ":"
+         << (*it).first.first << " -> " << (*it).first.second << std::endl;
+      DebugPrint(ss.str());
     }
   }
 }
