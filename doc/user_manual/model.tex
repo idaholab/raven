@@ -937,9 +937,10 @@ independent of the \xmlAttr{subType} specified:
 %  \nb These parameters are going to be requested for the training of this object
 %  (see Section~\ref{subsec:stepRomTrainer}).
   %
-   \item $<Features>$ \textbf{\textit{, comma separated string, required field.}}. In this node, the user needs to specify the names of the features of this ROM. NB. These parameters are going to be requested for the training of this object (see Section~\ref{subsec:stepRomTrainer});
-    \item $<Target>$ \textbf{\textit{, comma separated string, required field.}}. This XML node contains a comma separated list of the targets of this ROM. By Instance, these parameters are the Figure of Merits this ROM is supposed to predict.
-    \\NB. These parameters are going to be requested for the training of this
+   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features of this ROM.
+   \nb These parameters are going to be requested for the training of this object (see Section~\ref{subsec:stepRomTrainer});
+    \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, contains a comma separated list of the targets of this ROM. These parameters are the Figures of Merit (FOMs) this ROM is supposed to predict.
+    \nb These parameters are going to be requested for the training of this
     object (see Section \ref{subsec:stepRomTrainer}).
 
 \end{itemize}
@@ -1010,7 +1011,8 @@ two more nodes and can accept multiple entries of a third optional node.
 \begin{itemize}
   \item \xmlNode{IndexSet}, \xmlDesc{string, required field},
   specifies the rules by which to construct multidimensional polynomials.  The options are
-  ``TensorProduct,'' ``TotalDegree,'' ``HyperbolicCross,'' and ``Custom.''
+  \xmlString{TensorProduct}, \xmlString{TotalDegree},\\
+  \xmlString{HyperbolicCross}, and \xmlString{Custom}.
   %
   Total degree is efficient for
   uncertain inputs with a large degree of regularity, while hyperbolic cross is more efficient
@@ -4014,7 +4016,7 @@ to compute many of the most important statistical quantities.
     \item \textbf{NormalizedSensitivity} -- matrix of normalized sensitivity
     coefficients
     \item \textbf{VarianceDependentSensitivity} -- matrix of sensitivity coefficients dependent on the variance of the variables
-    \item \textbf{sensitivity} -- matrix of sensitivity coefficients of Output space to Input space 
+    \item \textbf{sensitivity} -- matrix of sensitivity coefficients of Output space to Input space
     \item \textbf{pearson} -- matrix of sensitivity coefficients
     \item \textbf{expectedValue} -- expected value or mean
     \item \textbf{sigma} -- standard deviation
@@ -4110,9 +4112,9 @@ There are four nodes that are used in the post-processor.
   the bin width uniform or equal\_probability which makes the number
   of counts in each bin equal.  It can take the following attributes:
   \begin{itemize}
-  \item \textbf{num\_bins} which takes a number that directly
+  \item \xmlAttr{num\_bins} which takes a number that directly
     specifies the number of bins
-  \item \textbf{bin\_method} which takes a string that specifies the
+  \item \xmlAttr{bin\_method} which takes a string that specifies the
     method used to calculate the number of bins.  This can be either
     square-root or sturges.
   \end{itemize}
@@ -4184,7 +4186,7 @@ This should be 1.0, and if it is different that
 points to approximations in the calculation.
 
 
-\textbf{Example:} ----------------------------------------------
+\textbf{Example:}
 \begin{lstlisting}[style=XML]
 <Simulation>
    ...
@@ -4218,7 +4220,6 @@ points to approximations in the calculation.
       </Normal>
    </Distributions>
 </Simulation>
-----------------------------------------------
 \end{lstlisting}
 
 %%%%% PP SafestPoint %%%%%%%
@@ -4251,7 +4252,7 @@ At present only the ``equal'' grid type is available.
 
 \begin{itemize}
   \item \xmlNode{Distribution}, \xmlDesc{Required}, represents the probability
-  distributions of the ``controllable'' and ''non-controllable'' variables.
+  distributions of the ``controllable'' and ``non-controllable'' variables.
   %
   These are \textbf{Assembler Objects}, each of these nodes must contain 2
   attributes that are used to identify those within the simulation framework:
@@ -4498,11 +4499,14 @@ Section~\ref{sec:functions} for more details).
 \ppType{External}{External}
 
 \begin{itemize}
-  \item \xmlNode{method}, \xmlAttr{comma separated string, required field},
+  \item \xmlNode{method}, \xmlDesc{comma separated string, required field},
   lists the method names of an external Function that will be computed (each
   returning a post-processing value).
-  \item \xmlNode{Assembler}, \xmlAttr{xml node, required field}, contains a
-  ``list'' of Functions where the \textit{methods} listed above are defined.
+  \item \xmlNode{Function}, \xmlDesc{xml node, required string field}, specifies
+  the name of a Function where the \textit{methods} listed above are defined.
+  %
+  \nb This name should match one of the Functions defined in the
+  \xmlNode{Functions} block of the input file.
   %
   The objects must be listed with a rigorous syntax that, except for the xml
   node tag, is common among all the objects.
@@ -4511,12 +4515,12 @@ Section~\ref{sec:functions} for more details).
   within the simulation framework:
 
    \begin{itemize}
-     \item \xmlAttr{class}, \textit{required string attribute}, is the main
+     \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
      ``class'' the listed object is from, the only acceptable class for
-     this post-processor is \textit{Functions};
-     \item \xmlAttr{type}, \textit{required string attribute}, is the object
+     this post-processor is \xmlString{Functions};
+     \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
      identifier or sub-type, the only acceptable type for this post-processor is
-     \textit{External}.
+     \xmlString{External}.
   \end{itemize}
 \end{itemize}
 \textbf{Example:}
@@ -4527,14 +4531,12 @@ Section~\ref{sec:functions} for more details).
     ...
     <PostProcessor name="externalPP" subType='External' verbosity='debug'>
       <method>Delta,Sum</method>
-      <Assembler>
         <Function class='Functions' type='External'>operators</Function>
           <!--Here, you can add a Function defined in the
               Functions block. This should be present or
               else RAVEN will not know where to find the
               defined methods.
             -->
-      </Assembler>
     </PostProcessor>
     ...
   </Models>
@@ -4557,22 +4559,22 @@ The following is a list of acceptable sub-nodes:
   \item \xmlNode{graph} \xmlDesc{, string, optional field}, specifies the type
   of neighborhood graph used in the algorithm, available options are:
   \begin{itemize}
-    \item \xmlString{beta skeleton}
-    \item \xmlString{relaxed beta skeleton}
-    \item \xmlString{approximate knn}
+    \item \texttt{beta skeleton}
+    \item \texttt{relaxed beta skeleton}
+    \item \texttt{approximate knn}
     %\item Delaunay \textit{(disabled)}
   \end{itemize}
-  \default{\xmlString{beta skeleton}}
+  \default{\texttt{beta skeleton}}
   \item \xmlNode{gradient}, \xmlDesc{string, optional field}, specifies the
   method used for estimating the gradient, available options are:
   \begin{itemize}
-    \item \xmlString{steepest}
+    \item \texttt{steepest}
     %\item \xmlString{maxflow} \textit{(disabled)}
   \end{itemize}
-  \default{\xmlString{steepest}}
-  \item \xmlNode{beta}, \xmlDesc{float, optional field}, is only used when the
-  \texttt{graph} is set to \xmlString{beta skeleton} or \xmlString{relaxed beta
-  skeleton}.
+  \default{\texttt{steepest}}
+  \item \xmlNode{beta}, \xmlDesc{float in the range: (0,2], optional field}, is
+  only used when the \xmlNode{graph} is set to \texttt{beta skeleton} or
+  \texttt{relaxed beta skeleton}.
   \default{1.0}
   \item \xmlNode{knn}, \xmlDesc{integer, optional field}, is the number of
   neighbors when using the \xmlString{approximate knn} for the \xmlNode{graph}
@@ -4587,16 +4589,17 @@ The following is a list of acceptable sub-nodes:
   to define the hierarchical simplification by assigning a value to each local
   minimum and maximum according to the one of the strategy options below:
   \begin{itemize}
-    \item \xmlString{difference} - The function value difference between the
+    \item \texttt{difference} - The function value difference between the
     extremum and its closest-valued neighboring saddle.
-    % \item \xmlString{probability} - The product of the above and the probability
-    % of the extremum and its closest-valued neighboring saddle.
-    % \item \xmlString{count} - The count of points that flow to or from the
-    % extremum.
+    \item \texttt{probability} - The probability integral computed as the
+    sum of the probability of each point in a cluster divided by the count of
+    the cluster.
+    \item \texttt{count} - The count of points that flow to or from the
+    extremum.
     % \item \xmlString{area} - The area enclosed by the manifold that flows to
     % or from the extremum.
   \end{itemize}
-  \default{\xmlString{difference}}
+  \default{\texttt{difference}}
   \item \xmlNode{simplification}, \xmlDesc{float, optional field}, specifies the
   amount of noise reduction to apply before returning labels.
   \default{0}
@@ -4612,13 +4615,16 @@ The following is a list of acceptable sub-nodes:
   <Models>
     ...
     <PostProcessor name="***" subType='TopologicalDecomposition'>
-      <graph>Beta Skeleton</graph>
-      <gradient>Steepest</gradient>
+      <graph>beta skeleton</graph>
+      <gradient>steepest</gradient>
       <beta>1</beta>
       <knn>8</knn>
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
+      <weighted>true</weighted>
+      <simplification>0.3</simplification>
+      <persistence>difference</persistence>
     </PostProcessor>
     ...
   <Models>

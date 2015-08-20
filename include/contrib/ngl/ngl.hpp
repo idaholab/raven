@@ -97,7 +97,7 @@ namespace ngl
 		NGMethod() {
 			valid = 0;
 		}
-		
+
 		~NGMethod() { }
 
 		virtual void initialize() { }
@@ -197,13 +197,13 @@ namespace ngl
       {
 				*ptrIndices = new IndexType[K];
 				IndexType *indices = *ptrIndices;
-				for(unsigned int k=0;k<candidateSize;k++)
+				for(int k=0; k<candidateSize; k++)
         {
 					IndexType idx = candidateNeighbors[k];
 					if(!NGMethod<T>::isValid(idx))
             continue;
 					indices[k] = candidateNeighbors[k];
-					if(k>=K)
+					if(k >= (int)K)
             break;
 				}
 				numNeighbors = K;

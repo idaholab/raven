@@ -34,7 +34,7 @@ class CsvLoader(MessageHandler.MessageUser):
     self.printTag           = self.type
     self.messageHandler     = messageHandler
 
-  def loadCsvFile(self,filein):
+  def loadCsvFile(self,myFile):
     """
     Function to load a csv file into a numpy array (2D)
     It also retrieves the headers
@@ -47,13 +47,13 @@ class CsvLoader(MessageHandler.MessageUser):
     @ Out, data, numpy.ndarray -> the loaded data
     """
     # open file
-    myFile = open (filein,'rb')
+    myFile.open(mode='rb')
     # read the field names
     head = myFile.readline().decode()
     self.all_field_names = head.split(',')
     for index in range(len(self.all_field_names)): self.all_field_names[index] = self.all_field_names[index].strip()
     # load the table data (from the csv file) into a numpy nd array
-    data = np.loadtxt(myFile,dtype='float',delimiter=',',ndmin=2)
+    data = np.loadtxt(myFile,dtype='float',delimiter=',',ndmin=2,skiprows=1)
     # close file
     myFile.close()
     return data
@@ -116,7 +116,7 @@ class CsvLoader(MessageHandler.MessageUser):
               <outputPivotValue>
               <inputPivotValue>
     """
-    inParam, outParam, inputRow, outputRow                 = options['inParam'], options['outParam'], options.get('inputRow',None), options.get('outputRow',None)
+    inParam, outParam, inputRow, outputRow                 = options['inParam'], options['outParam'], copy.deepcopy(options.get('inputRow',None)), copy.deepcopy(options.get('outputRow',None))
     SampledVars, inputPivotVal, outputPivotVal, operator   = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None), options.get('operator',None)
     pivotParameter                                         = options.get('pivotParameter',None)
 
@@ -129,8 +129,12 @@ class CsvLoader(MessageHandler.MessageUser):
         outputPivotVal_end, outputPivotVal = False,  float(outputPivotVal)
     else: outputPivotVal_end = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow != None  and inputRow  > 0: inputRow  = int(inputRow) - 1
-    if outputRow != None and outputRow > 0: outputRow = int(outputRow) - 1
+    if inputRow != None :
+      inputRow = int(inputRow)
+      if inputRow  > 0: inputRow  -= 1
+    if outputRow != None:
+      outputRow = int(outputRow)
+      if outputRow > 0: outputRow -= 1
     inDict, outDict = {}, {}
 
     #load the data into the numpy array
@@ -224,7 +228,7 @@ class CsvLoader(MessageHandler.MessageUser):
               <outputPivotValue>
               <inputPivotValue>
     """
-    inParam, outParam, inputRow, outputRow                 = options['inParam'], options['outParam'], options.get('inputRow',None), options.get('outputRow',None)
+    inParam, outParam, inputRow, outputRow                 = options['inParam'], options['outParam'], copy.deepcopy(options.get('inputRow',None)), copy.deepcopy(options.get('outputRow',None))
     SampledVars, inputPivotVal, outputPivotVal, operator   = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None), options.get('operator',None)
     pivotParameter                                         = options.get('pivotParameter',None)
 
@@ -237,8 +241,13 @@ class CsvLoader(MessageHandler.MessageUser):
         outputPivotVal_end, outputPivotVal = False,  float(outputPivotVal)
     else: outputPivotVal_end = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow != None  and inputRow  > 0: inputRow  = int(inputRow) - 1
-    if outputRow != None and outputRow > 0: outputRow = int(outputRow) - 1
+    if inputRow == None and inputPivotVal == None: inputRow = 0
+    if inputRow != None :
+      inputRow = int(inputRow)
+      if inputRow  > 0: inputRow  -= 1
+    if outputRow != None:
+      outputRow = int(outputRow)
+      if outputRow > 0: outputRow -= 1
     inDict, outDict = {}, {}
 
     for i in range(len(filesin)):
@@ -256,7 +265,6 @@ class CsvLoader(MessageHandler.MessageUser):
       if i == 0:
         if(self.all_out_param): self.field_names = self.all_field_names
         else: self.field_names = outParam
-
       #fill input param dictionary
       for key in inParam:
         if i == 0: inDict[key] = np.zeros(len(filesin))
@@ -343,7 +351,7 @@ class CsvLoader(MessageHandler.MessageUser):
               <inputPivotValue>
 
     """
-    inParam, outParam, inputRow                 = options['inParam'], options['outParam'], options.get('inputRow',None)
+    inParam, outParam, inputRow                 = options['inParam'], options['outParam'], copy.deepcopy(options.get('inputRow',None))
     SampledVars, inputPivotVal, outputPivotVal  = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None)
     pivotParameter                              = options.get('pivotParameter',None)
     #load the data into the numpy array
@@ -364,7 +372,10 @@ class CsvLoader(MessageHandler.MessageUser):
         outputPivotVal_all, outputPivotVal = False,  [float(x) for x in outputPivotVal.split()]
     else: outputPivotVal_all = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow != None  and inputRow  > 0: inputRow  = int(inputRow) - 1
+    if inputRow == None and inputPivotVal == None: inputRow = 0
+    if inputRow != None :
+      inputRow = int(inputRow)
+      if inputRow  > 0: inputRow  -= 1
     if inputRow > data[:,0].size-1  and inputRow != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual rows in file '+ str(filein) + '!')
     inDict, outDict = {}, {}
     self.field_names = self.all_field_names if self.all_out_param else outParam

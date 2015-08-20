@@ -91,12 +91,12 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
   //if(false)
   if(edgeIndices.size() > 0)
   {
-    time_t t0,t1;
+    time_t t0 = clock();
+    time_t t1;
     if (verbose)
     {
       std::cerr << " (Pruning an external graph)..." << std::endl
                 << "\tLoading Edges...";
-      t0 = clock();
     }
     P = new ngl::prebuiltNGLPointSet<T>(pts, numPts, edgeIndices);
     if (verbose)
@@ -127,12 +127,12 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
     exit(1);
   }
 
-  time_t t0, t1;
+  time_t t0 = clock();
+  time_t t1;
 
   if (verbose)
   {
     std::cerr << "\n\tConstructing graph...";
-    t0 = clock();
   }
   graphAlgorithms[type](*P,&indices,numEdges,params);
   if (verbose)
@@ -173,7 +173,7 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
     dists = boost::numeric::ublas::matrix<T>(kmax,Size());
 
     boost::numeric::ublas::vector<int> nextNeighborId(numPts);
-    for(unsigned int i = 0; i < numPts; i++)
+    for(int i = 0; i < numPts; i++)
     {
       nextNeighborId(i) = 0;
       for(int k = 0; k < kmax; k++)
@@ -188,7 +188,7 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
       int i1 = it->first;
       int i2 = it->second;
       double dist = 0;
-      for(unsigned int d = 0; d < dims; d++)
+      for(int d = 0; d < dims; d++)
           dist += ((X(d,i1)-X(d,i2))*(X(d,i1)-X(d,i2)));
 
       int j = nextNeighborId(i1);
@@ -224,7 +224,7 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
     dists = boost::numeric::ublas::matrix<T>(kmax,Size());
 
     boost::numeric::ublas::vector<int> nextNeighborId(numPts);
-    for(unsigned int i = 0; i < numPts; i++)
+    for(int i = 0; i < numPts; i++)
     {
       nextNeighborId(i) = 0;
       for(int k = 0; k < kmax; k++)
@@ -246,7 +246,7 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
       }
 
       double dist = 0;
-      for(unsigned int d = 0; d < dims; d++)
+      for(int d = 0; d < dims; d++)
           dist += ((X(d,i1)-X(d,i2))*(X(d,i1)-X(d,i2)));
 
       int j = nextNeighborId(i1);
@@ -261,7 +261,7 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
     }
   }
 
-  for(unsigned int i = 0; i < numPts; i++)
+  for(int i = 0; i < numPts; i++)
     //TODO: too many neighborhood representations floating around, this one is
     //      useful for later queries to the data, when the user wants to ask
     //      who is near point x?
@@ -297,7 +297,7 @@ boost::numeric::ublas::matrix<T> &distances)
   for(int i = 0; i < 2; i++)
     for(int j = 0; j < Size(); j++)
       G(i,j) = 0;
-//  G.Set(0);
+ // G.Set(0);
 
   //compute steepest asc/descending neighbors
   for(int i=0; i < (int)Size(); i++)
@@ -409,7 +409,7 @@ boost::numeric::ublas::matrix<T> &distances)
       }
     }
   }
-//  G.deallocate();
+ // G.deallocate();
 
   //compute for each point its minimum and maximum based on
   //steepest ascent/descent
@@ -417,7 +417,7 @@ boost::numeric::ublas::matrix<T> &distances)
     flow.push_back(FlowPair(-1,-1));
 
   std::list<int> path;
-  for(unsigned int i=0; i < Size(); i++)
+  for(int i=0; i < Size(); i++)
   {
     //If we have not identified this point's maximum, then we will do so now
     if( flow[i].up == -1)
@@ -435,7 +435,18 @@ boost::numeric::ublas::matrix<T> &distances)
       if(prev == -1)
       {
         ext = path.back();
-        maxHierarchy[ext] = Merge<T>(RangeY(),ext,ext);
+        if(this->persistenceType.compare("difference") == 0)
+        {
+          maxHierarchy[ext] = Merge<T>(RangeY(),ext,ext);
+        }
+        else if(this->persistenceType.compare("count") == 0)
+        {
+          maxHierarchy[ext] = Merge<T>(Size(),ext,ext);
+        }
+        else if(this->persistenceType.compare("probability") == 0)
+        {
+          maxHierarchy[ext] = Merge<T>(1,ext,ext);
+        }
       }
       else
         ext = flow[prev].up;
@@ -445,7 +456,7 @@ boost::numeric::ublas::matrix<T> &distances)
     }
   }
 
-  for(unsigned int i=0; i < Size(); i++)
+  for(int i=0; i < Size(); i++)
   {
     if( flow[i].down == -1)
     {
@@ -460,7 +471,18 @@ boost::numeric::ublas::matrix<T> &distances)
       if(prev == -1)
       {
         ext = path.back();
-        minHierarchy[ext] = Merge<T>(RangeY(),ext,ext);
+        if(this->persistenceType.compare("difference") == 0)
+        {
+          minHierarchy[ext] = Merge<T>(RangeY(),ext,ext);
+        }
+        else if(this->persistenceType.compare("count") == 0)
+        {
+          minHierarchy[ext] = Merge<T>(Size(),ext,ext);
+        }
+        else if(this->persistenceType.compare("probability") == 0)
+        {
+          minHierarchy[ext] = Merge<T>(1,ext,ext);
+        }
       }
       else
         ext = flow[prev].down;
@@ -558,8 +580,8 @@ void AMSC<T>::EstimateIntegralLines(std::string method,
 {
   if( method.compare("steepest") == 0)
     SteepestEdge(edges,distances);
-//  else if(method.compare("maxflow") == 0)
-//    MaxFlow(edges,distances);
+ // else if(method.compare("maxflow") == 0)
+ //   MaxFlow(edges,distances);
   else
   {
     //TODO
@@ -609,11 +631,29 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
         }
         else if (this->persistenceType.compare("probability") == 0)
         {
-          //FIXME: implement this & test
+          T probabilityIntegral = 0.;
+          int count = 0;
+
+          for(int idx = 0; idx < Size(); idx++)
+          {
+            if (flow[idx].up == p.first)
+            {
+              probabilityIntegral += w(idx);
+              count++;
+            }
+          }
+          pers = probabilityIntegral;
+          if (count > 0)
+            pers /= (T) count;
         }
         else if (this->persistenceType.compare("count") == 0)
         {
-          //FIXME: implement this & test
+          //TODO: test
+          int count = 0;
+          for(int idx = 0; idx < Size(); idx++)
+            if (flow[idx].up == p.first)
+              count++;
+          pers = count;
         }
         else if (this->persistenceType.compare("area") == 0)
         {
@@ -654,11 +694,15 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
 
   //compute final persistences - recursively merge smallest persistence
   //extrema and update remaining peristencies depending on the merge
+
+  //First, set each maximum to merge into itself
   std::map<int,int> merge;
   for(persistence_map_it it = maxHierarchy.begin();
       it != maxHierarchy.end();
       it++)
+  {
     merge[it->first] = it->first;
+  }
 
   map_pfi_pi ptmp;
   map_pi_pfi pinv2;
@@ -719,11 +763,100 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
     }
     else if (this->persistenceType.compare("probability") == 0)
     {
-      //FIXME: implement this & test
+      T newPersistence = 0;
+      T oldPersistence = 0;
+
+      int newCount = 0;
+      int oldCount = 0;
+
+      for(int idx = 0; idx < Size(); idx++)
+      {
+        int extIdx = followChain(flow[idx].up, merge);
+        if (extIdx == p.first)
+        {
+          newPersistence += w(idx);
+          newCount++;
+        }
+        if (extIdx == pold.first)
+        {
+          oldPersistence += w(idx);
+          oldCount++;
+        }
+      }
+
+      if (newCount > 0)
+        newPersistence /= (T)newCount;
+
+      if (oldCount > 0)
+        oldPersistence /= (T)oldCount;
+
+      //check if there is new merge pair with increased persistence (or same
+      // persistence and a larger index maximum)
+      T diff = newPersistence - oldPersistence;
+      if( diff > 0 || (diff == 0 && p.first > pold.first ))
+      {
+        //if the persistence increased insert into the persistence list and
+        //merge possible other extrema with smaller persistence values first
+        double npers = newPersistence;
+        persistence[std::pair<T,int>(npers,saddleIdx)] = p;
+      }
+      //otherwise merge the pair
+      else
+      {
+        //check if the pair has not been previously merged
+        map_pi_pfi_it invIt = pinv2.find(p);
+        if(pinv2.end() == invIt)
+        {
+          merge[p.first] = p.second;
+          maxHierarchy[p.first].persistence = pers;
+          maxHierarchy[p.first].parent = p.second;
+          maxHierarchy[p.first].saddle = saddleIdx;
+
+          ptmp[std::pair<T,int>(pers,saddleIdx)] = p;
+          pinv2[p] = std::pair<T,int>(pers,saddleIdx);
+        }
+      }
     }
     else if (this->persistenceType.compare("count") == 0)
     {
-      //FIXME: implement this & test
+      //TODO: test
+      int newPersistence = 0;
+      int oldPersistence = 0;
+      for(int idx = 0; idx < Size(); idx++)
+      {
+        int extIdx = followChain(flow[idx].up, merge);
+        if (extIdx == p.first)
+          newPersistence++;
+        if (extIdx == pold.first)
+          oldPersistence++;
+      }
+
+      //check if there is new merge pair with increased persistence (or same
+      // persistence and a larger index maximum)
+      T diff = newPersistence - oldPersistence;
+      if( diff > 0 || (diff == 0 && p.first > pold.first ))
+      {
+        //if the persistence increased insert into the persistence list and
+        //merge possible other extrema with smaller persistence values first
+        double npers = newPersistence;
+        persistence[std::pair<T,int>(npers,saddleIdx)] = p;
+      }
+      //otherwise merge the pair
+      else
+      {
+        //check if the pair has not been previously merged
+        map_pi_pfi_it invIt = pinv2.find(p);
+        if(pinv2.end() == invIt)
+        {
+          merge[p.first] = p.second;
+          maxHierarchy[p.first].persistence = pers;
+          maxHierarchy[p.first].parent = p.second;
+          maxHierarchy[p.first].saddle = saddleIdx;
+
+          ptmp[std::pair<T,int>(pers,saddleIdx)] = p;
+          pinv2[p] = std::pair<T,int>(pers,saddleIdx);
+        }
+      }
     }
     else if (this->persistenceType.compare("area") == 0)
     {
@@ -767,11 +900,28 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
         }
         else if (this->persistenceType.compare("probability") == 0)
         {
-          //FIXME: implement this & test
+          T probabilityIntegral = 0;
+          int count = 0;
+
+          for(int idx = 0; idx < Size(); idx++)
+          {
+            if (flow[idx].down == p.first)
+            {
+              probabilityIntegral += w(idx);
+              count++;
+            }
+          }
+          pers = probabilityIntegral;
+          if (count > 0)
+            pers /= (T) count;
         }
         else if (this->persistenceType.compare("count") == 0)
         {
-          //FIXME: implement this & test
+          int count = 0;
+          for(int idx = 0; idx < Size(); idx++)
+            if (flow[idx].down == p.first)
+              count++;
+          pers = count;
         }
         else if (this->persistenceType.compare("area") == 0)
         {
@@ -814,11 +964,15 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
 
   //compute final persistences - recursively merge smallest persistence
   //extrema and update remaining peristencies depending on the merge
+
+  //First, set each maximum to merge into itself
   std::map<int,int> merge;
   for(persistence_map_it it = minHierarchy.begin();
       it != minHierarchy.end();
       it++)
+  {
     merge[it->first] = it->first;
+  }
 
   map_pfi_pi ptmp;
   map_pi_pfi pinv2;
@@ -877,11 +1031,95 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
     }
     else if (this->persistenceType.compare("probability") == 0)
     {
-      //FIXME: implement this & test
+      T newPersistence = 0;
+      T oldPersistence = 0;
+
+      int newCount = 0;
+      int oldCount = 0;
+
+      for(int idx = 0; idx < Size(); idx++)
+      {
+        int extIdx = followChain(flow[idx].down, merge);
+        if (extIdx == p.first)
+        {
+          newPersistence += w(idx);
+          newCount++;
+        }
+
+        if (extIdx == pold.first)
+        {
+          oldPersistence += w(idx);
+          oldCount++;
+        }
+      }
+
+      if (newCount > 0)
+        newPersistence /= (T) newCount;
+      if (oldCount > 0)
+        oldPersistence /= (T) oldCount;
+
+
+      T diff = newPersistence - oldPersistence;
+      if( diff > 0 || (diff == 0 && p.first < pold.first ))
+      {
+        //if the persistence increased insert into the persistence list and
+        //merge possible other extrema with smaller persistence values first
+        double npers = newPersistence;
+        persistence[std::pair<T,int>(npers,saddleIdx)] = p;
+      }
+      //otherwise merge the pair
+      else
+      {
+        //check if the pair has not been previously merged
+        map_pi_pfi_it invIt = pinv2.find(p);
+        if(pinv2.end() == invIt)
+        {
+          merge[p.first] = p.second;
+          minHierarchy[p.first].persistence = pers;
+          minHierarchy[p.first].parent = p.second;
+          minHierarchy[p.first].saddle = saddleIdx;
+          ptmp[std::pair<T,int>(pers,saddleIdx)] = p;
+          pinv2[p] = std::pair<T,int>(pers,saddleIdx);
+        }
+      }
     }
     else if (this->persistenceType.compare("count") == 0)
     {
-      //FIXME: implement this & test
+      //TODO: test
+      int newPersistence = 0;
+      int oldPersistence = 0;
+      for(int idx = 0; idx < Size(); idx++)
+      {
+        int extIdx = followChain(flow[idx].down, merge);
+        if (extIdx == p.first)
+          newPersistence++;
+        if (extIdx == pold.first)
+          oldPersistence++;
+      }
+
+      T diff = newPersistence - oldPersistence;
+      if( diff > 0 || (diff == 0 && p.first < pold.first ))
+      {
+        //if the persistence increased insert into the persistence list and
+        //merge possible other extrema with smaller persistence values first
+        double npers = newPersistence;
+        persistence[std::pair<T,int>(npers,saddleIdx)] = p;
+      }
+      //otherwise merge the pair
+      else
+      {
+        //check if the pair has not been previously merged
+        map_pi_pfi_it invIt = pinv2.find(p);
+        if(pinv2.end() == invIt)
+        {
+          merge[p.first] = p.second;
+          minHierarchy[p.first].persistence = pers;
+          minHierarchy[p.first].parent = p.second;
+          minHierarchy[p.first].saddle = saddleIdx;
+          ptmp[std::pair<T,int>(pers,saddleIdx)] = p;
+          pinv2[p] = std::pair<T,int>(pers,saddleIdx);
+        }
+      }
     }
     else if (this->persistenceType.compare("area") == 0)
     {
@@ -895,6 +1133,7 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
               std::vector<std::string> &_names, std::string graph,
               std::string gradientMethod, int maxN, T beta,
               std::string persistenceType,
+              std::vector<T> &win,
               std::vector<int> &edgeIndices)
 {
   this->persistenceType = persistenceType;
@@ -907,7 +1146,7 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
   // to be exposed to the user, for now I will enforce that it does not happen
   bool connect = false;
 
-  for(int i = 0; i < _names.size(); i++)
+  for(unsigned int i = 0; i < _names.size(); i++)
     names.push_back(_names[i]);
 
   int M = Xin.size() / yin.size();
@@ -915,20 +1154,32 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
 
   X = boost::numeric::ublas::matrix<T>(M,N);
   y = boost::numeric::ublas::vector<T>(N);
+  w = boost::numeric::ublas::vector<T>(N);
 
   globalMinIdx = 0;
   globalMaxIdx = 0;
+  T sumW = 0;
   for(int n = 0; n < N; n++)
   {
     for(int m = 0; m < M; m++)
       X(m,n) = Xin[n*M+m];
     y(n) = yin[n];
+    w(n) = win[n];
+    sumW += w(n);
 
     if(y(n) > y(globalMaxIdx))
       globalMaxIdx = n;
     if(y(n) < y(globalMinIdx))
       globalMinIdx = n;
   }
+
+  if (sumW > 0)
+    for(int n = 0; n < N; n++)
+    {
+      std::cerr << w(n) << " -> ";
+      w(n) /= (T) sumW;
+      std::cerr << w(n) << std::endl;
+    }
 
   boost::numeric::ublas::matrix<int> edges;
   boost::numeric::ublas::matrix<T> distances;
@@ -959,7 +1210,7 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
     std::cerr << "\rEstimating Integral Lines..." << std::flush;
   }
   EstimateIntegralLines(gradientMethod, edges, distances);
-//  distances.deallocate();
+ // distances.deallocate();
 
   if (verbose)
   {
@@ -991,7 +1242,7 @@ AMSC<T>::AMSC(std::vector<T> &Xin, std::vector<T> &yin,
     t = clock();
     std::cerr << "\rCleaning up..." << std::flush;
   }
-//  edges.deallocate();
+ // edges.deallocate();
 
   if (verbose)
   {
@@ -1007,7 +1258,7 @@ template<typename T>
 void AMSC<T>::ConnectComponents(std::set<int_pair> &ngraph, int &maxCount)
 {
   UnionFind connectedComponents;
-  for(unsigned int i = 0; i < Size(); i++)
+  for(int i = 0; i < Size(); i++)
     connectedComponents.MakeSet(i);
 
   for(std::set<int_pair>::iterator iter= ngraph.begin();
@@ -1024,13 +1275,13 @@ void AMSC<T>::ConnectComponents(std::set<int_pair> &ngraph, int &maxCount)
   {
     std::cerr << "Connected Components: " << numComponents << "(Graph size: "
               << ngraph.size() << ")" << std::endl;
-    for(int i = 0; i < reps.size(); i++)
+    for(unsigned int i = 0; i < reps.size(); i++)
       std::cerr << reps[i] << " ";
-//    std::cerr << std::endl << "EDGES:" << std::endl;
-//    for( std::set<int_pair>::iterator it = ngraph.begin();
-//         it != ngraph.end();
-//         it++)
-//      std::cerr << it->first << " " << it->second << std::endl;
+   // std::cerr << std::endl << "EDGES:" << std::endl;
+   // for( std::set<int_pair>::iterator it = ngraph.begin();
+   //      it != ngraph.end();
+   //      it++)
+   //   std::cerr << it->first << " " << it->second << std::endl;
   }
 
   while(numComponents > 1)
@@ -1056,17 +1307,17 @@ void AMSC<T>::ConnectComponents(std::set<int_pair> &ngraph, int &maxCount)
         {
           int AvIdx = components[a][i];
           std::vector<T> ai;
-          for(unsigned int d = 0; d < Dimension(); d++)
+          for(int d = 0; d < Dimension(); d++)
               ai.push_back(X(d,AvIdx));
           for(unsigned int j = 0; j < components[b].size(); j++)
           {
             int BvIdx = components[b][j];
             std::vector<T> bj;
-            for(unsigned int d = 0; d < Dimension(); d++)
+            for(int d = 0; d < Dimension(); d++)
               bj.push_back(X(d,BvIdx));
 
             T distance = 0;
-            for(unsigned int d = 0; d < Dimension(); d++)
+            for(int d = 0; d < Dimension(); d++)
               distance += (ai[d]-bj[d])*(ai[d]-bj[d]);
             if(minDistance == -1 || distance < minDistance)
             {
@@ -1101,7 +1352,7 @@ void AMSC<T>::ConnectComponents(std::set<int_pair> &ngraph, int &maxCount)
     delete [] components;
   }
   int *counts = new int[Size()];
-  for(unsigned int i = 0; i < Size(); i++)
+  for(int i = 0; i < Size(); i++)
     counts[i] = 0;
 
   for(std::set<int_pair>::iterator it = ngraph.begin();
@@ -1111,7 +1362,7 @@ void AMSC<T>::ConnectComponents(std::set<int_pair> &ngraph, int &maxCount)
     counts[it->first]+=1;
     counts[it->second]+=1;
   }
-  for(unsigned int i = 0; i < Size(); i++)
+  for(int i = 0; i < Size(); i++)
     maxCount = maxCount < counts[i] ? counts[i] : maxCount;
 
   delete [] counts;

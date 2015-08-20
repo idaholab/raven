@@ -75,6 +75,7 @@
     <xsd:complexType name="CodeModel">
         <xsd:sequence>
             <xsd:element name="executable" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="preexec" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="alias" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="clargs" type="CodeCLArgsType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="fileargs" type="CodeFileArgsType" minOccurs="0" maxOccurs="unbounded"/>
@@ -159,7 +160,7 @@
                      </xsd:extension>
                      </xsd:complexContent>
                      </xsd:complexType>
-                     
+
                      <xsd:complexType name="HDMRRom">
                      <xsd:complexContent>
                      <xsd:extension base="ROM">
@@ -169,13 +170,13 @@
                      </xsd:extension>
                      </xsd:complexContent>
                      </xsd:complexType>
-                     
+
                      <xsd:simpleType  name="positiveInteger">
                      <xsd:restriction   base="xsd:integer">
                      <xsd:minExclusive value="0"/>
                      </xsd:restriction>
                      </xsd:simpleType>
-                     
+
                      <xsd:complexType name="NDinvDistWeight">
                      <xsd:complexContent>
                      <xsd:extension base="ROM">
@@ -185,7 +186,7 @@
                      </xsd:extension>
                      </xsd:complexContent>
                      </xsd:complexType>
-                     
+
                      <xsd:complexType name="SciKitLearn">
                      <xsd:complexContent>
                      <xsd:extension base="ROM">

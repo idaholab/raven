@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- A simple example of writing an external python function and using it
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <!-- A simple example of writing an external python function and using it
      inside RAVEN -->
-<!-- Here we are testing several things:
+  <!-- Here we are testing several things:
      1. We can handle data from multiple input files.
      2. We can handle methods defined in multiple .py files.
      3. A subset of inputs from the originating data is reported correctly, note
@@ -21,89 +22,92 @@
     12. Scalar or non-conformant data size warning message when attempting to
         store it in the output, it is instead put in the metadata: Max
  -->
-<Simulation verbosity='debug'>
-<RunInfo>
-  <WorkingDir>externalPostProcessor</WorkingDir>
-  <Sequence>
+  <RunInfo>
+    <WorkingDir>externalPostProcessor</WorkingDir>
+    <Sequence>
     loadData1,
     loadData2,
     applyFunctions,
     saveData
   </Sequence>
-</RunInfo>
-<Models>
-<!-- This post-processor will call methods defined in two external python 
+
+  </RunInfo>
+
+  <Models>
+    <!-- This post-processor will call methods defined in two external python
      scripts compatible with RAVEN -->
-  <PostProcessor name='functionPP' subType='External' verbosity='debug'>
-    <method>Delta,Sum,Norm,Mean,Max,Min,DoesNotExist</method>
-<!--    <Assembler> -->
-      <Function class='Functions' type='External'>basicOps</Function>
-      <Function class='Functions' type='External'>advOps</Function>
-<!--    </Assembler> -->
-  </PostProcessor>
-</Models>
-<!-- The external methods will be defined in the files pointed to by these
+    <PostProcessor name="functionPP" subType="External" verbosity="debug">
+      <method>Delta,Sum,Norm,Mean,Max,Min,DoesNotExist</method>
+      <Function class="Functions" type="External">basicOps</Function>
+      <Function class="Functions" type="External">advOps</Function>
+    </PostProcessor>
+  </Models>
+
+  <!-- The external methods will be defined in the files pointed to by these
      guys -->
-<Functions>
-    <External name='basicOps' file='externalPostProcessor/BasicOperators'>
-        <variable>X</variable>
-        <variable>Y</variable>
+  <Functions>
+    <External file="externalPostProcessor/BasicOperators" name="basicOps">
+      <variable>X</variable>
+      <variable>Y</variable>
     </External>
-    <External name='advOps' file='externalPostProcessor/AdvancedOperators'>
-        <variable>A</variable>
-        <variable>B</variable>
+    <External file="externalPostProcessor/AdvancedOperators" name="advOps">
+      <variable>A</variable>
+      <variable>B</variable>
     </External>
-</Functions>
-<Steps>
-<!-- Read the data from a csv into the hdf5 database used by this run -->
-    <IOStep name='loadData1' fromDirectory='.'>
-      <Input  class='DataObjects'    type='PointSet'>testData</Input>
-      <Output   class='Databases' type='HDF5'   >myDB</Output>
-    </IOStep> 
-    <IOStep name='loadData2' fromDirectory='.'>
-      <Input  class='DataObjects'    type='PointSet'>testData2</Input>
-      <Output   class='Databases' type='HDF5'   >myDB</Output>
-    </IOStep> 
-<!-- Perform the sum and difference operators using the function interface -->
-    <PostProcess name='applyFunctions'>
-        <Input    class='DataObjects'     type='PointSet' >testData2</Input>
-        <Input    class='DataObjects'     type='PointSet' >testData</Input>
-        <Model    class='Models'    type='PostProcessor'>functionPP</Model>
-        <Output   class='DataObjects'     type='PointSet' >outTPS</Output>
+  </Functions>
+
+  <Steps>
+    <!-- Read the data from a csv into the hdf5 database used by this run -->
+    <IOStep fromDirectory="." name="loadData1">
+      <Input class="DataObjects" type="PointSet">testData</Input>
+      <Output class="Databases" type="HDF5">myDB</Output>
+    </IOStep>
+    <IOStep fromDirectory="." name="loadData2">
+      <Input class="DataObjects" type="PointSet">testData2</Input>
+      <Output class="Databases" type="HDF5">myDB</Output>
+    </IOStep>
+    <!-- Write the results to a csv -->
+    <IOStep name="saveData">
+      <Input class="DataObjects" type="PointSet">outTPS</Input>
+      <Output class="OutStreamManager" type="Print">myDump</Output>
+    </IOStep>
+    <!-- Perform the sum and difference operators using the function interface -->
+    <PostProcess name="applyFunctions">
+      <Input class="DataObjects" type="PointSet">testData2</Input>
+      <Input class="DataObjects" type="PointSet">testData</Input>
+      <Model class="Models" type="PostProcessor">functionPP</Model>
+      <Output class="DataObjects" type="PointSet">outTPS</Output>
     </PostProcess>
-<!-- Write the results to a csv -->
-    <IOStep name='saveData'>
-      <Input  class='DataObjects'            type='PointSet'>outTPS</Input>
-      <Output class='OutStreamManager' type='Print'       >myDump</Output>
-    </IOStep> 
-</Steps>
+  </Steps>
 
-<OutStreamManager>
-<!-- A csv file containing the output of the example -->
-  <Print name='myDump'>
-    <type>csv</type>
-    <source>outTPS</source>
-  </Print>
-</OutStreamManager>
+  <OutStreamManager>
+    <!-- A csv file containing the output of the example -->
+    <Print name="myDump">
+      <type>csv</type>
+      <source>outTPS</source>
+    </Print>
+  </OutStreamManager>
 
-<Databases>
-<!-- The necessary database object -->
-  <HDF5 name="myDB"/> 
-</Databases>
-<DataObjects>
-<!-- The input PointSet objects -->
-  <PointSet name='testData'>
-    <Input>X,Y</Input>
-    <Output>Z</Output>
-  </PointSet>
-  <PointSet name='testData2'>
-    <Input>A,B</Input>
-    <Output>C</Output>
-  </PointSet>
-<!-- The output PointSet object -->
-  <PointSet name='outTPS'>
-    <Input>A,B,X</Input>
-    <Output>Z,Sum,Norm,advOps.Delta,Max</Output>
-  </PointSet>
-</DataObjects>
+  <Databases>
+    <!-- The necessary database object -->
+    <HDF5 name="myDB"/>
+  </Databases>
+
+  <DataObjects>
+    <!-- The input PointSet objects -->
+    <PointSet name="testData">
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </PointSet>
+    <PointSet name="testData2">
+      <Input>A,B</Input>
+      <Output>C</Output>
+    </PointSet>
+    <!-- The output PointSet object -->
+    <PointSet name="outTPS">
+      <Input>A,B,X</Input>
+      <Output>Z,Sum,Norm,advOps.Delta,Max</Output>
+    </PointSet>
+  </DataObjects>
+
 </Simulation>

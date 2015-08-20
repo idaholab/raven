@@ -237,8 +237,8 @@ class HDF5(DateBase):
     # Firstly, retrieve the history from which the Point must be extracted
     histVar = self.returnHistory(attributes)
     # Check the outParam variables and the outputPivotVal filters
-    inParam, outParam, inputRow, outputRow                 = attributes['inParam'], attributes['outParam'], attributes.get('inputRow',None), attributes.get('outputRow',None)
-    inputPivotVal, outputPivotVal, operator   = attributes.get('inputPivotValue',None), attributes.get('outputPivotValue',None), attributes.get('operator',None)
+    inParam, outParam, inputRow, outputRow                 = attributes['inParam'], attributes['outParam'], copy.deepcopy(attributes.get('inputRow',None)), copy.deepcopy(attributes.get('outputRow',None))
+    inputPivotVal, outputPivotVal, operator                = attributes.get('inputPivotValue',None), attributes.get('outputPivotValue',None), attributes.get('operator',None)
     pivotParameter                                         = attributes.get('pivotParameter',None)
     if 'all' in outParam: all_out_param = True
     else                : all_out_param = False
@@ -248,8 +248,13 @@ class HDF5(DateBase):
         outputPivotVal_end, outputPivotVal = False,  float(outputPivotVal)
     else: outputPivotVal_end = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow != None  and inputRow  > 0: inputRow  = int(inputRow) - 1
-    if outputRow != None and outputRow > 0: outputRow = int(outputRow) - 1
+    if inputRow == None and inputPivotVal == None: inputRow = 0
+    if inputRow != None :
+      inputRow = int(inputRow)
+      if inputRow  > 0: inputRow  -= 1
+    if outputRow != None:
+      outputRow = int(outputRow)
+      if outputRow > 0: outputRow -= 1
 
     if pivotParameter != None:
       pivotIndex = histVar[1]['output_space_headers'].index(pivotParameter) if pivotParameter in histVar[1]['output_space_headers'] else None
@@ -359,7 +364,7 @@ class HDF5(DateBase):
     Note: This function retrieve a PointSet from an HDF5 database
     """
     # Check the outParam variables and the outputPivotVal filters
-    inParam, outParam, inputRow, outputRow                 = attributes['inParam'], attributes['outParam'], attributes.get('inputRow',None), attributes.get('outputRow',None)
+    inParam, outParam, inputRow, outputRow                 = attributes['inParam'], attributes['outParam'], copy.deepcopy(attributes.get('inputRow',None)), copy.deepcopy(attributes.get('outputRow',None))
     inputPivotVal, outputPivotVal, operator                = attributes.get('inputPivotValue',None), attributes.get('outputPivotValue',None), attributes.get('operator',None)
     pivotParameter                                         = attributes.get('pivotParameter',None)
 
@@ -372,8 +377,13 @@ class HDF5(DateBase):
         outputPivotVal_end, outputPivotVal = False,  float(outputPivotVal)
     else: outputPivotVal_end = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow != None  and inputRow  > 0: inputRow  = int(inputRow) - 1
-    if outputRow != None and outputRow > 0: outputRow = int(outputRow) - 1
+    if inputRow == None and inputPivotVal == None: inputRow = 0
+    if inputRow != None :
+      inputRow = int(inputRow)
+      if inputRow  > 0: inputRow  -= 1
+    if outputRow != None:
+      outputRow = int(outputRow)
+      if outputRow > 0: outputRow -= 1
 
     inDict   = {}
     outDict  = {}
@@ -501,7 +511,7 @@ class HDF5(DateBase):
     """
     # Check the outParam variables and the outputPivotVal filters
 
-    inParam, outParam, inputRow                 = attributes['inParam'], attributes['outParam'], attributes.get('inputRow',None)
+    inParam, outParam, inputRow                 = attributes['inParam'], attributes['outParam'], copy.deepcopy(attributes.get('inputRow',None))
     inputPivotVal, outputPivotVal               = attributes.get('inputPivotValue',None), attributes.get('outputPivotValue',None)
     pivotParameter                              = attributes.get('pivotParameter',None)
     if 'all' in outParam: all_out_param = True
@@ -512,7 +522,10 @@ class HDF5(DateBase):
         outputPivotVal_all, outputPivotVal = False,  [float(x) for x in outputPivotVal.split()]
     else: outputPivotVal_all = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
-    if inputRow != None  and inputRow  > 0: inputRow  = int(inputRow) - 1
+    if inputRow == None and inputPivotVal == None: inputRow = 0
+    if inputRow != None :
+      inputRow = int(inputRow)
+      if inputRow  > 0: inputRow  -= 1
     inDict  = {}
     outDict = {}
     metaDict= {}

@@ -9,11 +9,13 @@
             <xsd:element name="Grid"                     type="GridSampler"            minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="SparseGridCollocation"    type="SparseGridSampler"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Sobol"                    type="SparseGridSampler"      minOccurs="0" maxOccurs="unbounded"/>
+            <!--Why is the Sobol nicknamed SparseGridSampler, the same as SparseGridCollocation? -->
             <xsd:element name="Stratified"               type="GridSampler"            minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="ResponseSurfaceDesign"    type="ResponseSurfaceSampler" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="FactorialDesign"          type="FactorialSampler"       minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="DynamicEventTree"         type="DETSampler"             minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="Adaptive"                 type="AdaptiveSampler"        minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="LimitSurfaceSearch"       type="LSSSampler"             minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="AdaptiveSparseGrid"       type="AdaptiveSGSampler"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdaptiveDynamicEventTree" type="AdaptiveDETSampler"     minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -37,12 +39,15 @@
         </xsd:all>
     </xsd:complexType>
 
-    <xsd:simpleType name="floatList">
-        <xsd:list itemType="xsd:float"/>
-    </xsd:simpleType>
     <xsd:simpleType name="variableDistributionType">
         <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
+    <!-- ************************** -->
+    <!-- Insufficiently Implemented -->
+    <!-- ************************** -->
+    <!-- The extendedVariableDistributionType adds <grid> onto BOTH the <var><dist> node as well as <var><function>,
+              when it really should only be <var><dist>. This can mostly be resolved, except in the
+              HybridDET Preconditioner samplers, where it's impossible to tell if the precon is grid or non-grid type.-->
     <xsd:complexType name="extendedVariableDistributionType">
         <xsd:simpleContent>
             <xsd:extension base="variableDistributionType">
@@ -61,9 +66,10 @@
         </xsd:simpleContent>
     </xsd:complexType>
     <xsd:complexType name="variableType">
-        <xsd:sequence>
+        <xsd:choice>
             <xsd:element name="distribution" type="extendedVariableDistributionType" minOccurs="1"/>
-        </xsd:sequence>
+            <xsd:element name="function"     type="xsd:string"                       minOccurs="1"/>
+        </xsd:choice>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
     <xsd:complexType name="extendedVariableType">
@@ -189,17 +195,14 @@
             <xsd:enumeration value="online"/>
         </xsd:restriction>
     </xsd:simpleType>
-    <xsd:simpleType name="RavenBool">
+    <xsd:simpleType name="ASGConvTarget">
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="false"/>
-            <xsd:enumeration value="False"/>
-            <xsd:enumeration value="no"/>
-            <xsd:enumeration value="true"/>
-            <xsd:enumeration value="True"/>
-            <xsd:enumeration value="yes"/>
+            <xsd:enumeration value="mean"/>
+            <xsd:enumeration value="variance"/>
+            <xsd:enumeration value="coeffs"/>
         </xsd:restriction>
     </xsd:simpleType>
-    <xsd:complexType name="AdaptiveSampler">
+    <xsd:complexType name="LSSSampler">
         <xsd:sequence>
             <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Function"         type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
@@ -213,6 +216,22 @@
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"      type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr"/>
+    </xsd:complexType>
+    <xsd:complexType name="AdaptiveSGSampler">
+        <xsd:sequence>
+            <xsd:element name="Convergence"                      minOccurs="1" maxOccurs="unbounded">
+                <xsd:complexType mixed="true">
+                    <xsd:attribute name="target"         type="ASGConvTarget"/>
+                    <xsd:attribute name="maxPolyOrder"   type="xsd:integer"/>
+                    <xsd:attribute name="persistence"    type="xsd:integer"/>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
@@ -272,6 +291,4 @@
         <xsd:attribute name="mode"              type="modeAttr"  default="post"/>
         <xsd:attribute name="updateGrid"        type="RavenBool" default="true"/>
     </xsd:complexType>
-
-
 </xsd:schema>

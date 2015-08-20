@@ -1,0 +1,6 @@
+#Note, these instructions have not been tested as much as the ubuntu and fedora install notes.  
+
+#A repository is needed to get some of the files.
+sudo zypper addrepo http://download.opensuse.org/repositories/devel:/languages:/python/openSUSE_13.1/devel:languages:python.repo
+sudo zypper refresh
+sudo zypper install subversion swig libtool gcc gcc-c++ python-devel python-numpy python-h5py python-scipy python-scikit-learn python-matplotlib

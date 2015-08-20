@@ -1,56 +1,62 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- The purpose of this test is to exercise the OpenModelica external code interface without needing to have a built -->
-<!--   executable.  It is directly modeled on the test_relap5_code_interface.xml test and works by making sure that -->
-<!--   1) The input files are perturbed correctly -->
-<!--   2) That the raw output CSV files are properly processed for reading by RAVEN -->
-
+<?xml version="1.0" ?>
 <Simulation>
-	<RunInfo>
-    	<WorkingDir>OMInterfaceTest</WorkingDir>
-   	    <Files>BouncingBall_init.xml</Files>
-    	<Sequence>testDummyStep</Sequence>
-    	<batchSize>1</batchSize>
-	</RunInfo>
+  <Files>
+    <Input name="BouncingBall_init.xml" type="">BouncingBall_init.xml</Input>
+  </Files>
+  <!-- The purpose of this test is to exercise the OpenModelica external code interface without needing to have a built -->
+  <!--   executable.  It is directly modeled on the test_relap5_code_interface.xml test and works by making sure that -->
+  <!--   1) The input files are perturbed correctly -->
+  <!--   2) That the raw output CSV files are properly processed for reading by RAVEN -->
+  <RunInfo>
+    <WorkingDir>OMInterfaceTest</WorkingDir>
+    <Sequence>testDummyStep</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
-	<Models>
-    	<Code name="BouncingBall" subType = "OpenModelica">
-        	<executable> <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty --> </executable>
-    	</Code>
-	</Models>
+  <Models>
+    <Code name="BouncingBall" subType="OpenModelica">
+      <executable>
+        <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
+      </executable>
+    </Code>
+  </Models>
 
-	<Distributions>
-    	<Uniform name='h_dist'><lowerBound>1.0</lowerBound><upperBound>5.0</upperBound></Uniform>
-	</Distributions>
+  <Distributions>
+    <Uniform name="h_dist">
+      <lowerBound>1.0</lowerBound>
+      <upperBound>5.0</upperBound>
+    </Uniform>
+  </Distributions>
 
-	<Samplers>
-		<MonteCarlo name='MC'>
-			<sampler_init>
-      			<limit>5</limit>
-      		</sampler_init>
-      		<variable name = 'h'>
-				<distribution>h_dist</distribution>
-			</variable>
-		</MonteCarlo>
-	</Samplers>
+  <Samplers>
+    <MonteCarlo name="MC">
+      <sampler_init>
+        <limit>5</limit>
+      </sampler_init>
+      <variable name="h">
+        <distribution>h_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
 
-	<Steps>
-    	<MultiRun name='testDummyStep' re-seeding='1'>
-        	<Input   class='Files'			type=''          >BouncingBall_init.xml</Input>
-        	<Model   class='Models'			type='Code'      >BouncingBall</Model>
-        	<Sampler class='Samplers'		type='MonteCarlo'>MC</Sampler>
- 
-        	<Output  class='Databases'		type='HDF5'      >DB_BouncingBall</Output>
-    	</MultiRun >
-	</Steps>
+  <Steps>
+    <MultiRun name="testDummyStep" re-seeding="1">
+      <Input class="Files" type="">BouncingBall_init.xml</Input>
+      <Model class="Models" type="Code">BouncingBall</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="Databases" type="HDF5">DB_BouncingBall</Output>
+    </MultiRun>
+  </Steps>
 
-	<DataObjects>
-		<HistorySet name='BBHistorySet'>
-			<Input>h</Input>
-			<Output>time,v,flying,impact</Output>
-		</HistorySet>
-	</DataObjects>
+  <DataObjects>
+    <HistorySet name="BBHistorySet">
+      <Input>h</Input>
+      <Output>time,v,flying,impact</Output>
+    </HistorySet>
+  </DataObjects>
 
-	<Databases>
-		<HDF5 name="DB_BouncingBall"/>
-	</Databases>
+  <Databases>
+    <HDF5 name="DB_BouncingBall"/>
+  </Databases>
+
 </Simulation>

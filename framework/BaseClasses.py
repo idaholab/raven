@@ -7,6 +7,7 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import abc
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -15,7 +16,9 @@ import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class BaseType(MessageHandler.MessageUser):
-  """this is the base class for each general type used by the simulation"""
+  """
+    this is the base class for each general type used by the simulation
+  """
   def __init__(self):
     self.name             = ''                  # name of this istance (alias)
     self.type             = type(self).__name__ # specific type within this class
@@ -40,19 +43,24 @@ class BaseType(MessageHandler.MessageUser):
     if 'verbosity' in xmlNode.attrib.keys():
       self.verbosity = xmlNode.attrib['verbosity']
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
-    #FIXME temporarily create an error to prevent users from using the 'debug' attribute - remove it by end of June 2015 (Sonat)
-    if 'debug' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'"debug" attribute found, but has been deprecated.  Please change it to "verbosity."  Remove this error by end of June 2015.')
     self._readMoreXML(xmlNode)
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
 
   def _readMoreXML(self,xmlNode):
-    """method to be overloaded to collect the additional input"""
+    """
+    Function to read the portion of the xml input that belongs to this specialized class
+    and initialize some variables based on the inputs got.
+    @ In, xmlNode, xml.etree.ElementTree, XML element node that represents the portion of the input that belongs to this class
+    @ Out, None
+    """
     pass
 
   def setMessageHandler(self,handler):
     if not isinstance(handler,MessageHandler.MessageHandler):
-      raise IOError('Attempted to set the message handler for '+str(self)+' to '+str(handler))
+      e=IOError('Attempted to set the message handler for '+str(self)+' to '+str(handler))
+      print('\nERROR! Setting MessageHandler in BaseClass,',e,'\n')
+      sys.exit(1)
     self.messageHandler = handler
 
   def whoAreYou(self):
@@ -95,10 +103,10 @@ class BaseType(MessageHandler.MessageUser):
     the instance of an object that inherit this class
     """
     tempDict = self.whoAreYou()
-    for key in tempDict.keys(): self.raiseADebug('{0:15}: {1}'.format(key,str(tempDict[key])))
+    for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myInitializzationParams()
-    self.raiseADebug('Initialization Parameters:')
-    for key in tempDict.keys(): self.raiseADebug('{0:15}: {1}'.format(key,str(tempDict[key])))
+    self.raiseADebug('       Initialization Parameters:')
+    for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myCurrentSetting()
-    self.raiseADebug('Current Setting:')
-    for key in tempDict.keys(): self.raiseADebug('{0:15}: {1}'.format(key,str(tempDict[key])))
+    self.raiseADebug('       Current Setting:')
+    for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))

@@ -1,70 +1,81 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>test_cc_stats</WorkingDir>
-    <Files>ideal_pump.i,ideal_pump_control.py,output.csv</Files>
     <Sequence>test_read_in,test_stats_step,dump_data</Sequence>
     <batchSize>3</batchSize>
   </RunInfo>
 
+  <Files>
+    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
+    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
+    <Input name="output.csv" type="">output.csv</Input>
+  </Files>
+
   <Models>
     <PostProcessor name="test_stats" subType="ComparisonStatistics">
-      <kind bin_method='sturges'>uniform_bins</kind>
+      <kind bin_method="sturges">uniform_bins</kind>
       <compare>
         <data>fullprint_Pointset|outputs|normal1</data>
-        <reference name='normal_20_3' />
+        <reference name="normal_20_3"/>
       </compare>
       <compare>
         <data>fullprint_Pointset|outputs|normal2</data>
         <!-- Note that normal2 actually is mean=20, sigma = 3.0 -->
-        <reference name='normal_30_5' />
+        <reference name="normal_30_5"/>
       </compare>
       <compare>
         <data>fullprint_Pointset|outputs|uniform1</data>
         <data>fullprint_Pointset|outputs|uniform2p</data>
       </compare>
-      <!-- <fz>True</fz> -->
-      <Distribution class='Distributions' type='Normal'>normal_20_3</Distribution>
-      <Distribution class='Distributions' type='Normal'>normal_30_5</Distribution>
+      <!--
+        <fz>True</fz>
+      -->
+      <Distribution class="Distributions" type="Normal">normal_20_3</Distribution>
+      <Distribution class="Distributions" type="Normal">normal_30_5</Distribution>
     </PostProcessor>
   </Models>
 
   <Distributions>
-    <Normal name='normal_20_3'>
+    <Normal name="normal_20_3">
       <mean>20.0</mean>
       <sigma>3.0</sigma>
     </Normal>
-    <Normal name='normal_30_5'>
+    <Normal name="normal_30_5">
       <mean>30.0</mean>
       <sigma>5.0</sigma>
     </Normal>
   </Distributions>
 
-  <!-- <Samplers>
-    <MonteCarlo     name='RAVENmc3'>
+  <!--
+    <Samplers>
+      <MonteCarlo name="RAVENmc3">
         <sampler_init>
-            <limit>1</limit>
-            <initial_seed>1</initial_seed>
+          <limit>1</limit>
+          <initial_seed>1</initial_seed>
         </sampler_init>
-    </MonteCarlo>
-  </Samplers> -->
+      </MonteCarlo>
+    </Samplers>
+  -->
 
   <Steps>
-    <IOStep name='test_read_in' fromDirectory='../input_for_test_cc'>
-      <Input  class='DataObjects'  type='PointSet'>fullprint_Pointset</Input>
-      <Output   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Output>
+    <IOStep fromDirectory="../input_for_test_cc" name="test_read_in">
+      <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
+      <Output class="Databases" type="HDF5">MC_TEST_REWRITE</Output>
+    </IOStep>
+    <IOStep name="dump_data">
+      <Input class="DataObjects" type="PointSet">out_data</Input>
+      <Output class="OutStreamManager" type="Print">out_data</Output>
     </IOStep>
     <PostProcess name="test_stats_step">
-      <Input  class='DataObjects'  type='PointSet'>fullprint_Pointset</Input>
-      <!-- <Input   class='Databases' type='HDF5'   >MC_TEST_REWRITE</Input>-->
-      <Model class='Models' type='PostProcessor'>test_stats</Model>
-      <Output class='Files' type=''>output.csv</Output>
-      <Output class='DataObjects'  type='PointSet'>out_data</Output>
+      <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
+      <!--
+        <Input class="Databases" type="HDF5">MC_TEST_REWRITE</Input>
+      -->
+      <Model class="Models" type="PostProcessor">test_stats</Model>
+      <Output class="Files" type="">output.csv</Output>
+      <Output class="DataObjects" type="PointSet">out_data</Output>
     </PostProcess>
-    <IOStep name="dump_data">
-      <Input  class='DataObjects'  type='PointSet'>out_data</Input>
-      <Output class='OutStreamManager' type='Print'>out_data</Output>
-    </IOStep>
   </Steps>
 
   <Databases>
@@ -72,42 +83,41 @@
   </Databases>
 
   <OutStreamManager>
-    <Print name='Pointset_from_database_dump'>
+    <Print name="Pointset_from_database_dump">
       <type>csv</type>
       <source>Pointset_from_database</source>
     </Print>
-    <Print name='Pointset_IN_database_dump'>
+    <Print name="Pointset_IN_database_dump">
       <type>csv</type>
       <source>Pointset_IN_database</source>
     </Print>
-    <Print name='out_data'>
+    <Print name="out_data">
       <type>csv</type>
       <source>out_data</source>
     </Print>
-
   </OutStreamManager>
 
   <DataObjects>
-    <Point name='fullprint_Point'>
-          <Input>pipe1_Area,pipe1_Dh</Input>
-          <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    <Point name="fullprint_Point">
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
     </Point>
-    <PointSet name='fullprint_Pointset'>
+    <PointSet name="fullprint_Pointset">
       <Input>pipe1_Area,pipe1_Dh</Input>
       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
     </PointSet>
-    <PointSet name='out_data'>
-        <Input>DummyIn</Input>
-        <Output>DummyOut</Output>
+    <PointSet name="out_data">
+      <Input>DummyIn</Input>
+      <Output>DummyOut</Output>
     </PointSet>
-    <History name='fullprint_history'>
+    <History name="fullprint_history">
       <Input>pipe1_Area,pipe1_Dh</Input>
       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
     </History>
-    <HistorySet name='fullprint_HistorySet'>
-        <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    <HistorySet name="fullprint_HistorySet">
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
     </HistorySet>
- </DataObjects>
+  </DataObjects>
 
 </Simulation>

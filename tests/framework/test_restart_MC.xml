@@ -1,86 +1,116 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='quiet'>
-    <RunInfo>
-        <WorkingDir>SamplerRestarts</WorkingDir>
-        <Sequence>make1,print1,make2,print2,print3</Sequence>
-        <batchSize>1</batchSize>
-    </RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="quiet">
+  <RunInfo>
+    <WorkingDir>SamplerRestarts</WorkingDir>
+    <Sequence>make1,print1,make2,print2,print3</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
-    <Steps>
-        <MultiRun name='make1'>
-            <Sampler class='Samplers'    type='MonteCarlo'           >1</Sampler>
-            <Input   class='DataObjects' type='PointSet'         >dummyIN</Input>
-            <Model   class='Models'      type='ExternalModel'        >poly</Model>
-            <Output  class='DataObjects' type='PointSet'         >solns</Output>
-        </MultiRun>
-        <IOStep name='print1'>
-            <Input  class='DataObjects'      type='PointSet'     >solns</Input>
-            <Output class='OutStreamManager' type='Print'            >MCdump1</Output>
-        </IOStep>
-        <MultiRun name='make2'>
-            <Sampler class='Samplers'    type='MonteCarlo'           >2</Sampler>
-            <Input   class='DataObjects' type='PointSet'         >solns</Input>
-            <Model   class='Models'      type='ExternalModel'        >poly</Model>
-            <Output  class='DataObjects' type='PointSet'         >solns</Output>
-            <Output  class='DataObjects' type='PointSet'         >solns2</Output>
-        </MultiRun>
-        <IOStep name='print2'>
-            <Input  class='DataObjects'      type='PointSet'>solns2</Input>
-            <Output class='OutStreamManager' type='Print'       >MCdump2</Output>
-        </IOStep>
-        <IOStep name='print3'>
-            <Input  class='DataObjects'      type='PointSet'>solns</Input>
-            <Output class='OutStreamManager' type='Print'       >MCdump3</Output>
-        </IOStep>
-    </Steps>
+  <Steps>
+    <MultiRun name="make1">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="MonteCarlo">1</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </MultiRun>
+    <MultiRun name="make2">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="MonteCarlo">2</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+      <Output class="DataObjects" type="PointSet">solns2</Output>
+    </MultiRun>
+    <IOStep name="print1">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="OutStreamManager" type="Print">MCdump1</Output>
+    </IOStep>
+    <IOStep name="print2">
+      <Input class="DataObjects" type="PointSet">solns2</Input>
+      <Output class="OutStreamManager" type="Print">MCdump2</Output>
+    </IOStep>
+    <IOStep name="print3">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="OutStreamManager" type="Print">MCdump3</Output>
+    </IOStep>
+  </Steps>
 
-    <Distributions>
-        <Uniform name="u1"><lowerBound>1</lowerBound><upperBound>2</upperBound></Uniform>
-        <Uniform name="u2"><lowerBound>2</lowerBound><upperBound>3</upperBound></Uniform>
-    </Distributions>
+  <Distributions>
+    <Uniform name="u1">
+      <lowerBound>1</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+    <Uniform name="u2">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+  </Distributions>
 
-    <Samplers>
-        <MonteCarlo name="1">
-            <sampler_init><limit>10</limit><initial_seed>1</initial_seed></sampler_init>
-            <variable name="x1"><distribution>u1</distribution></variable>
-            <variable name="x2"><distribution>u2</distribution></variable>
-        </MonteCarlo>
-        <MonteCarlo name="2">
-            <sampler_init><limit>15</limit><initial_seed>1</initial_seed></sampler_init>
-            <variable name="x1"><distribution>u1</distribution></variable>
-            <variable name="x2"><distribution>u2</distribution></variable>
-            <Restart  class='DataObjects' type='PointSet'>solns</Restart>
-        </MonteCarlo>
-    </Samplers>
+  <Samplers>
+    <MonteCarlo name="1">
+      <sampler_init>
+        <limit>10</limit>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
+      <variable name="x1">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>u2</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="2">
+      <sampler_init>
+        <limit>15</limit>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
+      <variable name="x1">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>u2</distribution>
+      </variable>
+      <Restart class="DataObjects" type="PointSet">solns</Restart>
+    </MonteCarlo>
+  </Samplers>
 
-    <Models>
-        <Dummy name="MyDummy" subType=""/>
-        <ExternalModel name='poly' subType='' ModuleToLoad='./SamplerRestarts/polynomial'>
-            <variable>x1</variable>
-            <variable>x2</variable>
-            <variable>ans</variable>
-            <variable>ans2</variable>
-        </ExternalModel>
-    </Models>
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="./SamplerRestarts/polynomial" name="poly" subType="">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>ans</variable>
+      <variable>ans2</variable>
+    </ExternalModel>
+  </Models>
 
-    <DataObjects>
-        <PointSet name="dummyIN">
-            <Input>x1,x2</Input>
-            <Output>OutputPlaceHolder</Output>
-        </PointSet>
-        <PointSet name='solns'>
-            <Input>x1,x2</Input>
-            <Output>ans,ans2</Output>
-        </PointSet>
-        <PointSet name='solns2'>
-            <Input>x1,x2</Input>
-            <Output>ans,ans2</Output>
-        </PointSet>
-    </DataObjects>
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="solns">
+      <Input>x1,x2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+    <PointSet name="solns2">
+      <Input>x1,x2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+  </DataObjects>
 
-    <OutStreamManager>
-        <Print name='MCdump1'><type>csv</type><source>solns</source></Print>
-        <Print name='MCdump2'><type>csv</type><source>solns2</source></Print>
-        <Print name='MCdump3'><type>csv</type><source>solns</source></Print>
-    </OutStreamManager>
+  <OutStreamManager>
+    <Print name="MCdump1">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+    <Print name="MCdump2">
+      <type>csv</type>
+      <source>solns2</source>
+    </Print>
+    <Print name="MCdump3">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+  </OutStreamManager>
+
 </Simulation>

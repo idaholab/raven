@@ -25,7 +25,6 @@ utils.find_crow(frameworkDir)
 utils.add_path_recursively(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
-from FileObject import FileObject
 #Internal Modules
 
 #------------------------------------------------------------- Driver
@@ -71,14 +70,16 @@ if __name__ == '__main__':
   else             : os.environ['RAVENinterfaceCheck'] = 'False'
   simulation = Simulation(frameworkDir,verbosity=verbosity)
   #If a configuration file exists, read it in
-  configFile = FileObject(os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml"))
+  configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
   if os.path.exists(configFile):
     tree = ET.parse(configFile)
     root = tree.getroot()
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
       simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]),xmlFilename=configFile)
     else:
-      raise IOError('DRIVER',str(configFile)+' should only have Simulation and inside it RunInfo')
+      e=IOError('DRIVER',str(configFile)+' should only have Simulation and inside it RunInfo')
+      print('\nERROR! In Driver,',e,'\n')
+      sys.exit(1)
 
   # Find the XML input file
   if len(sys.argv) == 1:
@@ -90,18 +91,25 @@ if __name__ == '__main__':
     inputFiles = sys.argv[1:]
   for i in range(len(inputFiles)):
     if not os.path.isabs(inputFiles[i]):
-      inputFiles[i] = FileObject(os.path.join(workingDir,inputFiles[i]))
+      inputFiles[i] = os.path.join(workingDir,inputFiles[i])
 
   simulation.setInputFiles(inputFiles)
   #Parse the input
-  #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out
+  #For future developers of this block, assure that useful, informative exceptions
+  #  are still thrown while parsing the XML tree.  Otherwise any error made by
+  #  the developer or user might be obfuscated.
   for inputFile in inputFiles:
-    tree = ET.parse(inputFile)
+    try: tree = ET.parse(inputFile)
+    except ET.ParseError as e:
+      print('\nXML Parsing error!',e,'\n')
+      sys.exit(1)
     #except?  riseanIOError('not possible to parse (xml based) the input file '+inputFile)
     if verbosity=='debug': print('DRIVER','opened file '+inputFile)
     root = tree.getroot()
     if root.tag != 'Simulation':
-      raise IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
+      e=IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
+      print('\nInput XML Error!',e,'\n')
+      sys.exit(1)
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
@@ -109,4 +117,3 @@ if __name__ == '__main__':
   simulation.initialize()
   # Run the simulation
   simulation.run()
-

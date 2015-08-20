@@ -1,9 +1,9 @@
-<data name="testPrintPointSet_dump" type="Pointset"><input>y0,x0,z0</input><output>y,x,z</output><input_filename>testPrintPointSet_dump.csv</input_filename><metadata><SamplerType>array(u'MC', u'MC', u'MC', 
-      dtype='&lt;U2')</SamplerType><crowDist>array( u'x0': '"type": "MultivariateNormalDistribution"', u'y0,z0': '"type": "MultivariateNormalDistribution"',
-       u'x0': '"type": "MultivariateNormalDistribution"', u'y0,z0': '"type": "MultivariateNormalDistribution"',
-       u'x0': '"type": "MultivariateNormalDistribution"', u'y0,z0': '"type": "MultivariateNormalDistribution"', dtype=object)</crowDist><SampledVars>array( u'y0': 60.472528265116864, u'x0': -0.20952316514438113, u'z0': 60.472528265116864,
-       u'y0': 60.472528265116864, u'x0': -0.20952316514438113, u'z0': 60.472528265116864,
-       u'y0': 60.472528265116864, u'x0': -0.20952316514438113, u'z0': 60.472528265116864, dtype=object)</SampledVars><prefix>array('1', '2', '3', 
-      dtype='|S1')</prefix><SampledVarsPb>array( u'y0': 0.13844944897421832, u'x0': 0.13844944897421832, u'z0': 0.13844944897421832,
-       u'y0': 0.13844944897421832, u'x0': 0.13844944897421832, u'z0': 0.13844944897421832,
-       u'y0': 0.13844944897421832, u'x0': 0.13844944897421832, u'z0': 0.13844944897421832, dtype=object)</SampledVarsPb><PointProbability>array(  6.62784021e-06,   7.84789158e-04,   2.65383364e-03)</PointProbability></metadata></data>
+<data name="testPrintPointSet_dump" type="Pointset"><input>y0,x0,z0</input><output>y,x,z</output><input_filename>testPrintPointSet_dump.csv</input_filename><metadata><SamplerType>array([u'MC', u'MC', u'MC'], 
+      dtype='&lt;U2')</SamplerType><crowDist>array([ {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
+       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
+       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'}], dtype=object)</crowDist><SampledVars>array([ {u'y0': 64.846125804997541, u'x0': 4.130838575626453, u'z0': 64.846125804997541},
+       {u'y0': 64.846125804997541, u'x0': 4.130838575626453, u'z0': 64.846125804997541},
+       {u'y0': 64.846125804997541, u'x0': 4.130838575626453, u'z0': 64.846125804997541}], dtype=object)</SampledVars><prefix>array(['1', '2', '3'], 
+      dtype='|S1')</prefix><SampledVarsPb>array([ {u'y0': 2.0963643126079736e-07, u'x0': 2.213123482589799e-09, u'z0': 2.0963643126079736e-07},
+       {u'y0': 2.0963643126079736e-07, u'x0': 2.213123482589799e-09, u'z0': 2.0963643126079736e-07},
+       {u'y0': 2.0963643126079736e-07, u'x0': 2.213123482589799e-09, u'z0': 2.0963643126079736e-07}], dtype=object)</SampledVarsPb><PointProbability>array([  9.54078461e-25,   2.09847925e-26,   9.72610967e-23])</PointProbability></metadata></data>

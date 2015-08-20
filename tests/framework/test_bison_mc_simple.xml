@@ -1,115 +1,117 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
-
-<RunInfo>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
     <WorkingDir>MCTestBison</WorkingDir>
-    <Files>gap_perfect_transfer_test.i,gap_perfect_transfer_test.e</Files>
     <Sequence>CustomSampler,CustomSampler_noalias</Sequence>
     <batchSize>2</batchSize>
-</RunInfo>
+  </RunInfo>
 
-<Models>
-    <!-- 
+  <Files>
+    <Input name="gap_perfect_transfer_test.i" type="">gap_perfect_transfer_test.i</Input>
+    <Input name="gap_perfect_transfer_test.e" type="">gap_perfect_transfer_test.e</Input>
+  </Files>
+
+  <Models>
+    <!--
        I added here the two different codes (from the framework point of view) in order to show how the input changes when we use the alias system.
                                       Search for 'noalias' in order to compare. Andrea
      -->
-    <Code name='Bison' subType='MooseBasedApp'>
-        <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
-        <alias variable='tc_heat1'>Materials|heat1|thermal_conductivity</alias>
-        <alias variable='tc_heat2'>Materials|heat2|thermal_conductivity</alias>
+    <Code name="Bison" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
+      <alias variable="tc_heat1">Materials|heat1|thermal_conductivity</alias>
+      <alias variable="tc_heat2">Materials|heat2|thermal_conductivity</alias>
     </Code>
     <!-- You can define the code, when there are no alias, in the following way -->
-    <Code name='Bison_code_noalias' subType='MooseBasedApp'>
-        <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
+    <Code name="Bison_code_noalias" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
     </Code>
-    <!-- or <Code name='Bison' subType='MooseBasedApp' executable='%FRAMEWORK_DIR%/../../bison/bison-%METHOD%'/> -->
-</Models>
+    <!--
+       or
+      <Code executable="%FRAMEWORK_DIR%/../../bison/bison-%METHOD%" name="Bison" subType="MooseBasedApp"/>
+    -->
+  </Models>
 
-<Distributions>
-    <Uniform name='FlatHeat1'>
+  <Distributions>
+    <Uniform name="FlatHeat1">
       <lowerBound>0.8</lowerBound>
       <upperBound>1.2</upperBound>
     </Uniform>
-    <Uniform name='FlatHeat2'>
+    <Uniform name="FlatHeat2">
       <lowerBound>8.0</lowerBound>
       <upperBound>12.0</upperBound>
     </Uniform>
-</Distributions>
+  </Distributions>
 
-<Samplers>
-  <MonteCarlo name='Bison1'>
+  <Samplers>
+    <MonteCarlo name="Bison1">
       <sampler_init>
-          <limit>3</limit>
+        <limit>3</limit>
       </sampler_init>
-      <variable name='tc_heat1' >
-          <distribution>FlatHeat1</distribution>
+      <variable name="tc_heat1">
+        <distribution>FlatHeat1</distribution>
       </variable>
-      <variable name='tc_heat2' >
-          <distribution>FlatHeat2</distribution>
+      <variable name="tc_heat2">
+        <distribution>FlatHeat2</distribution>
       </variable>
-  </MonteCarlo>
-  <!-- Sampler noalias -->
-  <MonteCarlo name='Bison_sampler_noalias'>
-        <sampler_init>
-            <limit>3</limit>
-            <initial_seed>22</initial_seed>
-        </sampler_init>
-        <variable name='Materials|heat1|thermal_conductivity' >
-            <distribution>FlatHeat1</distribution>
-        </variable>
-        <variable name='Materials|heat2|thermal_conductivity' >
-            <distribution>FlatHeat2</distribution>
-        </variable>
-  </MonteCarlo>
-</Samplers>
+    </MonteCarlo>
+    <!-- Sampler noalias -->
+    <MonteCarlo name="Bison_sampler_noalias">
+      <sampler_init>
+        <limit>3</limit>
+        <initial_seed>22</initial_seed>
+      </sampler_init>
+      <variable name="Materials|heat1|thermal_conductivity">
+        <distribution>FlatHeat1</distribution>
+      </variable>
+      <variable name="Materials|heat2|thermal_conductivity">
+        <distribution>FlatHeat2</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
 
-<DataObjects>
-    <HistorySet name='stories'>
-        <Input>tc_heat1,tc_heat2</Input>
-        <Output>aveTempLeft,aveTempRight</Output>
-   </HistorySet>
-    <!-- Data noalias-->
-    <HistorySet name='stories_noalias'>
-        <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
-        <Output>aveTempLeft,aveTempRight</Output>
+  <DataObjects>
+    <HistorySet name="stories">
+      <Input>tc_heat1,tc_heat2</Input>
+      <Output>aveTempLeft,aveTempRight</Output>
     </HistorySet>
-</DataObjects>
+    <!-- Data noalias-->
+    <HistorySet name="stories_noalias">
+      <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
+      <Output>aveTempLeft,aveTempRight</Output>
+    </HistorySet>
+  </DataObjects>
 
+  <Steps>
+    <MultiRun name="CustomSampler" re-seeding="5">
+      <Input class="Files" type="">gap_perfect_transfer_test.i</Input>
+      <Input class="Files" type="">gap_perfect_transfer_test.e</Input>
+      <Model class="Models" type="Code">Bison</Model>
+      <Sampler class="Samplers" type="MonteCarlo">Bison1</Sampler>
+      <Output class="Databases" type="HDF5">test_bison_mc_simple</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+      <Output class="OutStreamManager" type="Print">testprint</Output>
+    </MultiRun>
+    <!-- Step noalias-->
+    <MultiRun name="CustomSampler_noalias">
+      <Input class="Files" type="">gap_perfect_transfer_test.i</Input>
+      <Input class="Files" type="">gap_perfect_transfer_test.e</Input>
+      <Model class="Models" type="Code">Bison_code_noalias</Model>
+      <Sampler class="Samplers" type="MonteCarlo">Bison_sampler_noalias</Sampler>
+      <Output class="Databases" type="HDF5">test_bison_mc_simple_noalias</Output>
+      <Output class="DataObjects" type="HistorySet">stories_noalias</Output>
+    </MultiRun>
+  </Steps>
 
-<Steps>
-  <MultiRun name='CustomSampler' re-seeding='5'>
-    <Input   class = 'Files'      type=''           >gap_perfect_transfer_test.i</Input>
-    <Input   class = 'Files'      type=''           >gap_perfect_transfer_test.e</Input>
-    <Model   class = 'Models'     type='Code'       >Bison</Model>
-    <Sampler class = 'Samplers'   type='MonteCarlo' >Bison1</Sampler>
-    <Output  class = 'Databases'  type='HDF5'       >test_bison_mc_simple</Output>
-    <Output  class = 'DataObjects'      type='HistorySet'  >stories</Output>
-    <Output  class = 'OutStreamManager'      type='Print'  >testprint</Output>
-  </MultiRun >
-  <!-- Step noalias--> 
-  <MultiRun name='CustomSampler_noalias'>
-    <Input   class = 'Files'      type=''           >gap_perfect_transfer_test.i</Input>
-    <Input   class = 'Files'      type=''           >gap_perfect_transfer_test.e</Input>
-    <Model   class = 'Models'     type='Code'       >Bison_code_noalias</Model>
-    <Sampler class ='Samplers'    type='MonteCarlo' >Bison_sampler_noalias</Sampler>
-    <Output  class ='Databases'   type='HDF5'       >test_bison_mc_simple_noalias</Output>
-    <Output  class ='DataObjects'       type='HistorySet'  >stories_noalias</Output>
-  </MultiRun >
-</Steps>
-<OutStreamManager>
-    <Print name='testprint'>
-        <type>csv</type>
-        <source>stories</source>
+  <OutStreamManager>
+    <Print name="testprint">
+      <type>csv</type>
+      <source>stories</source>
     </Print>
-</OutStreamManager>
-    
-    
-    
-<Databases>
-        <HDF5 name="test_bison_mc_simple"/>
-        <HDF5 name="test_bison_mc_simple_noalias"/>
-</Databases>
+  </OutStreamManager>
+
+  <Databases>
+    <HDF5 name="test_bison_mc_simple"/>
+    <HDF5 name="test_bison_mc_simple_noalias"/>
+  </Databases>
+
 </Simulation>
-
-
-
