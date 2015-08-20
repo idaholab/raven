@@ -192,8 +192,7 @@
     </xsd:complexType>
     <xsd:complexType name="MultivariateNormalDistribution">
         <xsd:all>
-            <xsd:element name="data_filename" type="xsd:string"        minOccurs="1"/>
-            <xsd:element name="working_dir"   type="xsd:string"        minOccurs="1"/>
+            <xsd:element name="covariance"    type="floatList"         minOccurs="1"/>
             <xsd:element name="mu"            type="floatList"         minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>

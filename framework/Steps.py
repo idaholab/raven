@@ -307,7 +307,6 @@ class MultiRun(SingleRun):
             try:
               newInput =sampler.generateInput(model,inputs)
               model.run(newInput,jobHandler)
-              self.raiseADebug('New input generated')
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
@@ -499,7 +498,8 @@ class IOStep(Step):
         if isinstance(outputs[i],Files.File): self.actionType.append('ROM-FILES')
         else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A Files as Output only, when the Input is a ROM. Got ' + inDictionary['Output'][i].type)
       elif isinstance(inDictionary['Input'][i],Files.File):
-        if isinstance(outputs[i],Models.ROM): self.actionType.append('FILES-ROM')
+        if   isinstance(outputs[i],Models.ROM): self.actionType.append('FILES-ROM')
+        elif isinstance(outputs[i],Data): self.actionType.append('FILES-dataObjects')
         else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
       else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
 
@@ -555,6 +555,11 @@ class IOStep(Step):
         unpickledObj = pickle.load(file(fileobj.getAbsFile(),'rb+'))
         outputs[i].train(unpickledObj)
         fileobj.close()
+      elif self.actionType[i] == 'FILES-dataObjects':
+        #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
+        infile = inDictionary['Input'][i]
+        options = {'fileToLoad':infile}
+        outputs[i].loadXML_CSV(inDictionary['Input'][i].getPath(),options)
       else:
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
     for output in inDictionary['Output']:

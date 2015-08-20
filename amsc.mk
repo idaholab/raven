@@ -7,5 +7,5 @@ AMSC_MODULE = $(MY_DIR)/src/contrib/_amsc.so
 amsc :: $(AMSC_MODULE)
 $(AMSC_MODULE) : $(MY_DIR)/src/contrib/amsc.i $(AMSC_srcfiles)
 	@echo "Building "$@"..."
-	(cd $(MY_DIR) && if test `uname` != "Darwin"; then unset CXX; fi && python $(MY_DIR)/setup.py build_ext build install --install-platlib=$(MY_DIR)/framework/contrib)
+	(cd $(MY_DIR) && if test `uname` != "Darwin"; then unset CXX; fi && python ./setup.py build_ext build install --install-platlib=./framework/contrib)
 	@echo "Done"

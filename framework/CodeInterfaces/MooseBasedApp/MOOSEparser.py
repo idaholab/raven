@@ -13,15 +13,13 @@ import xml.etree.ElementTree as ET
 import os
 import copy
 from utils import toBytes, toStrish, compare
-import MessageHandler
 
-class MOOSEparser(MessageHandler.MessageUser):
+class MOOSEparser():
   '''import the MOOSE input as xml tree, provide methods to add/change entries and print it back'''
 
-  def __init__(self,messageHandler,inputFile):
+  def __init__(self,inputFile):
     self.printTag = 'MOOSE_PARSER'
-    self.messageHandler = messageHandler
-    if not os.path.exists(inputFile): self.raiseAnError(IOError,'not found MOOSE input file')
+    if not os.path.exists(inputFile): raise IOError('not found MOOSE input file')
     IOfile = open(inputFile,'rb')
     self.inputfile = inputFile
     lines = IOfile.readlines()
@@ -183,7 +181,6 @@ class MOOSEparser(MessageHandler.MessageUser):
     the other keywords possible are used as attribute names'''
     if save: returnElement = copy.deepcopy(self.root)         #make a copy if save is requested
     else: returnElement = self.root                           #otherwise return the original modified
-    #print(modiDictionaryList)
     for i in xrange(len(modiDictionaryList)):
       name = modiDictionaryList[i]['name']
       del modiDictionaryList[i]['name']

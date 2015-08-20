@@ -362,17 +362,21 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.restartData = self.assemblerDict['Restart'][0][3]
       self.raiseAMessage('Restarting from '+self.restartData.name)
       #check consistency of data
-      rdata = self.restartData.getAllMetadata()['crowDist'] #actually a list
-      sdata = self.inputInfo['crowDist']
-      self.raiseAMessage('sampler inputs:')
-      for sk,sv in sdata.items():
-        self.raiseAMessage('|   '+str(sk)+': '+str(sv))
-      for i,r in enumerate(rdata):
-        if not r==sdata:
-          self.raiseAMessage('restart inputs %i:' %i)
-          for rk,rv in r.items():
-            self.raiseAMessage('|   '+str(rk)+': '+str(rv))
-          self.raiseAnError(IOError,'Restart "%s" data[%i] does not have same inputs as sampler!' %(self.restartData.name,i))
+      try:
+        rdata = self.restartData.getAllMetadata()['crowDist']
+        sdata = self.inputInfo['crowDist']
+        self.raiseAMessage('sampler inputs:')
+        for sk,sv in sdata.items():
+          self.raiseAMessage('|   '+str(sk)+': '+str(sv))
+        for i,r in enumerate(rdata):
+          if type(r) != dict: continue
+          if not r==sdata:
+            self.raiseAMessage('restart inputs %i:' %i)
+            for rk,rv in r.items():
+              self.raiseAMessage('|   '+str(rk)+': '+str(rv))
+            self.raiseAnError(IOError,'Restart "%s" data[%i] does not have same inputs as sampler!' %(self.restartData.name,i))
+      except KeyError as e:
+        self.raiseAWarning("No CROW distribution available in restart -",e)
     else:
       self.raiseAMessage('No restart for '+self.printTag)
 
@@ -992,7 +996,7 @@ class Grid(Sampler):
     """
     self.gridEntity.initialize()
     self.limit = len(self.gridEntity)
-    if self.restartData:
+    if self.restartData is not None:
       inps = self.restartData.getInpParametersValues()
       self.existing = zip(*list(v for v in inps.values()))
 
@@ -3053,14 +3057,16 @@ class Sobol(SparseGridCollocation):
           self.ROM = self.assemblerDict[key][indice][3]
           indice += 1
     #make combination of ROMs that we need
+    self.targets  = self.ROM.SupervisedEngine.keys()
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0]
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
-    varis = SVL.features
-    needCombos = itertools.chain.from_iterable(itertools.combinations(varis,r) for r in range(self.sobolOrder+1))
+    features = SVL.features
+    needCombos = itertools.chain.from_iterable(itertools.combinations(features,r) for r in range(self.sobolOrder+1))
     self.SQs={}
-    self.ROMs={}
+    self.ROMs={} #keys are [target][combo]
+    for t in self.targets: self.ROMs[t]={}
     for combo in needCombos:
       if len(combo)==0:
         continue
@@ -3078,12 +3084,22 @@ class Sobol(SparseGridCollocation):
       iset.initialize(distDict,imptDict,SVL.maxPolyOrder)
       self.SQs[combo] = Quadratures.SparseQuad()
       self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
-      initDict={'IndexSet':iset.type, 'PolynomialOrder':SVL.maxPolyOrder, 'Interpolation':SVL.itpDict}
-      initDict['Features']=','.join(combo)
-      initDict['Target']=SVL.target #TODO make it work for multitarget
-      self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
-      initDict={'SG':self.SQs[combo], 'dists':distDict, 'quads':quadDict, 'polys':polyDict, 'iSet':iset}
-      self.ROMs[combo].initialize(initDict)
+      # initDict is for SVL.__init__()
+      initDict={'IndexSet'       :iset.type,        # type of index set
+                'PolynomialOrder':SVL.maxPolyOrder, # largest polynomial
+                'Interpolation'  :SVL.itpDict,      # polys, quads per input
+                'Features'       :','.join(combo),  # input variables
+                'Target'         :None}             # set below, per-case basis
+      #initializeDict is for SVL.initialize()
+      initializeDict={'SG'   :self.SQs[combo],      # sparse grid
+                      'dists':distDict,             # distributions
+                      'quads':quadDict,             # quadratures
+                      'polys':polyDict,             # polynomials
+                      'iSet' :iset}                 # index set
+      for name,SVL in self.ROM.SupervisedEngine.items():
+        initDict['Target']     = SVL.target
+        self.ROMs[name][combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
+        self.ROMs[name][combo].initialize(initializeDict)
     #if restart, figure out what runs we need; else, all of them
     if self.restartData != None:
       inps = self.restartData.getInpParametersValues()
@@ -3101,8 +3117,8 @@ class Sobol(SparseGridCollocation):
     #if tuple(newpt) not in existing:
     self.pointsToRun.append(tuple(newpt))
     #now do the rest
-    for combo,rom in self.ROMs.items():
-      SG = rom.sparseGrid
+    for combo,rom in self.ROMs.values()[0].items(): #each target is the same, so just for each combo
+      SG = rom.sparseGrid #they all should have the same sparseGrid
       SG._remap(combo)
       for l in range(len(SG)):
         pt,wt = SG[l]
@@ -3111,19 +3127,21 @@ class Sobol(SparseGridCollocation):
           if var in combo: newpt[v] = pt[combo.index(var)]
           else: newpt[v] = self.references[var]
         newpt=tuple(newpt)
-        if newpt not in self.pointsToRun:# and newpt not in existing:
+        if newpt not in self.pointsToRun:# and newpt not in existing: #the second half used to be commented...
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
     self.raiseADebug('Needed points: %i' %self.limit)
     self.raiseADebug('From Restart : %i' %len(self.existing))
     self.raiseADebug('Still Needed : %i' %(self.limit-len(self.existing)))
-    initdict={'ROMs':self.ROMs,
+    initdict={'ROMs':None, #self.ROMs,
               'SG':self.SQs,
               'dists':self.distDict,
               'quads':self.quadDict,
               'polys':self.polyDict,
               'refs':self.references}
-    self.ROM.SupervisedEngine.values()[0].initialize(initdict) #TODO FIXME multitarget
+    for target in self.targets:
+      initdict['ROMs'] = self.ROMs[target]
+      self.ROM.SupervisedEngine[target].initialize(initdict)
 
   def localGenerateInput(self,model,myInput):
     """

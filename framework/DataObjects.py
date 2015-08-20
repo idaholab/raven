@@ -18,6 +18,7 @@ import itertools
 import abc
 import numpy as np
 import xml.etree.ElementTree as ET
+import ast
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -297,7 +298,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       for key,value in self._dataContainer['metadata'].items():
         if key not in self.metaExclXml:
           submetadataNodes.append(ET.SubElement(metadataNode,key))
-          submetadataNodes[-1].text = utils.toString(str(value)).replace('[','').replace(']','').replace('{','').replace('}','')
+          submetadataNodes[-1].text = utils.toString(str(value))
     myXMLFile.write(utils.toString(ET.tostring(root)))
     myXMLFile.write('\n')
     myXMLFile.close()
@@ -326,6 +327,25 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       for child in metadataNode:
         key = child.tag
         value = child.text
+        value.replace('\n','')
+        # ast.literal_eval can't handle numpy arrays, so we'll handle that.
+        if value.startswith('array('):
+          isArray=True
+          value=value.split('dtype')[0].lstrip('ary(').rstrip('),\n ')
+        else: isArray = False
+        try: value = ast.literal_eval(value)
+        except ValueError as e:
+          # these aren't real fails, they just don't actually need converting
+          self.raiseAWarning('ast.literal_eval failed on "',value,'"')
+          self.raiseAWarning('ValueError was "',e,'", but continuing on...')
+        except SyntaxError as e:
+          # these aren't real fails, they just don't actually need converting
+          self.raiseAWarning('ast.literal_eval failed on "',value,'"')
+          self.raiseAWarning('SyntaxError was "',e,'", but continuing on...')
+        if isArray:
+          # convert back
+          value = np.array(value)
+          value = c1darray(values=value)
         metadataDict[key] = value
       retDict["metadata"] = metadataDict
     return retDict
@@ -880,7 +900,10 @@ class Point(Data):
     #CSV file will have a header with the input names and output
     #names, and one line of data with the input and output numeric
     #values.
-    filenameLocal = os.path.join(filenameRoot,self.name)
+    if options is not None and 'fileToLoad' in options.keys():
+      name = os.path.join(options['fileToLoad'].getPath(),options['fileToLoad'].getBase())
+    else: name = self.name
+    filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "Point")
     if "metadata" in xmlData:
@@ -897,11 +920,11 @@ class Point(Data):
       inoutDict[key] = value
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
+    #NOTE it's critical to cast these as c1darray!
     for key in xmlData["inpKeys"]:
-      self._dataContainer["inputs"][key] = np.array([inoutDict[key]])
+      self._dataContainer["inputs"][key] = c1darray(values=np.array([inoutDict[key]]))
     for key in xmlData["outKeys"]:
-      self._dataContainer["outputs"][key] = np.array([inoutDict[key]])
-
+      self._dataContainer["outputs"][key] = c1darray(values=np.array([inoutDict[key]]))
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """override of the method in the base class DataObjects"""
@@ -975,7 +998,6 @@ class PointSet(Data):
         for key in self._dataContainer['outputs'].keys():
           if (self._dataContainer['outputs'][key].size) != lenMustHave:
             self.raiseAnError(NotConsistentData,'The output parameter value, for key ' + key + ' has not a consistent shape for PointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
-
 
   def _updateSpecializedInputValue(self,name,value,options=None):
     """
@@ -1219,11 +1241,21 @@ class PointSet(Data):
       self._createXMLFile(filenameLocal,'Pointset',inpKeys,outKeys)
 
   def _specializedLoadXML_CSV(self, filenameRoot, options):
+    """
+    Loads a CSV-XML file pair into a PointSet.
+    @ In, filenameRoot, path to files
+    @ In, options, can optionally contain the following:
+        - nameToLoad, filename base (no extension) of CSV-XML pair
+    @Out, None
+    """
     #For Pointset it will create an XML file and one CSV file.
     #The CSV file will have a header with the input names and output
     #names, and multiple lines of data with the input and output
     #numeric values, one line for each input.
-    filenameLocal = os.path.join(filenameRoot,self.name)
+    if options is not None and 'fileToLoad' in options.keys():
+      name = os.path.join(options['fileToLoad'].getPath(),options['fileToLoad'].getBase())
+    else: name = self.name
+    filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "Pointset")
     if "metadata" in xmlData:
@@ -1243,9 +1275,9 @@ class PointSet(Data):
     for key,value in zip(inoutKeys,inoutValues):
       inoutDict[key] = value
     for key in xmlData["inpKeys"]:
-      self._dataContainer["inputs"][key] = np.array(inoutDict[key])
+      self._dataContainer["inputs"][key] = c1darray(values=np.array(inoutDict[key]))
     for key in xmlData["outKeys"]:
-      self._dataContainer["outputs"][key] = np.array(inoutDict[key])
+      self._dataContainer["outputs"][key] = c1darray(values=np.array(inoutDict[key]))
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """override of the method in the base class DataObjects"""
@@ -1412,7 +1444,10 @@ class History(Data):
     #filename, and has the output names for a header, a column for
     #time, and the rest of the file is data for different times.
 
-    filenameLocal = os.path.join(filenameRoot,self.name)
+    if options is not None and 'fileToLoad' in options.keys():
+      name = os.path.join(options['fileToLoad'].getPath(),options['fileToLoad'].getBase())
+    else: name = self.name
+    filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "history")
     if "metadata" in xmlData:
@@ -1436,9 +1471,9 @@ class History(Data):
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     for key,value in zip(inpKeys,inpValues):
-      self._dataContainer['inputs'][key] = [value]*len(outValues[0])
+      self._dataContainer['inputs'][key] = c1darray(values=np.array([value]*len(outValues[0])))
     for key,value in zip(outKeys,outValues):
-      self._dataContainer['outputs'][key] = np.array(value)
+      self._dataContainer['outputs'][key] = c1darray(values=np.array(value))
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """override of the method in the base class DataObjects"""
@@ -1832,7 +1867,10 @@ class HistorySet(Data):
     #data line in the first CSV and they are named with the
     #filename.  They have the output names for a header, a column
     #for time, and the rest of the file is data for different times.
-    filenameLocal = os.path.join(filenameRoot,self.name)
+    if options is not None and 'fileToLoad' in options.keys():
+      name = os.path.join(options['fileToLoad'].getPath(),options['fileToLoad'].getBase())
+    else: name = self.name
+    filenameLocal = os.path.join(filenameRoot,name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "HistorySet")
     if "metadata" in xmlData:
@@ -1868,9 +1906,9 @@ class HistorySet(Data):
       subInput = {}
       subOutput = {}
       for key,value in zip(inpKeys,inpValues[i]):
-        subInput[key] = [value]*len(outValues[0][0])
+        subInput[key] = c1darray(values=np.array([value]*len(outValues[0][0])))
       for key,value in zip(outKeys[i],outValues[i]):
-        subOutput[key] = np.array(value)
+        subOutput[key] = c1darray(values=np.array(value))
       self._dataContainer['inputs'][mainKey] = subInput
       self._dataContainer['outputs'][mainKey] = subOutput
 

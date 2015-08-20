@@ -13,10 +13,13 @@ This simple example is about the construction of a ``Lorentz attractor'', sampli
 <!-- RUNINFO -->
 <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
-    <Files>lorentzAttractor.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
 </RunInfo>
+<!-- Files -->
+<Files>
+    <Input name='lorentzAttractor.py' type=''>lorentzAttractor</Input>
+</Files>
 <!-- STEPS -->
 <Steps>
     <MultiRun name='FirstMRun'  re-seeding='25061978'>

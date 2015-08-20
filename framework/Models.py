@@ -614,6 +614,7 @@ class Code(Model):
   def __init__(self):
     Model.__init__(self)
     self.executable         = ''   #name of the executable (abs path)
+    self.preexec            = None   #name of the pre-executable, if any
     self.oriInputFiles      = []   #list of the original input files (abs path)
     self.workingDir         = ''   #location where the code is currently running
     self.outFileRoot        = ''   #root to be used to generate the sequence of output files
@@ -636,6 +637,8 @@ class Code(Model):
     for child in xmlNode:
       if child.tag =='executable':
         self.executable = str(child.text)
+      if child.tag =='preexec':
+        self.preexec = str(child.text)
       elif child.tag =='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
@@ -687,10 +690,16 @@ class Code(Model):
     if os.path.exists(abspath):
       self.executable = abspath
     else: self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
-    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self,self.messageHandler)
+    if self.preexec is not None:
+      if '~' in self.preexec: self.preexec = os.path.expanduser(self.preexec)
+      abspath = os.path.abspath(self.preexec)
+      if os.path.exists(abspath):
+        self.preexec = abspath
+      else: self.raiseAMessage('not found preexec '+self.preexec,'ExceptedError')
+    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
     self.code.readMoreXML(xmlNode)
-    self.code.setInputExtension(list(a for b in (c for c in self.clargs['input'].values()) for a in b))
-    self.code.addInputExtension(list(a for b in (c for c in self.fargs ['input'].values()) for a in b))
+    self.code.setInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
+    self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
 
   def addInitParams(self,tempDict):
@@ -731,7 +740,8 @@ class Code(Model):
       shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.oriInputFiles = []
     for i in range(len(inputFiles)):
-      self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i].getAbsFile())[1]))
+      self.oriInputFiles.append(inputFiles[i])
+      self.oriInputFiles[-1].setPath(self.workingDir)
     self.currentInputFiles        = None
     self.outFileRoot              = None
 
@@ -743,8 +753,7 @@ class Code(Model):
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
     #  objects.  However, this might require some updating of many Code Interfaces as well.
     for index, inputFile in enumerate(currentInput):
-      self.raiseAWarning('inputfile,codegetinp:',inputFile.getExt(),'|',self.code.getInputExtension())
-      if '.'+inputFile.getExt() in self.code.getInputExtension():
+      if inputFile.getExt() in self.code.getInputExtension():
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
@@ -755,20 +764,21 @@ class Code(Model):
 
   def run(self,inputFiles,jobHandler):
     """append a run at the externalRunning list of the jobHandler"""
-    self.currentInputFiles = inputFiles[0]
-    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs)
+    self.currentInputFiles = copy.deepcopy(inputFiles[0])
+    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs, preexec=self.preexec)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
-      if inputFile.endswith(self.code.getInputExtension()):
+      if inputFile.getExt() in self.code.getInputExtension():
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
-    self.raiseAMessage('job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
+    self.raiseAMessage('job "'+ self.currentInputFiles[index].getBase() +'" submitted!')
 
   def collectOutput(self,finisishedjob,output):
     """collect the output file in the output object"""
+    #can we revise the spelling to something more English?
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out

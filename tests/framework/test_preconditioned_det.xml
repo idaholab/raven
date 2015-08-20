@@ -119,9 +119,9 @@
           <kwargs>
             <color>green</color>
           </kwargs>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
       </plotSettings>
       <actions>
         <how>pdf</how>
@@ -139,9 +139,9 @@
           <kwargs>
             <color>green</color>
           </kwargs>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
       </plotSettings>
       <actions>
         <how>pdf</how>
