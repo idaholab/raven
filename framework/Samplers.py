@@ -1140,7 +1140,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     self.limitSurfacePP._initializeLSpp({'WorkingDir':None},
                                         [self.lastOutput], {})
     matrixShape = self.limitSurfacePP.getTestMatrix().shape
-    self.scores = np.zeros(matrixShape)       # Matrix that for each point
+    self.scores = np.zeros(matrixShape)            # Matrix that for each point
                                                    #  of the testing grid tracks
                                                    #  the score of the limit
                                                    #  surface position
@@ -1161,9 +1161,11 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     matrixShape = self.limitSurfacePP.getTestMatrix().shape
     self.scores = np.zeros(matrixShape)
     if self.scoringMethod == 'distance':
-      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
+      # sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
+      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')]),len(self.axisName)))
       for varIndex, name in enumerate(axisNames):
-        sampledMatrix[:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
+        # sampledMatrix[:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
+        sampledMatrix[:,varIndex] = self.limitSurfacePP.getFunctionValue()[name]
       distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
       # The hanging point are added to the list of the already explored points
       # so as not to pick the same when in //
@@ -1385,16 +1387,31 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
                             reverse=True)
 
       if np.max(self.scores)>0.0:
-        topIdx = np.argmax(self.scores)
-        print(topIdx, sortedMaxima)
-        for varIndex, varName in enumerate(axisNames):
-          self.values[self.axisName[varIndex]] = float(self.surfPoint[topIdx,varIndex])
-          self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-        varSet=True
+        validMaximum = False
+        count = 0
+        while not validMaximum and count < len(sortedMaxima):
+          topIdx = sortedMaxima[count]
+          validMaximum = True
+          # print(topIdx, sortedMaxima)
+          for point in self.hangingPoints:
+            dist = 0
+            for varIndex, varName in enumerate(axisNames):
+              dist += (float(self.surfPoint[topIdx,varIndex])-float(point[varIndex]))**2
+            if np.sqrt(dist) < 1e-6:
+              validMaximum = False
+              break
+
+        if count < len(sortedMaxima):
+          for varIndex, varName in enumerate(axisNames):
+            self.values[self.axisName[varIndex]] = float(self.surfPoint[topIdx,varIndex])
+            self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+          varSet=True
+        else:
+          self.raiseADebug('All local maxima have been submitted.')
       else:
         self.raiseADebug('Selected score <= 0.0')
     if not varSet:
-      #here we are still generating the batch
+      # Here we generate a random point
       for key in self.distDict.keys():
         if self.toleranceWeight=='cdf':
           self.values[key] = self.distDict[key].ppf(float(Distributions.random()))
