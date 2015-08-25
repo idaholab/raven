@@ -79,17 +79,6 @@ class ExternalRunner(MessageHandler.MessageUser):
     ####### WARNING: THIS DEEPCOPY MUST STAY!!!! DO NOT REMOVE IT ANYMORE. ANDREA #######
     self.codePointer  = codePointer
 
-    def __deepcopy__(self,memo):
-      print('\n\n\n\nHERE!!!!!!!!!\n\n\n\n')
-      cls = self.__class__
-      newobj = cls.__new__(cls)
-      memo[id(self)] = result
-      copydict = self.__dict__
-      for k,v in copydict:
-        print ('copying:',k,'|',v)
-        setattr(newobj,k,copy.deepcopy(v,memo))
-      return newobj
-
 # BEGIN: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
     # Initialize logger
     #self.logger     = self.createLogger(self.identifier)
@@ -129,7 +118,7 @@ class ExternalRunner(MessageHandler.MessageUser):
 #         break
 #       self.logger.info('%s', line)
 #       #self.logger.debug('%s', line.srip())
-# END: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
+#   END: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
 
   def isDone(self):
     """
@@ -229,6 +218,10 @@ class InternalRunner(MessageHandler.MessageUser):
     self.retcode         = 0
 
   def __deepcopy__(self,memo):
+    """This is the method called with copy.deepcopy.  Overwritten to remove some keys.
+    @ In, memo, dictionary required by deepcopy method
+    @Out, deep copy of this object
+    """
     cls = self.__class__
     newobj = cls.__new__(cls)
     memo[id(self)] = newobj
@@ -237,7 +230,6 @@ class InternalRunner(MessageHandler.MessageUser):
     toRemove = ['functionToRun','subque','_InternalRunner__thread']
     for k,v in copydict.items():
       if k in toRemove: continue
-      print ('copying:',k,'|',v)
       setattr(newobj,k,copy.deepcopy(v,memo))
     return newobj
 
@@ -258,6 +250,10 @@ class InternalRunner(MessageHandler.MessageUser):
       else:                     return not self.__thread.is_alive()
 
   def getReturnCode(self):
+    """Returns the return code from running the code.  If return code not yet set, set it.
+    @ In, None
+    @Out, return code, usually integer
+    """
     if self.ppserver is None and hasattr(self,'subque'):
       if self.subque.empty(): #is this necessary and sufficient for all failed runs?
         self.__runReturn = -1

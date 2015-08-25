@@ -703,10 +703,6 @@ class Code(Model):
     self.code.setInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
-    self.raiseADebug('Code extensions set')
-    self.raiseADebug(self.code.getInputExtension())
-    self.raiseADebug(self.clargs)
-    self.raiseADebug(self.fargs)
 
   def addInitParams(self,tempDict):
     """extension of addInitParams for the Code(model)"""
@@ -758,7 +754,6 @@ class Code(Model):
     found = False
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
     #  objects.  However, this might require some updating of many Code Interfaces as well.
-    self.raiseADebug('input exts:',self.code.getInputExtension())
     for index, inputFile in enumerate(currentInput):
       if inputFile.getExt() in self.code.getInputExtension():
         found = True
