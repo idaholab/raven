@@ -1635,7 +1635,7 @@ class LimitSurface(BasePostProcessor):
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
       mySrting = ','.join(list(self.parameters['targets']))
-      self.ROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':mySrting, 'Target':self.externalFunction.name})
+      self.ROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':mySrting, 'Target':self.externalFunction.name})
     else: self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()
     self.indexes = -1
@@ -1892,22 +1892,27 @@ class LimitSurface(BasePostProcessor):
     listsurfPoint = []
     gridShape = self.gridEntity.returnParameter("gridShape",nodeName)
     myIdList = np.zeros(self.nVar,dtype=int)
+    putIt = np.zeros(self.nVar,dtype=bool)
     for coordinate in np.rollaxis(toBeTested, 0):
       myIdList[:] = coordinate
+      putIt[:]    = False
       if self.testMatrix[nodeName][tuple(coordinate)] * sign > 0:
         for iVar in range(self.nVar):
           if coordinate[iVar] + 1 < gridShape[iVar]:
             myIdList[iVar] += 1
             if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
+              putIt[iVar] = True
               listsurfPoint.append(copy.copy(coordinate))
               break
             myIdList[iVar] -= 1
             if coordinate[iVar] > 0:
               myIdList[iVar] -= 1
               if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
+                putIt[iVar] = True
                 listsurfPoint.append(copy.copy(coordinate))
                 break
               myIdList[iVar] += 1
+      #if len(set(putIt)) == 1 and  list(set(putIt))[0] == True: listsurfPoint.append(copy.copy(coordinate))
     return listsurfPoint
 #
 #
