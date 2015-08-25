@@ -8,22 +8,19 @@ import os
 import fileinput
 import re
 
-import MessageHandler
-
-class RELAPparser(MessageHandler.MessageUser):
+class RELAPparser():
   '''import the MOOSE input as xml tree, provide methods to add/change entries and print it back'''
-  def __init__(self,inputFile,messageHandler):
+  def __init__(self,inputFile):
     self.printTag = 'RELAP5 PARSER'
-    self.messageHandler = messageHandler
-    if not os.path.exists(inputFile): self.raiseAnError(IOError,'not found RELAP input file')
+    if not os.path.exists(inputFile): raise IOError('not found RELAP input file')
     IOfile = open(inputFile,'r')
     self.inputfile = inputFile
     self.lines = IOfile.readlines()
 
   def printInput(self,outfile=None):
     if outfile==None: outfile =self.inputfile
-    IOfile = open(outfile,'w')
-    for i in self.lines: IOfile.write('%s' %(i))
+    outfile.open('w')
+    for i in self.lines: outfile.write('%s' %(i))
 
   def modifyOrAdd(self,DictionaryList,save=True):
     '''ModiDictionaryList is a list of dictionaries of the required addition or modification

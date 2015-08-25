@@ -4,6 +4,38 @@ import xml.etree.ElementTree as ET
 
 num_tol = 1e-10 #effectively zero for our purposes
 
+def short_text(a,b):
+  """Returns a short portion of the text that shows the first difference
+  a: the first text element
+  b: the second text element
+  """
+  a = repr(a)
+  b = repr(b)
+  display_len = 20
+  half_display = display_len//2
+  if len(a)+len(b) < display_len:
+    return a+" "+b
+  first_diff = -1
+  i = 0
+  while i < len(a) and i < len(b):
+    if a[i] == b[i]:
+      i += 1
+    else:
+      first_diff = i
+      break
+  if first_diff >= 0:
+    #diff in content
+    start = max(0,first_diff - half_display)
+  else:
+    #diff in length
+    first_diff = min(len(a),len(b))
+    start = max(0,first_diff - half_display_len)
+  if start > 0:
+    prefix = "..."
+  else:
+    prefix = ""
+  return prefix+a[start:first_diff+half_display]+" "+prefix+b[start:first_diff+half_display]
+
 
 def compare_element(a,b,*args,**kwargs):
   """ Compares two element trees and returns (same,message)
@@ -49,7 +81,7 @@ def compare_element(a,b,*args,**kwargs):
         return (same,message)
     else:
       same = False
-      fail_message("mismatch text ",repr(a.text),repr(b.text))
+      fail_message("mismatch text ",short_text(a.text,b.text))
       return (same,message)
   different_keys = set(a.keys()).symmetric_difference(set(b.keys()))
   same_keys = set(a.keys()).intersection(set(b.keys()))
@@ -134,5 +166,8 @@ class XMLDiff:
             self.__messages += separator.join(messages) + "\n"
         else:
           self.__same = False
+    if '[' in self.__messages or ']' in self.__messages:
+      self.__messages = self.__messages.replace('[','(')
+      self.__messages = self.__messages.replace(']',')')
     return (self.__same,self.__messages)
 

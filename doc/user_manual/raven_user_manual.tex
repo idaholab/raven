@@ -30,6 +30,7 @@
 \usepackage{fullpage}
 \usepackage{xcolor}          % Using xcolor for more robust color specification
 \usepackage{ifthen}          % For simple checking in newcommand blocks
+\usepackage{textcomp}
 %\usepackage{authblk}         % For making the author list look prettier
 %\renewcommand\Authsep{,~\,}
 
@@ -67,6 +68,7 @@
     morekeywords={name,type},
 %    morekeywords={name,attribute,source,variables,version,type,release,x,z,y,xlabel,ylabel,how,text,param1,param2,color,label},
 }
+\lstset{language=python,upquote=true}
 
 \usepackage{titlesec}
 \newcommand{\sectionbreak}{\clearpage}
@@ -253,7 +255,8 @@ showstringspaces=false            %
 \textbf{\textit{Contributors:}} \\Alessandro Bandini
 \\Daniel P. Maljovec
 \\Ivan Rinaldi
-\\Paul W. Talbot}
+\\Paul W. Talbot
+\\James B. Tompkins}
 %\author{\textbf{\textit{Main Developers:}}  \\Andrea Alfonsi}
 %\author{\\Joshua Cogliati}
 %\author{\\Diego Mandelli}

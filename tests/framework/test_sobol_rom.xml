@@ -57,10 +57,11 @@
       <variable>x2</variable>
       <variable>x3</variable>
       <variable>ans</variable>
+      <variable>ans2</variable>
     </ExternalModel>
     <ROM name="rom" subType="HDMRRom">
       <SobolOrder>4</SobolOrder>
-      <Target>ans</Target>
+      <Target>ans,ans2</Target>
       <Features>x1,x2,x3</Features>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>3</PolynomialOrder>
@@ -102,11 +103,11 @@
     </PointSet>
     <PointSet name="tests">
       <Input>x1,x2,x3</Input>
-      <Output>ans</Output>
+      <Output>ans,ans2</Output>
     </PointSet>
     <PointSet name="solns">
       <Input>x1,x2,x3</Input>
-      <Output>ans</Output>
+      <Output>ans,ans2</Output>
     </PointSet>
   </DataObjects>
 

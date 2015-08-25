@@ -124,6 +124,8 @@ class AMSC
    *        ignored
    * @param persistenceType string identifier for what type of persistence
    *        computation should be used
+   * @param win vector of probability values in a one-to-one correspondence with
+   *        Xin
    * @param edgeIndices an optional list of edges specified as a flattened
    *        n-by-2 array to use as the underlying graph structure (will be
    *        pruned by ngl)
@@ -131,7 +133,8 @@ class AMSC
   AMSC(std::vector<T> &Xin, std::vector<T> &yin,
        std::vector<std::string> &_names, std::string graph,
        std::string gradientMethod, int maxN, T beta,
-       std::string persistenceType, std::vector<int> &edgeIndices);
+       std::string persistenceType, std::vector<T> &win,
+       std::vector<int> &edgeIndices, bool verbosity=false);
 
   /**
    * Returns the number of input dimensions in the associated dataset
@@ -217,7 +220,7 @@ class AMSC
    * @param pers floating point value specifying an optional amount of
    *        simplification to consider when retrieving the minimum index
    */
-  int MinLabel(int i, T pers=0);
+  int MinLabel(int i, T pers);
 
   /**
    * Returns the index of the maximum sample to which sample "i" flows to at a
@@ -226,7 +229,7 @@ class AMSC
    * @param pers floating point value specifying an optional amount of
    *        simplification to consider when retrieving the maximum index
    */
-  int MaxLabel(int i, T pers=0);
+  int MaxLabel(int i, T pers);
 
   /**
    * Returns the string name associated to the specified dimension index
@@ -249,6 +252,11 @@ class AMSC
   std::string PrintHierarchy();
 
   /**
+   * Returns a sorted list of persistence values for this complex
+   **/
+   std::vector<T> SortedPersistences();
+
+  /**
    * Returns an xml-formatted string that can be used to determine the merge
    * hierarchy of the topological decomposition of the associated dataset
    */
@@ -261,9 +269,9 @@ class AMSC
    * @param persistence floating point value that optionally simplifies the
    *        topological decomposition before fetching the indices.
    */
-  std::map< std::string, std::vector<int> > GetPartitions(T persistence=0.);
+  std::map< std::string, std::vector<int> > GetPartitions(T persistence);
 
-//  std::string ComputeLinearRegressions(T persistence=0.);
+//  std::string ComputeLinearRegressions(T persistence);
 
  private:
   std::string persistenceType;          /** A string identifier specifying    *
@@ -272,11 +280,12 @@ class AMSC
 
   boost::numeric::ublas::matrix<T> X;                   /** Input data matrix */
   boost::numeric::ublas::vector<T> y;                  /** Output data vector */
+  boost::numeric::ublas::vector<T> w;             /** Probability data vector */
 
   std::vector<std::string> names;    /** Names of the input/output dimensions */
 
   std::map< int, std::set<int> > neighbors;         /** Maps a list of points
-                                                     *  that are neigbhors of
+                                                     *  that are neighbors of
                                                      *  the index             */
 
   std::vector<FlowPair> neighborFlow;         /** Estimated neighbor gradient
@@ -300,6 +309,28 @@ class AMSC
   //////////////////////////////////////////////////////////////////////////////
 
   // Private Methods
+
+  /**
+   * Helper method that optionally prints a message depending on the verbosity
+   * of this object
+   * @param text string of the message to display
+   */
+  void DebugPrint(std::string text);
+
+  /**
+   * Helper method that optionally starts a timer and prints a message depending
+   * on the verbosity of this object
+   * @param t0 reference time_t struct that will be written to
+   * @param text string of message to display onscreen
+   */
+  void DebugTimerStart(time_t &t0, std::string text);
+
+  /**
+   * Helper method that optionally stops a timer and prints a message depending
+   * on the verbosity of this object
+   * @param t0 reference time_t struct that will be used as the start time
+   */
+  void DebugTimerStop(time_t &t0, std::string text="");
 
   /**
    * Returns the ascending neighbor of the sample specified by index

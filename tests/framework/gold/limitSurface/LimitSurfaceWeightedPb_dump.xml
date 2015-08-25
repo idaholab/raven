@@ -1,1 +1,0 @@
-<data name="LimitSurfaceWeightedPb_dump" type="Pointset"><input>y0,x0</input><output>EventProbability,goalFunctionForLimitSurface</output><input_filename>LimitSurfaceWeightedPb_dump.csv</input_filename></data>
