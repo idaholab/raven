@@ -681,7 +681,7 @@ class ComparisonStatistics(BasePostProcessor):
     else:
       self.raiseAnError(IOError, 'unsupported type ' + str(type(output)))
     if generateCSV:
-      csv = output.open("w")
+      csv = output
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "name" in reference:
@@ -782,7 +782,7 @@ class ComparisonStatistics(BasePostProcessor):
           dataPairs = []
           for key in sorted(dataStat.keys()):
             value = dataStat[key]
-            if type(value).__name__ in ["int", "float"]:
+            if np.isscalar(value):
               dataPairs.append((key, value))
           extraCsv = Files.returnInstance('CSV',self)
           extraCsv.initialize(newFileName,self.messageHandler)
@@ -951,27 +951,27 @@ class PrintCSV(BasePostProcessor):
           csvfile.setPath(os.path.join(self.workingDir,csvfile.getPath()))
 
         #  Save the data
-        csvfile.open('wb')
-        addfile.open('wb')
+        csvfile.open('w')
+        addfile.open('w')
         #  Add history to the csv file
         np.savetxt(csvfile, HistorySet[key][0], delimiter = ",", header = utils.toString(headers))
         csvfile.write(os.linesep)
         #  process the attributes in a different csv file (different kind of informations)
         #  Add metadata to additional info csv file
-        addfile.write(b'# History Metadata, ' + os.linesep)
-        addfile.write(b'# ______________________________,' + b'_' * len(key) + b',' + os.linesep)
-        addfile.write(b'#number of parameters,' + os.linesep)
-        addfile.write(utils.toBytes(str(attributes['n_params'])) + b',' + os.linesep)
-        addfile.write(b'#parameters,' + os.linesep)
+        addfile.write('# History Metadata, ' + os.linesep)
+        addfile.write('# ______________________________,' + '_' * len(key) + ',' + os.linesep)
+        addfile.write('#number of parameters,' + os.linesep)
+        addfile.write(str(attributes['n_params']) + ',' + os.linesep)
+        addfile.write('#parameters,' + os.linesep)
         addfile.write(headers + os.linesep)
-        addfile.write(b'#parent_id,' + os.linesep)
-        addfile.write(utils.toBytes(attributes['parent_id']) + os.linesep)
-        addfile.write(b'#start time,' + os.linesep)
-        addfile.write(utils.toBytes(str(attributes['start_time'])) + os.linesep)
-        addfile.write(b'#end time,' + os.linesep)
-        addfile.write(utils.toBytes(str(attributes['end_time'])) + os.linesep)
-        addfile.write(b'#number of time-steps,' + os.linesep)
-        addfile.write(utils.toBytes(str(attributes['n_ts'])) + os.linesep)
+        addfile.write('#parent_id,' + os.linesep)
+        addfile.write(attributes['parent_id'] + os.linesep)
+        addfile.write('#start time,' + os.linesep)
+        addfile.write(str(attributes['start_time']) + os.linesep)
+        addfile.write('#end time,' + os.linesep)
+        addfile.write(str(attributes['end_time']) + os.linesep)
+        addfile.write('#number of time-steps,' + os.linesep)
+        addfile.write(str(attributes['n_ts']) + os.linesep)
         addfile.write(os.linesep)
     else: self.raiseAnError(NotImplementedError, 'for input type ' + self.inObj.type + ' not yet implemented.')
 
@@ -1102,7 +1102,7 @@ class BasicStatistics(BasePostProcessor):
       #basicStatFilename = os.path.join(self.__workingDir, output.base)#output[:output.rfind('.')] + '.' + outputextension)
       output.setPath(self.__workingDir)#, output.base)#output[:output.rfind('.')] + '.' + outputextension)
       self.raiseADebug('BasicStatistics postprocessor: dumping output in file named ' + output.getAbsFile())
-      output.open('wb')
+      output.open('w')
       output.write('BasicStatistics ' + separator + str(self.name) + os.linesep)
       output.write('----------------' + separator + '-' * len(str(self.name)) + os.linesep)
       for targetP in parameterSet:

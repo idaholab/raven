@@ -397,13 +397,16 @@ Here we present a few examples using different components of the RunInfo node:
 \begin{lstlisting}[style=XML]
 <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
-    <Files>lorentzAttractor.py</Files>
     <Sequence>MonteCarlo</Sequence>
     <batchSize>100</batchSize>
     <NumThreads>4</NumThreads>
     <mode>mpi</mode>
     <NumMPI>2</NumMPI>
 </RunInfo>
+
+<Files>
+    <Input name='lorentzAttractor.py' type=''>lorentzAttractor.py</Input>
+</Files>
 \end{lstlisting}
 This examples specifies the working directory (\texttt{WorkingDir}) where the
 necessary file (\texttt{Files}) is located and to run a series of 100

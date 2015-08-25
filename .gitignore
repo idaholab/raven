@@ -48,6 +48,10 @@ work_in_progress/remote_tools/time
 framework/DatabaseStorage/
 tests/framework/LHStestFerret/myLHS/
 tests/framework/PreconditionedDynamicEventTree/PreconditionedDETrunTest/
+tests/framework/CUBIT_MOOSE_test/grid_run/
+tests/framework/BISON_and_MESH_test/grid_run/
+tests/framework/RedundantInputs/sim_py_MC/
+tests/framework/RedundantInputs/sim_py_grid/
 build/
 
 # eclipse

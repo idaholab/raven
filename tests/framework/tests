@@ -217,7 +217,7 @@
   type = 'RavenFramework'
   input = 'test_LHS_Sampler_Bison.xml'
   output = 'LHStestBison/myLHS/out~1~gap_perfect_transfer_test'
-  csv = 'LHStestBison/myLHS/out~1~gap_perfect_transfer_test.csv LHStestBison/myLHS/out~3~gap_perfect_transfer_test.csv'
+  UnorderedCsv = 'LHStestBison/myLHS/out~1~gap_perfect_transfer_test.csv LHStestBison/myLHS/out~3~gap_perfect_transfer_test.csv'
   max_time = 500
   rel_err = 0.001
   required_executable = '../../../bison/bison-%METHOD%'
@@ -228,7 +228,7 @@
   type = 'RavenFramework'
   input = 'test_LHS_Sampler_Bison_parallel.xml'
   output = 'LHStestBisonParallel/myLHS/out~1~gap_perfect_transfer_test LHStestBisonParallel/LHS_Bison_dump.csv'
-  csv = 'LHStestBisonParallel/LHS_Bison_dump.csv'
+  UnorderedCsv = 'LHStestBisonParallel/LHS_Bison_dump.csv'
   max_time = 500
   rel_err = 0.001
   required_executable = '../../../bison/bison-%METHOD%'
@@ -395,6 +395,14 @@
   required_libraries = 'amsc'
  [../]
 
+[./topology_graph]
+  type = 'RavenFramework'
+  input = 'test_topology_graphs.xml'
+  csv = 'topology3/segNN.csv topology3/segBS.csv topology3/segRBS.csv'
+  output = 'topology3/segNN.xml topology3/segBS.xml topology3/segRBS.xml'
+  required_libraries = 'amsc'
+ [../]
+
  [./io_ROM_pickle]
   type = 'RavenFramework'
   input = 'test_io_ROM_pickle.xml'
@@ -482,6 +490,14 @@
   output = 'SamplerRestarts/GRIDdump1.xml SamplerRestarts/GRIDdump2.xml SamplerRestarts/GRIDdump3.xml'
   xml = 'SamplerRestarts/GRIDdump1.xml SamplerRestarts/GRIDdump2.xml SamplerRestarts/GRIDdump3.xml'
   csv = 'SamplerRestarts/GRIDdump1.csv SamplerRestarts/GRIDdump2.csv SamplerRestarts/GRIDdump3.csv'
+ [../]
+
+ [./samplerRestartCSV]
+  type = 'RavenFramework'
+  input = 'test_restart_csv.xml'
+  output = 'SamplerRestarts/CSVdump.xml'
+  csv = 'SamplerRestarts/CSVdump.csv'
+  prereq = samplerRestartMC
  [../]
 
  [./ND_external_MC]
@@ -592,5 +608,25 @@
    output = 'dataObject_metadata/PointProbability_dump.xml'
    xml = 'dataObject_metadata/PointProbability_dump.xml'
    csv = 'dataObject_metadata/PointProbability_dump.csv'
+[./CubitMooseInterface]
+   type = 'RavenFramework'
+   input = 'test_CUBIT_MOOSE.xml'
+   output = 'CUBIT_MOOSE_test/grid_run/mesh~rectangle_1.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_2.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_3.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_4.e'
+   csv = 'CUBIT_MOOSE_test/print_data.csv'
+   # Need to be able to check that cubit executable exists, but listing in required_executable
+   # searches for existence of file then runs it. Running cubit by itself starts a cubit
+   # command line that the test harness doesn't know how to deal with. For now, we're just
+   # going to test for the existence of moose_test-opt to run.
+   required_executable = '../../../moose/test/moose_test-%METHOD%'
+   required_libraries = 'cubit'
+ [../]
+
+[./BisonAndMeshInterface]
+   type = 'RavenFramework'
+   input = 'test_BISON_and_MESH.xml'
+   output = 'BISON_and_MESH_test/grid_run/mesh~coarse_input_1.e BISON_and_MESH_test/grid_run/mesh~coarse_input_2.e BISON_and_MESH_test/grid_run/mesh~coarse_input_3.e BISON_and_MESH_test/grid_run/mesh~coarse_input_4.e BISON_and_MESH_test/grid_run/mesh~coarse_input_5.e BISON_and_MESH_test/grid_run/mesh~coarse_input_6.e BISON_and_MESH_test/grid_run/mesh~coarse_input_7.e BISON_and_MESH_test/grid_run/mesh~coarse_input_8.e BISON_and_MESH_test/grid_run/mesh~coarse_input_9.e BISON_and_MESH_test/grid_run/mesh~coarse_input_10.e BISON_and_MESH_test/grid_run/mesh~coarse_input_11.e BISON_and_MESH_test/grid_run/mesh~coarse_input_12.e BISON_and_MESH_test/grid_run/mesh~coarse_input_13.e BISON_and_MESH_test/grid_run/mesh~coarse_input_14.e BISON_and_MESH_test/grid_run/mesh~coarse_input_15.e BISON_and_MESH_test/grid_run/mesh~coarse_input_16.e'
+   csv = 'BISON_and_MESH_test/print_data.csv'
+   required_executable = '../../../bison/bison-%METHOD%'
+   required_libraries = 'cubit'
  [../]
 []
