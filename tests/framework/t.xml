@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="all">
   <RunInfo>
     <WorkingDir>/Users/alfoa/projects/raven/tests/framework/Adapt</WorkingDir>
     <Sequence>adapt,adaptdump</Sequence>
@@ -61,7 +61,7 @@
       <ROM class="Models" type="ROM">accelerated_ROM</ROM>
       <Function class="Functions" type="External">g_zr</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">nt_phy_dpt_dt</TargetEvaluation>
-      <Convergence forceIteration="False" limit="3000" persistence="25" weight="value" >9e-2</Convergence>
+      <Convergence forceIteration="False" limit="3000" persistence="25" weight="CDF" subGridTol="0.0001">0.001</Convergence>
       <variable name="x1">
         <distribution>x1_dst</distribution>
       </variable>
