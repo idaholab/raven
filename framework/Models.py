@@ -588,7 +588,9 @@ class ExternalModel(Dummy):
     @ In, finishedJob, InternalRunner object, instance of the run just finished
     @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,"No available Output to collect (Run probabably is not finished yet)")
+    if finishedJob.returnEvaluation() == -1:
+      #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
+      self.raiseAnError(RuntimeError,"No available Output to collect (Run probabably failed or is not finished yet)")
     def typeMatch(var,var_type_str):
       type_var = type(var)
       return type_var.__name__ == var_type_str or \
@@ -701,6 +703,10 @@ class Code(Model):
     self.code.setInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
+    self.raiseADebug('Code extensions set')
+    self.raiseADebug(self.code.getInputExtension())
+    self.raiseADebug(self.clargs)
+    self.raiseADebug(self.fargs)
 
   def addInitParams(self,tempDict):
     """extension of addInitParams for the Code(model)"""
@@ -752,6 +758,7 @@ class Code(Model):
     found = False
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
     #  objects.  However, this might require some updating of many Code Interfaces as well.
+    self.raiseADebug('input exts:',self.code.getInputExtension())
     for index, inputFile in enumerate(currentInput):
       if inputFile.getExt() in self.code.getInputExtension():
         found = True

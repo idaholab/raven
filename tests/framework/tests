@@ -622,4 +622,10 @@
    required_executable = '../../../bison/bison-%METHOD%'
    required_libraries = 'cubit'
  [../]
+
+  [./failrunsMC]
+    type = 'RavenFramework'
+    input = 'test_failruns_MC.xml'
+    csv = 'RunFailures/MCdump.csv RunFailures/MCdumpC.csv'
+  [../]
 []

@@ -495,23 +495,26 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
-  def handleFailedRuns(self,failedRuns):
+  def handleFailedRuns(self,jobHandler):#failedRuns):
     """Collects the failed runs from the Step and allows samples to handle them individually if need be.
     @ In, failedRuns, list of JobHandler.ExternalRunner objects
     @Out, None
     """
+    failedRuns = jobHandler.getListOfFailedJobs()
     self.raiseADebug('===============')
     self.raiseADebug('| RUN SUMMARY |')
     self.raiseADebug('===============')
     if len(failedRuns)>0:
       self.raiseAWarning('There were %i failed runs!  Run with verbosity = debug for more details.' %(len(failedRuns)))
-      for run in failedRuns:
-        metadata = run.returnMetadata()
-        self.raiseADebug('failed run #%s  :' %run.identifier,run.command)
-        self.raiseADebug('    return code :',run.getReturnCode())
-        self.raiseADebug('    sampled vars:')
+      for id,tpl in failedRuns.items():
+        retcode = tpl[0]
+        metadata = tpl[1]
+        #metadata = run.returnMetadata()
+        self.raiseADebug('  failed run with ID %s:' %id)
+        self.raiseADebug('      return code :',retcode)
+        self.raiseADebug('      sampled vars:')
         for v,k in metadata['SampledVars'].items():
-          self.raiseADebug('       ',v,':',k)
+          self.raiseADebug('         ',v,':',k)
     else:
       self.raiseADebug('All runs completed without returning errors.')
     self._localHandleFailedRuns(failedRuns)
@@ -969,7 +972,7 @@ class MonteCarlo(Sampler):
     @ In, failedRuns, list of JobHandler.ExternalRunner objects
     @Out, None
     """
-    self.raiseADebug('  Continuing with reduced-size Monte Carlo sampling.')
+    if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte Carlo sampling.')
 #
 #
 #

@@ -304,6 +304,9 @@ class MultiRun(SingleRun):
             myLambda([finishedJob,outputs[outIndex]])
             self.raiseADebug('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
         else:
+          if isinstance(model,Models.ExternalModel): #can't append finishedJob because it gets overwritten
+            self.raiseADebug('run:',finishedJob)
+
           self.failedRuns.append(finishedJob)
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
           self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
@@ -318,7 +321,8 @@ class MultiRun(SingleRun):
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
       time.sleep(self.sleepTime)
-    sampler.handleFailedRuns(self.failedRuns)
+    # TODO sampler.handleFailedRuns(self.failedRuns)
+    sampler.handleFailedRuns(jobHandler)
 #
 #
 #
