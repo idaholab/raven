@@ -13,6 +13,7 @@ if not 'xrange' in dir(__builtins__): xrange = range
 import time
 import abc
 import cPickle as pickle
+import copy
 #import pickle as cloudpickle
 from serialization import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
@@ -306,8 +307,7 @@ class MultiRun(SingleRun):
         else:
           if isinstance(model,Models.ExternalModel): #can't append finishedJob because it gets overwritten
             self.raiseADebug('run:',finishedJob)
-
-          self.failedRuns.append(finishedJob)
+          self.failedRuns.append(copy.deepcopy(finishedJob))
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
           self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
         for _ in range(min(jobHandler.howManyFreeSpots(),sampler.endJobRunnable())): # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
@@ -321,8 +321,7 @@ class MultiRun(SingleRun):
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
       time.sleep(self.sleepTime)
-    # TODO sampler.handleFailedRuns(self.failedRuns)
-    sampler.handleFailedRuns(jobHandler)
+    sampler.handleFailedRuns(self.failedRuns)
 #
 #
 #

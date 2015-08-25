@@ -79,6 +79,17 @@ class ExternalRunner(MessageHandler.MessageUser):
     ####### WARNING: THIS DEEPCOPY MUST STAY!!!! DO NOT REMOVE IT ANYMORE. ANDREA #######
     self.codePointer  = codePointer
 
+    def __deepcopy__(self,memo):
+      print('\n\n\n\nHERE!!!!!!!!!\n\n\n\n')
+      cls = self.__class__
+      newobj = cls.__new__(cls)
+      memo[id(self)] = result
+      copydict = self.__dict__
+      for k,v in copydict:
+        print ('copying:',k,'|',v)
+        setattr(newobj,k,copy.deepcopy(v,memo))
+      return newobj
+
 # BEGIN: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
     # Initialize logger
     #self.logger     = self.createLogger(self.identifier)
@@ -118,7 +129,6 @@ class ExternalRunner(MessageHandler.MessageUser):
 #         break
 #       self.logger.info('%s', line)
 #       #self.logger.debug('%s', line.srip())
-
 # END: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
 
   def isDone(self):
@@ -218,15 +228,18 @@ class InternalRunner(MessageHandler.MessageUser):
     self._functionToSkip = functionToSkip
     self.retcode         = 0
 
-    def __deepcopy__(self,memo):
-      cls = self.__class__
-      newobj = cls.__new__(cls)
-      memo[id(self)] = result
-      copydict = self.__dict__
-      for k,v in copydict:
-        print ('copying:',k,'|',v)
-        setattr(newobj,k,copy.deepcopy(v,memo))
-      return newobj
+  def __deepcopy__(self,memo):
+    cls = self.__class__
+    newobj = cls.__new__(cls)
+    memo[id(self)] = newobj
+    copydict = self.__dict__
+    ### these things can't be deepcopied ###
+    toRemove = ['functionToRun','subque','_InternalRunner__thread']
+    for k,v in copydict.items():
+      if k in toRemove: continue
+      print ('copying:',k,'|',v)
+      setattr(newobj,k,copy.deepcopy(v,memo))
+    return newobj
 
   def start_pp(self):
     if self.ppserver != None:
@@ -245,12 +258,12 @@ class InternalRunner(MessageHandler.MessageUser):
       else:                     return not self.__thread.is_alive()
 
   def getReturnCode(self):
-    if self.ppserver is None:
+    if self.ppserver is None and hasattr(self,'subque'):
       if self.subque.empty(): #is this necessary and sufficient for all failed runs?
         self.__runReturn = -1
         self.retcode = -1
     else:
-      self.raiseADebug('thread:',self.__thread)
+      self.raiseAWarning('FIXME Not yet implemented: handle this!')
     return self.retcode
 
   def returnEvaluation(self):

@@ -495,23 +495,20 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
-  def handleFailedRuns(self,jobHandler):#failedRuns):
+  def handleFailedRuns(self,failedRuns):
     """Collects the failed runs from the Step and allows samples to handle them individually if need be.
     @ In, failedRuns, list of JobHandler.ExternalRunner objects
     @Out, None
     """
-    failedRuns = jobHandler.getListOfFailedJobs()
     self.raiseADebug('===============')
     self.raiseADebug('| RUN SUMMARY |')
     self.raiseADebug('===============')
     if len(failedRuns)>0:
       self.raiseAWarning('There were %i failed runs!  Run with verbosity = debug for more details.' %(len(failedRuns)))
-      for id,tpl in failedRuns.items():
-        retcode = tpl[0]
-        metadata = tpl[1]
-        #metadata = run.returnMetadata()
-        self.raiseADebug('  failed run with ID %s:' %id)
-        self.raiseADebug('      return code :',retcode)
+      for run in failedRuns:
+        metadata = run.returnMetadata()
+        self.raiseADebug('  Run number %s FAILED:' %run.identifier,run.command)
+        self.raiseADebug('      return code :',run.getReturnCode())
         self.raiseADebug('      sampled vars:')
         for v,k in metadata['SampledVars'].items():
           self.raiseADebug('         ',v,':',k)
