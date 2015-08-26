@@ -940,7 +940,11 @@ class PointSet(Data):
   PointSet is an object that stores multiple sets of inputs and outputs for a particular point in time!
   """
   def __init__(self):
+    """Constructor.
+    @ In, None
+    @Out, None"""
     Data.__init__(self)
+    self.numAdditionalLoadPoints = 0 #if points are loaded into csv through alternate means, this will keep up.
     self.acceptHierarchy = True
 
   def addSpecializedReadingSettings(self):
@@ -968,7 +972,7 @@ class PointSet(Data):
     #example, if that list contains 10 csvs and 1 HDF5 (with 20
     #HistorySet), len(toLoadFromList) = 11 but the number of HistorySet
     #is actually 30.
-    lenMustHave = 0
+    lenMustHave = self.numAdditionalLoadPoints
     sourceType = self._toLoadFromList[-1].type
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
@@ -1269,6 +1273,8 @@ class PointSet(Data):
       line_list = line.rstrip().split(",")
       for i in range(len(inoutKeys)):
         inoutValues[i].append(utils.partialEval(line_list[i]))
+    # extend the expected size of this PointSet
+    self.numAdditionalLoadPoints = len(inoutValues[0])-1 #-1 because you get 1 for loading from csv in checkConsistency
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     inoutDict = {}

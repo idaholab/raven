@@ -2,12 +2,14 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>SamplerRestarts</WorkingDir>
-    <Sequence>load,make,print</Sequence>
+    <Sequence>load,make,print,codeMake,codeWrite,codeLoad,codeRestart,codeWrite2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
     <Input name='csv' type=''>MCdump1.csv</Input>
+    <Input name='infile' type=''>input.inp</Input>
+    <Input name='codeCSV' type=''>code1.csv</Input>
   </Files>
   
   <Steps>
@@ -17,6 +19,18 @@
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
+    <MultiRun name='codeMake'>
+      <Input class='Files' type=''>infile</Input>
+      <Model class='Models' type='Code'>codefailer</Model>
+      <Sampler class='Samplers' type='MonteCarlo'>mc2</Sampler>
+      <Output class='DataObjects' type='PointSet'>csolns1</Output>
+    </MultiRun>
+    <MultiRun name='codeRestart'>
+      <Input class='Files' type=''>infile</Input>
+      <Model class='Models' type='Code'>codefailer</Model>
+      <Sampler class='Samplers' type='MonteCarlo'>mc3</Sampler>
+      <Output class='DataObjects' type='PointSet'>csolns3</Output>
+    </MultiRun>
     <IOStep name="load">
       <Input class='Files' type=''>csv</Input>
       <Output class='DataObjects' type='PointSet'>solns</Output>
@@ -24,6 +38,18 @@
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
       <Output class="OutStreamManager" type="Print">CSVdump</Output>
+    </IOStep>
+    <IOStep name='codeWrite'>
+      <Input class='DataObjects' type='PointSet'>csolns1</Input>
+      <Output class='OutStreamManager' type='Print'>codeDump1</Output>
+    </IOStep>
+    <IOStep name='codeLoad'>
+      <Input class='Files' type=''>codeCSV</Input>
+      <Output class='DataObjects' type='PointSet'>csolns2</Output>
+    </IOStep>
+    <IOStep name='codeWrite2'>
+      <Input class='DataObjects' type='PointSet'>csolns3</Input>
+      <Output class='OutStreamManager' type='Print'>codeDump2</Output>
     </IOStep>
   </Steps>
 
@@ -52,6 +78,31 @@
       </variable>
       <Restart class='DataObjects' type='PointSet'>solns</Restart>
     </MonteCarlo>
+    <MonteCarlo name="mc2">
+      <sampler_init>
+        <limit>5</limit>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
+      <variable name="x">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>u2</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="mc3">
+      <sampler_init>
+        <limit>5</limit>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
+      <variable name="x">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>u2</distribution>
+      </variable>
+      <Restart class='DataObjects' type='PointSet'>csolns2</Restart>
+    </MonteCarlo>
   </Samplers>
 
   <Models>
@@ -62,6 +113,13 @@
       <variable>ans</variable>
       <variable>ans2</variable>
     </ExternalModel>
+    <Code name='codefailer' subType='GenericCode'>
+      <executable>SampleRestarts/codeFailer.py</executable>
+      <inputExtensions>inp</inputExtensions>
+      <clargs type='prepend' arg='python'/>
+      <clargs type='input' args='' extension='.inp'/>
+      <prepend>python</prepend>
+    </Code>
   </Models>
 
   <DataObjects>
@@ -77,12 +135,32 @@
       <Input>x1,x2</Input>
       <Output>ans,ans2</Output>
     </PointSet>
+    <PointSet name="csolns1">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="csolns2">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="csolns3">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
   </DataObjects>
 
   <OutStreamManager>
     <Print name="CSVdump">
       <type>csv</type>
       <source>solns</source>
+    </Print>
+    <Print name="codeDump1">
+      <type>csv</type>
+      <source>csolns1</source>
+    </Print>
+    <Print name="codeDump2">
+      <type>csv</type>
+      <source>csolns3</source>
     </Print>
   </OutStreamManager>
 
