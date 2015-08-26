@@ -1276,7 +1276,7 @@ class PointSet(Data):
       for i in range(len(inoutKeys)):
         inoutValues[i].append(utils.partialEval(line_list[i]))
     # extend the expected size of this PointSet
-    self.numAdditionalLoadPoints = len(inoutValues[0])-1 #-1 because you get 1 for loading from csv in checkConsistency
+    self.numAdditionalLoadPoints = len(inoutValues[0]) #this flag used in checkConsistency
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     inoutDict = {}
