@@ -495,6 +495,41 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
+  def handleFailedRuns(self,failedRuns):
+    """Collects the failed runs from the Step and allows samples to handle them individually if need be.
+    @ In, failedRuns, list of JobHandler.ExternalRunner objects
+    @Out, None
+    """
+    self.raiseADebug('===============')
+    self.raiseADebug('| RUN SUMMARY |')
+    self.raiseADebug('===============')
+    if len(failedRuns)>0:
+      self.raiseAWarning('There were %i failed runs!  Run with verbosity = debug for more details.' %(len(failedRuns)))
+      for run in failedRuns:
+        metadata = run.returnMetadata()
+        self.raiseADebug('  Run number %s FAILED:' %run.identifier,run.command)
+        self.raiseADebug('      return code :',run.getReturnCode())
+        self.raiseADebug('      sampled vars:')
+        for v,k in metadata['SampledVars'].items():
+          self.raiseADebug('         ',v,':',k)
+    else:
+      self.raiseADebug('All runs completed without returning errors.')
+    self._localHandleFailedRuns(failedRuns)
+    self.raiseADebug('===============')
+    self.raiseADebug('  END SUMMARY  ')
+    self.raiseADebug('===============')
+
+  def _localHandleFailedRuns(self,failedRuns):
+    """Specialized method for samplers to handle failed runs.  Defaults to failing runs.
+    @ In, failedRuns, list of JobHandler.ExternalRunner objects
+    @Out, None
+    """
+    if len(failedRuns)>0:
+      self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
+#
+#
+#
+#
 class StaticSampler(Sampler):
   """This is a general static, blind, once-through sampler"""
   pass
@@ -504,7 +539,8 @@ class StaticSampler(Sampler):
 #
 class AdaptiveSampler(Sampler):
   """This is a general adaptive sampler"""
-  pass
+
+
 
 class LimitSurfaceSearch(AdaptiveSampler):
   """
@@ -930,6 +966,12 @@ class MonteCarlo(Sampler):
       #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
     self.inputInfo['SamplerType'] = 'MC'
 
+  def _localHandleFailedRuns(self,failedRuns):
+    """Specialized method for samplers to handle failed runs.  Defaults to failing runs.
+    @ In, failedRuns, list of JobHandler.ExternalRunner objects
+    @Out, None
+    """
+    if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte Carlo sampling.')
 #
 #
 #
