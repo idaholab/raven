@@ -496,7 +496,7 @@
   type = 'RavenFramework'
   input = 'test_restart_csv.xml'
   output = 'SamplerRestarts/CSVdump.xml'
-  csv = 'SamplerRestarts/CSVdump.csv'
+  csv = 'SamplerRestarts/CSVdump.csv SamplerRestarts/code1.csv SamplerRestarts/code2.csv'
   prereq = samplerRestartMC
  [../]
 
