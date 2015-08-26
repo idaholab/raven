@@ -22,13 +22,13 @@
     <MultiRun name='codeMake'>
       <Input class='Files' type=''>infile</Input>
       <Model class='Models' type='Code'>codefailer</Model>
-      <Sampler class='Samplers' type='MonteCarlo'>mc2</Sampler>
+      <Sampler class='Samplers' type='SparseGridCollocation'>sc1</Sampler>
       <Output class='DataObjects' type='PointSet'>csolns1</Output>
     </MultiRun>
     <MultiRun name='codeRestart'>
       <Input class='Files' type=''>infile</Input>
       <Model class='Models' type='Code'>codefailer</Model>
-      <Sampler class='Samplers' type='MonteCarlo'>mc3</Sampler>
+      <Sampler class='Samplers' type='SparseGridCollocation'>sc2</Sampler>
       <Output class='DataObjects' type='PointSet'>csolns3</Output>
     </MultiRun>
     <IOStep name="load">
@@ -41,7 +41,7 @@
     </IOStep>
     <IOStep name='codeWrite'>
       <Input class='DataObjects' type='PointSet'>csolns1</Input>
-      <Output class='OutStreamManager' type='Print'>codeDump1</Output>
+      <Output class='OutStreamManager' type='Print'>code1</Output>
     </IOStep>
     <IOStep name='codeLoad'>
       <Input class='Files' type=''>codeCSV</Input>
@@ -49,7 +49,7 @@
     </IOStep>
     <IOStep name='codeWrite2'>
       <Input class='DataObjects' type='PointSet'>csolns3</Input>
-      <Output class='OutStreamManager' type='Print'>codeDump2</Output>
+      <Output class='OutStreamManager' type='Print'>code2</Output>
     </IOStep>
   </Steps>
 
@@ -78,31 +78,25 @@
       </variable>
       <Restart class='DataObjects' type='PointSet'>solns</Restart>
     </MonteCarlo>
-    <MonteCarlo name="mc2">
-      <sampler_init>
-        <limit>5</limit>
-        <initial_seed>1</initial_seed>
-      </sampler_init>
+    <SparseGridCollocation name="sc1">
       <variable name="x">
         <distribution>u1</distribution>
       </variable>
       <variable name="y">
         <distribution>u2</distribution>
       </variable>
-    </MonteCarlo>
-    <MonteCarlo name="mc3">
-      <sampler_init>
-        <limit>5</limit>
-        <initial_seed>1</initial_seed>
-      </sampler_init>
+      <ROM class='Models' type='ROM'>rom1</ROM>
+    </SparseGridCollocation>
+    <SparseGridCollocation name="sc2">
       <variable name="x">
         <distribution>u1</distribution>
       </variable>
       <variable name="y">
         <distribution>u2</distribution>
       </variable>
+      <ROM class='Models' type='ROM'>rom1</ROM>
       <Restart class='DataObjects' type='PointSet'>csolns2</Restart>
-    </MonteCarlo>
+    </SparseGridCollocation>
   </Samplers>
 
   <Models>
@@ -114,12 +108,25 @@
       <variable>ans2</variable>
     </ExternalModel>
     <Code name='codefailer' subType='GenericCode'>
-      <executable>SampleRestarts/codeFailer.py</executable>
+      <executable>SamplerRestarts/codeFailer.py</executable>
       <inputExtensions>inp</inputExtensions>
       <clargs type='prepend' arg='python'/>
       <clargs type='input' args='' extension='.inp'/>
+      <fileargs type='output' arg='out'/>
       <prepend>python</prepend>
     </Code>
+    <ROM name='rom1' subType='GaussPolynomialRom'>
+        <Target>ans</Target>
+        <Features>x,y</Features>
+        <IndexSet>TotalDegree</IndexSet>
+        <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
+    <ROM name='rom2' subType='GaussPolynomialRom'>
+        <Target>ans</Target>
+        <Features>x,y</Features>
+        <IndexSet>TotalDegree</IndexSet>
+        <PolynomialOrder>3</PolynomialOrder>
+    </ROM>
   </Models>
 
   <DataObjects>
@@ -154,11 +161,11 @@
       <type>csv</type>
       <source>solns</source>
     </Print>
-    <Print name="codeDump1">
+    <Print name="code1">
       <type>csv</type>
       <source>csolns1</source>
     </Print>
-    <Print name="codeDump2">
+    <Print name="code2">
       <type>csv</type>
       <source>csolns3</source>
     </Print>
