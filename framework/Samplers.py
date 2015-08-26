@@ -2661,10 +2661,14 @@ class SparseGridCollocation(Grid):
       try: pt,weight = self.sparseGrid[self.counter-1]
       except IndexError: raise utils.NoMoreSamplesNeeded
       if pt in self.existing:
+        self.raiseADebug('found a pre-existing point...')
+        self.raiseADebug('    ...',pt)
         self.counter+=1
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
       else:
+        self.raiseADebug('found a point that has not yet been sampled...')
+        self.raiseADebug('    ...',pt)
         found=True
         for v,varName in enumerate(self.sparseGrid.varNames):
           self.values[varName] = pt[v]
