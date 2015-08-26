@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- A simple example of the Approximate Morse-Smale Complex (AMSC) interface
+<!-- A simple example of the approximate Morse-Smale complex (AMSC) interface
      where each of the examples will showcase different partitions using
      different persistence simplfication metrics -->
 <!-- <Simulation verbosity="silent"> -->
@@ -93,7 +93,7 @@
   </Samplers>
 
   <Steps>
-  <!-- Load the data from a csv into the hdf5 database used by this run -->
+  <!-- Sample the test function as an External Model -->
     <MultiRun name='sampleData' pauseAtEnd='False'>
       <Input   class='DataObjects' type='PointSet'     >dummyIN</Input>
       <Model   class='Models'      type='ExternalModel'>testFunction</Model>
