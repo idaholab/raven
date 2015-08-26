@@ -886,6 +886,7 @@ class MonteCarlo(Sampler):
       self.counter+=len(self.restartData)
       self.raiseAMessage('Number of points from restart: %i' %self.counter)
       self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
+      self.raiseADebug('Counter value set to',self.counter)
     #pass #TODO fix the limit based on restartData
 
   def localGenerateInput(self,model,myInput):
@@ -921,7 +922,8 @@ class MonteCarlo(Sampler):
               self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
             else:
               self.inputInfo['SampledVarsPb'][kkey] = 1.0
-      #else? #FIXME
+        #else? #FIXME
+    self.raiseADebug('sampled values:',self.values)
 
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
