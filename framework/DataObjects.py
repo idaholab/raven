@@ -1239,6 +1239,8 @@ class PointSet(Data):
       myFile.write('\n')
       #Print values
       for j in range(len(next(iter(itertools.chain(inpValues,outValues))))):
+        #myFile.write(','.join(['{:.17f}'.format(item[j]) for item in itertools.chain(inpValues,outValues)]))
+        #str(item) can truncate the accuracy of the value. -> however, the line above ^ says the info is already lost
         myFile.write(','.join([str(item[j]) for item in itertools.chain(inpValues,outValues)]))
         myFile.write('\n')
       myFile.close()

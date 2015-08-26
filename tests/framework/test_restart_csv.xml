@@ -94,7 +94,7 @@
       <variable name="y">
         <distribution>u2</distribution>
       </variable>
-      <ROM class='Models' type='ROM'>rom1</ROM>
+      <ROM class='Models' type='ROM'>rom2</ROM>
       <Restart class='DataObjects' type='PointSet'>csolns2</Restart>
     </SparseGridCollocation>
   </Samplers>
@@ -125,7 +125,7 @@
         <Target>ans</Target>
         <Features>x,y</Features>
         <IndexSet>TotalDegree</IndexSet>
-        <PolynomialOrder>3</PolynomialOrder>
+        <PolynomialOrder>2</PolynomialOrder>
     </ROM>
   </Models>
 
