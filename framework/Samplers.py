@@ -532,6 +532,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.nVar             = 0                #this is the number of the variable sampled
     self.surfPoint        = None             #coordinate of the points considered on the limit surface
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
+
+    self.generateCSVs     = False            # Flag: should intermediate results
+                                             #  be stored?
+
     # postprocessor to compute the limit surface
     self.limitSurfacePP   = None
     self.printTag         = 'SAMPLER ADAPTIVE'
@@ -582,6 +586,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
     if self.subGridTol == None: self.subGridTol = self.tolerance
     if self.subGridTol > self.tolerance: self.raiseAnError(IOError,'The sub grid tolerance '+str(self.subGridTol)+' must be smaller than the tolerance: '+str(self.tolerance))
     if len(attribList)>0: self.raiseAnError(IOError,'There are unknown keywords in the convergence specifications: '+str(attribList))
+
+    for child in xmlNode:
+      if child.tag == "generateCSVs":
+        self.generateCSVs = True
 
   def localAddInitParams(self,tempDict):
     """
@@ -669,6 +677,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
     """
     self.raiseADebug('From method localStillReady...')
+    axisNames = [key.replace('<distribution>','') for key in self.axisName]
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
@@ -685,6 +694,24 @@ class LimitSurfaceSearch(AdaptiveSampler):
     np.copyto(self.oldTestMatrix,self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
     self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
+
+    if self.generateCSVs and self.surfPoint is not None:
+      # DM: HACK until I figure out how to get the actual working directory
+      self.workingDir = os.path.abspath(os.curdir)
+      fout = open(os.path.join(self.workingDir,'naive','limit_surface_'
+                               + str(self.counter) + '.csv'), 'w')
+      sep = ''
+      for varName in axisNames:
+        fout.write(sep+varName)
+        sep = ','
+      fout.write(sep+'label\n')
+      for i,row in enumerate(self.surfPoint):
+        sep = ''
+        for value in row:
+          fout.write(sep+str(value))
+          sep = ','
+        fout.write(sep+str(evaluations[i])+'\n')
+      fout.close()
 
     self.raiseADebug('Prediction finished')
     # check hanging points
@@ -719,12 +746,15 @@ class LimitSurfaceSearch(AdaptiveSampler):
         # to be fixed
         self.solutionExport.removeOutputValue(self.goalFunction.name)
         for index in range(len(evaluations)): self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[index]))
+
     return ready
 
   def localGenerateInput(self,model,oldInput):
     # create values dictionary
     """compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
      check the points where the derivative probability is the lowest"""
+
+    axisNames = [key.replace('<distribution>','') for key in self.axisName]
 
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
@@ -743,6 +773,39 @@ class LimitSurfaceSearch(AdaptiveSampler):
       #distLast = np.sqrt(distLast)
       distance, _ = distanceTree.query(self.surfPoint)
       distance = np.multiply(distance,self.invPointPersistence)
+
+      if self.generateCSVs and self.surfPoint is not None:
+        # DM: HACK until I figure out how to get the actual working directory
+        self.workingDir = os.path.abspath(os.curdir)
+        fout = open(os.path.join(self.workingDir,'naive','scores_'
+                                 + str(self.counter) + '.csv'), 'w')
+        sep = ''
+        for varName in axisNames:
+          fout.write(sep+varName)
+          sep = ','
+        fout.write(sep+'score\n')
+        for i in xrange(len(self.surfPoint)):
+          sep = ''
+          for varIndex, name in enumerate(axisNames):
+            fout.write(sep+str(self.surfPoint[i,varIndex]))
+            sep = ','
+          fout.write(sep+str(distance[i])+'\n')
+        fout.close()
+        fout = open(os.path.join(self.workingDir,'naive','sampledMatrix_'
+                                 + str(self.counter) + '.csv'), 'w')
+        sep = ''
+        for varName in axisNames:
+          fout.write(sep+varName)
+          sep = ','
+        fout.write('\n')
+        for i in xrange(len(sampledMatrix)):
+          sep = ''
+          for varIndex, name in enumerate(axisNames):
+            fout.write(sep+str(sampledMatrix[i,varIndex]))
+            sep = ','
+          fout.write('\n')
+        fout.close()
+
       if np.max(distance)>0.0:
         for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
           self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
@@ -890,7 +953,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
                                              #  which the result is not yet
                                              #  available
     self.scoringMethod    = 'distance'       # Name of the scoring method used
-    self.batchStrategy    = 'naive'          # Name of the batch strategy used
+    self.batchStrategy    = 'topology'       # Name of the batch strategy used
     self.trainSize        = 10               # Size of the initial training set
                                              #  before attempting to do adaptive
                                              #  these points will be picked
@@ -1184,7 +1247,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
       if self.generateCSVs and self.surfPoint is not None:
         # DM: HACK until I figure out how to get the actual working directory
         self.workingDir = os.path.abspath(os.curdir)
-        fout = open(os.path.join(self.workingDir,'scores_'
+        fout = open(os.path.join(self.workingDir,'topology','scores_'
                                  + str(self.counter) + '.csv'), 'w')
         sep = ''
         for varName in axisNames:
@@ -1199,7 +1262,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
           fout.write(sep+str(self.scores[i])+'\n')
         fout.close()
 
-        fout = open(os.path.join(self.workingDir,'sampledMatrix_'
+        fout = open(os.path.join(self.workingDir,'topology','sampledMatrix_'
                                  + str(self.counter) + '.csv'), 'w')
         sep = ''
         for varName in axisNames:
@@ -1213,7 +1276,6 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
             sep = ','
           fout.write('\n')
         fout.close()
-
     else:
       self.raiseAnError(self.scoringMethod + ' scoring method is not '
                         + 'implemented yet')
@@ -1267,7 +1329,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     if self.generateCSVs and self.surfPoint is not None:
       # DM: HACK until I figure out how to get the actual working directory
       self.workingDir = os.path.abspath(os.curdir)
-      fout = open(os.path.join(self.workingDir,'limit_surface_'
+      fout = open(os.path.join(self.workingDir,'topology','limit_surface_'
                                + str(self.counter) + '.csv'), 'w')
       sep = ''
       for varName in axisNames:
@@ -1387,9 +1449,8 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
                             reverse=True)
 
       if np.max(self.scores)>0.0:
-        validMaximum = False
         count = 0
-        while not validMaximum and count < len(sortedMaxima):
+        while count < len(sortedMaxima):
           topIdx = sortedMaxima[count]
           validMaximum = True
           # print(topIdx, sortedMaxima)
@@ -1397,14 +1458,30 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
             dist = 0
             for varIndex, varName in enumerate(axisNames):
               dist += (float(self.surfPoint[topIdx,varIndex])-float(point[varIndex]))**2
+            #TODO: remove hard-coded tolerance
             if np.sqrt(dist) < 1e-6:
               validMaximum = False
               break
+          if validMaximum:
+            break
+          else:
+            count += 1
 
         if count < len(sortedMaxima):
+          if count + 1 == 1:
+            suffix = 'st'
+          elif count + 1 == 2:
+            suffix = 'nd'
+          elif count + 1 == 3:
+            suffix = 'rd'
+          else:
+            suffix = 'th'
           for varIndex, varName in enumerate(axisNames):
             self.values[self.axisName[varIndex]] = float(self.surfPoint[topIdx,varIndex])
             self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+          print(str(self.counter) + ': Selected ' + str(count+1) + suffix + ' highest point. ',self.values)
+          print('\tTraining size', len(self.lastOutput))
+          print('\tCandidate size', len(self.scores))
           varSet=True
         else:
           self.raiseADebug('All local maxima have been submitted.')

@@ -18,7 +18,7 @@ myColormap = cm.coolwarm
 
 samplesX = []
 samplesY = []
-sFile = open('samplesDump.csv')
+sFile = open('samplesDump2.csv')
 sFile.readline()
 for line in sFile:
   tokens = line.strip().split(',')
@@ -29,7 +29,7 @@ print(len(samplesX))
 
 samples = zip(samplesX,samplesY)
 
-inputs = glob('topology/scores_*.csv')
+inputs = glob('naive/scores_*.csv')
 for fin in inputs:
   i = int(fin.split('_')[-1].replace('.csv',''))
   if i < len(samplesX):
@@ -57,10 +57,10 @@ for fin in inputs:
     plt.xlim(-1,1)
     plt.ylim(-1,1)
     plt.title(i)
-    plt.savefig('topology/limitSurface%3d.png' % i)
+    plt.savefig('naive/limitSurface%3d.png' % i)
     plt.clf()
     plt.cla()
 
 #Comment next two lines out if you don't have imagemagick installed
-os.system('convert -delay 100 -loop 0 topology/limitSurface*.png topology/candidates.gif')
-os.system('rm topology/limitSurface*.png')
+os.system('convert -delay 100 -loop 0 naive/limitSurface*.png naive/candidates.gif')
+os.system('rm naive/limitSurface*.png')
