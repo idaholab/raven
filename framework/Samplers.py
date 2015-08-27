@@ -959,7 +959,6 @@ class MonteCarlo(Sampler):
             else:
               self.inputInfo['SampledVarsPb'][kkey] = 1.0
         #else? #FIXME
-    self.raiseADebug('sampled values:',self.values)
 
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
@@ -2613,6 +2612,8 @@ class SparseGridCollocation(Grid):
     if self.restartData != None:
       inps = self.restartData.getInpParametersValues()
       #make reorder map
+      self.raiseADebug('inps :',inps.keys())
+      self.raiseADebug('feats:',self.features)
       reordmap=list(inps.keys().index(i) for i in self.features)
       solns = list(v for v in inps.values())
       ordsolns = [solns[i] for i in reordmap]
@@ -2703,14 +2704,10 @@ class SparseGridCollocation(Grid):
       try: pt,weight = self.sparseGrid[self.counter-1]
       except IndexError: raise utils.NoMoreSamplesNeeded
       if pt in self.existing:
-        self.raiseADebug('found a pre-existing point...')
-        self.raiseADebug('    ...',pt)
         self.counter+=1
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
       else:
-        self.raiseADebug('found a point that has not yet been sampled...')
-        self.raiseADebug('    ...',pt)
         found=True
         for v,varName in enumerate(self.sparseGrid.varNames):
           self.values[varName] = pt[v]
