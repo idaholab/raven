@@ -32,7 +32,8 @@
 #include <assert.h>
 #include <vector>
 #include <utility>
- #include <algorithm>
+#include <algorithm>
+#include <limits>
 
 #include "nglGeometry.hpp"
 
@@ -144,7 +145,11 @@ namespace ngl
 					if(!NGMethod<T>::isValid(idx2))
             continue;
 					T testresult = test->contains(edgeInfo, points[idx2]);
-					if(testresult<=0.0)
+					//DM: Use epsilon to ensure that the edge cases still
+					//    fail accordingly (this should fix a peculiarity
+					//    in the computation that was only manifested on
+					//    Windows)
+					if(testresult<=std::numeric_limits<T>::epsilon())
 					{
 						isRegionEmpty = false;
 						break;
@@ -204,7 +209,11 @@ namespace ngl
 					IndexType idx2 = candidateNeighbors[j];
 					if(!NGMethod<T>::isValid(idx2)) continue;
 					T testresult = test->contains(edgeInfo, points[idx2]);
-					if(testresult<=0.0)
+					//DM: Use epsilon to ensure that the edge cases still
+					//    fail accordingly (this should fix a peculiarity
+					//    in the computation that was only manifested on
+					//    Windows)
+					if(testresult<=std::numeric_limits<T>::epsilon())
 					{
 						isRegionEmpty = false;
 						break;
@@ -305,7 +314,11 @@ namespace ngl
 					if(!NGMethod<T>::isValid(idx2))
             continue;
 					T testresult = this->test->contains(edgeInfo, points[idx2]);
-					if(testresult<=0.0)
+					//DM: Use epsilon to ensure that the edge cases still
+					//    fail accordingly (this should fix a peculiarity
+					//    in the computation that was only manifested on
+					//    Windows)
+					if(testresult<=std::numeric_limits<T>::epsilon())
 					{
 						isRegionEmpty = false;
 						break;
@@ -387,7 +400,11 @@ namespace ngl
 					if(!NGMethod<T>::isValid(idx2))
             continue;
 					T testresult = this->test->contains(edgeInfo, points[idx2]);
-					if(testresult<=0.0)
+					//DM: Use epsilon to ensure that the edge cases still
+					//    fail accordingly (this should fix a peculiarity
+					//    in the computation that was only manifested on
+					//    Windows)
+					if(testresult<=std::numeric_limits<T>::epsilon())
 					{
 						isRegionEmpty = false;
 						break;

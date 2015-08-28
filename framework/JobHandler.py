@@ -118,8 +118,7 @@ class ExternalRunner(MessageHandler.MessageUser):
 #         break
 #       self.logger.info('%s', line)
 #       #self.logger.debug('%s', line.srip())
-
-# END: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
+#   END: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
 
   def isDone(self):
     """
@@ -218,6 +217,22 @@ class InternalRunner(MessageHandler.MessageUser):
     self._functionToSkip = functionToSkip
     self.retcode         = 0
 
+  def __deepcopy__(self,memo):
+    """This is the method called with copy.deepcopy.  Overwritten to remove some keys.
+    @ In, memo, dictionary required by deepcopy method
+    @Out, deep copy of this object
+    """
+    cls = self.__class__
+    newobj = cls.__new__(cls)
+    memo[id(self)] = newobj
+    copydict = self.__dict__
+    ### these things can't be deepcopied ###
+    toRemove = ['functionToRun','subque','_InternalRunner__thread']
+    for k,v in copydict.items():
+      if k in toRemove: continue
+      setattr(newobj,k,copy.deepcopy(v,memo))
+    return newobj
+
   def start_pp(self):
     if self.ppserver != None:
       if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
@@ -234,15 +249,29 @@ class InternalRunner(MessageHandler.MessageUser):
       if self.ppserver != None: return self.__thread.finished
       else:                     return not self.__thread.is_alive()
 
-  def getReturnCode(self): return self.retcode
+  def getReturnCode(self):
+    """Returns the return code from running the code.  If return code not yet set, set it.
+    @ In, None
+    @Out, return code, usually integer
+    """
+    if self.ppserver is None and hasattr(self,'subque'):
+      if self.subque.empty(): #is this necessary and sufficient for all failed runs?
+        self.__runReturn = -1
+        self.retcode = -1
+    else:
+      self.raiseAWarning('FIXME Not yet implemented: handle this!')
+    return self.retcode
 
   def returnEvaluation(self):
     if self.isDone():
       if not self.__hasBeenAdded:
-        if self.ppserver != None: self.__runReturn = self.__thread()
-        else                    : self.__runReturn = self.subque.get(timeout=1)
+        if self.ppserver is not None:
+          self.__runReturn = self.__thread()
+        else:
+          if self.subque.empty(): self.__runReturn = None #queue is empty!
+          else: self.__runReturn = self.subque.get(timeout=1)
         self.__hasBeenAdded = True
-        if self.__runReturn == None:
+        if self.__runReturn is None:
           self.retcode = -1
           return self.retcode
       return (self.__input[0],self.__runReturn)
@@ -277,7 +306,7 @@ class JobHandler(MessageHandler.MessageUser):
     self.__nextId               = 0
     self.__numSubmitted         = 0
     self.__numFailed            = 0
-    self.__failedJobs           = []
+    self.__failedJobs           = {} #dict of failed jobs, keyed on identifer, valued on metadata
 
   def initialize(self,runInfoDict,messageHandler):
     self.runInfoDict = runInfoDict
@@ -390,7 +419,7 @@ class JobHandler(MessageHandler.MessageUser):
           if returncode != 0:
             self.raiseAMessage(" Process Failed "+str(running)+' '+str(running.command)+" returncode "+str(returncode))
             self.__numFailed += 1
-            self.__failedJobs.append(running.identifier)
+            self.__failedJobs[running.identifier]=(returncode,copy.deepcopy(running.returnMetadata()))
             if type(running).__name__ == "External":
               outputFilename = running.getOutputFilename()
               if os.path.exists(outputFilename): self.raiseAMessage(open(outputFilename,"r").read())
