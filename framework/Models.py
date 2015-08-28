@@ -310,17 +310,18 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet','History']
 
   def __init__(self):
     Dummy.__init__(self)
     self.initializationOptionDict = {}          # ROM initialization options
     self.amITrained                = False      # boolean flag, is the ROM trained?
     self.howManyTargets            = 0          # how many targets?
-    self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
+    self.SupervisedEngine          = []         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
     
-    self.howManyTimeSteps          = 0          # how many time steps? (for temporal reduced order models)
+    self.howManyTimeSteps          = 1          # how many time steps? (for temporal reduced order models)
+    self.timeROM                   = []
 
   def __getstate__(self):
     """
@@ -368,12 +369,16 @@ class ROM(Dummy):
     
     #XXX
     self.howManyTimeSteps  = self.initializationOptionDict['t_Discs']
-    for ts in range(self.howManyTimeSteps ):
+    for ts in range(self.howManyTimeSteps):
       tsDict = {}
       for target in targets:
         self.initializationOptionDict['Target'] = target
-        tsDict[target]= SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+        tsDict[target] = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
       self.SupervisedEngine.append(tsDict)
+      
+      if self.howManyTimeSteps > 1:
+        timeROM = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+        self.timeRom.append(timeROM)
     #XXX
     
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
@@ -417,7 +422,8 @@ class ROM(Dummy):
     @ Out, None
     """
     # fare reset (per all ts)
-    for instrom in self.SupervisedEngine.values(): instrom.reset()
+    for instrom in self.SupervisedEngine.values():
+      instrom.reset()
     self.amITrained   = False
 
   def addInitParams(self,originalDict):
@@ -441,9 +447,25 @@ class ROM(Dummy):
     else:
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
       self.amITrained = True
-      for instrom in self.SupervisedEngine.values():
-        instrom.train(self.trainingSet)
-        self.aimITrained = self.amITrained and instrom.amITrained
+      
+      if self.howManyTimeSteps == None:    
+        for instrom in self.SupervisedEngine.values():
+          instrom.train(self.trainingSet)
+          self.aimITrained = self.amITrained and instrom.amITrained
+      else:
+        # TODO: pre-process data
+        for timeStep in self.SupervisedEngine:
+          for instrom in self.SupervisedEngine.values():
+            # TODO: Pick data
+            instrom.train(data)
+            self.aimITrained = self.amITrained and instrom.amITrained
+            
+        if self.howManyTimeSteps>1:
+          for timeStep in self.timeROM:
+            #TODO: pick data
+            timeStep.train(data)
+        
+        
       self.raiseADebug('add self.amITrained to currentParamters','FIXME')
 
   def confidence(self,request,target = None):
@@ -465,12 +487,14 @@ class ROM(Dummy):
     @ In, target, string, optional, target name (by default the first target entered in the input file)
     """
     inputToROM = self._inputToInternal(request)
-    if target != None: return self.SupervisedEngine[target].evaluate(inputToROM)
-    else             : return self.SupervisedEngine.values()[0].evaluate(inputToROM)
+    if target != None: 
+      return self.SupervisedEngine[target].evaluate(inputToROM)
+    else: 
+      return self.SupervisedEngine.values()[0].evaluate(inputToROM)
 
   def __externalRun(self,inRun):
     returnDict = {}
-    for ts in grid
+    for ts in grid:
       for target in self.SupervisedEngine.keys(): 
         returnDict[target] = self.evaluate(inRun,target)
     return returnDict
