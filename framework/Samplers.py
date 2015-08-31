@@ -2962,6 +2962,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
                       'polys':self.polyDict,
                       'iSet':self.indexSet,
                       'numRuns':self.counter})
+    #self.counter is inacuurate; it doesn't include those from restart!
     self.indexSet.printHistory()
     self.indexSet.writeHistory()
 
@@ -2971,6 +2972,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, model, unused
       @ In, myInput, unused
     """
+    self.raiseAWarning('Generating input.  Counter is',self.counter)
     pt = self.neededPoints.pop() # [self.counter-1]
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
