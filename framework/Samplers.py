@@ -535,6 +535,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
 
     self.generateCSVs     = False            # Flag: should intermediate results
                                              #  be stored?
+    self.errorHistory     = []
+    self.MCSamples        = []
 
     # postprocessor to compute the limit surface
     self.limitSurfacePP   = None
@@ -698,7 +700,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     if self.generateCSVs and self.surfPoint is not None:
       # DM: HACK until I figure out how to get the actual working directory
       self.workingDir = os.path.abspath(os.curdir)
-      fout = open(os.path.join(self.workingDir,'naive','limit_surface_'
+      fout = open(os.path.join(self.workingDir,'limit_surface_'
                                + str(self.counter) + '.csv'), 'w')
       sep = ''
       for varName in axisNames:
@@ -730,6 +732,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     else              : self.repetition +=1                                                                   # we are increasing persistence
     if self.persistence<self.repetition: ready =  False                                                       # we are done
     self.raiseADebug('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
+    self.errorHistory.append((self.counter,testError,self.repetition))
     #if the number of point on the limit surface is > than compute persistence
     if len(listsurfPoint)>0:
       self.invPointPersistence = np.ndarray(len(listsurfPoint))
@@ -746,6 +749,20 @@ class LimitSurfaceSearch(AdaptiveSampler):
         # to be fixed
         self.solutionExport.removeOutputValue(self.goalFunction.name)
         for index in range(len(evaluations)): self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[index]))
+
+    if not ready and self.generateCSVs:
+      # DM: HACK until I figure out how to get the actual working directory
+      self.workingDir = os.path.abspath(os.curdir)
+      fout = open(os.path.join(self.workingDir,'MCSamples.csv'), 'w')
+      for val in self.MCSamples:
+        fout.write(str(val)+'\n')
+      fout.close()
+
+      fout = open(os.path.join(self.workingDir,'errors.csv'), 'w')
+      fout.write('counter,error,repetitions\n')
+      for triple in self.errorHistory:
+        fout.write(str(triple[0])+','+str(triple[1])+','+str(triple[2])+'\n')
+      fout.close()
 
     return ready
 
@@ -777,7 +794,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if self.generateCSVs and self.surfPoint is not None:
         # DM: HACK until I figure out how to get the actual working directory
         self.workingDir = os.path.abspath(os.curdir)
-        fout = open(os.path.join(self.workingDir,'naive','scores_'
+        fout = open(os.path.join(self.workingDir,'scores_'
                                  + str(self.counter) + '.csv'), 'w')
         sep = ''
         for varName in axisNames:
@@ -791,20 +808,20 @@ class LimitSurfaceSearch(AdaptiveSampler):
             sep = ','
           fout.write(sep+str(distance[i])+'\n')
         fout.close()
-        fout = open(os.path.join(self.workingDir,'naive','sampledMatrix_'
-                                 + str(self.counter) + '.csv'), 'w')
-        sep = ''
-        for varName in axisNames:
-          fout.write(sep+varName)
-          sep = ','
-        fout.write('\n')
-        for i in xrange(len(sampledMatrix)):
-          sep = ''
-          for varIndex, name in enumerate(axisNames):
-            fout.write(sep+str(sampledMatrix[i,varIndex]))
-            sep = ','
-          fout.write('\n')
-        fout.close()
+        # fout = open(os.path.join(self.workingDir,'sampledMatrix_'
+        #                          + str(self.counter) + '.csv'), 'w')
+        # sep = ''
+        # for varName in axisNames:
+        #   fout.write(sep+varName)
+        #   sep = ','
+        # fout.write('\n')
+        # for i in xrange(len(sampledMatrix)):
+        #   sep = ''
+        #   for varIndex, name in enumerate(axisNames):
+        #     fout.write(sep+str(sampledMatrix[i,varIndex]))
+        #     sep = ','
+        #   fout.write('\n')
+        # fout.close()
 
       if np.max(distance)>0.0:
         for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
@@ -813,6 +830,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         varSet=True
       else: self.raiseADebug('np.max(distance)=0.0')
     if not varSet:
+      self.MCSamples.append(self.counter)
       #here we are still generating the batch
       for key in self.distDict.keys():
         if self.toleranceWeight=='cdf':
@@ -948,13 +966,16 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     self.nVar             = 0                # Number of the variable sampled
     self.surfPoint        = None             # Coordinate of the points
                                              #  considered on the limit surface
+    self.frozenSurfPoint  = None             # Coordinate of the points
+                                             #  considered on the limit surface
+                                             #  frozen until next batch selection
     self.hangingPoints    = []               # List of the points already
                                              #  submitted for evaluation for
                                              #  which the result is not yet
                                              #  available
     self.scoringMethod    = 'distance'       # Name of the scoring method used
     self.batchStrategy    = 'topology'       # Name of the batch strategy used
-    self.trainSize        = 10               # Size of the initial training set
+    self.trainSize        = 0                # Size of the initial training set
                                              #  before attempting to do adaptive
                                              #  these points will be picked
                                              #  based on a Monte Carlo sampling?
@@ -967,13 +988,23 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
                                              #  localGenerateInput
     self.limitSurfacePP   = None             # Postprocessor to compute the
                                              #  limit surface
+    self.maxBatchSize     = None             # Maximum batch size, the top
+                                             #  candidates will be selected, if
+                                             #  there are more local maxima than
+                                             #  this value, then we wiil only
+                                             #  take the top persistence ones,
+                                             #  if there are fewer, then we will
+                                             #  only grab that many and then
+                                             #  force an early update
+    self.errorHistory     = []
+    self.MCSamples        = []
 
     self._addAssObject('TargetEvaluation','n')
     self._addAssObject('ROM','n')
     self._addAssObject('Function','-n')
 
     self.acceptedScoringParam = ['distance','straddle']
-    self.acceptedBatchParam = ['naive','believer','topology']
+    self.acceptedBatchParam = ['none','topology','topobatch']
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -1073,6 +1104,17 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
         if self.trainSize < 0:
           self.raiseAnError(IOError, 'Requested an invalid training size: ',
                             self.trainSize, '. Training size should be a '
+                            + 'non-negative integer value')
+      if child.tag == "maxBatchSize":
+        try:
+          self.maxBatchSize = int(child.text)
+        except:
+          self.raiseAnError(IOError, 'Failed to convert the maxBatchSize value: '
+                                     + child.text
+                                     + ' into a meaningful integer')
+        if self.maxBatchSize < 0:
+          self.raiseAnError(IOError, 'Requested an invalid maximum batch size: ',
+                            self.trainSize, '. This should be a '
                             + 'non-negative integer value')
 
     #assembler node: Hidden from User
@@ -1247,7 +1289,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
       if self.generateCSVs and self.surfPoint is not None:
         # DM: HACK until I figure out how to get the actual working directory
         self.workingDir = os.path.abspath(os.curdir)
-        fout = open(os.path.join(self.workingDir,'topology','scores_'
+        fout = open(os.path.join(self.workingDir,'scores_'
                                  + str(self.counter) + '.csv'), 'w')
         sep = ''
         for varName in axisNames:
@@ -1262,17 +1304,13 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
           fout.write(sep+str(self.scores[i])+'\n')
         fout.close()
 
-        fout = open(os.path.join(self.workingDir,'topology','sampledMatrix_'
+        testMatrix = self.limitSurfacePP.getTestMatrix()
+        fout = open(os.path.join(self.workingDir,'sampledMatrix_'
                                  + str(self.counter) + '.csv'), 'w')
-        sep = ''
-        for varName in axisNames:
-          fout.write(sep+varName)
-          sep = ','
-        fout.write('\n')
-        for i in xrange(len(sampledMatrix)):
+        for i in xrange(testMatrix.shape[0]):
           sep = ''
-          for varIndex, name in enumerate(axisNames):
-            fout.write(sep+str(sampledMatrix[i,varIndex]))
+          for j in xrange(testMatrix.shape[1]):
+            fout.write(sep+str(testMatrix[i,j]))
             sep = ','
           fout.write('\n')
         fout.close()
@@ -1329,7 +1367,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     if self.generateCSVs and self.surfPoint is not None:
       # DM: HACK until I figure out how to get the actual working directory
       self.workingDir = os.path.abspath(os.curdir)
-      fout = open(os.path.join(self.workingDir,'topology','limit_surface_'
+      fout = open(os.path.join(self.workingDir,'limit_surface_'
                                + str(self.counter) + '.csv'), 'w')
       sep = ''
       for varName in axisNames:
@@ -1381,6 +1419,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
       ready =  False                                               # we are done
     self.raiseADebug('counter: ' + str(self.counter) + '       Error: '
                      + str(testError) + ' Repetition: ' + str(self.repetition))
+    self.errorHistory.append((self.counter,testError,self.repetition))
     #if the number of point on the limit surface is > 0 then compute persistence
     if len(self.listsurfPoint)>0:
       self.invPointPersistence = np.ndarray(len(self.listsurfPoint))
@@ -1400,6 +1439,20 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
         for index in range(len(evaluations)):
           self.solutionExport.updateOutputValue(self.goalFunction.name,
                                                 copy.copy(evaluations[index]))
+
+    if not ready and self.generateCSVs:
+      # DM: HACK until I figure out how to get the actual working directory
+      self.workingDir = os.path.abspath(os.curdir)
+      fout = open(os.path.join(self.workingDir,'MCSamples.csv'), 'w')
+      for val in self.MCSamples:
+        fout.write(str(val)+'\n')
+      fout.close()
+
+      fout = open(os.path.join(self.workingDir,'errors.csv'), 'w')
+      fout.write('counter,error,repetitions\n')
+      for triple in self.errorHistory:
+        fout.write(str(triple[0])+','+str(triple[1])+','+str(triple[2])+'\n')
+      fout.close()
     return ready
 
   def localGenerateInput(self,model,oldInput):
@@ -1419,76 +1472,154 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
 
     self.raiseADebug('Generating input')
     if self.surfPoint is not None and len(self.surfPoint) > 0:
-      self.ScoreCandidates()
-      edges = []
-      for i,iCoords in enumerate(self.listsurfPoint):
-        for j in xrange(i+1, len(self.listsurfPoint)):
-          jCoords = self.listsurfPoint[i]
-          ijValidNeighbors = True
-          for d in xrange(len(jCoords)):
-            if abs(iCoords[d] - jCoords[d]) > 1:
-              ijValidNeighbors = False
-              break
-          if ijValidNeighbors:
-            edges.append((i,j))
-            edges.append((j,i))
-
-      names = [ name.encode('ascii', 'ignore') for name in axisNames]
-      names.append('score'.encode('ascii','ignore'))
-      amsc = AMSC_Object(X=np.array(self.surfPoint), Y=self.scores, w=None,
-                         names=names, graph='relaxed beta skeleton',
-                         gradient='steepest', beta=1.0, normalization='feature',
-                         persistence='difference', edges=edges, debug=False)
-      partitions = amsc.Partitions()
-      mergeSequence = amsc.GetMergeSequence()
-      maxIdxs = list(set([ pair[1] for pair in partitions.keys() ]))
-
-      # Sort the maxima based on decreasing persistence value, thus the top
-      # candidate is the first element.
-      sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1],
-                            reverse=True)
-
-      if np.max(self.scores)>0.0:
-        count = 0
-        while count < len(sortedMaxima):
-          topIdx = sortedMaxima[count]
-          validMaximum = True
-          # print(topIdx, sortedMaxima)
-          for point in self.hangingPoints:
-            dist = 0
-            for varIndex, varName in enumerate(axisNames):
-              dist += (float(self.surfPoint[topIdx,varIndex])-float(point[varIndex]))**2
-            #TODO: remove hard-coded tolerance
-            if np.sqrt(dist) < 1e-6:
-              validMaximum = False
-              break
-          if validMaximum:
-            break
-          else:
-            count += 1
-
-        if count < len(sortedMaxima):
-          if count + 1 == 1:
-            suffix = 'st'
-          elif count + 1 == 2:
-            suffix = 'nd'
-          elif count + 1 == 3:
-            suffix = 'rd'
-          else:
-            suffix = 'th'
-          for varIndex, varName in enumerate(axisNames):
-            self.values[self.axisName[varIndex]] = float(self.surfPoint[topIdx,varIndex])
+      if self.batchStrategy == 'none':
+        self.ScoreCandidates()
+        if np.max(self.scores)>0.0:
+          for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
+            self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[np.argmax(self.scores),varIndex]))
             self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-          print(str(self.counter) + ': Selected ' + str(count+1) + suffix + ' highest point. ',self.values)
-          print('\tTraining size', len(self.lastOutput))
-          print('\tCandidate size', len(self.scores))
           varSet=True
+        else: self.raiseADebug('np.max(score)=0.0')
+
+      elif self.batchStrategy == 'topobatch':
+        ########################################################################
+        ## Initialize the queue with as many points as requested or as many as
+        ## possible
+        if len(self.toProcess) == 0:
+          self.frozenSurfPoint = copy.copy(self.surfPoint)
+          self.ScoreCandidates()
+          edges = []
+          for i,iCoords in enumerate(self.listsurfPoint):
+            for j in xrange(i+1, len(self.listsurfPoint)):
+              jCoords = self.listsurfPoint[i]
+              ijValidNeighbors = True
+              for d in xrange(len(jCoords)):
+                if abs(iCoords[d] - jCoords[d]) > 1:
+                  ijValidNeighbors = False
+                  break
+              if ijValidNeighbors:
+                edges.append((i,j))
+                edges.append((j,i))
+
+          names = [ name.encode('ascii', 'ignore') for name in axisNames]
+          names.append('score'.encode('ascii','ignore'))
+          amsc = AMSC_Object(X=np.array(self.surfPoint), Y=self.scores, w=None,
+                             names=names, graph='relaxed beta skeleton',
+                             gradient='steepest', beta=1.0, normalization='feature',
+                             persistence='difference', edges=edges, debug=False)
+          partitions = amsc.Partitions()
+          mergeSequence = amsc.GetMergeSequence()
+          maxIdxs = list(set([ pair[1] for pair in partitions.keys() ]))
+
+          # Sort the maxima based on decreasing persistence value, thus the top
+          # candidate is the first element.
+          sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1], reverse=True)
+          B = min(self.maxBatchSize,len(sortedMaxima))
+          print('max score', max(self.scores))
+          for idx in sortedMaxima[0:B]:
+            self.toProcess.append(self.surfPoint[idx,:])
+            print('\tselected',idx,mergeSequence[idx][1],self.scores[idx])
+          for idx in sortedMaxima[B:]:
+            print('\tnot',idx,mergeSequence[idx][1],self.scores[idx])
         else:
-          self.raiseADebug('All local maxima have been submitted.')
-      else:
-        self.raiseADebug('Selected score <= 0.0')
+          pass
+          # ## I still need to print the scores, but they should not be updated,
+          # ##  so as to reflect that this is using an older scoring landscape
+          # if self.generateCSVs and self.frozenSurfPoint is not None:
+          #   # DM: HACK until I figure out how to get the actual working directory
+          #   self.workingDir = os.path.abspath(os.curdir)
+          #   fout = open(os.path.join(self.workingDir,'scores_'
+          #                            + str(self.counter) + '.csv'), 'w')
+          #   sep = ''
+          #   for varName in axisNames:
+          #     fout.write(sep+varName)
+          #     sep = ','
+          #   fout.write(sep+'score\n')
+          #   for i in xrange(len(self.frozenSurfPoint)):
+          #     sep = ''
+          #     for varIndex, name in enumerate(axisNames):
+          #       fout.write(sep+str(self.frozenSurfPoint[i,varIndex]))
+          #       sep = ','
+          #     fout.write(sep+str(self.scores[i])+'\n')
+          #   fout.close()
+        ########################################################################
+        ## Select one sample
+        selectedPoint = self.toProcess.pop()
+        for varIndex, varName in enumerate(axisNames):
+          self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
+          self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+        varSet=True
+      elif self.batchStrategy == 'topology':
+        self.ScoreCandidates()
+        edges = []
+        for i,iCoords in enumerate(self.listsurfPoint):
+          for j in xrange(i+1, len(self.listsurfPoint)):
+            jCoords = self.listsurfPoint[i]
+            ijValidNeighbors = True
+            for d in xrange(len(jCoords)):
+              if abs(iCoords[d] - jCoords[d]) > 1:
+                ijValidNeighbors = False
+                break
+            if ijValidNeighbors:
+              edges.append((i,j))
+              edges.append((j,i))
+
+        names = [ name.encode('ascii', 'ignore') for name in axisNames]
+        names.append('score'.encode('ascii','ignore'))
+        amsc = AMSC_Object(X=np.array(self.surfPoint), Y=self.scores, w=None,
+                           names=names, graph='relaxed beta skeleton',
+                           gradient='steepest', beta=1.0, normalization='feature',
+                           persistence='difference', edges=edges, debug=False)
+        partitions = amsc.Partitions()
+        mergeSequence = amsc.GetMergeSequence()
+        maxIdxs = list(set([ pair[1] for pair in partitions.keys() ]))
+
+        # Sort the maxima based on decreasing persistence value, thus the top
+        # candidate is the first element.
+        sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1],
+                              reverse=True)
+        if np.max(self.scores)>0.0:
+          count = 0
+          while count < len(sortedMaxima):
+            topIdx = sortedMaxima[count]
+            validMaximum = True
+            # print(topIdx, sortedMaxima)
+            for point in self.hangingPoints:
+              dist = 0
+              for varIndex, varName in enumerate(axisNames):
+                dist += (float(self.surfPoint[topIdx,varIndex])-float(point[varIndex]))**2
+              #TODO: remove hard-coded tolerance
+              if np.sqrt(dist) < 1e-6:
+                validMaximum = False
+                break
+            if validMaximum:
+              break
+            else:
+              count += 1
+
+          if count < len(sortedMaxima):
+            if count + 1 == 1:
+              suffix = 'st'
+            elif count + 1 == 2:
+              suffix = 'nd'
+            elif count + 1 == 3:
+              suffix = 'rd'
+            else:
+              suffix = 'th'
+            for varIndex, varName in enumerate(axisNames):
+              self.values[self.axisName[varIndex]] = float(self.surfPoint[topIdx,varIndex])
+              self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+            print(str(self.counter) + ': Selected ' + str(count+1) + suffix + ' highest point. ',self.values)
+            # print('\tTraining size', len(self.lastOutput))
+            # print('\tCandidate size', len(self.scores))
+            varSet=True
+          else:
+            self.raiseADebug('All local maxima have been submitted.')
+        else:
+          self.raiseADebug('Selected score <= 0.0')
     if not varSet:
       # Here we generate a random point
+      self.MCSamples.append(self.counter)
       for key in self.distDict.keys():
         if self.toleranceWeight=='cdf':
           self.values[key] = self.distDict[key].ppf(float(Distributions.random()))
