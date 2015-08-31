@@ -2695,6 +2695,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.oldSG            = None #previously-accepted sparse grid
     self.convType         = None #convergence criterion to use
     self.existing         = {}
+    self.batchDone        = True #flag for whether jobHandler has complete batch or not
 
     self._addAssObject('TargetEvaluation','1')
 
@@ -2889,6 +2890,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if ready==False: return ready
     #if we still have a list of points to sample, just keep on trucking.
     if len(self.neededPoints)>0: return True
+    #if points all submitted but not all done, not ready for now.
+    if not self.batchDone:
+      return False
     #if no points to check right now, search for points to sample
     while len(self.neededPoints)<1:
       self.raiseADebug('')
@@ -2980,6 +2984,16 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
+  def localFinalizeActualSampling(self,jobObject,model,myInput):
+    """Performs actions after samples have been collected.
+    @ In, jobObject, the job that finished
+    @ In, model, the model that was run
+    @ In, myInput, the input used for the run
+    @Out, None
+    """
+    #check if all sampling is done
+    if self.jobHandler.isFinished(): self.batchDone = True
+    else: self.batchDone = False
 #
 #
 #
