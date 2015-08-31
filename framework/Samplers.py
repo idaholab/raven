@@ -2750,7 +2750,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
     #set up the points we need RAVEN to run before we can continue
     self.neededPoints = []
+    self.pointsNeededToMakeROM = []
     for pt in self.sparseGrid.points()[:]:
+      if pt not in self.pointsNeededToMakeROM:
+        self.pointsNeededToMakeROM.append(pt)
       if pt not in self.neededPoints and pt not in self.existing.keys():
         self.neededPoints.append(pt)
 
@@ -2939,6 +2942,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       for point in self.indexSet.active.keys():
         sparseGrid,dummy=self._makeSparseQuad(point)
         for pt in sparseGrid.points()[:]:
+          if pt not in self.pointsNeededToMakeROM:
+            self.pointsNeededToMakeROM.append(pt)
           if pt not in self.neededPoints and pt not in self.existing.keys():
             self.neededPoints.append(pt)
     #if we exited the while-loop searching for new points and there aren't any, we're done!
@@ -2965,8 +2970,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
                       'quads':self.quadDict,
                       'polys':self.polyDict,
                       'iSet':self.indexSet,
-                      'numRuns':self.counter})
-    #self.counter is inacuurate; it doesn't include those from restart!
+                      'numRuns':len(self.pointsNeededToMakeROM)})
     self.indexSet.printHistory()
     self.indexSet.writeHistory()
 
@@ -2976,7 +2980,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, model, unused
       @ In, myInput, unused
     """
-    self.raiseAWarning('Generating input.  Counter is',self.counter)
     pt = self.neededPoints.pop() # [self.counter-1]
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
