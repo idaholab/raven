@@ -2933,11 +2933,13 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
     #if we still have a list of points to sample, just keep on trucking.
-    if len(self.neededPoints)>0: return True
+    if len(self.neededPoints)>0:
+      self.raiseAWarning('all true here.')
+      return True
     #if no points to check right now, search for points to sample
     while len(self.neededPoints)<1:
       self.raiseADebug('')
-      self.raiseADebug('Evaluating new points...')
+      self.raiseAMessage('Evaluating new points...')
       #update QoIs and impact parameters
       done=False
       self.error=0
@@ -2965,7 +2967,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         #clear the active index set
         for key in self.indexSet.active.keys():
           if self.indexSet.active[key]==None: del self.indexSet.active[key]
-        break
+        self.indexSet.printOut()
+        self.finalizeROM()
+        return False
       #if we're not converged...
       self.raiseADebug('new iset:')
       self.indexSet.printOut()
@@ -2982,12 +2986,15 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         for pt in sparseGrid.points()[:]:
           if pt not in self.neededPoints and pt not in self.existing.keys():
             self.neededPoints.append(pt)
+            self.raiseAMessage('Needed points appends:',self.neededPoints[-1])
     #if we exited the while-loop searching for new points and there aren't any, we're done!
     if len(self.neededPoints)==0:
       self.indexSet.printOut()
       self.finalizeROM()
+      self.raiseAMessage('Finished generating points!')
       return False
     #otherwise, we have work to do.
+    self.raiseAWarning('all true here.')
     return True
 
   def finalizeROM(self):
@@ -3000,6 +3007,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #initialize final rom with final sparse grid and index set
     self.sparseGrid = Quadratures.SparseQuad()
     self.sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
+    self.raiseAnError(RuntimeError,'Testing: counter is:',self.counter)
     for SVL in self.ROM.SupervisedEngine.values():
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.distDict,
@@ -3017,6 +3025,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, myInput, unused
     """
     pt = self.neededPoints.pop() # [self.counter-1]
+    self.counter+=1
+    self.raiseAnError(RuntimeError,'counter is now',self.counter)
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
