@@ -13,8 +13,9 @@ warnings.simplefilter('default',DeprecationWarning)
 import sys
 import numpy as np
 import scipy
+from scipy import linalg
 #from scipy.misc import factorial
-from math import gamma
+from math import gamma,sqrt
 import os
 import operator
 #External Modules End--------------------------------------------------------------------------------
@@ -1485,16 +1486,63 @@ class MultivariateNormal(NDimensionalDistributions):
     self.type = 'MultivariateNormal'
     self.mu  = None
     self.covariance = None
+    self.covarianceType = 'abs' # abs: absolute covariance, rel: relative covariance matrix
+    self.method = 'pca'     # pca: using pca method to compute the pdf, and inverseCdf, another option is 'spline', i.e. using
+                            # cartesian spline method to compute the pdf, cdf, inverseCdf, ...
+    self.transformMatrix = None    # np.array stores the transform matrix
 
   def _readMoreXML(self,xmlNode):
-    NDimensionalDistributions._readMoreXML(self, xmlNode)
-    mu = xmlNode.find('mu')
-    if mu != None: self.mu = [float(i) for i in mu.text.split()]
-    else: self.raiseAnError(IOError,'<mu> parameter needed for MultivariateNormal Distributions!!!!')
-    covariance = xmlNode.find('covariance')
-    if covariance != None: self.covariance = [float(i) for i in covariance.text.split()]
-    else: self.raiseAnError(IOError,'<covariance> parameter needed for MultivariateNormal Distributions!!!!')
+    #NDimensionalDistributions._readMoreXML(self, xmlNode)
+    if xmlNode.attrib['method'] == 'pca':
+      self.method = 'pca'
+    elif xmlNode.attrib['method'] == 'spline':
+      self.method = 'spline'
+    else: self.raiseAnError(IOError,'The method attribute for the MultivariateNormal Distribution is not correct, choose "pca" or "spline"')
+    for child in xmlNode:
+      if child.tag == 'mu':
+        mu = [float(value) for value in child.text.split()]
+      elif child.tag == 'covariance':
+        covariance = [float(value) for value in child.text.split()]
+        if 'type' in child.attrib.keys(): self.covarianceType = child.attrib['type']
+
+
+    self.mu = mu
+    self.covariance = covariance
+    if self.method == 'pca':
+      #reshape the covariance
+      covariance = np.asarray(covariance)
+      rowSize = int (sqrt(covariance.size))
+      if covariance.size != pow(rowSize,2): self.raiseAnError(IOError,'The size of covariance matrix is not correct, covariance matrix should be a square matrix')
+      covariance.shape = (rowSize,rowSize)
+      self.transformMatrix = self.transformMatrixCalculation(covariance)
+
     self.initializeDistribution()
+
+  def transformMatrixCalculation(self,x):
+    """
+    This method calculates the transform matrix that can be used to compute the multivariate normal distribution
+    @ x, input array, the covariance matrix with type = numpy.ndarray
+    @ U, output array, the transformed matrix with type = numpy.ndarray
+    """
+    self.raiseAMessage('transformMatrixCalculation')
+    U,S,V = linalg.svd(x,full_matrices=True)
+    U *= np.sqrt(S)
+    return U
+
+  def inverseTransform(self,x):
+    """
+    This method transform the coordinate back to its original space
+    @ x input array, coordinate in the transformed space
+    @ return coordinate in the input space
+    """
+    self.raiseAMessage('inverseTransform')
+    coordinate = np.atleast_1d(x)
+    if self.covarianceType == 'abs':
+      return self.mu + np.dot(self.transformMatrix,coordinate)
+    elif self.covarianceType == 'rel':
+      return self.mu + self.mu*np.dot(self.transformMatrix,coordinate)
+    else:
+      self.raiseAnError(IOError,'The type of covariance matrix is not correct, plese use "abs" or "rel"')
 
   def addInitParams(self,tempDict):
     NDimensionalDistributions.addInitParams(self, tempDict)
@@ -1507,16 +1555,33 @@ class MultivariateNormal(NDimensionalDistributions):
     covariance = distribution1D.vectord_cxx(len(self.covariance))
     for i in range(len(self.covariance)):
       covariance[i] = self.covariance[i]
-    self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
+    if self.method == 'spline':
+      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
+    elif self.method == 'pca':
+      # using different method to compute the multivariate normal distribution
+      # overload the following functions
+      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
 
   def cdf(self,x):
-    coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    return self._distribution.Cdf(coordinate)
+    if self.method == 'spline':
+      coordinate = distribution1D.vectord_cxx(len(x))
+      for i in range(len(x)):
+        coordinate[i] = x[i]
+      return self._distribution.Cdf(coordinate)
+    elif self.method == 'pca':
+      self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
+
 
   def ppf(self,x):
-    return self._distribution.InverseCdf(x,random())
+    if self.method == 'spline':
+      return self._distribution.InverseCdf(x,random())
+    elif self.method == 'pca':
+      coordinate = self._distribution.InverseCdf(x,random())
+      value = self.inverseTransform(coordinate)
+      coordinateOrig = distribution1D.vectord_cxx(len(value))
+      for i in range(len(value)):
+        coordinateOrig[i] = value[i]
+      return coordinateOrig
 
   def pdf(self,x):
     coordinate = distribution1D.vectord_cxx(len(x))
@@ -1525,6 +1590,8 @@ class MultivariateNormal(NDimensionalDistributions):
     return self._distribution.Pdf(coordinate)
 
   def cellIntegral(self,x,dx):
+    if self.method == 'pca':
+      self.raiseAnError(NotImplementedError,'cellIntegral not yet implemented for ' + self.method + ' method')
     coordinate = distribution1D.vectord_cxx(len(x))
     dxs        = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)):
@@ -1533,6 +1600,8 @@ class MultivariateNormal(NDimensionalDistributions):
     return self._distribution.cellIntegral(coordinate,dxs)
 
   def inverseMarginalDistribution (self, x, variable):
+    if self.method == 'pca':
+      self.raiseAnError(NotImplementedError,'inverseMarginalDistribution not yet implemented for ' + self.method + ' method')
     if (x>0.0) and (x<1.0):
       return self._distribution.inverseMarginal(x, variable)
     else:
@@ -1554,7 +1623,16 @@ class MultivariateNormal(NDimensionalDistributions):
     self.raiseAnError(NotImplementedError,'untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    return self._distribution.InverseCdf(random(),random())
+    if self.method == 'spline':
+      return self._distribution.InverseCdf(random(),random())
+    elif self.method == 'pca':
+      coordinate = self._distribution.InverseCdf(random(),random())
+      value = self.inverseTransform(coordinate)
+      coordinateOrig = distribution1D.vectord_cxx(len(value))
+      for i in range(len(value)):
+        coordinateOrig[i] = value[i]
+      return coordinateOrig
+
 
 
 __base                        = 'Distribution'
