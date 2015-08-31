@@ -588,7 +588,9 @@ class ExternalModel(Dummy):
     @ In, finishedJob, InternalRunner object, instance of the run just finished
     @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,"No available Output to collect (Run probabably is not finished yet)")
+    if finishedJob.returnEvaluation() == -1:
+      #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
+      self.raiseAnError(RuntimeError,"No available Output to collect (Run probabably failed or is not finished yet)")
     def typeMatch(var,var_type_str):
       type_var = type(var)
       return type_var.__name__ == var_type_str or \
