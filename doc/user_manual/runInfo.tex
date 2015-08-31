@@ -254,6 +254,65 @@ the needed time.
 \default{10:00:00} (10 hours.)
 \end{itemize}
 
+\subsection{RunInfo: Example Cluster Usage}
+\label{subsec:runinfoclusterexample}
+
+For this example, we have a PBSPro cluster, and there are thousands of
+node, and each node has 4 processors that share memory.  There are a
+couple different ways this can be used.  One way is to use interactive
+mode and have a RunInfo block:
+
+\begin{lstlisting}[style=XML]
+<RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>3</batchSize>
+    <NumThreads>4</NumThreads>
+    <mode>mpi</mode>
+    <NumMPI>2</NumMPI>
+</RunInfo>
+\end{lstlisting}
+
+Then the commands can be used:
+
+\begin{lstlisting}[language=bash]
+#Note: select=NumMPI*batchSize, ncpus=NumThreads
+qsub -l select=6:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -I
+#wait for processes to be allocated and interactive shell to start
+
+#Switch to the correct directory
+cd $PBS_O_WORKDIR
+
+#Load the module with the raven libraries
+module load raven-devel-gcc
+
+#Start Raven
+python  ../../framework/Driver.py test_mpi.xml
+\end{lstlisting}
+
+Alternatively, RAVEN can be asked to submit the qsub directory.  With
+this, the RunInfo is:
+
+\begin{lstlisting}[style=XML]
+<RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>FirstMQRun</Sequence>
+    <batchSize>3</batchSize>
+    <NumThreads>4</NumThreads>
+    <mode>
+      mpi
+      <runQSUB/>
+    </mode>
+    <NumMPI>2</NumMPI>
+</RunInfo>
+\end{lstlisting}
+
+In this case, the command run from the cluster submit node:
+
+\begin{lstlisting}[language=bash]
+python ../../framework/Driver.py test_mpiqsub_local.xml
+\end{lstlisting}
+
 %\begin{itemize}
 %\item $<WorkingDir>$\textbf{\textit{, string, required field.}} in this block the user needs to specify the absolute or relative (with respect to the location where RAVEN is run from) path to a directory that is going to be used to store all the results of the calculations and where RAVEN looks for the files specified in the block $<Files>$. \textit{Default = None};
 %
