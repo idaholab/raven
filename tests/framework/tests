@@ -193,8 +193,8 @@
  [./testLHS]
   type = 'RavenFramework'
   input = 'test_LHS_Sampler.xml'
-  output = 'LHStest/outLHS_dump.csv'
-  csv = 'LHStest/outLHS_dump.csv'
+  output = 'LHStest/outLHS_dump.csv LHStest/samples1D.csv'
+  csv = 'LHStest/outLHS_dump.csv LHStest/samples1D.csv'
   max_time = 500
   rel_err = 0.001
  [../]
@@ -622,4 +622,11 @@
    required_executable = '../../../bison/bison-%METHOD%'
    required_libraries = 'cubit'
  [../]
+
+  [./failrunsMC]
+    type = 'RavenFramework'
+    input = 'test_failruns_MC.xml'
+    output = 'RunFailures/MCdump.xml RunFailures/MCdumpC.xml'
+    csv = 'RunFailures/MCdump.csv RunFailures/MCdumpC.csv'
+  [../]
 []
