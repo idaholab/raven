@@ -264,8 +264,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             variables_to_print.extend(self.__getVariablesToPrint(var,'input'))
           elif lvar.startswith('output'):
             variables_to_print.extend(self.__getVariablesToPrint(var,'output'))
-          #elif lvar.startswith('metadata'): # print the variables inside metadata into a csv file
-          #  variables_to_print.extend(self.__getVariablesToPrint(var,'metadata'))
           else: self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
         options_int['what'] = variables_to_print
     else:   filenameLocal = self.name + '_dump'
