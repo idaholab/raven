@@ -40,9 +40,9 @@ class RavenFramework(Tester):
     ravenflag = ''
     if self.specs['test_interface_only'].lower() == 'true': ravenflag = 'interfaceCheck '
     if RavenUtils.inPython3():
-      return "python3 " + self.driverLocation + " " + ravenflag + self.specs["input"]
+      return "python3 " + self.driver + " " + ravenflag + self.specs["input"]
     else:
-      return "python " + self.driverLocation + " " + ravenflag + self.specs["input"]
+      return "python " + self.driver + " " + ravenflag + self.specs["input"]
 
 
   def __init__(self, name, params):
@@ -56,10 +56,10 @@ class RavenFramework(Tester):
     self.specs['scale_refine'] = False
     if self.specs['framework_dir'] != '':
     # Allow the user the option to point to a custom directory for running RAVEN
-      self.driverLocation = os.path.join(self.specs['framework_dir'],'Driver.py')
+      self.driver = os.path.join(self.specs['framework_dir'],'Driver.py')
     else:
       # Otherwise, find out where there Driver.py is located and use it
-      self.driverLocation = os.path.join(RAVEN_DIR,'Driver.py')
+      self.driver = os.path.join(RAVEN_DIR,'Driver.py')
 
   def checkRunnable(self, option):
     missing,too_old = RavenUtils.checkForMissingModules()
