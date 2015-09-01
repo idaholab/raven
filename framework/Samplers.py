@@ -495,41 +495,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
-  def handleFailedRuns(self,failedRuns):
-    """Collects the failed runs from the Step and allows samples to handle them individually if need be.
-    @ In, failedRuns, list of JobHandler.ExternalRunner objects
-    @Out, None
-    """
-    self.raiseADebug('===============')
-    self.raiseADebug('| RUN SUMMARY |')
-    self.raiseADebug('===============')
-    if len(failedRuns)>0:
-      self.raiseAWarning('There were %i failed runs!  Run with verbosity = debug for more details.' %(len(failedRuns)))
-      for run in failedRuns:
-        metadata = run.returnMetadata()
-        self.raiseADebug('  Run number %s FAILED:' %run.identifier,run.command)
-        self.raiseADebug('      return code :',run.getReturnCode())
-        self.raiseADebug('      sampled vars:')
-        for v,k in metadata['SampledVars'].items():
-          self.raiseADebug('         ',v,':',k)
-    else:
-      self.raiseADebug('All runs completed without returning errors.')
-    self._localHandleFailedRuns(failedRuns)
-    self.raiseADebug('===============')
-    self.raiseADebug('  END SUMMARY  ')
-    self.raiseADebug('===============')
-
-  def _localHandleFailedRuns(self,failedRuns):
-    """Specialized method for samplers to handle failed runs.  Defaults to failing runs.
-    @ In, failedRuns, list of JobHandler.ExternalRunner objects
-    @Out, None
-    """
-    if len(failedRuns)>0:
-      self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
-#
-#
-#
-#
 class StaticSampler(Sampler):
   """This is a general static, blind, once-through sampler"""
   pass
@@ -539,8 +504,7 @@ class StaticSampler(Sampler):
 #
 class AdaptiveSampler(Sampler):
   """This is a general adaptive sampler"""
-
-
+  pass
 
 class LimitSurfaceSearch(AdaptiveSampler):
   """
@@ -922,7 +886,6 @@ class MonteCarlo(Sampler):
       self.counter+=len(self.restartData)
       self.raiseAMessage('Number of points from restart: %i' %self.counter)
       self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
-      self.raiseADebug('Counter value set to',self.counter)
     #pass #TODO fix the limit based on restartData
 
   def localGenerateInput(self,model,myInput):
@@ -958,19 +921,13 @@ class MonteCarlo(Sampler):
               self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
             else:
               self.inputInfo['SampledVarsPb'][kkey] = 1.0
-        #else? #FIXME
+      #else? #FIXME
 
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
     self.inputInfo['SamplerType'] = 'MC'
 
-  def _localHandleFailedRuns(self,failedRuns):
-    """Specialized method for samplers to handle failed runs.  Defaults to failing runs.
-    @ In, failedRuns, list of JobHandler.ExternalRunner objects
-    @Out, None
-    """
-    if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte Carlo sampling.')
 #
 #
 #
@@ -2612,8 +2569,6 @@ class SparseGridCollocation(Grid):
     if self.restartData != None:
       inps = self.restartData.getInpParametersValues()
       #make reorder map
-      self.raiseADebug('inps :',inps.keys())
-      self.raiseADebug('feats:',self.features)
       reordmap=list(inps.keys().index(i) for i in self.features)
       solns = list(v for v in inps.values())
       ordsolns = [solns[i] for i in reordmap]
@@ -2796,11 +2751,13 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #set up the points we need RAVEN to run before we can continue
     self.neededPoints = []
     self.pointsNeededToMakeROM = []
+    self.newSolutionSizeShouldBe = len(self.existing)
     for pt in self.sparseGrid.points()[:]:
       if pt not in self.pointsNeededToMakeROM:
         self.pointsNeededToMakeROM.append(pt)
       if pt not in self.neededPoints and pt not in self.existing.keys():
         self.neededPoints.append(pt)
+        self.newSolutionSizeShouldBe+=1
 
   def _makeSparseQuad(self,points=[]):
     """
@@ -2934,17 +2891,27 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
     #update existing solutions
     self._updateExisting()
+    #self.raiseADebug('existing is now:',len(self.existing),self.existing)
+    #self.raiseAWarning('needed points:',len(self.neededPoints),self.neededPoints)
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
     #if we still have a list of points to sample, just keep on trucking.
     if len(self.neededPoints)>0: return True
     #if points all submitted but not all done, not ready for now.
-    if not self.batchDone:
+    if (not self.batchDone) or (not self.jobHandler.isFinished()):
       return False
+    if len(self.existing) < self.newSolutionSizeShouldBe:
+      self.raiseAWarning('Still collecting; existing has less points (%i) than it should (%i)!' %(len(self.existing),self.newSolutionSizeShouldBe))
+      return False
+    #DEBUGGGGGG
+    if len(self.existing)<1 and len(self.neededPoints)<1:
+      self.raiseAWarning('jobhandler:',self.jobHandler.isFinished())
+      self.raiseAnError(RuntimeError,'existing and needed are both empty!')
     #if no points to check right now, search for points to sample
     while len(self.neededPoints)<1:
       self.raiseADebug('')
-      self.raiseAMessage('Evaluating new points...')
+      self.raiseADebug('Evaluating new points...')
+      #self.raiseADebug('  existing:',self.existing)
       #update QoIs and impact parameters
       done=False
       self.error=0
@@ -2972,9 +2939,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         #clear the active index set
         for key in self.indexSet.active.keys():
           if self.indexSet.active[key]==None: del self.indexSet.active[key]
-        self.indexSet.printOut()
-        self.finalizeROM()
-        return False
+        break
       #if we're not converged...
       self.raiseADebug('new iset:')
       self.indexSet.printOut()
@@ -2992,16 +2957,14 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
           if pt not in self.pointsNeededToMakeROM:
             self.pointsNeededToMakeROM.append(pt)
           if pt not in self.neededPoints and pt not in self.existing.keys():
+            self.newSolutionSizeShouldBe+=1
             self.neededPoints.append(pt)
-            self.raiseAMessage('Needed points appends:',self.neededPoints[-1])
     #if we exited the while-loop searching for new points and there aren't any, we're done!
     if len(self.neededPoints)==0:
       self.indexSet.printOut()
       self.finalizeROM()
-      self.raiseAMessage('Finished generating points!')
       return False
     #otherwise, we have work to do.
-    self.raiseAWarning('all true here.')
     return True
 
   def finalizeROM(self):
@@ -3014,7 +2977,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #initialize final rom with final sparse grid and index set
     self.sparseGrid = Quadratures.SparseQuad()
     self.sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
-    self.raiseAnError(RuntimeError,'Testing: counter is:',self.counter)
     for SVL in self.ROM.SupervisedEngine.values():
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.distDict,
@@ -3032,8 +2994,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, myInput, unused
     """
     pt = self.neededPoints.pop() # [self.counter-1]
-    self.counter+=1
-    self.raiseAnError(RuntimeError,'counter is now',self.counter)
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
