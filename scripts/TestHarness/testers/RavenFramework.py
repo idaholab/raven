@@ -8,6 +8,15 @@ import os
 import subprocess
 import sys
 
+# Set this outside the class because the framework directory is constant for
+#  each instance of this Tester, and in addition, there is a problem with the
+#  path by the time you call it in __init__ that causes it to think its absolute
+#  path is somewhere under tests/framework.
+# Be aware that if this file changes its location, this variable should also be
+#  changed.
+myDir = os.path.dirname(os.path.realpath(__file__))
+RAVEN_DIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
+
 class RavenFramework(Tester):
 
   @staticmethod
@@ -24,15 +33,16 @@ class RavenFramework(Tester):
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
     params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
+    params.addParam('framework_dir','','The path to the version of Driver.py to be used in this example.')
     return params
 
   def getCommand(self, options):
     ravenflag = ''
     if self.specs['test_interface_only'].lower() == 'true': ravenflag = 'interfaceCheck '
     if RavenUtils.inPython3():
-      return "python3 ../../framework/Driver.py " + ravenflag + self.specs["input"]
+      return "python3 " + self.driverLocation + " " + ravenflag + self.specs["input"]
     else:
-      return "python ../../framework/Driver.py " + ravenflag + self.specs["input"]
+      return "python " + self.driverLocation + " " + ravenflag + self.specs["input"]
 
 
   def __init__(self, name, params):
@@ -44,6 +54,12 @@ class RavenFramework(Tester):
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
     self.specs['scale_refine'] = False
+    if self.specs['framework_dir'] != '':
+    # Allow the user the option to point to a custom directory for running RAVEN
+      self.driverLocation = os.path.join(self.specs['framework_dir'],'Driver.py')
+    else:
+      # Otherwise, find out where there Driver.py is located and use it
+      self.driverLocation = os.path.join(RAVEN_DIR,'Driver.py')
 
   def checkRunnable(self, option):
     missing,too_old = RavenUtils.checkForMissingModules()
