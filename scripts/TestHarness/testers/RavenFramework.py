@@ -33,7 +33,6 @@ class RavenFramework(Tester):
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
     params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
-    params.addParam('framework_dir','','The path to the version of Driver.py to be used in this example.')
     return params
 
   def getCommand(self, options):
@@ -54,12 +53,7 @@ class RavenFramework(Tester):
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
     self.specs['scale_refine'] = False
-    if self.specs['framework_dir'] != '':
-    # Allow the user the option to point to a custom directory for running RAVEN
-      self.driver = os.path.join(self.specs['framework_dir'],'Driver.py')
-    else:
-      # Otherwise, find out where there Driver.py is located and use it
-      self.driver = os.path.join(RAVEN_DIR,'Driver.py')
+    self.driver = os.path.join(RAVEN_DIR,'Driver.py')
 
   def checkRunnable(self, option):
     missing,too_old = RavenUtils.checkForMissingModules()
