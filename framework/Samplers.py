@@ -169,6 +169,19 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
 
     Assembler._readMoreXML(self,xmlNode)
+    self._readMoreXMLbase(xmlNode)
+    self.localInputAndChecks(xmlNode)
+
+
+  def _readMoreXMLbase(self,xmlNode):
+    """
+    Function to read the portion of the xml input that belongs to the base sampler only
+    and initialize some stuff based on the inputs got
+    @ In, xmlNode    : Xml element node
+    @ Out, None
+    The text i supposed to contain the info where and which variable to change.
+    In case of a code the syntax is specified by the code interface itself
+    """    
 
     for child in xmlNode:
       prefix = ""
@@ -245,9 +258,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         if var.values()[0] > maxDim:
           maxDim = var.values()[0]
       self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
-    self.localInputAndChecks(xmlNode)
-
-
+      
   def read_sampler_init(self,xmlNode):
     """
     This method is responsible to read only the sampler_init block in the .xml file.
@@ -1923,17 +1934,23 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     @ In, None
     @ Out, None
     """
-    DynamicEventTree.__init__(self)  # init DET
+    DynamicEventTree.__init__(self)     # init DET
     LimitSurfaceSearch.__init__(self)   # init Adaptive
-    self.detAdaptMode         = 1    # Adaptive Dynamic Event Tree method (=1 -> DynamicEventTree as hybridsampler and subsequent LimitSurfaceSearch,=2 -> DynamicEventTree online adaptive)
-    self.noTransitionStrategy = 1    # Strategy in case no transitions have been found by DET (1 = 'Probability MC', 2 = Increase the grid exploration)
-    self.insertAdaptBPb       = True # Add Probabability THs requested by adaptive in the initial grid (default = False)
-    self.startAdaptive = False
-    self.printTag = 'SAMPLER ADAPTIVE DET'
-    self.adaptiveReady = False
-    self.investigatedPoints = []
-    self.completedHistCnt   = 1
-    self.actualLastOutput   = None
+    self.detAdaptMode         = 1       # Adaptive Dynamic Event Tree method (=1 -> DynamicEventTree as hybridsampler and subsequent LimitSurfaceSearch,=2 -> DynamicEventTree online adaptive)
+    self.noTransitionStrategy = 1       # Strategy in case no transitions have been found by DET (1 = 'Probability MC', 2 = Increase the grid exploration)
+    self.insertAdaptBPb       = True    # Add Probabability THs requested by adaptive in the initial grid (default = False)
+    self.startAdaptive        = False   # Flag to trigger the begin of the adaptive limit surface search
+    self.adaptiveReady        = False   # Flag to store the response of the LimitSurfaceSearch.localStillReady method
+    self.investigatedPoints   = []      # List containing the points that have been already investigates
+    self.completedHistCnt   = 1         # Counter of the completed histories
+    self.actualLastOutput   = None      # Pointer to the lastoutput dataobject (see LimitSurfaceSearch "lastOutput" description)
+    self.hybridDETstrategy  = None      # Integer flag to turn the hybrid strategy on:
+                                        # None -> No hybrid approach, 
+                                        # 1    -> the epistemic variables are going to be part of the limit surface search
+                                        # 2    -> the epistemic variables are going to be treated by a normal hybrid DET approach and the LimitSurface search
+                                        #         will be performed on each epistemic tree (n LimitSurfaces)
+    self.epistemicVariables = []        # List of epistemic variable names (used only in case the Adaptive Hybrid DET is activated) 
+
   @staticmethod
   def _checkIfRunnint(treeValues): return not treeValues['runEnded']
   @staticmethod
@@ -2030,7 +2047,6 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         validBranch = mapping[closestBranch+1]
         break
     return validBranch
-
 
   def _retrieveBranchInfo(self,branch):
     """
@@ -2243,7 +2259,28 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     @ In, xmlNode: The xml element node that will be checked against the
                    available options specific to this Sampler.
     """
+    #check if the hybrid DET has been activated, in case remove the nodes and treat them separaterly
+    hybridNodes = xmlNode.findall("HybridSampler")
+    if hybridNodes is not None:
+      # check the type of hybrid that needs to be performed
+      limitSurfaceHybrid = False
+      for elm in hybridNodes:
+        samplType = elm.attrib['type'] if 'type' in elm.attrib.keys() else None
+        if samplType == 'LimitSurface':
+          if len(hybridNodes) != 1: self.raiseAnError(IOError,'if one of the HybridSampler is of type "LimitSurface", it can not be combined with other strategies. Only one HybridSampler node can be inputted!')
+          limitSurfaceHybrid = True
+      if limitSurfaceHybrid == True:
+        #remove the elements from original xmlNode and check if the types are compatible
+        for elm in hybridNodes: xmlNode.remove(elm)
+        self.hybridDETstrategy = 1
+      else: self.hybridDETstrategy = 2
     DynamicEventTree.localInputAndChecks(self,xmlNode)
+    # now we put back the nodes into the xmlNode to initialize the LimitSurfaceSearch with those variables as well
+    for elm in hybridNodes:
+      for child in elm:
+        if limitSurfaceHybrid == True              : xmlNode.append(child)
+        if child.tag in ['variable','Distribution']: self.epistemicVariables.append(child.attrib['name'])
+    LimitSurfaceSearch._readMoreXMLbase(self,xmlNode)
     LimitSurfaceSearch.localInputAndChecks(self,xmlNode)
     if 'mode' in xmlNode.attrib.keys():
       if xmlNode.attrib['mode'].lower() == 'online': self.detAdaptMode = 2
@@ -2274,8 +2311,18 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     @ Out None
     """
     if self.detAdaptMode == 2: self.startAdaptive = True
-    DynamicEventTree.localInitialize(self)
+    # we first initialize the LimitSurfaceSearch sampler
     LimitSurfaceSearch.localInitialize(self,solutionExport=solutionExport)
+    if self.hybridDETstrategy is not None:
+      # we are running an adaptive hybrid DET and not only an adaptive DET
+      if self.hybridDETstrategy == 1:
+        epistemicValue = {}
+        gridVector = self.limitSurfacePP.gridEntity.returnParameter("gridVectors")
+        for epistemic in self.epistemicVariables:
+          if epistemic in gridVector.keys(): epistemicValue[epistemic] = gridVector[epistemic]
+        list(itertools.product(*hybridlistoflist))
+        
+    DynamicEventTree.localInitialize(self) 
     self._endJobRunnable    = sys.maxsize
 
   def generateInput(self,model,oldInput):
