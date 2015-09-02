@@ -15,6 +15,11 @@ TEST_DIRS="${SCRIPT_DIR}/../tests/framework ${SCRIPT_DIR}/../tests/cluster_tests
 failed_tests=0
 passed_tests=0
 
+# convert the external xml input files to normal raven input files and then validate
+CONVERSION_SCRIPT_DIR="${SCRIPT_DIR}/../scripts/conversionScripts"
+$PYTHON_CMD $CONVERSION_SCRIPT_DIR/externalXMLNode.py ${SCRIPT_DIR}/../tests/framework/test_External_XML.xml
+echo -e "\033[1;32m the following script: test_External_XML.xml has been converted for xsd validate"
+
 for testdir in ${TEST_DIRS}
 do
     echo -e "\033[1;32mValidating $testdir "
@@ -42,4 +47,6 @@ do
 done
 echo -e "\033[1;32mPassed $passed_tests \033[1;31mFailed $failed_tests\033[0m"
 
+mv ${SCRIPT_DIR}/../tests/framework/test_External_XML.xml.bak ${SCRIPT_DIR}/../tests/framework/test_External_XML.xml
+echo -e "\033[1;32m test_External_XML.xml has been converted back!"
 exit $failed_tests
