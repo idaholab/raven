@@ -113,8 +113,8 @@ class RAVENInterface(CodeInterfaceBase):
   def dynamicEventTreeForRAVEN(self,**Kwargs):
 
     listDict = []
-    if 'preconditionerCoordinate' in Kwargs.keys():
-      for preconditioner in Kwargs['preconditionerCoordinate']:
+    if 'hybridsamplerCoordinate' in Kwargs.keys():
+      for preconditioner in Kwargs['hybridsamplerCoordinate']:
         preconditioner['executable'] = Kwargs['executable']
         if 'MC' in preconditioner['SamplerType']:
           listDict = self.__genBasePointSampler(**preconditioner)[1]

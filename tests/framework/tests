@@ -61,13 +61,12 @@
   #skip = 'Josh Broke it by breaking RestartInitialize'
  [../]
 
- [./test_Preconditioned_DynamicEventTreeRAVEN]
+ [./test_Hybrid_DynamicEventTreeRAVEN]
   type = 'RavenFramework'
-  input = 'test_preconditioned_det.xml'
-  output = 'PreconditionedDynamicEventTree/PreconditionedDETrunTest/out~PreconditionedDET_test_5-1-2~ideal_pump PreconditionedDynamicEventTree/testprint_hist_hier_PreconditionedDET_test_5-2.csv PreconditionedDynamicEventTree/testprint_hist_hier_variables_PreconditionedDET_test_1-1-2.csv PreconditionedDynamicEventTree/2DHistoryPlot_line.pdf'
-  csv = 'PreconditionedDynamicEventTree/PreconditionedDETrunTest/out~PreconditionedDET_test_5-1-2~ideal_pump.csv'
+  input = 'test_hybrid_det.xml '
+  output = 'HybridDynamicEventTree/HybridDETrunTest/out~HybridDET_test_5-1-2~ideal_pump HybridDynamicEventTree/testprint_hist_hier_HybridDET_test_5-2.csv HybridDynamicEventTree/testprint_hist_hier_variables_HybridDET_test_1-1-2.csv HybridDynamicEventTree/2DHistoryPlot_line.pdf'
+  csv = 'HybridDynamicEventTree/HybridDETrunTest/out~HybridDET_test_5-1-2~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
-  #skip = 'Josh Broke it by breaking RestartInitialize'
  [../]
 
  [./test_branch_heavy]

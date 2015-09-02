@@ -1345,14 +1345,14 @@ For this reason, its specifications must be defined within a
 
 In order to activate the \textbf{Hybrid Dynamic Event Tree}  sampler, the main
 \xmlNode{DynamicEventTree} block needs to contain, at least, an additional
-sub-node called \xmlNode{HybridSamplerSettings}.
+sub-node called \xmlNode{HybridSampler}.
 %
 As already mentioned, the user can combine the Monte-Carlo, Stratified, and Grid
 approaches in order to create a ``pre-sampling'' $N$-dimensional grid, from
 whose nodes a standard DET method is employed.
 %
 For this reason, the user can specify a maximum of three
-\xmlNode{HybridSamplerSettings} sub-nodes (i.e. one for each of the available
+\xmlNode{HybridSampler} sub-nodes (i.e. one for each of the available
 once-through samplers).
 %
 This sub-node needs to contain the following attribute:
@@ -1365,7 +1365,7 @@ This sub-node needs to contain the following attribute:
  \end{itemize}
 
 Independent of the type of ``pre-sampler'' that has been specified, the
-\xmlNode{HybridSamplerSettings} must contain the variables need to be sampled.
+\xmlNode{HybridSampler} must contain the variables need to be sampled.
 %
 As already mentioned, these variables are specified within consecutive
 \xmlNode{variable} XML blocks:
@@ -1406,7 +1406,7 @@ Example:
 <Samplers>
   ...
   <DynamicEventTree name='HybridDETname' print_end_XML="True">
-    <HybridSamplerSettings type='MonteCarlo' limit='2'>
+    <HybridSampler type='MonteCarlo' limit='2'>
       <variable name='var1' >
         <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution>
       </variable>
@@ -1414,8 +1414,8 @@ Example:
         <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution>
         <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
       </variable>
-    </HybridSamplerSettings>
-    <HybridSamplerSettings type='Grid'>
+    </HybridSampler>
+    <HybridSampler type='Grid'>
       <!-- Point sampler way (directly sampling the variable) -->
       <variable name='var3' >
         <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
@@ -1425,8 +1425,8 @@ Example:
         <distribution>aDistributionNameDefinedInDistributionBlock4 </distribution>
         <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
       </variable>
-    </HybridSamplerSettings>
-    <HybridSamplerSettings type='Stratified'>
+    </HybridSampler>
+    <HybridSampler type='Stratified'>
       <!-- Point sampler way (directly sampling the variable ) -->
       <variable name='var5' >
         <distribution>aDistributionNameDefinedInDistributionBlock5 </distribution>
@@ -1436,7 +1436,7 @@ Example:
         <distribution>aDistributionNameDefinedInDistributionBlock6 </distribution>
         <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
       </variable>
-    </HybridSamplerSettings>
+    </HybridSampler>
     <!-- DYNAMIC EVENT TREE INPUT (it goes outside an inner block like HybridSamplerSettings) -->
       <Distribution name='dist7'>
         <distribution>aDistributionNameDefinedInDistributionBlock7 </distribution>

@@ -1305,15 +1305,15 @@ class DynamicEventTree(Grid):
     self.RunQueue['queue'      ] = []
     # mapping from jobID to rootname in TreeInfo {jobID:rootName}
     self.rootToJob               = {}
-    # dictionary of preconditioner sampler available
-    self.preconditionerAvail = {}
-    self.preconditionerAvail['MonteCarlo'] = MonteCarlo      # MC
-    self.preconditionerAvail['Stratified'] = Stratified      # Stratified
-    self.preconditionerAvail['Grid'      ] = Grid            # Grid
-    # dictionary of inputted preconditioners need to be applied
-    self.preconditionerToApply             = {}
-    # total number of preconditioner samples (combination of all different preconditioner strategy)
-    self.precNumberSamplers                = 0
+    # dictionary of Hybrid Samplers available
+    self.hybridSamplersAvail = {}
+    self.hybridSamplersAvail['MonteCarlo'] = MonteCarlo      # MC
+    self.hybridSamplersAvail['Stratified'] = Stratified      # Stratified
+    self.hybridSamplersAvail['Grid'      ] = Grid            # Grid
+    # dictionary of inputted hybridsamplers need to be applied
+    self.hybridStrategyToApply             = {}
+    # total number of hybridsampler samples (combination of all different hybridsampler strategy)
+    self.hybridNumberSamplers                = 0
     self.printTag = 'SAMPLER DYNAMIC ET'
 
   def _localWhatDoINeed(self):
@@ -1324,8 +1324,8 @@ class DynamicEventTree(Grid):
     @ Out, needDict, list of objects needed
     """
     needDict = Sampler._localWhatDoINeed(self)
-    for preconditioner in self.preconditionerToApply.values():
-      preneedDict = preconditioner.whatDoINeed()
+    for hybridsampler in self.hybridStrategyToApply.values():
+      preneedDict = hybridsampler.whatDoINeed()
       for key,value in preneedDict.items():
         if key not in needDict.keys(): needDict[key] = []
         needDict[key] = needDict[key] + value
@@ -1526,12 +1526,12 @@ class DynamicEventTree(Grid):
           Steps XML block)
     @ Out, None
     """
-    precSampled = rootTree.getrootnode().get('preconditionerSampled')
+    precSampled = rootTree.getrootnode().get('hybridsamplerSampled')
     rootnode    =  rootTree.getrootnode()
     rname       = rootnode.name
     rootnode.add('completedHistory', False)
     # Fill th values dictionary in
-    if precSampled: self.inputInfo['preconditionerCoordinate'  ] = copy.deepcopy(precSampled)
+    if precSampled: self.inputInfo['hybridsamplerCoordinate'  ] = copy.deepcopy(precSampled)
     self.inputInfo['prefix'                    ] = rname.encode()
     self.inputInfo['initiator_distribution'    ] = []
     self.inputInfo['PbThreshold'               ] = []
@@ -1670,10 +1670,10 @@ class DynamicEventTree(Grid):
       # add the newer branch name to the map
       self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
       # check if it is a preconditioned DET sampling, if so add the relative information
-      precSampled = endInfo['parent_node'].get('preconditionerSampled')
+      precSampled = endInfo['parent_node'].get('hybridsamplerSampled')
       if precSampled:
-        self.inputInfo['preconditionerCoordinate'] = copy.deepcopy(precSampled)
-        subGroup.add('preconditionerSampled', precSampled)
+        self.inputInfo['hybridsamplerCoordinate'] = copy.deepcopy(precSampled)
+        subGroup.add('hybridsamplerSampled', precSampled)
       # Check if the distribution that just triggered hitted the last probability threshold .
       #  In this case there is not a probability threshold that needs to be added in the input
       #  for this particular distribution
@@ -1788,7 +1788,7 @@ class DynamicEventTree(Grid):
       @Out, None
     """
     Grid._generateDistributions(self,availableDist,availableFunc)
-    for preconditioner in self.preconditionerToApply.values(): preconditioner._generateDistributions(availableDist,availableFunc)
+    for hybridsampler in self.hybridStrategyToApply.values(): hybridsampler._generateDistributions(availableDist,availableFunc)
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -1804,17 +1804,17 @@ class DynamicEventTree(Grid):
       try:    self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
       except (KeyError,NameError): self.raiseAnError(IOError,'Can not convert maxSimulationTime in float number!!!')
     for child in xmlNode:
-      if child.tag == 'PreconditionerSampler':
-        if not 'type' in child.attrib.keys()                          : self.raiseAnError(IOError,'Not found attribute type in PreconditionerSampler block!')
-        if child.attrib['type'] in self.preconditionerToApply.keys()  : self.raiseAnError(IOError,'PreconditionerSampler type '+child.attrib['type'] + ' already inputted!')
-        if child.attrib['type'] not in self.preconditionerAvail.keys(): self.raiseAnError(IOError,'PreconditionerSampler type' +child.attrib['type'] + 'unknown. Available are '+ str(self.preconditionerAvail.keys()).replace("[","").replace("]",""))
-        self.precNumberSamplers = 1
+      if child.tag == 'HybridSampler':
+        if not 'type' in child.attrib.keys()                          : self.raiseAnError(IOError,'Not found attribute type in hybridsamplerSampler block!')
+        if child.attrib['type'] in self.hybridStrategyToApply.keys()  : self.raiseAnError(IOError,'Hybrid Sampler type '+child.attrib['type'] + ' already inputted!')
+        if child.attrib['type'] not in self.hybridSamplersAvail.keys(): self.raiseAnError(IOError,'Hybrid Sampler type ' +child.attrib['type'] + ' unknown. Available are '+ ','.join(self.hybridSamplersAvail.keys()) + '!')
+        self.hybridNumberSamplers = 1
         # the user can decided how to preconditionate
-        self.preconditionerToApply[child.attrib['type']] = self.preconditionerAvail[child.attrib['type']]()
-        # give the preconditioner sampler the message handler
-        self.preconditionerToApply[child.attrib['type']].setMessageHandler(self.messageHandler)
-        # make the preconditioner sampler read  its own xml block
-        self.preconditionerToApply[child.attrib['type']]._readMoreXML(child)
+        self.hybridStrategyToApply[child.attrib['type']] = self.hybridSamplersAvail[child.attrib['type']]()
+        # give the hybridsampler sampler the message handler
+        self.hybridStrategyToApply[child.attrib['type']].setMessageHandler(self.messageHandler)
+        # make the hybridsampler sampler read  its own xml block
+        self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(child)
     branchedLevel = {}
     error_found = False
     gridInfo = self.gridEntity.returnParameter("gridInfo")
@@ -1868,24 +1868,24 @@ class DynamicEventTree(Grid):
     @ In None
     @ Out None
     """
-    if len(self.preconditionerToApply.keys()) > 0: precondlistoflist = []
-    for cnt, preckey  in enumerate(self.preconditionerToApply.keys()):
-      preconditioner =  self.preconditionerToApply[preckey]
-      precondlistoflist.append([])
-      preconditioner.initialize()
-      self.precNumberSamplers *= preconditioner.limit
-      while preconditioner.amIreadyToProvideAnInput():
-        preconditioner.counter +=1
-        preconditioner.localGenerateInput(None,None)
-        preconditioner.inputInfo['prefix'] = preconditioner.counter
-        precondlistoflist[cnt].append(copy.deepcopy(preconditioner.inputInfo))
-    if self.precNumberSamplers > 0:
-      self.raiseADebug('Number of Preconditioner Samples are ' + str(self.precNumberSamplers) + '!')
-      precNumber = self.precNumberSamplers
-      combinations = list(itertools.product(*precondlistoflist))
-    else: precNumber = 1
+    if len(self.hybridStrategyToApply.keys()) > 0: hybridlistoflist = []
+    for cnt, preckey  in enumerate(self.hybridStrategyToApply.keys()):
+      hybridsampler =  self.hybridStrategyToApply[preckey]
+      hybridlistoflist.append([])
+      hybridsampler.initialize()
+      self.hybridNumberSamplers *= hybridsampler.limit
+      while hybridsampler.amIreadyToProvideAnInput():
+        hybridsampler.counter +=1
+        hybridsampler.localGenerateInput(None,None)
+        hybridsampler.inputInfo['prefix'] = hybridsampler.counter
+        hybridlistoflist[cnt].append(copy.deepcopy(hybridsampler.inputInfo))
+    if self.hybridNumberSamplers > 0:
+      self.raiseAMessage('Number of Hybrid Samples are ' + str(self.hybridNumberSamplers) + '!')
+      hybridNumber = self.hybridNumberSamplers
+      combinations = list(itertools.product(*hybridlistoflist))
+    else: hybridNumber = 1
     self.TreeInfo = {}
-    for precSample in range(precNumber):
+    for precSample in range(hybridNumber):
       elm = ETS.Node(self.name + '_' + str(precSample+1))
       elm.add('name', self.name + '_'+ str(precSample+1))
       elm.add('start_time', str(0.0))
@@ -1895,8 +1895,8 @@ class DynamicEventTree(Grid):
       elm.add('runEnded',False)
       elm.add('running',True)
       elm.add('queue',False)
-      # if preconditioned DET, add the sampled from preconditioner samplers
-      if self.precNumberSamplers > 0: elm.add('preconditionerSampled', combinations[precSample])
+      # if preconditioned DET, add the sampled from hybridsampler samplers
+      if self.hybridNumberSamplers > 0: elm.add('hybridsamplerSampled', combinations[precSample])
       # The dictionary branchedLevel is stored in the xml tree too. That's because
       # the advancement of the thresholds must follow the tree structure
       elm.add('branchedLevel', self.branchedLevel[0])
@@ -1925,7 +1925,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     """
     DynamicEventTree.__init__(self)  # init DET
     LimitSurfaceSearch.__init__(self)   # init Adaptive
-    self.detAdaptMode         = 1    # Adaptive Dynamic Event Tree method (=1 -> DynamicEventTree as preconditioner and subsequent LimitSurfaceSearch,=2 -> DynamicEventTree online adaptive)
+    self.detAdaptMode         = 1    # Adaptive Dynamic Event Tree method (=1 -> DynamicEventTree as hybridsampler and subsequent LimitSurfaceSearch,=2 -> DynamicEventTree online adaptive)
     self.noTransitionStrategy = 1    # Strategy in case no transitions have been found by DET (1 = 'Probability MC', 2 = Increase the grid exploration)
     self.insertAdaptBPb       = True # Add Probabability THs requested by adaptive in the initial grid (default = False)
     self.startAdaptive = False
@@ -1982,7 +1982,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       self.raiseADebug(str(value))
       self.raiseADebug(str(cdfValues[key]))
       self.raiseADebug(str(lowerCdfValues[key]))
-    # check if in the adaptive points already explored (if not pushed into the grid)
+    # check if in the adaptive points already explored (if not push into the grid)
     if not self.insertAdaptBPb:
       candidatesBranch = []
       # check if adaptive point is better choice -> TODO: improve efficiency
@@ -2108,10 +2108,10 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     # add the newer branch name to the map
     self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
     # check if it is a preconditioned DET sampling, if so add the relative information
-    # precSampled = endInfo['parent_node'].get('preconditionerSampled')
+    # precSampled = endInfo['parent_node'].get('hybridsamplerSampled')
     # if precSampled:
-    #   self.inputInfo['preconditionerCoordinate'] = copy.deepcopy(precSampled)
-    #   subGroup.add('preconditionerSampled', precSampled)
+    #   self.inputInfo['hybridsamplerCoordinate'] = copy.deepcopy(precSampled)
+    #   subGroup.add('hybridsamplerSampled', precSampled)
     # The probability Thresholds are stored here in the cdfValues dictionary... We are sure that they are whitin the ones defined in the grid
     # check is not needed
     self.inputInfo['initiator_distribution'] = [self.toBeSampled[key] for key in cdfValues.keys()]
