@@ -941,23 +941,27 @@ class MonteCarlo(Sampler):
       totDim = self.variables2distributionsMapping[key]['totDim']
       dist   = self.variables2distributionsMapping[key]['name']
 
-      for var in self.distributions2variablesMapping[dist]:
+      if totDim == 1:
+        for var in self.distributions2variablesMapping[dist]:
+          varID = var.keys()[0]
+          rvsnum = self.distDict[key].rvs()
+          for kkey in varID.strip().split(','):
+            self.values[kkey] = np.atleast_1d(rvsnum)[0]
+            self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
+      elif totDim > 1:
         if dim == 1:
           rvsnum = self.distDict[key].rvs()
-          varID  = var.keys()[0]
-          varDim = var[varID]
-          for kkey in varID.strip().split(','):
-            self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
-            if totDim > 1:
+          for var in self.distributions2variablesMapping[dist]:
+            varID = var.keys()[0]
+            varDim = var[varID]
+            for kkey in varID.strip().split(','):
+              self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
               coordinate=[];
               for i in range(totDim):
                 coordinate.append(np.atleast_1d(rvsnum)[i])
               self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(coordinate)
-            elif totDim == 1:
-              self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
-            else:
-              self.inputInfo['SampledVarsPb'][kkey] = 1.0
-      #else? #FIXME
+      else:
+        self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
 
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
