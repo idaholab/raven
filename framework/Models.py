@@ -272,7 +272,7 @@ class Dummy(Model):
     if None in inputDict.values(): self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found an None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
-    return [(inputDict)],copy.copy(Kwargs)
+    return [(inputDict)],copy.deepcopy(Kwargs)
 
   def run(self,Input,jobHandler):
     """
@@ -516,7 +516,7 @@ class ExternalModel(Dummy):
     if 'createNewInput' in dir(self.sim):
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
-      return ([(extCreateNewInput)],copy.copy(Kwargs)),copy.copy(modelVariableValues)
+      return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.copy(modelVariableValues)
     else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.copy(modelVariableValues)
 
   def _readMoreXML(self,xmlNode):
