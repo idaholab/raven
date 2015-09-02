@@ -594,6 +594,7 @@
    csv = 'AdaptiveStochasticPoly/data.csv'
  [../]
 
+
  [./redundantInputs]
    type = 'RavenFramework'
    input = 'test_redundant_inputs.xml'
@@ -601,6 +602,12 @@
    csv = 'RedundantInputs/mc_out.csv RedundantInputs/grid_out.csv'
  [../]
 
+ [./dataObject_metadata]
+   type = 'RavenFramework'
+   input = 'test_DataObject_metadata.xml'
+   output = 'dataObject_metadata/PointProbability_dump.xml'
+   xml = 'dataObject_metadata/PointProbability_dump.xml'
+   csv = 'dataObject_metadata/PointProbability_dump.csv'
 [./CubitMooseInterface]
    type = 'RavenFramework'
    input = 'test_CUBIT_MOOSE.xml'
