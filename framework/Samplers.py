@@ -23,6 +23,7 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 import xml.etree.ElementTree as ET
 import itertools
 from sklearn import neighbors
+from sklearn.utils.extmath import cartesian
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -1276,56 +1277,56 @@ class DynamicEventTree(Grid):
     """
     Grid.__init__(self)
     # Working directory (Path of the directory in which all the outputs,etc. are stored)
-    self.workingDir = ""
+    self.workingDir                        = ""
     # (optional) if not present, the sampler will not change the relative keyword in the input file
-    self.maxSimulTime            = None
+    self.maxSimulTime                      = None
     # print the xml tree representation of the dynamic event tree calculation
     # see variable 'self.TreeInfo'
-    self.print_end_xml           = False
+    self.print_end_xml                     = False
     # Dictionary of the probability bins for each distribution that have been
     #  inputted by the user ('distName':[Pb_Threshold_1, Pb_Threshold_2, ..., Pb_Threshold_n])
-    self.branchProbabilities     = {}
+    self.branchProbabilities               = {}
     # Dictionary of the Values' bins for each distribution that have been
     #  inputted by the user ('distName':[Pb_Threshold_1, Pb_Threshold_2, ..., Pb_Threshold_n])
     # these are the invCDFs of the PBs inputted in branchProbabilities (if ProbabilityThresholds have been inputted)
-    self.branchValues     = {}
+    self.branchValues                      = {}
     # List of Dictionaries of the last probability bin level (position in the array) reached for each distribution ('distName':IntegerValue)
     # This container is a working dictionary. The branchedLevels are stored in the xml tree "self.TreeInfo" since they must track
     # the evolution of the dynamic event tree
-    self.branchedLevel           = []
+    self.branchedLevel                     = []
     # Counter for the branch needs to be run after a calculation branched (it is a working variable)
-    self.branchCountOnLevel      = 0
+    self.branchCountOnLevel                = 0
     # Dictionary tha contains the actual branching info
     # (i.e. distribution that triggered, values of the variables that need to be changed, etc)
-    self.actualBranchInfo        = {}
+    self.actualBranchInfo                  = {}
     # Parent Branch end time (It's a working variable used to set up the new branches need to be run.
     #   The new branches' start time will be the end time of the parent branch )
-    self.actual_end_time         = 0.0
+    self.actual_end_time                   = 0.0
     # Parent Branch end time step (It's a working variable used to set up the new branches need to be run.
     #  The end time step is used to construct the filename of the restart files needed for restart the new branch calculations)
-    self.actual_end_ts           = 0
+    self.actual_end_ts                     = 0
     # Xml tree object. It stored all the info regarding the DET. It is in continue evolution during a DET calculation
-    self.TreeInfo                = None
+    self.TreeInfo                          = None
     # List of Dictionaries. It is a working variable used to store the information needed to create branches from a Parent Branch
-    self.endInfo                 = []
+    self.endInfo                           = []
     # Queue system. The inputs are waiting to be run are stored in this queue dictionary
-    self.RunQueue                = {}
+    self.RunQueue                          = {}
     # identifiers of the inputs in queue (name of the history... for example DET_1,1,1)
-    self.RunQueue['identifiers'] = []
+    self.RunQueue['identifiers']           = []
     # Corresponding inputs
-    self.RunQueue['queue'      ] = []
+    self.RunQueue['queue']                 = []
     # mapping from jobID to rootname in TreeInfo {jobID:rootName}
-    self.rootToJob               = {}
+    self.rootToJob                         = {}
     # dictionary of Hybrid Samplers available
-    self.hybridSamplersAvail = {}
-    self.hybridSamplersAvail['MonteCarlo'] = MonteCarlo      # MC
-    self.hybridSamplersAvail['Stratified'] = Stratified      # Stratified
-    self.hybridSamplersAvail['Grid'      ] = Grid            # Grid
+    self.hybridSamplersAvail               = {'MonteCarlo':MonteCarlo,'Stratified':Stratified,'Grid':Grid}
     # dictionary of inputted hybridsamplers need to be applied
     self.hybridStrategyToApply             = {}
     # total number of hybridsampler samples (combination of all different hybridsampler strategy)
-    self.hybridNumberSamplers                = 0
-    self.printTag = 'SAMPLER DYNAMIC ET'
+    self.hybridNumberSamplers              = 0
+    # List of variables that represent the aleatory space 
+    self.standardDETvariables              = []
+    # List of variables that represent the epistemic space (hybrid det)
+    self.epistemicSpace                    = []
 
   def _localWhatDoINeed(self):
     """
@@ -1557,9 +1558,13 @@ class DynamicEventTree(Grid):
     for key in self.branchProbabilities.keys():self.inputInfo['initiator_distribution'].append(key.encode())
     for key in self.branchProbabilities.keys():self.inputInfo['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
     for key in self.branchProbabilities.keys():self.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
-    for varname in self.toBeSampled.keys():
+    for varname in self.standardDETvariables:
       self.inputInfo['SampledVars'  ][varname] = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
       self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
+    if precSampled:
+      for precSample in precSampled:
+        self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
+        self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
 
@@ -1608,8 +1613,6 @@ class DynamicEventTree(Grid):
     branchedLevelParent     = self.branchedLevel.pop(0)
     endInfo                 = self.endInfo.pop(0)
     self.branchCountOnLevel = 0 #?
-
-
     # n_branches = number of branches need to be run
     n_branches = endInfo['n_branches']
     # Check if the distribution that just triggered hitted the last probability threshold .
@@ -1670,8 +1673,6 @@ class DynamicEventTree(Grid):
       endInfo['parent_node'].appendBranch(subGroup)
       # Fill the values dictionary that will be passed into the model in order to create an input
       # In this dictionary the info for changing the original input is stored
-      if str(endInfo['end_ts']) == 'None':
-        pass
       self.inputInfo = {'prefix':rname.encode(),'end_ts':endInfo['end_ts'],
                 'branch_changed_param':[subGroup.get('branch_changed_param')],
                 'branch_changed_param_value':[subGroup.get('branch_changed_param_value')],
@@ -1709,9 +1710,13 @@ class DynamicEventTree(Grid):
           self.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
       self.inputInfo['SampledVars']   = {}
       self.inputInfo['SampledVarsPb'] = {}
-      for varname in self.toBeSampled.keys():
+      for varname in self.standardDETvariables:
         self.inputInfo['SampledVars'][varname]   = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
         self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
+      if precSampled:
+        for precSample in precSampled:
+          self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
+          self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditional_pb')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
       # Call the model function  "createNewInput" with the "values" dictionary just filled.
@@ -1807,6 +1812,16 @@ class DynamicEventTree(Grid):
     @ In, xmlNode: The xml element node that will be checked against the
                    available options specific to this Sampler.
     """
+    self._localInputAndChecksDET(xmlNode)
+    self._localInputAndChecksHybrid(xmlNode)
+   
+  def _localInputAndChecksDET(self,xmlNode):
+    """
+    Class specific inputs will be read here and checked for validity.
+    This method reads the standard DET portion only (no hybrid)
+    @ In, xmlNode: The xml element node that will be checked against the
+                   available options specific to this Sampler.
+    """
     Grid.localInputAndChecks(self,xmlNode)
     if 'print_end_xml' in xmlNode.attrib.keys():
       if xmlNode.attrib['print_end_xml'].lower() in utils.stringsThatMeanTrue(): self.print_end_xml = True
@@ -1814,23 +1829,12 @@ class DynamicEventTree(Grid):
     if 'maxSimulationTime' in xmlNode.attrib.keys():
       try:    self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
       except (KeyError,NameError): self.raiseAnError(IOError,'Can not convert maxSimulationTime in float number!!!')
-    for child in xmlNode:
-      if child.tag == 'HybridSampler':
-        if not 'type' in child.attrib.keys()                          : self.raiseAnError(IOError,'Not found attribute type in hybridsamplerSampler block!')
-        if child.attrib['type'] in self.hybridStrategyToApply.keys()  : self.raiseAnError(IOError,'Hybrid Sampler type '+child.attrib['type'] + ' already inputted!')
-        if child.attrib['type'] not in self.hybridSamplersAvail.keys(): self.raiseAnError(IOError,'Hybrid Sampler type ' +child.attrib['type'] + ' unknown. Available are '+ ','.join(self.hybridSamplersAvail.keys()) + '!')
-        self.hybridNumberSamplers = 1
-        # the user can decided how to preconditionate
-        self.hybridStrategyToApply[child.attrib['type']] = self.hybridSamplersAvail[child.attrib['type']]()
-        # give the hybridsampler sampler the message handler
-        self.hybridStrategyToApply[child.attrib['type']].setMessageHandler(self.messageHandler)
-        # make the hybridsampler sampler read  its own xml block
-        self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(child)
     branchedLevel = {}
     error_found = False
     gridInfo = self.gridEntity.returnParameter("gridInfo")
     for keyk in self.axisName:
       branchedLevel[self.toBeSampled[keyk]] = 0
+      self.standardDETvariables.append(keyk)
       if self.gridInfo[keyk] == 'CDF':
         self.branchProbabilities[self.toBeSampled[keyk]] = gridInfo[keyk][2]
         self.branchProbabilities[self.toBeSampled[keyk]].sort(key=float)
@@ -1850,7 +1854,29 @@ class DynamicEventTree(Grid):
             error_found = True
     if error_found: self.raiseAnError(IOError,"In sampler named " + self.name+' Errors have been found!' )
     # Append the branchedLevel dictionary in the proper list
-    self.branchedLevel.append(branchedLevel)
+    self.branchedLevel.append(branchedLevel)    
+  
+  def _localInputAndChecksHybrid(self,xmlNode):
+    """
+    Class specific inputs will be read here and checked for validity.
+    This method reads the hybrid det portion only
+    @ In, xmlNode: The xml element node that will be checked against the
+                   available options specific to this Sampler.
+    """    
+    for child in xmlNode:
+      if child.tag == 'HybridSampler':
+        if not 'type' in child.attrib.keys()                          : self.raiseAnError(IOError,'Not found attribute type in hybridsamplerSampler block!')
+        if child.attrib['type'] in self.hybridStrategyToApply.keys()  : self.raiseAnError(IOError,'Hybrid Sampler type '+child.attrib['type'] + ' already inputted!')
+        if child.attrib['type'] not in self.hybridSamplersAvail.keys(): self.raiseAnError(IOError,'Hybrid Sampler type ' +child.attrib['type'] + ' unknown. Available are '+ ','.join(self.hybridSamplersAvail.keys()) + '!')
+        self.hybridNumberSamplers = 1
+        # the user can decided how to sample the epistemic
+        self.hybridStrategyToApply[child.attrib['type']] = self.hybridSamplersAvail[child.attrib['type']]()
+        # give the hybridsampler sampler the message handler
+        self.hybridStrategyToApply[child.attrib['type']].setMessageHandler(self.messageHandler)
+        # make the hybridsampler sampler read  its own xml block
+        self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(child)
+        # store the variables that represent the epistemic space 
+        self.epistemicSpace.extend(self.hybridStrategyToApply[child.attrib['type']].toBeSampled.keys())
 
   def localAddInitParams(self,tempDict):
     """
@@ -2316,12 +2342,20 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     if self.hybridDETstrategy is not None:
       # we are running an adaptive hybrid DET and not only an adaptive DET
       if self.hybridDETstrategy == 1:
-        epistemicValue = {}
         gridVector = self.limitSurfacePP.gridEntity.returnParameter("gridVectors")
-        for epistemic in self.epistemicVariables:
-          if epistemic in gridVector.keys(): epistemicValue[epistemic] = gridVector[epistemic]
-        list(itertools.product(*hybridlistoflist))
-        
+        # construct an hybrid DET through an XML node
+        xmlNode = ET.fromstring('<InitNode> <HybridSampler type="Grid"/> </InitNode>')
+        distDict = {}
+        for varName, dist in self.distDict.items():
+          if varName.replace('<distribution>','') in self.epistemicVariables:
+            # found an epistemic
+            varNode  = ET.Element('Distribution' if varName.startswith('<distribution>') else 'variable',{'name':varName.replace('<distribution>','')})
+            varNode.append(ET.fromstring("<distribution>"+dist.name.strip()+"</distribution>"))
+            distDict[dist.name.strip()] = self.distDict[varName]
+            varNode.append(ET.fromstring('<grid construction="custom" type="'+(self.toleranceWeight.upper() if self.toleranceWeight == 'cdf' else self.toleranceWeight) +'">'+' '.join([str(elm) for elm in gridVector[varName.replace('<distribution>','')]])+'</grid>')) 
+            xmlNode.find("HybridSampler").append(varNode)
+        self._localInputAndChecksHybrid(xmlNode)
+        for hybridsampler in self.hybridStrategyToApply.values(): hybridsampler._generateDistributions(distDict, {})
     DynamicEventTree.localInitialize(self) 
     self._endJobRunnable    = sys.maxsize
 
