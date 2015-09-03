@@ -1453,6 +1453,17 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
       for triple in self.errorHistory:
         fout.write(str(triple[0])+','+str(triple[1])+','+str(triple[2])+'\n')
       fout.close()
+
+      fout = open(os.path.join(self.workingDir,'grid.csv'), 'w')
+      gridCoord = self.limitSurfacePP.gridEntity.returnGridAsArrayOfCoordinates()
+      sep = ''
+      for coords in gridCoord:
+        for coord in coords:
+          fout.write(sep+str(coord))
+          sep = ','
+        sep = '\n'
+      fout.close()
+
     return ready
 
   def localGenerateInput(self,model,oldInput):
@@ -1515,6 +1526,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
           # candidate is the first element.
           sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1], reverse=True)
           B = min(self.maxBatchSize,len(sortedMaxima))
+          print('Batch requested', B)
           print('max score', max(self.scores))
           for idx in sortedMaxima[0:B]:
             self.toProcess.append(self.surfPoint[idx,:])
