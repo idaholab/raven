@@ -2790,7 +2790,7 @@ class SparseGridCollocation(Grid):
         for v,varName in enumerate(self.sparseGrid.varNames):
           self.values[varName] = pt[v]
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-        self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+        self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['ProbabilityWeight'] = weight
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 #
@@ -3107,7 +3107,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
@@ -3303,7 +3303,7 @@ class Sobol(SparseGridCollocation):
       for v,varName in enumerate(self.distDict.keys()):
         self.values[varName] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-      self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+      self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight'] =  N/A
       self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
 #
