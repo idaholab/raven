@@ -1529,6 +1529,7 @@ class MultivariateNormal(NDimensionalDistributions):
     self.raiseAMessage('transformMatrixCalculation')
     U,S,V = linalg.svd(x,full_matrices=True)
     U *= np.sqrt(S)
+    return U
 
   def inverseTransform(self,x):
     """
@@ -1558,11 +1559,11 @@ class MultivariateNormal(NDimensionalDistributions):
     for i in range(len(self.covariance)):
       covariance[i] = self.covariance[i]
     if self.method == 'spline':
-      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
+      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu,str(self.method))
     elif self.method == 'pca':
       # using different method to compute the multivariate normal distribution
       # overload the following functions
-      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
+      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu,str(self.method))
 
   def cdf(self,x):
     if self.method == 'spline':
@@ -1578,7 +1579,7 @@ class MultivariateNormal(NDimensionalDistributions):
     if self.method == 'spline':
       return self._distribution.InverseCdf(x,random())
     elif self.method == 'pca':
-      coordinate = self._distribution.InverseCdf(x,self.dimension,stochasticEnv)
+      coordinate = self._distribution.InverseCdf(self.dimension,stochasticEnv)
       value = self.inverseTransform(coordinate)
       coordinateOrig = distribution1D.vectord_cxx(len(value))
       for i in range(len(value)):

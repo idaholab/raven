@@ -951,15 +951,14 @@ class MonteCarlo(Sampler):
       elif totDim > 1:
         if dim == 1:
           rvsnum = self.distDict[key].rvs()
+          coordinate = np.atleast_1d(rvsnum).tolist()
+          probabilityValue = self.distDict[key].pdf(coordinate)
           for var in self.distributions2variablesMapping[dist]:
             varID = var.keys()[0]
             varDim = var[varID]
             for kkey in varID.strip().split(','):
               self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
-              coordinate=[];
-              for i in range(totDim):
-                coordinate.append(np.atleast_1d(rvsnum)[i])
-              self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(coordinate)
+              self.inputInfo['SampledVarsPb'][kkey] = probabilityValue
       else:
         self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
 
