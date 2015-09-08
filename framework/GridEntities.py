@@ -360,9 +360,35 @@ class GridEntity(GridBase):
     #building the grid point coordinates
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
       if len(stepLenght[varId]) == 1:
-        # equally spaced or volumetriRatio. (the substruction of stepLenght/2.0 is only to avoid that for roundoff error, the dummy upperbound is included in the mesh)
-        if self.volumetricRatio != None: self.gridContainer['gridVectors'][varName] = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName],stepLenght[varId][-1])
-        else                           : self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(self.gridContainer['bounds']["lowerBounds"][varName],self.gridContainer['bounds']["upperBounds" ][varName]-stepLenght[varId][-1]/2.0,stepLenght[varId][-1]),np.atleast_1d(self.gridContainer['bounds']["upperBounds" ][varName])))
+        # equally spaced or volumetriRatio. (the use of np.finfo(float).eps is only to avoid round-off error, the upperBound is included in the mesh)
+        # Any number greater than zero and less than one should suffice
+        if self.volumetricRatio != None:
+          self.gridContainer['gridVectors'][varName] = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],
+                                                                 self.gridContainer['bounds']["upperBounds" ][varName],
+                                                                 stepLenght[varId][-1])
+        else:
+          # DM: Enhancing readability of this conditional by using local
+          # variables. This portion of the conditional is for evenly-spaced
+          # grid cells. In the call to np.arange, if the one was to use ub as
+          # the upper bound argument, then you are allowing room for round-off
+          # error as sometimes this will include the point ub and sometimes it
+          # will not. Instead, we will explicitly remove it from the np.arange
+          # call by moving the upper bound slightly inward (ub-myEps), and then
+          # explicitly concatenating ub to the end of the generated list.
+          # Note, that any number greater than zero and less than one should
+          # suffice for the multiplier used in myEps. My first thought was to
+          # use machine precision (np.finfo(float).eps), but this could also
+          # numerical instabilities. The former value was using 1e-3, but it was
+          # multiplied by ub not the step size. I selected 0.5 because it seems
+          # like a goldilocks number. Any larger value will bias values toward
+          # ub in terms of numerical stability, and any value lower will bias
+          # towards the next lower grid cell. 0.5 puts us as far from making a
+          # mistake in either direction as possible.
+          lb = self.gridContainer['bounds']["lowerBounds"][varName]
+          ub = self.gridContainer['bounds']["upperBounds" ][varName]
+          stepSize = stepLenght[varId][-1]
+          myEps = stepSize * 0.5 # stepSize * np.finfo(float).eps
+          self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(lb, ub-myEps, stepSize), np.atleast_1d(ub)))
       else:
         # custom grid
         # it is not very efficient, but this approach is only for custom grids => limited number of discretizations

@@ -11,6 +11,7 @@
       <runQSUB/>
     </mode>
     <NumMPI>2</NumMPI>
+    <expectedTime>10:00:00</expectedTime>
   </RunInfo>
 
   <Files>

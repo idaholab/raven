@@ -150,7 +150,6 @@
             <xsd:element name="deleteOutExtension" type="xsd:string"  minOccurs="0" default="None"/>
             <xsd:element name="delSucLogFiles"     type="RavenBool" minOccurs="0" default="false"/>
 
-            <xsd:element name="NumNode"          type="xsd:integer" minOccurs="0"/>
             <xsd:element name="queueingSoftware" type="xsd:string"  minOccurs="0" default="PBS PROFESSIONAL"/>
 
             <xsd:element name="expectedTime"     type="xsd:string"  minOccurs="0" default="None"/>

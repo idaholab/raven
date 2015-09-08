@@ -294,7 +294,6 @@ class Simulation(MessageHandler.MessageUser):
     self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
     self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
     self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded
-    self.runInfoDict['numNode'           ] = 1            # number of nodes
     #self.runInfoDict['procByNode'        ] = 1            # number of processors by node
     self.runInfoDict['totalNumCoresUsed' ] = 1            # total number of cores used by driver
     self.runInfoDict['queueingSoftware'  ] = ''           # queueing software name
@@ -513,7 +512,6 @@ class Simulation(MessageHandler.MessageUser):
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
       elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'        ] = int(element.text)
-      elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
       elif element.tag == 'totalNumCoresUsed' : self.runInfoDict['totalNumCoresUsed'   ] = int(element.text)
       elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'            ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)

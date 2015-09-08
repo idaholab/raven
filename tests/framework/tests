@@ -193,8 +193,8 @@
  [./testLHS]
   type = 'RavenFramework'
   input = 'test_LHS_Sampler.xml'
-  output = 'LHStest/outLHS_dump.csv'
-  csv = 'LHStest/outLHS_dump.csv'
+  output = 'LHStest/outLHS_dump.csv LHStest/samples1D.csv'
+  csv = 'LHStest/outLHS_dump.csv LHStest/samples1D.csv'
   max_time = 500
   rel_err = 0.001
  [../]
@@ -377,30 +377,6 @@
   input = 'test_externalPostProcessor.xml'
   csv = 'externalPostProcessor/myDump.csv'
   output = 'externalPostProcessor/myDump.xml'
- [../]
-
- [./topology_simple]
-  type = 'RavenFramework'
-  input = 'test_topology_simple.xml'
-  csv = 'topology/myDump1.csv topology/myDump2.csv topology/myDump3.csv topology/myDump4.csv'
-  output = 'topology/myDump1.xml topology/myDump2.xml topology/myDump3.xml topology/myDump4.xml'
-  required_libraries = 'amsc'
- [../]
-
-[./topology_persistence]
-  type = 'RavenFramework'
-  input = 'test_topology_persistence.xml'
-  csv = 'topology2/segCount.csv topology2/segFull.csv topology2/segProb.csv topology2/segValue.csv'
-  output = 'topology2/segCount.xml topology2/segFull.xml topology2/segProb.xml topology2/segValue.xml'
-  required_libraries = 'amsc'
- [../]
-
-[./topology_graph]
-  type = 'RavenFramework'
-  input = 'test_topology_graphs.xml'
-  csv = 'topology3/segNN.csv topology3/segBS.csv topology3/segRBS.csv'
-  output = 'topology3/segNN.xml topology3/segBS.xml topology3/segRBS.xml'
-  required_libraries = 'amsc'
  [../]
 
  [./io_ROM_pickle]
@@ -594,6 +570,7 @@
    csv = 'AdaptiveStochasticPoly/data.csv'
  [../]
 
+
  [./redundantInputs]
    type = 'RavenFramework'
    input = 'test_redundant_inputs.xml'
@@ -601,6 +578,12 @@
    csv = 'RedundantInputs/mc_out.csv RedundantInputs/grid_out.csv'
  [../]
 
+ [./dataObject_metadata]
+   type = 'RavenFramework'
+   input = 'test_DataObject_metadata.xml'
+   output = 'dataObject_metadata/PointProbability_dump.xml'
+   xml = 'dataObject_metadata/PointProbability_dump.xml'
+   csv = 'dataObject_metadata/PointProbability_dump.csv'
 [./CubitMooseInterface]
    type = 'RavenFramework'
    input = 'test_CUBIT_MOOSE.xml'
@@ -622,4 +605,11 @@
    required_executable = '../../../bison/bison-%METHOD%'
    required_libraries = 'cubit'
  [../]
+
+  [./failrunsMC]
+    type = 'RavenFramework'
+    input = 'test_failruns_MC.xml'
+    output = 'RunFailures/MCdump.xml RunFailures/MCdumpC.xml'
+    csv = 'RunFailures/MCdump.csv RunFailures/MCdumpC.csv'
+  [../]
 []

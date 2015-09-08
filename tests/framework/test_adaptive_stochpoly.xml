@@ -7,7 +7,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="make" verbosity="silent">
+    <MultiRun name="make" verbosity="silent" sleepTime='1e-4'>
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
       <Sampler class="Samplers" type="AdaptiveSparseGrid">SG</Sampler>
@@ -79,7 +79,7 @@
     <Print name="dump" verbosity="silent">
       <type>xml</type>
       <source>rom</source>
-      <what>mean,variance</what>
+      <what>all</what>
       <target>all</target>
     </Print>
     <Print name="data" verbosity="silent">
