@@ -1087,7 +1087,7 @@ Also, this ROM must be referenced in the SparseGridCollocation sampler in order 
 accurately produce the necessary sparse grid points to train this ROM.
 
 \textbf{Example:}
-\footnotesize
+{\footnotesize
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
 <Simulation>
   ...
@@ -1120,6 +1120,7 @@ accurately produce the necessary sparse grid points to train this ROM.
   ...
 </Simulation>
 \end{lstlisting}
+}
 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are \xmlString{mean} and \xmlString{variance}.
 
@@ -1153,7 +1154,7 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
   uncertainty in most models.
 
 \textbf{Example:}
-\footnotesize
+{\footnotesize
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
   <Samplers>
     ...
@@ -1183,6 +1184,7 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
     ...
   </Models>
 \end{lstlisting}
+}
 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are \xmlString{mean}, \xmlString{variance}, and \xmlString{indices}.  In the latter case, the total calculated variance is printed, followed by the percent of contributing variance for each existing subset of the input domain (the Sobol indices).
 
