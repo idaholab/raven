@@ -1627,7 +1627,7 @@ class LimitSurface(BasePostProcessor):
      @ In, initDict, dict, dictionary with initialization options
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.gridEntity = GridEntities.returnInstance("MultiGridEntity",self,self.messageHandler)     
+    self.gridEntity = GridEntities.returnInstance("MultiGridEntity",self,self.messageHandler)
     self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
@@ -1735,7 +1735,7 @@ class LimitSurface(BasePostProcessor):
     if "side"                  in dictIn.keys()      : self.lsSide        = dictIn["side"]
     if "tolerance"             in dictIn.keys()      : self.tolerance     = float(dictIn["tolerance"])
     if self.lsSide not in ["negative", "positive", "both"]: self.raiseAnError(IOError, 'Computation side can be positive, negative, both only !!!!')
-    
+
   def getFunctionValue(self):
     """
     Method to get a pointer to the dictionary self.functionValue
@@ -1752,7 +1752,7 @@ class LimitSurface(BasePostProcessor):
     @ Out, ndarray , self.testMatrix
     """
     if nodeName == None  : return self.testMatrix[self.name]
-    elif nodeName =="all": 
+    elif nodeName =="all":
       if exceptionGrid == None: return self.testMatrix
       else:
         returnDict = OrderedDict()
@@ -1817,7 +1817,7 @@ class LimitSurface(BasePostProcessor):
     allGridNames = self.gridEntity.getAllNodesNames(self.name)
     if exceptionGrid != None:
       try   : allGridNames.pop(allGridNames.index(exceptionGrid))
-      except: pass 
+      except: pass
     self.surfPoint, evaluations, listsurfPoint = OrderedDict().fromkeys(allGridNames), OrderedDict().fromkeys(allGridNames) ,OrderedDict().fromkeys(allGridNames)
     for nodeName in allGridNames:
       #if skipMainGrid == True and nodeName == self.name: continue
@@ -1866,7 +1866,7 @@ class LimitSurface(BasePostProcessor):
         evaluations[nodeName] = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
         for pointID, coordinate in enumerate(listsurfPoint[nodeName]):
           self.surfPoint[nodeName][pointID, :] = self.gridCoord[nodeName][tuple(coordinate)]
-    
+
     if self.name != exceptionGrid: self.listsurfPointNegative, self.listsurfPointPositive = listsurfPoint[self.name][:nNegPoints-1],listsurfPoint[self.name][nNegPoints:]
     if merge == True:
       evals = np.hstack(evaluations.values())
@@ -1876,7 +1876,7 @@ class LimitSurface(BasePostProcessor):
       else                  : return surfPoint, evals
     else:
       if returnListSurfCoord: return self.surfPoint, evaluations, listsurfPoint
-      else                  : return self.surfPoint, evaluations      
+      else                  : return self.surfPoint, evaluations
 
 
 

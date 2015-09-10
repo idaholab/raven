@@ -573,7 +573,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.hangingPoints       = []               #list of the points already submitted for evaluation for which the result is not yet available
     self.refinedPerformed    = False            # has the grid refinement been performed?
     self.limitSurfacePP      = None             # post-processor to compute the limit surface
-    self.exceptionGrid       = None             # which cell should be not considered in the limit surface computation? set by refinement   
+    self.exceptionGrid       = None             # which cell should be not considered in the limit surface computation? set by refinement
     self.errorTolerance      = 1.0              # initial error tolerance (number of points can change between iterations in LS search)
     self.jobHandler          = None             # jobHandler for generation of grid in parallel
     self.printTag            = 'SAMPLER ADAPTIVE'
@@ -748,7 +748,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.oldTestMatrix = copy.deepcopy(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid))    #copy the old solution (contained in the limit surface PP) for convergence check
 
     #np.copyto(self.oldTestMatrix[self.name+"LSpp"],self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
-    
+
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
     self.surfPoint, evaluations, listsurfPoints = self.limitSurfacePP.run(returnListSurfCoord = True, exceptionGrid=self.exceptionGrid, merge=False)
     self.raiseADebug('Limit Surface has been computed!')
@@ -761,20 +761,20 @@ class LimitSurfaceSearch(AdaptiveSampler):
     for myIndex in range(indexLast+1,indexEnd+1):
       for key, value in self.limitSurfacePP.getFunctionValue().items(): tempDict[key] = value[myIndex]
       if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
-    for key,value in self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).items(): 
+    for key,value in self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).items():
       self.persistenceMatrix[key] += value
     # test error
     testError = np.sum(np.abs(np.subtract(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values(),self.oldTestMatrix.values()))) # compute the error
     if (testError > self.errorTolerance): ready, self.repetition = True, 0                                      # we still have error
     else              : self.repetition +=1                                                                                # we are increasing persistence
-    if self.persistence<self.repetition: 
-      ready =  False                                                       
+    if self.persistence<self.repetition:
+      ready =  False
       if self.subGridTol != self.tolerance and evaluations is not None and self.refinedPerformed != True:
         # we refine the grid since we converged on the coarse one. we use the "ceil" method in order to be sure
         # that the volumetric cell weight is <= of the subGridTol
         self.raiseAMessage("Grid refinement activated! Refining the evaluation grid!")
         self.limitSurfacePP.refineGrid(int(ceil((self.tolerance/self.subGridTol)**(1.0/self.nVar))))
-        self.exceptionGrid, self.refinedPerformed, ready, self.repetition = self.name + "LSpp", True, True, 0 
+        self.exceptionGrid, self.refinedPerformed, ready, self.repetition = self.name + "LSpp", True, True, 0
         self.persistenceMatrix.update(copy.deepcopy(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid)))
         self.errorTolerance = self.tolerance/self.subGridTol
     self.raiseAMessage('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))

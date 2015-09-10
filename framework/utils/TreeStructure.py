@@ -286,17 +286,17 @@ class NodeTree(object):
       @ In, the newer node
     """
     self._rootnode = node
-  
+
   def updateNodeName(self,path, newName):
     """
       Method to update the name of a node
       @ In, path, string, the node name or full path
-      @ In, newName, string, the new name 
+      @ In, newName, string, the new name
     """
     if path == "root": node = self.getrootnode()
     else             : node = self.find(path)
     if node != None: node.name = newName
-  
+
   def iter(self, name=None):
     """
       Method for creating a tree iterator for the root node
