@@ -429,8 +429,8 @@ class GridEntity(GridBase):
           while not gridIterCells.finished:
             vertex = tuple(np.array(origin)+gridIterCells.multi_index)
             self.gridContainer['cellIDs'][cellID].append(vertex)
-            try   : self.gridContainer['vertexToCellIds'][vertex].append(cellID)
-            except: self.gridContainer['vertexToCellIds'][vertex] = [cellID]
+            if vertex in self.gridContainer['vertexToCellIds'].keys(): self.gridContainer['vertexToCellIds'][vertex].append(cellID)
+            else                                                     : self.gridContainer['vertexToCellIds'][vertex] = [cellID]
             gridIterCells.iternext()
           gridIterCells.reset()
           cellID+=1
