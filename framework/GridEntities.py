@@ -205,14 +205,14 @@ class GridEntity(GridBase):
     @ In, None
     @ Out, integer, total number of nodes
     """
-    return self.gridContainer['gridLenght'] if 'gridLenght' in self.gridContainer.keys() else 0
+    return self.gridContainer['gridLength'] if 'gridLength' in self.gridContainer.keys() else 0
 
   def __init__(self,messageHandler):
     GridBase.__init__(self,messageHandler)
     self.gridContainer['dimensionNames']        = []                 # this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
     self.gridContainer['gridVectors']           = {}                 # {'name of the variable':numpy.ndarray['the coordinate']}
     self.gridContainer['bounds']                = {'upperBounds':{},'lowerBounds':{}} # dictionary of lower and upper bounds
-    self.gridContainer['gridLenght']            = 0                  # this the total number of nodes in the grid
+    self.gridContainer['gridLength']            = 0                  # this the total number of nodes in the grid
     self.gridContainer['gridShape']             = None               # shape of the grid (tuple)
     self.gridContainer['gridMatrix']            = None               # matrix containing the cell ids (unique integer identifier that map a set on nodes with respect an hypervolume)
     self.gridContainer['gridCoorShape']         = None               # shape of the matrix containing all coordinate of all points in the grid
@@ -406,7 +406,7 @@ class GridEntity(GridBase):
           self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName][0](coor) for coor in self.gridContainer['gridVectors'][varName]])
       pointByVar[varId]                               = np.shape(self.gridContainer['gridVectors'][varName])[0]
     self.gridContainer['gridShape']                 = tuple   (pointByVar)                            # tuple of the grid shape
-    self.gridContainer['gridLenght']                = np.prod (pointByVar)                            # total number of point on the grid
+    self.gridContainer['gridLength']                = np.prod (pointByVar)                            # total number of point on the grid
     self.gridContainer['gridMatrix']                = np.zeros(self.gridContainer['gridShape'])       # grid where the values of the goalfunction are stored
     self.gridContainer['gridCoorShape']             = tuple   (pointByVar+[self.nVar])                # shape of the matrix containing all coordinate of all points in the grid
     self.gridContainer['gridCoord']                 = np.zeros(self.gridContainer['gridCoorShape'])   # the matrix containing all coordinate of all points in the grid
@@ -458,7 +458,7 @@ class GridEntity(GridBase):
     """
     Return the grid as an array of coordinates
     """
-    return self.__returnCoordinatesReshaped((self.gridContainer['gridLenght'],self.nVar))
+    return self.__returnCoordinatesReshaped((self.gridContainer['gridLength'],self.nVar))
 
   def __returnCoordinatesReshaped(self,newShape):
     """
@@ -725,7 +725,7 @@ class MultiGridEntity(GridBase):
     """
     Return the grid as an array of coordinates
     @ In, returnDict, bool, return a dictionary with the coordinates for all sub-grid, default = False
-    @ Out, fullReshapedCoordinates, ndarray or dict (dependeing on returnDict flag), numpy array or dictionary of numpy arrays containing all the coordinates shaped as (fullGridLenght,self.nVar) or (sub-gridLenght, self.nVar)
+    @ Out, fullReshapedCoordinates, ndarray or dict (dependeing on returnDict flag), numpy array or dictionary of numpy arrays containing all the coordinates shaped as (fullgridLength,self.nVar) or (sub-gridLength, self.nVar)
     """
     if not returnDict:
       fullReshapedCoordinates = np.zeros((0,self.nVar))
