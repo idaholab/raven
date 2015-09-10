@@ -497,6 +497,41 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
+  def handleFailedRuns(self,failedRuns):
+    """Collects the failed runs from the Step and allows samples to handle them individually if need be.
+    @ In, failedRuns, list of JobHandler.ExternalRunner objects
+    @Out, None
+    """
+    self.raiseADebug('===============')
+    self.raiseADebug('| RUN SUMMARY |')
+    self.raiseADebug('===============')
+    if len(failedRuns)>0:
+      self.raiseAWarning('There were %i failed runs!  Run with verbosity = debug for more details.' %(len(failedRuns)))
+      for run in failedRuns:
+        metadata = run.returnMetadata()
+        self.raiseADebug('  Run number %s FAILED:' %run.identifier,run.command)
+        self.raiseADebug('      return code :',run.getReturnCode())
+        self.raiseADebug('      sampled vars:')
+        for v,k in metadata['SampledVars'].items():
+          self.raiseADebug('         ',v,':',k)
+    else:
+      self.raiseADebug('All runs completed without returning errors.')
+    self._localHandleFailedRuns(failedRuns)
+    self.raiseADebug('===============')
+    self.raiseADebug('  END SUMMARY  ')
+    self.raiseADebug('===============')
+
+  def _localHandleFailedRuns(self,failedRuns):
+    """Specialized method for samplers to handle failed runs.  Defaults to failing runs.
+    @ In, failedRuns, list of JobHandler.ExternalRunner objects
+    @Out, None
+    """
+    if len(failedRuns)>0:
+      self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
+#
+#
+#
+#
 class StaticSampler(Sampler):
   """This is a general static, blind, once-through sampler"""
   pass
@@ -506,7 +541,8 @@ class StaticSampler(Sampler):
 #
 class AdaptiveSampler(Sampler):
   """This is a general adaptive sampler"""
-  pass
+
+
 
 class LimitSurfaceSearch(AdaptiveSampler):
   """
@@ -976,6 +1012,12 @@ class MonteCarlo(Sampler):
       #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
     self.inputInfo['SamplerType'] = 'MC'
 
+  def _localHandleFailedRuns(self,failedRuns):
+    """Specialized method for samplers to handle failed runs.  Defaults to failing runs.
+    @ In, failedRuns, list of JobHandler.ExternalRunner objects
+    @Out, None
+    """
+    if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte Carlo sampling.')
 #
 #
 #
@@ -2715,7 +2757,7 @@ class SparseGridCollocation(Grid):
         for v,varName in enumerate(self.sparseGrid.varNames):
           self.values[varName] = pt[v]
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-        self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+        self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['ProbabilityWeight'] = weight
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 #
@@ -2743,6 +2785,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.oldSG            = None #previously-accepted sparse grid
     self.convType         = None #convergence criterion to use
     self.existing         = {}
+    self.batchDone        = True #flag for whether jobHandler has complete batch or not
 
     self._addAssObject('TargetEvaluation','1')
 
@@ -2797,7 +2840,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
     #set up the points we need RAVEN to run before we can continue
     self.neededPoints = []
+    self.pointsNeededToMakeROM = []
     for pt in self.sparseGrid.points()[:]:
+      if pt not in self.pointsNeededToMakeROM:
+        self.pointsNeededToMakeROM.append(pt)
       if pt not in self.neededPoints and pt not in self.existing.keys():
         self.neededPoints.append(pt)
 
@@ -2936,6 +2982,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if ready==False: return ready
     #if we still have a list of points to sample, just keep on trucking.
     if len(self.neededPoints)>0: return True
+    #if points all submitted but not all done, not ready for now.
+    if not self.batchDone:
+      return False
     #if no points to check right now, search for points to sample
     while len(self.neededPoints)<1:
       self.raiseADebug('')
@@ -2980,6 +3029,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       for point in self.indexSet.active.keys():
         sparseGrid,dummy=self._makeSparseQuad(point)
         for pt in sparseGrid.points()[:]:
+          if pt not in self.pointsNeededToMakeROM:
+            self.pointsNeededToMakeROM.append(pt)
           if pt not in self.neededPoints and pt not in self.existing.keys():
             self.neededPoints.append(pt)
     #if we exited the while-loop searching for new points and there aren't any, we're done!
@@ -3006,7 +3057,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
                       'quads':self.quadDict,
                       'polys':self.polyDict,
                       'iSet':self.indexSet,
-                      'numRuns':self.counter})
+                      'numRuns':len(self.pointsNeededToMakeROM)})
     self.indexSet.printHistory()
     self.indexSet.writeHistory()
 
@@ -3020,9 +3071,19 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
+  def localFinalizeActualSampling(self,jobObject,model,myInput):
+    """Performs actions after samples have been collected.
+    @ In, jobObject, the job that finished
+    @ In, model, the model that was run
+    @ In, myInput, the input used for the run
+    @Out, None
+    """
+    #check if all sampling is done
+    if self.jobHandler.isFinished(): self.batchDone = True
+    else: self.batchDone = False
 #
 #
 #
@@ -3206,7 +3267,7 @@ class Sobol(SparseGridCollocation):
       for v,varName in enumerate(self.distDict.keys()):
         self.values[varName] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-      self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+      self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight'] =  N/A
       self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
 #
