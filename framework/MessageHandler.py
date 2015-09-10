@@ -241,6 +241,7 @@ class MessageHandler(object):
     verbval = self.checkVerbosity(verbosity)
     okay,msg = self._printMessage(caller,message,tag,verbval)
     if okay: print(msg)
+    sys.stdout.flush()
 
   def _printMessage(self,caller,message,tag,verbval):
     """

@@ -495,6 +495,42 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
+  def handleFailedRuns(self,failedRuns):
+    """Collects the failed runs from the Step and allows samples to handle them individually if need be.
+    @ In, failedRuns, list of JobHandler.ExternalRunner objects
+    @Out, None
+    """
+    self.raiseADebug('===============')
+    self.raiseADebug('| RUN SUMMARY |')
+    self.raiseADebug('===============')
+    if len(failedRuns)>0:
+      self.raiseAWarning('There were %i failed runs!  Run with verbosity = debug for more details.' %(len(failedRuns)))
+      for run in failedRuns:
+        metadata = run.returnMetadata()
+        self.raiseADebug('  Run number %s FAILED:' %run.identifier,run.command)
+        self.raiseADebug('      return code :',run.getReturnCode())
+        self.raiseADebug('      sampled vars:')
+        for v,k in metadata['SampledVars'].items():
+          self.raiseADebug('         ',v,':',k)
+    else:
+      self.raiseADebug('All runs completed without returning errors.')
+    self._localHandleFailedRuns(failedRuns)
+    self.raiseADebug('===============')
+    self.raiseADebug('  END SUMMARY  ')
+    self.raiseADebug('===============')
+
+  def _localHandleFailedRuns(self,failedRuns):
+    """Specialized method for samplers to handle failed runs.  Defaults to failing runs.
+    @ In, failedRuns, list of JobHandler.ExternalRunner objects
+    @Out, None
+    """
+    if len(failedRuns)>0:
+      self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
+#
+#
+#
+#
+
 class StaticSampler(Sampler):
   """This is a general static, blind, once-through sampler"""
   pass
@@ -505,6 +541,8 @@ class StaticSampler(Sampler):
 class AdaptiveSampler(Sampler):
   """This is a general adaptive sampler"""
   pass
+
+
 
 class LimitSurfaceSearch(AdaptiveSampler):
   """
@@ -927,6 +965,13 @@ class MonteCarlo(Sampler):
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
     self.inputInfo['SamplerType'] = 'MC'
+
+  def _localHandleFailedRuns(self,failedRuns):
+    """Specialized method for samplers to handle failed runs.  Defaults to failing runs.
+    @ In, failedRuns, list of JobHandler.ExternalRunner objects
+    @Out, None
+    """
+    if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte Carlo sampling.')
 
 #
 #
@@ -2694,8 +2739,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.moment           = 0
     self.oldSG            = None #previously-accepted sparse grid
     self.convType         = None #convergence criterion to use
-    self.existing         = {}
+    self.existing         = {} #rolling list of sampled points
     self.batchDone        = True #flag for whether jobHandler has complete batch or not
+    self.unfinished       = 0 #number of runs still running when convergence complete
 
     self._addAssObject('TargetEvaluation','1')
 
@@ -2711,7 +2757,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.convType     = convnode.attrib['target']
     self.maxPolyOrder = int(convnode.attrib.get('maxPolyOrder',10))
     self.persistence  = int(convnode.attrib.get('persistence',2))
+    self.maxRuns     = convnode.attrib.get('maxRuns',None)
     self.convValue    = float(convnode.text)
+
+    if self.maxRuns is not None: self.maxRuns = int(self.maxRuns)
 
   def  localInitialize(self):
     """Performs local initialization
@@ -2784,7 +2833,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ Out, a GaussPolynomialROM object
     """
     #deepcopy prevents overwriting
-    rom  = copy.deepcopy(self.ROM)
+    rom  = copy.deepcopy(self.ROM) #preserves interpolation requests?
     sg   = copy.deepcopy(grid)
     iset = copy.deepcopy(inset)
     sg.messageHandler   = self.messageHandler
@@ -2901,7 +2950,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if (not self.batchDone) or (not self.jobHandler.isFinished()):
       return False
     if len(self.existing) < self.newSolutionSizeShouldBe:
-      self.raiseAWarning('Still collecting; existing has less points (%i) than it should (%i)!' %(len(self.existing),self.newSolutionSizeShouldBe))
+      #self.raiseADebug('Still collecting; existing has less points (%i) than it should (%i)!' %(len(self.existing),self.newSolutionSizeShouldBe))
       return False
     #DEBUGGGGGG
     if len(self.existing)<1 and len(self.neededPoints)<1:
@@ -2931,15 +2980,27 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self.indexSet.setImpact(active,impact)
         #the estimated error is the sum of all the impacts
         self.error+=impact
-      self.raiseADebug('  estimated remaining error:',self.error)
-      self.raiseADebug('  target error:',self.convValue)
+      self.raiseAMessage('  estimated remaining error: %1.4e target error: %1.4e, runs: %i' %(self.error,self.convValue,len(self.pointsNeededToMakeROM)))
       if abs(self.error)<self.convValue and len(self.indexSet.points)>self.persistence:
         done=True #we've converged!
         self.raiseADebug('converged estimated error:',self.error)
         #clear the active index set
         for key in self.indexSet.active.keys():
           if self.indexSet.active[key]==None: del self.indexSet.active[key]
+        #clear needed points
+        self.neededPoints=[]
         break
+      elif self.maxRuns is not None:
+        self.unfinished = self.jobHandler.numRunning()
+        if len(self.pointsNeededToMakeROM)-self.unfinished >=self.maxRuns:
+          done=True #not converged, but reached max number of polys to use
+          self.raiseAMessage('Not converged, but max runs (%i) reached!' %self.maxRuns)
+          self.raiseADebug('end estimated error:',self.error)
+          for key in self.indexSet.active.keys():
+            if self.indexSet.active[key]==None: del self.indexSet.active[key]
+          #clear needed points
+          self.neededPoints=[]
+          break
       #if we're not converged...
       self.raiseADebug('new iset:')
       self.indexSet.printOut()
@@ -2963,6 +3024,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if len(self.neededPoints)==0:
       self.indexSet.printOut()
       self.finalizeROM()
+      self.unfinished = self.jobHandler.numRunning()
+      self.jobHandler.terminateAll()
       return False
     #otherwise, we have work to do.
     return True
@@ -2983,7 +3046,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
                       'quads':self.quadDict,
                       'polys':self.polyDict,
                       'iSet':self.indexSet,
-                      'numRuns':len(self.pointsNeededToMakeROM)})
+                      'numRuns':len(self.pointsNeededToMakeROM)-self.unfinished})
     self.indexSet.printHistory()
     self.indexSet.writeHistory()
 

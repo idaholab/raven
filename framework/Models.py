@@ -239,7 +239,7 @@ class Dummy(Model):
 
   def _inputToInternal(self,dataIN,full=False):
     """Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data"""
-    self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
+    #FIXME self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
     if  type(dataIN).__name__ !='dict':
       if dataIN.type not in self.admittedData: self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
     if full==True:  length = 0
@@ -433,7 +433,7 @@ class ROM(Dummy):
       for instrom in self.SupervisedEngine.values():
         instrom.train(self.trainingSet)
         self.aimITrained = self.amITrained and instrom.amITrained
-      self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+      #FIXME self.raiseADebug('add self.amITrained to currentParamters','FIXME')
 
   def confidence(self,request,target = None):
     """

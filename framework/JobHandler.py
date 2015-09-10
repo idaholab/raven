@@ -408,11 +408,24 @@ class JobHandler(MessageHandler.MessageUser):
           cnt_free_spots += 1
     return cnt_free_spots
 
-  def getFinished(self, removeFinished=True):
+  def getFinished(self, removeFinished=True, prefix=None):
+    """collects the finished jobs and returns them.
+    @ In, optional, removeFinished, if true removes jobs from handler storage.
+    @ In, prefix, if specified only collects finished runs with a particular prefix.
+    @Out, list of finished jobs.
+    """
     finished = []
     for i in range(len(self.__running)):
       if self.__running[i] and self.__running[i].isDone():
-        finished.append(self.__running[i])
+        if prefix is not None:
+          if self.__running[i].identifier.startswith(prefix):
+            finished.append(self.__running[i])
+          else:
+            continue
+        else:
+          #if removeFinished:
+            #self.raiseAnError(RuntimeError,'DEBUG')
+          finished.append(self.__running[i])
         if removeFinished:
           running = self.__running[i]
           returncode = running.getReturnCode()
@@ -470,4 +483,8 @@ class JobHandler(MessageHandler.MessageUser):
   def terminateAll(self):
     #clear out the queue
     while not self.__queue.empty(): self.__queue.get()
-    for i in range(len(self.__running)): self.__running[i].kill()
+    for i in range(len(self.__running)):
+      if self.__running[i] is not None: self.__running[i].kill()
+
+  def numRunning(self):
+    return sum(run is not None for run in self.__running)
