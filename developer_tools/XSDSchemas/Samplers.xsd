@@ -213,6 +213,7 @@
                     <xsd:attribute name="forceIteration" type="RavenBool"/>
                     <xsd:attribute name="weight"         type="weightAttr"/>
                     <xsd:attribute name="persistence"    type="xsd:integer"/>
+                    <xsd:attribute name="subGridTol"     type="xsd:float"/>
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
@@ -279,6 +280,7 @@
                     <xsd:attribute name="limit"          type="xsd:integer"/>
                     <xsd:attribute name="forceIteration" type="RavenBool"/>
                     <xsd:attribute name="weight"         type="weightAttr"/>
+                    <xsd:attribute name="subGridTol"     type="xsd:float"/>
                     <xsd:attribute name="persistence"    type="xsd:integer"/>
                 </xsd:complexType>
             </xsd:element>

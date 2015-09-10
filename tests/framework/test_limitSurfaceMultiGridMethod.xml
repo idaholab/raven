@@ -12,18 +12,22 @@
     <Input   class="DataObjects"             type="Point"              >inputPlaceHolder</Input>
     <Model   class="Models"                  type="ExternalModel"      >PythonModule</Model>
     <Sampler class="Samplers"                type="LimitSurfaceSearch" >workshopAdaptive</Sampler>
-    <Output  class="DataObjects"             type="PointSet"           >outAdaptive</Output>
     <SolutionExport class="DataObjects"      type="PointSet"           >limitSurface</SolutionExport>
+    <Output  class="DataObjects"             type="PointSet"           >outAdaptive</Output>
     <Output         class='OutStreamManager' type='Print'              >limitSurfaceTwoIslandsCSV</Output>
   </MultiRun>
   <IOStep name="push_limitsurface_in_database" pauseAtEnd="False">
-    <Input   class="DataObjects"        type="PointSet"                >limitSurface</Input>
-    <Output  class='OutStreamManager'   type='Print'                   >limitSurfaceTwoIslandsCSV</Output>
+    <Input   class="DataObjects"             type="PointSet"           >limitSurface</Input>
+    <Output  class='OutStreamManager'        type='Print'              >limitSurfaceTwoIslandsCSV</Output>
   </IOStep>
 
 </Steps>
 
 <DataObjects>
+    <Point name="inputPlaceHolder">
+        <Input>x1,x2</Input>
+        <Output>OutputPlaceHolder</Output>
+    </Point>
     <PointSet name="outAdaptive">
         <Input>x1,x2</Input>
         <Output>y4,failure</Output>
@@ -32,10 +36,6 @@
         <Input>x1,x2</Input>
         <Output>goalFunction</Output>
     </PointSet>
-    <Point name="inputPlaceHolder">
-        <Input>x1,x2</Input>
-        <Output>OutputPlaceHolder</Output>
-    </Point>
 </DataObjects>
 
 
