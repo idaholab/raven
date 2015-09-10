@@ -423,8 +423,6 @@ class JobHandler(MessageHandler.MessageUser):
           else:
             continue
         else:
-          #if removeFinished:
-            #self.raiseAnError(RuntimeError,'DEBUG')
           finished.append(self.__running[i])
         if removeFinished:
           running = self.__running[i]

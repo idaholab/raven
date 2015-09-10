@@ -2833,7 +2833,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ Out, a GaussPolynomialROM object
     """
     #deepcopy prevents overwriting
-    rom  = copy.deepcopy(self.ROM) #preserves interpolation requests?
+    rom  = copy.deepcopy(self.ROM) #preserves interpolation requests via deepcopy
     sg   = copy.deepcopy(grid)
     iset = copy.deepcopy(inset)
     sg.messageHandler   = self.messageHandler
@@ -2940,8 +2940,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
     #update existing solutions
     self._updateExisting()
-    #self.raiseADebug('existing is now:',len(self.existing),self.existing)
-    #self.raiseAWarning('needed points:',len(self.neededPoints),self.neededPoints)
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
     #if we still have a list of points to sample, just keep on trucking.
@@ -2952,15 +2950,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if len(self.existing) < self.newSolutionSizeShouldBe:
       #self.raiseADebug('Still collecting; existing has less points (%i) than it should (%i)!' %(len(self.existing),self.newSolutionSizeShouldBe))
       return False
-    #DEBUGGGGGG
-    if len(self.existing)<1 and len(self.neededPoints)<1:
-      self.raiseAWarning('jobhandler:',self.jobHandler.isFinished())
-      self.raiseAnError(RuntimeError,'existing and needed are both empty!')
     #if no points to check right now, search for points to sample
     while len(self.neededPoints)<1:
       self.raiseADebug('')
       self.raiseADebug('Evaluating new points...')
-      #self.raiseADebug('  existing:',self.existing)
       #update QoIs and impact parameters
       done=False
       self.error=0
