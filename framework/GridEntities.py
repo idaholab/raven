@@ -414,8 +414,9 @@ class GridEntity(GridBase):
     #filling the coordinate on the grid
     self.gridIterator = np.nditer(self.gridContainer['gridCoord'],flags=['multi_index'])
     gridIterCells = np.nditer(np.zeros(shape=(2,)*self.nVar,dtype=int),flags=['multi_index'])
-
-    origin, pp, cellID = [-1]*self.nVar, [element - 1 for element in pointByVar], int(initDict['startingCellId']) if 'startingCellId' in  initDict.keys() else 1
+    origin = [-1]*self.nVar
+    pp     = [element - 1 for element in pointByVar]
+    cellID = int(initDict['startingCellId']) if 'startingCellId' in  initDict.keys() else 1
     while not self.gridIterator.finished:
       coordinateID                          = self.gridIterator.multi_index[-1]
       dimName                               = self.gridContainer['dimensionNames'][coordinateID]
