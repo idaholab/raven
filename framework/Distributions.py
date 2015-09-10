@@ -1507,7 +1507,6 @@ class MultivariateNormal(NDimensionalDistributions):
         covariance = [float(value) for value in child.text.split()]
         if 'type' in child.attrib.keys(): self.covarianceType = child.attrib['type']
 
-
     self.mu = mu
     self.covariance = covariance
     if self.method == 'pca':
@@ -1558,12 +1557,7 @@ class MultivariateNormal(NDimensionalDistributions):
     covariance = distribution1D.vectord_cxx(len(self.covariance))
     for i in range(len(self.covariance)):
       covariance[i] = self.covariance[i]
-    if self.method == 'spline':
-      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu,str(self.method))
-    elif self.method == 'pca':
-      # using different method to compute the multivariate normal distribution
-      # overload the following functions
-      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu,str(self.method))
+    self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu,str(self.method))
 
   def cdf(self,x):
     if self.method == 'spline':
