@@ -160,7 +160,7 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
     In addition, it advances the iterator in order to point to the following coordinate
     @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not.
                                if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
-                               if False a tuple is riturned (coordinate1,coordinate2,etc
+                               if False a tuple is returned (coordinate1,coordinate2,etc
     @ In, dict, optional, recastMethods, dictionary containing the methods that need to be used for trasforming the coordinates
                                          ex. {'dimName1':[methodToTransformCoordinate,*args]}
     @ Out, tuple, coordinate, tuple containing the coordinates
@@ -389,7 +389,6 @@ class GridEntity(GridBase):
           stepSize = stepLenght[varId][-1]
           myEps = stepSize * 0.5 # stepSize * np.finfo(float).eps
           self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(lb, ub-myEps, stepSize), np.atleast_1d(ub)))
->>>>>>> a81830cf598766c9d8d0c20487855aa205340b29
       else:
         # custom grid
         # it is not very efficient, but this approach is only for custom grids => limited number of discretizations
