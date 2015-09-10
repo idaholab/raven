@@ -160,7 +160,7 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
     In addition, it advances the iterator in order to point to the following coordinate
     @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not.
                                if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
-                               if False a tuple is riturned (coordinate1,coordinate2,etc
+                               if False a tuple is returned (coordinate1,coordinate2,etc
     @ In, dict, optional, recastMethods, dictionary containing the methods that need to be used for trasforming the coordinates
                                          ex. {'dimName1':[methodToTransformCoordinate,*args]}
     @ Out, tuple, coordinate, tuple containing the coordinates
