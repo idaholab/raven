@@ -32,7 +32,7 @@
   </Models>
 
 <Distributions>
-    <MultivariateNormal name='MultivariateNormal_test'>
+    <MultivariateNormal name='MultivariateNormal_test' method="spline">
         <mu>0.0 60.0</mu>
         <covariance>
             1.0 0.2
