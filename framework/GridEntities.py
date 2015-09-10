@@ -389,7 +389,6 @@ class GridEntity(GridBase):
           stepSize = stepLenght[varId][-1]
           myEps = stepSize * 0.5 # stepSize * np.finfo(float).eps
           self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(lb, ub-myEps, stepSize), np.atleast_1d(ub)))
->>>>>>> a81830cf598766c9d8d0c20487855aa205340b29
       else:
         # custom grid
         # it is not very efficient, but this approach is only for custom grids => limited number of discretizations
