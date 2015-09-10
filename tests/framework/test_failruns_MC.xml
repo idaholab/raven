@@ -7,7 +7,7 @@
   </RunInfo>
 
   <Files>
-    <Input name='infile.inp' type=''>input.inp</Input>
+    <Input name="infile.inp" type="">input.inp</Input>
   </Files>
 
   <Steps>
@@ -18,7 +18,7 @@
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
     <MultiRun name="csample">
-      <Input class='Files' type=''>infile.inp</Input>
+      <Input class="Files" type="">infile.inp</Input>
       <Model class="Models" type="ExternalModel">codefailer</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">csolns</Output>
@@ -62,12 +62,12 @@
       <variable>y</variable>
       <variable>ans</variable>
     </ExternalModel>
-    <Code name='codefailer' subType='GenericCode'>
+    <Code name="codefailer" subType="GenericCode">
       <executable>RunFailures/codeFailer.py</executable>
       <inputExtensions>inp</inputExtensions>
-      <clargs type='prepend' arg='python'/>
-      <clargs type='input' args='' extension='.inp'/>
-      <fileargs type='output' arg='out'/>
+      <clargs arg="python" type="prepend"/>
+      <clargs args="" extension=".inp" type="input"/>
+      <fileargs arg="out" type="output"/>
       <prepend>python</prepend>
     </Code>
   </Models>

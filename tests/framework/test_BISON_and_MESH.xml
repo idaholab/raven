@@ -1,20 +1,18 @@
-<Simulation verbosity='debug'>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
   <!--BisonAndMesh Interface Test
   This test is designed to ensure the BisonAndMesh interface runs correctly.
   It will only run if a BISON executable is found.  At this time, a check is
-  not performed to verify a Cubit executable is found due to variations in 
-  the executable's location across platforms. The cubit bin directory must be 
-  on the PYTHONPATH for BISON's mesh script to run.  
-
-  Four variables are sampled in this test: two material properties (fuel 
+  not performed to verify a Cubit executable is found due to variations in
+  the executable's location across platforms. The cubit bin directory must be
+  on the PYTHONPATH for BISON's mesh script to run.
+  Four variables are sampled in this test: two material properties (fuel
   thermal conductivity and cladding thermal conductivity) and two geometric
   properties (fuel pellet radius and cladding thickness) that will be sent to
   the BISON input file and Bison Mesh Script input respectively.  Variables are
   sampled in a grid with specified values for each parameter.
-
   The test checks for generated exodus files and diffs the generated csv with
   the gold one. -->
-
   <RunInfo>
     <WorkingDir>BISON_and_MESH_test</WorkingDir>
     <Sequence>grid_run</Sequence>
@@ -22,8 +20,8 @@
   </RunInfo>
 
   <Files>
-    <Input name='bison_test' type='MooseInput'>simple_bison_test.i</Input>
-    <Input name='mesh_in' type='BisonMeshInput'>coarse_input.py</Input>
+    <Input name="bison_test" type="MooseInput">simple_bison_test.i</Input>
+    <Input name="mesh_in" type="BisonMeshInput">coarse_input.py</Input>
   </Files>
 
   <DataObjects>
@@ -34,29 +32,45 @@
   </DataObjects>
 
   <Distributions>
-    <Beta name="pellet_r_dist"      ><peakFactor>0.5</peakFactor><low>0.0038</low><high>0.0045</high></Beta>
-    <Beta name="clad_thickness_dist"><peakFactor>0.5</peakFactor><low>4.8e-4</low><high>6.1e-4</high></Beta>
-    <Beta name="fuel_k_dist"        ><peakFactor>0.5</peakFactor><low>4.8   </low><high>5.3   </high></Beta>
-    <Beta name="clad_k_dist"        ><peakFactor>0.5</peakFactor><low>15.7  </low><high>16.5  </high></Beta>
+    <Beta name="pellet_r_dist">
+      <peakFactor>0.5</peakFactor>
+      <low>0.0038</low>
+      <high>0.0045</high>
+    </Beta>
+    <Beta name="clad_thickness_dist">
+      <peakFactor>0.5</peakFactor>
+      <low>4.8e-4</low>
+      <high>6.1e-4</high>
+    </Beta>
+    <Beta name="fuel_k_dist">
+      <peakFactor>0.5</peakFactor>
+      <low>4.8   </low>
+      <high>5.3   </high>
+    </Beta>
+    <Beta name="clad_k_dist">
+      <peakFactor>0.5</peakFactor>
+      <low>15.7  </low>
+      <high>16.5  </high>
+    </Beta>
   </Distributions>
 
   <Samplers>
     <Grid name="Grid_sampling">
-      <variable name="pellet_radius" >
+      <variable name="pellet_radius">
         <distribution>pellet_r_dist</distribution>
-        <grid type="value"   construction="custom">0.0038324 0.0043684</grid>
+        <grid construction="custom" type="value">0.0038324 0.0043684</grid>
       </variable>
       <variable name="clad_thickness">
         <distribution>clad_thickness_dist</distribution>
-        <grid type="value" construction="custom">4.923e-4 5.015e-4</grid>
+        <grid construction="custom" type="value">4.923e-4 5.015e-4</grid>
       </variable>
       <variable name="fuel_k">
         <distribution>fuel_k_dist</distribution>
-        <grid type="value"   construction="custom">4.9 5.063</grid>
+        <grid construction="custom" type="value">4.9 5.063</grid>
       </variable>
       <variable name="clad_k">
         <distribution>clad_k_dist</distribution>
-        <grid type="value" construction="custom">15.7 16.31</grid>
+        <grid construction="custom" type="value">15.7 16.31</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -65,28 +79,29 @@
     <Code name="Bison-opt" subType="BisonAndMesh">
       <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
       <preexec>%FRAMEWORK_DIR%/../../bison/tools/UO2/mesh_script.py</preexec>
-      <alias variable="pellet_radius" >Cubit|Pellet1|outer_radius</alias>
+      <alias variable="pellet_radius">Cubit|Pellet1|outer_radius</alias>
       <alias variable="clad_thickness">Cubit|clad|clad_thickness</alias>
-      <alias variable="fuel_k"        >Materials|fuel_thermal|thermal_conductivity</alias>
-      <alias variable="clad_k"        >Materials|clad_thermal|thermal_conductivity</alias>
+      <alias variable="fuel_k">Materials|fuel_thermal|thermal_conductivity</alias>
+      <alias variable="clad_k">Materials|clad_thermal|thermal_conductivity</alias>
     </Code>
   </Models>
 
   <Steps>
     <MultiRun name="grid_run">
-      <Input   class="Files"            type=""        >bison_test</Input>
-      <Input   class="Files"            type=""        >mesh_in</Input>
-      <Model   class="Models"           type="Code"    >Bison-opt</Model>
-      <Sampler class="Samplers"         type="Grid"    >Grid_sampling</Sampler>
-      <Output  class="DataObjects"      type="PointSet">collset</Output>
-      <Output  class="OutStreamManager" type="Print"   >print_data</Output>
+      <Input class="Files" type="">bison_test</Input>
+      <Input class="Files" type="">mesh_in</Input>
+      <Model class="Models" type="Code">Bison-opt</Model>
+      <Sampler class="Samplers" type="Grid">Grid_sampling</Sampler>
+      <Output class="DataObjects" type="PointSet">collset</Output>
+      <Output class="OutStreamManager" type="Print">print_data</Output>
     </MultiRun>
   </Steps>
 
   <OutStreamManager>
-      <Print name='print_data'>
-          <type>csv</type>
-          <source>collset</source>
-      </Print>
+    <Print name="print_data">
+      <type>csv</type>
+      <source>collset</source>
+    </Print>
   </OutStreamManager>
+
 </Simulation>
