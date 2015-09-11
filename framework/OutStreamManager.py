@@ -741,9 +741,9 @@ class OutStreamPlot(OutStreamManager):
                           m.set_array(self.colorMapValues[pltindex][key])
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
-                          #else:
-                          #self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
-                          #self.actcm.draw_all()
+                      else:
+                          self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
+                          self.actcm.draw_all()
                   else:
                       scatterPlotOptions['cmap'] = self.options['plotSettings']['plot'][pltindex]['cmap']
                       self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], **scatterPlotOptions)
