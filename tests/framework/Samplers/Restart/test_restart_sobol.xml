@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="quiet">
   <RunInfo>
-    <WorkingDir>SamplerRestarts</WorkingDir>
+    <WorkingDir>sobol</WorkingDir>
     <Sequence>SOBOLmake1,SOBOLtrain1,SOBOLprint1,SOBOLmake2,SOBOLtrain2,SOBOLprint2,SOBOLprint3</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -77,7 +77,7 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="./SamplerRestarts/polynomial" name="poly" subType="">
+    <ExternalModel ModuleToLoad="./polynomial" name="poly" subType="">
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>ans</variable>

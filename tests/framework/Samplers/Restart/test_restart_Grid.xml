@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="quiet">
   <RunInfo>
-    <WorkingDir>SamplerRestarts</WorkingDir>
+    <WorkingDir>grid</WorkingDir>
     <Sequence>make1,print1,make2,print2,print3</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -10,27 +10,27 @@
     <MultiRun name="make1">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="MonteCarlo">1</Sampler>
+      <Sampler class="Samplers" type="Grid">1</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
     <MultiRun name="make2">
       <Input class="DataObjects" type="PointSet">solns</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="MonteCarlo">2</Sampler>
+      <Sampler class="Samplers" type="Grid">2</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
       <Output class="DataObjects" type="PointSet">solns2</Output>
     </MultiRun>
     <IOStep name="print1">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">MCdump1</Output>
+      <Output class="OutStreamManager" type="Print">GRIDdump1</Output>
     </IOStep>
     <IOStep name="print2">
       <Input class="DataObjects" type="PointSet">solns2</Input>
-      <Output class="OutStreamManager" type="Print">MCdump2</Output>
+      <Output class="OutStreamManager" type="Print">GRIDdump2</Output>
     </IOStep>
     <IOStep name="print3">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">MCdump3</Output>
+      <Output class="OutStreamManager" type="Print">GRIDdump3</Output>
     </IOStep>
   </Steps>
 
@@ -46,36 +46,32 @@
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="1">
-      <sampler_init>
-        <limit>10</limit>
-        <initial_seed>1</initial_seed>
-      </sampler_init>
+    <Grid name="1">
       <variable name="x1">
         <distribution>u1</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
       </variable>
       <variable name="x2">
         <distribution>u2</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
       </variable>
-    </MonteCarlo>
-    <MonteCarlo name="2">
-      <sampler_init>
-        <limit>15</limit>
-        <initial_seed>1</initial_seed>
-      </sampler_init>
+    </Grid>
+    <Grid name="2">
       <variable name="x1">
         <distribution>u1</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
       </variable>
       <variable name="x2">
         <distribution>u2</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
       </variable>
       <Restart class="DataObjects" type="PointSet">solns</Restart>
-    </MonteCarlo>
+    </Grid>
   </Samplers>
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="./SamplerRestarts/polynomial" name="poly" subType="">
+    <ExternalModel ModuleToLoad="./polynomial" name="poly" subType="">
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>ans</variable>
@@ -99,15 +95,15 @@
   </DataObjects>
 
   <OutStreamManager>
-    <Print name="MCdump1">
+    <Print name="GRIDdump1">
       <type>csv</type>
       <source>solns</source>
     </Print>
-    <Print name="MCdump2">
+    <Print name="GRIDdump2">
       <type>csv</type>
       <source>solns2</source>
     </Print>
-    <Print name="MCdump3">
+    <Print name="GRIDdump3">
       <type>csv</type>
       <source>solns</source>
     </Print>

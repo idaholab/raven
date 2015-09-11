@@ -393,27 +393,11 @@
   csv = 'SparseGridTest/testTPSG.csv SparseGridTest/testTDSG.csv SparseGridTest/testHCSG.csv'
  [../]
 
- [./stochPolyTest]
-  type = 'RavenFramework'
-  input = 'test_stoch_poly.xml'
-  output = 'StochasticPolyTest/Udumprom.xml StochasticPolyTest/UCdumprom.xml StochasticPolyTest/Ndumprom.xml StochasticPolyTest/Gdumprom.xml StochasticPolyTest/Bdumprom.xml StochasticPolyTest/BNdumprom.xml StochasticPolyTest/Tdumprom.xml StochasticPolyTest/Edumprom.xml'
-  xml = 'StochasticPolyTest/Udumprom.xml StochasticPolyTest/UCdumprom.xml StochasticPolyTest/Ndumprom.xml StochasticPolyTest/Gdumprom.xml StochasticPolyTest/Bdumprom.xml StochasticPolyTest/BNdumprom.xml StochasticPolyTest/Tdumprom.xml StochasticPolyTest/Edumprom.xml'
-  csv = 'StochasticPolyTest/Udump.csv StochasticPolyTest/UCdump.csv StochasticPolyTest/Ndump.csv StochasticPolyTest/Gdump.csv StochasticPolyTest/Bdump.csv StochasticPolyTest/BNdump.csv StochasticPolyTest/Tdump.csv StochasticPolyTest/Edump.csv'
- [../]
-
  [./indexSetTest]
   type = 'RavenFramework'
   input = 'test_indexsets.xml'
   output = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml IndexSetTest/Cdump.xml'
   csv = 'IndexSetTest/TPdump.csv IndexSetTest/TDdump.csv IndexSetTest/HCdump.csv IndexSetTest/Cdump.csv'
- [../]
-
- [./sobolSamplerTest]
-  type = 'RavenFramework'
-  input = 'test_sobol_sampler.xml'
-  output = 'SobolSampler/dump.xml'
-  xml = 'SobolSampler/dump.xml'
-  csv = 'SobolSampler/dump.csv'
  [../]
 
  [./sobolRomTest]
@@ -430,50 +414,6 @@
   output = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
   xml = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
   csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
- [../]
-
- [./samplerRestartMC]
-  type = 'RavenFramework'
-  input = 'test_restart_MC.xml'
-  output = 'SamplerRestarts/MCdump1.xml SamplerRestarts/MCdump2.xml SamplerRestarts/MCdump3.xml'
-  xml = 'SamplerRestarts/MCdump1.xml SamplerRestarts/MCdump2.xml SamplerRestarts/MCdump3.xml'
-  csv = 'SamplerRestarts/MCdump1.csv SamplerRestarts/MCdump2.csv SamplerRestarts/MCdump3.csv'
- [../]
- [./samplerRestartStratified]
-  type = 'RavenFramework'
-  input = 'test_restart_Strat.xml'
-  output = 'SamplerRestarts/STRATdump1.xml SamplerRestarts/STRATdump2.xml SamplerRestarts/STRATdump3.xml'
-  xml = 'SamplerRestarts/STRATdump1.xml SamplerRestarts/STRATdump2.xml SamplerRestarts/STRATdump3.xml'
-  csv = 'SamplerRestarts/STRATdump1.csv SamplerRestarts/STRATdump2.csv SamplerRestarts/STRATdump3.csv'
- [../]
- [./samplerRestartStochPoly]
-  type = 'RavenFramework'
-  input = 'test_restart_stochpoly.xml'
-  output = 'SamplerRestarts/SCdump1.xml SamplerRestarts/SCdump2.xml SamplerRestarts/SCdump3.xml'
-  xml = 'SamplerRestarts/SCdump1.xml SamplerRestarts/SCdump2.xml SamplerRestarts/SCdump3.xml'
-  csv = 'SamplerRestarts/SCdump1.csv SamplerRestarts/SCdump2.csv SamplerRestarts/SCdump3.csv'
- [../]
- [./samplerRestartSobolNoRom]
-  type = 'RavenFramework'
-  input = 'test_restart_sobol_norom.xml'
-  output = 'SamplerRestarts/SOBOLdump1.xml SamplerRestarts/SOBOLdump2.xml SamplerRestarts/SOBOLdump3.xml'
-  xml = 'SamplerRestarts/SOBOLdump1.xml SamplerRestarts/SOBOLdump2.xml SamplerRestarts/SOBOLdump3.xml'
-  csv = 'SamplerRestarts/SOBOLdump1.csv SamplerRestarts/SOBOLdump2.csv SamplerRestarts/SOBOLdump3.csv'
- [../]
- [./samplerRestartGrid]
-  type = 'RavenFramework'
-  input = 'test_restart_Grid.xml'
-  output = 'SamplerRestarts/GRIDdump1.xml SamplerRestarts/GRIDdump2.xml SamplerRestarts/GRIDdump3.xml'
-  xml = 'SamplerRestarts/GRIDdump1.xml SamplerRestarts/GRIDdump2.xml SamplerRestarts/GRIDdump3.xml'
-  csv = 'SamplerRestarts/GRIDdump1.csv SamplerRestarts/GRIDdump2.csv SamplerRestarts/GRIDdump3.csv'
- [../]
-
- [./samplerRestartCSV]
-  type = 'RavenFramework'
-  input = 'test_restart_csv.xml'
-  output = 'SamplerRestarts/CSVdump.xml'
-  csv = 'SamplerRestarts/CSVdump.csv'
-  prereq = samplerRestartMC
  [../]
 
  [./ND_external_MC]

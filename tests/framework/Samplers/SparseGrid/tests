@@ -1,0 +1,50 @@
+[Tests]
+ [./uniform]
+  type = 'RavenFramework'
+  input = 'test_scgpc_uniform.xml'
+  xml = 'scgpc/Udumprom.xml'
+  csv = 'scgpc/Udump.csv'
+ [../]
+ [./uniform_cc]
+  type = 'RavenFramework'
+  input = 'test_scgpc_uniform_cc.xml'
+  xml = 'scgpc/UCdumprom.xml'
+  csv = 'scgpc/UCdump.csv'
+ [../]
+ [./normal]
+  type = 'RavenFramework'
+  input = 'test_scgpc_normal.xml'
+  xml = 'scgpc/Ndumprom.xml'
+  csv = 'scgpc/Ndump.csv'
+ [../]
+ [./gamma]
+  type = 'RavenFramework'
+  input = 'test_scgpc_gamma.xml'
+  xml = 'scgpc/Gdumprom.xml'
+  csv = 'scgpc/Gdump.csv'
+ [../]
+ [./beta]
+  type = 'RavenFramework'
+  input = 'test_scgpc_beta.xml'
+  xml = 'scgpc/Bdumprom.xml'
+  csv = 'scgpc/Bdump.csv'
+ [../]
+ [./betanorm]
+  type = 'RavenFramework'
+  input = 'test_scgpc_betanorm.xml'
+  xml = 'scgpc/BNdumprom.xml'
+  csv = 'scgpc/BNdump.csv'
+ [../]
+ [./triangular]
+  type = 'RavenFramework'
+  input = 'test_scgpc_triang.xml'
+  xml = 'scgpc/Tdumprom.xml'
+  csv = 'scgpc/Tdump.csv'
+ [../]
+ [./exponential]
+  type = 'RavenFramework'
+  input = 'test_scgpc_expon.xml'
+  xml = 'scgpc/Edumprom.xml'
+  csv = 'scgpc/Edump.csv'
+ [../]
+[]
