@@ -53,7 +53,7 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
      @ Out, None
     """
     pass
-  
+
   @classmethod
   def initialize(self,initDictionary=None):
     """
@@ -113,7 +113,7 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
     """
     if parameterName in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'already present in GridEntity!')
     self.updateParameter(parameterName, Value)
-  
+
   @classmethod
   def resetIterator(self):
     """
@@ -122,7 +122,7 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
     @ Out, None
     """
     pass
-  
+
   @classmethod
   def returnIteratorIndexes(self,returnDict = True):
     """
@@ -131,7 +131,7 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
     @ Out, tuple or dictionary
     """
     pass
-  
+
   @classmethod
   def returnIteratorIndexesFromIndex(self, listOfIndexes):
     """
@@ -140,7 +140,7 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
     @ Out, dictionary
     """
     pass
-  
+
   @classmethod
   def returnShiftedCoordinate(self,coordinates,shiftingSteps):
     """
@@ -152,7 +152,7 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
     @ Out, dict, outputCoordinates, dictionary of shifted coordinates' values {dimName:value1,...}
     """
     pass
-  
+
   @classmethod
   def returnPointAndAdvanceIterator(self, returnDict=False, recastMethods={}):
     """
@@ -160,13 +160,13 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
     In addition, it advances the iterator in order to point to the following coordinate
     @ In, boolean, optional, returnDict, flag to request the output in dictionary format or not.
                                if True a dict ( {dimName1:coordinate1,dimName2:coordinate2,etc} is returned
-                               if False a tuple is riturned (coordinate1,coordinate2,etc
+                               if False a tuple is returned (coordinate1,coordinate2,etc
     @ In, dict, optional, recastMethods, dictionary containing the methods that need to be used for trasforming the coordinates
                                          ex. {'dimName1':[methodToTransformCoordinate,*args]}
     @ Out, tuple, coordinate, tuple containing the coordinates
     """
     pass
-  
+
   @classmethod
   def returnCoordinateFromIndex(self, multiDimIndex, returnDict=False, recastMethods={}):
     """
@@ -205,14 +205,14 @@ class GridEntity(GridBase):
     @ In, None
     @ Out, integer, total number of nodes
     """
-    return self.gridContainer['gridLenght'] if 'gridLenght' in self.gridContainer.keys() else 0
+    return self.gridContainer['gridLength'] if 'gridLength' in self.gridContainer.keys() else 0
 
   def __init__(self,messageHandler):
     GridBase.__init__(self,messageHandler)
     self.gridContainer['dimensionNames']        = []                 # this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
     self.gridContainer['gridVectors']           = {}                 # {'name of the variable':numpy.ndarray['the coordinate']}
     self.gridContainer['bounds']                = {'upperBounds':{},'lowerBounds':{}} # dictionary of lower and upper bounds
-    self.gridContainer['gridLenght']            = 0                  # this the total number of nodes in the grid
+    self.gridContainer['gridLength']            = 0                  # this the total number of nodes in the grid
     self.gridContainer['gridShape']             = None               # shape of the grid (tuple)
     self.gridContainer['gridMatrix']            = None               # matrix containing the cell ids (unique integer identifier that map a set on nodes with respect an hypervolume)
     self.gridContainer['gridCoorShape']         = None               # shape of the matrix containing all coordinate of all points in the grid
@@ -406,7 +406,7 @@ class GridEntity(GridBase):
           self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName][0](coor) for coor in self.gridContainer['gridVectors'][varName]])
       pointByVar[varId]                               = np.shape(self.gridContainer['gridVectors'][varName])[0]
     self.gridContainer['gridShape']                 = tuple   (pointByVar)                            # tuple of the grid shape
-    self.gridContainer['gridLenght']                = np.prod (pointByVar)                            # total number of point on the grid
+    self.gridContainer['gridLength']                = np.prod (pointByVar)                            # total number of point on the grid
     self.gridContainer['gridMatrix']                = np.zeros(self.gridContainer['gridShape'])       # grid where the values of the goalfunction are stored
     self.gridContainer['gridCoorShape']             = tuple   (pointByVar+[self.nVar])                # shape of the matrix containing all coordinate of all points in the grid
     self.gridContainer['gridCoord']                 = np.zeros(self.gridContainer['gridCoorShape'])   # the matrix containing all coordinate of all points in the grid
@@ -414,8 +414,9 @@ class GridEntity(GridBase):
     #filling the coordinate on the grid
     self.gridIterator = np.nditer(self.gridContainer['gridCoord'],flags=['multi_index'])
     gridIterCells = np.nditer(np.zeros(shape=(2,)*self.nVar,dtype=int),flags=['multi_index'])
-  
-    origin, pp, cellID = [-1]*self.nVar, [element - 1 for element in pointByVar], int(initDict['startingCellId']) if 'startingCellId' in  initDict.keys() else 1
+    origin = [-1]*self.nVar
+    pp     = [element - 1 for element in pointByVar]
+    cellID = int(initDict['startingCellId']) if 'startingCellId' in  initDict.keys() else 1
     while not self.gridIterator.finished:
       coordinateID                          = self.gridIterator.multi_index[-1]
       dimName                               = self.gridContainer['dimensionNames'][coordinateID]
@@ -428,15 +429,15 @@ class GridEntity(GridBase):
           while not gridIterCells.finished:
             vertex = tuple(np.array(origin)+gridIterCells.multi_index)
             self.gridContainer['cellIDs'][cellID].append(vertex)
-            try   : self.gridContainer['vertexToCellIds'][vertex].append(cellID)
-            except: self.gridContainer['vertexToCellIds'][vertex] = [cellID]
+            if vertex in self.gridContainer['vertexToCellIds'].keys(): self.gridContainer['vertexToCellIds'][vertex].append(cellID)
+            else                                                     : self.gridContainer['vertexToCellIds'][vertex] = [cellID]
             gridIterCells.iternext()
-          gridIterCells.reset() 
+          gridIterCells.reset()
           cellID+=1
-      self.gridIterator.iternext()  
+      self.gridIterator.iternext()
     if len(self.gridContainer['cellIDs'].keys()) != self.uniqueCellNumber and computeCells: self.raiseAnError(IOError, "number of cells detected != than the number of actual cells!")
     self.resetIterator()
-    
+
     self.raiseAMessage("Grid "+"initialized...")
 
   def retrieveCellIds(self,listOfPoints,containedOnly=True):
@@ -458,7 +459,7 @@ class GridEntity(GridBase):
     """
     Return the grid as an array of coordinates
     """
-    return self.__returnCoordinatesReshaped((self.gridContainer['gridLenght'],self.nVar))
+    return self.__returnCoordinatesReshaped((self.gridContainer['gridLength'],self.nVar))
 
   def __returnCoordinatesReshaped(self,newShape):
     """
@@ -577,10 +578,10 @@ class MultiGridEntity(GridBase):
     self.grid                   = ETS.NodeTree(
                                   self.__createNewNode("InitialGrid",
                                   {"grid":returnInstance("GridEntity",self,
-                                   self.messageHandler),"level":"1"})) # grid hierarchical Container      
-    self.multiGridIterator      = ["1", None]                          # multi grid iterator [first position is the level ID, the second it the multi-index]   
-    self.mappingLevelName       = {'1':None}                           # mapping between grid level and node name  
-   
+                                   self.messageHandler),"level":"1"})) # grid hierarchical Container
+    self.multiGridIterator      = ["1", None]                          # multi grid iterator [first position is the level ID, the second it the multi-index]
+    self.mappingLevelName       = {'1':None}                           # mapping between grid level and node name
+
   def __len__(self):
     """
     Overload __len__ method. It iterates over all the hierarchical structure of grids
@@ -617,7 +618,7 @@ class MultiGridEntity(GridBase):
       if the self.gridInitDict is != None (info read from XML node), this method looks for the information in that dictionary first and after it checks the initDict object
       !!!!!!
     """
-    if "rootName" in initDictionary.keys(): 
+    if "rootName" in initDictionary.keys():
       self.grid.updateNodeName("root",initDictionary["rootName"])
       self.mappingLevelName['1'] = initDictionary["rootName"]
     self.grid.getrootnode().get("grid").initialize(initDictionary)
@@ -637,21 +638,21 @@ class MultiGridEntity(GridBase):
     else:
       node = self.grid.find(nodeName)
       setOfCells.extend(node.get('grid').retrieveCellIds(listOfPoints,containedOnly))
-    return setOfCells  
-  
+    return setOfCells
+
   def getAllNodesNames(self,startingNode = None):
     if startingNode != None:
       snode = self.grid.find(startingNode)
-      return [node.name for node in snode.iter()]                 
+      return [node.name for node in snode.iter()]
     else: return self.mappingLevelName.values()
-  
+
   def __createNewNode(self, nodeName, attributes={}):
     node = ETS.Node(nodeName)
     node.add("grid",returnInstance("GridEntity",self.messageHandler))
     for key, attribute in attributes.items():
       node.add(key,attribute)
     return node
-  
+
   def _getMaxCellIds(self):
     """
      This method is aimed to retrieve the maximum cell Ids among all the nodes
@@ -667,7 +668,7 @@ class MultiGridEntity(GridBase):
   def updateSubGrid(self,parentNode, refineDict):
     """
      Method aimed to update all the sub-grids of a parent Node.
-     This method is going to delete the sub-grids of the parent Node and reconstruct them 
+     This method is going to delete the sub-grids of the parent Node and reconstruct them
      @ In, parentNode, string, name of the parent node whose sub-grids need to be updated
      @ In, refineDict, dict, dictionary with information to refine the parentNode grid
      @ Out, None
@@ -676,12 +677,12 @@ class MultiGridEntity(GridBase):
     if parentNode == -1: self.raiseAnError(Exception,"parent Node named "+ parentNode + " has not been found!")
     parentNode.clearBranch()
     self.refineGrid(refineDict)
-    
+
   def refineGrid(self,refineDict):
     """
      Method aimed to refine all the grids that are related to the cellIds specified in the refineDict
      @ In, refineDict, dict, dictionary with information to refine the parentNode grid:
-           {cellIDs:listOfCellIdsToBeRefined} 
+           {cellIDs:listOfCellIdsToBeRefined}
            {refiningNumSteps:numberOfStepsToUseForTheRefinement}
      @ Out, None
     """
@@ -694,14 +695,14 @@ class MultiGridEntity(GridBase):
       foundCells = set(nodeCellIds).intersection(cellIdsToRefine)
       if len(foundCells) > 0:
         parentGrid = node.get("grid")
-        initDict   = parentGrid.returnParameter("initDictionary") 
+        initDict   = parentGrid.returnParameter("initDictionary")
         if "transformationMethods" in initDict.keys(): initDict.pop("transformationMethods")
         for idcnt, fcellId in enumerate(foundCells):
           print(fcellId)
           didWeFoundCells[fcellId] = True
           newGrid                  = returnInstance("GridEntity", self, self.messageHandler)
           verteces                 = parentNodeCellIds[fcellId]
-          lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), sys.float_info.max), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), -sys.float_info.max) 
+          lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), sys.float_info.max), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), -sys.float_info.max)
           for vertex in verteces:
             coordinates = parentGrid.returnCoordinateFromIndex(vertex, True, recastMethods=initDict["transformationMethods"] if "transformationMethods" in initDict.keys() else {})
             for key in lowerBounds.keys(): lowerBounds[key], upperBounds[key] = min(lowerBounds[key],coordinates[key]), max(upperBounds[key],coordinates[key])
@@ -719,26 +720,26 @@ class MultiGridEntity(GridBase):
           node.appendBranch(refinedNode)
       foundAll = all(item == True for item in set(didWeFoundCells.values()))
       if foundAll: break
-    if not foundAll: self.raiseAnError(Exception,"the following cell IDs have not been found: " + ' '.join([cellId for cellId, value in didWeFoundCells.items() if value == True]))  
+    if not foundAll: self.raiseAnError(Exception,"the following cell IDs have not been found: " + ' '.join([cellId for cellId, value in didWeFoundCells.items() if value == True]))
 
   def returnGridAsArrayOfCoordinates(self,nodeName = None, returnDict = False):
     """
     Return the grid as an array of coordinates
     @ In, returnDict, bool, return a dictionary with the coordinates for all sub-grid, default = False
-    @ Out, fullReshapedCoordinates, ndarray or dict (dependeing on returnDict flag), numpy array or dictionary of numpy arrays containing all the coordinates shaped as (fullGridLenght,self.nVar) or (sub-gridLenght, self.nVar)
+    @ Out, fullReshapedCoordinates, ndarray or dict (dependeing on returnDict flag), numpy array or dictionary of numpy arrays containing all the coordinates shaped as (fullgridLength,self.nVar) or (sub-gridLength, self.nVar)
     """
-    if not returnDict: 
+    if not returnDict:
       fullReshapedCoordinates = np.zeros((0,self.nVar))
       if nodeName == None:
         for node in self.grid.iter(): fullReshapedCoordinates = np.concatenate((fullReshapedCoordinates,node.get('grid').returnGridAsArrayOfCoordinates()))
-      else: fullReshapedCoordinates = self.grid.find(nodeName).get('grid').returnGridAsArrayOfCoordinates()    
+      else: fullReshapedCoordinates = self.grid.find(nodeName).get('grid').returnGridAsArrayOfCoordinates()
     else:
       fullReshapedCoordinates = {}
       if nodeName == None:
         for node in self.grid.iter(): fullReshapedCoordinates[node.name] = node.get('grid').returnGridAsArrayOfCoordinates()
-      else: fullReshapedCoordinates[nodeName] = self.grid.find(nodeName).get('grid').returnGridAsArrayOfCoordinates()    
+      else: fullReshapedCoordinates[nodeName] = self.grid.find(nodeName).get('grid').returnGridAsArrayOfCoordinates()
     return fullReshapedCoordinates
-  
+
   def resetIterator(self):
     """
     Reset internal iterator
@@ -746,7 +747,7 @@ class MultiGridEntity(GridBase):
     @ Out, None
     """
     for node in self.grid.iter():
-      node.get('grid').resetIterator()  
+      node.get('grid').resetIterator()
     self.multiGridIterator = [self.grid.getrootnode().get("level"),self.grid.getrootnode().get("grid").returnIteratorIndexes(False)]
 
   def returnIteratorIndexes(self,returnDict = True):
@@ -783,7 +784,7 @@ class MultiGridEntity(GridBase):
     """
     if   type(coords) == tuple  : level, coordinates = coords[0], coords[1]
     elif type(coords) == dict   : level, coordinates = self.multiGridIterator[0], coords
-    else                        : self.raiseAnError(Exception,"returnShiftedCoordinate method accepts a coords or tuple only!")    
+    else                        : self.raiseAnError(Exception,"returnShiftedCoordinate method accepts a coords or tuple only!")
     node = self.grid.find(self.mappingLevelName[level])
     return node.get('grid').returnShiftedCoordinate(coordinates,shiftingSteps)
 
@@ -821,10 +822,10 @@ class MultiGridEntity(GridBase):
                                          ex. {'dimName1':[methodToTransformCoordinate,*args]}
     @ Out, tuple or dict, coordinate, tuple containing the coordinates
     """
-    try: 
+    try:
       multiDimNDIndex[0]/1
       level, multiDimIndex = self.multiGridIterator[0], multiDimNDIndex
-    except TypeError: 
+    except TypeError:
       level, multiDimIndex = multiDimNDIndex[0], multiDimNDIndex[1]
     node = self.grid.find(self.mappingLevelName[level])
     return node.get('grid').returnCoordinateFromIndex(multiDimIndex, returnDict, recastMethods)
@@ -836,7 +837,7 @@ class MultiGridEntity(GridBase):
     @ In, string, nodeName, optional, name of the node from which we need to retrieve the parameter. If not present, the parameter is going to be retrieved from all nodes (and subnodes). If nodeName == *, the parameter is gonna retrieved from the self
     @ Out, object, pointer to the requested parameter
     """
-    if nodeName != None and nodeName != "*": 
+    if nodeName != None and nodeName != "*":
       node = self.grid.find(nodeName)
       if node == None: self.raiseAnError(Exception,'node  '+nodeName+' has not been found in the MultiGrid hierarchal tree!')
       return node.get("grid").returnParameter(parameterName)
@@ -857,15 +858,15 @@ class MultiGridEntity(GridBase):
     @ In, string, nodeName, optional, name of the node in which we need to update the parameter. If not present, the parameter is going to be updated in all nodes (and subnodes).If nodeName == *, the parameter is gonna updated in self
     @ Out, None
     """
-    if nodeName != None: 
+    if nodeName != None:
       node = self.grid.find(nodeName)
       if node == None: self.raiseAnError(Exception,'node  '+nodeName+' has not been found in the MultiGrid hierarchal tree!')
       node.get("grid").updateParameter(parameterName, newValue, upContainer)
     elif nodeName == "*":
       if upContainer: self.gridContainer[parameterName] = newValue
-      else          : self.gridInitDict[parameterName ] = newValue    
+      else          : self.gridInitDict[parameterName ] = newValue
     else:
-      for node in self.grid.iter(): 
+      for node in self.grid.iter():
         node.get("grid").updateParameter(parameterName, newValue, upContainer)
 
   def addCustomParameter(self,parameterName, value, nodeName = None):
@@ -875,14 +876,14 @@ class MultiGridEntity(GridBase):
     @ In, string, nodeName, optional, name of the node in which we need to update the parameter. If not present, the parameter is going to be updated in all nodes (and subnodes).If nodeName == *, the parameter is gonna updated in self
     @ Out, None
     """
-    if nodeName != None: 
+    if nodeName != None:
       node = self.grid.find(nodeName)
       if node == None: self.raiseAnError(Exception,'node  '+nodeName+' has not been found in the MultiGrid hierarchal tree!')
     elif nodeName == "*":
-      if parameterName in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'already present in MultiGridEntity!')   
+      if parameterName in self.gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'already present in MultiGridEntity!')
     else:
       for node in self.grid.iter():
-        if parameterName in node.get("grid").gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'already present in MultiGridEntity subnode '+ node.name + '!')   
+        if parameterName in node.get("grid").gridContainer.keys(): self.raiseAnError(Exception,'parameter '+parameterName+'already present in MultiGridEntity subnode '+ node.name + '!')
     self.updateParameter(parameterName, value, True, nodeName)
 
 """
@@ -907,7 +908,7 @@ def returnInstance(Type,caller,messageHandler=None):
    Method to return an instance of a class defined in this module
    @ In, Type, string, Class name (e.g. GridEntity)
    @ In, caller, instance, instance of the caller object
-   @ In, messageHandler, optional instance, instance of the messageHandler system 
+   @ In, messageHandler, optional instance, instance of the messageHandler system
    @ Out, __interFaceDict[Type], instance, instance of the requested class
   """
   try: return __interFaceDict[Type](messageHandler)
