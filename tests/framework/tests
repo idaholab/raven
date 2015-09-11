@@ -386,20 +386,6 @@
   csv = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
  [../]
 
- [./sparseGridTest]
-  type = 'RavenFramework'
-  input = 'test_sparse_grid.xml'
-  output = 'SparseGridTest/testTPSG.csv SparseGridTest/testTDSG.csv SparseGridTest/testHCSG.csv'
-  csv = 'SparseGridTest/testTPSG.csv SparseGridTest/testTDSG.csv SparseGridTest/testHCSG.csv'
- [../]
-
- [./indexSetTest]
-  type = 'RavenFramework'
-  input = 'test_indexsets.xml'
-  output = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml IndexSetTest/Cdump.xml'
-  csv = 'IndexSetTest/TPdump.csv IndexSetTest/TDdump.csv IndexSetTest/HCdump.csv IndexSetTest/Cdump.csv'
- [../]
-
  [./sobolRomTest]
   type = 'RavenFramework'
   input = 'test_sobol_rom.xml'
