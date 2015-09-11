@@ -10,7 +10,7 @@ ORIGPYTHONPATH="$PYTHONPATH"
 
 maxlen=$(($(tput cols) < 100 ? $(tput cols) : 100))
 
-TEST_DIRS="${SCRIPT_DIR}/../tests/framework ${SCRIPT_DIR}/../tests/cluster_tests"
+TEST_DIRS="${SCRIPT_DIR}/../tests/cluster_tests "`find ${SCRIPT_DIR}/../tests/framework -name tests -printf "%h\n"`
 
 failed_tests=0
 passed_tests=0

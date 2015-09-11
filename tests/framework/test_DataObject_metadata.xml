@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation verbosity='debug'>
+<RunInfo>
+    <WorkingDir>dataObject_metadata</WorkingDir>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>1</batchSize>
+</RunInfo>
+<Files>
+    <Input name="dataObjectTest.py" type="">dataObjectTest.py</Input>
+</Files>
+<Models>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='dataObject_metadata/dataObjectTest'>
+       <variable>x</variable>
+       <variable>y</variable>
+       <variable>z</variable>
+       <variable>time</variable>
+       <variable>x0</variable>
+       <variable>x01</variable>
+       <variable>x02</variable>
+       <variable>y0</variable>
+       <variable>y02</variable>
+       <variable>y01</variable>
+       <variable>z0</variable>
+       <variable>z02</variable>
+       <variable>z01</variable>
+    </ExternalModel>
+</Models>
+
+<Distributions>
+    <Normal name='x0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+    <Normal name='y0_distrib'>
+        <mean>100</mean>
+        <sigma>1</sigma>
+    </Normal>
+    <Normal name='z0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+</Distributions>
+
+<Samplers>
+    <MonteCarlo name='MC_external'>
+      <sampler_init>
+        <limit>4</limit>
+      </sampler_init>
+      <variable name='x0' >
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name='y0' >
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name='z0' >
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+</Samplers>
+
+<Steps>
+    <MultiRun name='FirstMRun'  re-seeding='25061978'>
+        <Input   class='Files'     type=''               >dataObjectTest.py</Input>
+        <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
+        <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
+        <Output  class='DataObjects'     type='PointSet'   >PointSetExternalModel</Output>
+        <Output  class='OutStreamManager' type='Print'   >PointProbability_dump</Output>
+    </MultiRun >
+</Steps>
+
+<OutStreamManager>
+  <Print name='PointProbability_dump'>
+    <type>csv</type>
+    <source>PointSetExternalModel</source>
+    <what>input,input|PointProbability,output</what>
+  </Print>
+</OutStreamManager>
+
+
+<DataObjects>
+    <PointSet name='PointSetExternalModel'>
+        <Input>x0,y0,z0</Input>
+        <Output>time,x02,y02,z02,x01,y01,z01,x,y,z</Output>
+    </PointSet>
+</DataObjects>
+
+
+</Simulation>
+
+
+
