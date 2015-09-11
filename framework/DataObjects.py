@@ -18,6 +18,7 @@ import itertools
 import abc
 import numpy as np
 import xml.etree.ElementTree as ET
+import ast
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -297,7 +298,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       for key,value in self._dataContainer['metadata'].items():
         if key not in self.metaExclXml:
           submetadataNodes.append(ET.SubElement(metadataNode,key))
-          submetadataNodes[-1].text = utils.toString(str(value)).replace('[','').replace(']','').replace('{','').replace('}','')
+          submetadataNodes[-1].text = utils.toString(str(value))
     myXMLFile.write(utils.toString(ET.tostring(root)))
     myXMLFile.write('\n')
     myXMLFile.close()
@@ -326,6 +327,25 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       for child in metadataNode:
         key = child.tag
         value = child.text
+        value.replace('\n','')
+        # ast.literal_eval can't handle numpy arrays, so we'll handle that.
+        if value.startswith('array('):
+          isArray=True
+          value=value.split('dtype')[0].lstrip('ary(').rstrip('),\n ')
+        else: isArray = False
+        try: value = ast.literal_eval(value)
+        except ValueError as e:
+          # these aren't real fails, they just don't actually need converting
+          self.raiseAWarning('ast.literal_eval failed on "',value,'"')
+          self.raiseAWarning('ValueError was "',e,'", but continuing on...')
+        except SyntaxError as e:
+          # these aren't real fails, they just don't actually need converting
+          self.raiseAWarning('ast.literal_eval failed on "',value,'"')
+          self.raiseAWarning('SyntaxError was "',e,'", but continuing on...')
+        if isArray:
+          # convert back
+          value = np.array(value)
+          value = c1darray(values=value)
         metadataDict[key] = value
       retDict["metadata"] = metadataDict
     return retDict
@@ -900,10 +920,11 @@ class Point(Data):
       inoutDict[key] = value
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
+    #NOTE it's critical to cast these as c1darray!
     for key in xmlData["inpKeys"]:
-      self._dataContainer["inputs"][key] = np.array([inoutDict[key]])
+      self._dataContainer["inputs"][key] = c1darray(values=np.array([inoutDict[key]]))
     for key in xmlData["outKeys"]:
-      self._dataContainer["outputs"][key] = np.array([inoutDict[key]])
+      self._dataContainer["outputs"][key] = c1darray(values=np.array([inoutDict[key]]))
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """override of the method in the base class DataObjects"""
@@ -919,7 +940,11 @@ class PointSet(Data):
   PointSet is an object that stores multiple sets of inputs and outputs for a particular point in time!
   """
   def __init__(self):
+    """Constructor.
+    @ In, None
+    @Out, None"""
     Data.__init__(self)
+    self.numAdditionalLoadPoints = 0 #if points are loaded into csv through alternate means, this will keep up.
     self.acceptHierarchy = True
 
   def addSpecializedReadingSettings(self):
@@ -947,7 +972,7 @@ class PointSet(Data):
     #example, if that list contains 10 csvs and 1 HDF5 (with 20
     #HistorySet), len(toLoadFromList) = 11 but the number of HistorySet
     #is actually 30.
-    lenMustHave = 0
+    lenMustHave = self.numAdditionalLoadPoints
     sourceType = self._toLoadFromList[-1].type
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
@@ -1214,6 +1239,8 @@ class PointSet(Data):
       myFile.write('\n')
       #Print values
       for j in range(len(next(iter(itertools.chain(inpValues,outValues))))):
+        #myFile.write(','.join(['{:.17f}'.format(item[j]) for item in itertools.chain(inpValues,outValues)]))
+        #str(item) can truncate the accuracy of the value. -> however, the line above ^ says the info is already lost
         myFile.write(','.join([str(item[j]) for item in itertools.chain(inpValues,outValues)]))
         myFile.write('\n')
       myFile.close()
@@ -1248,15 +1275,17 @@ class PointSet(Data):
       line_list = line.rstrip().split(",")
       for i in range(len(inoutKeys)):
         inoutValues[i].append(utils.partialEval(line_list[i]))
+    # extend the expected size of this PointSet
+    self.numAdditionalLoadPoints = len(inoutValues[0]) #this flag used in checkConsistency
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     inoutDict = {}
     for key,value in zip(inoutKeys,inoutValues):
       inoutDict[key] = value
     for key in xmlData["inpKeys"]:
-      self._dataContainer["inputs"][key] = np.array(inoutDict[key])
+      self._dataContainer["inputs"][key] = c1darray(values=np.array(inoutDict[key]))
     for key in xmlData["outKeys"]:
-      self._dataContainer["outputs"][key] = np.array(inoutDict[key])
+      self._dataContainer["outputs"][key] = c1darray(values=np.array(inoutDict[key]))
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """override of the method in the base class DataObjects"""
@@ -1450,9 +1479,9 @@ class History(Data):
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     for key,value in zip(inpKeys,inpValues):
-      self._dataContainer['inputs'][key] = [value]*len(outValues[0])
+      self._dataContainer['inputs'][key] = c1darray(values=np.array([value]*len(outValues[0])))
     for key,value in zip(outKeys,outValues):
-      self._dataContainer['outputs'][key] = np.array(value)
+      self._dataContainer['outputs'][key] = c1darray(values=np.array(value))
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """override of the method in the base class DataObjects"""
@@ -1885,9 +1914,9 @@ class HistorySet(Data):
       subInput = {}
       subOutput = {}
       for key,value in zip(inpKeys,inpValues[i]):
-        subInput[key] = [value]*len(outValues[0][0])
+        subInput[key] = c1darray(values=np.array([value]*len(outValues[0][0])))
       for key,value in zip(outKeys[i],outValues[i]):
-        subOutput[key] = np.array(value)
+        subOutput[key] = c1darray(values=np.array(value))
       self._dataContainer['inputs'][mainKey] = subInput
       self._dataContainer['outputs'][mainKey] = subOutput
 

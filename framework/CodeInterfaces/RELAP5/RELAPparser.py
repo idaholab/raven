@@ -19,8 +19,8 @@ class RELAPparser():
 
   def printInput(self,outfile=None):
     if outfile==None: outfile =self.inputfile
-    IOfile = open(outfile,'w')
-    for i in self.lines: IOfile.write('%s' %(i))
+    outfile.open('w')
+    for i in self.lines: outfile.write('%s' %(i))
 
   def modifyOrAdd(self,DictionaryList,save=True):
     '''ModiDictionaryList is a list of dictionaries of the required addition or modification

@@ -4,8 +4,10 @@
   # 7=7 eqn, 1D 2-phase flow
   model_type = 3
   gravity = '0 0 0'
-  stabilization_type = SUPG
-  scaling_factor_var = '1. 1.e-4 1.e-6'
+
+  stabilization_type = 'NONE'
+
+  scaling_factor_1phase = '1. 1.e-4 1.e-6'
 []
 [FluidProperties]
   [./eos]
