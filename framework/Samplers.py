@@ -2534,13 +2534,13 @@ class ResponseSurfaceDesign(Grid):
     if   self.respOpt['algorithm_type'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
     elif self.respOpt['algorithm_type'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
     gridInfo   = self.gridEntity.returnParameter('gridInfo')
-    stepLenght = {}
+    stepLength = {}
     for cnt, varName in enumerate(self.axisName):
       self.mapping[varName] = np.unique(self.designMatrix[:,cnt]).tolist()
       gridInfo[varName] = (gridInfo[varName][0],gridInfo[varName][1],InterpolatedUnivariateSpline(np.array([min(self.mapping[varName]), max(self.mapping[varName])]),
                            np.array([min(gridInfo[varName][2]), max(gridInfo[varName][2])]), k=1)(self.mapping[varName]).tolist())
-      stepLenght[varName] = [round(gridInfo[varName][-1][k+1] - gridInfo[varName][-1][k],14) for k in range(len(gridInfo[varName][-1])-1)]
-    self.gridEntity.updateParameter("stepLenght", stepLenght, False)
+      stepLength[varName] = [round(gridInfo[varName][-1][k+1] - gridInfo[varName][-1][k],14) for k in range(len(gridInfo[varName][-1])-1)]
+    self.gridEntity.updateParameter("stepLength", stepLength, False)
     self.gridEntity.updateParameter("gridInfo", gridInfo)
     Grid.localInitialize(self)
     self.limit = self.designMatrix.shape[0]
