@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug" printTimeStamps='false'>
+<Simulation printTimeStamps="false" verbosity="debug">
   <RunInfo>
     <WorkingDir>branch</WorkingDir>
     <Sequence>DETrunTest,extract_hist_example</Sequence>
