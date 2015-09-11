@@ -2181,7 +2181,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     @ InOut, ready, boolean
     @ Out, boolean
     """
-    if(self.counter == 0): return True
+    if self.counter == 0               : return True
     if len(self.RunQueue['queue']) != 0: detReady = True
     else: detReady = False
     # since the RunQueue is empty, let's check if there are still branches running => if not => start the adaptive search
