@@ -42,11 +42,11 @@
 
   <Samplers>
     <MonteCarlo name="MC_external">
-      <sampler_init>
+      <samplerInit>
         <limit>3</limit>
-        <initial_seed>1234</initial_seed>
-        <reseed_at_each_iteration>True</reseed_at_each_iteration>
-      </sampler_init>
+        <initialSeed>1234</initialSeed>
+        <reseedEachIteration>True</reseedEachIteration>
+      </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
       </variable>

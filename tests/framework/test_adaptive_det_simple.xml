@@ -46,7 +46,7 @@
   </Distributions>
 
   <Samplers>
-    <AdaptiveDynamicEventTree maxSimulationTime="5.0" name="AdaptiveDETsimple" print_end_xml="yes">
+    <AdaptiveDynamicEventTree maxSimulationTime="5.0" name="AdaptiveDETsimple" printEndXmlSummary="yes">
       <ROM class="Models" type="ROM">Acc</ROM>
       <Function class="Functions" type="External">relapFunctionSimple</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>

@@ -57,24 +57,24 @@
 
   <Samplers>
     <Stratified name="LHS_test">
-      <sampler_init>
-        <initial_seed>1234</initial_seed>
-      </sampler_init>
+      <samplerInit>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
       <variable name="k0">
         <distribution>k0_distrib</distribution>
         <grid construction="custom" type="CDF">0.5 1.0 0.0</grid>
       </variable>
       <variable name="x0">
         <distribution dim="1">ND_CartesianSpline_C</distribution>
-        <grid type="global_grid">name_grid1</grid>
+        <grid type="globalGrid">name_grid1</grid>
       </variable>
       <variable name="y0,z0">
         <distribution dim="2">ND_CartesianSpline_C</distribution>
-        <grid type="global_grid">name_grid1</grid>
+        <grid type="globalGrid">name_grid1</grid>
       </variable>
-      <global_grid>
+      <globalGrid>
         <grid construction="custom" name="name_grid1" type="CDF">0.1 1.0 0.2</grid>
-      </global_grid>
+      </globalGrid>
     </Stratified>
   </Samplers>
 

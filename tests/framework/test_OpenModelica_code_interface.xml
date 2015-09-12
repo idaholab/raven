@@ -31,9 +31,9 @@
 
   <Samplers>
     <MonteCarlo name="MC">
-      <sampler_init>
+      <samplerInit>
         <limit>5</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="h">
         <distribution>h_dist</distribution>
       </variable>

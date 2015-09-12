@@ -390,12 +390,12 @@ In addition, \xmlNode{sampler\textunderscore init} might contains the informatio
 An example of \xmlNode{dist\textunderscore init} node is provided below:
 
 \begin{lstlisting}[style=XML]
-<dist_init>
+<distInit>
     <distribution name= 'ND_dist_name'>
-         <initial_grid_disc>5</initial_grid_disc>
+         <initialGridDisc>5</initialGridDisc>
           <tolerance>0.2</tolerance>
      </distribution>
-  </dist_init>
+  </distInit>
 \end{lstlisting}
 
 In the \xmlNode{sampler\textunderscore init}  node it is possible to add also the subnode \xmlNode{global\_grid}.
@@ -487,17 +487,17 @@ Example:
 <Samplers>
   ...
   <MonteCarlo name='MCname'>
-    <sampler_init>
+    <samplerInit>
       <limit>10</limit>
-      <initial_seed>200286</initial_seed>
-      <reseed_at_each_iteration>false</reseed_at_each_iteration>
-      <dist_init>
+      <initialSeed>200286</initialSeed>
+      <reseedEachIteration>false</reseedEachIteration>
+      <distInit>
         <distribution name= 'ND_InverseWeight_P'>
-          <initial_grid_disc>10</initial_grid_disc>
+          <initialGridDisc>10</initialGridDisc>
           <tolerance>0.2</tolerance>
         </distribution>
-      </dist_init>
-    </sampler_init>
+      </distInit>
+    </samplerInit>
     <variable name='var1'>
       <distribution>aDistributionNameDefinedInDistributionBlock
       </distribution>
@@ -781,15 +781,15 @@ This is possible by defining a \xmlNode{global\_grid} node and associate such \x
   <Stratified name='StratifiedName'>
         <variable name='x0'>
             <distribution dim='1'>ND_InverseWeight_P</distribution>
-            <grid type='global_grid'>name_grid1</grid>
+            <grid type='globalGrid'>name_grid1</grid>
         </variable>
         <variable name='y0,z0'>
             <distribution dim='2'>ND_InverseWeight_P</distribution>
-            <grid type='global_grid'>name_grid1</grid>
+            <grid type='globalGrid'>name_grid1</grid>
         </variable>
-        <global_grid>
+        <globalGrid>
             <grid name='name_grid1' type='CDF' construction='custom'>0.1 1.0 0.2</grid>
-        </global_grid>
+        </globalGrid>
   </Stratified>
   ...
 </Samplers>
@@ -937,7 +937,7 @@ Example:
   ...
     <ResponseSurfaceDesign name='BoxBehnkenRespDesign'>
         <ResponseSurfaceDesignSettings>
-            <algorithm_type>BoxBehnken</algorithm_type>
+            <algorithmType>BoxBehnken</algorithmType>
             <ncenters>1</ncenters>
         </ResponseSurfaceDesignSettings>
         <variable name='var1' >
@@ -950,7 +950,7 @@ Example:
     </ResponseSurfaceDesign>
     <ResponseSurfaceDesign name='CentralCompositeRespDesign'>
         <ResponseSurfaceDesignSettings>
-            <algorithm_type>CentralComposite</algorithm_type>
+            <algorithmType>CentralComposite</algorithmType>
             <centers>1, 2</centers>
             <alpha>orthogonal</alpha>
             <face>circumscribed</face>
@@ -1094,7 +1094,7 @@ Example:
   ...
   <FactorialDesign name='fullFactorial'>
     <FactorialSettings>
-      <algorithm_type>full</algorithm_type>
+      <algorithmType>full</algorithmType>
     </FactorialSettings>
     <variable name='var1' >
       <distribution>aDistributionNameDefinedInDistributionBlock1
@@ -1109,7 +1109,7 @@ Example:
   </FactorialDesign>
   <FactorialDesign name='2levelFractFactorial'>
     <FactorialSettings>
-      <algorithm_type>2levelFract</algorithm_type>
+      <algorithmType>2levelFract</algorithmType>
       <gen>a,b,ab</gen>
       <genMap>var1,var2,var3</genMap>
     </FactorialSettings>
@@ -1131,7 +1131,7 @@ Example:
   </FactorialDesign>
   <FactorialDesign name='pbFactorial'>
     <FactorialSettings>
-      <algorithm_type>pb</algorithm_type>
+      <algorithmType>pb</algorithmType>
     </FactorialSettings>
     <variable name='var1' >
       <distribution>aDistributionNameDefinedInDistributionBlock6

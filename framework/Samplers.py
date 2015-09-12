@@ -119,7 +119,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ######
     self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; totDim = total dimensionality of its associated distribution
     self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
-    self.ND_sampling_params             = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initial_grid_disc' and 'tolerance')
+    self.ND_sampling_params             = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
 
     self.assemblerObjects               = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
@@ -201,27 +201,27 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             varData['name']=childChild.text
             self.dependentSample[prefix+child.attrib['name']] = tobesampled
         if not foundDistOrFunc: self.raiseAnError(IOError,'Sampled variable',child.attrib['name'],'has neither a <distribution> nor <function> node specified!')
-      elif child.tag == "sampler_init":
+      elif child.tag == "samplerInit":
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
             self.limit = childChild.text
-          elif childChild.tag == "initial_seed":
+          elif childChild.tag == "initialSeed":
             self.initSeed = int(childChild.text)
-          elif childChild.tag == "reseed_at_each_iteration":
+          elif childChild.tag == "reseedEachIteration":
             if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
-          elif childChild.tag == "dist_init":
+          elif childChild.tag == "distInit":
             for childChildChild in childChild:
               NDdistData = {}
               for childChildChildChild in childChildChild:
-                if childChildChildChild.tag == 'initial_grid_disc':
+                if childChildChildChild.tag == 'initialGridDisc':
                   NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
                 elif childChildChildChild.tag == 'tolerance':
                   NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
                 else:
-                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initial_grid_disc and tolerance!')
+                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
               self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
-          else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')
+          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available are: limit, initialSeed, reseedEachIteration and distInit!')
 
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
@@ -248,34 +248,34 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localInputAndChecks(xmlNode)
 
 
-  def read_sampler_init(self,xmlNode):
+  def read_samplerInit(self,xmlNode):
     """
-    This method is responsible to read only the sampler_init block in the .xml file.
-    This method has been moved from the base sampler class since the sampler_init block is needed only for the MC and stratified (LHS) samplers
+    This method is responsible to read only the samplerInit block in the .xml file.
+    This method has been moved from the base sampler class since the samplerInit block is needed only for the MC and stratified (LHS) samplers
     @ In xmlNode
     """
     for child in xmlNode:
-      if child.tag == "sampler_init":
+      if child.tag == "samplerInit":
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
             self.limit = childChild.text
-          elif childChild.tag == "initial_seed":
+          elif childChild.tag == "initialSeed":
             self.initSeed = int(childChild.text)
-          elif childChild.tag == "reseed_at_each_iteration":
+          elif childChild.tag == "reseedEachIteration":
             if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
-          elif childChild.tag == "dist_init":
+          elif childChild.tag == "distInit":
             for childChildChild in childChild:
               NDdistData = {}
               for childChildChildChild in childChildChild:
-                if childChildChildChild.tag == 'initial_grid_disc':
+                if childChildChildChild.tag == 'initialGridDisc':
                   NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
                 elif childChildChildChild.tag == 'tolerance':
                   NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
                 else:
-                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initial_grid_disc and tolerance!')
+                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
               self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
-          else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')
+          else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initialSeed, reseedEachIteration and distInit!')
 
   def endJobRunnable(self):
     """
@@ -390,7 +390,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         temp = self.distributions2variablesMapping[distrib][0].keys()[0]
         self.distDict[temp].updateRNGParam(params)
       else:
-        self.raiseAnError(IOError,'Distribution "%s" specified in dist_init block of sampler "%s" does not exist!' %(distrib,self.name))
+        self.raiseAnError(IOError,'Distribution "%s" specified in distInit block of sampler "%s" does not exist!' %(distrib,self.name))
 
   def localInitialize(self):
     """
@@ -432,7 +432,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     # generate the function variable values
-    for var,funcName in self.dependentSample.items():
+    for var in self.dependentSample.keys():
       test=self.funcDict[var].evaluate(var,self.values)
       self.values[var] = test
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
@@ -900,17 +900,17 @@ class MonteCarlo(Sampler):
                    available options specific to this Sampler.
     @ Out, None
     """
-    Sampler.read_sampler_init(self,xmlNode)
+    Sampler.read_samplerInit(self,xmlNode)
 
-    if xmlNode.find('sampler_init')!= None:
-      if xmlNode.find('sampler_init').find('limit')!= None:
-        try: self.limit = int(xmlNode.find('sampler_init').find('limit').text)
+    if xmlNode.find('samplerInit')!= None:
+      if xmlNode.find('samplerInit').find('limit')!= None:
+        try: self.limit = int(xmlNode.find('samplerInit').find('limit').text)
         except ValueError:
           self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
       else:
-        utils.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the sampler_init block')
+        self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
     else:
-      utils.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the sampler_init block')
+      self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
 
   def localInitialize(self):
     """
@@ -1155,7 +1155,7 @@ class Stratified(Grid):
     Grid.__init__(self)
     self.sampledCoordinate    = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
     self.printTag = 'SAMPLER Stratified'
-    self.globalGrid          = {}    # Dictionary for the global_grid. These grids are used only for Stratified for ND distributions.
+    self.globalGrid          = {}    # Dictionary for the globalGrid. These grids are used only for Stratified for ND distributions.
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -1164,7 +1164,7 @@ class Stratified(Grid):
                    available options specific to this Sampler.
     @ Out, None
     """
-    Sampler.read_sampler_init(self,xmlNode)
+    Sampler.read_samplerInit(self,xmlNode)
     Grid.localInputAndChecks(self,xmlNode)
     pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1: self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of point in each dimension')
@@ -1270,7 +1270,7 @@ class DynamicEventTree(Grid):
     self.maxSimulTime            = None
     # print the xml tree representation of the dynamic event tree calculation
     # see variable 'self.TreeInfo'
-    self.print_end_xml           = False
+    self.printEndXmlSummary           = False
     # Dictionary of the probability bins for each distribution that have been
     #  inputted by the user ('distName':[Pb_Threshold_1, Pb_Threshold_2, ..., Pb_Threshold_n])
     self.branchProbabilities     = {}
@@ -1339,8 +1339,8 @@ class DynamicEventTree(Grid):
     """
     if(len(self.RunQueue['queue']) != 0 or self.counter == 0): ready = True
     else:
-      if self.print_end_xml:
-        myFile = open(os.path.join(self.workingDir,self.name + "_output_summary.xml"),'w')
+      if self.printEndXmlSummary:
+        myFile = open(os.path.join(self.workingDir,self.name + "_outputSummary.xml"),'w')
         for treeNode in self.TreeInfo.values(): treeNode.writeNodeTree(myFile)
         myFile.close()
       ready = False
@@ -1797,9 +1797,9 @@ class DynamicEventTree(Grid):
                    available options specific to this Sampler.
     """
     Grid.localInputAndChecks(self,xmlNode)
-    if 'print_end_xml' in xmlNode.attrib.keys():
-      if xmlNode.attrib['print_end_xml'].lower() in utils.stringsThatMeanTrue(): self.print_end_xml = True
-      else: self.print_end_xml = False
+    if 'printEndXmlSummary' in xmlNode.attrib.keys():
+      if xmlNode.attrib['printEndXmlSummary'].lower() in utils.stringsThatMeanTrue(): self.printEndXmlSummary = True
+      else: self.printEndXmlSummary = False
     if 'maxSimulationTime' in xmlNode.attrib.keys():
       try:    self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
       except (KeyError,NameError): self.raiseAnError(IOError,'Can not convert maxSimulationTime in float number!!!')
@@ -2319,8 +2319,8 @@ class FactorialDesign(Grid):
     """
     Grid.__init__(self)
     self.printTag = 'SAMPLER FACTORIAL DESIGN'
-    # accepted types. full = full factorial, 2levelfract = 2-level fracional factorial, pb = Plackett-Burman design. NB. full factorial is equivalent to Grid sampling
-    self.acceptedTypes = ['full','2levelfract','pb'] # accepted factorial types
+    # accepted types. full = full factorial, 2levelFract = 2-level fracional factorial, pb = Plackett-Burman design. NB. full factorial is equivalent to Grid sampling
+    self.acceptedTypes = ['full','2levelFract','pb'] # accepted factorial types
     self.factOpt       = {}                          # factorial options (type,etc)
     self.designMatrix  = None                        # matrix container
 
@@ -2335,11 +2335,11 @@ class FactorialDesign(Grid):
     Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("FactorialSettings")
     if factsettings == None: self.raiseAnError(IOError,'FactorialSettings xml node not found!')
-    facttype = factsettings.find("algorithm_type")
-    if facttype == None: self.raiseAnError(IOError,'node "algorithm_type" not found in FactorialSettings xml node!!!')
+    facttype = factsettings.find("algorithmType")
+    if facttype == None: self.raiseAnError(IOError,'node "algorithmType" not found in FactorialSettings xml node!!!')
     elif not facttype.text.lower() in self.acceptedTypes:self.raiseAnError(IOError,' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedTypes))
-    self.factOpt['algorithm_type'] = facttype.text.lower()
-    if self.factOpt['algorithm_type'] == '2levelfract':
+    self.factOpt['algorithmType'] = facttype.text.lower()
+    if self.factOpt['algorithmType'] == '2levelFract':
       self.factOpt['options'] = {}
       self.factOpt['options']['gen'] = factsettings.find("gen")
       self.factOpt['options']['genMap'] = factsettings.find("genMap")
@@ -2356,12 +2356,12 @@ class FactorialDesign(Grid):
         if var not in self.gridInfo.keys(): self.raiseAnError(IOError,' variable "'+var+'" defined in genMap block not among the inputted variables!')
         rightOrder[self.axisName.index(var)] = self.factOpt['options']['gen'][ii]
       self.factOpt['options']['orderedGen'] = rightOrder
-    if self.factOpt['algorithm_type'] != 'full':
+    if self.factOpt['algorithmType'] != 'full':
       self.externalgGridCoord = True
       for varname in self.gridInfo.keys():
         if len(self.gridEntity.returnParameter("gridInfo")[varname][2]) != 2:
           self.raiseAnError(IOError,'The number of levels for type '+
-                        self.factOpt['algorithm_type'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
+                        self.factOpt['algorithmType'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
                         str(len(self.gridEntity.returnParameter("gridInfo")[varname][2])))
     else: self.externalgGridCoord = False
 
@@ -2383,8 +2383,8 @@ class FactorialDesign(Grid):
     This method initialize the factorial matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
     """
     Grid.localInitialize(self)
-    if   self.factOpt['algorithm_type'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
-    elif self.factOpt['algorithm_type'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
+    if   self.factOpt['algorithmType'] == '2levelFract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
+    elif self.factOpt['algorithmType'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
     if self.designMatrix != None:
       self.designMatrix[self.designMatrix == -1] = 0 # convert all -1 in 0 => we can access to the grid info directly
       self.limit = self.designMatrix.shape[0]        # the limit is the number of rows
@@ -2396,7 +2396,7 @@ class FactorialDesign(Grid):
       @ In, myInput, list of original inputs (unused)
       @ Out, None
     """
-    if self.factOpt['algorithm_type'] == 'full':  Grid.localGenerateInput(self,model, myInput)
+    if self.factOpt['algorithmType'] == 'full':  Grid.localGenerateInput(self,model, myInput)
     else:
       self.gridCoordinate = self.designMatrix[self.counter - 1][:].tolist()
       Grid.localGenerateInput(self,model, myInput)
@@ -2422,28 +2422,28 @@ class ResponseSurfaceDesign(Grid):
     self.designMatrix    = None                                  # matrix container
     self.bounds          = {}                                    # dictionary of lower and upper
     self.mapping         = {}                                    # mapping between designmatrix coordinates and position in grid
-    self.minNumbVars     = {'boxbehnken':3,'centralcomposite':2} # minimum number of variables
+    self.minNumbVars     = {'boxBehnken':3,'centralcomposite':2} # minimum number of variables
     # dictionary of accepted types and options (required True, optional False)
-    self.acceptedOptions = {'boxbehnken':['ncenters'], 'centralcomposite':['centers','alpha','face']}
+    self.acceptedOptions = {'boxBehnken':['ncenters'], 'centralcomposite':['centers','alpha','face']}
 
   def localInputAndChecks(self,xmlNode):
     """reading and construction of the grid"""
     Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("ResponseSurfaceDesignSettings")
     if factsettings == None: self.raiseAnError(IOError,'ResponseSurfaceDesignSettings xml node not found!')
-    facttype = factsettings.find("algorithm_type")
-    if facttype == None: self.raiseAnError(IOError,'node "algorithm_type" not found in ResponseSurfaceDesignSettings xml node!!!')
+    facttype = factsettings.find("algorithmType")
+    if facttype == None: self.raiseAnError(IOError,'node "algorithmType" not found in ResponseSurfaceDesignSettings xml node!!!')
     elif not facttype.text.lower() in self.acceptedOptions.keys():self.raiseAnError(IOError,'"type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedOptions.keys()))
-    self.respOpt['algorithm_type'] = facttype.text.lower()
+    self.respOpt['algorithmType'] = facttype.text.lower()
     # set defaults
-    if self.respOpt['algorithm_type'] == 'boxbehnken': self.respOpt['options'] = {'ncenters':None}
+    if self.respOpt['algorithmType'] == 'boxBehnken': self.respOpt['options'] = {'ncenters':None}
     else                                             : self.respOpt['options'] = {'centers':(4,4),'alpha':'orthogonal','face':'circumscribed'}
     for child in factsettings:
-      if child.tag not in 'algorithm_type': self.respOpt['options'][child.tag] = child.text.lower()
+      if child.tag not in 'algorithmType': self.respOpt['options'][child.tag] = child.text.lower()
     # start checking
     for key,value in self.respOpt['options'].items():
       if key not in self.acceptedOptions[facttype.text.lower()]: self.raiseAnError(IOError,'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
-      if self.respOpt['algorithm_type'] == 'boxbehnken':
+      if self.respOpt['algorithmType'] == 'boxBehnken':
         if key == 'ncenters':
           if self.respOpt['options'][key] != None:
             try   : self.respOpt['options'][key] = int(value)
@@ -2463,7 +2463,7 @@ class ResponseSurfaceDesign(Grid):
       if values[1] != "custom" : self.raiseAnError(IOError,"The grid construct needs to be custom for variable "+varName)
       if len(values[2]) != 2   : self.raiseAnError(IOError,"The number of values can be accepted are only 2 (lower and upper bound) for variable "+varName)
     self.gridCoordinate = [None]*len(self.axisName)
-    if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['algorithm_type']]: self.raiseAnError(IOError,'minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
+    if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['algorithmType']]: self.raiseAnError(IOError,'minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
     self.externalgGridCoord = True
 
   def localAddInitParams(self,tempDict):
@@ -2483,8 +2483,8 @@ class ResponseSurfaceDesign(Grid):
     """
     This method initialize the response matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
     """
-    if   self.respOpt['algorithm_type'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
-    elif self.respOpt['algorithm_type'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
+    if   self.respOpt['algorithmType'] == 'boxBehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
+    elif self.respOpt['algorithmType'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
     gridInfo   = self.gridEntity.returnParameter('gridInfo')
     stepLenght = {}
     for cnt, varName in enumerate(self.axisName):

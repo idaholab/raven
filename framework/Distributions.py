@@ -1313,8 +1313,8 @@ class NDimensionalDistributions(Distribution):
     for key in dictParam:
       if key == 'tolerance':
         self.RNGtolerance = dictParam['tolerance']
-      elif key == 'initial_grid_disc':
-        self.RNGInitDisc  = dictParam['initial_grid_disc']
+      elif key == 'initialGridDisc':
+        self.RNGInitDisc  = dictParam['initialGridDisc']
     self._distribution.updateRNGparameter(self.RNGtolerance,self.RNGInitDisc)
   ######
 

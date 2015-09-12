@@ -37,15 +37,15 @@
 
   <Samplers>
     <MonteCarlo name="MC_external">
-      <sampler_init>
+      <samplerInit>
         <limit>1</limit>
-        <dist_init>
+        <distInit>
           <distribution name="ND_CartesianSpline_P">
-            <initial_grid_disc>5</initial_grid_disc>
+            <initialGridDisc>5</initialGridDisc>
             <tolerance>0.2</tolerance>
           </distribution>
-        </dist_init>
-      </sampler_init>
+        </distInit>
+      </samplerInit>
       <variable name="t1">
         <distribution>t1_distrib</distribution>
       </variable>

@@ -69,9 +69,9 @@
   <!-- SAMPLERS -->
   <Samplers>
     <MonteCarlo name="MC_external">
-      <sampler_init>
+      <samplerInit>
         <limit>100</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
       </variable>

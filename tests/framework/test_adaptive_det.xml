@@ -68,7 +68,7 @@
   </Distributions>
 
   <Samplers>
-    <AdaptiveDynamicEventTree maxSimulationTime="2500.0" name="AdaptiveDET" print_end_xml="yes">
+    <AdaptiveDynamicEventTree maxSimulationTime="2500.0" name="AdaptiveDET" printEndXmlSummary="yes">
       <Convergence forceIteration="False" limit="1600" persistence="20" weight="CDF">0.0001</Convergence>
       <Distribution name="DG1recoveryTime">
         <distribution>crew1DG1</distribution>

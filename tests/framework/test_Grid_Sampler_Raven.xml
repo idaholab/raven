@@ -32,9 +32,9 @@
 
   <Samplers>
     <Grid name="myGrid">
-      <sampler_init>
-        <initial_seed>1</initial_seed>
-      </sampler_init>
+      <samplerInit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
       <variable name="Components|pipe|Tw">
         <distribution>Gauss1</distribution>
         <grid construction="equal" steps="1" type="value">300 303</grid>
