@@ -29,8 +29,7 @@ def XMLpreprocess(xmlNode,xmlFileName=None):
                  'initial_grid_disc':'initialGridDisc',
                  'print_end_xml':'printEndXmlSummary',
                  'algorithm_type':'algorithmType',
-                 '2levelfract':'2levelFract',
-                 'boxbehnken':'boxBehnken'}
+                 '2levelfract':'2levelFract'}
 
   for element in xmlNode.iter():
     if element.tag in convertDict.keys(): element.tag = convertDict[element.tag]
