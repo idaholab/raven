@@ -2320,7 +2320,7 @@ class FactorialDesign(Grid):
     Grid.__init__(self)
     self.printTag = 'SAMPLER FACTORIAL DESIGN'
     # accepted types. full = full factorial, 2levelFract = 2-level fracional factorial, pb = Plackett-Burman design. NB. full factorial is equivalent to Grid sampling
-    self.acceptedTypes = ['full','2levelFract','pb'] # accepted factorial types
+    self.acceptedTypes = ['full','2levelfract','pb'] # accepted factorial types
     self.factOpt       = {}                          # factorial options (type,etc)
     self.designMatrix  = None                        # matrix container
 
@@ -2339,7 +2339,7 @@ class FactorialDesign(Grid):
     if facttype == None: self.raiseAnError(IOError,'node "algorithmType" not found in FactorialSettings xml node!!!')
     elif not facttype.text.lower() in self.acceptedTypes:self.raiseAnError(IOError,' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedTypes))
     self.factOpt['algorithmType'] = facttype.text.lower()
-    if self.factOpt['algorithmType'] == '2levelFract':
+    if self.factOpt['algorithmType'] == '2levelfract':
       self.factOpt['options'] = {}
       self.factOpt['options']['gen'] = factsettings.find("gen")
       self.factOpt['options']['genMap'] = factsettings.find("genMap")
@@ -2383,7 +2383,7 @@ class FactorialDesign(Grid):
     This method initialize the factorial matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
     """
     Grid.localInitialize(self)
-    if   self.factOpt['algorithmType'] == '2levelFract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
+    if   self.factOpt['algorithmType'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
     elif self.factOpt['algorithmType'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
     if self.designMatrix != None:
       self.designMatrix[self.designMatrix == -1] = 0 # convert all -1 in 0 => we can access to the grid info directly

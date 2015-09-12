@@ -28,8 +28,7 @@ def XMLpreprocess(xmlNode,xmlFileName=None):
                  'dist_init':'distInit',
                  'initial_grid_disc':'initialGridDisc',
                  'print_end_xml':'printEndXmlSummary',
-                 'algorithm_type':'algorithmType',
-                 '2levelfract':'2levelFract'}
+                 'algorithm_type':'algorithmType'}
 
   for element in xmlNode.iter():
     if element.tag in convertDict.keys(): element.tag = convertDict[element.tag]
@@ -60,8 +59,7 @@ def convert(tree,fileName=None):
         'initial_grid_disc':'initialGridDisc',
         'print_end_xml':'printEndXmlSummary',
         'algorithm_type':'algorithmType',
-        '2levelfract':'2levelFract',
-        'boxbehnken':'boxBehnken'}
+        }
         @ In, tree, xml.etree.ElementTree object, the contents of a RAVEN input file
         @ In, fileName, the name for the raven input file
         @Out, tree, xml.etree.ElementTree object, the modified RAVEN input file

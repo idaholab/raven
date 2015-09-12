@@ -71,7 +71,7 @@
   type = 'RavenFramework'
   input = 'test_preconditioned_det.xml'
   output = 'PreconditionedDynamicEventTree/PreconditionedDETrunTest/out~PreconditionedDET_test_5-1-2~ideal_pump PreconditionedDynamicEventTree/testprint_hist_hier_PreconditionedDET_test_5-2.csv PreconditionedDynamicEventTree/testprint_hist_hier_variables_PreconditionedDET_test_1-1-2.csv PreconditionedDynamicEventTree/2DHistoryPlot_line.pdf'
-  csv = 'PreconditionedDynamicEventTree/PreconditionedDETrunTest/out~PreconditionedDET_test_5-1-2~ideal_pump.csv'
+  csv = 'PreconditionedDynamicEventTree/PreconditionedDETrunTest/out~PreconditionedDET_test_1~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
   #skip = 'Josh Broke it by breaking RestartInitialize'
  [../]
