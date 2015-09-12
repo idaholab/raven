@@ -248,7 +248,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localInputAndChecks(xmlNode)
 
 
-  def read_samplerInit(self,xmlNode):
+  def readSamplerInit(self,xmlNode):
     """
     This method is responsible to read only the samplerInit block in the .xml file.
     This method has been moved from the base sampler class since the samplerInit block is needed only for the MC and stratified (LHS) samplers
@@ -900,7 +900,7 @@ class MonteCarlo(Sampler):
                    available options specific to this Sampler.
     @ Out, None
     """
-    Sampler.read_samplerInit(self,xmlNode)
+    Sampler.readSamplerInit(self,xmlNode)
 
     if xmlNode.find('samplerInit')!= None:
       if xmlNode.find('samplerInit').find('limit')!= None:
@@ -1164,7 +1164,7 @@ class Stratified(Grid):
                    available options specific to this Sampler.
     @ Out, None
     """
-    Sampler.read_samplerInit(self,xmlNode)
+    Sampler.readSamplerInit(self,xmlNode)
     Grid.localInputAndChecks(self,xmlNode)
     pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1: self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of point in each dimension')
