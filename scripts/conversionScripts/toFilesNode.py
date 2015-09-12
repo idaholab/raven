@@ -2,11 +2,12 @@ import xml.etree.ElementTree as ET
 import xml.dom.minidom as pxml
 import os
 
-def convert(tree):
+def convert(tree,fileName=None):
   """
     Converts input files to be compatible with merge request 255 (Talbpaul/redundant input).  Removes the <Files> node
     from the RunInfo block and makes it into its own node.
     @ In, tree, xml.etree.ElementTree.ElementTree object, the contents of a RAVEN input file
+    @ In, fileName, the name for the raven input file
     @Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN input file
   """
   simulation = tree.getroot()

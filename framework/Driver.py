@@ -110,6 +110,8 @@ if __name__ == '__main__':
       e=IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
       print('\nInput XML Error!',e,'\n')
       sys.exit(1)
+    # call the function to load the external xml files into the ET
+    simulation.XMLpreprocess(root,xmlFileName=inputFile)
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
