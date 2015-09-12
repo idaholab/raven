@@ -2422,9 +2422,9 @@ class ResponseSurfaceDesign(Grid):
     self.designMatrix    = None                                  # matrix container
     self.bounds          = {}                                    # dictionary of lower and upper
     self.mapping         = {}                                    # mapping between designmatrix coordinates and position in grid
-    self.minNumbVars     = {'boxBehnken':3,'centralcomposite':2} # minimum number of variables
+    self.minNumbVars     = {'boxbehnken':3,'centralcomposite':2} # minimum number of variables
     # dictionary of accepted types and options (required True, optional False)
-    self.acceptedOptions = {'boxBehnken':['ncenters'], 'centralcomposite':['centers','alpha','face']}
+    self.acceptedOptions = {'boxbehnken':['ncenters'], 'centralcomposite':['centers','alpha','face']}
 
   def localInputAndChecks(self,xmlNode):
     """reading and construction of the grid"""
@@ -2436,14 +2436,14 @@ class ResponseSurfaceDesign(Grid):
     elif not facttype.text.lower() in self.acceptedOptions.keys():self.raiseAnError(IOError,'"type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedOptions.keys()))
     self.respOpt['algorithmType'] = facttype.text.lower()
     # set defaults
-    if self.respOpt['algorithmType'] == 'boxBehnken': self.respOpt['options'] = {'ncenters':None}
+    if self.respOpt['algorithmType'] == 'boxbehnken': self.respOpt['options'] = {'ncenters':None}
     else                                             : self.respOpt['options'] = {'centers':(4,4),'alpha':'orthogonal','face':'circumscribed'}
     for child in factsettings:
       if child.tag not in 'algorithmType': self.respOpt['options'][child.tag] = child.text.lower()
     # start checking
     for key,value in self.respOpt['options'].items():
       if key not in self.acceptedOptions[facttype.text.lower()]: self.raiseAnError(IOError,'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
-      if self.respOpt['algorithmType'] == 'boxBehnken':
+      if self.respOpt['algorithmType'] == 'boxbehnken':
         if key == 'ncenters':
           if self.respOpt['options'][key] != None:
             try   : self.respOpt['options'][key] = int(value)
@@ -2483,7 +2483,7 @@ class ResponseSurfaceDesign(Grid):
     """
     This method initialize the response matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
     """
-    if   self.respOpt['algorithmType'] == 'boxBehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
+    if   self.respOpt['algorithmType'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
     elif self.respOpt['algorithmType'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
     gridInfo   = self.gridEntity.returnParameter('gridInfo')
     stepLenght = {}
