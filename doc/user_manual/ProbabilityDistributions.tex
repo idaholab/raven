@@ -742,19 +742,50 @@ f_{\mathbf x}(x_1,\ldots,x_k) =
 \right),
 $
 
-The specifications of this distribution must be defined within the xml block \xmlNode{MultivariateNormal}.  In RAVEN the MultivariateNormal distribution can be initialized through the following keywords:
+The specifications of this distribution must be defined within the xml block \xmlNode{MultivariateNormal}.
+This XML node needs to contain the attributes:
+\vspace{-5mm}
 \begin{itemize}
-\item \xmlNode{mu}, list of mean values of each dimension
-\item \xmlNode{covariance}, list of element values in the covariance matrix
+\itemsep0em
+\item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined identifier of this multivariate normal distribution.
+%
+\nb As with other objects, this is the name that can be used to refer to this specific entity from other input XML blocks.
+\item \xmlAttr{method}, \xmlDesc{required string attribute}, defines which method is used to generate the multivariate normal distribution. 
+The only allowable methods are \xmlString{spline} and \xmlString{pca}.
+%
+\end{itemize}
+\vspace{-5mm}
+
+In RAVEN the MultivariateNormal distribution can be initialized through the following keywords:
+\begin{itemize}
+  \item \xmlNode{mu}, list of mean values of each dimension
+  \item \xmlNode{covariance}, list of element values in the covariance matrix. There are two types of \xmlNode{covariance}, based on the \xmlAttr{type}:
+  \begin{itemize}
+    \item \xmlAttr{type} \xmlDesc{string, optional field} specifies the type of covariance. Possible values for \xmlAttr{type} are \xmlString{abs} and \xmlString{rel}.
+  \end{itemize}
 \end{itemize}
 
 Example:
 \begin{lstlisting}[style=XML]
 <Distributions>
   ...
-    <MultivariateNormal name='MultivariateNormal_test'>
+    <MultivariateNormal name='MultivariateNormal_test' method='spline'>
         <mu>0.0 60.0</mu>
         <covariance>
+	1.0 0.7
+	0.7 1.0
+        </covariance>
+    </MultivariateNormal>
+    <MultivariateNormal name='MultivariateNormal_abs' method='pca'>
+        <mu>0.0 60.0</mu>
+        <covariance type='abs'>
+	1.0 0.7
+	0.7 1.0
+        </covariance>
+    </MultivariateNormal>
+    <MultivariateNormal name='MultivariateNormal_rel' method='pca'>
+        <mu>0.0 60.0</mu>
+        <covariance type='rel'>
 	1.0 0.7
 	0.7 1.0
         </covariance>
@@ -762,7 +793,6 @@ Example:
   ...
 </Distributions>
 \end{lstlisting}
-
 
 \subsubsection{NDInverseWeight Distribution}
 \label{NDInverseWeight}
