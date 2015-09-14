@@ -15,7 +15,7 @@ import copy
 import abc
 import numpy as np
 import json
-from operator import mul,itemgetter
+from operator import mul
 from collections import OrderedDict
 from functools import reduce
 from scipy import spatial
@@ -40,8 +40,6 @@ import IndexSets
 import PostProcessors
 import MessageHandler
 import GridEntities
-import DataObjects
-import Models
 distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -774,8 +772,6 @@ class LimitSurfaceSearch(AdaptiveSampler):
       for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
       distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
       #the hanging point are added to the list of the already explored points so not to pick the same when in //
-      #      lastPoint = [self.functionValue[name][-1] for name in [key.replace('<distribution>','') for key in self.axisName]]
-      #      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
       tempDict = {}
       for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
         tempDict[varName]     = self.surfPoint[:,varIndex]
@@ -1954,10 +1950,6 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     It is implmented by the samplers that need to request special objects
     @ In , None, None
     @ Out, needDict, list of objects needed
-<<<<<<< Temporary merge branch 1
-    '''
-    adaptNeed = LimitSurfaceSearch._localWhatDoINeed(self)
-=======
     """
     adaptNeed = LimitSurfaceSearch._localWhatDoINeed(self)
     DETNeed   = DynamicEventTree._localWhatDoINeed(self)
@@ -2672,8 +2664,6 @@ class SparseGridCollocation(Grid):
         self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1'}
     #establish all the right names for the desired types
     for varName,dat in self.gridInfo.items():
-      self.raiseADebug('checking dat',dat.keys())
-      self.raiseADebug('checking distDict',self.distDict.keys())
       if dat['poly'] == 'DEFAULT': dat['poly'] = self.distDict[varName].preferredPolynomials
       if dat['quad'] == 'DEFAULT': dat['quad'] = self.distDict[varName].preferredQuadrature
       polyType=dat['poly']
@@ -2722,7 +2712,7 @@ class SparseGridCollocation(Grid):
         for v,varName in enumerate(self.sparseGrid.varNames):
           self.values[varName] = pt[v]
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-        self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+        self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['ProbabilityWeight'] = weight
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 #
@@ -2791,12 +2781,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
     #print out the setup for each variable.
     self.raiseADebug(' INTERPOLATION INFO:')
-    self.raiseADebug(' {:^15} | {:^15} | {:^15} | {:^15}'.format('Variable','Distribution','Quadrature','Polynomials'))
-    self.raiseADebug(' {0:*^16}|{0:*^17}|{0:*^17}|{0:*^17}'.format(''))
-    #self.raiseADebug(' {:*^69}'.format(''))
+    self.raiseADebug('    Variable | Distribution | Quadrature | Polynomials')
     for v in self.quadDict.keys():
-      self.raiseADebug(' {:^15} | {:^15} | {:^15} | {:^15}'.format(v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type))
-        #self.raiseADebug('   '+' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
+      self.raiseADebug('   '+' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
     self.raiseADebug('    Polynomial Set Type  : adaptive')
 
     #create the index set
@@ -2884,19 +2871,13 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if not self.solns.isItEmpty():
       inps = self.solns.getInpParametersValues()
       outs = self.solns.getOutParametersValues()
-      self.raiseADebug('inps:',inps)
-      self.raiseADebug('outs:',outs)
       #make reorder map
       reordmap=list(inps.keys().index(i) for i in self.features)
       solns = list(v for v in inps.values())
-      ordsolns = [tuple(solns[i] for i in reordmap)]
-      self.raiseADebug('      inp pts:',ordsolns)
+      ordsolns = [solns[i] for i in reordmap]
       existinginps = zip(*ordsolns)
-      self.raiseADebug('      existinginps:',existinginps)
       outvals = zip(*list(v for v in outs.values()))
       self.existing = dict(zip(existinginps,outvals))
-    else:
-      self.raiseADebug('solns is empty!')
 
   def _integrateFunction(self,sg,r,i):
     """
@@ -2958,26 +2939,19 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ Out, ready, bool, true if ready
     """
     #update existing solutions
-    self.raiseAWarning('...checking local still ready: start')
     self._updateExisting()
-    self.raiseAWarning('...checking local still ready: neededPoints')
-    self.raiseAWarning('     ',self.neededPoints)
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
     #if we still have a list of points to sample, just keep on trucking.
-    if len(self.neededPoints)>0:
-      self.raiseADebug('we know some points we need to run still...')
-      return True
+    if len(self.neededPoints)>0: return True
     #if points all submitted but not all done, not ready for now.
     if (not self.batchDone) or (not self.jobHandler.isFinished()):
-      self.raiseADebug('There are jobs that need to finish before we can find new points...')
       return False
-    #if len(self.existing) < self.newSolutionSizeShouldBe:
-    #  self.raiseADebug('Still collecting; existing has less points (%i) than it should (%i)!' %(len(self.existing),self.newSolutionSizeShouldBe))
-    #  return False
+    if len(self.existing) < self.newSolutionSizeShouldBe:
+      #self.raiseADebug('Still collecting; existing has less points (%i) than it should (%i)!' %(len(self.existing),self.newSolutionSizeShouldBe))
+      return False
     #if no points to check right now, search for points to sample
     while len(self.neededPoints)<1:
-      self.raiseAWarning('checking local still ready 3')
       self.raiseADebug('')
       self.raiseADebug('Evaluating new points...')
       #update QoIs and impact parameters
@@ -3041,7 +3015,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
             self.neededPoints.append(pt)
     #if we exited the while-loop searching for new points and there aren't any, we're done!
     if len(self.neededPoints)==0:
-      self.raiseADebug('Converged!  Finalizing ROM initialization...')
       self.indexSet.printOut()
       self.finalizeROM()
       self.unfinished = self.jobHandler.numRunning()
@@ -3080,7 +3053,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
@@ -3276,7 +3249,7 @@ class Sobol(SparseGridCollocation):
       for v,varName in enumerate(self.distDict.keys()):
         self.values[varName] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-      self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+      self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight'] =  N/A
       self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
 #
