@@ -15,6 +15,12 @@
   prereq = simple_framework
  [../]
 
+ [./external_xml]
+   type = 'RavenFramework'
+   input = 'test_External_XML.xml'
+   output = 'ExternalXMLTest/outGrid_dump.xml'
+   csv = 'ExternalXMLTest/outGrid_dump.csv'
+ [../]
 
  [./test_output]
   type = 'RavenFramework'
@@ -510,7 +516,9 @@
    output = 'dataObject_metadata/PointProbability_dump.xml'
    xml = 'dataObject_metadata/PointProbability_dump.xml'
    csv = 'dataObject_metadata/PointProbability_dump.csv'
-[./CubitMooseInterface]
+ [../]
+
+ [./CubitMooseInterface]
    type = 'RavenFramework'
    input = 'test_CUBIT_MOOSE.xml'
    output = 'CUBIT_MOOSE_test/grid_run/mesh~rectangle_1.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_2.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_3.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_4.e'
@@ -523,7 +531,7 @@
    required_libraries = 'cubit'
  [../]
 
-[./BisonAndMeshInterface]
+ [./BisonAndMeshInterface]
    type = 'RavenFramework'
    input = 'test_BISON_and_MESH.xml'
    output = 'BISON_and_MESH_test/grid_run/mesh~coarse_input_1.e BISON_and_MESH_test/grid_run/mesh~coarse_input_2.e BISON_and_MESH_test/grid_run/mesh~coarse_input_3.e BISON_and_MESH_test/grid_run/mesh~coarse_input_4.e BISON_and_MESH_test/grid_run/mesh~coarse_input_5.e BISON_and_MESH_test/grid_run/mesh~coarse_input_6.e BISON_and_MESH_test/grid_run/mesh~coarse_input_7.e BISON_and_MESH_test/grid_run/mesh~coarse_input_8.e BISON_and_MESH_test/grid_run/mesh~coarse_input_9.e BISON_and_MESH_test/grid_run/mesh~coarse_input_10.e BISON_and_MESH_test/grid_run/mesh~coarse_input_11.e BISON_and_MESH_test/grid_run/mesh~coarse_input_12.e BISON_and_MESH_test/grid_run/mesh~coarse_input_13.e BISON_and_MESH_test/grid_run/mesh~coarse_input_14.e BISON_and_MESH_test/grid_run/mesh~coarse_input_15.e BISON_and_MESH_test/grid_run/mesh~coarse_input_16.e'
@@ -532,10 +540,10 @@
    required_libraries = 'cubit'
  [../]
 
-  [./failrunsMC]
-    type = 'RavenFramework'
-    input = 'test_failruns_MC.xml'
-    output = 'RunFailures/MCdump.xml RunFailures/MCdumpC.xml'
-    csv = 'RunFailures/MCdump.csv RunFailures/MCdumpC.csv'
-  [../]
+ [./failrunsMC]
+   type = 'RavenFramework'
+   input = 'test_failruns_MC.xml'
+   output = 'RunFailures/MCdump.xml RunFailures/MCdumpC.xml'
+   csv = 'RunFailures/MCdump.csv RunFailures/MCdumpC.csv'
+ [../]
 []

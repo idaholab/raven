@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>ExternalXMLTest</WorkingDir>
+    <Sequence>CustomSampler</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+  </Models>
+
+  <ExternalXML node="Distributions" xmlToLoad="ExternalXMLTest/external_distributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="ExternalXMLTest/external_samplers.xml"/>
+
+
+  <DataObjects>
+    <ExternalXML node="PointSet" xmlToLoad="ExternalXMLTest/external_pointset1.xml"/>
+    <PointSet name="dummyIN">
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="outGrid_dump">
+      <ExternalXML node="type" xmlToLoad="ExternalXMLTest/external_printtype.xml"/>
+      <ExternalXML node="source" xmlToLoad="ExternalXMLTest/external_printsource.xml"/>
+    </Print>
+  </OutStreamManager>
+
+  <Steps>
+    <ExternalXML node="MultiRun" xmlToLoad="ExternalXMLTest/external_multirun.xml"/>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="test_DummyModel_db"/>
+  </Databases>
+
+</Simulation>

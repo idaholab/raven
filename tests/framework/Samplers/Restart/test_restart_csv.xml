@@ -9,7 +9,7 @@
   <Files>
     <Input name='csv' type=''>../mc/MCdump1.csv</Input>
   </Files>
-  
+
   <Steps>
     <MultiRun name="make">
       <Input class="DataObjects" type="PointSet">solns</Input>
@@ -18,8 +18,8 @@
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
     <IOStep name="load">
-      <Input class='Files' type=''>csv</Input>
-      <Output class='DataObjects' type='PointSet'>solns</Output>
+      <Input class="Files" type="">csv</Input>
+      <Output class="DataObjects" type="PointSet">solns</Output>
     </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
@@ -50,7 +50,7 @@
       <variable name="x2">
         <distribution>u2</distribution>
       </variable>
-      <Restart class='DataObjects' type='PointSet'>solns</Restart>
+      <Restart class="DataObjects" type="PointSet">solns</Restart>
     </MonteCarlo>
   </Samplers>
 
