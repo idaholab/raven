@@ -2884,12 +2884,15 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if not self.solns.isItEmpty():
       inps = self.solns.getInpParametersValues()
       outs = self.solns.getOutParametersValues()
+      self.raiseADebug('inps:',inps)
+      self.raiseADebug('outs:',outs)
       #make reorder map
       reordmap=list(inps.keys().index(i) for i in self.features)
       solns = list(v for v in inps.values())
       ordsolns = [tuple(solns[i] for i in reordmap)]
-      self.raiseADebug('      solns:',ordsolns)
+      self.raiseADebug('      inp pts:',ordsolns)
       existinginps = zip(*ordsolns)
+      self.raiseADebug('      existinginps:',existinginps)
       outvals = zip(*list(v for v in outs.values()))
       self.existing = dict(zip(existinginps,outvals))
     else:
@@ -2962,13 +2965,16 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
     #if we still have a list of points to sample, just keep on trucking.
-    if len(self.neededPoints)>0: return True
+    if len(self.neededPoints)>0:
+      self.raiseADebug('we know some points we need to run still...')
+      return True
     #if points all submitted but not all done, not ready for now.
     if (not self.batchDone) or (not self.jobHandler.isFinished()):
+      self.raiseADebug('There are jobs that need to finish before we can find new points...')
       return False
-    if len(self.existing) < self.newSolutionSizeShouldBe:
-      #self.raiseADebug('Still collecting; existing has less points (%i) than it should (%i)!' %(len(self.existing),self.newSolutionSizeShouldBe))
-      return False
+    #if len(self.existing) < self.newSolutionSizeShouldBe:
+    #  self.raiseADebug('Still collecting; existing has less points (%i) than it should (%i)!' %(len(self.existing),self.newSolutionSizeShouldBe))
+    #  return False
     #if no points to check right now, search for points to sample
     while len(self.neededPoints)<1:
       self.raiseAWarning('checking local still ready 3')
@@ -3035,6 +3041,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
             self.neededPoints.append(pt)
     #if we exited the while-loop searching for new points and there aren't any, we're done!
     if len(self.neededPoints)==0:
+      self.raiseADebug('Converged!  Finalizing ROM initialization...')
       self.indexSet.printOut()
       self.finalizeROM()
       self.unfinished = self.jobHandler.numRunning()
@@ -3319,10 +3326,12 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       @ In, None
       @ Out, None
     '''
+    self.raiseADebug('...Initializing Sampler...')
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     self.ROM = self.assemblerDict['ROM'][0][3]
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0]
+    self.raiseADebug('...Generating Quadratures...')
     self._generateQuadsAndPolys(SVL)
     self.features     = SVL.features
     self.targets      = self.ROM.initializationOptionDict['Target'].split(',')
@@ -3335,12 +3344,19 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.actImpact    = {} #dict of actual impacts by combo
     self.expImpact    = {} #dict of predicted impacts by combo
     #calculate first order combos
-    self.raiseADebug('features:',self.features)
-    self.first_combos = itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in [1,1])
+    self.raiseADebug('...features:',self.features)
+    self.raiseADebug('...Initializing first combo set...')
+    #the below doesn't work because the tuple of a string is its individual parts: tuple('a1') == ('a','1')
+    #self.first_combos = list(tuple(i) for i in itertools.chain.from_iterable(itertools.combinations(self.features,1)))
+    self.first_combos = list(itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in [0,1]))
+    self.raiseADebug('...first combos:',self.first_combos)
     #return itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(low,high+1))
-    self.raiseADebug('first set:')
-    for c in self.first_combos:
-      self.raiseADebug('  ',c)
+    self.raiseADebug('...initializing first set:')
+    for c in self.first_combos[:]:
+      self.raiseADebug('  c=',c)
+      if len(c)<1:
+        self.first_combos.remove(c)
+        continue
       self._makeComboParts(c)
       self.inTraining[c]=self.samplers[c]
     #establish reference cut
@@ -3378,6 +3394,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       @ Out, bool, true if pt only varies in combo dimensions from the reference point
     '''
     isCut = True
+    self.raiseADebug('.........combo:',combo)
+    self.raiseADebug('.........point:',pt)
     for v,var in enumerate(self.features):
       if var in combo:continue
       if pt[v] != self.references[var]:
@@ -3501,15 +3519,25 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       @ In, None
       @ Out, None
     '''
+    self.raiseADebug('...updating existing database of points...')
+    if self.solns.isItEmpty():
+      self.raiseADebug('......no solutions yet...')
+      return
     AdaptiveSparseGrid._updateExisting(self)
+    #FIXME are these the right points, or do they need to be reverted from cut points?
+    self.raiseADebug('existing:',self.existing)
+    for key,value in self.existing.items():
+      self.raiseADebug('existing entry:',key,value)
+
+    self.raiseADebug('...divvying up points...')
     #make subset solns for subsets
     #solns={}
     for combo,sampler in self.samplers.items():
       #solns[combo] = []
       counter = 0
-      self.raiseADebug('DataObject for combo',combo,self.samplers[combo].solns)
+      self.raiseADebug('......DataObject for combo',combo,self.samplers[combo].solns)
       if self.samplers[combo].solns is None or self.samplers[combo].solns.isItEmpty():
-        self.raiseADebug('Creating DataObject for combo',combo)
+        self.raiseADebug('......Creating DataObject for combo',combo)
         dataObj = DataObjects.returnInstance('PointSet',self)
         dataObj.type='PointSet'
         #write XML for intializing
@@ -3528,8 +3556,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         dataObj = self.samplers[combo].solns
       #add in relevant cut-hyperplane data
       if len(self.existing)>0:
-        self.raiseADebug('in existing:',self.existing)
-        self.raiseADebug('targets:',self.targets)
+        self.raiseADebug('......in existing:',self.existing)
+        self.raiseADebug('......targets:',self.targets)
         for inp,soln in self.existing.items():
           if self._checkCutPoint(combo,inp): #indicates it's part of the desired cut hyperplane
             #solns[combo].append(soln)
@@ -3589,6 +3617,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.ROM.SupervisedEngine.values()[0].initialize(initdict) #TODO FIXME multitarget
 
   def localStillReady(self,ready):
+    self.raiseADebug('\n\n\n\n')
+    self.raiseADebug('...checking if still ready...')
     #update existing solutions
     self._updateExisting()
     #if we're already not ready, just return it
