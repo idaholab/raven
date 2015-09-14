@@ -24,7 +24,7 @@ do
     for I in $(python ${SCRIPT_DIR}/get_coverage_tests.py)
     do
         # convert the input files contain the external xml to normal raven input files and then validate
-        $PYTHON_CMD $CONVERSION_SCRIPT_DIR/externalXMLNode.py $I #> /dev/null
+        $PYTHON_CMD $CONVERSION_SCRIPT_DIR/externalXMLNode.py $I > /dev/null
         # echo -e "\033[1;32mThe following script: $I has been converted for xsd validate"
         echo -en "\033[0mValidating $I"
         startlen=$((11+${#I}))
