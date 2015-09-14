@@ -1,0 +1,45 @@
+[Tests]
+ [./MC]
+  type = 'RavenFramework'
+  input = 'test_restart_MC.xml'
+  output = 'mc/MCdump1.xml mc/MCdump2.xml mc/MCdump3.xml'
+  xml = 'mc/MCdump1.xml mc/MCdump2.xml mc/MCdump3.xml'
+  csv = 'mc/MCdump1.csv mc/MCdump2.csv mc/MCdump3.csv'
+ [../]
+ [./Stratified]
+  type = 'RavenFramework'
+  input = 'test_restart_Strat.xml'
+  output = 'stratified/STRATdump1.xml stratified/STRATdump2.xml stratified/STRATdump3.xml'
+  xml = 'stratified/STRATdump1.xml stratified/STRATdump2.xml stratified/STRATdump3.xml'
+  csv = 'stratified/STRATdump1.csv stratified/STRATdump2.csv stratified/STRATdump3.csv'
+ [../]
+ [./StochPoly]
+  type = 'RavenFramework'
+  input = 'test_restart_stochpoly.xml'
+  output = 'sparsegrid/SCdump1.xml sparsegrid/SCdump2.xml sparsegrid/SCdump3.xml'
+  xml = 'sparsegrid/SCdump1.xml sparsegrid/SCdump2.xml sparsegrid/SCdump3.xml'
+  csv = 'sparsegrid/SCdump1.csv sparsegrid/SCdump2.csv sparsegrid/SCdump3.csv'
+ [../]
+ [./Sobol]
+  type = 'RavenFramework'
+  input = 'test_restart_sobol.xml'
+  output = 'sobol/SOBOLdump1.xml sobol/SOBOLdump2.xml sobol/SOBOLdump3.xml'
+  xml = 'sobol/SOBOLdump1.xml sobol/SOBOLdump2.xml sobol/SOBOLdump3.xml'
+  csv = 'sobol/SOBOLdump1.csv sobol/SOBOLdump2.csv sobol/SOBOLdump3.csv'
+ [../]
+ [./Grid]
+  type = 'RavenFramework'
+  input = 'test_restart_Grid.xml'
+  output = 'grid/GRIDdump1.xml grid/GRIDdump2.xml grid/GRIDdump3.xml'
+  xml = 'grid/GRIDdump1.xml grid/GRIDdump2.xml grid/GRIDdump3.xml'
+  csv = 'grid/GRIDdump1.csv grid/GRIDdump2.csv grid/GRIDdump3.csv'
+ [../]
+
+ [./CSV]
+  type = 'RavenFramework'
+  input = 'test_restart_csv.xml'
+  output = 'csv/CSVdump.xml'
+  csv = 'csv/CSVdump.csv'
+  prereq = MC
+ [../]
+[]
