@@ -62,7 +62,7 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
       {dimensionNames:[]}, required,list of axis names (dimensions' IDs)
       {lowerBounds:{}}, required, dictionary of lower bounds for each dimension
       {upperBounds:{}}, required, dictionary of upper bounds for each dimension
-      {volumetriRatio:float or stepLenght:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLenghts ({'varName:list,etc'}
+      {volumetriRatio:float or stepLength:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLengths ({'varName:list,etc'}
       {computeCells:bool},optional, boolean to ask to compute the cells ids and verteces coordinates, default = False
       {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate
       !!!!!!
@@ -236,7 +236,7 @@ class GridEntity(GridBase):
      @ Out, None
     """
     if messageHandler != None: self.setMessageHandler(messageHandler)
-    self.gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'stepLenght':{}}
+    self.gridInitDict = {'dimensionNames':[],'lowerBounds':{},'upperBounds':{},'stepLength':{}}
     gridInfo = {}
     dimInfo = {}
     for child in xmlNode:
@@ -265,7 +265,7 @@ class GridEntity(GridBase):
         gridInfo[key] = globalGrids[gridInfo[key][-1].strip()]
       self.gridInitDict['lowerBounds'           ][key] = min(gridInfo[key][-1])
       self.gridInitDict['upperBounds'           ][key] = max(gridInfo[key][-1])
-      self.gridInitDict['stepLenght'            ][key] = [round(gridInfo[key][-1][k+1] - gridInfo[key][-1][k],14) for k in range(len(gridInfo[key][-1])-1)] if gridInfo[key][1] == 'custom' else [round(gridInfo[key][-1][1] - gridInfo[key][-1][0],14)]
+      self.gridInitDict['stepLength'            ][key] = [round(gridInfo[key][-1][k+1] - gridInfo[key][-1][k],14) for k in range(len(gridInfo[key][-1])-1)] if gridInfo[key][1] == 'custom' else [round(gridInfo[key][-1][1] - gridInfo[key][-1][0],14)]
     self.gridContainer['gridInfo'               ]      = gridInfo
     self.gridContainer['dimInfo'] = dimInfo
 
@@ -304,7 +304,7 @@ class GridEntity(GridBase):
       {dimensionNames:[]}, required,list of axis names (dimensions' IDs)
       {lowerBounds:{}}, required, dictionary of lower bounds for each dimension
       {upperBounds:{}}, required, dictionary of upper bounds for each dimension
-      {volumetriRatio:float or stepLenght:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLenghts ({'varName:list,etc'}
+      {volumetriRatio:float or stepLength:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLengths ({'varName:list,etc'}
       {computeCells:bool},optional, boolean to ask to compute the cells ids and verteces coordinates, default = False
       {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate. the transformationMethods dictionary needs to be provided as follow:
                                   {"dimensionName1":[instanceOfMethod,optional *args (in case the method takes as input other parameters in addition to a coordinate],
@@ -342,30 +342,30 @@ class GridEntity(GridBase):
     if upperkeys != lowerkeys != self.gridContainer['dimensionNames']: self.raiseAnError(Exception,'dimensionNames and keys in upperBounds and lowerBounds dictionaries do not correspond')
     self.gridContainer['bounds']["upperBounds" ] = self.gridInitDict["upperBounds"] if "upperBounds" in self.gridInitDict.keys() else initDict["upperBounds"]
     self.gridContainer['bounds']["lowerBounds"]  = self.gridInitDict["lowerBounds"] if "lowerBounds" in self.gridInitDict.keys() else initDict["lowerBounds"]
-    if "volumetricRatio" not in initDict.keys() and "stepLenght" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"volumetricRatio" or "stepLenght" key is not present in the initialization dictionary')
-    if "volumetricRatio"  in initDict.keys() and "stepLenght" in initDict.keys()+readKeys: self.raiseAWarning('"volumetricRatio" and "stepLenght" keys are both present! the "volumetricRatio" has priority!')
+    if "volumetricRatio" not in initDict.keys() and "stepLength" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"volumetricRatio" or "stepLength" key is not present in the initialization dictionary')
+    if "volumetricRatio"  in initDict.keys() and "stepLength" in initDict.keys()+readKeys: self.raiseAWarning('"volumetricRatio" and "stepLength" keys are both present! the "volumetricRatio" has priority!')
     if "volumetricRatio" in initDict.keys():
       self.volumetricRatio = initDict["volumetricRatio"]
       # build the step size in 0-1 range such as the differential volume is equal to the tolerance
-      stepLenght, ratioRelative = [], self.volumetricRatio**(1./float(self.nVar))
-      for varId in range(len(self.gridContainer['dimensionNames'])): stepLenght.append([ratioRelative*(self.gridContainer['bounds']["upperBounds" ][self.gridContainer['dimensionNames'][varId]] - self.gridContainer['bounds']["lowerBounds" ][self.gridContainer['dimensionNames'][varId]])])
+      stepLength, ratioRelative = [], self.volumetricRatio**(1./float(self.nVar))
+      for varId in range(len(self.gridContainer['dimensionNames'])): stepLength.append([ratioRelative*(self.gridContainer['bounds']["upperBounds" ][self.gridContainer['dimensionNames'][varId]] - self.gridContainer['bounds']["lowerBounds" ][self.gridContainer['dimensionNames'][varId]])])
     else:
-      if "stepLenght" not in readKeys:
-        if type(initDict["stepLenght"]).__name__ != "dict": self.raiseAnError(Exception,'The stepLenght entry is not a dictionary')
-      stepLenght = []
-      for dimName in self.gridContainer['dimensionNames']: stepLenght.append(initDict["stepLenght"][dimName] if  "stepLenght" not in readKeys else self.gridInitDict["stepLenght"][dimName])
+      if "stepLength" not in readKeys:
+        if type(initDict["stepLength"]).__name__ != "dict": self.raiseAnError(Exception,'The stepLength entry is not a dictionary')
+      stepLength = []
+      for dimName in self.gridContainer['dimensionNames']: stepLength.append(initDict["stepLength"][dimName] if  "stepLength" not in readKeys else self.gridInitDict["stepLength"][dimName])
     #moving forward building all the information set
     pointByVar                           = [None]*self.nVar  #list storing the number of point by cooridnate
     self.gridContainer['initDictionary'] = initDict
     #building the grid point coordinates
     for varId, varName in enumerate(self.gridContainer['dimensionNames']):
-      if len(stepLenght[varId]) == 1:
+      if len(stepLength[varId]) == 1:
         # equally spaced or volumetriRatio. (the use of np.finfo(float).eps is only to avoid round-off error, the upperBound is included in the mesh)
         # Any number greater than zero and less than one should suffice
         if self.volumetricRatio != None:
           self.gridContainer['gridVectors'][varName] = np.arange(self.gridContainer['bounds']["lowerBounds"][varName],
                                                                  self.gridContainer['bounds']["upperBounds" ][varName],
-                                                                 stepLenght[varId][-1])
+                                                                 stepLength[varId][-1])
         else:
           # DM: Enhancing readability of this conditional by using local
           # variables. This portion of the conditional is for evenly-spaced
@@ -386,14 +386,14 @@ class GridEntity(GridBase):
           # mistake in either direction as possible.
           lb = self.gridContainer['bounds']["lowerBounds"][varName]
           ub = self.gridContainer['bounds']["upperBounds" ][varName]
-          stepSize = stepLenght[varId][-1]
+          stepSize = stepLength[varId][-1]
           myEps = stepSize * 0.5 # stepSize * np.finfo(float).eps
           self.gridContainer['gridVectors'][varName] = np.concatenate((np.arange(lb, ub-myEps, stepSize), np.atleast_1d(ub)))
       else:
         # custom grid
         # it is not very efficient, but this approach is only for custom grids => limited number of discretizations
         gridMesh = [self.gridContainer['bounds']["lowerBounds"][varName]]
-        for stepLenghti in stepLenght[varId]: gridMesh.append(round(gridMesh[-1],14)+round(stepLenghti,14))
+        for stepLengthi in stepLength[varId]: gridMesh.append(round(gridMesh[-1],14)+round(stepLengthi,14))
         self.gridContainer['gridVectors'][varName] = np.asarray(gridMesh)
       if not compare(round(max(self.gridContainer['gridVectors'][varName]),14), round(self.gridContainer['bounds']["upperBounds" ][varName],14)) and self.volumetricRatio == None: self.raiseAnError(IOError,"the maximum value in the grid is bigger that upperBound! upperBound: "+
                                                                                                                                       str(self.gridContainer['bounds']["upperBounds" ][varName]) +
@@ -586,12 +586,12 @@ class MultiGridEntity(GridBase):
     """
     Overload __len__ method. It iterates over all the hierarchical structure of grids
     @ In, None
-    @ Out, totalLenght, integer, total number of nodes
+    @ Out, totalLength, integer, total number of nodes
     """
-    totalLenght = 0
+    totalLength = 0
     for node in self.grid.iter():
-      totalLenght += len(node.get('grid'))
-    return totalLenght
+      totalLength += len(node.get('grid'))
+    return totalLength
 
   def _readMoreXml(self,xmlNode,dimensionTags=None,messageHandler=None,dimTagsPrefix=None):
     """
@@ -610,7 +610,7 @@ class MultiGridEntity(GridBase):
       {dimensionNames:[]}, required,list of axis names (dimensions' IDs)
       {lowerBounds:{}}, required, dictionary of lower bounds for each dimension
       {upperBounds:{}}, required, dictionary of upper bounds for each dimension
-      {volumetriRatio:float or stepLenght:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLenghts ({'varName:list,etc'}
+      {volumetriRatio:float or stepLength:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLengths ({'varName:list,etc'}
       {subGridVolumetricRatio:float}, optional, p.u. volumetric ratio of the subGrid, default  1.e5
       {computeCells:bool},optional, boolean to ask to compute the cells ids and verteces coordinates, default = False
       {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate
@@ -710,8 +710,8 @@ class MultiGridEntity(GridBase):
           if "volumetricRatio" in refineDict.keys(): initDict["volumetricRatio"] = refineDict["volumetricRatio"]
           else:
             if "volumetricRatio" in initDict.keys(): initDict.pop("volumetricRatio")
-            initDict["stepLenght"] = {}
-            for key in lowerBounds.keys(): initDict["stepLenght"][key] = [(upperBounds[key] - lowerBounds[key])/float(refineDict["refiningNumSteps"])]
+            initDict["stepLength"] = {}
+            for key in lowerBounds.keys(): initDict["stepLength"][key] = [(upperBounds[key] - lowerBounds[key])/float(refineDict["refiningNumSteps"])]
           initDict["startingCellId"] = maxCellId+1
           newGrid.initialize(initDict)
           maxCellId   = max(newGrid.returnParameter('cellIDs').keys())
