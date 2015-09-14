@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
 <!-- A simple example of the approximate Morse-Smale complex (AMSC) interface
      where each of the examples will showcase different partitions using
      different persistence simplfication metrics -->
-<!-- <Simulation verbosity="silent"> -->
-<Simulation>
   <RunInfo>
     <WorkingDir>topology2</WorkingDir>
     <Sequence>

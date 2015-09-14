@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
 <!-- An example of the approximate Morse-Smale complex interface that tests each
      graph structures available -->
-<Simulation>
   <RunInfo>
     <WorkingDir>topology3</WorkingDir>
     <Sequence>

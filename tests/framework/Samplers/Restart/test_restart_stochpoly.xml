@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="quiet">
+<Simulation>
   <RunInfo>
-    <WorkingDir>SamplerRestarts</WorkingDir>
-    <Sequence>make1,print1,make2,print2,print3</Sequence>
+    <WorkingDir>sparsegrid</WorkingDir>
+    <Sequence>make1,train1,print1,make2,train2,print2,print3</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -10,73 +10,91 @@
     <MultiRun name="make1">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="Grid">1</Sampler>
+      <Sampler class="Samplers" type="SparseGridCollocation">SG</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
     <MultiRun name="make2">
       <Input class="DataObjects" type="PointSet">solns</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="Grid">2</Sampler>
+      <Sampler class="Samplers" type="SparseGridCollocation">SG2</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
       <Output class="DataObjects" type="PointSet">solns2</Output>
     </MultiRun>
     <IOStep name="print1">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">GRIDdump1</Output>
+      <Output class="OutStreamManager" type="Print">SCdump1</Output>
     </IOStep>
     <IOStep name="print2">
       <Input class="DataObjects" type="PointSet">solns2</Input>
-      <Output class="OutStreamManager" type="Print">GRIDdump2</Output>
+      <Output class="OutStreamManager" type="Print">SCdump2</Output>
     </IOStep>
     <IOStep name="print3">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">GRIDdump3</Output>
+      <Output class="OutStreamManager" type="Print">SCdump3</Output>
     </IOStep>
+    <RomTrainer name="train2">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="Models" type="ROM">rom2</Output>
+    </RomTrainer>
+    <RomTrainer name="train1">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
   </Steps>
 
   <Distributions>
-    <Uniform name="u1">
+    <Uniform name="UniDist">
       <lowerBound>1</lowerBound>
-      <upperBound>2</upperBound>
-    </Uniform>
-    <Uniform name="u2">
-      <lowerBound>2</lowerBound>
-      <upperBound>3</upperBound>
+      <upperBound>5</upperBound>
     </Uniform>
   </Distributions>
 
   <Samplers>
-    <Grid name="1">
+    <SparseGridCollocation name="SG">
       <variable name="x1">
-        <distribution>u1</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+        <distribution>UniDist</distribution>
       </variable>
       <variable name="x2">
-        <distribution>u2</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+        <distribution>UniDist</distribution>
       </variable>
-    </Grid>
-    <Grid name="2">
+      <ROM class="Models" type="ROM">rom</ROM>
+    </SparseGridCollocation>
+    <SparseGridCollocation name="SG2">
       <variable name="x1">
-        <distribution>u1</distribution>
-        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
+        <distribution>UniDist</distribution>
       </variable>
       <variable name="x2">
-        <distribution>u2</distribution>
-        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
+        <distribution>UniDist</distribution>
       </variable>
+      <ROM class="Models" type="ROM">rom2</ROM>
       <Restart class="DataObjects" type="PointSet">solns</Restart>
-    </Grid>
+    </SparseGridCollocation>
   </Samplers>
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="./SamplerRestarts/polynomial" name="poly" subType="">
+    <ExternalModel ModuleToLoad="./polynomial" name="poly" subType="">
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>ans</variable>
       <variable>ans2</variable>
     </ExternalModel>
+    <ROM name="rom" subType="GaussPolynomialRom">
+      <Target>ans,ans2</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>1</PolynomialOrder>
+      <Interpolation quad="ClenshawCurtis">x1</Interpolation>
+      <Interpolation quad="ClenshawCurtis">x2</Interpolation>
+    </ROM>
+    <ROM name="rom2" subType="GaussPolynomialRom">
+      <Target>ans,ans2</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+      <Interpolation quad="ClenshawCurtis">x1</Interpolation>
+      <Interpolation quad="ClenshawCurtis">x2</Interpolation>
+    </ROM>
   </Models>
 
   <DataObjects>
@@ -95,15 +113,15 @@
   </DataObjects>
 
   <OutStreamManager>
-    <Print name="GRIDdump1">
+    <Print name="SCdump1">
       <type>csv</type>
       <source>solns</source>
     </Print>
-    <Print name="GRIDdump2">
+    <Print name="SCdump2">
       <type>csv</type>
       <source>solns2</source>
     </Print>
-    <Print name="GRIDdump3">
+    <Print name="SCdump3">
       <type>csv</type>
       <source>solns</source>
     </Print>

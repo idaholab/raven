@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+<Simulation printTimeStamps="false">
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>BNmake,BNtrain,BNtest,BNprint</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Distributions>
+    <Beta name="BetaNorm">
+      <peakFactor>0.5</peakFactor>
+      <low>0</low>
+      <high>1</high>
+    </Beta>
+  </Distributions>
+
+  <Samplers>
+    <SparseGridCollocation name="BNSG" parallel="1">
+      <variable name="x1">
+        <distribution>BetaNorm</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>BetaNorm</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">BNROM</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="./scgpc/polynomial" name="polynomial" subType="">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>ans</variable>
+    </ExternalModel>
+    <ROM name="BNROM" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TensorProduct</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+      <Interpolation poly="Jacobi" quad="Jacobi" weight="1">x1</Interpolation>
+      <Interpolation poly="Jacobi" quad="Jacobi" weight="1">x2</Interpolation>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <MultiRun name="BNmake" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">BNSG</Sampler>
+      <Output class="DataObjects" type="PointSet">BNsolns</Output>
+    </MultiRun>
+    <MultiRun name="BNtest" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">BNROM</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">BNSG</Sampler>
+      <Output class="DataObjects" type="PointSet">BNtests</Output>
+    </MultiRun>
+    <IOStep name="BNprint">
+      <Input class="DataObjects" type="PointSet">BNtests</Input>
+      <Input class="Models" type="ROM">BNROM</Input>
+      <Output class="OutStreamManager" type="Print">BNdump</Output>
+      <Output class="OutStreamManager" type="Print">BNdumprom</Output>
+    </IOStep>
+    <RomTrainer name="BNtrain">
+      <Input class="DataObjects" type="PointSet">BNsolns</Input>
+      <Output class="Models" type="ROM">BNROM</Output>
+    </RomTrainer>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="BNtests">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="BNsolns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="BNdump">
+      <type>csv</type>
+      <source>BNtests</source>
+    </Print>
+    <Print name="BNdumprom">
+      <type>xml</type>
+      <source>BNROM</source>
+      <what>all</what>
+    </Print>
+  </OutStreamManager>
+
+</Simulation>
