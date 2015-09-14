@@ -1,36 +1,29 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="quiet">
+<Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>SamplerRestarts</WorkingDir>
-    <Sequence>make1,print1,make2,print2,print3</Sequence>
+    <WorkingDir>csv</WorkingDir>
+    <Sequence>load,make,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
+  <Files>
+    <Input name='csv' type=''>../mc/MCdump1.csv</Input>
+  </Files>
+
   <Steps>
-    <MultiRun name="make1">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="MonteCarlo">1</Sampler>
-      <Output class="DataObjects" type="PointSet">solns</Output>
-    </MultiRun>
-    <MultiRun name="make2">
+    <MultiRun name="make">
       <Input class="DataObjects" type="PointSet">solns</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="MonteCarlo">2</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
-      <Output class="DataObjects" type="PointSet">solns2</Output>
     </MultiRun>
-    <IOStep name="print1">
-      <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">MCdump1</Output>
+    <IOStep name="load">
+      <Input class="Files" type="">csv</Input>
+      <Output class="DataObjects" type="PointSet">solns</Output>
     </IOStep>
-    <IOStep name="print2">
-      <Input class="DataObjects" type="PointSet">solns2</Input>
-      <Output class="OutStreamManager" type="Print">MCdump2</Output>
-    </IOStep>
-    <IOStep name="print3">
+    <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">MCdump3</Output>
+      <Output class="OutStreamManager" type="Print">CSVdump</Output>
     </IOStep>
   </Steps>
 
@@ -46,19 +39,7 @@
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="1">
-      <sampler_init>
-        <limit>10</limit>
-        <initial_seed>1</initial_seed>
-      </sampler_init>
-      <variable name="x1">
-        <distribution>u1</distribution>
-      </variable>
-      <variable name="x2">
-        <distribution>u2</distribution>
-      </variable>
-    </MonteCarlo>
-    <MonteCarlo name="2">
+    <MonteCarlo name="mc">
       <sampler_init>
         <limit>15</limit>
         <initial_seed>1</initial_seed>
@@ -75,7 +56,7 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="./SamplerRestarts/polynomial" name="poly" subType="">
+    <ExternalModel ModuleToLoad="./polynomial" name="poly" subType="">
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>ans</variable>
@@ -99,15 +80,7 @@
   </DataObjects>
 
   <OutStreamManager>
-    <Print name="MCdump1">
-      <type>csv</type>
-      <source>solns</source>
-    </Print>
-    <Print name="MCdump2">
-      <type>csv</type>
-      <source>solns2</source>
-    </Print>
-    <Print name="MCdump3">
+    <Print name="CSVdump">
       <type>csv</type>
       <source>solns</source>
     </Print>
