@@ -13,6 +13,7 @@ if not 'xrange' in dir(__builtins__): xrange = range
 import time
 import abc
 import cPickle as pickle
+import copy
 #import pickle as cloudpickle
 from serialization import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
@@ -175,6 +176,7 @@ class SingleRun(Step):
   '''This is the step that will perform just one evaluation'''
   def __init__(self):
     Step.__init__(self)
+    self.failedRuns = []
     self.printTag = 'STEP SINGLERUN'
 
   def _localInputAndChecks(self,xmlNode):
@@ -218,6 +220,7 @@ class SingleRun(Step):
     '''main driver for a step'''
     jobHandler = inDictionary['jobHandler']
     model      = inDictionary['Model'     ]
+    sampler    = inDictionary.get('Sampler',None)
     inputs     = inDictionary['Input'     ]
     outputs    = inDictionary['Output'    ]
     model.run(inputs,jobHandler)
@@ -236,6 +239,10 @@ class SingleRun(Step):
           self.raiseADebug('a job failed... call the handler for this situation')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
       time.sleep(self.sleepTime)
+    if sampler is not None: sampler.handleFailedRuns(self.failedRuns)
+    else:
+      if len(self.failedRuns)>0: self.raiseAWarning('There were %i failed runs!' %len(self.failedRuns))
+
 
   def _localAddInitParams(self,tempDict): pass
 #
@@ -298,6 +305,8 @@ class MultiRun(SingleRun):
             myLambda([finishedJob,outputs[outIndex]])
             self.raiseADebug('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
         else:
+          #add run to a pool that can be sent to the sampler later
+          self.failedRuns.append(copy.deepcopy(finishedJob))
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
           self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
         for _ in range(min(jobHandler.howManyFreeSpots(),sampler.endJobRunnable())): # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
@@ -307,11 +316,11 @@ class MultiRun(SingleRun):
             try:
               newInput =sampler.generateInput(model,inputs)
               model.run(newInput,jobHandler)
-              self.raiseADebug('New input generated')
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
       time.sleep(self.sleepTime)
+    sampler.handleFailedRuns(self.failedRuns)
 #
 #
 #

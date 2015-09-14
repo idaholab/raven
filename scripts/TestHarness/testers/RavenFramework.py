@@ -1,6 +1,7 @@
 from util import *
 from Tester import Tester
 from CSVDiffer import CSVDiffer
+from UnorderedCSVDiffer import UnorderedCSVDiffer
 from XMLDiff import XMLDiff
 import RavenUtils
 import os
@@ -15,6 +16,7 @@ class RavenFramework(Tester):
     params.addRequiredParam('input',"The input file to use for this test.")
     params.addParam('output','',"List of output files that the input should create.")
     params.addParam('csv','',"List of csv files to check")
+    params.addParam('UnorderedCsv','',"List of unordered csv files to check")
     params.addParam('xml','',"List of xml files to check")
     params.addParam('xmlopts','',"Options for xml checking")
     params.addParam('rel_err','','Relative Error for csv files')
@@ -37,6 +39,7 @@ class RavenFramework(Tester):
     Tester.__init__(self, name, params)
     self.csv_files = self.specs['csv'].split(" ") if len(self.specs['csv']) > 0 else []
     self.xml_files = self.specs['xml'].split(" ") if len(self.specs['xml']) > 0 else []
+    self.ucsv_files = self.specs['UnorderedCsv'].split(" ") if len(self.specs['UnorderedCsv']) > 0 else []
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
@@ -71,9 +74,7 @@ class RavenFramework(Tester):
 
   def prepare(self):
     self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
-    print 'all names:',self.check_files
-    for filename in self.check_files+self.csv_files+self.xml_files:# + [os.path.join(self.specs['test_dir'],filename)  for filename in self.csv_files]:
-      print 'fname', filename
+    for filename in self.check_files+self.csv_files+self.xml_files+self.ucsv_files:# + [os.path.join(self.specs['test_dir'],filename)  for filename in self.csv_files]:
       if os.path.exists(filename):
         os.remove(filename)
 
@@ -85,6 +86,8 @@ class RavenFramework(Tester):
 
     if len(missing) > 0:
       return ('CWD '+os.getcwd()+' METHOD '+os.environ.get("METHOD","?")+' Expected files not created '+" ".join(missing),output)
+
+    #csv
     if len(self.specs["rel_err"]) > 0:
       csv_diff = CSVDiffer(self.specs['test_dir'],self.csv_files,relative_error=float(self.specs["rel_err"]))
     else:
@@ -92,6 +95,15 @@ class RavenFramework(Tester):
     message = csv_diff.diff()
     if csv_diff.getNumErrors() > 0:
       return (message,output)
+
+    #unordered csv
+    ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],self.ucsv_files)
+    ucsv_same,ucsv_messages = ucsv_diff.diff()
+    if not ucsv_same:
+      return ucsv_messages,output
+    return ('',output)
+
+    #xml
     if len(self.specs['xmlopts'])>0: xmlopts = self.specs['xmlopts'].split(' ')
     else: xmlopts=[]
     xml_diff = XMLDiff(self.specs['test_dir'],self.xml_files,*xmlopts)

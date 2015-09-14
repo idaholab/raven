@@ -364,7 +364,7 @@ class AdaptiveSet(IndexSet):
     for key,val in self.active.items():
       mx = max(abs(val),mx)
       if abs(val)==mx: mxkey = key
-    self.raiseADebug('  biggest impact:',mxkey,mx)
+    self.raiseAMessage('  Next Adaptive Poly:',mxkey)#,mx)
     if mxkey==None: return self.active.keys()[0] #special case
     return mxkey
 
