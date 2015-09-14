@@ -11,7 +11,7 @@ ORIGPYTHONPATH="$PYTHONPATH"
 maxlen=$(($(tput cols) < 100 ? $(tput cols) : 100))
 
 TEST_DIRS="${SCRIPT_DIR}/../tests/cluster_tests "`find ${SCRIPT_DIR}/../tests/framework -name tests -printf "%h\n"`
-
+echo $TEST_DIRS
 failed_tests=0
 passed_tests=0
 
@@ -24,8 +24,8 @@ do
     for I in $(python ${SCRIPT_DIR}/get_coverage_tests.py)
     do
         # convert the input files contain the external xml to normal raven input files and then validate
-        $PYTHON_CMD $CONVERSION_SCRIPT_DIR/externalXMLNode.py $I
-        echo -e "\033[1;32m the following script: $I has been converted for xsd validate"
+        $PYTHON_CMD $CONVERSION_SCRIPT_DIR/externalXMLNode.py $I #> /dev/null
+        # echo -e "\033[1;32mThe following script: $I has been converted for xsd validate"
         echo -en "\033[0mValidating $I"
         startlen=$((11+${#I}))
         VALOUT=$(xmllint --noout --schema  ${SCRIPT_DIR}/XSDSchemas/raven.xsd $I 2>&1)
@@ -42,13 +42,16 @@ do
             echo -e "$VALOUT"
             failed_tests=$(($failed_tests + 1))
         fi
+        # Move the file back to its original state
+        mv $I.bak $I
+        # echo -e "\033[1;32m$I has been converted back!"
     done
     echo -e "\033[0m--------------------------------------------------"
 done
 echo -e "\033[1;32mPassed $passed_tests \033[1;31mFailed $failed_tests\033[0m"
 
 # test_External_XML.xml should transformed back, this is the test that test the external xml input functionality
-mv ${SCRIPT_DIR}/../tests/framework/test_External_XML.xml.bak ${SCRIPT_DIR}/../tests/framework/test_External_XML.xml
-echo -e "\033[1;32m test_External_XML.xml has been converted back!"
+# mv ${SCRIPT_DIR}/../tests/framework/test_External_XML.xml.bak ${SCRIPT_DIR}/../tests/framework/test_External_XML.xml
+# echo -e "\033[1;32m test_External_XML.xml has been converted back!"
 
 exit $failed_tests
