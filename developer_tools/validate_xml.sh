@@ -16,7 +16,6 @@ TEST_FILES="${SCRIPT_DIR}/../tests/cluster_tests/tests "`find ${SCRIPT_DIR}/../t
 TEST_DIRS=""
 for file in ${TEST_FILES}
 do
-    echo $(dirname $file)
     TEST_DIRS+=" $(dirname $file)"
 done
 
