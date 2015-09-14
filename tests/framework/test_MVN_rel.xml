@@ -1,0 +1,81 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>MVNRel</WorkingDir>
+    <Sequence>RelRun</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="MVNRel/lorentzAttractor_noK" name="PythonModule" subType="">
+      <variable>sigma</variable>
+      <variable>rho</variable>
+      <variable>beta</variable>
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>z</variable>
+      <variable>time</variable>
+      <variable>x0</variable>
+      <variable>y0</variable>
+      <variable>z0</variable>
+    </ExternalModel>
+  </Models>
+
+<Distributions>
+    <MultivariateNormal name='MultivariateNormalRel' method='pca'>
+        <mu>1.0 2.0</mu>
+        <covariance type='rel'>
+            1.0  0.4
+            0.4  0.25
+        </covariance>
+    </MultivariateNormal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MCExternalRel">
+      <sampler_init>
+          <limit>100</limit>
+        <initial_seed>1234</initial_seed>
+      </sampler_init>
+      <variable name="x0">
+        <distribution dim="1">MultivariateNormalRel</distribution>
+      </variable>
+      <variable name="y0,z0">
+        <distribution dim="2">MultivariateNormalRel</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="RelRun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MCExternalRel</Sampler>
+      <Output class="DataObjects" type="PointSet">testPrintPointSetRel</Output>
+      <Output class="OutStreamManager" type="Print">testPrintPointSetRel_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="testPrintPointSetRel_dump">
+      <type>csv</type>
+      <source>testPrintPointSetRel</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="testPrintPointSetRel">
+      <Input>x0,y0,z0</Input>
+      <Output>x,y,z</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

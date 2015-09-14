@@ -1,0 +1,81 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>MVNAbs</WorkingDir>
+    <Sequence>AbsRun</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="MVNAbs/lorentzAttractor_noK" name="PythonModule" subType="">
+      <variable>sigma</variable>
+      <variable>rho</variable>
+      <variable>beta</variable>
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>z</variable>
+      <variable>time</variable>
+      <variable>x0</variable>
+      <variable>y0</variable>
+      <variable>z0</variable>
+    </ExternalModel>
+  </Models>
+
+<Distributions>
+    <MultivariateNormal name='MultivariateNormalAbs' method='pca'>
+        <mu>1.0 2.0</mu>
+        <covariance type='abs'>
+            1.0 0.8 
+            0.8 1.0
+        </covariance>
+    </MultivariateNormal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MCExternalAbs">
+      <sampler_init>
+          <limit>10</limit>
+        <initial_seed>1234</initial_seed>
+      </sampler_init>
+      <variable name="x0">
+        <distribution dim="1">MultivariateNormalAbs</distribution>
+      </variable>
+      <variable name="y0,z0">
+        <distribution dim="2">MultivariateNormalAbs</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="AbsRun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MCExternalAbs</Sampler>
+      <Output class="DataObjects" type="PointSet">testPrintPointSetAbs</Output>
+      <Output class="OutStreamManager" type="Print">testPrintPointSetAbs_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="testPrintPointSetAbs_dump">
+      <type>csv</type>
+      <source>testPrintPointSetAbs</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="testPrintPointSetAbs">
+      <Input>x0,y0,z0</Input>
+      <Output>x,y,z</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
