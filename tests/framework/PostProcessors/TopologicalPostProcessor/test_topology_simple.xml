@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
 <!-- A simple example of the approximate Morse-Smale complex interface
      has four local minima surrounding a global maximum, and each of the
      examples will showcase different levels of partitions using the default
      persistence simplfication metric -->
-<Simulation>
   <RunInfo>
     <WorkingDir>topology</WorkingDir>
     <Sequence>

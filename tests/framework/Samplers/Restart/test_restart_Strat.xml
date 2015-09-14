@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="quiet">
   <RunInfo>
-    <WorkingDir>SamplerRestarts</WorkingDir>
+    <WorkingDir>stratified</WorkingDir>
     <Sequence>make1,print1,make2,print2,print3</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -71,7 +71,7 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="./SamplerRestarts/polynomial" name="poly" subType="">
+    <ExternalModel ModuleToLoad="./polynomial" name="poly" subType="">
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>ans</variable>
