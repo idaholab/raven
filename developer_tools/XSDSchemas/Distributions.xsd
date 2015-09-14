@@ -2,7 +2,7 @@
 <xsd:schema version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"  elementFormDefault="qualified">
 
     <xsd:complexType name="DistributionData">
-        <xsd:sequence>
+        <xsd:choice minOccurs="1"  maxOccurs="unbounded">
             <xsd:element name="Beta"          type="BetaDistribution"          minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Exponential"   type="ExponentialDistribution"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Gamma"         type="GammaDistribution"         minOccurs="0" maxOccurs="unbounded"/>
@@ -19,7 +19,7 @@
             <xsd:element name="NDInverseWeight"   type="NDInverseWeightDistribution"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="NDCartesianSpline" type="NDCartesianSplineDistribution" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="MultivariateNormal" type="MultivariateNormalDistribution" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
+        </xsd:choice>
     </xsd:complexType>
     <!-- *********************************************************************** -->
     <!--                              Distributions                              -->

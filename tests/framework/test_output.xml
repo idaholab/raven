@@ -581,7 +581,7 @@
         </kwargs>
         <xlabel>Time (s)</xlabel>
         <ylabel>Mass Flow Rate</ylabel>
-     </plotSettings>
+      </plotSettings>
     </Plot>
     <Plot dim="3" name="plot19" overwrite="false" verbosity="debug">
       <actions>
