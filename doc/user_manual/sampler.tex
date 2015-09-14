@@ -210,7 +210,7 @@ XML node and the requirements for other attributes change:
         It represents the number of times the computed error needs to be
         below the inputted tolerance before convergence is reported.
         %
-        \default{0}.
+        \default{5}.
         \item \xmlAttr{subGridTol}, \xmlDesc{optional float attribute},
             this attribute is used to activate the multi-grid approach (adaptive meshing) 
             of the constructed evaluation grid (see attribute \xmlAttr{weight}).
@@ -1508,8 +1508,7 @@ the different sampling methods are reported.
 \subsubsection{Limit Surface Search}
 \label{subsubsubsec:LimitSurfaceSearch}
 The \textbf{Limit Surface Search} approach is an advanced methodology that employs
-a smart sampling around trans
-  \item \variableDescriptionition zones that determine a change in the status
+a smart sampling around transition zones that determine a change in the status
 of the system (limit surface).
 %
 To perform such sampling, RAVEN uses ROMs for predicting, in the input space,
@@ -1517,7 +1516,7 @@ the location(s) of these transitions, in order to accelerate the exploration of
 the input space in proximity of the limit surface.
 %
 
-\specBlock{an}{Limit Surface Search}
+\specBlock{an}{LimitSurfaceSearch}
 %
 \attrIntro
 
@@ -1526,13 +1525,13 @@ the input space in proximity of the limit surface.
   \item \nameDescription
 \end{itemize}
 
-\variableIntro{Limit Surface Search}
+\variableIntro{LimitSurfaceSearch}
 
 \begin{itemize}
-    \variableChildrenIntro
+    \item \variableChildrenIntro
     \begin{itemize}
       \item \distributionDescription
-    \item \functionDescription
+      \item \functionDescription
     \end{itemize}
 \end{itemize}
 
@@ -1543,7 +1542,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
   \item \convergenceDescription
 
   % Limit Surface Search Objects
-  \item \assemblerDescription{Limit Surface Search}
+  \item \assemblerDescription{LimitSurfaceSearch}
     \begin{itemize}
       \item \xmlNode{Function}, \xmlDesc{string, required field},  the
         body of this XML block needs to contain the name of an external
