@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>SparseGridTest</WorkingDir>
+    <WorkingDir>grid</WorkingDir>
     <Sequence>makeTP,makeTD,makeHC</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>

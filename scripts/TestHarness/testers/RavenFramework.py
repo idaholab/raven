@@ -83,7 +83,10 @@ class RavenFramework(Tester):
     return (True, '')
 
   def prepare(self):
-    self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
+    if self.specs['output'].strip() != '':
+      self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
+    else:
+      self.check_files = []
     for filename in self.check_files+self.csv_files+self.xml_files+self.ucsv_files:# + [os.path.join(self.specs['test_dir'],filename)  for filename in self.csv_files]:
       if os.path.exists(filename):
         os.remove(filename)
