@@ -1447,6 +1447,7 @@ class DynamicEventTree(Grid):
     self.computeConditionalProbability()
     # Create the inputs and put them in the runQueue dictionary (if genRunQueue is true)
     if genRunQueue: self._createRunningQueue(model,myInput)
+    self._endJobRunnable = max((len(self.RunQueue['queue']),1))
     return True
 
   def computeConditionalProbability(self,index=None):
@@ -2181,9 +2182,9 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     @ InOut, ready, boolean
     @ Out, boolean
     """
-    if self.counter == 0               : return True
+    if self.counter == 0               : return     True
     if len(self.RunQueue['queue']) != 0: detReady = True
-    else: detReady = False
+    else                               : detReady = False
     # since the RunQueue is empty, let's check if there are still branches running => if not => start the adaptive search
     self._checkIfStartAdaptive()
     if self.startAdaptive:
@@ -2224,6 +2225,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       @ In, myInput, list of original inputs
       @ Out, None
     """
+    
     if self.startAdaptive:
       LimitSurfaceSearch.localGenerateInput(self,model,myInput)
       #the adaptive sampler created the next point sampled vars
