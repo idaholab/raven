@@ -1004,7 +1004,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     self._addAssObject('Function','-n')
 
     self.acceptedScoringParam = ['distance','straddle']
-    self.acceptedBatchParam = ['none','topology','topobatch']
+    self.acceptedBatchParam = ['none','topology','batch_maxv','batch_maxp']
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -1445,11 +1445,11 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     matrixShape = self.limitSurfacePP.getTestMatrix().shape
     self.scores = np.zeros(matrixShape)
     if self.scoringMethod == 'distance':
-      # sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
-      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')]),len(self.axisName)))
+      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
+      # sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')]),len(self.axisName)))
       for varIndex, name in enumerate(axisNames):
-        # sampledMatrix[:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
-        sampledMatrix[:,varIndex] = self.limitSurfacePP.getFunctionValue()[name]
+        sampledMatrix[:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
+        # sampledMatrix[:,varIndex] = self.limitSurfacePP.getFunctionValue()[name]
       distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
       # The hanging point are added to the list of the already explored points
       # so as not to pick the same when in //
@@ -1523,16 +1523,17 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
           varSet=True
         else: self.raiseADebug('np.max(score)=0.0')
 
-      elif self.batchStrategy == 'topobatch':
+      elif self.batchStrategy.startswith('batch'):
         ########################################################################
         ## Initialize the queue with as many points as requested or as many as
         ## possible
         if len(self.toProcess) == 0:
           self.ScoreCandidates()
           edges = []
-          for i,iCoords in enumerate(self.listsurfPoint):
-            for j in xrange(i+1, len(self.listsurfPoint)):
-              jCoords = self.listsurfPoint[j]
+          bandPts = self.listsurfPoint+self.bandIndices
+          for i,iCoords in enumerate(bandPts):
+            for j in xrange(i+1, len(bandPts)):
+              jCoords = bandPts[j]
               ijValidNeighbors = True
               for d in xrange(len(jCoords)):
                 if abs(iCoords[d] - jCoords[d]) > 1:
@@ -1555,16 +1556,21 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
           names = [ name.encode('ascii', 'ignore') for name in axisNames]
           names.append('score'.encode('ascii','ignore'))
           amsc = AMSC_Object(X=np.array(self.surfPoint), Y=self.scores, w=None,
-                             names=names, graph='relaxed beta skeleton',
-                             gradient='steepest', beta=1.0, normalization='feature',
+                             names=names, graph='none',
+                             gradient='steepest', normalization='feature',
                              persistence='difference', edges=edges, debug=False)
           partitions = amsc.Partitions()
           mergeSequence = amsc.GetMergeSequence()
           maxIdxs = list(set([ pair[1] for pair in partitions.keys() ]))
 
+          # Sort the maxima based on decreasing function value, thus the top
+          # candidate is the first element.
+          if self.batchStrategy.endswith('maxv'):
+            sortedMaxima = sorted(maxIdxs, key=lambda idx: self.scores[idx], reverse=True)
+          else:
           # Sort the maxima based on decreasing persistence value, thus the top
           # candidate is the first element.
-          sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1], reverse=True)
+            sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1], reverse=True)
           B = min(self.maxBatchSize,len(sortedMaxima))
           for idx in sortedMaxima[0:B]:
             self.toProcess.append(self.surfPoint[idx,:])
@@ -1578,9 +1584,10 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
       elif self.batchStrategy == 'topology':
         self.ScoreCandidates()
         edges = []
-        for i,iCoords in enumerate(self.listsurfPoint):
-          for j in xrange(i+1, len(self.listsurfPoint)):
-            jCoords = self.listsurfPoint[j]
+        bandPts = self.listsurfPoint+self.bandIndices
+        for i,iCoords in enumerate(bandPts):
+          for j in xrange(i+1, len(bandPts)):
+            jCoords = bandPts[j]
             ijValidNeighbors = True
             for d in xrange(len(jCoords)):
               if abs(iCoords[d] - jCoords[d]) > 1:
@@ -1593,8 +1600,8 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
         names = [ name.encode('ascii', 'ignore') for name in axisNames]
         names.append('score'.encode('ascii','ignore'))
         amsc = AMSC_Object(X=np.array(self.surfPoint), Y=self.scores, w=None,
-                           names=names, graph='relaxed beta skeleton',
-                           gradient='steepest', beta=1.0, normalization='feature',
+                           names=names, graph='none',
+                           gradient='steepest', normalization='feature',
                            persistence='difference', edges=edges, debug=False)
         partitions = amsc.Partitions()
         mergeSequence = amsc.GetMergeSequence()
