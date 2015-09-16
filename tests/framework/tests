@@ -313,6 +313,16 @@
   #skip = ‘need to be fixed’
  [../]
 
+ [./testLimitSurfaceMultiGridSampling]
+  type = 'RavenFramework'
+  input = 'test_limitSurfaceMultiGridMethod.xml'
+  output = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
+  csv = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
+  max_time = 300
+  rel_err = 0.0001
+ [../]
+
+
  [./testCreateInternalObjFromCSVs]
   type = 'RavenFramework'
   input = 'test_CreateInternalObjFromCSVs.xml'
