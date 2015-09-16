@@ -117,7 +117,7 @@ class AMSC_Object(object):
           be y
         @ In, graph, an optional string specifying the type of neighborhood
           graph to use. Default is 'beta skeleton,' but other valid types are:
-          'delaunay,' 'relaxed beta skeleton,' or 'approximate knn'
+          'delaunay,' 'relaxed beta skeleton,' 'none', or 'approximate knn'
         @ In, gradient, an optional string specifying the type of gradient
           estimator
           to use. Currently the only available option is 'steepest'

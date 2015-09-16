@@ -139,6 +139,10 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
   graphAlgorithms["approximate knn"]       = ngl::getKNNGraph<T>;
   graphAlgorithms["beta skeleton"]         = ngl::getBSkeleton<T>;
   graphAlgorithms["relaxed beta skeleton"] = ngl::getRelaxedBSkeleton<T>;
+  //As it turns out, NGL's KNN graph assumes the input data is a KNN and so, is
+  // actually just a pass through method that passes every input edge. We can
+  // leverage this to accept "none" graphs.
+  graphAlgorithms["none"]                  = ngl::getKNNGraph<T>;
 
   if(graphAlgorithms.find(type) == graphAlgorithms.end())
   {

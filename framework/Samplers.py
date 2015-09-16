@@ -1318,10 +1318,12 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
         for d in xrange(len(iCoords)):
           offset = np.zeros(len(iCoords),dtype=int)
           offset[d] = step
-          if iCoords[d] > 0:
+          if iCoords[d] - step > 0:
             self.bandIndices.add(tuple(iCoords - offset))
-          if iCoords[d] < self.oldTestMatrix.shape[d]-1:
+            print('low', d, tuple(iCoords - offset))
+          if iCoords[d] + step < self.oldTestMatrix.shape[d]-1:
             self.bandIndices.add(tuple(iCoords + offset))
+            print('hi', d, tuple(iCoords + offset))
     self.bandIndices = list(self.bandIndices)
 
     # DM: This sequence gets used repetitively, so I am promoting it to its own
@@ -1445,6 +1447,52 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     matrixShape = self.limitSurfacePP.getTestMatrix().shape
     self.scores = np.zeros(matrixShape)
     if self.scoringMethod == 'distance':
+      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
+      # sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')]),len(self.axisName)))
+      for varIndex, name in enumerate(axisNames):
+        sampledMatrix[:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
+        # sampledMatrix[:,varIndex] = self.limitSurfacePP.getFunctionValue()[name]
+      distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
+      # The hanging point are added to the list of the already explored points
+      # so as not to pick the same when in //
+      tempDict = {}
+      for varIndex, varName in enumerate(axisNames):
+        tempDict[varName]     = self.surfPoint[:,varIndex]
+        self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
+        self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
+      #distLast = np.sqrt(distLast)
+      distance, _ = distanceTree.query(self.surfPoint)
+      self.scores = distance
+
+      if self.generateCSVs and self.surfPoint is not None:
+        # DM: HACK until I figure out how to get the actual working directory
+        self.workingDir = os.path.abspath(os.curdir)
+        fout = open(os.path.join(self.workingDir,'scores_'
+                                 + str(self.counter) + '.csv'), 'w')
+        sep = ''
+        for varName in axisNames:
+          fout.write(sep+varName)
+          sep = ','
+        fout.write(sep+'score\n')
+        for i in xrange(len(self.surfPoint)):
+          sep = ''
+          for varIndex, name in enumerate(axisNames):
+            fout.write(sep+str(self.surfPoint[i,varIndex]))
+            sep = ','
+          fout.write(sep+str(self.scores[i])+'\n')
+        fout.close()
+
+        testMatrix = self.limitSurfacePP.getTestMatrix()
+        fout = open(os.path.join(self.workingDir,'sampledMatrix_'
+                                 + str(self.counter) + '.csv'), 'w')
+        for i in xrange(testMatrix.shape[0]):
+          sep = ''
+          for j in xrange(testMatrix.shape[1]):
+            fout.write(sep+str(testMatrix[i,j]))
+            sep = ','
+          fout.write('\n')
+        fout.close()
+    elif self.scoringMethod == 'distance_persistence':
       sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
       # sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')]),len(self.axisName)))
       for varIndex, name in enumerate(axisNames):
