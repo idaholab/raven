@@ -2024,11 +2024,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
                                         # 1    -> the epistemic variables are going to be part of the limit surface search
                                         # 2    -> the epistemic variables are going to be treated by a normal hybrid DET approach and the LimitSurface search
                                         #         will be performed on each epistemic tree (n LimitSurfaces)
-    self.epistemicVariables = []        # List of epistemic variable names (used only in case the Adaptive Hybrid DET is activated) 
-    #self.limitSurfaceInstances = {} # ETS.NodeTree(elm)
-    #self._addAssObject('TargetEvaluation','n')
-    #self._addAssObject('ROM','n')
-    #self._addAssObject('Function','-n')
+    self.epistemicVariables = []        # List of epistemic variable names (used only in case the Adaptive Hybrid DET is activated)
+    self.foundEpistemicTree = False     # flag that testifies if an epistemic tree has been found (Adaptive Hybrid DET)
 
   @staticmethod
   def _checkIfRunnint(treeValues): return not treeValues['runEnded']
@@ -2085,14 +2082,13 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       self.raiseADebug("_"*50)  
     #if hybrid DET, we need to find the correct tree that matches the values of the epistemic
     if self.hybridDETstrategy is not None:
-      actualTree = None
-      compareDict = dict.fromkeys(self.epistemicVariables,False)
+      self.foundEpistemicTree, actualTree, compareDict = False, None, dict.fromkeys(self.epistemicVariables,False)
       for treer in self.TreeInfo.values():
         epistemicVars = treer.getrootnode().get("hybridsamplerSampled")[0]['SampledVars']
         for key in self.epistemicVariables: compareDict[key] = utils.compare(epistemicVars[key],self.values[key])
         if all(compareDict.values()):
           # we found the right epistemic tree
-          actualTree = treer
+          self.foundEpistemicTree, actualTree = True, treer
           break
     else: actualTree = self.TreeInfo.values()[0]
     
@@ -2109,7 +2105,9 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
           pbth = [invPoint[self.toBeSampled[key]] for key in cdfValues.keys()]
           if all(i >= pbth[cnt] for cnt,i in enumerate(lowerCdfValues.values())): lowerCdfValues = invPoint
     # Check if The adaptive point requested is outside the so far run grid; in case return None
-    if None in lowerCdfValues.values(): return None,cdfValues
+    # In addition, if Adaptive Hybrid DET, if actualTree is None, we did not find any tree 
+    #              in the epistemic space => we need to create another one
+    if None in lowerCdfValues.values() or actualTree is None: return None,cdfValues
     nntrain = None
     mapping = {}
     for treer in self.TreeInfo.values(): # this needs to be solved
@@ -2329,7 +2327,6 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         elm = ETS.Node(self.name + '_' + str(len(self.TreeInfo.keys())+1))
         elm.add('name', self.name + '_'+ str(len(self.TreeInfo.keys())+1))
         elm.add('start_time', 0.0)
-
         # Initialize the end_time to be equal to the start one...
         # It will modified at the end of each branch
         elm.add('end_time', 0.0)
@@ -2343,6 +2340,17 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         # The dictionary branchedLevel is stored in the xml tree too. That's because
         # the advancement of the thresholds must follow the tree structure
         elm.add('branchedLevel', branchedLevel)
+        if self.hybridDETstrategy is not None and not self.foundEpistemicTree:
+          # adaptive hybrid DET and not found a tree in the epistemic space
+          # take the first tree and modify the hybridsamplerSampled
+          hybridSampled = copy.deepcopy(self.TreeInfo.values()[0].getrootnode().get('hybridsamplerSampled'))
+          
+          for hybridStrategy in hybridSampled:
+            for key in self.epistemicVariables:
+              if key in hybridStrategy['SampledVars'].keys():
+                hybridStrategy['SampledVars'][key]   = copy.copy(self.values[key])
+                hybridStrategy['SampledVarsPb'][key] = self.distDict[key].ppf(self.values[key])
+        
         # Here it is stored all the info regarding the DET => we create the info for all the branchings and we store them
         #self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.NodeTree(copy.deepcopy(elm))
         self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.NodeTree(elm)
@@ -2435,7 +2443,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
             varNode.append(ET.fromstring("<distribution>"+dist.name.strip()+"</distribution>"))
             distDict[dist.name.strip()] = self.distDict[varName]
             #varNode.append(ET.fromstring('<grid construction="custom" type="'+(self.toleranceWeight.upper() if self.toleranceWeight == 'cdf' else self.toleranceWeight) +'">'+' '.join([str(elm) for elm in gridVector[varName.replace('<distribution>','')]])+'</grid>'))
-            varNode.append(ET.fromstring('<grid construction="custom" type="value">'+' '.join([str(elm) for elm in gridVector[varName.replace('<distribution>','')]])+'</grid>')) 
+            varNode.append(ET.fromstring('<grid construction="custom" type="value">'+' '.join([str(elm) for elm in gridVector.values()[0][varName.replace('<distribution>','')]])+'</grid>')) 
             xmlNode.find("HybridSampler").append(varNode)
         self._localInputAndChecksHybrid(xmlNode)
         for hybridsampler in self.hybridStrategyToApply.values(): hybridsampler._generateDistributions(distDict, {})
