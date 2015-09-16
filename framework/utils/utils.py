@@ -65,48 +65,6 @@ def UreturnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTa
 
 def UreturnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
 
-#def raiseAnError(etype,obj,msg):
-#  '''
-#    Standardized error raising. Currently halts code.
-#    @ In, etype, the error type to raise
-#    @ In, obj, either a string or a class instance to determine the label for the error
-#    @ In, msg, the error message to display
-#    @ Out, None
-#  '''
-#  if type(obj) in [str,unicode]:
-#    tag = obj
-#  else:
-#    try: obj.printTag
-#    except AttributeError: tag = str(obj)
-#    else: tag = str(obj.printTag)
-#  raise etype(UreturnPrintTag(tag)+': '+UreturnPrintPostTag('ERROR')+' -> '+str(msg))
-#
-#def raiseAWarning(obj,msg,wtag='WARNING'):
-#  '''
-#    Standardized warning printing.
-#    @ In, obj, either a string or a class instance to determine the label for the warning
-#    @ In, msg, the warning message to display
-#    @ In, wtag, optional, the type of warning to display (default "WARNING")
-#    @ Out, None
-#  '''
-#  if type(obj) in [str,unicode]:
-#    tag = obj
-#  else:
-#    try: obj.printTag
-#    except AttributeError: tag = str(obj)
-#    else: tag = str(obj.printTag)
-#  print(UreturnPrintTag(tag)+': '+UreturnPrintPostTag(str(wtag))+' -> '+str(msg))
-#
-#def raiseAMessage(obj,msg,wtag='Message'):
-#  '''
-#    Standardized message printing.
-#    @ In, obj, either a string or a class instance to determine the label for the message
-#    @ In, msg, the message to display
-#    @ In, wtag, optional, the type of warning to display (default "Message")
-#    @ Out, None
-#  '''
-#  raiseAWarning(obj,msg,wtag)
-
 def convertMultipleToBytes(sizeString):
   '''
   Convert multiple (e.g. Mbytes, Gbytes,Kbytes) in bytes
@@ -156,43 +114,37 @@ def interpretBoolean(inarg):
   else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inarg).__name__)
 
 
-def compare(s1,s2):
-  sig_fig=6
-  w1 = partialEval(s1)
-  w2 = partialEval(s2)
+def compare(s1,s2,sig_fig = 6):
+  w1, w2 = floatConversion(s1), floatConversion(s2)
   if type(w1) == type(w2) and type(w1) != float: return w1 == w2
   elif type(w1) == type(w2) and type(w1) == float: return int(w1*10**sig_fig) == int(w2*10**sig_fig)
   elif type(w1) != type(w2) and type(w1) in [float,int] and type(w2) in [float,int]:
-    w1 = float(w1)
-    w2 = float(w2)
+    w1, w2 = float(w1), float(w2)
     return compare(w1,w2)
   else: return (w1 == w2)
 
+def intConversion (s):
+  try              : return int(s)
+  except ValueError: return None
+  
+def floatConversion (s):
+  try              : return float(s)
+  except ValueError: return None
+
 def partialEval(s):
-  try:
-    r = int(s)
-    return r
-  except ValueError:
-    pass
-  try:
-    r = float(s)
-    return r
-  except ValueError:
-    pass
-  return s
+  evalS = intConversion(s)
+  if evalS is None: evalS = floatConversion(s)
+  if evalS is None: return s
+  else            : return evalS
 
 def toString(s):
-  if type(s) == type(""):
-    return s
-  else:
-    return s.decode()
+  if type(s) == type(""): return s
+  else                  : return s.decode()
 
 def toBytes(s):
-  if type(s) == type(""):
-    return s.encode()
+  if type(s) == type("")                            : return s.encode()
   elif type(s).__name__ in ['unicode','str','bytes']: return bytes(s)
-  else:
-    return s
+  else                                              : return s
 
 def toBytesIterative(s):
   if type(s) == list: return [toBytes(x) for x in s]

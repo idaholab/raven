@@ -777,7 +777,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     self.raiseADebug('generating input')
     varSet=False
-    if self.surfPoint!=None and len(self.surfPoint)>0:
+    if self.surfPoint is not None and len(self.surfPoint)>0:
       sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
       for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
       distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
@@ -1977,6 +1977,10 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
                                         # 2    -> the epistemic variables are going to be treated by a normal hybrid DET approach and the LimitSurface search
                                         #         will be performed on each epistemic tree (n LimitSurfaces)
     self.epistemicVariables = []        # List of epistemic variable names (used only in case the Adaptive Hybrid DET is activated) 
+    #self.limitSurfaceInstances = {} # ETS.NodeTree(elm)
+    #self._addAssObject('TargetEvaluation','n')
+    #self._addAssObject('ROM','n')
+    #self._addAssObject('Function','-n')
 
   @staticmethod
   def _checkIfRunnint(treeValues): return not treeValues['runEnded']
@@ -1994,6 +1998,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     """
     adaptNeed = LimitSurfaceSearch._localWhatDoINeed(self)
     DETNeed   = DynamicEventTree._localWhatDoINeed(self)
+    #adaptNeedInst = self.limitSurfaceInstances.values()[-1]._localWhatDoINeed()
     return dict(adaptNeed.items()+ DETNeed.items())
 
   def _checkIfStartAdaptive(self):
@@ -2019,13 +2024,30 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     # compute cdf of sampled vars
     lowerCdfValues = {}
     cdfValues         = {}
+    self.raiseADebug("Check for closest branch:")
+    self.raiseADebug("_"*50) 
     for key,value in self.values.items():
-      cdfValues[key] = self.distDict[key].cdf(value)
-      lowerCdfValues[key] = utils.find_le(self.branchProbabilities[self.toBeSampled[key]],cdfValues[key])[0]
-      self.raiseADebug(str(self.toBeSampled[key]))
-      self.raiseADebug(str(value))
-      self.raiseADebug(str(cdfValues[key]))
-      self.raiseADebug(str(lowerCdfValues[key]))
+      self.raiseADebug("Variable name   : "+str(key))
+      self.raiseADebug("Distrbution name: "+str(self.toBeSampled[key]))
+      if key not in self.epistemicVariables:
+        cdfValues[key] = self.distDict[key].cdf(value)
+        lowerCdfValues[key] = utils.find_le(self.branchProbabilities[self.toBeSampled[key]],cdfValues[key])[0]
+        self.raiseADebug("CDF value       : "+str(cdfValues[key]))
+        self.raiseADebug("Lower CDF found : "+str(lowerCdfValues[key]))
+      self.raiseADebug("_"*50)  
+    #if hybrid DET, we need to find the correct tree that matches the values of the epistemic
+    if self.hybridDETstrategy is not None:
+      actualTree = None
+      compareDict = dict.fromkeys(self.epistemicVariables,False)
+      for treer in self.TreeInfo.values():
+        epistemicVars = treer.getrootnode().get("hybridsamplerSampled")[0]['SampledVars']
+        for key in self.epistemicVariables: compareDict[key] = utils.compare(epistemicVars[key],self.values[key])
+        if all(compareDict.values()):
+          # we found the right epistemic tree
+          actualTree = treer
+          break
+    else: actualTree = self.TreeInfo.values()[0]
+    
     # check if in the adaptive points already explored (if not push into the grid)
     if not self.insertAdaptBPb:
       candidatesBranch = []
@@ -2289,7 +2311,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     """
     #check if the hybrid DET has been activated, in case remove the nodes and treat them separaterly
     hybridNodes = xmlNode.findall("HybridSampler")
-    if hybridNodes is not None:
+    if len(hybridNodes) != 0:
       # check the type of hybrid that needs to be performed
       limitSurfaceHybrid = False
       for elm in hybridNodes:
@@ -2310,10 +2332,16 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         if child.tag in ['variable','Distribution']: self.epistemicVariables.append(child.attrib['name'])
     LimitSurfaceSearch._readMoreXMLbase(self,xmlNode)
     LimitSurfaceSearch.localInputAndChecks(self,xmlNode)
+    #if self.hybridDETstrategy == 2: self.limitSurfaceInstances.fromkeys(self.TreeInfo.keys(),returnInstance('LimitSurfaceSearch',self))
+    #else                          : self.limitSurfaceInstances[1] = returnInstance('LimitSurfaceSearch',self)
+    #for key in self.limitSurfaceInstances.keys():
+    #  self.limitSurfaceInstances[key]._readMoreXMLbase(xmlNode)
+    #  self.limitSurfaceInstances[key].localInputAndChecks(xmlNode)
+    #  self.limitSurfaceInstances[key].setMessageHandler(self.messageHandler)
     if 'mode' in xmlNode.attrib.keys():
-      if xmlNode.attrib['mode'].lower() == 'online': self.detAdaptMode = 2
-      elif xmlNode.attrib['mode'].lower() == 'post': self.detAdaptMode = 1
-      else:  self.raiseAnError(IOError,'unknown mode '+xmlNode.attrib['mode']+'. Available are "online" and "post"!')
+      if   xmlNode.attrib['mode'].lower() == 'online': self.detAdaptMode = 2
+      elif xmlNode.attrib['mode'].lower() == 'post'  : self.detAdaptMode = 1
+      else:  self.raiseAnError(IOError,'unknown mode ' + xmlNode.attrib['mode'] + '. Available are "online" and "post"!')
     if 'noTransitionStrategy' in xmlNode.attrib.keys():
       if xmlNode.attrib['noTransitionStrategy'].lower() == 'mc'    : self.noTransitionStrategy = 1
       elif xmlNode.attrib['noTransitionStrategy'].lower() == 'grid': self.noTransitionStrategy = 2
@@ -2329,6 +2357,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       @Out, None
     """
     DynamicEventTree._generateDistributions(self,availableDist,availableFunc)
+    #for lsInstance in self.limitSurfaceInstances.values(): lsInstance._generateDistributions(availableDist,availableFunc)
 
   def localInitialize(self,solutionExport = None):
     """
@@ -2341,6 +2370,9 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     if self.detAdaptMode == 2: self.startAdaptive = True
     # we first initialize the LimitSurfaceSearch sampler
     LimitSurfaceSearch.localInitialize(self,solutionExport=solutionExport)
+    #for key in self.limitSurfaceInstances.keys(): 
+    #  self.limitSurfaceInstances[key].assemblerDict.update(self.assemblerDict) 
+    #  self.limitSurfaceInstances[key].localInitialize(solutionExport=solutionExport)
     if self.hybridDETstrategy is not None:
       # we are running an adaptive hybrid DET and not only an adaptive DET
       if self.hybridDETstrategy == 1:
@@ -2354,7 +2386,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
             varNode  = ET.Element('Distribution' if varName.startswith('<distribution>') else 'variable',{'name':varName.replace('<distribution>','')})
             varNode.append(ET.fromstring("<distribution>"+dist.name.strip()+"</distribution>"))
             distDict[dist.name.strip()] = self.distDict[varName]
-            varNode.append(ET.fromstring('<grid construction="custom" type="'+(self.toleranceWeight.upper() if self.toleranceWeight == 'cdf' else self.toleranceWeight) +'">'+' '.join([str(elm) for elm in gridVector[varName.replace('<distribution>','')]])+'</grid>')) 
+            #varNode.append(ET.fromstring('<grid construction="custom" type="'+(self.toleranceWeight.upper() if self.toleranceWeight == 'cdf' else self.toleranceWeight) +'">'+' '.join([str(elm) for elm in gridVector[varName.replace('<distribution>','')]])+'</grid>'))
+            varNode.append(ET.fromstring('<grid construction="custom" type="value">'+' '.join([str(elm) for elm in gridVector[varName.replace('<distribution>','')]])+'</grid>')) 
             xmlNode.find("HybridSampler").append(varNode)
         self._localInputAndChecksHybrid(xmlNode)
         for hybridsampler in self.hybridStrategyToApply.values(): hybridsampler._generateDistributions(distDict, {})
