@@ -460,7 +460,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ In, targetVals, list, target values
     """
     self.raiseADebug('training',self.features,'->',self.target)
-    self.raiseADebug('...using',featureVals)
+    #self.raiseADebug('...using',featureVals)
     self.polyCoeffDict={}
     #check equality of point space
     fvs = []

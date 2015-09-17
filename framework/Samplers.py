@@ -15,7 +15,7 @@ import copy
 import abc
 import numpy as np
 import json
-from operator import mul
+from operator import mul,itemgetter
 from collections import OrderedDict
 from functools import reduce
 from scipy import spatial
@@ -37,6 +37,7 @@ import Quadratures
 import OrthoPolynomials
 import SupervisedLearning
 import IndexSets
+import Models
 import PostProcessors
 import MessageHandler
 import GridEntities
@@ -2742,6 +2743,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.existing         = {} #rolling list of sampled points
     self.batchDone        = True #flag for whether jobHandler has complete batch or not
     self.unfinished       = 0 #number of runs still running when convergence complete
+    self.converged        = False #accessible to outside methods such as adaptive sobol sampler
+    self.submittedNotCollected = [] #list of points submitted but not yet collected and used
 
     self._addAssObject('TargetEvaluation','1')
 
@@ -2868,6 +2871,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, None
       @ Out, None
     """
+    #new: only append new points
     if not self.solns.isItEmpty():
       inps = self.solns.getInpParametersValues()
       outs = self.solns.getOutParametersValues()
@@ -2888,9 +2892,14 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ Out, float, approximate integral
     """
     tot=0
-    for n in range(len(sg)):
+    for n in range(len(sg)): #how can a point not be in existing but be in sparse grid? -> not converged! FIXME sobol adaptive
       pt,wt = sg[n]
-      if pt not in self.existing.keys(): self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
+      if pt not in self.existing.keys():
+        self.raiseAWarning('point:',pt)
+        self.raiseAWarning('Existing:')
+        for p in self.existing.keys():
+          self.raiseAWarning('...',p)
+        self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
       tot+=self.existing[pt][i]**r*wt
     return tot
 
@@ -2976,6 +2985,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.raiseAMessage('  estimated remaining error: %1.4e target error: %1.4e, runs: %i' %(self.error,self.convValue,len(self.pointsNeededToMakeROM)))
       if abs(self.error)<self.convValue and len(self.indexSet.points)>self.persistence:
         done=True #we've converged!
+        self.converged = True #FIXME redundancy with "done"?
         self.raiseADebug('converged estimated error:',self.error)
         #clear the active index set
         for key in self.indexSet.active.keys():
@@ -2987,6 +2997,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self.unfinished = self.jobHandler.numRunning()
         if len(self.pointsNeededToMakeROM)-self.unfinished >=self.maxRuns:
           done=True #not converged, but reached max number of polys to use
+          self.converged = True
           self.raiseAMessage('Not converged, but max runs (%i) reached!' %self.maxRuns)
           self.raiseADebug('end estimated error:',self.error)
           for key in self.indexSet.active.keys():
@@ -3015,6 +3026,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
             self.neededPoints.append(pt)
     #if we exited the while-loop searching for new points and there aren't any, we're done!
     if len(self.neededPoints)==0:
+      self.converged = True
       self.indexSet.printOut()
       self.finalizeROM()
       self.unfinished = self.jobHandler.numRunning()
@@ -3050,6 +3062,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, myInput, unused
     """
     pt = self.neededPoints.pop() # [self.counter-1]
+    self.submittedNotCollected.append(pt)
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
@@ -3202,7 +3215,6 @@ class Sobol(SparseGridCollocation):
     newpt = np.zeros(len(self.distDict))
     for v,var in enumerate(self.distDict.keys()):
       newpt[v] = self.references[var]
-    #if tuple(newpt) not in existing:
     self.pointsToRun.append(tuple(newpt))
     #now do the rest
     for combo,rom in self.ROMs.values()[0].items(): #each target is the same, so just for each combo
@@ -3268,382 +3280,455 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.printTag = 'SAMPLER ADAPTIVE SOBOL'
     self.maxComboCard = None
 
-    self.SQs      = {} #stores sparse grid quadrature objects
-    self.samplers = {} #stores adaptive sparse grid sampling objects
-    self.romshell = {} #stores Model.ROM objects for each combo
+    #input parameters
+    self.convType      = None #type of convergence for subset sparse grids, i.e. variance or coeffs
+    self.maxSobolOrder = None #largest dimensionality of a subset combination
+    self.maxPolyOrder  = None #largest polynomial order to use in subset sparse grids
+    self.maxRuns       = None #most runs to allow each subset sparse grid to use
+    self.convValue     = None #value to converge adaptive sampling to
+
+    #assembly objects
+    self.solns = None #solution database, PointSet data object
+    self.ROM   = None #HDMR rom that will be constructed with the samples found here
+
+    #storage dictionaries
+    self.SQs          = {} #stores sparse grid quadrature objects
+    self.samplers     = {} #stores adaptive sparse grid sampling objects
+    self.romShell     = {} #stores Model.ROM objects for each combo
+    self.iSets        = {} #adaptive index set objects by combo
+    self.ROMs         = {} #subset reduced-order models
+    self.inTraining   = {} #samplers by combo that are not finished adaptively generating
+    self.doneTraining = {} #TODO necessary? samplers by combo that are finished sampling
+    self.subsets      = {} #subset gPC ROMs to be used in full HDMR ROM
+    self.references   = {} #mean-value cut reference points by variable
+
+    #convergence parameters
+    self.actImpact = {} #actual impact on variance by subset combo
+    self.expImpact = {} #estimated impact on variance by subset combo
+
+    #attributes
+    self.features = None #ROM features of interest, also input variable list
+    self.targets = None #ROM outputs of interest
+
+    #point lists
+    self.submittedNotCollected=[] #list of points that have been generated but not collected
+    self.existing=[]
 
     self._addAssObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
-    '''
-      Extended readMoreXML after other objects are instantiated
-      @ In, xmlNode, xmlNode object whose head should be Sobol under Sampler.
-      @ Out, None
-    '''
+    """
+    Extended readMoreXML.
+    @ In, xmlNode, xmlNode with head AdaptiveSobol
+    @Out, None
+    """
     Sobol.localInputAndChecks(self,xmlNode)
-    foundConv = False
-    for child in xmlNode:
-      if child.tag == 'Convergence':
-        foundConv = True
-        self.convType      = child.attrib['target'] #TODO
-        self.maxSobolOrder = int(child.attrib.get('maxSobolOrder',2)) #TODO
-        self.maxPolyOrder = int(child.attrib.get('maxPolyOrder',10)) #TODO
-        self.convValue     = float(child.text)
-    if not foundConv:
-      self.raiseAnError(IOError,'Convergence node not found in input!')
+    conv = xmlNode.find('Convergence')
+    if conv is None: self.raiseAnError(IOError,'"Convergence" node not found in input!')
+    self.convType      = conv.get('target')
+    self.maxSobolOrder = int(conv.get('maxSobolOrder',2))
+    self.maxPolyOrder  = int(conv.get('maxPolyOrder',10)) #TODO implement these limits
+    self.maxRuns       = conv.get('maxRunsPerSubset',None)
+    self.convValue     = float(conv.text)
+    if self.maxRuns is not None: self.maxRuns = int(self.maxRuns)
 
   def localInitialize(self):
-    '''
-      Initializes Sampler, including building sub-ROMs for Sobol decomposition.  Note that re-using this
-      sampler will destroy any ROM trained and attached to this sampler, and can be retrained after sampling.
-      @ In, None
-      @ Out, None
-    '''
-    self.raiseADebug('...Initializing Sampler...')
+    """
+    Initializes this sampler, building some starting subset roms for Sobol decomposition.
+    @ In, None
+    @Out, None
+    """
+    #set up assembly-based objects
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
-    self.ROM = self.assemblerDict['ROM'][0][3]
+    self.ROM   = self.assemblerDict['ROM'][0][3]
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0]
-    self.raiseADebug('...Generating Quadratures...')
+    self.features = SVL.features
+    self.targets  = self.ROM.initializationOptionDict['Target'].split(',')
+    #generate quadratures and polynomials
     self._generateQuadsAndPolys(SVL)
-    self.features     = SVL.features
-    self.targets      = self.ROM.initializationOptionDict['Target'].split(',')
-    self.iSets        = {} #dict of adaptive index sets
-    self.ROMs         = {} #dict of adaptive ROMs
-    self.samplers     = {}
-    self.inTraining   = {} #dict of samplers still in sampling
-    self.doneTraining = {} #dict of samplers finished sampling
-    self.useSet       = {} #dict of accepted combos organized by level
-    self.actImpact    = {} #dict of actual impacts by combo
-    self.expImpact    = {} #dict of predicted impacts by combo
-    #calculate first order combos
-    self.raiseADebug('...features:',self.features)
-    self.raiseADebug('...Initializing first combo set...')
-    #the below doesn't work because the tuple of a string is its individual parts: tuple('a1') == ('a','1')
-    #self.first_combos = list(tuple(i) for i in itertools.chain.from_iterable(itertools.combinations(self.features,1)))
-    self.first_combos = list(itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in [0,1]))
-    self.raiseADebug('...first combos:',self.first_combos)
-    #return itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(low,high+1))
-    self.raiseADebug('...initializing first set:')
-    for c in self.first_combos[:]:
-      self.raiseADebug('  c=',c)
-      if len(c)<1:
-        self.first_combos.remove(c)
-        continue
-      self._makeComboParts(c)
-      self.inTraining[c]=self.samplers[c]
-    #establish reference cut
-    self.references={}
+    #set up reference case
     for var,dist in self.distDict.items():
-      self.references[var] = dist.untruncatedMean() #TODO run this case!
-    #load the solutions up
-    self.existing=[]
+      self.references[var] = dist.untruncatedMean() #TODO assure this case gets run first
+    #set up first subsets, the mono-dimensionals
+    self.firstCombos = list(itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in [0,1]))
+    for c in self.firstCombos[:]:
+      if len(c)<1: #already did reference case, so remove it
+        self.firstCombos.remove(c)
+        continue
+      self._makeSubsetRom(c)
+      self.inTraining[c] = self.samplers[c]
+      self.expImpact[c] = 1.0 #dummy value, but it needs something
+    #update the solution storage array
     self._updateExisting()
-    #collect first set of runs needed
-    self.neededPoints=[tuple(self.references[var] for var in self.features)]
-    self._collectNeededPoints(self.first_combos)
+    #set up the nominal point for a run
+    #  Note: neededPoints is not going to be the main method for adding points, but it will take priority.
+    self.neededPoints = [tuple(self.references[var] for var in self.features)]
 
-  def _convergence(self):
-    pass #TODO
+  def localStillReady(self,ready):
+    """
+    Determines if sampler is prepared to provide another input.  If not, and
+    if jobHandler is finished, this will end sampling.
+    @ In, ready, boolean
+    @Out, boolean
+    """
+    #update the existing solutions
+    self._updateExisting()
+    #if not ready passed in, believe it
+    if not ready: return ready
+    #check if any samplers that are in training have points left to submit; if so, ready.
+    if self._getNumNeededPoints(self.inTraining.keys())>0: return True
+    #if none of the above, enter searching loop
+    while self._getNumNeededPoints(self.inTraining.keys())<1:
+      #check readiness of subsets in training to provide new inputs
+      batchDone = True
+      for combo,sampler in self.inTraining.items():
+        self.raiseADebug('...checking readiness of subset',combo)
+        samplerReady = sampler.localStillReady(True) #TODO won't this fail when all runs submitted but still waiting on some?
+        if samplerReady or not sampler.converged:
+          batchDone = False
+        else: #this sampler is converged and done training!.....right?
+          self.doneTraining[combo] = sampler #do I really need to store this?
+          del self.inTraining[combo]
+          del self.expImpact[combo]
+          self.romShell[combo].train(self.samplers[combo].solns) #FIXME doesn't this ROM need finalizing first?
+          self.actImpact[combo] = self._calcActualImpact[combo]
+          # done in _calcConvergence #self.useSet[combo] = self.romShell[combo] #this seems redundant?
+      #get the combo with the highest importance, I think...
+      impactCombo = self.expImpact.keys()[-1]
+      #while impactCombo in self.doneTraining.keys(): #highest-impact combo is done
+      if impactCombo in self.doneTraining.keys():
+        totalConvergence = self._calcConvergence(impactCombo) #TODO implement
+        #really? del self.expImpact -> I don't think so? I don't know?
+        if totalConvergence < self.convValue: #we're not contributing enough even with our biggest expected impact!
+          self._finalizeROM() #uses parent class implementation
+          return False
+      if batchDone: #TODO conditional on maxSobolOrder
+        #make a new layer!
+        self._generateSubsets()
+        #do I need to call localStillReady on the new guys? I don't think so
+    #end while
+    #check for no points to run?  What if points still running that I need?
+    if self._getNumNeededPoints(self.inTraining.keys())==0: #FIXME AND jobHandler is still running?
+      self.finalizeROM()
+      return false
+    #if none of the above, we're good to continue.
+    return True
 
-  def _fillCutPoint(self,combo,pt):
-    '''
-      Fills a cut point with reference values
-      @ In, combo, tuple(str) of the features provided
-      @ In, pt, tuple(float) of len(combo), feature values
-      @ Out, tuple(float), full evaluation point
-    '''
-    newpt = np.zeros(len(self.features))
-    for v,var in enumerate(self.features):
-      if var in combo: newpt[v] = pt[combo.index(var)]
-      else:            newpt[v] = self.references[var]
-    return tuple(newpt)
+  def localGenerateInput(self,model,oldInput):
+    """
+    Generates an input to be run.
+    @ In, model, the model to run.
+    @ In, oldInput, the old input used.
+    @Out, None
+    """
+    if len(self.neededPoints)>0:
+      pt = self.neededPoints.pop()
+    else:
+      pt = self._getHighestImpactPoint(self.inTraining.keys()) #TODO grab a point from the expected most-impactful subset
+      if pt is None:
+        self.raiseAnError(RuntimeError,'No highest-impact point found!')
+    for v,varName in enumerate(self.distDict.keys()):
+      self.values[varName] = pt[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['SamplerType'] = 'Adaptive Sobol Sparse Grids'
+
+  # utility methods
+  def _calcConvergence(self,combo):
+    """
+    Calculates the total impact of the current set.
+    @ In, combo, new combo to add
+    @Out, float, the "error" reduced by acquiring the new point
+    """
+    #get the old variance
+    sum1 = sum(self.ROMs[c].__variance__() for c in self.useSet.keys())
+    #get the variance including the new term
+    sum2 = sum1 + self.ROMs[combo].__variance__()
+    #add the new term to the use set
+    self.useSet[combo] = self.ROMs[combo]
+    #return the relative error between the successive HDMR expansions
+    return abs(sum2-sum1)/abs(sum1)
+
+  def _calcExpImpact(self,combo):
+    """
+    Estimates the importance (impact) of subset (combo) in the current set based on its subsets.
+    @ In, combo, the subset for which we want the expected impact
+    @Out, float, the expected impact
+    """
+    impact = 1
+    for subset in self.useSet.keys():
+      if set(subset).issubset(set(combo)):
+        impact*=self.actImpact[subset]
+    return impact
 
   def _checkCutPoint(self,combo,pt):
-    '''
-      Establishes whether a point is part of the cut set for features in combo
-      @ In, combo, tuple(str), the desired features
-      @ In, pt, tuple(float), the full point
-      @ Out, bool, true if pt only varies in combo dimensions from the reference point
-    '''
-    isCut = True
-    self.raiseADebug('.........combo:',combo)
-    self.raiseADebug('.........point:',pt)
+    """
+    Determines if a point is part of the cut set for the features in the subset (combo)
+    @ In, combo, tuple(str), desired subset features
+    @ In, pt, tuple(float), the full point
+    @Out, bool, true if pt only varies in subset dimensions from the reference point
+    """
     for v,var in enumerate(self.features):
-      if var in combo:continue
-      if pt[v] != self.references[var]:
-        isCut = False
-        break
-    return isCut
+      if var in combo: continue #it's okay to vary if you're in the subset
+      if pt[v] != self.references[var]: #not part of the cut plane
+        return False
+    return True
 
-  def _makeCombos(self):#,low,high):
-    '''
-      Returns a list of the possible subset combinations with a cardinality from low to high.
-      @ In,  low,         the smallest subset size (number of variables included in each subset)
-      @ In,  high,        the maximum subset size
-      @ Out, list(tuple), list of combinations
-    '''
+  def _expandCutPoint(self,pt,combo):
+    """
+    Fills in a cut point with reference values.
+    @ In, pt, the point to fill
+    @ In, combo, the subset for which this point is valid
+    @Out, tuple(float), expanded point
+    """
+    full = np.zeros(len(self.features))
+    for v,var in enumerate(self.features):
+      if var in combo: full[v] = pt[combo.index(var)]
+      else:            full[v] = self.references[var]
+    return tuple(full)
+
+  def _generateSubsets(self):
+    """
+    Returns a list of the possible subset combinations
+    @ In, None
+    @Out, None
+    """
+    #get largest subset combination used thus far
     l = max(len(c) for c in self.useSet.keys())
-    #TODO this is inefficient; we really want a cross product of useSet with firstSet, but I haven't found a way
+    #TODO the following algorithm is inefficient, but I haven't found a
+    #  better way to do a cross product of useSet with firstSet.
+    #get the potential next-step subsets
     potential = itertools.combinations(self.features,l+1)
     for p in potential:
-      if all(set(c).issubset(p) for c in self.useSet.keys()):
-        self._makeComboParts(p)
-        self.inTraining[p] = self.samplers[c]
-        self.expImpact[p]  = self._calcExpImpact[p]
-    #order expImpact by low impact
-    tosort = zip(self.expImpact.keys(),self.expImpact.values())
-    tosort.sort(key=itemgetter(1)) #not reversed, so pop() does last-in-first-out
+      #in order for p to be considered, all of its subsets (precedents) need to be in
+      #  the useSet already.
+      neededPrecedents = list(itertools.combinations(p,len(p)-1))
+      if all(c in self.useSet.keys() for c in neededPrecedents):
+        self._makeSubsetRom(p)
+        self.inTraining[p] = self.samplers[p]
+        self.expImpact[p] = self._calcExpImpact(p)
+    #now order expected impacts so lowest is first (so -1 is highest)
+    toSort = zip(self.expImpact.keys(),self.expImpact.values())
+    toSort.sort(key=itemgetter(1))
     self.expImpact = OrderedDict()
-    for key,impact in tosort:
-        self.expImpact[key]=impact
+    for key,impact in toSort:
+      self.expImpact[key]=impact
 
-    #return itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(low,high+1))
-    #do cross product of existing with originals
-
-  def _collectNeededPoints(self,combos):
-    '''
-      Goes through subset samplers and adds neededPoints to queue
-      @In, combos, list of tuples to collect needed points from (probably usually all the untrained combos)
-    '''
+  def _getHighestImpactPoint(self,combos):
+    """
+    Searches for a worthy point, emphasizing the most-impactful subsets.
+    @ In, combos, list(tuple(str)), subsets to consider
+    @Out, point, tuple(float) highest impact point, or None if none found
+    """
+    point = None
+    #find the order of expected impact
+    impactDict = {}
     for c in combos:
-      self.raiseADebug('checking needs for combo',c)
-      if self.expImpact.get(c,self.convValue+1)>self.convValue:
-        while len(self.samplers[c].neededPoints) > 0:
-          pt = self.samplers[c].neededPoints.pop()
-          self.raiseADebug('...checking on point',pt)
-          fullpt = self._fillCutPoint(c,pt)
-          if fullpt not in self.neededPoints and fullpt not in self.existing:
-            self.raiseADebug('...adding point',pt)
-            self.neededPoints.append(fullpt)
+      imp = self.expImpact[c]
+      if imp in impactDict.keys():
+        impactDict[imp].append(c)
+      else:
+        impactDict[imp] = [c]
+    impacts = sorted(impactDict.keys())
+    #look for most impactful point
+    while len(impacts)>0:
+      imp = impacts.pop() #get the highest impact
+      for c in impactDict[imp]: #loop over subsets with that impact
+        #check to see if sampler has a point needed
+        if len(self.samplers[c].neededPoints)>0:
+          point = self.samplers[c].neededPoints.pop()
+          #expand the point to the not-cut verson
+          point = self._expandCutPoint(point,c)
+          break
+      if point is not None: break
+    return point
 
-  def _makeComboParts(self,combo):
-    '''
-      Constructs a single ROM for the given subset (combo).
-      @ In, combo, tuple(string) subset description, i.e. ('x','y')
-      @ Out, GaussPolynomialROM object
-    '''
-    self.raiseADebug('Generating sub-combos for combo',combo)
-    #node = ET.Element('sampler')
-    #node.append(ET.Element('Convergence',text=self.convValue))
-    #for c in combo:
-    #    var = str(c)
-    #    vnode = ET.Element('variable',text=var)
-    SVL = self.ROM.SupervisedEngine.values()[0] #FIXME multitarget
+  def _getNumNeededPoints(self,combos):
+    """
+    Loops through subset samplers and counts the number of needed points still outstanding.
+    @ In, combos, list of tuples to count needed points
+    @Out, integer, number of outstanding needed points (there may be duplicates)
+    """
+    return sum(len(self.samplers[c].neededPoints) for c in combos)
+
+  def _makeSubsetRom(self,combo):
+    """
+    Constructs a subset ROM for the given subset (combo).
+    @ In, combo, tuple(string) subset description, as ('x','y')
+    @Out, GaussPolynomialROM object
+    """
+    SVL = self.ROM.SupervisedEngine.values()[0] #TODO multitarget
+    #replicate "normal" construction of the ROM
     distDict={}
     quadDict={}
     polyDict={}
     imptDict={}
     limit=0
+    #make use of the keys to get the distributions, quadratures, polynomials, importances we want
     for c in combo:
-      distDict[c]=self.distDict[c]
-      quadDict[c]=self.quadDict[c]
-      polyDict[c]=self.polyDict[c]
-      imptDict[c]=self.importanceDict[c]
+      distDict[c] = self.distDict[c]
+      quadDict[c] = self.quadDict[c]
+      polyDict[c] = self.polyDict[c]
+      imptDict[c] = self.importanceDict[c]
+    #instantiate an adaptive index set for this ROM
     iset = IndexSets.returnInstance('AdaptiveSet',self)
     iset.initialize(distDict,imptDict,self.maxPolyOrder)
-    self.raiseADebug('iset pts:',iset)
-    #TODO intialize sparse quad! FIXME does this work?  We need adaptive sparse grid
-    # I'm pretty sure this is a dummy quadrature that will get replaced.
-    #  ...on the other hand, it appears we're getting empty sparse grid quadratures...
+    iset.verbosity='all' #mute the debug
+    #instantiate a sparse grid quadrature
     self.SQs[combo] = Quadratures.SparseQuad()
     self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
-    #initDict       is for SVL.__init__
-    #initializeDict is for SVL.initialize()
-    initDict =       {'IndexSet'       : iset.type,         # type of the index set
-                      'PolynomialOrder': SVL.maxPolyOrder,  # largest polynomial
-                      'Interpolation'  : SVL.itpDict,       # poly,quads per input
-                      'Features'       : ','.join(combo),   # input variables
-                      'Target'         : SVL.target}        # TODO make it work for multitarget
-    initializeDict = {'SG'             : self.SQs[combo],   # sparse grid
-                      'dists'          : distDict,          # distributions
-                      'quads'          : quadDict,          # quadratures
-                      'polys'          : polyDict,          # polynomials
-                      'iSet'           : iset}              # index set
+    #instantiate the SVL.  Note that we need to call both __init__ and initialize with dictionaries.
+    initDict = {'IndexSet'       : iset.type,
+                'PolynomialOrder': SVL.maxPolyOrder,
+                'Interpolation'  : SVL.itpDict,
+                'Features'       : ','.join(combo),
+                'Target'         : SVL.target}
     self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
+    self.ROMs[combo].verbosity = 'all' #mute debug
+    initializeDict = {'SG'   : self.SQs[combo],
+                      'dists': distDict,
+                      'quads': quadDict,
+                      'polys': polyDict,
+                      'iSet' : iset}
     self.ROMs[combo].initialize(initializeDict)
-    #set up for adaptive sampling
-    #...make the shell ROM for this combo
-    self.romshell[combo] = Models.returnInstance('ROM',self)
-    self.romshell[combo].messageHandler = self.messageHandler
-    self.romshell[combo].SupervisedEngine[SVL.target] = self.ROMs[combo]
-    #...make adaptive SG sampler,simulate localInputAndChecks
-    nsamp = AdaptiveSparseGrid()
-    nsamp.messageHandler = self.messageHandler
-    nsamp.doInParallel = self.doInParallel
-    for var in combo: nsamp.axisName.append(var)
-    nsamp.convType='variance'
-    nsamp.maxPolyOrder = self.maxPolyOrder
-    nsamp.persistence = 2
-    nsamp.convValue = self.convValue
-    nsamp.distDict = distDict
-    nsamp.assemblerDict['ROM']              = [['','','',self.romshell[combo] ]]
-    nsamp.assemblerDict['TargetEvaluation'] = [['','','',self.solns           ]]
-    nsamp.localInitialize()
+    #instantiate the shell ROM that contains the SVL -> multitarget someday
+    #   NOTE: the shell is only needed so we can call the train method.
+    self.romShell[combo] = Models.returnInstance('ROM',self)
+    self.romShell[combo].messageHandler = self.messageHandler
+    self.romShell[combo].SupervisedEngine[SVL.target] = self.ROMs[combo]
+    #instantiate the adaptive sparse grid sampler for this rom
+    samp = AdaptiveSparseGrid()               #FIXME factory
+    samp.messageHandler = self.messageHandler
+    samp.verbosity      = 'all'               #mute debug
+    samp.doInParallel   = self.doInParallel
+    samp.jobHandler     = self.jobHandler
+    samp.convType       = 'variance'
+    samp.maxPolyOrder   = self.maxPolyOrder
+    samp.maxRuns        = self.maxRuns
+    samp.persistence    = 2                 #FIXME magic number
+    samp.convValue      = self.convValue    #FIXME not optimized
+    samp.distDict       = distDict
+    samp.assemblerDict['ROM']              = [['','','',self.romShell[combo]]]
+    samp.assemblerDict['TargetEvaluation'] = [['','','',self.solns          ]]
+    for var in combo: samp.axisName.append(var)
+    samp.localInitialize()
+    samp.printTag = 'ASG:('+','.join(combo)+')'
     #propogate sparse grid back from sampler
-    self.SQs[combo] = nsamp.sparseGrid
-    self.ROMs[combo].sparseGrid = nsamp.sparseGrid
-    self.raiseADebug('SG:',nsamp.sparseGrid)
-    self.samplers[combo] = nsamp
+    self.SQs     [combo]             = samp.sparseGrid
+    self.ROMs    [combo].sparseGrid  = samp.sparseGrid
+    self.samplers[combo]             = samp
 
   def _updateExisting(self):
-    '''
-      Collects solutions from TargetEvaluation timepointset.  Also updates timepointset for all subsets.
-      @ In, None
-      @ Out, None
-    '''
-    self.raiseADebug('...updating existing database of points...')
-    if self.solns.isItEmpty():
-      self.raiseADebug('......no solutions yet...')
-      return
+    """
+    Collects solutions from the TargetEvaluation PointSet data object, and updates subset data objects.
+    @ In, None
+    @Out, None
+    """
+    #if the solution pointset is empty, don't bother.
+    if self.solns.isItEmpty(): return
+    #update self.exisitng through the default manner
     AdaptiveSparseGrid._updateExisting(self)
-    #FIXME are these the right points, or do they need to be reverted from cut points?
-    self.raiseADebug('existing:',self.existing)
-    for key,value in self.existing.items():
-      self.raiseADebug('existing entry:',key,value)
-
-    self.raiseADebug('...divvying up points...')
-    #make subset solns for subsets
-    #solns={}
+    # initialize samplers if they need it
+    self.raiseADebug('\n\n')
+    self.raiseADebug('sorting points...')
     for combo,sampler in self.samplers.items():
-      #solns[combo] = []
-      counter = 0
-      self.raiseADebug('......DataObject for combo',combo,self.samplers[combo].solns)
       if self.samplers[combo].solns is None or self.samplers[combo].solns.isItEmpty():
-        self.raiseADebug('......Creating DataObject for combo',combo)
-        dataObj = DataObjects.returnInstance('PointSet',self)
-        dataObj.type='PointSet'
-        #write XML for intializing
-        datanode = ET.Element('PointSet',{'name':str(combo)})
-        #inputs
-        inpnode = ET.Element('Input')
-        inpnode.text=','.join(c for c in combo)
-        datanode.append(inpnode)
-        #outputs
-        outnode = ET.Element('Output')
-        outnode.text=','.join(self.targets)
-        datanode.append(outnode)
-        #initialize
-        dataObj.readXML(datanode,self.messageHandler)
-      else:
-        dataObj = self.samplers[combo].solns
-      #add in relevant cut-hyperplane data
-      if len(self.existing)>0:
-        self.raiseADebug('......in existing:',self.existing)
-        self.raiseADebug('......targets:',self.targets)
-        for inp,soln in self.existing.items():
-          if self._checkCutPoint(combo,inp): #indicates it's part of the desired cut hyperplane
-            #solns[combo].append(soln)
+        #FIXME does this ever get called?? test this out.
+        self.samplers[combo].solns = DataObjects.returnInstance('PointSet',self)
+        dataObject = self.samplers[combo]
+        dataObject.type ='PointSet'
+        #write xml to set up data object
+        node = ET.Element('PointSet',{'name':'-'.join(combo)})
+        inp = ET.Element('Input')
+        inp.text = ','.join(c for c in combo)
+        node.append(inp)
+        out = ET.Element('Output')
+        out.text = ','.join(self.targets)
+        node.append(out)
+        dataObject.readXML(node,self.messageHandler)
+
+    #send points to subsets
+    for inp,soln in self.existing.items():
+      self.raiseADebug('...sorting',inp,'|',soln)
+      for combo,sampler in self.samplers.items():
+        #check if point is in cut hyperplane
+        if self._checkCutPoint(combo,inp):
+          self.raiseADebug('......is a cut point for:',combo)
+          self.raiseADebug('......existing points:')
+          for key,val in sampler.existing.items():
+            self.raiseADebug('           ',key,val)
+          #construct the cut point
+          cinp = []
+          cout = []
+          cinp = tuple(inp[i] for i in range(len(combo)))
+          #for i,c in enumerate(combo): cinp.append(inp[i])
+          #cinp = tuple(cinp)
+          cout = tuple(soln[i] for i in range(len(self.targets)))
+          #for i,c in enumerate(self.targets): cout.append(soln[i])
+          #cout = tuple(cout)
+          if cinp not in sampler.existing.keys():
+            self.raiseADebug('.........new point!')
+            #are cinp the same order as the sampler's existing?
+            self.raiseADebug('DEBUG sampler existing var order:',sampler.features)
+            self.raiseADebug('DEBUG combo cinp var order:',combo)
+            sampler.existing[cinp] = cout
             for i,c in enumerate(combo):
-              dataObj.updateInputValue(c,inp[i])
+              sampler.solns.updateInputValue(c,cinp[i])
             for i,c in enumerate(self.targets):
-               dataObj.updateOutputValue(c,soln[i])
-      self.samplers[combo].solns = dataObj
+              sampler.solns.updateOutputValue(c,cout[i])
+          else:
+            self.raiseADebug('.........pre-existing point.')
 
-  def _calcActualImpact(self,combo):
-    '''
-      Calculates the actual impact of adding combo to the HDMR representation.
-      @ In, combo, the combo to evaluate
-      @ Out, float, the impact parameter
-    '''
-    contrib=abs(self.ROMs[combo].__variance__())
-    denom = 0
-    for donecombo in sorted(self.useSet.keys(),key=len):
-      if set(donecombo).issubset(set(combo)):
-        denom+=self.ROMs[donecombo].__variance__()
-    if denom>0: return contrib/abs(denom)
-    else: return contrib
 
-  def _calcExpImpact(self,combo):
-    '''
-    Calculates the expectcted impact of a parameter based on the product of its subsets.
-    @ In, combo, the combo to evaluate
-    @ Out, float, the expected impact
-    '''
-    impact=1
-    for donecombo in sorted(self.useSet.keys(),key=len):
-      if set(donecombo).issubset(set(combo)):
-        impact*=self.actImpact[donecombo]
-    return impact
+    #this is by combo, by input -> let's try by input by combo
+#    for combo,sampler in self.samplers.items():
+#      self.raiseADebug('...combo:',combo)
+#      #if uninstantiated or empty, refresh/instantiate the data object
+#      if self.samplers[combo].solns is None or self.samplers[combo].solns.isItEmpty():
+#        dataObj = DataObjects.returnInstance('PointSet',self)
+#        dataObj.type = 'PointSet'
+#        #write xml to set up data object
+#        node = ET.Element('PointSet',{'name':'-'.join(combo)})
+#        inp = ET.Element('Input')
+#        inp.text = ','.join(c for c in combo)
+#        node.append(inp)
+#        out = ET.Element('Output')
+#        out.text = ','.join(self.targets)
+#        node.append(out)
+#        dataObj.readXML(datanode,self.messageHandler)
+#      else:
+#        dataObj = self.samplers[combo].solns
+#        #self.samplers[combo]._updateExisting() #FIXME should this be here?  We haven't added to the data object!
+#      #add relevent cut-hyperplane datapoints
+#      for inp,soln in self.existing.items():
+#        if self._checkCutPoint(combo,inp): #must be part of the hyperplane
+#          self.raiseADebug('......is part of cut:',inp)
+#          #build point, check to see if it's already in existing
+#          #FIXME this is inefficient, but not sure how to only get new points
+#          cinp = []
+#          cout = []
+#          for i,c in enumerate(combo):
+#            cinp.append(inp[i])
+#          cinp = tuple(cinp)
+#          for i,c in enumerate(self.targets):
+#            cout.append(soln[i])
+#          cout = tuple(cout)
+#          if cinp not in self.samplers[combo].existing.keys():
+#            self.raiseADebug('..........new:',combo)
+#            self.raiseADebug('..........inp:',cinp)
+#            self.raiseADebug('..........out:',cout)
+#            for i,c in enumerate(combo):
+#              dataObj.updateInputValue(c,cinp[i])
+#            for i,c in enumerate(self.targets):
+#              dataObj.updateOutputValue(c,cout[i]) #not soln?
+#          else:
+#            self.raiseADebug('..........preexisting:',combo)
+#      #update sampler's data object
+#      self.samplers[combo].solns = dataObj
+#      self.samplers[combo]._updateExisting()
+#      #self.samplers[combo].solns.printCSV()
 
-  def _calcConvergence(self,newcombo):
-    '''
-      Calculates the total impact of the current set.
-      @ In, None
-      @ Out, float, total impact
-    '''
-    sum1 = 0
-    for combo in self.useSet.keys():
-      sum1+=self.ROMs[combo].__variance__()
-    sum2 = sum1+self.ROMs[newcombo].__variance__()
-    self.useSet[newcombo]=self.ROMs[newcombo]
-    return abs(sum2-sum1)/abs(sum1)
-
-  def _initializeROM(self):
-    #used?
-    self.raiseAnError(RuntimeError,'I get used!')
-    initdict={'ROMs':self.useSet,
-            'dists':self.distDict,
-            'quads':self.quadDict,
-            'polys':self.polyDict,
-            'refs':self.references}
-    self.ROM.SupervisedEngine.values()[0].initialize(initdict) #TODO FIXME multitarget
-
-  def localStillReady(self,ready):
-    self.raiseADebug('\n\n\n\n')
-    self.raiseADebug('...checking if still ready...')
-    #update existing solutions
-    self._updateExisting()
-    #if we're already not ready, just return it
-    if ready==False: return ready
-    #if we still have points to run, submit them
-    if len(self.neededPoints)>0: return True
-    #look for convergence or new points
-    while len(self.neededPoints)<1:
-      #check local ready on outstanding ROMs
-      alldone = True
-      for combo,sampler in self.inTraining.items():
-        self.raiseADebug('checking ready on',combo)
-        stillrunning=sampler.localStillReady(True) #this might have added more points to sampler.neededPoints
-        if not stillrunning: #aka if done sampling
-          self.doneTraining[combo]=sampler
-          del self.inTraining[combo]
-          self.raiseADebug('training dataobj print:',self.samplers[combo].solns.name)
-          self.samplers[combo].solns.printCSV()
-          self.romshell[combo].train(self.samplers[combo].solns)
-          self.actImpact[combo] = self._calcActualImpact(combo)
-        else:
-          alldone=False #FIXME wait and re-call?
-      if not alldone:
-        self._collectNeededPoints(self.inTraining.keys())
-        self.raiseAnError(IOError,'break')
-      #TODO FIXME convergence tests not yet implemented!
-      #check total convergence
-      if len(self.expImpact)>0: impcombo = self.expImpact.keys()[-1]
-      # ELSE? TODO FIXME
-      while impcombo in self.doneTraining.keys(): #expected highest-impact is done
-        totconv = self._calcConvergence(impcombo)
-        del self.expImpact
-        if totconv < self.convValue:
-          self._finalizeROM()
-          return False
-      if alldone:
-        #make a new layer
-        self.makeCombos()
-        self._collectNeededPoints(self.expImpact.keys())
-    #check for no new points to run #TODO might need to check for runs still running?
-    if len(self.neededPoints)==0:
-      self.finalizeROM()
-      return False
-    return True
-
-  def localGenerateInput(self,model,oldInput):
-    pt = self.neededPoints.pop()
-    for v,varName in enumerate(self.distDict.keys()):
-      self.values[varName] = pt[v]
-      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['SamplerType'] = 'Adaptive Sobol Sparse Grid'
 
 
 """
