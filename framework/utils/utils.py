@@ -126,7 +126,7 @@ def compare(s1,s2,sig_fig = 6):
 def intConversion (s):
   try              : return int(s)
   except ValueError: return None
-  
+
 def floatConversion (s):
   try              : return float(s)
   except ValueError: return None

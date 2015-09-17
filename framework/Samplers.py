@@ -184,7 +184,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     @ Out, None
     The text i supposed to contain the info where and which variable to change.
     In case of a code the syntax is specified by the code interface itself
-    """    
+    """
 
     for child in xmlNode:
       prefix = ""
@@ -261,7 +261,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         if var.values()[0] > maxDim:
           maxDim = var.values()[0]
       self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
-      
+
   def read_sampler_init(self,xmlNode):
     """
     This method is responsible to read only the sampler_init block in the .xml file.
@@ -964,13 +964,10 @@ class MonteCarlo(Sampler):
 
     if xmlNode.find('sampler_init')!= None:
       if xmlNode.find('sampler_init').find('limit')!= None:
-        try: self.limit = int(xmlNode.find('sampler_init').find('limit').text)
-        except ValueError:
-          self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
-      else:
-        utils.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the sampler_init block')
-    else:
-      utils.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the sampler_init block')
+        try              : self.limit = int(xmlNode.find('sampler_init').find('limit').text)
+        except ValueError: self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+      else: self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the sampler_init block')
+    else: self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the sampler_init block')
 
   def localInitialize(self):
     """
@@ -1371,7 +1368,7 @@ class DynamicEventTree(Grid):
     self.hybridStrategyToApply             = {}
     # total number of hybridsampler samples (combination of all different hybridsampler strategy)
     self.hybridNumberSamplers              = 0
-    # List of variables that represent the aleatory space 
+    # List of variables that represent the aleatory space
     self.standardDETvariables              = []
     # List of variables that represent the epistemic space (hybrid det)
     self.epistemicSpace                    = []
@@ -1587,7 +1584,7 @@ class DynamicEventTree(Grid):
           Steps XML block)
     @ Out, None
     """
-    precSampled = rootTree.getrootnode().get('hybridsamplerSampled')
+    precSampled = rootTree.getrootnode().get('hybridsamplerCoordinate')
     rootnode    =  rootTree.getrootnode()
     rname       = rootnode.name
     rootnode.add('completedHistory', False)
@@ -1731,10 +1728,10 @@ class DynamicEventTree(Grid):
       # add the newer branch name to the map
       self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
       # check if it is a preconditioned DET sampling, if so add the relative information
-      precSampled = endInfo['parent_node'].get('hybridsamplerSampled')
+      precSampled = endInfo['parent_node'].get('hybridsamplerCoordinate')
       if precSampled:
         self.inputInfo['hybridsamplerCoordinate'] = copy.deepcopy(precSampled)
-        subGroup.add('hybridsamplerSampled', precSampled)
+        subGroup.add('hybridsamplerCoordinate', precSampled)
       # Check if the distribution that just triggered hitted the last probability threshold .
       #  In this case there is not a probability threshold that needs to be added in the input
       #  for this particular distribution
@@ -1863,7 +1860,7 @@ class DynamicEventTree(Grid):
     """
     self._localInputAndChecksDET(xmlNode)
     self._localInputAndChecksHybrid(xmlNode)
-   
+
   def _localInputAndChecksDET(self,xmlNode):
     """
     Class specific inputs will be read here and checked for validity.
@@ -1903,15 +1900,15 @@ class DynamicEventTree(Grid):
             error_found = True
     if error_found: self.raiseAnError(IOError,"In sampler named " + self.name+' Errors have been found!' )
     # Append the branchedLevel dictionary in the proper list
-    self.branchedLevel.append(branchedLevel)    
-  
+    self.branchedLevel.append(branchedLevel)
+
   def _localInputAndChecksHybrid(self,xmlNode):
     """
     Class specific inputs will be read here and checked for validity.
     This method reads the hybrid det portion only
     @ In, xmlNode: The xml element node that will be checked against the
                    available options specific to this Sampler.
-    """    
+    """
     for child in xmlNode:
       if child.tag == 'HybridSampler':
         if not 'type' in child.attrib.keys()                          : self.raiseAnError(IOError,'Not found attribute type in hybridsamplerSampler block!')
@@ -1924,7 +1921,7 @@ class DynamicEventTree(Grid):
         self.hybridStrategyToApply[child.attrib['type']].setMessageHandler(self.messageHandler)
         # make the hybridsampler sampler read  its own xml block
         self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(child)
-        # store the variables that represent the epistemic space 
+        # store the variables that represent the epistemic space
         self.epistemicSpace.extend(self.hybridStrategyToApply[child.attrib['type']].toBeSampled.keys())
 
   def localAddInitParams(self,tempDict):
@@ -1982,7 +1979,7 @@ class DynamicEventTree(Grid):
       elm.add('running',True)
       elm.add('queue',False)
       # if preconditioned DET, add the sampled from hybridsampler samplers
-      if self.hybridNumberSamplers > 0: elm.add('hybridsamplerSampled', combinations[precSample])
+      if self.hybridNumberSamplers > 0: elm.add('hybridsamplerCoordinate', combinations[precSample])
       # The dictionary branchedLevel is stored in the xml tree too. That's because
       # the advancement of the thresholds must follow the tree structure
       elm.add('branchedLevel', self.branchedLevel[0])
@@ -2020,7 +2017,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     self.completedHistCnt   = 1         # Counter of the completed histories
     self.actualLastOutput   = None      # Pointer to the lastoutput dataobject (see LimitSurfaceSearch "lastOutput" description)
     self.hybridDETstrategy  = None      # Integer flag to turn the hybrid strategy on:
-                                        # None -> No hybrid approach, 
+                                        # None -> No hybrid approach,
                                         # 1    -> the epistemic variables are going to be part of the limit surface search
                                         # 2    -> the epistemic variables are going to be treated by a normal hybrid DET approach and the LimitSurface search
                                         #         will be performed on each epistemic tree (n LimitSurfaces)
@@ -2070,7 +2067,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     lowerCdfValues = {}
     cdfValues         = {}
     self.raiseADebug("Check for closest branch:")
-    self.raiseADebug("_"*50) 
+    self.raiseADebug("_"*50)
     for key,value in self.values.items():
       self.raiseADebug("Variable name   : "+str(key))
       self.raiseADebug("Distrbution name: "+str(self.toBeSampled[key]))
@@ -2079,19 +2076,19 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         lowerCdfValues[key] = utils.find_le(self.branchProbabilities[self.toBeSampled[key]],cdfValues[key])[0]
         self.raiseADebug("CDF value       : "+str(cdfValues[key]))
         self.raiseADebug("Lower CDF found : "+str(lowerCdfValues[key]))
-      self.raiseADebug("_"*50)  
+      self.raiseADebug("_"*50)
     #if hybrid DET, we need to find the correct tree that matches the values of the epistemic
     if self.hybridDETstrategy is not None:
-      self.foundEpistemicTree, actualTree, compareDict = False, None, dict.fromkeys(self.epistemicVariables,False)
-      for treer in self.TreeInfo.values():
-        epistemicVars = treer.getrootnode().get("hybridsamplerSampled")[0]['SampledVars']
+      self.foundEpistemicTree, treer, compareDict = False, None, dict.fromkeys(self.epistemicVariables,False)
+      for tree in self.TreeInfo.values():
+        epistemicVars = tree.getrootnode().get("hybridsamplerCoordinate")[0]['SampledVars']
         for key in self.epistemicVariables: compareDict[key] = utils.compare(epistemicVars[key],self.values[key])
         if all(compareDict.values()):
           # we found the right epistemic tree
-          self.foundEpistemicTree, actualTree = True, treer
+          self.foundEpistemicTree, treer = True, tree
           break
-    else: actualTree = self.TreeInfo.values()[0]
-    
+    else: treer = self.TreeInfo.values()[0]
+
     # check if in the adaptive points already explored (if not push into the grid)
     if not self.insertAdaptBPb:
       candidatesBranch = []
@@ -2105,24 +2102,20 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
           pbth = [invPoint[self.toBeSampled[key]] for key in cdfValues.keys()]
           if all(i >= pbth[cnt] for cnt,i in enumerate(lowerCdfValues.values())): lowerCdfValues = invPoint
     # Check if The adaptive point requested is outside the so far run grid; in case return None
-    # In addition, if Adaptive Hybrid DET, if actualTree is None, we did not find any tree 
+    # In addition, if Adaptive Hybrid DET, if treer is None, we did not find any tree
     #              in the epistemic space => we need to create another one
-    if None in lowerCdfValues.values() or actualTree is None: return None,cdfValues
-    nntrain = None
-    mapping = {}
-    for treer in self.TreeInfo.values(): # this needs to be solved
-      for ending in treer.iterProvidedFunction(self._checkEnded):
-        #already ended branches, create training set for nearest algorithm (take coordinates <= of cdfValues) -> TODO: improve efficiency
-        pbth = [ending.get('SampledVarsPb')[key] for key in lowerCdfValues.keys()]
-        if all(pbth[cnt] <= i for cnt,i in enumerate(lowerCdfValues.values())):
-          if nntrain == None:
-            nntrain = np.zeros((1,len(cdfValues.keys())))
-            nntrain[0,:] = np.array(copy.copy(pbth))
-          else          :
-            nntrain = np.concatenate((nntrain,np.atleast_2d(np.array(copy.copy(pbth)))),axis=0)
-            #nntrain = np.append(nntrain, np.atleast_1d(np.array(copy.copy(pbth))), axis=0)
-          mapping[nntrain.shape[0]] = ending
-    if nntrain != None:
+    if None in lowerCdfValues.values() or treer is None: return None, cdfValues
+    nntrain, mapping = None, {}
+    for ending in treer.iterProvidedFunction(self._checkEnded):
+      #already ended branches, create training set for nearest algorithm (take coordinates <= of cdfValues) -> TODO: improve efficiency
+      pbth = [ending.get('SampledVarsPb')[key] for key in lowerCdfValues.keys()]
+      if all(pbth[cnt] <= i for cnt,i in enumerate(lowerCdfValues.values())):
+        if nntrain is None:
+          nntrain = np.zeros((1,len(cdfValues.keys())))
+          nntrain[0,:] = np.array(copy.copy(pbth))
+        else: nntrain = np.concatenate((nntrain,np.atleast_2d(np.array(copy.copy(pbth)))),axis=0)
+        mapping[nntrain.shape[0]] = ending
+    if nntrain is not None:
       neigh = neighbors.NearestNeighbors(n_neighbors=len(mapping.keys()))
       neigh.fit(nntrain)
       return self._checkValidityOfBranch(neigh.kneighbors(lowerCdfValues.values()),mapping),cdfValues
@@ -2219,10 +2212,10 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     # add the newer branch name to the map
     self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
     # check if it is a preconditioned DET sampling, if so add the relative information
-    # precSampled = endInfo['parent_node'].get('hybridsamplerSampled')
+    # precSampled = endInfo['parent_node'].get('hybridsamplerCoordinate')
     # if precSampled:
     #   self.inputInfo['hybridsamplerCoordinate'] = copy.deepcopy(precSampled)
-    #   subGroup.add('hybridsamplerSampled', precSampled)
+    #   subGroup.add('hybridsamplerCoordinate', precSampled)
     # The probability Thresholds are stored here in the cdfValues dictionary... We are sure that they are whitin the ones defined in the grid
     # check is not needed
     self.inputInfo['initiator_distribution'] = [self.toBeSampled[key] for key in cdfValues.keys()]
@@ -2293,8 +2286,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       @ In, myInput, list of original inputs
       @ Out, None
     """
-    
-    if self.startAdaptive:
+
+    if self.startAdaptive == True and self.adaptiveReady == True:
       LimitSurfaceSearch.localGenerateInput(self,model,myInput)
       #the adaptive sampler created the next point sampled vars
       #find the closest branch
@@ -2308,7 +2301,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         #   if not ind: ind = 0
         #   if value not in self.branchProbabilities[self.toBeSampled[key]]:
         #     self.branchProbabilities[self.toBeSampled[key]].insert(ind,value)
-        #     self.branchValues[self.toBeSampled[key]].insert(ind,self.distDict[key].ppf(value))
+        #     self.branchValues[self.toBeSampled[key]].insert(ind,self.distDict[key].ppf(value)
 
         ind = utils.find_le_index(self.branchProbabilities[self.toBeSampled[key]],value)
         if not ind: ind = 0
@@ -2342,17 +2335,20 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         elm.add('branchedLevel', branchedLevel)
         if self.hybridDETstrategy is not None and not self.foundEpistemicTree:
           # adaptive hybrid DET and not found a tree in the epistemic space
-          # take the first tree and modify the hybridsamplerSampled
-          hybridSampled = copy.deepcopy(self.TreeInfo.values()[0].getrootnode().get('hybridsamplerSampled'))
-          
+          # take the first tree and modify the hybridsamplerCoordinate
+          hybridSampled = copy.deepcopy(self.TreeInfo.values()[0].getrootnode().get('hybridsamplerCoordinate'))
           for hybridStrategy in hybridSampled:
             for key in self.epistemicVariables:
+
               if key in hybridStrategy['SampledVars'].keys():
                 hybridStrategy['SampledVars'][key]   = copy.copy(self.values[key])
                 hybridStrategy['SampledVarsPb'][key] = self.distDict[key].ppf(self.values[key])
-        
+                hybridStrategy['prefix'] = len(self.TreeInfo.values())+1
+            # TODO: find a strategy to recompute the probability weight here (for now == PointProbability)
+            hybridStrategy['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+            hybridStrategy['ProbabilityWeight'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+          elm.add('hybridsamplerCoordinate', hybridSampled)
         # Here it is stored all the info regarding the DET => we create the info for all the branchings and we store them
-        #self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.NodeTree(copy.deepcopy(elm))
         self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.NodeTree(elm)
         #self.branchedLevel.append(branchedLevel)
         self._createRunningQueueBeginOne(self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys()))],branchedLevel, model,myInput)
@@ -2426,8 +2422,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     if self.detAdaptMode == 2: self.startAdaptive = True
     # we first initialize the LimitSurfaceSearch sampler
     LimitSurfaceSearch.localInitialize(self,solutionExport=solutionExport)
-    #for key in self.limitSurfaceInstances.keys(): 
-    #  self.limitSurfaceInstances[key].assemblerDict.update(self.assemblerDict) 
+    #for key in self.limitSurfaceInstances.keys():
+    #  self.limitSurfaceInstances[key].assemblerDict.update(self.assemblerDict)
     #  self.limitSurfaceInstances[key].localInitialize(solutionExport=solutionExport)
     if self.hybridDETstrategy is not None:
       # we are running an adaptive hybrid DET and not only an adaptive DET
@@ -2443,11 +2439,11 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
             varNode.append(ET.fromstring("<distribution>"+dist.name.strip()+"</distribution>"))
             distDict[dist.name.strip()] = self.distDict[varName]
             #varNode.append(ET.fromstring('<grid construction="custom" type="'+(self.toleranceWeight.upper() if self.toleranceWeight == 'cdf' else self.toleranceWeight) +'">'+' '.join([str(elm) for elm in gridVector[varName.replace('<distribution>','')]])+'</grid>'))
-            varNode.append(ET.fromstring('<grid construction="custom" type="value">'+' '.join([str(elm) for elm in gridVector.values()[0][varName.replace('<distribution>','')]])+'</grid>')) 
+            varNode.append(ET.fromstring('<grid construction="custom" type="value">'+' '.join([str(elm) for elm in gridVector.values()[0][varName.replace('<distribution>','')]])+'</grid>'))
             xmlNode.find("HybridSampler").append(varNode)
         self._localInputAndChecksHybrid(xmlNode)
         for hybridsampler in self.hybridStrategyToApply.values(): hybridsampler._generateDistributions(distDict, {})
-    DynamicEventTree.localInitialize(self) 
+    DynamicEventTree.localInitialize(self)
     self._endJobRunnable    = sys.maxsize
 
   def generateInput(self,model,oldInput):
