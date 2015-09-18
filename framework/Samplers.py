@@ -1320,10 +1320,8 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
           offset[d] = step
           if iCoords[d] - step > 0:
             self.bandIndices.add(tuple(iCoords - offset))
-            print('low', d, tuple(iCoords - offset))
           if iCoords[d] + step < self.oldTestMatrix.shape[d]-1:
             self.bandIndices.add(tuple(iCoords + offset))
-            print('hi', d, tuple(iCoords + offset))
     self.bandIndices = list(self.bandIndices)
 
     # DM: This sequence gets used repetitively, so I am promoting it to its own
