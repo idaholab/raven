@@ -1,3 +1,4 @@
 time,aBoolean,dummy_for_branch,inlet_TDV_T_bc,inlet_TDV_p_bc,outlet_TDV_T_bc,outlet_TDV_p_bc,pipe1_Area,pipe1_Hw,pipe2_f,pump_mass_flow_rate,testGridpreconditioned1,testGridpreconditioned2,testLHSpreconditioned1,testLHSpreconditioned2,testMCpreconditioned1,testMCpreconditioned2
+0,0,0,310.98758201139,101000,303.86751307359,101000,0.000314159265,0,0.010172032448946,0.32721525164405,0.1,0,0.128917102453,0,0.366252733713,0
 0.1,0,0,310.98758201139,101000,303.86751307359,101000,0.000314159265,0,0.010172032448946,0.32721525164405,0.1,0,0.128917102453,0,0.366252733713,0
 
