@@ -804,7 +804,7 @@ class HDMRRom(GaussPolynomialRom):
     avail = max(list(len(combo) for combo in self.ROMs.keys()))
     if maxLevel==None: maxLevel = avail
     else:
-      if maxLevels>avail: self.raiseAnError(IOError,'Requested level %i for sensitivity analyis, but this composition is at most %i order!' %(maxLevel,avail) )
+      if maxLevel>avail: self.raiseAnError(IOError,'Requested level %i for sensitivity analyis, but this composition is at most %i order!' %(maxLevel,avail) )
 
     self.sdx = {}
     for l in range(maxLevel+1):

@@ -1,4 +1,5 @@
 .libs
+*.dylib
 *.la
 *.lo
 *.d

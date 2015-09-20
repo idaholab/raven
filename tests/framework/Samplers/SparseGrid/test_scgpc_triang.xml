@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+<Simulation printTimeStamps="false">
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>Tmake,Ttrain,Ttest,Tprint</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Distributions>
+    <Triangular name="TriDist">
+      <min>1</min>
+      <max>5</max>
+      <apex>4</apex>
+    </Triangular>
+  </Distributions>
+
+  <Samplers>
+    <SparseGridCollocation name="TSG" parallel="1">
+      <variable name="x1">
+        <distribution>TriDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>TriDist</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">TROM</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="./scgpc/polynomial" name="polynomial" subType="">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>ans</variable>
+    </ExternalModel>
+    <ROM name="TROM" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TensorProduct</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+      <Interpolation poly="Legendre" quad="ClenshawCurtis" weight="1">x1</Interpolation>
+      <Interpolation poly="Legendre" quad="ClenshawCurtis" weight="1">x2</Interpolation>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <MultiRun name="Tmake" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">TSG</Sampler>
+      <Output class="DataObjects" type="PointSet">Tsolns</Output>
+    </MultiRun>
+    <MultiRun name="Ttest" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">TROM</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">TSG</Sampler>
+      <Output class="DataObjects" type="PointSet">Ttests</Output>
+    </MultiRun>
+    <IOStep name="Tprint">
+      <Input class="DataObjects" type="PointSet">Ttests</Input>
+      <Input class="Models" type="ROM">TROM</Input>
+      <Output class="OutStreamManager" type="Print">Tdump</Output>
+      <Output class="OutStreamManager" type="Print">Tdumprom</Output>
+    </IOStep>
+    <RomTrainer name="Ttrain">
+      <Input class="DataObjects" type="PointSet">Tsolns</Input>
+      <Output class="Models" type="ROM">TROM</Output>
+    </RomTrainer>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="Ttests">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="Tsolns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="Tdump">
+      <type>csv</type>
+      <source>Ttests</source>
+    </Print>
+    <Print name="Tdumprom">
+      <type>xml</type>
+      <source>TROM</source>
+      <what>all</what>
+    </Print>
+  </OutStreamManager>
+
+</Simulation>
