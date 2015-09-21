@@ -387,13 +387,6 @@
   csv = 'SafestPointPP_cdf/sfs_pnt_cdf_dmp.csv SafestPointPP_cdf/lmt_srf_dmp.csv'
  [../]
 
- [./externalPostProcessor]
-  type = 'RavenFramework'
-  input = 'test_externalPostProcessor.xml'
-  csv = 'externalPostProcessor/myDump.csv'
-  output = 'externalPostProcessor/myDump.xml'
- [../]
-
  [./io_ROM_pickle]
   type = 'RavenFramework'
   input = 'test_io_ROM_pickle.xml'
