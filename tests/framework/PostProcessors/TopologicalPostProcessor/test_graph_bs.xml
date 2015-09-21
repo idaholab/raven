@@ -6,7 +6,7 @@
     <WorkingDir>data</WorkingDir>
     <Sequence>
       sampleData,
-      decomposeRBS
+      decomposeBS
     </Sequence>
   </RunInfo>
 
@@ -16,9 +16,9 @@
       <variable>Y</variable>
       <variable>Z</variable>
     </ExternalModel>
-    <!-- Relaxed Beta Skeleton (beta=1, Relaxed Gabriel) -->
-    <PostProcessor name='AMSC_RBS' subType='TopologicalDecomposition'>
-      <graph>Relaxed Beta Skeleton</graph>
+    <!-- Beta Skeleton (beta=1, Gabriel) -->
+    <PostProcessor name='AMSC_BS' subType='TopologicalDecomposition'>
+      <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
       <knn>26</knn>
@@ -58,23 +58,22 @@
       <Input   class="DataObjects" type="PointSet"         >dummyIN</Input>
       <Model   class="Models"      type="ExternalModel"    >test</Model>
       <Sampler class="Samplers"    type="MonteCarlo"       >sampler</Sampler>
-      <!-- <Sampler class="Samplers"    type="Grid"             >sampler</Sampler> -->
       <Output  class="DataObjects" type="PointSet"         >testData</Output>
     </MultiRun>
     <!-- Perform the topological decomposition -->
-    <PostProcess name="decomposeRBS">
+    <PostProcess name="decomposeBS">
       <Input  class="DataObjects"      type="PointSet"     >testData</Input>
-      <Model  class="Models"           type="PostProcessor">AMSC_RBS</Model>
-      <Output class="DataObjects"      type="PointSet"     >outRBS</Output>
-      <Output class="OutStreamManager" type="Print"        >segRBS</Output>
+      <Model  class="Models"           type="PostProcessor">AMSC_BS</Model>
+      <Output class="DataObjects"      type="PointSet"     >outBS</Output>
+      <Output class="OutStreamManager" type="Print"        >segBS</Output>
     </PostProcess>
   </Steps>
 
   <OutStreamManager>
     <!-- A csv file containing the output of the example -->
-    <Print name="segRBS">
+    <Print name="segBS">
       <type>csv</type>
-      <source>outRBS</source>
+      <source>outBS</source>
     </Print>
   </OutStreamManager>
 
@@ -89,7 +88,7 @@
       <Output>Z</Output>
     </PointSet>
     <!-- The output PointSet objects -->
-    <PointSet name="outRBS">
+    <PointSet name="outBS">
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>

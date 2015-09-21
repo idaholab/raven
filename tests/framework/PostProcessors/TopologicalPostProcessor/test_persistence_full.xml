@@ -7,7 +7,7 @@
     <WorkingDir>data</WorkingDir>
     <Sequence>
       sampleData,
-      decomposeProbability
+      decomposeFull
     </Sequence>
   </RunInfo>
 
@@ -17,8 +17,8 @@
       <variable>Y</variable>
       <variable>Z</variable>
     </ExternalModel>
-    <!-- Persistence related to relative probability of each cluster -->
-    <PostProcessor name='AMSC_Probability' subType='TopologicalDecomposition'>
+    <!-- The full segmentation with no simplification -->
+    <PostProcessor name='AMSC_Full' subType='TopologicalDecomposition'>
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
@@ -26,10 +26,6 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <!-- <simplification>0.1</simplification> -->
-      <simplification>0.0009</simplification>
-      <weighted>true</weighted>
-      <persistence>probability</persistence>
     </PostProcessor>
   </Models>
 
@@ -62,19 +58,19 @@
       <Output  class='DataObjects' type='PointSet'     >testData</Output>
     </MultiRun>
   <!-- Perform the topological decomposition -->
-    <PostProcess name='decomposeProbability'>
+    <PostProcess name='decomposeFull'>
       <Input   class='DataObjects'      type='PointSet'     >testData</Input>
-      <Model   class='Models'           type='PostProcessor'>AMSC_Probability</Model>
-      <Output  class='DataObjects'      type='PointSet'     >dataProb</Output>
-      <Output  class='OutStreamManager' type='Print'        >segProb</Output>
+      <Model   class='Models'           type='PostProcessor'>AMSC_Full</Model>
+      <Output  class='DataObjects'      type='PointSet'     >dataFull</Output>
+      <Output  class='OutStreamManager' type='Print'        >segFull</Output>
     </PostProcess>
   </Steps>
 
   <OutStreamManager>
   <!-- A csv file containing the output of the example -->
-    <Print name='segProb'>
+    <Print name='segFull'>
       <type>csv</type>
-      <source>dataProb</source>
+      <source>dataFull</source>
     </Print>
   </OutStreamManager>
 
@@ -89,7 +85,7 @@
       <Output>Z</Output>
     </PointSet>
   <!-- The output TimePointSet objects -->
-    <PointSet name='dataProb'>
+    <PointSet name='dataFull'>
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>

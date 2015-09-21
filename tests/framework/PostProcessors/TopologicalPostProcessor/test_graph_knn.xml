@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation>
-<!-- An example of the approximate Morse-Smale complex interface that tests each
-     graph structures available -->
+  <!-- An example of the approximate Morse-Smale complex interface that tests
+       each graph structures available -->
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
       sampleData,
-      decomposeRBS
+      decomposeNN
     </Sequence>
   </RunInfo>
 
@@ -16,12 +16,11 @@
       <variable>Y</variable>
       <variable>Z</variable>
     </ExternalModel>
-    <!-- Relaxed Beta Skeleton (beta=1, Relaxed Gabriel) -->
-    <PostProcessor name='AMSC_RBS' subType='TopologicalDecomposition'>
-      <graph>Relaxed Beta Skeleton</graph>
+    <!-- Nearest neighbor -->
+    <PostProcessor name='AMSC_NN' subType='TopologicalDecomposition'>
+      <graph>Approximate KNN</graph>
       <gradient>steepest</gradient>
-      <beta>1</beta>
-      <knn>26</knn>
+      <knn>9</knn>
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
@@ -58,23 +57,22 @@
       <Input   class="DataObjects" type="PointSet"         >dummyIN</Input>
       <Model   class="Models"      type="ExternalModel"    >test</Model>
       <Sampler class="Samplers"    type="MonteCarlo"       >sampler</Sampler>
-      <!-- <Sampler class="Samplers"    type="Grid"             >sampler</Sampler> -->
       <Output  class="DataObjects" type="PointSet"         >testData</Output>
     </MultiRun>
     <!-- Perform the topological decomposition -->
-    <PostProcess name="decomposeRBS">
+    <PostProcess name="decomposeNN">
       <Input  class="DataObjects"      type="PointSet"     >testData</Input>
-      <Model  class="Models"           type="PostProcessor">AMSC_RBS</Model>
-      <Output class="DataObjects"      type="PointSet"     >outRBS</Output>
-      <Output class="OutStreamManager" type="Print"        >segRBS</Output>
+      <Model  class="Models"           type="PostProcessor">AMSC_NN</Model>
+      <Output class="DataObjects"      type="PointSet"     >outNN</Output>
+      <Output class="OutStreamManager" type="Print"        >segNN</Output>
     </PostProcess>
   </Steps>
 
   <OutStreamManager>
     <!-- A csv file containing the output of the example -->
-    <Print name="segRBS">
+    <Print name="segNN">
       <type>csv</type>
-      <source>outRBS</source>
+      <source>outNN</source>
     </Print>
   </OutStreamManager>
 
@@ -89,7 +87,7 @@
       <Output>Z</Output>
     </PointSet>
     <!-- The output PointSet objects -->
-    <PointSet name="outRBS">
+    <PointSet name="outNN">
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
