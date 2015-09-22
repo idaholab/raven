@@ -192,8 +192,6 @@
 [Outputs]
 #output_linear = true
   file_base = out
-  interval = 1
-  output_initial = true
   exodus = true
   #perf_log = true
 []

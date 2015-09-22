@@ -34,7 +34,6 @@ class RAVENInterface(CodeInterfaceBase):
     else     : precommand = executable
     executeCommand = (precommand + ' -i '+inputFiles[index].getFilename() +
                       ' Outputs/file_base='+ outputfile +
-                      ' Outputs/interval=1'+
                       ' Outputs/csv=false' +
                       ' Outputs/checkpoint=true'+
                       ' Outputs/tail/type=ControlLogicBranchingInfo'+

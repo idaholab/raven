@@ -139,7 +139,7 @@
 #[Output]
   # Turn on performance logging
 #  exodus = true
-#  output_initial = true
+#
 #  output_displaced = true
 #  perf_log = true
 #[]
