@@ -870,22 +870,25 @@ class Point(Data):
     #Print input values
     if 'what' in options.keys():
       for var in options['what']:
-        if var.split('|')[0] == 'input':
-          inpKeys.append(var.split('|')[1])
-          inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
-        if var.split('|')[0] == 'output':
-          outKeys.append(var.split('|')[1])
-          outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
-        if var.split('|')[0] == 'metadata':
-          inpKeys.append(var.split('|')[1])
-          inpValues.append(self._dataContainer['metadata'][var.split('|')[1]])
-        if var.split('|')[0] == 'metadata':
-          if var.split('|')[1] in self.metaExclXml:
-            if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
-              self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-            inpKeys.append(var.split('|')[1])
-            inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+        splitted = var.split('|')
+        variableName = "|".join(splitted[1:]) if len(splitted) > 2 else splitted[1]
+        varType = splitted[0]
+        if varType == 'input':
+          inpKeys.append(variableName)
+          inpValues.append(self._dataContainer['inputs'][variableName])
+        if varType == 'output':
+          outKeys.append(variableName)
+          outValues.append(self._dataContainer['outputs'][variableName])
+        if varType == 'metadata':
+          inpKeys.append(variableName)
+          inpValues.append(self._dataContainer['metadata'][variableName])
+        if varType == 'metadata':
+          if variableName in self.metaExclXml:
+            if type(self._dataContainer['metadata'][variableName]) not in self.metatype:
+              self.raiseAnError(NotConsistentData,'metadata '+variableName+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+            inpKeys.append(variableName)
+            inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][variableName])))
+          else: self.raiseAWarning('metadata '+variableName+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
@@ -1143,30 +1146,33 @@ class PointSet(Data):
         outValues.append([])
         if 'what' in options.keys():
           for var in options['what']:
-            if var.split('|')[0] == 'input':
-              inpKeys[-1].append(var.split('|')[1])
+            splitted = var.split('|')
+            variableName = "|".join(splitted[1:]) if len(splitted) > 2 else splitted[1]
+            varType = splitted[0]
+            if varType == 'input':
+              inpKeys[-1].append(variableName)
               axa = np.zeros(len(O_o[key]))
-              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][var.split('|')[1]][0]
+              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][variableName][0]
               inpValues[-1].append(axa)
-            if var.split('|')[0] == 'output':
-              outKeys[-1].append(var.split('|')[1])
+            if varType == 'output':
+              outKeys[-1].append(variableName)
               axa = np.zeros(len(O_o[key]))
-              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][var.split('|')[1]][0]
+              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][variableName][0]
               outValues[-1].append(axa)
-            if var.split('|')[0] == 'metadata':
-              inpKeys[-1].append(var.split('|')[1])
-              if type(O_o[key][index]['metadata'][var.split('|')[1]]) not in self.metatype:
-                self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1] +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
+            if varType == 'metadata':
+              inpKeys[-1].append(variableName)
+              if type(O_o[key][index]['metadata'][splitted[1]]) not in self.metatype:
+                self.raiseAnError(NotConsistentData,'metadata '+variableName +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
                 axa = np.zeros(len(O_o[key]))
-                for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][var.split('|')[1]]))[0]
+                for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][variableName]))[0]
                 inpValues[-1].append(axa)
-            if var.split('|')[0] == 'metadata':
-              if var.split('|')[1] in self.metaExclXml:
-                if type(O_o[key][index]['metadata'][var.split('|')[1]]) not in self.metatype:
-                  self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1] +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
-                inpKeys[-1].append(var.split('|')[1])
+            if varType == 'metadata':
+              if variableName in self.metaExclXml:
+                if type(O_o[key][index]['metadata'][variableName]) not in self.metatype:
+                  self.raiseAnError(NotConsistentData,'metadata '+variableName +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
+                inpKeys[-1].append(variableName)
                 axa = np.zeros(len(O_o[key]))
-                for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][var.split('|')[1]]))[0]
+                for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][variableName]))[0]
                 inpValues[-1].append(axa)
         else:
           inpKeys[-1] = O_o[key][0]['inputs'].keys()
@@ -1212,30 +1218,32 @@ class PointSet(Data):
       myFile.close()
     else:
       #If not hierarchical
-
       #For Pointset it will create an XML file and one CSV file.
       #The CSV file will have a header with the input names and output
       #names, and multiple lines of data with the input and output
       #numeric values, one line for each input.
       if 'what' in options.keys():
         for var in options['what']:
-          if var.split('|')[0] == 'input':
-            inpKeys.append(var.split('|')[1])
-            inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
-          if var.split('|')[0] == 'output':
-            outKeys.append(var.split('|')[1])
-            outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
-          if var.split('|')[0] == 'metadata':
-            inpKeys.append(var.split('|')[1])
-            inpValues.append(self._dataContainer['metadata'][var.split('|')[1]])
-          if var.split('|')[0] == 'metadata':
-            if var.split('|')[1] in self.metaExclXml:
-              if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
-                self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-              inpKeys.append(var.split('|')[1])
-              if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-              else: inpValues.append(np.atleast_1d(self._dataContainer['metadata'][var.split('|')[1]]))
-            else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+          splitted = var.split('|')
+          variableName = "|".join(splitted[1:]) if len(splitted) > 2 else splitted[1]
+          varType = splitted[0]
+          if varType == 'input':
+            inpKeys.append(variableName)
+            inpValues.append(self._dataContainer['inputs'][variableName])
+          if varType == 'output':
+            outKeys.append(variableName)
+            outValues.append(self._dataContainer['outputs'][variableName])
+          if varType == 'metadata':
+            inpKeys.append(variableName)
+            inpValues.append(self._dataContainer['metadata'][variableName])
+          if varType == 'metadata':
+            if variableName in self.metaExclXml:
+              if type(self._dataContainer['metadata'][variableName]) not in self.metatype:
+                self.raiseAnError(NotConsistentData,'metadata '+variableName+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+              inpKeys.append(variableName)
+              if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][variableName])))
+              else: inpValues.append(np.atleast_1d(self._dataContainer['metadata'][variableName]))
+            else: self.raiseAWarning('metadata '+variableName+' not compatible with CSV output.It is going to be outputted into Xml out')
       else:
         inpKeys   = self._dataContainer['inputs'].keys()
         inpValues = self._dataContainer['inputs'].values()
@@ -1409,22 +1417,25 @@ class History(Data):
     #Print input values
     if 'what' in options.keys():
       for var in options['what']:
-        if var.split('|')[0] == 'input':
-          inpKeys.append(var.split('|')[1])
-          inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
-        if var.split('|')[0] == 'output':
-          outKeys.append(var.split('|')[1])
-          outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
-        if var.split('|')[0] == 'metadata':
-          inpKeys.append(var.split('|')[1])
-          inpValues.append(self._dataContainer['metadata'][var.split('|')[1]])
-        if var.split('|')[0] == 'metadata':
-          if var.split('|')[1] in self.metaExclXml:
-            if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
-              self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-            inpKeys.append(var.split('|')[1])
-            inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+        splitted = var.split('|')
+        variableName = "|".join(splitted[1:]) if len(splitted) > 2 else splitted[1]
+        varType = splitted[0]
+        if varType == 'input':
+          inpKeys.append(variableName)
+          inpValues.append(self._dataContainer['inputs'][variableName])
+        if varType == 'output':
+          outKeys.append(variableName)
+          outValues.append(self._dataContainer['outputs'][variableName])
+        if varType == 'metadata':
+          inpKeys.append(variableName)
+          inpValues.append(self._dataContainer['metadata'][variableName])
+        if varType == 'metadata':
+          if variableName in self.metaExclXml:
+            if type(self._dataContainer['metadata'][variableName]) not in self.metatype:
+              self.raiseAnError(NotConsistentData,'metadata '+variableName+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+            inpKeys.append(variableName)
+            inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][variableName])))
+          else: self.raiseAWarning('metadata '+variableName+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
@@ -1781,16 +1792,19 @@ class HistorySet(Data):
         outValues.append([])
         if 'what' in options.keys():
           for var in options['what']:
-            if var.split('|')[0] == 'input':
-              inpKeys[-1].append(var.split('|')[1])
+            splitted = var.split('|')
+            variableName = "|".join(splitted[1:]) if len(splitted) > 2 else splitted[1]
+            varType = splitted[0]
+            if varType == 'input':
+              inpKeys[-1].append(variableName)
               axa = np.zeros(len(O_o[key]))
               for index in range(len(O_o[key])):
-                axa[index] = O_o[key][index]['inputs'][var.split('|')[1]][0]
+                axa[index] = O_o[key][index]['inputs'][variableName][0]
               inpValues[-1].append(axa)
-            if var.split('|')[0] == 'output':
-              outKeys[-1].append(var.split('|')[1])
-              axa = O_o[key][0]['outputs'][var.split('|')[1]]
-              for index in range(len(O_o[key])-1): axa = np.concatenate((axa,O_o[key][index+1]['outputs'][var.split('|')[1]]))
+            if varType == 'output':
+              outKeys[-1].append(variableName)
+              axa = O_o[key][0]['outputs'][variableName]
+              for index in range(len(O_o[key])-1): axa = np.concatenate((axa,O_o[key][index+1]['outputs'][variableName]))
               outValues[-1].append(axa)
         else:
           inpKeys[-1] = O_o[key][0]['inputs'].keys()
@@ -1850,12 +1864,15 @@ class HistorySet(Data):
         outValues_h = []
         if 'what' in options.keys():
           for var in options['what']:
-            if var.split('|')[0] == 'input':
-              inpKeys_h.append(var.split('|')[1])
-              inpValues_h.append(inpValues[n][var.split('|')[1]])
-            if var.split('|')[0] == 'output':
+            splitted = var.split('|')
+            variableName = "|".join(splitted[1:]) if len(splitted) > 2 else splitted[1]
+            varType = splitted[0]
+            if varType == 'input':
+              inpKeys_h.append(variableName)
+              inpValues_h.append(inpValues[n][variableName])
+            if varType == 'output':
               outKeys_h.append(var.split('|')[1])
-              outValues_h.append(outValues[n][var.split('|')[1]])
+              outValues_h.append(outValues[n][variableName])
         else:
           inpKeys_h   = list(inpValues[n].keys())
           inpValues_h = list(inpValues[n].values())

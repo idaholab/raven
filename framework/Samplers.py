@@ -1832,14 +1832,14 @@ class DynamicEventTree(Grid):
       @ In, myInput, list of original inputs (unused)
       @ Out, None
     """
+    self._endJobRunnable = max([len(self.RunQueue['queue']),1])
     if self.counter <= 1:
       # If first branch input, create the queue
       self._createRunningQueue(model, myInput)
     # retrieve the input from the queue
     newerinput = self.__getQueueElement()
-    if not newerinput:
-      # If no inputs are present in the queue => a branch is finished
-      self.raiseADebug('A Branch ended!')
+    # If no inputs are present in the queue => a branch is finished
+    if not newerinput: self.raiseADebug('A Branch ended!')
     return newerinput
 
   def _generateDistributions(self,availableDist,availableFunc):
@@ -2104,7 +2104,11 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     # Check if The adaptive point requested is outside the so far run grid; in case return None
     # In addition, if Adaptive Hybrid DET, if treer is None, we did not find any tree
     #              in the epistemic space => we need to create another one
-    if None in lowerCdfValues.values() or treer is None: return None, cdfValues
+    if None in lowerCdfValues.values() or treer is None:
+      if self.hybridDETstrategy is not None: returnTuple = None, cdfValues, treer
+      else                                 : returnTuple = None, cdfValues
+      return returnTuple
+
     nntrain, mapping = None, {}
     for ending in treer.iterProvidedFunction(self._checkEnded):
       #already ended branches, create training set for nearest algorithm (take coordinates <= of cdfValues) -> TODO: improve efficiency
@@ -2118,8 +2122,13 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     if nntrain is not None:
       neigh = neighbors.NearestNeighbors(n_neighbors=len(mapping.keys()))
       neigh.fit(nntrain)
-      return self._checkValidityOfBranch(neigh.kneighbors(lowerCdfValues.values()),mapping),cdfValues
-    else: return None,cdfValues
+      valBranch = self._checkValidityOfBranch(neigh.kneighbors(lowerCdfValues.values()),mapping)
+      if self.hybridDETstrategy is not None: returnTuple = valBranch,cdfValues,treer
+      else                                 : returnTuple = valBranch,cdfValues
+      return returnTuple
+    else:
+      if self.hybridDETstrategy is not None: return None,cdfValues,treer
+      else                                 : return None,cdfValues
 
   def _checkValidityOfBranch(self,branchSet,mapping):
     """
@@ -2155,8 +2164,6 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     @ In, cdfValues, dict, dictionary of CDF thresholds reached by the branch that just ended.
     """
     endInfo = info['parent_node'].get('endInfo')
-    #branchedLevel = {}
-    #for distk, distpb in zip(info['initiator_distribution'],info['PbThreshold']): branchedLevel[distk] = index(self.branchProbabilities[distk],distpb)
     del self.inputInfo
     self.counter           += 1
     self.branchCountOnLevel = info['actualBranchOnLevel']+1
@@ -2216,6 +2223,11 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     # if precSampled:
     #   self.inputInfo['hybridsamplerCoordinate'] = copy.deepcopy(precSampled)
     #   subGroup.add('hybridsamplerCoordinate', precSampled)
+    # it exists only in case an hybridDET strategy is activated
+    precSampled = info['parent_node'].get('hybridsamplerCoordinate')
+    if precSampled:
+      self.inputInfo['hybridsamplerCoordinate'  ] = copy.deepcopy(precSampled)
+      subGroup.add('hybridsamplerCoordinate', copy.copy(precSampled))
     # The probability Thresholds are stored here in the cdfValues dictionary... We are sure that they are whitin the ones defined in the grid
     # check is not needed
     self.inputInfo['initiator_distribution'] = [self.toBeSampled[key] for key in cdfValues.keys()]
@@ -2223,9 +2235,13 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     self.inputInfo['ValueThreshold'        ] = [self.distDict[key].ppf(value) for key,value in cdfValues.items()]
     self.inputInfo['SampledVars'           ] = {}
     self.inputInfo['SampledVarsPb'         ] = {}
-    for varname in self.toBeSampled.keys():
-      self.inputInfo['SampledVars'][varname]   = self.distDict[varname].ppf(cdfValues[varname])
+    for varname in self.standardDETvariables:
+      self.inputInfo['SampledVars'  ][varname] = self.distDict[varname].ppf(cdfValues[varname])
       self.inputInfo['SampledVarsPb'][varname] = cdfValues[varname]
+    if precSampled:
+      for precSample in precSampled:
+        self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
+        self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditional_pb')
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
     # Call the model function "createNewInput" with the "values" dictionary just filled.
@@ -2271,7 +2287,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       if len(completedHistNames) > self.completedHistCnt:
         self.actualLastOutput = self.lastOutput
         self.lastOutput       = self.actualLastOutput
-        ready = LimitSurfaceSearch.localStillReady(self,ready)
+        ready                 = LimitSurfaceSearch.localStillReady(self,ready)
         self.completedHistCnt = len(completedHistNames)
       else: ready = False
       self.adaptiveReady = ready
@@ -2291,7 +2307,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       LimitSurfaceSearch.localGenerateInput(self,model,myInput)
       #the adaptive sampler created the next point sampled vars
       #find the closest branch
-      closestBranch, cdfValues = self._checkClosestBranch()
+      if self.hybridDETstrategy is not None: closestBranch, cdfValues, treer = self._checkClosestBranch()
+      else                                 : closestBranch, cdfValues = self._checkClosestBranch()
       if closestBranch == None: self.raiseADebug('An usable branch for next candidate has not been found => create a parallel branch!')
       # add pbthresholds in the grid
       investigatedPoint = {}
@@ -2317,6 +2334,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         self._constructEndInfoFromBranch(model, myInput, info, cdfValues)
       else:
         # create a new tree, since there are no branches that are close enough to the adaptive request
+        if treer is not None:
+          eee = treer.getrootnode().name + '_' + str(treer.getrootnode().numberBranches())
         elm = ETS.Node(self.name + '_' + str(len(self.TreeInfo.keys())+1))
         elm.add('name', self.name + '_'+ str(len(self.TreeInfo.keys())+1))
         elm.add('start_time', 0.0)
@@ -2400,6 +2419,10 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       else:  self.raiseAnError(IOError,'unknown noTransitionStrategy '+xmlNode.attrib['noTransitionStrategy']+'. Available are "mc" and "grid"!')
     if 'updateGrid' in xmlNode.attrib.keys():
       if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue(): self.insertAdaptBPb = True
+    # we add an artificial threshold because I need to find a way to prepend a rootbranch into a Tree object
+    for  val in self.branchProbabilities.values():
+      if min(val) != 0.0: val.insert(0, 0.0)
+
 
   def _generateDistributions(self,availableDist,availableFunc):
     """

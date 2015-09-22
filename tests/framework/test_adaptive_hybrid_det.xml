@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>/Users/alfoa/projects/raven/tests/framework/AdaptiveHybridDET</WorkingDir>
     <Sequence>AdaptiveHybridDETrunTest,DumpResults</Sequence>
-    <batchSize>8</batchSize>
+    <batchSize>12</batchSize>
   </RunInfo>
 
   <Files>
@@ -58,14 +58,14 @@
       <ROM class="Models" type="ROM">Acc</ROM>
       <Function class="Functions" type="External">relapFunctionSimple</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>
-      <Convergence forceIteration="False" limit="1600" persistence="7" weight="CDF">0.05</Convergence>
+      <Convergence forceIteration="False" limit="1600" persistence="7" weight="CDF">0.07</Convergence>
       <Distribution name="PressureFailureValue">
         <distribution>PressureFailureDist</distribution>
-        <grid construction="custom" type="CDF">0.05 0.1 0.3 0.5 0.7 0.9 0.95</grid>
+        <grid construction="custom" type="CDF">0.01 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95</grid>
       </Distribution>
       <Distribution name="depressurizationOnTime">
         <distribution>depresSystemDist</distribution>
-        <grid construction="custom" type="CDF">0.05 0.1 0.3 0.5 0.7 0.9 0.95</grid>
+        <grid construction="custom" type="CDF">0.01 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95</grid>
       </Distribution>
       <!-- In case the type of the Hybrid Sampler is == LimitSurface, the epistemic uncertanties are treated into the LimitSurface search algorithm  
            If this is the case, no other HybridSampler can be inputted.
@@ -113,6 +113,7 @@
       <Output class="DataObjects" type="PointSet">AdaptiveHybridDETPointset</Output>
       <Output class="DataObjects" type="PointSet">AdaptiveHybridDETPointsetHierarchical</Output>
       <Output class="DataObjects" type="HistorySet">adaptiveOutHistorySetimple</Output>
+      <Output class="OutStreamManager" type="Print">limitsurfaceDump</Output>
     </MultiRun>
     <IOStep name="DumpResults">
       <Input class="DataObjects" type="PointSet">AdaptiveHybridDETPointset</Input>
@@ -140,6 +141,10 @@
     <Print name="adaptiveNoHierarchicalDump">
       <type>csv</type>
       <source>AdaptiveHybridDETPointset</source>
+    </Print>
+    <Print name="limitsurfaceDump">
+        <type>csv</type>
+        <source>LimitSurfSimple</source>
     </Print>
     <Print name="adaptiveOutsimpleHier">
       <type>csv</type>
