@@ -4,9 +4,10 @@
 import sys
 import convert_utils
 
-def convert(tree):
+def convert(tree,fileName=None):
   """Does nothing but return the tree.
   @ In, tree, XMLtree.
+  @ In, fileName, the name for the raven input file
   @ Out, XMLtree, same tree.
   """
   return tree

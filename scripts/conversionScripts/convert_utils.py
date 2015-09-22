@@ -78,7 +78,7 @@ def standardMain(argv,convert):
       strfile = ''.join(line for line in open(fname,'r'))
       if keep_comments: strfile = convertToRavenComment(strfile)
       tree = ET.ElementTree(ET.fromstring(strfile))
-      convert(tree)
+      convert(tree,fileName=fname)
       towrite = prettify(tree)
       if keep_comments: towrite = convertFromRavenComment(towrite)
       file(fname,'w').writelines(towrite)

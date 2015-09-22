@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="VarGauss1">
+        <distribution>Gauss1</distribution>
+        <grid construction="custom" type="value">0.02 0.5 0.6</grid>
+      </variable>
+      <variable name="VarGauss2">
+        <distribution>Gauss2</distribution>
+        <grid construction="custom" type="CDF">0.5 1.0 0.0</grid>
+      </variable>
+      <variable name="VarTri1">
+        <distribution>DistTri1</distribution>
+        <grid construction="equal" steps="1" type="value">3.5 4.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>

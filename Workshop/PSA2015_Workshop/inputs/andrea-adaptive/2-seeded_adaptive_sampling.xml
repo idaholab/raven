@@ -1,4 +1,4 @@
-<Simulation>
+<Simulation verbosity="debug">
 	
 
 <RunInfo>
@@ -21,7 +21,7 @@
   <MultiRun name="GoalOrientedStep" pauseAtEnd='True'>
     <Input   class="DataObjects"             type="Point"     >inputPlaceHolder</Input>
     <Model   class="Models"                  type="ExternalModel" >PythonModule</Model>
-    <Sampler class="Samplers"                type="Adaptive"      >workshopAdaptive</Sampler>
+    <Sampler class="Samplers"                type="LimitSurfaceSearch"      >workshopAdaptive</Sampler>
     <Output  class="DataObjects"             type="PointSet"  >outAdaptive</Output>
     <Output  class="Databases"               type="HDF5"          >out_db_adaptive</Output>
     <SolutionExport class="DataObjects"      type="PointSet"  >limitSurface</SolutionExport>
@@ -73,15 +73,15 @@
 
 
 <Samplers>
-  <Adaptive name = "workshopAdaptive">
+  <LimitSurfaceSearch name = "workshopAdaptive">
     <ROM              class = "Models"    type = "ROM"                 >AccelerationROM</ROM>
     <Function         class = "Functions" type = "External"            >goalFunction</Function>
     <TargetEvaluation class = "DataObjects"     type = "PointSet"  >outAdaptive</TargetEvaluation>
-    <Convergence limit = "3000" forceIteration = "False" weight = "value" persistence = "25">4.0e-4</Convergence>
+    <Convergence limit = "3000" forceIteration = "False" weight = "CDF" persistence = "25">4e-4</Convergence>
     <variable name = "x1"><distribution>normal_trunc</distribution></variable>
     <variable name = "x2"><distribution>normal</distribution></variable>
     <variable name = "x3"><distribution>uniform</distribution></variable>
-  </Adaptive>
+  </LimitSurfaceSearch>
 </Samplers>
 
 
