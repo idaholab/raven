@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>LHStest</WorkingDir>
-    <Sequence>myLHS</Sequence>
+    <Sequence>myLHS,LHS_1D</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -28,6 +28,10 @@
       <min>-0.1</min>
       <max>3</max>
     </Triangular>
+    <Uniform name="Uniform">
+      <lowerBound>1000</lowerBound>
+      <upperBound>1001</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
@@ -48,12 +52,22 @@
         <grid construction="equal" steps="3" type="CDF">0.17 0.2</grid>
       </variable>
     </Stratified>
+    <Stratified name="LHS_1D">
+      <variable name="x">
+        <distribution>Uniform</distribution>
+        <grid construction="equal" steps="10" type="value">1000 1001</grid>
+      </variable>
+    </Stratified>
   </Samplers>
 
   <OutStreamManager>
     <Print name="outLHS_dump">
       <type>csv</type>
       <source>outLHS</source>
+    </Print>
+    <Print name="samples1D">
+      <type>csv</type>
+      <source>samples1D</source>
     </Print>
   </OutStreamManager>
 
@@ -66,6 +80,14 @@
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+    <PointSet name="dummy1D">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="samples1D">
+      <Input>x</Input>
+      <Output>y</Output>
+    </PointSet>
   </DataObjects>
 
   <Steps>
@@ -75,6 +97,13 @@
       <Sampler class="Samplers" type="Stratified">myLHS</Sampler>
       <Output class="DataObjects" type="PointSet">outLHS</Output>
       <Output class="OutStreamManager" type="Print">outLHS_dump</Output>
+    </MultiRun>
+    <MultiRun name="LHS_1D">
+      <Input class="DataObjects" type="PointSet">dummy1D</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="Stratified">LHS_1D</Sampler>
+      <Output class="DataObjects" type="PointSet">samples1D</Output>
+      <Output class="OutStreamManager" type="Print">samples1D</Output>
     </MultiRun>
   </Steps>
 

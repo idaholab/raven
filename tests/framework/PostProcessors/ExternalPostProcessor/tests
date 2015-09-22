@@ -1,0 +1,8 @@
+[Tests]
+  [./externalPostProcessor]
+    type = 'RavenFramework'
+    input = 'test_externalPostProcessor.xml'
+    csv = 'externalPostProcessor/myDump.csv'
+    output = 'externalPostProcessor/myDump.xml'
+  [../]
+[]

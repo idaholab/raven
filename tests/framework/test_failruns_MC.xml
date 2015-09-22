@@ -1,0 +1,101 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>RunFailures</WorkingDir>
+    <Sequence>sample,print,csample,cprint</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="infile.inp" type="">input.inp</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">failer</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </MultiRun>
+    <MultiRun name="csample">
+      <Input class="Files" type="">infile.inp</Input>
+      <Model class="Models" type="ExternalModel">codefailer</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">csolns</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="OutStreamManager" type="Print">MCdump</Output>
+    </IOStep>
+    <IOStep name="cprint">
+      <Input class="DataObjects" type="PointSet">csolns</Input>
+      <Output class="OutStreamManager" type="Print">MCdumpC</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="u1">
+      <lowerBound>-1</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <sampler_init>
+        <limit>10</limit>
+        <initial_seed>3720</initial_seed>
+      </sampler_init>
+      <variable name="x">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>u1</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="./RunFailures/failer" name="failer" subType="">
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>ans</variable>
+    </ExternalModel>
+    <Code name="codefailer" subType="GenericCode">
+      <executable>RunFailures/codeFailer.py</executable>
+      <inputExtensions>inp</inputExtensions>
+      <clargs arg="python" type="prepend"/>
+      <clargs args="" extension=".inp" type="input"/>
+      <fileargs arg="out" type="output"/>
+      <prepend>python</prepend>
+    </Code>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="solns">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="csolns">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="MCdump">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+    <Print name="MCdumpC">
+      <type>csv</type>
+      <source>csolns</source>
+    </Print>
+  </OutStreamManager>
+
+</Simulation>

@@ -272,7 +272,7 @@ class Dummy(Model):
     if None in inputDict.values(): self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found an None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
-    return [(inputDict)],copy.copy(Kwargs)
+    return [(inputDict)],copy.deepcopy(Kwargs)
 
   def run(self,Input,jobHandler):
     """
@@ -555,7 +555,7 @@ class ExternalModel(Dummy):
     if 'createNewInput' in dir(self.sim):
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
-      return ([(extCreateNewInput)],copy.copy(Kwargs)),copy.copy(modelVariableValues)
+      return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.copy(modelVariableValues)
     else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.copy(modelVariableValues)
 
   def _readMoreXML(self,xmlNode):
@@ -627,7 +627,9 @@ class ExternalModel(Dummy):
     @ In, finishedJob, InternalRunner object, instance of the run just finished
     @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,"No available Output to collect (Run probabably is not finished yet)")
+    if finishedJob.returnEvaluation() == -1:
+      #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
+      self.raiseAnError(RuntimeError,"No available Output to collect (Run probabably failed or is not finished yet)")
     def typeMatch(var,var_type_str):
       type_var = type(var)
       return type_var.__name__ == var_type_str or \

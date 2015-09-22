@@ -193,10 +193,13 @@ class AMSC_Object(object):
       self.Ynorm = sklearn.preprocessing.scale(self.Y, axis=0, with_mean=True,
                                                with_std=True, copy=True)
 
+    if knn <= 0:
+      knn = len(self.Xnorm)-1
+
     if debug:
       sys.stderr.write('Graph Preparation: ')
       start = time.clock()
-    knnAlgorithm = sklearn.neighbors.NearestNeighbors(n_neighbors=knn + 1,
+    knnAlgorithm = sklearn.neighbors.NearestNeighbors(n_neighbors=knn,
                                                       algorithm='kd_tree')
     knnAlgorithm.fit(self.Xnorm)
     edges = knnAlgorithm.kneighbors(self.Xnorm, return_distance=False)
