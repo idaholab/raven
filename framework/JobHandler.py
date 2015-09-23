@@ -233,6 +233,7 @@ class InternalRunner(MessageHandler.MessageUser):
       setattr(newobj,k,copy.deepcopy(v,memo))
     return newobj
 
+  @profile
   def start_pp(self):
     if self.ppserver != None:
       if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
@@ -466,7 +467,7 @@ class JobHandler(MessageHandler.MessageUser):
           command = command.replace("%NUM_CPUS%",str(self.runInfoDict['NumThreads']))
           item.command = command
         self.__running[i] = item
-        self.__running[i].start()
+        self.__running[i].start() #FIXME this call is really expensive; can it be reduced?
         self.__nextId += 1
 
   def getFinishedNoPop(self):

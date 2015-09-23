@@ -286,6 +286,7 @@ class SparseQuad(MessageHandler.MessageUser):
     adict['points'  ]=self.points()
     adict['weights' ]=self.weights()
 
+  @profile
   def parallelSparseQuadGen(self,handler):
     """Generates sparse quadrature points in parallel.
     @ In handler, JobHandler, parallel processing tool
@@ -295,7 +296,7 @@ class SparseQuad(MessageHandler.MessageUser):
     j=-1
     prefix = 'sparseTensor_'
     while True:
-      finishedJobs = handler.getFinished(prefix=prefix)
+      finishedJobs = handler.getFinished(prefix=prefix) #FIXME this is by far the most expensive line in this method
       for job in finishedJobs:
         if job.getReturnCode() == 0:
           new = job.returnEvaluation()[1]
@@ -316,7 +317,10 @@ class SparseQuad(MessageHandler.MessageUser):
           m=self.quadRule(idx)+1
           handler.submitDict['Internal']((m,idx),self.tensorGrid,prefix+str(cof),modulesToImport = self.mods)
       else:
-        if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
+        if handler.isFinished() and len(handler.getFinishedNoPop())==0:break #FIXME this is significantly the second-most expensive line in this method
+      import time
+      time.sleep(0.005)
+
 
   def quadRule(self,idx):
     """Collects the cumulative effect of quadrature rules across the dimensions.i

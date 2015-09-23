@@ -2960,13 +2960,13 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       #re-evaluate impact of active set, since it could have changed
       for active in self.indexSet.active.keys():
         #create new SG using active point
-        sparseGrid,iset = self._makeSparseQuad(active)
+        sparseGrid,iset = self._makeSparseQuad(active) #FIXME this is (by 3x) the most expensive line in this function
         #store it
         self.activeSGs[active]=sparseGrid
         #get impact from  convergence
         av_impact = 0
         for i,target in enumerate(self.ROM.SupervisedEngine.keys()):
-          av_impact += self._convergence(sparseGrid,iset,i)
+          av_impact += self._convergence(sparseGrid,iset,i) #FIXME this is the third most expensive line in this function
         impact = av_impact/float(len(self.ROM.SupervisedEngine.keys()))
         #stash the sparse grid, impact factor for future reference
         self.indexSet.setSG(active,sparseGrid)
@@ -3006,7 +3006,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.indexSet.forward(point,self.maxPolyOrder)
       #find the new points needed to evaluate, if any (there should be usually)
       for point in self.indexSet.active.keys():
-        sparseGrid,dummy=self._makeSparseQuad(point)
+        sparseGrid,dummy=self._makeSparseQuad(point) #FIXME this is the second-most expensive line is this method
         for pt in sparseGrid.points()[:]:
           if pt not in self.pointsNeededToMakeROM:
             self.pointsNeededToMakeROM.append(pt)
