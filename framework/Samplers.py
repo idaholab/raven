@@ -200,7 +200,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             if not foundDistOrFunc: foundDistOrFunc = True
             else: self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
             tobesampled = childChild.text
-            varData['name']=childChild.text
             self.dependentSample[prefix+child.attrib['name']] = tobesampled
         if not foundDistOrFunc: self.raiseAnError(IOError,'Sampled variable',child.attrib['name'],'has neither a <distribution> nor <function> node specified!')
       elif child.tag == "sampler_init":
