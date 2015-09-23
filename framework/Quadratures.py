@@ -286,7 +286,6 @@ class SparseQuad(MessageHandler.MessageUser):
     adict['points'  ]=self.points()
     adict['weights' ]=self.weights()
 
-  @profile
   def parallelSparseQuadGen(self,handler):
     """Generates sparse quadrature points in parallel.
     @ In handler, JobHandler, parallel processing tool
