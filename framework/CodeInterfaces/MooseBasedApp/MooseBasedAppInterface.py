@@ -24,7 +24,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     outputfile = 'out~'+inputFiles[index].getBase()
     executeCommand = (executable+' -i '+inputFiles[index].getFilename() +
                         ' Outputs/file_base='+ outputfile +
-                        ' Outputs/interval=1'+ ' Outputs/output_initial=true' + ' Outputs/csv=true')
+                        ' Outputs/csv=true')
 
     return executeCommand,outputfile
 

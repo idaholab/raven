@@ -363,7 +363,6 @@
 [Output]
   linear_residuals = true
    interval = 1
-   output_initial = true
    exodus = true
    postprocessor_csv = true
    perf_log = true

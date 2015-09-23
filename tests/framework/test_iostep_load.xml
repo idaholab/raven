@@ -9,18 +9,18 @@
   <Files>
     <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
     <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
-    <Input name="point"   >../output_check/fullprint_Point.csv</Input>
+    <Input name="point">../output_check/fullprint_Point.csv</Input>
     <Input name="pointset">../output_check/fullprint_Pointset.csv</Input>
-    <Input name="hist"    >../output_check/fullprint_history.csv</Input>
-    <Input name="histset" >../output_check/fullprint_HistorySet.csv</Input>
+    <Input name="hist">../output_check/fullprint_history.csv</Input>
+    <Input name="histset">../output_check/fullprint_HistorySet.csv</Input>
   </Files>
 
   <Steps>
     <IOStep fromDirectory="../output_check" name="test_read_in">
-      <Input  class='Files'       type=''>point</Input>
-      <Input  class='Files'       type=''>pointset</Input>
-      <Input  class='Files'       type=''>hist</Input>
-      <Input  class='Files'       type=''>histset</Input>
+      <Input class="Files" type="">point</Input>
+      <Input class="Files" type="">pointset</Input>
+      <Input class="Files" type="">hist</Input>
+      <Input class="Files" type="">histset</Input>
       <Output class="DataObjects" type="Point">fullprint_Point</Output>
       <Output class="DataObjects" type="PointSet">fullprint_Pointset</Output>
       <Output class="DataObjects" type="History">fullprint_history</Output>

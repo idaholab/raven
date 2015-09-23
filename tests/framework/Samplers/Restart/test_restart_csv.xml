@@ -1,0 +1,173 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>csv</WorkingDir>
+    <Sequence>load,make,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name='csv' type=''>../mc/MCdump1.csv</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="make">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </MultiRun>
+    <MultiRun name='codeMake'>
+      <Input class='Files' type=''>infile</Input>
+      <Model class='Models' type='Code'>codefailer</Model>
+      <Sampler class='Samplers' type='SparseGridCollocation'>sc1</Sampler>
+      <Output class='DataObjects' type='PointSet'>csolns1</Output>
+    </MultiRun>
+    <MultiRun name='codeRestart'>
+      <Input class='Files' type=''>infile</Input>
+      <Model class='Models' type='Code'>codefailer</Model>
+      <Sampler class='Samplers' type='SparseGridCollocation'>sc2</Sampler>
+      <Output class='DataObjects' type='PointSet'>csolns2</Output>
+      <Output class='DataObjects' type='PointSet'>csolns3</Output>
+    </MultiRun>
+    <IOStep name="load">
+      <Input class="Files" type="">csv</Input>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </IOStep>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="OutStreamManager" type="Print">CSVdump</Output>
+    </IOStep>
+    <IOStep name='codeWrite'>
+      <Input class='DataObjects' type='PointSet'>csolns1</Input>
+      <Output class='OutStreamManager' type='Print'>code1</Output>
+    </IOStep>
+    <IOStep name='codeLoad'>
+      <Input class='Files' type=''>codeCSV</Input>
+      <Output class='DataObjects' type='PointSet'>csolns2</Output>
+    </IOStep>
+    <IOStep name='codeWrite2'>
+      <Input class='DataObjects' type='PointSet'>csolns3</Input>
+      <Output class='OutStreamManager' type='Print'>code2</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="u1">
+      <lowerBound>1</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+    <Uniform name="u2">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <sampler_init>
+        <limit>15</limit>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
+      <variable name="x1">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>u2</distribution>
+      </variable>
+      <Restart class="DataObjects" type="PointSet">solns</Restart>
+    </MonteCarlo>
+    <SparseGridCollocation name="sc1">
+      <variable name="x">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>u2</distribution>
+      </variable>
+      <ROM class='Models' type='ROM'>rom1</ROM>
+    </SparseGridCollocation>
+    <SparseGridCollocation name="sc2">
+      <variable name="x">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>u2</distribution>
+      </variable>
+      <ROM class='Models' type='ROM'>rom2</ROM>
+      <Restart class='DataObjects' type='PointSet'>csolns2</Restart>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="./polynomial" name="poly" subType="">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>ans</variable>
+      <variable>ans2</variable>
+    </ExternalModel>
+    <Code name='codefailer' subType='GenericCode'>
+      <executable>SamplerRestarts/codeFailer.py</executable>
+      <inputExtensions>inp</inputExtensions>
+      <clargs type='prepend' arg='python'/>
+      <clargs type='input' args='' extension='.inp'/>
+      <fileargs type='output' arg='out'/>
+      <prepend>python</prepend>
+    </Code>
+    <ROM name='rom1' subType='GaussPolynomialRom'>
+        <Target>ans</Target>
+        <Features>x,y</Features>
+        <IndexSet>TotalDegree</IndexSet>
+        <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
+    <ROM name='rom2' subType='GaussPolynomialRom'>
+        <Target>ans</Target>
+        <Features>x,y</Features>
+        <IndexSet>TotalDegree</IndexSet>
+        <PolynomialOrder>2</PolynomialOrder>
+    </ROM>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="solns">
+      <Input>x1,x2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+    <PointSet name="solns2">
+      <Input>x1,x2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+    <PointSet name="csolns1">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="csolns2">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="csolns3">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="CSVdump">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+    <Print name="code1">
+      <type>csv</type>
+      <source>csolns1</source>
+    </Print>
+    <Print name="code2">
+      <type>csv</type>
+      <source>csolns3</source>
+    </Print>
+  </OutStreamManager>
+
+</Simulation>
