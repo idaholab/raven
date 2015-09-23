@@ -233,7 +233,6 @@ class InternalRunner(MessageHandler.MessageUser):
       setattr(newobj,k,copy.deepcopy(v,memo))
     return newobj
 
-  @profile
   def start_pp(self):
     if self.ppserver != None:
       if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
