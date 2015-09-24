@@ -1914,7 +1914,7 @@ class DynamicEventTree(Grid):
         if not 'type' in child.attrib.keys()                          : self.raiseAnError(IOError,'Not found attribute type in hybridsamplerSampler block!')
         if child.attrib['type'] in self.hybridStrategyToApply.keys()  : self.raiseAnError(IOError,'Hybrid Sampler type '+child.attrib['type'] + ' already inputted!')
         if child.attrib['type'] not in self.hybridSamplersAvail.keys(): self.raiseAnError(IOError,'Hybrid Sampler type ' +child.attrib['type'] + ' unknown. Available are '+ ','.join(self.hybridSamplersAvail.keys()) + '!')
-        self.hybridNumberSamplers = 1
+        self.hybridNumberSamplers += 1
         # the user can decided how to sample the epistemic
         self.hybridStrategyToApply[child.attrib['type']] = self.hybridSamplersAvail[child.attrib['type']]()
         # give the hybridsampler sampler the message handler
@@ -2286,8 +2286,9 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         else: self.raiseAWarning('No Completed HistorySet! Not possible to start an adaptive search! Something went wrong!')
       if len(completedHistNames) > self.completedHistCnt:
         self.actualLastOutput = self.lastOutput
-        self.lastOutput       = self.actualLastOutput
+        self.lastOutput       = lastOutDict
         ready                 = LimitSurfaceSearch.localStillReady(self,ready)
+        self.lastOutput       = self.actualLastOutput
         self.completedHistCnt = len(completedHistNames)
       else: ready = False
       self.adaptiveReady = ready
