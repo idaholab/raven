@@ -1832,7 +1832,7 @@ class DynamicEventTree(Grid):
       @ In, myInput, list of original inputs (unused)
       @ Out, None
     """
-    self._endJobRunnable = max([len(self.RunQueue['queue']),1])
+    #self._endJobRunnable = max([len(self.RunQueue['queue']),1])
     if self.counter <= 1:
       # If first branch input, create the queue
       self._createRunningQueue(model, myInput)
@@ -2358,10 +2358,10 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
           hybridSampled = copy.deepcopy(self.TreeInfo.values()[0].getrootnode().get('hybridsamplerCoordinate'))
           for hybridStrategy in hybridSampled:
             for key in self.epistemicVariables:
-
               if key in hybridStrategy['SampledVars'].keys():
+                self.raiseADebug("epistemic var " + str(key)+" value = "+str(self.values[key]))
                 hybridStrategy['SampledVars'][key]   = copy.copy(self.values[key])
-                hybridStrategy['SampledVarsPb'][key] = self.distDict[key].ppf(self.values[key])
+                hybridStrategy['SampledVarsPb'][key] = self.distDict[key].pdf(self.values[key])
                 hybridStrategy['prefix'] = len(self.TreeInfo.values())+1
             # TODO: find a strategy to recompute the probability weight here (for now == PointProbability)
             hybridStrategy['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
