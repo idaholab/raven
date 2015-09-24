@@ -257,7 +257,7 @@ class Dummy(Model):
     else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
     return localInput
   
-  def _inputToInternal_historySet(self,dataIN, numTimeSamples, samplingType):
+  def _inputToInternal_historySet(self,dataIN, numTimeSamples, samplingType, interpType):
     if  type(dataIN).__name__ !='dict':
       if dataIN.type not in self.admittedData: self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
 
@@ -276,10 +276,9 @@ class Dummy(Model):
           temp = copy.copy(np.array(dataIN.getParam('output',entries))[length:]) 
           timeID = dataIN.getOptions('pivot')
           time = copy.copy(np.array(dataIN.getParam('output',timeID))[length:])
-          if samplingType == 'uniform':  
-            localInput[entries] = uniformTempInterp(temp) 
-          elif samplingType == 'derivative':
-            self.raiseAnError(IOError,self,'samplingType "'+samplingType+'" is not yet available with the model "' + self.type + '" named "' + self.name+'"!')
+          if samplingType == 'uniform' or samplingType == 'derivative':  
+            varsDic = 
+            localInput[entries] = varsTimeInterp(time, numTimeSamples, varsDic, samplingType, interpType) 
           else:
              self.raiseAnError(IOError,self,'samplingType "'+samplingType+'" does not exist with the model "' + self.type + '" named "' + self.name+'"!')
       

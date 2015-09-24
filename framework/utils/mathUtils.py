@@ -194,37 +194,46 @@ def calculateStats(data):
   return ret
 
 
-def uniformTempInterp(numSamples, time, vars):
+def varsTimeInterp(numSamples, time, vars, samplingType, interpType):
   t_min=time[0]
-  t_max=time[time.size-1]
+  t_max=time[-1]
   
   dt=(t_max-t_min)/numSamples
   
-  newTime = np.arange(t_min,t_max+dt,dt)
+  if samplingType == 'uniform':
+    newTime = np.arange(t_min,t_max+dt,dt)
+  elif samplingType == 'derivative':
+    newTime = derivativeTimeValues(numSamples, time, vars)
+  else:
+    self.raiseAnError(RuntimeError,'type ' + samplingType + ' is not a valid type. Function: varsTimeInterp (mathUtils)')
   
-  r,c = vars.shape  
-  
-  newVars=np.zeros((r,c))
-  
-  for i in nditer(newTime):
-    pivot=np.searchsorted(time,i)
-    
-    for j in enumerate(c):
-      newVars[i,j] = (vars[pivot+1,j]-vars[pivot,j])/(time[pivot+1]-time[pivot]) * (i-time[pivot]) + vars[pivot,j]
+  for key in vars.keys():
+    interp = interpolate.interp1d(time, var[key], interpType)
+    newVars[key]=interp(newTime)
   
   return newTime, newVars
 
 
-def derivativeTempInterp(numSamples, time, vars):
+def derivativeTimeValues(numSamples, time, vars):
   t_min=time[0]
   t_max=time[time.size-1]
   
-  r,c = vars.shape
+  newTime = np.zeros(numSamples)
+  cumDerivative = np.zeros(time.size)
   
-  for i in nditer(newTime):
-    
+  for t in range(1, time.shape[0]):
+    t_contrib=0.0
+    for keys in vars.keys():
+      t_contrib += (var[keys][t] - var[keys][t-1])/var[keys][t]
+    cumDerivative[t] = cumDerivative[t-1] + t_contrib
   
-  return newTime, newVars
+  cumDamageInstant = np.arange(0,cumDerivative[-1],numSamples)
+  
+  for i in range(numSamples):
+    index = (np.abs(cumDerivative - cumDamageInstant[i])).argmin()
+    newTime[i] = time[index] 
+  
+  return newTime
   
 #
 # I need to convert it in multi-dimensional
