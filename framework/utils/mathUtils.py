@@ -219,6 +219,11 @@ def derivativeTempInterp(numSamples, time, vars):
   t_min=time[0]
   t_max=time[time.size-1]
   
+  r,c = vars.shape
+  
+  for i in nditer(newTime):
+    
+  
   return newTime, newVars
   
 #

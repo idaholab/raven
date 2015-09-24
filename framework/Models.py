@@ -229,7 +229,7 @@ class Dummy(Model):
     cls.validateDict['Input' ][0]['type'        ] = ['Point','PointSet']
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet','HistorySet']
 
   def _manipulateInput(self,dataIn):
     if len(dataIn)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name '+self.name)
@@ -256,6 +256,39 @@ class Dummy(Model):
       if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'): localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
     else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
     return localInput
+  
+  def _inputToInternal_historySet(self,dataIN, numTimeSamples, samplingType):
+    if  type(dataIN).__name__ !='dict':
+      if dataIN.type not in self.admittedData: self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
+
+    InputData = {}
+    InputTime = {}
+    
+    if dataIN.type == 'HistorySet':
+      
+      for entries in dataIN.getParaKeys('inputs' ): 
+        localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[length:])
+      
+      for timeInst in range (numTimeSamples):
+        elementInputData = {}
+                
+        for entries in dataIN.getParaKeys('outputs'):   
+          temp = copy.copy(np.array(dataIN.getParam('output',entries))[length:]) 
+          timeID = dataIN.getOptions('pivot')
+          time = copy.copy(np.array(dataIN.getParam('output',timeID))[length:])
+          if samplingType == 'uniform':  
+            localInput[entries] = uniformTempInterp(temp) 
+          elif samplingType == 'derivative':
+            self.raiseAnError(IOError,self,'samplingType "'+samplingType+'" is not yet available with the model "' + self.type + '" named "' + self.name+'"!')
+          else:
+             self.raiseAnError(IOError,self,'samplingType "'+samplingType+'" does not exist with the model "' + self.type + '" named "' + self.name+'"!')
+      
+      InputData[timeInst] = elementInputData  
+      InputTime[timeInst] = timeArray               
+    else: 
+      self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"! (only HistorySet are allowed)')
+      
+    return (InputTime, InputData)
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
@@ -310,7 +343,7 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet','History']
+    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet','HistorySet']
 
   def __init__(self):
     Dummy.__init__(self)
@@ -444,26 +477,18 @@ class ROM(Dummy):
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
-    else:
-      self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-      self.amITrained = True
-      
-      if self.howManyTimeSteps == None:    
+    else:      
+      if self.howManyTimeSteps == 1:   
+        self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
+        self.amITrained = True 
         for instrom in self.SupervisedEngine.values():
           instrom.train(self.trainingSet)
           self.aimITrained = self.amITrained and instrom.amITrained
       else:
-        # TODO: pre-process data
         for timeStep in self.SupervisedEngine:
           for instrom in self.SupervisedEngine.values():
-            # TODO: Pick data
             instrom.train(data)
             self.aimITrained = self.amITrained and instrom.amITrained
-            
-        if self.howManyTimeSteps>1:
-          for timeStep in self.timeROM:
-            #TODO: pick data
-            timeStep.train(data)
         
         
       self.raiseADebug('add self.amITrained to currentParamters','FIXME')

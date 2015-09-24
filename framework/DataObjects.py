@@ -428,6 +428,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if    typeVar.lower() in 'inputs' : return self.getInpParametersValues(nodeid,serialize)
     elif  typeVar.lower() in 'outputs': return self.getOutParametersValues(nodeid,serialize)
     else: self.raiseAnError(RuntimeError,'type ' + typeVar + ' is not a valid type. Function: Data.getParametersValues')
+    
+  def getOptions(self,typeOption):
+    # MANDD: this function overwrites and extends getParaKeys
+    if   typeOption.lower() in 'inputs' : return self._dataParameters['inParam' ]
+    elif typeOption.lower() in 'outputs': return self._dataParameters['outParam']
+    elif typeOption.lower() in 'pivot'  : return self._dataParameters['pivotParameter']
+    else: self.raiseAnError(RuntimeError,'type ' + typeOption + ' is not a valid type. Function: Data.getOptions')    
 
   def getParaKeys(self,typePara):
     """
@@ -1867,12 +1874,10 @@ class HistorySet(Data):
         else: return #XXX should this just skip this iteration?
         #Write header for main file
         if n == 0:
-          myFile.write(','.join([item for item in
-                                  itertools.chain(inpKeys_h,['filename'])]))
+          myFile.write(','.join([item for item in itertools.chain(inpKeys_h,['filename'])]))
           myFile.write('\n')
           self._createXMLFile(filenameLocal,'HistorySet',inpKeys_h,outKeys_h)
-        myFile.write(','.join([str(item[0]) for item in
-                                itertools.chain(inpValues_h,[[dataFilename]])]))
+        myFile.write(','.join([str(item[0]) for item in itertools.chain(inpValues_h,[[dataFilename]])]))
         myFile.write('\n')
         #Data file
         #Print time + output values
@@ -1880,8 +1885,7 @@ class HistorySet(Data):
         if len(outKeys_h) > 0:
           myDataFile.write('\n')
           for j in range(outValues_h[0].size):
-            myDataFile.write(','.join([str(item[j]) for item in
-                                    outValues_h]))
+            myDataFile.write(','.join([str(item[j]) for item in outValues_h]))
             myDataFile.write('\n')
         myDataFile.close()
       myFile.close()
