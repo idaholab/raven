@@ -337,9 +337,9 @@ class AdaptiveSet(IndexSet):
     pt = self.getBiggestImpact()
     impact = self.active[pt]
     #stash this event in the history
-    msg=str(pt)+': '+str(impact)+' || '
+    msg=str(pt)+': %1.2e || ' %impact
     for apt,imp in self.active.items():
-      msg+=str(apt)+': '+str(imp)+' | '
+      msg+=str(apt)+': %1.2e | ' %imp
     self.history.append(msg)
     #make the largest-impact point permanent
     self.points.append(pt)

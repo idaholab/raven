@@ -3044,12 +3044,14 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       #store the old rom, if we have it
       if len(self.indexSet.points)>1:
         self.oldSG = self.activeSGs[self.indexSet.newestPoint]
-      #get the active point with the biggest impact and make him permanent
+      #get the active point with the biggest impact and make it permanent
       point,impact = self.indexSet.expand()
       # find the forward points of the most effective point
       self.indexSet.forward(point,self.maxPolyOrder)
       #find the new points needed to evaluate, if any (there should be usually)
-      for point in self.indexSet.active.keys():
+      for point,sparseGrid in self.indexSet.active.items():
+        #FIXME is this duplicating effort?  Should I only make sparse quad if it doesn't already exist?
+        #  -> No, it's not, each sparse grid is predicated on the index set points used, and it has to get updated.
         sparseGrid,dummy=self._makeSparseQuad(point) #FIXME this is the second-most expensive line is this method
         for pt in sparseGrid.points()[:]:
           if pt not in self.pointsNeededToMakeROM:
