@@ -889,7 +889,7 @@ algorithm representing the ROM that tunes itself to replicate those results.
 RAVEN supports several different types of ROMs, both internally developed and
 imported through an external library called ``scikit-learn''~\cite{SciKitLearn}.
 
-Currently in RAVEN, the ROMs are classified into 4 sub-types that, once chosen,
+Currently in RAVEN, the ROMs are classified into several sub-types that, once chosen,
 provide access to several different algorithms.
 %
 These sub-types are specified in the \xmlAttr{subType} attribute and should be
@@ -897,6 +897,7 @@ one of the following:
 \begin{itemize}
   \item \xmlString{NDspline}
   \item \xmlString{GaussPolynomialRom}
+  \item \xmlString{HDMRRom}
   \item \xmlString{NDinvDistWeight}
   \item \xmlString{SciKitLearn}
 \end{itemize}
@@ -910,7 +911,7 @@ one of the following:
   \itemsep0em
   \item \nameDescription
   \item \xmlAttr{subType}, \xmlDesc{required string attribute}, defines which of
-  the 4 sub-types should be used, choosing among the previously reported
+  the sub-types should be used, choosing among the previously reported
   types.
   %
   This choice conditions the subsequent the required and/or optional
@@ -1088,28 +1089,28 @@ accurately produce the necessary sparse grid points to train this ROM.
 \textbf{Example:}
 \footnotesize
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
-<Samplers>
-  ...
-  <SparseGridCollocation name="mySG" parallel="0">
-    <variable name="x1">
-      <distribution>myDist1</distribution>
-    </variable>
-    <variable name="x2">
-      <distribution>myDist2</distribution>
-    </variable>
-    <ROM class = 'Models' type = 'ROM' >myROM</ROM>
-  </SparseGridCollocation>
-  ...
-</Samplers>
-...
 <Simulation>
+  ...
+  <Samplers>
+    ...
+    <SparseGridCollocation name="mySG" parallel="0">
+      <variable name="x1">
+        <distribution>myDist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>myDist2</distribution>
+      </variable>
+      <ROM class = 'Models' type = 'ROM' >myROM</ROM>
+    </SparseGridCollocation>
+    ...
+  </Samplers>
   ...
   <Models>
     ...
     <ROM name='myRom' subType='GaussPolynomialRom'>
       <Target>ans</Target>
       <Features>x1,x2</Features>
-      <IndexSet>TD</IndexSet>
+      <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>4</PolynomialOrder>
       <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
       <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
