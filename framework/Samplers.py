@@ -753,7 +753,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if self.lastOutput.isItEmpty() and self.limitSurfacePP.ROM.amITrained==False: return ready
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
     if type(self.lastOutput) == dict:
-      if self.lastOutput != None: self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
+      self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     else:
       if not self.lastOutput.isItEmpty(): self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     self.raiseADebug('Classifier ' +self.name+' has been trained!')
@@ -1914,7 +1914,7 @@ class DynamicEventTree(Grid):
         if not 'type' in child.attrib.keys()                          : self.raiseAnError(IOError,'Not found attribute type in hybridsamplerSampler block!')
         if child.attrib['type'] in self.hybridStrategyToApply.keys()  : self.raiseAnError(IOError,'Hybrid Sampler type '+child.attrib['type'] + ' already inputted!')
         if child.attrib['type'] not in self.hybridSamplersAvail.keys(): self.raiseAnError(IOError,'Hybrid Sampler type ' +child.attrib['type'] + ' unknown. Available are '+ ','.join(self.hybridSamplersAvail.keys()) + '!')
-        self.hybridNumberSamplers += 1
+        self.hybridNumberSamplers = 1
         # the user can decided how to sample the epistemic
         self.hybridStrategyToApply[child.attrib['type']] = self.hybridSamplersAvail[child.attrib['type']]()
         # give the hybridsampler sampler the message handler
@@ -2290,6 +2290,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         ready                 = LimitSurfaceSearch.localStillReady(self,ready)
         self.lastOutput       = self.actualLastOutput
         self.completedHistCnt = len(completedHistNames)
+        self.raiseAMessage("Completed full histories are "+str(self.completedHistCnt))
       else: ready = False
       self.adaptiveReady = ready
       if ready or detReady and self.persistence > self.repetition : return True
