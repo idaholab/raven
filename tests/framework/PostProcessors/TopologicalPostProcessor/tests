@@ -1,26 +1,65 @@
 [Tests]
- [./topology_simple]
-  type = 'RavenFramework'
-  input = 'test_topology_simple.xml'
-  csv = 'topology/myDump1.csv topology/myDump2.csv topology/myDump3.csv topology/myDump4.csv'
-  output = 'topology/myDump1.xml topology/myDump2.xml topology/myDump3.xml topology/myDump4.xml'
-  required_libraries = 'amsc'
- [../]
+  [./topology_simple]
+    type = 'RavenFramework'
+    input = 'test_topology_simple.xml'
+    csv = 'data/myDump1.csv data/myDump2.csv data/myDump3.csv data/myDump4.csv'
+    output = 'data/myDump1.xml data/myDump2.xml data/myDump3.xml data/myDump4.xml'
+    required_libraries = 'amsc'
+  [../]
 
-[./topology_persistence]
-  type = 'RavenFramework'
-  input = 'test_topology_persistence.xml'
-  csv = 'topology2/segCount.csv topology2/segFull.csv topology2/segProb.csv topology2/segValue.csv'
-  output = 'topology2/segCount.xml topology2/segFull.xml topology2/segProb.xml topology2/segValue.xml'
-  required_libraries = 'amsc'
- [../]
+  [./persistence_count]
+    type = 'RavenFramework'
+    input = 'test_persistence_count.xml'
+    csv = 'data/segCount.csv'
+    output = 'data/segCount.xml'
+    required_libraries = 'amsc'
+  [../]
 
-[./topology_graph]
-  type = 'RavenFramework'
-  input = 'test_topology_graphs.xml'
-  csv = 'topology3/segNN.csv topology3/segBS.csv topology3/segRBS.csv'
-  output = 'topology3/segNN.xml topology3/segBS.xml topology3/segRBS.xml'
-  required_libraries = 'amsc'
- [../]
+  [./persistence_prob]
+    type = 'RavenFramework'
+    input = 'test_persistence_prob.xml'
+    csv = 'data/segProb.csv'
+    output = 'data/segProb.xml'
+    required_libraries = 'amsc'
+  [../]
 
+  [./persistence_value]
+    type = 'RavenFramework'
+    input = 'test_persistence_value.xml'
+    csv = 'data/segValue.csv'
+    output = 'data/segValue.xml'
+    required_libraries = 'amsc'
+  [../]
+
+  [./persistence_full]
+    type = 'RavenFramework'
+    input = 'test_persistence_full.xml'
+    csv = 'data/segFull.csv'
+    output = 'data/segFull.xml'
+    required_libraries = 'amsc'
+  [../]
+
+  [./knn]
+    type = 'RavenFramework'
+    input = 'test_graph_knn.xml'
+    csv = 'data/segNN.csv'
+    output = 'data/segNN.xml'
+    required_libraries = 'amsc'
+  [../]
+
+  [./beta_skeleton]
+    type = 'RavenFramework'
+    input = 'test_graph_bs.xml'
+    csv = 'data/segBS.csv'
+    output = 'data/segBS.xml'
+    required_libraries = 'amsc'
+  [../]
+
+  [./realxed_beta_skeleton]
+    type = 'RavenFramework'
+    input = 'test_graph_rbs.xml'
+    csv = 'data/segRBS.csv'
+    output = 'data/segRBS.xml'
+    required_libraries = 'amsc'
+  [../]
 []
