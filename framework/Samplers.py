@@ -587,6 +587,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.exceptionGrid       = None             # which cell should be not considered in the limit surface computation? set by refinement
     self.errorTolerance      = 1.0              # initial error tolerance (number of points can change between iterations in LS search)
     self.jobHandler          = None             # jobHandler for generation of grid in parallel
+    self.firstSurface        = True             # if first LS do not consider the invPointPersistence information (if true)
     self.printTag            = 'SAMPLER ADAPTIVE'
     self._addAssObject('TargetEvaluation','n')
     self._addAssObject('ROM','n')
@@ -763,6 +764,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
     self.surfPoint, evaluations, listsurfPoints = self.limitSurfacePP.run(returnListSurfCoord = True, exceptionGrid=self.exceptionGrid, merge=False)
     self.raiseADebug('Limit Surface has been computed!')
+    if self.surfPoint.values()[0] is None:
+      print("WHAT?")
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
     else                                                                      : indexLast = -1
@@ -793,11 +796,13 @@ class LimitSurfaceSearch(AdaptiveSampler):
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
     for gridID,listsurfPoint in listsurfPoints.items():
       if len(listsurfPoint)>0:
-        self.invPointPersistence[gridID] = np.ndarray(len(listsurfPoint))
-        for pointID, coordinate in enumerate(listsurfPoint):
-          self.invPointPersistence[gridID][pointID]=abs(self.persistenceMatrix[gridID][tuple(coordinate)])
-        maxPers = np.max(self.invPointPersistence[gridID])
-        self.invPointPersistence[gridID] = (maxPers-self.invPointPersistence[gridID])/maxPers
+        self.invPointPersistence[gridID] = np.ones(len(listsurfPoint))
+        if self.firstSurface == False:
+          for pointID, coordinate in enumerate(listsurfPoint):
+            self.invPointPersistence[gridID][pointID]=abs(self.persistenceMatrix[gridID][tuple(coordinate)])
+          maxPers = np.max(self.invPointPersistence[gridID])
+          self.invPointPersistence[gridID] = (maxPers-self.invPointPersistence[gridID])/maxPers
+        else: self.firstSurface = False
         if self.solutionExport!=None:
           for varName in self.solutionExport.getParaKeys('inputs'):
             for varIndex in range(len(self.axisName)):
@@ -842,7 +847,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
           self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
-      else: self.raiseADebug('np.max(distance)=0.0')
+      else: 
+        self.raiseADebug('np.max(distance)=0.0')
     if not varSet:
       #here we are still generating the batch
       for key in self.distDict.keys():
@@ -1393,6 +1399,7 @@ class DynamicEventTree(Grid):
     needs to be run
     @ InOut, ready, boolean specifying whether the sampler is ready
     """
+    self._endJobRunnable = max((len(self.RunQueue['queue']),1))
     if(len(self.RunQueue['queue']) != 0 or self.counter == 0): ready = True
     else:
       if self.print_end_xml:
@@ -1491,7 +1498,7 @@ class DynamicEventTree(Grid):
     self.computeConditionalProbability()
     # Create the inputs and put them in the runQueue dictionary (if genRunQueue is true)
     if genRunQueue: self._createRunningQueue(model,myInput)
-    self._endJobRunnable = max((len(self.RunQueue['queue']),1))
+    
     return True
 
   def computeConditionalProbability(self,index=None):
@@ -1645,11 +1652,12 @@ class DynamicEventTree(Grid):
     for rootTree in self.TreeInfo.values(): self._createRunningQueueBeginOne(rootTree,branchedLevel, model,myInput)
     return
 
-  def _createRunningQueueBranch(self,model,myInput):
+  def _createRunningQueueBranch(self,model,myInput,forceEvent=False):
     """ Method to generate the running internal queue right after a branch occurred
     It generates the the information to insatiate the branches' continuation of the Deterministic Dynamic Event Tree
     @ In, model, Models object, the model that is used to explore the input space (e.g. a code, like RELAP-7)
     @ In, myInput, list, list of inputs for the Models object (passed through the Steps XML block)
+    @ In, forceEvent, boolean, if True the events are forced to happen (basically, the "unchanged event" is not created at all)
     """
     # The first DET calculation branch has already been run'
     # Start the manipulation:
@@ -1667,7 +1675,11 @@ class DynamicEventTree(Grid):
       self.raiseADebug('Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist'])
       self.raiseADebug('Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
       self.branchCountOnLevel = 1
-      n_branches = endInfo['n_branches'] - 1
+      n_branches -= 1
+    else:
+      if forceEvent == True:
+        self.branchCountOnLevel = 1
+        n_branches -= 1
 
     # Loop over the branches for which the inputs must be created
     for _ in range(n_branches):
@@ -1774,18 +1786,19 @@ class DynamicEventTree(Grid):
       endInfo['parent_node'] = popped
       del branchedLevel
 
-  def _createRunningQueue(self,model,myInput):
+  def _createRunningQueue(self, model, myInput, forceEvent=False):
     """
     Function to create and append new inputs to the queue. It uses all the containers have been updated by the previous functions
     @ In, model  : Model instance. It can be a Code type, ROM, etc.
     @ In, myInput: List of the original inputs
+    
     @ Out, None
     """
     if self.counter >= 1:
       # The first DET calculation branch has already been run
       # Start the manipulation:
       #  Pop out the last endInfo information and the branchedLevel
-      self._createRunningQueueBranch(model, myInput)
+      self._createRunningQueueBranch(model, myInput, forceEvent)
     else:
       # We construct the input for the first DET branch calculation'
       self._createRunningQueueBegin(model, myInput)
@@ -2014,7 +2027,6 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     self.adaptiveReady        = False   # Flag to store the response of the LimitSurfaceSearch.localStillReady method
     self.investigatedPoints   = []      # List containing the points that have been already investigates
     self.completedHistCnt   = 1         # Counter of the completed histories
-    self.actualLastOutput   = None      # Pointer to the lastoutput dataobject (see LimitSurfaceSearch "lastOutput" description)
     self.hybridDETstrategy  = None      # Integer flag to turn the hybrid strategy on:
                                         # None -> No hybrid approach,
                                         # 1    -> the epistemic variables are going to be part of the limit surface search
@@ -2271,7 +2283,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         for ending in treer.iterProvidedFunction(self._checkCompleteHistory):
           completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeid=ending.get('name'),serialize=False))
       # assemble a dictionary
-      if len(completedHistNames) > 0:
+      if len(completedHistNames) > self.completedHistCnt:
         if len(completedHistNames[-1].values()) > 0:
           lastOutDict = {'inputs':{},'outputs':{}}
           for histd in completedHistNames:
@@ -2284,10 +2296,10 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
               else                                       : lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),np.atleast_1d(histdict['outputs'][key])))
         else: self.raiseAWarning('No Completed HistorySet! Not possible to start an adaptive search! Something went wrong!')
       if len(completedHistNames) > self.completedHistCnt:
-        self.actualLastOutput = self.lastOutput
+        actualLastOutput      = self.lastOutput
         self.lastOutput       = lastOutDict
         ready                 = LimitSurfaceSearch.localStillReady(self,ready)
-        self.lastOutput       = self.actualLastOutput
+        self.lastOutput       = actualLastOutput
         self.completedHistCnt = len(completedHistNames)
         self.raiseAMessage("Completed full histories are "+str(self.completedHistCnt))
       else: ready = False
@@ -2310,7 +2322,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       #find the closest branch
       if self.hybridDETstrategy is not None: closestBranch, cdfValues, treer = self._checkClosestBranch()
       else                                 : closestBranch, cdfValues = self._checkClosestBranch()
-      if closestBranch == None: self.raiseADebug('An usable branch for next candidate has not been found => create a parallel branch!')
+      if closestBranch is None: self.raiseADebug('An usable branch for next candidate has not been found => create a parallel branch!')
       # add pbthresholds in the grid
       investigatedPoint = {}
       for key,value in cdfValues.items():
@@ -2492,8 +2504,10 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     @ Out, None
     """
     returncode = DynamicEventTree.localFinalizeActualSampling(self,jobObject,model,myInput,genRunQueue=False)
+    forceEvent = True if self.startAdaptive else False
     if returncode:
-      self._createRunningQueue(model,myInput)
+      self._createRunningQueue(model,myInput, forceEvent)
+
 #
 #
 #

@@ -62,7 +62,7 @@ class RAVENInterface(CodeInterfaceBase):
     self._samplersDictionary['FactorialDesign'         ] = self.gridForRAVEN
     self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRAVEN
     self._samplersDictionary['AdaptiveDynamicEventTree'] = self.adaptiveDynamicEventTreeForRAVEN
-    self._samplersDictionary['StochasticCollocation'   ] = self.stochasticCollocationForRAVEN
+    self._samplersDictionary['StochasticCollocation'   ] = self.gridForRAVEN
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       if inputFile.getExt() in self.getInputExtension():
@@ -80,18 +80,6 @@ class RAVENInterface(CodeInterfaceBase):
       newInputFiles[index].setBase(str(Kwargs['prefix'][1][0])+'~'+newInputFiles[index].getBase())
     parser.printInput(newInputFiles[index].getAbsFile())
     return newInputFiles
-
-  def stochasticCollocationForRAVEN(self,**Kwargs):
-    if 'prefix' not in Kwargs['prefix']: raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
-    listDict = []
-    varValDict = Kwargs['vars'] #come in as a string of a list, need to re-list
-    for key in varValDict.keys():
-      modifDict={}
-      modifDict['name']=key.split(':')
-      modifDict['value']=varValDict[key]
-      listDict.append(modifDict)
-      del modifDict
-    return listDict
 
   def monteCarloForRAVEN(self,**Kwargs):
     if 'prefix' in Kwargs: counter = Kwargs['prefix']

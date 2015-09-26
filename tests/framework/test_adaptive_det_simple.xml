@@ -24,6 +24,14 @@
       <tol>0.0001</tol>
       <C>50</C>
     </ROM>
+    <ROM name="Acc2" subType="SciKitLearn">
+        <Features>depressurizationOnTime,PressureFailureValue</Features>
+        <Target>relapFunctionSimple</Target>
+        <SKLtype>neighbors|KNeighborsClassifier</SKLtype>
+        <n_neighbors>2</n_neighbors>
+        <weights>distance</weights>
+    </ROM>
+    
   </Models>
 
   <Functions>
@@ -47,7 +55,8 @@
 
   <Samplers>
     <AdaptiveDynamicEventTree name="AdaptiveDETsimple" print_end_xml="yes">
-      <ROM class="Models" type="ROM">Acc</ROM>
+      <!-- <ROM class="Models" type="ROM">Acc</ROM> -->
+      <ROM class="Models" type="ROM">Acc2</ROM>
       <Function class="Functions" type="External">relapFunctionSimple</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>
       <Convergence forceIteration="False" limit="1600" persistence="7" weight="CDF">0.001</Convergence>
@@ -168,13 +177,13 @@
           </title>
         </actions>
       </Plot>
-      <Plot dim="3" name="outPlot" overwrite="True" verbosity="debug">
+      <Plot dim="2" name="outPlot" overwrite="True" verbosity="debug">
         <plotSettings>
           <plot>
             <type>scatter</type>
             <x>adaptiveOutsimple|Input|PressureFailureValue</x>
             <y>adaptiveOutsimple|Input|depressurizationOnTime</y>
-            <z>adaptiveOutsimple|Output|systemFailed</z>
+            <colorMap>adaptiveOutsimple|Output|systemFailed</colorMap>
           </plot>
         </plotSettings>
         <actions>

@@ -273,7 +273,7 @@ class OutStreamPlot(OutStreamManager):
         if self.colorMapCoordinates[pltindex] != None:
           for i in range(len(self.colorMapCoordinates[pltindex])):
             zsplit = self.__splitVariableNames('colorMap', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2])
+            parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeid = 'ending')
             if type(parame) in [np.ndarray, c1darray]: self.colorMapValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -732,18 +732,25 @@ class OutStreamPlot(OutStreamManager):
               if self.dim == 2:
                 if self.colorMapCoordinates[pltindex] != None:
                   scatterPlotOptions['c'] = self.colorMapValues[pltindex][key]
+                  scatterPlotOptions['cmap'] = self.mpl.cm.get_cmap("winter")
                   if self.actcm: first = False
                   else         : first = True
                   if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
+                      #if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'winter'
                       self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], **scatterPlotOptions)
-                      if first:
-                          m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
-                          m.set_array(self.colorMapValues[pltindex][key])
-                          self.actcm = self.fig.colorbar(m)
-                          self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
-                      else:
-                          self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
-                          self.actcm.draw_all()
+                      
+                      m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm, cmap = self.mpl.cm.get_cmap("winter"))
+                      m.set_array(self.colorMapValues[pltindex][key])
+                      self.actcm = self.fig.colorbar(m)
+                      self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
+                      #if first:
+                      #    m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
+                      #    m.set_array(self.colorMapValues[pltindex][key])
+                      #    self.actcm = self.fig.colorbar(m)
+                      #    self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
+                      #else:
+                      #    self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
+                      #    self.actcm.draw_all()
                   else:
                       scatterPlotOptions['cmap'] = self.options['plotSettings']['plot'][pltindex]['cmap']
                       self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], **scatterPlotOptions)
