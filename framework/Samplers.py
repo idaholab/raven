@@ -2335,8 +2335,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         self._constructEndInfoFromBranch(model, myInput, info, cdfValues)
       else:
         # create a new tree, since there are no branches that are close enough to the adaptive request
-        if treer is not None:
-          eee = treer.getrootnode().name + '_' + str(treer.getrootnode().numberBranches())
+        #if treer is not None:
+        #  eee = treer.getrootnode().name + '_' + str(treer.getrootnode().numberBranches())
         elm = ETS.Node(self.name + '_' + str(len(self.TreeInfo.keys())+1))
         elm.add('name', self.name + '_'+ str(len(self.TreeInfo.keys())+1))
         elm.add('start_time', 0.0)
@@ -2422,7 +2422,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue(): self.insertAdaptBPb = True
     # we add an artificial threshold because I need to find a way to prepend a rootbranch into a Tree object
     for  val in self.branchProbabilities.values():
-      if min(val) != 0.0: val.insert(0, 0.0)
+      if min(val) != 1e-3: val.insert(0, 1e-3)
 
 
   def _generateDistributions(self,availableDist,availableFunc):

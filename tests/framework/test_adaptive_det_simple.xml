@@ -36,8 +36,8 @@
 
   <Distributions>
     <Uniform name="PressureFailureDist">
-      <lowerBound>1.01e5</lowerBound>
-      <upperBound>1.15e5</upperBound>
+      <lowerBound>104000</lowerBound>
+      <upperBound>111000</upperBound>
     </Uniform>
     <Uniform name="depresSystemDist">
       <lowerBound>0.0</lowerBound>
@@ -46,11 +46,11 @@
   </Distributions>
 
   <Samplers>
-    <AdaptiveDynamicEventTree maxSimulationTime="5.0" name="AdaptiveDETsimple" print_end_xml="yes">
+    <AdaptiveDynamicEventTree name="AdaptiveDETsimple" print_end_xml="yes">
       <ROM class="Models" type="ROM">Acc</ROM>
       <Function class="Functions" type="External">relapFunctionSimple</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>
-      <Convergence forceIteration="False" limit="1600" persistence="7" weight="CDF">0.05</Convergence>
+      <Convergence forceIteration="False" limit="1600" persistence="7" weight="CDF">0.001</Convergence>
       <Distribution name="PressureFailureValue">
         <distribution>PressureFailureDist</distribution>
         <grid construction="custom" type="CDF">0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.95</grid>
@@ -75,6 +75,9 @@
       <Output class="DataObjects" type="PointSet">AdaptiveDETPointset</Output>
       <Output class="DataObjects" type="PointSet">AdaptiveDETPointsetHierarchical</Output>
       <Output class="DataObjects" type="HistorySet">adaptiveOutHistorySetimple</Output>
+      <Output class="OutStreamManager" type="Plot">limitSurfPlot</Output>
+      <Output class="OutStreamManager" type="Plot">outPlot</Output>
+      
     </MultiRun>
     <IOStep name="DumpResults">
       <Input class="DataObjects" type="PointSet">AdaptiveDETPointset</Input>
@@ -82,9 +85,9 @@
       <Input class="DataObjects" type="PointSet">LimitSurfSimple</Input>
       <Input class="DataObjects" type="HistorySet">adaptiveOutHistorySetimple</Input>
       <Output class="OutStreamManager" type="Print">adaptiveNoHierarchicalDump</Output>
-      <!--
-        <Output class="OutStreamManager" type="Plot">limitSurfDump</Output>
-      -->
+      
+      <Output class="OutStreamManager" type="Print">limitSurfDump</Output>
+      
       <Output class="OutStreamManager" type="Print">adaptiveNoHierarchicalDump</Output>
       <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier</Output>
       <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Output</Output>
@@ -102,6 +105,10 @@
   </Databases>
 
   <OutStreamManager>
+    <Print name="limitSurfDump">
+      <type>csv</type>
+      <source>LimitSurfSimple</source>
+    </Print>
     <Print name="adaptiveNoHierarchicalDump">
       <type>csv</type>
       <source>AdaptiveDETPointset</source>
@@ -145,8 +152,7 @@
       <source>adaptiveOutsimple</source>
       <what>Output|systemFailed</what>
     </Print>
-    <!--
-      <Plot dim="2" name="limitSurfDump" overwrite="False" verbosity="debug">
+      <Plot dim="2" name="limitSurfPlot" overwrite="True" verbosity="debug">
         <plotSettings>
           <plot>
             <type>scatter</type>
@@ -156,13 +162,28 @@
           </plot>
         </plotSettings>
         <actions>
-          <how>png</how>
+          <how>screen</how>
           <title>
             <text> </text>
           </title>
         </actions>
       </Plot>
-    -->
+      <Plot dim="3" name="outPlot" overwrite="True" verbosity="debug">
+        <plotSettings>
+          <plot>
+            <type>scatter</type>
+            <x>adaptiveOutsimple|Input|PressureFailureValue</x>
+            <y>adaptiveOutsimple|Input|depressurizationOnTime</y>
+            <z>adaptiveOutsimple|Output|systemFailed</z>
+          </plot>
+        </plotSettings>
+        <actions>
+          <how>screen</how>
+          <title>
+            <text> </text>
+          </title>
+        </actions>
+      </Plot>
   </OutStreamManager>
 
   <DataObjects>
