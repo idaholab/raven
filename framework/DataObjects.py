@@ -974,8 +974,9 @@ class PointSet(Data):
     try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
+      self._dataParameters['type']       = self.type
       self._dataParameters['HistorySet'] = self._toLoadFromList[-1].getEndingGroupNames()
-      self._dataParameters['filter'   ] = 'whole'
+      self._dataParameters['filter'   ]  = 'whole'
 
   def checkConsistency(self):
     """
@@ -1555,6 +1556,7 @@ class HistorySet(Data):
     try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
+      self._dataParameters['type']      =  self.type
       self._dataParameters['filter'   ] = 'whole'
 
   def checkConsistency(self):

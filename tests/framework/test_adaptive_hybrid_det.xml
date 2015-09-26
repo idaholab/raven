@@ -19,7 +19,7 @@
       <Features>depressurizationOnTime,PressureFailureValue</Features>
       <Target>relapFunctionSimple</Target>
       <SKLtype>svm|SVC</SKLtype>
-      <kernel>rbf</kernel>
+      <kernel>linear</kernel>
       <gamma>0.8</gamma>
       <tol>0.0001</tol>
       <C>50</C>
