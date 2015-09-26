@@ -54,7 +54,7 @@
   </Distributions>
 
   <Samplers>
-    <AdaptiveDynamicEventTree maxSimulationTime="2.0" name="AdaptiveHybridDETsimple" printEndXmlSummary="yes">
+    <AdaptiveDynamicEventTree name="AdaptiveHybridDETsimple" printEndXmlSummary="yes">
       <ROM class="Models" type="ROM">Acc</ROM>
       <Function class="Functions" type="External">relapFunctionSimple</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>
