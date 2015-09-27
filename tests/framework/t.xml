@@ -35,7 +35,7 @@
     <PostProcessor name="computeLimitSurfacePositiveNegative" subType="LimitSurface">
         <parameters>depressurizationOnTime,PressureFailureValue</parameters>
         <side>both</side>
-        <ROM      class="Models"    type="ROM"     >Acc</ROM>
+        <ROM      class="Models"    type="ROM"     >Acc2</ROM>
         <Function class="Functions" type="External">relapFunctionSimple</Function>
     </PostProcessor>
   </Models>
@@ -61,7 +61,7 @@
 
   <Samplers>
     <AdaptiveDynamicEventTree name="AdaptiveDETsimple" print_end_xml="yes">
-      <ROM class="Models" type="ROM">Acc</ROM>
+      <ROM class="Models" type="ROM">Acc2</ROM>
       <Function class="Functions" type="External">relapFunctionSimple</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>
       <Convergence forceIteration="False" limit="1600" persistence="20" weight="CDF">0.0001</Convergence>
@@ -89,6 +89,7 @@
       <Output class="DataObjects" type="PointSet">AdaptiveDETPointset</Output>
       <Output class="DataObjects" type="PointSet">AdaptiveDETPointsetHierarchical</Output>
       <Output class="DataObjects" type="HistorySet">adaptiveOutHistorySetimple</Output>
+      <Output class="OutStreamManager" type="Plot">limitSurfPlot</Output>
       <!-- <Output class="OutStreamManager" type="Plot">limitSurfPlot</Output>
       <Output class="OutStreamManager" type="Plot">outPlot</Output> -->
       
@@ -115,13 +116,13 @@
     <IOStep name="extract">
         <Input class="Databases" type="HDF5">AdaptiveDETsimpleDatabase</Input>
         <Output class="DataObjects" type="PointSet">adaptiveOutsimpleFinal</Output>
-        <Output class="OutStreamManager" type="Plot">outPlotFinal</Output>
     </IOStep>
     <PostProcess name="ComputeLimitSurfacePositive" pauseAtEnd="True">
         <Input class="DataObjects" type="PointSet">adaptiveOutsimpleFinal</Input>
         <Model class="Models" type="PostProcessor">computeLimitSurfacePositiveNegative</Model>
         <Output class="DataObjects" type="PointSet">LimitSurfSimpleFinal</Output>
         <Output class="OutStreamManager" type="Plot">limitSurfPlotFinal</Output>
+        <Output class="OutStreamManager" type="Plot">outPlotFinal</Output>
     </PostProcess>
   </Steps>
 

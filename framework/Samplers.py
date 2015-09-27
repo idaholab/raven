@@ -704,7 +704,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.oldTestMatrix     = OrderedDict()    #This is the test matrix to use to store the old evaluation of the function
     self.persistenceMatrix = OrderedDict()    #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
     if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): self.raiseAnError(IOError,'Goal function name does not match solution export data output.')
-    # set number of job requestable after a new evaluation
+    # set number of job request-able after a new evaluation
     self._endJobRunnable   = 1
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
     if self.toleranceWeight=='value':
@@ -2297,8 +2297,31 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         else: self.raiseAWarning('No Completed HistorySet! Not possible to start an adaptive search! Something went wrong!')
       if len(completedHistNames) > self.completedHistCnt:
         actualLastOutput      = self.lastOutput
-        self.lastOutput       = lastOutDict
+        self.lastOutput       = copy.deepcopy(lastOutDict)
+        toDump  = lastOutDict['inputs']
+        toDump.update(lastOutDict['outputs'])
+        keyss,vals = toDump.keys(), toDump.values()
+        np.savetxt('aaaaa'+str(self.completedHistCnt)+'.csv', X=np.asarray(vals).T, delimiter = ',',header = ','.join(keyss)) 
+        bounds          = {"lowerBounds":{},"upperBounds":{}}
+        transformMethod = {}
+        for varName in self.distDict.keys():
+          if self.toleranceWeight!='cdf': bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = self.distDict[varName].lowerBound, self.distDict[varName].upperBound
+          else:
+            bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = 0.0, 1.0
+            transformMethod[varName.replace('<distribution>','')] = [self.distDict[varName].ppf]
+        #moving forward building all the information set
+        self.axisName = self.distDict.keys()
+        self.axisName.sort()
+        # initialize LimitSurface PP
+        self.limitSurfacePP._initFromDict({"name":self.name+"LSpp","parameters":[key.replace('<distribution>','') for key in self.axisName],"tolerance":self.tolerance,"side":"both","transformationMethods":transformMethod,"bounds":bounds})
+        self.limitSurfacePP.assemblerDict = self.assemblerDict
+        self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{'computeCells':True})
+        
         ready                 = LimitSurfaceSearch.localStillReady(self,ready)
+        if self.surfPoint is not None:
+          np.savetxt('ls'+str(self.completedHistCnt)+'.csv', X=np.asarray(self.surfPoint.values()[0]), delimiter = ',',header = 'depressurizationOnTime,PressureFailureValue')
+        else:
+          print("what!")
         self.lastOutput       = actualLastOutput
         self.completedHistCnt = len(completedHistNames)
         self.raiseAMessage("Completed full histories are "+str(self.completedHistCnt))

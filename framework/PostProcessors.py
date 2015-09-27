@@ -1773,7 +1773,7 @@ class LimitSurface(BasePostProcessor):
       @ Out, None
     """
     initDict = {}
-    for child in xmlNode: initDict[child.tag] = child.text.lower()
+    for child in xmlNode: initDict[child.tag] = child.text
     initDict.update(xmlNode.attrib)
     self._initFromDict(initDict)
 
@@ -1788,7 +1788,7 @@ class LimitSurface(BasePostProcessor):
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
     self.raiseADebug(str(finishedjob.returnEvaluation()))
     limitSurf = finishedjob.returnEvaluation()[1]
-    if limitSurf[0] != None:
+    if limitSurf[0] is not None:
       for varName in output.getParaKeys('inputs'):
         for varIndex in range(len(self.axisName)):
           if varName == self.axisName[varIndex]:
