@@ -1674,14 +1674,15 @@ class LimitSurface(BasePostProcessor):
     # recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name]) - 1
     else                                                      : indexLast = -1
-
+    indexLast = -1
     # index of last set of point tested and ready to perform the function evaluation
     indexEnd = len(self.functionValue[self.axisName[0]]) - 1
     tempDict = {}
     if self.externalFunction.name in self.functionValue.keys():
       self.functionValue[self.externalFunction.name] = np.append(self.functionValue[self.externalFunction.name], np.zeros(indexEnd - indexLast))
     else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd + 1)
-
+    self.functionValue[self.externalFunction.name] = np.zeros(indexEnd + 1)
+    
     for myIndex in range(indexLast + 1, indexEnd + 1):
       for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
       # self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
@@ -1869,7 +1870,6 @@ class LimitSurface(BasePostProcessor):
         evaluations[nodeName] = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
         for pointID, coordinate in enumerate(listsurfPoint[nodeName]):
           self.surfPoint[nodeName][pointID, :] = self.gridCoord[nodeName][tuple(coordinate)]
-
     if self.name != exceptionGrid: self.listsurfPointNegative, self.listsurfPointPositive = listsurfPoint[self.name][:nNegPoints-1],listsurfPoint[self.name][nNegPoints:]
     if merge == True:
       evals = np.hstack(evaluations.values())

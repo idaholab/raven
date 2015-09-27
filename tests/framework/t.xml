@@ -28,7 +28,10 @@
         <Features>depressurizationOnTime,PressureFailureValue</Features>
         <Target>relapFunctionSimple</Target>
         <SKLtype>svm|LinearSVC</SKLtype>
-        <!-- <n_neighbors>2</n_neighbors>
+        <!-- <gamma>10</gamma>
+        <tol>0.0001</tol>
+        <C>100</C>
+         <n_neighbors>2</n_neighbors>
         <weights>distance</weights>
          -->
     </ROM>
@@ -61,10 +64,10 @@
 
   <Samplers>
     <AdaptiveDynamicEventTree name="AdaptiveDETsimple" print_end_xml="yes">
-      <ROM class="Models" type="ROM">Acc2</ROM>
+      <ROM class="Models" type="ROM">Acc</ROM>
       <Function class="Functions" type="External">relapFunctionSimple</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>
-      <Convergence forceIteration="False" limit="1600" persistence="20" weight="CDF">0.0001</Convergence>
+      <Convergence forceIteration="False" limit="1600" persistence="7" weight="CDF">0.005</Convergence>
       <Distribution name="PressureFailureValue">
         <distribution>PressureFailureDist</distribution>
         <grid construction="custom" type="CDF">0.01 0.05 0.1 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95</grid>
@@ -185,6 +188,13 @@
             <y>LimitSurfSimple|Input|PressureFailureValue</y>
             <x>LimitSurfSimple|Input|depressurizationOnTime</x>
             <colorMap>LimitSurfSimple|Output|relapFunctionSimple</colorMap>
+          </plot>
+          <plot>
+              <type>scatter</type>
+              <y>adaptiveOutsimple|Input|PressureFailureValue</y>
+              <x>adaptiveOutsimple|Input|depressurizationOnTime</x>
+              <colorMap>adaptiveOutsimple|Output|systemFailed</colorMap>
+              <marker>x</marker>
           </plot>
         </plotSettings>
         <actions>
