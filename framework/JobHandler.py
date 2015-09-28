@@ -354,7 +354,39 @@ class JobHandler(MessageHandler.MessageUser):
       else                             : self.ppserver = None        # we just use threading!
     self.initParallelPython = True
 
-  def addExternal(self,executeCommand,outputFile,workingDir,metadata=None,codePointer=None):
+  def addExternal(self,executeCommands,outputFile,workingDir,metadata=None,codePointer=None):
+    """
+      Method to add an external runner (an external code) in the handler list
+      @ In, executeCommands, tuple(string), ('parallel'/'serial', <execution command>)
+      @ In, outputFile, string, output file name
+      @ In, workingDir, string, working directory
+      @ In, metadata, dict, optional, dictionary of metadata
+      @ In, codePointer, derived CodeInterfaceBaseClass object, optional, pointer to code interface
+      @ Out, None
+    """
+    commands=[]
+    for runtype,cmd in executeCommands:
+      if runtype.lower() == 'parallel':
+        if self.mpiCommand !='':
+          commands.append(self.mpiCommand+' '+cmd)
+        if self.threadingCommand !='': #FIXME are these two exclusive?
+          commands.append(self.threadingCommand+' '+cmd)
+        else:
+          self.raiseAWarning('Parallel computation requested by CodeInterface, but no MPI or threading options specified.  Continuing in serial...')
+          commands.append(cmd)
+      elif runtype.lower() == 'serial':
+        commands.append(cmd)
+      else:
+        self.raiseAnError(IOError,'For execution command <'+cmd'> the run type was neither "serial" nor "parallel"!  Instead got:',runtype,'\nCheck the code interface.')
+
+    command = self.runInfoDict['precommand']+' ' #FIXME what uses this?  Still precommand for whole line if multiapp case?
+    command+= ' && '.join(commands)+' '
+    command += self.runInfoDict['postcommand']
+    self.__queue.put(ExternalRunner(self.messageHandler,command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata,codePointer))
+    self.__numSubmitted += 1
+    if self.howManyFreeSpots()>0: self.addRuns()
+
+  def old_addExternal(self,executeCommand,outputFile,workingDir,metadata=None,codePointer=None):
     """
       Method to add an external runner (an external code) in the handler list
       @ In, executeCommand, string, command to be executed
