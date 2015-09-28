@@ -46,11 +46,14 @@ class CubitMooseInterface(CodeInterfaceBase): #MooseBasedAppInterface,CubitInter
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preexec = None):
     """Generate a multi-line command that runs both the Cubit mesh generator and then the
        desired MOOSE run.
-       @ In, inputFiles, the perturbed input files (list of Files) along with pass-through files from RAVEN.
-       @ In, executable, the MOOSE app executable to run (string)
-       @ In, clargs, command line arguments
-       @ In, fargs, file-based arguments
-       @Out, (string, string), execution command and output filename
+    See base class.  Collects all the clargs and the executable to produce the command-line call.
+    Returns tuple of commands and base file name for run.
+    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+    @ In, inputFiles, the input files to be used for the run
+    @ In, executable, the executable to be run
+    @ In, clargs, command-line arguments to be used
+    @ In, fargs, in-file changes to be made
+    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
     """
     if preexec is None:
       raise IOError('No preexec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...')
