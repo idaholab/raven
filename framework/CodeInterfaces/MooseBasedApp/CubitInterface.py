@@ -11,6 +11,7 @@ import os
 import copy
 import sys
 import re
+from subprocess import Popen
 import collections
 from utils import toBytes, toStrish, compare
 from CodeInterfaceBaseClass import CodeInterfaceBase
@@ -89,7 +90,7 @@ class CubitInterface(CodeInterfaceBase):
        @ In, path_to_files, (string), path to the files to be removed
        @Out, None
     """
-    #FIXME use Popen from subprocess for this
-    success = os.system('rm '+path_to_files)
-    if success != 0:
-      print('  ...',success,"There was an error removing ",path_to_files,'(',success,')','but continuing onward...')
+    try:
+      p = Popen('rm '+path_to_files)
+    except OSError as e:
+      print('  ...',"There was an error removing ",path_to_files,'<',e,'>','but continuing onward...')
