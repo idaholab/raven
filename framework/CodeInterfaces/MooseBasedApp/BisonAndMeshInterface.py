@@ -68,8 +68,7 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     mooseCommand,mooseOut = self.MooseInterface.generateCommand([mooseInp],executable,clargs,fargs)
     #combine them
     #executeCommand = ' && '.join([cubitCommand,mooseCommand])
-    executeCommand = [cubitCommand[0],
-                      mooseCommand[0]]
+    executeCommand = cubitCommand + mooseCommand
     print('Execution commands from JobHandler:')
     for r,c in executeCommand:
       print('  in',r+':',c)
