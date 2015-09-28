@@ -373,12 +373,9 @@ class JobHandler(MessageHandler.MessageUser):
       if runtype.lower() == 'parallel':
         newcom += precommand
         if self.mpiCommand !='':
-          commands.append(self.mpiCommand)
+          newcom += ' '+self.mpiCommand)+' '
         if self.threadingCommand !='': #FIXME are these two exclusive?
-          commands.append(self.threadingCommand)
-        else:
-          pass
-          #self.raiseAWarning('Parallel computation requested by CodeInterface, but no MPI or threading options specified.  Continuing in serial...')
+          newcom += ' '+ self.threadingCommand +' '
         newcom += cmd+' '
         newcom+= self.runInfoDict['postcommand']
         commands.append(newcom)
