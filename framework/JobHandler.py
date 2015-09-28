@@ -379,44 +379,16 @@ class JobHandler(MessageHandler.MessageUser):
         else:
           pass
           #self.raiseAWarning('Parallel computation requested by CodeInterface, but no MPI or threading options specified.  Continuing in serial...')
-        newcom += cmd
+        newcom += cmd+' '
+        newcom+= self.runInfoDict['postcommand']
         commands.append(newcom)
       elif runtype.lower() == 'serial':
         commands.append(cmd)
       else:
         self.raiseAnError(IOError,'For execution command <'+cmd+'> the run type was neither "serial" nor "parallel"!  Instead got:',runtype,'\nCheck the code interface.')
-
-    print('\n\nDEBUGGG: precommand is:',self.runInfoDict['precommand'])
-    print(    '         mpiCommand is:',self.mpiCommand)
-    print(    '         threading  is:',self.threadingCommand)
-    print(    '         pstCommand is:',self.runInfoDict['postcommand'])
-    print('\n\n')
     command= ' && '.join(commands)+' '
-    command += self.runInfoDict['postcommand'] #FIXME what can go here?
     self.__queue.put(ExternalRunner(self.messageHandler,command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata,codePointer))
     self.raiseAMessage('Execution command submitted:',command)
-    self.__numSubmitted += 1
-    if self.howManyFreeSpots()>0: self.addRuns()
-
-  def old_addExternal(self,executeCommand,outputFile,workingDir,metadata=None,codePointer=None):
-    """
-      Method to add an external runner (an external code) in the handler list
-      @ In, executeCommand, string, command to be executed
-      @ In, outputFile, string, output file name
-      @ In, workingDir, string, working directory
-      @ In, metadata, dict, optional, dictionary of metadata
-      @ In, codePointer, derived CodeInterfaceBaseClass object, optional, pointer to code interface
-      @ Out, None
-    """
-    #probably something more for the PBS
-    command = self.runInfoDict['precommand']
-    if self.mpiCommand !='':
-      command += self.mpiCommand+' '
-    if self.threadingCommand !='':
-      command +=self.threadingCommand+' '
-    command += executeCommand
-    command += self.runInfoDict['postcommand']
-    self.__queue.put(ExternalRunner(self.messageHandler,command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata,codePointer))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
