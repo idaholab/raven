@@ -108,7 +108,7 @@ class GenericCodeInterface(CodeInterfaceBase):
     todo+=' '+clargs['text']
     #postpend
     todo+=' '+clargs['post']
-    executeCommand = (todo)
+    executeCommand = [('parallel',todo)]
     print('Execution Command: '+str(executeCommand))
     return executeCommand,outfile
 

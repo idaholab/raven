@@ -292,6 +292,7 @@ class InternalRunner(MessageHandler.MessageUser):
 
 class JobHandler(MessageHandler.MessageUser):
   def __init__(self):
+    self.printTag               = 'Job Handler'
     self.runInfoDict            = {}
     self.mpiCommand             = ''
     self.threadingCommand       = ''
@@ -364,25 +365,36 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, codePointer, derived CodeInterfaceBaseClass object, optional, pointer to code interface
       @ Out, None
     """
+    precommand = self.runInfoDict['precommand'] #FIXME what uses this?  Still precommand for whole line if multiapp case?
+    #it appears precommand is usually used for mpiexec - however, there could be other uses....
     commands=[]
     for runtype,cmd in executeCommands:
+      newcom=''
       if runtype.lower() == 'parallel':
+        newcom += precommand
         if self.mpiCommand !='':
-          commands.append(self.mpiCommand+' '+cmd)
+          commands.append(self.mpiCommand)
         if self.threadingCommand !='': #FIXME are these two exclusive?
-          commands.append(self.threadingCommand+' '+cmd)
+          commands.append(self.threadingCommand)
         else:
-          self.raiseAWarning('Parallel computation requested by CodeInterface, but no MPI or threading options specified.  Continuing in serial...')
-          commands.append(cmd)
+          pass
+          #self.raiseAWarning('Parallel computation requested by CodeInterface, but no MPI or threading options specified.  Continuing in serial...')
+        newcom += cmd
+        commands.append(newcom)
       elif runtype.lower() == 'serial':
         commands.append(cmd)
       else:
-        self.raiseAnError(IOError,'For execution command <'+cmd'> the run type was neither "serial" nor "parallel"!  Instead got:',runtype,'\nCheck the code interface.')
+        self.raiseAnError(IOError,'For execution command <'+cmd+'> the run type was neither "serial" nor "parallel"!  Instead got:',runtype,'\nCheck the code interface.')
 
-    command = self.runInfoDict['precommand']+' ' #FIXME what uses this?  Still precommand for whole line if multiapp case?
-    command+= ' && '.join(commands)+' '
-    command += self.runInfoDict['postcommand']
+    print('\n\nDEBUGGG: precommand is:',self.runInfoDict['precommand'])
+    print(    '         mpiCommand is:',self.mpiCommand)
+    print(    '         threading  is:',self.threadingCommand)
+    print(    '         pstCommand is:',self.runInfoDict['postcommand'])
+    print('\n\n')
+    command= ' && '.join(commands)+' '
+    command += self.runInfoDict['postcommand'] #FIXME what can go here?
     self.__queue.put(ExternalRunner(self.messageHandler,command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata,codePointer))
+    self.raiseAMessage('Execution command submitted:',command)
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 

@@ -34,7 +34,7 @@ class CubitInterface(CodeInterfaceBase):
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    executeCommand = (executable+ ' -batch ' + inputFiles[index].getFilename())
+    executeCommand = [('serial',executable+ ' -batch ' + inputFiles[index].getFilename())]
     return executeCommand, self.outputfile
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
@@ -80,7 +80,7 @@ class CubitInterface(CodeInterfaceBase):
     # Append wildcard strings to workingDir for files wanted to be removed
     cubitjour_files = os.path.join(workingDir,'cubit*')
     # Inform user which files will be removed
-    print('files being removed:\n'+cubitjour_files)
+    print('Interface attempting to remove files: \n'+cubitjour_files)
     # Remove Cubit generated journal files
     self.rmUnwantedFiles(cubitjour_files)
 
@@ -89,6 +89,7 @@ class CubitInterface(CodeInterfaceBase):
        @ In, path_to_files, (string), path to the files to be removed
        @Out, None
     """
+    #FIXME use Popen from subprocess for this
     success = os.system('rm '+path_to_files)
     if success != 0:
-      print(success,"Error removing ",path_to_files)
+      print('  ...',success,"There was an error removing ",path_to_files,'(',success,')','but continuing onward...')

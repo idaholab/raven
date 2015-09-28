@@ -32,12 +32,12 @@ class RAVENInterface(CodeInterfaceBase):
     outputfile = 'out~'+inputFiles[index].getBase()
     if clargs: precommand = executable + clargs['text']
     else     : precommand = executable
-    executeCommand = (precommand + ' -i '+inputFiles[index].getFilename() +
+    executeCommand = [('parallel',precommand + ' -i '+inputFiles[index].getFilename() +
                       ' Outputs/file_base='+ outputfile +
                       ' Outputs/csv=false' +
                       ' Outputs/checkpoint=true'+
                       ' Outputs/tail/type=ControlLogicBranchingInfo'+
-                      ' Outputs/ravenCSV/type=CSVRaven')
+                      ' Outputs/ravenCSV/type=CSVRaven')]
     return executeCommand,outputfile
 
   def finalizeCodeOutput(self,currentInputFiles,output,workingDir):

@@ -60,7 +60,9 @@ class CubitMooseInterface(CodeInterfaceBase): #MooseBasedAppInterface,CubitInter
     #get the moose part
     mooseCommand,mooseOut = self.MooseInterface.generateCommand([mooseInp],executable,clargs,fargs)
     #combine them
-    executeCommand = ' && '.join([cubitCommand,mooseCommand])
+    #executeCommand = ' && '.join([cubitCommand,mooseCommand])
+    executeCommand = [cubitCommand[0],
+                      mooseCommand[0]]
     print('ExecutionCommand:',executeCommand,'\n')
     return executeCommand,mooseOut #can only send one...#(cubitOut,mooseOut)
 

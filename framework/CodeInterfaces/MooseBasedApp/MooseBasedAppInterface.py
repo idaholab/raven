@@ -22,9 +22,9 @@ class MooseBasedAppInterface(CodeInterfaceBase):
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+inputFiles[index].getBase()
-    executeCommand = (executable+' -i '+inputFiles[index].getFilename() +
+    executeCommand = [('parallel',executable+' -i '+inputFiles[index].getFilename() +
                         ' Outputs/file_base='+ outputfile +
-                        ' Outputs/csv=true')
+                        ' Outputs/csv=true')]
 
     return executeCommand,outputfile
 

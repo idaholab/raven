@@ -25,11 +25,11 @@ class Relap5(CodeInterfaceBase):
     outputfile = 'out~'+inputFiles[index].getBase()
     if clargs: addflags = clargs['text']
     else     : addflags = ''
-    executeCommand = executable \
+    executeCommand = [('parallel',executable \
                      + ' -i ' + inputFiles[index].getFilename() \
                      + ' -o ' + os.path.join(inputFiles[index].getPath(), inputFiles[index].getBase() + '.o') \
                      + ' -r ' + os.path.join(inputFiles[index].getPath(), inputFiles[index].getBase() + '.r') \
-                     + addflags
+                     + addflags)]
     return executeCommand,outputfile
 
   def finalizeCodeOutput(self,command,output,workingDir):

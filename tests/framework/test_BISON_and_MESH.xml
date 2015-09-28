@@ -16,7 +16,9 @@
   <RunInfo>
     <WorkingDir>BISON_and_MESH_test</WorkingDir>
     <Sequence>grid_run</Sequence>
-    <batchSize>1</batchSize>
+    <mode>mpi</mode>
+    <batchSize>2</batchSize>
+    <NumMPI>4</NumMPI>
   </RunInfo>
 
   <Files>

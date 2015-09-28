@@ -161,7 +161,7 @@ class OpenModelicaInterface(CodeInterfaceBase):
     #   output from running the OpenModelica executable.
     #
     outputfile = 'rawout~' + inputFiles[index].getBase() #os.path.splitext(os.path.basename(inputFiles[index]))[0]
-    executeCommand = (executable+' -f '+inputFiles[index].getFilename() + ' -r '+ outputfile + '.csv')
+    executeCommand = [('parallel',executable+' -f '+inputFiles[index].getFilename() + ' -r '+ outputfile + '.csv')]
 
     return executeCommand, outputfile
 

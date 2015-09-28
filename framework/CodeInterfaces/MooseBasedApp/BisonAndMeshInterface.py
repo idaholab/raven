@@ -64,8 +64,12 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     #get the moose part
     mooseCommand,mooseOut = self.MooseInterface.generateCommand([mooseInp],executable,clargs,fargs)
     #combine them
-    executeCommand = ' && '.join([cubitCommand,mooseCommand])
-    print('ExecutionCommand:',executeCommand,'\n')
+    #executeCommand = ' && '.join([cubitCommand,mooseCommand])
+    executeCommand = [cubitCommand[0],
+                      mooseCommand[0]]
+    print('Execution commands from JobHandler:')
+    for r,c in executeCommand:
+      print('  in',r+':',c)
     return executeCommand,mooseOut #can only send one...#(cubitOut,mooseOut)
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
