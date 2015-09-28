@@ -264,8 +264,7 @@ class Dummy(Model):
     InputData = {}
     InputTime = {}
     
-    if dataIN.type == 'HistorySet':
-      
+    if dataIN.type == 'HistorySet':     
       for entries in dataIN.getParaKeys('inputs' ): 
         localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[length:])
       
@@ -277,7 +276,7 @@ class Dummy(Model):
           timeID = dataIN.getOptions('pivot')
           time = copy.copy(np.array(dataIN.getParam('output',timeID))[length:])
           if samplingType == 'uniform' or samplingType == 'derivative':  
-            varsDic = 
+            varsDic = dataIN
             localInput[entries] = varsTimeInterp(time, numTimeSamples, varsDic, samplingType, interpType) 
           else:
              self.raiseAnError(IOError,self,'samplingType "'+samplingType+'" does not exist with the model "' + self.type + '" named "' + self.name+'"!')
@@ -353,6 +352,8 @@ class ROM(Dummy):
     self.printTag = 'ROM MODEL'
     
     self.howManyTimeSteps          = 1          # how many time steps? (for temporal reduced order models)
+    self.samplingType              = 'uniform'  # uniform or derivative
+    self.interpType                = 'linear'
     self.timeROM                   = []
 
   def __getstate__(self):
@@ -407,10 +408,6 @@ class ROM(Dummy):
         self.initializationOptionDict['Target'] = target
         tsDict[target] = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
       self.SupervisedEngine.append(tsDict)
-      
-      if self.howManyTimeSteps > 1:
-        timeROM = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-        self.timeRom.append(timeROM)
     #XXX
     
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
@@ -485,7 +482,8 @@ class ROM(Dummy):
           self.aimITrained = self.amITrained and instrom.amITrained
       else:
         for timeStep in self.SupervisedEngine:
-          for instrom in self.SupervisedEngine.values():
+          self.trainingSet = copy.copy(self._inputToInternal_historySet(trainingSet,self.howManyTimeSteps,self.samplingType,self.interpType,full=True)) #_inputToInternal_historySet(self,dataIN, numTimeSamples, samplingType, interpType)
+          for instrom in self.SupervisedEngine[timeStep].values():
             instrom.train(data)
             self.aimITrained = self.amITrained and instrom.amITrained
         
