@@ -106,6 +106,8 @@ specifies \texttt{NumThreads} $> 1$  and \texttt{NumMPI} $> 1$, then
 a command that needs to be inserted before the actual command that is used to
 run the external model (e.g., \texttt{mpiexec -n 8 precommand
 ./externalModel.exe (...)}).
+Note that the precommand as well as the postcommand are ONLY applied to
+execution commands flagged as ``parallel'' within the code interface.
 %
 \default{None}
 
@@ -114,6 +116,8 @@ run the external model (e.g., \texttt{mpiexec -n 8 precommand
 specifies a command that needs to be appended after the actual command that is
 used to run the external model (e.g., \texttt{mpiexec -n 8  ./externalModel.exe
 (...) postcommand}).
+Note that the postcommand as well as the precommand are ONLY applied to
+execution commands flagged as ``parallel'' within the code interface.
 %
 \default{None}
 
