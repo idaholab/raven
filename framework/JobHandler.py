@@ -373,7 +373,7 @@ class JobHandler(MessageHandler.MessageUser):
       if runtype.lower() == 'parallel':
         newcom += precommand
         if self.mpiCommand !='':
-          newcom += ' '+self.mpiCommand)+' '
+          newcom += ' '+self.mpiCommand+' '
         if self.threadingCommand !='': #FIXME are these two exclusive?
           newcom += ' '+ self.threadingCommand +' '
         newcom += cmd+' '
