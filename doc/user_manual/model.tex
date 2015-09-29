@@ -3679,8 +3679,10 @@ This XML node needs to contain the attributes:
   \item \xmlAttr{ModuleToLoad}, \xmlDesc{required string attribute}, file name
   with its absolute or relative path.
   %
-  \nb If a relative path is specified, it must be relative with respect to where
-  the user runs the code.
+  \nb If a relative path is specified, the code first checks relative
+  to the working directory, then it checks with respect to where the
+  user runs the code.  Using the relative path with respect to where the
+  code is run is not recommended.
   %
 \end{itemize}
 \vspace{-5mm}
