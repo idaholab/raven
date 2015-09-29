@@ -16,7 +16,7 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel name='testFunction' subType='' ModuleToLoad = './hill'>
+    <ExternalModel name='testFunction' subType='' ModuleToLoad = '../hill'>
       <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>
