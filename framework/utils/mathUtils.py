@@ -217,18 +217,35 @@ def varsTimeInterp(numSamples, timeID, vars, samplingType, interpType):
   return newVars
 
 
-def derivativeTimeValues(numSamples, time, vars):
+def derivativeTimeValues(numSamples, time, vars, orderDerivative):
   t_min=time[0]
   t_max=time[time.size-1]
   
   newTime = np.zeros(numSamples)
   cumDerivative = np.zeros(time.size)
   
-  for t in range(1, time.shape[0]):
-    t_contrib=0.0
-    for keys in vars.keys():
-      t_contrib += (var[keys][t] - var[keys][t-1])/(time[t]-time[t-1])
-    cumDerivative[t] = cumDerivative[t-1] + t_contrib
+  # data normalization
+  for keys in vars.keys():
+    total = np.sum(var[keys])
+    var[keys] = var[keys]/total
+  
+  if orderDerivative=='firstDerivative':
+    for t in range(1, time.shape[0]):
+      t_contrib=0.0
+      for keys in vars.keys():
+        t_contrib += abs(var[keys][t] - var[keys][t-1])/(time[t]-time[t-1])
+      cumDerivative[t] = cumDerivative[t-1] + t_contrib
+      
+  elif orderDerivative=='secondDerivative':
+    for t in range(1, time.shape[0]-1):
+      t_contrib=0.0
+      for keys in vars.keys():
+        t_contrib += abs(var[keys][t+1] - 2.0 * var[keys][t+1] + var[keys][t-1])/(time[t]-time[t-1])**2
+      cumDerivative[t] = cumDerivative[t-1] + t_contrib
+    cumDerivative[-1] = cumDerivative[time.shape[0]-2]
+        
+  else:self.raiseAnError(RuntimeError,'type ' + orderDerivative + ' is not a valid type. Function: derivativeTimeValues (mathUtils)')
+      
   
   cumDamageInstant = np.arange(0,cumDerivative[-1],numSamples)
   

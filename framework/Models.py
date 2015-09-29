@@ -271,9 +271,6 @@ class Dummy(Model):
       
       # Create the dictionaries localTime and localInput 
       for tInst in range(numTimeSamples):
-        localTime[tInst] = {}
-        localTime[tInst]['input']  = dataIN['input']
-        
         localInput[tInst] = {}
         localInput[tInst]['input']  = dataIN['input']
         
@@ -282,7 +279,7 @@ class Dummy(Model):
     else: 
       self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"! (only HistorySet are allowed)')
       
-    return (localTime, localInput)
+    return localInput
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
@@ -477,8 +474,7 @@ class ROM(Dummy):
         for instrom in self.SupervisedEngine[timeStep].values():
           instrom.train(data)
           self.aimITrained = self.amITrained and instrom.amITrained
-        
-        
+               
       self.raiseADebug('add self.amITrained to currentParamters','FIXME')
 
   def confidence(self,request,target = None):
@@ -500,16 +496,14 @@ class ROM(Dummy):
     @ In, target, string, optional, target name (by default the first target entered in the input file)
     """
     inputToROM = self._inputToInternal(request)
-    if target != None: 
-      return self.SupervisedEngine[target].evaluate(inputToROM)
-    else: 
-      return self.SupervisedEngine.values()[0].evaluate(inputToROM)
+    if target != None: return self.SupervisedEngine[target].evaluate(inputToROM)
+    else             : return self.SupervisedEngine.values()[0].evaluate(inputToROM)
 
   def __externalRun(self,inRun):
     returnDict = {}
-    for ts in grid:
-      for target in self.SupervisedEngine.keys(): 
-        returnDict[target] = self.evaluate(inRun,target)
+    for ts in self.SupervisedEngine:
+      for target in self.SupervisedEngine[ts].keys(): 
+        returnDict[ts][target] = self.evaluate(inRun,target)
     return returnDict
 
   def run(self,Input,jobHandler):
