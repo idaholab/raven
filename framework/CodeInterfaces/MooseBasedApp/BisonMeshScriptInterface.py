@@ -12,6 +12,7 @@ import copy
 import sys
 import re
 import collections
+from subprocess import Popen
 from utils import toBytes, toStrish, compare
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
@@ -21,11 +22,14 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """Generate a command to run cubit using an input with sampled variables to output
        the perturbed mesh as an exodus file.
-       @ In, inputFiles, the perturbed input files (list of Files) along with pass-through files from RAVEN.
-       @ In, executable, the Cubit executable to run (string)
-       @ In, clargs, command line arguments
-       @ In, fargs, file-based arguments
-       @Out, (string, string), execution command and output file name
+    See base class.  Collects all the clargs and the executable to produce the command-line call.
+    Returns tuple of commands and base file name for run.
+    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+    @ In, inputFiles, the input files to be used for the run
+    @ In, executable, the executable to be run
+    @ In, clargs, command-line arguments to be used
+    @ In, fargs, in-file changes to be made
+    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
     """
     found = False
     for index, inputFile in enumerate(inputFiles):
@@ -34,7 +38,7 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'mesh~'+inputFiles[index].getBase()
-    executeCommand = ('python '+executable+ ' -i ' +inputFiles[index].getFilename()+' -o '+outputfile+'.e')
+    executeCommand = [('serial','python '+executable+ ' -i ' +inputFiles[index].getFilename()+' -o '+outputfile+'.e')]
     return executeCommand,outputfile
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
@@ -78,7 +82,7 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     cubitjour_files = os.path.join(workingDir,'cubit*')
     pyc_files = os.path.join(workingDir,'*.pyc')
     # Inform user which files will be removed
-    print('files being removed:\n'+cubitjour_files+'\n'+pyc_files)
+    print('Interface attempting to remove files the following:\n    '+cubitjour_files+'\n    '+pyc_files)
     # Remove Cubit generated journal files
     self.rmUnwantedFiles(cubitjour_files)
     # Remove .pyc files created when running BMS python inputs
@@ -88,6 +92,7 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     """Method to remove unwanted files after completing the run
        @ In, path_to_files, (string), path to the files to be removed
     """
-    success = os.system('rm '+path_to_files)
-    if success != 0:
-      print(success,"Error removing ",path_to_files)
+    try:
+      p = Popen('rm '+path_to_files)
+    except OSError as e:
+      print('    ...',"There was an error removing ",path_to_files,'<',e,'> but continuing onward...')
