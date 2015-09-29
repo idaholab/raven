@@ -138,7 +138,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         raise IOError('It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
     return True
 
-  def __init__(self):
+  def __init__(self,runInfoDict):
     BaseType.__init__(self)
     self.subType  = ''
     self.runQueue = []
@@ -217,8 +217,8 @@ class Dummy(Model):
   this is a dummy model that just return the effect of the sampler. The values reported as input in the output
   are the output of the sampler and the output is the counter of the performed sampling
   """
-  def __init__(self):
-    Model.__init__(self)
+  def __init__(self,runInfoDict):
+    Model.__init__(self,runInfoDict)
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
     #the following variable are reset at each call of the initialize method
     self.printTag = 'DUMMY MODEL'
@@ -312,8 +312,8 @@ class ROM(Dummy):
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
 
-  def __init__(self):
-    Dummy.__init__(self)
+  def __init__(self,runInfoDict):
+    Dummy.__init__(self,runInfoDict)
     self.initializationOptionDict = {}          # ROM initialization options
     self.amITrained                = False      # boolean flag, is the ROM trained?
     self.howManyTargets            = 0          # how many targets?
@@ -477,13 +477,13 @@ class ExternalModel(Dummy):
     #cls.raiseADebug('think about how to import the roles to allowed class for the external model. For the moment we have just all')
     pass
 
-  def __init__(self):
+  def __init__(self,runInfoDict):
     """
     Constructor
     @ In, None
     @ Out, None
     """
-    Dummy.__init__(self)
+    Dummy.__init__(self,runInfoDict)
     self.sim                      = None
     self.modelVariableValues      = {}                                                                                                       # dictionary of variable values for the external module imported at runtime
     self.modelVariableType        = {}                                                                                                       # dictionary of variable types, used for consistency checks
@@ -491,6 +491,8 @@ class ExternalModel(Dummy):
     self._availableVariableTypes = self._availableVariableTypes + ['numpy.'+item for item in self._availableVariableTypes]                   # as above
     self.printTag                 = 'EXTERNAL MODEL'
     self.initExtSelf              = utils.Object()
+    self.workingDir = runInfoDict['WorkingDir']
+
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -526,15 +528,25 @@ class ExternalModel(Dummy):
     """
     Model._readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys():
-      self.ModuleToLoad = os.path.split(str(xmlNode.attrib['ModuleToLoad']))[1]
-      if (os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0] != ''):
-        abspath = os.path.abspath(os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0])
-        if '~' in abspath:abspath = os.path.expanduser(abspath)
-        if os.path.exists(abspath): os.sys.path.append(abspath)
-        else: self.raiseAnError(IOError,'The path provided for the external model does not exist!!! Got: ' + abspath)
+      moduleToLoadString = str(xmlNode.attrib['ModuleToLoad'])
+      #first check working dir
+      workingDirModule = os.path.join(self.workingDir,moduleToLoadString)
+      if os.path.exists(workingDirModule+".py"):
+        moduleToLoadString = workingDirModule
+        path, self.ModuleToLoad = os.path.split(workingDirModule)
+        os.sys.path.append(os.path.abspath(path))
+      else:
+        path, self.ModuleToLoad = os.path.split(moduleToLoadString)
+        if (path != ''):
+          abspath = os.path.abspath(path)
+          if '~' in abspath:abspath = os.path.expanduser(abspath)
+          if os.path.exists(abspath):
+            self.raiseAWarning('ModuleToLoad '+moduleToLoadString+' should be relative to working directory')
+            os.sys.path.append(abspath)
+          else: self.raiseAnError(IOError,'The path provided for the external model does not exist!!! Got: ' + abspath)
     else: self.raiseAnError(IOError,'ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
-    self.sim = utils.importFromPath(str(xmlNode.attrib['ModuleToLoad']),self.messageHandler.getDesiredVerbosity(self)>1)
+    self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':
@@ -613,8 +625,8 @@ class Code(Model):
     #FIXME think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable
     cls.validateDict['Input'] = [cls.validateDict['Input'][1]]
 
-  def __init__(self):
-    Model.__init__(self)
+  def __init__(self,runInfoDict):
+    Model.__init__(self,runInfoDict)
     self.executable         = ''   #name of the executable (abs path)
     self.preexec            = None   #name of the pre-executable, if any
     self.oriInputFiles      = []   #list of the original input files (abs path)
@@ -805,8 +817,8 @@ class Projector(Model):
     pass
     #FIXME self.raiseAMessage('PROJECTOR','Remember to add the data type supported the class filter')
 
-  def __init__(self):
-    Model.__init__(self)
+  def __init__(self,runInfoDict):
+    Model.__init__(self,runInfoDict)
     self.printTag = 'PROJECTOR MODEL'
 
   def _readMoreXML(self,xmlNode):
@@ -880,8 +892,8 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['ROM'       ][0]['required'    ] = False
     cls.validateDict['ROM'       ][0]['multiplicity'] = '1'
 
-  def __init__(self):
-    Model.__init__(self)
+  def __init__(self,runInfoDict):
+    Model.__init__(self,runInfoDict)
     self.input  = {}     # input source
     self.action = None   # action
     self.workingDir = ''
@@ -963,9 +975,11 @@ def addKnownTypes(newDict):
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type,caller):
+needsRunInfo = True
+
+def returnInstance(Type,runInfoDict,caller):
   """This function return an instance of the request model type"""
-  try: return __interFaceDict[Type]()
+  try: return __interFaceDict[Type](runInfoDict)
   except KeyError: caller.raiseAnError(NameError,'MODELS','not known '+__base+' type '+Type)
 
 def validate(className,role,what,caller):
