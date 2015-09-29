@@ -194,24 +194,27 @@ def calculateStats(data):
   return ret
 
 
-def varsTimeInterp(numSamples, time, vars, samplingType, interpType):
-  t_min=time[0]
-  t_max=time[-1]
+def varsTimeInterp(numSamples, timeID, vars, samplingType, interpType):
+  t_min = vars[timeID][0]
+  t_max = vars[timeID][-1]
   
   dt=(t_max-t_min)/numSamples
   
   if samplingType == 'uniform':
     newTime = np.arange(t_min,t_max+dt,dt)
   elif samplingType == 'derivative':
-    newTime = derivativeTimeValues(numSamples, time, vars)
+    newTime = derivativeTimeValues(numSamples, vars[timeID], vars)
   else:
     self.raiseAnError(RuntimeError,'type ' + samplingType + ' is not a valid type. Function: varsTimeInterp (mathUtils)')
   
   for key in vars.keys():
-    interp = interpolate.interp1d(time, var[key], interpType)
-    newVars[key]=interp(newTime)
+    if key == timeID:
+      newVars[key] = newTime
+    else:
+      interp = interpolate.interp1d(vars[timeID], var[key], interpType)
+      newVars[key]=interp(newTime)
   
-  return newTime, newVars
+  return newVars
 
 
 def derivativeTimeValues(numSamples, time, vars):
@@ -224,7 +227,7 @@ def derivativeTimeValues(numSamples, time, vars):
   for t in range(1, time.shape[0]):
     t_contrib=0.0
     for keys in vars.keys():
-      t_contrib += (var[keys][t] - var[keys][t-1])/var[keys][t]
+      t_contrib += (var[keys][t] - var[keys][t-1])/(time[t]-time[t-1])
     cumDerivative[t] = cumDerivative[t-1] + t_contrib
   
   cumDamageInstant = np.arange(0,cumDerivative[-1],numSamples)

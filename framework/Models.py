@@ -257,36 +257,32 @@ class Dummy(Model):
     else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
     return localInput
   
-  def _inputToInternal_historySet(self,dataIN, numTimeSamples, samplingType, interpType):
+  def _inputToInternalHistorySet(self,dataIN, numTimeSamples, timeID, samplingType, interpType):
     if  type(dataIN).__name__ !='dict':
       if dataIN.type not in self.admittedData: self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
 
-    InputData = {}
-    InputTime = {}
+    localTime = {}
+    localInput = {}
     
     if dataIN.type == 'HistorySet':     
-      for entries in dataIN.getParaKeys('inputs' ): 
-        localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[length:])
+      # Convert HistorySet accordingly to the sampling strategy
+      for hist in dataIN:
+        dataIN['output'] = varsTimeInterp(numTimeSamples,timeID,dataIN['output'],samplingType,interpType) # varsTimeInterp(numSamples, time, vars, samplingType, interpType)
       
-      for timeInst in range (numTimeSamples):
-        elementInputData = {}
-                
-        for entries in dataIN.getParaKeys('outputs'):   
-          temp = copy.copy(np.array(dataIN.getParam('output',entries))[length:]) 
-          timeID = dataIN.getOptions('pivot')
-          time = copy.copy(np.array(dataIN.getParam('output',timeID))[length:])
-          if samplingType == 'uniform' or samplingType == 'derivative':  
-            varsDic = dataIN
-            localInput[entries] = varsTimeInterp(time, numTimeSamples, varsDic, samplingType, interpType) 
-          else:
-             self.raiseAnError(IOError,self,'samplingType "'+samplingType+'" does not exist with the model "' + self.type + '" named "' + self.name+'"!')
-      
-      InputData[timeInst] = elementInputData  
-      InputTime[timeInst] = timeArray               
+      # Create the dictionaries localTime and localInput 
+      for tInst in range(numTimeSamples):
+        localTime[tInst] = {}
+        localTime[tInst]['input']  = dataIN['input']
+        
+        localInput[tInst] = {}
+        localInput[tInst]['input']  = dataIN['input']
+        
+        for keys in dataIN['output'].keys():
+          localInput[tInst]['output'][key] = dataIN['output'][key]  
     else: 
       self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"! (only HistorySet are allowed)')
       
-    return (InputTime, InputData)
+    return (localTime, localInput)
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
@@ -407,7 +403,7 @@ class ROM(Dummy):
       for target in targets:
         self.initializationOptionDict['Target'] = target
         tsDict[target] = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-      self.SupervisedEngine.append(tsDict)
+      self.SupervisedEngine[ts] = tsDict
     #XXX
     
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
@@ -474,18 +470,13 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
     else:      
-      if self.howManyTimeSteps == 1:   
-        self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-        self.amITrained = True 
-        for instrom in self.SupervisedEngine.values():
-          instrom.train(self.trainingSet)
+      #_inputToInternal_historySet(self,dataIN, numTimeSamples, samplingType, interpType)
+      self.trainingSet = copy.copy(self._inputToInternalHistorySet(trainingSet,self.howManyTimeSteps,self.samplingType,self.interpType,full=True))
+      for timeStep in self.SupervisedEngine:  
+        data = self.trainingSet[timeStep]     
+        for instrom in self.SupervisedEngine[timeStep].values():
+          instrom.train(data)
           self.aimITrained = self.amITrained and instrom.amITrained
-      else:
-        for timeStep in self.SupervisedEngine:
-          self.trainingSet = copy.copy(self._inputToInternal_historySet(trainingSet,self.howManyTimeSteps,self.samplingType,self.interpType,full=True)) #_inputToInternal_historySet(self,dataIN, numTimeSamples, samplingType, interpType)
-          for instrom in self.SupervisedEngine[timeStep].values():
-            instrom.train(data)
-            self.aimITrained = self.amITrained and instrom.amITrained
         
         
       self.raiseADebug('add self.amITrained to currentParamters','FIXME')
