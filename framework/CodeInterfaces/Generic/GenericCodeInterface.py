@@ -38,9 +38,16 @@ class GenericCodeInterface(CodeInterfaceBase):
     pass
 
   def generateCommand(self,inputFiles,executable,clargs=None, fargs=None):
-    '''
+    """
     See base class.  Collects all the clargs and the executable to produce the command-line call.
-    '''
+    Returns tuple of commands and base file name for run.
+    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+    @ In, inputFiles, the input files to be used for the run
+    @ In, executable, the executable to be run
+    @ In, clargs, command-line arguments to be used
+    @ In, fargs, in-file changes to be made
+    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
+    """
     if clargs==None:
       raise IOError('No input file was specified in clargs!')
     #check for output either in clargs or fargs
@@ -108,7 +115,7 @@ class GenericCodeInterface(CodeInterfaceBase):
     todo+=' '+clargs['text']
     #postpend
     todo+=' '+clargs['post']
-    executeCommand = (todo)
+    executeCommand = [('parallel',todo)]
     print('Execution Command: '+str(executeCommand))
     return executeCommand,outfile
 
