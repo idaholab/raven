@@ -541,9 +541,9 @@ class ExternalModel(Dummy):
           abspath = os.path.abspath(path)
           if '~' in abspath:abspath = os.path.expanduser(abspath)
           if os.path.exists(abspath):
-            self.raiseAWarning('ModuleToLoad '+moduleToLoadString+' should be relative to working directory')
+            self.raiseAWarning('ModuleToLoad '+moduleToLoadString+' should be relative to working directory. Working directory: '+self.workingDir+' Module expected at '+abspath)
             os.sys.path.append(abspath)
-          else: self.raiseAnError(IOError,'The path provided for the external model does not exist!!! Got: ' + abspath)
+          else: self.raiseAnError(IOError,'The path provided for the external model does not exist!!! Got: ' + abspath + ' and ' + workingDirModule)
     else: self.raiseAnError(IOError,'ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
     self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
