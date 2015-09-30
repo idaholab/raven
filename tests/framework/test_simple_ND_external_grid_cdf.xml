@@ -10,7 +10,6 @@
     <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
     <Input name="TriangularExponential2D_scattered.txt" type="">TriangularExponential2D_scattered.txt</Input>
     <Input name="TriangularExponential2D_cartesian.txt" type="">TriangularExponential2D_cartesian.txt</Input>
-    <Input name="covMatrix.txt" type="">covMatrix.txt</Input>
   </Files>
 
   <Models>
@@ -59,15 +58,15 @@
     <Grid name="grid_CDF_SP">
       <variable name="k0">
         <distribution>k0_distrib</distribution>
-        <grid construction="custom" type="CDF">0.5 0.3</grid>
+        <grid construction="custom" type="CDF">0.5 0.3 0.1</grid>
       </variable>
       <variable name="x0">
         <distribution dim="1">ND_CartesianSpline_P</distribution>
-        <grid construction="custom" type="CDF">0.1 0.4</grid>
+        <grid construction="custom" type="CDF">0.1 0.4 0.7</grid>
       </variable>
       <variable name="y0,z0">
         <distribution dim="2">ND_CartesianSpline_P</distribution>
-        <grid construction="custom" type="CDF">0.2 0.5</grid>
+        <grid construction="custom" type="CDF">0.2 0.5 0.8</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -86,6 +85,7 @@
     <Print name="testPrintPointSet_dump">
       <type>csv</type>
       <source>testPrintPointSet</source>
+      <what>Input,Output,Input|ProbabilityWeight</what>
     </Print>
   </OutStreamManager>
 

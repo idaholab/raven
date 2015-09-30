@@ -879,13 +879,14 @@ class Point(Data):
         if var.split('|')[0] == 'metadata':
           inpKeys.append(var.split('|')[1])
           inpValues.append(self._dataContainer['metadata'][var.split('|')[1]])
-        if var.split('|')[0] == 'metadata':
-          if var.split('|')[1] in self.metaExclXml:
-            if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
-              self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-            inpKeys.append(var.split('|')[1])
-            inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+        # This capability is not used
+        #if var.split('|')[0] == 'metadata':
+        #  if var.split('|')[1] in self.metaExclXml:
+        #    if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
+        #      self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+        #    inpKeys.append(var.split('|')[1])
+        #    inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
+        #  else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
@@ -1228,14 +1229,15 @@ class PointSet(Data):
           if var.split('|')[0] == 'metadata':
             inpKeys.append(var.split('|')[1])
             inpValues.append(self._dataContainer['metadata'][var.split('|')[1]])
-          if var.split('|')[0] == 'metadata':
-            if var.split('|')[1] in self.metaExclXml:
-              if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
-                self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-              inpKeys.append(var.split('|')[1])
-              if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-              else: inpValues.append(np.atleast_1d(self._dataContainer['metadata'][var.split('|')[1]]))
-            else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+          # This capability is not used
+          #if var.split('|')[0] == 'metadata':
+          #  if var.split('|')[1] in self.metaExclXml:
+          #    if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
+          #      self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+          #    inpKeys.append(var.split('|')[1])
+          #    if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
+          #    else: inpValues.append(np.atleast_1d(self._dataContainer['metadata'][var.split('|')[1]]))
+          #  else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
       else:
         inpKeys   = self._dataContainer['inputs'].keys()
         inpValues = self._dataContainer['inputs'].values()
@@ -1418,13 +1420,14 @@ class History(Data):
         if var.split('|')[0] == 'metadata':
           inpKeys.append(var.split('|')[1])
           inpValues.append(self._dataContainer['metadata'][var.split('|')[1]])
-        if var.split('|')[0] == 'metadata':
-          if var.split('|')[1] in self.metaExclXml:
-            if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
-              self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-            inpKeys.append(var.split('|')[1])
-            inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+        # This capability is not used
+        #if var.split('|')[0] == 'metadata':
+        #  if var.split('|')[1] in self.metaExclXml:
+        #    if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
+        #      self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+        #    inpKeys.append(var.split('|')[1])
+        #    inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
+        #  else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()

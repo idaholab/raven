@@ -1115,20 +1115,28 @@ class Grid(Sampler):
       coordinatesMinusOne = self.gridEntity.returnShiftedCoordinate(currentIndexes,dict.fromkeys(self.axisName,-1))
       for i in range(len(self.axisName)):
         varName = self.axisName[i]
-        for key in varName.strip().split(','):
-          self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
-          self.inputInfo['distributionType'][key] = self.distDict[varName].type
-          self.values[key] = coordinates[varName]
-          if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1): self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
-          else:
-            # N-Dimensional pdf
-            dist_name = self.variables2distributionsMapping[varName]['name']
-            NDcoordinate=[0]*len(self.distributions2variablesMapping[dist_name])
-            for var in self.distributions2variablesMapping[dist_name]:
-              variable = var.keys()[0]
-              position = var.values()[0]
-              NDcoordinate[position-1] = float(coordinates[variable.strip()])
-            self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(NDcoordinate)
+        # compute the SampledVarsPb
+        if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
+          for key in varName.strip().split(','):
+            self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
+            self.inputInfo['distributionType'][key] = self.distDict[varName].type
+            self.values[key] = coordinates[varName]
+            self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
+        else:
+            if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count;
+              dist_name = self.variables2distributionsMapping[varName]['name']
+              NDcoordinate=[0]*len(self.distributions2variablesMapping[dist_name])
+              for var in self.distributions2variablesMapping[dist_name]:
+                variable = var.keys()[0]
+                position = var.values()[0]
+                NDcoordinate[position-1] = float(coordinates[variable.strip()])
+                for key in variable.strip().split(','):
+                  self.inputInfo['distributionName'][key] = self.toBeSampled[variable]
+                  self.inputInfo['distributionType'][key] = self.distDict[variable].type
+                  self.values[key] = coordinates[variable]
+              #Fixme? this is the temporary solution -- congjian
+              self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinate)
+        # Compute the ProbabilityWeight
         if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
           if self.distDict[varName].getDisttype() == 'Discrete':
             weight *= self.distDict[varName].pdf(coordinates[varName])
@@ -1154,23 +1162,24 @@ class Grid(Sampler):
             NDcoordinate=np.zeros(len(self.distributions2variablesMapping[dist_name]))
             dxs=np.zeros(len(self.distributions2variablesMapping[dist_name]))
             for var in self.distributions2variablesMapping[dist_name]:
-              variable = var.keys()[0]
+              variable = var.keys()[0].strip()
               position = var.values()[0]
               NDcoordinate[position-1] = coordinates[variable.strip()]
-              if self.gridInfo[varName]=='CDF':
-                if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
-                  dxs[position-1] = self.distDict[varName].inverseMarginalDistribution((coordinatesPlusOne[varName] - coordinatesMinusOne[varName]) / 2.0,self.variables2distributionsMapping[varName]['dim']-1)
-                if coordinatesMinusOne[varName] == -sys.maxsize:
-                  dxs[position-1] = self.distDict[varName].inverseMarginalDistribution(coordinatesPlusOne[varName],self.variables2distributionsMapping[varName]['dim']-1) - coordinates[variable.strip()]
-                if coordinatesPlusOne[varName] == sys.maxsize:
-                  dxs[position-1] = coordinates[variable.strip()] - self.distDict[varName].inverseMarginalDistribution(coordinatesMinusOne[varName],self.variables2distributionsMapping[varName]['dim']-1)
+              if self.gridInfo[variable]=='CDF':
+                if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
+                  dxs[position-1] = (self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
+                      - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1))/2.0
+                if coordinatesMinusOne[variable] == -sys.maxsize:
+                  dxs[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1) - coordinates[variable.strip()]
+                if coordinatesPlusOne[variable] == sys.maxsize:
+                  dxs[position-1] = coordinates[variable.strip()] - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
               else:
-                if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
-                  dxs[position-1] = (coordinatesPlusOne[varName] - coordinatesMinusOne[varName]) / 2.0
-                if coordinatesMinusOne[varName] == -sys.maxsize:
-                  dxs[position-1] = coordinatesPlusOne[varName] - coordinates[variable.strip()]
-                if coordinatesPlusOne[varName] == sys.maxsize:
-                  dxs[position-1] = coordinates[variable.strip()] - coordinatesMinusOne[varName]
+                if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
+                  dxs[position-1] = (coordinatesPlusOne[variable] - coordinatesMinusOne[variable])/2.0
+                if coordinatesMinusOne[variable] == -sys.maxsize:
+                  dxs[position-1] = coordinatesPlusOne[variable] - coordinates[variable.strip()]
+                if coordinatesPlusOne[variable] == sys.maxsize:
+                  dxs[position-1] = coordinates[variable.strip()] - coordinatesMinusOne[variable]
             weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)
       newpoint = tuple(self.values[key] for key in self.values.keys())
       if newpoint not in self.existing:
