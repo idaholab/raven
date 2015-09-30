@@ -1,19 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>ND_test_Grid_cdf</WorkingDir>
+    <WorkingDir>NDGridPWcdf</WorkingDir>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
     <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
-    <Input name="TriangularExponential2D_scattered.txt" type="">TriangularExponential2D_scattered.txt</Input>
-    <Input name="TriangularExponential2D_cartesian.txt" type="">TriangularExponential2D_cartesian.txt</Input>
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="ND_test_Grid_cdf/lorentzAttractor" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="NDGridPWcdf/lorentzAttractor" name="PythonModule" subType="">
       <variable>sigma</variable>
       <variable>rho</variable>
       <variable>beta</variable>
@@ -34,23 +32,9 @@
       <mean>4</mean>
       <sigma>1</sigma>
     </Normal>
-    <NDInverseWeight name="ND_InverseWeight_P">
-      <p>3.0</p>
-      <data_filename type="PDF">2DgaussianScatteredPDF.txt</data_filename>
-      <working_dir>ND_test_Grid_cdf/</working_dir>
-    </NDInverseWeight>
-    <NDInverseWeight name="ND_InverseWeight_C">
-      <p>2.5</p>
-      <data_filename type="CDF">2DgaussianScatteredCDF.txt</data_filename>
-      <working_dir>ND_test_Grid_cdf/</working_dir>
-    </NDInverseWeight>
     <NDCartesianSpline name="ND_CartesianSpline_P">
       <data_filename type="PDF">2DgaussianCartesianPDF.txt</data_filename>
-      <working_dir>ND_test_Grid_cdf/</working_dir>
-    </NDCartesianSpline>
-    <NDCartesianSpline name="ND_CartesianSpline_C">
-      <data_filename type="CDF">2DgaussianCartesianCDF.txt</data_filename>
-      <working_dir>ND_test_Grid_cdf/</working_dir>
+      <working_dir>NDGridPWcdf/</working_dir>
     </NDCartesianSpline>
   </Distributions>
 
@@ -58,15 +42,15 @@
     <Grid name="grid_CDF_SP">
       <variable name="k0">
         <distribution>k0_distrib</distribution>
-        <grid construction="custom" type="CDF">0.5 0.3</grid>
+        <grid construction="custom" type="CDF">0.1 0.3 0.5</grid>
       </variable>
       <variable name="x0">
         <distribution dim="1">ND_CartesianSpline_P</distribution>
-        <grid construction="custom" type="CDF">0.1 0.4</grid>
+        <grid construction="custom" type="CDF">0.1 0.4 0.7</grid>
       </variable>
       <variable name="y0,z0">
         <distribution dim="2">ND_CartesianSpline_P</distribution>
-        <grid construction="custom" type="CDF">0.2 0.5</grid>
+        <grid construction="custom" type="CDF">0.2 0.5 0.8</grid>
       </variable>
     </Grid>
   </Samplers>
