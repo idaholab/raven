@@ -168,13 +168,33 @@ In the following sub-sections all the methods are fully explained, providing exa
 \begin{lstlisting}[language=python]
 def generateCommand(self, inputFiles, executable, clargs=None, fargs=None)
 \end{lstlisting} 
-The \textbf{generateCommand} method is used to generate the command 
+The \textbf{generateCommand} method is used to generate the commands 
 (in \texttt{string} format) needed to launch the driven Code, as well as the root name of the output of the perturbed inputs (in \texttt{string} format).
- In other words, this 
-method needs to return a string containing the full command 
+The return for this command is a two-part \texttt{Python} tuple.  The first entry is a list of two-part tuples, each
+which specifies whether the corresponding command
+should be run exclusively in serial, or whether it can be run in parallel, as well as the command itself.  
+For example, for a command where
+two successive commands are called, the first in serial and the second in parallel,
+
+\begin{lstlisting}[language=python]
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+    . . .
+    commands = [('serial',first_command), ('parallel',second_command)]
+    return (commmands,outFileRoot)
+\end{lstlisting}
+For each command, the second entry in the tuple is a string containing the full command
 that the internal JobHandler is going to use to run the Code this interface refers to. 
-The return data type must be a Python \texttt{tuple} with two strings: (\texttt{command, outfileRoot}).
-\\RAVEN is going to call this function passing in the following arguments:
+The return data type must be a Python \texttt{tuple} with a list of tuples and a string: (\texttt{commands, outfileRoot}).
+Note that in most cases, only a single command needs to be run, so only a single command tuple is necessary.
+At run time, RAVEN will string together commands attached by double ampersands (\&\&), and each command
+labeled as parallel-compatible will be prepended with appropriate mpi arguments.  For the example above, the
+command executed will be (with \xmlNode{NumMPI} equal to 4)
+
+\begin{lstlisting}[language=bash]
+$  first_command && mpiexec -n 4 second_command
+\end{lstlisting}
+
+RAVEN is going to call the \texttt{generateCommand} function passing in the following arguments:
 \begin{itemize}
   \item \textbf{\texttt{inputFiles}}, data type = list: List of input files (length of the list depends on the 
            number of inputs listed in the Step which is running this code);
@@ -198,7 +218,7 @@ For the example referred to in the previous section, this method would be implem
           `None of the input files has one of the following extensions: ` +
            ` `.join(self.getInputExtension()))
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    executeCommand = (executable+ ` -i ` +os.path.split(inputFiles[index])[1])
+    executeCommand = [('parallel',executable+ ` -i ` +os.path.split(inputFiles[index])[1])]
     return executeCommand,outputfile
 \end{lstlisting} 
 
