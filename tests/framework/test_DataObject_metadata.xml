@@ -9,7 +9,7 @@
     <Input name="dataObjectTest.py" type="">dataObjectTest.py</Input>
 </Files>
 <Models>
-    <ExternalModel name='PythonModule' subType='' ModuleToLoad='dataObject_metadata/dataObjectTest'>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='dataObjectTest'>
        <variable>x</variable>
        <variable>y</variable>
        <variable>z</variable>

@@ -266,7 +266,7 @@ def importFromPath(filename, printImporting = True):
       (file, filename, data) = imp.find_module(name, [path])
       importedModule = imp.load_module(name, file, filename, data)
     except Exception as ae:
-      raise Exception(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + 'failed with error '+str(ae))
+      raise Exception(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
     return importedModule
 
 def index(a, x):
