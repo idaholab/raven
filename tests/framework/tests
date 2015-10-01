@@ -314,6 +314,16 @@
   #skip = ‘need to be fixed’
  [../]
 
+ [./testLimitSurfaceMultiGridSampling]
+  type = 'RavenFramework'
+  input = 'test_limitSurfaceMultiGridMethod.xml'
+  output = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
+  csv = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
+  max_time = 300
+  rel_err = 0.0001
+ [../]
+
+
  [./testCreateInternalObjFromCSVs]
   type = 'RavenFramework'
   input = 'test_CreateInternalObjFromCSVs.xml'
@@ -376,13 +386,6 @@
   input = 'test_safest_point_cdf.xml'
   output = 'SafestPointPP_cdf/sfs_pnt_cdf_dmp.csv SafestPointPP_cdf/lmt_srf_dmp.csv'
   csv = 'SafestPointPP_cdf/sfs_pnt_cdf_dmp.csv SafestPointPP_cdf/lmt_srf_dmp.csv'
- [../]
-
- [./externalPostProcessor]
-  type = 'RavenFramework'
-  input = 'test_externalPostProcessor.xml'
-  csv = 'externalPostProcessor/myDump.csv'
-  output = 'externalPostProcessor/myDump.xml'
  [../]
 
  [./io_ROM_pickle]

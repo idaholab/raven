@@ -14,7 +14,7 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="ND_test_Grid_cdf/lorentzAttractor" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variable>sigma</variable>
       <variable>rho</variable>
       <variable>beta</variable>

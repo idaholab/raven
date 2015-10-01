@@ -118,7 +118,7 @@ XML node and the requirements for other attributes change:
   \xmlNode{function}, \xmlDesc{string, required field}, name of the function that
   defines the calculation of this variable from other distributed variables.  Its name
   needs to be contained in the \xmlNode{Functions} block explained in Section
-  \ref{sef:functions}.  \nb{Alternatively, this node must be ommitted
+  \ref{sec:functions}.  \nb{Alternatively, this node must be ommitted
   if the \xmlNode{distribution} node is supplied.}
 }
 
@@ -180,7 +180,7 @@ XML node and the requirements for other attributes change:
     that might be defined in this XML node:
     \begin{itemize}
       \item \xmlAttr{limit}, \xmlDesc{optional integer attribute}, the
-        maximum number of adaptive samples.
+        maximum number of adaptive samples (iterations).
         %
         \default{infinite}.
       \item \xmlAttr{forceIteration}, \xmlDesc{optional boolean attribute},
@@ -192,9 +192,16 @@ XML node and the requirements for other attributes change:
         what the convergence check needs to be performed.
         \begin{itemize}
           \item \xmlString{CDF}, the convergence is checked in terms
-            of probability (Cumulative Distribution Function).
+            of probability (Cumulative Distribution Function). From a practical point of view,
+            this means that full uncertain domain 
+            is discretized in a way that the probability volume of each cell is going to be equal to
+           the tolerance specified in the body of the node \xmlNode{Convergence}
           \item \xmlString{value}, the convergence is checked on the
-            hyper-volume in terms of variable values.
+            hyper-volume in terms of variable values.From a practical point of view,
+            this means that full uncertain domain 
+            is discretized in a way that the ``volume'' fraction of each cell is going to be equal to
+           the tolerance specified in the body of the node \xmlNode{Convergence}. In other words, 
+           each cell volume is going to be equal to the total volume times the tolerance.
         \end{itemize}
         \default{CDF}.
       \item \xmlAttr{persistence}, \xmlDesc{optional integer attribute},
@@ -203,12 +210,18 @@ XML node and the requirements for other attributes change:
         It represents the number of times the computed error needs to be
         below the inputted tolerance before convergence is reported.
         %
-        \default{0}.
-     % \item \xmlAttr{subGridTol}, \xmlDesc{optional string attribute},
-      %  defines a tolerance for constructing a sub-grid on which the
-       % acceleration ROM is going to be tested.
-        %
-       % \default{None}.
+        \default{5}.
+        \item \xmlAttr{subGridTol}, \xmlDesc{optional float attribute},
+            this attribute is used to activate the multi-grid approach (adaptive meshing) 
+            of the constructed evaluation grid (see attribute \xmlAttr{weight}).
+            In case this attribute is specified, the final grid discretization (cell's ``volume content''
+             aka convergence confidence) is represented by the 
+            value here specified. The sampler converges on the initial coarse grid, defined by 
+            the tolerance specified in the body of the node \xmlNode{Convergence}.
+            When the Limit Surface has been identified on the coarse grid, the sampler starts
+            refining the grid until the ``volume content'' of each cell is equal to the value 
+            specified in this attribute (Multi-grid approach).
+           \default{None}.
     \end{itemize}
     In summary, this XML node contains the information that is needed in order
     to control this sampler's convergence criterion.
@@ -268,7 +281,7 @@ of view.
 The samplers, that are available in RAVEN, can be categorized into three main
 classes:
 \begin{itemize}
-\item \textbf{Once-through} (see Section~\ref{subsec:onceThroughSamplers})
+\item \textbf{Forward} (see Section~\ref{subsec:onceThroughSamplers})
 \item \textbf{Dynamic Event Tree (DET)} (see Section~\ref{subsec:DETSamplers})
 \item \textbf{Adaptive} (see Section~\ref{subsec:AdaptSamplers})
 \end{itemize}
@@ -406,18 +419,18 @@ The \xmlNode{global\_grid} can be used in two cases:
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Once-Through Samplers %%%
+%%%      Forward Samplers      %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Once-through Samplers}
+\subsection{Forward Samplers}
 \label{subsec:onceThroughSamplers}
-The once-through sampler category collects all the strategies that perform the
+The Forward sampler category collects all the strategies that perform the
 sampling of the input space without exploiting, through dynamic learning
 approaches, the information made available from the outcomes of calculations
 previously performed (adaptive sampling) and the common system evolution
 (patterns) that different sampled calculations can generate in the phase space
 (dynamic event tree).
 %
-In the RAVEN framework, five different “once-through” samplers
+In the RAVEN framework, five different “Forward” samplers
 are available:
 \begin{itemize}
 \item \textbf{Monte Carlo (MC)}
@@ -436,7 +449,7 @@ In the following paragraphs, the input requirements and a small explanation of
 the different sampling methodologies are reported.
 
 
-%%% Once-Through Samplers: MonteCarlo
+%%% Forward Samplers: MonteCarlo
 \subsubsection{Monte Carlo}
 \label{subsubsubsec:MC}
 The \textbf{Monte-Carlo} sampling approach is one of the most well-known and
@@ -507,7 +520,7 @@ Example:
 </Samplers>
 \end{lstlisting}
 
-%%% Once-Through Samplers: Grid
+%%% Forward Samplers: Grid
 \subsubsection{Grid}
 \label{subsubsubsec:Grid}
 The \textbf{Grid} sampling approach is probably the simplest exploration
@@ -590,7 +603,7 @@ Example:
 </Samplers>
 \end{lstlisting}
 
-%%% Once-Through Samplers: Sparse Grid Collocation
+%%% Forward Samplers: Sparse Grid Collocation
 \subsubsection{Sparse Grid Collocation}
 %\talbpaul{Work in progress.}
 %\senrs{Assembler section updated}
@@ -645,7 +658,7 @@ Example:
 \end{lstlisting}
  \normalsize
 
- %%% Once-Through Samplers: Sobol
+ %%% Forward Samplers: Sobol
 \subsubsection{Sobol}
 %\senrs{Assembler section updated}
 \label{subsubsubsec:SobolSampler}
@@ -698,7 +711,7 @@ Example:
 \end{lstlisting}
  \normalsize
 
-%%% Once-Through Samplers: Stratified
+%%% Forward Samplers: Stratified
 \subsubsection{Stratified}
 \label{subsubsubsec:Stratified}
 The \textbf{Stratified} sampling approach is a method for the exploration of the
@@ -796,7 +809,7 @@ This is possible by defining a \xmlNode{global\_grid} node and associate such \x
 ...
 \end{lstlisting}
 
-%%% Once-Through Samplers: Response Surface Design
+%%% Forward Samplers: Response Surface Design
 \subsubsection{Response Surface Design}
 \label{subsubsubsec:RespSurfDOE}
 The \textbf{Response Surface Design}, or Response Surface Modeling (RSM),
@@ -967,7 +980,7 @@ Example:
 </Samplers>
 \end{lstlisting}
 
-%%% Once-Through Samplers: Factorial Design
+%%% Forward Samplers: Factorial Design
 \subsubsection{Factorial Design}
 \label{subsubsubsec:FactorialDOE}
 The \textbf{Factorial Design} method is an important method to determine the
@@ -1353,7 +1366,7 @@ whose nodes a standard DET method is employed.
 %
 For this reason, the user can specify a maximum of three
 \xmlNode{HybridSamplerSettings} sub-nodes (i.e. one for each of the available
-once-through samplers).
+Forward samplers).
 %
 This sub-node needs to contain the following attribute:
 \begin{itemize}
@@ -1453,7 +1466,7 @@ Example:
 \subsection{Adaptive Samplers}
 \label{subsec:AdaptSamplers}
 The Adaptive Samplers' family provides the possibility to perform smart sampling
-(also known as adaptive sampling) as an alternative to classical “once-through”
+(also known as adaptive sampling) as an alternative to classical “Forward”
 techniques.
 %
 The motivation is that system simulations are often computationally expensive,
@@ -1503,7 +1516,7 @@ the location(s) of these transitions, in order to accelerate the exploration of
 the input space in proximity of the limit surface.
 %
 
-\specBlock{an}{Limit Surface Search}
+\specBlock{an}{LimitSurfaceSearch}
 %
 \attrIntro
 
@@ -1512,14 +1525,13 @@ the input space in proximity of the limit surface.
   \item \nameDescription
 \end{itemize}
 
-\variableIntro{Limit Surface Search}
+\variableIntro{LimitSurfaceSearch}
 
 \begin{itemize}
-  \item \variableDescription
-    \variableChildrenIntro
+    \item \variableChildrenIntro
     \begin{itemize}
       \item \distributionDescription
-    \item \functionDescription
+      \item \functionDescription
     \end{itemize}
 \end{itemize}
 
@@ -1530,7 +1542,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
   \item \convergenceDescription
 
   % Limit Surface Search Objects
-  \item \assemblerDescription{Limit Surface Search}
+  \item \assemblerDescription{LimitSurfaceSearch}
     \begin{itemize}
       \item \xmlNode{Function}, \xmlDesc{string, required field},  the
         body of this XML block needs to contain the name of an external
@@ -1571,7 +1583,7 @@ Example:
     <ROM class='Models' type='ROM'>ROMname</ROM>
     <Function class='Functions' type='External' >FunctionName</Function>
     <TargetEvaluation class='DataObjects' type='PointSet'>DataName</TargetEvaluation>
-    <Convergence limit='3000'  forceIteration='False' weight='none' persistence='5'>
+    <Convergence limit='3000'  forceIteration='False' weight='CDF'  subGridTol='1e-4' persistence='5'>
       1e-2
     </Convergence>
     <variable name='var1'>
@@ -1723,7 +1735,7 @@ Example:
     <ROM class = 'Models' type = 'ROM'ROMname</ROM>
     <Function class = 'Functions' type = 'External'>FunctionName</Function>
     <TargetEvaluation class = 'DataObjects' type = 'PointSet'>DataName</TargetEvaluation>
-    <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'none' persistence = '5'>
+    <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'CDF' subGriTol='''1e-5' persistence = '5'>
       1e-2
     </Convergence>
     <variable name = 'var1'>

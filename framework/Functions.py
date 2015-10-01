@@ -6,7 +6,10 @@ Created on Oct 20, 2014
 This module contains interfaces to import external functions
 """
 #for future compatibility with Python 3--------------------------------------------------------------
-
+from __future__ import division, print_function, absolute_import
+# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -41,7 +44,7 @@ class Function(BaseType):
   def _readMoreXML(self,xmlNode):
     if 'file' in xmlNode.attrib.keys():
       self.functionFile = xmlNode.attrib['file']
-      if self.functionFile.endswith('.py') : moduleName = ''.join(self.functionFile.split('.')[:-1]) #remove the .py
+      if self.functionFile.endswith('.py') : moduleName = self.functionFile[:-3] #remove the .py
       else: moduleName = self.functionFile
       importedModule = utils.importFromPath(moduleName,self.messageHandler.getDesiredVerbosity(self)>1)
       if not importedModule: self.raiseAnError(IOError,'Failed to import the module '+moduleName+' supposed to contain the function: '+self.name)

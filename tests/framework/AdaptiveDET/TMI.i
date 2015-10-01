@@ -728,7 +728,6 @@
 [Outputs]
   # xda = true
   # num_restart_files = 1
-  output_initial = true
   exodus = false
   file_base = TMI_test_PRA_transient_less_w_out
   csv = true

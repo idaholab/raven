@@ -16,7 +16,6 @@
   <RunInfo>
     <WorkingDir>BISON_and_MESH_test</WorkingDir>
     <Sequence>grid_run</Sequence>
-    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>

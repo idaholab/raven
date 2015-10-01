@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation>
-<!-- A simple example of the approximate Morse-Smale complex interface
-     has four local minima surrounding a global maximum, and each of the
-     examples will showcase different levels of partitions using the default
-     persistence simplfication metric -->
+  <!-- A simple example of the approximate Morse-Smale complex interface
+       has four local minima surrounding a global maximum, and each of the
+       examples will showcase different levels of partitions using the default
+       persistence simplfication metric -->
   <RunInfo>
-    <WorkingDir>topology</WorkingDir>
+    <WorkingDir>data</WorkingDir>
     <Sequence>
       sampleData,
       decompose1,
@@ -16,8 +16,7 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel name='testFunction' subType=''
-                   ModuleToLoad = './topology/testFunction'>
+    <ExternalModel name='testFunction' subType='' ModuleToLoad = '../hill'>
       <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>
@@ -91,18 +90,13 @@
   </Samplers>
 
   <Steps>
-    <!-- Load the data from a csv into the hdf5 database used by this run -->
+    <!-- Sample the data from the test function -->
     <MultiRun name="sampleData" pauseAtEnd="false">
       <Input   class="DataObjects" type="PointSet">dummyIN</Input>
       <Model   class="Models"      type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers"    type="Grid">gridSampler</Sampler>
       <Output  class="DataObjects" type="PointSet">testData</Output>
     </MultiRun>
-    <!-- Load the data from a csv into the hdf5 database used by this run -->
-    <IOStep fromDirectory="." name="loadData">
-      <Input class="DataObjects" type="PointSet">testData</Input>
-      <Output class="Databases" type="HDF5">myDB</Output>
-    </IOStep>
     <!-- Perform the topological decomposition -->
     <PostProcess name="decompose1">
       <Input  class="DataObjects"      type="PointSet"     >testData</Input>
@@ -150,11 +144,6 @@
     </Print>
   </OutStreamManager>
 
-  <Databases>
-    <!-- The necessary database object -->
-    <HDF5 name="myDB"/>
-  </Databases>
-
   <DataObjects>
     <!-- The input PointSet object -->
     <PointSet name="dummyIN">
@@ -183,5 +172,4 @@
       <Output>Z</Output>
     </PointSet>
   </DataObjects>
-
 </Simulation>
