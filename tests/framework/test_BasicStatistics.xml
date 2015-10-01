@@ -16,7 +16,7 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="basicStatistics/basicStatisticsExternalModelTest" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="basicStatisticsExternalModelTest" name="PythonModule" subType="">
       <variable>x</variable>
       <variable>y</variable>
       <variable>z</variable>
