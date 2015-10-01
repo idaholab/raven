@@ -530,7 +530,7 @@ class ExternalModel(Dummy):
     if 'ModuleToLoad' in xmlNode.attrib.keys():
       moduleToLoadString = str(xmlNode.attrib['ModuleToLoad'])
       #first check working dir
-      workingDirModule = os.path.join(self.workingDir,moduleToLoadString)
+      workingDirModule = os.path.abspath(os.path.join(self.workingDir,moduleToLoadString))
       if os.path.exists(workingDirModule+".py"):
         moduleToLoadString = workingDirModule
         path, self.ModuleToLoad = os.path.split(workingDirModule)
