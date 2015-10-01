@@ -14,7 +14,7 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="limitSurface_integral/limitSurfaceTestExternalModel" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="limitSurfaceTestExternalModel" name="PythonModule" subType="">
       <variable>z</variable>
       <variable>x0</variable>
       <variable>y0</variable>

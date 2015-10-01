@@ -36,7 +36,7 @@
 
   <!-- MODELS -->
   <Models>
-    <ExternalModel ModuleToLoad="externalModel/lorentzAttractor" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variable>sigma</variable>
       <variable>rho</variable>
       <variable>beta</variable>
