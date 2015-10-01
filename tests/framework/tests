@@ -262,7 +262,7 @@
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Raven.xml'
    output = 'GridTestRaven/FirstMRun/out~1~simple_flow_3eqn'
-   csv = 'GridTestRaven/outGrid_dump.csv'
+   UnorderedCsv = 'GridTestRaven/outGrid_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
  [../]
