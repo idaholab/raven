@@ -11,7 +11,7 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel name='test' subType='' ModuleToLoad = './GaussianPeaks'>
+    <ExternalModel name='test' subType='' ModuleToLoad = '../GaussianPeaks'>
       <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>

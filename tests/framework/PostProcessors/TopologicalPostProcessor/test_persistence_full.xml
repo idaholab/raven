@@ -12,7 +12,7 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel name='testFunction' subType='' ModuleToLoad='./Schwefel'>
+    <ExternalModel name='testFunction' subType='' ModuleToLoad='../Schwefel'>
       <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>

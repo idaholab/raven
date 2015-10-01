@@ -145,7 +145,16 @@ class OpenModelicaInterface(CodeInterfaceBase):
   #                          of this to CSV, though there are other formats available.
   #
   def generateCommand(self, inputFiles, executable, clargs, fargs=None):
-    '''Builds the OpenModelica command to run the model for a given input file'''
+    """
+    See base class.  Collects all the clargs and the executable to produce the command-line call.
+    Returns tuple of commands and base file name for run.
+    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+    @ In, inputFiles, the input files to be used for the run
+    @ In, executable, the executable to be run
+    @ In, clargs, command-line arguments to be used
+    @ In, fargs, in-file changes to be made
+    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
+    """
     found = False
     # Find the first file in the inputFiles that is an XML, which is what we need to work with.
     for index, inputFile in enumerate(inputFiles):
@@ -161,7 +170,7 @@ class OpenModelicaInterface(CodeInterfaceBase):
     #   output from running the OpenModelica executable.
     #
     outputfile = 'rawout~' + inputFiles[index].getBase() #os.path.splitext(os.path.basename(inputFiles[index]))[0]
-    executeCommand = (executable+' -f '+inputFiles[index].getFilename() + ' -r '+ outputfile + '.csv')
+    executeCommand = [('parallel',executable+' -f '+inputFiles[index].getFilename() + ' -r '+ outputfile + '.csv')]
 
     return executeCommand, outputfile
 

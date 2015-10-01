@@ -292,6 +292,7 @@ class InternalRunner(MessageHandler.MessageUser):
 
 class JobHandler(MessageHandler.MessageUser):
   def __init__(self):
+    self.printTag               = 'Job Handler'
     self.runInfoDict            = {}
     self.mpiCommand             = ''
     self.threadingCommand       = ''
@@ -354,25 +355,37 @@ class JobHandler(MessageHandler.MessageUser):
       else                             : self.ppserver = None        # we just use threading!
     self.initParallelPython = True
 
-  def addExternal(self,executeCommand,outputFile,workingDir,metadata=None,codePointer=None):
+  def addExternal(self,executeCommands,outputFile,workingDir,metadata=None,codePointer=None):
     """
       Method to add an external runner (an external code) in the handler list
-      @ In, executeCommand, string, command to be executed
+      @ In, executeCommands, tuple(string), ('parallel'/'serial', <execution command>)
       @ In, outputFile, string, output file name
       @ In, workingDir, string, working directory
       @ In, metadata, dict, optional, dictionary of metadata
       @ In, codePointer, derived CodeInterfaceBaseClass object, optional, pointer to code interface
       @ Out, None
     """
-    #probably something more for the PBS
-    command = self.runInfoDict['precommand']
-    if self.mpiCommand !='':
-      command += self.mpiCommand+' '
-    if self.threadingCommand !='':
-      command +=self.threadingCommand+' '
-    command += executeCommand
-    command += self.runInfoDict['postcommand']
+    precommand = self.runInfoDict['precommand'] #FIXME what uses this?  Still precommand for whole line if multiapp case?
+    #it appears precommand is usually used for mpiexec - however, there could be other uses....
+    commands=[]
+    for runtype,cmd in executeCommands:
+      newcom=''
+      if runtype.lower() == 'parallel':
+        newcom += precommand
+        if self.mpiCommand !='':
+          newcom += ' '+self.mpiCommand+' '
+        if self.threadingCommand !='': #FIXME are these two exclusive?
+          newcom += ' '+ self.threadingCommand +' '
+        newcom += cmd+' '
+        newcom+= self.runInfoDict['postcommand']
+        commands.append(newcom)
+      elif runtype.lower() == 'serial':
+        commands.append(cmd)
+      else:
+        self.raiseAnError(IOError,'For execution command <'+cmd+'> the run type was neither "serial" nor "parallel"!  Instead got:',runtype,'\nCheck the code interface.')
+    command= ' && '.join(commands)+' '
     self.__queue.put(ExternalRunner(self.messageHandler,command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata,codePointer))
+    self.raiseAMessage('Execution command submitted:',command)
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
