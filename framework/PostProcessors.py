@@ -1665,7 +1665,6 @@ class LimitSurface(BasePostProcessor):
      @ In, inp, Data(s) object, data object containing the training set
      @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
     """
-
     self.raiseADebug('Initiate training')
     if type(inp) == dict:
       self.functionValue.update(inp['inputs' ])
@@ -1676,15 +1675,12 @@ class LimitSurface(BasePostProcessor):
     # recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name]) - 1
     else                                                      : indexLast = -1
-    #TODO: to be FIXEDDDDDDDDDDDD ANDREA
-    #indexLast = -1
     # index of last set of point tested and ready to perform the function evaluation
     indexEnd = len(self.functionValue[self.axisName[0]]) - 1
     tempDict = {}
     if self.externalFunction.name in self.functionValue.keys():
       self.functionValue[self.externalFunction.name] = np.append(self.functionValue[self.externalFunction.name], np.zeros(indexEnd - indexLast))
     else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd + 1)
-    #self.functionValue[self.externalFunction.name] = np.zeros(indexEnd + 1)
 
     for myIndex in range(indexLast + 1, indexEnd + 1):
       for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]

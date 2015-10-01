@@ -764,8 +764,6 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
     self.surfPoint, evaluations, listsurfPoints = self.limitSurfacePP.run(returnListSurfCoord = True, exceptionGrid=self.exceptionGrid, merge=False)
     self.raiseADebug('Limit Surface has been computed!')
-    if self.surfPoint.values()[0] is None:
-      print("WHAT?")
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
     else                                                                      : indexLast = -1
@@ -847,8 +845,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
           self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
-      else:
-        self.raiseADebug('np.max(distance)=0.0')
+      else: self.raiseADebug('np.max(distance)=0.0')
     if not varSet:
       #here we are still generating the batch
       for key in self.distDict.keys():
