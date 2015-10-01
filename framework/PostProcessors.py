@@ -1199,12 +1199,14 @@ class BasicStatistics(BasePostProcessor):
       pbweights = np.zeros(len(Input['targets'][self.parameters['targets'][0]]), dtype = np.float)
       pbweights[:] = 1.0 / pbweights.size  # it was an Integer Division (1/integer) => 0!!!!!!!! Andrea
     else: pbweights = Input['metadata']['ProbabilityWeight']
+
     sumSquarePbWeights = np.sum(np.square(pbweights))
     sumPbWeights = np.sum(pbweights)
     # if here because the user could have overwritten the method through the external function
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
     expValues = np.zeros(len(parameterSet))
     for myIndex, targetP in enumerate(parameterSet):
+      print(len(Input['targets'][targetP]),len(pbweights))
       outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = pbweights)
       expValues[myIndex] = outputDict['expectedValue'][targetP]
 
@@ -1650,7 +1652,8 @@ class LimitSurface(BasePostProcessor):
         else:                self.paramType[param] = 'outputs'
     if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
-      for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key)), max(self.inputs[self.indexes].getParam(self.paramType[key],key))
+
+      for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeid = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeid = 'RecontructEnding'))
     self.gridEntity.initialize(initDictionary={"rootName":self.name,"computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
     self.nVar                  = len(self.parameters['targets'])                                  # Total number of variables
     self.axisName              = self.gridEntity.returnParameter("dimensionNames",self.name)      # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
@@ -1670,22 +1673,21 @@ class LimitSurface(BasePostProcessor):
     else:
       self.functionValue.update(inp.getParametersValues('inputs', nodeid = 'RecontructEnding'))
       self.functionValue.update(inp.getParametersValues('outputs', nodeid = 'RecontructEnding'))
-
     # recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name]) - 1
     else                                                      : indexLast = -1
-    indexLast = -1
+    #TODO: to be FIXEDDDDDDDDDDDD ANDREA
+    #indexLast = -1
     # index of last set of point tested and ready to perform the function evaluation
     indexEnd = len(self.functionValue[self.axisName[0]]) - 1
     tempDict = {}
     if self.externalFunction.name in self.functionValue.keys():
       self.functionValue[self.externalFunction.name] = np.append(self.functionValue[self.externalFunction.name], np.zeros(indexEnd - indexLast))
     else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd + 1)
-    self.functionValue[self.externalFunction.name] = np.zeros(indexEnd + 1)
-    
+    #self.functionValue[self.externalFunction.name] = np.zeros(indexEnd + 1)
+
     for myIndex in range(indexLast + 1, indexEnd + 1):
       for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
-      # self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
       self.functionValue[self.externalFunction.name][myIndex] = self.externalFunction.evaluate('residuumSign', tempDict)
       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: self.raiseAnError(IOError, 'LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
       if type(inp) != dict:
@@ -1880,7 +1882,6 @@ class LimitSurface(BasePostProcessor):
     else:
       if returnListSurfCoord: return self.surfPoint, evaluations, listsurfPoint
       else                  : return self.surfPoint, evaluations
-
 
 
   def __localLimitStateSearch__(self, toBeTested, sign, nodeName):

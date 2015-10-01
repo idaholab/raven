@@ -729,7 +729,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # initialize LimitSurface PP
     self.limitSurfacePP._initFromDict({"name":self.name+"LSpp","parameters":[key.replace('<distribution>','') for key in self.axisName],"tolerance":self.tolerance,"side":"both","transformationMethods":transformMethod,"bounds":bounds})
     self.limitSurfacePP.assemblerDict = self.assemblerDict
-    self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{'computeCells':True})
+    self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{'computeCells': True if self.tolerance != self.subGridTol else False})
     self.persistenceMatrix[self.name+"LSpp"]  = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #matrix that for each point of the testing grid tracks the persistence of the limit surface position
     self.oldTestMatrix[self.name+"LSpp"]      = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #swap matrix fro convergence test
     self.hangingPoints                        = np.ndarray((0, self.nVar))
@@ -847,7 +847,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
           self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
-      else: 
+      else:
         self.raiseADebug('np.max(distance)=0.0')
     if not varSet:
       #here we are still generating the batch
@@ -1498,7 +1498,7 @@ class DynamicEventTree(Grid):
     self.computeConditionalProbability()
     # Create the inputs and put them in the runQueue dictionary (if genRunQueue is true)
     if genRunQueue: self._createRunningQueue(model,myInput)
-    
+
     return True
 
   def computeConditionalProbability(self,index=None):
@@ -1791,7 +1791,7 @@ class DynamicEventTree(Grid):
     Function to create and append new inputs to the queue. It uses all the containers have been updated by the previous functions
     @ In, model  : Model instance. It can be a Code type, ROM, etc.
     @ In, myInput: List of the original inputs
-    
+
     @ Out, None
     """
     if self.counter >= 1:
@@ -2034,6 +2034,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
                                         #         will be performed on each epistemic tree (n LimitSurfaces)
     self.epistemicVariables = []        # List of epistemic variable names (used only in case the Adaptive Hybrid DET is activated)
     self.foundEpistemicTree = False     # flag that testifies if an epistemic tree has been found (Adaptive Hybrid DET)
+    self.sortedListOfHists  = []        # sorted list of histories
 
   @staticmethod
   def _checkIfRunnint(treeValues): return not treeValues['runEnded']
@@ -2278,12 +2279,16 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     if self.startAdaptive:
       #if self._endJobRunnable != 1: self._endJobRunnable = 1
       # retrieve the endHistory branches
-      completedHistNames = []
+      completedHistNames, finishedHistNames = [], []
       for treer in self.TreeInfo.values(): # this needs to be solved
         for ending in treer.iterProvidedFunction(self._checkCompleteHistory):
           completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeid=ending.get('name'),serialize=False))
+          finishedHistNames.append(completedHistNames[-1].keys()[0])
       # assemble a dictionary
       if len(completedHistNames) > self.completedHistCnt:
+        # sort the list of histories
+        self.sortedListOfHists.extend(list(set(finishedHistNames) - set(self.sortedListOfHists)))
+        completedHistNames = [completedHistNames[finishedHistNames.index(elem)] for elem in self.sortedListOfHists]
         if len(completedHistNames[-1].values()) > 0:
           lastOutDict = {'inputs':{},'outputs':{}}
           for histd in completedHistNames:

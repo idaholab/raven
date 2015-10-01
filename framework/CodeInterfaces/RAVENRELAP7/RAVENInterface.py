@@ -56,7 +56,7 @@ class RAVENInterface(CodeInterfaceBase):
     self._samplersDictionary                             = {}
     self._samplersDictionary['MonteCarlo'              ] = self.monteCarloForRAVEN
     self._samplersDictionary['Grid'                    ] = self.gridForRAVEN
-    self._samplersDictionary['Adaptive'                ] = self.gridForRAVEN # same Grid Fashion. It forces a dist to give a particular value
+    self._samplersDictionary['LimitSurfaceSearch'      ] = self.gridForRAVEN # same Grid Fashion. It forces a dist to give a particular value
     self._samplersDictionary['Stratified'              ] = self.latinHyperCubeForRAVEN
     self._samplersDictionary['DynamicEventTree'        ] = self.dynamicEventTreeForRAVEN
     self._samplersDictionary['FactorialDesign'         ] = self.gridForRAVEN
