@@ -214,7 +214,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     pb = None
     if self.integralType == 'montecarlo':
       tempDict = {}
-      randomMatrix = np.random.rand(math.ceil(1.0 / self.tolerance), len(self.variableDist.keys()))
+      randomMatrix = np.random.rand(int(math.ceil(1.0 / self.tolerance**2)), len(self.variableDist.keys()))
       for index, varName in enumerate(self.variableDist.keys()):
         if self.variableDist[varName] == None: randomMatrix[:, index] = randomMatrix[:, index] * (self.lowerUpperDict[varName]['upperBound'] - self.lowerUpperDict[varName]['lowerBound']) + self.lowerUpperDict[varName]['lowerBound']
         else:
