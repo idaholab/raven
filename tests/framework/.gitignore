@@ -20,3 +20,6 @@ AdaptiveStochasticPoly/isethist.out
 DataobjectsAttributes/TestDataObjectAttributes/
 LHStestBisonParallel/myLHS/
 OMInterfaceTest/testDummyStep/rawout*
+RunFailures/csample/
+subplot_output/FirstMRun/
+mpi_bison_test/myLHS/

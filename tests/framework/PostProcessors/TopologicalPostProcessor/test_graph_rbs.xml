@@ -3,51 +3,25 @@
 <!-- An example of the approximate Morse-Smale complex interface that tests each
      graph structures available -->
   <RunInfo>
-    <WorkingDir>topology3</WorkingDir>
+    <WorkingDir>data</WorkingDir>
     <Sequence>
       sampleData,
-      decomposeNN,
-      decomposeBS,
       decomposeRBS
     </Sequence>
   </RunInfo>
 
   <Models>
-    <ExternalModel name='testFunction' subType=''
-                   ModuleToLoad = './topology3/GaussianPeaks'>
+    <ExternalModel name='test' subType='' ModuleToLoad = '../GaussianPeaks'>
       <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>
     </ExternalModel>
-    <!-- Nearest neighbor -->
-    <PostProcessor name='AMSC_NN' subType='TopologicalDecomposition'>
-      <graph>Approximate KNN</graph>
-      <gradient>steepest</gradient>
-      <knn>8</knn>
-      <normalization>None</normalization>
-      <parameters>X,Y</parameters>
-      <response>Z</response>
-      <simplification>0.3</simplification>
-      <persistence>difference</persistence>
-    </PostProcessor>
-    <!-- Beta Skeleton (beta=1, Gabriel) -->
-    <PostProcessor name='AMSC_BS' subType='TopologicalDecomposition'>
-      <graph>Beta Skeleton</graph>
-      <gradient>steepest</gradient>
-      <beta>1</beta>
-      <knn>25</knn>
-      <normalization>None</normalization>
-      <parameters>X,Y</parameters>
-      <response>Z</response>
-      <simplification>0.3</simplification>
-      <persistence>difference</persistence>
-    </PostProcessor>
     <!-- Relaxed Beta Skeleton (beta=1, Relaxed Gabriel) -->
     <PostProcessor name='AMSC_RBS' subType='TopologicalDecomposition'>
       <graph>Relaxed Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
-      <knn>25</knn>
+      <knn>26</knn>
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
@@ -76,40 +50,18 @@
         <distribution>uniform</distribution>
       </variable>
     </MonteCarlo>
-<!--     <Grid name="sampler">
-      <variable name="X">
-        <distribution>uniform</distribution>
-        <grid construction="equal" steps="10" type="value">0 1</grid>
-      </variable>
-      <variable name="Y">
-        <distribution>uniform</distribution>
-        <grid construction="equal" steps="10" type="value">0 1</grid>
-      </variable>
-    </Grid> -->
   </Samplers>
 
   <Steps>
-    <!-- Load the data from a csv into the hdf5 database used by this run -->
+    <!-- Sample the data from the test function -->
     <MultiRun name="sampleData">
       <Input   class="DataObjects" type="PointSet"         >dummyIN</Input>
-      <Model   class="Models"      type="ExternalModel"    >testFunction</Model>
+      <Model   class="Models"      type="ExternalModel"    >test</Model>
       <Sampler class="Samplers"    type="MonteCarlo"       >sampler</Sampler>
       <!-- <Sampler class="Samplers"    type="Grid"             >sampler</Sampler> -->
       <Output  class="DataObjects" type="PointSet"         >testData</Output>
     </MultiRun>
     <!-- Perform the topological decomposition -->
-    <PostProcess name="decomposeNN">
-      <Input  class="DataObjects"      type="PointSet"     >testData</Input>
-      <Model  class="Models"           type="PostProcessor">AMSC_NN</Model>
-      <Output class="DataObjects"      type="PointSet"     >outNN</Output>
-      <Output class="OutStreamManager" type="Print"        >segNN</Output>
-    </PostProcess>
-    <PostProcess name="decomposeBS">
-      <Input  class="DataObjects"      type="PointSet"     >testData</Input>
-      <Model  class="Models"           type="PostProcessor">AMSC_BS</Model>
-      <Output class="DataObjects"      type="PointSet"     >outBS</Output>
-      <Output class="OutStreamManager" type="Print"        >segBS</Output>
-    </PostProcess>
     <PostProcess name="decomposeRBS">
       <Input  class="DataObjects"      type="PointSet"     >testData</Input>
       <Model  class="Models"           type="PostProcessor">AMSC_RBS</Model>
@@ -120,24 +72,11 @@
 
   <OutStreamManager>
     <!-- A csv file containing the output of the example -->
-    <Print name="segNN">
-      <type>csv</type>
-      <source>outNN</source>
-    </Print>
-    <Print name="segBS">
-      <type>csv</type>
-      <source>outBS</source>
-    </Print>
     <Print name="segRBS">
       <type>csv</type>
       <source>outRBS</source>
     </Print>
   </OutStreamManager>
-
-  <Databases>
-    <!-- The necessary database object -->
-    <HDF5 name="myDB"/>
-  </Databases>
 
   <DataObjects>
     <!-- The input PointSet object -->
@@ -150,14 +89,6 @@
       <Output>Z</Output>
     </PointSet>
     <!-- The output PointSet objects -->
-    <PointSet name="outNN">
-      <Input>X,Y</Input>
-      <Output>Z</Output>
-    </PointSet>
-    <PointSet name="outBS">
-      <Input>X,Y</Input>
-      <Output>Z</Output>
-    </PointSet>
     <PointSet name="outRBS">
       <Input>X,Y</Input>
       <Output>Z</Output>

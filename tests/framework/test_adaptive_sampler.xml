@@ -75,7 +75,7 @@
   </Samplers>
 
   <Models>
-    <ExternalModel ModuleToLoad="Adapt/adaptive_test_model" name="xtr_mdl" subType="">
+    <ExternalModel ModuleToLoad="adaptive_test_model" name="xtr_mdl" subType="">
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>gammay</variable>

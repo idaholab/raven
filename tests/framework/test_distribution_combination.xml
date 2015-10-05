@@ -12,7 +12,7 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="dists_vars/dist_var" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="dist_var" name="PythonModule" subType="">
       <variable>t1</variable>
       <variable>t2</variable>
       <variable>out</variable>

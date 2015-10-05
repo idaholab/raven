@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+  <!-- An example of the approximate Morse-Smale complex interface that tests
+       each graph structures available -->
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sampleData,
+      decomposeNN
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel name='test' subType='' ModuleToLoad = '../GaussianPeaks'>
+      <variable>X</variable>
+      <variable>Y</variable>
+      <variable>Z</variable>
+    </ExternalModel>
+    <!-- Nearest neighbor -->
+    <PostProcessor name='AMSC_NN' subType='TopologicalDecomposition'>
+      <graph>Approximate KNN</graph>
+      <gradient>steepest</gradient>
+      <knn>9</knn>
+      <normalization>None</normalization>
+      <parameters>X,Y</parameters>
+      <response>Z</response>
+      <simplification>0.3</simplification>
+      <persistence>difference</persistence>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Uniform name="uniform">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="sampler">
+      <sampler_init>
+        <initial_seed>8</initial_seed>
+        <limit>4000</limit>
+      </sampler_init>
+      <variable name="X">
+        <distribution>uniform</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>uniform</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <!-- Sample the data from the test function -->
+    <MultiRun name="sampleData">
+      <Input   class="DataObjects" type="PointSet"         >dummyIN</Input>
+      <Model   class="Models"      type="ExternalModel"    >test</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"       >sampler</Sampler>
+      <Output  class="DataObjects" type="PointSet"         >testData</Output>
+    </MultiRun>
+    <!-- Perform the topological decomposition -->
+    <PostProcess name="decomposeNN">
+      <Input  class="DataObjects"      type="PointSet"     >testData</Input>
+      <Model  class="Models"           type="PostProcessor">AMSC_NN</Model>
+      <Output class="DataObjects"      type="PointSet"     >outNN</Output>
+      <Output class="OutStreamManager" type="Print"        >segNN</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreamManager>
+    <!-- A csv file containing the output of the example -->
+    <Print name="segNN">
+      <type>csv</type>
+      <source>outNN</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <!-- The input PointSet object -->
+    <PointSet name="dummyIN">
+      <Input>X,Y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="testData">
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </PointSet>
+    <!-- The output PointSet objects -->
+    <PointSet name="outNN">
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

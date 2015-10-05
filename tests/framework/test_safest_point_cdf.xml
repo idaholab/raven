@@ -109,7 +109,7 @@
   </Samplers>
 
   <Models>
-    <ExternalModel ModuleToLoad="SafestPointPP/safest_point_test_xtr_mdl" name="xtr_mdl" subType="">
+    <ExternalModel ModuleToLoad="safest_point_test_xtr_mdl" name="xtr_mdl" subType="">
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>gammay</variable>

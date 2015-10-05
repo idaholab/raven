@@ -56,7 +56,7 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="./polynomial" name="poly" subType="">
+    <ExternalModel ModuleToLoad="../polynomial" name="poly" subType="">
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>ans</variable>

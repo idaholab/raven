@@ -57,7 +57,7 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="./RunFailures/failer" name="failer" subType="">
+    <ExternalModel ModuleToLoad="failer" name="failer" subType="">
       <variable>x</variable>
       <variable>y</variable>
       <variable>ans</variable>

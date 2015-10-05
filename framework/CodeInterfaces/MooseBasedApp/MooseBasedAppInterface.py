@@ -14,7 +14,16 @@ from CodeInterfaceBaseClass import CodeInterfaceBase
 class MooseBasedAppInterface(CodeInterfaceBase):
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
-    '''seek which is which of the input files and generate According the running command'''
+    """
+    See base class.  Collects all the clargs and the executable to produce the command-line call.
+    Returns tuple of commands and base file name for run.
+    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+    @ In, inputFiles, the input files to be used for the run
+    @ In, executable, the executable to be run
+    @ In, clargs, command-line arguments to be used
+    @ In, fargs, in-file changes to be made
+    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
+    """
     found = False
     for index, inputFile in enumerate(inputFiles):
       if inputFile.getExt() in self.getInputExtension():
@@ -22,9 +31,9 @@ class MooseBasedAppInterface(CodeInterfaceBase):
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+inputFiles[index].getBase()
-    executeCommand = (executable+' -i '+inputFiles[index].getFilename() +
+    executeCommand = [('parallel',executable+' -i '+inputFiles[index].getFilename() +
                         ' Outputs/file_base='+ outputfile +
-                        ' Outputs/interval=1'+ ' Outputs/output_initial=true' + ' Outputs/csv=true')
+                        ' Outputs/csv=true')]
 
     return executeCommand,outputfile
 
