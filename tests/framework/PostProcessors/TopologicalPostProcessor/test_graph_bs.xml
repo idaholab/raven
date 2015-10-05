@@ -39,10 +39,10 @@
 
   <Samplers>
     <MonteCarlo name="sampler">
-      <sampler_init>
-        <initial_seed>8</initial_seed>
+      <samplerInit>
+        <initialSeed>8</initialSeed>
         <limit>4000</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="X">
         <distribution>uniform</distribution>
       </variable>
