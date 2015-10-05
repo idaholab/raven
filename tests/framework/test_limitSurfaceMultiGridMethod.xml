@@ -3,8 +3,8 @@
 
 <RunInfo>
   <WorkingDir>limitSurfaceMultiGrid</WorkingDir>
-  <Sequence>GoalOrientedStep,push_limitsurface_in_database</Sequence>
-  <batchSize>50</batchSize>
+  <Sequence>GoalOrientedStep,dumpLSout</Sequence>
+  <batchSize>3250</batchSize>
 </RunInfo>
 
 <Steps>
@@ -14,13 +14,11 @@
     <Sampler class="Samplers"                type="LimitSurfaceSearch" >workshopAdaptive</Sampler>
     <SolutionExport class="DataObjects"      type="PointSet"           >limitSurface</SolutionExport>
     <Output  class="DataObjects"             type="PointSet"           >outAdaptive</Output>
-    <Output         class='OutStreamManager' type='Print'              >limitSurfaceTwoIslandsCSV</Output>
   </MultiRun>
-  <IOStep name="push_limitsurface_in_database" pauseAtEnd="False">
+  <IOStep name="dumpLSout" pauseAtEnd="False">
     <Input   class="DataObjects"             type="PointSet"           >limitSurface</Input>
     <Output  class='OutStreamManager'        type='Print'              >limitSurfaceTwoIslandsCSV</Output>
   </IOStep>
-
 </Steps>
 
 <DataObjects>
@@ -42,15 +40,15 @@
 <Distributions>
     <Normal name='normal_trunc'>
         <mean>0</mean>
-        <sigma>1.5</sigma>
-        <lowerBound>-5</lowerBound>
-        <upperBound>5</upperBound>
+        <sigma>1</sigma>
+        <lowerBound>-1.5</lowerBound>
+        <upperBound>1.5</upperBound>
     </Normal>
     <Normal name='normal'>
         <mean>0</mean>
-        <sigma>1.2</sigma>
-        <lowerBound>-6</lowerBound>
-        <upperBound>6</upperBound>
+        <sigma>1</sigma>
+        <lowerBound>-1.5</lowerBound>
+        <upperBound>1.5</upperBound>
     </Normal>
 </Distributions>
 
@@ -60,7 +58,7 @@
     <ROM              class = "Models"    type = "ROM"                 >AccelerationROM</ROM>
     <Function         class = "Functions" type = "External"            >goalFunction</Function>
     <TargetEvaluation class = "DataObjects"     type = "PointSet"  >outAdaptive</TargetEvaluation>
-    <Convergence limit = "50000" forceIteration = "False" weight = "CDF" persistence = "15" subGridTol="0.000140625">0.001625</Convergence>
+     <Convergence limit = "50000" forceIteration = "False" weight = "CDF" persistence = "7" subGridTol="0.0001">0.0004</Convergence> 
     <variable name = "x1"><distribution>normal_trunc</distribution></variable>
     <variable name = "x2"><distribution>normal</distribution></variable>
   </LimitSurfaceSearch>
@@ -68,7 +66,7 @@
 
 
 <Models>
-    <ExternalModel name="PythonModule" subType="" ModuleToLoad="twoIslandsModel">
+    <ExternalModel name="PythonModule" subType="" ModuleToLoad="limitSurfaceMultiGrid/twoIslandsModel">
        <variable>x1</variable>
        <variable>x2</variable>
        <variable>y4</variable>
