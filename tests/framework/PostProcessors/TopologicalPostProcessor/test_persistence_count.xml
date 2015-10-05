@@ -42,11 +42,11 @@
     <Grid name="gridSampler">
       <variable name="X">
         <distribution>NormDist</distribution>
-        <grid type='value' construction='equal' steps='50'>0 1</grid>
+        <grid type='value' construction='equal' steps='25'>0 1</grid>
       </variable>
       <variable name="Y">
         <distribution>NormDist</distribution>
-        <grid type='value' construction='equal' steps='50'>0 1</grid>
+        <grid type='value' construction='equal' steps='25'>0 1</grid>
       </variable>
     </Grid>
   </Samplers>
