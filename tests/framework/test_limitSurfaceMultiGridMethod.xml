@@ -66,7 +66,7 @@
 
 
 <Models>
-    <ExternalModel name="PythonModule" subType="" ModuleToLoad="limitSurfaceMultiGrid/twoIslandsModel">
+    <ExternalModel name="PythonModule" subType="" ModuleToLoad="twoIslandsModel">
        <variable>x1</variable>
        <variable>x2</variable>
        <variable>y4</variable>

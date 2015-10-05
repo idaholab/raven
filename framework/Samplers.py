@@ -775,15 +775,15 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if len(self.hangingPoints) > 0: self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
     for key,value in self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).items():
       self.persistenceMatrix[key] += value
-    # test error
-    a,b = self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values(),self.oldTestMatrix.values()
-    coarseGridTestMatix, coarseGridOldTestMatix = a.pop(0), b.pop(0)
+    # get the test matrices' dictionaries to test the error
+    testMatrixDict, oldTestMatrixDict = self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values(),self.oldTestMatrix.values()
+    # the first test matrices in the list are always represented by the coarse grid (if subGridTol activated) or the only grid available
+    coarseGridTestMatix, coarseGridOldTestMatix = testMatrixDict.pop(0), oldTestMatrixDict.pop(0)
+    # compute the Linf norm with respect the location of the LS
     testError = np.sum(np.abs(np.subtract(coarseGridTestMatix,coarseGridOldTestMatix)))
-    if len(a) > 0:
-      testError += np.sum(np.abs(np.subtract(a,b))) # compute the error
-    #testError += np.sum(np.abs(np.subtract(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values(),self.oldTestMatrix.values())))
-    if (testError > self.errorTolerance): ready, self.repetition = True, 0                                      # we still have error
-    else              : self.repetition +=1                                                                                # we are increasing persistence
+    if len(testMatrixDict) > 0: testError += np.sum(np.abs(np.subtract(testMatrixDict,oldTestMatrixDict))) # compute the error
+    if (testError > self.errorTolerance): ready, self.repetition = True, 0                                 # we still have error
+    else                                : self.repetition +=1                                              # we are increasing persistence
     if self.persistence<self.repetition:
       ready =  False
       if self.subGridTol != self.tolerance and evaluations is not None and self.refinedPerformed != True:
@@ -794,7 +794,6 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.exceptionGrid, self.refinedPerformed, ready, self.repetition = self.name + "LSpp", True, True, 0
         self.persistenceMatrix.update(copy.deepcopy(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid)))
         self.errorTolerance = self.subGridTol
-        #self.exceptionGrid = None
     self.raiseAMessage('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
     #if the number of point on the limit surface is > than compute persistence
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
@@ -802,8 +801,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if len(listsurfPoint)>0:
         self.invPointPersistence[gridID] = np.ones(len(listsurfPoint))
         if self.firstSurface == False:
-          for pointID, coordinate in enumerate(listsurfPoint):
-            self.invPointPersistence[gridID][pointID]=abs(self.persistenceMatrix[gridID][tuple(coordinate)])
+          for pointID, coordinate in enumerate(listsurfPoint): self.invPointPersistence[gridID][pointID]=abs(self.persistenceMatrix[gridID][tuple(coordinate)])
           maxPers = np.max(self.invPointPersistence[gridID])
           self.invPointPersistence[gridID] = (maxPers-self.invPointPersistence[gridID])/maxPers
         else: self.firstSurface = False

@@ -698,7 +698,7 @@ class MultiGridEntity(GridBase):
         initDict   = parentGrid.returnParameter("initDictionary")
         if "transformationMethods" in initDict.keys(): initDict.pop("transformationMethods")
         for idcnt, fcellId in enumerate(foundCells):
-          
+
           didWeFoundCells[fcellId] = True
           newGrid                  = returnInstance("GridEntity", self, self.messageHandler)
           verteces                 = parentNodeCellIds[fcellId]
