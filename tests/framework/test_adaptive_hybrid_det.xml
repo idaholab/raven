@@ -13,7 +13,7 @@
 
   <Models>
     <Code name="MyRAVEN" subType="RAVEN">
-      <executable>/Users/alfoa/projects/raven/RAVEN-opt</executable>
+      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
     <ROM name="Acc" subType="SciKitLearn">
       <Features>depressurizationOnTime,PressureFailureValue</Features>
@@ -82,21 +82,6 @@
               <distribution>testHybridEpistemicDist2</distribution>
           </variable>
       </HybridSampler>
-      <!--
-      <HybridSampler type="Grid">
-       
-          <variable name="Components|pipe2|f">
-              <distribution>testHybridEpistemicDist2</distribution>
-              <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
-          </variable>
-      </HybridSampler>
-      <HybridSampler type="Stratified">
-          <variable name="Components|pipe1|f">
-              <distribution>testHybridEpistemicDist1</distribution>
-              <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
-          </variable>
-      </HybridSampler>
-       -->
     </AdaptiveDynamicEventTree>
   </Samplers>
 
@@ -134,7 +119,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 directory="/Users/alfoa/projects/raven/tests/framework/AdaptiveHybridDET" name="AdaptiveHybridDETsimpleDatabase"/>
+    <HDF5 name="AdaptiveHybridDETsimpleDatabase"/>
   </Databases>
 
   <OutStreamManager>
