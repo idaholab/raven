@@ -244,7 +244,8 @@ class LimitSurfaceIntegral(BasePostProcessor):
           for val in value: output.updateOutputValue(key, val)
         for _ in range(len(lms)): output.updateOutputValue('EventProbability', pb)
       elif isinstance(output,Files.File):
-        headers = lms.getParaKeys('inputs') + lms.getParaKeys('outputs') + ['EventProbability']
+        headers = lms.getParaKeys('inputs') + lms.getParaKeys('outputs')
+        if 'EventProbability' not in headers: headers += ['EventProbability']
         stack = [None] * len(headers)
         output.close()
         outIndex = 0

@@ -776,7 +776,12 @@ class LimitSurfaceSearch(AdaptiveSampler):
     for key,value in self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).items():
       self.persistenceMatrix[key] += value
     # test error
-    testError = np.sum(np.abs(np.subtract(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values(),self.oldTestMatrix.values()))) # compute the error
+    a,b = self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values(),self.oldTestMatrix.values()
+    coarseGridTestMatix, coarseGridOldTestMatix = a.pop(0), b.pop(0)
+    testError = np.sum(np.abs(np.subtract(coarseGridTestMatix,coarseGridOldTestMatix)))
+    if len(a) > 0:
+      testError += np.sum(np.abs(np.subtract(a,b))) # compute the error
+    #testError += np.sum(np.abs(np.subtract(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values(),self.oldTestMatrix.values())))
     if (testError > self.errorTolerance): ready, self.repetition = True, 0                                      # we still have error
     else              : self.repetition +=1                                                                                # we are increasing persistence
     if self.persistence<self.repetition:
@@ -788,7 +793,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.limitSurfacePP.refineGrid(int(ceil((self.tolerance/self.subGridTol)**(1.0/self.nVar))))
         self.exceptionGrid, self.refinedPerformed, ready, self.repetition = self.name + "LSpp", True, True, 0
         self.persistenceMatrix.update(copy.deepcopy(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid)))
-        self.errorTolerance = self.tolerance/self.subGridTol
+        self.errorTolerance = self.subGridTol
+        #self.exceptionGrid = None
     self.raiseAMessage('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
     #if the number of point on the limit surface is > than compute persistence
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0

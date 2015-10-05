@@ -440,11 +440,11 @@ class GridEntity(GridBase):
 
     self.raiseAMessage("Grid "+"initialized...")
 
-  def retrieveCellIds(self,listOfPoints,containedOnly=True):
+  def retrieveCellIds(self,listOfPoints,containedOnly=False):
     """
      This method is aimed to retrieve the cell IDs that are contained in certain bounaried provided as list of points
      @ In, listOfPoints, list, list of points that represent the boundaries ([listOfFirstBound, listOfSecondBound])
-     @ In, containedOnly, bool, optional, flag to ask for cells contained in the listOfPoints or just cells that touch the listOfPoints, default True
+     @ In, containedOnly, bool, optional, flag to ask for cells contained in the listOfPoints or just cells that touch the listOfPoints, default False
     """
     cellIds = []
     for cntb, bound in enumerate(listOfPoints):
@@ -453,7 +453,7 @@ class GridEntity(GridBase):
       if cntb == 0: previousSet = set(cellIds[cntb])
       if containedOnly == True: previousSet = set(previousSet).intersection(cellIds[cntb])
       else                    : previousSet.update(cellIds[cntb])
-    return list(previousSet)
+    return list(set(previousSet))
 
   def returnGridAsArrayOfCoordinates(self):
     """
@@ -698,7 +698,7 @@ class MultiGridEntity(GridBase):
         initDict   = parentGrid.returnParameter("initDictionary")
         if "transformationMethods" in initDict.keys(): initDict.pop("transformationMethods")
         for idcnt, fcellId in enumerate(foundCells):
-          print(fcellId)
+          
           didWeFoundCells[fcellId] = True
           newGrid                  = returnInstance("GridEntity", self, self.messageHandler)
           verteces                 = parentNodeCellIds[fcellId]
