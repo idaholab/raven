@@ -1728,8 +1728,8 @@ class LimitSurface(BasePostProcessor):
       calculations
       @ In, dictIn, dict, dictionary of initialization options
     """
-    if "parameters" not in dictIn.keys()       : self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
-    if "name"                  in dictIn.keys(): self.name          = dictIn["name"]
+    if "parameters" not in dictIn.keys()             : self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
+    if "name"                  in dictIn.keys()      : self.name          = dictIn["name"]
     if type(dictIn["parameters"]).__name__ == "list" : self.parameters['targets'] = dictIn["parameters"]
     else                                             : self.parameters['targets'] = dictIn["parameters"].split(",")
     if "bounds"                in dictIn.keys()      : self.bounds        = dictIn["bounds"]

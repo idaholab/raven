@@ -247,6 +247,14 @@
             <xsd:enumeration value="Stratified"/>
         </xsd:restriction>
     </xsd:simpleType>
+    <xsd:simpleType name="DETHybridSamplerTypeAdaptive">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="MonteCarlo"/>
+            <xsd:enumeration value="Grid"/>
+            <xsd:enumeration value="Stratified"/>
+            <xsd:enumeration value="LimitSurface"/>
+        </xsd:restriction>
+    </xsd:simpleType>
     <xsd:complexType name="HybridSamplerSettingsType">
         <xsd:sequence>
             <!-- ****************************************** -->
@@ -259,6 +267,19 @@
             <xsd:element name="Distribution" type="extendedVariableType"    minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="type" type="DETHybridSamplerType" use="required"/>
+    </xsd:complexType>
+    <xsd:complexType name="HybridSamplerSettingsTypeAdaptive">
+        <xsd:sequence>
+            <!-- ****************************************** -->
+            <!-- the extendedVariableType has been adjusted -->
+            <!-- according to the needs of this element     -->
+            <!-- needs to be corrected                      -->
+            <!-- ****************************************** -->
+            <xsd:element name="sampler_init" type="samplerInitType"         minOccurs="0"/>
+            <xsd:element name="variable"     type="extendedVariableType"    minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="Distribution" type="extendedVariableType"    minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="type" type="DETHybridSamplerTypeAdaptive" use="required"/>
     </xsd:complexType>
     <xsd:complexType name="DETSampler">
         <xsd:sequence>
@@ -286,6 +307,7 @@
             </xsd:element>
             <xsd:element name="variable"         type="extendedVariableType"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Distribution"     type="extendedVariableType"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="HybridSampler" type="HybridSamplerSettingsTypeAdaptive" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name"              type="xsd:string" use="required"/>
         <xsd:attribute name="print_end_xml"     type="RavenBool"/>

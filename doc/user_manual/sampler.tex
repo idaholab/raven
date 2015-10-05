@@ -1179,7 +1179,7 @@ the phase space is needed.
 In order to use the DET-based methods, the generic driven code needs to have, at
 least, an internal trigger system and, consequently, a ``restart'' capability.
 %
-In the RAVEN framework, four different DET samplers are available:
+In the RAVEN framework, 4 different DET samplers are available:
 \begin{itemize}
 \item \textbf{Dynamic Event Tree (DET)}
 \item \textbf{Hybrid Dynamic Event Tree (HDET)}
@@ -1499,6 +1499,7 @@ Currently, RAVEN provides support for the following adaptive algorithms:
 \begin{itemize}
   \item Limit Surface Search
   \item Adaptive Dynamic Event Tree
+  \item Adaptive Hybrid Dynamic Event Tree
   \item Adaptive Sparse Grid
 \end{itemize}
 
@@ -1664,12 +1665,6 @@ the input space in proximity of the limit surface.
          using the DET as support;
     \end{itemize}
       \default{post}.
-%  \item \textbf{noTransitionStrategy}, \textit{optional string attribute}, strategy if no transition detected. This attribute controls how to handle the case in which no transitions have been detected through the initial DET grid.  %Two options are available:
- %     \begin{itemize}
-  %       \item \textit{noTransitionStrategy = mc}, if this option is activated, when the initial DET grid did not detect any transition, a MC point in space is requested;
-   %      \item \textit{noTransitionStrategy = grid},  if this option is activated, the adaptive search starts at begin, during the initial standard Dynamic Event Tree. Whenever a transition is detected, the \textbf{Adaptive Dynamic Event Tree} starts it goal-oriented search using the DET as support;
-  %    \end{itemize}
-   %   \default{post}.
   \item \xmlAttr{updateGrid}, \xmlDesc{optional boolean attribute}, if true,
     each adaptive request is going to update the meshing of the initial DET
     grid.
@@ -1757,6 +1752,203 @@ Example:
         </distribution>
         <grid type='CDF' construction='custom'>0.1 0.8</grid>
     </variable>
+  </AdaptiveDynamicEventTree>
+  ...
+</Samplers>
+\end{lstlisting}
+
+Associated External Python Module:
+\begin{lstlisting}[language=python]
+def __residuumSign(self):
+  if self.whatEverValue < self.OtherValue:
+    return  1
+  else:
+    return -1
+\end{lstlisting}
+
+
+%%% Adaptive Samplers: AHDET
+\subsubsection{Adaptive Hybrid Dynamic Event Tree}
+\label{subsubsubsec:AHDET}
+The \textbf{Adaptive Hybrid Dynamic Event Tree} approach is an advanced methodology
+employing a smart sampling around transition zones that determine a change in
+the status of the system (limit surface), using the support of the Hybrid Dynamic Event
+Tree methodology. Practically, this methodology represents a conjunction between the previously
+reported Adaptive DET and the Hybrid DET method for the treatment of the epistemic variables.
+
+Regarding the input requirements, the AHDET sampler is a ``sub-type'' of the\\
+\xmlNode{AdaptiveDynamicEventTree} sampler.
+%
+For this reason, its specifications must be defined within a
+\xmlNode{AdaptiveDynamicEventTree} block.
+
+\specBlock{an}{AdaptiveDynamicEventTree}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{print\_end\_XML}, \xmlDesc{optional string/boolean attribute},
+    this attribute controls the dumping of a ``summary'' of the DET performed in
+    to an external XML.
+    %
+    \default{False}.
+  \item \xmlAttr{maxSimulationTime}, \xmlDesc{optional float attribute}, this
+    attribute controls the maximum ``mission'' time of the simulation
+    underneath.
+    %
+    \default{None}.
+  \item \xmlAttr{mode}, \xmlDesc{optional string attribute}, controls when the
+    adaptive search needs to begin.
+    %
+    Two options are available:
+    \begin{itemize}
+       \item \xmlString{post}, if this option is activated, the sampler first
+         performs a standard Dynamic Event Tree analysis. At end of it, it uses
+         the outcomes to start the adaptive search in conjunction with the DET
+         support.
+       \item \xmlString{online}, if this option is activated, the adaptive
+         search starts at the beginning, during the initial standard Dynamic
+         Event Tree analysis.
+         %
+         Whenever a transition is detected, the
+         \textbf{Adaptive Dynamic Event Tree} starts its goal-oriented search
+         using the DET as support;
+    \end{itemize}
+      \default{post}.
+  \item \xmlAttr{updateGrid}, \xmlDesc{optional boolean attribute}, if true,
+    each adaptive request is going to update the meshing of the initial DET
+    grid.
+    %
+    \default{True}.
+\end{itemize}
+
+\variableIntro{AdaptiveDynamicEventTree}
+\begin{itemize}
+\item \variableDescription
+  \variableChildrenIntro
+ \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+    \item \gridDescription
+  \end{itemize}
+\end{itemize}
+
+In addition to the \xmlNode{variable} nodes, the main
+\xmlNode{AdaptiveDynamicEventTree} node needs to contain two supplementary
+sub-nodes:
+
+\begin{itemize}
+  \item \convergenceDescription
+  % Assembler Objects
+  \item \assemblerDescription{AdaptiveDynamicEventTree}
+    \begin{itemize}
+      \item \xmlNode{Function}, \xmlDesc{string, required field},  the
+        body of this XML block needs to contain the name of an external
+        function object defined within the \xmlNode{Functions} main block (see
+        Section~\ref{sec:functions}).
+        %
+        This object represents the boolean function that defines the transition
+        boundaries.
+        %
+        This function must implement a method called
+        \texttt{\_\_residuumSign(self)}, that returns either -1 or 1, depending
+        on the system conditions (see Section \ref{sec:functions}.
+      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
+        body of this XML node must contain the name of a ROM defined in the
+        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM
+        here specified is going to be used as ``acceleration model'' to speed up the
+        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM
+        input block (within the \xmlNode{Models} section) needs to match the name of the goal
+        \xmlNode{Function} (e.g. if the goal function is named ``transitionIdentifier'', the \xmlNode{Target} of the
+        ROM needs to report the same name: \xmlNode{Target}\textbf{transitionIdentifier}\xmlNode{Target}).
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The adaptive sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
+    \end{itemize}
+\end{itemize}
+
+As it can be noticed, the basic specifications of the Adaptive Hybrid Dynamic Event Tree
+method are consistent with the ones for the ADET methodology.
+In order to activate the \textbf{Adaptive Hybrid Dynamic Event Tree}  sampler, the main
+\xmlNode{AdaptiveDynamicEventTree} block needs to contain an additional
+sub-node called \xmlNode{HybridSampler}.
+This sub-node needs to contain the following attribute:
+\begin{itemize}
+  \item \xmlAttr{type}, \xmlDesc{required string attribute}, type of
+    pre-sampling strategy to be used.
+    %
+    Up to now only one option is available: 
+    \begin{itemize}
+      \item \xmlString{LimitSurface}. With this option, the epistemic variables here listed are going to be part of the LS search.
+                                                        This means that the discretization of the domain of these variables is determined by the
+                                                        \xmlNode{Convergece} node.
+    \end{itemize}
+ \end{itemize}
+Independent of the type of HybridSampler that has been specified, the
+\xmlNode{HybridSampler} must contain the variables need to be sampled.
+%
+As already mentioned, these variables are specified within consecutive
+\xmlNode{variable} XML blocks:
+\begin{itemize}
+  \item \variableDescription
+    \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+      \item \functionDescription
+    \end{itemize}
+ \end{itemize}
+
+
+Example:
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+  <AdaptiveDynamicEventTree name = 'AdaptiveName'>
+    <ROM class = 'Models' type = 'ROM'ROMname</ROM>
+    <Function class = 'Functions' type = 'External'>FunctionName</Function>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>DataName</TargetEvaluation>
+    <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'CDF' subGriTol='''1e-5' persistence = '5'>
+      1e-2
+    </Convergence>
+    <HybridSampler type='LimitSurface'>
+       <variable name = 'epistemicVar1'>
+          <distribution>
+            aDistributionNameDefinedInDistributionBlock1
+          </distribution>
+      </variable>   
+       <variable name = 'epistemicVar2'>
+          <distribution>
+            aDistributionNameDefinedInDistributionBlock2
+          </distribution>
+      </variable>  
+    </HybridSampler>
+    <variable name = 'var1'>
+        <distribution>
+         aDistributionNameDefinedInDistributionBlock3
+        </distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+    </variable>
+    <variable name = 'var2'>
+        <distribution>
+          aDistributionNameDefinedInDistributionBlock4
+        </distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+    </variable>
+    <variable name = 'var3'>
+        <distribution>
+          aDistributionNameDefinedInDistributionBlock5
+        </distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+    </variable>
+
   </AdaptiveDynamicEventTree>
   ...
 </Samplers>

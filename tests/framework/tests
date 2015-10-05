@@ -48,7 +48,7 @@
    required_executable = '../../RAVEN-%METHOD%'
  [../]
 
- [./test_Adaptive_DynamicEventTreeRAVEN]
+ [./testAdaptiveDynamicEventTreeRAVEN]
   type = 'RavenFramework'
   input = 'test_adaptive_det_simple.xml'
   output = 'AdaptiveDET/limitSurfDump.csv AdaptiveDET/adaptiveOutsimpleDump.csv'
@@ -57,6 +57,14 @@
   max_time = 400
  [../]
 
+ [./testAdaptiveHybridDynamicEventTreeRAVEN]
+  type = 'RavenFramework'
+  input = 'test_adaptive_hybrid_det.xml'
+  output = 'AdaptiveHybridDET/limitsurfaceDump.csv AdaptiveHybridDET/adaptiveOutsimpleHier.csv'
+  csv = 'AdaptiveHybridDET/limitsurfaceDump.csv'
+  required_executable = '../../RAVEN-%METHOD%'
+  max_time = 400
+ [../]
 
  [./test_mpi]
   type = 'RavenFramework'

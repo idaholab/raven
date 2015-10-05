@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven/tests/framework/AdaptiveHybridDET</WorkingDir>
+    <WorkingDir>AdaptiveHybridDET</WorkingDir>
     <Sequence>AdaptiveHybridDETrunTest,DumpResults</Sequence>
     <batchSize>12</batchSize>
   </RunInfo>
@@ -27,7 +27,7 @@
   </Models>
 
   <Functions>
-    <External file="/Users/alfoa/projects/raven/tests/framework/AdaptiveHybridDET/relapFunctionSimple.py" name="relapFunctionSimple">
+    <External file="AdaptiveHybridDET/relapFunctionSimple.py" name="relapFunctionSimple">
       <variable>depressurizationOnTime</variable>
       <variable>PressureFailureValue</variable>
       <variable>systemFailed</variable>
@@ -54,11 +54,11 @@
   </Distributions>
 
   <Samplers>
-    <AdaptiveDynamicEventTree name="AdaptiveHybridDETsimple" printEndXmlSummary="yes">
+    <AdaptiveDynamicEventTree name="AdaptiveHybridDETsimple">
       <ROM class="Models" type="ROM">Acc</ROM>
       <Function class="Functions" type="External">relapFunctionSimple</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>
-      <Convergence forceIteration="False" limit="1600" persistence="7" weight="CDF">0.01</Convergence>
+      <Convergence forceIteration="False" limit="1600" persistence="5" weight="CDF">0.1</Convergence>
       <Distribution name="PressureFailureValue">
         <distribution>PressureFailureDist</distribution>
         <grid construction="custom" type="CDF">0.2 0.6 0.9</grid>
