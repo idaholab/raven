@@ -1575,7 +1575,7 @@ __interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
 __interfaceDict['SciKitLearn'         ] = SciKitLearn
 __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
-__interfaceDict['HDMRRom'             ] = MSR
+__interfaceDict['MSR'                 ] = MSR
 __base                                  = 'superVisedLearning'
 
 # def addToInterfaceDict(newDict):
