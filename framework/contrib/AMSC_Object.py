@@ -305,6 +305,32 @@ class AMSC_Object(object):
       tupleKeyedPartitions[minMax] = indices
     return tupleKeyedPartitions
 
+  def StableManifolds(self,persistence=None):
+    """ Returns the partitioned data based on a specified persistence level.
+        @ In, persistence, a floating point value specifying the size of the
+          smallest feature we want to track. Default = None means consider all
+          features.
+        @ Out, a dictionary lists where each key is a integer specifying
+          the index of the maximum. Each entry will hold a list of indices
+          specifying points that are associated to this maximum.
+    """
+    if persistence is None:
+      persistence = self.persistence
+    return self.__amsc.GetStableManifolds(persistence)
+
+  def UnstableManifolds(self,persistence=None):
+    """ Returns the partitioned data based on a specified persistence level.
+        @ In, persistence, a floating point value specifying the size of the
+          smallest feature we want to track. Default = None means consider all
+          features.
+        @ Out, a dictionary lists where each key is a integer specifying
+          the index of the minimum. Each entry will hold a list of indices
+          specifying points that are associated to this minimum.
+    """
+    if persistence is None:
+      persistence = self.persistence
+    return self.__amsc.GetUnstableManifolds(persistence)
+
   def SegmentFitCoefficients(self):
     """ Returns a dictionary keyed off the min-max index pairs defining
         Morse-Smale segments where the values are the linear coefficients of
