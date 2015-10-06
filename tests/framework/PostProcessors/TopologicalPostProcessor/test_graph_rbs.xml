@@ -25,7 +25,7 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>0.3</simplification>
+      <simplification>0.2</simplification>
       <persistence>difference</persistence>
     </PostProcessor>
   </Models>
@@ -41,7 +41,7 @@
     <MonteCarlo name="sampler">
       <sampler_init>
         <initial_seed>8</initial_seed>
-        <limit>4000</limit>
+        <limit>1000</limit>
       </sampler_init>
       <variable name="X">
         <distribution>uniform</distribution>
