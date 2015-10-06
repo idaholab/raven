@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation  verbosity='silent'>
+  <!-- A simple example of the approximate Morse-Smale complex being used for
+       regression on a 2D function with one single global maximum. This example
+       should thoroughly test all of the features associated to the MSR. -->
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resampleSVM
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel name='foo' subType='' ModuleToLoad = './testFunction'>
+      <variable>X</variable>
+      <variable>Y</variable>
+      <variable>Z</variable>
+    </ExternalModel>
+    <ROM name="SVM" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <partitionPredictor>svm</partitionPredictor>
+      <simplification>0.04</simplification>
+    </ROM>
+  </Models>
+
+  <Distributions>
+    <Uniform name="smallUniformDist">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+    <Uniform name="largeUniformDist">
+      <lowerBound>-1000</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <sampler_init>
+        <!--The SVM implementation has a bit of uncontrollable randomness that
+            prevents uniform behavior across machines, so we will use more
+            training data to counteract the effects of the randomness imposed
+            by the cross-validation of the SVM which generates the probability
+            information that exhibits the non-deterministic behavior. -->
+        <limit>300</limit>
+        <initial_seed>888</initial_seed>
+      </sampler_init>
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+      </variable>
+    </MonteCarlo>
+    <Grid name="gridSampler">
+      <!-- Try to place the grid samples away from the boundary in order to
+           reduce the chance of misclassification for this test case -->
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+        <grid construction="equal" steps="10" type="value">2 3</grid>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+        <grid construction="equal" steps="10" type="value">-1000 1000</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime='1e-5'>
+      <Input   class="DataObjects" type="PointSet"     >dummyIN</Input>
+      <Model   class="Models"      type="ExternalModel">foo</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"   >mcSampler</Sampler>
+      <Output  class="DataObjects" type="PointSet"     >trainingData</Output>
+    </MultiRun>
+    <MultiRun name="resampleSVM" sleepTime='1e-5'>
+      <Input   class="DataObjects"      type="PointSet">dummyIN</Input>
+      <Model   class="Models"           type="ROM"     >SVM</Model>
+      <Sampler class="Samplers"         type="Grid"    >gridSampler</Sampler>
+      <Output  class="DataObjects"      type="PointSet">outDataSVM</Output>
+      <Output  class="OutStreamManager" type="Print"   >outDataSVM</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">SVM</Output>
+    </RomTrainer>
+  </Steps>
+
+  <OutStreamManager>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outDataSVM">
+      <type>csv</type>
+      <source>outDataSVM</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <!-- The input PointSet object -->
+    <PointSet name="dummyIN">
+      <Input>X,Y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="trainingData">
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </PointSet>
+    <!-- The output PointSet objects -->
+    <PointSet name="outDataSVM">
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
