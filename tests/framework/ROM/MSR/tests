@@ -94,7 +94,7 @@
     csv = 'data/outDataSVM.csv'
     output = 'data/outDataSVM.xml'
     required_libraries = 'amsc'
-    rel_err = 1e-9
+    rel_err = 8e-2
   [../]
 
   [./smoothSVM]
