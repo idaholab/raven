@@ -40,8 +40,8 @@
   <Samplers>
     <MonteCarlo name="sampler">
       <sampler_init>
-        <initial_seed>8</initial_seed>
-        <limit>1000</limit>
+        <initial_seed>88</initial_seed>
+        <limit>500</limit>
       </sampler_init>
       <variable name="X">
         <distribution>uniform</distribution>
