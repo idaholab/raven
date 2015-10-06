@@ -39,11 +39,11 @@ def checkAnswer(comment,value,expected,tol=1e-10):
   else:
     results["pass"] += 1
 
-def checkCrowDist(comment,dist,expected_crow_dist):
-  crow_dist = dist.getCrowDistDict()
-  if crow_dist != expected_crow_dist:
+def checkCrowDist(comment,dist,expectedCrowDist):
+  crowDist = dist.getCrowDistDict()
+  if crowDist != expectedCrowDist:
     results["fail"] += 1
-    print(comment,'\n',crow_dist,'\n',expected_crow_dist)
+    print(comment,'\n',crowDist,'\n',expectedCrowDist)
   else:
     results["pass"] += 1
 
@@ -917,7 +917,7 @@ upWeibull.initializeDistribution()
 
 #InverseWeight
 ndInverseWeightElement = ET.Element("NDInverseWeight")
-ndInverseWeightElement.append(createElement("working_dir", text="ND_test_Grid_cdf/"))
+ndInverseWeightElement.append(createElement("workingDir", text="ND_test_Grid_cdf/"))
 ndInverseWeightElement.append(createElement("p", text="0.5"))
 filenode = createElement("data_filename", text="2DgaussianScatteredPDF.txt")
 filenode.set("type","PDF")
@@ -939,7 +939,7 @@ ndCartesianSplineElement = ET.Element("NDCartesianSpline")
 filenode = createElement("data_filename", text="2DgaussianCartesianPDF.txt")
 filenode.set("type","PDF")
 ndCartesianSplineElement.append(filenode)
-ndCartesianSplineElement.append(createElement("working_dir", text="ND_test_Grid_cdf/"))
+ndCartesianSplineElement.append(createElement("workingDir", text="ND_test_Grid_cdf/"))
 
 ndCartesianSpline = Distributions.NDCartesianSpline()
 ndCartesianSpline.setMessageHandler(mh)

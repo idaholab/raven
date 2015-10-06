@@ -14,7 +14,7 @@
 
   <Models>
     <PostProcessor name="test_stats" subType="ComparisonStatistics">
-      <kind bin_method="sturges">uniform_bins</kind>
+      <kind binMethod="sturges">uniformBins</kind>
       <compare>
         <data>fullprint_Pointset|outputs|normal1</data>
         <reference name="normal_20_3"/>

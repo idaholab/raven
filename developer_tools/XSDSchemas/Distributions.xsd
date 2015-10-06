@@ -178,7 +178,7 @@
     <xsd:complexType name="NDInverseWeightDistribution">
         <xsd:all>
             <xsd:element name="p"             type="xsd:decimal"       minOccurs="1"/>
-            <xsd:element name="working_dir"   type="xsd:string"        minOccurs="1"/>
+            <xsd:element name="workingDir"   type="xsd:string"        minOccurs="1"/>
             <xsd:element name="data_filename" type="data_filenameType" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
@@ -186,7 +186,7 @@
     <xsd:complexType name="NDCartesianSplineDistribution">
         <xsd:all>
             <xsd:element name="data_filename" type="data_filenameType" minOccurs="1"/>
-            <xsd:element name="working_dir"   type="xsd:string"        minOccurs="1"/>
+            <xsd:element name="workingDir"   type="xsd:string"        minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>

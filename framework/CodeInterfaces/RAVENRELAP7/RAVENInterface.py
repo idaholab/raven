@@ -138,12 +138,12 @@ class RAVENInterface(CodeInterfaceBase):
         listDict.append(modifDict)
         del modifDict
     # add the initial time for this new branch calculation
-    if 'start_time' in Kwargs.keys():
-      if Kwargs['start_time'] != -sys.float_info.max:
+    if 'startTime' in Kwargs.keys():
+      if Kwargs['startTime'] != -sys.float_info.max:
         modifDict = {}
-        st_time = Kwargs['start_time']
+        st_time = Kwargs['startTime']
         modifDict['name'] = ['Executioner']
-        modifDict['start_time'] = st_time
+        modifDict['startTime'] = st_time
         listDict.append(modifDict)
         del modifDict
     # create the restart file name root from the parent branch calculation
@@ -151,7 +151,7 @@ class RAVENInterface(CodeInterfaceBase):
     if 'end_ts' in Kwargs.keys():
       #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
 
-      if Kwargs['start_time'] !=  -sys.float_info.max:
+      if Kwargs['startTime'] !=  -sys.float_info.max:
         modifDict = {}
         end_ts_str = str(Kwargs['end_ts'])
         if(Kwargs['end_ts'] <= 9999):
@@ -159,7 +159,7 @@ class RAVENInterface(CodeInterfaceBase):
           for i in range(n_zeros):
             end_ts_str = "0" + end_ts_str
         splitted = Kwargs['outfile'].split('~')
-        output_parent = splitted[0] + '~' + toString(Kwargs['parent_id']) + '~' + splitted[1]
+        output_parent = splitted[0] + '~' + toString(Kwargs['parentID']) + '~' + splitted[1]
         restart_file_base = output_parent + "_cp/" + end_ts_str
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restart_file_base

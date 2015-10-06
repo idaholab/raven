@@ -15,7 +15,6 @@ import numpy as np
 import abc
 import importlib
 import inspect
-import sys
 import atexit
 # to be removed
 from scipy import spatial
@@ -292,13 +291,13 @@ class Dummy(Model):
     evaluation = finishedJob.returnEvaluation()
     if type(evaluation[1]).__name__ == "tuple": outputeval = evaluation[1][0]
     else                                      : outputeval = evaluation[1]
-    exportDict = {'input_space_params':evaluation[0],'output_space_params':outputeval,'metadata':finishedJob.returnMetadata()}
+    exportDict = {'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.returnMetadata()}
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
-      for key in exportDict['input_space_params' ] :
-        if key in output.getParaKeys('inputs'): output.updateInputValue (key,exportDict['input_space_params' ][key])
-      for key in exportDict['output_space_params'] :
-        if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['output_space_params'][key])
+      for key in exportDict['inputSpaceParams' ] :
+        if key in output.getParaKeys('inputs'): output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
+      for key in exportDict['outputSpaceParams'] :
+        if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
       for key in exportDict['metadata'] : output.updateMetadata(key,exportDict['metadata'][key])
 #
 #
@@ -603,10 +602,10 @@ class ExternalModel(Dummy):
     if finishedJob.returnEvaluation() == -1:
       #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
       self.raiseAnError(RuntimeError,"No available Output to collect (Run probabably failed or is not finished yet)")
-    def typeMatch(var,var_type_str):
-      type_var = type(var)
-      return type_var.__name__ == var_type_str or \
-        type_var.__module__+"."+type_var.__name__ == var_type_str
+    def typeMatch(var,varTypeStr):
+      typeVar = type(var)
+      return typeVar.__name__ == varTypeStr or \
+        typeVar.__module__+"."+typeVar.__name__ == varTypeStr
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
     instanciatedSelf = finishedJob.returnEvaluation()[1][1]
     outcomes         = finishedJob.returnEvaluation()[1][0]

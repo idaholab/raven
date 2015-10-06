@@ -4,7 +4,7 @@ import os
 
 def convert(tree):
   """
-    Converts input files to be compatible with merge request #269 (wangc/nd_dist_dev).  Removes the <data_filename> and <working_dir> node
+    Converts input files to be compatible with merge request #269 (wangc/nd_dist_dev).  Removes the <data_filename> and <workingDir> node
     from the <MultivariateNormal> block, add <covariance> child node to the parent node <MultivariateNormal>.
     @ In, tree, xml.etree.ElementTree.ElementTree object, the contents of a RAVEN input file
     @Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN input file
@@ -17,7 +17,7 @@ def convert(tree):
       if MVNNode is not None:
         dataFileNameNode = MVNNode.find('data_filename')
         covFileName = dataFileNameNode.text
-        dataWorkingDirNode = MVNNode.find('working_dir')
+        dataWorkingDirNode = MVNNode.find('workingDir')
         covFileDir = dataWorkingDirNode.text
         if '~' in covFileDir: covFileDir = os.path.expanduser(covFileDir)
         if os.path.isabs(covFileDir): covFileDir = covFileDir
