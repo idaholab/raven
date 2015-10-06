@@ -26,7 +26,7 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>300</simplification>
+      <simplification>75</simplification>
       <persistence>count</persistence>
     </PostProcessor>
   </Models>

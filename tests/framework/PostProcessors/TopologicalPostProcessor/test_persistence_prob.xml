@@ -27,7 +27,7 @@
       <parameters>X,Y</parameters>
       <response>Z</response>
       <!-- <simplification>0.1</simplification> -->
-      <simplification>0.0009</simplification>
+      <simplification>9e-9</simplification>
       <weighted>true</weighted>
       <persistence>probability</persistence>
     </PostProcessor>
