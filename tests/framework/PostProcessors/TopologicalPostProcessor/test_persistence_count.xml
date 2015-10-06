@@ -26,7 +26,7 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>300</simplification>
+      <simplification>75</simplification>
       <persistence>count</persistence>
     </PostProcessor>
   </Models>
@@ -42,18 +42,18 @@
     <Grid name="gridSampler">
       <variable name="X">
         <distribution>NormDist</distribution>
-        <grid type='value' construction='equal' steps='50'>0 1</grid>
+        <grid type='value' construction='equal' steps='25'>0 1</grid>
       </variable>
       <variable name="Y">
         <distribution>NormDist</distribution>
-        <grid type='value' construction='equal' steps='50'>0 1</grid>
+        <grid type='value' construction='equal' steps='25'>0 1</grid>
       </variable>
     </Grid>
   </Samplers>
 
   <Steps>
   <!-- Sample the test function as an External Model -->
-    <MultiRun name='sampleData' pauseAtEnd='False'>
+    <MultiRun name='sampleData' pauseAtEnd='False' sleepTime='1e-5'>
       <Input   class='DataObjects' type='PointSet'     >dummyIN</Input>
       <Model   class='Models'      type='ExternalModel'>testFunction</Model>
       <Sampler class='Samplers'    type='Grid'         >gridSampler</Sampler>
