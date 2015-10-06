@@ -143,7 +143,11 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.subType  = ''
     self.runQueue = []
     self.printTag = 'MODEL'
+    aaa = inspect.getmembers(self)
     self.mods     = utils.returnImportModuleString(inspect.getmodule(self),True)
+    self.mods.append(utils.toBytes("from Models import *"))
+    self.mods.append(utils.toBytes("from MessageHandler import MessageHandler, MessageUser"))
+    self.mods.append(utils.toBytes("from BaseClasses import BaseType"))
     self.globs    = {}
 
   def _readMoreXML(self,xmlNode):
