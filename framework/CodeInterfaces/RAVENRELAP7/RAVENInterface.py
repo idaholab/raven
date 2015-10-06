@@ -105,14 +105,14 @@ class RAVENInterface(CodeInterfaceBase):
   def monteCarloForRAVEN(self,**Kwargs):
     if 'prefix' in Kwargs: counter = Kwargs['prefix']
     else: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
-    if 'initialSeed' in Kwargs: init_seed = Kwargs['initialSeed']
-    else                       : init_seed = 1
+    if 'initialSeed' in Kwargs: initSeed = Kwargs['initialSeed']
+    else                       : initSeed = 1
     _,listDict = self.__genBasePointSampler(**Kwargs)
     #listDict = []
     modifDict = {}
     modifDict['name'] = ['Distributions']
-    RNG_seed = int(counter) + int(init_seed) - 1
-    modifDict[b'RNG_seed'] = str(RNG_seed)
+    RNGSeed = int(counter) + int(initSeed) - 1
+    modifDict[b'RNG_seed'] = str(RNGSeed)
     listDict.append(modifDict)
     return listDict
 

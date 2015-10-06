@@ -331,6 +331,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     inputNode = root.find("input")
     outputNode = root.find("output")
     filenameNode = root.find("inputFilename")
+    if inputNode    ==  None: self.raiseAnError(RuntimeError,'input XML node not found in file ' + filenameLocal + '.xml')
+    if outputNode   ==  None: self.raiseAnError(RuntimeError,'output XML node not found in file ' + filenameLocal + '.xml')
+    if filenameNode ==  None: self.raiseAnError(RuntimeError,'inputFilename XML node not found in file ' + filenameLocal + '.xml')
     retDict["inpKeys"] = inputNode.text.split(",")
     retDict["outKeys"] = outputNode.text.split(",")
     retDict["filenameCSV"] = filenameNode.text

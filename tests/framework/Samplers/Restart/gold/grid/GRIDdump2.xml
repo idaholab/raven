@@ -1,4 +1,4 @@
-<data name="GRIDdump2" type="Pointset"><input>x2,x1</input><output>ans2,ans</output><input_filename>GRIDdump2.csv</input_filename><metadata><SamplerType>array(u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', 
+<data name="GRIDdump2" type="Pointset"><input>x2,x1</input><output>ans2,ans</output><inputFilename>GRIDdump2.csv</inputFilename><metadata><SamplerType>array(u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', 
       dtype='&lt;U4')</SamplerType><crowDist>array( u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
        u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',
        u'x2': '"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0', u'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0',

@@ -795,7 +795,7 @@ class Code(Model):
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
-    attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
+    attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
     metadata = finisishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)

@@ -744,10 +744,10 @@ class ComparisonStatistics(BasePostProcessor):
             utils.printCsv(csv, '"' + key + '"', dataStats[key])
         self.raiseADebug("dataStats: " + str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc, str(dataPull)))
-      graphData = mathUtils.getGraphs(graphData, self.fZStats)
+      graphDataDict = mathUtils.getGraphs(graphData, self.fZStats)
       if generateCSV:
-        for key in graphData:
-          value = graphData[key]
+        for key in graphDataDict:
+          value = graphDataDict[key]
           if type(value).__name__ == 'list':
             utils.printCsv(csv, *(['"' + l[0] + '"' for l in value]))
             for i in range(1, len(value[0])):
@@ -755,8 +755,8 @@ class ComparisonStatistics(BasePostProcessor):
           else:
             utils.printCsv(csv, '"' + key + '"', value)
       if generatePointSet:
-        for key in graphData:
-          value = graphData[key]
+        for key in graphDataDict:
+          value = graphDataDict[key]
           if type(value).__name__ == 'list':
             for i in range(len(value)):
               subvalue = value[i]
@@ -1524,7 +1524,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     """
     for index, csvFile in enumerate(self.listOfCsvFiles):
 
-      attributes = {"prefix":str(index), "input_file":self.name, "type":"csv", "name":os.path.join(self.sourceDirectory, csvFile)}
+      attributes = {"prefix":str(index), "inputFile":self.name, "type":"csv", "name":os.path.join(self.sourceDirectory, csvFile)}
       metadata = finishedjob.returnMetadata()
       if metadata:
         for key in metadata: attributes[key] = metadata[key]

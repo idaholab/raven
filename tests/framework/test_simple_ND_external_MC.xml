@@ -37,20 +37,20 @@
     </Normal>
     <NDInverseWeight name="ND_InverseWeight_P">
       <p>3.0</p>
-      <data_filename type="PDF">2DgaussianScatteredPDF.txt</data_filename>
+      <dataFilename type="PDF">2DgaussianScatteredPDF.txt</dataFilename>
       <workingDir>ND_test_MC/</workingDir>
     </NDInverseWeight>
     <NDInverseWeight name="ND_InverseWeight_C">
       <p>2.5</p>
-      <data_filename type="CDF">2DgaussianScatteredCDF.txt</data_filename>
+      <dataFilename type="CDF">2DgaussianScatteredCDF.txt</dataFilename>
       <workingDir>ND_test_MC/</workingDir>
     </NDInverseWeight>
     <NDCartesianSpline name="ND_CartesianSpline_P">
-      <data_filename type="PDF">2DgaussianCartesianPDF.txt</data_filename>
+      <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
       <workingDir>ND_test_MC/</workingDir>
     </NDCartesianSpline>
     <NDCartesianSpline name="ND_CartesianSpline_C">
-      <data_filename type="CDF">2DgaussianCartesianCDF.txt</data_filename>
+      <dataFilename type="CDF">2DgaussianCartesianCDF.txt</dataFilename>
       <workingDir>ND_test_MC/</workingDir>
     </NDCartesianSpline>
   </Distributions>
