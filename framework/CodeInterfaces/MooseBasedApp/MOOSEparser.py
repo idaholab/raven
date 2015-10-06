@@ -5,6 +5,7 @@ Created on Mar 25, 2013
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
+from macpath import split
 warnings.simplefilter('default',DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
@@ -186,3 +187,22 @@ class MOOSEparser():
       del modiDictionaryList[i]['name']
       self.__modifyOrAdd(returnElement,name,modiDictionaryList[i])
     if save: return returnElement
+
+  def vectorPostProcessor(self):
+    """this method finds the vector postprocessor
+    returns boolean for the presence of the vector PP
+    returns the number and name of the csv files generated"""
+    vectorPPDict = {}
+    found = False
+    for child in self.root:
+      if 'DomainIntegral' in child.tag:
+        found = True
+        if 'radius_inner' in child.keys():
+          vectorPPDict['rings'] = child.attrib['radius_inner'].strip("'").strip().split(' ')
+        if 'integrals' in child.keys():
+          vectorPPDict['integrals'] = child.attrib['integrals'].strip("'").strip().split(' ')
+      if 'Executioner' in child.tag:
+        if 'num_steps' in child.keys():
+          vectorPPDict['timeStep'] = child.attrib['num_steps'].strip("'").strip().split(' ')
+    return found, vectorPPDict
+

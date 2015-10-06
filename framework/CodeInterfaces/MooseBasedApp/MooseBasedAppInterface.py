@@ -5,11 +5,14 @@ Created on April 14, 2014
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
+#import parser
 warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
+import MooseData
+import csvUtilities
 
 class MooseBasedAppInterface(CodeInterfaceBase):
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
@@ -50,7 +53,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['SparseGridCollocation'] = self.pointSamplerForMooseBasedApp
-    print('WARNING: Sampler type not found in MooseBasedApp Interface dictionaries; continuing with default...')
+    #print('WARNING: Sampler type not found in MooseBasedApp Interface dictionaries; continuing with default...')
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       inputFile = inputFile.getAbsFile()
@@ -68,6 +71,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     else:
       newInputFiles[index].setBase(str(Kwargs['prefix'][1][0])+"~"+currentInputFiles[index].getBase())
     parser.printInput(newInputFiles[index].getAbsFile())
+    self.vectorPPFound, self.vectorPPDict = parser.vectorPostProcessor()
     return newInputFiles
 
   def pointSamplerForMooseBasedApp(self,**Kwargs):
@@ -82,3 +86,40 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     raise IOError('dynamicEventTreeForMooseBasedApp not yet implemented')
     listDict = []
     return listDict
+
+  def finalizeCodeOutput(self,command,output,workingDir):
+    ''' this method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
+        It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
+        @ command, Input, the command used to run the just ended job (NOT Used at the moment)
+        @ output, Input, the Output name root (string)
+        @ workingDir, Input, actual working dir (string)
+        @ return is optional, in case the root of the output file gets changed in this method.
+    '''
+
+    if self.vectorPPFound:
+      if len(self.vectorPPDict['rings']) == 1: return self.__mergeTime(output,workingDir)[0]
+      else:
+        ringFiles = self.__mergeTime(output,workingDir)
+        for i in range(len(ringFiles)): ringFiles[i] = ringFiles[i]+'.csv'
+        outputObj = csvUtilities.csvUtilityClass(ringFiles)
+        outputFileName = os.path.join(workingDir,str(output+'_VPP.csv'))
+        options = {'variablesToExpandFrom': ["timeStep"]}
+        outputObj.mergeCSV(outputFileName, options)
+        return  outputFileName
+    else: return
+
+  def __mergeTime(self,output,workingDir):
+    files2Merge = []
+    vppFiles = []
+    if 'JIntegral' in self.vectorPPDict['integrals']:
+      integral = 'J'
+    elif 'KIntegral' in self.vectorPPDict['integrals']: integral = 'K' #TODO: This is an example KIntegral could be something different did not check it fwith MOOSE yet.
+    else: integral = '' #TODO: implement an error or warning message
+    for ring in range(len(self.vectorPPDict['rings'])):
+      files2Merge.append([])
+      for time in range(int(self.vectorPPDict['timeStep'][0])):
+        files2Merge[ring].append(os.path.join(workingDir,str(output+'_'+integral+'_'+str(ring+1)+'_'+("%04d" % (time+1))+'.csv')))
+      outputObj = MooseData.mooseData(files2Merge[ring],workingDir,output+str(ring+1),ring)
+      vppFiles.append(os.path.join(workingDir,str(outputObj.vppFiles)))
+    return vppFiles
+

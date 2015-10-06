@@ -62,7 +62,8 @@ class csvUtilityClass(object):
     if len(outputFileName.strip()) == 0: raise IOError("MergeCSV class ERROR: the outputFileName string is empty!")
     # set some default
     sameKeySuffix        = "filename"
-    variablesToExpandFrom = ["time"]
+    variablesToExpandFrom = []
+    variablesToExpandFrom.append('time')
     if options:
       if "sameKeySuffix" in options.keys()        : sameKeySuffix         = options["sameKeySuffix"]
       if "variablesToExpandFrom" in options.keys(): variablesToExpandFrom = options["variablesToExpandFrom"]
@@ -94,7 +95,7 @@ class csvUtilityClass(object):
     variablesToExpandFromValuesSet = sorted(variablesToExpandFromValuesSet, key=float)
     variablesToExpandFromValuesSet = np.array(variablesToExpandFromValuesSet)
     variablesToExpandFromValuesSet.shape = (len(variablesToExpandFromValuesSet),1)
-    if len(variablesToExpandFromValues.keys()) != len(self.dataContainer.keys()): raise Exception ("the variables "+str(variablesToExpandFrom) + "have not been found in all files!!!!")
+    if len(variablesToExpandFromValues.keys()) != len(self.dataContainer.keys()): raise Exception ("the variables "+str(variablesToExpandFrom) + " have not been found in all files!!!!")
     datafinal = np.zeros((len(variablesToExpandFromValuesSet),len(self.allHeaders)))
     # we use a neighbors.KNeighborsRegressor to merge the csvs
     nearest = neighbors.KNeighborsRegressor(n_neighbors=1)
