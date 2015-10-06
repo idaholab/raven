@@ -28,6 +28,10 @@ import ast
 import pickle as pk
 from operator import itemgetter
 from collections import OrderedDict
+
+from scipy import spatial
+from sklearn.neighbors.kde import KernelDensity
+import math
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -572,7 +576,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     """
     return {}
 
-
 class HDMRRom(GaussPolynomialRom):
   """High-Dimention Model Reduction reduced order model.  Constructs model based on subsets of the input space."""
   def __confidenceLocal__(self,edict):
@@ -850,6 +853,477 @@ class HDMRRom(GaussPolynomialRom):
 #
 #
 #
+#
+class MSR(NDinterpolatorRom):
+  """
+    MSR class - Computes an approximated hierarchical Morse-Smale decomposition
+    from an input point cloud consisting of an arbitrary number of input
+    parameters and one or more response values per input point
+  """
+  def __init__(self, messageHandler, **kwargs):
+    """
+     Constructor that will appropriately initialize an MSR object
+    @In, messageHandler: a MessageHandler object in charge of raising errors,
+                         and printing messages
+    @In, kwargs: an arbitrary dictionary of keywords and values
+    """
+    self.printTag = 'MSR ROM'
+    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
+                               'relaxed beta skeleton']
+    self.acceptedPersistenceParam = ['difference','probability','count','area']
+    self.acceptedGradientParam = ['steepest', 'maxflow']
+    self.acceptedNormalizationParam = ['feature', 'zscore', 'none']
+    self.acceptedPredictorParam = ['kde', 'svm']
+    self.acceptedKernelParam = ['uniform', 'triangular', 'epanechnikov',
+                                'biweight', 'quartic', 'triweight', 'tricube',
+                                'gaussian', 'cosine', 'logistic', 'silverman',
+                                'exponential']
+
+    # Some sensible default arguments
+    self.gradient = 'steepest'            # Gradient estimate methodology
+    self.graph = 'beta skeleton'          # Neighborhood graph used
+    self.beta = 1                         # beta used in the beta skeleton graph
+                                          #  and its relaxed version
+    self.knn = -1                         # k-nearest neighbor value for either
+                                          #  the approximate knn strategy, or
+                                          #  for initially pruning the beta
+                                          #  skeleton graphs. (this could also
+                                          #  potentially be used for restricting
+                                          #  the models influencing a query
+                                          #  point to only use those models
+                                          #  belonging to a limited
+                                          #  neighborhood of training points)
+    self.simplification = 0               # Morse-smale simplification amount
+                                          #  this should probably be normalized
+                                          #  to [0,1], however for now it is not
+                                          #  and the scale of it will depend on
+                                          #  the type of persistence used
+    self.persistence = 'difference'       # Strategy for merging topo partitions
+    self.weighted = False                 # Should the linear models be weighted
+                                          #  by probability information?
+    self.normalization = None             # Should any normalization be
+                                          #  performed within the AMSC? No, this
+                                          #  data should already be standardized
+    self.partitionPredictor = 'kde'       # The method used to predict the label
+                                          #  of each query point (can be soft).
+    self.blending = False                 # Flag: blend the predictions
+                                          #  depending on soft label predictions
+                                          #  or use only the most likely local
+                                          #  model
+    self.kernel = 'gaussian'              # What kernel should be used in the
+                                          #  kde approach
+    self.bandwidth = 1.                   # The bandwidth for the kde approach
+
+    # Read everything in first, and then do error checking as some parameters
+    # will not matter, but we can still throw a warning message that they may
+    # want to clean up there input file. In some cases, we will have to do
+    # value checking in place since the type cast can fail.
+    for key,val in kwargs.items():
+      if key.lower() == 'graph':
+        self.graph = val.strip().encode('ascii').lower()
+      elif key.lower() == "gradient":
+        self.gradient = val.strip().encode('ascii').lower()
+      elif key.lower() == "beta":
+        try:
+          self.beta = float(val)
+        except ValueError:
+          # If the user has specified a graph, use it, otherwise be sure to use
+          #  the default when checking whether this is a warning or an error
+          if 'graph' in kwargs:
+            graph = kwargs['graph'].strip().encode('ascii').lower()
+          else:
+            graph = self.graph
+          if graph.endswith('beta skeleton'):
+            self.raiseAnError(IOError, 'Requested invalid beta value:',
+                              val, '(Allowable range: (0,2])')
+          else:
+            self.raiseAWarning('Requested invalid beta value:', self.beta,
+                               '(Allowable range: (0,2]), however beta is',
+                               'ignored when using the', graph,
+                               'graph structure.')
+      elif key.lower() == 'knn':
+        try:
+          self.knn = int(val)
+        except ValueError:
+          self.raiseAnError(IOError, 'Requested invalid knn value:',
+                            val, '(Should be an integer value, knn <= 0 implies'
+                            ,'use of the fully connected point set)')
+      elif key.lower() == 'simplification':
+        try:
+          self.simplification = float(val)
+        except ValueError:
+          self.raiseAnError(IOError, 'Requested invalid simplification level:',
+                            val, '(should be a floating point value)')
+      elif key.lower() == 'bandwidth':
+        if val == 'variable' or val == 'auto':
+          self.bandwidth = val
+        else:
+          try:
+            self.bandwidth = float(val)
+          except ValueError:
+            # If the user has specified a strategy, use it, otherwise be sure to
+            #  use the default when checking whether this is a warning or an error
+            if 'partitionPredictor' in kwargs:
+              partPredictor = kwargs['partitionPredictor'].strip().encode('ascii').lower()
+            else:
+              partPredictor = self.partitionPredictor
+            if partPredictor == 'kde':
+              self.raiseAnError(IOError, 'Requested invalid bandwidth value:',
+                                val,'(should be a positive floating point value)')
+            else:
+              self.raiseAWarning('Requested invalid bandwidth value:',val,
+                                 '(bandwidth > 0 or \"variable\"). However, it is ignored when',
+                                 'using the', partPredictor, 'partition',
+                                 'predictor')
+      elif key.lower() == 'persistence':
+        self.persistence = val.strip().encode('ascii').lower()
+      elif key.lower() == 'partitionpredictor':
+        self.partitionPredictor = val.strip().encode('ascii').lower()
+      elif key.lower() == 'smooth':
+        self.blending = True
+      elif key.lower() == "kernel":
+        self.kernel = val
+      # elif key.lower() == 'normalization':
+      #   self.normalization = val.strip().encode('ascii').lower()
+      else:
+        pass
+        #print(key,val)
+
+    # Morse-Smale specific error handling
+    if self.graph not in self.acceptedGraphParam:
+      self.raiseAnError(IOError, 'Requested unknown graph type:',
+                        '\"'+self.graph+'\"','(Available options:',
+                        self.acceptedGraphParam,')')
+    if self.gradient not in self.acceptedGradientParam:
+      self.raiseAnError(IOError, 'Requested unknown gradient method:',
+                        '\"'+self.gradient+'\"', '(Available options:',
+                        self.acceptedGradientParam,')')
+    if self.beta <= 0 or self.beta > 2:
+      if self.graph.endswith('beta skeleton'):
+        self.raiseAnError(IOError, 'Requested invalid beta value:',
+                          self.beta, '(Allowable range: (0,2])')
+      else:
+        self.raiseAWarning('Requested invalid beta value:', self.beta,
+                           '(Allowable range: (0,2]), however beta is',
+                           'ignored when using the', self.graph,
+                           'graph structure.')
+    if self.persistence not in self.acceptedPersistenceParam:
+      self.raiseAnError(IOError, 'Requested unknown persistence method:',
+                        '\"'+self.persistence+'\"', '(Available options:',
+                        self.acceptedPersistenceParam,')')
+    # if self.normalization not in self.acceptedNormalizationParam:
+    #   self.raiseAnError(IOError, 'Requested unknown normalization type:',
+    #                     '\"'+self.normalization+'\"', '(Available options:',
+    #                     self.acceptedNormalizationParam,')')
+    # Regression specific error handling
+    if self.partitionPredictor not in self.acceptedPredictorParam:
+      self.raiseAnError(IOError, 'Requested unknown partition predictor:'
+                        '\"'+self.partitionPredictor+'\"','(Available options:',
+                        self.acceptedPredictorParam,')')
+    if self.bandwidth <= 0:
+      if self.partitionPredictor == 'kde':
+        self.raiseAnError(IOError, 'Requested invalid bandwidth value:',
+                          self.bandwidth, '(bandwidth > 0)')
+      else:
+        self.raiseAWarning(IOError, 'Requested invalid bandwidth value:',
+                          self.bandwidth, '(bandwidth > 0). However, it is',
+                          'ignored when using the', self.partitionPredictor,
+                          'partition predictor')
+
+    if self.kernel not in self.acceptedKernelParam:
+      if self.partitionPredictor == 'kde':
+        self.raiseAnError(IOError, 'Requested unknown kernel:',
+                          '\"'+self.kernel+'\"', '(Available options:',
+                          self.acceptedKernelParam,')')
+      else:
+        self.raiseAWarning('Requested unknown kernel:', '\"'+self.kernel+'\"',
+                           '(Available options:', self.acceptedKernelParam,
+                           '), however the kernel is ignored when using the',
+                           self.partitionPredictor,'partition predictor.')
+
+  def __trainLocal__(self,featureVals,targetVals):
+    """
+    Perform training on samples in X with responses y.
+    Parameters: featureVals : {array-like, sparse matrix}, shape = [n_samples, n_features]
+    Returns   : targetVals : array, shape = [n_samples]
+    """
+
+    # # Possibly load this here in case people have trouble building it, so it
+    # # only errors if they try to use it?
+    from AMSC_Object import AMSC_Object
+
+    self.X = featureVals[:][:]
+    self.Y = targetVals
+
+    if self.weighted:
+      self.raiseAnError(NotImplementedError,
+                    ' cannot use weighted data right now.')
+    else:
+      weights = None
+
+    if self.knn <= 0:
+      self.knn = self.X.shape[0]
+
+    names = [name.encode('ascii') for name in self.features + [self.target]]
+    # Data is already normalized, so ignore this parameter
+    ### Comment replicated from the post-processor version, not sure what it
+    ### means (DM)
+    # FIXME: AMSC_Object employs unsupervised NearestNeighbors algorithm from
+    #        scikit learn.
+    #        The NearestNeighbor algorithm is implemented in
+    #        SupervisedLearning, which requires features and targets by
+    #        default, which we don't have here. When the NearestNeighbor is
+    #        implemented in unSupervisedLearning switch to it.
+    self.__amsc = AMSC_Object(X=self.X, Y=self.Y, w=weights, names=names,
+                              graph=self.graph, gradient=self.gradient,
+                              knn=self.knn, beta=self.beta,
+                              normalization=None,
+                              persistence=self.persistence)
+    self.__amsc.Persistence(self.simplification)
+    self.__amsc.BuildLinearModels(self.simplification)
+
+    # We need a KD-Tree for querying neighbors
+    self.kdTree = neighbors.KDTree(self.X)
+
+    # distances,_ = self.kdTree.query(self.X,k=self.X.shape[0])
+    distances,_ = self.kdTree.query(self.X,k=self.knn)
+    distances = distances.flatten()
+
+    # The following are a list of common kernels defined centered at zero with
+    # either infinite support or a support defined over the interval [1,1].
+    # See: https://en.wikipedia.org/wiki/Kernel_(statistics)
+    # Thus, the use of this indicator function. When using these kernels, we
+    # must be sure to first scale the parameter into this support before calling
+    # it. In our case, we want to center our information, such that the maximum
+    # value occurs when the two points coincide, and so we will set u to be
+    # inversely proportional to the distance between two points, and scaled by
+    # a bandwidth parameter (either the user will fix, or we will compute)
+    def indicator(u):
+      return np.abs(u)<1
+
+    if self.kernel == 'uniform':
+      if self.bandwidth == 'auto':
+        self.bandwidth = max(distances)
+        self.raiseAWarning('automatic bandwidth not yet implemented for the'
+                           + self.kernel + ' kernel.')
+      def kernel(u):
+        return 0.5*indicator(u)
+    elif self.kernel == 'triangular':
+      if self.bandwidth == 'auto':
+        self.bandwidth = max(distances)
+        self.raiseAWarning('automatic bandwidth not yet implemented for the'
+                           + self.kernel + ' kernel.')
+      def kernel(u):
+        return (1-abs(u))*indicator(u)
+    elif self.kernel == 'epanechnikov':
+      if self.bandwidth == 'auto':
+        self.bandwidth = max(distances)
+        self.raiseAWarning('automatic bandwidth not yet implemented for the'
+                           + self.kernel + ' kernel.')
+      def kernel(u):
+        return ( 3./4. )*(1-u**2)*indicator(u)
+    elif self.kernel == 'biweight' or self.kernel == 'quartic':
+      if self.bandwidth == 'auto':
+        self.bandwidth = max(distances)
+        self.raiseAWarning('automatic bandwidth not yet implemented for the'
+                           + self.kernel + ' kernel.')
+      def kernel(u):
+        return (15./16.)*(1-u**2)**2*indicator(u)
+    elif self.kernel == 'triweight':
+      if self.bandwidth == 'auto':
+        self.bandwidth = max(distances)
+        self.raiseAWarning('automatic bandwidth not yet implemented for the'
+                           + self.kernel + ' kernel.')
+      def kernel(u):
+        return (35./32.)*(1-u**2)**3*indicator(u)
+    elif self.kernel == 'tricube':
+      if self.bandwidth == 'auto':
+        self.bandwidth = max(distances)
+        self.raiseAWarning('automatic bandwidth not yet implemented for the'
+                           + self.kernel + ' kernel.')
+      def kernel(u):
+        return (70./81.)*(1-abs(u)**3)**3*indicator(u)
+    elif self.kernel == 'gaussian':
+      if self.bandwidth == 'auto':
+        self.bandwidth = 1.06*distances.std()*len(distances)**(-1./5.)
+        self.raiseAWarning('automatic bandwidth not yet implemented for the'
+                           + self.kernel + ' kernel.')
+      def kernel(u):
+        return 1./np.sqrt(2*math.pi)*np.exp(-0.5*u**2)
+    elif self.kernel == 'cosine':
+      if self.bandwidth == 'auto':
+        self.bandwidth = max(distances)
+        self.raiseAWarning('automatic bandwidth not yet implemented for the'
+                           + self.kernel + ' kernel.')
+      def kernel(u):
+        return math.pi/4.*math.cos(u*math.pi/2.)*indicator(u)
+    elif self.kernel == 'logistic':
+      if self.bandwidth == 'auto':
+        self.bandwidth = max(distances)
+        self.raiseAWarning('automatic bandwidth not yet implemented for the'
+                           + self.kernel + ' kernel.')
+      def kernel(u):
+        return 1./(np.exp(u)+2+np.exp(-u))
+    elif self.kernel == 'silverman':
+      if self.bandwidth == 'auto':
+        self.bandwidth = max(distances)
+        self.raiseAWarning('automatic bandwidth not yet implemented for the'
+                           + self.kernel + ' kernel.')
+      def kernel(u):
+        sqrt2 = math.sqrt(2)
+        return 0.5 * np.exp(-abs(u)/sqrt2) * np.sin(abs(u)/sqrt2+math.pi/4.)
+    elif self.kernel == 'exponential':
+      if self.bandwidth == 'auto':
+        self.bandwidth = max(distances)
+        self.raiseAWarning('automatic bandwidth not yet implemented for the'
+                           + self.kernel + ' kernel.')
+      def kernel(u):
+        return np.exp(-abs(u))
+    self.__kernel = kernel
+
+  def __confidenceLocal__(self,featureVals):
+    """
+    This should return an estimation of the quality of the prediction.
+    Should return distance to nearest neighbor or average prediction error of
+    all neighbors?
+    @ In, featureVals, 2-D numpy array [n_samples,n_features]
+    @ Out, float, the confidence
+    """
+    self.raiseAnError(NotImplementedError,
+                      '__confidenceLocal__ method must be implemented!')
+
+  def __evaluateLocal__(self,featureVals):
+    """
+    Perform regression on samples in featureVals.
+    This will use the local predictor of each neighboring point weighted by its
+    distance to that point.
+    @ In, numpy.array 2-D, features
+    @ Out, numpy.array 1-D, predicted values
+    """
+    if self.partitionPredictor == 'kde':
+      partitions = self.__amsc.Partitions(self.simplification)
+      weights = {}
+      dists = np.zeros((featureVals.shape[0],self.X.shape[0]))
+      for i,row in enumerate(featureVals):
+        dists[i] = np.sqrt(((row-self.X)**2).sum(axis=-1))
+      # This is a variable-based bandwidth that will adjust to the density
+      # around the given query point
+      if self.bandwidth == 'variable':
+        h = sorted(dists)[self.knn-1]
+      else:
+        h = self.bandwidth
+      for key,indices in partitions.iteritems():
+        #############
+        ## Using SciKit Learn, we have a limited number of kernel functions to
+        ## choose from.
+        # kernel = self.kernel
+        # if kernel == 'uniform':
+        #   kernel = 'tophat'
+        # if kernel == 'triangular':
+        #   kernel = 'linear'
+        # kde = KernelDensity(kernel=kernel, bandwidth=h).fit(self.X[indices,])
+        # weights[key] = np.exp(kde.score_samples(featureVals))
+        #############
+        ## OR
+        #############
+        weights[key] = 0
+        for idx in indices:
+          weights[key] += self.__kernel(dists[:,idx]/h)
+        weights[key]
+        #############
+
+      # The following repetitive if-conditionals could be collapsed and the for
+      # loop could be replicated possibly gaining minor performance, but as the
+      # for loop is actively being modified it only creates more places of
+      # failure or for things to get out-of-sync, so let's keep it this way, for
+      # now.
+
+      # if self.blending:
+      weightedPredictions = np.zeros(featureVals.shape[0])
+      sumW = 0
+      # else
+      predictions = np.zeros(featureVals.shape[0])
+      maxWeights = np.zeros(featureVals.shape[0])
+
+      for key in partitions.keys():
+        fx = self.__amsc.Predict(featureVals,key)
+        wx = weights[key]
+
+        #if self.blending:
+        sumW += wx
+        weightedPredictions += fx*wx
+        #else:
+        predictions[wx > maxWeights] = fx
+        maxWeights[wx > maxWeights] = wx
+
+      if self.blending:
+        if sumW == 0:
+          return weightedPredictions
+        return weightedPredictions / sumW
+      else:
+        return predictions
+
+    elif self.partitionPredictor == 'svm':
+      partitions = self.__amsc.Partitions(self.simplification)
+      labels = np.zeros(self.X.shape[0])
+      for idx,(key,indices) in enumerate(partitions.iteritems()):
+        labels[np.array(indices)] = idx
+      # In order to make this deterministic for testing purposes, let's fix
+      # the random state of the SVM object. Maybe, this could be exposed to the
+      # user, but it shouldn't matter too much what the seed is for this.
+      svc = svm.SVC(probability=True,random_state=np.random.RandomState(8),tol=1e-15)
+      svc.fit(self.X,labels)
+      probabilities = svc.predict_proba(featureVals)
+
+      #if self.blending:
+      weightedPredictions = np.zeros(len(featureVals))
+      sumW = 0
+      # else:
+      predictions = np.zeros(featureVals.shape[0])
+      maxWeights = np.zeros(featureVals.shape[0])
+
+      classIdxs = list(svc.classes_)
+      for idx,key in enumerate(partitions.keys()):
+        fx = self.__amsc.Predict(featureVals,key)
+        # It could be that a particular partition consists of only the extrema
+        # and they themselves point to cells with different opposing extrema.
+        # That is, a maximum points to a different minimum than the minimum in
+        # the two point partition. Long story short, we need to be prepared for
+        # an empty partition which will thus not show up in the predictions of
+        # the SVC, since no point has it as a label.
+        if idx not in classIdxs:
+          wx = np.zeros(probabilities.shape[0])
+        else:
+          realIdx = list(svc.classes_).index(idx)
+          wx = probabilities[:,realIdx]
+        if self.blending:
+          weightedPredictions = weightedPredictions + fx*wx
+          sumW += wx
+        else:
+          predictions[wx > maxWeights] = fx
+          maxWeights[wx > maxWeights] = wx
+
+      if self.blending:
+        return weightedPredictions/sumW
+      else:
+        return predictions
+
+
+  def __resetLocal__(self):
+    """
+    The reset here will erase the internal data while keeping the
+    instance
+    """
+    self.X      = []
+    self.Y      = []
+    self.__amsc = None
+    self.kdTree = None
+
+
+#
+#
+#
 class NDsplineRom(NDinterpolatorRom):
   """
   An N-dimensional Spline model
@@ -1101,6 +1575,7 @@ __interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
 __interfaceDict['SciKitLearn'         ] = SciKitLearn
 __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
+__interfaceDict['HDMRRom'             ] = MSR
 __base                                  = 'superVisedLearning'
 
 # def addToInterfaceDict(newDict):
