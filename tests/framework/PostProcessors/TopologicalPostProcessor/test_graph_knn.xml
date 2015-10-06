@@ -53,7 +53,7 @@
 
   <Steps>
     <!-- Sample the data from the test function -->
-    <MultiRun name="sampleData">
+    <MultiRun name="sampleData" sleepTime='1e-5'>
       <Input   class="DataObjects" type="PointSet"         >dummyIN</Input>
       <Model   class="Models"      type="ExternalModel"    >test</Model>
       <Sampler class="Samplers"    type="MonteCarlo"       >sampler</Sampler>

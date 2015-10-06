@@ -55,7 +55,7 @@
 
   <Steps>
   <!-- Sample the test function as an External Model -->
-    <MultiRun name='sampleData' pauseAtEnd='False'>
+    <MultiRun name='sampleData' pauseAtEnd='False' sleepTime='1e-5'>
       <Input   class='DataObjects' type='PointSet'     >dummyIN</Input>
       <Model   class='Models'      type='ExternalModel'>testFunction</Model>
       <Sampler class='Samplers'    type='Grid'         >gridSampler</Sampler>
