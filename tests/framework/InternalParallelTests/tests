@@ -11,8 +11,7 @@
  [../]
  [./PostProcessor]
   type = 'RavenFramework'
-  input = 'test_rom_scikit.xml'
-  xml = 'Sobol/dump.xml'
-  csv = 'Sobol/dump.csv'
+  input = 'test_internal_parallel_PP_LS.xml'
+  csv = 'InternalParallelPostProcessorLS/LimitSurfaceWeightedPb_dump.csv InternalParallelPostProcessorLS/LimitSurfaceUnWeightedPb_dump.csv'
  [../]
 []

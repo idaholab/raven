@@ -194,7 +194,7 @@ class ExternalRunner(MessageHandler.MessageUser):
 #
 class InternalRunner(MessageHandler.MessageUser):
   #import multiprocessing as multip
-  def __init__(self,messageHandler,ppserver, Input,functionToRun, frameworkModules = [], identifier=None,metadata=None, globs = None, functionToSkip = None):
+  def __init__(self,messageHandler,ppserver, Input, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, forceUseThreads = False):
     # we keep the command here, in order to have the hook for running exec code into internal models
     self.command  = "internal"
     self.messageHandler = messageHandler
@@ -206,16 +206,16 @@ class InternalRunner(MessageHandler.MessageUser):
     else: self.identifier = 'generalOut'
     if type(Input) != tuple: self.raiseAnError(IOError,"The input for InternalRunner needs to be a tuple!!!!")
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
-    if self.ppserver == None: self.subque = queue.Queue()
-    self.functionToRun   = functionToRun
-    self.__runReturn     = None
-    self.__hasBeenAdded  = False
-    self.__input         = copy.copy(Input)
-    self.__metadata      = copy.copy(metadata)
-    self.__globals       = copy.copy(globs)
-    self.__frameworkMods = copy.copy(frameworkModules)
-    self._functionToSkip = functionToSkip
-    self.retcode         = 0
+    if self.ppserver == None or forceUseThreads: self.subque = queue.Queue()
+    self.functionToRun    = functionToRun
+    self.__runReturn      = None
+    self.__hasBeenAdded   = False
+    self.__forceUseThreads= forceUseThreads
+    self.__input          = copy.copy(Input)
+    self.__metadata       = copy.copy(metadata)
+    self.__frameworkMods  = copy.copy(frameworkModules)
+    self._functionToSkip  = functionToSkip
+    self.retcode          = 0
 
   def __deepcopy__(self,memo):
     """This is the method called with copy.deepcopy.  Overwritten to remove some keys.
@@ -234,7 +234,7 @@ class InternalRunner(MessageHandler.MessageUser):
     return newobj
 
   def start_pp(self):
-    if self.ppserver != None:
+    if self.ppserver != None and not self.__forceUseThreads:
       if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
       else                     : self.__thread = self.ppserver.submit(self.functionToRun, args= self.__input, depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
     else:
@@ -246,8 +246,8 @@ class InternalRunner(MessageHandler.MessageUser):
   def isDone(self):
     if self.__thread == None: return True
     else:
-      if self.ppserver != None: return self.__thread.finished
-      else                    : return not self.__thread.is_alive()
+      if self.ppserver != None and not self.__forceUseThreads: return self.__thread.finished
+      else                                                   : return not self.__thread.is_alive()
 
   def getReturnCode(self):
     """Returns the return code from running the code.  If return code not yet set, set it.
@@ -263,10 +263,9 @@ class InternalRunner(MessageHandler.MessageUser):
     return self.retcode
 
   def returnEvaluation(self):
-
     if self.isDone():
       if not self.__hasBeenAdded:
-        if self.ppserver is not None:
+        if self.ppserver is not None and not self.__forceUseThreads:
           #self.ppserver.print_stats()
           self.__runReturn = self.__thread()
         else:
@@ -289,8 +288,8 @@ class InternalRunner(MessageHandler.MessageUser):
 
   def kill(self):
     self.raiseAMessage("Terminating "+self.__thread.pid+ " Identifier " + self.identifier)
-    if self.ppserver != None: os.kill(self.__thread.tid,signal.SIGTERM)
-    else: os.kill(self.__thread.pid,signal.SIGTERM)
+    if self.ppserver != None and not self.__forceUseThreads: os.kill(self.__thread.tid,signal.SIGTERM)
+    else                                                   : os.kill(self.__thread.pid,signal.SIGTERM)
 
 class JobHandler(MessageHandler.MessageUser):
   def __init__(self):
@@ -384,10 +383,10 @@ class JobHandler(MessageHandler.MessageUser):
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
-  def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], globs = None):
+  def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], forceUseThreads = False):
     #internal serve is initialized only in case an internal calc is requested
     if not self.initParallelPython: self.__initializeParallelPython()
-    self.__queue.put(InternalRunner(self.messageHandler,self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs, functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)]))
+    self.__queue.put(InternalRunner(self.messageHandler,self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)],forceUseThreads = forceUseThreads))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 

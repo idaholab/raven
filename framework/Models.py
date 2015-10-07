@@ -464,7 +464,7 @@ class ROM(Dummy):
   def run(self,Input,jobHandler):
     """This call run a ROM as a model"""
     inRun = self._manipulateInput(Input[0])
-    jobHandler.submitDict['Internal']((inRun,),self.__externalRun,str(Input[1]['prefix']),metadata=Input[1],modulesToImport=self.mods)
+    jobHandler.submitDict['Internal']((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods)
 #
 #
 #
@@ -940,8 +940,8 @@ class PostProcessor(Model, Assembler):
 
   def run(self,Input,jobHandler):
     """run calls the interface finalizer"""
-    if len(Input) > 0 : jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods)
-    else: jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods)
+    if len(Input) > 0 : jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
+    else: jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
 
   def collectOutput(self,finishedjob,output):
     self.interface.collectOutput(finishedjob,output)
