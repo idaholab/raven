@@ -38,13 +38,9 @@ def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
   @ In, filename, string containing the file name
   @ Out, boolean, True if it is present, False otherwise
   """
-  #import portalocker
-  finm = os.path.join(pathname,filename)
-  fp = open(finm, 'w')
-  return os.path.isfile(finm)
-#   try           : portalocker.lock(fp, portalocker.LOCK_EX | portalocker.LOCK_NB)
-#   except portalocker.LockException: return True
-#   return False
+  filePresent = os.path.isfile(os.path.join(pathname,filename))
+  open(os.path.join(pathname,filename), 'w')
+  return filePresent
 
 def returnImportModuleString(obj,moduleOnly=False):
   mods = []
