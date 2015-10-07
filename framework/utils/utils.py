@@ -18,12 +18,12 @@ class NoMoreSamplesNeeded(GeneratorExit): pass
 
 def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   """
-  Method to check if a path (file or directory) is currently
-  used by another program. It is based on accessing time...
-  Probably there is a better way.
-  @ In, pathname, string containing the all path
-  @ In, timelapse, float, tollerance on time modification
-  @ Out, boolean, True if it is used by another program, False otherwise
+    Method to check if a path (file or directory) is currently
+    used by another program. It is based on accessing time...
+    Probably there is a better way.
+    @ In, pathname, string containing the all path
+    @ In, timelapse, float, tollerance on time modification
+    @ Out, boolean, True if it is used by another program, False otherwise
   """
   import stat
   import time
@@ -33,19 +33,26 @@ def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
 
 def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
   """
-  Method to check if a path (directory) contains an hidden raven file
-  @ In, pathname, string containing the path
-  @ In, filename, string containing the file name
-  @ Out, boolean, True if it is present, False otherwise
+    Method to check if a path (directory) contains an hidden raven file
+    @ In, pathname, string containing the path
+    @ In, filename, string containing the file name
+    @ Out, boolean, True if it is present, False otherwise
   """
   filePresent = os.path.isfile(os.path.join(pathname,filename))
   open(os.path.join(pathname,filename), 'w')
   return filePresent
 
 def returnImportModuleString(obj,moduleOnly=False):
+  """
+    Method to return a list of strings that represent the
+    modules on which the 'obj' depends on. It already implements
+    the 'import' statement or the 'from x import y'
+    @ In, obj, instance, the object that needs to be inquired
+    @ In, moduleOnly, bool, optional, get the modules only (True) or also the function dependencies(False)
+    @ Out, list, list of string containing the modules
+  """
   mods = []
-  globs = dict(inspect.getmembers(obj))
-  for key, value in globs.items():
+  for key, value in dict(inspect.getmembers(obj)).items():
     if moduleOnly:
       if not inspect.ismodule(value): continue
     else:
@@ -56,59 +63,39 @@ def returnImportModuleString(obj,moduleOnly=False):
     else: mods.append(str(key))
   return mods
 
-def getPrintTagLenght(): return 25
+def getPrintTagLenght():
+  """
+    Method to return the length of the strings used for Screen output
+    @ In, None,
+    @ Out, int, the default tag length
+  """
+  return 25
 
-def UreturnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
+def UreturnPrintTag(intag):
+  """
+    Method to return the a string formatted with respect to the length
+    obtained by the method getPrintTagLenght() (generally used for pre tag)
+    @ In, intag, string, string that needs to be formatted
+    @ Out, returnString, string, the formatted string
+  """
+  return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
 
-def UreturnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
-
-#def raiseAnError(etype,obj,msg):
-#  '''
-#    Standardized error raising. Currently halts code.
-#    @ In, etype, the error type to raise
-#    @ In, obj, either a string or a class instance to determine the label for the error
-#    @ In, msg, the error message to display
-#    @ Out, None
-#  '''
-#  if type(obj) in [str,unicode]:
-#    tag = obj
-#  else:
-#    try: obj.printTag
-#    except AttributeError: tag = str(obj)
-#    else: tag = str(obj.printTag)
-#  raise etype(UreturnPrintTag(tag)+': '+UreturnPrintPostTag('ERROR')+' -> '+str(msg))
-#
-#def raiseAWarning(obj,msg,wtag='WARNING'):
-#  '''
-#    Standardized warning printing.
-#    @ In, obj, either a string or a class instance to determine the label for the warning
-#    @ In, msg, the warning message to display
-#    @ In, wtag, optional, the type of warning to display (default "WARNING")
-#    @ Out, None
-#  '''
-#  if type(obj) in [str,unicode]:
-#    tag = obj
-#  else:
-#    try: obj.printTag
-#    except AttributeError: tag = str(obj)
-#    else: tag = str(obj.printTag)
-#  print(UreturnPrintTag(tag)+': '+UreturnPrintPostTag(str(wtag))+' -> '+str(msg))
-#
-#def raiseAMessage(obj,msg,wtag='Message'):
-#  '''
-#    Standardized message printing.
-#    @ In, obj, either a string or a class instance to determine the label for the message
-#    @ In, msg, the message to display
-#    @ In, wtag, optional, the type of warning to display (default "Message")
-#    @ Out, None
-#  '''
-#  raiseAWarning(obj,msg,wtag)
+def UreturnPrintPostTag(intag):
+  """
+    Method to return the a string formatted with respect to the length
+    obtained by the method getPrintTagLenght() - 15 (generally used for post tag)
+    @ In, intag, string, string that needs to be formatted
+    @ Out, returnString, string, the formatted string
+  """
+  return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
 
 def convertMultipleToBytes(sizeString):
-  '''
-  Convert multiple (e.g. Mbytes, Gbytes,Kbytes) in bytes
-  International system type (e.g., 1 Mb = 10^6)
-  '''
+  """
+    Convert multiple (e.g. Mbytes, Gbytes,Kbytes) in bytes
+    International system type (e.g., 1 Mb = 10^6)
+    @ In, sizeString, string, string that needs to be converted in bytes
+    @ Out, bytes, integer, the number of bytes
+  """
   if   'mb' in sizeString: return int(sizeString.replace("mb",""))*10**6
   elif 'kb' in sizeString: return int(sizeString.replace("kb",""))*10**3
   elif 'gb' in sizeString: return int(sizeString.replace("gb",""))*10**9
@@ -117,30 +104,51 @@ def convertMultipleToBytes(sizeString):
     except: raise IOError(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
 
 def stringsThatMeanTrue():
-  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
+  """
+    Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
+    @ In, None
+    @ Out, listofstrings, list of strings that mean True in RAVEN
+  """
   return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
 
 def stringsThatMeanFalse():
-  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)'''
+  """
+    Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
+    @ In, None
+    @ Out, listofstrings, list of strings that mean False in RAVEN
+  """
   return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
 
 def stringsThatMeanSilent():
-  '''return list of strings that indicate a verbosity of the lowest level (just errors). You linguists add what you wish.'''
+  """
+    Return list of strings that indicate a verbosity of the lowest level (just errors). You linguists add what you wish
+    @ In, None
+    @ Out, listofstrings, list of strings that mean Silent in RAVEN
+  """
   return list(['0','silent','false','f','n','no','none'])
 
 def stringsThatMeanPartiallyVerbose():
-  '''return list of strings that indicate a verbosity of the medium level (errors and warnings). You linguists add what you wish.'''
+  """
+    Return list of strings that indicate a verbosity of the medium level (errors and warnings). You linguists add what you wish.
+    @ In, None
+    @ Out, listofstrings, list of strings that mean Quiet in RAVEN
+  """
   return list(['1','quiet','some'])
 
 def stringsThatMeanVerbose():
-  '''return list of strings that indicate full verbosity (errors warnings, messages). You linguists add what you wish.'''
+  """
+    Return list of strings that indicate full verbosity (errors warnings, messages). You linguists add what you wish.
+    @ In, None
+    @ Out, listofstrings, list of strings that mean Full Verbosity in RAVEN
+  """
   return list(['2','loud','true','t','y','yes','all'])
 
 def interpretBoolean(inarg):
   """
-   Utility method to convert an inarg into a boolean.
-   The inarg can be either a string or integer
-   @ In, object, object to convert (
+    Utility method to convert an inarg into a boolean.
+    The inarg can be either a string or integer
+    @ In, object, object to convert
+    @ Out, interpretedObject, bool, the interpreted boolean
   """
   if type(inarg).__name__ == "bool": return inarg
   elif type(inarg).__name__ == "integer":
@@ -152,46 +160,84 @@ def interpretBoolean(inarg):
       else                                                : raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
   else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inarg).__name__)
 
-
-def compare(s1,s2):
-  sig_fig=6
-  w1 = partialEval(s1)
-  w2 = partialEval(s2)
-  if type(w1) == type(w2) and type(w1) != float: return w1 == w2
+def compare(s1,s2,sig_fig = 6):
+  """
+    Method aimed to compare two strings. This method tries to convert the 2
+    strings in float and uses an integer representation to compare them.
+    In case the conversion is not possible (string or only one of the strings is
+    convertable), the method compares strings as they are.
+    @ In, s1, string, first string to be compared
+    @ In, s2, string, second string to be compared
+    @ In, sig_fig, int, minimum number of digits that need to match
+    @ Out, response, bool, the boolean response (True if s1==s2, False otherwise)
+  """
+  w1, w2 = floatConversion(s1), floatConversion(s2)
+  if   type(w1) == type(w2) and type(w1) != float: return s1 == s2
   elif type(w1) == type(w2) and type(w1) == float: return int(w1*10**sig_fig) == int(w2*10**sig_fig)
   elif type(w1) != type(w2) and type(w1) in [float,int] and type(w2) in [float,int]:
-    w1 = float(w1)
-    w2 = float(w2)
+    w1, w2 = float(w1), float(w2)
     return compare(w1,w2)
   else: return (w1 == w2)
 
+def intConversion (s):
+  """
+    Method aimed to cast a string as integer. If the conversion is not possible,
+    it returns None
+    @ In, s, string,  string to be converted
+    @ Out, response, int or None, the casted value
+  """
+  try              : return int(s)
+  except ValueError: return None
+
+def floatConversion (s):
+  """
+    Method aimed to cast a string as float. If the conversion is not possible,
+    it returns None
+    @ In, s, string,  string to be converted
+    @ Out, response, float or None, the casted value
+  """
+  try              : return float(s)
+  except ValueError: return None
+
 def partialEval(s):
-  try:
-    r = int(s)
-    return r
-  except ValueError:
-    pass
-  try:
-    r = float(s)
-    return r
-  except ValueError:
-    pass
-  return s
+  """
+    Method aimed to evaluate a string as float or integer.
+    If neither a float nor an integer can be casted, return
+    the un-casted string
+    @ In, s, string,  string to be converted
+    @ Out, response, float or int or string, the casted value
+  """
+  evalS = intConversion(s)
+  if evalS is None: evalS = floatConversion(s)
+  if evalS is None: return s
+  else            : return evalS
 
 def toString(s):
-  if type(s) == type(""):
-    return s
-  else:
-    return s.decode()
+  """
+    Method aimed to convert a string in type str
+    @ In, s, string,  string to be converted
+    @ Out, response, str, the casted value
+  """
+  if type(s) == type(""): return s
+  else                  : return s.decode()
 
 def toBytes(s):
-  if type(s) == type(""):
-    return s.encode()
+  """
+    Method aimed to convert a string in type bytes
+    @ In, s, string,  string to be converted
+    @ Out, response, bytes, the casted value
+  """
+  if type(s) == type("")                            : return s.encode()
   elif type(s).__name__ in ['unicode','str','bytes']: return bytes(s)
-  else:
-    return s
+  else                                              : return s
 
 def toBytesIterative(s):
+  """
+    Method aimed to convert all the string-compatible content of
+    an object (dict, list, or string) in type bytes (recursively call toBytes(s))
+    @ In, s, object,  object whose content needs to be converted
+    @ Out, response, object, a copy of the object in which the string-compatible has been converted
+  """
   if type(s) == list: return [toBytes(x) for x in s]
   elif type(s) == dict:
     if len(s.keys()) == 0: return None
@@ -201,6 +247,11 @@ def toBytesIterative(s):
   else: return toBytes(s)
 
 def toStrish(s):
+  """
+    Method aimed to convert a string in str type
+    @ In, s, string,  string to be converted
+    @ Out, response, str, the casted value
+  """
   if type(s) == type(""):
     return s
   elif type(s) == type(b""):
@@ -208,99 +259,132 @@ def toStrish(s):
   else:
     return str(s)
 
-def convertDictToListOfLists(inputDict):
-  if type(inputDict) == dict:
-    returnList = [[],[]]
-    for key, value in inputDict.items():
-      returnList[0].append(key)
-      if type(value) == dict: returnList[1].append(convertDictToListOfLists(value))
-      else: returnList[1].append(value)
-  else:
-    print(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('WARNING')+ ' -> in method "convertDictToListOfLists", inputDict is not a dictionary!')
-    returnList = None
-  return returnList
-
 def convertNumpyToLists(inputDict):
+  """
+    Method aimed to convert a dictionary containing numpy
+    arrays or a single numpy array in list
+    @ In, inputDict, dict or numpy array,  object whose content needs to be converted
+    @ Out, response, dict or list, same object with its content converted
+  """
   returnDict = inputDict
   if type(inputDict) == dict:
     for key, value in inputDict.items():
       if   type(value) == np.ndarray: returnDict[key] = value.tolist()
       elif type(value) == dict      : returnDict[key] = (convertNumpyToLists(value))
       else                          : returnDict[key] = value
-  elif type(inputDict) == np.ndarray:
-    returnDict = inputDict.tolist()
+  elif type(inputDict) == np.ndarray: returnDict = inputDict.tolist()
   return returnDict
 
 def keyIn(dictionary,key):
-  """Returns the key or toBytes key if in,
-  else returns none.  Use like
-  inKey = keyIn(adict,key)
-  if inKey is not None:
-     foo = adict[inKey]
-  else:
-     pass #not found"""
+  """
+    Method that return the key or toBytes key if in, else returns None.
+    Use like
+    inKey = keyIn(adict,key)
+    if inKey is not None: foo = adict[inKey]
+    else                : pass #not found
+    @ In, dictionary, dict, the dictionary whose key needs to be returned
+    @ Out, response, str or bytes, the key (converted in bytes if needed)
+  """
   if key in dictionary:
     return key
   else:
     bin_key = toBytes(key)
-    if bin_key in dictionary:
-      return bin_key
-    else:
-      return None
+    if bin_key in dictionary: return bin_key
+    else                    : return None
 
 def first(c):
-  """Returns the first element of collections,
-  for a list this is equivalent to c[0], but this also
-  work for things that are views"""
+  """
+    Method to return the first element of collections,
+    for a list this is equivalent to c[0], but this also
+    work for things that are views
+    @ In, c, collection, the collection
+    @ Out, response, item, the next item in the collection
+  """
   return next(iter(c))
 
 def importFromPath(filename, printImporting = True):
-    if printImporting: print(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '-> importing module '+ filename)
-    import imp, os.path
-    try:
-      (path, name) = os.path.split(filename)
-      (name, ext) = os.path.splitext(name)
-      (file, filename, data) = imp.find_module(name, [path])
-      importedModule = imp.load_module(name, file, filename, data)
-    except Exception as ae:
-      raise Exception(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
-    return importedModule
+  """
+    Method to import a module from a given path
+    @ In, filename, str, the full path of the module to import
+    @ In, printImporting, bool, True if information about the importing needs to be printed out
+    @ Out, importedModule, module, the imported module
+  """
+  if printImporting: print(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '-> importing module '+ filename)
+  import imp, os.path
+  try:
+    (path, name) = os.path.split(filename)
+    (name, ext) = os.path.splitext(name)
+    (file, filename, data) = imp.find_module(name, [path])
+    importedModule = imp.load_module(name, file, filename, data)
+  except Exception as ae:
+    raise Exception(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
+  return importedModule
 
 def index(a, x):
-    'Locate the leftmost value exactly equal to x'
-    i = bisect.bisect_left(a, x)
-    if i != len(a) and a[i] == x: return i
-    return None
+  """
+    Method to locate the leftmost value exactly equal to x in the list a (assumed to be sorted)
+    @ In, a, list, the list that needs to be inquired
+    @ In, x, float, the inquiring value
+    @ Out, i, int, the index of the leftmost value exactly equal to x
+  """
+  i = bisect.bisect_left(a, x)
+  if i != len(a) and a[i] == x: return i
+  return None
 
 def find_lt(a, x):
-    'Find rightmost value less than x'
-    i = bisect.bisect_left(a, x)
-    if i: return a[i-1],i-1
-    return None,None
+  """
+    Method to Find rightmost value less than x in the list a (assumed to be sorted)
+    @ In, a, list, the list that needs to be inquired
+    @ In, x, float, the inquiring value
+    @ Out, i, int, the index of the Find rightmost value less than x
+  """
+  i = bisect.bisect_left(a, x)
+  if i: return a[i-1],i-1
+  return None,None
 
 def find_le_index(a,x):
-    'Find the index of the rightmost value less than or equal to x'
-    i = bisect.bisect_right(a, x)
-    if i: return i
-    return None
+  """
+    Method to Find the index of the rightmost value less than or equal to x in the list a (assumed to be sorted)
+    @ In, a, list, the list that needs to be inquired
+    @ In, x, float, the inquiring value
+    @ Out, i, int, the index of the rightmost value less than or equal to x
+  """
+  i = bisect.bisect_right(a, x)
+  if i: return i
+  return None
 
 def find_le(a, x):
-    'Find rightmost value less than or equal to x'
-    i = bisect.bisect_right(a, x)
-    if i: return a[i-1],i-1
-    return None,None
+  """
+    Method to Find the rightmost value less than or equal to x in the list a (assumed to be sorted)
+    @ In, a, list, the list that needs to be inquired
+    @ In, x, float, the inquiring value
+    @ Out, i, tuple, tuple[0] -> the rightmost value less than or equal to x, tuple[1] -> index
+  """
+  i = bisect.bisect_right(a, x)
+  if i: return a[i-1],i-1
+  return None,None
 
 def find_gt(a, x):
-    'Find leftmost value greater than x'
-    i = bisect.bisect_right(a, x)
-    if i != len(a): return a[i],i
-    return None,None
+  """
+    Method to Find the leftmost value greater than x in the list a (assumed to be sorted)
+    @ In, a, list, the list that needs to be inquired
+    @ In, x, float, the inquiring value
+    @ Out, i, tuple, tuple[0] -> the leftmost value greater than x, tuple[1] -> index
+  """
+  i = bisect.bisect_right(a, x)
+  if i != len(a): return a[i],i
+  return None,None
 
 def find_ge(a, x):
-    'Find leftmost item greater than or equal to x'
-    i = bisect.bisect_left(a, x)
-    if i != len(a): return a[i],i
-    return None,None
+  """
+    Method to Find the leftmost item greater than or equal to x in the list a (assumed to be sorted)
+    @ In, a, list, the list that needs to be inquired
+    @ In, x, float, the inquiring value
+    @ Out, i, tuple, tuple[0] ->leftmost item greater than or equal to x, tuple[1] -> index
+  """
+  i = bisect.bisect_left(a, x)
+  if i != len(a): return a[i],i
+  return None,None
 
 # def metaclass_insert__getstate__(self):
 #   """
@@ -321,20 +405,26 @@ def find_ge(a, x):
 #   self.exist    = True
 
 def metaclass_insert(metaclass,*base_classes):
-  """This allows a metaclass to be inserted as a base class.
-  Metaclasses substitute in as a type(name,bases,namespace) function,
-  and can be anywhere in the hierarchy.  This instantiates the
-  metaclass so it can be used as a base class.
-  Example use:
-  class Foo(metaclass_insert(Metaclass)):
-  This function is based on the method used in Benjamin Peterson's six.py
+  """
+    This allows a metaclass to be inserted as a base class.
+    Metaclasses substitute in as a type(name,bases,namespace) function,
+    and can be anywhere in the hierarchy.  This instantiates the
+    metaclass so it can be used as a base class.
+    Example use:
+    class Foo(metaclass_insert(Metaclass)):
+    This function is based on the method used in Benjamin Peterson's six.py
   """
   namespace={}
   return metaclass("NewMiddleClass",base_classes,namespace)
 
 def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
   """
-   Function to interpolate 2D/3D points
+    Method to interpolate 2D/3D points
+    @ In, x, ndarray or cached_ndarray, the array of x coordinates
+    @ In, y, ndarray or cached_ndarray, the array of y coordinates
+    @ In, z, ndarray or cached_ndarray, optional, the array of z coordinates
+    @ In, returnCoordinate, boolean, optional, true if the new coordinates need to be returned
+    @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
   """
   options = copy.copy(option)
   if x.size <= 2: xi = x
@@ -377,16 +467,17 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
     else               : return yi
 
 class abstractstatic(staticmethod):
-  """This can be make an abstract static method
-  import abc
-  class A(metaclass_insert(abc.ABCMeta)):
-    @abstractstatic
-    def test():
-      pass
-  class B(A):
-    @staticmethod
-    def test():
-      return 5
+  """
+    This can be make an abstract static method
+    import abc
+    class A(metaclass_insert(abc.ABCMeta)):
+      @abstractstatic
+      def test():
+        pass
+    class B(A):
+      @staticmethod
+      def test():
+        return 5
   """
   def __init__(self, function):
     super(abstractstatic, self).__init__(function)
@@ -394,7 +485,11 @@ class abstractstatic(staticmethod):
   __isabstractmethod__ = True
 
 def find_crow(framework_dir):
-  """ Make sure that the crow path is in the python path. """
+  """
+    Make sure that the crow path is in the python path. If not, add the path.
+    @ In, framework_dir, string, the absolute path of the framework
+    @ Out, None
+  """
   try:
     import crow_modules.distribution1Dpy2
     return
@@ -412,16 +507,29 @@ def find_crow(framework_dir):
     raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+str(pmoduleDirs))
 
 def add_path(absolutepath):
-  """ Add absolutepath path is in the python path. """
+  """
+    Method to add a path in the PYTHON PATH
+    @ In, absolutepath, string, the absolute path to be added
+    @ Out, None
+  """
   if not os.path.exists(absolutepath):
     raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
   sys.path.append(absolutepath)
 
 def add_path_recursively(absoluteInitialPath):
+  """
+    Method to recursively add all the path and subpaths contained in absoluteInitialPath in the pythonpath
+    @ In, absoluteInitialPath, string, the absolute path to add
+    @ Out, None
+  """
   for dirr,_,_ in os.walk(absoluteInitialPath): add_path(dirr)
 
 def find_distribution1D():
-  """ find the crow distribution1D module and return it. """
+  """
+    Method to find the crow distribution1D module and return it.
+    @ In, None
+    @ Out, module, the module of distribution1D
+  """
   if sys.version_info.major > 2:
     try:
       import crow_modules.distribution1Dpy3
@@ -442,7 +550,11 @@ def find_distribution1D():
       return distribution1Dpy2
 
 def find_interpolationND():
-  """ find the crow interpolationND module and return it. """
+  """
+    Method to find the crow interpolationND module and return it.
+    @ In, None
+    @ Out, module, the module of interpolationND
+  """
   if sys.version_info.major > 2:
     try:
       import crow_modules.interpolationNDpy3
@@ -463,40 +575,40 @@ def find_interpolationND():
       return interpolationNDpy2
 
 def printCsv(csv,*args):
-    '''
+    """
       Writes the values contained in args to a csv file specified by csv
       @ In, csv, an open file object to which we will be writing
       @ In, args, an arbitrary collection of values to write to the file
-    '''
+    """
     print(*args,file=csv,sep=',')
 
 def printCsvPart(csv,*args):
-    '''
+    """
       Writes the values contained in args to a csv file specified by csv appending a comma
       to the end to allow more data to be written to the line.
       @ In, csv, an open file object to which we will be writing
       @ In, args, an arbitrary collection of values to write to the file
-    '''
+    """
     print(*args,file=csv,sep=',',end=',')
 
 def numpyNearestMatch(findIn,val):
-  '''
+  """
     Given an array, find the entry that most nearly matches the given value.
     @ In, findIn, the array to look in
     @ In, val, the value for which to find a match
     @ Out, tuple, index where match is and the match itself
-  '''
+  """
   idx = (np.abs(findIn-val)).argmin()
   return idx,findIn[idx]
 
 def NDInArray(findIn,val,tol=1e-12):
-  '''
+  """
     checks a numpy array of numpy arrays for a near match, then returns info.
     @ In, findIn, numpy array of numpy arrays (both arrays can be any length)
     @ In, val, tuple/list/numpy array, entry to look for in findIn
     @ In, tol, float, tolerance to check match within
     @ Out, (bool,idx,val) -> (found/not found, index where found or None, findIn entry or None)
-  '''
+  """
   loc = np.where(np.all(np.abs(findIn-val)<tol,axis=1)==1)
   if len(loc[0])>0:
     found = True

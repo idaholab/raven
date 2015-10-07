@@ -91,7 +91,7 @@
 
   <Steps>
     <!-- Sample the data from the test function -->
-    <MultiRun name="sampleData" pauseAtEnd="false">
+    <MultiRun name="sampleData" pauseAtEnd="false" sleepTime='1e-5'>
       <Input   class="DataObjects" type="PointSet">dummyIN</Input>
       <Model   class="Models"      type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers"    type="Grid">gridSampler</Sampler>

@@ -48,42 +48,22 @@
    required_executable = '../../RAVEN-%METHOD%'
  [../]
 
- [./test_Adaptive_DynamicEventTreeRAVEN]
+ [./testAdaptiveDynamicEventTreeRAVEN]
   type = 'RavenFramework'
   input = 'test_adaptive_det_simple.xml'
-  output = 'AdaptiveDET/adaptiveNoHierarchicalDump.csv AdaptiveDET/adaptiveNoHierarchicalDump.xml AdaptiveDET/AdaptiveDETsimpleDatabase.h5'
-  csv = 'AdaptiveDET/AdaptiveDETrunTest/out~AdaptiveDETsimple_1-1-1-1-2~ideal_pump.csv'
+  output = 'AdaptiveDET/limitSurfDump.csv AdaptiveDET/adaptiveOutsimpleDump.csv'
+  csv = 'AdaptiveDET/limitSurfDump.csv'
   required_executable = '../../RAVEN-%METHOD%'
   max_time = 400
  [../]
 
- [./test_Classic_DynamicEventTreeRAVEN]
+ [./testAdaptiveHybridDynamicEventTreeRAVEN]
   type = 'RavenFramework'
-  input = 'test_branch.xml'
-  output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump branch/extract_hist_example/DET_HistorySet_additional_info_DET_test_1-1-2.csv branch/testprint_tpset_hier_variables.csv branch/3-2DHistoryPlot_tps_scatter.pdf'
-  csv = 'branch/extract_hist_example/DET_HistorySet_DET_test_1-2.csv'
+  input = 'test_adaptive_hybrid_det.xml'
+  output = 'AdaptiveHybridDET/limitsurfaceDump.csv AdaptiveHybridDET/adaptiveOutsimpleHier.csv'
+  csv = 'AdaptiveHybridDET/limitsurfaceDump.csv'
   required_executable = '../../RAVEN-%METHOD%'
-  #skip = 'Unknown error'
-  #skip = 'Josh Broke it by breaking RestartInitialize'
- [../]
-
- [./test_Preconditioned_DynamicEventTreeRAVEN]
-  type = 'RavenFramework'
-  input = 'test_preconditioned_det.xml'
-  output = 'PreconditionedDynamicEventTree/PreconditionedDETrunTest/out~PreconditionedDET_test_5-1-2~ideal_pump PreconditionedDynamicEventTree/testprint_hist_hier_PreconditionedDET_test_5-2.csv PreconditionedDynamicEventTree/testprint_hist_hier_variables_PreconditionedDET_test_1-1-2.csv PreconditionedDynamicEventTree/2DHistoryPlot_line.pdf'
-  csv = 'PreconditionedDynamicEventTree/PreconditionedDETrunTest/out~PreconditionedDET_test_5-1-2~ideal_pump.csv'
-  required_executable = '../../RAVEN-%METHOD%'
-  #skip = 'Josh Broke it by breaking RestartInitialize'
- [../]
-
- [./test_branch_heavy]
-  type = 'RavenFramework'
-  input = 'test_sbo_heavy_det.xml'
-  output = 'SBO_DET/DET/out~DET_1-2-2~TMI SBO_DET/DET/out~DET_1-2-1-1-1-2~TMI.csv'
-  csv = 'SBO_DET/stories_from_database_dump_8.csv SBO_DET/DET/out~DET_1-2-1-1-1-2~TMI.csv'
-  max_time = 1000000
-  heavy=True
-  rel_err = 0.01
+  max_time = 400
  [../]
 
  [./test_mpi]
@@ -263,7 +243,7 @@
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Raven.xml'
    output = 'GridTestRaven/FirstMRun/out~1~simple_flow_3eqn'
-   csv = 'GridTestRaven/outGrid_dump.csv'
+   UnorderedCsv = 'GridTestRaven/outGrid_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
  [../]
