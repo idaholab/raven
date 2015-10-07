@@ -17,6 +17,8 @@ import sys
 myDir = os.path.dirname(os.path.realpath(__file__))
 RAVEN_DIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
 
+_missing_modules, _too_old_modules = RavenUtils.checkForMissingModules()
+
 class RavenFramework(Tester):
 
   @staticmethod
@@ -56,7 +58,7 @@ class RavenFramework(Tester):
     self.driver = os.path.join(RAVEN_DIR,'Driver.py')
 
   def checkRunnable(self, option):
-    missing,too_old = RavenUtils.checkForMissingModules()
+    missing,too_old = _missing_modules, _too_old_modules
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
