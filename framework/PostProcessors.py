@@ -1573,6 +1573,35 @@ class LimitSurface(BasePostProcessor):
     self.transfMethods     = {}
     self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
+    
+
+  def _initFromDict(self, dictIn):
+    """
+      Initialize the LS pp from a dictionary (not from xml input).
+      This is used when other objects initialize and use the LS pp for internal
+      calculations
+      @ In, dictIn, dict, dictionary of initialization options
+    """
+    if "parameters" not in dictIn.keys()             : self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
+    if "name"                  in dictIn.keys()      : self.name          = dictIn["name"]
+    if type(dictIn["parameters"]).__name__ == "list" : self.parameters['targets'] = dictIn["parameters"]
+    else                                             : self.parameters['targets'] = dictIn["parameters"].split(",")
+    if "bounds"                in dictIn.keys()      : self.bounds        = dictIn["bounds"]
+    if "transformationMethods" in dictIn.keys()      : self.transfMethods = dictIn["transformationMethods"]
+    if "verbosity"             in dictIn.keys()      : self.verbosity     = dictIn['verbosity']
+    if "side"                  in dictIn.keys()      : self.lsSide        = dictIn["side"]
+    if "tolerance"             in dictIn.keys()      : self.tolerance     = float(dictIn["tolerance"])
+    if self.lsSide not in ["negative", "positive", "both"]: self.raiseAnError(IOError, 'Computation side can be positive, negative, both only !!!!')
+
+  def __getstate__(self):
+    pdict = {'parameters':self.parameters['targets'],'name':self.name,'bounds':self.bounds}
+    self.addInitParams(pdict)
+    pdict['type']=self.type
+    return pdict
+
+  def __setstate__(self,pdict):
+    self.__init__()
+    pass
 
   def _localWhatDoINeed(self):
     """
@@ -1582,7 +1611,7 @@ class LimitSurface(BasePostProcessor):
     @ Out, needDict, list of objects needed
     """
     return {'internal':[(None,'jobHandler')]}
-
+ 
   def _localGenerateAssembler(self,initDict):
     """
     Generates the assembler.
@@ -1725,8 +1754,8 @@ class LimitSurface(BasePostProcessor):
       calculations
       @ In, dictIn, dict, dictionary of initialization options
     """
-    if "parameters" not in dictIn.keys()       : self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
-    if "name"                  in dictIn.keys(): self.name          = dictIn["name"]
+    if "parameters" not in dictIn.keys()             : self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
+    if "name"                  in dictIn.keys()      : self.name          = dictIn["name"]
     if type(dictIn["parameters"]).__name__ == "list" : self.parameters['targets'] = dictIn["parameters"]
     else                                             : self.parameters['targets'] = dictIn["parameters"].split(",")
     if "bounds"                in dictIn.keys()      : self.bounds        = dictIn["bounds"]

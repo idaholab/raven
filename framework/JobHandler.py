@@ -247,7 +247,7 @@ class InternalRunner(MessageHandler.MessageUser):
     if self.__thread == None: return True
     else:
       if self.ppserver != None: return self.__thread.finished
-      else:                     return not self.__thread.is_alive()
+      else                    : return not self.__thread.is_alive()
 
   def getReturnCode(self):
     """Returns the return code from running the code.  If return code not yet set, set it.
@@ -258,14 +258,16 @@ class InternalRunner(MessageHandler.MessageUser):
       if self.subque.empty(): #is this necessary and sufficient for all failed runs?
         self.__runReturn = -1
         self.retcode = -1
-    else:
-      self.raiseAWarning('FIXME Not yet implemented: handle this!')
+    #else:
+    #  self.raiseAWarning('FIXME Not yet implemented: handle this!')
     return self.retcode
 
   def returnEvaluation(self):
+    
     if self.isDone():
       if not self.__hasBeenAdded:
         if self.ppserver is not None:
+          #self.ppserver.print_stats()
           self.__runReturn = self.__thread()
         else:
           if self.subque.empty(): self.__runReturn = None #queue is empty!
@@ -329,31 +331,23 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     # check if the list of unique nodes is present and, in case, initialize the socket
-    if len(self.runInfoDict['Nodes']) > 0:
-      # initialize the socketing system
-      #ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py -a")
-      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
-      # create the servers in the reserved nodes
-      localenv = dict(os.environ)
-      #localenv['PYTHONPATH'] = ''
-      ppservers = []
-      for nodeid in [node.strip() for node in set(self.runInfoDict['Nodes'])]:
-        outFile = open(nodeid.strip()+"_server_out.log",'w')
-        # check how many processors are available in the node
-        ntasks = self.runInfoDict['Nodes'].count(nodeid)
-        process = subprocess.Popen(['ssh', nodeid, ppserverScript,"-w",str(ntasks),"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
-        ppservers.append(nodeid)
-      #for nodeid in self.runInfoDict['Nodes']: subprocess.call(['ssh ', nodeid, ppserverScript])
-      #for nodeid in self.runInfoDict['Nodes']: subprocess.Popen('ssh '+nodeid+' '+ ppserverScript , shell=True) #,env=localenv)
-      # create the server handler
-      #ppservers=("*",)
-      #ppservers = tuple(nodeid.split(".")[0])
-      self.ppserver     = pp.Server(ppservers=tuple(ppservers)) #,ncpus=int(self.runInfoDict['totalNumCoresUsed']))
-      #self.ppserver     = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']), ppservers=tuple(self.runInfoDict['Nodes']))
-    else:
-      if self.runInfoDict['NumMPI'] > 1: 
+    if self.runInfoDict['internalParallel']:
+      if len(self.runInfoDict['Nodes']) > 0:
+        # initialize the socketing system
+        ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+        # create the servers in the reserved nodes
+        localenv = dict(os.environ)
+        ppservers = []
+        for nodeid in [node.strip() for node in set(self.runInfoDict['Nodes'])]:
+          outFile = open(nodeid.strip()+"_server_out.log",'w')
+          # check how many processors are available in the node
+          ntasks = self.runInfoDict['Nodes'].count(nodeid)
+          subprocess.Popen(['ssh', nodeid, ppserverScript,"-w",str(ntasks),"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+          ppservers.append(nodeid)
+        self.ppserver     = pp.Server(ppservers=tuple(ppservers)) #,ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+      else:
         self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
-      else                             : self.ppserver = None        # we just use threading!
+    else: self.ppserver = None        # we just use threading!
     self.initParallelPython = True
 
   def addExternal(self,executeCommands,outputFile,workingDir,metadata=None,codePointer=None):

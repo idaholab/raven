@@ -1,21 +1,13 @@
 [Tests]
  [./ROMscikit]
   type = 'RavenFramework'
-  input = 'test_rom_scikit.xml'
-  xml = 'Sobol/dump.xml'
-  csv = 'Sobol/dump.csv'
- [../]
- [./ROMinverseWeight]
-  type = 'RavenFramework'
-  input = 'test_rom_scikit.xml'
-  xml = 'Sobol/dump.xml'
-  csv = 'Sobol/dump.csv'
+  input = 'test_internal_parallel_ROM_scikit.xml'
+  UnorderedCsv = 'InternalParallelScikit/PrintDataData2.csv InternalParallelScikit/PrintDataData3.csv'
  [../]
  [./ExternalModel]
   type = 'RavenFramework'
-  input = 'test_rom_scikit.xml'
-  xml = 'Sobol/dump.xml'
-  csv = 'Sobol/dump.csv'
+  input = 'test_internal_parallel_extModel.xml'
+  UnorderedCsv = 'InternalParallelExtModel/testPointSet_dump.csv'
  [../]
  [./PostProcessor]
   type = 'RavenFramework'

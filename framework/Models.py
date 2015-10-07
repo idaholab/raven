@@ -143,12 +143,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.subType  = ''
     self.runQueue = []
     self.printTag = 'MODEL'
-    aaa = inspect.getmembers(self)
-    self.mods     = utils.returnImportModuleString(inspect.getmodule(self),True)
-    self.mods.append(utils.toBytes("from Models import *"))
-    self.mods.append(utils.toBytes("from MessageHandler import MessageHandler, MessageUser"))
-    self.mods.append(utils.toBytes("from BaseClasses import BaseType"))
-    self.globs    = {}
 
   def _readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['subType']
@@ -243,7 +237,7 @@ class Dummy(Model):
 
   def _inputToInternal(self,dataIN,full=False):
     """Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data"""
-    self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
+    #self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
     if  type(dataIN).__name__ !='dict':
       if dataIN.type not in self.admittedData: self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
     if full==True:  length = 0
@@ -289,7 +283,7 @@ class Dummy(Model):
     inRun = self._manipulateInput(Input[0])
     def lambdaReturnOut(inRun,prefix): return {'OutputPlaceHolder':np.atleast_1d(np.float(prefix))}
     #lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))}
-    jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods, globs = self.globs)
+    jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods)
 
   def collectOutput(self,finishedJob,output):
     if finishedJob.returnEvaluation() == -1: self.raiseAnError(AttributeError,"No available Output to collect (Run probabably is not finished yet)")
@@ -370,8 +364,9 @@ class ROM(Dummy):
     for target in targets:
       self.initializationOptionDict['Target'] = target
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
-    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
+    # extend the list of modules this ROM depen on
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0]),True)) - set(self.mods))
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     #restore targets to initialization option dict
     self.initializationOptionDict['Target'] = ','.join(targets)
 
@@ -469,7 +464,7 @@ class ROM(Dummy):
   def run(self,Input,jobHandler):
     """This call run a ROM as a model"""
     inRun = self._manipulateInput(Input[0])
-    jobHandler.submitDict['Internal']((inRun,),self.__externalRun,str(Input[1]['prefix']),metadata=Input[1],modulesToImport=self.mods, globs = self.globs)
+    jobHandler.submitDict['Internal']((inRun,),self.__externalRun,str(Input[1]['prefix']),metadata=Input[1],modulesToImport=self.mods)
 #
 #
 #
@@ -596,7 +591,7 @@ class ExternalModel(Dummy):
     @ In, jobHandler, jobHandler object, jobhandler instance
     """
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
-    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods, globs = self.globs)
+    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods)
 
   def collectOutput(self,finishedJob,output):
     """
@@ -938,12 +933,15 @@ class PostProcessor(Model, Assembler):
        directory with the starting input files"""
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
-    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(PostProcessors)))
+    #aaaaa = utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)
+    #bbbbb = utils.returnImportModuleString(inspect.getmodule(PostProcessors))
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
+    #self.mods.extend(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True))
 
   def run(self,Input,jobHandler):
     """run calls the interface finalizer"""
-    if len(Input) > 0 : jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods, globs = self.globs)
-    else: jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods, globs = self.globs)
+    if len(Input) > 0 : jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods)
+    else: jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods)
 
   def collectOutput(self,finishedjob,output):
     self.interface.collectOutput(finishedjob,output)

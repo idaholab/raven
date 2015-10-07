@@ -40,6 +40,7 @@ import inspect
 import StringIO
 #import dill as pickle
 import cPickle as pickle
+#import pickle
 from serialization import cloudpickle
 import pptransport
 

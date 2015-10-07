@@ -292,6 +292,7 @@ class Simulation(MessageHandler.MessageUser):
     self.runInfoDict['NumThreads'        ] = 1            # Number of Threads by run
     self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threads by number of mpi)
     self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
+    self.runInfoDict['internalParallel'  ] = False        # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
     self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
     self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded
     #self.runInfoDict['procByNode'        ] = 1            # number of processors by node
@@ -554,8 +555,9 @@ class Simulation(MessageHandler.MessageUser):
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
       elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'        ] = int(element.text)
-      elif element.tag == 'totalNumCoresUsed' : self.runInfoDict['totalNumCoresUsed'   ] = int(element.text)
+      elif element.tag == 'totalNumCoresUsed' : self.runInfoDict['totalNumCoresUsed' ] = int(element.text)
       elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'            ] = int(element.text)
+      elif element.tag == 'internalParallel'  : self.runInfoDict['internalParallel'  ] = utils.interpretBoolean(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag == 'MaxLogFileSize'    : self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
       elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
