@@ -43,7 +43,66 @@ else
     echo FAIL pbsdsh
     num_fails=$(($num_fails+1))
 fi
+######################################
+# test parallel for internal Objects #
+######################################
+# first stes (external model in parallel)
+cd InternalParallel/
+rm -Rf InternalParallelExtModel/*.csv
 
+python ../../../framework/Driver.py test_internal_parallel_extModel.xml
+
+sleep 10 #Wait for disk to propagate.
+lines=`ls InternalParallelExtModel/*.csv | wc -l`
+
+if test $lines -eq 102; then
+    echo PASS paralExtModel
+else
+    echo FAIL paralExtModel
+    num_fails=$(($num_fails+1))
+fi
+
+cd ..
+
+# second test (ROM in parallel)
+cd InternalParallel/
+rm -Rf InternalParallelScikit/*.csv
+
+python ../../../framework/Driver.py test_internal_parallel_ROM_scikit.xml
+
+sleep 10 #Wait for disk to propagate.
+lines=`ls InternalParallelScikit/*.csv | wc -l`
+
+if test $lines -eq 2; then
+    echo PASS paralROM
+else
+    echo FAIL paralROM
+    num_fails=$(($num_fails+1))
+fi
+
+cd ..
+
+# third test (PostProcessor in parallel)
+cd InternalParallel/
+rm -Rf InternalParallelPostProcessorLS/*.csv
+
+python ../../../framework/Driver.py test_internal_parallel_PP_LS.xml
+
+sleep 10 #Wait for disk to propagate.
+lines=`ls InternalParallelPostProcessorLS/*.csv | wc -l`
+
+if test $lines -eq 6; then
+    echo PASS paralROM
+else
+    echo FAIL paralROM
+    num_fails=$(($num_fails+1))
+fi
+
+cd ..
+
+############################################
+# test parallel for internal Objects ENDED #
+############################################
 
 if test $num_fails -eq 0; then
     echo ALL PASSED
