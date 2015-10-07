@@ -27,7 +27,7 @@
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <PostProcessor name="LimitSurfaceIntegralWeighted" subType="LimitSurfaceIntegral">
-      <tolerance>0.0001</tolerance>
+      <tolerance>0.01</tolerance>
       <integralType>MonteCarlo</integralType>
       <seed>20021986</seed>
       <target>goalFunctionForLimitSurface</target>
@@ -35,7 +35,7 @@
       <variable name="y0"> <distribution>y0_distrib</distribution> </variable>
     </PostProcessor>
     <PostProcessor name="LimitSurfaceIntegralUnWeightedWithBounds" subType="LimitSurfaceIntegral">
-      <tolerance>0.0001</tolerance>
+      <tolerance>0.01</tolerance>
       <integralType>MonteCarlo</integralType>
       <seed>20021986</seed>
       <target>goalFunctionForLimitSurface</target>
