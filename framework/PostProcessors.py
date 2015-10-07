@@ -2364,12 +2364,6 @@ class TopologicalDecomposition(BasePostProcessor):
             output.updateOutputValue(key, [value])
           elif key in ['hierarchy']:
             output.updateMetadata(key, [value])
-          elif key.startswith('coefficients'):
-            output.updateMetadata(key, [value])
-          elif key.startswith('R2'):
-            output.updateMetadata(key, [value])
-          elif key.startswith('Gaussian'):
-            output.updateMetadata(key, [value])
     else:
       self.raiseAnError(IOError,'Unknown output type:',output.type)
 
@@ -2421,72 +2415,27 @@ class TopologicalDecomposition(BasePostProcessor):
       for idx in indices:
         outputDict['minLabel'][idx] = extPair[0]
         outputDict['maxLabel'][idx] = extPair[1]
-
-    output = os.linesep
-    output += '========== Data Labels: ========== ' + os.linesep
-    output += 'Index'
-    sep = ','
-    for lbl in names:
-      output += sep + lbl
-    output += sep + 'Minimum' + sep + 'Maximum'
-    output += os.linesep
-    for i in xrange(0, self.__amsc.GetSampleSize()):
-      line = str(i)
-      for d in xrange(0, self.__amsc.GetDimensionality()):
-        line += sep + str(inputData[i, d])
-      line += sep + str(outputData[i])
-      line += sep + str(int(outputDict['minLabel'][i]))
-      line += sep + str(int(outputDict['maxLabel'][i]))
-      output += line + os.linesep
-    output += '========== Merge Hierarchy: ==========' + os.linesep
-    output += self.__amsc.XMLFormattedHierarchy() + os.linesep
     outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
-    output += '========== Linear Regressors: ==========' + os.linesep
-    self.__amsc.BuildModels()
-    linearFits = self.__amsc.SegmentFitCoefficients()
-    linearFitnesses = self.__amsc.SegmentFitnesses()
 
-    for key in linearFits.keys():
-      output += str(key) + os.linesep
-      coefficients = linearFits[key]
-      rSquared = linearFitnesses[key]
-      #output += '\t' + u"\u03B2\u0302: " + str(coefficients) + '\n'
-      #output += '\t' + u"R\u00B2: " + str(rSquared) + '\n' + '\n'
-      output += '\t' + "beta: " + str(coefficients) + os.linesep
-      output += '\t' + "R^2: " + str(rSquared) + 2 * os.linesep
-      outputDict['coefficients_%d_%d' % (key[0], key[1])] = coefficients
-      outputDict['R2_%d_%d' % (key[0], key[1])] = rSquared
-
-    #output += 'RMSD  = %f\n' % (self.linearNRMSD)
-    output += '========== Gaussian Fits: ==========' + os.linesep
-    #output += u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - '
-    #      + u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)\n'
-    output += 'a/sqrt(2*(pi)^d|M|)*e^(-(x-mu)TM(x-mu)) + c - a'
-    output += '\t(mu & c are fixed, M and a are estimated)' + os.linesep
-
-    exts = linearFits.keys()
-    exts = [int(item) for sublist in exts for item in sublist]
-    exts = list(set(exts))
-
-    for key in exts:
-      output += str(key) + ':' + os.linesep
-      (mu, c, a, A) = self.__amsc.GetExtremumFitCoefficients(key)
-      #output += u':\t\u03BC=' + str(mu) + '\n'
-      output += u':\tmu=' + str(mu) + os.linesep
-      output += '\tc=' + str(c) + os.linesep
-      output += '\ta=' + str(a) + os.linesep
-      output += '\tM=' + os.linesep + str(A) + 2 * os.linesep
-      #output += '\t\u03A3=\n' + str(A)+'\n\n'
-      #output += '\t' + u"R\u00B2: " + str(rSquared) + '\n\n'
-
-      outputDict['mu_' + str(key)] = mu
-      outputDict['c_' + str(key)] = c
-      outputDict['a_' + str(key)] = a
-      outputDict['Sigma_' + str(key)] = A
-      outputDict['R2_' + str(key)] = rSquared
-
-   # output += 'RMSD  = %f and %f\n' % (self.gaussianNRMSD[0],self.gaussianNRMSD[1])
-    self.raiseAMessage(output)
+    # output = os.linesep
+    # output += '========== Data Labels: ========== ' + os.linesep
+    # output += 'Index'
+    # sep = ','
+    # for lbl in names:
+    #   output += sep + lbl
+    # output += sep + 'Minimum' + sep + 'Maximum'
+    # output += os.linesep
+    # for i in xrange(0, self.__amsc.GetSampleSize()):
+    #   line = str(i)
+    #   for d in xrange(0, self.__amsc.GetDimensionality()):
+    #     line += sep + str(inputData[i, d])
+    #   line += sep + str(outputData[i])
+    #   line += sep + str(int(outputDict['minLabel'][i]))
+    #   line += sep + str(int(outputDict['maxLabel'][i]))
+    #   output += line + os.linesep
+    # output += '========== Merge Hierarchy: ==========' + os.linesep
+    # output += self.__amsc.XMLFormattedHierarchy() + os.linesep
+    # self.raiseAMessage(output)
     return outputDict
 
 """
