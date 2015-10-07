@@ -5,7 +5,7 @@
     <Sequence>step1,step2,step3,step4</Sequence>
     <batchSize>4</batchSize>
     <internalParallel>True</internalParallel>
-    <mode>mpi<qSUB/></mode>
+    <mode>mpi<runQSUB/></mode>
   </RunInfo>
 
   <Steps>

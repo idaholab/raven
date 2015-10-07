@@ -5,7 +5,7 @@
     <Sequence>ExternalModelMC,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted,ComputeLimitSurfaceIntegralUnWeighted</Sequence>
     <batchSize>5</batchSize>
     <internalParallel>True</internalParallel>
-    <mode>mpi<qSUB/></mode>
+    <mode>mpi<runQSUB/></mode>
   </RunInfo>
 
   <Files>

@@ -6,7 +6,7 @@
     <Sequence>ParalleMonteCarlo</Sequence>
     <batchSize>4</batchSize>
     <internalParallel>True</internalParallel>
-    <mode>mpi<qSUB/></mode>
+    <mode>mpi<runQSUB/></mode>
   </RunInfo>
 
   <!-- STEPS -->
