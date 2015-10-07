@@ -1115,13 +1115,14 @@ class Grid(Sampler):
       coordinatesMinusOne = self.gridEntity.returnShiftedCoordinate(currentIndexes,dict.fromkeys(self.axisName,-1))
       for i in range(len(self.axisName)):
         varName = self.axisName[i]
-        # compute the SampledVarsPb
+        # compute the SampledVarsPb for 1-D distribution
         if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
           for key in varName.strip().split(','):
             self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
             self.inputInfo['distributionType'][key] = self.distDict[varName].type
             self.values[key] = coordinates[varName]
             self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
+        # compute the SampledVarsPb for N-D distribution
         else:
             if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count;
               dist_name = self.variables2distributionsMapping[varName]['name']
