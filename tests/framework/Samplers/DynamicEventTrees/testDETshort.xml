@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation printTimeStamps="false" verbosity="debug">
   <RunInfo>
-    <WorkingDir>branch</WorkingDir>
+    <WorkingDir>DETshort</WorkingDir>
     <Sequence>DETrunTest,extract_hist_example</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
@@ -34,11 +34,6 @@
         <distribution>zeroToOne</distribution>
         <grid construction="custom" type="CDF">0.1 0.5 0.8</grid>
       </Distribution>
-      <!--
-        <variable name="zeroToOne">
-          <distribution ProbabilityThresholds="0.1 0.5 0.8">zeroToOne</distribution>
-        </variable>
-      -->
     </DynamicEventTree>
   </Samplers>
 

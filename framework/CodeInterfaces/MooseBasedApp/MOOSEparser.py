@@ -16,7 +16,6 @@ from utils import toBytes, toStrish, compare
 
 class MOOSEparser():
   '''import the MOOSE input as xml tree, provide methods to add/change entries and print it back'''
-
   def __init__(self,inputFile):
     self.printTag = 'MOOSE_PARSER'
     if not os.path.exists(inputFile): raise IOError('not found MOOSE input file')
