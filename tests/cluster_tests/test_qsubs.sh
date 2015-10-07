@@ -52,7 +52,7 @@ rm -Rf InternalParallelExtModel/*.csv
 
 python ../../../framework/Driver.py test_internal_parallel_extModel.xml
 
-sleep 10 #Wait for disk to propagate.
+sleep 1 #Wait for disk to propagate.
 lines=`ls InternalParallelExtModel/*.csv | wc -l`
 
 if test $lines -eq 102; then
@@ -70,7 +70,7 @@ rm -Rf InternalParallelScikit/*.csv
 
 python ../../../framework/Driver.py test_internal_parallel_ROM_scikit.xml
 
-sleep 10 #Wait for disk to propagate.
+sleep 1 #Wait for disk to propagate.
 lines=`ls InternalParallelScikit/*.csv | wc -l`
 
 if test $lines -eq 2; then
@@ -88,7 +88,7 @@ rm -Rf InternalParallelPostProcessorLS/*.csv
 
 python ../../../framework/Driver.py test_internal_parallel_PP_LS.xml
 
-sleep 10 #Wait for disk to propagate.
+sleep 1 #Wait for disk to propagate.
 lines=`ls InternalParallelPostProcessorLS/*.csv | wc -l`
 
 if test $lines -eq 6; then
