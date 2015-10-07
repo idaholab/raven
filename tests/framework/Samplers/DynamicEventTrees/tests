@@ -1,0 +1,28 @@
+[Tests]
+ [./testClassicDETshortRAVEN]
+  type = 'RavenFramework'
+  input = 'testDETshort.xml'
+  output = 'DETshort/DETrunTest/out~DET_test_1-1-2~ideal_pump DETshort/extract_hist_example/DET_HistorySet_additional_info_DET_test_1-1-2.csv DETshort/testprint_tpset_hier_variables.csv DETshort/3-2DHistoryPlot_tps_scatter.pdf'
+  csv = 'DETshort/extract_hist_example/DET_HistorySet_DET_test_1-2.csv'
+  required_executable = '../../../../RAVEN-%METHOD%'
+ [../]
+
+ [./testClassicDETheavyRAVEN]
+  type = 'RavenFramework'
+  input = 'testSboHeavyDET.xml'
+  output = 'SboDET/DET/out~DET_1-2-2~TMI SboDET/DET/out~DET_1-2-1-1-1-2~TMI.csv'
+  csv = 'SboDET/stories_from_database_dump_8.csv SboDET/DET/out~DET_1-2-1-1-1-2~TMI.csv'
+  max_time = 1000000
+  heavy = True
+  rel_err = 0.01
+  required_executable = '../../../../RAVEN-%METHOD%'
+ [../]
+
+ [./testHybridDETshortRAVEN]
+  type = 'RavenFramework'
+  input = 'testHybridDET.xml'
+  output = 'HybridDynamicEventTree/HybridDETrunTest/out~HybridDET_test_5-1-2~ideal_pump HybridDynamicEventTree/testprint_hist_hier_HybridDET_test_5-2.csv HybridDynamicEventTree/testprint_hist_hier_variables_HybridDET_test_1-1-2.csv HybridDynamicEventTree/2DHistoryPlot_line.pdf'
+  csv = 'HybridDynamicEventTree/HybridDETrunTest/out~HybridDET_test_5-1-2~ideal_pump.csv'
+  required_executable = '../../../../RAVEN-%METHOD%'
+ [../]
+[]
