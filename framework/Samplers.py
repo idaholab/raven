@@ -167,7 +167,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     and initialize some stuff based on the inputs got
     @ In, xmlNode    : Xml element node
     @ Out, None
-    The text i supposed to contain the info where and which variable to change.
+    The text is supposed to contain the info where and which variable to change.
     In case of a code the syntax is specified by the code interface itself
     """
 
@@ -182,7 +182,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     and initialize some stuff based on the inputs got
     @ In, xmlNode    : Xml element node
     @ Out, None
-    The text i supposed to contain the info where and which variable to change.
+    The text is supposed to contain the info where and which variable to change.
     In case of a code the syntax is specified by the code interface itself
     """
 
@@ -729,7 +729,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # initialize LimitSurface PP
     self.limitSurfacePP._initFromDict({"name":self.name+"LSpp","parameters":[key.replace('<distribution>','') for key in self.axisName],"tolerance":self.tolerance,"side":"both","transformationMethods":transformMethod,"bounds":bounds})
     self.limitSurfacePP.assemblerDict = self.assemblerDict
-    self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{'computeCells': True if self.tolerance != self.subGridTol else False})
+    self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{'computeCells':self.tolerance != self.subGridTol})
     self.persistenceMatrix[self.name+"LSpp"]  = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #matrix that for each point of the testing grid tracks the persistence of the limit surface position
     self.oldTestMatrix[self.name+"LSpp"]      = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #swap matrix fro convergence test
     self.hangingPoints                        = np.ndarray((0, self.nVar))

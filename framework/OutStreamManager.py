@@ -738,19 +738,14 @@ class OutStreamPlot(OutStreamManager):
                   if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
                       #if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'winter'
                       self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], **scatterPlotOptions)
-
-                      m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm, cmap = self.mpl.cm.get_cmap("winter"))
-                      m.set_array(self.colorMapValues[pltindex][key])
-                      self.actcm = self.fig.colorbar(m)
-                      self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
-                      #if first:
-                      #    m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
-                      #    m.set_array(self.colorMapValues[pltindex][key])
-                      #    self.actcm = self.fig.colorbar(m)
-                      #    self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
-                      #else:
-                      #    self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
-                      #    self.actcm.draw_all()
+                      if first:
+                          m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
+                          m.set_array(self.colorMapValues[pltindex][key])
+                          self.actcm = self.fig.colorbar(m)
+                          self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
+                      else:
+                          self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
+                          self.actcm.draw_all()
                   else:
                       scatterPlotOptions['cmap'] = self.options['plotSettings']['plot'][pltindex]['cmap']
                       self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], **scatterPlotOptions)

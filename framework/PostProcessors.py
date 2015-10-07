@@ -1207,10 +1207,8 @@ class BasicStatistics(BasePostProcessor):
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
     expValues = np.zeros(len(parameterSet))
     for myIndex, targetP in enumerate(parameterSet):
-      print(len(Input['targets'][targetP]),len(pbweights))
       outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = pbweights)
       expValues[myIndex] = outputDict['expectedValue'][targetP]
-
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
       # sigma

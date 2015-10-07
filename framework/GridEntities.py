@@ -451,8 +451,8 @@ class GridEntity(GridBase):
       cellIds.append([])
       for point in bound: cellIds[cntb].extend(self.gridContainer['vertexToCellIds'][tuple(point)])
       if cntb == 0: previousSet = set(cellIds[cntb])
-      if containedOnly == True: previousSet = set(previousSet).intersection(cellIds[cntb])
-      else                    : previousSet.update(cellIds[cntb])
+      if containedOnly: previousSet = set(previousSet).intersection(cellIds[cntb])
+      else            : previousSet.update(cellIds[cntb])
     return list(set(previousSet))
 
   def returnGridAsArrayOfCoordinates(self):

@@ -871,7 +871,7 @@ class Point(Data):
     if 'what' in options.keys():
       for var in options['what']:
         splitted = var.split('|')
-        variableName = "|".join(splitted[1:]) if len(splitted) > 2 else splitted[1]
+        variableName = "|".join(splitted[1:])
         varType = splitted[0]
         if varType == 'input':
           inpKeys.append(variableName)
@@ -882,7 +882,6 @@ class Point(Data):
         if varType == 'metadata':
           inpKeys.append(variableName)
           inpValues.append(self._dataContainer['metadata'][variableName])
-        if varType == 'metadata':
           if variableName in self.metaExclXml:
             if type(self._dataContainer['metadata'][variableName]) not in self.metatype:
               self.raiseAnError(NotConsistentData,'metadata '+variableName+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
@@ -1148,7 +1147,7 @@ class PointSet(Data):
         if 'what' in options.keys():
           for var in options['what']:
             splitted = var.split('|')
-            variableName = "|".join(splitted[1:]) if len(splitted) > 2 else splitted[1]
+            variableName = "|".join(splitted[1:])
             varType = splitted[0]
             if varType == 'input':
               inpKeys[-1].append(variableName)
@@ -1226,7 +1225,7 @@ class PointSet(Data):
       if 'what' in options.keys():
         for var in options['what']:
           splitted = var.split('|')
-          variableName = "|".join(splitted[1:]) if len(splitted) > 2 else splitted[1]
+          variableName = "|".join(splitted[1:])
           varType = splitted[0]
           if varType == 'input':
             inpKeys.append(variableName)
@@ -1419,7 +1418,7 @@ class History(Data):
     if 'what' in options.keys():
       for var in options['what']:
         splitted = var.split('|')
-        variableName = "|".join(splitted[1:]) if len(splitted) > 2 else splitted[1]
+        variableName = "|".join(splitted[1:])
         varType = splitted[0]
         if varType == 'input':
           inpKeys.append(variableName)
@@ -1795,7 +1794,7 @@ class HistorySet(Data):
         if 'what' in options.keys():
           for var in options['what']:
             splitted = var.split('|')
-            variableName = "|".join(splitted[1:]) if len(splitted) > 2 else splitted[1]
+            variableName = "|".join(splitted[1:])
             varType = splitted[0]
             if varType == 'input':
               inpKeys[-1].append(variableName)
@@ -1867,7 +1866,7 @@ class HistorySet(Data):
         if 'what' in options.keys():
           for var in options['what']:
             splitted = var.split('|')
-            variableName = "|".join(splitted[1:]) if len(splitted) > 2 else splitted[1]
+            variableName = "|".join(splitted[1:])
             varType = splitted[0]
             if varType == 'input':
               inpKeys_h.append(variableName)
