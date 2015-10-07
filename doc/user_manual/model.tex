@@ -1087,7 +1087,7 @@ Also, this ROM must be referenced in the SparseGridCollocation sampler in order 
 accurately produce the necessary sparse grid points to train this ROM.
 
 \textbf{Example:}
-\footnotesize
+{\footnotesize
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
 <Simulation>
   ...
@@ -1120,6 +1120,7 @@ accurately produce the necessary sparse grid points to train this ROM.
   ...
 </Simulation>
 \end{lstlisting}
+}
 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are \xmlString{mean} and \xmlString{variance}.
 
@@ -1153,7 +1154,7 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
   uncertainty in most models.
 
 \textbf{Example:}
-\footnotesize
+{\footnotesize
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
   <Samplers>
     ...
@@ -1183,6 +1184,7 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
     ...
   </Models>
 \end{lstlisting}
+}
 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are \xmlString{mean}, \xmlString{variance}, and \xmlString{indices}.  In the latter case, the total calculated variance is printed, followed by the percent of contributing variance for each existing subset of the input domain (the Sobol indices).
 
@@ -3677,8 +3679,10 @@ This XML node needs to contain the attributes:
   \item \xmlAttr{ModuleToLoad}, \xmlDesc{required string attribute}, file name
   with its absolute or relative path.
   %
-  \nb If a relative path is specified, it must be relative with respect to where
-  the user runs the code.
+  \nb If a relative path is specified, the code first checks relative
+  to the working directory, then it checks with respect to where the
+  user runs the code.  Using the relative path with respect to where the
+  code is run is not recommended.
   %
 \end{itemize}
 \vspace{-5mm}
@@ -4550,8 +4554,9 @@ Section~\ref{sec:functions} for more details).
 \subsubsection{TopologicalDecomposition}
 \label{TopologicalDecomposition}
 The \textbf{TopologicalDecomposition} post-processor will compute an
-approximated hierarchical Morse-Smale complex and perform linear regression on
-each component.
+approximated hierarchical Morse-Smale complex which will add two columns to a
+dataset, namely \texttt{minLabel} and \texttt{maxLabel} that can be used to
+decompose a dataset.
 %
 
 In order to use the \textbf{TopologicalDecomposition} post-processor, the user
