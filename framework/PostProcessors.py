@@ -52,6 +52,16 @@ class BasePostProcessor(Assembler, MessageHandler.MessageUser):
     self.assemblerDict = {}  # {'class':[['subtype','name',instance]]}
     self.messageHandler = messageHandler
 
+  def __getstate__(self):
+    pdict = {'type':self.type,'name':self.name,'assemblerObjects':self.assemblerObjects,
+             'requiredAssObject':self.requiredAssObject,'assemblerDict':self.assemblerDict,
+             'messageHandler':self.messageHandler}
+    return pdict
+
+  def __setstate__(self,pdict):
+    self.__init__()
+    for k,v in pdict.iteritems(): self.__dict__[k] = v
+
   def initialize(self, runInfo, inputs, initDict) :
     """
      Method to initialize the pp.
@@ -1573,35 +1583,29 @@ class LimitSurface(BasePostProcessor):
     self.transfMethods     = {}
     self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
-    
-
-  def _initFromDict(self, dictIn):
-    """
-      Initialize the LS pp from a dictionary (not from xml input).
-      This is used when other objects initialize and use the LS pp for internal
-      calculations
-      @ In, dictIn, dict, dictionary of initialization options
-    """
-    if "parameters" not in dictIn.keys()             : self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
-    if "name"                  in dictIn.keys()      : self.name          = dictIn["name"]
-    if type(dictIn["parameters"]).__name__ == "list" : self.parameters['targets'] = dictIn["parameters"]
-    else                                             : self.parameters['targets'] = dictIn["parameters"].split(",")
-    if "bounds"                in dictIn.keys()      : self.bounds        = dictIn["bounds"]
-    if "transformationMethods" in dictIn.keys()      : self.transfMethods = dictIn["transformationMethods"]
-    if "verbosity"             in dictIn.keys()      : self.verbosity     = dictIn['verbosity']
-    if "side"                  in dictIn.keys()      : self.lsSide        = dictIn["side"]
-    if "tolerance"             in dictIn.keys()      : self.tolerance     = float(dictIn["tolerance"])
-    if self.lsSide not in ["negative", "positive", "both"]: self.raiseAnError(IOError, 'Computation side can be positive, negative, both only !!!!')
 
   def __getstate__(self):
-    pdict = {'parameters':self.parameters['targets'],'name':self.name,'bounds':self.bounds}
-    self.addInitParams(pdict)
-    pdict['type']=self.type
+    pdict = BasePostProcessor.__getstate__(self)
+    #pdict = {'mesg':self.messageHandler}
+    pdict.update({'parameters':self.parameters['targets']})
+    pdict.update({'bounds':self.bounds})
+    pdict.update({'side':self.lsSide})
+    pdict.update({'tolerance':self.tolerance})
+    pdict.update({'surfPoint':self.surfPoint})
+    pdict.update({'testMatrix':self.testMatrix})
+    pdict.update({'functionValue':self.functionValue})
+    pdict.update({'gridEntity':self.gridEntity})
+    pdict.update({'transformationMethods':self.transfMethods})
+
+    testdict = dict((k, v) for (k, v) in self.__dict__.iteritems() if v not in ['jobHandler'])
     return pdict
 
   def __setstate__(self,pdict):
-    self.__init__()
-    pass
+    self.__init__(pdict['mesg'])
+    BasePostProcessor.__setstate__(self)
+    self._initFromDict(pdict)
+    self.surfPoint, self.testMatrix     = pdict['surfPoint'    ], pdict['testMatrix']
+    self.functionValue, self.gridEntity = pdict['functionValue'], pdict['gridEntity']
 
   def _localWhatDoINeed(self):
     """
@@ -1611,7 +1615,7 @@ class LimitSurface(BasePostProcessor):
     @ Out, needDict, list of objects needed
     """
     return {'internal':[(None,'jobHandler')]}
- 
+
   def _localGenerateAssembler(self,initDict):
     """
     Generates the assembler.

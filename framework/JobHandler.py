@@ -263,7 +263,7 @@ class InternalRunner(MessageHandler.MessageUser):
     return self.retcode
 
   def returnEvaluation(self):
-    
+
     if self.isDone():
       if not self.__hasBeenAdded:
         if self.ppserver is not None:
