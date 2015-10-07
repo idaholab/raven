@@ -166,7 +166,7 @@ def interpretBoolean(inarg):
 def compare(s1,s2,sig_fig = 6):
   """
     Method aimed to compare two strings. This method tries to convert the 2
-    strings in float and uses an integere representation to compare them.
+    strings in float and uses an integer representation to compare them.
     In case the conversion is not possible (string or only one of the strings is
     convertable), the method compares strings as they are.
     @ In, s1, string, first string to be compared
@@ -325,7 +325,7 @@ def importFromPath(filename, printImporting = True):
 
 def index(a, x):
   """
-    Method to locate the leftmost value exactly equal to x in the list a
+    Method to locate the leftmost value exactly equal to x in the list a (assumed to be sorted)
     @ In, a, list, the list that needs to be inquired
     @ In, x, float, the inquiring value
     @ Out, i, int, the index of the leftmost value exactly equal to x
@@ -336,7 +336,7 @@ def index(a, x):
 
 def find_lt(a, x):
   """
-    Method to Find rightmost value less than x in the list a
+    Method to Find rightmost value less than x in the list a (assumed to be sorted)
     @ In, a, list, the list that needs to be inquired
     @ In, x, float, the inquiring value
     @ Out, i, int, the index of the Find rightmost value less than x
@@ -347,7 +347,7 @@ def find_lt(a, x):
 
 def find_le_index(a,x):
   """
-    Method to Find the index of the rightmost value less than or equal to x in the list a
+    Method to Find the index of the rightmost value less than or equal to x in the list a (assumed to be sorted)
     @ In, a, list, the list that needs to be inquired
     @ In, x, float, the inquiring value
     @ Out, i, int, the index of the rightmost value less than or equal to x
@@ -358,7 +358,7 @@ def find_le_index(a,x):
 
 def find_le(a, x):
   """
-    Method to Find the rightmost value less than or equal to x in the list a
+    Method to Find the rightmost value less than or equal to x in the list a (assumed to be sorted)
     @ In, a, list, the list that needs to be inquired
     @ In, x, float, the inquiring value
     @ Out, i, tuple, tuple[0] -> the rightmost value less than or equal to x, tuple[1] -> index
@@ -369,7 +369,7 @@ def find_le(a, x):
 
 def find_gt(a, x):
   """
-    Method to Find the leftmost value greater than x in the list a
+    Method to Find the leftmost value greater than x in the list a (assumed to be sorted)
     @ In, a, list, the list that needs to be inquired
     @ In, x, float, the inquiring value
     @ Out, i, tuple, tuple[0] -> the leftmost value greater than x, tuple[1] -> index
@@ -380,7 +380,7 @@ def find_gt(a, x):
 
 def find_ge(a, x):
   """
-    Method to Find the leftmost item greater than or equal to x in the list a
+    Method to Find the leftmost item greater than or equal to x in the list a (assumed to be sorted)
     @ In, a, list, the list that needs to be inquired
     @ In, x, float, the inquiring value
     @ Out, i, tuple, tuple[0] ->leftmost item greater than or equal to x, tuple[1] -> index
@@ -426,7 +426,7 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
     @ In, x, ndarray or cached_ndarray, the array of x coordinates
     @ In, y, ndarray or cached_ndarray, the array of y coordinates
     @ In, z, ndarray or cached_ndarray, optional, the array of z coordinates
-    @ In, returnCoordinate, boolean, optional, true if the new coordinates nned to be returned
+    @ In, returnCoordinate, boolean, optional, true if the new coordinates need to be returned
     @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
   """
   options = copy.copy(option)
