@@ -14,10 +14,6 @@
       <Sampler class="Samplers"    type="Grid"         >grid1</Sampler>
       <Output  class="DataObjects" type="PointSet"     >Data2</Output>
     </MultiRun>
-    <RomTrainer name="step2">
-      <Input  class="DataObjects" type="PointSet"      >Data2</Input>
-      <Output class="Models"      type="ROM"           >ROM1</Output>
-    </RomTrainer>
     <MultiRun name="step3" pauseAtEnd="false">
       <Input   class="DataObjects"  type="PointSet"    >Data1</Input>
       <Model   class="Models"       type="ROM"         >ROM1</Model>
@@ -30,6 +26,10 @@
       <Output class="OutStreamManager" type="Print"    >PrintDataData2</Output>
       <Output class="OutStreamManager" type="Print"    >PrintDataData3</Output>
     </IOStep>
+    <RomTrainer name="step2">
+        <Input  class="DataObjects" type="PointSet"      >Data2</Input>
+        <Output class="Models"      type="ROM"           >ROM1</Output>
+    </RomTrainer>
   </Steps>
 
   <Samplers>
