@@ -1,0 +1,76 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <!--Moose Interface Test
+  This test is designed to ensure the Moose interface runs correctly.
+  It will only run if a modules-$METHOD executable is found.
+  Variables are sampled in a grid with specified values for each parameter.
+  The test diffs the generated csv with the gold one. -->
+  <RunInfo>
+    <WorkingDir>MOOSEVPPInterface</WorkingDir>
+    <Sequence>grid_run</Sequence>
+    <batchSize>4</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name = "mooseInput"  type = "" >MooseVPP.i</Input>
+    <Input name = "mooseMesh"   type = "" >ellip_crack_4sym_norad_mm.e</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="collset">
+      <Input>youngModulus,poissonsRatio</Input>
+      <Output>R1ID1,R1ID2,R1ID3,R1value1,R1value2,R1value3,R2ID1,R2ID2,R2value1,R2value2</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <Uniform name="youngs_modulusDist">
+      <lowerBound>200.0E+03</lowerBound>
+      <upperBound>210.0E+03</upperBound>
+    </Uniform>
+    <Uniform name="poissonsRatioDist">
+      <lowerBound>-0.4</lowerBound>
+      <upperBound>0.4</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="Grid_sampling">
+      <variable name="youngModulus">
+        <distribution>youngs_modulusDist</distribution>
+        <grid construction="custom" type="value">200.0E+03 210.0E+03</grid>
+      </variable>
+      <variable name="poissonsRatio">
+        <distribution>poissonsRatioDist</distribution>
+        <grid construction="custom" type="value">-0.4 0.4</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Models>
+    <Code name="MOOSETestApp" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../moose/modules/combined/modules-%METHOD%</executable>
+      <alias variable = "poissonsRatio" >Materials|stiffStuff|poissons_ratio</alias>
+      <alias variable = "youngModulus"  >Materials|stiffStuff|youngs_modulus</alias>
+    </Code>
+  </Models>
+
+  <Steps>
+    <MultiRun name="grid_run">
+      <Input   class = "Files"             type = ""         >mooseInput</Input>
+      <Input   class = "Files"             type = ""         >mooseMesh</Input>
+      <Model   class = "Models"            type = "Code"     >MOOSETestApp</Model>
+      <Sampler class = "Samplers"          type = "Grid"     >Grid_sampling</Sampler>
+      <Output  class = "DataObjects"       type = "PointSet" >collset</Output>
+      <Output  class = "OutStreamManager"  type = "Print"    >print_data</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name = "print_data">
+      <type>csv</type>
+      <source>collset</source>
+    </Print>
+  </OutStreamManager>
+
+</Simulation>
