@@ -190,7 +190,7 @@ class MOOSEparser():
   def vectorPostProcessor(self):
     """this method finds and process the vector post processor
     @ In, None
-    @ Out, (found, vectorPPDict), tuple, 
+    @ Out, (found, vectorPPDict), tuple,
     found: boolean for the presence of the vector PP
     vectorPPDict: Dictionary for the properties related to the vector PP
     """

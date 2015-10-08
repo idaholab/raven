@@ -98,7 +98,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
       if len(self.vectorPPDict['rings']) == 1: return self.__mergeTime(output,workingDir)[0]
       else:
         ringFiles = self.__mergeTime(output,workingDir)
-        for i in range(len(ringFiles)): ringFiles[i] = ringFiles[i]+'.csv'
+        for i in range(len(ringFiles)): ringFiles[i] = os.path.join(ringFiles[i],'.csv')
         outputObj = csvUtilities.csvUtilityClass(ringFiles)
         outputFileName = os.path.join(workingDir,str(output+'_VPP.csv'))
         options = {'variablesToExpandFrom': ["timeStep"]}
@@ -111,7 +111,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     merges the vector PP output files created with the MooseApp
     @ In, output: the Output name root (string)
     @ In, workingDir: Actual working dir (string)
-    @ Out, vppFiles: the files merged from the outputs of the vector PP 
+    @ Out, vppFiles: the files merged from the outputs of the vector PP
     """
     files2Merge = []
     vppFiles = []
