@@ -189,9 +189,12 @@ class MOOSEparser():
     if save: return returnElement
 
   def vectorPostProcessor(self):
-    """this method finds the vector postprocessor
-    returns boolean for the presence of the vector PP
-    returns the number and name of the csv files generated"""
+    """this method finds and process the vector post processor
+    @ In, None
+    @ Out, (found, vectorPPDict), tuple, 
+    found: boolean for the presence of the vector PP
+    vectorPPDict: Dictionary for the properties related to the vector PP
+    """
     vectorPPDict = {}
     found = False
     for child in self.root:

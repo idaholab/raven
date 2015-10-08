@@ -5,7 +5,6 @@ Created on April 14, 2014
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-#import parser
 warnings.simplefilter('default',DeprecationWarning)
 
 import os
@@ -53,7 +52,6 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['SparseGridCollocation'] = self.pointSamplerForMooseBasedApp
-    #print('WARNING: Sampler type not found in MooseBasedApp Interface dictionaries; continuing with default...')
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       inputFile = inputFile.getAbsFile()
@@ -88,13 +86,13 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     return listDict
 
   def finalizeCodeOutput(self,command,output,workingDir):
-    ''' this method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
+    """ this method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
         It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
         @ command, Input, the command used to run the just ended job (NOT Used at the moment)
         @ output, Input, the Output name root (string)
         @ workingDir, Input, actual working dir (string)
         @ return is optional, in case the root of the output file gets changed in this method.
-    '''
+    """
 
     if self.vectorPPFound:
       if len(self.vectorPPDict['rings']) == 1: return self.__mergeTime(output,workingDir)[0]
@@ -109,6 +107,12 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     else: return
 
   def __mergeTime(self,output,workingDir):
+    """
+    merges the vector PP output files created with the MooseApp
+    @ In, output: the Output name root (string)
+    @ In, workingDir: Actual working dir (string)
+    @ Out, vppFiles: the files merged from the outputs of the vector PP 
+    """
     files2Merge = []
     vppFiles = []
     if 'JIntegral' in self.vectorPPDict['integrals']:

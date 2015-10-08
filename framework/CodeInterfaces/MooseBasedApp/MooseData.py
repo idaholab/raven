@@ -2,7 +2,7 @@ import os
 import re
 import csv
 class mooseData:
-  '''   class that parses output of Moose Vector PP output files and reads in trip, minor block and write a csv file '''
+  """   class that parses output of Moose Vector PP output files and reads in trip, minor block and write a csv file """
   def __init__(self,filen,workingDir,outputFile,ring):
     self.vppFiles = []
     csvfiles = []
@@ -17,7 +17,8 @@ class mooseData:
   def __read(self,csvreaders):
     """ This method reads the VectorPostProcessor outputs send in as a list of csv.DictReader objects
     @csvreaders, input, list of csv.DictReader objects
-    @tempDict, output, temporary dictionary of the data in the outputs (not sorted) """
+    @tempDict, output, temporary dictionary of the data in the outputs (not sorted) 
+    """
     tempDict = {}
     for icsv, csvdictread in enumerate(csvreaders):
       tempDict[icsv] = {}
@@ -48,7 +49,8 @@ class mooseData:
   def __write_csv(self,writeDict,workingDir,baseName,ring):
     """   writes the csv file using the input Dictionary
     @writeDict, input, data to write
-    @filen, input filename """
+    @filen, input filename 
+    """
     self.vppFiles = os.path.join(workingDir,str(baseName+'_VPP'))
     IOcsvfile=open(os.path.join(workingDir,str(baseName+'_VPP.csv')),'w')
     location = {}
@@ -61,9 +63,7 @@ class mooseData:
           location[key][coordinate] = writeDict[key][coordinate]
         else:
           timeStep[key][coordinate] = writeDict[key][coordinate]
-#
     locationNo = len(location.keys())
-    #WRITE HEADER
     j = 0
     IOcsvfile.write('timeStep,')
     tempString = []
