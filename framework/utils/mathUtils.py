@@ -33,7 +33,6 @@ def skewNormal(x,alphafactor,xi,omega):
 def createInterp(x, y, low_fill, high_fill, kind='linear'):
   interp = interpolate.interp1d(x, y, kind)
   low = x[0]
-  high = x[-1]
   def myInterp(x):
     try:
       return interp(x)+0.0
@@ -46,13 +45,12 @@ def createInterp(x, y, low_fill, high_fill, kind='linear'):
 
 def simpson(f, a, b, n):
   h = (b - a) / float(n)
-  sum = f(a) + f(b)
+  sumVar = f(a) + f(b)
   for i in range(1,n, 2):
-    sum += 4*f(a + i*h)
+    sumVar += 4*f(a + i*h)
   for i in range(2, n-1, 2):
-    sum += 2*f(a + i*h)
-
-  return sum * h / 3.0
+    sumVar += 2*f(a + i*h)
+  return sumVar * h / 3.0
 
 def getGraphs(functions, f_z_stats = False):
   """returns the graphs of the functions.

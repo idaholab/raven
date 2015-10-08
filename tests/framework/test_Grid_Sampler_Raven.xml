@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>GridTestRaven</WorkingDir>
     <Sequence>FirstMRun</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>4</batchSize>
   </RunInfo>
 
   <Files>
