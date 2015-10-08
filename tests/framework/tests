@@ -185,51 +185,6 @@
   rel_err = 0.001
  [../]
 
- [./testGridBison]
-  type = 'RavenFramework'
-  input = 'test_Grid_Sampler_Bison.xml'
-  output = 'GridTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
-  csv = 'GridTestBison/CustomSampler/out~18~gap_perfect_transfer_test.csv GridTestBison/CustomSampler/out~17~gap_perfect_transfer_test.csv GridTestBison/outGrid_dump.csv'
-  max_time = 500
-  rel_err = 0.001
-  required_executable = '../../../bison/bison-%METHOD%'
-  skip_if_env = BUILD_ROOT
-  #There is a problem in debug mode (possibly in bison) but this
-  # test often does not work in debug mode because of the problem.
-  method = 'devel opt'
- [../]
-
- [./testLHSBison]
-  type = 'RavenFramework'
-  input = 'test_LHS_Sampler_Bison.xml'
-  output = 'LHStestBison/myLHS/out~1~gap_perfect_transfer_test'
-  UnorderedCsv = 'LHStestBison/myLHS/out~1~gap_perfect_transfer_test.csv LHStestBison/myLHS/out~3~gap_perfect_transfer_test.csv'
-  max_time = 500
-  rel_err = 0.001
-  required_executable = '../../../bison/bison-%METHOD%'
-  skip_if_env = BUILD_ROOT
- [../]
-
- [./testLHSBisonParallel]
-  type = 'RavenFramework'
-  input = 'test_LHS_Sampler_Bison_parallel.xml'
-  output = 'LHStestBisonParallel/myLHS/out~1~gap_perfect_transfer_test LHStestBisonParallel/LHS_Bison_dump.csv'
-  UnorderedCsv = 'LHStestBisonParallel/LHS_Bison_dump.csv'
-  max_time = 500
-  rel_err = 0.001
-  required_executable = '../../../bison/bison-%METHOD%'
-  skip_if_env = BUILD_ROOT
- [../]
-
-
- [./testLHSFerret]
-  type = 'RavenFramework'
-  input = 'test_LHS_Sampler_ferret.xml'
-  output = 'LHStestFerret/myLHS/out~1~simple_diffusion'
-  csv = 'LHStestFerret/myLHS/out~1~simple_diffusion.csv'
-  required_executable = '../../../ferret/ferret-%METHOD%'
- [../]
-
  [./testLHSRaven]
    type = 'RavenFramework'
    input = 'test_LHS_Sampler_Raven.xml'
@@ -405,22 +360,6 @@
   csv = 'StochasticPolyInterpTest/Ndump.csv'
  [../]
 
- [./RELAP5interfaceTestNoExecutable]
-  type = 'RavenFramework'
-  input = 'test_relap5_code_interface.xml'
-  output = 'RELAP5interfaceTest/testDummyStep/1~snc01.i RELAP5interfaceTest/testDummyStep/2~snc01.i RELAP5interfaceTest/testDummyStep/3~snc01.i RELAP5interfaceTest/testDummyStep/4~snc01.i RELAP5interfaceTest/testDummyStep/5~snc01.i RELAP5interfaceTest/testDummyStep/out~1~snc01.csv RELAP5interfaceTest/testDummyStep/out~2~snc01.csv RELAP5interfaceTest/testDummyStep/out~3~snc01.csv RELAP5interfaceTest/testDummyStep/out~4~snc01.csv RELAP5interfaceTest/testDummyStep/out~5~snc01.csv'
-  csv = 'RELAP5interfaceTest/testDummyStep/out~1~snc01.csv RELAP5interfaceTest/testDummyStep/out~2~snc01.csv RELAP5interfaceTest/testDummyStep/out~3~snc01.csv RELAP5interfaceTest/testDummyStep/out~4~snc01.csv RELAP5interfaceTest/testDummyStep/out~5~snc01.csv'
-  test_interface_only = True
- [../]
-
-[./OpenModelicaInterfaceTestNoExecutable]
-  type = 'RavenFramework'
-  input = 'test_OpenModelica_code_interface.xml'
-  output = 'OMInterfaceTest/testDummyStep/OM1BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM2BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM3BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM4BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM5BouncingBall_init.xml OMInterfaceTest/testDummyStep/out~OM1BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM2BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM3BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM4BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM5BouncingBall_init.csv'
-  csv = 'OMInterfaceTest/testDummyStep/out~OM1BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM2BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM3BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM4BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM5BouncingBall_init.csv'
-  test_interface_only = True
- [../]
-
  [./ND_external_LHS]
   type = 'RavenFramework'
   input = 'test_simple_ND_external_LHS.xml'
@@ -456,20 +395,6 @@
    csv = 'test_cc_stats/output_fullprint_Pointset_outputs_normal1_0.csv test_cc_stats/output_fullprint_Pointset_outputs_normal1_1.csv test_cc_stats/output_fullprint_Pointset_outputs_normal2_0.csv test_cc_stats/output_fullprint_Pointset_outputs_normal2_1.csv test_cc_stats/output_fullprint_Pointset_outputs_uniform1_fullprint_Pointset_outputs_uniform2p_0.csv test_cc_stats/output_fullprint_Pointset_outputs_uniform1_fullprint_Pointset_outputs_uniform2p_1.csv'
  [../]
 
- [./genericInterface]
-   type = 'RavenFramework'
-   input = 'test_generic_interface.xml'
-   output = 'GenericInterface/samples.xml'
-   csv = 'GenericInterface/samples.csv'
- [../]
-
- [./genericInterfaceIO]
-   type = 'RavenFramework'
-   input = 'test_generic_IO.xml'
-   output = 'GenericInterfaceIO/samples.xml'
-   csv = 'GenericInterfaceIO/samples.csv'
- [../]
-
  [./dists_vars]
    type = 'RavenFramework'
    input = 'test_distribution_combination.xml'
@@ -499,28 +424,6 @@
    output = 'dataObject_metadata/PointProbability_dump.xml'
    xml = 'dataObject_metadata/PointProbability_dump.xml'
    csv = 'dataObject_metadata/PointProbability_dump.csv'
- [../]
-
- [./CubitMooseInterface]
-   type = 'RavenFramework'
-   input = 'test_CUBIT_MOOSE.xml'
-   output = 'CUBIT_MOOSE_test/grid_run/mesh~rectangle_1.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_2.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_3.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_4.e'
-   csv = 'CUBIT_MOOSE_test/print_data.csv'
-   # Need to be able to check that cubit executable exists, but listing in required_executable
-   # searches for existence of file then runs it. Running cubit by itself starts a cubit
-   # command line that the test harness doesn't know how to deal with. For now, we're just
-   # going to test for the existence of moose_test-opt to run.
-   required_executable = '../../../moose/test/moose_test-%METHOD%'
-   required_libraries = 'cubit'
- [../]
-
- [./BisonAndMeshInterface]
-   type = 'RavenFramework'
-   input = 'test_BISON_and_MESH.xml'
-   output = 'BISON_and_MESH_test/grid_run/mesh~coarse_input_1.e BISON_and_MESH_test/grid_run/mesh~coarse_input_2.e BISON_and_MESH_test/grid_run/mesh~coarse_input_3.e BISON_and_MESH_test/grid_run/mesh~coarse_input_4.e BISON_and_MESH_test/grid_run/mesh~coarse_input_5.e BISON_and_MESH_test/grid_run/mesh~coarse_input_6.e BISON_and_MESH_test/grid_run/mesh~coarse_input_7.e BISON_and_MESH_test/grid_run/mesh~coarse_input_8.e BISON_and_MESH_test/grid_run/mesh~coarse_input_9.e BISON_and_MESH_test/grid_run/mesh~coarse_input_10.e BISON_and_MESH_test/grid_run/mesh~coarse_input_11.e BISON_and_MESH_test/grid_run/mesh~coarse_input_12.e BISON_and_MESH_test/grid_run/mesh~coarse_input_13.e BISON_and_MESH_test/grid_run/mesh~coarse_input_14.e BISON_and_MESH_test/grid_run/mesh~coarse_input_15.e BISON_and_MESH_test/grid_run/mesh~coarse_input_16.e'
-   csv = 'BISON_and_MESH_test/print_data.csv'
-   required_executable = '../../../bison/bison-%METHOD%'
-   required_libraries = 'cubit'
  [../]
 
  [./failrunsMC]
