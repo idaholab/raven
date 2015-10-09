@@ -647,7 +647,7 @@ class Code(Model):
     """
     Model._readMoreXML(self, xmlNode)
     self.clargs={'text':'', 'input':{'noarg':[]}, 'pre':'', 'post':''} #output:''
-    self.fargs={'input':{}, 'output':''}
+    self.fargs={'input':{}, 'output':'', 'moosevpp':''}
     for child in xmlNode:
       if child.tag =='executable':
         self.executable = str(child.text)
@@ -697,6 +697,10 @@ class Code(Model):
           if self.fargs['output']!='': self.raiseAnError(IOError,'output fileargs already specified!  You can only specify one output fileargs node.')
           if arg == None: self.raiseAnError(IOError,'filearg type "output" requires the template variable be specified in "arg" attribute!')
           self.fargs['output']=arg
+        elif argtype.lower() == 'moosevpp':
+          if self.fargs['moosevpp'] != '': self.raiseAnError(IOError,'moosevpp fileargs already specified!  You can only specify one moosevpp fileargs node.')
+          if arg == None: self.raiseAnError(IOError,'filearg type "moosevpp" requires the template variable be specified in "arg" attribute!')
+          self.fargs['moosevpp']=arg          
         else: self.raiseAnError(IOError,'filearg type '+argtype+' not recognized!')
     if self.executable == '': self.raiseAnError(IOError,'not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
