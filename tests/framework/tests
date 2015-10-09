@@ -338,8 +338,9 @@
  [./test_iostep_load]
    type = 'RavenFramework'
    input = 'test_iostep_load.xml'
-   output = 'test_iostep_load/reprint_HistorySet.xml test_iostep_load/reprint_HistorySet.csv test_iostep_load/reprint_history.csv'
+   output = 'test_iostep_load/reprint_HistorySet.csv test_iostep_load/reprint_history.csv'
    csv = 'test_iostep_load/reprint_HistorySet_1.csv test_iostep_load/reprint_Point.csv test_iostep_load/reprint_Pointset.csv'
+   xml = 'test_iostep_load/reprint_HistorySet.xml'
    prereq = test_output
  [../]
 
