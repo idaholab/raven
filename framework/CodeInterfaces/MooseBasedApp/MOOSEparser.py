@@ -199,10 +199,12 @@ class MOOSEparser():
     for child in self.root:
       if 'DomainIntegral' in child.tag:
         found = True
+        ''' Below are not necessarily at his stage but may be for future use
         if 'radius_inner' in child.keys():
           vectorPPDict['rings'] = child.attrib['radius_inner'].strip("'").strip().split(' ')
         if 'integrals' in child.keys():
           vectorPPDict['integrals'] = child.attrib['integrals'].strip("'").strip().split(' ')
+        '''
       if 'Executioner' in child.tag:
         if 'num_steps' in child.keys():
           vectorPPDict['timeStep'] = child.attrib['num_steps'].strip("'").strip().split(' ')

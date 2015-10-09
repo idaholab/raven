@@ -19,7 +19,7 @@
   <DataObjects>
     <PointSet name="collset">
       <Input>youngModulus,poissonsRatio</Input>
-      <Output>R1ID1,R1ID2,R1ID3,R1value1,R1value2,R1value3,R2ID1,R2ID2,R2value1,R2value2</Output>
+      <Output>ID1,ID2,ID3,value1,value2,value3</Output>
     </PointSet>
   </DataObjects>
 
@@ -50,6 +50,7 @@
   <Models>
     <Code name="MOOSETestApp" subType="MooseBasedApp">
       <executable>%FRAMEWORK_DIR%/../../moose/modules/combined/modules-%METHOD%</executable>
+      <fileargs type = "MooseVPP" arg = "_J_1_" />
       <alias variable = "poissonsRatio" >Materials|stiffStuff|poissons_ratio</alias>
       <alias variable = "youngModulus"  >Materials|stiffStuff|youngs_modulus</alias>
     </Code>
