@@ -3,7 +3,7 @@ import re
 import csv
 class mooseData:
   """   class that parses output of Moose Vector PP output files and reads in trip, minor block and write a csv file """
-  def __init__(self,filen,workingDir,outputFile,ring):
+  def __init__(self,filen,workingDir,outputFile):
     self.vppFiles = []
     csvfiles = []
     csvreaders=[]
@@ -12,7 +12,7 @@ class mooseData:
       csvreaders.append(csv.DictReader(csvfiles[-1]))
     tempDict = self.__read(csvreaders)
     writeDict = self.__sortDict(tempDict)
-    self.__write_csv(writeDict,workingDir,outputFile,ring)
+    self.__write_csv(writeDict,workingDir,outputFile)
 
   def __read(self,csvreaders):
     """ This method reads the VectorPostProcessor outputs send in as a list of csv.DictReader objects
@@ -46,7 +46,7 @@ class mooseData:
       sortedDict[location]['z'] = tempDict[time[0]][location]['z']
     return sortedDict
 
-  def __write_csv(self,writeDict,workingDir,baseName,ring):
+  def __write_csv(self,writeDict,workingDir,baseName):
     """   writes the csv file using the input Dictionary
     @writeDict, input, data to write
     @filen, input filename
@@ -69,7 +69,7 @@ class mooseData:
     tempString = []
     while(j < locationNo):
       key = location.keys()[j]
-      tempString = ('R%sID%s,R%sx%s,R%sy%s,R%sz%s,R%svalue%s,' %(ring+1,j+1,ring+1,j+1,ring+1,j+1,ring+1,j+1,ring+1,j+1))
+      tempString = ('ID%s,x%s,y%s,z%s,value%s,' %(j+1,j+1,j+1,j+1,j+1))
       j = j + 1
       IOcsvfile.write('%s' %(tempString))
     IOcsvfile.write('\n')

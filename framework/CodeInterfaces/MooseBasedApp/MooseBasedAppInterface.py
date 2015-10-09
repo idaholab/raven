@@ -27,11 +27,13 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
     """
     found = False
+    self.mooseVPPFile = ''
     for index, inputFile in enumerate(inputFiles):
       if inputFile.getExt() in self.getInputExtension():
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    if fargs['moosevpp'] != '' : self.mooseVPPFile = fargs['moosevpp']
     outputfile = 'out~'+inputFiles[index].getBase()
     executeCommand = [('parallel',executable+' -i '+inputFiles[index].getFilename() +
                         ' Outputs/file_base='+ outputfile +
@@ -40,7 +42,15 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     return executeCommand,outputfile
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
-    '''this generate a new input file depending on which sampler has been chosen'''
+    """
+    this generate a new input file depending on which sampler has been chosen
+    @In, currentInputFiles: list of the current input files
+    @In, oriInputFiles:  list of the original input files (not used here, from base class)
+    @In, samplerType: string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+    @In, Kwargs, kwarded dictionary, dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+           where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+    @ Out, newInputFiles, list of newer input files, list of the new input files (modified and not)
+    """
     import MOOSEparser
     self._samplersDictionary                          = {}
     self._samplersDictionary['MonteCarlo'           ] = self.pointSamplerForMooseBasedApp
@@ -70,6 +80,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
       newInputFiles[index].setBase(str(Kwargs['prefix'][1][0])+"~"+currentInputFiles[index].getBase())
     parser.printInput(newInputFiles[index].getAbsFile())
     self.vectorPPFound, self.vectorPPDict = parser.vectorPostProcessor()
+
     return newInputFiles
 
   def pointSamplerForMooseBasedApp(self,**Kwargs):
@@ -93,17 +104,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
         @ workingDir, Input, actual working dir (string)
         @ return is optional, in case the root of the output file gets changed in this method.
     """
-
-    if self.vectorPPFound:
-      if len(self.vectorPPDict['rings']) == 1: return self.__mergeTime(output,workingDir)[0]
-      else:
-        ringFiles = self.__mergeTime(output,workingDir)
-        for i in range(len(ringFiles)): ringFiles[i] = str(ringFiles[i]+'.csv')
-        outputObj = csvUtilities.csvUtilityClass(ringFiles)
-        outputFileName = os.path.join(workingDir,str(output+'_VPP.csv'))
-        options = {'variablesToExpandFrom': ["timeStep"]}
-        outputObj.mergeCSV(outputFileName, options)
-        return  outputFileName
+    if self.vectorPPFound: return self.__mergeTime(output,workingDir)[0]
     else: return
 
   def __mergeTime(self,output,workingDir):
@@ -115,15 +116,8 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     """
     files2Merge = []
     vppFiles = []
-    if 'JIntegral' in self.vectorPPDict['integrals']:
-      integral = 'J'
-    elif 'KIntegral' in self.vectorPPDict['integrals']: integral = 'K' #TODO: This is an example KIntegral could be something different did not check it fwith MOOSE yet.
-    else: integral = '' #TODO: implement an error or warning message
-    for ring in range(len(self.vectorPPDict['rings'])):
-      files2Merge.append([])
-      for time in range(int(self.vectorPPDict['timeStep'][0])):
-        files2Merge[ring].append(os.path.join(workingDir,str(output+'_'+integral+'_'+str(ring+1)+'_'+("%04d" % (time+1))+'.csv')))
-      outputObj = MooseData.mooseData(files2Merge[ring],workingDir,output+str(ring+1),ring)
+    for time in range(int(self.vectorPPDict['timeStep'][0])):
+      files2Merge.append(os.path.join(workingDir,str(output+self.mooseVPPFile+("%04d" % (time+1))+'.csv')))
+      outputObj = MooseData.mooseData(files2Merge,workingDir,output)
       vppFiles.append(os.path.join(workingDir,str(outputObj.vppFiles)))
     return vppFiles
-
