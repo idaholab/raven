@@ -104,9 +104,6 @@ class MooseBasedAppInterface(CodeInterfaceBase):
         @ workingDir, Input, actual working dir (string)
         @ return is optional, in case the root of the output file gets changed in this method.
     """
-    if self.mooseVPPFile != '' and self.vectorPPFound:
-        print ('AMCIK AGIZLI', self.vectorPPDict)
-
     if self.vectorPPFound: return self.__mergeTime(output,workingDir)[0]
     else: return
 
@@ -124,4 +121,3 @@ class MooseBasedAppInterface(CodeInterfaceBase):
       outputObj = MooseData.mooseData(files2Merge,workingDir,output)
       vppFiles.append(os.path.join(workingDir,str(outputObj.vppFiles)))
     return vppFiles
-
