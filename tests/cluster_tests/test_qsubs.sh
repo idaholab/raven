@@ -55,7 +55,7 @@ python ../../../framework/Driver.py test_internal_parallel_extModel.xml
 sleep 1 #Wait for disk to propagate.
 lines=`ls InternalParallelExtModel/*.csv | wc -l`
 
-if test $lines -eq 102; then
+if test $lines -eq 28; then
     echo PASS paralExtModel
 else
     echo FAIL paralExtModel

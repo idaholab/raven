@@ -3,9 +3,10 @@
   <RunInfo>
     <WorkingDir>InternalParallelScikit</WorkingDir>
     <Sequence>step1,step2,step3,step4</Sequence>
-    <batchSize>4</batchSize>
+    <batchSize>25</batchSize>
     <internalParallel>True</internalParallel>
     <mode>mpi<runQSUB/></mode>
+    <expectedTime>00:10:00</expectedTime>
   </RunInfo>
 
   <Steps>
@@ -37,11 +38,11 @@
     <Grid name="grid1">
       <variable name="x1">
         <distribution>x1_dst</distribution>
-        <grid construction="equal" steps="10" type="value">-10 10</grid>
+        <grid construction="equal" steps="5" type="value">-10 10</grid>
       </variable>
       <variable name="x2">
         <distribution>x2_dst</distribution>
-        <grid construction="equal" steps="10" type="value">-10 10</grid>
+        <grid construction="equal" steps="6" type="value">-10 10</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -77,7 +78,7 @@
   </Distributions>
 
   <Models>
-    <ExternalModel ModuleToLoad="InternalParallelScikit/XM1_model" name="XM1" subType="">
+    <ExternalModel ModuleToLoad="XM1_model" name="XM1" subType="">
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>y</variable>

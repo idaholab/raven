@@ -4,9 +4,10 @@
   <RunInfo>
     <WorkingDir>InternalParallelExtModel</WorkingDir>
     <Sequence>ParalleMonteCarlo</Sequence>
-    <batchSize>4</batchSize>
+    <batchSize>25</batchSize>
     <internalParallel>True</internalParallel>
     <mode>mpi<runQSUB/></mode>
+    <expectedTime>00:10:00</expectedTime>
   </RunInfo>
 
   <!-- STEPS -->
@@ -58,7 +59,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <sampler_init>
-        <limit>100</limit>
+        <limit>26</limit>
       </sampler_init>
       <variable name="x0">
         <distribution>x0_distrib</distribution>

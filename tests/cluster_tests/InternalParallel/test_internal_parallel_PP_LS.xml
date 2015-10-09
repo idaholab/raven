@@ -3,9 +3,10 @@
   <RunInfo>
     <WorkingDir>InternalParallelPostProcessorLS</WorkingDir>
     <Sequence>ExternalModelMC,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted,ComputeLimitSurfaceIntegralUnWeighted</Sequence>
-    <batchSize>5</batchSize>
+    <batchSize>25</batchSize>
     <internalParallel>True</internalParallel>
     <mode>mpi<runQSUB/></mode>
+    <expectedTime>00:10:00</expectedTime>
   </RunInfo>
 
   <Files>
@@ -54,7 +55,7 @@
   </Models>
 
   <Functions>
-    <External file="InternalParallelPostProcessorLS/goalFunctionTest" name="goalFunctionForLimitSurface">
+    <External file="/home/alfoa/MOOSERAVEN/trunk_git/raven/tests/cluster_tests/InternalParallel/InternalParallelPostProcessorLS/goalFunctionTest" name="goalFunctionForLimitSurface">
       <variable>z</variable>
     </External>
   </Functions>
@@ -77,7 +78,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <sampler_init>
-        <limit>150</limit>
+        <limit>26</limit>
       </sampler_init>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
