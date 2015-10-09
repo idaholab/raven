@@ -741,28 +741,49 @@ The Moose Vector Post Processor is used mainly in the solid mechanics analysis.
 This interface loads the values of the vector ouput processor to a \xmlNode{DataObjects} object.
 
 To use this interface the [DomainIntegral] needs to be present in the MooseBasedApp's
- input file.
+ input file and the subnode \xmlNode{fileargs} should be defined in the subnode \xmlNode{Code} in
+ the \xmlNode{Models} block. The \xmlNode{fileargs} is required to have attributes with 
+the below specified values:
+
+\begin{itemize}
+	\item \xmlAttr{type}, \xmlDesc{string, required field}, must be "MooseVPP"
+	\item \xmlAttr{arg}, \xmlDesc{string, required field}, the string value attached to the vector post processor action
+         while creating the output files.
+\end{itemize}
 
 This interface is actually identical to the MooseBasedApp interface, however there is
  few constraints on defining the output values of the post processor.  
 The definition of these outputs in the \xmlNode{DataObjects} depends on the definition of
  the [DomainIntegral].
 
-The location of the value outputted is defined as \textit{R\#ID\#} and the value is as 
-\textit{R\#value\#}. The first ''\#'' is the number of rings, and the second one defines
-the number of the location. The example below contains 2 rings in the [DomainIntegral] 
-section with 3 locations where the values are outputted.
+The location of the value outputted is defined as \textit{ID\#} and the value is as 
+\textit{value\#}. The ''\#'' defines
+the number of the location. The example below contains 3 locations in the [DomainIntegral] 
+where the values are outputted.
 
 %
 Example:
 \begin{lstlisting}[style=XML]
+ ...
+  <Models>
+    <Code name="MOOSETestApp" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../moose/
+		modules/combined/modules-%METHOD%</executable>
+      <fileargs type = "MooseVPP" arg = "_J_1_" />
+      <alias variable = "poissonsRatio" >
+		Materials|stiffStuff|poissons_ratio</alias>
+      <alias variable = "youngModulus"  >
+		Materials|stiffStuff|youngs_modulus</alias>
+    </Code>
+  </Models>
+ ...
   <DataObjects>
     <PointSet name="collset">
       <Input>youngModulus,poissonsRatio</Input>
-      <Output>R1ID1,R1ID2,R1ID3,R1value1,R1value2,R1value3,
-              R2ID1,R2ID2,R2value1,R2value2</Output>
+      <Output>ID1,ID2,ID3,value1,value2,value3</Output>
     </PointSet>
   </DataObjects>
+ ...
 \end{lstlisting}
 
 

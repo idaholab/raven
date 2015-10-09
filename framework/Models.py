@@ -700,7 +700,7 @@ class Code(Model):
         elif argtype.lower() == 'moosevpp':
           if self.fargs['moosevpp'] != '': self.raiseAnError(IOError,'moosevpp fileargs already specified!  You can only specify one moosevpp fileargs node.')
           if arg == None: self.raiseAnError(IOError,'filearg type "moosevpp" requires the template variable be specified in "arg" attribute!')
-          self.fargs['moosevpp']=arg          
+          self.fargs['moosevpp']=arg
         else: self.raiseAnError(IOError,'filearg type '+argtype+' not recognized!')
     if self.executable == '': self.raiseAnError(IOError,'not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)

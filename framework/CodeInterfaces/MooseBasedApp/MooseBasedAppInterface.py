@@ -49,7 +49,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     @In, samplerType: string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
     @In, Kwargs, kwarded dictionary, dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
            where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
-    @ Out, newInputFiles, list of newer input files, list of the new input files (modified and not)    
+    @ Out, newInputFiles, list of newer input files, list of the new input files (modified and not)
     """
     import MOOSEparser
     self._samplersDictionary                          = {}
@@ -104,7 +104,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
         @ workingDir, Input, actual working dir (string)
         @ return is optional, in case the root of the output file gets changed in this method.
     """
-    if self.mooseVPPFile != '' and self.vectorPPFound: 
+    if self.mooseVPPFile != '' and self.vectorPPFound:
         print ('AMCIK AGIZLI', self.vectorPPDict)
 
     if self.vectorPPFound: return self.__mergeTime(output,workingDir)[0]
