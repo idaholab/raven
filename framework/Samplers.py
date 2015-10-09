@@ -30,6 +30,7 @@ import utils
 from BaseClasses import BaseType
 from Assembler import Assembler
 import Distributions
+import DataObjects
 import TreeStructure as ETS
 import SupervisedLearning
 import pyDOE as doe
@@ -3313,6 +3314,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #point lists
     self.submittedNotCollected=[] #list of points that have been generated but not collected
     self.existing=[]
+    self.sorted=[]
 
     self._addAssObject('TargetEvaluation','1')
 
@@ -3392,7 +3394,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
           del self.inTraining[combo]
           del self.expImpact[combo]
           self.romShell[combo].train(self.samplers[combo].solns) #FIXME doesn't this ROM need finalizing first?
-          self.actImpact[combo] = self._calcActualImpact[combo]
+          self.actImpact[combo] = self._calcActualImpact(combo)
           # done in _calcConvergence #self.useSet[combo] = self.romShell[combo] #this seems redundant?
       #get the combo with the highest importance, I think...
       impactCombo = self.expImpact.keys()[-1]
@@ -3435,6 +3437,9 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.inputInfo['SamplerType'] = 'Adaptive Sobol Sparse Grids'
 
   # utility methods
+  def _calcActualImpact(self,combo):
+    #TODO what is convergence criteria?
+
   def _calcConvergence(self,combo):
     """
     Calculates the total impact of the current set.
@@ -3469,6 +3474,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     @ In, pt, tuple(float), the full point
     @Out, bool, true if pt only varies in subset dimensions from the reference point
     """
+    self.raiseADebug('          Testing combo',combo,'for point',pt)
     for v,var in enumerate(self.features):
       if var in combo: continue #it's okay to vary if you're in the subset
       if pt[v] != self.references[var]: #not part of the cut plane
@@ -3487,6 +3493,23 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       if var in combo: full[v] = pt[combo.index(var)]
       else:            full[v] = self.references[var]
     return tuple(full)
+
+  def _extractCutPoint(self,inp,combo,soln):
+    """
+    Takes the cut point out of an existing point
+    @ In, pt, the point to cut
+    @ In, combo, the subset for which this point is valid
+    @ In, soln, the soln to cut
+    @Out, tuple(pt,vals), input combo point (in floats) and solution values
+    """
+    cinp = []
+    cout = []
+    #self.raiseADebug('combo:',combo)
+    for i,c in enumerate(combo):
+      cinp.append(inp[self.features.index(c)])
+    cinp=tuple(cinp)
+    cout = tuple(soln[i] for i in range(len(self.targets)))
+    return cinp,cout
 
   def _generateSubsets(self):
     """
@@ -3552,6 +3575,26 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     return sum(len(self.samplers[c].neededPoints) for c in combos)
 
+  def _makeCutDataObject(self,combo):
+    """
+    Creates a new PointSet dataobject for a cut subset
+    @ In, combo, tuple(str), the combo to make the object for
+    @Out, dataObject
+    """
+    dataObject = DataObjects.returnInstance('PointSet',self)
+    #dataObject = self.samplers[combo]
+    dataObject.type ='PointSet'
+    #write xml to set up data object
+    node = ET.Element('PointSet',{'name':'-'.join(combo)})
+    inp = ET.Element('Input')
+    inp.text = ','.join(c for c in combo)
+    node.append(inp)
+    out = ET.Element('Output')
+    out.text = ','.join(self.targets)
+    node.append(out)
+    dataObject.readXML(node,self.messageHandler)
+    return dataObject
+
   def _makeSubsetRom(self,combo):
     """
     Constructs a subset ROM for the given subset (combo).
@@ -3610,14 +3653,26 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     samp.convValue      = self.convValue    #FIXME not optimized
     samp.distDict       = distDict
     samp.assemblerDict['ROM']              = [['','','',self.romShell[combo]]]
-    samp.assemblerDict['TargetEvaluation'] = [['','','',self.solns          ]]
+    soln = self._makeCutDataObject(combo)
+    samp.assemblerDict['TargetEvaluation'] = [['','','',soln                ]] #fixed: this is bad, we want a new data object!
     for var in combo: samp.axisName.append(var)
     samp.localInitialize()
     samp.printTag = 'ASG:('+','.join(combo)+')'
+    self.raiseAWarning('DATAOBJ:',samp.solns)
     #propogate sparse grid back from sampler
     self.SQs     [combo]             = samp.sparseGrid
     self.ROMs    [combo].sparseGrid  = samp.sparseGrid
     self.samplers[combo]             = samp
+    #TODO fill points from existing, sorted points TODO
+    for inp in self.sorted:
+      if self._checkCutPoint(combo,inp):
+        soln = self.existing[inp]
+        cinp,cout = self._extractCutPoint(inp,combo,soln)
+        self.samplers[combo].existing[cinp] = cout
+        for i,c in enumerate(combo):
+          self.samplers[combo].solns.updateInputValue(c,cinp[i])
+        for i,c in enumerate(self.targets):
+          self.samplers[combo].solns.updateOutputValue(c,cout[i])
 
   def _updateExisting(self):
     """
@@ -3632,41 +3687,31 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     # initialize samplers if they need it
     self.raiseADebug('\n\n')
     self.raiseADebug('sorting points...')
-    for combo,sampler in self.samplers.items():
-      if self.samplers[combo].solns is None or self.samplers[combo].solns.isItEmpty():
-        #FIXME does this ever get called?? test this out.
-        self.samplers[combo].solns = DataObjects.returnInstance('PointSet',self)
-        dataObject = self.samplers[combo]
-        dataObject.type ='PointSet'
-        #write xml to set up data object
-        node = ET.Element('PointSet',{'name':'-'.join(combo)})
-        inp = ET.Element('Input')
-        inp.text = ','.join(c for c in combo)
-        node.append(inp)
-        out = ET.Element('Output')
-        out.text = ','.join(self.targets)
-        node.append(out)
-        dataObject.readXML(node,self.messageHandler)
-
+    #for combo,sampler in self.samplers.items():
+      #if self.samplers[combo].solns is None or self.samplers[combo].solns.isItEmpty():
+      #  #FIXME does this ever get called?? test this out. -> appears the answer is 'no'.
+      #  self.raiseAnError(RuntimeError,'Yup, this gets called.')
+      #  #TODO call dataobject maker here!!!! FIXME
+      #  self.samplers[combo].solns = self._makeCutDataObject(combo)
     #send points to subsets
+    #check first if already sorted?
     for inp,soln in self.existing.items():
       self.raiseADebug('...sorting',inp,'|',soln)
+      if inp in self.sorted:
+        self.raiseADebug('......already sorted.')
+        continue
+      else:
+        self.raiseADebug('......not yet sorted!')
       for combo,sampler in self.samplers.items():
         #check if point is in cut hyperplane
         if self._checkCutPoint(combo,inp):
-          self.raiseADebug('......is a cut point for:',combo)
-          self.raiseADebug('......existing points:')
+          self.raiseADebug(  '......is a cut point for:',combo)
+          self.raiseADebug(  '......existing points:')
           for key,val in sampler.existing.items():
-            self.raiseADebug('           ',key,val)
+            self.raiseADebug('           ',key,'|',val)
           #construct the cut point
-          cinp = []
-          cout = []
-          cinp = tuple(inp[i] for i in range(len(combo)))
-          #for i,c in enumerate(combo): cinp.append(inp[i])
-          #cinp = tuple(cinp)
-          cout = tuple(soln[i] for i in range(len(self.targets)))
-          #for i,c in enumerate(self.targets): cout.append(soln[i])
-          #cout = tuple(cout)
+          cinp,cout = self._extractCutPoint(inp,combo,soln)
+          #self.raiseADebug('cinp:',cinp)
           if cinp not in sampler.existing.keys():
             self.raiseADebug('.........new point!')
             #are cinp the same order as the sampler's existing?
@@ -3674,11 +3719,16 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
             self.raiseADebug('DEBUG combo cinp var order:',combo)
             sampler.existing[cinp] = cout
             for i,c in enumerate(combo):
+              #sampler.solns.updateInputValue(c,cinp[i])
               sampler.solns.updateInputValue(c,cinp[i])
             for i,c in enumerate(self.targets):
               sampler.solns.updateOutputValue(c,cout[i])
           else:
             self.raiseADebug('.........pre-existing point.')
+      self.sorted.append(inp)
+    self.raiseADebug('_____existing______')
+    for inp,out in self.existing.items():
+      self.raiseADebug('    ',inp,'|',out)
 
 
     #this is by combo, by input -> let's try by input by combo
