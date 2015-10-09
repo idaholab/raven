@@ -116,7 +116,6 @@ class RavenFramework(Tester):
     ucsv_same,ucsv_messages = ucsv_diff.diff()
     if not ucsv_same:
       return ucsv_messages,output
-    return ('',output)
 
     #xml
     if len(self.specs['xmlopts'])>0: xmlopts = self.specs['xmlopts'].split(' ')

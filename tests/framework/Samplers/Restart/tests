@@ -24,7 +24,7 @@
   type = 'RavenFramework'
   input = 'test_restart_sobol.xml'
   output = 'sobol/SOBOLdump1.xml sobol/SOBOLdump2.xml sobol/SOBOLdump3.xml'
-  xml = 'sobol/SOBOLdump1.xml sobol/SOBOLdump2.xml sobol/SOBOLdump3.xml'
+  #xml = 'sobol/SOBOLdump1.xml sobol/SOBOLdump2.xml sobol/SOBOLdump3.xml'
   csv = 'sobol/SOBOLdump1.csv sobol/SOBOLdump2.csv sobol/SOBOLdump3.csv'
  [../]
  [./Grid]
