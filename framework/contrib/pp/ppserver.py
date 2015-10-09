@@ -46,6 +46,7 @@ import os
 import inspect
 cmd_subfolder = os.path.realpath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())),"../cloud"))
 if cmd_subfolder not in sys.path: sys.path.insert(0, cmd_subfolder)
+sys.path.insert(1, "/home/alfoa/MOOSERAVEN/trunk_git/raven/tests/cluster_tests/InternalParallel/InternalParallelScikit")
 
 import pp
 import ppauto

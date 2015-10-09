@@ -266,7 +266,7 @@ class InternalRunner(MessageHandler.MessageUser):
     if self.isDone():
       if not self.__hasBeenAdded:
         if self.ppserver is not None and not self.__forceUseThreads:
-          #self.ppserver.print_stats()
+          self.ppserver.print_stats()
           self.__runReturn = self.__thread()
         else:
           if self.subque.empty(): self.__runReturn = None #queue is empty!
@@ -332,18 +332,44 @@ class JobHandler(MessageHandler.MessageUser):
     # check if the list of unique nodes is present and, in case, initialize the socket
     if self.runInfoDict['internalParallel']:
       if len(self.runInfoDict['Nodes']) > 0:
+        import socket
+        # get local machine name
+        qualifiedHostName =  str(socket.getfqdn()).strip()
+        print("qualifiedHostName " + str(qualifiedHostName))
+        availableNodes = [node.strip() for node in self.runInfoDict['Nodes']]
+        print("SIAMO QUI AMICO MIO")
+        print("self.runInfoDict['Nodes'] "+str(self.runInfoDict['Nodes']))
         # initialize the socketing system
         ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+        print("ppserverScript "+str(ppserverScript))
         # create the servers in the reserved nodes
-        localenv = dict(os.environ)
+        localenv = os.environ.copy()
+        print("sys.path :" + str(sys.path))
         ppservers = []
-        for nodeid in [node.strip() for node in set(self.runInfoDict['Nodes'])]:
-          outFile = open(nodeid.strip()+"_server_out.log",'w')
+        print("PYTHONPATH: "+ str(localenv["PYTHONPATH"]))
+        localenv["PYTHONPATH"] = ':'.join(sys.path)
+        for nodeid in [node.strip() for node in set(availableNodes)]:
+          if nodeid.strip() == qualifiedHostName: continue
+          outFile = open(os.path.join(self.runInfoDict['WorkingDir'],nodeid.strip()+"_server_out.log"),'w')
+          print("nodeid "+str(nodeid))
+          print("set nodes "+str([node.strip() for node in set(availableNodes)]))
+          print("workingDir "+str(self.runInfoDict['WorkingDir']))
+          print("outFile "+str(outFile))
           # check how many processors are available in the node
-          ntasks = self.runInfoDict['Nodes'].count(nodeid)
-          subprocess.Popen(['ssh', nodeid, ppserverScript,"-w",str(ntasks),"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
-          ppservers.append(nodeid)
-        self.ppserver     = pp.Server(ppservers=tuple(ppservers)) #,ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+          ntasks = availableNodes.count(nodeid)
+          print("ntasks "+str(ntasks))
+          remoteHostName = socket.gethostbyname(nodeid)
+          print(remoteHostName)
+
+          print(['ssh', nodeid, ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p","50000","-d"])
+          #if nodeid.strip() != qualifiedHostName: subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-a","-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+          if nodeid.strip() != qualifiedHostName: subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p","50000","-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+          #if nodeid.strip() != qualifiedHostName: subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-w",str(ntasks),"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+          if nodeid.strip() != qualifiedHostName:
+            ppservers.append(nodeid+":50000")
+        self.ppserver     = pp.Server(ncpus=0,ppservers=tuple(ppservers)) #,ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+        #self.ppserver     = pp.Server(ncpus=1,ppservers=("*",))
+        #self.ppserver.set_ncpus(0)
       else:
         self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
     else: self.ppserver = None        # we just use threading!

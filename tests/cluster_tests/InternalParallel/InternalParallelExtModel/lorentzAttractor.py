@@ -1,6 +1,6 @@
 
 ''' from wikipedia: dx/dt = sigma*(y-x)  ; dy/dt = x*(rho-z)-y  dz/dt = x*y-beta*z  ; '''
-
+import time
 import numpy as np
 #import pylab as pyl
 #import random
@@ -15,7 +15,7 @@ def initialize(self,runInfoDict,inputFiles):
 def run(self,Input):
   max_time = 0.03
   t_step = 0.01
-
+  time.sleep(0.0005)
   numberTimeSteps = int(max_time/t_step)
 
   self.x = np.zeros(numberTimeSteps)
