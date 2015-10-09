@@ -106,6 +106,7 @@
    # command line that the test harness doesn't know how to deal with. For now, we're just
    # going to test for the existence of moose_test-opt to run.
    required_executable = '../../../../moose/modules/combined/modules-%METHOD%'
+   rel_err = 0.0001
  [../]
 
 []
