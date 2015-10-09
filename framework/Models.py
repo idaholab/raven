@@ -527,22 +527,8 @@ class ExternalModel(Dummy):
     """
     Model._readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys():
-      moduleToLoadString = str(xmlNode.attrib['ModuleToLoad'])
-      #first check working dir
-      workingDirModule = os.path.abspath(os.path.join(self.workingDir,moduleToLoadString))
-      if os.path.exists(workingDirModule+".py"):
-        moduleToLoadString = workingDirModule
-        path, self.ModuleToLoad = os.path.split(workingDirModule)
-        os.sys.path.append(os.path.abspath(path))
-      else:
-        path, self.ModuleToLoad = os.path.split(moduleToLoadString)
-        if (path != ''):
-          abspath = os.path.abspath(path)
-          if '~' in abspath:abspath = os.path.expanduser(abspath)
-          if os.path.exists(abspath):
-            self.raiseAWarning('ModuleToLoad '+moduleToLoadString+' should be relative to working directory. Working directory: '+self.workingDir+' Module expected at '+abspath)
-            os.sys.path.append(abspath)
-          else: self.raiseAnError(IOError,'The path provided for the external model does not exist!!! Got: ' + abspath + ' and ' + workingDirModule)
+      self.ModuleToLoad = str(xmlNode.attrib['ModuleToLoad'])
+      moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
     else: self.raiseAnError(IOError,'ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
     self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)

@@ -55,7 +55,7 @@
   </Models>
 
   <Functions>
-    <External file="/home/alfoa/MOOSERAVEN/trunk_git/raven/tests/cluster_tests/InternalParallel/InternalParallelPostProcessorLS/goalFunctionTest" name="goalFunctionForLimitSurface">
+    <External file="goalFunctionTest" name="goalFunctionForLimitSurface">
       <variable>z</variable>
     </External>
   </Functions>

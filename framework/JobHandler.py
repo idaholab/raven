@@ -350,7 +350,7 @@ class JobHandler(MessageHandler.MessageUser):
       else: self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
     else: self.ppserver = None # we just use threading!
     self.initParallelPython = True
-  
+
   def __getLocalAndRemoteMachineNames(self):
     """
       Method to get the qualified host and remote nodes' names
@@ -401,7 +401,7 @@ class JobHandler(MessageHandler.MessageUser):
         subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         # update list of servers
         ppservers.append(nodeid+":"+str(newPort))
-        
+
     return qualifiedHostName, ppservers
 
   def addExternal(self,executeCommands,outputFile,workingDir,metadata=None,codePointer=None):
