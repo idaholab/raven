@@ -646,7 +646,7 @@ class Code(Model):
     """
     Model._readMoreXML(self, xmlNode)
     self.clargs={'text':'', 'input':{'noarg':[]}, 'pre':'', 'post':''} #output:''
-    self.fargs={'input':{}, 'output':''}
+    self.fargs={'input':{}, 'output':'', 'moosevpp':''}
     for child in xmlNode:
       if child.tag =='executable':
         self.executable = str(child.text)
@@ -696,6 +696,10 @@ class Code(Model):
           if self.fargs['output']!='': self.raiseAnError(IOError,'output fileargs already specified!  You can only specify one output fileargs node.')
           if arg == None: self.raiseAnError(IOError,'filearg type "output" requires the template variable be specified in "arg" attribute!')
           self.fargs['output']=arg
+        elif argtype.lower() == 'moosevpp':
+          if self.fargs['moosevpp'] != '': self.raiseAnError(IOError,'moosevpp fileargs already specified!  You can only specify one moosevpp fileargs node.')
+          if arg == None: self.raiseAnError(IOError,'filearg type "moosevpp" requires the template variable be specified in "arg" attribute!')
+          self.fargs['moosevpp']=arg
         else: self.raiseAnError(IOError,'filearg type '+argtype+' not recognized!')
     if self.executable == '': self.raiseAnError(IOError,'not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
@@ -789,23 +793,24 @@ class Code(Model):
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
     self.raiseAMessage('job "'+ self.currentInputFiles[index].getBase() +'" submitted!')
 
-  def collectOutput(self,finisishedjob,output):
+  def collectOutput(self,finishedjob,output):
     """collect the output file in the output object"""
     #can we revise the spelling to something more English?
     if 'finalizeCodeOutput' in dir(self.code):
-      out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
-      if out: finisishedjob.output = out
-    attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
-    metadata = finisishedjob.returnMetadata()
+      out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,self.workingDir)
+      if out: finishedjob.output = out
+    attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finishedjob.output+'.csv')}
+    metadata = finishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
     elif output.type in ['Point','PointSet','History','HistorySet']:
       outfile = Files.returnInstance('CSV',self)
-      outfile.initialize(finisishedjob.output+'.csv',self.messageHandler,path=self.workingDir)
+      outfile.initialize(finishedjob.output+'.csv',self.messageHandler,path=self.workingDir)
       output.addOutput(outfile,attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
     else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
+
 #
 #
 #
