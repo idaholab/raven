@@ -432,4 +432,18 @@
    output = 'RunFailures/MCdump.xml RunFailures/MCdumpC.xml'
    csv = 'RunFailures/MCdump.csv RunFailures/MCdumpC.csv'
  [../]
+
+ [./NDGridProbabilityWeightCDF]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_grid_probabilityWeight_cdf.xml'
+  output = 'NDGridPWcdf/testPrintPointSet_dump.csv NDGridPWcdf/testPrintPointSet_dump.csv'
+  csv = 'NDGridPWcdf/testPrintPointSet_dump.csv NDGridPWcdf/testPrintPointSet_dump.csv'
+ [../]
+
+ [./NDGridProbabilityWeightValue]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_grid_probabilityWeight_value.xml'
+  output = 'NDGridPWvalue/testPrintPointSet_dump.csv NDGridPWvalue/testPrintPointSet_dump.csv'
+  csv = 'NDGridPWvalue/testPrintPointSet_dump.csv NDGridPWvalue/testPrintPointSet_dump.csv'
+ [../]
 []
