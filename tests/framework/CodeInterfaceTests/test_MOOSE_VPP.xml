@@ -8,7 +8,7 @@
   <RunInfo>
     <WorkingDir>MOOSEVPPInterface</WorkingDir>
     <Sequence>grid_run</Sequence>
-    <batchSize>4</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
