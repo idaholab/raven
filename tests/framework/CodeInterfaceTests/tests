@@ -100,7 +100,7 @@
    type = 'RavenFramework'
    input = 'test_MOOSE_VPP.xml'
    output = 'MOOSEVPPInterface/grid_run/out~1~MooseVPP.e MOOSEVPPInterface/grid_run/out~2~MooseVPP.e MOOSEVPPInterface/grid_run/out~3~MooseVPP.e MOOSEVPPInterface/grid_run/out~4~MooseVPP.e'
-   UnorderedCsv = 'MOOSEVPPInterface/print_data.csv'
+   csv = 'MOOSEVPPInterface/print_data.csv'
    # Need to be able to check that cubit executable exists, but listing in required_executable
    # searches for existence of file then runs it. Running cubit by itself starts a cubit
    # command line that the test harness doesn't know how to deal with. For now, we're just
