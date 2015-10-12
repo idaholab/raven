@@ -114,6 +114,16 @@
   skip = 'Relap issue #111'
  [../]
 
+[./test_rom_trainer]
+  type = 'RavenFramework'
+  input = 'test_rom_trainer.xml'
+  #skip = 'working in progress'
+  output = ''
+  csv = 'test_rom_trainer/outputMontecarloRom_dump.csv test_rom_trainer/outputMontecarloRomND_dump.csv'
+  max_time = 1500
+  rel_err = 0.001
+ [../]
+
  [./test_multi_target_rom]
   type = 'RavenFramework'
   input = 'test_multi_target_rom.xml'
