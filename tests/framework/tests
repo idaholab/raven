@@ -140,11 +140,11 @@
   type = 'RavenFramework'
   input = 'test_rom_train_from_already_dumped_HDF5.xml'
   #skip = 'working in progress'
-  output='test_rom_trainer/outputMontecarloRom_dump.csv'
-  csv = 'test_rom_trainer/outputMontecarloRom_dump.csv'
+  output=''
+  csv = 'test_rom_trainer/outputMontecarloRom_dump2.csv'
   max_time = 1000
   rel_err = 0.001
-  prereq = test_rom_trainer_raven
+  prereq = test_rom_trainer
  [../]
 
  [./testFactorials]
