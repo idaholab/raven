@@ -9,10 +9,8 @@
  [./2steps_same_db]
   type = 'RavenFramework'
   input = 'test_2steps_same_db.xml'
-  output = 'revirD_tset/FirstStep/out~1~ideal_pump revirD_tset/FirstStep/out~6~ideal_pump revirD_tset/SecondStep/out~2~ideal_pump'
-  required_executable = '../../RAVEN-%METHOD%'
-  # this prereq is just because it points to the same working directory
-  prereq = simple_framework
+  csv = 'test_2steps/fullprint_HistorySet_3.csv'
+  xml = 'test_2steps/fullprint_HistorySet.xml'
  [../]
 
  [./external_xml]
