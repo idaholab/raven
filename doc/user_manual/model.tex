@@ -889,7 +889,7 @@ algorithm representing the ROM that tunes itself to replicate those results.
 RAVEN supports several different types of ROMs, both internally developed and
 imported through an external library called ``scikit-learn''~\cite{SciKitLearn}.
 
-Currently in RAVEN, the ROMs are classified into 4 sub-types that, once chosen,
+Currently in RAVEN, the ROMs are classified into several sub-types that, once chosen,
 provide access to several different algorithms.
 %
 These sub-types are specified in the \xmlAttr{subType} attribute and should be
@@ -897,6 +897,7 @@ one of the following:
 \begin{itemize}
   \item \xmlString{NDspline}
   \item \xmlString{GaussPolynomialRom}
+  \item \xmlString{HDMRRom}
   \item \xmlString{NDinvDistWeight}
   \item \xmlString{SciKitLearn}
 \end{itemize}
@@ -910,7 +911,7 @@ one of the following:
   \itemsep0em
   \item \nameDescription
   \item \xmlAttr{subType}, \xmlDesc{required string attribute}, defines which of
-  the 4 sub-types should be used, choosing among the previously reported
+  the sub-types should be used, choosing among the previously reported
   types.
   %
   This choice conditions the subsequent the required and/or optional
@@ -1086,30 +1087,30 @@ Also, this ROM must be referenced in the SparseGridCollocation sampler in order 
 accurately produce the necessary sparse grid points to train this ROM.
 
 \textbf{Example:}
-\footnotesize
+{\footnotesize
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
-<Samplers>
-  ...
-  <SparseGridCollocation name="mySG" parallel="0">
-    <variable name="x1">
-      <distribution>myDist1</distribution>
-    </variable>
-    <variable name="x2">
-      <distribution>myDist2</distribution>
-    </variable>
-    <ROM class = 'Models' type = 'ROM' >myROM</ROM>
-  </SparseGridCollocation>
-  ...
-</Samplers>
-...
 <Simulation>
+  ...
+  <Samplers>
+    ...
+    <SparseGridCollocation name="mySG" parallel="0">
+      <variable name="x1">
+        <distribution>myDist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>myDist2</distribution>
+      </variable>
+      <ROM class = 'Models' type = 'ROM' >myROM</ROM>
+    </SparseGridCollocation>
+    ...
+  </Samplers>
   ...
   <Models>
     ...
     <ROM name='myRom' subType='GaussPolynomialRom'>
       <Target>ans</Target>
       <Features>x1,x2</Features>
-      <IndexSet>TD</IndexSet>
+      <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>4</PolynomialOrder>
       <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
       <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
@@ -1119,6 +1120,7 @@ accurately produce the necessary sparse grid points to train this ROM.
   ...
 </Simulation>
 \end{lstlisting}
+}
 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are \xmlString{mean} and \xmlString{variance}.
 
@@ -1152,7 +1154,7 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
   uncertainty in most models.
 
 \textbf{Example:}
-\footnotesize
+{\footnotesize
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
   <Samplers>
     ...
@@ -1182,6 +1184,7 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
     ...
   </Models>
 \end{lstlisting}
+}
 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are \xmlString{mean}, \xmlString{variance}, and \xmlString{indices}.  In the latter case, the total calculated variance is printed, followed by the percent of contributing variance for each existing subset of the input domain (the Sobol indices).
 
@@ -3676,8 +3679,10 @@ This XML node needs to contain the attributes:
   \item \xmlAttr{ModuleToLoad}, \xmlDesc{required string attribute}, file name
   with its absolute or relative path.
   %
-  \nb If a relative path is specified, it must be relative with respect to where
-  the user runs the code.
+  \nb If a relative path is specified, the code first checks relative
+  to the working directory, then it checks with respect to where the
+  user runs the code.  Using the relative path with respect to where the
+  code is run is not recommended.
   %
 \end{itemize}
 \vspace{-5mm}
@@ -4549,8 +4554,9 @@ Section~\ref{sec:functions} for more details).
 \subsubsection{TopologicalDecomposition}
 \label{TopologicalDecomposition}
 The \textbf{TopologicalDecomposition} post-processor will compute an
-approximated hierarchical Morse-Smale complex and perform linear regression on
-each component.
+approximated hierarchical Morse-Smale complex which will add two columns to a
+dataset, namely \texttt{minLabel} and \texttt{maxLabel} that can be used to
+decompose a dataset.
 %
 
 In order to use the \textbf{TopologicalDecomposition} post-processor, the user

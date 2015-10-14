@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>PreconditionedDynamicEventTree</WorkingDir>
-    <Sequence>PreconditionedDETrunTest,testOutstreamStep</Sequence>
+    <WorkingDir>HybridDynamicEventTree</WorkingDir>
+    <Sequence>HybridDETrunTest,testOutstreamStep</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
 
@@ -26,64 +26,64 @@
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
     </Uniform>
-    <Uniform name="testPreconditionerMonteCarloDist1">
+    <Uniform name="testHybridMonteCarloDist1">
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
     </Uniform>
-    <Uniform name="testPreconditionerGridDist1">
+    <Uniform name="testHybridGridDist1">
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
     </Uniform>
-    <Uniform name="testPreconditionerGridDist2">
+    <Uniform name="testHybridGridDist2">
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
     </Uniform>
-    <Uniform name="testPreconditionerLHSDist1">
+    <Uniform name="testHybridLHSDist1">
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
     </Uniform>
-    <Uniform name="testPreconditionerLHSDist2">
+    <Uniform name="testHybridLHSDist2">
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
     </Uniform>
   </Distributions>
 
   <Samplers>
-    <DynamicEventTree name="PreconditionedDET_test" print_end_xml="true">
-      <PreconditionerSampler type="MonteCarlo">
+    <DynamicEventTree name="HybridDET_test" print_end_xml="true">
+      <HybridSampler type="MonteCarlo">
         <sampler_init>
           <limit>2</limit>
         </sampler_init>
-        <variable name="Auxiliary|testMCpreconditioned1|initial_value">
-          <distribution>testPreconditionerMonteCarloDist1</distribution>
+        <variable name="Auxiliary|testMCHybrid1|initial_value">
+          <distribution>testHybridMonteCarloDist1</distribution>
         </variable>
         <!-- The second sampled variable is directly performed in RAVEN (since we perform the seeding)-->
-      </PreconditionerSampler>
-      <PreconditionerSampler type="Grid">
+      </HybridSampler>
+      <HybridSampler type="Grid">
         <!-- Point sampler way (directly sampling the variable) -->
-        <variable name="Auxiliary|testGridpreconditioned1|initial_value">
-          <distribution>testPreconditionerGridDist1</distribution>
+        <variable name="Auxiliary|testGridHybrid1|initial_value">
+          <distribution>testHybridGridDist1</distribution>
           <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
         </variable>
         <!-- RAVEN way for the second distribution-->
-        <Distribution name="testPreconditionerMonteCarloDist2">
-          <distribution>testPreconditionerGridDist2</distribution>
+        <Distribution name="testHybridMonteCarloDist2">
+          <distribution>testHybridGridDist2</distribution>
           <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
         </Distribution>
-      </PreconditionerSampler>
-      <PreconditionerSampler type="Stratified">
+      </HybridSampler>
+      <HybridSampler type="Stratified">
         <!-- Point sampler way (directly sampling the variable ) -->
-        <variable name="Auxiliary|testLHSpreconditioned1|initial_value">
-          <distribution>testPreconditionerLHSDist1</distribution>
+        <variable name="Auxiliary|testLHSHybrid1|initial_value">
+          <distribution>testHybridLHSDist1</distribution>
           <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
         </variable>
         <!-- RAVEN way for the second distribution-->
-        <Distribution name="testPreconditionerMonteCarloDist2">
-          <distribution>testPreconditionerLHSDist2</distribution>
+        <Distribution name="testHybridMonteCarloDist2">
+          <distribution>testHybridLHSDist2</distribution>
           <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
         </Distribution>
-      </PreconditionerSampler>
-      <!-- DYNAMIC EVENT TREE INPUT (it goes outside an inner block like PreconditionerSampler) -->
+      </HybridSampler>
+      <!-- DYNAMIC EVENT TREE INPUT (it goes outside an inner block like HybridSampler) -->
       <Distribution name="zeroToOne">
         <distribution>zeroToOne</distribution>
         <grid construction="custom" type="CDF">0.1 0.8</grid>
@@ -153,12 +153,12 @@
   </OutStreamManager>
 
   <Steps>
-    <MultiRun name="PreconditionedDETrunTest">
+    <MultiRun name="HybridDETrunTest">
       <Input class="Files" type="">ideal_pump.i</Input>
       <Input class="Files" type="">ideal_pump_control.py</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
-      <Sampler class="Samplers" type="DynamicEventTree">PreconditionedDET_test</Sampler>
-      <Output class="Databases" type="HDF5">testPreconditionedBranchDatabase</Output>
+      <Sampler class="Samplers" type="DynamicEventTree">HybridDET_test</Sampler>
+      <Output class="Databases" type="HDF5">testHybridBranchDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">Pointset</Output>
     </MultiRun>
@@ -175,7 +175,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="testPreconditionedBranchDatabase"/>
+    <HDF5 name="testHybridBranchDatabase"/>
   </Databases>
 
   <DataObjects>

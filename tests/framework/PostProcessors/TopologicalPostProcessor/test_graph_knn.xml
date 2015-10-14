@@ -11,7 +11,7 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel name='test' subType='' ModuleToLoad = './GaussianPeaks'>
+    <ExternalModel name='test' subType='' ModuleToLoad = '../GaussianPeaks'>
       <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>
@@ -24,7 +24,7 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <simplification>0.3</simplification>
+      <simplification>0.2</simplification>
       <persistence>difference</persistence>
     </PostProcessor>
   </Models>
@@ -39,8 +39,8 @@
   <Samplers>
     <MonteCarlo name="sampler">
       <sampler_init>
-        <initial_seed>8</initial_seed>
-        <limit>4000</limit>
+        <initial_seed>88</initial_seed>
+        <limit>500</limit>
       </sampler_init>
       <variable name="X">
         <distribution>uniform</distribution>
@@ -53,7 +53,7 @@
 
   <Steps>
     <!-- Sample the data from the test function -->
-    <MultiRun name="sampleData">
+    <MultiRun name="sampleData" sleepTime='1e-5'>
       <Input   class="DataObjects" type="PointSet"         >dummyIN</Input>
       <Model   class="Models"      type="ExternalModel"    >test</Model>
       <Sampler class="Samplers"    type="MonteCarlo"       >sampler</Sampler>

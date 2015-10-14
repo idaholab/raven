@@ -1,16 +1,16 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>SBO_DET</WorkingDir>
+    <WorkingDir>SboDET</WorkingDir>
     <Sequence>DET,test_extract</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="DET_HistorySet_eqPb.csv" type="">DET_HistorySet_eqPb.csv</Input>
-    <Input name="TMI_PRA_trans_DET_control.py" type="">TMI_PRA_trans_DET_control.py</Input>
-    <Input name="TMI.i" type="">TMI.i</Input>
-    <Input name="TMI_steady_restart/0957.rd-0" type="">TMI_steady_restart/0957.rd-0</Input>
+    <Input name="DET_HistorySet_eqPb.csv" type=""         >DET_HistorySet_eqPb.csv</Input>
+    <Input name="TMI_PRA_trans_DET_control.py" type=""    >TMI_PRA_trans_DET_control.py</Input>
+    <Input name="TMI.i" type=""                           >TMI.i</Input>
+    <Input name="TMI_steady_restart/0957.rd-0" type=""    >TMI_steady_restart/0957.rd-0</Input>
     <Input name="TMI_steady_restart/0957.xdr" type="">TMI_steady_restart/0957.xdr</Input>
     <Input name="TMI_steady_restart/0957.xdr.0000" type="">TMI_steady_restart/0957.xdr.0000</Input>
     <Input name="TMI_steady_restart/0957_mesh.cpr" type="">TMI_steady_restart/0957_mesh.cpr</Input>
@@ -20,9 +20,7 @@
     <Code name="MyRAVEN" subType="RAVEN">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
-    <PostProcessor name="csv_from_hdf5" subType="PrintCSV">
-      <paramters>all</paramters>
-    </PostProcessor>
+    <PostProcessor name="csv_from_hdf5" subType="PrintCSV"> <paramters>all</paramters> </PostProcessor>
   </Models>
 
   <Distributions>

@@ -10,11 +10,10 @@
     <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
     <Input name="TriangularExponential2D_scattered.txt" type="">TriangularExponential2D_scattered.txt</Input>
     <Input name="TriangularExponential2D_cartesian.txt" type="">TriangularExponential2D_cartesian.txt</Input>
-    <Input name="covMatrix.txt" type="">covMatrix.txt</Input>
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="ND_test_Grid_cdf/lorentzAttractor" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variable>sigma</variable>
       <variable>rho</variable>
       <variable>beta</variable>
@@ -86,6 +85,7 @@
     <Print name="testPrintPointSet_dump">
       <type>csv</type>
       <source>testPrintPointSet</source>
+      <what>Input,Output,Input|ProbabilityWeight</what>
     </Print>
   </OutStreamManager>
 
