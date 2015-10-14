@@ -53,7 +53,7 @@ class ravenArrayIterator(object):
         self.finished = True
       else:
         for i in xrange(len(self.iterator)-1, -1, -1):
-        #for i, element in enumerate(self.iterator):
+
           if self.iterator[i] + 1 >= self.shape[i]:
             self.iterator[i] = 0
             continue
@@ -64,7 +64,7 @@ class ravenArrayIterator(object):
       self.iterator.iternext()
       self.finished = self.iterator.finished
       if not self.finished: self.multiIndex = self.iterator.multi_index
-    #print("ehi "+ str(self.multiIndex))
+
     return self.finished
 
   def reset(self):
@@ -75,7 +75,9 @@ class ravenArrayIterator(object):
     """
     self.cnt, self.finished = 0, False
     if type(self.iterator).__name__ == 'list': self.iterator = [0]*self.ndim
-    else                                     : self.iterator.reset()
+    else:
+      self.iterator.reset()
+      self.multiIndex, self.finished = self.iterator.multi_index, self.iterator.finished
 
   def __iter__(self):
     """
