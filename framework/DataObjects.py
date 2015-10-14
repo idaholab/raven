@@ -50,7 +50,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._toLoadFromList                 = []                         # loading source
     self._dataContainer                  = {'inputs':{},'outputs':{}} # Dict that contains the actual data. self._dataContainer['inputs'] contains the input space, self._dataContainer['output'] the output space
     self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
-    self.metaExclXml                     = []            # list of metadata keys that are excluded from xml outputter, and included in the CSV one
     self.metaAdditionalInOrOut           = ['PointProbability','ProbabilityWeight']            # list of metadata keys that will be printed in the CSV one
     self.acceptHierarchy                 = False                      # flag to tell if a sub-type accepts hierarchy
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
@@ -309,9 +308,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       metadataNode = ET.SubElement(root,'metadata')
       submetadataNodes = []
       for key,value in self._dataContainer['metadata'].items():
-        if key not in self.metaExclXml:
-          submetadataNodes.append(ET.SubElement(metadataNode,key))
-          submetadataNodes[-1].text = utils.toString(str(value))
+        submetadataNodes.append(ET.SubElement(metadataNode,key))
+        submetadataNodes[-1].text = utils.toString(str(value))
     myXMLFile.write(utils.toString(ET.tostring(root)))
     myXMLFile.write('\n')
     myXMLFile.close()
@@ -870,35 +868,23 @@ class Point(Data):
     #Print input values
     if 'what' in options.keys():
       for var in options['what']:
-        if var.split('|')[0] == 'input':
-          inpKeys.append(var.split('|')[1])
-          inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
-        if var.split('|')[0] == 'output':
-          outKeys.append(var.split('|')[1])
-          outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
-        if var.split('|')[0] == 'metadata':
-          inpKeys.append(var.split('|')[1])
-          inpValues.append(self._dataContainer['metadata'][var.split('|')[1]])
-        if var.split('|')[0] == 'metadata':
-          if var.split('|')[1] in self.metaExclXml:
-            if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
-              self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-            inpKeys.append(var.split('|')[1])
-            inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+        splitted = var.split('|')
+        variableName = "|".join(splitted[1:])
+        varType = splitted[0]
+        if varType == 'input':
+          inpKeys.append(variableName)
+          inpValues.append(self._dataContainer['inputs'][variableName])
+        if varType == 'output':
+          outKeys.append(variableName)
+          outValues.append(self._dataContainer['outputs'][variableName])
+        if varType == 'metadata':
+          inpKeys.append(variableName)
+          inpValues.append(self._dataContainer['metadata'][variableName])
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
       outKeys   = self._dataContainer['outputs'].keys()
       outValues = self._dataContainer['outputs'].values()
-      if len(self._dataContainer['metadata'].keys()) > 0:
-        #write metadata as well_known_implementations
-        for key,value in self._dataContainer['metadata'].items():
-          if key in self.metaExclXml:
-            if type(value) not in self.metatype:
-              self.raiseAnError(NotConsistentData,'metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-            inpKeys.append(key)
-            inpValues.append(np.atleast_1d(np.float(value)))
     if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
     else: return
 
@@ -971,8 +957,9 @@ class PointSet(Data):
     try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
+      self._dataParameters['type']       = self.type
       self._dataParameters['HistorySet'] = self._toLoadFromList[-1].getEndingGroupNames()
-      self._dataParameters['filter'   ] = 'whole'
+      self._dataParameters['filter'   ]  = 'whole'
 
   def checkConsistency(self):
     """
@@ -1143,30 +1130,25 @@ class PointSet(Data):
         outValues.append([])
         if 'what' in options.keys():
           for var in options['what']:
-            if var.split('|')[0] == 'input':
-              inpKeys[-1].append(var.split('|')[1])
+            splitted = var.split('|')
+            variableName = "|".join(splitted[1:])
+            varType = splitted[0]
+            if varType == 'input':
+              inpKeys[-1].append(variableName)
               axa = np.zeros(len(O_o[key]))
-              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][var.split('|')[1]][0]
+              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][variableName][0]
               inpValues[-1].append(axa)
-            if var.split('|')[0] == 'output':
-              outKeys[-1].append(var.split('|')[1])
+            if varType == 'output':
+              outKeys[-1].append(variableName)
               axa = np.zeros(len(O_o[key]))
-              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][var.split('|')[1]][0]
+              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][variableName][0]
               outValues[-1].append(axa)
-            if var.split('|')[0] == 'metadata':
-              inpKeys[-1].append(var.split('|')[1])
-              if type(O_o[key][index]['metadata'][var.split('|')[1]]) not in self.metatype:
-                self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1] +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
+            if varType == 'metadata':
+              inpKeys[-1].append(variableName)
+              if type(O_o[key][index]['metadata'][splitted[1]]) not in self.metatype:
+                self.raiseAnError(NotConsistentData,'metadata '+variableName +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
                 axa = np.zeros(len(O_o[key]))
-                for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][var.split('|')[1]]))[0]
-                inpValues[-1].append(axa)
-            if var.split('|')[0] == 'metadata':
-              if var.split('|')[1] in self.metaExclXml:
-                if type(O_o[key][index]['metadata'][var.split('|')[1]]) not in self.metatype:
-                  self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1] +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
-                inpKeys[-1].append(var.split('|')[1])
-                axa = np.zeros(len(O_o[key]))
-                for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][var.split('|')[1]]))[0]
+                for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][variableName]))[0]
                 inpValues[-1].append(axa)
         else:
           inpKeys[-1] = O_o[key][0]['inputs'].keys()
@@ -1179,16 +1161,6 @@ class PointSet(Data):
             axa = np.zeros(len(O_o[key]))
             for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][var][0]
             outValues[-1].append(axa)
-          if len(O_o[key][0]['metadata'].keys()) > 0:
-            #write metadata as well_known_implementations
-            for metaname,value in O_o[key][0]['metadata'].items():
-              if metaname in self.metaExclXml:
-                if type(value) not in self.metatype:
-                  self.raiseAnError(NotConsistentData,'metadata '+metaname+' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
-                inpKeys[-1].append(metaname)
-                axa = np.zeros(len(O_o[key]))
-                for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][metaname]))[0]
-                inpValues[-1].append(axa)
       if len(inpKeys[-1]) > 0 or len(outKeys[-1]) > 0: myFile = open(filenameLocal + '.csv', 'w')
       else: return
       O_o_keys = list(O_o.keys())
@@ -1212,44 +1184,29 @@ class PointSet(Data):
       myFile.close()
     else:
       #If not hierarchical
-
       #For Pointset it will create an XML file and one CSV file.
       #The CSV file will have a header with the input names and output
       #names, and multiple lines of data with the input and output
       #numeric values, one line for each input.
       if 'what' in options.keys():
         for var in options['what']:
-          if var.split('|')[0] == 'input':
-            inpKeys.append(var.split('|')[1])
-            inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
-          if var.split('|')[0] == 'output':
-            outKeys.append(var.split('|')[1])
-            outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
-          if var.split('|')[0] == 'metadata':
-            inpKeys.append(var.split('|')[1])
-            inpValues.append(self._dataContainer['metadata'][var.split('|')[1]])
-          if var.split('|')[0] == 'metadata':
-            if var.split('|')[1] in self.metaExclXml:
-              if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
-                self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-              inpKeys.append(var.split('|')[1])
-              if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-              else: inpValues.append(np.atleast_1d(self._dataContainer['metadata'][var.split('|')[1]]))
-            else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+          splitted = var.split('|')
+          variableName = "|".join(splitted[1:])
+          varType = splitted[0]
+          if varType == 'input':
+            inpKeys.append(variableName)
+            inpValues.append(self._dataContainer['inputs'][variableName])
+          if varType == 'output':
+            outKeys.append(variableName)
+            outValues.append(self._dataContainer['outputs'][variableName])
+          if varType == 'metadata':
+            inpKeys.append(variableName)
+            inpValues.append(self._dataContainer['metadata'][variableName])
       else:
         inpKeys   = self._dataContainer['inputs'].keys()
         inpValues = self._dataContainer['inputs'].values()
         outKeys   = self._dataContainer['outputs'].keys()
         outValues = self._dataContainer['outputs'].values()
-        if len(self._dataContainer['metadata'].keys()) > 0:
-          #write metadata as well_known_implementations
-          for key,value in self._dataContainer['metadata'].items():
-            if key in self.metaExclXml:
-              if type(value) not in self.metatype:
-                self.raiseAnError(NotConsistentData,'metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-              inpKeys.append(key)
-              if type(value) != c1darray: inpValues.append(np.atleast_1d(np.float(value)))
-              else: inpValues.append(np.atleast_1d(value))
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
       else: return
 
@@ -1409,36 +1366,23 @@ class History(Data):
     #Print input values
     if 'what' in options.keys():
       for var in options['what']:
-        if var.split('|')[0] == 'input':
-          inpKeys.append(var.split('|')[1])
-          inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
-        if var.split('|')[0] == 'output':
-          outKeys.append(var.split('|')[1])
-          outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
-        if var.split('|')[0] == 'metadata':
-          inpKeys.append(var.split('|')[1])
-          inpValues.append(self._dataContainer['metadata'][var.split('|')[1]])
-        if var.split('|')[0] == 'metadata':
-          if var.split('|')[1] in self.metaExclXml:
-            if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype:
-              self.raiseAnError(NotConsistentData,'metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-            inpKeys.append(var.split('|')[1])
-            inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: self.raiseAWarning('metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+        splitted = var.split('|')
+        variableName = "|".join(splitted[1:])
+        varType = splitted[0]
+        if varType == 'input':
+          inpKeys.append(variableName)
+          inpValues.append(self._dataContainer['inputs'][variableName])
+        if varType == 'output':
+          outKeys.append(variableName)
+          outValues.append(self._dataContainer['outputs'][variableName])
+        if varType == 'metadata':
+          inpKeys.append(variableName)
+          inpValues.append(self._dataContainer['metadata'][variableName])
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
       outKeys   = self._dataContainer['outputs'].keys()
       outValues = self._dataContainer['outputs'].values()
-      if len(self._dataContainer['metadata'].keys()) > 0:
-        #write metadata as well_known_implementations
-        for key,value in self._dataContainer['metadata'].items():
-          if key in self.metaExclXml:
-            if type(value) not in self.metatype:
-              self.raiseAnError(NotConsistentData,'metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-            inpKeys.append(key)
-            inpValues.append(np.atleast_1d(np.float(value)))
-
     if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
     else: return
 
@@ -1544,6 +1488,7 @@ class HistorySet(Data):
     try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
+      self._dataParameters['type']      =  self.type
       self._dataParameters['filter'   ] = 'whole'
 
   def checkConsistency(self):
@@ -1781,16 +1726,19 @@ class HistorySet(Data):
         outValues.append([])
         if 'what' in options.keys():
           for var in options['what']:
-            if var.split('|')[0] == 'input':
-              inpKeys[-1].append(var.split('|')[1])
+            splitted = var.split('|')
+            variableName = "|".join(splitted[1:])
+            varType = splitted[0]
+            if varType == 'input':
+              inpKeys[-1].append(variableName)
               axa = np.zeros(len(O_o[key]))
               for index in range(len(O_o[key])):
-                axa[index] = O_o[key][index]['inputs'][var.split('|')[1]][0]
+                axa[index] = O_o[key][index]['inputs'][variableName][0]
               inpValues[-1].append(axa)
-            if var.split('|')[0] == 'output':
-              outKeys[-1].append(var.split('|')[1])
-              axa = O_o[key][0]['outputs'][var.split('|')[1]]
-              for index in range(len(O_o[key])-1): axa = np.concatenate((axa,O_o[key][index+1]['outputs'][var.split('|')[1]]))
+            if varType == 'output':
+              outKeys[-1].append(variableName)
+              axa = O_o[key][0]['outputs'][variableName]
+              for index in range(len(O_o[key])-1): axa = np.concatenate((axa,O_o[key][index+1]['outputs'][variableName]))
               outValues[-1].append(axa)
         else:
           inpKeys[-1] = O_o[key][0]['inputs'].keys()
@@ -1850,12 +1798,15 @@ class HistorySet(Data):
         outValues_h = []
         if 'what' in options.keys():
           for var in options['what']:
-            if var.split('|')[0] == 'input':
-              inpKeys_h.append(var.split('|')[1])
-              inpValues_h.append(inpValues[n][var.split('|')[1]])
-            if var.split('|')[0] == 'output':
+            splitted = var.split('|')
+            variableName = "|".join(splitted[1:])
+            varType = splitted[0]
+            if varType == 'input':
+              inpKeys_h.append(variableName)
+              inpValues_h.append(inpValues[n][variableName])
+            if varType == 'output':
               outKeys_h.append(var.split('|')[1])
-              outValues_h.append(outValues[n][var.split('|')[1]])
+              outValues_h.append(outValues[n][variableName])
         else:
           inpKeys_h   = list(inpValues[n].keys())
           inpValues_h = list(inpValues[n].values())

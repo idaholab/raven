@@ -214,7 +214,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     pb = None
     if self.integralType == 'montecarlo':
       tempDict = {}
-      randomMatrix = np.random.rand(math.ceil(1.0 / self.tolerance), len(self.variableDist.keys()))
+      randomMatrix = np.random.rand(int(math.ceil(1.0 / self.tolerance**2)), len(self.variableDist.keys()))
       for index, varName in enumerate(self.variableDist.keys()):
         if self.variableDist[varName] == None: randomMatrix[:, index] = randomMatrix[:, index] * (self.lowerUpperDict[varName]['upperBound'] - self.lowerUpperDict[varName]['lowerBound']) + self.lowerUpperDict[varName]['lowerBound']
         else:
@@ -244,7 +244,8 @@ class LimitSurfaceIntegral(BasePostProcessor):
           for val in value: output.updateOutputValue(key, val)
         for _ in range(len(lms)): output.updateOutputValue('EventProbability', pb)
       elif isinstance(output,Files.File):
-        headers = lms.getParaKeys('inputs') + lms.getParaKeys('outputs') + ['EventProbability']
+        headers = lms.getParaKeys('inputs') + lms.getParaKeys('outputs')
+        if 'EventProbability' not in headers: headers += ['EventProbability']
         stack = [None] * len(headers)
         output.close()
         outIndex = 0
@@ -1199,6 +1200,7 @@ class BasicStatistics(BasePostProcessor):
       pbweights = np.zeros(len(Input['targets'][self.parameters['targets'][0]]), dtype = np.float)
       pbweights[:] = 1.0 / pbweights.size  # it was an Integer Division (1/integer) => 0!!!!!!!! Andrea
     else: pbweights = Input['metadata']['ProbabilityWeight']
+
     sumSquarePbWeights = np.sum(np.square(pbweights))
     sumPbWeights = np.sum(pbweights)
     # if here because the user could have overwritten the method through the external function
@@ -1207,7 +1209,6 @@ class BasicStatistics(BasePostProcessor):
     for myIndex, targetP in enumerate(parameterSet):
       outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = pbweights)
       expValues[myIndex] = outputDict['expectedValue'][targetP]
-
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
       # sigma
@@ -1631,8 +1632,7 @@ class LimitSurface(BasePostProcessor):
     self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
-      mySrting = ','.join(list(self.parameters['targets']))
-      self.ROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':mySrting, 'Target':self.externalFunction.name})
+      self.ROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':self.externalFunction.name})
     else: self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()
     self.indexes = -1
@@ -1651,7 +1651,8 @@ class LimitSurface(BasePostProcessor):
         else:                self.paramType[param] = 'outputs'
     if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
-      for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key)), max(self.inputs[self.indexes].getParam(self.paramType[key],key))
+
+      for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeid = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeid = 'RecontructEnding'))
     self.gridEntity.initialize(initDictionary={"rootName":self.name,"computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
     self.nVar                  = len(self.parameters['targets'])                                  # Total number of variables
     self.axisName              = self.gridEntity.returnParameter("dimensionNames",self.name)      # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
@@ -1663,7 +1664,6 @@ class LimitSurface(BasePostProcessor):
      @ In, inp, Data(s) object, data object containing the training set
      @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
     """
-
     self.raiseADebug('Initiate training')
     if type(inp) == dict:
       self.functionValue.update(inp['inputs' ])
@@ -1671,11 +1671,9 @@ class LimitSurface(BasePostProcessor):
     else:
       self.functionValue.update(inp.getParametersValues('inputs', nodeid = 'RecontructEnding'))
       self.functionValue.update(inp.getParametersValues('outputs', nodeid = 'RecontructEnding'))
-
     # recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name]) - 1
     else                                                      : indexLast = -1
-
     # index of last set of point tested and ready to perform the function evaluation
     indexEnd = len(self.functionValue[self.axisName[0]]) - 1
     tempDict = {}
@@ -1685,11 +1683,14 @@ class LimitSurface(BasePostProcessor):
 
     for myIndex in range(indexLast + 1, indexEnd + 1):
       for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
-      # self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
       self.functionValue[self.externalFunction.name][myIndex] = self.externalFunction.evaluate('residuumSign', tempDict)
       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: self.raiseAnError(IOError, 'LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
-      if self.externalFunction.name in inp.getParaKeys('inputs'): inp.self.updateInputValue (self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
-      if self.externalFunction.name in inp.getParaKeys('output'): inp.self.updateOutputValue(self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
+      if type(inp) != dict:
+        if self.externalFunction.name in inp.getParaKeys('inputs'): inp.self.updateInputValue (self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
+        if self.externalFunction.name in inp.getParaKeys('output'): inp.self.updateOutputValue(self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
+      else:
+        if self.externalFunction.name in inp['inputs' ].keys(): inp['inputs' ][self.externalFunction.name] = np.concatenate((inp['inputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
+        if self.externalFunction.name in inp['outputs'].keys(): inp['outputs'][self.externalFunction.name] = np.concatenate((inp['outputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
       if raiseErrorIfNotFound: self.raiseAnError(ValueError, 'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
       else                   : self.raiseAWarning('LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
@@ -1725,8 +1726,8 @@ class LimitSurface(BasePostProcessor):
       calculations
       @ In, dictIn, dict, dictionary of initialization options
     """
-    if "parameters" not in dictIn.keys()       : self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
-    if "name"                  in dictIn.keys(): self.name          = dictIn["name"]
+    if "parameters" not in dictIn.keys()             : self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
+    if "name"                  in dictIn.keys()      : self.name          = dictIn["name"]
     if type(dictIn["parameters"]).__name__ == "list" : self.parameters['targets'] = dictIn["parameters"]
     else                                             : self.parameters['targets'] = dictIn["parameters"].split(",")
     if "bounds"                in dictIn.keys()      : self.bounds        = dictIn["bounds"]
@@ -1770,7 +1771,7 @@ class LimitSurface(BasePostProcessor):
       @ Out, None
     """
     initDict = {}
-    for child in xmlNode: initDict[child.tag] = child.text.lower()
+    for child in xmlNode: initDict[child.tag] = child.text
     initDict.update(xmlNode.attrib)
     self._initFromDict(initDict)
 
@@ -1785,7 +1786,7 @@ class LimitSurface(BasePostProcessor):
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
     self.raiseADebug(str(finishedjob.returnEvaluation()))
     limitSurf = finishedjob.returnEvaluation()[1]
-    if limitSurf[0] != None:
+    if limitSurf[0] is not None:
       for varName in output.getParaKeys('inputs'):
         for varIndex in range(len(self.axisName)):
           if varName == self.axisName[varIndex]:
@@ -1866,7 +1867,6 @@ class LimitSurface(BasePostProcessor):
         evaluations[nodeName] = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
         for pointID, coordinate in enumerate(listsurfPoint[nodeName]):
           self.surfPoint[nodeName][pointID, :] = self.gridCoord[nodeName][tuple(coordinate)]
-
     if self.name != exceptionGrid: self.listsurfPointNegative, self.listsurfPointPositive = listsurfPoint[self.name][:nNegPoints-1],listsurfPoint[self.name][nNegPoints:]
     if merge == True:
       evals = np.hstack(evaluations.values())
@@ -1877,7 +1877,6 @@ class LimitSurface(BasePostProcessor):
     else:
       if returnListSurfCoord: return self.surfPoint, evaluations, listsurfPoint
       else                  : return self.surfPoint, evaluations
-
 
 
   def __localLimitStateSearch__(self, toBeTested, sign, nodeName):
@@ -2365,12 +2364,6 @@ class TopologicalDecomposition(BasePostProcessor):
             output.updateOutputValue(key, [value])
           elif key in ['hierarchy']:
             output.updateMetadata(key, [value])
-          elif key.startswith('coefficients'):
-            output.updateMetadata(key, [value])
-          elif key.startswith('R2'):
-            output.updateMetadata(key, [value])
-          elif key.startswith('Gaussian'):
-            output.updateMetadata(key, [value])
     else:
       self.raiseAnError(IOError,'Unknown output type:',output.type)
 
@@ -2422,72 +2415,27 @@ class TopologicalDecomposition(BasePostProcessor):
       for idx in indices:
         outputDict['minLabel'][idx] = extPair[0]
         outputDict['maxLabel'][idx] = extPair[1]
-
-    output = os.linesep
-    output += '========== Data Labels: ========== ' + os.linesep
-    output += 'Index'
-    sep = ','
-    for lbl in names:
-      output += sep + lbl
-    output += sep + 'Minimum' + sep + 'Maximum'
-    output += os.linesep
-    for i in xrange(0, self.__amsc.GetSampleSize()):
-      line = str(i)
-      for d in xrange(0, self.__amsc.GetDimensionality()):
-        line += sep + str(inputData[i, d])
-      line += sep + str(outputData[i])
-      line += sep + str(int(outputDict['minLabel'][i]))
-      line += sep + str(int(outputDict['maxLabel'][i]))
-      output += line + os.linesep
-    output += '========== Merge Hierarchy: ==========' + os.linesep
-    output += self.__amsc.XMLFormattedHierarchy() + os.linesep
     outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
-    output += '========== Linear Regressors: ==========' + os.linesep
-    self.__amsc.BuildModels()
-    linearFits = self.__amsc.SegmentFitCoefficients()
-    linearFitnesses = self.__amsc.SegmentFitnesses()
 
-    for key in linearFits.keys():
-      output += str(key) + os.linesep
-      coefficients = linearFits[key]
-      rSquared = linearFitnesses[key]
-      #output += '\t' + u"\u03B2\u0302: " + str(coefficients) + '\n'
-      #output += '\t' + u"R\u00B2: " + str(rSquared) + '\n' + '\n'
-      output += '\t' + "beta: " + str(coefficients) + os.linesep
-      output += '\t' + "R^2: " + str(rSquared) + 2 * os.linesep
-      outputDict['coefficients_%d_%d' % (key[0], key[1])] = coefficients
-      outputDict['R2_%d_%d' % (key[0], key[1])] = rSquared
-
-    #output += 'RMSD  = %f\n' % (self.linearNRMSD)
-    output += '========== Gaussian Fits: ==========' + os.linesep
-    #output += u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - '
-    #      + u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)\n'
-    output += 'a/sqrt(2*(pi)^d|M|)*e^(-(x-mu)TM(x-mu)) + c - a'
-    output += '\t(mu & c are fixed, M and a are estimated)' + os.linesep
-
-    exts = linearFits.keys()
-    exts = [int(item) for sublist in exts for item in sublist]
-    exts = list(set(exts))
-
-    for key in exts:
-      output += str(key) + ':' + os.linesep
-      (mu, c, a, A) = self.__amsc.GetExtremumFitCoefficients(key)
-      #output += u':\t\u03BC=' + str(mu) + '\n'
-      output += u':\tmu=' + str(mu) + os.linesep
-      output += '\tc=' + str(c) + os.linesep
-      output += '\ta=' + str(a) + os.linesep
-      output += '\tM=' + os.linesep + str(A) + 2 * os.linesep
-      #output += '\t\u03A3=\n' + str(A)+'\n\n'
-      #output += '\t' + u"R\u00B2: " + str(rSquared) + '\n\n'
-
-      outputDict['mu_' + str(key)] = mu
-      outputDict['c_' + str(key)] = c
-      outputDict['a_' + str(key)] = a
-      outputDict['Sigma_' + str(key)] = A
-      outputDict['R2_' + str(key)] = rSquared
-
-   # output += 'RMSD  = %f and %f\n' % (self.gaussianNRMSD[0],self.gaussianNRMSD[1])
-    self.raiseAMessage(output)
+    # output = os.linesep
+    # output += '========== Data Labels: ========== ' + os.linesep
+    # output += 'Index'
+    # sep = ','
+    # for lbl in names:
+    #   output += sep + lbl
+    # output += sep + 'Minimum' + sep + 'Maximum'
+    # output += os.linesep
+    # for i in xrange(0, self.__amsc.GetSampleSize()):
+    #   line = str(i)
+    #   for d in xrange(0, self.__amsc.GetDimensionality()):
+    #     line += sep + str(inputData[i, d])
+    #   line += sep + str(outputData[i])
+    #   line += sep + str(int(outputDict['minLabel'][i]))
+    #   line += sep + str(int(outputDict['maxLabel'][i]))
+    #   output += line + os.linesep
+    # output += '========== Merge Hierarchy: ==========' + os.linesep
+    # output += self.__amsc.XMLFormattedHierarchy() + os.linesep
+    # self.raiseAMessage(output)
     return outputDict
 
 """

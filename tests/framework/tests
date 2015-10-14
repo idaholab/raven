@@ -48,42 +48,22 @@
    required_executable = '../../RAVEN-%METHOD%'
  [../]
 
- [./test_Adaptive_DynamicEventTreeRAVEN]
+ [./testAdaptiveDynamicEventTreeRAVEN]
   type = 'RavenFramework'
   input = 'test_adaptive_det_simple.xml'
-  output = 'AdaptiveDET/adaptiveNoHierarchicalDump.csv AdaptiveDET/adaptiveNoHierarchicalDump.xml AdaptiveDET/AdaptiveDETsimpleDatabase.h5'
-  csv = 'AdaptiveDET/AdaptiveDETrunTest/out~AdaptiveDETsimple_1-1-1-1-2~ideal_pump.csv'
+  output = 'AdaptiveDET/limitSurfDump.csv AdaptiveDET/adaptiveOutsimpleDump.csv'
+  csv = 'AdaptiveDET/limitSurfDump.csv'
   required_executable = '../../RAVEN-%METHOD%'
   max_time = 400
  [../]
 
- [./test_Classic_DynamicEventTreeRAVEN]
+ [./testAdaptiveHybridDynamicEventTreeRAVEN]
   type = 'RavenFramework'
-  input = 'test_branch.xml'
-  output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump branch/extract_hist_example/DET_HistorySet_additional_info_DET_test_1-1-2.csv branch/testprint_tpset_hier_variables.csv branch/3-2DHistoryPlot_tps_scatter.pdf'
-  csv = 'branch/extract_hist_example/DET_HistorySet_DET_test_1-2.csv'
+  input = 'test_adaptive_hybrid_det.xml'
+  output = 'AdaptiveHybridDET/limitsurfaceDump.csv AdaptiveHybridDET/adaptiveOutsimpleHier.csv'
+  csv = 'AdaptiveHybridDET/limitsurfaceDump.csv'
   required_executable = '../../RAVEN-%METHOD%'
-  #skip = 'Unknown error'
-  #skip = 'Josh Broke it by breaking RestartInitialize'
- [../]
-
- [./test_Preconditioned_DynamicEventTreeRAVEN]
-  type = 'RavenFramework'
-  input = 'test_preconditioned_det.xml'
-  output = 'PreconditionedDynamicEventTree/PreconditionedDETrunTest/out~PreconditionedDET_test_5-1-2~ideal_pump PreconditionedDynamicEventTree/testprint_hist_hier_PreconditionedDET_test_5-2.csv PreconditionedDynamicEventTree/testprint_hist_hier_variables_PreconditionedDET_test_1-1-2.csv PreconditionedDynamicEventTree/2DHistoryPlot_line.pdf'
-  csv = 'PreconditionedDynamicEventTree/PreconditionedDETrunTest/out~PreconditionedDET_test_5-1-2~ideal_pump.csv'
-  required_executable = '../../RAVEN-%METHOD%'
-  #skip = 'Josh Broke it by breaking RestartInitialize'
- [../]
-
- [./test_branch_heavy]
-  type = 'RavenFramework'
-  input = 'test_sbo_heavy_det.xml'
-  output = 'SBO_DET/DET/out~DET_1-2-2~TMI SBO_DET/DET/out~DET_1-2-1-1-1-2~TMI.csv'
-  csv = 'SBO_DET/stories_from_database_dump_8.csv SBO_DET/DET/out~DET_1-2-1-1-1-2~TMI.csv'
-  max_time = 1000000
-  heavy=True
-  rel_err = 0.01
+  max_time = 400
  [../]
 
  [./test_mpi]
@@ -205,51 +185,6 @@
   rel_err = 0.001
  [../]
 
- [./testGridBison]
-  type = 'RavenFramework'
-  input = 'test_Grid_Sampler_Bison.xml'
-  output = 'GridTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
-  csv = 'GridTestBison/CustomSampler/out~18~gap_perfect_transfer_test.csv GridTestBison/CustomSampler/out~17~gap_perfect_transfer_test.csv GridTestBison/outGrid_dump.csv'
-  max_time = 500
-  rel_err = 0.001
-  required_executable = '../../../bison/bison-%METHOD%'
-  skip_if_env = BUILD_ROOT
-  #There is a problem in debug mode (possibly in bison) but this
-  # test often does not work in debug mode because of the problem.
-  method = 'devel opt'
- [../]
-
- [./testLHSBison]
-  type = 'RavenFramework'
-  input = 'test_LHS_Sampler_Bison.xml'
-  output = 'LHStestBison/myLHS/out~1~gap_perfect_transfer_test'
-  UnorderedCsv = 'LHStestBison/myLHS/out~1~gap_perfect_transfer_test.csv LHStestBison/myLHS/out~3~gap_perfect_transfer_test.csv'
-  max_time = 500
-  rel_err = 0.001
-  required_executable = '../../../bison/bison-%METHOD%'
-  skip_if_env = BUILD_ROOT
- [../]
-
- [./testLHSBisonParallel]
-  type = 'RavenFramework'
-  input = 'test_LHS_Sampler_Bison_parallel.xml'
-  output = 'LHStestBisonParallel/myLHS/out~1~gap_perfect_transfer_test LHStestBisonParallel/LHS_Bison_dump.csv'
-  UnorderedCsv = 'LHStestBisonParallel/LHS_Bison_dump.csv'
-  max_time = 500
-  rel_err = 0.001
-  required_executable = '../../../bison/bison-%METHOD%'
-  skip_if_env = BUILD_ROOT
- [../]
-
-
- [./testLHSFerret]
-  type = 'RavenFramework'
-  input = 'test_LHS_Sampler_ferret.xml'
-  output = 'LHStestFerret/myLHS/out~1~simple_diffusion'
-  csv = 'LHStestFerret/myLHS/out~1~simple_diffusion.csv'
-  required_executable = '../../../ferret/ferret-%METHOD%'
- [../]
-
  [./testLHSRaven]
    type = 'RavenFramework'
    input = 'test_LHS_Sampler_Raven.xml'
@@ -263,7 +198,7 @@
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Raven.xml'
    output = 'GridTestRaven/FirstMRun/out~1~simple_flow_3eqn'
-   csv = 'GridTestRaven/outGrid_dump.csv'
+   UnorderedCsv = 'GridTestRaven/outGrid_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
  [../]
@@ -425,22 +360,6 @@
   csv = 'StochasticPolyInterpTest/Ndump.csv'
  [../]
 
- [./RELAP5interfaceTestNoExecutable]
-  type = 'RavenFramework'
-  input = 'test_relap5_code_interface.xml'
-  output = 'RELAP5interfaceTest/testDummyStep/1~snc01.i RELAP5interfaceTest/testDummyStep/2~snc01.i RELAP5interfaceTest/testDummyStep/3~snc01.i RELAP5interfaceTest/testDummyStep/4~snc01.i RELAP5interfaceTest/testDummyStep/5~snc01.i RELAP5interfaceTest/testDummyStep/out~1~snc01.csv RELAP5interfaceTest/testDummyStep/out~2~snc01.csv RELAP5interfaceTest/testDummyStep/out~3~snc01.csv RELAP5interfaceTest/testDummyStep/out~4~snc01.csv RELAP5interfaceTest/testDummyStep/out~5~snc01.csv'
-  csv = 'RELAP5interfaceTest/testDummyStep/out~1~snc01.csv RELAP5interfaceTest/testDummyStep/out~2~snc01.csv RELAP5interfaceTest/testDummyStep/out~3~snc01.csv RELAP5interfaceTest/testDummyStep/out~4~snc01.csv RELAP5interfaceTest/testDummyStep/out~5~snc01.csv'
-  test_interface_only = True
- [../]
-
-[./OpenModelicaInterfaceTestNoExecutable]
-  type = 'RavenFramework'
-  input = 'test_OpenModelica_code_interface.xml'
-  output = 'OMInterfaceTest/testDummyStep/OM1BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM2BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM3BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM4BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM5BouncingBall_init.xml OMInterfaceTest/testDummyStep/out~OM1BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM2BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM3BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM4BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM5BouncingBall_init.csv'
-  csv = 'OMInterfaceTest/testDummyStep/out~OM1BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM2BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM3BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM4BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM5BouncingBall_init.csv'
-  test_interface_only = True
- [../]
-
  [./ND_external_LHS]
   type = 'RavenFramework'
   input = 'test_simple_ND_external_LHS.xml'
@@ -476,20 +395,6 @@
    csv = 'test_cc_stats/output_fullprint_Pointset_outputs_normal1_0.csv test_cc_stats/output_fullprint_Pointset_outputs_normal1_1.csv test_cc_stats/output_fullprint_Pointset_outputs_normal2_0.csv test_cc_stats/output_fullprint_Pointset_outputs_normal2_1.csv test_cc_stats/output_fullprint_Pointset_outputs_uniform1_fullprint_Pointset_outputs_uniform2p_0.csv test_cc_stats/output_fullprint_Pointset_outputs_uniform1_fullprint_Pointset_outputs_uniform2p_1.csv'
  [../]
 
- [./genericInterface]
-   type = 'RavenFramework'
-   input = 'test_generic_interface.xml'
-   output = 'GenericInterface/samples.xml'
-   csv = 'GenericInterface/samples.csv'
- [../]
-
- [./genericInterfaceIO]
-   type = 'RavenFramework'
-   input = 'test_generic_IO.xml'
-   output = 'GenericInterfaceIO/samples.xml'
-   csv = 'GenericInterfaceIO/samples.csv'
- [../]
-
  [./dists_vars]
    type = 'RavenFramework'
    input = 'test_distribution_combination.xml'
@@ -521,28 +426,6 @@
    csv = 'dataObject_metadata/PointProbability_dump.csv'
  [../]
 
- [./CubitMooseInterface]
-   type = 'RavenFramework'
-   input = 'test_CUBIT_MOOSE.xml'
-   output = 'CUBIT_MOOSE_test/grid_run/mesh~rectangle_1.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_2.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_3.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_4.e'
-   csv = 'CUBIT_MOOSE_test/print_data.csv'
-   # Need to be able to check that cubit executable exists, but listing in required_executable
-   # searches for existence of file then runs it. Running cubit by itself starts a cubit
-   # command line that the test harness doesn't know how to deal with. For now, we're just
-   # going to test for the existence of moose_test-opt to run.
-   required_executable = '../../../moose/test/moose_test-%METHOD%'
-   required_libraries = 'cubit'
- [../]
-
- [./BisonAndMeshInterface]
-   type = 'RavenFramework'
-   input = 'test_BISON_and_MESH.xml'
-   output = 'BISON_and_MESH_test/grid_run/mesh~coarse_input_1.e BISON_and_MESH_test/grid_run/mesh~coarse_input_2.e BISON_and_MESH_test/grid_run/mesh~coarse_input_3.e BISON_and_MESH_test/grid_run/mesh~coarse_input_4.e BISON_and_MESH_test/grid_run/mesh~coarse_input_5.e BISON_and_MESH_test/grid_run/mesh~coarse_input_6.e BISON_and_MESH_test/grid_run/mesh~coarse_input_7.e BISON_and_MESH_test/grid_run/mesh~coarse_input_8.e BISON_and_MESH_test/grid_run/mesh~coarse_input_9.e BISON_and_MESH_test/grid_run/mesh~coarse_input_10.e BISON_and_MESH_test/grid_run/mesh~coarse_input_11.e BISON_and_MESH_test/grid_run/mesh~coarse_input_12.e BISON_and_MESH_test/grid_run/mesh~coarse_input_13.e BISON_and_MESH_test/grid_run/mesh~coarse_input_14.e BISON_and_MESH_test/grid_run/mesh~coarse_input_15.e BISON_and_MESH_test/grid_run/mesh~coarse_input_16.e'
-   csv = 'BISON_and_MESH_test/print_data.csv'
-   required_executable = '../../../bison/bison-%METHOD%'
-   required_libraries = 'cubit'
- [../]
-
  [./failrunsMC]
    type = 'RavenFramework'
    input = 'test_failruns_MC.xml'
@@ -564,4 +447,17 @@
   csv = 'MVNRel/testPrintPointSetRel_dump.csv MVNRel/testPrintPointSetRel_dump.csv'
  [../]
 
+ [./NDGridProbabilityWeightCDF]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_grid_probabilityWeight_cdf.xml'
+  output = 'NDGridPWcdf/testPrintPointSet_dump.csv NDGridPWcdf/testPrintPointSet_dump.csv'
+  csv = 'NDGridPWcdf/testPrintPointSet_dump.csv NDGridPWcdf/testPrintPointSet_dump.csv'
+ [../]
+
+ [./NDGridProbabilityWeightValue]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_grid_probabilityWeight_value.xml'
+  output = 'NDGridPWvalue/testPrintPointSet_dump.csv NDGridPWvalue/testPrintPointSet_dump.csv'
+  csv = 'NDGridPWvalue/testPrintPointSet_dump.csv NDGridPWvalue/testPrintPointSet_dump.csv'
+ [../]
 []
