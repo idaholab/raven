@@ -924,10 +924,13 @@ class DataConversion(BasePostProcessor):
     outputDict = Input.copy()
     
     if self.function == 'HS2HS':      
-      if   self.sampling['type'] == 'uniform':       
+      if   self.sampling['type'] == 'uniform': 
+        for key in outputDict:
+                
       elif self.sampling['type'] == 'firstDerivative': 
       elif self.sampling['type'] == 'secondDerivative':
-      elif self.sampling['type'] == 'filtered':
+      elif self.sampling['type'] == 'filtered_firstDerivative':
+      elif self.sampling['type'] == 'filtered_secondDerivative':
       else:  
         self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2HS') 
     elif self.function == 'HS2PS':

@@ -204,8 +204,8 @@ def varsTimeInterp(numSamples, timeID, vars, samplingType, interpType):
   
   if samplingType == 'uniform':
     newTime = np.arange(t_min,t_max+dt,dt)
-  elif samplingType == 'derivative':
-    newTime = derivativeTimeValues(numSamples, vars[timeID], vars)
+  elif samplingType == 'firstDerivative' or samplingType == 'secondDerivative':
+    newTime = derivativeTimeValues(numSamples, vars[timeID], vars, samplingType)
   else:
     self.raiseAnError(RuntimeError,'type ' + samplingType + ' is not a valid type. Function: varsTimeInterp (mathUtils)')
   
@@ -257,7 +257,7 @@ def derivativeTimeValues(numSamples, time, vars, orderDerivative):
   
   return newTime
 
-def historySnapShot(vars, pivotVar, snapShotType, pivotVal=None):
+def historySnapShot(vars, pivotVar, snapShotType, pivotVal=None, tempID = None):
   newVars={}
   
   if   snapShotType == 'min':
@@ -283,7 +283,14 @@ def historySnapShot(vars, pivotVar, snapShotType, pivotVal=None):
         intervalFraction = (val-var[pivotVar][idx])/(var[pivotVar][idx+1]-var[pivotVar][idx])
         for keys in vars.keys(): 
           newVars[keys] = var[keys][idx] + (var[keys][idx+1]-var[keys][idx])*intervalFraction
-          
+  
+  elif snapShotType == 'avg':
+     for keys in vars.keys():
+       cumulative=0.0
+       for t in range(1,vars[keys].shape()):
+         cumulative += (vars[keys][t] + vars[keys][t-1]) / 2.0 * (vars[tempID][t] - vars[tempID][t-1])
+       newVars[keys] = cumulative / (vars[tempID][-1] - vars[tempID][0])
+            
   else:
     self.raiseAnError(RuntimeError,'type ' + snapShotType + ' is not a valid type. Function: historySnapShot (mathUtils)')
 
