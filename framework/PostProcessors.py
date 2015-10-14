@@ -409,7 +409,7 @@ class SafestPoint(BasePostProcessor):
       self.controllableOrd.append(varName)
     controllableSpaceSize = tuple(NotchesByVar + [len(self.controllableGrid.keys())])
     self.controllableSpace = np.zeros(controllableSpaceSize)
-    iterIndex = ravenArrayIterator(shape=self.controllableSpace.shape)
+    iterIndex = ravenArrayIterator(arrayIn=self.controllableSpace)
     while not iterIndex.finished:
       coordIndex = iterIndex.multiIndex[-1]
       varName = self.controllableGrid.keys()[coordIndex]
@@ -429,7 +429,7 @@ class SafestPoint(BasePostProcessor):
       self.nonControllableOrd.append(varName)
     nonControllableSpaceSize = tuple(NotchesByVar + [len(self.nonControllableGrid.keys())])
     self.nonControllableSpace = np.zeros(nonControllableSpaceSize)
-    iterIndex = ravenArrayIterator(shape=self.nonControllableSpace)
+    iterIndex = ravenArrayIterator(arrayIn=self.nonControllableSpace)
     while not iterIndex.finished:
       coordIndex = iterIndex.multiIndex[-1]
       varName = self.nonControllableGrid.keys()[coordIndex]
