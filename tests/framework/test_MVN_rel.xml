@@ -38,7 +38,7 @@
   <Samplers>
     <MonteCarlo name="MCExternalRel">
       <sampler_init>
-          <limit>100</limit>
+          <limit>10</limit>
         <initial_seed>1234</initial_seed>
       </sampler_init>
       <variable name="x0">
