@@ -866,8 +866,11 @@ class DataConversion(BasePostProcessor):
     self.workingDir = None
     self.printTag = 'POSTPROCESSOR DATA_CONVERSION'
     
-    self.function = None
+    self.operator = None
     self.sampling = {}
+    
+    self.requiredAssObject = (True, (['Function'], [-1]))
+    self.externalFunction  = None                             #Pointer to an external Function
     
     
   def inputToInternal(self, currentInput):
@@ -886,6 +889,7 @@ class DataConversion(BasePostProcessor):
      @ In, initDict, dict, dictionary with initialization options
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.externalFunction = self.assemblerDict['Function'][0][3]
   
   def _localReadMoreXML(self, xmlNode):
     """
@@ -895,17 +899,20 @@ class DataConversion(BasePostProcessor):
     @ Out, None
     """
     for child in xmlNode:
-      if child.tag == 'function':
-        self.function = child.text
-        if self.function != 'HS2HS' and self.function != 'HS2PS':
-          self.raiseAnError(IOError, 'DataConversion Post-Processor: function' + str(self.function) + 'is not valid')
+      if child.tag == 'operator':
+        self.operator = child.text
+        if self.operator != 'HS2HS' and self.operator != 'HS2PS' and self.operator != 'filter':
+          self.raiseAnError(IOError, 'DataConversion Post-Processor: function ' + str(self.operator) + ' is not valid')
       elif child.tag == 'sampling':
-        self.sampling['n_samples'] = child.text
-        self.sampling['type'] = child.attrib('type')
-        if child.attrib('type') == 'derivative':
-          self.sampling['outVariables'] = child.attrib('outVariables')
-      else:
-        self.raiseAnError(IOError, 'DataConversion Post-Processor: node' + str(child.tag) + 'is not valid')
+        if self.operator == 'HS2HS' or self.operator == 'HS2PS':
+          self.sampling['numSamples'] = child.attrib('numSamples') 
+          self.sampling['type']       = child.attrib('type')
+          self.sampling['frame']      = child.attrib('frame')
+          self.sampling['tolerance']  = child.attrib('tolerance')
+          self.sampling['pivot']      = child.text
+        else:
+          self.raiseAnError(IOError, 'DataConversion Post-Processor: function ' + str(self.operator) + ' is not valid')
+        
 
   def run(self, Input):
     """
@@ -917,27 +924,30 @@ class DataConversion(BasePostProcessor):
     outputDict = Input.copy()
     
     if self.function == 'HS2HS':      
-      outKeys   = []
-      outKeys   = Input._dataContainer['outputs'].keys()
-      for n in range(len(outKeys)): # loop for all histories
-        outValues = list(Input._dataContainer['outputs'].values())
-        outValues_h = []
-        outValues_h = list(outValues[n].values())
-        for item in outValues_h:    # loop for all dimensions of the history
-          if self.sampling['type'] == 'uniform':
-            #def uniformTempInterp(numSamples, time, vars)
-            item = uniformTempInterp()
-          elif self.sampling['type'] == 'derivative':
-            self.raiseAnError(IOError, 'DataConversion Post-Processor: derivative type not yet implemented')
-          else:  
-            self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type' + str(self.sampling['type']) + 'is not valid') 
-            
+      if   self.sampling['type'] == 'uniform':       
+      elif self.sampling['type'] == 'firstDerivative': 
+      elif self.sampling['type'] == 'secondDerivative':
+      elif self.sampling['type'] == 'filtered':
+      else:  
+        self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2HS') 
+    elif self.function == 'HS2PS':
+      if   self.sampling['type'] == 'uniform':       
+      elif self.sampling['type'] == 'firstDerivative': 
+      elif self.sampling['type'] == 'secondDerivative':
+      elif self.sampling['type'] == 'min':
+      elif self.sampling['type'] == 'max':
+      elif self.sampling['type'] == 'value':
+      elif self.sampling['type'] == 'average':
+      else:
+        self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2PS')
+    elif self.function == 'filter'
+    else:
+      self.raiseAnError(IOError, 'DataConversion Post-Processor: ' + str(self.function) + '  is not valid (available: HS2HS,HS2PS and filter)')        
                   
   def collectOutput(self, finishedjob, output):
     """
       Function to place all of the computed data into the output object
-      @ In, finishedJob: A JobHandler object that is in charge of running this
-                         post-processor
+      @ In, finishedJob: A JobHandler object that is in charge of running this post-processor
       @ In, output: The object where we want to place our computed results
       @ Out, None  
     """                                 

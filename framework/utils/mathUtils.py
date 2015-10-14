@@ -200,6 +200,8 @@ def varsTimeInterp(numSamples, timeID, vars, samplingType, interpType):
   
   dt=(t_max-t_min)/numSamples
   
+  newVars={}
+  
   if samplingType == 'uniform':
     newTime = np.arange(t_min,t_max+dt,dt)
   elif samplingType == 'derivative':
@@ -254,6 +256,38 @@ def derivativeTimeValues(numSamples, time, vars, orderDerivative):
     newTime[i] = time[index] 
   
   return newTime
+
+def historySnapShot(vars, pivotVar, snapShotType, pivotVal=None):
+  newVars={}
+  
+  if   snapShotType == 'min':
+    index = np.argmin(vars[pivotVar])
+    for keys in vars.keys():
+      newVars[keys] = var[keys][index]
+      
+  elif snapShotType == 'max':
+    index = np.argmax(vars[pivotVar])
+    for keys in vars.keys():
+      newVars[keys] = var[keys][index]
+      
+  elif snapShotType == 'value':
+    if pivotVal==None:
+      self.raiseAnError(RuntimeError,'type ' + snapShotType + ' is not a valid type with variable pivotVal=None. Function: historySnapShot (mathUtils)')
+    else:
+      idx = np.argmin(np.abs(vars[pivotVar] - pivotVal))
+      if pivotVar[idx]>pivotVal:
+        intervalFraction = (val-var[pivotVar][idx-1])/(var[pivotVar][idx]-var[pivotVar][idx-1])
+        for keys in vars.keys():
+          newVars[keys] = var[keys][idx-1] + (var[keys][idx]-var[keys][idx-1])*intervalFraction   
+      else: 
+        intervalFraction = (val-var[pivotVar][idx])/(var[pivotVar][idx+1]-var[pivotVar][idx])
+        for keys in vars.keys(): 
+          newVars[keys] = var[keys][idx] + (var[keys][idx+1]-var[keys][idx])*intervalFraction
+          
+  else:
+    self.raiseAnError(RuntimeError,'type ' + snapShotType + ' is not a valid type. Function: historySnapShot (mathUtils)')
+
+  return newVars
   
 #
 # I need to convert it in multi-dimensional
