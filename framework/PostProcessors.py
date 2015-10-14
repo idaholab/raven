@@ -29,6 +29,7 @@ import SupervisedLearning
 import MessageHandler
 import GridEntities
 import Files
+from RAVENiterators import ravenArrayIterator
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -408,18 +409,18 @@ class SafestPoint(BasePostProcessor):
       self.controllableOrd.append(varName)
     controllableSpaceSize = tuple(NotchesByVar + [len(self.controllableGrid.keys())])
     self.controllableSpace = np.zeros(controllableSpaceSize)
-    iterIndex = np.nditer(self.controllableSpace, flags = ['multi_index'])
+    iterIndex = ravenArrayIterator(shape=self.controllableSpace.shape)
     while not iterIndex.finished:
-      coordIndex = iterIndex.multi_index[-1]
+      coordIndex = iterIndex.multiIndex[-1]
       varName = self.controllableGrid.keys()[coordIndex]
-      notchPos = iterIndex.multi_index[coordIndex]
+      notchPos = iterIndex.multiIndex[coordIndex]
       if self.gridInfo[varName][0] == 'CDF':
         valList = []
         for probVal in self.gridInfo[varName][2]:
           valList.append(self.controllableDist[varName].cdf(probVal))
-        self.controllableSpace[iterIndex.multi_index] = valList[notchPos]
+        self.controllableSpace[iterIndex.multiIndex] = valList[notchPos]
       else:
-        self.controllableSpace[iterIndex.multi_index] = self.gridInfo[varName][2][notchPos]
+        self.controllableSpace[iterIndex.multiIndex] = self.gridInfo[varName][2][notchPos]
       iterIndex.iternext()
     NotchesByVar = [None] * len(self.nonControllableGrid.keys())
     nonControllableSpaceSize = None
@@ -428,18 +429,18 @@ class SafestPoint(BasePostProcessor):
       self.nonControllableOrd.append(varName)
     nonControllableSpaceSize = tuple(NotchesByVar + [len(self.nonControllableGrid.keys())])
     self.nonControllableSpace = np.zeros(nonControllableSpaceSize)
-    iterIndex = np.nditer(self.nonControllableSpace, flags = ['multi_index'])
+    iterIndex = ravenArrayIterator(shape=self.nonControllableSpace)
     while not iterIndex.finished:
-      coordIndex = iterIndex.multi_index[-1]
+      coordIndex = iterIndex.multiIndex[-1]
       varName = self.nonControllableGrid.keys()[coordIndex]
-      notchPos = iterIndex.multi_index[coordIndex]
+      notchPos = iterIndex.multiIndex[coordIndex]
       if self.gridInfo[varName][0] == 'CDF':
         valList = []
         for probVal in self.gridInfo[varName][2]:
           valList.append(self.nonControllableDist[varName].cdf(probVal))
-        self.nonControllableSpace[iterIndex.multi_index] = valList[notchPos]
+        self.nonControllableSpace[iterIndex.multiIndex] = valList[notchPos]
       else:
-        self.nonControllableSpace[iterIndex.multi_index] = self.gridInfo[varName][2][notchPos]
+        self.nonControllableSpace[iterIndex.multiIndex] = self.gridInfo[varName][2][notchPos]
       iterIndex.iternext()
 
   def inputToInternal(self, currentInput):
@@ -1651,9 +1652,10 @@ class LimitSurface(BasePostProcessor):
         else:                self.paramType[param] = 'outputs'
     if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
-
       for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeid = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeid = 'RecontructEnding'))
-    self.gridEntity.initialize(initDictionary={"rootName":self.name,"computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
+    self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,
+                                               "dimensionNames":self.parameters['targets'], "lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],
+                                               "volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
     self.nVar                  = len(self.parameters['targets'])                                  # Total number of variables
     self.axisName              = self.gridEntity.returnParameter("dimensionNames",self.name)      # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     self.testMatrix[self.name] = np.zeros(self.gridEntity.returnParameter("gridShape",self.name)) # grid where the values of the goalfunction are stored

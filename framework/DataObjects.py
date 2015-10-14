@@ -547,10 +547,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                 return convertArr(returnDict[keyword])
             else:
                 return convertArr(self._dataContainer['inputs'][keyword])
-        else: self.raiseAnError(RuntimeError,'parameter ' + str(keyword) + ' not found in inpParametersValues dictionary. Available keys are '+str(self._dataContainer['inputs'].keys())+'.Function: Data.getParam')
+        else:
+          print(self._dataContainer)
+          self.raiseAnError(RuntimeError,self.name+':parameter ' + str(keyword) + ' not found in inpParametersValues dictionary. Available keys are '+str(self._dataContainer['inputs'].keys())+'.Function: Data.getParam')
       elif typeVar.lower() in ['output','outputs']:
         if keyword in self._dataContainer['outputs'].keys(): return convertArr(self._dataContainer['outputs'][keyword])
-        else: self.raiseAnError(RuntimeError,'parameter ' + str(keyword) + ' not found in outParametersValues dictionary. Available keys are '+str(self._dataContainer['outputs'].keys())+'.Function: Data.getParam')
+        else: self.raiseAnError(RuntimeError,self.name+'parameter ' + str(keyword) + ' not found in outParametersValues dictionary. Available keys are '+str(self._dataContainer['outputs'].keys())+'.Function: Data.getParam')
 
   def extractValue(self,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """
