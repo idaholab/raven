@@ -138,7 +138,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         raise IOError('It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
     return True
 
-  def __init__(self):
+  def __init__(self,runInfoDict):
     BaseType.__init__(self)
     self.subType  = ''
     self.runQueue = []
@@ -217,8 +217,8 @@ class Dummy(Model):
   this is a dummy model that just return the effect of the sampler. The values reported as input in the output
   are the output of the sampler and the output is the counter of the performed sampling
   """
-  def __init__(self):
-    Model.__init__(self)
+  def __init__(self,runInfoDict):
+    Model.__init__(self,runInfoDict)
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
     #the following variable are reset at each call of the initialize method
     self.printTag = 'DUMMY MODEL'
@@ -229,7 +229,7 @@ class Dummy(Model):
     cls.validateDict['Input' ][0]['type'        ] = ['Point','PointSet']
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet','HistorySet']
+    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
 
   def _manipulateInput(self,dataIn):
     if len(dataIn)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name '+self.name)
@@ -255,30 +255,6 @@ class Dummy(Model):
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'): localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
     else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
-    return localInput
-  
-  def _inputToInternalHistorySet(self,dataIN, numTimeSamples, timeID, samplingType, interpType):
-    if  type(dataIN).__name__ !='dict':
-      if dataIN.type not in self.admittedData: self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
-
-    localTime = {}
-    localInput = {}
-    
-    if dataIN.type == 'HistorySet':     
-      # Convert HistorySet accordingly to the sampling strategy
-      for hist in dataIN:
-        dataIN['output'] = varsTimeInterp(numTimeSamples,timeID,dataIN['output'],samplingType,interpType) # varsTimeInterp(numSamples, time, vars, samplingType, interpType)
-      
-      # Create the dictionaries localTime and localInput 
-      for tInst in range(numTimeSamples):
-        localInput[tInst] = {}
-        localInput[tInst]['input']  = dataIN['input']
-        
-        for keys in dataIN['output'].keys():
-          localInput[tInst]['output'][key] = dataIN['output'][key]  
-    else: 
-      self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"! (only HistorySet are allowed)')
-      
     return localInput
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
@@ -334,20 +310,15 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet','HistorySet']
+    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
 
-  def __init__(self):
-    Dummy.__init__(self)
+  def __init__(self,runInfoDict):
+    Dummy.__init__(self,runInfoDict)
     self.initializationOptionDict = {}          # ROM initialization options
     self.amITrained                = False      # boolean flag, is the ROM trained?
     self.howManyTargets            = 0          # how many targets?
-    self.SupervisedEngine          = []         # dict of ROM instances (== number of targets => keys are the targets)
+    self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
-    
-    self.howManyTimeSteps          = 1          # how many time steps? (for temporal reduced order models)
-    self.samplingType              = 'uniform'  # uniform or derivative
-    self.interpType                = 'linear'
-    self.timeROM                   = []
 
   def __getstate__(self):
     """
@@ -392,17 +363,9 @@ class ROM(Dummy):
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
-    
-    #XXX
-    self.howManyTimeSteps  = self.initializationOptionDict['t_Discs']
-    for ts in range(self.howManyTimeSteps):
-      tsDict = {}
-      for target in targets:
-        self.initializationOptionDict['Target'] = target
-        tsDict[target] = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-      self.SupervisedEngine[ts] = tsDict
-    #XXX
-    
+    for target in targets:
+      self.initializationOptionDict['Target'] = target
+      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
     #restore targets to initialization option dict
@@ -443,9 +406,7 @@ class ROM(Dummy):
     @ In,  None
     @ Out, None
     """
-    # fare reset (per all ts)
-    for instrom in self.SupervisedEngine.values():
-      instrom.reset()
+    for instrom in self.SupervisedEngine.values(): instrom.reset()
     self.amITrained   = False
 
   def addInitParams(self,originalDict):
@@ -466,15 +427,12 @@ class ROM(Dummy):
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
-    else:      
-      #_inputToInternal_historySet(self,dataIN, numTimeSamples, samplingType, interpType)
-      self.trainingSet = copy.copy(self._inputToInternalHistorySet(trainingSet,self.howManyTimeSteps,self.samplingType,self.interpType,full=True))
-      for timeStep in self.SupervisedEngine:  
-        data = self.trainingSet[timeStep]     
-        for instrom in self.SupervisedEngine[timeStep].values():
-          instrom.train(data)
-          self.aimITrained = self.amITrained and instrom.amITrained
-               
+    else:
+      self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
+      self.amITrained = True
+      for instrom in self.SupervisedEngine.values():
+        instrom.train(self.trainingSet)
+        self.aimITrained = self.amITrained and instrom.amITrained
       self.raiseADebug('add self.amITrained to currentParamters','FIXME')
 
   def confidence(self,request,target = None):
@@ -501,17 +459,13 @@ class ROM(Dummy):
 
   def __externalRun(self,inRun):
     returnDict = {}
-    for ts in self.SupervisedEngine:
-      for target in self.SupervisedEngine[ts].keys(): 
-        returnDict[ts][target] = self.evaluate(inRun,target)
+    for target in self.SupervisedEngine.keys(): returnDict[target] = self.evaluate(inRun,target)
     return returnDict
 
   def run(self,Input,jobHandler):
     """This call run a ROM as a model"""
     inRun = self._manipulateInput(Input[0])
     jobHandler.submitDict['Internal']((inRun,),self.__externalRun,str(Input[1]['prefix']),metadata=Input[1],modulesToImport=self.mods, globs = self.globs)
-
-    
 #
 #
 #
@@ -523,13 +477,13 @@ class ExternalModel(Dummy):
     #cls.raiseADebug('think about how to import the roles to allowed class for the external model. For the moment we have just all')
     pass
 
-  def __init__(self):
+  def __init__(self,runInfoDict):
     """
     Constructor
     @ In, None
     @ Out, None
     """
-    Dummy.__init__(self)
+    Dummy.__init__(self,runInfoDict)
     self.sim                      = None
     self.modelVariableValues      = {}                                                                                                       # dictionary of variable values for the external module imported at runtime
     self.modelVariableType        = {}                                                                                                       # dictionary of variable types, used for consistency checks
@@ -537,6 +491,8 @@ class ExternalModel(Dummy):
     self._availableVariableTypes = self._availableVariableTypes + ['numpy.'+item for item in self._availableVariableTypes]                   # as above
     self.printTag                 = 'EXTERNAL MODEL'
     self.initExtSelf              = utils.Object()
+    self.workingDir = runInfoDict['WorkingDir']
+
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -572,15 +528,25 @@ class ExternalModel(Dummy):
     """
     Model._readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys():
-      self.ModuleToLoad = os.path.split(str(xmlNode.attrib['ModuleToLoad']))[1]
-      if (os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0] != ''):
-        abspath = os.path.abspath(os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0])
-        if '~' in abspath:abspath = os.path.expanduser(abspath)
-        if os.path.exists(abspath): os.sys.path.append(abspath)
-        else: self.raiseAnError(IOError,'The path provided for the external model does not exist!!! Got: ' + abspath)
+      moduleToLoadString = str(xmlNode.attrib['ModuleToLoad'])
+      #first check working dir
+      workingDirModule = os.path.abspath(os.path.join(self.workingDir,moduleToLoadString))
+      if os.path.exists(workingDirModule+".py"):
+        moduleToLoadString = workingDirModule
+        path, self.ModuleToLoad = os.path.split(workingDirModule)
+        os.sys.path.append(os.path.abspath(path))
+      else:
+        path, self.ModuleToLoad = os.path.split(moduleToLoadString)
+        if (path != ''):
+          abspath = os.path.abspath(path)
+          if '~' in abspath:abspath = os.path.expanduser(abspath)
+          if os.path.exists(abspath):
+            self.raiseAWarning('ModuleToLoad '+moduleToLoadString+' should be relative to working directory. Working directory: '+self.workingDir+' Module expected at '+abspath)
+            os.sys.path.append(abspath)
+          else: self.raiseAnError(IOError,'The path provided for the external model does not exist!!! Got: ' + abspath + ' and ' + workingDirModule)
     else: self.raiseAnError(IOError,'ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
-    self.sim = utils.importFromPath(str(xmlNode.attrib['ModuleToLoad']),self.messageHandler.getDesiredVerbosity(self)>1)
+    self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':
@@ -659,8 +625,8 @@ class Code(Model):
     #FIXME think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable
     cls.validateDict['Input'] = [cls.validateDict['Input'][1]]
 
-  def __init__(self):
-    Model.__init__(self)
+  def __init__(self,runInfoDict):
+    Model.__init__(self,runInfoDict)
     self.executable         = ''   #name of the executable (abs path)
     self.preexec            = None   #name of the pre-executable, if any
     self.oriInputFiles      = []   #list of the original input files (abs path)
@@ -681,7 +647,7 @@ class Code(Model):
     """
     Model._readMoreXML(self, xmlNode)
     self.clargs={'text':'', 'input':{'noarg':[]}, 'pre':'', 'post':''} #output:''
-    self.fargs={'input':{}, 'output':''}
+    self.fargs={'input':{}, 'output':'', 'moosevpp':''}
     for child in xmlNode:
       if child.tag =='executable':
         self.executable = str(child.text)
@@ -731,6 +697,10 @@ class Code(Model):
           if self.fargs['output']!='': self.raiseAnError(IOError,'output fileargs already specified!  You can only specify one output fileargs node.')
           if arg == None: self.raiseAnError(IOError,'filearg type "output" requires the template variable be specified in "arg" attribute!')
           self.fargs['output']=arg
+        elif argtype.lower() == 'moosevpp':
+          if self.fargs['moosevpp'] != '': self.raiseAnError(IOError,'moosevpp fileargs already specified!  You can only specify one moosevpp fileargs node.')
+          if arg == None: self.raiseAnError(IOError,'filearg type "moosevpp" requires the template variable be specified in "arg" attribute!')
+          self.fargs['moosevpp']=arg
         else: self.raiseAnError(IOError,'filearg type '+argtype+' not recognized!')
     if self.executable == '': self.raiseAnError(IOError,'not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
@@ -824,23 +794,24 @@ class Code(Model):
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
     self.raiseAMessage('job "'+ self.currentInputFiles[index].getBase() +'" submitted!')
 
-  def collectOutput(self,finisishedjob,output):
+  def collectOutput(self,finishedjob,output):
     """collect the output file in the output object"""
     #can we revise the spelling to something more English?
     if 'finalizeCodeOutput' in dir(self.code):
-      out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
-      if out: finisishedjob.output = out
-    attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
-    metadata = finisishedjob.returnMetadata()
+      out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,self.workingDir)
+      if out: finishedjob.output = out
+    attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finishedjob.output+'.csv')}
+    metadata = finishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
     elif output.type in ['Point','PointSet','History','HistorySet']:
       outfile = Files.returnInstance('CSV',self)
-      outfile.initialize(finisishedjob.output+'.csv',self.messageHandler,path=self.workingDir)
+      outfile.initialize(finishedjob.output+'.csv',self.messageHandler,path=self.workingDir)
       output.addOutput(outfile,attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
     else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
+
 #
 #
 #
@@ -851,8 +822,8 @@ class Projector(Model):
     pass
     #FIXME self.raiseAMessage('PROJECTOR','Remember to add the data type supported the class filter')
 
-  def __init__(self):
-    Model.__init__(self)
+  def __init__(self,runInfoDict):
+    Model.__init__(self,runInfoDict)
     self.printTag = 'PROJECTOR MODEL'
 
   def _readMoreXML(self,xmlNode):
@@ -926,8 +897,8 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['ROM'       ][0]['required'    ] = False
     cls.validateDict['ROM'       ][0]['multiplicity'] = '1'
 
-  def __init__(self):
-    Model.__init__(self)
+  def __init__(self,runInfoDict):
+    Model.__init__(self,runInfoDict)
     self.input  = {}     # input source
     self.action = None   # action
     self.workingDir = ''
@@ -1009,9 +980,11 @@ def addKnownTypes(newDict):
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type,caller):
+needsRunInfo = True
+
+def returnInstance(Type,runInfoDict,caller):
   """This function return an instance of the request model type"""
-  try: return __interFaceDict[Type]()
+  try: return __interFaceDict[Type](runInfoDict)
   except KeyError: caller.raiseAnError(NameError,'MODELS','not known '+__base+' type '+Type)
 
 def validate(className,role,what,caller):
