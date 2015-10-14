@@ -32,7 +32,6 @@
   type = 'RavenFramework'
   input = 'test_subPlot.xml'
   output = 'subplot_output/1-subPlot1_surface-surface-surface.png subplot_output/1-subPlot2_stem-stem-stem.png subplot_output/1-subPlot3_stem-stem-stem-stem-stem.png'
-   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./test_output_attributes]
