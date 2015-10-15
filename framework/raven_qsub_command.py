@@ -31,7 +31,7 @@ else:
   else:
     os.environ["MODULEPATH"] = new_module_files
 
-  moose_dev_and_python3_eval = subprocess.Popen([module_command,"python","load","moose-dev-gcc","python/3.2"],stdout=subprocess.PIPE).communicate()[0]
+  moose_dev_and_python3_eval = subprocess.Popen([module_command,"python","load","use.moose","moose-dev-gcc","python/3.2"],stdout=subprocess.PIPE).communicate()[0]
   exec(moose_dev_and_python3_eval)
 
   os.environ["PYTHONPATH"]=os.environ.get("PYTHONPATH","")+":"+os.path.join(os.path.expanduser("~"),"raven_libs","pylibs","lib","python2.7","site-packages")
