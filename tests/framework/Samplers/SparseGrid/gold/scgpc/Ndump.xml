@@ -1,4 +1,4 @@
-<data name="Ndump" type="Pointset"><input>x2,x1</input><output>ans</output><input_filename>Ndump.csv</input_filename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+<data name="Ndump" type="Pointset"><input>x2,x1</input><output>ans</output><inputFilename>Ndump.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',

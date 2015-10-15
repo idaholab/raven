@@ -82,19 +82,19 @@ def splitCommand(s):
   """
   n = 0
   retList = []
-  in_quote = False
+  inQuote = False
   buffer = ""
   while n < len(s):
     current = s[n]
-    if current in string.whitespace and not in_quote:
+    if current in string.whitespace and not inQuote:
       if len(buffer) > 0: #found end of command
         retList.append(buffer)
         buffer = ""
     elif current in "\"'":
-      if in_quote:
-        in_quote = False
+      if inQuote:
+        inQuote = False
       else:
-        in_quote = True
+        inQuote = True
     else:
       buffer = buffer + current
     n += 1
@@ -143,13 +143,13 @@ class MPISimulationMode(SimulationMode):
     self.__simulation = simulation
     self.messageHandler = simulation.messageHandler
     #Figure out if we are in PBS
-    self.__in_pbs = "PBS_NODEFILE" in os.environ
+    self.__inPbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
     self.__runQsub = False
     self.printTag = 'MPI SIMULATION MODE'
 
   def modifySimulation(self):
-    if self.__nodefile or self.__in_pbs:
+    if self.__nodefile or self.__inPbs:
       if not self.__nodefile:
         #Figure out number of nodes and use for batchsize
         nodefile = os.environ["PBS_NODEFILE"]
@@ -170,10 +170,10 @@ class MPISimulationMode(SimulationMode):
         #need to split node lines so that numMPI nodes are available per run
         workingDir = self.__simulation.runInfoDict['WorkingDir']
         for i in range(newBatchsize):
-          node_file = open(os.path.join(workingDir,"node_"+str(i)),"w")
+          nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
           for line in lines[i*numMPI:(i+1)*numMPI]:
-            node_file.write(line)
-          node_file.close()
+            nodeFile.write(line)
+          nodeFile.close()
         #then give each index a separate file.
         nodeCommand = "-f %BASE_WORKING_DIR%/node_%INDEX% "
       else:
@@ -201,11 +201,11 @@ class MPISimulationMode(SimulationMode):
   def doOverrideRun(self):
     # Check if the simulation has been run in PBS mode and if run QSUB
     # has been requested, in case, construct the proper command
-    return (not self.__in_pbs) and self.__runQsub
+    return (not self.__inPbs) and self.__runQsub
 
   def runOverride(self):
     #Check and see if this is being accidently run
-    assert self.__runQsub and not self.__in_pbs
+    assert self.__runQsub and not self.__inPbs
     createAndRunQSUB(self.__simulation)
 
 
@@ -538,17 +538,17 @@ class Simulation(MessageHandler.MessageUser):
       if element.tag in runInfoSkip:
         self.raiseAWarning("Skipped element ",element.tag)
       elif   element.tag == 'WorkingDir'        :
-        temp_name = element.text
-        if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
-        if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = temp_name
+        tempName = element.text
+        if '~' in tempName : tempName = os.path.expanduser(tempName)
+        if os.path.isabs(tempName):            self.runInfoDict['WorkingDir'        ] = tempName
         elif "runRelative" in element.attrib:
-          self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
+          self.runInfoDict['WorkingDir'        ] = os.path.abspath(tempName)
         else:
           if xmlFilename == None:
             self.raiseAnError(IOError,'Relative working directory requested but xmlFilename is None.')
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
-          raw_relative_working_dir = element.text.strip()
-          self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,raw_relative_working_dir)
+          rawRelativeWorkingDir = element.text.strip()
+          self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
       elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()

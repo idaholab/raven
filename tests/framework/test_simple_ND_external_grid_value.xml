@@ -34,21 +34,21 @@
     </Normal>
     <NDInverseWeight name="ND_InverseWeight_P">
       <p>3.0</p>
-      <data_filename type="PDF">2DgaussianScatteredPDF.txt</data_filename>
-      <working_dir>ND_test_Grid_value/</working_dir>
+      <dataFilename type="PDF">2DgaussianScatteredPDF.txt</dataFilename>
+      <workingDir>ND_test_Grid_value/</workingDir>
     </NDInverseWeight>
     <NDInverseWeight name="ND_InverseWeight_C">
       <p>2.5</p>
-      <data_filename type="CDF">2DgaussianScatteredCDF.txt</data_filename>
-      <working_dir>ND_test_Grid_value/</working_dir>
+      <dataFilename type="CDF">2DgaussianScatteredCDF.txt</dataFilename>
+      <workingDir>ND_test_Grid_value/</workingDir>
     </NDInverseWeight>
     <NDCartesianSpline name="ND_CartesianSpline_P">
-      <data_filename type="PDF">2DgaussianCartesianPDF.txt</data_filename>
-      <working_dir>ND_test_Grid_value/</working_dir>
+      <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
+      <workingDir>ND_test_Grid_value/</workingDir>
     </NDCartesianSpline>
     <NDCartesianSpline name="ND_CartesianSpline_C">
-      <data_filename type="CDF">2DgaussianCartesianCDF.txt</data_filename>
-      <working_dir>ND_test_Grid_value/</working_dir>
+      <dataFilename type="CDF">2DgaussianCartesianCDF.txt</dataFilename>
+      <workingDir>ND_test_Grid_value/</workingDir>
     </NDCartesianSpline>
   </Distributions>
 

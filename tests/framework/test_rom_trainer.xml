@@ -43,9 +43,9 @@
 
   <Samplers>
     <MonteCarlo name="RAVENmc3">
-      <sampler_init>
+      <samplerInit>
         <limit>3</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="DeltaTimeScramToAux">
         <distribution>auxbackup</distribution>
       </variable>
@@ -54,9 +54,9 @@
       </variable>
     </MonteCarlo>
     <MonteCarlo name="RAVENmcCode3">
-      <sampler_init>
+      <samplerInit>
         <limit>3</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="DeltaTimeScramToAux">
         <distribution>auxbackup</distribution>
       </variable>
@@ -66,10 +66,10 @@
     </MonteCarlo>
 
     <MonteCarlo name="RAVENmcND">
-      <sampler_init>
+      <samplerInit>
         <limit>3</limit>
-        <initial_seed>200286</initial_seed>
-      </sampler_init>
+        <initialSeed>200286</initialSeed>
+      </samplerInit>
       <variable name="DeltaTimeScramToAux">
         <distribution>auxbackup</distribution>
       </variable>

@@ -1,4 +1,4 @@
-<data name="Tdump" type="Pointset"><input>x2,x1</input><output>ans</output><input_filename>Tdump.csv</input_filename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+<data name="Tdump" type="Pointset"><input>x2,x1</input><output>ans</output><inputFilename>Tdump.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',

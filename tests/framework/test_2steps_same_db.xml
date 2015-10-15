@@ -49,9 +49,9 @@
 
   <Samplers>
     <MonteCarlo name="RAVENmc6">
-      <sampler_init>
+      <samplerInit>
         <limit>6</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="Gauss1">
         <distribution>Gauss1</distribution>
       </variable>
@@ -66,9 +66,9 @@
       </variable>
     </MonteCarlo>
     <MonteCarlo name="RAVENmc2">
-      <sampler_init>
+      <samplerInit>
         <limit>2</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="Gauss1">
         <distribution>Gauss1</distribution>
       </variable>

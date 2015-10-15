@@ -572,7 +572,7 @@ class ComparisonStatistics(BasePostProcessor):
     # self.dataPulls = [] #List of data references that will be used
     # self.referenceData = [] #List of reference (experimental) data
     self.methodInfo = {}  # Information on what stuff to do.
-    self.f_z_stats = False
+    self.fZStats = False
     self.interpolation = "quadratic"
     self.requiredAssObject = (True, (['Distribution'], ['-n']))
     self.distributions = {}
@@ -621,12 +621,12 @@ class ComparisonStatistics(BasePostProcessor):
         self.compareGroups.append(compareGroup)
       if outer.tag == 'kind':
         self.methodInfo['kind'] = outer.text
-        if 'num_bins' in outer.attrib:
-          self.methodInfo['num_bins'] = int(outer.attrib['num_bins'])
-        if 'bin_method' in outer.attrib:
-          self.methodInfo['bin_method'] = outer.attrib['bin_method'].lower()
+        if 'numBins' in outer.attrib:
+          self.methodInfo['numBins'] = int(outer.attrib['numBins'])
+        if 'binMethod' in outer.attrib:
+          self.methodInfo['binMethod'] = outer.attrib['binMethod'].lower()
       if outer.tag == 'fz':
-        self.f_z_stats = (outer.text.lower() in utils.stringsThatMeanTrue())
+        self.fZStats = (outer.text.lower() in utils.stringsThatMeanTrue())
       if outer.tag == 'interpolation':
         interpolation = outer.text.lower()
         if interpolation == 'linear':
@@ -687,18 +687,18 @@ class ComparisonStatistics(BasePostProcessor):
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "name" in reference:
-        distribution_name = reference["name"]
-        if not distribution_name in self.distributions:
-          self.raiseAnError(IOError, 'Did not find ' + distribution_name +
+        distributionName = reference["name"]
+        if not distributionName in self.distributions:
+          self.raiseAnError(IOError, 'Did not find ' + distributionName +
                              ' in ' + str(self.distributions.keys()))
         else:
-          distribution = self.distributions[distribution_name]
+          distribution = self.distributions[distributionName]
         refDataStats = {"mean":distribution.untruncatedMean(),
                         "stdev":distribution.untruncatedStdDev()}
-        refDataStats["min_bin_size"] = refDataStats["stdev"] / 2.0
+        refDataStats["minBinSize"] = refDataStats["stdev"] / 2.0
         refPdf = lambda x:distribution.pdf(x)
         refCdf = lambda x:distribution.cdf(x)
-        graphData.append((refDataStats, refCdf, refPdf, "ref_" + distribution_name))
+        graphData.append((refDataStats, refCdf, refPdf, "ref_" + distributionName))
       for dataPull, data in zip(dataPulls, datas):
         dataStats = self.processData(dataPull, data, self.methodInfo)
         dataKeys = set(dataStats.keys())
@@ -708,14 +708,14 @@ class ComparisonStatistics(BasePostProcessor):
         binBoundaries = [dataStats['low']] + bins + [dataStats['high']]
         if generateCSV:
           utils.printCsv(csv, '"' + str(dataPull) + '"')
-          utils.printCsv(csv, '"num_bins"', dataStats['num_bins'])
-          utils.printCsv(csv, '"bin_boundary"', '"bin_midpoint"', '"bin_count"', '"normalized_bin_count"', '"f_prime"', '"cdf"')
+          utils.printCsv(csv, '"numBins"', dataStats['numBins'])
+          utils.printCsv(csv, '"binBoundary"', '"binMidpoint"', '"binCount"', '"normalizedBinCount"', '"f_prime"', '"cdf"')
         cdf = [0.0] * len(counts)
         midpoints = [0.0] * len(counts)
         cdfSum = 0.0
         for i in range(len(counts)):
-          f_0 = counts[i] / countSum
-          cdfSum += f_0
+          f0 = counts[i] / countSum
+          cdfSum += f0
           cdf[i] = cdfSum
           midpoints[i] = (binBoundaries[i] + binBoundaries[i + 1]) / 2.0
         cdfFunc = mathUtils.createInterp(midpoints, cdf, 0.0, 1.0, self.interpolation)
@@ -723,33 +723,33 @@ class ComparisonStatistics(BasePostProcessor):
         for i in range(len(counts)):
           h = binBoundaries[i + 1] - binBoundaries[i]
           nCount = counts[i] / countSum  # normalized count
-          f_0 = cdf[i]
+          f0 = cdf[i]
           if i + 1 < len(counts):
-            f_1 = cdf[i + 1]
+            f1 = cdf[i + 1]
           else:
-            f_1 = 1.0
+            f1 = 1.0
           if i + 2 < len(counts):
-            f_2 = cdf[i + 2]
+            f2 = cdf[i + 2]
           else:
-            f_2 = 1.0
+            f2 = 1.0
           if self.interpolation == 'linear':
-            fPrime = (f_1 - f_0) / h
+            fPrime = (f1 - f0) / h
           else:
-            fPrime = (-1.5 * f_0 + 2.0 * f_1 + -0.5 * f_2) / h
+            fPrime = (-1.5 * f0 + 2.0 * f1 + -0.5 * f2) / h
           fPrimeData[i] = fPrime
           if generateCSV:
             utils.printCsv(csv, binBoundaries[i + 1], midpoints[i], counts[i], nCount, fPrime, cdf[i])
         pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0, self.interpolation)
-        dataKeys -= set({'num_bins', 'counts', 'bins'})
+        dataKeys -= set({'numBins', 'counts', 'bins'})
         if generateCSV:
           for key in dataKeys:
             utils.printCsv(csv, '"' + key + '"', dataStats[key])
-        self.raiseADebug("data_stats: " + str(dataStats))
+        self.raiseADebug("dataStats: " + str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc, str(dataPull)))
-      graph_data = mathUtils.getGraphs(graphData, self.f_z_stats)
+      graphDataDict = mathUtils.getGraphs(graphData, self.fZStats)
       if generateCSV:
-        for key in graph_data:
-          value = graph_data[key]
+        for key in graphDataDict:
+          value = graphDataDict[key]
           if type(value).__name__ == 'list':
             utils.printCsv(csv, *(['"' + l[0] + '"' for l in value]))
             for i in range(1, len(value[0])):
@@ -757,8 +757,8 @@ class ComparisonStatistics(BasePostProcessor):
           else:
             utils.printCsv(csv, '"' + key + '"', value)
       if generatePointSet:
-        for key in graph_data:
-          value = graph_data[key]
+        for key in graphDataDict:
+          value = graphDataDict[key]
           if type(value).__name__ == 'list':
             for i in range(len(value)):
               subvalue = value[i]
@@ -808,30 +808,30 @@ class ComparisonStatistics(BasePostProcessor):
       dataRange = high - low
       ret['low'] = low
       ret['high'] = high
-      if not 'bin_method' in methodInfo:
-        numBins = methodInfo.get("num_bins", 10)
+      if not 'binMethod' in methodInfo:
+        numBins = methodInfo.get("numBins", 10)
       else:
-        binMethod = methodInfo['bin_method']
+        binMethod = methodInfo['binMethod']
         dataN = len(sortedData)
         if binMethod == 'square-root':
           numBins = int(math.ceil(math.sqrt(dataN)))
         elif binMethod == 'sturges':
           numBins = int(math.ceil(mathUtils.log2(dataN) + 1))
         else:
-          self.raiseADebug("Unknown bin_method " + binMethod, 'ExceptedError')
+          self.raiseADebug("Unknown binMethod " + binMethod, 'ExceptedError')
           numBins = 5
-      ret['num_bins'] = numBins
-      kind = methodInfo.get("kind", "uniform_bins")
-      if kind == "uniform_bins":
+      ret['numBins'] = numBins
+      kind = methodInfo.get("kind", "uniformBins")
+      if kind == "uniformBins":
         bins = [low + x * dataRange / numBins for x in range(1, numBins)]
-        ret['min_bin_size'] = dataRange / numBins
-      elif kind == "equal_probability":
+        ret['minBinSize'] = dataRange / numBins
+      elif kind == "equalProbability":
         stride = len(sortedData) // numBins
         bins = [sortedData[x] for x in range(stride - 1, len(sortedData) - stride + 1, stride)]
         if len(bins) > 1:
-          ret['min_bin_size'] = min(map(lambda x, y: x - y, bins[1:], bins[:-1]))
+          ret['minBinSize'] = min(map(lambda x, y: x - y, bins[1:], bins[:-1]))
         else:
-          ret['min_bin_size'] = dataRange
+          ret['minBinSize'] = dataRange
       counts = mathUtils.countBins(sortedData, bins)
       ret['bins'] = bins
       ret['counts'] = counts
@@ -841,7 +841,7 @@ class ComparisonStatistics(BasePostProcessor):
                         (abs(skewness) ** (2.0 / 3.0) + ((4.0 - math.pi) / 2.0) ** (2.0 / 3.0)))
       delta = math.copysign(delta, skewness)
       alpha = delta / math.sqrt(1.0 - delta ** 2)
-      variance = ret["sample_variance"]
+      variance = ret["sampleVariance"]
       omega = variance / (1.0 - 2 * delta ** 2 / math.pi)
       mean = ret['mean']
       xi = mean - omega * delta * math.sqrt(2.0 / math.pi)
@@ -928,8 +928,8 @@ class PrintCSV(BasePostProcessor):
         #  Retrieve the metadata (posion 1 of the history tuple)
         attributes = HistorySet[key][1]
         #  Construct the header in csv format (first row of the file)
-        headers = b",".join([HistorySet[key][1]['output_space_headers'][i] for i in
-                             range(len(attributes['output_space_headers']))])
+        headers = b",".join([HistorySet[key][1]['outputSpaceHeaders'][i] for i in
+                             range(len(attributes['outputSpaceHeaders']))])
         #  Construct history name
         hist = key
         #  If file, split the strings and add the working directory if present
@@ -963,17 +963,17 @@ class PrintCSV(BasePostProcessor):
         addfile.write('# History Metadata, ' + os.linesep)
         addfile.write('# ______________________________,' + '_' * len(key) + ',' + os.linesep)
         addfile.write('#number of parameters,' + os.linesep)
-        addfile.write(str(attributes['n_params']) + ',' + os.linesep)
+        addfile.write(str(attributes['nParams']) + ',' + os.linesep)
         addfile.write('#parameters,' + os.linesep)
         addfile.write(headers + os.linesep)
-        addfile.write('#parent_id,' + os.linesep)
-        addfile.write(attributes['parent_id'] + os.linesep)
+        addfile.write('#parentID,' + os.linesep)
+        addfile.write(attributes['parentID'] + os.linesep)
         addfile.write('#start time,' + os.linesep)
-        addfile.write(str(attributes['start_time']) + os.linesep)
+        addfile.write(str(attributes['startTime']) + os.linesep)
         addfile.write('#end time,' + os.linesep)
         addfile.write(str(attributes['end_time']) + os.linesep)
         addfile.write('#number of time-steps,' + os.linesep)
-        addfile.write(str(attributes['n_ts']) + os.linesep)
+        addfile.write(str(attributes['nTimeSteps']) + os.linesep)
         addfile.write(os.linesep)
     else: self.raiseAnError(NotImplementedError, 'for input type ' + self.inObj.type + ' not yet implemented.')
 
@@ -1526,7 +1526,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     """
     for index, csvFile in enumerate(self.listOfCsvFiles):
 
-      attributes = {"prefix":str(index), "input_file":self.name, "type":"csv", "name":os.path.join(self.sourceDirectory, csvFile)}
+      attributes = {"prefix":str(index), "inputFile":self.name, "type":"csv", "name":os.path.join(self.sourceDirectory, csvFile)}
       metadata = finishedjob.returnMetadata()
       if metadata:
         for key in metadata: attributes[key] = metadata[key]
@@ -2412,32 +2412,58 @@ class TopologicalDecomposition(BasePostProcessor):
 
     outputDict['minLabel'] = np.zeros(self.pointCount)
     outputDict['maxLabel'] = np.zeros(self.pointCount)
-
+    output = ""
     for extPair, indices in partitions.iteritems():
       for idx in indices:
         outputDict['minLabel'][idx] = extPair[0]
         outputDict['maxLabel'][idx] = extPair[1]
     outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
+    output += '========== Linear Regressors: ==========' + os.linesep
+    self.__amsc.BuildModels()
+    linearFits = self.__amsc.SegmentFitCoefficients()
+    linearFitnesses = self.__amsc.SegmentFitnesses()
 
-    # output = os.linesep
-    # output += '========== Data Labels: ========== ' + os.linesep
-    # output += 'Index'
-    # sep = ','
-    # for lbl in names:
-    #   output += sep + lbl
-    # output += sep + 'Minimum' + sep + 'Maximum'
-    # output += os.linesep
-    # for i in xrange(0, self.__amsc.GetSampleSize()):
-    #   line = str(i)
-    #   for d in xrange(0, self.__amsc.GetDimensionality()):
-    #     line += sep + str(inputData[i, d])
-    #   line += sep + str(outputData[i])
-    #   line += sep + str(int(outputDict['minLabel'][i]))
-    #   line += sep + str(int(outputDict['maxLabel'][i]))
-    #   output += line + os.linesep
-    # output += '========== Merge Hierarchy: ==========' + os.linesep
-    # output += self.__amsc.XMLFormattedHierarchy() + os.linesep
-    # self.raiseAMessage(output)
+    for key in linearFits.keys():
+      output += str(key) + os.linesep
+      coefficients = linearFits[key]
+      rSquared = linearFitnesses[key]
+      #output += '\t' + u"\u03B2\u0302: " + str(coefficients) + '\n'
+      #output += '\t' + u"R\u00B2: " + str(rSquared) + '\n' + '\n'
+      output += '\t' + "beta: " + str(coefficients) + os.linesep
+      output += '\t' + "R^2: " + str(rSquared) + 2 * os.linesep
+      outputDict['coefficients_%d_%d' % (key[0], key[1])] = coefficients
+      outputDict['R2_%d_%d' % (key[0], key[1])] = rSquared
+
+    #output += 'RMSD  = %f\n' % (self.linearNRMSD)
+    output += '========== Gaussian Fits: ==========' + os.linesep
+    #output += u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - '
+    #      + u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)\n'
+    output += 'a/sqrt(2*(pi)^d|M|)*e^(-(x-mu)TM(x-mu)) + c - a'
+    output += '\t(mu & c are fixed, M and a are estimated)' + os.linesep
+
+    exts = linearFits.keys()
+    exts = [int(item) for sublist in exts for item in sublist]
+    exts = list(set(exts))
+
+    for key in exts:
+      output += str(key) + ':' + os.linesep
+      (mu, c, a, A) = self.__amsc.GetExtremumFitCoefficients(key)
+      #output += u':\t\u03BC=' + str(mu) + '\n'
+      output += u':\tmu=' + str(mu) + os.linesep
+      output += '\tc=' + str(c) + os.linesep
+      output += '\ta=' + str(a) + os.linesep
+      output += '\tM=' + os.linesep + str(A) + 2 * os.linesep
+      #output += '\t\u03A3=\n' + str(A)+'\n\n'
+      #output += '\t' + u"R\u00B2: " + str(rSquared) + '\n\n'
+
+      outputDict['mu_' + str(key)] = mu
+      outputDict['c_' + str(key)] = c
+      outputDict['a_' + str(key)] = a
+      outputDict['Sigma_' + str(key)] = A
+      outputDict['R2_' + str(key)] = rSquared
+
+    # output += 'RMSD  = %f and %f\n' % (self.gaussianNRMSD[0],self.gaussianNRMSD[1])
+    self.raiseAMessage(output)
     return outputDict
 
 """
