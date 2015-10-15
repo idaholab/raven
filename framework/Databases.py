@@ -97,7 +97,7 @@ class HDF5(DateBase):
     self.exist    = False
     self.built    = False
     self.type     = 'HDF5'
-    self.fileName = ""
+    self.filename = ""
     self.printTag = 'DATABASE HDF5'
     self.workingDir = runInfoDict['WorkingDir']
     self.databaseDir = self.workingDir
@@ -118,7 +118,7 @@ class HDF5(DateBase):
 
   def __setstate__(self, newstate):
     self.__dict__.update(newstate)
-    self.database = h5Data(self.name,self.databaseDir,self.fileName)
+    self.database = h5Data(self.name,self.databaseDir,self.filename)
     self.exist    = True
 
   def _readMoreXML(self,xmlNode):
@@ -138,12 +138,12 @@ class HDF5(DateBase):
     # or update it
     #try:
     if 'filename' in xmlNode.attrib.keys():
-      self.fileName = xmlNode.attrib['filename']
-      self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.fileName)
+      self.filename = xmlNode.attrib['filename']
+      self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename)
       self.exist    = True
     #except KeyError:
     else:
-      self.fileName = self.name+".h5"
+      self.filename = self.name+".h5"
       self.database  = h5Data(self.name,self.databaseDir,self.messageHandler)
       self.exist     = False
 
