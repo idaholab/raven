@@ -92,7 +92,11 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if 'sleepTime' in xmlNode.attrib.keys():
       try: self.sleepTime = float(xmlNode.attrib['sleepTime'])
       except: self.raiseAnError(IOError,printString.format(self.type,self.name,xmlNode.attrib['sleepTime'],'sleepTime'))
-    for child in xmlNode                      : self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
+    for child in xmlNode:
+      classType, classSubType = child.attrib.get('class'), child.attrib.get('type')
+      if None in [classType,classSubType]: self.raiseAnError(IOError,"In Step named "+self.name+", subnode "+ child.tag + ", and body content = "+ child.text +" the attribute class and/or type has not been found!")
+      self.parList.append([child.tag,child.attrib.get('class'),child.attrib.get('type'),child.text])
+
     self.pauseEndStep = False
     if 'pauseAtEnd' in xmlNode.attrib.keys():
       if   xmlNode.attrib['pauseAtEnd'].lower() in utils.stringsThatMeanTrue(): self.pauseEndStep = True

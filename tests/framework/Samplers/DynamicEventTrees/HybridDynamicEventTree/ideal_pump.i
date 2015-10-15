@@ -82,7 +82,7 @@
   # End preconditioning block
   active = 'SMP_PJFNK'
   [./SMP_PJFNK]
-    # Preconditioned JFNK (default)
+    # Hybrid JFNK (default)
     type = SMP
     full = true
     solve_type = PJFNK
@@ -94,7 +94,7 @@
     solve_type = NEWTON
   [../]
   [./FDP_PJFNK]
-    # Preconditioned JFNK (default)
+    # Hybrid JFNK (default)
     # petsc_options_iname = '-mat_fd_type'
     # petsc_options_value = 'ds'
     type = FDP
@@ -136,6 +136,10 @@
     order = FIRST
   [../]
 []
+[Outputs]
+ output_initial = 0
+[]
+
 #[Output]
   # Turn on performance logging
 #  exodus = true
@@ -219,8 +223,6 @@
     data_type = double
   [../]
 []
-[Monitored]
-[]
 [Auxiliary]
   [./aBoolean]
     data_type =  bool
@@ -232,32 +234,32 @@
   initial_value =  0.0
   print_csv = True
 [../]
- [./testMCpreconditioned1]
+ [./testMCHybrid1]
  data_type =  double
  initial_value =  0.0
  print_csv = True
  [../]
- [./testMCpreconditioned2]
+ [./testMCHybrid2]
  data_type =  double
  initial_value =  0.0
  print_csv = True
  [../]
- [./testGridpreconditioned1]
+ [./testGridHybrid1]
  data_type =  double
  initial_value =  0.0
  print_csv = True
  [../]
- [./testGridpreconditioned2]
+ [./testGridHybrid2]
  data_type =  double
  initial_value =  0.0
  print_csv = True
  [../]
- [./testLHSpreconditioned1]
+ [./testLHSHybrid1]
  data_type =  double
  initial_value =  0.0
  print_csv = True
  [../]
- [./testLHSpreconditioned2]
+ [./testLHSHybrid2]
  data_type =  double
  initial_value =  0.0
  print_csv = True
@@ -271,19 +273,19 @@
  xMax = 1.0
  ProbabilityThreshold = 0.1
  [../]
- [./testPreconditionerMonteCarloDist2]
+ [./testHybridMonteCarloDist2]
  type = UniformDistribution
  xMin = 0.0
  xMax = 1.0
  ProbabilityThreshold = 0.1
  [../]
- [./testPreconditionerGridDist2]
+ [./testHybridGridDist2]
  type = UniformDistribution
  xMin = 0.0
  xMax = 1.0
  ProbabilityThreshold = 0.1
  [../]
- [./testPreconditionerLHSDist2]
+ [./testHybridLHSDist2]
  type = UniformDistribution
  xMin = 0.0
  xMax = 1.0

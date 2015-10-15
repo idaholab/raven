@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET</WorkingDir>
+    <WorkingDir>AdaptiveDET</WorkingDir>
     <Sequence>AdaptiveDETrunTest</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
@@ -31,7 +31,7 @@
   </Models>
 
   <Functions>
-    <External file="/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET/relapFunction.py" name="relapFunction">
+    <External file="AdaptiveDET/relapFunction.py" name="relapFunction">
       <variable type="numpy.float64">DG1_time_ratio</variable>
       <variable type="numpy.float64">DG1recoveryTime</variable>
       <variable type="numpy.float64">CladTempBranched</variable>
@@ -112,22 +112,10 @@
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">timepointset</Output>
     </LimitSurfaceSearch>
-    <!--
-      <IOStep name="testOutstreamStep">
-        <Input class="DataObjects" type="HistorySet">stories</Input>
-        <Input class="DataObjects" type="PointSet">Pointset</Input>
-        <Output class="OutStreamManager" type="Print">testprint_hist_hier</Output>
-        <Output class="OutStreamManager" type="Print">testprint_tpset_hier</Output>
-        <Output class="OutStreamManager" type="Print">testprint_hist_hier_variables</Output>
-        <Output class="OutStreamManager" type="Print">testprint_tpset_hier_variables</Output>
-        <Output class="OutStreamManager" type="Plot">2DHistoryPlot</Output>
-        <Output class="OutStreamManager" type="Plot">2DHistoryPlot_tps</Output>
-      </IOStep>
-    -->
   </Steps>
 
   <Databases>
-    <HDF5 directory="/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET" name="testAdaptiveBranchDatabase"/>
+    <HDF5 name="testAdaptiveBranchDatabase"/>
   </Databases>
 
   <OutStreamManager>

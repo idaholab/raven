@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>NDGridPWcdf</WorkingDir>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="NDGridPWcdf/lorentzAttractor" name="PythonModule" subType="">
+      <variable>sigma</variable>
+      <variable>rho</variable>
+      <variable>beta</variable>
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>z</variable>
+      <variable>k</variable>
+      <variable>time</variable>
+      <variable>x0</variable>
+      <variable>y0</variable>
+      <variable>z0</variable>
+      <variable>k0</variable>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Normal name="k0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <NDCartesianSpline name="ND_CartesianSpline_P">
+      <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
+      <workingDir>NDGridPWcdf/</workingDir>
+    </NDCartesianSpline>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid_CDF_SP">
+      <variable name="k0">
+        <distribution>k0_distrib</distribution>
+        <grid construction="custom" type="CDF">0.1 0.3 0.5</grid>
+      </variable>
+      <variable name="x0">
+        <distribution dim="1">ND_CartesianSpline_P</distribution>
+        <grid construction="custom" type="CDF">0.1 0.4 0.7</grid>
+      </variable>
+      <variable name="y0,z0">
+        <distribution dim="2">ND_CartesianSpline_P</distribution>
+        <grid construction="custom" type="CDF">0.2 0.5 0.8</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun" re-seeding="1">
+      <Input class="Files" type="">lorentzAttractor.py</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="Grid">grid_CDF_SP</Sampler>
+      <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
+      <Output class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="testPrintPointSet_dump">
+      <type>csv</type>
+      <source>testPrintPointSet</source>
+      <what>Input,Output,Input|ProbabilityWeight</what>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <PointSet name="testPrintPointSet">
+      <Input>x0,y0,z0,k0</Input>
+      <Output>x,y,z,k</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>AdaptiveDET</WorkingDir>
-    <Sequence>AdaptiveDETrunTest,DumpResults</Sequence>
+    <Sequence>AdaptiveDETrunTest</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
 
@@ -18,11 +18,7 @@
     <ROM name="Acc" subType="SciKitLearn">
       <Features>depressurizationOnTime,PressureFailureValue</Features>
       <Target>relapFunctionSimple</Target>
-      <SKLtype>svm|SVC</SKLtype>
-      <kernel>rbf</kernel>
-      <gamma>0.8</gamma>
-      <tol>0.0001</tol>
-      <C>50</C>
+      <SKLtype>svm|LinearSVC</SKLtype>
     </ROM>
   </Models>
 
@@ -36,8 +32,8 @@
 
   <Distributions>
     <Uniform name="PressureFailureDist">
-      <lowerBound>1.01e5</lowerBound>
-      <upperBound>1.15e5</upperBound>
+      <lowerBound>104000</lowerBound>
+      <upperBound>111000</upperBound>
     </Uniform>
     <Uniform name="depresSystemDist">
       <lowerBound>0.0</lowerBound>
@@ -46,14 +42,14 @@
   </Distributions>
 
   <Samplers>
-    <AdaptiveDynamicEventTree maxSimulationTime="5.0" name="AdaptiveDETsimple" printEndXmlSummary="yes">
-      <ROM class="Models" type="ROM">Acc</ROM>
-      <Function class="Functions" type="External">relapFunctionSimple</Function>
-      <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>
-      <Convergence forceIteration="False" limit="1600" persistence="7" weight="CDF">0.05</Convergence>
+    <AdaptiveDynamicEventTree name="AdaptiveDETsimple" printEndXmlSummary="yes">
+      <ROM              class="Models"         type="ROM"                                  >Acc</ROM>
+      <Function         class="Functions"      type="External"                             >relapFunctionSimple</Function>
+      <TargetEvaluation class="DataObjects"    type="PointSet"                             >adaptiveOutsimple</TargetEvaluation>
+      <Convergence      forceIteration="False" limit="1600"    persistence="7" weight="CDF">0.005</Convergence>
       <Distribution name="PressureFailureValue">
         <distribution>PressureFailureDist</distribution>
-        <grid construction="custom" type="CDF">0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.95</grid>
+        <grid construction="custom" type="CDF">0.01 0.1 0.2 0.25 0.3 0.4 0.45 0.5 0.6 0.65 0.7 0.8 0.85 0.9 0.95</grid>
       </Distribution>
       <Distribution name="depressurizationOnTime">
         <distribution>depresSystemDist</distribution>
@@ -64,125 +60,32 @@
 
   <Steps>
     <MultiRun name="AdaptiveDETrunTest">
-      <Input class="Files" type="">ideal_pump.i</Input>
-      <Input class="Files" type="">ideal_pump_control.py</Input>
-      <Model class="Models" type="Code">MyRAVEN</Model>
-      <Sampler class="Samplers" type="AdaptiveDynamicEventTree">AdaptiveDETsimple</Sampler>
-      <SolutionExport class="DataObjects" type="PointSet">LimitSurfSimple</SolutionExport>
-      <Output class="DataObjects" type="PointSet">adaptiveOutsimple</Output>
-      <Output class="Databases" type="HDF5">AdaptiveDETsimpleDatabase</Output>
-      <Output class="DataObjects" type="HistorySet">AdaptiveDETHistorySet</Output>
-      <Output class="DataObjects" type="PointSet">AdaptiveDETPointset</Output>
-      <Output class="DataObjects" type="PointSet">AdaptiveDETPointsetHierarchical</Output>
-      <Output class="DataObjects" type="HistorySet">adaptiveOutHistorySetimple</Output>
+      <Input              class="Files"            type=""                        >ideal_pump.i</Input>
+      <Input              class="Files"            type=""                        >ideal_pump_control.py</Input>
+      <Model              class="Models"           type="Code"                    >MyRAVEN</Model>
+      <Sampler            class="Samplers"         type="AdaptiveDynamicEventTree">AdaptiveDETsimple</Sampler>
+      <SolutionExport     class="DataObjects"      type="PointSet"                >LimitSurfSimple</SolutionExport>
+      <Output             class="DataObjects"      type="PointSet"                >adaptiveOutsimple</Output>
+      <Output             class="OutStreamManager" type="Print"                   >limitSurfDump</Output>
+      <Output             class="OutStreamManager" type="Print"                   >adaptiveOutsimpleDump</Output>
     </MultiRun>
-    <IOStep name="DumpResults">
-      <Input class="DataObjects" type="PointSet">AdaptiveDETPointset</Input>
-      <Input class="DataObjects" type="PointSet">adaptiveOutsimple</Input>
-      <Input class="DataObjects" type="PointSet">LimitSurfSimple</Input>
-      <Input class="DataObjects" type="HistorySet">adaptiveOutHistorySetimple</Input>
-      <Output class="OutStreamManager" type="Print">adaptiveNoHierarchicalDump</Output>
-      <!--
-        <Output class="OutStreamManager" type="Plot">limitSurfDump</Output>
-      -->
-      <Output class="OutStreamManager" type="Print">adaptiveNoHierarchicalDump</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Output</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Input</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Input_var</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Output_Input_var</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Input_Output_var</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Output_var</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_HistorySetselective_Input_Output_var</Output>
-    </IOStep>
   </Steps>
 
-  <Databases>
-    <HDF5 directory="AdaptiveDET" name="AdaptiveDETsimpleDatabase"/>
-  </Databases>
-
   <OutStreamManager>
-    <Print name="adaptiveNoHierarchicalDump">
+    <Print name="limitSurfDump">
       <type>csv</type>
-      <source>AdaptiveDETPointset</source>
+      <source>LimitSurfSimple</source>
     </Print>
-    <Print name="adaptiveOutsimpleHier">
-      <type>csv</type>
-      <source>adaptiveOutsimple</source>
+    <Print name="adaptiveOutsimpleDump">
+        <type>csv</type>
+        <source>adaptiveOutsimple</source>
     </Print>
-    <Print name="adaptiveOutsimpleHier_selective_Output">
-      <type>csv</type>
-      <source>adaptiveOutsimple</source>
-      <what>Output</what>
-    </Print>
-    <Print name="adaptiveOutsimpleHier_selective_Input">
-      <type>csv</type>
-      <source>adaptiveOutsimple</source>
-      <what>Input</what>
-    </Print>
-    <Print name="adaptiveOutsimpleHier_selective_Input_var">
-      <type>csv</type>
-      <source>adaptiveOutsimple</source>
-      <what>Input|PressureFailureValue</what>
-    </Print>
-    <Print name="adaptiveOutsimpleHier_selective_Output_Input_var">
-      <type>csv</type>
-      <source>adaptiveOutsimple</source>
-      <what>Output,Input|PressureFailureValue</what>
-    </Print>
-    <Print name="adaptiveOutsimpleHier_selective_Input_Output_var">
-      <type>csv</type>
-      <source>adaptiveOutsimple</source>
-      <what>Output|systemFailed,Input</what>
-    </Print>
-    <Print name="adaptiveOutsimpleHier_HistorySetselective_Input_Output_var">
-      <type>csv</type>
-      <source>adaptiveOutHistorySetimple</source>
-      <what>Output|systemFailed,Input</what>
-    </Print>
-    <Print name="adaptiveOutsimpleHier_selective_Output_var">
-      <type>csv</type>
-      <source>adaptiveOutsimple</source>
-      <what>Output|systemFailed</what>
-    </Print>
-    <!--
-      <Plot dim="2" name="limitSurfDump" overwrite="False" verbosity="debug">
-        <plotSettings>
-          <plot>
-            <type>scatter</type>
-            <x>LimitSurfSimple|Input|PressureFailureValue</x>
-            <y>LimitSurfSimple|Input|depressurizationOnTime</y>
-            <colorMap>LimitSurfSimple|Output|relapFunctionSimple</colorMap>
-          </plot>
-        </plotSettings>
-        <actions>
-          <how>png</how>
-          <title>
-            <text> </text>
-          </title>
-        </actions>
-      </Plot>
-    -->
   </OutStreamManager>
 
   <DataObjects>
     <PointSet name="LimitSurfSimple">
       <Input>PressureFailureValue,depressurizationOnTime</Input>
       <Output>relapFunctionSimple</Output>
-    </PointSet>
-    <PointSet name="AdaptiveDETPointset">
-      <options>
-        <inputRow>-1</inputRow>
-      </options>
-      <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
-      <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
-    </PointSet>
-    <PointSet hierarchical="true" name="AdaptiveDETPointsetHierarchical">
-      <options>
-        <inputRow>-1</inputRow>
-      </options>
-      <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
-      <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
     </PointSet>
     <PointSet hierarchical="true" name="adaptiveOutsimple">
       <options>
@@ -191,20 +94,6 @@
       <Input>PressureFailureValue,depressurizationOnTime</Input>
       <Output>systemFailed</Output>
     </PointSet>
-    <HistorySet hierarchical="true" name="adaptiveOutHistorySetimple">
-      <options>
-        <inputRow>-1</inputRow>
-      </options>
-      <Input>PressureFailureValue,depressurizationOnTime</Input>
-      <Output>systemFailed</Output>
-    </HistorySet>
-    <HistorySet name="AdaptiveDETHistorySet">
-      <options>
-        <inputRow>-1</inputRow>
-      </options>
-      <Input>PressureFailureDistThreshold,PressureFailureValue,depresSystemDistThreshold,depressurizationOnTime</Input>
-      <Output>time,systemFailed,pump_mass_flow_rate,inlet_TDV_p_bc,pipe1_Area,pipe1_Dh,pipe1_Hw,depressurizationOn,endSimulation</Output>
-    </HistorySet>
   </DataObjects>
 
 </Simulation>

@@ -4554,8 +4554,9 @@ Section~\ref{sec:functions} for more details).
 \subsubsection{TopologicalDecomposition}
 \label{TopologicalDecomposition}
 The \textbf{TopologicalDecomposition} post-processor will compute an
-approximated hierarchical Morse-Smale complex and perform linear regression on
-each component.
+approximated hierarchical Morse-Smale complex which will add two columns to a
+dataset, namely \texttt{minLabel} and \texttt{maxLabel} that can be used to
+decompose a dataset.
 %
 
 In order to use the \textbf{TopologicalDecomposition} post-processor, the user
