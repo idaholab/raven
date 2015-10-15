@@ -870,7 +870,7 @@ class DataConversion(BasePostProcessor):
     self.sampling = {}
     
     self.requiredAssObject = (True, (['Function'], [-1]))
-    self.externalFunction  = None                             #Pointer to an external Function
+    self.externalFunction  = []                             #Pointer to an external Function
     
     
   def inputToInternal(self, currentInput):
@@ -879,7 +879,7 @@ class DataConversion(BasePostProcessor):
      @ In, currentInput, object, an object that needs to be converted
      @ Out, None, the resulting converted object is stored as an attribute of this class
     """
-    return [(currentInput)]
+    return currentInput
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -889,7 +889,7 @@ class DataConversion(BasePostProcessor):
      @ In, initDict, dict, dictionary with initialization options
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.externalFunction = self.assemblerDict['Function'][0][3]
+    #self.externalFunction = self.assemblerDict['Function'][0][3]
   
   def _localReadMoreXML(self, xmlNode):
     """
@@ -902,53 +902,71 @@ class DataConversion(BasePostProcessor):
       if child.tag == 'operator':
         self.operator = child.text
         if self.operator != 'HS2HS' and self.operator != 'HS2PS' and self.operator != 'filter':
-          self.raiseAnError(IOError, 'DataConversion Post-Processor: function ' + str(self.operator) + ' is not valid')
+          self.raiseAnError(IOError, 'DataConversion Post-Processor: function ' + str(self.operator) + ' is not valid (valid are HSS2HS,HS2PS and filter)')
       elif child.tag == 'sampling':
-        if self.operator == 'HS2HS' or self.operator == 'HS2PS':
-          self.sampling['numSamples'] = child.attrib('numSamples') 
-          self.sampling['type']       = child.attrib('type')
-          self.sampling['frame']      = child.attrib('frame')
-          self.sampling['tolerance']  = child.attrib('tolerance')
-          self.sampling['interp']     = child.attrib('interp')
-          self.sampling['tempID']     = child.attrib('tempID')
-          self.sampling['pivot']      = child.text
-        else:
-          self.raiseAnError(IOError, 'DataConversion Post-Processor: function ' + str(self.operator) + ' is not valid')
+        self.sampling['pivot']      = child.text
+        self.sampling['type'] = child.attrib['type']
+        if self.operator == 'HS2HS':
+          if self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative': 
+            self.sampling['interp'] = child.attrib['interp']
+            self.sampling['numSamples'] = float(child.attrib['numSamples']) 
+          elif self.sampling['type'] == 'filteredFirstDerivative' or self.sampling['type'] == 'filteredSecondDerivative':
+            self.sampling['tolerance']  = float(child.attrib['tolerance'])
+        elif self.operator == 'HS2PS': 
+          if self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative':  
+            self.sampling['interp'] = child.attrib['interp']
+            self.sampling['numSamples'] = child.attrib['numSamples'] 
+            self.sampling['frame']     = child.attrib['frame']
+          elif self.sampling['type'] == 'min' or self.sampling['type'] == 'max':
+            pass
+          elif self.sampling['type'] == 'value':
+            self.sampling['varValue']     = float(child.attrib['varValue'])
+          elif self.sampling['type'] == 'average': 
+            self.sampling['timeID']     = child.attrib['timeID']
+          else:  
+            self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2PS (valid are uniform, firstDerivative, secondDerivative, min, max, average and value)')
+      elif child.tag == 'Function': 
+        if self.operator == 'filter':
+          pass # read Function node
+      else:
+        self.raiseAnError(IOError, 'DataConversion Post-Processor: node ' + str(self.operator) + ' is not valid')
         
 
-  def run(self, Input):
+  def run(self, InputIn):
     """
      This method executes the postprocessor action.
      @ In,  Input, object, object contained the data to process. (inputToInternal output)
      @ Out, dictionary, Dictionary containing the evaluated data
     """
     Input = self.inputToInternal(InputIn)
-    outputDict = Input.copy()
+     
+    if self.operator == 'HS2HS':
+      for i in Input:      
+        for histID in i.getParametersValues('output'):     
+          if self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative': 
+            tempData = mathUtils.varsTimeInterp(self.sampling['numSamples'], self.sampling['pivot'], i.getParametersValues('output')[histID], self.sampling['type'],self.sampling['interp'])    
+          elif self.sampling['type'] == 'filteredFirstDerivative' or self.sampling['type'] == 'filteredSecondDerivative':
+            tempData = mathUtils.timeSeriesFilter(self.sampling['pivot'], i.getParametersValues('output')[histID], self.sampling['type'], self.sampling['tolerance'])
+          else:  
+            self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2HS') 
+          for key in tempData:
+            i.updateOutputValue(key,tempData[key]) 
     
-    if self.function == 'HS2HS':      
-      if   self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative': 
-        for key in outputDict:
-          outputDict[key]['output'] = varsTimeInterp(self.sampling['numSamples'], self.sampling['pivot'], outputDict[key]['output'], self.sampling['type'],self.sampling['interp'])      
-      elif self.sampling['type'] == 'filtered_firstDerivative' or self.sampling['type'] == 'filtered_secondDerivative':
-        for key in outputDict:
-          outputDict[key]['output'] = timeSeriesFilter(self.sampling['pivot'] , outputDict[key]['output'], self.sampling['type'], self.sampling['tolerance'])
-      else:  
-        self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2HS') 
-    elif self.function == 'HS2PS':
+    elif self.operator == 'HS2PS':
       if   self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative':       
         self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not yet implemented for HS2PS')
       elif self.sampling['type'] == 'min' or self.sampling['type'] == 'max' or self.sampling['type'] == 'value':
         for key in outputDict:
-          outputDict[key]['output'] = historySnapShot(outputDict[key]['output'], self.sampling['pivot'], self.sampling['type'])
+          outputDict[key]['output'] = mathUtils.historySnapShot(outputDict[key]['output'], self.sampling['pivot'], self.sampling['type'])
       elif self.sampling['type'] == 'average':
         for key in outputDict:
-          outputDict[key]['output'] = historySnapShot(outputDict[key]['output'], self.sampling['pivot'], self.sampling['type'], tempID=self.sampling['tempID'])
+          outputDict[key]['output'] = mathUtils.historySnapShot(outputDict[key]['output'], self.sampling['pivot'], self.sampling['type'], tempID=self.sampling['tempID'])
       else:
         self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2PS')
-    elif self.function == 'filter':
+    elif self.operator == 'filter':
       self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not yet implemented for HS2PS')
     else:
-      self.raiseAnError(IOError, 'DataConversion Post-Processor: ' + str(self.function) + '  is not valid (available: HS2HS,HS2PS and filter)')        
+      self.raiseAnError(IOError, 'DataConversion Post-Processor: ' + str(self.operator) + '  is not valid (available: HS2HS,HS2PS and filter)')        
                   
   def collectOutput(self, finishedjob, output):
     """
@@ -2556,6 +2574,7 @@ __interFaceDict['SafestPoint'              ] = SafestPoint
 __interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
 __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
+__interFaceDict['DataConversion'           ] = DataConversion
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics

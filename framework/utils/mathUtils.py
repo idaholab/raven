@@ -239,10 +239,9 @@ def varsTimeInterp(numSamples, timeID, vars, samplingType, interpType):
   samplingType: type of sampling used to determine the coordinate of the numSamples samples ('uniform', 'firstDerivative', 'secondDerivative')
   vars        : data set that contained the information of the multi-variate temporal function (this is supposed to be a dictionary: {'timeID':time_array, 'var1':var1_array, ..., 'varn':varn_array})
   samplingType: specifies how the location of the new samples is chosen (uniform,firstDerivative,secondDerivative)
-                interpType: Specifies the kind of interpolation as a string (‘linear’, ‘nearest’, ‘zero’, ‘slinear’, ‘quadratic, ‘cubic’ where 
-                ‘slinear’, ‘quadratic’ and ‘cubic’ refer to a spline interpolation of first, second or third order) or as an integer specifying 
-                the order of the spline interpolator to use. Default is ‘linear’.  
+  interpType  : Specifies the kind of interpolation as a string ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic' where 'slinear', 'quadratic' and 'cubic' refer to a spline interpolation of first, second or third order) or as an integer specifying  the order of the spline interpolator to use. Default is 'linear'.  
   """
+  
   t_min = vars[timeID][0]
   t_max = vars[timeID][-1]
   
@@ -251,7 +250,7 @@ def varsTimeInterp(numSamples, timeID, vars, samplingType, interpType):
   newVars={}
   
   if samplingType == 'uniform':
-    newTime = np.arange(t_min,t_max+dt,dt)
+    newTime = np.arange(t_min,t_max,dt)
   elif samplingType == 'firstDerivative' or samplingType == 'secondDerivative':
     newTime = derivativeTimeValues(numSamples, vars[timeID], vars, samplingType)
   else:
@@ -261,7 +260,10 @@ def varsTimeInterp(numSamples, timeID, vars, samplingType, interpType):
     if key == timeID:
       newVars[key] = newTime
     else:
-      interp = interpolate.interp1d(vars[timeID], var[key], interpType)
+      interp = interpolate.interp1d(vars[timeID], vars[key], interpType)
+      print(vars[timeID])
+      print(vars[key])
+      print(newTime)
       newVars[key]=interp(newTime)
   
   return newVars
