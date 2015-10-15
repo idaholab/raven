@@ -269,7 +269,7 @@ class Dummy(Model):
     if set(list(Kwargs['SampledVars'].keys())+list(inputDict.keys())) != set(list(inputDict.keys())):
       self.raiseAnError(IOError,'When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
     for key in Kwargs['SampledVars'].keys(): inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
-    if None in inputDict.values(): self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found an None input variable '+ str(inputDict.items()))
+    if any(None in val for val in inputDict.values()): self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
     return [(inputDict)],copy.deepcopy(Kwargs)
@@ -296,8 +296,10 @@ class Dummy(Model):
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       for key in exportDict['input_space_params' ] :
-        if key in output.getParaKeys('inputs'): output.updateInputValue (key,exportDict['input_space_params' ][key])
+        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['input_space_params' ][key])
+        #if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['input_space_params' ][key])
       for key in exportDict['output_space_params'] :
+        #if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['output_space_params'][key])
         if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['output_space_params'][key])
       for key in exportDict['metadata'] : output.updateMetadata(key,exportDict['metadata'][key])
 #

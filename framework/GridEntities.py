@@ -17,9 +17,9 @@ import itertools
 from utils import UreturnPrintTag,partialEval,compare, metaclass_insert
 from BaseClasses import BaseType
 import TreeStructure as ETS
+from RAVENiterators import ravenArrayIterator
 #import TreeStructure as TS
 #Internal Modules End--------------------------------------------------------------------------------
-
 
 class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
   """
@@ -222,6 +222,7 @@ class GridEntity(GridBase):
     self.gridContainer['cellIDs']               = {}                 # Cell IDs and verteces coordinates
     self.gridContainer['vertexToCellIds']       = {}                 # mapping between verteces and cell ids
     self.gridContainer['initDictionary']        = None               # dictionary of initialization parameters passed in the initialize method
+    self.constructTensor                        = False              # True if we need to construct the tensor product of the the ND grid (full grid) or just the iterator (False)
     self.uniqueCellNumber                       = 0                  # number of unique cells
     self.gridIterator                           = None               # the grid iterator
     self.gridInitDict                           = {}                 # dictionary with initialization grid info from _readMoreXML. If None, the "initialize" method will look for all the information in the in Dictionary
@@ -306,6 +307,7 @@ class GridEntity(GridBase):
       {upperBounds:{}}, required, dictionary of upper bounds for each dimension
       {volumetriRatio:float or stepLength:dict}, required, p.u. volumetric ratio of the grid or dictionary of stepLengths ({'varName:list,etc'}
       {computeCells:bool},optional, boolean to ask to compute the cells ids and verteces coordinates, default = False
+      {constructTensor:bool},optional, boolean to ask to compute the full grid (True) or just the ND iterator
       {transformationMethods:{}}, optional, dictionary of methods to transform p.u. step size into a transformed system of coordinate. the transformationMethods dictionary needs to be provided as follow:
                                   {"dimensionName1":[instanceOfMethod,optional *args (in case the method takes as input other parameters in addition to a coordinate],
                                    or
@@ -318,9 +320,10 @@ class GridEntity(GridBase):
     self.raiseAMessage("Starting initialization of grid ")
     if len(self.gridInitDict.keys()) == 0 and initDictionary == None: self.raiseAnError(Exception,'No initialization parameters have been provided!!')
     # grep the keys that have been read
-    readKeys = []
-    initDict = initDictionary if initDictionary != None else {}
-    computeCells = bool(initDict['computeCells']) if 'computeCells' in initDict.keys() else False
+    readKeys        = []
+    initDict        = initDictionary if initDictionary != None else {}
+    computeCells    = bool(initDict.get('computeCells',False))
+    self.constructTensor = bool(initDict['constructTensor']) if 'constructTensor' in initDict.keys() else False
     if  len(self.gridInitDict.keys()) != 0: readKeys = self.gridInitDict.keys()
     if initDict != None:
       if type(initDict).__name__ != "dict": self.raiseAnError(Exception,'The in argument is not a dictionary!')
@@ -403,40 +406,43 @@ class GridEntity(GridBase):
                                                                                                                                       " > minValue in grid: "+str(min(self.gridContainer['gridVectors'][varName])))
       if self.gridContainer['transformationMethods'] != None:
         if varName in self.gridContainer['transformationMethods'].keys():
-          self.gridContainer['gridVectors'][varName] = np.asarray([self.gridContainer['transformationMethods'][varName][0](coor) for coor in self.gridContainer['gridVectors'][varName]])
-      pointByVar[varId]                               = np.shape(self.gridContainer['gridVectors'][varName])[0]
-    self.gridContainer['gridShape']                 = tuple   (pointByVar)                            # tuple of the grid shape
-    self.gridContainer['gridLength']                = np.prod (pointByVar)                            # total number of point on the grid
-    self.gridContainer['gridMatrix']                = np.zeros(self.gridContainer['gridShape'])       # grid where the values of the goalfunction are stored
-    self.gridContainer['gridCoorShape']             = tuple   (pointByVar+[self.nVar])                # shape of the matrix containing all coordinate of all points in the grid
-    self.gridContainer['gridCoord']                 = np.zeros(self.gridContainer['gridCoorShape'])   # the matrix containing all coordinate of all points in the grid
-    self.uniqueCellNumber                           = np.prod ([element-1 for element in pointByVar]) # number of unique cells
+          self.gridContainer['gridVectors'][varName]    = np.asarray([self.gridContainer['transformationMethods'][varName][0](coor) for coor in self.gridContainer['gridVectors'][varName]])
+      pointByVar[varId]                                 = np.shape(self.gridContainer['gridVectors'][varName])[0]
+    self.gridContainer['gridShape']                     = tuple   (pointByVar)                            # tuple of the grid shape
+    self.gridContainer['gridLength']                    = np.prod (pointByVar)                            # total number of point on the grid
+    #self.gridContainer['gridMatrix']                = np.zeros(self.gridContainer['gridShape'])       # grid where the values of the goalfunction are stored
+    self.gridContainer['gridCoorShape']                 = tuple   (pointByVar+[self.nVar])                # shape of the matrix containing all coordinate of all points in the grid
+    if self.constructTensor: self.gridContainer['gridCoord'] = np.zeros(self.gridContainer['gridCoorShape'])   # the matrix containing all coordinate of all points in the grid
+    self.uniqueCellNumber                               = np.prod ([element-1 for element in pointByVar]) # number of unique cells
     #filling the coordinate on the grid
-    self.gridIterator = np.nditer(self.gridContainer['gridCoord'],flags=['multi_index'])
-    gridIterCells = np.nditer(np.zeros(shape=(2,)*self.nVar,dtype=int),flags=['multi_index'])
-    origin = [-1]*self.nVar
-    pp     = [element - 1 for element in pointByVar]
-    cellID = int(initDict['startingCellId']) if 'startingCellId' in  initDict.keys() else 1
-    while not self.gridIterator.finished:
-      coordinateID                          = self.gridIterator.multi_index[-1]
-      dimName                               = self.gridContainer['dimensionNames'][coordinateID]
-      valuePosition                         = self.gridIterator.multi_index[coordinateID]
-      self.gridContainer['gridCoord'][self.gridIterator.multi_index] = self.gridContainer['gridVectors'][dimName][valuePosition]
-      if computeCells:
-        if all(np.greater(pp,list(self.gridIterator.multi_index[:-1]))) and list(self.gridIterator.multi_index[:-1]) != origin:
-          self.gridContainer['cellIDs'][cellID] = []
-          origin = list(self.gridIterator.multi_index[:-1])
-          while not gridIterCells.finished:
-            vertex = tuple(np.array(origin)+gridIterCells.multi_index)
-            self.gridContainer['cellIDs'][cellID].append(vertex)
-            if vertex in self.gridContainer['vertexToCellIds'].keys(): self.gridContainer['vertexToCellIds'][vertex].append(cellID)
-            else                                                     : self.gridContainer['vertexToCellIds'][vertex] = [cellID]
-            gridIterCells.iternext()
-          gridIterCells.reset()
-          cellID+=1
-      self.gridIterator.iternext()
-    if len(self.gridContainer['cellIDs'].keys()) != self.uniqueCellNumber and computeCells: self.raiseAnError(IOError, "number of cells detected != than the number of actual cells!")
-    self.resetIterator()
+    self.gridIterator = ravenArrayIterator(arrayIn=self.gridContainer['gridCoord']) if self.constructTensor else ravenArrayIterator(shape=self.gridContainer['gridShape'])
+    if computeCells:
+      gridIterCells =  ravenArrayIterator(arrayIn=np.zeros(shape=(2,)*self.nVar,dtype=int))
+      origin = [-1]*self.nVar
+      pp     = [element - 1 for element in pointByVar]
+      cellID = int(initDict['startingCellId']) if 'startingCellId' in  initDict.keys() else 1
+    if self.constructTensor or computeCells:
+      while not self.gridIterator.finished:
+        if self.constructTensor:
+          coordinateID                          = self.gridIterator.multiIndex[-1]
+          dimName                               = self.gridContainer['dimensionNames'][coordinateID]
+          valuePosition                         = self.gridIterator.multiIndex[coordinateID]
+          self.gridContainer['gridCoord'][self.gridIterator.multiIndex] = self.gridContainer['gridVectors'][dimName][valuePosition]
+        if computeCells:
+          if all(np.greater(pp,list(self.gridIterator.multiIndex[:-1]))) and list(self.gridIterator.multiIndex[:-1]) != origin:
+            self.gridContainer['cellIDs'][cellID] = []
+            origin = list(self.gridIterator.multiIndex[:-1])
+            while not gridIterCells.finished:
+              vertex = tuple(np.array(origin)+gridIterCells.multiIndex)
+              self.gridContainer['cellIDs'][cellID].append(vertex)
+              if vertex in self.gridContainer['vertexToCellIds'].keys(): self.gridContainer['vertexToCellIds'][vertex].append(cellID)
+              else                                                     : self.gridContainer['vertexToCellIds'][vertex] = [cellID]
+              gridIterCells.iternext()
+            gridIterCells.reset()
+            cellID+=1
+        self.gridIterator.iternext()
+      if len(self.gridContainer['cellIDs'].keys()) != self.uniqueCellNumber and computeCells: self.raiseAnError(IOError, "number of cells detected != than the number of actual cells!")
+      self.resetIterator()
 
     self.raiseAMessage("Grid "+"initialized...")
 
@@ -449,7 +455,8 @@ class GridEntity(GridBase):
     cellIds = []
     for cntb, bound in enumerate(listOfPoints):
       cellIds.append([])
-      for point in bound: cellIds[cntb].extend(self.gridContainer['vertexToCellIds'][tuple(point)])
+      for point in bound:
+        cellIds[cntb].extend(self.gridContainer['vertexToCellIds'][tuple(point)])
       if cntb == 0: previousSet = set(cellIds[cntb])
       if containedOnly: previousSet = set(previousSet).intersection(cellIds[cntb])
       else            : previousSet.update(cellIds[cntb])
@@ -484,7 +491,7 @@ class GridEntity(GridBase):
     @ In, boolean,returnDict if true, the Indexes are returned in dictionary format
     @ Out, tuple or dictionary
     """
-    currentIndexes = self.gridIterator.multi_index
+    currentIndexes = self.gridIterator.multiIndex
     if not returnDict: return currentIndexes
     coordinates = {}
     for cnt, key in enumerate(self.gridContainer['dimensionNames']): coordinates[key] = currentIndexes[cnt]
@@ -532,8 +539,10 @@ class GridEntity(GridBase):
     @ Out, tuple, coordinate, tuple containing the coordinates
     """
     if not self.gridIterator.finished:
-      coordinates = self.returnCoordinateFromIndex(self.gridIterator.multi_index,returnDict,recastMethods)
-      for _ in range(self.nVar): self.gridIterator.iternext()
+      coordinates = self.returnCoordinateFromIndex(self.gridIterator.multiIndex,returnDict,recastMethods)
+      for _ in range(self.nVar if self.constructTensor else 1):
+
+        self.gridIterator.iternext()
     else: coordinates = None
     return coordinates
 
@@ -804,7 +813,7 @@ class MultiGridEntity(GridBase):
     for node in startingNode.iter():
       subGrid =  node.get('grid')
       if not subGrid.gridIterator.finished:
-        coordinates = subGrid.returnCoordinateFromIndex(subGrid.gridIterator.multi_index,returnDict,recastMethods)
+        coordinates = subGrid.returnCoordinateFromIndex(subGrid.gridIterator.multiIndex,returnDict,recastMethods)
         for _ in range(self.nVar): subGrid.gridIterator.iternext()
         break
       self.multiGridIterator[0], self.multiGridIterator[1] = node.get("level"), node.get("grid").returnIteratorIndexes(False)
