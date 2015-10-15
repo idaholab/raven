@@ -680,6 +680,21 @@ class LimitSurfaceSearch(AdaptiveSampler):
     """
     self.raiseADebug('From method localStillReady...')
     axisNames = [key.replace('<distribution>','') for key in self.axisName]
+
+    if not ready and self.generateCSVs:
+      # DM: HACK until I figure out how to get the actual working directory
+      self.workingDir = os.path.abspath(os.curdir)
+      fout = open(os.path.join(self.workingDir,'MCSamples.csv'), 'w')
+      for val in self.MCSamples:
+        fout.write(str(val)+'\n')
+      fout.close()
+
+      # fout = open(os.path.join(self.workingDir,'errors.csv'), 'w')
+      # fout.write('counter,error,repetitions\n')
+      # for triple in self.errorHistory:
+      #   fout.write(str(triple[0])+','+str(triple[1])+','+str(triple[2])+'\n')
+      # fout.close()
+
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
@@ -697,23 +712,23 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
     self.surfPoint, evaluations, listsurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True)
 
-    if self.generateCSVs and self.surfPoint is not None:
-      # DM: HACK until I figure out how to get the actual working directory
-      self.workingDir = os.path.abspath(os.curdir)
-      fout = open(os.path.join(self.workingDir,'limit_surface_'
-                               + str(self.counter) + '.csv'), 'w')
-      sep = ''
-      for varName in axisNames:
-        fout.write(sep+varName)
-        sep = ','
-      fout.write(sep+'label\n')
-      for i,row in enumerate(self.surfPoint):
-        sep = ''
-        for value in row:
-          fout.write(sep+str(value))
-          sep = ','
-        fout.write(sep+str(evaluations[i])+'\n')
-      fout.close()
+    # if self.generateCSVs and self.surfPoint is not None:
+    #   # DM: HACK until I figure out how to get the actual working directory
+    #   self.workingDir = os.path.abspath(os.curdir)
+    #   fout = open(os.path.join(self.workingDir,'limit_surface_'
+    #                            + str(self.counter) + '.csv'), 'w')
+    #   sep = ''
+    #   for varName in axisNames:
+    #     fout.write(sep+varName)
+    #     sep = ','
+    #   fout.write(sep+'label\n')
+    #   for i,row in enumerate(self.surfPoint):
+    #     sep = ''
+    #     for value in row:
+    #       fout.write(sep+str(value))
+    #       sep = ','
+    #     fout.write(sep+str(evaluations[i])+'\n')
+    #   fout.close()
 
     self.raiseADebug('Prediction finished')
     # check hanging points
@@ -749,21 +764,6 @@ class LimitSurfaceSearch(AdaptiveSampler):
         # to be fixed
         self.solutionExport.removeOutputValue(self.goalFunction.name)
         for index in range(len(evaluations)): self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[index]))
-
-    if not ready and self.generateCSVs:
-      # DM: HACK until I figure out how to get the actual working directory
-      self.workingDir = os.path.abspath(os.curdir)
-      fout = open(os.path.join(self.workingDir,'MCSamples.csv'), 'w')
-      for val in self.MCSamples:
-        fout.write(str(val)+'\n')
-      fout.close()
-
-      fout = open(os.path.join(self.workingDir,'errors.csv'), 'w')
-      fout.write('counter,error,repetitions\n')
-      for triple in self.errorHistory:
-        fout.write(str(triple[0])+','+str(triple[1])+','+str(triple[2])+'\n')
-      fout.close()
-
     return ready
 
   def localGenerateInput(self,model,oldInput):
@@ -791,37 +791,23 @@ class LimitSurfaceSearch(AdaptiveSampler):
       distance, _ = distanceTree.query(self.surfPoint)
       distance = np.multiply(distance,self.invPointPersistence)
 
-      if self.generateCSVs and self.surfPoint is not None:
-        # DM: HACK until I figure out how to get the actual working directory
-        self.workingDir = os.path.abspath(os.curdir)
-        fout = open(os.path.join(self.workingDir,'scores_'
-                                 + str(self.counter) + '.csv'), 'w')
-        sep = ''
-        for varName in axisNames:
-          fout.write(sep+varName)
-          sep = ','
-        fout.write(sep+'score\n')
-        for i in xrange(len(self.surfPoint)):
-          sep = ''
-          for varIndex, name in enumerate(axisNames):
-            fout.write(sep+str(self.surfPoint[i,varIndex]))
-            sep = ','
-          fout.write(sep+str(distance[i])+'\n')
-        fout.close()
-        # fout = open(os.path.join(self.workingDir,'sampledMatrix_'
-        #                          + str(self.counter) + '.csv'), 'w')
-        # sep = ''
-        # for varName in axisNames:
-        #   fout.write(sep+varName)
-        #   sep = ','
-        # fout.write('\n')
-        # for i in xrange(len(sampledMatrix)):
-        #   sep = ''
-        #   for varIndex, name in enumerate(axisNames):
-        #     fout.write(sep+str(sampledMatrix[i,varIndex]))
-        #     sep = ','
-        #   fout.write('\n')
-        # fout.close()
+      # if self.generateCSVs and self.surfPoint is not None:
+      #   # DM: HACK until I figure out how to get the actual working directory
+      #   self.workingDir = os.path.abspath(os.curdir)
+      #   fout = open(os.path.join(self.workingDir,'scores_'
+      #                            + str(self.counter) + '.csv'), 'w')
+      #   sep = ''
+      #   for varName in axisNames:
+      #     fout.write(sep+varName)
+      #     sep = ','
+      #   fout.write(sep+'score\n')
+      #   for i in xrange(len(self.surfPoint)):
+      #     sep = ''
+      #     for varIndex, name in enumerate(axisNames):
+      #       fout.write(sep+str(self.surfPoint[i,varIndex]))
+      #       sep = ','
+      #     fout.write(sep+str(distance[i])+'\n')
+      #   fout.close()
 
       if np.max(distance)>0.0:
         for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
@@ -1008,7 +994,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     self._addAssObject('Function','-n')
 
     self.acceptedScoringParam = ['distance','straddle','distance_persistence','surface']
-    self.acceptedBatchParam = ['none','topology','batch_maxv','batch_maxp']
+    self.acceptedBatchParam = ['none','naive','batch_maxv','batch_maxp']
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -1362,23 +1348,23 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     #     variable
     axisNames = [key.replace('<distribution>','') for key in self.axisName]
 
-    if self.generateCSVs and self.surfPoint is not None:
-      # DM: HACK until I figure out how to get the actual working directory
-      self.workingDir = os.path.abspath(os.curdir)
-      fout = open(os.path.join(self.workingDir,'limit_surface_'
-                               + str(self.counter) + '.csv'), 'w')
-      sep = ''
-      for varName in axisNames:
-        fout.write(sep+varName)
-        sep = ','
-      fout.write(sep+'label\n')
-      for i,row in enumerate(self.surfPoint):
-        sep = ''
-        for value in row:
-          fout.write(sep+str(value))
-          sep = ','
-        fout.write(sep+str(evaluations[i])+'\n')
-      fout.close()
+    # if self.generateCSVs and self.surfPoint is not None:
+    #   # DM: HACK until I figure out how to get the actual working directory
+    #   self.workingDir = os.path.abspath(os.curdir)
+    #   fout = open(os.path.join(self.workingDir,'limit_surface_'
+    #                            + str(self.counter) + '.csv'), 'w')
+    #   sep = ''
+    #   for varName in axisNames:
+    #     fout.write(sep+varName)
+    #     sep = ','
+    #   fout.write(sep+'label\n')
+    #   for i,row in enumerate(self.surfPoint):
+    #     sep = ''
+    #     for value in row:
+    #       fout.write(sep+str(value))
+    #       sep = ','
+    #     fout.write(sep+str(evaluations[i])+'\n')
+    #   fout.close()
 
     self.raiseADebug('Prediction finished')
     # check hanging points
@@ -1598,15 +1584,15 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
                 edges.append((i,j))
                 edges.append((j,i))
 
-          if self.generateCSVs:
-            # DM: HACK until I figure out how to get the actual working directory
-            self.workingDir = os.path.abspath(os.curdir)
-            fout = open(os.path.join(self.workingDir,'edges_'
-                                     + str(self.counter) + '.csv'), 'w')
-            sep = ''
-            for edge in edges:
-              fout.write('%d,%d\n' % (edge[0],edge[1]))
-            fout.close()
+          # if self.generateCSVs:
+          #   # DM: HACK until I figure out how to get the actual working directory
+          #   self.workingDir = os.path.abspath(os.curdir)
+          #   fout = open(os.path.join(self.workingDir,'edges_'
+          #                            + str(self.counter) + '.csv'), 'w')
+          #   sep = ''
+          #   for edge in edges:
+          #     fout.write('%d,%d\n' % (edge[0],edge[1]))
+          #   fout.close()
 
           names = [ name.encode('ascii', 'ignore') for name in axisNames]
           names.append('score'.encode('ascii','ignore'))
@@ -1629,11 +1615,28 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
           # candidate is the first element.
             sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1], reverse=True)
           B = min(self.maxBatchSize,len(sortedMaxima))
-          print('Extracting maxima', B)
           for idx in sortedMaxima[0:B]:
             if self.scores[idx] >= thresholdLevel:
               self.toProcess.append(self.surfPoint[idx,:])
-          print('Done')
+          if len(self.toProcess) == 0:
+            self.toProcess.append(self.surfPoint[np.argmax(self.scores),:])
+        ########################################################################
+        ## Select one sample
+        selectedPoint = self.toProcess.pop()
+        for varIndex, varName in enumerate(axisNames):
+          self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
+          self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+        varSet=True
+      elif self.batchStrategy == 'naive':
+        ########################################################################
+        ## Initialize the queue with as many points as requested or as many as
+        ## possible
+        if len(self.toProcess) == 0:
+          self.ScoreCandidates()
+          sortedIndices = sorted(range(len(self.scores)), key=lambda k: self.scores[k],reverse=True)
+          B = min(self.maxBatchSize,len(sortedIndices))
+          for idx in sortedIndices[0:B]:
+            self.toProcess.append(self.surfPoint[idx,:])
           if len(self.toProcess) == 0:
             self.toProcess.append(self.surfPoint[np.argmax(self.scores),:])
         ########################################################################
