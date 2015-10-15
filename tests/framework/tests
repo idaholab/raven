@@ -81,12 +81,9 @@
  [./test_push_into_hdf5]
   type = 'RavenFramework'
   input = 'test_push_into_hdf5.xml'
-  #skip = 'unreliable and needs fixing'
-  output = 'test_extract_data_s_from_hdf5/MonteCarlo/out~1~ideal_pump.csv'
   csv = 'test_extract_data_s_from_hdf5/Pointset_from_database_dump.csv test_extract_data_s_from_hdf5/Pointset_IN_database_dump.csv'
   max_time = 500
   rel_err = 0.01
-  required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./test_merge_2_databases]
