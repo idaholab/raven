@@ -40,7 +40,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     if preexec is None: subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileargs)
     else: subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileargs,preexec=preexec)
-    if os.environ['RAVENinterfaceCheck'].lower() in utils.stringsThatMeanTrue(): return '',outputfileroot
+    if os.environ['RAVENinterfaceCheck'].lower() in utils.stringsThatMeanTrue(): return [('parallel','')],outputfileroot
     return subcodeCommand,outputfileroot
 
   def readMoreXML(self,xmlNode):

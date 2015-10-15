@@ -8,6 +8,7 @@
     <internalParallel>True</internalParallel>
     <mode>mpi<runQSUB/></mode>
     <expectedTime>00:10:00</expectedTime>
+    <clusterParameters>-W block=true</clusterParameters>
   </RunInfo>
 
   <!-- STEPS -->
