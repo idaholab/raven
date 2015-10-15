@@ -129,9 +129,9 @@ class RAVENInterface(CodeInterfaceBase):
     if 'startTime' in Kwargs.keys():
       if Kwargs['startTime'] != -sys.float_info.max:
         modifDict = {}
-        st_time = Kwargs['startTime']
+        startTime = Kwargs['startTime']
         modifDict['name'] = ['Executioner']
-        modifDict['startTime'] = st_time
+        modifDict['startTime'] = startTime
         listDict.append(modifDict)
         del modifDict
     # create the restart file name root from the parent branch calculation
@@ -141,16 +141,16 @@ class RAVENInterface(CodeInterfaceBase):
 
       if Kwargs['startTime'] !=  -sys.float_info.max:
         modifDict = {}
-        end_ts_str = str(Kwargs['end_ts'])
+        endTimeStepString = str(Kwargs['end_ts'])
         if(Kwargs['end_ts'] <= 9999):
-          n_zeros = 4 - len(end_ts_str)
-          for i in range(n_zeros):
-            end_ts_str = "0" + end_ts_str
+          numZeros = 4 - len(endTimeStepString)
+          for i in range(numZeros):
+            endTimeStepString = "0" + endTimeStepString
         splitted = Kwargs['outfile'].split('~')
         output_parent = splitted[0] + '~' + toString(Kwargs['parentID']) + '~' + splitted[1]
-        restart_file_base = output_parent + "_cp/" + end_ts_str
+        restartFileBase = output_parent + "_cp/" + endTimeStepString
         modifDict['name'] = ['Executioner']
-        modifDict['restart_file_base'] = restart_file_base
+        modifDict['restart_file_base'] = restartFileBase
         #print(' Restart file name base is "' + restart_file_base + '"')
         listDict.append(modifDict)
         del modifDict
