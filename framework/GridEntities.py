@@ -322,7 +322,7 @@ class GridEntity(GridBase):
     # grep the keys that have been read
     readKeys        = []
     initDict        = initDictionary if initDictionary != None else {}
-    computeCells    = bool(initDict['computeCells']) if 'computeCells' in initDict.keys() else False
+    computeCells    = bool(initDict.get('computeCells',False))
     self.constructTensor = bool(initDict['constructTensor']) if 'constructTensor' in initDict.keys() else False
     if  len(self.gridInitDict.keys()) != 0: readKeys = self.gridInitDict.keys()
     if initDict != None:
