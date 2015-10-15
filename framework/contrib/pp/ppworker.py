@@ -32,7 +32,7 @@ forums
 import sys
 import os
 import inspect
-frameworkFolder = os.path.realpath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())),"../../"))
+frameworkFolder = os.path.realpath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())),"..",".."))
 if frameworkFolder not in sys.path: sys.path.insert(0, frameworkFolder)
 sys.path.append(os.path.join(frameworkFolder,'utils'))
 from utils import add_path_recursively, find_crow

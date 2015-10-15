@@ -318,7 +318,7 @@ def print_usage():
     print "-t seconds         : timeout to exit if no connections with "\
             "clients exist"
     print "-k seconds         : socket timeout in seconds"
-    print "-g seconds         : python path that should be checked and added"
+    print "-g                 : python path that should be checked and added"
     print "-P pid_file        : file to write PID to"
     print
     print "To print server stats send SIGUSR1 to its main process (unix only). "
@@ -381,8 +381,7 @@ def create_network_server(argv):
         elif opt == "-g":
             # the python path got passed through the command line
             # add those here
-            path_to_add = arg.split(":")
-            for path_to_add in arg.split(":"):
+            for path_to_add in arg.split(os.pathsep):
                 if path_to_add not in sys.path: sys.path.append(path_to_add)
     log_handler = logging.StreamHandler()
     log_handler.setFormatter(logging.Formatter(log_format))

@@ -152,9 +152,10 @@ class ExternalRunner(MessageHandler.MessageUser):
      @ Out, returnCode, int, return code
     """
     returnCode = self.__process.returncode
-    if self.codePointer != None and returnCode == 0:
-      if  self.codePointerFailed == None:  self.codePointerFailed = self.codePointer.checkForOutputFailure(self.output,self.getWorkingDir())
-      if  self.codePointerFailed: returnCode = 1
+    if self.codePointer != None:
+      if 'checkForOutputFailure' in dir(self.codePointer):
+        if  self.codePointerFailed == None: self.codePointerFailed = self.codePointer.checkForOutputFailure(self.output,self.getWorkingDir())
+      if self.codePointerFailed: returnCode = 1
     return returnCode
 
   def returnEvaluation(self):
@@ -194,7 +195,7 @@ class ExternalRunner(MessageHandler.MessageUser):
     """
     #In python 2.6 this could be self.process.terminate()
     self.raiseAMessage("Terminating "+self.__process.pid+' '+self.command)
-    os.kill(self.__process.pid,signal.SIGTERM)
+    self.process.terminate()
 
   def getWorkingDir(self):
     """
@@ -466,7 +467,8 @@ class JobHandler(MessageHandler.MessageUser):
       # get the localenv
       localenv = os.environ.copy()
       # modify the python path
-      localenv["PYTHONPATH"] = ':'.join(sys.path)
+      pathSeparator = os.pathsep
+      localenv["PYTHONPATH"] = pathSeparator.join(sys.path)
       for nodeid in list(set(availableNodes)):
         outFile = open(os.path.join(self.runInfoDict['WorkingDir'],nodeid.strip()+"_port:"+str(newPort)+"_server_out.log"),'w')
         # check how many processors are available in the node
@@ -476,7 +478,6 @@ class JobHandler(MessageHandler.MessageUser):
         subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         # update list of servers
         ppservers.append(nodeid+":"+str(newPort))
-
     return qualifiedHostName, ppservers
 
   def addExternal(self,executeCommands,outputFile,workingDir,metadata=None,codePointer=None):
