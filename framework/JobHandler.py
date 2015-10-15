@@ -193,9 +193,8 @@ class ExternalRunner(MessageHandler.MessageUser):
      @ In, None
      @ Out, None
     """
-    #In python 2.6 this could be self.process.terminate()
     self.raiseAMessage("Terminating "+self.__process.pid+' '+self.command)
-    self.process.terminate()
+    self.__process.terminate()
 
   def getWorkingDir(self):
     """
