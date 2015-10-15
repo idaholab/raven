@@ -33,9 +33,9 @@
 
   <Samplers>
     <Stratified name="myLHS">
-      <sampler_init>
-        <initial_seed>1</initial_seed>
-      </sampler_init>
+      <samplerInit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
       <variable name="Materials|heat1|thermal_conductivity">
         <distribution>DistTri1</distribution>
         <grid construction="equal" steps="8" type="CDF">0.17 0.2</grid>

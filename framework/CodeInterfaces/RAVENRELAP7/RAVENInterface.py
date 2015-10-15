@@ -93,14 +93,14 @@ class RAVENInterface(CodeInterfaceBase):
   def monteCarloForRAVEN(self,**Kwargs):
     if 'prefix' in Kwargs: counter = Kwargs['prefix']
     else: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
-    if 'initial_seed' in Kwargs: init_seed = Kwargs['initial_seed']
-    else                       : init_seed = 1
+    if 'initialSeed' in Kwargs: initSeed = Kwargs['initialSeed']
+    else                       : initSeed = 1
     _,listDict = self.__genBasePointSampler(**Kwargs)
     #listDict = []
     modifDict = {}
     modifDict['name'] = ['Distributions']
-    RNG_seed = int(counter) + int(init_seed) - 1
-    modifDict[b'RNG_seed'] = str(RNG_seed)
+    RNGSeed = int(counter) + int(initSeed) - 1
+    modifDict[b'RNG_seed'] = str(RNGSeed)
     listDict.append(modifDict)
     return listDict
 
@@ -118,48 +118,49 @@ class RAVENInterface(CodeInterfaceBase):
         elif 'Grid' in preconditioner['SamplerType']: listDict.extend(self.gridForRAVEN(**preconditioner))
         elif 'Stratified' in preconditioner['SamplerType'] or 'Stratified' in preconditioner['SamplerType']: listDict.extend(self.latinHyperCubeForRAVEN(**preconditioner))
     # Check the initiator distributions and add the next threshold
-    if 'initiator_distribution' in Kwargs.keys():
-      for i in range(len(Kwargs['initiator_distribution'])):
+    if 'initiatorDistribution' in Kwargs.keys():
+      print("figaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+      for i in range(len(Kwargs['initiatorDistribution'])):
         modifDict = {}
-        modifDict['name'] = ['Distributions',Kwargs['initiator_distribution'][i]]
+        modifDict['name'] = ['Distributions',Kwargs['initiatorDistribution'][i]]
         modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
         listDict.append(modifDict)
         del modifDict
     # add the initial time for this new branch calculation
-    if 'start_time' in Kwargs.keys():
-      if Kwargs['start_time'] != -sys.float_info.max:
+    if 'startTime' in Kwargs.keys():
+      if Kwargs['startTime'] != -sys.float_info.max:
         modifDict = {}
-        st_time = Kwargs['start_time']
+        startTime = Kwargs['startTime']
         modifDict['name'] = ['Executioner']
-        modifDict['start_time'] = st_time
+        modifDict['start_time'] = startTime
         listDict.append(modifDict)
         del modifDict
     # create the restart file name root from the parent branch calculation
     # in order to restart the calc from the last point in time
-    if 'end_ts' in Kwargs.keys():
-      #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
+    if 'endTimeStep' in Kwargs.keys():
+      #if Kwargs['endTimeStep'] != 0 or Kwargs['endTimeStep'] == 0:
 
-      if Kwargs['start_time'] !=  -sys.float_info.max:
+      if Kwargs['startTime'] !=  -sys.float_info.max:
         modifDict = {}
-        end_ts_str = str(Kwargs['end_ts'])
-        if(Kwargs['end_ts'] <= 9999):
-          n_zeros = 4 - len(end_ts_str)
-          for i in range(n_zeros):
-            end_ts_str = "0" + end_ts_str
+        endTimeStepString = str(Kwargs['endTimeStep'])
+        if(Kwargs['endTimeStep'] <= 9999):
+          numZeros = 4 - len(endTimeStepString)
+          for i in range(numZeros):
+            endTimeStepString = "0" + endTimeStepString
         splitted = Kwargs['outfile'].split('~')
-        output_parent = splitted[0] + '~' + toString(Kwargs['parent_id']) + '~' + splitted[1]
-        restart_file_base = output_parent + "_cp/" + end_ts_str
+        output_parent = splitted[0] + '~' + toString(Kwargs['parentID']) + '~' + splitted[1]
+        restartFileBase = output_parent + "_cp/" + endTimeStepString
         modifDict['name'] = ['Executioner']
-        modifDict['restart_file_base'] = restart_file_base
+        modifDict['restart_file_base'] = restartFileBase
         #print(' Restart file name base is "' + restart_file_base + '"')
         listDict.append(modifDict)
         del modifDict
     # max simulation time (if present)
-    if 'end_time' in Kwargs.keys():
+    if 'endTime' in Kwargs.keys():
       modifDict = {}
-      end_time = Kwargs['end_time']
+      endTime = Kwargs['endTime']
       modifDict['name'] = ['Executioner']
-      modifDict['end_time'] = end_time
+      modifDict['end_time'] = endTime
       listDict.append(modifDict)
       del modifDict
 
@@ -172,12 +173,12 @@ class RAVENInterface(CodeInterfaceBase):
     del modifDict
     # check and add the variables that have been changed by a distribution trigger
     # add them into the RestartInitialize block
-    if 'branch_changed_param' in Kwargs.keys():
-      if Kwargs['branch_changed_param'][0] not in ('None',b'None',None):
-        for i in range(len(Kwargs['branch_changed_param'])):
+    if 'branchChangedParam' in Kwargs.keys():
+      if Kwargs['branchChangedParam'][0] not in ('None',b'None',None):
+        for i in range(len(Kwargs['branchChangedParam'])):
           modifDict = {}
-          modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
-          modifDict['value'] = Kwargs['branch_changed_param_value'][i]
+          modifDict['name'] = ['RestartInitialize',Kwargs['branchChangedParam'][i]]
+          modifDict['value'] = Kwargs['branchChangedParamValue'][i]
           listDict.append(modifDict)
           del modifDict
     return listDict

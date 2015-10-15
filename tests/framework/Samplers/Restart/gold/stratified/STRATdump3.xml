@@ -1,4 +1,4 @@
-<data name="STRATdump3" type="Pointset"><input>x2,x1</input><output>ans2,ans</output><input_filename>STRATdump3.csv</input_filename><metadata><upper>array([{u'x2': 2.5, u'x1': 1.5}, {u'x2': 2.5, u'x1': 1.25},
+<data name="STRATdump3" type="Pointset"><input>x2,x1</input><output>ans2,ans</output><inputFilename>STRATdump3.csv</inputFilename><metadata><upper>array([{u'x2': 2.5, u'x1': 1.5}, {u'x2': 2.5, u'x1': 1.25},
        {u'x2': 2.25, u'x1': 1.75}], dtype=object)</upper><lower>array([{u'x2': 2.0, u'x1': 1.0}, {u'x2': 2.25, u'x1': 1.0},
        {u'x2': 2.0, u'x1': 1.5}], dtype=object)</lower><SamplerType>array([u'Stratified', u'Stratified', u'Stratified'], 
       dtype='&lt;U10')</SamplerType><crowDist>array([ {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},

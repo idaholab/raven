@@ -254,13 +254,13 @@ class GridEntity(GridBase):
           dimID = str(len(self.gridInitDict['dimensionNames'])+1) if self.dimName == None else self.dimName
           try              : dimInfo[dimID] = [int(childChild.attrib['dim']),None]
           except ValueError: self.raiseAnError(ValueError, "can not convert 'dim' attribute in integer!")
-    #check for global_grid type of structure
+    #check for globalGrid type of structure
     globalGrids = {}
     for key in gridInfo.keys():
       splitted = key.split(":")
-      if splitted[0].strip() == 'global_grid': globalGrids[splitted[1]] = gridInfo.pop(key)
+      if splitted[0].strip() == 'globalGrid': globalGrids[splitted[1]] = gridInfo.pop(key)
     for key in gridInfo.keys():
-      if gridInfo[key][0].strip() == 'global_grid':
+      if gridInfo[key][0].strip() == 'globalGrid':
         if gridInfo[key][-1].strip() not in globalGrids.keys(): self.raiseAnError(IOError,'global grid for dimension named '+key+'has not been found!')
         if key in dimInfo.keys(): dimInfo[key][-1] = gridInfo[key][-1].strip()
         gridInfo[key] = globalGrids[gridInfo[key][-1].strip()]
@@ -274,9 +274,9 @@ class GridEntity(GridBase):
     if child.tag =='grid':
       gridStruct, gridName = self._fillGrid(child)
       if self.dimName == None: self.dimName = str(len(self.gridInitDict['dimensionNames'])+1)
-      if parent.tag != 'global_grid': self.gridInitDict['dimensionNames'].append(self.dimName)
+      if parent.tag != 'globalGrid': self.gridInitDict['dimensionNames'].append(self.dimName)
       else:
-        if gridName == None: self.raiseAnError(IOError,'grid defined in global_grid block must have the attribute "name"!')
+        if gridName == None: self.raiseAnError(IOError,'grid defined in globalGrid block must have the attribute "name"!')
         self.dimName = parent.tag + ':' + gridName
       return gridStruct
 
@@ -295,7 +295,7 @@ class GridEntity(GridBase):
       if len(bounds) != 2: self.raiseAnError(IOError,'body of grid XML node needs to contain 2 values (lower and upper bounds).Tag = '+child.tag)
       if 'steps' not in child.attrib.keys(): self.raiseAnError(IOError,'the attribute step needs to be inputted when "construction" attribute == equal!')
       return (child.attrib['type'],constrType,np.linspace(lower,upper,partialEval(child.attrib['steps'])+1)),nameGrid
-    elif child.attrib['type'] == 'global_grid': return (child.attrib['type'],constrType,child.text),nameGrid
+    elif child.attrib['type'] == 'globalGrid': return (child.attrib['type'],constrType,child.text),nameGrid
     else: self.raiseAnError(IOError,'construction type unknown! Got: ' + str(constrType))
 
   def initialize(self,initDictionary=None):

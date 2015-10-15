@@ -37,36 +37,36 @@
     </Normal>
     <NDInverseWeight name="ND_InverseWeight_P">
       <p>3.0</p>
-      <data_filename type="PDF">2DgaussianScatteredPDF.txt</data_filename>
-      <working_dir>ND_test_MC/</working_dir>
+      <dataFilename type="PDF">2DgaussianScatteredPDF.txt</dataFilename>
+      <workingDir>ND_test_MC/</workingDir>
     </NDInverseWeight>
     <NDInverseWeight name="ND_InverseWeight_C">
       <p>2.5</p>
-      <data_filename type="CDF">2DgaussianScatteredCDF.txt</data_filename>
-      <working_dir>ND_test_MC/</working_dir>
+      <dataFilename type="CDF">2DgaussianScatteredCDF.txt</dataFilename>
+      <workingDir>ND_test_MC/</workingDir>
     </NDInverseWeight>
     <NDCartesianSpline name="ND_CartesianSpline_P">
-      <data_filename type="PDF">2DgaussianCartesianPDF.txt</data_filename>
-      <working_dir>ND_test_MC/</working_dir>
+      <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
+      <workingDir>ND_test_MC/</workingDir>
     </NDCartesianSpline>
     <NDCartesianSpline name="ND_CartesianSpline_C">
-      <data_filename type="CDF">2DgaussianCartesianCDF.txt</data_filename>
-      <working_dir>ND_test_MC/</working_dir>
+      <dataFilename type="CDF">2DgaussianCartesianCDF.txt</dataFilename>
+      <workingDir>ND_test_MC/</workingDir>
     </NDCartesianSpline>
   </Distributions>
 
   <Samplers>
     <MonteCarlo name="MC_external">
-      <sampler_init>
+      <samplerInit>
         <limit>2</limit>
-        <initial_seed>1234</initial_seed>
-        <dist_init>
+        <initialSeed>1234</initialSeed>
+        <distInit>
           <distribution name="ND_CartesianSpline_P">
-            <initial_grid_disc>5</initial_grid_disc>
+            <initialGridDisc>5</initialGridDisc>
             <tolerance>0.2</tolerance>
           </distribution>
-        </dist_init>
-      </sampler_init>
+        </distInit>
+      </samplerInit>
       <variable name="k0">
         <distribution>k0_distrib</distribution>
       </variable>

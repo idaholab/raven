@@ -1,4 +1,4 @@
-<data name="fullprint_HistorySet" type="HistorySet"><input>var1,var2</input><output>cosine,square,sine,time</output><input_filename>fullprint_HistorySet.csv</input_filename><metadata><SamplerType>array([u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid',
+<data name="fullprint_HistorySet" type="HistorySet"><input>var1,var2</input><output>cosine,square,sine,time</output><inputFilename>fullprint_HistorySet.csv</inputFilename><metadata><SamplerType>array([u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid',
        u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid',
        u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid',
        u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid',

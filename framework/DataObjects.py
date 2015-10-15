@@ -142,7 +142,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     Function to update a value from the input dictionary
     @ In, name, parameter name
     @ In, value, the new value
-    @ In, parent_id, optional, parent identifier in case Hierarchical fashion has been requested
+    @ In, parentID, optional, parent identifier in case Hierarchical fashion has been requested
     """
     self._updateSpecializedInputValue(name,value,options)
 
@@ -151,7 +151,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     Function to update a value from the output dictionary
     @ In, name, parameter name
     @ In, value, the new value
-    @ In, parent_id, optional, parent identifier in case Hierarchical fashion has been requested
+    @ In, parentID, optional, parent identifier in case Hierarchical fashion has been requested
     """
     self._updateSpecializedOutputValue(name,value,options)
 
@@ -160,7 +160,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     Function to update a value from the dictionary metadata
     @ In, name, parameter name
     @ In, value, the new value
-    @ In, parent_id, optional, parent identifier in case Hierarchical fashion has been requested
+    @ In, parentID, optional, parent identifier in case Hierarchical fashion has been requested
     """
     self._updateSpecializedMetadata(name,value,options)
 
@@ -216,13 +216,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     Takes the variable and either 'input' or 'output'
     In addition, if the variable belong to the metadata and metaAdditionalInOrOut, it will also return to print
     """
-    variables_to_print = []
+    variablesToPrint = []
     lvar = var.lower()
     inOrOuts = inOrOut + 's'
     if lvar == inOrOut:
       if type(list(self._dataContainer[inOrOuts].values())[0]) == dict: varKeys = list(self._dataContainer[inOrOuts].values())[0].keys()
       else: varKeys = self._dataContainer[inOrOuts].keys()
-      for invar in varKeys: variables_to_print.append(inOrOut+'|'+str(invar))
+      for invar in varKeys: variablesToPrint.append(inOrOut+'|'+str(invar))
     elif '|' in var and lvar.startswith(inOrOut+'|'):
       varName = var.split('|')[1]
       # get the variables from the metadata if the variables are in the list metaAdditionalInOrOut
@@ -231,14 +231,14 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if varName not in varKeys: self.raiseAnError(RuntimeError,'variable ' + varName + ' is not present among the ' +inOrOuts+' of Data ' + self.name)
         if type(self._dataContainer['metadata'][varName]) not in self.metatype:
           self.raiseAnError(NotConsistentData,inOrOut + var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-        else: variables_to_print.append('metadata'+'|'+str(varName))
+        else: variablesToPrint.append('metadata'+'|'+str(varName))
       else:
         if type(list(self._dataContainer[inOrOuts].values())[0]) == dict: varKeys = list(self._dataContainer[inOrOuts].values())[0].keys()
         else: varKeys = self._dataContainer[inOrOuts].keys()
         if varName not in varKeys: self.raiseAnError(RuntimeError,'variable ' + varName + ' is not present among the '+inOrOuts+' of Data ' + self.name)
-        else: variables_to_print.append(inOrOut+'|'+str(varName))
+        else: variablesToPrint.append(inOrOut+'|'+str(varName))
     else: self.raiseAnError(RuntimeError,'unexpected variable '+ var)
-    return variables_to_print
+    return variablesToPrint
 
   def printCSV(self,options=None):
     """
@@ -247,7 +247,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     that is going to be called from here
     @ In, OPTIONAL, options, dictionary of options... it can contain the filename to be used, the parameters need to be printed....
     """
-    options_int = {}
+    optionsInt = {}
     # print content of data in a .csv format
     self.raiseADebug(' '*len(self.printTag)+':=============================')
     self.raiseADebug(' '*len(self.printTag)+':DataObjects: print on file(s)')
@@ -256,36 +256,36 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
       else: filenameLocal = self.name + '_dump'
       if 'what' in options.keys():
-        variables_to_print = []
+        variablesToPrint = []
         for var in options['what'].split(','):
           lvar = var.lower()
           if lvar.startswith('input'):
-            variables_to_print.extend(self.__getVariablesToPrint(var,'input'))
+            variablesToPrint.extend(self.__getVariablesToPrint(var,'input'))
           elif lvar.startswith('output'):
-            variables_to_print.extend(self.__getVariablesToPrint(var,'output'))
+            variablesToPrint.extend(self.__getVariablesToPrint(var,'output'))
           else: self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
-        options_int['what'] = variables_to_print
+        optionsInt['what'] = variablesToPrint
     else:   filenameLocal = self.name + '_dump'
 
-    self.specializedPrintCSV(filenameLocal,options_int)
+    self.specializedPrintCSV(filenameLocal,optionsInt)
 
-  def loadXML_CSV(self,filenameRoot,options=None):
+  def loadXMLandCSV(self,filenameRoot,options=None):
     """
     Function to load the xml additional file of the csv for data
     (it contains metadata, etc)
     @ In, filenameRoot, file name
     @ In, options, optional, dictionary -> options for loading
     """
-    self._specializedLoadXML_CSV(filenameRoot,options)
+    self._specializedLoadXMLandCSV(filenameRoot,options)
 
-  def _specializedLoadXML_CSV(self,filenameRoot,options):
+  def _specializedLoadXMLandCSV(self,filenameRoot,options):
     """
     Function to load the xml additional file of the csv for data
     (it contains metadata, etc). It must be implemented by the specialized classes
     @ In, filenameRoot, file name
     @ In, options, optional, dictionary -> options for loading
     """
-    self.raiseAnError(RuntimeError,"specializedLoadXML_CSV not implemented "+str(self))
+    self.raiseAnError(RuntimeError,"specializedloadXMLandCSV not implemented "+str(self))
 
   def _createXMLFile(self,filenameLocal,fileType,inpKeys,outKeys):
     """
@@ -301,7 +301,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     inputNode.text = ','.join(inpKeys)
     outputNode = ET.SubElement(root,'output')
     outputNode.text = ','.join(outKeys)
-    filenameNode = ET.SubElement(root,'input_filename')
+    filenameNode = ET.SubElement(root,'inputFilename')
     filenameNode.text = filenameLocal + '.csv'
     if len(self._dataContainer['metadata'].keys()) > 0:
       #write metadata as well_known_implementations
@@ -328,7 +328,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     retDict["fileType"] = root.attrib['type']
     inputNode = root.find("input")
     outputNode = root.find("output")
-    filenameNode = root.find("input_filename")
+    filenameNode = root.find("inputFilename")
+    if inputNode    ==  None: self.raiseAnError(RuntimeError,'input XML node not found in file ' + filenameLocal + '.xml')
+    if outputNode   ==  None: self.raiseAnError(RuntimeError,'output XML node not found in file ' + filenameLocal + '.xml')
+    if filenameNode ==  None: self.raiseAnError(RuntimeError,'inputFilename XML node not found in file ' + filenameLocal + '.xml')
     retDict["inpKeys"] = inputNode.text.split(",")
     retDict["outKeys"] = outputNode.text.split(",")
     retDict["filenameCSV"] = filenameNode.text
@@ -366,7 +369,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       Function to construct a data from a source
       @ In, toLoadFrom, loading source, it can be an HDF5 database, a csv file and in the future a xml file
       @ In, options, it's a dictionary of options. For example useful for metadata storing or,
-                     in case an hierarchical fashion has been requested, it must contain the parent_id and the name of the actual 'branch'
+                     in case an hierarchical fashion has been requested, it must contain the parentID and the name of the actual 'branch'
     """
     self._toLoadFromList.append(toLoadFrom)
     self.addSpecializedReadingSettings()
@@ -375,8 +378,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if(self._toLoadFromList[-1].type == 'HDF5'):
       tupleVar = self._toLoadFromList[-1].retrieveData(self._dataParameters)
       if options:
-        parent_id = options['metadata']['parent_id'] if 'metadata' in options.keys() and 'parent_id' in options['metadata'].keys() else (options['parent_id'] if 'parent_id' in options.keys() else None)
-        if parent_id and self._dataParameters['hierarchical']:
+        parentID = options['metadata']['parentID'] if 'metadata' in options.keys() and 'parentID' in options['metadata'].keys() else (options['parentID'] if 'parentID' in options.keys() else None)
+        if parentID and self._dataParameters['hierarchical']:
           self.raiseAWarning('-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
     elif (isinstance(self._toLoadFromList[-1],Files.File)): tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
@@ -762,16 +765,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       This Method is used to add a node into the tree when the hierarchical mode is requested
       If the node has not been found, Create a new one
       @ In, tsnode, the node
-      @ In, options, dict, parent_id must be present if newer node
+      @ In, options, dict, parentID must be present if newer node
     """
     if not tsnode.getParentName():
-      parent_id = None
+      parentID = None
       if 'metadata' in options.keys():
-        if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+        if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
       else:
-        if 'parent_id' in options.keys(): parent_id = options['parent_id']
-      if not parent_id: self.raiseAnError(ConstructError,'the parent_id must be provided if a new node needs to be appended')
-      self.retrieveNodeInTreeMode(parent_id).appendBranch(tsnode)
+        if 'parentID' in options.keys(): parentID = options['parentID']
+      if not parentID: self.raiseAnError(ConstructError,'the parentID must be provided if a new node needs to be appended')
+      self.retrieveNodeInTreeMode(parentID).appendBranch(tsnode)
 #
 #
 #
@@ -897,7 +900,7 @@ class Point(Data):
     myFile.close()
     self._createXMLFile(filenameLocal,'Point',inpKeys,outKeys)
 
-  def _specializedLoadXML_CSV(self, filenameRoot, options):
+  def _specializedLoadXMLandCSV(self, filenameRoot, options):
     #For Point it creates an XML file and one csv file.  The
     #CSV file will have a header with the input names and output
     #names, and one line of data with the input and output numeric
@@ -1011,14 +1014,14 @@ class PointSet(Data):
     """
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'Point' has been stored
-      parent_id = None
+      parentID = None
       if 'metadata' in options.keys():
         prefix    = options['metadata']['prefix']
-        if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+        if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
       else:
         prefix    = options['prefix']
-        if 'parent_id' in options.keys(): parent_id = options['parent_id']
-      if parent_id: tsnode = self.retrieveNodeInTreeMode(prefix,parent_id)
+        if 'parentID' in options.keys(): parentID = options['parentID']
+      if parentID: tsnode = self.retrieveNodeInTreeMode(prefix,parentID)
       else:                             tsnode = self.retrieveNodeInTreeMode(prefix)
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
@@ -1048,14 +1051,14 @@ class PointSet(Data):
     """
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'Point' has been stored
-      parent_id = None
+      parentID = None
       if 'metadata' in options.keys():
         prefix    = options['metadata']['prefix']
-        if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+        if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
       else:
         prefix    = options['prefix']
-        if 'parent_id' in options.keys(): parent_id = options['parent_id']
-      if parent_id: tsnode = self.retrieveNodeInTreeMode(prefix,parent_id)
+        if 'parentID' in options.keys(): parentID = options['parentID']
+      if parentID: tsnode = self.retrieveNodeInTreeMode(prefix,parentID)
 
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
@@ -1079,16 +1082,16 @@ class PointSet(Data):
     """
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'Point' has been stored
-      parent_id = None
+      parentID = None
       if 'metadata' in options.keys():
         prefix    = options['metadata']['prefix']
-        if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+        if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
       else:
         prefix    = options['prefix']
-        if 'parent_id' in options.keys(): parent_id = options['parent_id']
-      if parent_id: tsnode = self.retrieveNodeInTreeMode(prefix,parent_id)
+        if 'parentID' in options.keys(): parentID = options['parentID']
+      if parentID: tsnode = self.retrieveNodeInTreeMode(prefix,parentID)
 
-      #if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id'])
+      #if 'parentID' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parentID'])
       #else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
       # we store the pointer to the container in the self._dataContainer because checkConsistency acts on this
       self._dataContainer = tsnode.get('dataContainer')
@@ -1220,7 +1223,7 @@ class PointSet(Data):
       myFile.close()
       self._createXMLFile(filenameLocal,'Pointset',inpKeys,outKeys)
 
-  def _specializedLoadXML_CSV(self, filenameRoot, options):
+  def _specializedLoadXMLandCSV(self, filenameRoot, options):
     """
     Loads a CSV-XML file pair into a PointSet.
     @ In, filenameRoot, path to files
@@ -1246,9 +1249,9 @@ class PointSet(Data):
     inoutKeys = header.split(",")
     inoutValues = [[] for _ in range(len(inoutKeys))]
     for line in myFile.readlines():
-      line_list = line.rstrip().split(",")
+      lineList = line.rstrip().split(",")
       for i in range(len(inoutKeys)):
-        inoutValues[i].append(utils.partialEval(line_list[i]))
+        inoutValues[i].append(utils.partialEval(lineList[i]))
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     inoutDict = {}
@@ -1407,7 +1410,7 @@ class History(Data):
     myDataFile.close()
     self._createXMLFile(filenameLocal,'history',inpKeys,outKeys)
 
-  def _specializedLoadXML_CSV(self, filenameRoot, options):
+  def _specializedLoadXMLandCSV(self, filenameRoot, options):
     #For history, create an XML file and two CSV files.  The
     #first CSV file has a header with the input names, and a column
     #for the filename.  The second CSV file is named the same as the
@@ -1435,9 +1438,9 @@ class History(Data):
     outKeys = header.split(",")
     outValues = [[] for a in range(len(outKeys))]
     for line in myDataFile.readlines():
-      line_list = line.rstrip().split(",")
+      lineList = line.rstrip().split(",")
       for i in range(len(outKeys)):
-        outValues[i].append(utils.partialEval(line_list[i]))
+        outValues[i].append(utils.partialEval(lineList[i]))
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     for key,value in zip(inpKeys,inpValues):
@@ -1546,26 +1549,26 @@ class HistorySet(Data):
 
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'History' has been stored
-      parent_id = None
+      parentID = None
       if type(name) == list:
         namep = name[1]
         if type(name[0]) == str: nodeid = name[0]
         else:
           if 'metadata' in options.keys():
             nodeid = options['metadata']['prefix']
-            if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+            if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
           else:
             nodeid = options['prefix']
-            if 'parent_id' in options.keys(): parent_id = options['parent_id']
+            if 'parentID' in options.keys(): parentID = options['parentID']
       else:
         if 'metadata' in options.keys():
           nodeid = options['metadata']['prefix']
-          if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+          if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
         else:
           nodeid = options['prefix']
-          if 'parent_id' in options.keys(): parent_id = options['parent_id']
+          if 'parentID' in options.keys(): parentID = options['parentID']
         namep = name
-      if parent_id: tsnode = self.retrieveNodeInTreeMode(nodeid, parent_id)
+      if parentID: tsnode = self.retrieveNodeInTreeMode(nodeid, parentID)
       else:         tsnode = self.retrieveNodeInTreeMode(nodeid)
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
@@ -1607,25 +1610,25 @@ class HistorySet(Data):
     """
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'Point' has been stored
-      parent_id = None
+      parentID = None
       if type(name) == list:
         if type(name[0]) == str: nodeid = name[0]
         else:
           if 'metadata' in options.keys():
             nodeid = options['metadata']['prefix']
-            if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+            if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
           else:
             nodeid = options['prefix']
-            if 'parent_id' in options.keys(): parent_id = options['parent_id']
+            if 'parentID' in options.keys(): parentID = options['parentID']
       else:
         if 'metadata' in options.keys():
           nodeid = options['metadata']['prefix']
-          if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+          if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
         else:
           nodeid = options['prefix']
-          if 'parent_id' in options.keys(): parent_id = options['parent_id']
-      if parent_id: tsnode = self.retrieveNodeInTreeMode(nodeid, parent_id)
-      #if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id'])
+          if 'parentID' in options.keys(): parentID = options['parentID']
+      if parentID: tsnode = self.retrieveNodeInTreeMode(nodeid, parentID)
+      #if 'parentID' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parentID'])
       #else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
@@ -1653,26 +1656,26 @@ class HistorySet(Data):
         self.raiseAnError(NotConsistentData,'HistorySet Data accepts only numpy array as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
 
     if options and self._dataParameters['hierarchical']:
-      parent_id = None
+      parentID = None
       if type(name) == list:
         namep = name[1]
         if type(name[0]) == str: nodeid = name[0]
         else:
           if 'metadata' in options.keys():
             nodeid = options['metadata']['prefix']
-            if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+            if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
           else:
             nodeid = options['prefix']
-            if 'parent_id' in options.keys(): parent_id = options['parent_id']
+            if 'parentID' in options.keys(): parentID = options['parentID']
       else:
         if 'metadata' in options.keys():
           nodeid = options['metadata']['prefix']
-          if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+          if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
         else:
           nodeid = options['prefix']
-          if 'parent_id' in options.keys(): parent_id = options['parent_id']
+          if 'parentID' in options.keys(): parentID = options['parentID']
         namep = name
-      if parent_id: tsnode = self.retrieveNodeInTreeMode(nodeid, parent_id)
+      if parentID: tsnode = self.retrieveNodeInTreeMode(nodeid, parentID)
 
       # we store the pointer to the container in the self._dataContainer because checkConsistency acts on this
       self._dataContainer = tsnode.get('dataContainer')
@@ -1837,7 +1840,7 @@ class HistorySet(Data):
         myDataFile.close()
       myFile.close()
 
-  def _specializedLoadXML_CSV(self, filenameRoot, options):
+  def _specializedLoadXMLandCSV(self, filenameRoot, options):
     #For HistorySet, create an XML file, and multiple CSV
     #files.  The first CSV file has a header with the input names,
     #and a column for the filenames.  There is one CSV file for each
@@ -1870,9 +1873,9 @@ class HistorySet(Data):
       outKeys_h = header.split(",")
       outValues_h = [[] for a in range(len(outKeys_h))]
       for line in myDataFile.readlines():
-        line_list = line.rstrip().split(",")
+        lineList = line.rstrip().split(",")
         for i in range(len(outKeys_h)):
-          outValues_h[i].append(utils.partialEval(line_list[i]))
+          outValues_h[i].append(utils.partialEval(lineList[i]))
       myDataFile.close()
       outKeys.append(outKeys_h)
       outValues.append(outValues_h)

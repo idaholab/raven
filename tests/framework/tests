@@ -48,6 +48,7 @@
   output = 'AdaptiveDET/limitSurfDump.csv AdaptiveDET/adaptiveOutsimpleDump.csv'
   csv = 'AdaptiveDET/limitSurfDump.csv'
   required_executable = '../../RAVEN-%METHOD%'
+  rel_err = 0.0001
   max_time = 400
  [../]
 
@@ -57,6 +58,7 @@
   output = 'AdaptiveHybridDET/limitsurfaceDump.csv AdaptiveHybridDET/adaptiveOutsimpleHier.csv'
   csv = 'AdaptiveHybridDET/limitsurfaceDump.csv'
   required_executable = '../../RAVEN-%METHOD%'
+  rel_err = 0.0001
   max_time = 400
  [../]
 

@@ -67,7 +67,7 @@
   alias = "noAlias"
   classIndex = "0" classType = "rSta"
   isProtected = "false"
-  fileName = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "4" startColumn = "3" endLine = "4" endColumn = "35" fileWritable = "true">
+  filename = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "4" startColumn = "3" endLine = "4" endColumn = "35" fileWritable = "true">
   <Real useStart="true" start="1.0" fixed="false" useNominal="false" />
   </ScalarVariable>
   <ScalarVariable
@@ -79,7 +79,7 @@
   alias = "noAlias"
   classIndex = "1" classType = "rSta"
   isProtected = "false"
-  fileName = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "5" startColumn = "3" endLine = "5" endColumn = "28" fileWritable = "true">
+  filename = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "5" startColumn = "3" endLine = "5" endColumn = "28" fileWritable = "true">
   <Real useStart="false" fixed="false" useNominal="false" />
   </ScalarVariable>
   <ScalarVariable
@@ -91,7 +91,7 @@
   alias = "noAlias"
   classIndex = "0" classType = "rDer"
   isProtected = "false"
-  fileName = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "4" startColumn = "3" endLine = "4" endColumn = "35" fileWritable = "true">
+  filename = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "4" startColumn = "3" endLine = "4" endColumn = "35" fileWritable = "true">
   <Real useStart="false" fixed="false" useNominal="false" />
   </ScalarVariable>
   <ScalarVariable
@@ -103,7 +103,7 @@
   alias = "noAlias"
   classIndex = "1" classType = "rDer"
   isProtected = "false"
-  fileName = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "5" startColumn = "3" endLine = "5" endColumn = "28" fileWritable = "true">
+  filename = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "5" startColumn = "3" endLine = "5" endColumn = "28" fileWritable = "true">
   <Real useStart="false" fixed="false" useNominal="false" />
   </ScalarVariable>
   <ScalarVariable
@@ -114,7 +114,7 @@
   alias = "noAlias"
   classIndex = "0" classType = "rAlg"
   isProtected = "false"
-  fileName = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "8" startColumn = "3" endLine = "8" endColumn = "13" fileWritable = "true">
+  filename = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "8" startColumn = "3" endLine = "8" endColumn = "13" fileWritable = "true">
   <Real useStart="false" fixed="false" useNominal="false" />
   </ScalarVariable>
   <ScalarVariable
@@ -126,7 +126,7 @@
   alias = "noAlias"
   classIndex = "0" classType = "rPar"
   isProtected = "false"
-  fileName = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "2" startColumn = "3" endLine = "2" endColumn = "52" fileWritable = "true">
+  filename = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "2" startColumn = "3" endLine = "2" endColumn = "52" fileWritable = "true">
   <Real useStart="true" start="0.7" fixed="true" useNominal="false" />
   </ScalarVariable>
   <ScalarVariable
@@ -138,7 +138,7 @@
   alias = "noAlias"
   classIndex = "1" classType = "rPar"
   isProtected = "false"
-  fileName = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "3" startColumn = "3" endLine = "3" endColumn = "47" fileWritable = "true">
+  filename = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "3" startColumn = "3" endLine = "3" endColumn = "47" fileWritable = "true">
   <Real useStart="true" start="9.81" fixed="true" useNominal="false" />
   </ScalarVariable>
 
@@ -150,7 +150,7 @@
   alias = "noAlias"
   classIndex = "0" classType = "iAlg"
   isProtected = "false"
-  fileName = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "9" startColumn = "3" endLine = "9" endColumn = "14" fileWritable = "true">
+  filename = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "9" startColumn = "3" endLine = "9" endColumn = "14" fileWritable = "true">
   <Integer useStart="false" fixed="false" />
   </ScalarVariable>
 
@@ -162,7 +162,7 @@
   alias = "noAlias"
   classIndex = "0" classType = "bAlg"
   isProtected = "false"
-  fileName = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "18" startColumn = "5" endLine = "18" endColumn = "50" fileWritable = "true">
+  filename = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "18" startColumn = "5" endLine = "18" endColumn = "50" fileWritable = "true">
   <Boolean useStart="false" fixed="true" />
   </ScalarVariable>
   <ScalarVariable
@@ -173,7 +173,7 @@
   alias = "noAlias"
   classIndex = "1" classType = "bAlg"
   isProtected = "false"
-  fileName = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "18" startColumn = "5" endLine = "18" endColumn = "50" fileWritable = "true">
+  filename = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "18" startColumn = "5" endLine = "18" endColumn = "50" fileWritable = "true">
   <Boolean useStart="false" fixed="true" />
   </ScalarVariable>
   <ScalarVariable
@@ -184,7 +184,7 @@
   alias = "noAlias"
   classIndex = "2" classType = "bAlg"
   isProtected = "false"
-  fileName = "" startLine = "0" startColumn = "0" endLine = "0" endColumn = "0" fileWritable = "true">
+  filename = "" startLine = "0" startColumn = "0" endLine = "0" endColumn = "0" fileWritable = "true">
   <Boolean useStart="false" fixed="true" />
   </ScalarVariable>
   <ScalarVariable
@@ -196,7 +196,7 @@
   alias = "noAlias"
   classIndex = "3" classType = "bAlg"
   isProtected = "false"
-  fileName = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "6" startColumn = "3" endLine = "6" endColumn = "55" fileWritable = "true">
+  filename = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "6" startColumn = "3" endLine = "6" endColumn = "55" fileWritable = "true">
   <Boolean useStart="true" start="true" fixed="false" />
   </ScalarVariable>
   <ScalarVariable
@@ -207,7 +207,7 @@
   alias = "noAlias"
   classIndex = "4" classType = "bAlg"
   isProtected = "false"
-  fileName = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "7" startColumn = "3" endLine = "7" endColumn = "17" fileWritable = "true">
+  filename = "C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" startLine = "7" startColumn = "3" endLine = "7" endColumn = "17" fileWritable = "true">
   <Boolean useStart="false" fixed="false" />
   </ScalarVariable>
 
