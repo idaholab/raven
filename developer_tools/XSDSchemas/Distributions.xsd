@@ -167,7 +167,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="data_filenameType">
+    <xsd:complexType name="dataFilenameType">
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
                 <xsd:attribute name="type" type="typeAttr" use="required"/>
@@ -179,13 +179,13 @@
         <xsd:all>
             <xsd:element name="p"             type="xsd:decimal"       minOccurs="1"/>
             <xsd:element name="workingDir"   type="xsd:string"        minOccurs="1"/>
-            <xsd:element name="data_filename" type="data_filenameType" minOccurs="1"/>
+            <xsd:element name="dataFilename" type="dataFilenameType" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
     <xsd:complexType name="NDCartesianSplineDistribution">
         <xsd:all>
-            <xsd:element name="data_filename" type="data_filenameType" minOccurs="1"/>
+            <xsd:element name="dataFilename" type="dataFilenameType" minOccurs="1"/>
             <xsd:element name="workingDir"   type="xsd:string"        minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
