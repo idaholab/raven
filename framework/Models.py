@@ -297,9 +297,9 @@ class Dummy(Model):
     else:
       for key in exportDict['input_space_params' ] :
         if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['input_space_params' ][key])
-        if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['input_space_params' ][key])
+        #if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['input_space_params' ][key])
       for key in exportDict['output_space_params'] :
-        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['output_space_params'][key])
+        #if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['output_space_params'][key])
         if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['output_space_params'][key])
       for key in exportDict['metadata'] : output.updateMetadata(key,exportDict['metadata'][key])
 #
