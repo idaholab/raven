@@ -189,7 +189,7 @@ class OutStreamPlot(OutStreamManager):
       result = [None] * 3
       if   '|input|'  in var.lower(): match = re.search(r"(\|input\|)", var.lower())
       elif '|output|' in var.lower(): match = re.search(r"(\|output\|)", var.lower())
-      else: self.raiseAnError(IOError, 'In Plot ' + self.name + ' for inputted coordinate ' + what + ' the tag "Input" or "Output" (case insensitive) has not been specified (e.g. sourceName|Input|aVariable)!')
+      else: self.raiseAnError(IOError, 'In Plot ' + self.name + ' for inputted coordinate ' + what + ' the tag "Input" or "Output" (case insensitive) has not been specified (e.g. sourceName|Input|aVariable) in '+var)
       startLoc, endLoc = match.start(), match.end()
       result[0], result[1], result[2] = var[:startLoc], var[startLoc + 1:endLoc - 1], var[endLoc:]
       if '{' in result[-1] and '}' in result[-1]:
