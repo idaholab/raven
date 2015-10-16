@@ -233,7 +233,7 @@ class InternalRunner(MessageHandler.MessageUser):
       setattr(newobj,k,copy.deepcopy(v,memo))
     return newobj
 
-  def start_pp(self):
+  def startParallelPython(self):
     if self.ppserver != None:
       if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
       else                     : self.__thread = self.ppserver.submit(self.functionToRun, args= self.__input, depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
@@ -280,7 +280,7 @@ class InternalRunner(MessageHandler.MessageUser):
   def returnMetadata(self): return self.__metadata
 
   def start(self):
-    try: self.start_pp()
+    try: self.startParallelPython()
     except Exception as ae:
       self.raiseAMessage("InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.retcode = -1
@@ -411,15 +411,15 @@ class JobHandler(MessageHandler.MessageUser):
     return self.__failedJobs
 
   def howManyFreeSpots(self):
-    cnt_free_spots = 0
+    cntFreeSpots = 0
     if self.__queue.empty():
       for i in range(len(self.__running)):
         if self.__running[i]:
           if self.__running[i].isDone():
-            cnt_free_spots += 1
+            cntFreeSpots += 1
         else:
-          cnt_free_spots += 1
-    return cnt_free_spots
+          cntFreeSpots += 1
+    return cntFreeSpots
 
   def getFinished(self, removeFinished=True):
     finished = []

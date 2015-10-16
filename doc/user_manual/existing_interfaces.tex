@@ -128,7 +128,7 @@ After all of these blocks are filled out, a standard example RunInfo block may
 look like the example below:
 \begin{lstlisting}[style=XML]
 <RunInfo>
-  <WorkingDir>~/working_dir</WorkingDir>
+  <WorkingDir>~/workingDir</WorkingDir>
   <Sequence>Grid_Sampler,MC_Sampler</Sequence>
   <batchSize>1</batchSize>
   <mode>mpi</mode>
@@ -234,7 +234,7 @@ In this example we are sampling:
 
 We proceed to do so for both the Grid sampling and the MonteCarlo sampling.
 
-\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initial_seed}]
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
 <Samplers verbosity='debug'>
   <Grid name='Grid_Sampler' >
     <variable name='0000588:6'>
@@ -574,7 +574,7 @@ the variable name in the Sampler input block needs to be named as follows:
 %
 In this example, we proceed to do so for both the Grid sampling and the Monte-Carlo sampling.
 
-\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initial_seed}]
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
 <Samplers verbosity='debug'>
     <Grid name='myGrid'>
       <variable name='Materials|heatStructure1|thermal_conductivity' >
@@ -745,6 +745,63 @@ utilize curly brackets.
   </Plot>
 </OutStreamManager>
 \end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% Moose VectorPostProcessor INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MooseVPP Interface}
+
+The Moose Vector Post Processor is used mainly in the solid mechanics analysis. 
+This interface loads the values of the vector ouput processor to a \xmlNode{DataObjects} object.
+
+To use this interface the [DomainIntegral] needs to be present in the MooseBasedApp's
+ input file and the subnode \xmlNode{fileargs} should be defined in the subnode \xmlNode{Code} in
+ the \xmlNode{Models} block of the RAVEN input file. The \xmlNode{fileargs} is required to have attributes with 
+the below specified values:
+
+\begin{itemize}
+	\item \xmlAttr{type}, \xmlDesc{string, required field}, must be "MooseVPP"
+	\item \xmlAttr{arg}, \xmlDesc{string, required field}, the string value attached to the vector post processor action
+         while creating the output files.
+\end{itemize}
+
+This interface is actually identical to the MooseBasedApp interface, however there is
+ few constraints on defining the output values of the post processor.  
+The definition of these outputs in the \xmlNode{DataObjects} depends on the definition of
+ the [DomainIntegral].
+
+The location of the value outputted is defined as \textit{ID\#} and the value is as 
+\textit{value\#}. The ''\#'' defines
+the number of the location. The example below contains 3 locations in the [DomainIntegral] 
+where the values are outputted.
+
+%
+Example:
+\begin{lstlisting}[style=XML]
+ ...
+  <Models>
+    <Code name="MOOSETestApp" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../moose/
+		modules/combined/modules-%METHOD%</executable>
+      <fileargs type = "MooseVPP" arg = "_J_1_" />
+      <alias variable = "poissonsRatio" >
+		Materials|stiffStuff|poissons_ratio</alias>
+      <alias variable = "youngModulus"  >
+		Materials|stiffStuff|youngs_modulus</alias>
+    </Code>
+  </Models>
+ ...
+  <DataObjects>
+    <PointSet name="collset">
+      <Input>youngModulus,poissonsRatio</Input>
+      <Output>ID1,ID2,ID3,value1,value2,value3</Output>
+    </PointSet>
+  </DataObjects>
+ ...
+\end{lstlisting}
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% OPENMODELICA INTERFACE  %%%%%%
