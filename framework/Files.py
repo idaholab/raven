@@ -376,10 +376,6 @@ class File(BaseType):
     self.__file.seek(0)
     return self.__file.__iter__()
     #return (l for l in self.__file)
-
-
-
-
 #
 #
 #

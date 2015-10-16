@@ -1,4 +1,4 @@
-<data name="mc_out" type="Pointset"><input>a,c,b,e,d</input><output>h,g,f</output><input_filename>mc_out.csv</input_filename><metadata><executable>array([ '/Users/talbpw/projects/raven/tests/framework/RedundantInputs/simp_imp.py',
+<data name="mc_out" type="Pointset"><input>a,c,b,e,d</input><output>h,g,f</output><inputFilename>mc_out.csv</inputFilename><metadata><executable>array([ '/Users/talbpw/projects/raven/tests/framework/RedundantInputs/simp_imp.py',
        '/Users/talbpw/projects/raven/tests/framework/RedundantInputs/simp_imp.py',
        '/Users/talbpw/projects/raven/tests/framework/RedundantInputs/simp_imp.py',
        '/Users/talbpw/projects/raven/tests/framework/RedundantInputs/simp_imp.py',

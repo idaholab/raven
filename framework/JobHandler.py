@@ -273,7 +273,7 @@ class InternalRunner(MessageHandler.MessageUser):
       setattr(newobj,k,copy.deepcopy(v,memo))
     return newobj
 
-  def start_pp(self):
+  def startParallelPython(self):
     """
      Method to start the calculation associated with this InternalRunner is finished
      @ In, None
@@ -340,7 +340,7 @@ class InternalRunner(MessageHandler.MessageUser):
      @ In, None
      @ Out, None
     """
-    try: self.start_pp()
+    try: self.startParallelPython()
     except Exception as ae:
       self.raiseAMessage("InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.retcode = -1
@@ -566,15 +566,15 @@ class JobHandler(MessageHandler.MessageUser):
      @ In, None
      @ Out, cnt_free_spots, int, number of free spots
     """
-    cnt_free_spots = 0
+    cntFreeSpots = 0
     if self.__queue.empty():
       for i in range(len(self.__running)):
         if self.__running[i]:
           if self.__running[i].isDone():
-            cnt_free_spots += 1
+            cntFreeSpots += 1
         else:
-          cnt_free_spots += 1
-    return cnt_free_spots
+          cntFreeSpots += 1
+    return cntFreeSpots
 
   def getFinished(self, removeFinished=True):
     """

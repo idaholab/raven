@@ -2,40 +2,38 @@
 
 import os,subprocess,sys
 
-module_command = False
-for possible_module_command in ["/apps/local/modules/bin/modulecmd","/usr/bin/modulecmd"]:
-  if os.path.exists(possible_module_command):
-    module_command = possible_module_command
+moduleCommand = False
+for possibleModuleCommand in ["/apps/local/modules/bin/modulecmd","/usr/bin/modulecmd"]:
+  if os.path.exists(possibleModuleCommand):
+    moduleCommand = possibleModuleCommand
     break
 
-if not module_command:
+if not moduleCommand:
   sys.stderr.write("Could not find a modulecmd")
   sys.exit(-1)
 
-avail_modules = subprocess.Popen([module_command,"python","avail"],stdout=subprocess.PIPE,stderr=subprocess.PIPE).communicate()[1]
+availModules = subprocess.Popen([moduleCommand,"python","avail"],stdout=subprocess.PIPE,stderr=subprocess.PIPE).communicate()[1]
 
-if "raven-devel-gcc" in avail_modules:
-  raven_and_pbs_eval = subprocess.Popen([module_command,"python","load","pbs","raven-devel-gcc"],stdout=subprocess.PIPE).communicate()[0]
-  exec(raven_and_pbs_eval)
+if "raven-devel-gcc" in availModules:
+  ravenAndPbsEval = subprocess.Popen([moduleCommand,"python","load","pbs","raven-devel-gcc"],stdout=subprocess.PIPE).communicate()[0]
+  exec(ravenAndPbsEval)
 else:
-  python_and_pbs_eval = subprocess.Popen([module_command,"python","load","pbs","python/2.7"],stdout=subprocess.PIPE).communicate()[0]
-  exec(python_and_pbs_eval)
+  pythonAndPbsEval = subprocess.Popen([moduleCommand,"python","load","pbs","python/2.7"],stdout=subprocess.PIPE).communicate()[0]
+  exec(pythonAndPbsEval)
 
   #sys.stdout.write(str(subprocess.Popen(["env"],stdout=subprocess.PIPE).communicate()[0]))
 
-  new_module_files = '/apps/projects/moose/modulefiles'
+  newModuleFiles = '/apps/projects/moose/modulefiles'
   if "MODULEPATH" in os.environ:
-    old_modulepath = os.environ["MODULEPATH"]
-    if new_module_files not in old_modulepath:
-      os.environ["MODULEPATH"] = old_modulepath +":"+new_module_files
+    oldModulepath = os.environ["MODULEPATH"]
+    if newModuleFiles not in oldModulepath:
+      os.environ["MODULEPATH"] = oldModulepath +":"+newModuleFiles
   else:
-    os.environ["MODULEPATH"] = new_module_files
+    os.environ["MODULEPATH"] = newModuleFiles
 
-  moose_dev_and_python3_eval = subprocess.Popen([module_command,"python","load","use.moose","moose-dev-gcc","python/3.2"],stdout=subprocess.PIPE).communicate()[0]
-  exec(moose_dev_and_python3_eval)
-
+  mooseDevAndPython3Eval = subprocess.Popen([moduleCommand,"python","load","use.moose","moose-dev-gcc","python/3.2"],stdout=subprocess.PIPE).communicate()[0]
+  exec(mooseDevAndPython3Eval)
   os.environ["PYTHONPATH"]=os.environ.get("PYTHONPATH","")+":"+os.path.join(os.path.expanduser("~"),"raven_libs","pylibs","lib","python2.7","site-packages")
-
 
 if "PBS_O_WORKDIR" in os.environ:
   os.chdir(os.environ["PBS_O_WORKDIR"])

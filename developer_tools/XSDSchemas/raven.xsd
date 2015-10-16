@@ -241,8 +241,8 @@
               <xsd:complexType>
                 <xsd:simpleContent>
                   <xsd:extension base='xsd:string'>
-                    <xsd:attribute name='num_bins' type='xsd:integer' use='required' />
-                    <xsd:attribute name='bin_method'  type='CompStatsBinMethod' use='required' />
+                    <xsd:attribute name='numBins' type='xsd:integer' use='required' />
+                    <xsd:attribute name='binMethod'  type='CompStatsBinMethod' use='required' />
                   </xsd:extension>
                 </xsd:simpleContent>
               </xsd:complexType>

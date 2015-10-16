@@ -97,7 +97,7 @@ class HDF5(DateBase):
     self.exist    = False
     self.built    = False
     self.type     = 'HDF5'
-    self.file_name = ""
+    self.filename = ""
     self.printTag = 'DATABASE HDF5'
     self.workingDir = runInfoDict['WorkingDir']
     self.databaseDir = self.workingDir
@@ -118,7 +118,7 @@ class HDF5(DateBase):
 
   def __setstate__(self, newstate):
     self.__dict__.update(newstate)
-    self.database = h5Data(self.name,self.databaseDir,self.file_name)
+    self.database = h5Data(self.name,self.databaseDir,self.filename)
     self.exist    = True
 
   def _readMoreXML(self,xmlNode):
@@ -138,12 +138,12 @@ class HDF5(DateBase):
     # or update it
     #try:
     if 'filename' in xmlNode.attrib.keys():
-      self.file_name = xmlNode.attrib['filename']
-      self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.file_name)
+      self.filename = xmlNode.attrib['filename']
+      self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename)
       self.exist    = True
     #except KeyError:
     else:
-      self.file_name = self.name+".h5"
+      self.filename = self.name+".h5"
       self.database  = h5Data(self.name,self.databaseDir,self.messageHandler)
       self.exist     = False
 
@@ -240,13 +240,13 @@ class HDF5(DateBase):
     inParam, outParam, inputRow, outputRow                 = attributes['inParam'], attributes['outParam'], copy.deepcopy(attributes.get('inputRow',None)), copy.deepcopy(attributes.get('outputRow',None))
     inputPivotVal, outputPivotVal, operator                = attributes.get('inputPivotValue',None), attributes.get('outputPivotValue',None), attributes.get('operator',None)
     pivotParameter                                         = attributes.get('pivotParameter',None)
-    if 'all' in outParam: all_out_param = True
-    else                : all_out_param = False
+    if 'all' in outParam: allOutParam = True
+    else                : allOutParam = False
     if outputPivotVal != None:
-      if 'end' in outputPivotVal: outputPivotVal_end = True
+      if 'end' in outputPivotVal: outputPivotValEnd = True
       else:
-        outputPivotVal_end, outputPivotVal = False,  float(outputPivotVal)
-    else: outputPivotVal_end = True
+        outputPivotValEnd, outputPivotVal = False,  float(outputPivotVal)
+    else: outputPivotValEnd = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow != None :
@@ -257,10 +257,10 @@ class HDF5(DateBase):
       if outputRow > 0: outputRow -= 1
 
     if pivotParameter != None:
-      pivotIndex = histVar[1]['output_space_headers'].index(pivotParameter) if pivotParameter in histVar[1]['output_space_headers'] else None
+      pivotIndex = histVar[1]['outputSpaceHeaders'].index(pivotParameter) if pivotParameter in histVar[1]['outputSpaceHeaders'] else None
       if pivotIndex == None: self.raiseAnError(IOError,'pivotParameter ' +pivotParameter+' has not been found in Database '+ str(self.name) + '!')
     else:
-      pivotIndex = histVar[1]['output_space_headers'].index("time") if "time" in histVar[1]['output_space_headers'] else None
+      pivotIndex = histVar[1]['outputSpaceHeaders'].index("time") if "time" in histVar[1]['outputSpaceHeaders'] else None
       # if None...default is 0
       if pivotIndex == None: pivotIndex = 0
     if inputRow > histVar[0][:,0].size-1  and inputRow != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual rows in Database '+ str(self.name) + '!')
@@ -273,84 +273,84 @@ class HDF5(DateBase):
     else                              : metaDict[0] = None
 
     for key in inParam:
-      if 'input_space_headers' in histVar[1]:
-        inInKey = utils.keyIn(histVar[1]['input_space_headers'],key)
-        inOutKey = utils.keyIn(histVar[1]['output_space_headers'],key)
+      if 'inputSpaceHeaders' in histVar[1]:
+        inInKey = utils.keyIn(histVar[1]['inputSpaceHeaders'],key)
+        inOutKey = utils.keyIn(histVar[1]['outputSpaceHeaders'],key)
         if inInKey != None:
-          ix = histVar[1]['input_space_headers'].index(inInKey)
-          inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
+          ix = histVar[1]['inputSpaceHeaders'].index(inInKey)
+          inDict[key] = np.atleast_1d(np.array(histVar[1]['inputSpaceValues'][ix]))
         elif inOutKey != None and inInKey == None:
-          ix = histVar[1]['output_space_headers'].index(inOutKey)
+          ix = histVar[1]['outputSpaceHeaders'].index(inOutKey)
           if inputPivotVal != None:
             if float(inputPivotVal) > np.max(histVar[0][:,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
             inDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,ix], kind='linear')(float(inputPivotVal))))
           else: inDict[key] = np.atleast_1d(np.array(histVar[0][inputRow,ix]))
         else: self.raiseAnError(IOError,'the parameter ' + key + ' has not been found')
       else:
-        inKey = utils.keyIn(histVar[1]['output_space_headers'],key)
+        inKey = utils.keyIn(histVar[1]['outputSpaceHeaders'],key)
         if inKey is not None:
-          ix = histVar[1]['output_space_headers'].index(inKey)
+          ix = histVar[1]['outputSpaceHeaders'].index(inKey)
           if inputPivotVal != None:
             if float(inputPivotVal) > np.max(histVar[0][:,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
             inDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,ix], kind='linear')(float(inputPivotVal))))
           else: inDict[key] = np.atleast_1d(np.array(histVar[0][inputRow,ix]))
         else: self.raiseAnError(IOError,'the parameter ' + key + ' has not been found in '+str(histVar[1]))
     # outputPivotVal end case => PointSet is at the final status
-    if outputPivotVal_end:
-      if all_out_param:
-        for key in histVar[1]['output_space_headers']:
-          outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]['output_space_headers'].index(key)]))
+    if outputPivotValEnd:
+      if allOutParam:
+        for key in histVar[1]['outputSpaceHeaders']:
+          outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]['outputSpaceHeaders'].index(key)]))
       else:
         for key in outParam:
-          if key in histVar[1]['output_space_headers'] or \
-             utils.toBytes(key) in histVar[1]['output_space_headers']:
-            if key in histVar[1]['output_space_headers']: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]['output_space_headers'].index(key)]))
-            else: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]['output_space_headers'].index(utils.toBytes(key))]))
+          if key in histVar[1]['outputSpaceHeaders'] or \
+             utils.toBytes(key) in histVar[1]['outputSpaceHeaders']:
+            if key in histVar[1]['outputSpaceHeaders']: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]['outputSpaceHeaders'].index(key)]))
+            else: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))]))
           else: self.raiseAnError(IOError,"the parameter " + str(key) + " has not been found")
     elif outputRow != None:
       if outputRow > histVar[0][:,0].size-1  and outputRow != -1: self.raiseAnError(IOError,'outputRow is greater than number of actual rows in Database '+ str(self.name) + '!')
-      if all_out_param:
-        for key in histVar[1]['output_space_headers']:
-          outDict[key] = np.atleast_1d(np.array(histVar[0][outputRow,histVar[1]['output_space_headers'].index(key)]))
+      if allOutParam:
+        for key in histVar[1]['outputSpaceHeaders']:
+          outDict[key] = np.atleast_1d(np.array(histVar[0][outputRow,histVar[1]['outputSpaceHeaders'].index(key)]))
       else:
         for key in outParam:
-          if key in histVar[1]['output_space_headers'] or \
-             utils.toBytes(key) in histVar[1]['output_space_headers']:
-            if key in histVar[1]['output_space_headers']: outDict[key] = np.atleast_1d(np.array(histVar[0][outputRow,histVar[1]['output_space_headers'].index(key)]))
-            else: outDict[key] = np.atleast_1d(np.array(histVar[0][outputRow,histVar[1]['output_space_headers'].index(utils.toBytes(key))]))
+          if key in histVar[1]['outputSpaceHeaders'] or \
+             utils.toBytes(key) in histVar[1]['outputSpaceHeaders']:
+            if key in histVar[1]['outputSpaceHeaders']: outDict[key] = np.atleast_1d(np.array(histVar[0][outputRow,histVar[1]['outputSpaceHeaders'].index(key)]))
+            else: outDict[key] = np.atleast_1d(np.array(histVar[0][outputRow,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))]))
           else: self.raiseAnError(IOError,"the parameter " + str(key) + " has not been found")
     elif operator != None:
       if operator not in ['max','min','average']: self.raiseAnError(IOError,'operator unknown. Available are min,max,average')
-      if histVar[1]['output_space_headers']:
-        for key in histVar[1]['output_space_headers']:
-          if operator == 'max'    : outDict[key] = np.atleast_1d(np.array(np.max(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
-          if operator == 'min'    : outDict[key] = np.atleast_1d(np.array(np.min(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
-          if operator == 'average': outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
+      if histVar[1]['outputSpaceHeaders']:
+        for key in histVar[1]['outputSpaceHeaders']:
+          if operator == 'max'    : outDict[key] = np.atleast_1d(np.array(np.max(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)])))
+          if operator == 'min'    : outDict[key] = np.atleast_1d(np.array(np.min(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)])))
+          if operator == 'average': outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)])))
       else:
         for key in outParam:
-          if key in histVar[1]['output_space_headers'] or \
-             utils.toBytes(key) in histVar[1]['output_space_headers']:
-            if key in histVar[1]['output_space_headers']:
-              if operator == 'max'    : outDict[key] = np.atleast_1d(np.array(np.max(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
-              if operator == 'min'    : outDict[key] = np.atleast_1d(np.array(np.min(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
-              if operator == 'average': outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
+          if key in histVar[1]['outputSpaceHeaders'] or \
+             utils.toBytes(key) in histVar[1]['outputSpaceHeaders']:
+            if key in histVar[1]['outputSpaceHeaders']:
+              if operator == 'max'    : outDict[key] = np.atleast_1d(np.array(np.max(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)])))
+              if operator == 'min'    : outDict[key] = np.atleast_1d(np.array(np.min(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)])))
+              if operator == 'average': outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)])))
             else:
-              if operator == 'max'    : outDict[key] = np.atleast_1d(np.array(np.max(histVar[0][:,histVar[1]['output_space_headers'].index(utils.toBytes(key))])))
-              if operator == 'min'    : outDict[key] = np.atleast_1d(np.array(np.min(histVar[0][:,histVar[1]['output_space_headers'].index(utils.toBytes(key))])))
-              if operator == 'average': outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['output_space_headers'].index(utils.toBytes(key))])))
+              if operator == 'max'    : outDict[key] = np.atleast_1d(np.array(np.max(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))])))
+              if operator == 'min'    : outDict[key] = np.atleast_1d(np.array(np.min(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))])))
+              if operator == 'average': outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))])))
           else: self.raiseAnError(IOError,"the parameter " + str(key) + " has not been found")
     else:
       # Arbitrary point in outputPivotVal case... If the requested outputPivotVal point Set does not match any of the stored ones and
       # start_outputPivotVal <= requested_outputPivotVal_point <= end_outputPivotVal, compute an interpolated value
-      if all_out_param:
-        for key in histVar[1]['output_space_headers']:
-          outDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['output_space_headers'].index(key)], kind='linear')(outputPivotVal)))
+      if allOutParam:
+        for key in histVar[1]['outputSpaceHeaders']:
+          outDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)], kind='linear')(outputPivotVal)))
       else:
         for key in outParam:
-          if key in histVar[1]['output_space_headers'] or \
-             utils.toBytes(key) in histVar[1]['output_space_headers']:
-            if key in histVar[1]['output_space_headers']: outDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['output_space_headers'].index(key)], kind='linear')(outputPivotVal)))
-            else                                        : outDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['output_space_headers'].index(utils.toBytes(key))], kind='linear')(outputPivotVal)))
+          if key in histVar[1]['outputSpaceHeaders'] or \
+             utils.toBytes(key) in histVar[1]['outputSpaceHeaders']:
+            if key in histVar[1]['outputSpaceHeaders']: outDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)], kind='linear')(outputPivotVal)))
+            else                                        : outDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))], kind='linear')(outputPivotVal)))
           else                                          : self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     # return tuple of dictionaries
     return (copy.copy(inDict),copy.copy(outDict),copy.copy(metaDict))
@@ -368,14 +368,14 @@ class HDF5(DateBase):
     inputPivotVal, outputPivotVal, operator                = attributes.get('inputPivotValue',None), attributes.get('outputPivotValue',None), attributes.get('operator',None)
     pivotParameter                                         = attributes.get('pivotParameter',None)
 
-    if outParam == 'all': all_out_param  = True
-    else: all_out_param = False
+    if outParam == 'all': allOutParam  = True
+    else: allOutParam = False
 
     if outputPivotVal != None:
-      if 'end' in outputPivotVal: outputPivotVal_end = True
+      if 'end' in outputPivotVal: outputPivotValEnd = True
       else:
-        outputPivotVal_end, outputPivotVal = False,  float(outputPivotVal)
-    else: outputPivotVal_end = True
+        outputPivotValEnd, outputPivotVal = False,  float(outputPivotVal)
+    else: outputPivotValEnd = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow != None :
@@ -388,18 +388,18 @@ class HDF5(DateBase):
     inDict   = {}
     outDict  = {}
     metaDict = {}
-    hist_list = attributes['HistorySet']
+    histList = attributes['HistorySet']
     # Retrieve all the associated HistorySet and process them
-    for i in range(len(hist_list)):
+    for i in range(len(histList)):
       # Load the data into the numpy array
-      attributes['history'] = hist_list[i]
+      attributes['history'] = histList[i]
       histVar = self.returnHistory(attributes)
       #look for pivotParameter
       if pivotParameter != None:
-        pivotIndex = histVar[1]['output_space_headers'].index(pivotParameter) if pivotParameter in histVar[1]['output_space_headers'] else None
+        pivotIndex = histVar[1]['outputSpaceHeaders'].index(pivotParameter) if pivotParameter in histVar[1]['outputSpaceHeaders'] else None
         if pivotIndex == None: self.raiseAnError(IOError,'pivotParameter ' +pivotParameter+' has not been found in history '+ str(attributes['history']) + '!')
       else:
-        pivotIndex = histVar[1]['output_space_headers'].index("time") if "time" in histVar[1]['output_space_headers'] else None
+        pivotIndex = histVar[1]['outputSpaceHeaders'].index("time") if "time" in histVar[1]['outputSpaceHeaders'] else None
         # if None...default is 0
         if pivotIndex == None: pivotIndex = 0
       if inputRow > histVar[0][:,0].size-1  and inputRow != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual rows in history '+ str(attributes['history']) + '!')
@@ -407,95 +407,95 @@ class HDF5(DateBase):
       if 'metadata' in histVar[1].keys(): metaDict[i] = histVar[1]['metadata']
       else                              : metaDict[i] = None
       for key in inParam:
-        if 'input_space_headers' in histVar[1]:
-          inInKey = utils.keyIn(histVar[1]['input_space_headers'],key)
-          inOutKey = utils.keyIn(histVar[1]['output_space_headers'],key)
+        if 'inputSpaceHeaders' in histVar[1]:
+          inInKey = utils.keyIn(histVar[1]['inputSpaceHeaders'],key)
+          inOutKey = utils.keyIn(histVar[1]['outputSpaceHeaders'],key)
           if inInKey != None:
-            ix = histVar[1]['input_space_headers'].index(inInKey)
-            if i == 0: inDict[key] = np.zeros(len(hist_list))
-            inDict[key][i] = np.atleast_1d(histVar[1]['input_space_values'][ix])[0]
+            ix = histVar[1]['inputSpaceHeaders'].index(inInKey)
+            if i == 0: inDict[key] = np.zeros(len(histList))
+            inDict[key][i] = np.atleast_1d(histVar[1]['inputSpaceValues'][ix])[0]
           elif inOutKey != None and inInKey == None:
-            ix = histVar[1]['output_space_headers'].index(inOutKey)
-            if i == 0: inDict[key] = np.zeros(len(hist_list))
+            ix = histVar[1]['outputSpaceHeaders'].index(inOutKey)
+            if i == 0: inDict[key] = np.zeros(len(histList))
             if inputPivotVal != None:
               if float(inputPivotVal) > np.max(histVar[0][:,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
               inDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,ix], kind='linear')(float(inputPivotVal))
             else: inDict[key][i] = histVar[0][inputRow,ix]
           else: self.raiseAnError(IOError,'the parameter ' + key + ' has not been found')
         else:
-          inKey = utils.keyIn(histVar[1]['output_space_headers'],key)
+          inKey = utils.keyIn(histVar[1]['outputSpaceHeaders'],key)
           if inKey is not None:
-            ix = histVar[1]['output_space_headers'].index(inKey)
-            if i == 0: inDict[key] = np.zeros(len(hist_list))
+            ix = histVar[1]['outputSpaceHeaders'].index(inKey)
+            if i == 0: inDict[key] = np.zeros(len(histList))
             if inputPivotVal != None:
               if float(inputPivotVal) > np.max(histVar[0][:,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
               inDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,ix], kind='linear')(float(inputPivotVal))
             else: inDict[key][i] = histVar[0][inputRow,ix]
           else: self.raiseAnError(IOError,'the parameter ' + key + ' has not been found in '+str(histVar[1]))
       # outputPivotVal end case => PointSet is at the final status
-      if outputPivotVal_end:
-        if all_out_param:
-          for key in histVar[1]['output_space_headers']:
-            if i == 0: outDict[key] = np.zeros(len(hist_list))
-            outDict[key][i] = histVar[0][-1,histVar[1]['output_space_headers'].index(key)]
+      if outputPivotValEnd:
+        if allOutParam:
+          for key in histVar[1]['outputSpaceHeaders']:
+            if i == 0: outDict[key] = np.zeros(len(histList))
+            outDict[key][i] = histVar[0][-1,histVar[1]['outputSpaceHeaders'].index(key)]
         else:
           for key in outParam:
-            if key in histVar[1]['output_space_headers'] or \
-               utils.toBytes(key) in histVar[1]['output_space_headers']:
-              if i == 0: outDict[key] = np.zeros(len(hist_list))
-              if key in histVar[1]['output_space_headers']: outDict[key][i] = histVar[0][-1,histVar[1]['output_space_headers'].index(key)]
-              else: outDict[key][i] = histVar[0][-1,histVar[1]['output_space_headers'].index(utils.toBytes(key))]
+            if key in histVar[1]['outputSpaceHeaders'] or \
+               utils.toBytes(key) in histVar[1]['outputSpaceHeaders']:
+              if i == 0: outDict[key] = np.zeros(len(histList))
+              if key in histVar[1]['outputSpaceHeaders']: outDict[key][i] = histVar[0][-1,histVar[1]['outputSpaceHeaders'].index(key)]
+              else: outDict[key][i] = histVar[0][-1,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))]
             else: self.raiseAnError(IOError,"the parameter " + str(key) + " has not been found")
       elif outputRow != None:
         if outputRow > histVar[0][:,0].size-1  and outputRow != -1: self.raiseAnError(IOError,'outputRow is greater than number of actual rows in Database '+ str(self.name) + '!')
-        if all_out_param:
-          for key in histVar[1]['output_space_headers']:
-            if i == 0: outDict[key] = np.zeros(len(hist_list))
-            outDict[key][i] = histVar[0][outputRow,histVar[1]['output_space_headers'].index(key)]
+        if allOutParam:
+          for key in histVar[1]['outputSpaceHeaders']:
+            if i == 0: outDict[key] = np.zeros(len(histList))
+            outDict[key][i] = histVar[0][outputRow,histVar[1]['outputSpaceHeaders'].index(key)]
         else:
           for key in outParam:
-            if key in histVar[1]['output_space_headers'] or \
-               utils.toBytes(key) in histVar[1]['output_space_headers']:
-              if i == 0: outDict[key] = np.zeros(len(hist_list))
-              if key in histVar[1]['output_space_headers']: outDict[key][i] = histVar[0][outputRow,histVar[1]['output_space_headers'].index(key)]
-              else: outDict[key][i] = histVar[0][outputRow,histVar[1]['output_space_headers'].index(utils.toBytes(key))]
+            if key in histVar[1]['outputSpaceHeaders'] or \
+               utils.toBytes(key) in histVar[1]['outputSpaceHeaders']:
+              if i == 0: outDict[key] = np.zeros(len(histList))
+              if key in histVar[1]['outputSpaceHeaders']: outDict[key][i] = histVar[0][outputRow,histVar[1]['outputSpaceHeaders'].index(key)]
+              else: outDict[key][i] = histVar[0][outputRow,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))]
             else: self.raiseAnError(IOError,"the parameter " + str(key) + " has not been found")
       elif operator != None:
         if operator not in ['max','min','average']: self.raiseAnError(IOError,'operator unknown. Available are min,max,average')
-        if histVar[1]['output_space_headers']:
-          for key in histVar[1]['output_space_headers']:
-            if i == 0: outDict[key] = np.zeros(len(hist_list))
-            if operator == 'max'    : outDict[key][i] = np.max(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
-            if operator == 'min'    : outDict[key][i] = np.min(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
-            if operator == 'average': outDict[key][i] = np.average(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
+        if histVar[1]['outputSpaceHeaders']:
+          for key in histVar[1]['outputSpaceHeaders']:
+            if i == 0: outDict[key] = np.zeros(len(histList))
+            if operator == 'max'    : outDict[key][i] = np.max(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)])
+            if operator == 'min'    : outDict[key][i] = np.min(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)])
+            if operator == 'average': outDict[key][i] = np.average(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)])
         else:
           for key in outParam:
-            if key in histVar[1]['output_space_headers'] or \
-               utils.toBytes(key) in histVar[1]['output_space_headers']:
-              if i == 0: outDict[key] = np.zeros(len(hist_list))
-              if key in histVar[1]['output_space_headers']:
-                if operator == 'max'    : outDict[key][i] = np.max(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
-                if operator == 'min'    : outDict[key][i] = np.min(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
-                if operator == 'average': outDict[key][i] = np.average(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
+            if key in histVar[1]['outputSpaceHeaders'] or \
+               utils.toBytes(key) in histVar[1]['outputSpaceHeaders']:
+              if i == 0: outDict[key] = np.zeros(len(histList))
+              if key in histVar[1]['outputSpaceHeaders']:
+                if operator == 'max'    : outDict[key][i] = np.max(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)])
+                if operator == 'min'    : outDict[key][i] = np.min(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)])
+                if operator == 'average': outDict[key][i] = np.average(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)])
               else:
-                if operator == 'max'    : outDict[key][i] = np.max(histVar[0][:,histVar[1]['output_space_headers'].index(utils.toBytes(key))])
-                if operator == 'min'    : outDict[key][i] = np.min(histVar[0][:,histVar[1]['output_space_headers'].index(utils.toBytes(key))])
-                if operator == 'average': outDict[key][i] = np.average(histVar[0][:,histVar[1]['output_space_headers'].index(utils.toBytes(key))])
+                if operator == 'max'    : outDict[key][i] = np.max(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))])
+                if operator == 'min'    : outDict[key][i] = np.min(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))])
+                if operator == 'average': outDict[key][i] = np.average(histVar[0][:,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))])
             else: self.raiseAnError(IOError,"the parameter " + str(key) + " has not been found")
       else:
         # Arbitrary point in outputPivotVal case... If the requested outputPivotVal point Set does not match any of the stored ones and
         # start_outputPivotVal <= requested_outputPivotVal_point <= end_outputPivotVal, compute an interpolated value
-        if all_out_param:
-          for key in histVar[1]['output_space_headers']:
-            if i == 0: outDict[key] = np.zeros(len(hist_list))
-            outDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['output_space_headers'].index(key)], kind='linear')(outputPivotVal)
+        if allOutParam:
+          for key in histVar[1]['outputSpaceHeaders']:
+            if i == 0: outDict[key] = np.zeros(len(histList))
+            outDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)], kind='linear')(outputPivotVal)
         else:
           for key in outParam:
-            if i == 0: outDict[key] = np.zeros(len(hist_list))
-            if key in histVar[1]['output_space_headers'] or \
-               utils.toBytes(key) in histVar[1]['output_space_headers']:
-              if key in histVar[1]['output_space_headers']: outDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['output_space_headers'].index(key)], kind='linear')(outputPivotVal)
-              else                                        : outDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['output_space_headers'].index(utils.toBytes(key))], kind='linear')(outputPivotVal)
+            if i == 0: outDict[key] = np.zeros(len(histList))
+            if key in histVar[1]['outputSpaceHeaders'] or \
+               utils.toBytes(key) in histVar[1]['outputSpaceHeaders']:
+              if key in histVar[1]['outputSpaceHeaders']: outDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)], kind='linear')(outputPivotVal)
+              else                                        : outDict[key][i] = interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['outputSpaceHeaders'].index(utils.toBytes(key))], kind='linear')(outputPivotVal)
             else                                          : self.raiseAnError(IOError,"the parameter " + key + " has not been found")
       del histVar
     # return tuple of PointSet
@@ -514,13 +514,13 @@ class HDF5(DateBase):
     inParam, outParam, inputRow                 = attributes['inParam'], attributes['outParam'], copy.deepcopy(attributes.get('inputRow',None))
     inputPivotVal, outputPivotVal               = attributes.get('inputPivotValue',None), attributes.get('outputPivotValue',None)
     pivotParameter                              = attributes.get('pivotParameter',None)
-    if 'all' in outParam: all_out_param = True
-    else                : all_out_param = False
+    if 'all' in outParam: allOutParam = True
+    else                : allOutParam = False
     if outputPivotVal != None:
-      if 'all' in outputPivotVal: outputPivotVal_all = True
+      if 'all' in outputPivotVal: outputPivotValAll = True
       else:
-        outputPivotVal_all, outputPivotVal = False,  [float(x) for x in outputPivotVal.split()]
-    else: outputPivotVal_all = True
+        outputPivotValAll, outputPivotVal = False,  [float(x) for x in outputPivotVal.split()]
+    else: outputPivotValAll = True
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow != None :
@@ -533,10 +533,10 @@ class HDF5(DateBase):
     # load the data into the tuple
     histVar = self.returnHistory(attributes)
     if pivotParameter != None:
-      pivotIndex = histVar[1]['output_space_headers'].index(pivotParameter) if pivotParameter in histVar[1]['output_space_headers'] else None
+      pivotIndex = histVar[1]['outputSpaceHeaders'].index(pivotParameter) if pivotParameter in histVar[1]['outputSpaceHeaders'] else None
       if pivotIndex == None: self.raiseAnError(IOError,'pivotParameter ' +pivotParameter+' has not been found in Database '+ str(self.name) + '!')
     else:
-      pivotIndex = histVar[1]['output_space_headers'].index("time") if "time" in histVar[1]['output_space_headers'] else None
+      pivotIndex = histVar[1]['outputSpaceHeaders'].index("time") if "time" in histVar[1]['outputSpaceHeaders'] else None
       # if None...default is 0
       if pivotIndex == None: pivotIndex = 0
 
@@ -544,49 +544,49 @@ class HDF5(DateBase):
     else                              : metaDict[0] = None
     # fill input param dictionary
     for key in inParam:
-      if 'input_space_headers' in histVar[1]:
-        inInKey = utils.keyIn(histVar[1]['input_space_headers'],key)
-        inOutKey = utils.keyIn(histVar[1]['output_space_headers'],key)
+      if 'inputSpaceHeaders' in histVar[1]:
+        inInKey = utils.keyIn(histVar[1]['inputSpaceHeaders'],key)
+        inOutKey = utils.keyIn(histVar[1]['outputSpaceHeaders'],key)
         if inInKey != None:
-          ix = histVar[1]['input_space_headers'].index(inInKey)
-          inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
+          ix = histVar[1]['inputSpaceHeaders'].index(inInKey)
+          inDict[key] = np.atleast_1d(np.array(histVar[1]['inputSpaceValues'][ix]))
         elif inOutKey != None and inInKey == None:
-          ix = histVar[1]['output_space_headers'].index(inOutKey)
+          ix = histVar[1]['outputSpaceHeaders'].index(inOutKey)
           if inputPivotVal != None:
             if float(inputPivotVal) > np.max(histVar[0][:,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
             inDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,ix], kind='linear')(float(inputPivotVal))))
           else: inDict[key] = np.atleast_1d(np.array(histVar[0][inputRow,ix]))
-        else: self.raiseAnError(RuntimeError,'the parameter ' + key + ' has not been found in '+str(histVar[1]['input_space_headers'])+' or '+str(histVar[1]['output_space_headers']))
+        else: self.raiseAnError(RuntimeError,'the parameter ' + key + ' has not been found in '+str(histVar[1]['inputSpaceHeaders'])+' or '+str(histVar[1]['outputSpaceHeaders']))
       else:
-        inOutKey = utils.keyIn(histVar[1]['output_space_headers'],key)
+        inOutKey = utils.keyIn(histVar[1]['outputSpaceHeaders'],key)
         if inOutKey is not None:
-          ix = histVar[1]['output_space_headers'].index(inOutKey)
+          ix = histVar[1]['outputSpaceHeaders'].index(inOutKey)
           if inputPivotVal != None:
             if float(inputPivotVal) > np.max(histVar[0][:,pivotIndex]) or float(inputPivotVal) < np.min(histVar[0][:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in Database '+ str(self.name) + '!')
             inDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,ix], kind='linear')(float(inputPivotVal))))
           else: inDict[key] = np.atleast_1d(np.array(histVar[0][inputRow,ix]))
-        else: self.raiseAnError(RuntimeError,'the parameter ' + key + ' has not been found in '+str(histVar[1]['output_space_headers']))
+        else: self.raiseAnError(RuntimeError,'the parameter ' + key + ' has not been found in '+str(histVar[1]['outputSpaceHeaders']))
 
-    #  all case => The history is completed (from start_time to end_time)
-    if outputPivotVal_all:
-      if all_out_param:
-        for key in histVar[1]['output_space_headers']:
-          outDict[key] = histVar[0][:,histVar[1]['output_space_headers'].index(key)]
+    #  all case => The history is completed (from startTime to end_time)
+    if outputPivotValAll:
+      if allOutParam:
+        for key in histVar[1]['outputSpaceHeaders']:
+          outDict[key] = histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)]
       else:
         for key in outParam:
-          inKey = utils.keyIn(histVar[1]['output_space_headers'],key)
+          inKey = utils.keyIn(histVar[1]['outputSpaceHeaders'],key)
           if inKey:
-            outDict[key] = histVar[0][:,histVar[1]['output_space_headers'].index(inKey)]
+            outDict[key] = histVar[0][:,histVar[1]['outputSpaceHeaders'].index(inKey)]
           else:
-            self.raiseAnError(RuntimeError,'the parameter ' + key + ' has not been found in '+str(histVar[1]['output_space_headers']))
+            self.raiseAnError(RuntimeError,'the parameter ' + key + ' has not been found in '+str(histVar[1]['outputSpaceHeaders']))
     else:
-      if all_out_param:
-        for key in histVar[1]['output_space_headers']:
-          outDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['output_space_headers'].index(key)], kind='linear')(outputPivotVal)))
+      if allOutParam:
+        for key in histVar[1]['outputSpaceHeaders']:
+          outDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)], kind='linear')(outputPivotVal)))
       else:
         for key in outParam:
-          if key in histVar[1]['output_space_headers']:
-            outDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['output_space_headers'].index(key)], kind='linear')(outputPivotVal)))
+          if key in histVar[1]['outputSpaceHeaders']:
+            outDict[key] = np.atleast_1d(np.array(interp1d(histVar[0][:,pivotIndex], histVar[0][:,histVar[1]['outputSpaceHeaders'].index(key)], kind='linear')(outputPivotVal)))
           else: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     # Return tuple of dictionaries containing the HistorySet
     return (copy.copy(inDict),copy.copy(outDict),copy.copy(metaDict))
@@ -603,19 +603,19 @@ class HDF5(DateBase):
     elif attributes['type'] == 'PointSet': data = self.__retrieveDataPointSet(attributes)
     elif attributes['type'] == 'History':      data = self.__retrieveDataHistory(attributes)
     elif attributes['type'] == 'HistorySet':
-      listhist_in  = {}
-      listhist_out = {}
-      listhist_meta= {}
+      listhistIn  = {}
+      listhistOut = {}
+      listhistMeta= {}
       endGroupNames = self.getEndingGroupNames()
       for index in range(len(endGroupNames)):
         attributes['history'] = endGroupNames[index]
         tupleVar = self.__retrieveDataHistory(attributes)
         # dictionary of dictionary key = i => ith history ParameterValues dictionary
-        listhist_in[index]  = tupleVar[0]
-        listhist_out[index] = tupleVar[1]
-        listhist_meta[index]= tupleVar[2]
+        listhistIn[index]  = tupleVar[0]
+        listhistOut[index] = tupleVar[1]
+        listhistMeta[index]= tupleVar[2]
         del tupleVar
-      data = (listhist_in,listhist_out,listhist_meta)
+      data = (listhistIn,listhistOut,listhistMeta)
     else: self.raiseAnError(RuntimeError,'Type' + attributes['type'] +' unknown.Caller: hdf5Manager.retrieveData')
     # return data
     gc.collect()

@@ -55,7 +55,7 @@
   </Distributions>
 
   <Samplers>
-    <DynamicEventTree maxSimulationTime="2500.0" name="DET" print_end_xml="yes">
+    <DynamicEventTree maxSimulationTime="2500.0" name="DET" printEndXmlSummary="yes">
       <Distribution name="crew1DG1">
         <distribution>crew1DG1</distribution>
         <grid construction="custom" type="CDF">0.1 0.4 0.8 0.9</grid>
