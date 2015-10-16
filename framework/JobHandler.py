@@ -474,7 +474,10 @@ class JobHandler(MessageHandler.MessageUser):
         ntasks = availableNodes.count(nodeid)
         remoteHostName =  remoteNodesIP[nodeid]
         # activate the remote socketing system
-        subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        remoteNodeProcess = subprocess.Popen(['ssh', nodeid],shell=False,stdin=subprocess.PIPE, stdout=outFile,stderr=outFile,env=localenv)
+        remoteNodeProcess.stdin.write("python "+os.path.join(self.runInfoDict['FrameworkDir'],"raven_qsub_command.py"))
+        remoteNodeProcess.stdin.write("python2.7 "+ ppserverScript + " -w " + str(ntasks) + " -i " + remoteHostName + " -p " + str(newPort) + " -t " + "1000" + " -g " + localenv["PYTHONPATH"] + " -d")
+        #subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         # update list of servers
         ppservers.append(nodeid+":"+str(newPort))
     return qualifiedHostName, ppservers

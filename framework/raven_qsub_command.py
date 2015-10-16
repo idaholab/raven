@@ -38,5 +38,6 @@ else:
 if "PBS_O_WORKDIR" in os.environ:
   os.chdir(os.environ["PBS_O_WORKDIR"])
 
-sys.stdout.write(os.environ["COMMAND"])
-subprocess.call(os.environ["COMMAND"],shell=True)
+if "COMMAND" in os.environ:
+  sys.stdout.write(os.environ["COMMAND"])
+  subprocess.call(os.environ["COMMAND"],shell=True)
