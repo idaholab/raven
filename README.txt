@@ -32,6 +32,9 @@ Maljovec, Daniel P (maljdan)
 Talbot, Paul W (talbpw)
 Kinoshita, Robert A (bobk)
 
+A list of other contributors can be obtained with the following command:
+```git shortlog -sn```
+
 Directories:
 
 control_modules - These are modules to be used by the control programs
