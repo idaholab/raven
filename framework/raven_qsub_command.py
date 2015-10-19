@@ -31,14 +31,13 @@ else:
   else:
     os.environ["MODULEPATH"] = newModuleFiles
 
-  mooseDevAndPython3Eval = subprocess.Popen([moduleCommand,"python","load","moose-dev-gcc","python/3.2"],stdout=subprocess.PIPE).communicate()[0]
+  mooseDevAndPython3Eval = subprocess.Popen([moduleCommand,"python","load","use.moose","moose-dev-gcc","python/3.2"],stdout=subprocess.PIPE).communicate()[0]
   exec(mooseDevAndPython3Eval)
-
   os.environ["PYTHONPATH"]=os.environ.get("PYTHONPATH","")+":"+os.path.join(os.path.expanduser("~"),"raven_libs","pylibs","lib","python2.7","site-packages")
-
 
 if "PBS_O_WORKDIR" in os.environ:
   os.chdir(os.environ["PBS_O_WORKDIR"])
 
-sys.stdout.write(os.environ["COMMAND"])
-subprocess.call(os.environ["COMMAND"],shell=True)
+if "COMMAND" in os.environ:
+  sys.stdout.write(os.environ["COMMAND"])
+  subprocess.call(os.environ["COMMAND"],shell=True)

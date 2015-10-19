@@ -7,6 +7,7 @@
     <NumThreads>4</NumThreads>
     <clusterParameters>-W block=true</clusterParameters>
     <CustomMode class="PBSDSHSimulationMode" file="%BASE_WORKING_DIR%/pbsdsh_custom/pbsdsh_mode.py">pbsdsh</CustomMode>
+    <RemoteRunCommand>raven_qsub_command.sh</RemoteRunCommand>
     <mode>pbsdsh</mode>
   </RunInfo>
 

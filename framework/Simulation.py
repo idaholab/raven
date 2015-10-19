@@ -128,7 +128,7 @@ def createAndRunQSUB(simulation):
              "-l","place=free","-v",
              'COMMAND="python Driver.py '+
              " ".join(simulation.runInfoDict["SimulationFiles"])+'"',
-             os.path.join(frameworkDir,"raven_qsub_command.sh")]
+             simulation.runInfoDict['RemoteRunCommand']]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
   simulation.raiseAMessage(os.getcwd()+' '+str(command))
@@ -286,12 +286,14 @@ class Simulation(MessageHandler.MessageUser):
     self.runInfoDict['SimulationFiles'   ] = []           #the xml input file
     self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaces
     self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
+    self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_qsub_command.sh')
     self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
     self.runInfoDict['NumMPI'            ] = 1            # the number of mpi process by run
     self.runInfoDict['NumThreads'        ] = 1            # Number of Threads by run
     self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threads by number of mpi)
     self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
+    self.runInfoDict['internalParallel'  ] = False        # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
     self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
     self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded
     #self.runInfoDict['procByNode'        ] = 1            # number of processors by node
@@ -549,13 +551,21 @@ class Simulation(MessageHandler.MessageUser):
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
           rawRelativeWorkingDir = element.text.strip()
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
+      elif element.tag == 'RemoteRunCommand'  :
+        tempName = element.text
+        if '~' in tempName : tempName = os.path.expanduser(tempName)
+        if os.path.isabs(tempName):
+          self.runInfoDict['RemoteRunCommand' ] = tempName
+        else:
+          self.runInfoDict['RemoteRunCommand' ] = os.path.abspath(os.path.join(self.runInfoDict['FrameworkDir'],tempName))
       elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
       elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'        ] = int(element.text)
-      elif element.tag == 'totalNumCoresUsed' : self.runInfoDict['totalNumCoresUsed'   ] = int(element.text)
+      elif element.tag == 'totalNumCoresUsed' : self.runInfoDict['totalNumCoresUsed' ] = int(element.text)
       elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'            ] = int(element.text)
+      elif element.tag == 'internalParallel'  : self.runInfoDict['internalParallel'  ] = utils.interpretBoolean(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag == 'MaxLogFileSize'    : self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
       elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text

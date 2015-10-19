@@ -16,6 +16,35 @@ class Object(object):pass
 #custom errors
 class NoMoreSamplesNeeded(GeneratorExit): pass
 
+
+def identifyIfExternalModelExists(caller, moduleIn, workingDir):
+  """
+   Method to check if a external module exists and in case return the module that needs to be loaded with
+   the correct path
+   @ In, caller,object, the RAVEN caller (i.e. self)
+   @ In, moduleIn, string, module read from the XML file
+   @ In, workingDir, string, the path of the working directory
+   @ Out, (moduleToLoad, fileName), tuple, a tuple containing the module to load (that should be used in method importFromPath) and the filename (no path)
+  """
+  if moduleIn.endswith('.py') : moduleToLoadString = moduleIn[:-3]
+  else                        : moduleToLoadString = moduleIn
+  workingDirModule = os.path.abspath(os.path.join(workingDir,moduleToLoadString))
+  if os.path.exists(workingDirModule+".py"):
+    moduleToLoadString = workingDirModule
+    path, filename = os.path.split(workingDirModule)
+    os.sys.path.append(os.path.abspath(path))
+  else:
+    path, filename = os.path.split(moduleToLoadString)
+    if (path != ''):
+      abspath = os.path.abspath(path)
+      if '~' in abspath:abspath = os.path.expanduser(abspath)
+      if os.path.exists(abspath):
+        caller.raiseAWarning('file '+moduleToLoadString+' should be relative to working directory. Working directory: '+workingDir+' Module expected at '+abspath)
+        os.sys.path.append(abspath)
+      else: caller.raiseAnError(IOError,'The path provided for the' + caller.type + ' named '+ caller.name +' does not exist!!! Got: ' + abspath + ' and ' + workingDirModule)
+  return moduleToLoadString, filename
+
+
 def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   """
     Method to check if a path (file or directory) is currently
@@ -38,12 +67,9 @@ def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
     @ In, filename, string containing the file name
     @ Out, boolean, True if it is present, False otherwise
   """
-  import portalocker
-  finm = os.path.join(pathname,filename)
-  fp = open(finm, 'w')
-  try           : portalocker.lock(fp, portalocker.LOCK_EX | portalocker.LOCK_NB)
-  except portalocker.LockException: return True
-  return False
+  filePresent = os.path.isfile(os.path.join(pathname,filename))
+  open(os.path.join(pathname,filename), 'w')
+  return filePresent
 
 def returnImportModuleString(obj,moduleOnly=False):
   """
