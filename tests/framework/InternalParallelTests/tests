@@ -1,0 +1,17 @@
+[Tests]
+ [./ROMscikit]
+  type = 'RavenFramework'
+  input = 'test_internal_parallel_ROM_scikit.xml'
+  UnorderedCsv = 'InternalParallelScikit/PrintDataData2.csv InternalParallelScikit/PrintDataData3.csv'
+ [../]
+ [./ExternalModel]
+  type = 'RavenFramework'
+  input = 'test_internal_parallel_extModel.xml'
+  UnorderedCsv = 'InternalParallelExtModel/testPointSet_dump.csv'
+ [../]
+ [./PostProcessor]
+  type = 'RavenFramework'
+  input = 'test_internal_parallel_PP_LS.xml'
+  csv = 'InternalParallelPostProcessorLS/LimitSurfaceWeightedPb_dump.csv InternalParallelPostProcessorLS/LimitSurfaceUnWeightedPb_dump.csv'
+ [../]
+[]
