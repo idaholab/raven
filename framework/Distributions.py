@@ -1551,6 +1551,24 @@ class MultivariateNormal(NDimensionalDistributions):
     elif self.method == 'pca':
       self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
 
+  def pcaInverseTransform(self,x):
+    """
+    Transform latent parameters back to models' parameters
+    @ x, input coordinate, list values for the latent variables
+    @ varDict, output dictionary, {'modelParameterName':value}, this will be assigned to self.inputInfor['SampledVars'] inside Samplers.
+    """
+    if self.method == 'spline':
+      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
+    elif self.method == 'pca':
+      if len(x) != self.rank: self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is not consistent with the rank defined in <Distributions>')
+      coordinate = distribution1D.vectord_cxx(len(x))
+      for i in range(len(x)):
+        coordinate[i] = x[i]
+      originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
+      values = np.atleast_1d(originalCoordinate).tolist()[0]
+      varDict = dict(zip(self.inputVariables['model'],values))
+      return varDict
+
   def ppfInTransformedSpace(self):
     """
       Return the coordinate in the transformed space
