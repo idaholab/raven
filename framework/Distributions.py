@@ -1565,11 +1565,11 @@ class MultivariateNormal(NDimensionalDistributions):
       for i in range(len(x)):
         coordinate[i] = x[i]
       originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
-      values = np.atleast_1d(originalCoordinate).tolist()[0]
+      values = np.atleast_1d(originalCoordinate).tolist()
       varDict = dict(zip(self.inputVariables['model'],values))
       return varDict
 
-  def ppfInTransformedSpace(self):
+  def coordinateInTransformedSpace(self):
     """
       Return the coordinate in the transformed space
     """
@@ -1585,10 +1585,14 @@ class MultivariateNormal(NDimensionalDistributions):
       self.raiseAnError(NotImplementedError,'ppf is not yet implemented for ' + self.method + ' method')
 
   def pdf(self,x):
-    coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    return self._distribution.Pdf(coordinate)
+    if self.reduction:
+      pdfValue = self.pdfInTransformedSpace(x)
+      return pdfValue
+    else:
+      coordinate = distribution1D.vectord_cxx(len(x))
+      for i in range(len(x)):
+        coordinate[i] = x[i]
+      return self._distribution.Pdf(coordinate)
 
   def pdfInTransformedSpace(self,x):
     """
@@ -1638,12 +1642,14 @@ class MultivariateNormal(NDimensionalDistributions):
   def rvs(self,*args):
     if self.method == 'spline':
       return self._distribution.InverseCdf(random(),random())
-    # return the coordinate for the original input parameters
-    # frist generate the coordinate in the transformed space
-    # then transform the coordinate back to the original space
+    # if no reduction, then return the coordinate for the original input parameters
+    # if there is a reduction, then return the coordinate in the reduced space
     elif self.method == 'pca':
-      coordinate = self._distribution.coordinateInTransformedSpace(self.rank)
-      return self._distribution.coordinateInverseTransformed(coordinate)
+      if self.reduction:
+        return self._distribution.coordinateInTransformedSpace(self.rank)
+      else:
+        coordinate = self._distribution.coordinateInTransformedSpace(self.rank)
+        return self._distribution.coordinateInverseTransformed(coordinate)
     else:
       self.raiseAnError(NotImplementedError,'rvs is not yet implemented for ' + self.method + ' method')
 

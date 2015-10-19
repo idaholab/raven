@@ -433,19 +433,6 @@
    csv = 'RunFailures/MCdump.csv RunFailures/MCdumpC.csv'
  [../]
 
- [./MVNAbs]
-  type = 'RavenFramework'
-  input = 'test_MVN_abs.xml'
-  output = 'MVNAbs/testPrintPointSetAbs_dump.csv MVNAbs/testPrintPointSetAbs_dump.csv'
-  csv = 'MVNAbs/testPrintPointSetAbs_dump.csv MVNAbs/testPrintPointSetAbs_dump.csv'
- [../]
-
- [./MVNRel]
-  type = 'RavenFramework'
-  input = 'test_MVN_rel.xml'
-  output = 'MVNRel/testPrintPointSetRel_dump.csv MVNRel/testPrintPointSetRel_dump.csv'
-  csv = 'MVNRel/testPrintPointSetRel_dump.csv MVNRel/testPrintPointSetRel_dump.csv'
- [../]
 
  [./NDGridProbabilityWeightCDF]
   type = 'RavenFramework'
