@@ -477,8 +477,7 @@ class JobHandler(MessageHandler.MessageUser):
         #Next line is a direct execute of ppserver:
         #subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"])
-        qsub=os.path.join(self.runInfoDict['FrameworkDir'],"raven_qsub_command.sh")
-        subprocess.Popen(['ssh',nodeid,"COMMAND='"+command+"'",qsub],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        subprocess.Popen(['ssh',nodeid,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         #ssh nodeid COMMAND='python ppserverScript -w stuff'
         # update list of servers
         ppservers.append(nodeid+":"+str(newPort))

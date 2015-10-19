@@ -128,7 +128,7 @@ def createAndRunQSUB(simulation):
              "-l","place=free","-v",
              'COMMAND="python Driver.py '+
              " ".join(simulation.runInfoDict["SimulationFiles"])+'"',
-             os.path.join(frameworkDir,"raven_qsub_command.sh")]
+             simulation.runInfoDict['RemoteRunCommand']]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
   simulation.raiseAMessage(os.getcwd()+' '+str(command))
@@ -286,6 +286,7 @@ class Simulation(MessageHandler.MessageUser):
     self.runInfoDict['SimulationFiles'   ] = []           #the xml input file
     self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaces
     self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
+    self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_qsub_command.sh')
     self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
     self.runInfoDict['NumMPI'            ] = 1            # the number of mpi process by run
@@ -550,6 +551,13 @@ class Simulation(MessageHandler.MessageUser):
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
           rawRelativeWorkingDir = element.text.strip()
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
+      elif element.tag == 'RemoteRunCommand'  :
+        tempName = element.text
+        if '~' in tempName : tempName = os.path.expanduser(tempName)
+        if os.path.isabs(tempName):
+          self.runInfoDict['RemoteRunCommand' ] = tempName
+        else:
+          self.runInfoDict['RemoteRunCommand' ] = os.path.abspath(os.path.join(self.runInfoDict['FrameworkDir'],tempName))
       elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()

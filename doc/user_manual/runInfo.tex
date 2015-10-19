@@ -38,6 +38,15 @@ the settings of the calculation flow that is being performed through RAVEN:
 %this node could be omitted.
 %string from the \emph{WorkingDir}.
 
+%%%%%% REMOTE RUN COMMAND
+\item \xmlNode{RemoteRunCommand}, \xmlDesc{string, required field},
+  specifies the absolute or relative (with respect to the framework
+  directory) path to a command that can be used on a remote machine to
+  execute a command.  The command is passed in as the environmental
+  variable COMMAND.
+%
+\default{raven\_qsub\_command.sh}
+
 %%%%%% BATCH SIZE
 \item \xmlNode{batchSize}, \xmlDesc{integer, optional field},
   specifies the number of parallel runs executed simultaneously (e.g.,
