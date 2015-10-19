@@ -1,6 +1,6 @@
 "[u'OriData', u'Output', [u'tsin_TEMPERATURE']]"
-"num_bins",10
-"bin_boundary","bin_midpoint","bin_count","normalized_bin_count","f_prime","cdf"
+"numBins",10
+"binBoundary","binMidpoint","binCount","normalizedBinCount","f_prime","cdf"
 410.943986495,410.609601451,7,0.014,0.0239245149501,0.014
 411.612756585,411.27837154,27,0.054,0.159995193729,0.068
 412.281526674,411.947141629,65,0.13,0.242235713869,0.198
@@ -12,13 +12,13 @@
 416.29414721,415.959762165,12,0.024,0.0134575396594,0.994
 416.962917299,416.628532254,3,0.006,0.0,1.0
 "skewness",0.0873303717419
-"min_bin_size",0.668770089316
+"minBinSize",0.668770089316
 "kurtosis",-0.0462148849596
 "stdev",1.15673221535
 "high",416.962917299
 "xi",412.39896042
 "low",410.275216406
-"sample_variance",1.33802941804
+"sampleVariance",1.33802941804
 "alpha",0.822863172249
 "variance",1.3353533592
 "omega",1.80090781736
@@ -74,8 +74,8 @@
 "variance_function_diff",4.80926615303
 
 "[u'OriData', u'Output', [u'tsout_TEMPERATURE']]"
-"num_bins",10
-"bin_boundary","bin_midpoint","bin_count","normalized_bin_count","f_prime","cdf"
+"numBins",10
+"binBoundary","binMidpoint","binCount","normalizedBinCount","f_prime","cdf"
 366.876856731,366.813664417,7,0.014,0.0791235466833,0.014
 367.003241358,366.940049045,28,0.056,1.09190494423,0.07
 367.129625986,367.066433672,74,0.148,1.17102849091,0.218
@@ -87,13 +87,13 @@
 367.887933753,367.824741439,11,0.022,0.0712111920149,0.994
 368.014318381,367.951126067,3,0.006,0.0,1.0
 "skewness",0.11562352651
-"min_bin_size",0.126384627828
+"minBinSize",0.126384627828
 "kurtosis",-0.0310434070222
 "stdev",0.218076240032
 "high",368.014318381
 "xi",367.280236193
 "low",366.750472103
-"sample_variance",0.0475572464665
+"sampleVariance",0.0475572464665
 "alpha",0.927331357762
 "variance",0.0474621319736
 "omega",0.0673940589837
@@ -267,8 +267,8 @@
 "variance_function_diff",3.95803631668
 
 "[u'OriData', u'Output', [u'massflow']]"
-"num_bins",10
-"bin_boundary","bin_midpoint","bin_count","normalized_bin_count","f_prime","cdf"
+"numBins",10
+"binBoundary","binMidpoint","binCount","normalizedBinCount","f_prime","cdf"
 0.191948338241,0.191423718296,7,0.014,18.1083470018,0.014
 0.19299757813,0.192472958185,26,0.052,85.7763805346,0.066
 0.194046818019,0.193522198074,59,0.118,147.725988699,0.184
@@ -280,13 +280,13 @@
 0.200342257354,0.199817637409,12,0.024,8.57763805346,0.994
 0.201391497243,0.200866877298,3,0.006,0.0,1.0
 "skewness",0.0541662072784
-"min_bin_size",0.0010492398891
+"minBinSize",0.0010492398891
 "kurtosis",-0.0615937263887
 "stdev",0.00181879397117
 "high",0.201391497243
 "xi",0.195737318967
 "low",0.190899098352
-"sample_variance",3.30801150957e-06
+"sampleVariance",3.30801150957e-06
 "alpha",0.679328269539
 "variance",3.30139548655e-06
 "omega",4.14030598152e-06
@@ -494,8 +494,8 @@
 "variance_function_diff",0.000877806083249
 
 "[u'OriData', u'Output', [u'tsin_TEMPERATURE']]"
-"num_bins",10
-"bin_boundary","bin_midpoint","bin_count","normalized_bin_count","f_prime","cdf"
+"numBins",10
+"binBoundary","binMidpoint","binCount","normalizedBinCount","f_prime","cdf"
 410.943986495,410.609601451,7,0.014,0.0239245149501,0.014
 411.612756585,411.27837154,27,0.054,0.159995193729,0.068
 412.281526674,411.947141629,65,0.13,0.242235713869,0.198
@@ -507,20 +507,20 @@
 416.29414721,415.959762165,12,0.024,0.0134575396594,0.994
 416.962917299,416.628532254,3,0.006,0.0,1.0
 "skewness",0.0873303717419
-"min_bin_size",0.668770089316
+"minBinSize",0.668770089316
 "kurtosis",-0.0462148849596
 "stdev",1.15673221535
 "high",416.962917299
 "xi",412.39896042
 "low",410.275216406
-"sample_variance",1.33802941804
+"sampleVariance",1.33802941804
 "alpha",0.822863172249
 "variance",1.3353533592
 "omega",1.80090781736
 "mean",413.311978124
 "[u'OriData', u'Output', [u'tsout_TEMPERATURE']]"
-"num_bins",10
-"bin_boundary","bin_midpoint","bin_count","normalized_bin_count","f_prime","cdf"
+"numBins",10
+"binBoundary","binMidpoint","binCount","normalizedBinCount","f_prime","cdf"
 366.876856731,366.813664417,7,0.014,0.0791235466833,0.014
 367.003241358,366.940049045,28,0.056,1.09190494423,0.07
 367.129625986,367.066433672,74,0.148,1.17102849091,0.218
@@ -532,13 +532,13 @@
 367.887933753,367.824741439,11,0.022,0.0712111920149,0.994
 368.014318381,367.951126067,3,0.006,0.0,1.0
 "skewness",0.11562352651
-"min_bin_size",0.126384627828
+"minBinSize",0.126384627828
 "kurtosis",-0.0310434070222
 "stdev",0.218076240032
 "high",368.014318381
 "xi",367.280236193
 "low",366.750472103
-"sample_variance",0.0475572464665
+"sampleVariance",0.0475572464665
 "alpha",0.927331357762
 "variance",0.0474621319736
 "omega",0.0673940589837

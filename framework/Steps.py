@@ -531,7 +531,7 @@ class IOStep(Step):
       for i in range(len(inDictionary['Input'])):
         if self.actionType[i].startswith('dataObjects-'):
           inInput = inDictionary['Input'][i]
-          inInput.loadXML_CSV(self.fromDirectory)
+          inInput.loadXMLandCSV(self.fromDirectory)
 
     #Initialize all the OutStreamPrint and OutStreamPlot outputs
     for output in inDictionary['Output']:
@@ -573,7 +573,7 @@ class IOStep(Step):
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]
         options = {'fileToLoad':infile}
-        outputs[i].loadXML_CSV(inDictionary['Input'][i].getPath(),options)
+        outputs[i].loadXMLandCSV(inDictionary['Input'][i].getPath(),options)
       else:
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
     for output in inDictionary['Output']:

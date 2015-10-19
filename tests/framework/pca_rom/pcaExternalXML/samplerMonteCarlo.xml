@@ -1,10 +1,10 @@
 <?xml version="1.0" ?> 
 <MonteCarlo name="MCExternal"> 
-  <sampler_init> 
+  <samplerInit> 
     <limit>10</limit>
-    <initial_seed>1234</initial_seed>
-    <reseed_at_each_iteration>True</reseed_at_each_iteration>
-  </sampler_init>
+    <initialSeed>1234</initialSeed>
+    <reseedEachIteration>True</reseedEachIteration>
+  </samplerInit>
   <variable name="x_0">
     <distribution dim="1">MultivariateNormalReduction</distribution>
   </variable>

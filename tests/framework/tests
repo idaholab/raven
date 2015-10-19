@@ -9,10 +9,8 @@
  [./2steps_same_db]
   type = 'RavenFramework'
   input = 'test_2steps_same_db.xml'
-  output = 'revirD_tset/FirstStep/out~1~ideal_pump revirD_tset/FirstStep/out~6~ideal_pump revirD_tset/SecondStep/out~2~ideal_pump'
-  required_executable = '../../RAVEN-%METHOD%'
-  # this prereq is just because it points to the same working directory
-  prereq = simple_framework
+  csv = 'test_2steps/fullprint_HistorySet_3.csv'
+  xml = 'test_2steps/fullprint_HistorySet.xml'
  [../]
 
  [./external_xml]
@@ -28,16 +26,12 @@
   output = 'output_check/1-plot7_stem.png output_check/1-2DHistoryPlot_histogram.png output_check/1-test_line-line.png output_check/1-plot2_line-line.png output_check/1-plot4_scatter-scatter.png output_check/1-plot3_scatter-scatter.png output_check/1-plot9_stem.png output_check/1-plot8_stem.png output_check/1-plot7_stem.png output_check/1-plot6_histogram.png output_check/1-plot5_histogram.png output_check/1-plot11_step.png output_check/1-plot10_stem.png output_check/1-plot14_tri-surface-tri-surface.png output_check/1-plot13_surface-surface.png output_check/1-plot12_pseudocolor.png output_check/1-plot17_contour3D-filledContour3D.png output_check/1-plot16_contour-filledContour.png output_check/1-plot15_wireframe-wireframe.png output_check/1-plot18_scatter.png output_check/1-plot19_scatter.png output_check/1-plot20_scatter.png output_check/fullprint_history.csv output_check/fullprint_Pointset.csv output_check/fullprint_Point.csv output_check/testprint_selective_history.csv output_check/testprint_selective_Point.csv'
   csv = 'output_check/fullprint_HistorySet_2.csv output_check/test_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_hist2_4.csv output_check/testprint_selective_hist3_4.csv output_check/testprint_selective_Pointset.csv'
   xml = 'output_check/fullprint_HistorySet.xml output_check/fullprint_history.xml output_check/fullprint_Pointset.xml output_check/fullprint_Point.xml'
-#  skip = 'Cannot run headless'
-  #skip = 'Problem with output system filenames'
-   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./test_subPlot]
   type = 'RavenFramework'
   input = 'test_subPlot.xml'
   output = 'subplot_output/1-subPlot1_surface-surface-surface.png subplot_output/1-subPlot2_stem-stem-stem.png subplot_output/1-subPlot3_stem-stem-stem-stem-stem.png'
-   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./test_output_attributes]
@@ -54,6 +48,7 @@
   output = 'AdaptiveDET/limitSurfDump.csv AdaptiveDET/adaptiveOutsimpleDump.csv'
   csv = 'AdaptiveDET/limitSurfDump.csv'
   required_executable = '../../RAVEN-%METHOD%'
+  rel_err = 0.0001
   max_time = 400
  [../]
 
@@ -63,6 +58,7 @@
   output = 'AdaptiveHybridDET/limitsurfaceDump.csv AdaptiveHybridDET/adaptiveOutsimpleHier.csv'
   csv = 'AdaptiveHybridDET/limitsurfaceDump.csv'
   required_executable = '../../RAVEN-%METHOD%'
+  rel_err = 0.0001
   max_time = 400
  [../]
 
@@ -87,12 +83,9 @@
  [./test_push_into_hdf5]
   type = 'RavenFramework'
   input = 'test_push_into_hdf5.xml'
-  #skip = 'unreliable and needs fixing'
-  output = 'test_extract_data_s_from_hdf5/MonteCarlo/out~1~ideal_pump.csv'
   csv = 'test_extract_data_s_from_hdf5/Pointset_from_database_dump.csv test_extract_data_s_from_hdf5/Pointset_IN_database_dump.csv'
   max_time = 500
   rel_err = 0.01
-  required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./test_merge_2_databases]
@@ -105,27 +98,35 @@
   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
- [./test_rom_trainer]
+ [./test_rom_trainer_raven]
   type = 'RavenFramework'
-  input = 'test_rom_trainer.xml'
+  input = 'test_rom_trainer_raven.xml'
   #skip = 'working in progress'
-  output = 'test_rom_trainer/MC_for_rom_trainer/out~1~TMI test_rom_trainer/MC_for_rom_trainer/out~2~TMI.csv'
-  csv = 'test_rom_trainer/outputMontecarloRom_dump.csv test_rom_trainer/outputMontecarloRomND_dump.csv'
+  output = 'test_rom_trainer_raven/MC_for_rom_trainer/out~1~TMI test_rom_trainer_raven/MC_for_rom_trainer/out~2~TMI.csv'
+  csv = 'test_rom_trainer_raven/outputMontecarloRom_dump.csv test_rom_trainer_raven/outputMontecarloRomND_dump.csv'
   max_time = 1500
   rel_err = 0.001
   required_executable = '../../RAVEN-%METHOD%'
   skip = 'Relap issue #111'
  [../]
 
+[./test_rom_trainer]
+  type = 'RavenFramework'
+  input = 'test_rom_trainer.xml'
+  #skip = 'working in progress'
+  output = ''
+  csv = 'test_rom_trainer/outputMontecarloRom_dump.csv test_rom_trainer/outputMontecarloRomND_dump.csv'
+  max_time = 1500
+  rel_err = 0.001
+ [../]
+
  [./test_multi_target_rom]
   type = 'RavenFramework'
   input = 'test_multi_target_rom.xml'
-  output = 'test_rom_trainer/MC_for_rom_trainer/out~1~TMI test_rom_trainer/MC_for_rom_trainer/out~2~TMI.csv'
+  output = ''
   csv = 'test_rom_trainer/outputMontecarloMultiTargetRom_dump.csv test_rom_trainer/outputMontecarloMultiTargetRomND_dump.csv'
   max_time = 1500
   rel_err = 0.001
-  required_executable = '../../RAVEN-%METHOD%'
-  skip = 'Relap issue #111'
  [../]
 
 
@@ -133,8 +134,8 @@
   type = 'RavenFramework'
   input = 'test_rom_train_from_already_dumped_HDF5.xml'
   #skip = 'working in progress'
-  output='test_rom_trainer/outputMontecarloRom_dump.csv'
-  csv = 'test_rom_trainer/outputMontecarloRom_dump.csv'
+  output=''
+  csv = 'test_rom_trainer/outputMontecarloRom_dump2.csv'
   max_time = 1000
   rel_err = 0.001
   prereq = test_rom_trainer
@@ -296,8 +297,9 @@
  [./test_iostep_load]
    type = 'RavenFramework'
    input = 'test_iostep_load.xml'
-   output = 'test_iostep_load/reprint_HistorySet.xml test_iostep_load/reprint_HistorySet.csv test_iostep_load/reprint_history.csv'
+   output = 'test_iostep_load/reprint_HistorySet.csv test_iostep_load/reprint_history.csv'
    csv = 'test_iostep_load/reprint_HistorySet_1.csv test_iostep_load/reprint_Point.csv test_iostep_load/reprint_Pointset.csv'
+   xml = 'test_iostep_load/reprint_HistorySet.xml'
    prereq = test_output
  [../]
 

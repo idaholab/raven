@@ -1,4 +1,4 @@
-<data name="dump" type="Pointset"><input>x2,x3,x1,x6,x4,x5</input><output>OutputPlaceHolder</output><input_filename>dump.csv</input_filename><metadata><SamplerType>array([u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
+<data name="dump" type="Pointset"><input>x2,x3,x1,x6,x4,x5</input><output>OutputPlaceHolder</output><inputFilename>dump.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
        u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
        u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
        u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',

@@ -35,7 +35,7 @@
   <Samplers>
     <FactorialDesign name="fullFactorial">
       <FactorialSettings>
-        <algorithm_type>full</algorithm_type>
+        <algorithmType>full</algorithmType>
       </FactorialSettings>
       <variable name="VarGauss1">
         <distribution>Gauss1</distribution>
@@ -52,7 +52,7 @@
     </FactorialDesign>
     <FactorialDesign name="2levelFractFactorial">
       <FactorialSettings>
-        <algorithm_type>2levelFract</algorithm_type>
+        <algorithmType>2levelFract</algorithmType>
         <gen>a,b,ab</gen>
         <genMap>VarGauss1,VarGauss2,VarTri1</genMap>
       </FactorialSettings>
@@ -71,7 +71,7 @@
     </FactorialDesign>
     <FactorialDesign name="pbFactorial">
       <FactorialSettings>
-        <algorithm_type>pb</algorithm_type>
+        <algorithmType>pb</algorithmType>
       </FactorialSettings>
       <variable name="VarGauss1">
         <distribution>Gauss1</distribution>

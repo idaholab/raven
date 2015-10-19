@@ -43,10 +43,10 @@
 
   <Samplers>
     <MonteCarlo name="MC_external">
-      <sampler_init>
+      <samplerInit>
         <limit>3</limit>
-        <initial_seed>1234</initial_seed>
-      </sampler_init>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
       <variable name="x0">
         <distribution dim="1">MultivariateNormal_test</distribution>
       </variable>
