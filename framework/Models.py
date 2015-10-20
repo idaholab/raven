@@ -371,7 +371,7 @@ class ROM(Dummy):
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
 
-    #XXX
+    #######
     self.howManyTimeSteps  = self.initializationOptionDict['t_Discs']
     for ts in range(self.howManyTimeSteps):
       tsDict = {}
@@ -379,7 +379,7 @@ class ROM(Dummy):
         self.initializationOptionDict['Target'] = target
         tsDict[target] = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
       self.SupervisedEngine[ts] = tsDict
-    #XXX
+    #######
     
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
