@@ -2942,7 +2942,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     else: self.raiseAnError(KeyError,'Unexpected convergence criteria:',self.convType)
     return impact
 
-  def localStillReady(self,ready):
+  def localStillReady(self,ready,skipJobHandlerCheck=False):
     """
       Determines what additional points are necessary for RAVEN to run.
       @ In, ready, bool, true if ready
@@ -2953,15 +2953,17 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
     #if we still have a list of points to sample, just keep on trucking.
-    if len(self.neededPoints)>0: return True
+    if len(self.neededPoints)>0:
+      self.raiseAWarning('still have points to run')
+      return True
     #if points all submitted but not all done, not ready for now.
-    if (not self.batchDone) or (not self.jobHandler.isFinished()):
+    if (not self.batchDone) or (not skipJobHandlerCheck and not self.jobHandler.isFinished()):
       return False
     if len(self.existing) < self.newSolutionSizeShouldBe:
       #self.raiseADebug('Still collecting; existing has less points (%i) than it should (%i)!' %(len(self.existing),self.newSolutionSizeShouldBe))
       return False
     #if no points to check right now, search for points to sample
-    while len(self.neededPoints)<1:
+    while len(self.neededPoints)<1: #what if it's running and not done?
       self.raiseADebug('')
       self.raiseADebug('Evaluating new points...')
       #update QoIs and impact parameters
@@ -3007,8 +3009,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
           self.neededPoints=[]
           break
       #if we're not converged...
-      self.raiseADebug('new iset:')
-      self.indexSet.printOut()
+      #self.raiseADebug('new iset:')
+      #self.indexSet.printOut()
       #store the old rom, if we have it
       if len(self.indexSet.points)>1:
         self.oldSG = self.activeSGs[self.indexSet.newestPoint]
@@ -3028,12 +3030,13 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #if we exited the while-loop searching for new points and there aren't any, we're done!
     if len(self.neededPoints)==0:
       self.converged = True
-      self.indexSet.printOut()
+      #self.indexSet.printOut()
       self.finalizeROM()
       self.unfinished = self.jobHandler.numRunning()
       self.jobHandler.terminateAll()
       return False
     #otherwise, we have work to do.
+    self.raiseAWarning('default exit')
     return True
 
   def finalizeROM(self):
@@ -3046,15 +3049,15 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #initialize final rom with final sparse grid and index set
     self.sparseGrid = Quadratures.SparseQuad()
     self.sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
-    for SVL in self.ROM.SupervisedEngine.values():
+    for target,SVL in self.ROM.SupervisedEngine.items():
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.distDict,
                       'quads':self.quadDict,
                       'polys':self.polyDict,
                       'iSet':self.indexSet,
                       'numRuns':len(self.pointsNeededToMakeROM)-self.unfinished})
-    self.indexSet.printHistory()
-    self.indexSet.writeHistory()
+    #self.indexSet.printHistory()
+    #self.indexSet.writeHistory()
 
   def localGenerateInput(self,model,myInput):
     """
@@ -3271,50 +3274,49 @@ class Sobol(SparseGridCollocation):
 #
 class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
   def __init__(self):
-    '''
-      Initializes members to be used in the sampler.
-      @ In, None
-      @ Out, None
-    '''
     Sobol.__init__(self)
-    self.type = 'AdaptiveSobolSampler'
-    self.printTag = 'SAMPLER ADAPTIVE SOBOL'
-    self.maxComboCard = None
+
+    #identification
+    self.type            = 'AdaptiveSobolSampler'
+    self.printTag        = 'SAMPLER ADAPTIVE SOBOL'
 
     #input parameters
-    self.convType      = None #type of convergence for subset sparse grids, i.e. variance or coeffs
-    self.maxSobolOrder = None #largest dimensionality of a subset combination
-    self.maxPolyOrder  = None #largest polynomial order to use in subset sparse grids
-    self.maxRuns       = None #most runs to allow each subset sparse grid to use
-    self.convValue     = None #value to converge adaptive sampling to
+    self.convType        = None #type of convergence for subset sparse grids, i.e. variance or coeffs
+    self.maxSobolOrder   = None #largest dimensionality of a subset combination
+    self.maxPolyOrder    = None #largest polynomial order to use in subset sparse grids
+    self.maxRuns         = None #most runs to allow each subset sparse grid to use
+    self.convValue       = None #value to converge adaptive sampling to
 
     #assembly objects
-    self.solns = None #solution database, PointSet data object
-    self.ROM   = None #HDMR rom that will be constructed with the samples found here
+    self.solns           = None #solution database, PointSet data object
+    self.ROM             = None #HDMR rom that will be constructed with the samples found here
 
     #storage dictionaries
-    self.SQs          = {} #stores sparse grid quadrature objects
-    self.samplers     = {} #stores adaptive sparse grid sampling objects
-    self.romShell     = {} #stores Model.ROM objects for each combo
-    self.iSets        = {} #adaptive index set objects by combo
-    self.ROMs         = {} #subset reduced-order models
-    self.inTraining   = {} #samplers by combo that are not finished adaptively generating
-    self.doneTraining = {} #TODO necessary? samplers by combo that are finished sampling
-    self.subsets      = {} #subset gPC ROMs to be used in full HDMR ROM
-    self.references   = {} #mean-value cut reference points by variable
+    self.SQs             = {} #stores sparse grid quadrature objects
+    self.samplers        = {} #stores adaptive sparse grid sampling objects
+    self.romShell        = {} #stores Model.ROM objects for each combo
+    self.iSets           = {} #adaptive index set objects by combo
+    self.ROMs            = {} #subset reduced-order models
+    self.inTraining      = {} #samplers by combo that are not finished adaptively generating
+    self.doneTraining    = {} #TODO necessary? samplers by combo that are finished sampling
+    self.pointsNeeded    = {} #by subset, the points needed for next step in adaptive SG sampler
+    self.pointsCollected = {} #by subset, the points collected for next stip in adaptive SG sampler
+    self.subsets         = {} #subset gPC ROMs to be used in full HDMR ROM
+    self.references      = {} #mean-value cut reference points by variable
+    self.useSet          = {} #accepted subsets and the associated ROMs
 
     #convergence parameters
-    self.actImpact = {} #actual impact on variance by subset combo
-    self.expImpact = {} #estimated impact on variance by subset combo
+    self.actImpact       = {} #actual impact on variance by subset combo
+    self.expImpact       = {} #estimated impact on variance by subset combo
 
     #attributes
-    self.features = None #ROM features of interest, also input variable list
-    self.targets = None #ROM outputs of interest
+    self.features        = None #ROM features of interest, also input variable list
+    self.targets         = None #ROM outputs of interest
 
     #point lists
-    self.submittedNotCollected=[] #list of points that have been generated but not collected
-    self.existing=[]
-    self.sorted=[]
+    self.existing        = [] #points from restart and calculations
+    self.sorted          = [] #TODO necessary?
+    self.submittedNotCollected = [] #list of points that have been generated but not collected
 
     self._addAssObject('TargetEvaluation','1')
 
@@ -3328,11 +3330,20 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     conv = xmlNode.find('Convergence')
     if conv is None: self.raiseAnError(IOError,'"Convergence" node not found in input!')
     self.convType      = conv.get('target')
-    self.maxSobolOrder = int(conv.get('maxSobolOrder',2))
-    self.maxPolyOrder  = int(conv.get('maxPolyOrder',10)) #TODO implement these limits
-    self.maxRuns       = conv.get('maxRunsPerSubset',None)
     self.convValue     = float(conv.text)
-    if self.maxRuns is not None: self.maxRuns = int(self.maxRuns)
+    if xmlNode.find('maxSobolOrder') is not None:
+      self.maxSobolOrder = int(xmlNode.find('maxSobolOrder').text)
+    else:
+      self.maxSobolOrder = 2
+      self.raiseADebug('No maxSobolOrder provided, so defaulting to 2.')
+    #TODO this isn't used yet
+    if xmlNode.find('maxPolyOrder') is not None:
+      self.maxPolyOrder = int(xmlNode.find('maxPolyOrder').text)
+    else:
+      self.maxPolyOrder = 10
+      self.raiseADebug('No maxPolyOrder provided, so defaulting to 10.')
+    if xmlNode.find('maxRuns') is not None:
+      self.maxRuns = int(xmlNode.find('maxRuns').text)
 
   def localInitialize(self):
     """
@@ -3374,12 +3385,512 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     @ In, ready, boolean
     @Out, boolean
     """
+    #if for some reason we're not ready already, just return that
+    if not ready: return ready
+    #collect points that have been run
+    self._sortNewPoints()
+    #if any sampling sets are complete, check if they are done or need more.
+    for subset, sampler in self.inTraining.items():
+      #TODO should this be a while-loop with a break if finalized?? #FIXME XXX
+      while len(self.pointsNeeded[subset])<1:
+      #if len(self.pointsNeeded[subset])<1:
+        if subset==(u'x3',u'x4',u'x6'):
+          print('subset',subset,'is out of points!')
+        #the sampler has the points it needs to go forward
+        #  - so we can check if it's still ready, which initiates the adaptivity
+        self.samplers[subset].localStillReady(True,skipJobHandlerCheck=True)
+        #this will have updated needed points for the sampler.  If not, then it's (probably?) converged. -> what if jobHandler not finished, won't it just return?
+        if len(self.samplers[subset].neededPoints)<1: #the sampler didn't find new points
+          if subset==(u'x3',u'x4',u'x6'):
+            print('...subset',subset,'found no more points!')
+          #this indicates this subset sampler is converged! I hope!
+          self._finalizeSubset(subset)
+          break
+        #otherwise, we know the new points we need, and can keep track of them
+        else:
+          if subset==(u'x3',u'x4',u'x6'):
+            print('...subset',subset,'found more points!')
+          self._retrieveNeededPoints(subset)
+          #after retrieving points, do we have points?
+          if subset==(u'x3',u'x4',u'x6'):
+            print('...pointsNeeded:',self.pointsNeeded[subset])
+          #it's possible this didn't actually turn up any new points that haven't been run!! #FIXME #TODO #XXX
+          #this means that we didn't do a good job of making sure the sampler had all the applicable points a priori...
+    #if we have points to run, we can return ready?  Maybe?
+    if any(len(ptlist)>0 for ptlist in self.pointsNeeded.values()):
+      print('There are still values needed for roms...')
+      return True
+    #if we don't have points ready, we need to see if we should add another subset
+    if len(self.expImpact)<1:
+      self.raiseAMessage('Finished a level of subsets!')
+      self.raiseAMessage('Subsets in use:')
+      for key in self.useSet.keys():
+        self.raiseAMessage('   ',key)
+      #otherwise, check against max sobol order -> or do this in generateSubsets?
+      #also, check against max runs...
+      #TODO
+      self._generateSubsets()
+      #self.raiseAnError(RuntimeError,'There were no projected points in the expImpact dict!')
+      print('in training:')
+      for ss in self.inTraining.keys():
+        print('   ',ss,self.expImpact[ss],len(self.pointsNeeded[ss]))
+    print('converge:',self._calcConvergence())
+    if self._calcConvergence() < self.convValue:
+      #this means we don't expect significant contributions from any more terms!
+      self._finalizeROM()
+      #blast some debug output
+      for sub,samp in self.useSet.items():
+        print('DEBUG for sub',sub)
+        print('DEBUG     index set:')
+        samp.indexSet.printOut()
+      return False
+    #this should only be reached when we have generated new subsets - otherwise, we're done but not converged in subsamplers.
+    #check again if there's any points to run
+    if any(len(ptlist)>0 for ptlist in self.pointsNeeded.values()):
+      return True
+    #otherwise, we've run out of samples to run in subsets, but we haven't generated new points...
+    else:
+      sub = self.expImpact.keys()[0]
+      print('sub:',sub)
+      print('checking readiness...')
+      print('sampler needs (pre):')
+      for pt in self.samplers[sub].neededPoints:
+        print('   ',pt)
+      self.samplers[sub].localStillReady(True)
+      print('sampler needs (post):')
+      for pt in self.samplers[sub].neededPoints:
+        print('   ',pt)
+      print('expimpact:',self.expImpact)
+      #print('head has:')#,self.pointsCollected[self.expImpact.keys()[0]])
+      #for key in self.pointsCollected[sub]:
+      #  print('   ',key)
+      #print('head needs:',self.pointsNeeded[sub])
+      print(self.samplers[sub].localStillReady(True))
+    # at this point, I've checked for the following:
+    #   localStillReady for training set
+    #   any points left to run
+    #   new subsets needed
+    #   points to run in new subset
+    print('we must be ready...no one said otherwise.')
+    return True
+
+  def localGenerateInput(self,model,oldInput):
+    """
+    Generates an input to be run.
+    @ In, model, the model to run
+    @ In, oldInput, the old input used
+    @Out, None
+    """
+    #if there's a point that THIS sampler needs, prioritize it
+    #note: pointsNeeded is the collection of points needed by sampler,
+    #      while neededPoints is just the reference point that needs running
+    if len(self.neededPoints)>0:
+      pt = self.neededPoints.pop()
+    #otherwise, take from the highest-impact sampler's needed points
+    else:
+      subsets = self.pointsNeeded.keys()
+      subsets.reverse()
+      found = False
+      for sub in subsets:
+        for p in self.pointsNeeded[sub]:
+          if p not in self.submittedNotCollected:
+            pt = self._expandCutPoint(sub,p)
+            self.submittedNotCollected.append(pt)
+            found = True
+            break
+          #what if needed but already collected and not caught before this?
+        if found: break
+      #TODO having too strict convergence criteria? can raise the following error
+      if not found:
+        for sub,samp in self.inTraining.items():
+          if samp.localStillReady(True):
+            print('Subset',sub,'was still ready...')
+        self.raiseAnError(RuntimeError,'No point was found to generate!  This should not be possible...')
+    for v,varName in enumerate(self.features):
+      self.values[varName] = pt[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['SamplerType'] = 'Adaptive Sobol Sparse Grids'
+
+  def _addPointToDataObject(self,subset,point):
+    """
+    Adds a cut point to the data object for the subset sampler.
+    @ In, subset, tuple(string), the cut point
+    @ In, point, the cut point to add
+    @Out, None
+    """
+    #TODO check if point is in existing first?
+    pointSet = self.samplers[subset].solns
+    #fullpt = self._expandCutPoint(subset,point)
+    if point in self.samplers[subset].existing.keys():
+      output = self.samplers[subset].existing[point]
+    else:
+      output = self.existing[self._expandCutPoint(subset,point)]
+      self.samplers[subset].existing[point] = output
+    for v,var in enumerate(subset):
+      pointSet.updateInputValue(var,point[v])
+    for v,var in enumerate(self.targets):
+      pointSet.updateOutputValue(var,output[v])
+
+  def _calcActualImpact(self,subset):
+    """
+    Calculates the total impact of the current set.
+    @ In, subset, new subset for which impact is considered
+    @Out, float, the "error" reduced by acquiring the new point
+    """
+    #get the old variance
+    #sum1 = sum(self.ROMs[c].__variance__() for c in self.useSet.keys())
+    #get the variance including the new term
+    #sum2 = sum1 + self.ROMs[combo].__variance__()
+    #add the new term to the use set
+    self.useSet[subset] = self.ROMs[subset]
+    #return the relative error between the successive HDMR expansions
+    #return abs(sum2-sum1)/abs(sum1)
+    #return the impact
+    return self.ROMs[subset].__variance__()/sum(self.ROMs[s].__variance__() for s in self.useSet.keys())
+
+  def _calcConvergence(self):
+    """
+    Calculates the convergence based on expected impacts remaining
+    @ In, None
+    @Out, float, the expected "error" remaining
+    """
+    #totRemain = 0
+    #for combo,sampler in self.inTraining.items():
+    #  totRemain+=self.expImpact[combo]
+    #return totRemain
+    return sum(self.expImpact[subset] for subset in self.inTraining.keys())
+
+  def _calcExpImpact(self,subset):
+    """
+    Estimates the importance (impact) of the subset, based on its predecessors
+    @ In, subset, the subset spanning the cut plane of interest
+    @Out, float, the expected impact
+    """
+    #estimate impact as the product of predecessors #TODO is this right for higher than cardinality 2? Or just len(1) predecessors?
+    impact = 1
+    for sub in self.useSet.keys():
+      if set(sub).issubset(set(subset)): #confusing naming!  if sub is a predecessor of subset...
+        impact*=self.actImpact[sub]
+    return impact
+
+  def _checkCutPoint(self,subset,pt):
+    """
+    Determines if a point is in the cut set for the features in the subset.
+    @ In, subset, tuple(str), desired subset features
+    @ In, pt, tuple(float), the full point
+    @Out, bool, True if pt only varies from reference in dimensions within the subset
+    """
+    for v,var in enumerate(self.features):
+      if var in subset: continue #it's okay to vary if you're in the subset
+      if pt[v] != self.references[var]: #we're outside the cut plane.
+        return False
+    return True #only if nothing outside the cut plane
+
+  def _expandCutPoint(self,subset,pt):
+    """
+    Takes a trimmed point from the cut plane and expands it to include the reference values.
+    @ In, subset, the subset describing this cut plane
+    @ In, pt, the trimmed cutpoint to expand
+    @Out, tuple(float), full expanded points
+    """
+    full = np.zeros(len(self.features))
+    for v,var in enumerate(self.features):
+      #if it's a varying point (spanned by the subset), keep its value
+      if var in subset: full[v] = pt[subset.index(var)]
+      #else, use the reference value
+      else: full[v] = self.references[var]
+    return tuple(full)
+
+  def _extractCutPoint(self,subset,pt):
+    """
+    Trims the dimensionality of pt to the cut plane spanning subset
+    @ In, subset, tuple(str), the cut plane to trim to
+    @ In, pt, tuple(float), the point to extract
+    @Out, tuple(pt,vals), extracted point with cardinality equal to the subset cardinality
+    """
+    #cutInp = []
+    #for var in subset:
+    #  cutInp.append(pt[self.features.index(var)])
+    #cutInp = tuple(cutInp)
+    cutInp = tuple(pt[self.features.index(var)] for var in subset)
+    return cutInp
+
+  def _finalizeROM(self):
+    """
+    Delivers necessary structures to the HDMRRom object
+    @ In, None
+    @Out, None
+    """
+    initDict = {'ROMs':self.useSet, #TODO multitarget
+                'SG':self.SQs,
+                'dists':self.distDict,
+                'quads':self.quadDict,
+                'polys':self.polyDict,
+                'refs':self.references}
+    #TODO for target in self.targets:
+    #  initdict['ROMs'] = self.ROMs[target]
+    self.ROM.SupervisedEngine.values()[0].initialize(initDict)
+
+  def _finalizeSubset(self,subset):
+    sampler = self.inTraining[subset]
+    #move sampler from training to done
+    self.doneTraining[subset] = sampler
+    del self.inTraining[subset]
+    #add collected points to sampler's data object. #TODO shouldn't this happen when it gets added to existing?
+    for pt in self.pointsCollected[subset]:
+      self._addPointToDataObject(subset,pt)
+    #finalize the ROM
+    self.raiseADebug('romshell',subset,'svl:',self.romShell[subset].SupervisedEngine.values()[0])
+    sampler.finalizeROM()
+    #train the ROM
+    self.romShell[subset].train(sampler.solns) #TODO does ROM need finalizing first?
+    #move impact from expected to actual
+    self.actImpact[subset] = self._calcActualImpact(subset)
+    del self.expImpact[subset]
+    #store rom in decided use set
+    self.useSet[subset] = self.romShell[subset].SupervisedEngine.values()[0] #TODO multitarget
+
+  def _generateSubsets(self):
+    """
+    Returns a list of the possible subset combinations available, and estimates their impact
+    @ In, None
+    @Out, None
+    """
+    # l is the largest subset used thus far
+    l = max(len(subset) for subset in self.useSet.keys())
+    #TODO optimize the following algorithm
+    # get all possible combinations of subsets for the next highest subset cardinality
+    potential = itertools.combinations(self.features,l+1)
+    for p in potential:
+      #self.raiseAnError(RuntimeError,'potential:',p,len(p),'maxSO:',self.maxSobolOrder)
+      if len(p)>self.maxSobolOrder:
+        self.raiseADebug('Discarded',p,'for too large subset cardinality.')
+        continue
+      #to be included, p needs all of its precedents of lower cardinality to be in the useSet already.
+      neededPrecedents = list(itertools.combinations(p,len(p)-1))
+      if all(c in self.useSet.keys() for c in neededPrecedents):
+        self._makeSubsetRom(p)
+        self.inTraining[p] = self.samplers[p]
+        self.expImpact[p] = self._calcExpImpact(p)
+        #fill needed points?  isn't that in makeSubsetRom?
+    #now order the expected impacts so that lowest is first (-1 is highest)
+    toSort = zip(self.expImpact.keys(),self.expImpact.values())
+    toSort.sort(key=itemgetter(1))
+    self.expImpact = OrderedDict()
+    for key, impact in toSort:
+      self.expImpact[key] = impact
+    #TODO isn't there a more compact way to make a dictionary out of two lists?
+
+  def _makeCutDataObject(self,subset):
+    """
+    Creates a new PointSet dataobject for a cut subset
+    @ In, subset, tuple(str), the subset to make the object for
+    @Out, dataObject
+    """
+    dataObject = DataObjects.returnInstance('PointSet',self)
+    dataObject.type ='PointSet'
+    #write xml to set up data object
+    node = ET.Element('PointSet',{'name':'-'.join(subset)})
+    inp = ET.Element('Input')
+    inp.text = ','.join(s for s in subset)
+    node.append(inp)
+    out = ET.Element('Output')
+    out.text = ','.join(self.targets)
+    node.append(out)
+    dataObject.readXML(node,self.messageHandler)
+    return dataObject
+
+  def _makeSubsetRom(self,subset):
+    """
+    Constructs a ROM for the given subset (but doesn't train it!).
+    @ In, subset, tuple(string), subset for cut plane
+    @Out, GaussPolynomialROM object representing this cut plane (once it gets trained)
+    """
+    SVL = self.ROM.SupervisedEngine.values()[0] #TODO multitarget
+    #replicate "normal" construction of the ROM
+    distDict={}
+    quadDict={}
+    polyDict={}
+    imptDict={}
+    limit=0
+    #make use of the keys to get the distributions, quadratures, polynomials, importances we want
+    for c in subset:
+      distDict[c] = self.distDict[c]
+      quadDict[c] = self.quadDict[c]
+      polyDict[c] = self.polyDict[c]
+      imptDict[c] = self.importanceDict[c]
+    #instantiate an adaptive index set for this ROM
+    iset = IndexSets.returnInstance('AdaptiveSet',self)
+    iset.initialize(distDict,imptDict,self.maxPolyOrder)
+    iset.verbosity='quiet' #mute the debug
+    #instantiate a sparse grid quadrature
+    self.SQs[subset] = Quadratures.SparseQuad()
+    self.SQs[subset].initialize(subset,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
+    #instantiate the SVL.  Note that we need to call both __init__ and initialize with dictionaries.
+    initDict = {'IndexSet'       : iset.type,
+                'PolynomialOrder': SVL.maxPolyOrder,
+                'Interpolation'  : SVL.itpDict,
+                'Features'       : ','.join(subset),
+                'Target'         : SVL.target}
+    self.ROMs[subset] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
+    self.ROMs[subset].verbosity = 'quiet' #mute debug
+    initializeDict = {'SG'       : self.SQs[subset],
+                      'dists'    : distDict,
+                      'quads'    : quadDict,
+                      'polys'    : polyDict,
+                      'iSet'     : iset}
+    self.ROMs[subset].initialize(initializeDict)
+    #instantiate the shell ROM that contains the SVL -> multitarget someday
+    #   NOTE: the shell is only needed so we can call the train method.
+    self.romShell[subset] = Models.returnInstance('ROM',self)
+    self.romShell[subset].messageHandler = self.messageHandler
+    self.romShell[subset].SupervisedEngine[SVL.target] = self.ROMs[subset]
+    #instantiate the adaptive sparse grid sampler for this rom
+    samp = AdaptiveSparseGrid()               #FIXME factory
+    samp.messageHandler = self.messageHandler
+    samp.verbosity      = 'quiet'               #mute debug
+    samp.doInParallel   = self.doInParallel
+    samp.jobHandler     = self.jobHandler
+    samp.convType       = 'variance'
+    samp.maxPolyOrder   = self.maxPolyOrder
+    samp.maxRuns        = self.maxRuns
+    samp.persistence    = 2                 #FIXME magic number
+    samp.convValue      = self.convValue    #FIXME not optimized, local error != global error
+    samp.distDict       = distDict
+    samp.assemblerDict['ROM']              = [['','','',self.romShell[subset]]]
+    soln = self._makeCutDataObject(subset)
+    samp.assemblerDict['TargetEvaluation'] = [['','','',soln]]
+    for var in subset: samp.axisName.append(var)
+    samp.localInitialize()
+    samp.printTag = 'ASG:('+','.join(subset)+')'
+    #self.raiseAWarning('DATAOBJ:',samp.solns)
+    #propogate sparse grid back from sampler
+    self.SQs     [subset]             = samp.sparseGrid
+    self.ROMs    [subset].sparseGrid  = samp.sparseGrid
+    self.samplers[subset]             = samp
+    #sort already-solved points
+    self.pointsNeeded[subset] = []
+    self.pointsCollected[subset] = []
+    for inp in self.sorted:
+      if self._checkCutPoint(subset,inp):
+        soln = self.existing[inp]
+        cinp = self._extractCutPoint(subset,inp)
+        self.samplers[subset].existing[cinp] = soln
+        self.pointsCollected[subset].append(cinp)
+        self._addPointToDataObject(subset,cinp)
+        #for i,c in enumerate(subset):
+        #  self.samplers[subset].solns.updateInputValue(c,cinp[i])
+        #for i,c in enumerate(self.targets):
+        #  self.samplers[subset].solns.updateOutputValue(c,cout[i])
+    #set needed points
+    #print('for subset',subset)
+    #print('    neededPoints:',samp.neededPoints)
+    while len(samp.neededPoints)>0:
+      pt = samp.neededPoints.pop()
+      if pt not in self.pointsCollected[subset]:
+        self.pointsNeeded[subset].append(pt)
+    #now, if that's all the points it needs, we need to localStillReady on it...
+    while len(self.pointsNeeded[subset])<1:
+      print('checking ready on',subset)
+      done = not samp.localStillReady(True,skipJobHandlerCheck=True) #what if it finishes?
+      print('    done:',done)
+      if done: #we didn't need to sample any additional points!
+        #TODO FIXME now what?
+        break
+      #otherwise, stash the needed points
+      self._retrieveNeededPoints(subset)
+      print('needed points:',self.pointsNeeded[subset])
+
+  def _retrieveNeededPoints(self,subset):
+    """
+    Get the batch of points needed by the subset sampler and transfer them to local variables
+    @ In, subset, tuple(str), cut plane dimensions
+    @Out, None
+    """
+    sampler = self.samplers[subset]
+    while len(sampler.neededPoints)>0:
+      cutpt = sampler.neededPoints.pop()
+      fullPoint = self._expandCutPoint(subset,cutpt)
+      #if this point already in existing, put it straight into collected and existing
+      if fullPoint in self.existing.keys():
+        self.pointsCollected[subset].append(cutpt)
+        self._addPointToDataObject(subset,cutpt)
+        sampler.existing[cutpt] = self.existing[fullPoint]
+      #otherwise, this is a point that needs to be run!
+      else:
+        self.pointsNeeded[subset].append(cutpt)
+
+  def _sortNewPoints(self):
+    """
+    Allocates points on cut planes to their respective adaptive sampling data objects.
+    @ In, None
+    @Out, None
+    """
+    #if there's no solutions in the set, no work to do
+    if self.solns.isItEmpty(): return
+    #update self.exisitng for adaptive sobol sampler (this class)
+    AdaptiveSparseGrid._updateExisting(self)
+    for inp,soln in self.existing.items():
+      #if point already sorted, don't re-do work
+      if inp not in self.submittedNotCollected: continue
+      #if inp in self.sorted: continue
+      #check through neededPoints to find subset that needed this point
+      for subset,needs in self.pointsNeeded.items():
+        #check if point in cut for subset
+        if self._checkCutPoint(subset,inp):
+          cutInp = self._extractCutPoint(subset,inp)
+          sampler = self.samplers[subset]
+          #if needed or not, still add it to the sampler's existing points
+          if cutInp not in sampler.existing.keys(): #TODO could it ever be in there already?
+            sampler.existing[cutInp] = soln
+          #else:
+          #  self.raiseADebug('WARNING sorted point was already in sampler.exisitng!')
+          #check if it was requested TODO can this ever be false?
+          if cutInp in needs:
+            #if so, remove the point from Needed and into Collected
+            #  - add key if not existing
+            if subset not in self.pointsCollected.keys(): self.pointsCollected[subset] = []
+            self.pointsCollected[subset].append(cutInp)
+            self._addPointToDataObject(subset,cutInp)
+            if cutInp in self.pointsNeeded[subset]:
+              self.pointsNeeded[subset].remove(cutInp)
+            else:
+              self.raiseADebug('input point',inp,'was not needed...')
+          #else:
+          #  self.raiseADebug('WARNING sorted point was not requested by sampler!')
+      self.sorted.append(inp)
+      self.submittedNotCollected.remove(inp)
+    #self.raiseADebug('Contents of Collected:')
+    #for sub,col in self.pointsCollected.items():
+    #  print('....subset:',sub)
+    #  for c in col:
+    #    print('........pt:',c)
+    #self.raiseADebug('Contents of Needed:')
+    #for sub,col in self.pointsNeeded.items():
+    #  print('....subset:',sub)
+    #  for c in col:
+    #    print('........pt:',c)
+#
+#
+#
+#
+class OLDAdaptiveSobol(Sobol,AdaptiveSparseGrid):
+  def localStillReady(self,ready):
+    """
+    Determines if sampler is prepared to provide another input.  If not, and
+    if jobHandler is finished, this will end sampling.
+    @ In, ready, boolean
+    @Out, boolean
+    """
     #update the existing solutions
     self._updateExisting()
     #if not ready passed in, believe it
     if not ready: return ready
     #check if any samplers that are in training have points left to submit; if so, ready.
     if self._getNumNeededPoints(self.inTraining.keys())>0: return True
+    #TODO what if jobHandler not finished, but no new points need submitting?  Do we return false then?
+    #  if we do, are we making outselves less parallel, or are we completing a batch before moving forward?
     #if none of the above, enter searching loop
     while self._getNumNeededPoints(self.inTraining.keys())<1:
       #check readiness of subsets in training to provide new inputs
@@ -3395,20 +3906,22 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
           del self.expImpact[combo]
           self.romShell[combo].train(self.samplers[combo].solns) #FIXME doesn't this ROM need finalizing first?
           self.actImpact[combo] = self._calcActualImpact(combo)
-          # done in _calcConvergence #self.useSet[combo] = self.romShell[combo] #this seems redundant?
+          # done in _calcConvergence
+          self.useSet[combo] = self.romShell[combo] #this seems redundant?
       #get the combo with the highest importance, I think...
-      impactCombo = self.expImpact.keys()[-1]
-      #while impactCombo in self.doneTraining.keys(): #highest-impact combo is done
-      if impactCombo in self.doneTraining.keys():
-        totalConvergence = self._calcConvergence(impactCombo) #TODO implement
-        #really? del self.expImpact -> I don't think so? I don't know?
-        if totalConvergence < self.convValue: #we're not contributing enough even with our biggest expected impact!
-          self._finalizeROM() #uses parent class implementation
-          return False
       if batchDone: #TODO conditional on maxSobolOrder
         #make a new layer!
         self._generateSubsets()
         #do I need to call localStillReady on the new guys? I don't think so
+        #have the new guys been entered into self.expImpact?
+      impactCombo = self.expImpact.keys()[-1] #what if this is empty?
+      #while impactCombo in self.doneTraining.keys(): #highest-impact combo is done
+      if impactCombo in self.doneTraining.keys():
+        totalConvergence = self._calcConvergence(impactCombo) #TODO implement -> it's not what it does now!
+        #really? del self.expImpact -> I don't think so? I don't know?
+        if totalConvergence < self.convValue: #we're not contributing enough even with our biggest expected impact!
+          self._finalizeROM() #uses parent class implementation
+          return False
     #end while
     #check for no points to run?  What if points still running that I need?
     if self._getNumNeededPoints(self.inTraining.keys())==0: #FIXME AND jobHandler is still running?
@@ -3430,6 +3943,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       pt = self._getHighestImpactPoint(self.inTraining.keys()) #TODO grab a point from the expected most-impactful subset
       if pt is None:
         self.raiseAnError(RuntimeError,'No highest-impact point found!')
+    self.raiseADebug('submitting point:',pt)
     for v,varName in enumerate(self.distDict.keys()):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
@@ -3437,23 +3951,33 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.inputInfo['SamplerType'] = 'Adaptive Sobol Sparse Grids'
 
   # utility methods
-  def _calcActualImpact(self,combo):
-    #TODO what is convergence criteria?
+  def _calcConvergence(self):
+    """
+    Calculates the convergence based on expected impacts remaining
+    @ In, None
+    @Out, float, the expected "error" remaining
+    """
+    totRemain = 0
+    for combo,sampler in self.inTraining.items():
+      totRemain+=self.expImpact[combo]
+    return totRemain
 
-  def _calcConvergence(self,combo):
+  def _calcActualImpact(self,combo):
     """
     Calculates the total impact of the current set.
     @ In, combo, new combo to add
     @Out, float, the "error" reduced by acquiring the new point
     """
     #get the old variance
-    sum1 = sum(self.ROMs[c].__variance__() for c in self.useSet.keys())
+    #sum1 = sum(self.ROMs[c].__variance__() for c in self.useSet.keys())
     #get the variance including the new term
-    sum2 = sum1 + self.ROMs[combo].__variance__()
+    #sum2 = sum1 + self.ROMs[combo].__variance__()
     #add the new term to the use set
     self.useSet[combo] = self.ROMs[combo]
     #return the relative error between the successive HDMR expansions
-    return abs(sum2-sum1)/abs(sum1)
+    #return abs(sum2-sum1)/abs(sum1)
+    #return the impact
+    return self.ROMs[combo].__variance__()/sum(self.ROMs[c].__variance__() for c in self.useSet.keys())
 
   def _calcExpImpact(self,combo):
     """
@@ -3474,7 +3998,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     @ In, pt, tuple(float), the full point
     @Out, bool, true if pt only varies in subset dimensions from the reference point
     """
-    self.raiseADebug('          Testing combo',combo,'for point',pt)
+    #self.raiseADebug('          Testing combo',combo,'for point',pt)
     for v,var in enumerate(self.features):
       if var in combo: continue #it's okay to vary if you're in the subset
       if pt[v] != self.references[var]: #not part of the cut plane
@@ -3617,7 +4141,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #instantiate an adaptive index set for this ROM
     iset = IndexSets.returnInstance('AdaptiveSet',self)
     iset.initialize(distDict,imptDict,self.maxPolyOrder)
-    iset.verbosity='all' #mute the debug
+    iset.verbosity='quiet' #mute the debug
     #instantiate a sparse grid quadrature
     self.SQs[combo] = Quadratures.SparseQuad()
     self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
@@ -3628,7 +4152,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
                 'Features'       : ','.join(combo),
                 'Target'         : SVL.target}
     self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
-    self.ROMs[combo].verbosity = 'all' #mute debug
+    self.ROMs[combo].verbosity = 'quiet' #mute debug
     initializeDict = {'SG'   : self.SQs[combo],
                       'dists': distDict,
                       'quads': quadDict,
@@ -3643,7 +4167,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #instantiate the adaptive sparse grid sampler for this rom
     samp = AdaptiveSparseGrid()               #FIXME factory
     samp.messageHandler = self.messageHandler
-    samp.verbosity      = 'all'               #mute debug
+    samp.verbosity      = 'quiet'               #mute debug
     samp.doInParallel   = self.doInParallel
     samp.jobHandler     = self.jobHandler
     samp.convType       = 'variance'
@@ -3684,39 +4208,31 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     if self.solns.isItEmpty(): return
     #update self.exisitng through the default manner
     AdaptiveSparseGrid._updateExisting(self)
-    # initialize samplers if they need it
     self.raiseADebug('\n\n')
     self.raiseADebug('sorting points...')
-    #for combo,sampler in self.samplers.items():
-      #if self.samplers[combo].solns is None or self.samplers[combo].solns.isItEmpty():
-      #  #FIXME does this ever get called?? test this out. -> appears the answer is 'no'.
-      #  self.raiseAnError(RuntimeError,'Yup, this gets called.')
-      #  #TODO call dataobject maker here!!!! FIXME
-      #  self.samplers[combo].solns = self._makeCutDataObject(combo)
     #send points to subsets
     #check first if already sorted?
     for inp,soln in self.existing.items():
-      self.raiseADebug('...sorting',inp,'|',soln)
       if inp in self.sorted:
-        self.raiseADebug('......already sorted.')
+        #self.raiseADebug('......already sorted.')
         continue
       else:
-        self.raiseADebug('......not yet sorted!')
+        self.raiseADebug('...sorting',inp,'|',soln)
       for combo,sampler in self.samplers.items():
         #check if point is in cut hyperplane
         if self._checkCutPoint(combo,inp):
           self.raiseADebug(  '......is a cut point for:',combo)
-          self.raiseADebug(  '......existing points:')
-          for key,val in sampler.existing.items():
-            self.raiseADebug('           ',key,'|',val)
+          #self.raiseADebug(  '......existing points:')
+          #for key,val in sampler.existing.items():
+          #  self.raiseADebug('           ',key,'|',val)
           #construct the cut point
           cinp,cout = self._extractCutPoint(inp,combo,soln)
           #self.raiseADebug('cinp:',cinp)
           if cinp not in sampler.existing.keys():
             self.raiseADebug('.........new point!')
             #are cinp the same order as the sampler's existing?
-            self.raiseADebug('DEBUG sampler existing var order:',sampler.features)
-            self.raiseADebug('DEBUG combo cinp var order:',combo)
+            #self.raiseADebug('DEBUG sampler existing var order:',sampler.features)
+            #self.raiseADebug('DEBUG combo cinp var order:',combo)
             sampler.existing[cinp] = cout
             for i,c in enumerate(combo):
               #sampler.solns.updateInputValue(c,cinp[i])
@@ -3724,60 +4240,13 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
             for i,c in enumerate(self.targets):
               sampler.solns.updateOutputValue(c,cout[i])
           else:
+            #I think I've prevented this from ever happening.
             self.raiseADebug('.........pre-existing point.')
       self.sorted.append(inp)
-    self.raiseADebug('_____existing______')
-    for inp,out in self.existing.items():
-      self.raiseADebug('    ',inp,'|',out)
+    #self.raiseADebug('_____existing______')
+    #for inp,out in self.existing.items():
+    #  self.raiseADebug('    ',inp,'|',out)
 
-
-    #this is by combo, by input -> let's try by input by combo
-#    for combo,sampler in self.samplers.items():
-#      self.raiseADebug('...combo:',combo)
-#      #if uninstantiated or empty, refresh/instantiate the data object
-#      if self.samplers[combo].solns is None or self.samplers[combo].solns.isItEmpty():
-#        dataObj = DataObjects.returnInstance('PointSet',self)
-#        dataObj.type = 'PointSet'
-#        #write xml to set up data object
-#        node = ET.Element('PointSet',{'name':'-'.join(combo)})
-#        inp = ET.Element('Input')
-#        inp.text = ','.join(c for c in combo)
-#        node.append(inp)
-#        out = ET.Element('Output')
-#        out.text = ','.join(self.targets)
-#        node.append(out)
-#        dataObj.readXML(datanode,self.messageHandler)
-#      else:
-#        dataObj = self.samplers[combo].solns
-#        #self.samplers[combo]._updateExisting() #FIXME should this be here?  We haven't added to the data object!
-#      #add relevent cut-hyperplane datapoints
-#      for inp,soln in self.existing.items():
-#        if self._checkCutPoint(combo,inp): #must be part of the hyperplane
-#          self.raiseADebug('......is part of cut:',inp)
-#          #build point, check to see if it's already in existing
-#          #FIXME this is inefficient, but not sure how to only get new points
-#          cinp = []
-#          cout = []
-#          for i,c in enumerate(combo):
-#            cinp.append(inp[i])
-#          cinp = tuple(cinp)
-#          for i,c in enumerate(self.targets):
-#            cout.append(soln[i])
-#          cout = tuple(cout)
-#          if cinp not in self.samplers[combo].existing.keys():
-#            self.raiseADebug('..........new:',combo)
-#            self.raiseADebug('..........inp:',cinp)
-#            self.raiseADebug('..........out:',cout)
-#            for i,c in enumerate(combo):
-#              dataObj.updateInputValue(c,cinp[i])
-#            for i,c in enumerate(self.targets):
-#              dataObj.updateOutputValue(c,cout[i]) #not soln?
-#          else:
-#            self.raiseADebug('..........preexisting:',combo)
-#      #update sampler's data object
-#      self.samplers[combo].solns = dataObj
-#      self.samplers[combo]._updateExisting()
-#      #self.samplers[combo].solns.printCSV()
 
 
 

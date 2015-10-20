@@ -364,7 +364,7 @@ class AdaptiveSet(IndexSet):
     for key,val in self.active.items():
       mx = max(abs(val),mx)
       if abs(val)==mx: mxkey = key
-    self.raiseAMessage('  Next Adaptive Poly:',mxkey)#,mx)
+    #self.raiseAMessage('  Next Adaptive Poly:',mxkey)#,mx)
     if mxkey==None: return self.active.keys()[0] #special case
     return mxkey
 
@@ -381,7 +381,7 @@ class AdaptiveSet(IndexSet):
       newpt[i]+=1
       if maxPoly != None:
         if newpt[i]>maxPoly:
-          self.raiseADebug('Rejecting',tuple(newpt),'for too high polynomial')
+          #self.raiseADebug('Rejecting',tuple(newpt),'for too high polynomial')
           continue
       if tuple(newpt) in self.active.keys(): continue
       #self.raiseADebug('    considering adding',newpt)
