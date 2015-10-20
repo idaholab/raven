@@ -14,7 +14,7 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="ND_test_LHS/lorentzAttractor" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variable>sigma</variable>
       <variable>rho</variable>
       <variable>beta</variable>
@@ -37,44 +37,44 @@
     </Normal>
     <NDInverseWeight name="ND_InverseWeight_P">
       <p>3.0</p>
-      <data_filename type="PDF">2DgaussianScatteredPDF.txt</data_filename>
-      <working_dir>ND_test_LHS/</working_dir>
+      <dataFilename type="PDF">2DgaussianScatteredPDF.txt</dataFilename>
+      <workingDir>ND_test_LHS/</workingDir>
     </NDInverseWeight>
     <NDInverseWeight name="ND_InverseWeight_C">
       <p>2.5</p>
-      <data_filename type="CDF">2DgaussianScatteredCDF.txt</data_filename>
-      <working_dir>ND_test_LHS/</working_dir>
+      <dataFilename type="CDF">2DgaussianScatteredCDF.txt</dataFilename>
+      <workingDir>ND_test_LHS/</workingDir>
     </NDInverseWeight>
     <NDCartesianSpline name="ND_CartesianSpline_P">
-      <data_filename type="PDF">2DgaussianCartesianPDF.txt</data_filename>
-      <working_dir>ND_test_LHS/</working_dir>
+      <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
+      <workingDir>ND_test_LHS/</workingDir>
     </NDCartesianSpline>
     <NDCartesianSpline name="ND_CartesianSpline_C">
-      <data_filename type="CDF">2DgaussianCartesianCDF.txt</data_filename>
-      <working_dir>ND_test_LHS/</working_dir>
+      <dataFilename type="CDF">2DgaussianCartesianCDF.txt</dataFilename>
+      <workingDir>ND_test_LHS/</workingDir>
     </NDCartesianSpline>
   </Distributions>
 
   <Samplers>
     <Stratified name="LHS_test">
-      <sampler_init>
-        <initial_seed>1234</initial_seed>
-      </sampler_init>
+      <samplerInit>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
       <variable name="k0">
         <distribution>k0_distrib</distribution>
         <grid construction="custom" type="CDF">0.5 1.0 0.0</grid>
       </variable>
       <variable name="x0">
         <distribution dim="1">ND_CartesianSpline_C</distribution>
-        <grid type="global_grid">name_grid1</grid>
+        <grid type="globalGrid">name_grid1</grid>
       </variable>
       <variable name="y0,z0">
         <distribution dim="2">ND_CartesianSpline_C</distribution>
-        <grid type="global_grid">name_grid1</grid>
+        <grid type="globalGrid">name_grid1</grid>
       </variable>
-      <global_grid>
+      <globalGrid>
         <grid construction="custom" name="name_grid1" type="CDF">0.1 1.0 0.2</grid>
-      </global_grid>
+      </globalGrid>
     </Stratified>
   </Samplers>
 

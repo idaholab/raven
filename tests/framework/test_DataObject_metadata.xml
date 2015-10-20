@@ -9,7 +9,7 @@
     <Input name="dataObjectTest.py" type="">dataObjectTest.py</Input>
 </Files>
 <Models>
-    <ExternalModel name='PythonModule' subType='' ModuleToLoad='dataObject_metadata/dataObjectTest'>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='dataObjectTest'>
        <variable>x</variable>
        <variable>y</variable>
        <variable>z</variable>
@@ -43,9 +43,9 @@
 
 <Samplers>
     <MonteCarlo name='MC_external'>
-      <sampler_init>
+      <samplerInit>
         <limit>4</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name='x0' >
         <distribution>x0_distrib</distribution>
       </variable>

@@ -50,7 +50,7 @@
 
   <Models>
     <Dummy name="MyDummy" print="true" subType=""/>
-    <ExternalModel ModuleToLoad="AdaptiveStochasticPoly/polynomial" name="poly" subType="" verbosity="silent">
+    <ExternalModel ModuleToLoad="polynomial" name="poly" subType="" verbosity="silent">
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>ans</variable>

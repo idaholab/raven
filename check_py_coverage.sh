@@ -45,17 +45,22 @@ update_python_path
 
 cd $SCRIPT_DIR
 
-EXTRA='--rcfile=.coveragerc --source=../../framework -a --omit=../../framework/contrib/*'
 cd tests/framework
 #coverage help run
+FRAMEWORK_DIR=`(cd ../../framework && pwd)`
 
+EXTRA="--rcfile=.coveragerc --source=$FRAMEWORK_DIR -a --omit=$FRAMEWORK_DIR/contrib/*"
+export COVERAGE_FILE=`pwd`/.coverage
 
 coverage erase
 #skip test_rom_trainer.xml
+DRIVER=$FRAMEWORK_DIR/Driver.py
 for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py)
 do
-    echo Running $I
-    coverage run $EXTRA ../../framework/Driver.py  $I
+    DIR=`dirname $I`
+    BASE=`basename $I`
+    echo Running $DIR $BASE
+    (cd $DIR && coverage run $EXTRA $DRIVER $BASE)
 done
 coverage run $EXTRA ../../framework/TestDistributions.py
 coverage run $EXTRA ../../framework/Driver.py test_relap5_code_interface.xml interfacecheck

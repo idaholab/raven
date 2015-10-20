@@ -19,7 +19,6 @@ def __supportBoundingTest__(self):
   return
 
 def __residuumSign(self):
-#  return np.copysign(1, 5-self.auxTime[-1:] -self.tempTH[-1:])
   print('CLAD DAMAGED IS ' + str(self.CladDamaged))
   if self.CladDamaged == 1: return -1.0
   else: return 1.0

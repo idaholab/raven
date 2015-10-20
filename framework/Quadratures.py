@@ -31,25 +31,19 @@ import utils
 class SparseQuad(MessageHandler.MessageUser):
   """Base class to produce sparse-grid multiple-dimension quadrature."""
   def __init__(self):
-    self.type     = 'SparseQuad'
-    self.printTag = 'SparseQuad' #FIXME use utility methods for right length
-    self.c        = [] #array of coefficient terms for component tensor grid entries
-    self.oldsg    = [] #storage space for re-ordered versions of sparse grid
-    self.indexSet = None #IndexSet object
-    self.distDict = None #dict{varName: Distribution object}
-    self.quadDict = None #dict{varName: Quadrature object}
-    self.polyDict = None #dict{varName: OrthoPolynomial object}
-    self.varNames = []   #array of names, in order of distDict.keys()
-    self.N        = None #dimensionality of input space
-    self.SG       = None #dict{ (point,point,point): weight}
-    self.messageHandler = None
-    self.mods     = []
-    for key, value in dict(inspect.getmembers(inspect.getmodule(self))).items():
-      if inspect.ismodule(value) or inspect.ismethod(value):
-        if key != value.__name__:
-          if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
-          else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
-        else: self.mods.append(str(key))
+    self.type           = 'SparseQuad'
+    self.printTag       = 'SparseQuad'                                            # FIXME use utility methods for right length
+    self.c              = []                                                      # array of coefficient terms for component tensor grid entries
+    self.oldsg          = []                                                      # storage space for re-ordered versions of sparse grid
+    self.indexSet       = None                                                    # IndexSet object
+    self.distDict       = None                                                    # dict{varName: Distribution object}
+    self.quadDict       = None                                                    # dict{varName: Quadrature object}
+    self.polyDict       = None                                                    # dict{varName: OrthoPolynomial object}
+    self.varNames       = []                                                      # array of names, in order of distDict.keys()
+    self.N              = None                                                    # dimensionality of input space
+    self.SG             = None                                                    # dict{ (point,point,point): weight}
+    self.messageHandler = None                                                    # message handler
+    self.mods           = utils.returnImportModuleString(inspect.getmodule(self)) # list of modules this class depends on (needed for automatic parallel python)
 
   ##### OVERWRITTEN BUILTINS #####
   def __getitem__(self,n):

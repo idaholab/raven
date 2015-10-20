@@ -42,10 +42,10 @@
 
   <Samplers>
     <MonteCarlo name="mc">
-      <sampler_init>
+      <samplerInit>
         <limit>10</limit>
-        <initial_seed>3720</initial_seed>
-      </sampler_init>
+        <initialSeed>3720</initialSeed>
+      </samplerInit>
       <variable name="x">
         <distribution>u1</distribution>
       </variable>
@@ -57,7 +57,7 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="./RunFailures/failer" name="failer" subType="">
+    <ExternalModel ModuleToLoad="failer" name="failer" subType="">
       <variable>x</variable>
       <variable>y</variable>
       <variable>ans</variable>

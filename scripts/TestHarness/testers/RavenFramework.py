@@ -17,6 +17,8 @@ import sys
 myDir = os.path.dirname(os.path.realpath(__file__))
 RAVEN_DIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
 
+_missing_modules, _too_old_modules = RavenUtils.checkForMissingModules()
+
 class RavenFramework(Tester):
 
   @staticmethod
@@ -56,7 +58,7 @@ class RavenFramework(Tester):
     self.driver = os.path.join(RAVEN_DIR,'Driver.py')
 
   def checkRunnable(self, option):
-    missing,too_old = RavenUtils.checkForMissingModules()
+    missing,too_old = _missing_modules, _too_old_modules
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
@@ -83,7 +85,10 @@ class RavenFramework(Tester):
     return (True, '')
 
   def prepare(self):
-    self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
+    if self.specs['output'].strip() != '':
+      self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
+    else:
+      self.check_files = []
     for filename in self.check_files+self.csv_files+self.xml_files+self.ucsv_files:# + [os.path.join(self.specs['test_dir'],filename)  for filename in self.csv_files]:
       if os.path.exists(filename):
         os.remove(filename)
@@ -111,7 +116,6 @@ class RavenFramework(Tester):
     ucsv_same,ucsv_messages = ucsv_diff.diff()
     if not ucsv_same:
       return ucsv_messages,output
-    return ('',output)
 
     #xml
     if len(self.specs['xmlopts'])>0: xmlopts = self.specs['xmlopts'].split(' ')

@@ -37,9 +37,9 @@
 
   <Samplers>
     <Stratified name="myLHS">
-      <sampler_init>
-        <initial_seed>1</initial_seed>
-      </sampler_init>
+      <samplerInit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
       <variable name="BCs|freesurf_temp|value">
         <distribution>Gauss1</distribution>
         <grid construction="equal" steps="9" type="CDF">0.01 0.91</grid>

@@ -140,7 +140,6 @@
 [Outputs]
   # Turn on performance logging
   exodus = true
-  output_initial = true
 #output_displaced = true
 #perf_log = true
 []
@@ -261,6 +260,11 @@
  print_csv = True
  [../]
  [./PressureFailureValue]
+ data_type =  double
+ initial_value =  0.0
+ print_csv = True
+ [../]
+ [./fakePressure]
  data_type =  double
  initial_value =  0.0
  print_csv = True

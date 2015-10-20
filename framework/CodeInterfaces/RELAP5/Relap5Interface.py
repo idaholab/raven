@@ -15,7 +15,16 @@ from CodeInterfaceBaseClass import CodeInterfaceBase
 class Relap5(CodeInterfaceBase):
   '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
-    '''seek which is which of the input files and generate According the running command'''
+    """
+    See base class.  Collects all the clargs and the executable to produce the command-line call.
+    Returns tuple of commands and base file name for run.
+    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+    @ In, inputFiles, the input files to be used for the run
+    @ In, executable, the executable to be run
+    @ In, clargs, command-line arguments to be used
+    @ In, fargs, in-file changes to be made
+    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
+    """
     found = False
     for index, inputFile in enumerate(inputFiles):
       if inputFile.getExt() in self.getInputExtension():
@@ -25,11 +34,11 @@ class Relap5(CodeInterfaceBase):
     outputfile = 'out~'+inputFiles[index].getBase()
     if clargs: addflags = clargs['text']
     else     : addflags = ''
-    executeCommand = executable \
+    executeCommand = [('parallel',executable \
                      + ' -i ' + inputFiles[index].getFilename() \
                      + ' -o ' + os.path.join(inputFiles[index].getPath(), inputFiles[index].getBase() + '.o') \
                      + ' -r ' + os.path.join(inputFiles[index].getPath(), inputFiles[index].getBase() + '.r') \
-                     + addflags
+                     + addflags)]
     return executeCommand,outputfile
 
   def finalizeCodeOutput(self,command,output,workingDir):
@@ -114,12 +123,12 @@ class Relap5(CodeInterfaceBase):
         listDict.append(modifDict)
         del modifDict
     # add the initial time for this new branch calculation
-    if 'start_time' in Kwargs.keys():
-      if Kwargs['start_time'] != 'Initial':
+    if 'startTime' in Kwargs.keys():
+      if Kwargs['startTime'] != 'Initial':
         modifDict = {}
-        st_time = Kwargs['start_time']
+        st_time = Kwargs['startTime']
         modifDict['name'] = ['Executioner']
-        modifDict['start_time'] = st_time
+        modifDict['startTime'] = st_time
         listDict.append(modifDict)
         del modifDict
     # create the restart file name root from the parent branch calculation
@@ -127,9 +136,9 @@ class Relap5(CodeInterfaceBase):
     if 'end_ts' in Kwargs.keys():
       #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
 
-      if str(Kwargs['start_time']) != 'Initial':
+      if str(Kwargs['startTime']) != 'Initial':
         modifDict = {}
-        #restart_parent = Kwargs['parent_id']+'~restart.r'
+        #restart_parent = Kwargs['parentID']+'~restart.r'
         #new_restart = Kwargs['prefix']+'~restart.r'
         #shutil.copyfile(restart_parent,new_restart)
         modifDict['name'] = ['Executioner']
@@ -173,10 +182,10 @@ class Relap5(CodeInterfaceBase):
     for keys in Kwargs['SampledVars']:
       key = keys.split(':')
       if len(key) > 1:
-        if Kwargs['start_time'] != 'Initial':  cardList[key[0]]={'position':key[1],'value':float(Kwargs['SampledVars'][keys])}
+        if Kwargs['startTime'] != 'Initial':  cardList[key[0]]={'position':key[1],'value':float(Kwargs['SampledVars'][keys])}
         else: cardList[key[0]]={'position':key[1],'value':Kwargs['SampledVars'][keys]}
       else:
-        if Kwargs['start_time'] != 'Initial':  cardList[key[0]]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
+        if Kwargs['startTime'] != 'Initial':  cardList[key[0]]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
         else: cardList[key[0]]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
     modifDict['cards']=cardList
     if 'aux_vars' in Kwargs.keys():
