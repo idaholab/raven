@@ -490,11 +490,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for var,value in self.values.items():
           if lvar == var:
             latentVariablesValues.append(value)
-      print('****' + str(latentVariablesValues) + '****')
       varDict = self.distDict[self.latentVariablesDict[key][0]].pcaInverseTransform(latentVariablesValues)
-      print('****' + str(varDict) + '****')
       self.values.update(varDict)
-      print('****' + str(self.values) + '****')
 
   @abc.abstractmethod
   def localGenerateInput(self,model,oldInput):
@@ -1053,20 +1050,20 @@ class MonteCarlo(Sampler):
         for var in self.distributions2variablesMapping[dist]:
           varID = var.keys()[0]
           rvsnum = self.distDict[key].rvs()
+          self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
           for kkey in varID.strip().split(','):
             self.values[kkey] = np.atleast_1d(rvsnum)[0]
-            self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
       elif totDim > 1:
         if dim == 1:
           rvsnum = self.distDict[key].rvs()
           coordinate = np.atleast_1d(rvsnum).tolist()
           probabilityValue = self.distDict[key].pdf(coordinate)
+          self.inputInfo['SampledVarsPb'][key] = probabilityValue
           for var in self.distributions2variablesMapping[dist]:
             varID = var.keys()[0]
             varDim = var[varID]
             for kkey in varID.strip().split(','):
               self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
-              self.inputInfo['SampledVarsPb'][kkey] = probabilityValue
       else:
         self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
 

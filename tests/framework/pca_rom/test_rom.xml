@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>ROM</WorkingDir>
+    <Sequence>uqWithCov,Dump</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+      <Input name="Functions.py" type="">Functions.py</Input>
+  </Files>
+
+  <Models>
+      <ExternalXML node="ExternalModel" xmlToLoad="ROM/externalModel.xml"/>
+  </Models>
+
+  <Distributions>
+      <MultivariateNormal name="MultivariateNormalReduction" method='pca'>
+          <ExternalXML node="reduction" xmlToLoad="ROM/reduction.xml"/>
+          <ExternalXML node="mu" xmlToLoad="ROM/mean.xml"/>
+          <ExternalXML node="covariance" xmlToLoad="ROM/covariance.xml"/>
+      </MultivariateNormal>
+  </Distributions>
+
+  <Samplers>
+      <ExternalXML node="MonteCarlo" xmlToLoad="ROM/samplerMonteCarlo_latent.xml"/>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="uqWithCov" re-seeding="103186">
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MCExternal</Sampler>
+      <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
+    </MultiRun>
+    <IOStep name="Dump">
+      <Input class="DataObjects" type="PointSet">testPrintPointSet</Input>
+      <Output class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="testPrintPointSet_dump">
+      <type>csv</type>
+      <source>testPrintPointSet</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <Point name="inputPlaceHolder">
+      <ExternalXML node="Input" xmlToLoad="ROM/pointInput.xml"/>  
+      <Output>OutputPlaceHolder</Output>
+    </Point>
+    <PointSet name="testPrintPointSet">
+      <Input>x_0,x_10,x_50</Input>
+      <Output>response</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
