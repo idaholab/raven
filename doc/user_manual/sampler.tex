@@ -270,6 +270,20 @@ XML node and the requirements for other attributes change:
         of recalculating solutions.
     \end{itemize}
 }
+
+\newcommand{\latentVariableDescription}[1]
+{
+    \begin{itemize}
+      \item \xmlNode{latentVariables}, \xmlDesc{comma separated string, optional field}, user-defined 
+      latent variables that are used for input reduction.This XML node is required when the user-defined 
+      a reduction in the \xmlNode{Distributions} block. The content will specify two attributes:
+      \begin{itemize}
+        \item \xmlNode{name}, \xmlDesc{string, required field}, the name of distribution that is associated to these variables.
+        Its name needs to be contained in the \xmlNode{Distributions} block explained in sectioin 8.
+        \item \xmlNode{type}, \xmlDesc{string, required field}, the method that is used for the input reduction.
+      \end{itemize}
+    \end{itemize}
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The sampler is probably the most important entity in the RAVEN framework.
@@ -494,6 +508,7 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
 
 \assemblerDescription{MonteCarlo}
 \restartDescription{MonteCarlo}
+\latentVariableDescription{MonteCarlo}
 
 Example:
 \begin{lstlisting}[style=XML]

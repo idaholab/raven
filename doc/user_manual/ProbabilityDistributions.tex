@@ -761,7 +761,15 @@ In RAVEN the MultivariateNormal distribution can be initialized through the foll
   \item \xmlNode{mu}, list of mean values of each dimension
   \item \xmlNode{covariance}, list of element values in the covariance matrix. There are two types of \xmlNode{covariance}, based on the \xmlAttr{type}:
   \begin{itemize}
-    \item \xmlAttr{type} \xmlDesc{string, optional field} specifies the type of covariance. Possible values for \xmlAttr{type} are \xmlString{abs} and \xmlString{rel}.
+    \item \xmlAttr{type}, \xmlDesc{string, optional field}, specifies the type of covariance. Possible values for \xmlAttr{type} are \xmlString{abs} and \xmlString{rel}. \nb currently, method \xmlString{pca} can be combined with both types, and method \xmlString{spline} only accept the type \xmlString{abs}
+  \end{itemize}
+  \item \xmlNode{reduction}, \xmlDesc{XML node, optional field}, option to enable input parameter reduction using PCA approach. The content will specify two attributes:
+  \begin{itemize}
+    \item \xmlAttr{rank}, \xmlDesc{positive integer, required field}, user-defined dimensionality reduction.
+    \item \xmlAttr{variables}, \xmlDesc{comma separated strings, required field},list of the names of input variables, the content of this XML node depends on the definition of the associated attributes:
+    \begin{itemize}
+      \item \xmlAttr{type}, \xmlDesc{required string attribute}, user-defined type for the list. \nb only \xmlString{model} is accepted now.
+    \end{itemize}
   \end{itemize}
 \end{itemize}
 
@@ -789,6 +797,25 @@ Example:
 	1.0 0.7
 	0.7 1.0
         </covariance>
+    </MultivariateNormal>
+  ...
+</Distributions>
+\end{lstlisting}
+
+\begin{lstlisting}[style=XML]
+<Distributions>
+  ...
+    <MultivariateNormal name='MultivariateNormal_test' method='pca'>
+        <mu>0.0 10.0 20.0</mu>
+        <covariance type="abs">
+           1.0   0.7   -0.2
+           0.7   1.0   0.4
+           -0.2  0.4   1.0
+        </covariance>
+        <reduction>
+          <rank>2</rank>
+          <variables type="model">x1,y1</variables>
+        </reduction>
     </MultivariateNormal>
   ...
 </Distributions>
