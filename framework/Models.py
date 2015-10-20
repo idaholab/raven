@@ -319,6 +319,11 @@ class ROM(Dummy):
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
 
+    self.howManyTimeSteps          = 1          # how many time steps? (for temporal reduced order models)
+    self.samplingType              = 'uniform'  # uniform or derivative
+    self.interpType                = 'linear'
+    self.timeROM                   = []
+    
   def __getstate__(self):
     """
     Overwrite state (for pickle-ing)
@@ -338,12 +343,15 @@ class ROM(Dummy):
       #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
       targets = self.initializationOptionDict['Target'].split(',')
       self.howManyTargets = len(targets)
+      self.howManyTimeSteps  = self.initializationOptionDict['t_Discs']
       self.SupervisedEngine = {}
-      for target in targets:
-        self.initializationOptionDict['Target'] = target
-        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-      #restore targets to initialization option dict
-      self.initializationOptionDict['Target'] = ','.join(targets)
+      
+      for t in range(self.howManyTimeSteps):
+        for target in targets:
+          self.initializationOptionDict[t]['Target'] = target
+          self.SupervisedEngine[t][target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+        #restore targets to initialization option dict
+        self.initializationOptionDict[t]['Target'] = ','.join(targets)
 
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
@@ -362,9 +370,17 @@ class ROM(Dummy):
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
-    for target in targets:
-      self.initializationOptionDict['Target'] = target
-      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+
+    #XXX
+    self.howManyTimeSteps  = self.initializationOptionDict['t_Discs']
+    for ts in range(self.howManyTimeSteps):
+      tsDict = {}
+      for target in targets:
+        self.initializationOptionDict['Target'] = target
+        tsDict[target] = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+      self.SupervisedEngine[ts] = tsDict
+    #XXX
+    
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
     #restore targets to initialization option dict
@@ -429,10 +445,12 @@ class ROM(Dummy):
     else:
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
       self.amITrained = True
-      for instrom in self.SupervisedEngine.values():
-        instrom.train(self.trainingSet)
-        self.aimITrained = self.amITrained and instrom.amITrained
-      self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+      for timeStep in self.SupervisedEngine:
+        data = self.trainingSet[timeStep]
+        for instrom in self.SupervisedEngine[timeStep].values():
+          instrom.train(data)
+          self.aimITrained = self.amITrained and instrom.amITrained
+          self.raiseADebug('add self.amITrained to currentParamters','FIXME')
 
   def confidence(self,request,target = None):
     """
@@ -458,7 +476,9 @@ class ROM(Dummy):
 
   def __externalRun(self,inRun):
     returnDict = {}
-    for target in self.SupervisedEngine.keys(): returnDict[target] = self.evaluate(inRun,target)
+    for ts in self.SupervisedEngine:
+      for target in self.SupervisedEngine[ts].keys(): 
+        returnDict[target] = self.evaluate(inRun,target)
     return returnDict
 
   def run(self,Input,jobHandler):
