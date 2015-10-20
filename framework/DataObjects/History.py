@@ -20,7 +20,7 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 from cached_ndarray import c1darray
-from DataObjects.Data import Data, NotConsistentData, ConstructError
+from .Data import Data, NotConsistentData, ConstructError
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
