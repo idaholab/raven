@@ -46,7 +46,6 @@ import os
 import inspect
 cmd_subfolder = os.path.realpath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())),"../cloud"))
 if cmd_subfolder not in sys.path: sys.path.insert(0, cmd_subfolder)
-
 import pp
 import ppauto
 import ppcommon
@@ -319,6 +318,7 @@ def print_usage():
     print "-t seconds         : timeout to exit if no connections with "\
             "clients exist"
     print "-k seconds         : socket timeout in seconds"
+    print "-g                 : python path that should be checked and added"
     print "-P pid_file        : file to write PID to"
     print
     print "To print server stats send SIGUSR1 to its main process (unix only). "
@@ -333,7 +333,7 @@ def print_usage():
 
 def create_network_server(argv):
     try:
-        opts, args = getopt.getopt(argv, "hdarn:c:b:i:p:w:s:t:f:k:P:", ["help"])
+        opts, args = getopt.getopt(argv, "hdarn:c:b:i:p:w:s:t:f:k:g:P:", ["help"])
     except getopt.GetoptError:
         print_usage()
         raise
@@ -345,6 +345,7 @@ def create_network_server(argv):
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     for opt, arg in opts:
+        print(opt,arg)
         if opt in ("-h", "--help"):
             print_usage()
             sys.exit()
@@ -377,7 +378,11 @@ def create_network_server(argv):
             args["socket_timeout"] = int(arg)
         elif opt == "-P":
             args["pid_file"] = arg
-
+        elif opt == "-g":
+            # the python path got passed through the command line
+            # add those here
+            for path_to_add in arg.split(os.pathsep):
+                if path_to_add not in sys.path: sys.path.append(path_to_add)
     log_handler = logging.StreamHandler()
     log_handler.setFormatter(logging.Formatter(log_format))
     logging.getLogger("pp").setLevel(log_level)

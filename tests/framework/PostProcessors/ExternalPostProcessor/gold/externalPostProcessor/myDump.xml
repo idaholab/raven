@@ -1,1 +1,1 @@
-<data name="myDump" type="Pointset"><input>A,X,B</input><output>advOps.Sum,Z,advOps.Delta,Norm,basicOps.Sum</output><input_filename>myDump.csv</input_filename><metadata><Max>array([5])</Max></metadata></data>
+<data name="myDump" type="Pointset"><input>A,X,B</input><output>advOps.Sum,Z,advOps.Delta,Norm,basicOps.Sum</output><inputFilename>myDump.csv</inputFilename><metadata><Max>array([5])</Max></metadata></data>

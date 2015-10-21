@@ -123,12 +123,12 @@ class Relap5(CodeInterfaceBase):
         listDict.append(modifDict)
         del modifDict
     # add the initial time for this new branch calculation
-    if 'start_time' in Kwargs.keys():
-      if Kwargs['start_time'] != 'Initial':
+    if 'startTime' in Kwargs.keys():
+      if Kwargs['startTime'] != 'Initial':
         modifDict = {}
-        st_time = Kwargs['start_time']
+        st_time = Kwargs['startTime']
         modifDict['name'] = ['Executioner']
-        modifDict['start_time'] = st_time
+        modifDict['startTime'] = st_time
         listDict.append(modifDict)
         del modifDict
     # create the restart file name root from the parent branch calculation
@@ -136,9 +136,9 @@ class Relap5(CodeInterfaceBase):
     if 'end_ts' in Kwargs.keys():
       #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
 
-      if str(Kwargs['start_time']) != 'Initial':
+      if str(Kwargs['startTime']) != 'Initial':
         modifDict = {}
-        #restart_parent = Kwargs['parent_id']+'~restart.r'
+        #restart_parent = Kwargs['parentID']+'~restart.r'
         #new_restart = Kwargs['prefix']+'~restart.r'
         #shutil.copyfile(restart_parent,new_restart)
         modifDict['name'] = ['Executioner']
@@ -182,10 +182,10 @@ class Relap5(CodeInterfaceBase):
     for keys in Kwargs['SampledVars']:
       key = keys.split(':')
       if len(key) > 1:
-        if Kwargs['start_time'] != 'Initial':  cardList[key[0]]={'position':key[1],'value':float(Kwargs['SampledVars'][keys])}
+        if Kwargs['startTime'] != 'Initial':  cardList[key[0]]={'position':key[1],'value':float(Kwargs['SampledVars'][keys])}
         else: cardList[key[0]]={'position':key[1],'value':Kwargs['SampledVars'][keys]}
       else:
-        if Kwargs['start_time'] != 'Initial':  cardList[key[0]]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
+        if Kwargs['startTime'] != 'Initial':  cardList[key[0]]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
         else: cardList[key[0]]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
     modifDict['cards']=cardList
     if 'aux_vars' in Kwargs.keys():

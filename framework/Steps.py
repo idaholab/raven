@@ -92,7 +92,11 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if 'sleepTime' in xmlNode.attrib.keys():
       try: self.sleepTime = float(xmlNode.attrib['sleepTime'])
       except: self.raiseAnError(IOError,printString.format(self.type,self.name,xmlNode.attrib['sleepTime'],'sleepTime'))
-    for child in xmlNode                      : self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
+    for child in xmlNode:
+      classType, classSubType = child.attrib.get('class'), child.attrib.get('type')
+      if None in [classType,classSubType]: self.raiseAnError(IOError,"In Step named "+self.name+", subnode "+ child.tag + ", and body content = "+ child.text +" the attribute class and/or type has not been found!")
+      self.parList.append([child.tag,child.attrib.get('class'),child.attrib.get('type'),child.text])
+
     self.pauseEndStep = False
     if 'pauseAtEnd' in xmlNode.attrib.keys():
       if   xmlNode.attrib['pauseAtEnd'].lower() in utils.stringsThatMeanTrue(): self.pauseEndStep = True
@@ -206,7 +210,6 @@ class SingleRun(Step):
   def _localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
     #Model initialization
-    modelInitDict={}
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{})
     self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
     #HDF5 initialization
@@ -527,7 +530,7 @@ class IOStep(Step):
       for i in range(len(inDictionary['Input'])):
         if self.actionType[i].startswith('dataObjects-'):
           inInput = inDictionary['Input'][i]
-          inInput.loadXML_CSV(self.fromDirectory)
+          inInput.loadXMLandCSV(self.fromDirectory)
 
     #Initialize all the OutStreamPrint and OutStreamPlot outputs
     for output in inDictionary['Output']:
@@ -569,7 +572,7 @@ class IOStep(Step):
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]
         options = {'fileToLoad':infile}
-        outputs[i].loadXML_CSV(inDictionary['Input'][i].getPath(),options)
+        outputs[i].loadXMLandCSV(inDictionary['Input'][i].getPath(),options)
       else:
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
     for output in inDictionary['Output']:

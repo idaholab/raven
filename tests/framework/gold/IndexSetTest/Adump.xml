@@ -1,4 +1,4 @@
-<data name="Adump" type="Pointset"><input>x2,x1</input><output>ans</output><input_filename>Adump.csv</input_filename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+<data name="Adump" type="Pointset"><input>x2,x1</input><output>ans</output><inputFilename>Adump.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',

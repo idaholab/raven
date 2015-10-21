@@ -7,14 +7,17 @@
   </RunInfo>
 
   <Files>
-    <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
-    <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
   </Files>
 
   <Models>
-    <Code name="MyRAVEN" subType="RAVEN">
-      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
-    </Code>
+    <ExternalModel ModuleToLoad="output_generator" name="PythonModule" subType="">
+      <variable>sine</variable>
+      <variable>square</variable>
+      <variable>cosine</variable>
+      <variable>time</variable>
+      <variable>var1</variable>
+      <variable>var2</variable>
+    </ExternalModel>
   </Models>
 
   <Distributions>
@@ -22,14 +25,22 @@
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
     </Uniform>
+    <Uniform name="oneToTwo">
+      <lowerBound>1.0</lowerBound>
+      <upperBound>2.0</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
     <Grid name="RAVENGrid">
-      <Distribution name="Dummy1">
+      <variable name="var1">
         <distribution>zeroToOne</distribution>
-        <grid construction="equal" steps="15" type="CDF">0.15  0.9</grid>
-      </Distribution>
+        <grid construction="equal" steps="7" type="CDF">0.15  0.9</grid>
+      </variable>
+      <variable name="var2">
+        <distribution>oneToTwo</distribution>
+        <grid construction="equal" steps="7" type="CDF">0.15  0.9</grid>
+      </variable>
     </Grid>
   </Samplers>
 
@@ -51,22 +62,22 @@
     <Print name="testprint_selective_hist3">
       <type>csv</type>
       <source>stories</source>
-      <what>Input|pipe1_Area</what>
+      <what>Input|var1</what>
     </Print>
     <Print name="testprint_selective_Pointset">
       <type>csv</type>
       <source>PointSets</source>
-      <what>Output,Input|pipe1_Area</what>
+      <what>Output,Input|var1</what>
     </Print>
     <Print name="testprint_selective_Point">
       <type>csv</type>
       <source>Pointt</source>
-      <what>Output,Input|pipe1_Area</what>
+      <what>Output,Input|var1</what>
     </Print>
     <Print name="testprint_selective_history">
       <type>csv</type>
       <source>Historyy</source>
-      <what>Output,Input|pipe1_Area</what>
+      <what>Output,Input|var1</what>
     </Print>
     <Print name="fullprint_HistorySet">
       <type>csv</type>
@@ -89,17 +100,17 @@
         <plot>
           <type>line</type>
           <x>stories|Output|time</x>
-          <y>stories|Output|pump_mass_flow_rate</y>
+          <y>stories|Output|sine</y>
           <kwargs>
             <color>blue</color>
-            <label>pipe1-Hw</label>
+            <label>time sine</label>
           </kwargs>
         </plot>
         <plot>
           <type>line</type>
           <x>stories|Output|time</x>
-          <y>stories|Output|pump_mass_flow_rate</y>
-          <colorMap>stories|output|pump_mass_flow_rate</colorMap>
+          <y>stories|Output|sine</y>
+          <colorMap>stories|Output|square</colorMap>
           <cmap>gist_ncar</cmap>
           <kwargs>
         </kwargs>
@@ -149,24 +160,24 @@
       <plotSettings>
         <plot>
           <type>line</type>
-          <x>stories|Output|time</x>
-          <z>stories|Output|pump_mass_flow_rate</z>
-          <y>stories|Output|pipe1_Hw</y>
+          <x>stories|Input|var1</x>
+          <z>stories|Input|var2</z>
+          <y>stories|Output|square</y>
           <kwargs>
             <color>black</color>
-            <label>pipe1-Hw</label>
+            <label>square</label>
           </kwargs>
         </plot>
         <plot>
           <type>line</type>
-          <x>stories|Output|time</x>
-          <z>stories|Output|pump_mass_flow_rate</z>
-          <y>stories|Output|pipe1_Hw</y>
-          <colorMap>stories|Output|time</colorMap>
+          <x>stories|Input|var1</x>
+          <y>stories|Input|var2</y>
+          <z>stories|Output|square</z>
+          <colorMap>stories|Output|cosine</colorMap>
           <cmap>rainbow</cmap>
           <kwargs>
             <color>green</color>
-            <label>pipe1-Hw</label>
+            <label>square cosine</label>
           </kwargs>
         </plot>
       </plotSettings>
@@ -177,11 +188,11 @@
         </title>
         <range>
           <xmin>0</xmin>
-          <ymin>0</ymin>
+          <ymin>1</ymin>
           <zmin>0</zmin>
           <xmax>1</xmax>
-          <ymax>0.004</ymax>
-          <zmax>1</zmax>
+          <ymax>2</ymax>
+          <zmax>2</zmax>
         </range>
         <labelFormat>
           <style>sci</style>
@@ -211,20 +222,20 @@
         <plot>
           <type>scatter</type>
           <x>stories|Output|time</x>
-          <y>stories|Output|pump_mass_flow_rate</y>
+          <y>stories|Output|sine</y>
           <kwargs>
-            <label>pump mass flow rate</label>
+            <label>time sine</label>
           </kwargs>
         </plot>
         <plot>
           <type>scatter</type>
           <x>stories|Output|time</x>
-          <y>stories|Output|pump_mass_flow_rate</y>
-          <colorMap>stories|Output|pipe1_Hw</colorMap>
+          <y>stories|Output|sine</y>
+          <colorMap>stories|Output|square</colorMap>
           <cmap>summer</cmap>
           <kwargs>
             <color>red</color>
-            <label>pump mass flow rate</label>
+            <label>time sine square</label>
           </kwargs>
         </plot>
         <xlabel>time [s]</xlabel>
@@ -242,26 +253,26 @@
         <plot>
           <type>scatter</type>
           <x>stories|Output|time</x>
-          <z>stories|Output|pump_mass_flow_rate</z>
-          <y>stories|Output|pipe1_Hw</y>
+          <z>stories|Output|sine</z>
+          <y>stories|Output|square</y>
           <kwargs>
             <color>black</color>
-            <label>pump mass flow rate</label>
+            <label>time sine square</label>
           </kwargs>
         </plot>
         <plot>
           <type>scatter</type>
           <x>stories|Output|time</x>
-          <z>stories|Output|pump_mass_flow_rate</z>
-          <y>stories|Output|pipe1_Hw</y>
+          <z>stories|Output|sine</z>
+          <y>stories|Output|square</y>
           <colorMap>stories|Output|time</colorMap>
           <cmap>summer</cmap>
           <kwargs>
-            <label>pump mass flow rate</label>
+            <label>time sine square</label>
           </kwargs>
         </plot>
         <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <ylabel>square</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -277,9 +288,9 @@
       <plotSettings>
         <plot>
           <type>histogram</type>
-          <x>PointSets|Output|pump_mass_flow_rate</x>
+          <x>PointSets|Output|sine</x>
         </plot>
-        <xlabel>time [s]</xlabel>
+        <xlabel>sine</xlabel>
         <ylabel>evolution</ylabel>
       </plotSettings>
       <actions>
@@ -293,11 +304,11 @@
       <plotSettings>
         <plot>
           <type>histogram</type>
-          <x>PointSets|Input|pipe1_Area</x>
-          <y>PointSets|Output|pump_mass_flow_rate</y>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Output|sine</y>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <xlabel>var1</xlabel>
+        <ylabel>sine</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -310,11 +321,11 @@
       <plotSettings>
         <plot>
           <type>stem</type>
-          <x>PointSets|Input|pipe1_Area</x>
-          <y>PointSets|Output|pump_mass_flow_rate</y>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Output|sine</y>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <xlabel>var1</xlabel>
+        <ylabel>sine</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -327,12 +338,12 @@
       <plotSettings>
         <plot>
           <type>stem</type>
-          <x>PointSets|Input|pipe1_Area</x>
-          <y>PointSets|Output|pipe1_Hw</y>
-          <z>PointSets|Output|pump_mass_flow_rate</z>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Output|time</y>
+          <z>PointSets|Output|sine</z>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <xlabel>var1</xlabel>
+        <ylabel>time</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -345,11 +356,11 @@
       <plotSettings>
         <plot>
           <type>stem</type>
-          <x>PointSets|Input|pipe1_Area</x>
-          <y>PointSets|Output|pump_mass_flow_rate</y>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Output|sine</y>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <xlabel>var1</xlabel>
+        <ylabel>sine</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -362,12 +373,12 @@
       <plotSettings>
         <plot>
           <type>stem</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <y>PointSets|Input|pipe1_Dh</y>
-          <z>PointSets|Output|pump_mass_flow_rate</z>
+          <x>PointSets|Output|sine</x>
+          <y>PointSets|Input|var1</y>
+          <z>PointSets|Output|time</z>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <xlabel>sine</xlabel>
+        <ylabel>var1</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -380,11 +391,11 @@
       <plotSettings>
         <plot>
           <type>step</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <y>PointSets|Output|pump_mass_flow_rate</y>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Output|sine</y>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <xlabel>var1</xlabel>
+        <ylabel>sine</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -397,13 +408,13 @@
       <plotSettings>
         <plot>
           <type>pseudocolor</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <y>PointSets|Input|pipe1_Dh</y>
-          <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+          <x>PointSets|Output|cosine</x>
+          <y>PointSets|Input|var1</y>
+          <colorMap>PointSets|Output|sine</colorMap>
           <cmap>summer</cmap>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <xlabel>cosine</xlabel>
+        <ylabel>var1</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -416,29 +427,29 @@
       <plotSettings>
         <plot>
           <type>surface</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <z>PointSets|Output|pump_mass_flow_rate</z>
-          <y>PointSets|Input|pipe1_Dh</y>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Input|var2</y>
+          <z>PointSets|Output|cosine</z>
           <interpolationType>nearest</interpolationType>
-          <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+          <colorMap>PointSets|Output|sine</colorMap>
           <cmap>summer</cmap>
           <kwargs>
-            <label>pump mass flow rate</label>
+            <label>var1 var2 sine</label>
           </kwargs>
         </plot>
         <plot>
           <type>surface</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <z>PointSets|Output|pump_mass_flow_rate</z>
-          <y>PointSets|Input|pipe1_Dh</y>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Input|var2</y>
+          <z>PointSets|Output|cosine</z>
           <interpolationType>nearest</interpolationType>
           <kwargs>
             <color>red</color>
-            <label>pump mass flow rate</label>
+            <label>var1 var2 cosine</label>
           </kwargs>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <xlabel>var1</xlabel>
+        <ylabel>var2</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -451,25 +462,25 @@
       <plotSettings>
         <plot>
           <type>tri-surface</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <z>PointSets|Output|pump_mass_flow_rate</z>
-          <y>PointSets|Input|pipe1_Dh</y>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Input|var2</y>
+          <z>PointSets|Output|cosine</z>
           <interpolationType>nearest</interpolationType>
           <kwargs>
-            <label>pump mass flow rate</label>
+            <label>var1 var2 cosine</label>
           </kwargs>
         </plot>
         <plot>
           <type>tri-surface</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <z>PointSets|Output|pump_mass_flow_rate</z>
-          <y>PointSets|Input|pipe1_Dh</y>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Input|var2</y>
+          <z>PointSets|Output|sine</z>
           <interpolationType>nearest</interpolationType>
-          <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+          <colorMap>PointSets|Output|square</colorMap>
           <cmap>summer</cmap>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <xlabel>var1</xlabel>
+        <ylabel>var2</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -482,26 +493,26 @@
       <plotSettings>
         <plot>
           <type>wireframe</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <z>PointSets|Output|pump_mass_flow_rate</z>
-          <y>PointSets|Input|pipe1_Dh</y>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Input|var2</y>
+          <z>PointSets|Output|cosine</z>
           <interpolationType>nearest</interpolationType>
         </plot>
         <plot>
           <type>wireframe</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <z>PointSets|Output|pump_mass_flow_rate</z>
-          <y>PointSets|Input|pipe1_Dh</y>
-          <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Input|var2</y>
+          <z>PointSets|Output|sine</z>
+          <colorMap>PointSets|Output|square</colorMap>
           <cmap>summer</cmap>
           <interpolationType>nearest</interpolationType>
           <kwargs>
             <color>red</color>
-            <label>pump mass flow rate</label>
+            <label>var1 var2 cosine sine</label>
           </kwargs>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <xlabel>var1</xlabel>
+        <ylabel>var2</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -514,20 +525,20 @@
       <plotSettings>
         <plot>
           <type>contour</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <y>PointSets|Input|pipe1_Dh</y>
-          <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Input|var2</y>
+          <colorMap>PointSets|Output|cosine</colorMap>
           <interpolationType>nearest</interpolationType>
         </plot>
         <plot>
           <type>filledContour</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <y>PointSets|Input|pipe1_Dh</y>
-          <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Input|var2</y>
+          <colorMap>PointSets|Output|cosine</colorMap>
           <interpolationType>nearest</interpolationType>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <xlabel>var1</xlabel>
+        <ylabel>var2</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -540,23 +551,23 @@
       <plotSettings>
         <plot>
           <type>contour3D</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <z>PointSets|Output|pump_mass_flow_rate</z>
-          <y>PointSets|Input|pipe1_Dh</y>
-          <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Input|var2</y>
+          <z>PointSets|Output|sine</z>
+          <colorMap>PointSets|Output|cosine</colorMap>
           <interpolationType>nearest</interpolationType>
         </plot>
         <plot>
           <type>filledContour3D</type>
-          <x>PointSets|Output|pipe1_Hw</x>
-          <z>PointSets|Output|pump_mass_flow_rate</z>
-          <y>PointSets|Input|pipe1_Dh</y>
-          <colorMap>PointSets|Output|pump_mass_flow_rate</colorMap>
+          <x>PointSets|Input|var1</x>
+          <y>PointSets|Input|var2</y>
+          <z>PointSets|Output|sine</z>
+          <colorMap>PointSets|Output|cosine</colorMap>
           <cmap>summer</cmap>
           <interpolationType>nearest</interpolationType>
         </plot>
-        <xlabel>time [s]</xlabel>
-        <ylabel>evolution</ylabel>
+        <xlabel>var1</xlabel>
+        <ylabel>var2</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -572,15 +583,15 @@
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>stories|Output|time</x>
-          <y>stories|Output|pump_mass_flow_rate</y>
-          <colorMap>stories|Input|pipe1_Dh</colorMap>
+          <x>stories|Input|var1</x>
+          <y>stories|Output|cosine</y>
+          <colorMap>stories|Output|sine</colorMap>
           <cmap>rainbow</cmap>
         </plot>
         <kwargs>
         </kwargs>
-        <xlabel>Time (s)</xlabel>
-        <ylabel>Mass Flow Rate</ylabel>
+        <xlabel>var1</xlabel>
+        <ylabel>cosine</ylabel>
       </plotSettings>
     </Plot>
     <Plot dim="3" name="plot19" overwrite="false" verbosity="debug">
@@ -590,17 +601,17 @@
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>stories|Output|time</x>
-          <y>stories|Input|pipe1_Dh</y>
-          <z>stories|Output|pump_mass_flow_rate</z>
-          <colorMap>stories|Output|pipe1_Hw</colorMap>
+          <x>stories|Input|var1</x>
+          <y>stories|Input|var2</y>
+          <z>stories|Output|cosine</z>
+          <colorMap>stories|Output|sine</colorMap>
           <cmap>summer</cmap>
         </plot>
         <kwargs>
         </kwargs>
-        <xlabel>Time (s)</xlabel>
-        <ylabel>Hydraulic Diameter</ylabel>
-        <zlabel>Mass Flow Rate</zlabel>
+        <xlabel>var1</xlabel>
+        <ylabel>var2</ylabel>
+        <zlabel>cosine</zlabel>
       </plotSettings>
     </Plot>
     <Plot dim="3" name="plot20" overwrite="false" verbosity="debug">
@@ -611,23 +622,23 @@
         <plot>
           <type>scatter</type>
           <x>Historyy|Output|time</x>
-          <y>Historyy|Input|pipe1_Dh</y>
-          <z>Historyy|Output|pump_mass_flow_rate</z>
-          <colorMap>Historyy|Output|pipe1_Hw</colorMap>
+          <y>Historyy|Input|var1</y>
+          <z>Historyy|Output|cosine</z>
+          <colorMap>Historyy|Output|sine</colorMap>
           <cmap>Accent</cmap>
         </plot>
         <kwargs>
         </kwargs>
-        <xlabel>Time (s)</xlabel>
-        <ylabel>Hydraulic Diameter</ylabel>
-        <zlabel>Mass Flow Rate</zlabel>
+        <xlabel>time</xlabel>
+        <ylabel>var1</ylabel>
+        <zlabel>cosine</zlabel>
       </plotSettings>
     </Plot>
     <Plot dim="2" name="2DHistoryPlot" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
-          <x>PointSets|Output|pump_mass_flow_rate</x>
+          <x>PointSets|Output|time</x>
         </plot>
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
@@ -643,7 +654,7 @@
       <plotSettings>
         <plot>
           <type>histogram</type>
-          <x>PointSets|Output|pump_mass_flow_rate</x>
+          <x>PointSets|Output|time</x>
         </plot>
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
@@ -659,9 +670,8 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="false">
-      <Input class="Files" type="">ideal_pump.i</Input>
-      <Input class="Files" type="">ideal_pump_control.py</Input>
-      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Input class="DataObjects" type="Point">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="Grid">RAVENGrid</Sampler>
       <Output class="Databases" type="HDF5">testOutputDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
@@ -715,27 +725,32 @@
   </Databases>
 
   <DataObjects>
+    <Point name="inputHolder">
+      <Input>var1, var2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </Point>
     <Point name="Pointt">
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      <Input>var1,
+      var2</Input>
+      <Output>time,sine,square,cosine</Output>
     </Point>
     <PointSet name="PointSets">
-      <Input>pipe1_Area, pipe1_Dh</Input>
-      <Output>pipe1_Hw,
-                pump_mass_flow_rate,
-                time
+      <Input>var1,var2</Input>
+      <Output>time,
+                sine,
+                square, cosine
         </Output>
     </PointSet>
     <History name="Historyy">
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      <Input>var1,var2</Input>
+      <Output>time,sine,square,cosine</Output>
     </History>
     <HistorySet name="stories">
-      <Input>pipe1_Area,
-               pipe1_Dh</Input>
-      <Output>pipe1_Hw,
-                pump_mass_flow_rate,
-                time
+      <Input>var1 , var2
+      </Input>
+      <Output>time,
+                sine,
+                square, cosine
         </Output>
     </HistorySet>
   </DataObjects>
