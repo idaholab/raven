@@ -309,7 +309,7 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet','HistorySet']
 
   def __init__(self,runInfoDict):
     Dummy.__init__(self,runInfoDict)
@@ -320,9 +320,6 @@ class ROM(Dummy):
     self.printTag = 'ROM MODEL'
 
     self.howManyTimeSteps          = 1          # how many time steps? (for temporal reduced order models)
-    self.samplingType              = 'uniform'  # uniform or derivative
-    self.interpType                = 'linear'
-    self.timeROM                   = []
     
   def __getstate__(self):
     """
@@ -372,7 +369,7 @@ class ROM(Dummy):
     self.howManyTargets = len(targets)
 
     #######
-    self.howManyTimeSteps  = self.initializationOptionDict['t_Discs']
+    self.howManyTimeSteps  =  #self.initializationOptionDict['t_Discs']
     for ts in range(self.howManyTimeSteps):
       tsDict = {}
       for target in targets:
@@ -427,8 +424,12 @@ class ROM(Dummy):
   def addInitParams(self,originalDict):
     """the ROM setting parameters are added"""
     ROMdict = {}
-    for target, instrom in self.SupervisedEngine.items(): ROMdict[self.name + '|' + target] = instrom.returnInitialParameters()
-    for key in ROMdict.keys(): originalDict[key] = ROMdict[key]
+    for ts in self.SupervisedEngine.items():
+      print(ts)
+      for target, instrom in ts[0]: 
+        ts[self.name + '|' + target] = instrom.returnInitialParameters()
+    for key in ROMdict.keys(): 
+      originalDict[key] = ROMdict[key]
 
   def train(self,trainingSet):
     """Here we do the training of the ROM"""
