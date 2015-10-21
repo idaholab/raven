@@ -3,6 +3,6 @@
   type = 'RavenFramework'
   input = 'test_adapt_sobol.xml'
   xml = 'AdaptSobol/dumprom.xml'
-  csv = 'AdaptSobol/dump.csv'
+  UnorderedCsv = 'AdaptSobol/dump.csv'
  [../]
 []
