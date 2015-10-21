@@ -1501,6 +1501,7 @@ Currently, RAVEN provides support for the following adaptive algorithms:
   \item Adaptive Dynamic Event Tree
   \item Adaptive Hybrid Dynamic Event Tree
   \item Adaptive Sparse Grid
+  \item Adaptive Sobol Decomposition
 \end{itemize}
 
 In the following paragraphs, the input requirements and a small explanation of
@@ -2065,6 +2066,97 @@ Example:
     <ROM class = 'Models' type = 'ROM'>gausspolyrom</ROM>
     <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
   </AdaptiveSparseGrid>
+  ...
+</Samplers>
+\end{lstlisting}
+\subsubsection{Adaptive Sobol Decomposition}
+\label{subsubsubsec:AdaptiveSobol}
+The \textbf{Adaptive Sobol Decomposition} approach is an advanced methodology that decomposes an uncertainty
+space into subsets and adaptively includes the most influential ones.  For example, for a response function
+$f(a,b,c)$, the full list of subsets include $(a), (b), (c), (a,b), (a,c), (b,c), (a,b,c)$.  A Gauss Polynomial ROM is
+constructed for each included subset using the Adaptive Sparse Grid sampler.  The importance of each subset is
+estimated based on the importance of preceding subsets; that is, the impact of $(a,b)$ on the representation
+of $f$ is estimated using the impact of $(a)$ and $(b)$.  Because of the excellent performance of Gauss
+Polynomial ROMs for small-dimension spaces, this sampler used to construct an HDMR ROM can be very efficient.
+Note that the ROM specified for this sampler \emph{must} be an HDMRRom specified in the Models block.
+%
+
+\specBlock{an}{Adaptive Sobol}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+
+\variableIntro{Adaptive Sobol}
+
+\begin{itemize}
+  \item \variableDescription
+    \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+    \item \functionDescription
+    \end{itemize}
+\end{itemize}
+
+In addition to the \xmlNode{variable} nodes, the main XML node
+\xmlNode{Adaptive Sobol} needs to contain two supplementary sub-nodes:
+
+\begin{itemize}
+  \item \xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence
+    tolerance.  This is the relative tolerance for converging the variance of the response ROM.
+    %
+    \begin{itemize}
+      \item \xmlAttr{maxRuns}, \xmlDesc{optional string attribute},
+        a limit for the number of model calls.  Once this limit is reached, no additional subsets
+        will be generated or considered; however, existing subsets will continue to be trained.  If not
+        specified, no limit on solves is imposed.
+        %
+    \end{itemize}
+    In summary, this XML node contains the information that is needed in order
+    to control this sampler's convergence criterion.
+  \item \xmlNode{maxSobolOrder}, \xmlDesc{optional field}, the maximum cardinality of subsets to consider when
+    performing the adaptive decomposition.  For example, for a model $f(a,b,c)$, a max Sobol order of 1
+    results in subsets $(a),(b),(c)$, while a max Sobol order of 2 additionally considers $(a,b), (a,c),
+    (b,c)$.  Experience has shown that many problems converge well with a max Sobol order of 2, which is the
+    default.
+
+\end{itemize}
+  % Adaptive Sobol
+  \assemblerDescription{Adaptive Sobol}
+       \ROMDescription{Adaptive Sobol}
+        %
+        \begin{itemize}
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The Adaptive Sobol sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
+   % \end{itemize}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
+<Samplers>
+  ...
+  <AdaptiveSobol name="AS" verbosity='debug'>
+    <Convergence maxRuns='100'>1e-7</Convergence>
+    <maxSobolOrder>3</maxSobolOrder>
+    <variable name="x1">
+      <distribution>UniDist</distribution>
+    </variable>
+    <variable name="x2">
+      <distribution>UniDist</distribution>
+    </variable>
+    <ROM class = 'Models' type = 'ROM'>hdmrrom</ROM>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
+  </AdaptiveSobol>
   ...
 </Samplers>
 \end{lstlisting}
