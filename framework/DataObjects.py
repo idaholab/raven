@@ -1257,7 +1257,7 @@ class PointSet(Data):
     for line in myFile.readlines():
       lineList = line.rstrip().split(",")
       for i in range(len(inoutKeys)):
-        inoutValues[i].append(utils.partialEval(line_list[i]))
+        inoutValues[i].append(utils.partialEval(lineList[i]))
     # extend the expected size of this PointSet
     self.numAdditionalLoadPoints = len(inoutValues[0]) #this flag used in checkConsistency
     self._dataContainer['inputs'] = {}

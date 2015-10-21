@@ -430,6 +430,7 @@ class ROM(Dummy):
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
       self.amITrained = True
       for instrom in self.SupervisedEngine.values():
+        print('training, set params are:',self.trainingSet.keys())#.getParaKeys('outputs'))
         instrom.train(self.trainingSet)
         self.aimITrained = self.amITrained and instrom.amITrained
       #FIXME self.raiseADebug('add self.amITrained to currentParamters','FIXME')

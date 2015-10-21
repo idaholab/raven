@@ -450,7 +450,7 @@ class QuadratureSet(MessageHandler.MessageUser):
     @ Out, tuple(tuple(float),float) points and weight
     """
     pts,wts = self.rule(order,*self.params)
-    pts = np.around(pts,decimals=10) #TODO helps with checking equivalence, might not be desirable
+    pts = np.around(pts,decimals=15) #TODO helps with checking equivalence, might not be desirable
     #NOTE: 10 is consistent with printed decimals, improving loading from CSV for example.  Large possible source
     #      of roundoff errors here.
     return pts,wts
