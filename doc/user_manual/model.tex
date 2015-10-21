@@ -4115,13 +4115,13 @@ There are four nodes that are used in the post-processor.
 
 \begin{itemize}
 \item \xmlNode{kind}: specifies information to use for comparing the
-  data that is provided.  This takes either uniform\_bins which makes
-  the bin width uniform or equal\_probability which makes the number
+  data that is provided.  This takes either uniformBins which makes
+  the bin width uniform or equalProbability which makes the number
   of counts in each bin equal.  It can take the following attributes:
   \begin{itemize}
-  \item \xmlAttr{num\_bins} which takes a number that directly
+  \item \xmlAttr{numBins} which takes a number that directly
     specifies the number of bins
-  \item \xmlAttr{bin\_method} which takes a string that specifies the
+  \item \xmlAttr{binMethod} which takes a string that specifies the
     method used to calculate the number of bins.  This can be either
     square-root or sturges.
   \end{itemize}
@@ -4200,7 +4200,7 @@ points to approximations in the calculation.
    <Models>
       ...
       <PostProcessor name="stat_stuff" subType="ComparisonStatistics">
-      <kind bin_method='sturges'>uniform_bins</kind>
+      <kind binMethod='sturges'>uniformBins</kind>
       <compare>
         <data>OriData|Output|tsin_TEMPERATURE</data>
         <reference name='normal_410_2' />
@@ -4211,7 +4211,7 @@ points to approximations in the calculation.
       </compare>
       </PostProcessor>
       <PostProcessor name="stat_stuff2" subType="ComparisonStatistics">
-        <kind num_bins="6">equal_probability</kind>
+        <kind numBins="6">equalProbability</kind>
         <compare>
           <data>OriData|Output|tsin_TEMPERATURE</data>
         </compare>
@@ -4554,8 +4554,9 @@ Section~\ref{sec:functions} for more details).
 \subsubsection{TopologicalDecomposition}
 \label{TopologicalDecomposition}
 The \textbf{TopologicalDecomposition} post-processor will compute an
-approximated hierarchical Morse-Smale complex and perform linear regression on
-each component.
+approximated hierarchical Morse-Smale complex which will add two columns to a
+dataset, namely \texttt{minLabel} and \texttt{maxLabel} that can be used to
+decompose a dataset.
 %
 
 In order to use the \textbf{TopologicalDecomposition} post-processor, the user

@@ -7,12 +7,6 @@
   </RunInfo>
 
   <Files>
-    <Input name="TMI_PRA_trans_MC_control.py" type="">TMI_PRA_trans_MC_control.py</Input>
-    <Input name="TMI.i" type="">TMI.i</Input>
-    <Input name="TMI_steady_restart/1863.rd-0" type="">TMI_steady_restart/1863.rd-0</Input>
-    <Input name="TMI_steady_restart/1863.xdr" type="">TMI_steady_restart/1863.xdr</Input>
-    <Input name="TMI_steady_restart/1863.xdr.0000" type="">TMI_steady_restart/1863.xdr.0000</Input>
-    <Input name="TMI_steady_restart/1863_mesh.cpr" type="">TMI_steady_restart/1863_mesh.cpr</Input>
   </Files>
 
   <Distributions>
@@ -27,12 +21,9 @@
   </Distributions>
 
   <Models>
-    <Code name="MyRAVEN" subType="RAVEN">
-      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
-    </Code>
     <ROM name="ROM1" subType="SciKitLearn">
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
-      <Target>CladTempTreshold</Target>
+      <Target>CladTempThreshold</Target>
       <SKLtype>svm|LinearSVC</SKLtype>
       <C>1.0</C>
       <tol>0.0001</tol>
@@ -41,10 +32,10 @@
 
   <Samplers>
     <MonteCarlo name="RAVENmc3">
-      <sampler_init>
+      <samplerInit>
         <limit>3</limit>
-        <initial_seed>200286</initial_seed>
-      </sampler_init>
+        <initialSeed>200286</initialSeed>
+      </samplerInit>
       <variable name="DeltaTimeScramToAux">
         <distribution>auxbackup</distribution>
       </variable>
@@ -60,11 +51,11 @@
       <Model class="Models" type="ROM">ROM1</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc3</Sampler>
       <Output class="DataObjects" type="PointSet">outputMontecarloRom</Output>
-      <Output class="OutStreamManager" type="Print">outputMontecarloRom_dump</Output>
+      <Output class="OutStreamManager" type="Print">outputMontecarloRom_dump2</Output>
     </MultiRun>
     <IOStep name="test_extract_for_rom_trainer">
       <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-      <Output class="DataObjects" type="PointSet">timepointset_from_database_for_rom_trainer</Output>
+      <Output class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Output>
     </IOStep>
     <RomTrainer name="test_rom_trainer">
       <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
@@ -73,14 +64,14 @@
   </Steps>
 
   <OutStreamManager>
-    <Print name="outputMontecarloRom_dump">
+    <Print name="outputMontecarloRom_dump2">
       <type>csv</type>
       <source>outputMontecarloRom</source>
     </Print>
   </OutStreamManager>
 
   <Databases>
-    <HDF5 directory="DatabaseStorage" filename="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5" name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/>
+    <HDF5 directory="test_rom_trainer/DatabaseStorage" filename="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5" name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/>
   </Databases>
 
   <DataObjects>
@@ -96,14 +87,14 @@
         <inputRow>2</inputRow>
       </options>
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-      <Output>CladTempTreshold</Output>
+      <Output>CladTempThreshold</Output>
     </PointSet>
     <PointSet name="outputMontecarloRom">
       <options>
         <inputRow>2</inputRow>
       </options>
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-      <Output>CladTempTreshold</Output>
+      <Output>CladTempThreshold</Output>
     </PointSet>
   </DataObjects>
 

@@ -264,6 +264,11 @@
  initial_value =  0.0
  print_csv = True
  [../]
+ [./fakePressure]
+ data_type =  double
+ initial_value =  0.0
+ print_csv = True
+ [../]
 []
 [Distributions]
  RNG_seed = 1

@@ -56,9 +56,9 @@
         </variable>
     </Grid>
     <MonteCarlo name='Montecarlo_sampling'>
-        <sampler_init>
+        <samplerInit>
             <limit>17576</limit>
-        </sampler_init>
+        </samplerInit>
         <variable name='x1' >
             <distribution>normal_trunc</distribution>
         </variable>

@@ -10,7 +10,6 @@
     <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
     <Input name="TriangularExponential2D_scattered.txt" type="">TriangularExponential2D_scattered.txt</Input>
     <Input name="TriangularExponential2D_cartesian.txt" type="">TriangularExponential2D_cartesian.txt</Input>
-    <Input name="covMatrix.txt" type="">covMatrix.txt</Input>
   </Files>
 
   <Models>
@@ -37,21 +36,21 @@
     </Normal>
     <NDInverseWeight name="ND_InverseWeight_P">
       <p>3.0</p>
-      <data_filename type="PDF">2DgaussianScatteredPDF.txt</data_filename>
-      <working_dir>ND_test_Grid_cdf/</working_dir>
+      <dataFilename type="PDF">2DgaussianScatteredPDF.txt</dataFilename>
+      <workingDir>ND_test_Grid_cdf/</workingDir>
     </NDInverseWeight>
     <NDInverseWeight name="ND_InverseWeight_C">
       <p>2.5</p>
-      <data_filename type="CDF">2DgaussianScatteredCDF.txt</data_filename>
-      <working_dir>ND_test_Grid_cdf/</working_dir>
+      <dataFilename type="CDF">2DgaussianScatteredCDF.txt</dataFilename>
+      <workingDir>ND_test_Grid_cdf/</workingDir>
     </NDInverseWeight>
     <NDCartesianSpline name="ND_CartesianSpline_P">
-      <data_filename type="PDF">2DgaussianCartesianPDF.txt</data_filename>
-      <working_dir>ND_test_Grid_cdf/</working_dir>
+      <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
+      <workingDir>ND_test_Grid_cdf/</workingDir>
     </NDCartesianSpline>
     <NDCartesianSpline name="ND_CartesianSpline_C">
-      <data_filename type="CDF">2DgaussianCartesianCDF.txt</data_filename>
-      <working_dir>ND_test_Grid_cdf/</working_dir>
+      <dataFilename type="CDF">2DgaussianCartesianCDF.txt</dataFilename>
+      <workingDir>ND_test_Grid_cdf/</workingDir>
     </NDCartesianSpline>
   </Distributions>
 
@@ -86,6 +85,7 @@
     <Print name="testPrintPointSet_dump">
       <type>csv</type>
       <source>testPrintPointSet</source>
+      <what>Input,Output,Input|ProbabilityWeight</what>
     </Print>
   </OutStreamManager>
 

@@ -1,4 +1,4 @@
-<data name="Cdump" type="Pointset"><input>x2,x1</input><output>ans</output><input_filename>Cdump.csv</input_filename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+<data name="Cdump" type="Pointset"><input>x2,x1</input><output>ans</output><inputFilename>Cdump.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',

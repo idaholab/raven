@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
-import abc
+import inspect
 import sys
 #External Modules End--------------------------------------------------------------------------------
 
@@ -20,15 +20,16 @@ class BaseType(MessageHandler.MessageUser):
     this is the base class for each general type used by the simulation
   """
   def __init__(self):
-    self.name             = ''                  # name of this istance (alias)
-    self.type             = type(self).__name__ # specific type within this class
+    self.name             = ''                                                          # name of this istance (alias)
+    self.type             = type(self).__name__                                         # specific type within this class
     self.verbosity        = None
-    self.globalAttributes = {}                  # this is a dictionary that contains parameters that are set at the level of the base classes defining the types
-    self._knownAttribute  = []                  # this is a list of strings representing the allowed attribute in the xml input for the class
+    self.globalAttributes = {}                                                          # this is a dictionary that contains parameters that are set at the level of the base classes defining the types
+    self._knownAttribute  = []                                                          # this is a list of strings representing the allowed attribute in the xml input for the class
     self._knownAttribute += ['name','verbosity']
     self.printTag         = 'BaseType'
-    self.messageHandler   = None    # message handling object
-
+    self.messageHandler   = None                                                        # message handling object
+    self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
+    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self),True))
   def readXML(self,xmlNode,messageHandler,globalAttributes=None):
     """
     provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML

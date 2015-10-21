@@ -29,6 +29,7 @@ import SupervisedLearning
 import MessageHandler
 import GridEntities
 import Files
+from RAVENiterators import ravenArrayIterator
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -214,7 +215,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     pb = None
     if self.integralType == 'montecarlo':
       tempDict = {}
-      randomMatrix = np.random.rand(math.ceil(1.0 / self.tolerance), len(self.variableDist.keys()))
+      randomMatrix = np.random.rand(int(math.ceil(1.0 / self.tolerance**2)), len(self.variableDist.keys()))
       for index, varName in enumerate(self.variableDist.keys()):
         if self.variableDist[varName] == None: randomMatrix[:, index] = randomMatrix[:, index] * (self.lowerUpperDict[varName]['upperBound'] - self.lowerUpperDict[varName]['lowerBound']) + self.lowerUpperDict[varName]['lowerBound']
         else:
@@ -244,7 +245,8 @@ class LimitSurfaceIntegral(BasePostProcessor):
           for val in value: output.updateOutputValue(key, val)
         for _ in range(len(lms)): output.updateOutputValue('EventProbability', pb)
       elif isinstance(output,Files.File):
-        headers = lms.getParaKeys('inputs') + lms.getParaKeys('outputs') + ['EventProbability']
+        headers = lms.getParaKeys('inputs') + lms.getParaKeys('outputs')
+        if 'EventProbability' not in headers: headers += ['EventProbability']
         stack = [None] * len(headers)
         output.close()
         outIndex = 0
@@ -407,18 +409,18 @@ class SafestPoint(BasePostProcessor):
       self.controllableOrd.append(varName)
     controllableSpaceSize = tuple(NotchesByVar + [len(self.controllableGrid.keys())])
     self.controllableSpace = np.zeros(controllableSpaceSize)
-    iterIndex = np.nditer(self.controllableSpace, flags = ['multi_index'])
+    iterIndex = ravenArrayIterator(arrayIn=self.controllableSpace)
     while not iterIndex.finished:
-      coordIndex = iterIndex.multi_index[-1]
+      coordIndex = iterIndex.multiIndex[-1]
       varName = self.controllableGrid.keys()[coordIndex]
-      notchPos = iterIndex.multi_index[coordIndex]
+      notchPos = iterIndex.multiIndex[coordIndex]
       if self.gridInfo[varName][0] == 'CDF':
         valList = []
         for probVal in self.gridInfo[varName][2]:
           valList.append(self.controllableDist[varName].cdf(probVal))
-        self.controllableSpace[iterIndex.multi_index] = valList[notchPos]
+        self.controllableSpace[iterIndex.multiIndex] = valList[notchPos]
       else:
-        self.controllableSpace[iterIndex.multi_index] = self.gridInfo[varName][2][notchPos]
+        self.controllableSpace[iterIndex.multiIndex] = self.gridInfo[varName][2][notchPos]
       iterIndex.iternext()
     NotchesByVar = [None] * len(self.nonControllableGrid.keys())
     nonControllableSpaceSize = None
@@ -427,18 +429,18 @@ class SafestPoint(BasePostProcessor):
       self.nonControllableOrd.append(varName)
     nonControllableSpaceSize = tuple(NotchesByVar + [len(self.nonControllableGrid.keys())])
     self.nonControllableSpace = np.zeros(nonControllableSpaceSize)
-    iterIndex = np.nditer(self.nonControllableSpace, flags = ['multi_index'])
+    iterIndex = ravenArrayIterator(arrayIn=self.nonControllableSpace)
     while not iterIndex.finished:
-      coordIndex = iterIndex.multi_index[-1]
+      coordIndex = iterIndex.multiIndex[-1]
       varName = self.nonControllableGrid.keys()[coordIndex]
-      notchPos = iterIndex.multi_index[coordIndex]
+      notchPos = iterIndex.multiIndex[coordIndex]
       if self.gridInfo[varName][0] == 'CDF':
         valList = []
         for probVal in self.gridInfo[varName][2]:
           valList.append(self.nonControllableDist[varName].cdf(probVal))
-        self.nonControllableSpace[iterIndex.multi_index] = valList[notchPos]
+        self.nonControllableSpace[iterIndex.multiIndex] = valList[notchPos]
       else:
-        self.nonControllableSpace[iterIndex.multi_index] = self.gridInfo[varName][2][notchPos]
+        self.nonControllableSpace[iterIndex.multiIndex] = self.gridInfo[varName][2][notchPos]
       iterIndex.iternext()
 
   def inputToInternal(self, currentInput):
@@ -570,7 +572,7 @@ class ComparisonStatistics(BasePostProcessor):
     # self.dataPulls = [] #List of data references that will be used
     # self.referenceData = [] #List of reference (experimental) data
     self.methodInfo = {}  # Information on what stuff to do.
-    self.f_z_stats = False
+    self.fZStats = False
     self.interpolation = "quadratic"
     self.requiredAssObject = (True, (['Distribution'], ['-n']))
     self.distributions = {}
@@ -619,12 +621,12 @@ class ComparisonStatistics(BasePostProcessor):
         self.compareGroups.append(compareGroup)
       if outer.tag == 'kind':
         self.methodInfo['kind'] = outer.text
-        if 'num_bins' in outer.attrib:
-          self.methodInfo['num_bins'] = int(outer.attrib['num_bins'])
-        if 'bin_method' in outer.attrib:
-          self.methodInfo['bin_method'] = outer.attrib['bin_method'].lower()
+        if 'numBins' in outer.attrib:
+          self.methodInfo['numBins'] = int(outer.attrib['numBins'])
+        if 'binMethod' in outer.attrib:
+          self.methodInfo['binMethod'] = outer.attrib['binMethod'].lower()
       if outer.tag == 'fz':
-        self.f_z_stats = (outer.text.lower() in utils.stringsThatMeanTrue())
+        self.fZStats = (outer.text.lower() in utils.stringsThatMeanTrue())
       if outer.tag == 'interpolation':
         interpolation = outer.text.lower()
         if interpolation == 'linear':
@@ -685,18 +687,18 @@ class ComparisonStatistics(BasePostProcessor):
     for dataPulls, datas, reference in dataToProcess:
       graphData = []
       if "name" in reference:
-        distribution_name = reference["name"]
-        if not distribution_name in self.distributions:
-          self.raiseAnError(IOError, 'Did not find ' + distribution_name +
+        distributionName = reference["name"]
+        if not distributionName in self.distributions:
+          self.raiseAnError(IOError, 'Did not find ' + distributionName +
                              ' in ' + str(self.distributions.keys()))
         else:
-          distribution = self.distributions[distribution_name]
+          distribution = self.distributions[distributionName]
         refDataStats = {"mean":distribution.untruncatedMean(),
                         "stdev":distribution.untruncatedStdDev()}
-        refDataStats["min_bin_size"] = refDataStats["stdev"] / 2.0
+        refDataStats["minBinSize"] = refDataStats["stdev"] / 2.0
         refPdf = lambda x:distribution.pdf(x)
         refCdf = lambda x:distribution.cdf(x)
-        graphData.append((refDataStats, refCdf, refPdf, "ref_" + distribution_name))
+        graphData.append((refDataStats, refCdf, refPdf, "ref_" + distributionName))
       for dataPull, data in zip(dataPulls, datas):
         dataStats = self.processData(dataPull, data, self.methodInfo)
         dataKeys = set(dataStats.keys())
@@ -706,14 +708,14 @@ class ComparisonStatistics(BasePostProcessor):
         binBoundaries = [dataStats['low']] + bins + [dataStats['high']]
         if generateCSV:
           utils.printCsv(csv, '"' + str(dataPull) + '"')
-          utils.printCsv(csv, '"num_bins"', dataStats['num_bins'])
-          utils.printCsv(csv, '"bin_boundary"', '"bin_midpoint"', '"bin_count"', '"normalized_bin_count"', '"f_prime"', '"cdf"')
+          utils.printCsv(csv, '"numBins"', dataStats['numBins'])
+          utils.printCsv(csv, '"binBoundary"', '"binMidpoint"', '"binCount"', '"normalizedBinCount"', '"f_prime"', '"cdf"')
         cdf = [0.0] * len(counts)
         midpoints = [0.0] * len(counts)
         cdfSum = 0.0
         for i in range(len(counts)):
-          f_0 = counts[i] / countSum
-          cdfSum += f_0
+          f0 = counts[i] / countSum
+          cdfSum += f0
           cdf[i] = cdfSum
           midpoints[i] = (binBoundaries[i] + binBoundaries[i + 1]) / 2.0
         cdfFunc = mathUtils.createInterp(midpoints, cdf, 0.0, 1.0, self.interpolation)
@@ -721,33 +723,33 @@ class ComparisonStatistics(BasePostProcessor):
         for i in range(len(counts)):
           h = binBoundaries[i + 1] - binBoundaries[i]
           nCount = counts[i] / countSum  # normalized count
-          f_0 = cdf[i]
+          f0 = cdf[i]
           if i + 1 < len(counts):
-            f_1 = cdf[i + 1]
+            f1 = cdf[i + 1]
           else:
-            f_1 = 1.0
+            f1 = 1.0
           if i + 2 < len(counts):
-            f_2 = cdf[i + 2]
+            f2 = cdf[i + 2]
           else:
-            f_2 = 1.0
+            f2 = 1.0
           if self.interpolation == 'linear':
-            fPrime = (f_1 - f_0) / h
+            fPrime = (f1 - f0) / h
           else:
-            fPrime = (-1.5 * f_0 + 2.0 * f_1 + -0.5 * f_2) / h
+            fPrime = (-1.5 * f0 + 2.0 * f1 + -0.5 * f2) / h
           fPrimeData[i] = fPrime
           if generateCSV:
             utils.printCsv(csv, binBoundaries[i + 1], midpoints[i], counts[i], nCount, fPrime, cdf[i])
         pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0, self.interpolation)
-        dataKeys -= set({'num_bins', 'counts', 'bins'})
+        dataKeys -= set({'numBins', 'counts', 'bins'})
         if generateCSV:
           for key in dataKeys:
             utils.printCsv(csv, '"' + key + '"', dataStats[key])
-        self.raiseADebug("data_stats: " + str(dataStats))
+        self.raiseADebug("dataStats: " + str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc, str(dataPull)))
-      graph_data = mathUtils.getGraphs(graphData, self.f_z_stats)
+      graphDataDict = mathUtils.getGraphs(graphData, self.fZStats)
       if generateCSV:
-        for key in graph_data:
-          value = graph_data[key]
+        for key in graphDataDict:
+          value = graphDataDict[key]
           if type(value).__name__ == 'list':
             utils.printCsv(csv, *(['"' + l[0] + '"' for l in value]))
             for i in range(1, len(value[0])):
@@ -755,8 +757,8 @@ class ComparisonStatistics(BasePostProcessor):
           else:
             utils.printCsv(csv, '"' + key + '"', value)
       if generatePointSet:
-        for key in graph_data:
-          value = graph_data[key]
+        for key in graphDataDict:
+          value = graphDataDict[key]
           if type(value).__name__ == 'list':
             for i in range(len(value)):
               subvalue = value[i]
@@ -806,30 +808,30 @@ class ComparisonStatistics(BasePostProcessor):
       dataRange = high - low
       ret['low'] = low
       ret['high'] = high
-      if not 'bin_method' in methodInfo:
-        numBins = methodInfo.get("num_bins", 10)
+      if not 'binMethod' in methodInfo:
+        numBins = methodInfo.get("numBins", 10)
       else:
-        binMethod = methodInfo['bin_method']
+        binMethod = methodInfo['binMethod']
         dataN = len(sortedData)
         if binMethod == 'square-root':
           numBins = int(math.ceil(math.sqrt(dataN)))
         elif binMethod == 'sturges':
           numBins = int(math.ceil(mathUtils.log2(dataN) + 1))
         else:
-          self.raiseADebug("Unknown bin_method " + binMethod, 'ExceptedError')
+          self.raiseADebug("Unknown binMethod " + binMethod, 'ExceptedError')
           numBins = 5
-      ret['num_bins'] = numBins
-      kind = methodInfo.get("kind", "uniform_bins")
-      if kind == "uniform_bins":
+      ret['numBins'] = numBins
+      kind = methodInfo.get("kind", "uniformBins")
+      if kind == "uniformBins":
         bins = [low + x * dataRange / numBins for x in range(1, numBins)]
-        ret['min_bin_size'] = dataRange / numBins
-      elif kind == "equal_probability":
+        ret['minBinSize'] = dataRange / numBins
+      elif kind == "equalProbability":
         stride = len(sortedData) // numBins
         bins = [sortedData[x] for x in range(stride - 1, len(sortedData) - stride + 1, stride)]
         if len(bins) > 1:
-          ret['min_bin_size'] = min(map(lambda x, y: x - y, bins[1:], bins[:-1]))
+          ret['minBinSize'] = min(map(lambda x, y: x - y, bins[1:], bins[:-1]))
         else:
-          ret['min_bin_size'] = dataRange
+          ret['minBinSize'] = dataRange
       counts = mathUtils.countBins(sortedData, bins)
       ret['bins'] = bins
       ret['counts'] = counts
@@ -839,7 +841,7 @@ class ComparisonStatistics(BasePostProcessor):
                         (abs(skewness) ** (2.0 / 3.0) + ((4.0 - math.pi) / 2.0) ** (2.0 / 3.0)))
       delta = math.copysign(delta, skewness)
       alpha = delta / math.sqrt(1.0 - delta ** 2)
-      variance = ret["sample_variance"]
+      variance = ret["sampleVariance"]
       omega = variance / (1.0 - 2 * delta ** 2 / math.pi)
       mean = ret['mean']
       xi = mean - omega * delta * math.sqrt(2.0 / math.pi)
@@ -926,8 +928,8 @@ class PrintCSV(BasePostProcessor):
         #  Retrieve the metadata (posion 1 of the history tuple)
         attributes = HistorySet[key][1]
         #  Construct the header in csv format (first row of the file)
-        headers = b",".join([HistorySet[key][1]['output_space_headers'][i] for i in
-                             range(len(attributes['output_space_headers']))])
+        headers = b",".join([HistorySet[key][1]['outputSpaceHeaders'][i] for i in
+                             range(len(attributes['outputSpaceHeaders']))])
         #  Construct history name
         hist = key
         #  If file, split the strings and add the working directory if present
@@ -961,17 +963,17 @@ class PrintCSV(BasePostProcessor):
         addfile.write('# History Metadata, ' + os.linesep)
         addfile.write('# ______________________________,' + '_' * len(key) + ',' + os.linesep)
         addfile.write('#number of parameters,' + os.linesep)
-        addfile.write(str(attributes['n_params']) + ',' + os.linesep)
+        addfile.write(str(attributes['nParams']) + ',' + os.linesep)
         addfile.write('#parameters,' + os.linesep)
         addfile.write(headers + os.linesep)
-        addfile.write('#parent_id,' + os.linesep)
-        addfile.write(attributes['parent_id'] + os.linesep)
+        addfile.write('#parentID,' + os.linesep)
+        addfile.write(attributes['parentID'] + os.linesep)
         addfile.write('#start time,' + os.linesep)
-        addfile.write(str(attributes['start_time']) + os.linesep)
+        addfile.write(str(attributes['startTime']) + os.linesep)
         addfile.write('#end time,' + os.linesep)
         addfile.write(str(attributes['end_time']) + os.linesep)
         addfile.write('#number of time-steps,' + os.linesep)
-        addfile.write(str(attributes['n_ts']) + os.linesep)
+        addfile.write(str(attributes['nTimeSteps']) + os.linesep)
         addfile.write(os.linesep)
     else: self.raiseAnError(NotImplementedError, 'for input type ' + self.inObj.type + ' not yet implemented.')
 
@@ -1199,6 +1201,7 @@ class BasicStatistics(BasePostProcessor):
       pbweights = np.zeros(len(Input['targets'][self.parameters['targets'][0]]), dtype = np.float)
       pbweights[:] = 1.0 / pbweights.size  # it was an Integer Division (1/integer) => 0!!!!!!!! Andrea
     else: pbweights = Input['metadata']['ProbabilityWeight']
+
     sumSquarePbWeights = np.sum(np.square(pbweights))
     sumPbWeights = np.sum(pbweights)
     # if here because the user could have overwritten the method through the external function
@@ -1207,7 +1210,6 @@ class BasicStatistics(BasePostProcessor):
     for myIndex, targetP in enumerate(parameterSet):
       outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = pbweights)
       expValues[myIndex] = outputDict['expectedValue'][targetP]
-
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
       # sigma
@@ -1524,7 +1526,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     """
     for index, csvFile in enumerate(self.listOfCsvFiles):
 
-      attributes = {"prefix":str(index), "input_file":self.name, "type":"csv", "name":os.path.join(self.sourceDirectory, csvFile)}
+      attributes = {"prefix":str(index), "inputFile":self.name, "type":"csv", "name":os.path.join(self.sourceDirectory, csvFile)}
       metadata = finishedjob.returnMetadata()
       if metadata:
         for key in metadata: attributes[key] = metadata[key]
@@ -1631,8 +1633,7 @@ class LimitSurface(BasePostProcessor):
     self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
-      mySrting = ','.join(list(self.parameters['targets']))
-      self.ROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':mySrting, 'Target':self.externalFunction.name})
+      self.ROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':self.externalFunction.name})
     else: self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()
     self.indexes = -1
@@ -1651,8 +1652,10 @@ class LimitSurface(BasePostProcessor):
         else:                self.paramType[param] = 'outputs'
     if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
-      for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key)), max(self.inputs[self.indexes].getParam(self.paramType[key],key))
-    self.gridEntity.initialize(initDictionary={"rootName":self.name,"computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,"dimensionNames":self.parameters['targets'],"lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],"volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
+      for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeid = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeid = 'RecontructEnding'))
+    self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,
+                                               "dimensionNames":self.parameters['targets'], "lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],
+                                               "volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
     self.nVar                  = len(self.parameters['targets'])                                  # Total number of variables
     self.axisName              = self.gridEntity.returnParameter("dimensionNames",self.name)      # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     self.testMatrix[self.name] = np.zeros(self.gridEntity.returnParameter("gridShape",self.name)) # grid where the values of the goalfunction are stored
@@ -1663,7 +1666,6 @@ class LimitSurface(BasePostProcessor):
      @ In, inp, Data(s) object, data object containing the training set
      @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
     """
-
     self.raiseADebug('Initiate training')
     if type(inp) == dict:
       self.functionValue.update(inp['inputs' ])
@@ -1671,11 +1673,9 @@ class LimitSurface(BasePostProcessor):
     else:
       self.functionValue.update(inp.getParametersValues('inputs', nodeid = 'RecontructEnding'))
       self.functionValue.update(inp.getParametersValues('outputs', nodeid = 'RecontructEnding'))
-
     # recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name]) - 1
     else                                                      : indexLast = -1
-
     # index of last set of point tested and ready to perform the function evaluation
     indexEnd = len(self.functionValue[self.axisName[0]]) - 1
     tempDict = {}
@@ -1685,11 +1685,14 @@ class LimitSurface(BasePostProcessor):
 
     for myIndex in range(indexLast + 1, indexEnd + 1):
       for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
-      # self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
       self.functionValue[self.externalFunction.name][myIndex] = self.externalFunction.evaluate('residuumSign', tempDict)
       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: self.raiseAnError(IOError, 'LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
-      if self.externalFunction.name in inp.getParaKeys('inputs'): inp.self.updateInputValue (self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
-      if self.externalFunction.name in inp.getParaKeys('output'): inp.self.updateOutputValue(self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
+      if type(inp) != dict:
+        if self.externalFunction.name in inp.getParaKeys('inputs'): inp.self.updateInputValue (self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
+        if self.externalFunction.name in inp.getParaKeys('output'): inp.self.updateOutputValue(self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
+      else:
+        if self.externalFunction.name in inp['inputs' ].keys(): inp['inputs' ][self.externalFunction.name] = np.concatenate((inp['inputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
+        if self.externalFunction.name in inp['outputs'].keys(): inp['outputs'][self.externalFunction.name] = np.concatenate((inp['outputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
       if raiseErrorIfNotFound: self.raiseAnError(ValueError, 'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
       else                   : self.raiseAWarning('LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
@@ -1725,8 +1728,8 @@ class LimitSurface(BasePostProcessor):
       calculations
       @ In, dictIn, dict, dictionary of initialization options
     """
-    if "parameters" not in dictIn.keys()       : self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
-    if "name"                  in dictIn.keys(): self.name          = dictIn["name"]
+    if "parameters" not in dictIn.keys()             : self.raiseAnError(IOError, 'No Parameters specified in "dictIn" dictionary !!!!')
+    if "name"                  in dictIn.keys()      : self.name          = dictIn["name"]
     if type(dictIn["parameters"]).__name__ == "list" : self.parameters['targets'] = dictIn["parameters"]
     else                                             : self.parameters['targets'] = dictIn["parameters"].split(",")
     if "bounds"                in dictIn.keys()      : self.bounds        = dictIn["bounds"]
@@ -1770,7 +1773,7 @@ class LimitSurface(BasePostProcessor):
       @ Out, None
     """
     initDict = {}
-    for child in xmlNode: initDict[child.tag] = child.text.lower()
+    for child in xmlNode: initDict[child.tag] = child.text
     initDict.update(xmlNode.attrib)
     self._initFromDict(initDict)
 
@@ -1785,7 +1788,7 @@ class LimitSurface(BasePostProcessor):
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
     self.raiseADebug(str(finishedjob.returnEvaluation()))
     limitSurf = finishedjob.returnEvaluation()[1]
-    if limitSurf[0] != None:
+    if limitSurf[0] is not None:
       for varName in output.getParaKeys('inputs'):
         for varIndex in range(len(self.axisName)):
           if varName == self.axisName[varIndex]:
@@ -1866,7 +1869,6 @@ class LimitSurface(BasePostProcessor):
         evaluations[nodeName] = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
         for pointID, coordinate in enumerate(listsurfPoint[nodeName]):
           self.surfPoint[nodeName][pointID, :] = self.gridCoord[nodeName][tuple(coordinate)]
-
     if self.name != exceptionGrid: self.listsurfPointNegative, self.listsurfPointPositive = listsurfPoint[self.name][:nNegPoints-1],listsurfPoint[self.name][nNegPoints:]
     if merge == True:
       evals = np.hstack(evaluations.values())
@@ -1877,7 +1879,6 @@ class LimitSurface(BasePostProcessor):
     else:
       if returnListSurfCoord: return self.surfPoint, evaluations, listsurfPoint
       else                  : return self.surfPoint, evaluations
-
 
 
   def __localLimitStateSearch__(self, toBeTested, sign, nodeName):
@@ -2365,12 +2366,6 @@ class TopologicalDecomposition(BasePostProcessor):
             output.updateOutputValue(key, [value])
           elif key in ['hierarchy']:
             output.updateMetadata(key, [value])
-          elif key.startswith('coefficients'):
-            output.updateMetadata(key, [value])
-          elif key.startswith('R2'):
-            output.updateMetadata(key, [value])
-          elif key.startswith('Gaussian'):
-            output.updateMetadata(key, [value])
     else:
       self.raiseAnError(IOError,'Unknown output type:',output.type)
 
@@ -2417,30 +2412,11 @@ class TopologicalDecomposition(BasePostProcessor):
 
     outputDict['minLabel'] = np.zeros(self.pointCount)
     outputDict['maxLabel'] = np.zeros(self.pointCount)
-
+    output = ""
     for extPair, indices in partitions.iteritems():
       for idx in indices:
         outputDict['minLabel'][idx] = extPair[0]
         outputDict['maxLabel'][idx] = extPair[1]
-
-    output = os.linesep
-    output += '========== Data Labels: ========== ' + os.linesep
-    output += 'Index'
-    sep = ','
-    for lbl in names:
-      output += sep + lbl
-    output += sep + 'Minimum' + sep + 'Maximum'
-    output += os.linesep
-    for i in xrange(0, self.__amsc.GetSampleSize()):
-      line = str(i)
-      for d in xrange(0, self.__amsc.GetDimensionality()):
-        line += sep + str(inputData[i, d])
-      line += sep + str(outputData[i])
-      line += sep + str(int(outputDict['minLabel'][i]))
-      line += sep + str(int(outputDict['maxLabel'][i]))
-      output += line + os.linesep
-    output += '========== Merge Hierarchy: ==========' + os.linesep
-    output += self.__amsc.XMLFormattedHierarchy() + os.linesep
     outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
     output += '========== Linear Regressors: ==========' + os.linesep
     self.__amsc.BuildModels()
@@ -2486,7 +2462,7 @@ class TopologicalDecomposition(BasePostProcessor):
       outputDict['Sigma_' + str(key)] = A
       outputDict['R2_' + str(key)] = rSquared
 
-   # output += 'RMSD  = %f and %f\n' % (self.gaussianNRMSD[0],self.gaussianNRMSD[1])
+    # output += 'RMSD  = %f and %f\n' % (self.gaussianNRMSD[0],self.gaussianNRMSD[1])
     self.raiseAMessage(output)
     return outputDict
 
