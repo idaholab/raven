@@ -460,14 +460,11 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ In, targetVals, list, target values
     """
     self.raiseADebug('training',self.features,'->',self.target)
-    #self.raiseADebug('...using',featureVals)
     self.polyCoeffDict={}
     #check equality of point space
     fvs = []
     tvs=[]
     sgs = self.sparseGrid.points()[:]
-    self.raiseADebug('sg:',self.sparseGrid)
-    self.raiseADebug('sgs:',sgs)
     missing=[]
     for pt in sgs:
       found,idx,point = utils.NDInArray(featureVals,pt)
@@ -491,7 +488,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
       translate[tuple(fvs[i])]=sgs[i]
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
     #make polynomials
-    self.raiseADebug('training, indexSet:',self.indexSet)
     for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
@@ -546,8 +542,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ Out, float, evaluation of moment
     """
     #TODO is there a faster way still to do this?
-    self.raiseADebug('polyCoeffDict:',self.polyCoeffDict)
-    self.raiseADebug('...trained?:',self.amITrained)
     if r==1: return self.polyCoeffDict[tuple([0]*len(self.features))]
     elif r==2: return sum(s**2 for s in self.polyCoeffDict.values())
     tot=0

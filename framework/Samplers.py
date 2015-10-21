@@ -3098,10 +3098,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     for n in range(len(sg)): #how can a point not be in existing but be in sparse grid? -> not converged! FIXME sobol adaptive
       pt,wt = sg[n]
       if pt not in self.existing.keys():
-        self.raiseAWarning('point:',pt)
-        self.raiseAWarning('Existing:')
-        for p in self.existing.keys():
-          self.raiseAWarning('...',p)
         self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
       tot+=self.existing[pt][i]**r*wt
     return tot
@@ -3161,7 +3157,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if (not self.batchDone) or (not skipJobHandlerCheck and not self.jobHandler.isFinished()):
       return False
     if len(self.existing) < self.newSolutionSizeShouldBe:
-      #self.raiseADebug('Still collecting; existing has less points (%i) than it should (%i)!' %(len(self.existing),self.newSolutionSizeShouldBe))
       return False
     #if no points to check right now, search for points to sample
     while len(self.neededPoints)<1: #what if it's running and not done?
@@ -3228,7 +3223,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #if we exited the while-loop searching for new points and there aren't any, we're done!
     if len(self.neededPoints)==0:
       self.converged = True
-      #self.indexSet.printOut()
       self.finalizeROM()
       self.unfinished = self.jobHandler.numRunning()
       self.jobHandler.terminateAll()
@@ -3253,8 +3247,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
                       'polys':self.polyDict,
                       'iSet':self.indexSet,
                       'numRuns':len(self.pointsNeededToMakeROM)-self.unfinished})
-    #self.indexSet.printHistory()
-    #self.indexSet.writeHistory()
 
   def localGenerateInput(self,model,myInput):
     """
