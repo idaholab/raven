@@ -89,7 +89,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                                 'ResponseSurfaceDesign',
                                                 'SparseGridCollocation',
                                                 'AdaptiveSparseGrid',
-                                                'Sobol']
+                                                'Sobol',
+                                                'AdaptiveSobol']
 
   @classmethod
   def generateValidateDict(cls):
@@ -236,7 +237,7 @@ class Dummy(Model):
 
   def _inputToInternal(self,dataIN,full=False):
     """Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data"""
-    #FIXME self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
+    #self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
     if  type(dataIN).__name__ !='dict':
       if dataIN.type not in self.admittedData: self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
     if full==True:  length = 0
@@ -429,6 +430,7 @@ class ROM(Dummy):
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
       self.amITrained = True
       for instrom in self.SupervisedEngine.values():
+        print('training, set params are:',self.trainingSet.keys())#.getParaKeys('outputs'))
         instrom.train(self.trainingSet)
         self.aimITrained = self.amITrained and instrom.amITrained
       #FIXME self.raiseADebug('add self.amITrained to currentParamters','FIXME')

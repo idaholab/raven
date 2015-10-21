@@ -46,6 +46,7 @@ class IndexSet(MessageHandler.MessageUser):
     @ In, None, None
     @ Out, string, visual representation of index set
     """
+    if len(self.points)<1: return "Index set is empty!"
     msg='IndexSet Printout:\n'
     if len(self.points[0])==2: #graphical block visualization
       left=0
@@ -363,7 +364,6 @@ class AdaptiveSet(IndexSet):
     for key,val in self.active.items():
       mx = max(abs(val),mx)
       if abs(val)==mx: mxkey = key
-    self.raiseAMessage('  Next Adaptive Poly:',mxkey)#,mx)
     if mxkey==None: return self.active.keys()[0] #special case
     return mxkey
 
@@ -380,17 +380,14 @@ class AdaptiveSet(IndexSet):
       newpt[i]+=1
       if maxPoly != None:
         if newpt[i]>maxPoly:
-          self.raiseADebug('Rejecting',tuple(newpt),'for too high polynomial')
           continue
       if tuple(newpt) in self.active.keys(): continue
-      #self.raiseADebug('    considering adding',newpt)
       #remove the candidate if not all of its predecessors are accepted.
       found=True
       for j in range(self.N):
         checkpt = newpt[:]
         if checkpt[j]==0:continue
         checkpt[j] -= 1
-        #self.raiseADebug('        checking subordinate point',checkpt)
         if tuple(checkpt) not in self.points:
           found=False
           break
@@ -408,7 +405,7 @@ class AdaptiveSet(IndexSet):
     """
     self.raiseADebug('    Accepted Points:')
     for p in self.points:
-      self.raiseADebug('       ',p)#,'| %1.5e' %self.roms[p])
+      self.raiseADebug('       ',p)
     self.raiseADebug('    Active Set | Impact:')
     for a,i in self.active.items():
       self.raiseADebug('       ',a,'|',i)

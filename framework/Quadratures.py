@@ -263,7 +263,7 @@ class SparseQuad(MessageHandler.MessageUser):
       for j,cof in enumerate(self.c):
         idx = self.indexSet[j]
         m = self.quadRule(idx)+1
-        new = self.tensorGrid((m,idx))
+        new = self.tensorGrid(m,idx)
         for i in range(len(new[0])):
           newpt=tuple(new[0][i])
           newwt=new[1][i]*cof
@@ -453,7 +453,7 @@ class QuadratureSet(MessageHandler.MessageUser):
     @ Out, tuple(tuple(float),float) points and weight
     """
     pts,wts = self.rule(order,*self.params)
-    pts = np.around(pts,decimals=10) #TODO helps with checking equivalence, might not be desirable
+    pts = np.around(pts,decimals=15) #TODO helps with checking equivalence, might not be desirable
     #NOTE: 10 is consistent with printed decimals, improving loading from CSV for example.  Large possible source
     #      of roundoff errors here.
     return pts,wts

@@ -108,7 +108,10 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-        if values[names.index(feat)].size != featureValues[:,0].size: self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
+        if values[names.index(feat)].size != featureValues[:,0].size:
+          self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
+          self.raiseAWarning('target values:',values[names.index(feat)].size,tag='ERROR')
+          self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
@@ -456,6 +459,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ In, featureVals, list, feature values
     @ In, targetVals, list, target values
     """
+    self.raiseADebug('training',self.features,'->',self.target)
     self.polyCoeffDict={}
     #check equality of point space
     fvs = []
@@ -483,6 +487,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     for i in range(len(fvs)):
       translate[tuple(fvs[i])]=sgs[i]
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
+    #make polynomials
     for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
@@ -522,6 +527,14 @@ class GaussPolynomialRom(NDinterpolatorRom):
       if round(val,11) !=0:
         data.append([idx,val])
     return data
+
+  def __variance__(self):
+    """returns the variance of the ROM.
+    @ In, None
+    @ Out, float, variance
+    """
+    mean = self.__evaluateMoment__(1)
+    return self.__evaluateMoment__(2) - mean*mean
 
   def __evaluateMoment__(self,r):
     """Use the ROM's built-in method to calculate moments.

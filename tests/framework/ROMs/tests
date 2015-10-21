@@ -1,0 +1,8 @@
+[Tests]
+ [./AdaptiveSobol]
+  type = 'RavenFramework'
+  input = 'test_adapt_sobol.xml'
+  xml = 'AdaptSobol/dumprom.xml'
+  UnorderedCsv = 'AdaptSobol/dump.csv'
+ [../]
+[]

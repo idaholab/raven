@@ -580,10 +580,11 @@ class JobHandler(MessageHandler.MessageUser):
           cntFreeSpots += 1
     return cntFreeSpots
 
-  def getFinished(self, removeFinished=True):
+  def getFinished(self, removeFinished=True, prefix=None):
     """
      Method to get the list of jobs that ended (list of objects)
      @ In, removeFinished, bool, optional, flag to control if the finished jobs need to be removed from the queue
+     @ In, prefix, if specified only collects finished runs with a particular prefix.
      @ Out, finished, list, list of finished jobs (InternalRunner or ExternalRunner objects)
     """
     finished = []
