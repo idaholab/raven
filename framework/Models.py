@@ -318,8 +318,6 @@ class ROM(Dummy):
     self.howManyTargets            = 0          # how many targets?
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
-
-    self.howManyTimeSteps          = 1          # how many time steps? (for temporal reduced order models)
     
   def __getstate__(self):
     """
@@ -343,12 +341,11 @@ class ROM(Dummy):
       self.howManyTimeSteps  = self.initializationOptionDict['t_Discs']
       self.SupervisedEngine = {}
       
-      for t in range(self.howManyTimeSteps):
-        for target in targets:
-          self.initializationOptionDict[t]['Target'] = target
-          self.SupervisedEngine[t][target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+      for target in targets:
+        self.initializationOptionDict['Target'] = target
+        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
         #restore targets to initialization option dict
-        self.initializationOptionDict[t]['Target'] = ','.join(targets)
+        self.initializationOptionDict['Target'] = ','.join(targets)
 
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
@@ -368,15 +365,11 @@ class ROM(Dummy):
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
 
-    #######
-    self.howManyTimeSteps  =  #self.initializationOptionDict['t_Discs']
-    for ts in range(self.howManyTimeSteps):
-      tsDict = {}
-      for target in targets:
-        self.initializationOptionDict['Target'] = target
-        tsDict[target] = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-      self.SupervisedEngine[ts] = tsDict
-    #######
+
+    for target in targets:
+      self.initializationOptionDict['Target'] = target
+      self.SupervisedEngine[target] = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+
     
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
@@ -424,10 +417,8 @@ class ROM(Dummy):
   def addInitParams(self,originalDict):
     """the ROM setting parameters are added"""
     ROMdict = {}
-    for ts in self.SupervisedEngine.items():
-      print(ts)
-      for target, instrom in ts[0]: 
-        ts[self.name + '|' + target] = instrom.returnInitialParameters()
+    for target, instrom in self.SupervisedEngine.items(): 
+      ROMdict[self.name + '|' + target] = instrom.returnInitialParameters()
     for key in ROMdict.keys(): 
       originalDict[key] = ROMdict[key]
 
@@ -444,14 +435,18 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
     else:
-      self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-      self.amITrained = True
-      for timeStep in self.SupervisedEngine:
-        data = self.trainingSet[timeStep]
-        for instrom in self.SupervisedEngine[timeStep].values():
-          instrom.train(data)
-          self.aimITrained = self.amITrained and instrom.amITrained
-          self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+      if trainingSet.type == "PointSet":
+        self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
+        print(self.trainingSet)
+        self.amITrained = True
+        for timeStep in self.SupervisedEngine:
+          data = self.trainingSet[timeStep]
+          for instrom in self.SupervisedEngine[timeStep].values():
+            instrom.train(data)
+            self.aimITrained = self.amITrained and instrom.amITrained
+            self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+      elif trainingSet.type == "HistorySet":
+        
 
   def confidence(self,request,target = None):
     """
