@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation  verbosity='silent'>
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
   <!-- A simple example of the approximate Morse-Smale complex being used for
        regression on a 2D function with one single global maximum. This example
        should thoroughly test all of the features associated to the MSR. -->
@@ -13,7 +13,7 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel name='foo' subType='' ModuleToLoad = './testFunction'>
+    <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
       <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>
@@ -42,10 +42,10 @@
 
   <Samplers>
     <MonteCarlo name="mcSampler">
-      <sampler_init>
+      <samplerInit>
         <limit>200</limit>
-        <initial_seed>888</initial_seed>
-      </sampler_init>
+        <initialSeed>888</initialSeed>
+      </samplerInit>
       <variable name="X">
         <distribution>smallUniformDist</distribution>
       </variable>
@@ -66,19 +66,19 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="sample" sleepTime='1e-5'>
-      <Input   class="DataObjects" type="PointSet"     >dummyIN</Input>
-      <Model   class="Models"      type="ExternalModel">foo</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"   >mcSampler</Sampler>
-      <Output  class="DataObjects" type="PointSet"     >trainingData</Output>
-      <Output  class="OutStreamManager" type="Print"   >trainingData</Output>
+    <MultiRun name="sample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">foo</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">trainingData</Output>
+      <Output class="OutStreamManager" type="Print">trainingData</Output>
     </MultiRun>
-    <MultiRun name="resampleSmoothCosine" sleepTime='1e-5'>
-      <Input   class="DataObjects"      type="PointSet">dummyIN</Input>
-      <Model   class="Models"           type="ROM"     >smoothCosine</Model>
-      <Sampler class="Samplers"         type="Grid"    >gridSampler</Sampler>
-      <Output  class="DataObjects"      type="PointSet">outDataSmoothCosine</Output>
-      <Output  class="OutStreamManager" type="Print"   >outDataSmoothCosine</Output>
+    <MultiRun name="resampleSmoothCosine" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">smoothCosine</Model>
+      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outDataSmoothCosine</Output>
+      <Output class="OutStreamManager" type="Print">outDataSmoothCosine</Output>
     </MultiRun>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">trainingData</Input>
