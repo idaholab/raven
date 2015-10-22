@@ -634,7 +634,7 @@ class HDMRRom(GaussPolynomialRom):
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance','indices']
+    canDo = ['mean','variance','indices','numRuns']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
@@ -670,6 +670,8 @@ class HDMRRom(GaussPolynomialRom):
             addSensBranch(combo,sens)
           for combo,sens in insig:
             addSensBranch(combo,sens)
+        elif request.lower() in ['numruns']:
+          newnode.setText(self.numRuns)
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
           newnode.setText('not found')
@@ -681,11 +683,12 @@ class HDMRRom(GaussPolynomialRom):
     @ Out, None
     """
     for key,value in idict.items():
-      if   key == 'ROMs' : self.ROMs       = value
-      elif key == 'dists': self.distDict   = value
-      elif key == 'quads': self.quads      = value
-      elif key == 'polys': self.polys      = value
-      elif key == 'refs' : self.references = value
+      if   key == 'ROMs'   : self.ROMs       = value
+      elif key == 'dists'  : self.distDict   = value
+      elif key == 'quads'  : self.quads      = value
+      elif key == 'polys'  : self.polys      = value
+      elif key == 'refs'   : self.references = value
+      elif key == 'numRuns': self.numRuns    = value
 
   def __trainLocal__(self,featureVals,targetVals):
     """
