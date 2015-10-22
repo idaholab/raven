@@ -14,6 +14,7 @@ from utils import printCsv, printCsvPart
 from scipy import interpolate
 from scipy.spatial import Delaunay
 import numpy as np
+import DataObjects
 
 def normal(x,mu=0.0,sigma=1.0):
   return (1.0/(sigma*math.sqrt(2*math.pi)))*math.exp(-(x - mu)**2/(2.0*sigma**2))
@@ -190,6 +191,25 @@ def calculateStats(data):
   ret["skewness"] = skewness
   ret["kurtosis"] = kurtosis
   return ret
+
+def historySetWindow(vars,index):
+  # vars is supposed to be an historySet
+  newVars=PointSet
+  
+  outKeys = vars.getParaKeys('outputs')
+  inpKeys = vars.getParaKeys('inputs')
+  
+  for history in vars:
+    inpVals = history.getParametersValues('inputs')
+    outVals = history.getParametersValues('outputs')
+    
+    for key in inpKeys:
+      newVars['input']  = newVars.updateInputValue(key,inpVals)
+    for key in outKeys:
+      newVars['output'] = newVars.updateOutputValue(key,outVals[index])
+      
+  return newVars
+    
 #
 # I need to convert it in multi-dimensional
 # Not a priority yet. Andrea

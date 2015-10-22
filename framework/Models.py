@@ -437,15 +437,18 @@ class ROM(Dummy):
     else:
       if trainingSet.type == "PointSet":
         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-        print(self.trainingSet)
         self.amITrained = True
         for timeStep in self.SupervisedEngine:
           data = self.trainingSet[timeStep]
-          for instrom in self.SupervisedEngine[timeStep].values():
+          for instrom in self.SupervisedEngine.values():
             instrom.train(data)
             self.aimITrained = self.amITrained and instrom.amITrained
             self.raiseADebug('add self.amITrained to currentParamters','FIXME')
       elif trainingSet.type == "HistorySet":
+        for ts in range(trainingSet.size()):
+          trainingSet_timeSnapShot = historySetWindow(trainingSet,ts)
+      else:
+        self.raiseAnError(IOError,'DataObject '+trainingSet.type+' can not be used to train a ROM')
         
 
   def confidence(self,request,target = None):
