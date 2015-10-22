@@ -2969,7 +2969,64 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
     if self.maxRuns is not None: self.maxRuns = int(self.maxRuns)
 
-  def  localInitialize(self):
+  def localStillReady(self,ready,skipJobHandlerCheck=False):
+    """
+      Determines what additional points are necessary for RAVEN to run.
+      @ In, ready, bool, true if ready
+      @ Out, ready, bool, true if ready
+    """
+    #update existing solutions
+    self._updateExisting()
+    #if we're not ready elsewhere, just be not ready
+    if ready==False: return ready
+    #if we still have a list of points to sample, just keep on trucking.
+    if len(self.neededPoints)>0:
+      return True
+    #if points all submitted but not all done, not ready for now.
+    if (not self.batchDone) or (not skipJobHandlerCheck and not self.jobHandler.isFinished()):
+      return False
+    if len(self.existing) < self.newSolutionSizeShouldBe:
+      return False
+    #if no points to check right now, search for points to sample
+    while len(self.neededPoints)<1: #what if it's running and not done?
+      self.raiseADebug('')
+      self.raiseADebug('Evaluating new points...')
+      self._updateQoI()
+      if abs(self.error)<self.convValue and len(self.indexSet.points)>self.persistence:
+        done=True #we've converged!
+        self.converged = True
+        self.raiseADebug('converged estimated error:',self.error)
+        #clear the active index set
+        self._clearActiveSet()
+        break
+      elif self.maxRuns is not None:
+        self.unfinished = self.jobHandler.numRunning()
+        if len(self.pointsNeededToMakeROM)-self.unfinished >=self.maxRuns:
+          done=True #not converged, but reached max number of polys to use
+          self.converged = True
+          self.raiseAMessage('Not converged, but max runs (%i) reached!' %self.maxRuns)
+          self.raiseADebug('end estimated error:',self.error)
+          self._clearActiveSet()
+          break
+      #if we're not converged...
+      self._findNewPolys()
+      #if there's no active points after moving forward, exit loop
+      if len(self.indexSet.active.keys())<1:
+        self.raiseADebug('No new polynomial points to consider!')
+        break
+      #find the new points needed to evaluate, if any (there should be usually)
+      self._addNewPoints()
+   #if we exited the while-loop searching for new points and there aren't any, we're done!
+    if len(self.neededPoints)==0:
+      self.converged = True
+      self._finalizeROM()
+      self.unfinished = self.jobHandler.numRunning()
+      self.jobHandler.terminateAll()
+      return False
+    #otherwise, we have work to do.
+    return True
+
+  def localInitialize(self):
     """Performs local initialization
     @ In, None
     @ Out, None
@@ -3015,92 +3072,55 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self.neededPoints.append(pt)
         self.newSolutionSizeShouldBe+=1
 
-  def _makeSparseQuad(self,points=[]):
+  def localGenerateInput(self,model,myInput):
     """
-      Generates a sparseGrid object using the self.indexSet adaptively established points
-      as well as and additional points passed in (often the indexSet's adaptive points).
-      Also returns the index set used to generate the sparse grid.
-      @ In, points, list of tuples
-      @ Out, (sparseGrid, indexSet) object tuple
+      Generates an input. Parameters inherited.
+      @ In, model, unused
+      @ In, myInput, unused
     """
-    sparseGrid = Quadratures.SparseQuad()
-    iset = IndexSets.returnInstance('Custom',self)
-    iset.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
-    iset.setPoints(self.indexSet.points)
-    iset.addPoints(points)
-    sparseGrid.initialize(self.features,iset,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
-    return sparseGrid,iset
+    pt = self.neededPoints.pop() # [self.counter-1]
+    self.submittedNotCollected.append(pt)
+    for v,varName in enumerate(self.sparseGrid.varNames):
+      self.values[varName] = pt[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['SamplerType'] = self.type
 
-  def _makeARom(self,grid,inset):
+  def localFinalizeActualSampling(self,jobObject,model,myInput):
+    """Performs actions after samples have been collected.
+    @ In, jobObject, the job that finished
+    @ In, model, the model that was run
+    @ In, myInput, the input used for the run
+    @Out, None
     """
-      Generates a GaussPolynomialRom object using the passed in sparseGrid and indexSet,
-      otherwise fundamentally a copy of the end-target ROM.
-      @ In, grid, a sparseGrid object
-      @ In, inset, a indexSet object
-      @ Out, a GaussPolynomialROM object
-    """
-    #deepcopy prevents overwriting
-    rom  = copy.deepcopy(self.ROM) #preserves interpolation requests via deepcopy
-    sg   = copy.deepcopy(grid)
-    iset = copy.deepcopy(inset)
-    sg.messageHandler   = self.messageHandler
-    iset.messageHandler = self.messageHandler
-    rom.messageHandler  = self.messageHandler
-    for svl in rom.SupervisedEngine.values():
-      svl.initialize({'SG'   :sg,
-                      'dists':self.distDict,
-                      'quads':self.quadDict,
-                      'polys':self.polyDict,
-                      'iSet' :iset
-                      })
-    #while the training won't always need all of solns, it is smart enough to take what it needs
-    rom.train(self.solns)
-    return rom
+    #check if all sampling is done
+    if self.jobHandler.isFinished(): self.batchDone = True
+    else: self.batchDone = False
 
-  def _impactParameter(self,new,old):
+  def _addNewPoints(self):
     """
-      Calculates the impact factor g_k based on the Ayres-Eaton 2015 paper model.
-      @ In, new, the new metric
-      @ In, old, the old metric
-      @ Out, the impact parameter
+    Sort through sparse grid and add any new needed points
+    @ In, None
+    @Out, None
     """
-    if abs(old)>1e-14: return((new-old)/old)
-    else: return new
+    for point,sparseGrid in self.indexSet.active.items():
+      sparseGrid,dummy=self._makeSparseQuad(point)
+      for pt in sparseGrid.points()[:]:
+        if pt not in self.pointsNeededToMakeROM:
+          self.pointsNeededToMakeROM.append(pt)
+        if pt not in self.neededPoints and pt not in self.existing.keys():
+          self.newSolutionSizeShouldBe+=1
+          self.neededPoints.append(pt)
 
-  def _updateExisting(self):
+  def _clearActiveSet(self):
     """
-      Goes through the stores solutions PointSet and pulls out solutions, ordering them
-      by the order the features we're evaluating.
-      @ In, None
-      @ Out, None
+    Removes entries in the active set that haven't seen progress
+    @ In, None
+    @Out, None
     """
-    #new: only append new points
-    if not self.solns.isItEmpty():
-      inps = self.solns.getInpParametersValues()
-      outs = self.solns.getOutParametersValues()
-      #make reorder map
-      reordmap=list(inps.keys().index(i) for i in self.features)
-      solns = list(v for v in inps.values())
-      ordsolns = [solns[i] for i in reordmap]
-      existinginps = zip(*ordsolns)
-      outvals = zip(*list(v for v in outs.values()))
-      self.existing = dict(zip(existinginps,outvals))
-
-  def _integrateFunction(self,sg,r,i):
-    """
-      Uses the sparse grid sg to effectively integrate the r-th moment of the model.
-      @ In, sg, sparseGrid object
-      @ In, r, integer moment
-      @ In, i, index of target to evaluate
-      @ Out, float, approximate integral
-    """
-    tot=0
-    for n in range(len(sg)): #how can a point not be in existing but be in sparse grid? -> not converged! FIXME sobol adaptive
-      pt,wt = sg[n]
-      if pt not in self.existing.keys():
-        self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
-      tot+=self.existing[pt][i]**r*wt
-    return tot
+    for key in self.indexSet.active.keys():
+      if self.indexSet.active[key]==None: del self.indexSet.active[key]
+    self.neededPoints=[]
 
   def _convergence(self,sparseGrid,iset,i):
     """
@@ -3140,99 +3160,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     else: self.raiseAnError(KeyError,'Unexpected convergence criteria:',self.convType)
     return impact
 
-  def localStillReady(self,ready,skipJobHandlerCheck=False):
-    """
-      Determines what additional points are necessary for RAVEN to run.
-      @ In, ready, bool, true if ready
-      @ Out, ready, bool, true if ready
-    """
-    #update existing solutions
-    self._updateExisting()
-    #if we're not ready elsewhere, just be not ready
-    if ready==False: return ready
-    #if we still have a list of points to sample, just keep on trucking.
-    if len(self.neededPoints)>0:
-      return True
-    #if points all submitted but not all done, not ready for now.
-    if (not self.batchDone) or (not skipJobHandlerCheck and not self.jobHandler.isFinished()):
-      return False
-    if len(self.existing) < self.newSolutionSizeShouldBe:
-      return False
-    #if no points to check right now, search for points to sample
-    while len(self.neededPoints)<1: #what if it's running and not done?
-      self.raiseADebug('')
-      self.raiseADebug('Evaluating new points...')
-      #update QoIs and impact parameters
-      self.error=0
-      #re-evaluate impact of active set, since it could have changed
-      for active in self.indexSet.active.keys():
-        #create new SG using active point
-        sparseGrid,iset = self._makeSparseQuad(active) #FIXME this is (by 3x) the most expensive line in this function
-        #store it
-        self.activeSGs[active]=sparseGrid
-        #get impact from  convergence
-        avImpact = 0
-        for i,_ in enumerate(self.ROM.SupervisedEngine.keys()):
-          avImpact += self._convergence(sparseGrid,iset,i)
-        impact = avImpact/float(len(self.ROM.SupervisedEngine.keys()))
-        #stash the sparse grid, impact factor for future reference
-        self.indexSet.setSG(active,sparseGrid)
-        self.indexSet.setImpact(active,impact)
-        #the estimated error is the sum of all the impacts
-        self.error+=impact
-      self.raiseAMessage('  estimated remaining error: %1.4e target error: %1.4e, runs: %i' %(self.error,self.convValue,len(self.pointsNeededToMakeROM)))
-      if abs(self.error)<self.convValue and len(self.indexSet.points)>self.persistence:
-        done=True #we've converged!
-        self.converged = True
-        self.raiseADebug('converged estimated error:',self.error)
-        #clear the active index set
-        for key in self.indexSet.active.keys():
-          if self.indexSet.active[key]==None: del self.indexSet.active[key]
-        #clear needed points
-        self.neededPoints=[]
-        break
-      elif self.maxRuns is not None:
-        self.unfinished = self.jobHandler.numRunning()
-        if len(self.pointsNeededToMakeROM)-self.unfinished >=self.maxRuns:
-          done=True #not converged, but reached max number of polys to use
-          self.converged = True
-          self.raiseAMessage('Not converged, but max runs (%i) reached!' %self.maxRuns)
-          self.raiseADebug('end estimated error:',self.error)
-          for key in self.indexSet.active.keys():
-            if self.indexSet.active[key]==None: del self.indexSet.active[key]
-          #clear needed points
-          self.neededPoints=[]
-          break
-      #if we're not converged...
-      #store the old rom, if we have it
-      if len(self.indexSet.points)>1:
-        self.oldSG = self.activeSGs[self.indexSet.newestPoint]
-      #get the active point with the biggest impact and make it permanent
-      point,impact = self.indexSet.expand()
-      # find the forward points of the most effective point
-      self.indexSet.forward(point,self.maxPolyOrder)
-      #find the new points needed to evaluate, if any (there should be usually)
-      for point,sparseGrid in self.indexSet.active.items():
-        #FIXME is this duplicating effort?  Should I only make sparse quad if it doesn't already exist?
-        #  -> No, it's not, each sparse grid is predicated on the index set points used, and it has to get updated.
-        sparseGrid,dummy=self._makeSparseQuad(point) #FIXME this is the second-most expensive line is this method
-        for pt in sparseGrid.points()[:]:
-          if pt not in self.pointsNeededToMakeROM:
-            self.pointsNeededToMakeROM.append(pt)
-          if pt not in self.neededPoints and pt not in self.existing.keys():
-            self.newSolutionSizeShouldBe+=1
-            self.neededPoints.append(pt)
-    #if we exited the while-loop searching for new points and there aren't any, we're done!
-    if len(self.neededPoints)==0:
-      self.converged = True
-      self.finalizeROM()
-      self.unfinished = self.jobHandler.numRunning()
-      self.jobHandler.terminateAll()
-      return False
-    #otherwise, we have work to do.
-    return True
-
-  def finalizeROM(self):
+  def _finalizeROM(self):
     """
       Initializes final target ROM with necessary objects for training.
       @ In, None
@@ -3250,30 +3178,132 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
                       'iSet':self.indexSet,
                       'numRuns':len(self.pointsNeededToMakeROM)-self.unfinished})
 
-  def localGenerateInput(self,model,myInput):
+  def _findNewPolys(self):
     """
-      Generates an input. Parameters inherited.
-      @ In, model, unused
-      @ In, myInput, unused
-    """
-    pt = self.neededPoints.pop() # [self.counter-1]
-    self.submittedNotCollected.append(pt)
-    for v,varName in enumerate(self.sparseGrid.varNames):
-      self.values[varName] = pt[v]
-      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['SamplerType'] = self.type
-
-  def localFinalizeActualSampling(self,jobObject,model,myInput):
-    """Performs actions after samples have been collected.
-    @ In, jobObject, the job that finished
-    @ In, model, the model that was run
-    @ In, myInput, the input used for the run
+    Pushes the adaptive index set forward in polynomial space
+    @ In, None
     @Out, None
     """
-    #check if all sampling is done
-    if self.jobHandler.isFinished(): self.batchDone = True
-    else: self.batchDone = False
+    #store the old rom, if we have it
+    if len(self.indexSet.points)>1:
+      self.oldSG = self.activeSGs[self.indexSet.newestPoint]
+    #get the active point with the biggest impact and make it permanent
+    point,impact = self.indexSet.expand()
+    # find the forward points of the most effective point
+    self.indexSet.forward(point,self.maxPolyOrder)
+
+  def _impactParameter(self,new,old):
+    """
+      Calculates the impact factor g_k based on the Ayres-Eaton 2015 paper model.
+      @ In, new, the new metric
+      @ In, old, the old metric
+      @ Out, the impact parameter
+    """
+    if abs(old)>1e-14: return((new-old)/old)
+    else: return new
+
+  def _integrateFunction(self,sg,r,i):
+    """
+      Uses the sparse grid sg to effectively integrate the r-th moment of the model.
+      @ In, sg, sparseGrid object
+      @ In, r, integer moment
+      @ In, i, index of target to evaluate
+      @ Out, float, approximate integral
+    """
+    tot=0
+    for n in range(len(sg)): #how can a point not be in existing but be in sparse grid? -> not converged! FIXME sobol adaptive
+      pt,wt = sg[n]
+      if pt not in self.existing.keys():
+        self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
+      tot+=self.existing[pt][i]**r*wt
+    return tot
+
+  def _makeARom(self,grid,inset):
+    """
+      Generates a GaussPolynomialRom object using the passed in sparseGrid and indexSet,
+      otherwise fundamentally a copy of the end-target ROM.
+      @ In, grid, a sparseGrid object
+      @ In, inset, a indexSet object
+      @ Out, a GaussPolynomialROM object
+    """
+    #deepcopy prevents overwriting
+    rom  = copy.deepcopy(self.ROM) #preserves interpolation requests via deepcopy
+    sg   = copy.deepcopy(grid)
+    iset = copy.deepcopy(inset)
+    sg.messageHandler   = self.messageHandler
+    iset.messageHandler = self.messageHandler
+    rom.messageHandler  = self.messageHandler
+    for svl in rom.SupervisedEngine.values():
+      svl.initialize({'SG'   :sg,
+                      'dists':self.distDict,
+                      'quads':self.quadDict,
+                      'polys':self.polyDict,
+                      'iSet' :iset
+                      })
+    #while the training won't always need all of solns, it is smart enough to take what it needs
+    rom.train(self.solns)
+    return rom
+
+  def _makeSparseQuad(self,points=[]):
+    """
+      Generates a sparseGrid object using the self.indexSet adaptively established points
+      as well as and additional points passed in (often the indexSet's adaptive points).
+      Also returns the index set used to generate the sparse grid.
+      @ In, points, list of tuples
+      @ Out, (sparseGrid, indexSet) object tuple
+    """
+    sparseGrid = Quadratures.SparseQuad()
+    iset = IndexSets.returnInstance('Custom',self)
+    iset.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+    iset.setPoints(self.indexSet.points)
+    iset.addPoints(points)
+    sparseGrid.initialize(self.features,iset,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
+    return sparseGrid,iset
+
+  def _updateExisting(self):
+    """
+      Goes through the stores solutions PointSet and pulls out solutions, ordering them
+      by the order the features we're evaluating.
+      @ In, None
+      @ Out, None
+    """
+    #new: only append new points
+    if not self.solns.isItEmpty():
+      inps = self.solns.getInpParametersValues()
+      outs = self.solns.getOutParametersValues()
+      #make reorder map
+      reordmap=list(inps.keys().index(i) for i in self.features)
+      solns = list(v for v in inps.values())
+      ordsolns = [solns[i] for i in reordmap]
+      existinginps = zip(*ordsolns)
+      outvals = zip(*list(v for v in outs.values()))
+      self.existing = dict(zip(existinginps,outvals))
+
+  def _updateQoI(self):
+    """
+    Updates ROMs for QoIs, as well as impact parameters and estimated error.
+    @ In, None
+    @Out, None
+    """
+    #update QoIs and impact parameters
+    self.error=0
+    #re-evaluate impact of active set, since it could have changed
+    for active in self.indexSet.active.keys():
+      #create new SG using active point
+      sparseGrid,iset = self._makeSparseQuad(active) #FIXME this is (by 3x) the most expensive line in this function
+      #store it
+      self.activeSGs[active]=sparseGrid
+      #get impact from  convergence
+      avImpact = 0
+      for i,_ in enumerate(self.ROM.SupervisedEngine.keys()):
+        avImpact += self._convergence(sparseGrid,iset,i)
+      impact = avImpact/float(len(self.ROM.SupervisedEngine.keys()))
+      #stash the sparse grid, impact factor for future reference
+      self.indexSet.setSG(active,sparseGrid)
+      self.indexSet.setImpact(active,impact)
+      #the estimated error is the sum of all the impacts
+      self.error+=impact
+    self.raiseAMessage('  estimated remaining error: %1.4e target error: %1.4e, runs: %i' %(self.error,self.convValue,len(self.pointsNeededToMakeROM)))
 #
 #
 #
@@ -3302,6 +3332,7 @@ class Sobol(SparseGridCollocation):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.existing       = []
+    self.distinctPoints = set() #tracks distinct points used in creating this ROM
 
     self._addAssObject('ROM','1')
 
@@ -3411,6 +3442,7 @@ class Sobol(SparseGridCollocation):
     for v,var in enumerate(self.distDict.keys()):
       newpt[v] = self.references[var]
     self.pointsToRun.append(tuple(newpt))
+    self.distinctPoints.add(tuple(newpt))
     #now do the rest
     for combo,rom in self.ROMs.values()[0].items(): #each target is the same, so just for each combo
       SG = rom.sparseGrid #they all should have the same sparseGrid
@@ -3422,6 +3454,7 @@ class Sobol(SparseGridCollocation):
           if var in combo: newpt[v] = pt[combo.index(var)]
           else: newpt[v] = self.references[var]
         newpt=tuple(newpt)
+        self.distinctPoints.add(newpt)
         if newpt not in self.pointsToRun:# and newpt not in existing: #the second half used to be commented...
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
@@ -3433,7 +3466,8 @@ class Sobol(SparseGridCollocation):
               'dists':self.distDict,
               'quads':self.quadDict,
               'polys':self.polyDict,
-              'refs':self.references}
+              'refs':self.references,
+              'numRuns':len(self.distinctPoints)}
     for target in self.targets:
       initdict['ROMs'] = self.ROMs[target]
       self.ROM.SupervisedEngine[target].initialize(initdict)
@@ -3499,6 +3533,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #convergence parameters
     self.actImpact       = {} #actual impact on variance by subset combo
     self.expImpact       = {} #estimated impact on variance by subset combo
+    self.exceededRuns    = False #boolean to track if we've gone over limit
+    self.distinctPoints  = set() #list of points needed to make this ROM, for counting purposes
 
     #attributes
     self.features        = None #ROM features of interest, also input variable list
@@ -3578,6 +3614,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     @ In, ready, boolean
     @Out, boolean
     """
+    #if we've already capped runs, return False
+    if self.exceededRuns: return False
     #if for some reason we're not ready already, just return that
     if not ready: return ready
     #collect points that have been run
@@ -3585,6 +3623,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #if any sampling sets are complete, check if they are done or need more.
     for subset, sampler in self.inTraining.items():
       while len(self.pointsNeeded[subset])<1:
+        self.raiseADebug('Moving forward for subset',subset)
         #the sampler has the points it needs to go forward
         #  - so we can check if it's still ready, which initiates the adaptivity
         self.samplers[subset].localStillReady(True,skipJobHandlerCheck=True)
@@ -3592,6 +3631,13 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         if len(self.samplers[subset].neededPoints)<1:
           #this indicates this subset sampler is converged
           self._finalizeSubset(subset)
+          self.raiseAMessage('Converged subset',subset,'at',len(self.distinctPoints),'runs')
+          #check to see if we're over on submissions; if so, exit.
+          if self.maxRuns is not None and self.counter > int(self.maxRuns):
+            self.raiseAMessage('Exceeded max requested runs!  No new samples generated.')
+            self._earlyExit()
+            self.exceededRuns = True
+            return False
           break
         #otherwise, we know the new points we need, and can keep track of them
         else:
@@ -3603,13 +3649,14 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     if len(self.expImpact)<1:
       #check maxRuns limit
       if (self.maxRuns is not None and self.counter < int(self.maxRuns)) or self.maxRuns is None:
+        self.raiseADebug('Generating new subsets...')
         self._generateSubsets()
       else:
         self.raiseAMessage('Number of runs exceeded requested max runs!  Not generating new subsets...')
-        self._finalizeROM()
+        self._finalizeROM() #TODO might be unnecessary
         return False
     if self._calcConvergence() < self.convValue:
-      #this means we don't expect significant contributions from any more terms!
+      #this means we don't expect significant contributions from any more terms!  Normal exit.
       self._finalizeROM()
       return False
     #this should only be reached when we have generated new subsets - otherwise, we're done but not converged in subsamplers.
@@ -3741,6 +3788,20 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     cutInp = tuple(pt[self.features.index(var)] for var in subset)
     return cutInp
 
+  def _earlyExit(self):
+    """
+    In the event the sampler has to terminate before normal completion, this helps to assure
+    a usable set of ROMs make it to the HDMR ROM.
+    @ In, None
+    @Out, None
+    """
+    #close out subsets
+    for sub in self.inTraining.keys():
+      for t in self.targets:
+        del self.ROMs[t][sub]
+      #self._finalizeSubset(sub)
+    self._finalizeROM()
+
   def _finalizeROM(self):
     """
     Delivers necessary structures to the HDMRRom object
@@ -3752,9 +3813,10 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
                 'dists':self.distDict,
                 'quads':self.quadDict,
                 'polys':self.polyDict,
-                'refs':self.references}
+                'refs':self.references,
+                'numRuns':len(self.distinctPoints)}
     for target in self.targets:
-      initDict['ROMs'] = self.ROMs[target]
+      initDict['ROMs'] = self.ROMs[target] #shouldn't this be the use set instead of training set?
       self.ROM.SupervisedEngine[target].initialize(initDict)
 
   def _finalizeSubset(self,subset):
@@ -3765,10 +3827,10 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #add collected points to sampler's data object, just in case one's missing.  Could be optimized.
     for pt in self.pointsCollected[subset]:
       self._addPointToDataObject(subset,pt)
+      self.distinctPoints.add(self._expandCutPoint(subset,pt))
     #finalize the ROM
-    sampler.finalizeROM()
+    sampler._finalizeROM()
     #train the ROM
-    print('getting ready to train, outparams are:',sampler.solns.getParaKeys('outputs'))
     self.romShell[subset].train(sampler.solns)
     #move impact from expected to actual
     for t in self.targets:
@@ -3785,7 +3847,6 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     @Out, None
     """
     # l is the largest subset used thus far
-    print('generating subsets')
     l = max(len(subset) for subset in self.useSet.keys())
     #TODO optimize the following algorithm
     # get all possible combinations of subsets for the next highest subset cardinality
@@ -3850,7 +3911,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #instantiate an adaptive index set for this ROM
     iset = IndexSets.returnInstance('AdaptiveSet',self)
     iset.initialize(distDict,imptDict,self.maxPolyOrder)
-    iset.verbosity='quiet' #mute the debug
+    iset.verbosity='all' #mute the debug
     #instantiate a sparse grid quadrature
     self.SQs[subset] = Quadratures.SparseQuad()
     self.SQs[subset].initialize(subset,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
@@ -3878,7 +3939,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #instantiate the adaptive sparse grid sampler for this rom
     samp = AdaptiveSparseGrid()               #FIXME use a factory when it's made
     samp.messageHandler = self.messageHandler
-    samp.verbosity      = 'quiet'             #mute debug
+    samp.verbosity      = 'all'             #mute debug
     samp.doInParallel   = self.doInParallel
     samp.jobHandler     = self.jobHandler
     samp.convType       = 'variance'

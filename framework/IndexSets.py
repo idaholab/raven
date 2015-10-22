@@ -378,10 +378,14 @@ class AdaptiveSet(IndexSet):
     for i in range(self.N):
       newpt = list(pt)
       newpt[i]+=1
+      self.raiseADebug('trying',newpt)
       if maxPoly != None:
         if newpt[i]>maxPoly:
+          self.raiseADebug('new point',newpt,'has too large poly.')
           continue
-      if tuple(newpt) in self.active.keys(): continue
+      if tuple(newpt) in self.active.keys():
+        self.raiseADebug('new point',newpt,'is already in active set.')
+        continue
       #remove the candidate if not all of its predecessors are accepted.
       found=True
       for j in range(self.N):
@@ -389,6 +393,7 @@ class AdaptiveSet(IndexSet):
         if checkpt[j]==0:continue
         checkpt[j] -= 1
         if tuple(checkpt) not in self.points:
+          self.raiseADebug('new point',newpt,'is missing a predecessor.')
           found=False
           break
       if found:
