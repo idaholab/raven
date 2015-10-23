@@ -143,8 +143,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.subType  = ''
     self.runQueue = []
     self.printTag = 'MODEL'
-    self.mods     = utils.returnImportModuleString(inspect.getmodule(self),True)
-    self.globs    = {}
 
   def _readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['subType']
@@ -239,7 +237,7 @@ class Dummy(Model):
 
   def _inputToInternal(self,dataIN,full=False):
     """Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data"""
-    self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
+    #self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
     if  type(dataIN).__name__ !='dict':
       if dataIN.type not in self.admittedData: self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
     if full==True:  length = 0
@@ -285,7 +283,7 @@ class Dummy(Model):
     inRun = self._manipulateInput(Input[0])
     def lambdaReturnOut(inRun,prefix): return {'OutputPlaceHolder':np.atleast_1d(np.float(prefix))}
     #lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))}
-    jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods, globs = self.globs)
+    jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods)
 
   def collectOutput(self,finishedJob,output):
     if finishedJob.returnEvaluation() == -1: self.raiseAnError(AttributeError,"No available Output to collect (Run probabably is not finished yet)")
@@ -368,11 +366,10 @@ class ROM(Dummy):
 
     for target in targets:
       self.initializationOptionDict['Target'] = target
-      self.SupervisedEngine[target] = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-
-    
-    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
-    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
+      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+    # extend the list of modules this ROM depen on
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0]),True)) - set(self.mods))
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     #restore targets to initialization option dict
     self.initializationOptionDict['Target'] = ','.join(targets)
 
@@ -526,7 +523,7 @@ class ROM(Dummy):
   def run(self,Input,jobHandler):
     """This call run a ROM as a model"""
     inRun = self._manipulateInput(Input[0])
-    jobHandler.submitDict['Internal']((inRun,),self.__externalRun,str(Input[1]['prefix']),metadata=Input[1],modulesToImport=self.mods, globs = self.globs)
+    jobHandler.submitDict['Internal']((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods)
 #
 #
 #
@@ -589,22 +586,8 @@ class ExternalModel(Dummy):
     """
     Model._readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys():
-      moduleToLoadString = str(xmlNode.attrib['ModuleToLoad'])
-      #first check working dir
-      workingDirModule = os.path.abspath(os.path.join(self.workingDir,moduleToLoadString))
-      if os.path.exists(workingDirModule+".py"):
-        moduleToLoadString = workingDirModule
-        path, self.ModuleToLoad = os.path.split(workingDirModule)
-        os.sys.path.append(os.path.abspath(path))
-      else:
-        path, self.ModuleToLoad = os.path.split(moduleToLoadString)
-        if (path != ''):
-          abspath = os.path.abspath(path)
-          if '~' in abspath:abspath = os.path.expanduser(abspath)
-          if os.path.exists(abspath):
-            self.raiseAWarning('ModuleToLoad '+moduleToLoadString+' should be relative to working directory. Working directory: '+self.workingDir+' Module expected at '+abspath)
-            os.sys.path.append(abspath)
-          else: self.raiseAnError(IOError,'The path provided for the external model does not exist!!! Got: ' + abspath + ' and ' + workingDirModule)
+      self.ModuleToLoad = str(xmlNode.attrib['ModuleToLoad'])
+      moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
     else: self.raiseAnError(IOError,'ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
     self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
@@ -653,7 +636,7 @@ class ExternalModel(Dummy):
     @ In, jobHandler, jobHandler object, jobhandler instance
     """
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
-    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods, globs = self.globs)
+    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods)
 
   def collectOutput(self,finishedJob,output):
     """
@@ -844,7 +827,10 @@ class Code(Model):
   def run(self,inputFiles,jobHandler):
     """append a run at the externalRunning list of the jobHandler"""
     self.currentInputFiles = copy.deepcopy(inputFiles[0])
-    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs, preexec=self.preexec)
+    returnedCommand = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs, preexec=self.preexec)
+    if type(returnedCommand).__name__ != 'tuple'  : self.raiseAnError(IOError, "the generateCommand method in code interface must return a tuple")
+    if type(returnedCommand[0]).__name__ != 'list': self.raiseAnError(IOError, "the first entry in tuple returned by generateCommand method needs to be a list of tuples!")
+    executeCommand, self.outFileRoot = returnedCommand
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1],codePointer=self.code)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
@@ -1001,12 +987,15 @@ class PostProcessor(Model, Assembler):
        directory with the starting input files"""
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
-    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(PostProcessors)))
+    #aaaaa = utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)
+    #bbbbb = utils.returnImportModuleString(inspect.getmodule(PostProcessors))
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
+    #self.mods.extend(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True))
 
   def run(self,Input,jobHandler):
     """run calls the interface finalizer"""
-    if len(Input) > 0 : jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods, globs = self.globs)
-    else: jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods, globs = self.globs)
+    if len(Input) > 0 : jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
+    else: jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
 
   def collectOutput(self,finishedjob,output):
     self.interface.collectOutput(finishedjob,output)
