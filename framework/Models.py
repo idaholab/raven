@@ -464,9 +464,6 @@ class ROM(Dummy):
         # train the ROM
         for ts in range(numberOfTimeStep):
           trainingSet_timeSnapShot = mathUtils.historySetWindow(trainingSet,ts)
-          print(trainingSet_timeSnapShot)
-          print(' ')
-          #newRom = copy.copy(template)
           newRom = {}
           for target in targets:
             self.initializationOptionDict['Target'] = target
@@ -477,9 +474,7 @@ class ROM(Dummy):
           self.SupervisedEngine.append(newRom)  
       else:
         self.raiseAnError(IOError,'DataObject '+trainingSet.type+' can not be used to train a ROM')
-        
-      print(self.SupervisedEngine)
-        
+      
 
   def confidence(self,request,target = None):
     """
@@ -522,9 +517,6 @@ class ROM(Dummy):
       for ts in range(len(self.SupervisedEngine)):  
         for target in targets:
           returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))   
-          print('==>'+str(self.evaluate(inRun,target,ts)))    
-          print(target)
-          print(ts)
     else:
       for target in self.SupervisedEngine.keys(): 
         returnDict[target] = self.evaluate(inRun,target)
