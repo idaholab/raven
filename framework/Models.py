@@ -446,10 +446,13 @@ class ROM(Dummy):
       
       elif trainingSet.type == "HistorySet":
         
-        template=copy.copy(self.SupervisedEngine)
-        self.SupervisedEngine = [template]
+        #template=copy.deepcopy(self.SupervisedEngine)
+        self.SupervisedEngine = []
       
         outKeys = trainingSet.getParaKeys('outputs')
+        targets = self.initializationOptionDict['Target'].split(',')
+        
+        # check that all histories have the same length
         
         for t in trainingSet.getParametersValues('outputs'):
           if t==1:
@@ -458,9 +461,16 @@ class ROM(Dummy):
             if numberOfTimeStep != len(trainingSet.getParametersValues('outputs')[t][outKeys[0]]):
               self.raiseAnError(IOError,'DataObject '+trainingSet.type+' can not be used to train a ROM: length of HistorySet is not consistent')
 
+        # train the ROM
         for ts in range(numberOfTimeStep):
           trainingSet_timeSnapShot = mathUtils.historySetWindow(trainingSet,ts)
-          newRom = copy.copy(template)
+          print(trainingSet_timeSnapShot)
+          print(' ')
+          #newRom = copy.copy(template)
+          newRom = {}
+          for target in targets:
+            self.initializationOptionDict['Target'] = target
+            newRom[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
           for instrom in newRom.values():
             instrom.train(trainingSet_timeSnapShot)
             self.aimITrained = self.amITrained and instrom.amITrained
@@ -511,11 +521,14 @@ class ROM(Dummy):
         
       for ts in range(len(self.SupervisedEngine)):  
         for target in targets:
-          returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))       
+          returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))   
+          print('==>'+str(self.evaluate(inRun,target,ts)))    
+          print(target)
+          print(ts)
     else:
       for target in self.SupervisedEngine.keys(): 
         returnDict[target] = self.evaluate(inRun,target)
-      
+    
     return returnDict
 
   def run(self,Input,jobHandler):

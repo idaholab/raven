@@ -208,11 +208,9 @@ def historySetWindow(vars,index):
   for history in vars.getParametersValues('outputs'):
     for key in inpKeys:
       newVars[key] = np.append(newVars[key],vars.getParametersValues('inputs')[history][key])
-      #newVars.updateInputValue(key,vars.getParametersValues('inputs')[history][key])
       
     for key in outKeys:
-      newVars[key] = np.append(newVars[key],vars.getParametersValues('outputs')[history][key][index])
-      #newVars.updateOutputValue(key,vars.getParametersValues('outputs')[history][key][index])
+      newVars[key] = np.append(newVars[key],vars.getParametersValues('outputs')[history][key][index])   
       
   return newVars
     
