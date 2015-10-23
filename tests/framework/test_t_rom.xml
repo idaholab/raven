@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Simulation verbosity='debug'>
+
+
+<RunInfo>
+    <WorkingDir>t_rom</WorkingDir>
+    <Files>lorentzAttractor.py</Files>
+    <Sequence>model_MRun,test_rom_trainer,ROM_MRun</Sequence>
+    <batchSize>2</batchSize>
+</RunInfo>
+
+
+<Steps>
+    <MultiRun name='model_MRun'>
+        <Input   class='DataObjects' type='Point'         >inputPlaceHolder</Input>
+        <Model   class='Models'      type='ExternalModel' >PythonModule</Model>
+        <Sampler class='Samplers'    type='Grid'          >myGrid</Sampler>
+        <Output  class='DataObjects' type='HistorySet'    >HistorySet_model</Output>
+        <Output  class="OutStreamManager" type="Print">testPrintHistorySet_dump</Output>
+    </MultiRun>
+    <RomTrainer name='test_rom_trainer' verbosity='debug'>
+      <Input     class='DataObjects' type='HistorySet' >HistorySet_model</Input>
+      <Output    class='Models'      type='ROM'        >t_ROM</Output>
+    </RomTrainer>
+    <MultiRun name='ROM_MRun'>
+      <Input   class='DataObjects' type='Point'      >inputPlaceHolder</Input>
+      <Model   class='Models'      type='ROM'        >t_ROM</Model>
+      <Sampler class='Samplers'    type='Grid'       >myGrid</Sampler>
+      <Output  class='DataObjects' type='HistorySet' >HistorySet_ROM</Output>
+    </MultiRun>
+</Steps>
+
+
+<Models>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/lorentzAttractor'>
+       <variable>sigma</variable>
+       <variable>rho</variable>
+       <variable>beta</variable>
+       <variable>x</variable>
+       <variable>y</variable>
+       <variable>z</variable>
+       <variable>time</variable>
+       <variable>x0</variable>
+       <variable>y0</variable>
+       <variable>z0</variable>
+    </ExternalModel>
+    <ROM  name='t_ROM' subType='NDinvDistWeight'>
+      <Features>x0,y0,z0</Features>
+      <Target>x,y,z</Target>
+      <p>3</p>
+    </ROM>
+</Models>
+
+
+<Distributions>
+    <Normal name='x0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+    <Normal name='y0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+    <Normal name='z0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+</Distributions>
+
+
+<Samplers>
+    <Grid name='myGrid'>
+        <variable name='x0'>
+            <distribution  >x0_distrib</distribution>
+            <grid type='value' construction='custom' >0.2 0.6</grid>
+        </variable>
+        <variable name='y0'>
+            <distribution  >y0_distrib</distribution>
+            <grid type='value' construction='custom'>0.5 0.2</grid>
+        </variable>
+        <variable name='z0'>
+            <distribution >z0_distrib</distribution>
+            <grid type='value' construction='custom'>0.5 0.2</grid>
+        </variable>
+    </Grid>
+</Samplers>
+
+
+<OutStreamManager>
+  <Print name='testPrintHistorySet_dump'>
+    <type>csv</type>
+    <source>HistorySet_model</source>
+  </Print>
+</OutStreamManager>
+
+
+<DataObjects>
+    <Point name='inputPlaceHolder'>
+        <Input>x0,y0,z0</Input>
+        <Output>OutputPlaceHolder</Output>
+    </Point>
+    <HistorySet name='HistorySet_model'>
+        <!--options>
+            <pivotParameter>time</pivotParameter>
+        </options-->
+        <Input>x0,y0,z0</Input>
+        <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name='HistorySet_ROM'>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+</DataObjects>
+
+</Simulation>
+
+
+
+
+
