@@ -5,8 +5,8 @@
 <RunInfo>
     <WorkingDir>t_rom</WorkingDir>
     <Files>lorentzAttractor.py</Files>
-    <Sequence>model_MRun,test_rom_trainer,ROM_MRun</Sequence>
-    <batchSize>2</batchSize>
+    <Sequence>model_MRun,test_rom_trainer,ROM_MRun,plot_data</Sequence>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 
@@ -16,7 +16,7 @@
         <Model   class='Models'      type='ExternalModel' >PythonModule</Model>
         <Sampler class='Samplers'    type='Grid'          >myGrid</Sampler>
         <Output  class='DataObjects' type='HistorySet'    >HistorySet_model</Output>
-        <Output  class="OutStreamManager" type="Print">testPrintHistorySet_dump</Output>
+        <Output  class='OutStreamManager' type='Print'    >PrintHistorySet_model</Output>
     </MultiRun>
     <RomTrainer name='test_rom_trainer' verbosity='debug'>
       <Input     class='DataObjects' type='HistorySet' >HistorySet_model</Input>
@@ -27,7 +27,14 @@
       <Model   class='Models'      type='ROM'        >t_ROM</Model>
       <Sampler class='Samplers'    type='Grid'       >myGrid</Sampler>
       <Output  class='DataObjects' type='HistorySet' >HistorySet_ROM</Output>
+      <Output  class='OutStreamManager' type='Print' >PrintHistorySet_rom</Output>
     </MultiRun>
+    <IOStep name='plot_data'>
+      <Input   class='DataObjects' type='HistorySet'    >HistorySet_model</Input>
+      <Input   class='DataObjects' type='HistorySet'    >HistorySet_ROM</Input>
+      <Output  class='OutStreamManager' type='Plot'     >plot_ROM</Output>
+      <Output  class='OutStreamManager' type='Plot'     >plot_model</Output>
+    </IOStep>
 </Steps>
 
 
@@ -46,7 +53,7 @@
     </ExternalModel>
     <ROM  name='t_ROM' subType='NDinvDistWeight'>
       <Features>x0,y0,z0</Features>
-      <Target>x,y,z</Target>
+      <Target>time,x,y,z</Target>
       <p>3</p>
     </ROM>
 </Models>
@@ -87,10 +94,60 @@
 
 
 <OutStreamManager>
-  <Print name='testPrintHistorySet_dump'>
+  <Print name='PrintHistorySet_model'>
     <type>csv</type>
     <source>HistorySet_model</source>
   </Print>
+  <Print name='PrintHistorySet_rom'>
+    <type>csv</type>
+    <source>HistorySet_ROM</source>
+  </Print>
+  <Plot name='plot_model' dim='3' overwrite='False'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>HistorySet_model|Output|time</x>
+        <y>HistorySet_model|Output|x</y>
+        <z>HistorySet_model|Output|y</z>
+      </plot>
+      <xlabel>time</xlabel>
+      <ylabel>x</ylabel>
+      <zlabel>y</zlabel>
+    </plotSettings>
+    <actions>
+      <how>pdf</how>
+      <title>
+        <text>Sampled Input Space: Model</text>
+      </title>
+      <camera>
+        <elevation>34</elevation>
+        <azimuth>22</azimuth>
+      </camera>
+    </actions>
+  </Plot>
+  <Plot name='plot_ROM' dim='3' overwrite='False'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>HistorySet_ROM|Output|time</x>
+        <y>HistorySet_ROM|Output|x</y>
+        <z>HistorySet_ROM|Output|y</z>
+      </plot>
+      <xlabel>time</xlabel>
+      <ylabel>x</ylabel>
+      <zlabel>y</zlabel>
+    </plotSettings>
+    <actions>
+      <how>pdf</how>
+      <title>
+        <text>Sampled Input Space: ROM</text>
+      </title>
+      <camera>
+        <elevation>34</elevation>
+        <azimuth>22</azimuth>
+      </camera>
+    </actions>
+  </Plot>
 </OutStreamManager>
 
 
@@ -107,9 +164,9 @@
         <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name='HistorySet_ROM'>
-      <options>
+      <!--options>
         <pivotParameter>time</pivotParameter>
-      </options>
+      </options-->
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>

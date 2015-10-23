@@ -363,8 +363,8 @@ class ROM(Dummy):
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
+    print('targets' +str(targets))
     self.howManyTargets = len(targets)
-
 
     for target in targets:
       self.initializationOptionDict['Target'] = target
@@ -448,8 +448,6 @@ class ROM(Dummy):
         
         template=copy.copy(self.SupervisedEngine)
         self.SupervisedEngine = [template]
-        
-        numberOfTimeStep = 3
       
         outKeys = trainingSet.getParaKeys('outputs')
         
@@ -470,6 +468,8 @@ class ROM(Dummy):
       else:
         self.raiseAnError(IOError,'DataObject '+trainingSet.type+' can not be used to train a ROM')
         
+      print(self.SupervisedEngine)
+        
 
   def confidence(self,request,target = None):
     """
@@ -483,15 +483,23 @@ class ROM(Dummy):
     if target != None: return self.SupervisedEngine[target].confidence(inputToROM)
     else             : return self.SupervisedEngine.values()[0].confidence(inputToROM)
 
-  def evaluate(self,request, target = None):
+  def evaluate(self,request, target = None, timeInst = None):
     """
     when the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
     @ In, request, datatype, feature coordinates (request)
     @ In, target, string, optional, target name (by default the first target entered in the input file)
     """
     inputToROM = self._inputToInternal(request)
-    if target != None: return self.SupervisedEngine[target].evaluate(inputToROM)
-    else             : return self.SupervisedEngine.values()[0].evaluate(inputToROM)
+    if target != None: 
+      if timeInst == None:
+        return self.SupervisedEngine[target].evaluate(inputToROM)
+      else:
+        return self.SupervisedEngine[timeInst][target].evaluate(inputToROM)
+    else: 
+      if timeInst == None:
+        return self.SupervisedEngine.values()[0].evaluate(inputToROM)
+      else:
+        return self.SupervisedEngine[timeInst].values()[0].evaluate(inputToROM)
 
   def __externalRun(self,inRun):
     returnDict = {}
@@ -501,9 +509,9 @@ class ROM(Dummy):
       for target in targets:
         returnDict[target] = np.zeros(0)
         
-      for ts in self.SupervisedEngine:  
+      for ts in range(len(self.SupervisedEngine)):  
         for target in targets:
-          returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target))       
+          returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))       
     else:
       for target in self.SupervisedEngine.keys(): 
         returnDict[target] = self.evaluate(inRun,target)
