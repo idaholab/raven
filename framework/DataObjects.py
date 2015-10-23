@@ -454,8 +454,15 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, None
     @ Out, integer, size of first output element
     """
+    #if len(self._dataParameters['outParam']) == 0: return 0
+    #else: return self.sizeData('output',keyword=self._dataParameters['outParam'][0])[self._dataParameters['outParam'][0]]
+    
     if len(self._dataParameters['outParam']) == 0: return 0
-    else: return self.sizeData('output',keyword=self._dataParameters['outParam'][0])[self._dataParameters['outParam'][0]]
+    else: 
+      if self.type != "HistorySet": 
+        return self.sizeData('output',keyword=self._dataParameters['outParam'][0])[self._dataParameters['outParam'][0]]
+      else: 
+        return self.sizeData('output',keyword=1)[1]
 
   def sizeData(self,typeVar,keyword=None,nodeid=None,serialize=False):
     """
@@ -1706,6 +1713,9 @@ class HistorySet(Data):
             hisn += 1
             self._dataContainer['outputs'][hisn] = {}
           self._dataContainer['outputs'][hisn][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value,dtype=float)))) #np.atleast_1d(np.array(value)))
+          
+  def returnNumberOfHistories(self):
+    return len(self._dataContainer['outputs'])      
 
   def specializedPrintCSV(self,filenameLocal,options):
     """

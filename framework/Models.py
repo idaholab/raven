@@ -28,6 +28,7 @@ import SupervisedLearning
 import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
+import mathUtils
 import TreeStructure
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
@@ -338,7 +339,6 @@ class ROM(Dummy):
       #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
       targets = self.initializationOptionDict['Target'].split(',')
       self.howManyTargets = len(targets)
-      self.howManyTimeSteps  = self.initializationOptionDict['t_Discs']
       self.SupervisedEngine = {}
       
       for target in targets:
@@ -436,17 +436,37 @@ class ROM(Dummy):
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
     else:
       if trainingSet.type == "PointSet":
+        
         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
         self.amITrained = True
-        for timeStep in self.SupervisedEngine:
-          data = self.trainingSet[timeStep]
-          for instrom in self.SupervisedEngine.values():
-            instrom.train(data)
-            self.aimITrained = self.amITrained and instrom.amITrained
-            self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+        for instrom in self.SupervisedEngine.values():
+          instrom.train(self.trainingSet)
+          self.aimITrained = self.amITrained and instrom.amITrained
+        self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+      
       elif trainingSet.type == "HistorySet":
-        for ts in range(trainingSet.size()):
-          trainingSet_timeSnapShot = historySetWindow(trainingSet,ts)
+        
+        template=copy.copy(self.SupervisedEngine)
+        self.SupervisedEngine = [template]
+        
+        numberOfTimeStep = 3
+      
+        outKeys = trainingSet.getParaKeys('outputs')
+        
+        for t in trainingSet.getParametersValues('outputs'):
+          if t==1:
+            numberOfTimeStep = len(trainingSet.getParametersValues('outputs')[t][outKeys[0]])
+          else:
+            if numberOfTimeStep != len(trainingSet.getParametersValues('outputs')[t][outKeys[0]]):
+              self.raiseAnError(IOError,'DataObject '+trainingSet.type+' can not be used to train a ROM: length of HistorySet is not consistent')
+
+        for ts in range(numberOfTimeStep):
+          trainingSet_timeSnapShot = mathUtils.historySetWindow(trainingSet,ts)
+          newRom = copy.copy(template)
+          for instrom in newRom.values():
+            instrom.train(trainingSet_timeSnapShot)
+            self.aimITrained = self.amITrained and instrom.amITrained
+          self.SupervisedEngine.append(newRom)  
       else:
         self.raiseAnError(IOError,'DataObject '+trainingSet.type+' can not be used to train a ROM')
         
@@ -475,9 +495,19 @@ class ROM(Dummy):
 
   def __externalRun(self,inRun):
     returnDict = {}
-    for ts in self.SupervisedEngine:
-      for target in self.SupervisedEngine[ts].keys(): 
+
+    if type(self.SupervisedEngine) is list:
+      targets = self.SupervisedEngine[0].keys()
+      for target in targets:
+        returnDict[target] = np.zeros(0)
+        
+      for ts in self.SupervisedEngine:  
+        for target in targets:
+          returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target))       
+    else:
+      for target in self.SupervisedEngine.keys(): 
         returnDict[target] = self.evaluate(inRun,target)
+      
     return returnDict
 
   def run(self,Input,jobHandler):

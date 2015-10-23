@@ -194,19 +194,25 @@ def calculateStats(data):
 
 def historySetWindow(vars,index):
   # vars is supposed to be an historySet
-  newVars=PointSet
-  
+  #newVars=DataObjects.PointSet()
+
   outKeys = vars.getParaKeys('outputs')
   inpKeys = vars.getParaKeys('inputs')
   
-  for history in vars:
-    inpVals = history.getParametersValues('inputs')
-    outVals = history.getParametersValues('outputs')
-    
+  newVars={}
+  for key in inpKeys:
+    newVars[key]=np.zeros(0) 
+  for key in outKeys:
+    newVars[key]=np.zeros(0) 
+
+  for history in vars.getParametersValues('outputs'):
     for key in inpKeys:
-      newVars['input']  = newVars.updateInputValue(key,inpVals)
+      newVars[key] = np.append(newVars[key],vars.getParametersValues('inputs')[history][key])
+      #newVars.updateInputValue(key,vars.getParametersValues('inputs')[history][key])
+      
     for key in outKeys:
-      newVars['output'] = newVars.updateOutputValue(key,outVals[index])
+      newVars[key] = np.append(newVars[key],vars.getParametersValues('outputs')[history][key][index])
+      #newVars.updateOutputValue(key,vars.getParametersValues('outputs')[history][key][index])
       
   return newVars
     
