@@ -19,12 +19,14 @@ Margin Characterization (RISMC) program. RISMC is one of the pathways defined wi
 Reactor Sustainability (LWRS) program. In the RISMC approach, the goal is not just the individuation of
 the frequency of an event potentially leading to a system failure, but the closeness (or not) to key
 safety-related events. Hence, the approach is interested in identifying and increasing the safety margins
-related to those events. A safety margin is a numerical value quantifying the probability that a safety metric 
-(e.g. for an important process such as peak pressure in a pipe) is exceeded under certain conditions. 
+related to those events. A safety margin is a numerical value quantifying the probability that a safety
+metric (e.g. for an important process such as peak pressure in a pipe) is exceeded under certain conditions. 
 The initial development of RAVEN has been focused on providing dynamic risk assessment capability to 
 RELAP-7, currently under development at the INL and, likely, future replacement of the RELAP5-3D code. 
 Most the capabilities that have been implemented having RELAP-7 as principal focus are easily deployable 
 for other system codes.
+
+Principal Investigator: Rabiti, Cristian (crisr)  
 
 Raven developers are:
 Alfonsi, Andrea (alfoa)
