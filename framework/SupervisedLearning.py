@@ -213,7 +213,15 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
-    """@ In, featureVals, 2-D numpy array [n_samples,n_features]"""
+    """
+    Perform training on samples in featureVals with responses y.
+    For an one-class model, +1 or -1 is returned.
+
+    @In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+      an array of input feature values
+    @Out, targetVals, array, shape = [n_samples], an array of output target
+      associated with the corresponding points in featureVals
+    """
 
   @abc.abstractmethod
   def __confidenceLocal__(self,featureVals):
@@ -262,10 +270,13 @@ class NDinterpolatorRom(superVisedLearning):
 
   def __trainLocal__(self,featureVals,targetVals):
     """
-    Perform training on samples in X with responses y.
+    Perform training on samples in featureVals with responses y.
     For an one-class model, +1 or -1 is returned.
-    Parameters: featureVals : {array-like, sparse matrix}, shape = [n_samples, n_features]
-    Returns   : targetVals : array, shape = [n_samples]
+
+    @In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+      an array of input feature values
+    @Out, targetVals, array, shape = [n_samples], an array of output target
+      associated with the corresponding points in featureVals
     """
     featv = interpolationND.vectd2d(featureVals[:][:])
     targv = interpolationND.vectd(targetVals)
@@ -863,9 +874,9 @@ class MSR(NDinterpolatorRom):
   def __init__(self, messageHandler, **kwargs):
     """
      Constructor that will appropriately initialize an MSR object
-    @In, messageHandler: a MessageHandler object in charge of raising errors,
-                         and printing messages
-    @In, kwargs: an arbitrary dictionary of keywords and values
+    @In, messageHandler, MessageHandler, in charge of raising errors and
+         printing messages
+    @In, kwargs, dict, an arbitrary dictionary of keywords and values
     """
     self.printTag = 'MSR ROM'
     superVisedLearning.__init__(self,messageHandler,**kwargs)
@@ -984,11 +995,8 @@ class MSR(NDinterpolatorRom):
         self.blending = True
       elif key.lower() == "kernel":
         self.kernel = val
-      # elif key.lower() == 'normalization':
-      #   self.normalization = val.strip().encode('ascii').lower()
       else:
         pass
-        #print(key,val)
 
     # Morse-Smale specific error handling
     if self.graph not in self.acceptedGraphParam:
@@ -1012,11 +1020,6 @@ class MSR(NDinterpolatorRom):
       self.raiseAnError(IOError, 'Requested unknown persistence method:',
                         '\"'+self.persistence+'\"', '(Available options:',
                         self.acceptedPersistenceParam,')')
-    # if self.normalization not in self.acceptedNormalizationParam:
-    #   self.raiseAnError(IOError, 'Requested unknown normalization type:',
-    #                     '\"'+self.normalization+'\"', '(Available options:',
-    #                     self.acceptedNormalizationParam,')')
-    # Regression specific error handling
     if self.partitionPredictor not in self.acceptedPredictorParam:
       self.raiseAnError(IOError, 'Requested unknown partition predictor:'
                         '\"'+self.partitionPredictor+'\"','(Available options:',
@@ -1044,9 +1047,12 @@ class MSR(NDinterpolatorRom):
 
   def __trainLocal__(self,featureVals,targetVals):
     """
-    Perform training on samples in X with responses y.
-    Parameters: featureVals : {array-like, sparse matrix}, shape = [n_samples, n_features]
-    Returns   : targetVals : array, shape = [n_samples]
+    Perform training on samples in featureVals with responses y.
+
+    @In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+      an array of input feature values
+    @Out, targetVals, array, shape = [n_samples], an array of output target
+      associated with the corresponding points in featureVals
     """
 
     # # Possibly load this here in case people have trouble building it, so it
@@ -1086,7 +1092,6 @@ class MSR(NDinterpolatorRom):
     # We need a KD-Tree for querying neighbors
     self.kdTree = neighbors.KDTree(self.X)
 
-    # distances,_ = self.kdTree.query(self.X,k=self.X.shape[0])
     distances,_ = self.kdTree.query(self.X,k=self.knn)
     distances = distances.flatten()
 
@@ -1233,35 +1238,25 @@ class MSR(NDinterpolatorRom):
         weights[key]
         #############
 
-      # The following repetitive if-conditionals could be collapsed and the for
-      # loop could be replicated possibly gaining minor performance, but as the
-      # for loop is actively being modified it only creates more places of
-      # failure or for things to get out-of-sync, so let's keep it this way, for
-      # now.
-
-      # if self.blending:
-      weightedPredictions = np.zeros(featureVals.shape[0])
-      sumW = 0
-      # else
-      predictions = np.zeros(featureVals.shape[0])
-      maxWeights = np.zeros(featureVals.shape[0])
-
-      for key in partitions.keys():
-        fx = self.__amsc.Predict(featureVals,key)
-        wx = weights[key]
-
-        #if self.blending:
-        sumW += wx
-        weightedPredictions += fx*wx
-        #else:
-        predictions[wx > maxWeights] = fx
-        maxWeights[wx > maxWeights] = wx
-
       if self.blending:
+        weightedPredictions = np.zeros(featureVals.shape[0])
+        sumW = 0
+        for key in partitions.keys():
+          fx = self.__amsc.Predict(featureVals,key)
+          wx = weights[key]
+          sumW += wx
+          weightedPredictions += fx*wx
         if sumW == 0:
           return weightedPredictions
         return weightedPredictions / sumW
       else:
+        predictions = np.zeros(featureVals.shape[0])
+        maxWeights = np.zeros(featureVals.shape[0])
+        for key in partitions.keys():
+          fx = self.__amsc.Predict(featureVals,key)
+          wx = weights[key]
+          predictions[wx > maxWeights] = fx
+          maxWeights[wx > maxWeights] = wx
         return predictions
 
     elif self.partitionPredictor == 'svm':
@@ -1276,37 +1271,47 @@ class MSR(NDinterpolatorRom):
       svc.fit(self.X,labels)
       probabilities = svc.predict_proba(featureVals)
 
-      #if self.blending:
-      weightedPredictions = np.zeros(len(featureVals))
-      sumW = 0
-      # else:
-      predictions = np.zeros(featureVals.shape[0])
-      maxWeights = np.zeros(featureVals.shape[0])
-
       classIdxs = list(svc.classes_)
-      for idx,key in enumerate(partitions.keys()):
-        fx = self.__amsc.Predict(featureVals,key)
-        # It could be that a particular partition consists of only the extrema
-        # and they themselves point to cells with different opposing extrema.
-        # That is, a maximum points to a different minimum than the minimum in
-        # the two point partition. Long story short, we need to be prepared for
-        # an empty partition which will thus not show up in the predictions of
-        # the SVC, since no point has it as a label.
-        if idx not in classIdxs:
-          wx = np.zeros(probabilities.shape[0])
-        else:
-          realIdx = list(svc.classes_).index(idx)
-          wx = probabilities[:,realIdx]
-        if self.blending:
-          weightedPredictions = weightedPredictions + fx*wx
-          sumW += wx
-        else:
+      if self.blending:
+        weightedPredictions = np.zeros(len(featureVals))
+        sumW = 0
+        for idx,key in enumerate(partitions.keys()):
+          fx = self.__amsc.Predict(featureVals,key)
+          # It could be that a particular partition consists of only the extrema
+          # and they themselves point to cells with different opposing extrema.
+          # That is, a maximum points to a different minimum than the minimum in
+          # the two point partition. Long story short, we need to be prepared for
+          # an empty partition which will thus not show up in the predictions of
+          # the SVC, since no point has it as a label.
+          if idx not in classIdxs:
+            wx = np.zeros(probabilities.shape[0])
+          else:
+            realIdx = list(svc.classes_).index(idx)
+            wx = probabilities[:,realIdx]
+          if self.blending:
+            weightedPredictions = weightedPredictions + fx*wx
+            sumW += wx
+
+        return weightedPredictions/sumW
+      else:
+        predictions = np.zeros(featureVals.shape[0])
+        maxWeights = np.zeros(featureVals.shape[0])
+        for idx,key in enumerate(partitions.keys()):
+          fx = self.__amsc.Predict(featureVals,key)
+          # It could be that a particular partition consists of only the extrema
+          # and they themselves point to cells with different opposing extrema.
+          # That is, a maximum points to a different minimum than the minimum in
+          # the two point partition. Long story short, we need to be prepared for
+          # an empty partition which will thus not show up in the predictions of
+          # the SVC, since no point has it as a label.
+          if idx not in classIdxs:
+            wx = np.zeros(probabilities.shape[0])
+          else:
+            realIdx = list(svc.classes_).index(idx)
+            wx = probabilities[:,realIdx]
           predictions[wx > maxWeights] = fx
           maxWeights[wx > maxWeights] = wx
 
-      if self.blending:
-        return weightedPredictions/sumW
-      else:
         return predictions
 
 
@@ -1508,12 +1513,11 @@ class SciKitLearn(superVisedLearning):
     """
     Perform training on samples in featureVals with responses y.
     For an one-class model, +1 or -1 is returned.
-    Parameters
-    ----------
-    featureVals : {array-like, sparse matrix}, shape = [n_samples, n_features]
-    Returns
-    -------
-    targetVals : array, shape = [n_samples]
+
+    @In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+      an array of input feature values
+    @Out, targetVals, array, shape = [n_samples], an array of output target
+      associated with the corresponding points in featureVals
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
     if len(np.unique(targetVals))>1:
