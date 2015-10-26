@@ -65,11 +65,11 @@
         <grid construction="custom" type="CDF">0.5 1.0 0.0</grid>
       </variable>
       <variable name="x0">
-        <distribution dim="1">ND_CartesianSpline_C</distribution>
+        <distribution dim="1">ND_CartesianSpline_P</distribution>
         <grid type="globalGrid">name_grid1</grid>
       </variable>
       <variable name="y0,z0">
-        <distribution dim="2">ND_CartesianSpline_C</distribution>
+        <distribution dim="2">ND_CartesianSpline_P</distribution>
         <grid type="globalGrid">name_grid1</grid>
       </variable>
       <globalGrid>
