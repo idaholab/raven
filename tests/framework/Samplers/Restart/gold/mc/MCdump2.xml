@@ -1,4 +1,4 @@
-<data name="MCdump2" type="Pointset"><input>x2,x1</input><output>ans2,ans</output><input_filename>MCdump2.csv</input_filename><metadata><SamplerType>array([u'MC', u'MC', u'MC', u'MC', u'MC'], 
+<data name="MCdump2" type="Pointset"><input>x2,x1</input><output>ans2,ans</output><inputFilename>MCdump2.csv</inputFilename><metadata><SamplerType>array([u'MC', u'MC', u'MC', u'MC', u'MC'], 
       dtype='&lt;U2')</SamplerType><crowDist>array([ {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
        {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
        {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},

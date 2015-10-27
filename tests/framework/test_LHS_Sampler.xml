@@ -36,9 +36,9 @@
 
   <Samplers>
     <Stratified name="myLHS">
-      <sampler_init>
-        <initial_seed>1</initial_seed>
-      </sampler_init>
+      <samplerInit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
       <variable name="VarTri1">
         <distribution>DistTri1</distribution>
         <grid construction="custom" type="value">0.02 0.5 0.6 0.8</grid>

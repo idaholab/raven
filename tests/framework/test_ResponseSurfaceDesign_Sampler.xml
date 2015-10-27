@@ -34,7 +34,7 @@
   <Samplers>
     <ResponseSurfaceDesign name="BoxBehnkenRespDesign">
       <ResponseSurfaceDesignSettings>
-        <algorithm_type>BoxBehnken</algorithm_type>
+        <algorithmType>BoxBehnken</algorithmType>
         <ncenters>1</ncenters>
       </ResponseSurfaceDesignSettings>
       <variable name="VarGauss1">
@@ -52,7 +52,7 @@
     </ResponseSurfaceDesign>
     <ResponseSurfaceDesign name="CentralCompositeRespDesign">
       <ResponseSurfaceDesignSettings>
-        <algorithm_type>CentralComposite</algorithm_type>
+        <algorithmType>CentralComposite</algorithmType>
         <centers>1,2</centers>
         <alpha>orthogonal</alpha>
         <face>circumscribed</face>

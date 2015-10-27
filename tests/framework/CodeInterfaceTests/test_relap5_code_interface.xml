@@ -37,9 +37,9 @@
 
   <Samplers>
     <MonteCarlo name="MC_samp">
-      <sampler_init>
+      <samplerInit>
         <limit>5</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="9890201:2">
         <distribution>Prim_Pres</distribution>
       </variable>

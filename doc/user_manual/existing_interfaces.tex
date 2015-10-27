@@ -128,7 +128,7 @@ After all of these blocks are filled out, a standard example RunInfo block may
 look like the example below:
 \begin{lstlisting}[style=XML]
 <RunInfo>
-  <WorkingDir>~/working_dir</WorkingDir>
+  <WorkingDir>~/workingDir</WorkingDir>
   <Sequence>Grid_Sampler,MC_Sampler</Sequence>
   <batchSize>1</batchSize>
   <mode>mpi</mode>
@@ -234,7 +234,7 @@ In this example we are sampling:
 
 We proceed to do so for both the Grid sampling and the MonteCarlo sampling.
 
-\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initial_seed}]
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
 <Samplers verbosity='debug'>
   <Grid name='Grid_Sampler' >
     <variable name='0000588:6'>
@@ -361,6 +361,12 @@ the .h5 extension (i.e. \texttt{Grid\_out.h5} and \texttt{MC\_out.h5}).
 %%%%%% RELAP7 INTERFACE  %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{RELAP7 Interface}
+This section covers the input specifications for running RELAP7 through RAVEN.
+It is important to notice that this short explanation assumes that the reader already knows
+how to use the control logic system in RELAP7. 
+Since the presence of the control logic system in RELAP7, this code interface is different with respect to the others
+and uses some special keyword available in RAVEN (see the following).
+
 \subsubsection{Files}
 In the \xmlNode{Files} section, as specified before, all of the files needed for
 the code to run should be specified.
@@ -373,13 +379,16 @@ In the case of RELAP7, the files typically needed are the following:
 Example:
 \begin{lstlisting}[style=XML]
 <Files>
-  <Input name='nat_circ' type=''>nat_circ</Input>
+  <Input name='nat_circ.i' type=''>nat_circ.i</Input>
   <Input name='control_logic.py' type=''>control_logic.py</Input>
 </Files>
 \end{lstlisting}
+The RAVEN/RELAP7 interface recognizes as RELAP7 inputs the files with the extensions  ``*.i'', ``*.inp'' and ``*.in''.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
-For the \xmlNode{Models} block RELAP7 uses the RAVEN executable.
+For the \xmlNode{Models} block RELAP7 uses the RAVEN executable, since through this executable the stochastic 
+environment gets activated (possibility to sample parameters directly in the control logic system)
 %
 Here is a standard example of what can be used to use RELAP7 as the model:
 \begin{lstlisting}[style=XML]
@@ -389,17 +398,14 @@ Here is a standard example of what can be used to use RELAP7 as the model:
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Distributions}
-The \xmlNode{Distributions} block, when using RELAP7, has to also be specified
-through the control logic.
-%\maljdan{Reword possibly, I am not sure what you are trying to say.}
-%The \xmlNode{Distributions} block, when using RELAP7, has to be specified also
-%through the control logic.
+As for all the other codes interfaces  the \xmlNode{Distributions} block needs to be specified in order to employ
+as sampling strategy (e.g. MonteCarlo, Stratified, etc.). In this block, the user specifies the distributions that need to be used.
+Once the user defines the distributions in this block, RAVEN activates the Distribution environment in the RAVEN/RELAP7 control logic
+system. The sampling of the parameters is then performed directly in the control logic input file.
+
 %
-Given the names of the distributions and their parameters, a python file should
-be used for the control logic.
-%
-For example, the sampling of a normal distribution for the primary pressure in
-RELAP7 is required.
+For example, let's consider the sampling of a normal distribution for the primary pressure in
+RELAP7:
 %
 \begin{lstlisting}[style=XML]
 <Distributions>
@@ -409,39 +415,47 @@ RELAP7 is required.
  </Normal>
 </Distributions>
 \end{lstlisting}
-
-The python file associated to it should look like this:
+In order to change a parameter (independently on the sampling strategy), the control logic input file should be modified as follows:
 %\lstset{margin=1.5cm}
 \begin{lstlisting}[language=Python]
 def initial_function(monitored, controlled, auxiliary)
     print("monitored",monitored,"controlled",
     controlled,"auxiliary",auxiliary)
 
-    controlled.pressure_in_pressurizer =
+    controlled.pressureInPressurizer =
      distributions.Prim_Pres.getDistributionRandom()
     return
 \end{lstlisting}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Samplers}
-In the \xmlNode{Samplers} block, which kind of sampling method used, the
-variables not sampled inside the control logic, and the distributions for the
-chosen sampling method will be defined.
+In the \xmlNode{Samplers} block, all the variables that needs to be sampled must be specified.
+In case some of these variables are directly sampled in the Control Logic system, the 
+\xmlNode{variable} needs to be replaced with \xmlNode{Distribution}. In this way, RAVEN is able 
+to understand which variables needs to be directly modified through input file (i.e. modifying the original
+input file *.i)  and which variables are going to be ``sampled'' through the control logic system.
 %
-For the example, we are performing Monte Carlo sampling with 500 runs.
+For the example, we are performing Grid Sampling.
 %
-The global initial pressure wasn't specified in the control logic so it is
-sampled in this block.
+The global initial pressure wasn't specified in the control logic so it is going to be specified
+using the node \xmlNode{variable}. The ``pressureInPressurizer `` variable is instead sampled in the 
+control logic system; for this reason, it is going to be specified using the node  \xmlNode{Distribution}.
 %
-In addition, the initial pressure is specified to follow the same distribution
-as the primary pressure.
+For example,
 %
 \begin{lstlisting}[style=XML]
 <Samplers>
- <MonteCarlo name="MC_samp" limit="500">
-  <variable name="GlobalParams|global_init_P">
-   <distribution>Prim_Pres</distribution>
-  </variable>
- </MonteCarlo>
+ <Grid name="MC_samp">
+   <samplerInit> <limit>500</limit> </samplerInit>
+   <variable name="GlobalParams|global_init_P">
+      <distribution>Prim_Pres</distribution>
+      <grid construction="equal" steps="10" type="CDF">0.0 1.0</grid>
+   </variable>
+   <Distribution name="pressureInPressurizer">
+      <distribution>Prim_Pres</distribution>
+      <grid construction="equal" steps="10" type="CDF">0.0 1.0</grid>
+   </Distribution>  
+ </Grid>
 </Samplers>
 \end{lstlisting}
 
@@ -560,7 +574,7 @@ the variable name in the Sampler input block needs to be named as follows:
 %
 In this example, we proceed to do so for both the Grid sampling and the Monte-Carlo sampling.
 
-\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initial_seed}]
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
 <Samplers verbosity='debug'>
     <Grid name='myGrid'>
       <variable name='Materials|heatStructure1|thermal_conductivity' >

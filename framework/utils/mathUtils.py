@@ -70,7 +70,7 @@ def getGraphs(functions, f_z_stats = False):
   high = max([m + 3.0*s for m,s in zip(means,stddevs)])
   lowLow = min([m - 5.0*s for m,s in zip(means,stddevs)])
   highHigh = max([m + 5.0*s for m,s in zip(means,stddevs)])
-  minBinSize = min([x["min_bin_size"] for x in dataStats])
+  minBinSize = min([x["minBinSize"] for x in dataStats])
   print("Graph from ",low,"to",high)
   n = int(math.ceil((high-low)/minBinSize))
   interval = (high - low)/n
@@ -185,7 +185,7 @@ def calculateStats(data):
   ret = {}
   ret["mean"] = mean
   ret["variance"] = variance
-  ret["sample_variance"] = sampleVariance
+  ret["sampleVariance"] = sampleVariance
   ret["stdev"] = stdev
   ret["skewness"] = skewness
   ret["kurtosis"] = kurtosis
