@@ -192,27 +192,33 @@ def calculateStats(data):
   ret["kurtosis"] = kurtosis
   return ret
 
-def historySetWindow(vars,index):
+def historySetWindow(vars,numberOfTimeStep):
   # vars is supposed to be an historySet
   #newVars=DataObjects.PointSet()
 
   outKeys = vars.getParaKeys('outputs')
   inpKeys = vars.getParaKeys('inputs')
   
-  newVars={}
-  for key in inpKeys:
-    newVars[key]=np.zeros(0) 
-  for key in outKeys:
-    newVars[key]=np.zeros(0) 
+  outDic = []
 
-  for history in vars.getParametersValues('outputs'):
+  for t in range(numberOfTimeStep):
+    newVars={}
     for key in inpKeys:
-      newVars[key] = np.append(newVars[key],vars.getParametersValues('inputs')[history][key])
-      
+      newVars[key]=np.zeros(0) 
     for key in outKeys:
-      newVars[key] = np.append(newVars[key],vars.getParametersValues('outputs')[history][key][index])   
-      
-  return newVars
+      newVars[key]=np.zeros(0) 
+  
+    hs = vars.getParametersValues('outputs')
+    for history in hs:
+      for key in inpKeys:
+        newVars[key] = np.append(newVars[key],vars.getParametersValues('inputs')[history][key])
+        
+      for key in outKeys:
+        newVars[key] = np.append(newVars[key],vars.getParametersValues('outputs')[history][key][t])   
+    
+    outDic.append(newVars)
+    
+  return outDic
     
 #
 # I need to convert it in multi-dimensional

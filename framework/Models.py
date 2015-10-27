@@ -361,7 +361,6 @@ class ROM(Dummy):
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
-    print('targets' +str(targets))
     self.howManyTargets = len(targets)
 
     for target in targets:
@@ -420,57 +419,51 @@ class ROM(Dummy):
       originalDict[key] = ROMdict[key]
 
   def train(self,trainingSet):
-    """Here we do the training of the ROM"""
-    """Fit the model according to the given training data.
-    @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
-    @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
-            are supposed to have weight one."""
     if type(trainingSet).__name__ == 'ROM':
       self.howManyTargets           = copy.deepcopy(trainingSet.howManyTargets)
       self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
+    
     else:
-      if trainingSet.type == "PointSet":
+      if type(trainingSet) is list or trainingSet.type in ['HistorySet']:
         
-        self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-        self.amITrained = True
-        for instrom in self.SupervisedEngine.values():
-          instrom.train(self.trainingSet)
-          self.aimITrained = self.amITrained and instrom.amITrained
-        self.raiseADebug('add self.amITrained to currentParamters','FIXME')
-      
-      elif trainingSet.type == "HistorySet":
-        
-        #template=copy.deepcopy(self.SupervisedEngine)
         self.SupervisedEngine = []
       
         outKeys = trainingSet.getParaKeys('outputs')
         targets = self.initializationOptionDict['Target'].split(',')
         
         # check that all histories have the same length
-        
-        for t in trainingSet.getParametersValues('outputs'):
+        tmp = trainingSet.getParametersValues('outputs')
+        for t in tmp:
           if t==1:
-            numberOfTimeStep = len(trainingSet.getParametersValues('outputs')[t][outKeys[0]])
+            numberOfTimeStep = len(tmp[t][outKeys[0]])
           else:
-            if numberOfTimeStep != len(trainingSet.getParametersValues('outputs')[t][outKeys[0]]):
-              self.raiseAnError(IOError,'DataObject '+trainingSet.type+' can not be used to train a ROM: length of HistorySet is not consistent')
+            if numberOfTimeStep != len(tmp[t][outKeys[0]]):
+              self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
 
         # train the ROM
-        for ts in range(numberOfTimeStep):
-          trainingSet_timeSnapShot = mathUtils.historySetWindow(trainingSet,ts)
+        self.trainingSet = mathUtils.historySetWindow(trainingSet,numberOfTimeStep)
+        for ts in range(numberOfTimeStep):         
           newRom = {}
           for target in targets:
             self.initializationOptionDict['Target'] = target
             newRom[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
           for instrom in newRom.values():
-            instrom.train(trainingSet_timeSnapShot)
+            instrom.train(self.trainingSet[ts])
             self.aimITrained = self.amITrained and instrom.amITrained
           self.SupervisedEngine.append(newRom)  
+      
       else:
-        self.raiseAnError(IOError,'DataObject '+trainingSet.type+' can not be used to train a ROM')
+        self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
+        
+        if type(self.trainingSet) is dict:       
+          self.amITrained = True
+          for instrom in self.SupervisedEngine.values():
+            instrom.train(self.trainingSet)
+            self.aimITrained = self.amITrained and instrom.amITrained
+          self.raiseADebug('add self.amITrained to currentParamters','FIXME')
       
 
   def confidence(self,request,target = None):
