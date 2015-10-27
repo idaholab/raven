@@ -419,6 +419,11 @@ class ROM(Dummy):
       originalDict[key] = ROMdict[key]
 
   def train(self,trainingSet):
+    """
+    train the ROM
+    @ In,  PointSet, HistorySet or Dictionary
+    @ Out, None
+    """
     if type(trainingSet).__name__ == 'ROM':
       self.howManyTargets           = copy.deepcopy(trainingSet.howManyTargets)
       self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
