@@ -421,7 +421,7 @@ class ROM(Dummy):
   def train(self,trainingSet):
     """
     train the ROM
-    @ In,  PointSet, HistorySet or Dictionary
+    @ In,  Dictionary, PointSet, or HistorySet: if an HistorySet is provided the a list of ROM is created in order to create a temporal-ROM
     @ Out, None
     """
     if type(trainingSet).__name__ == 'ROM':
