@@ -407,8 +407,14 @@ class ROM(Dummy):
     @ In,  None
     @ Out, None
     """
-    for instrom in self.SupervisedEngine.values(): instrom.reset()
-    self.amITrained   = False
+    if type(self.SupervisedEngine) is list:
+      for ts in self.SupervisedEngine:
+        for instrom in ts.values():  
+          instrom.reset() 
+    else:
+      for instrom in self.SupervisedEngine.values(): 
+        instrom.reset()
+      self.amITrained   = False
 
   def addInitParams(self,originalDict):
     """the ROM setting parameters are added"""
@@ -481,8 +487,22 @@ class ROM(Dummy):
     @ In, target, string, optional, target name (by default the first target entered in the input file)
     """
     inputToROM = self._inputToInternal(request)
-    if target != None: return self.SupervisedEngine[target].confidence(inputToROM)
-    else             : return self.SupervisedEngine.values()[0].confidence(inputToROM)
+    if target != None: 
+      if type(self.SupervisedEngine) is list:
+        confDic = {}
+        for ts in self.SupervisedEngine:
+          confDic[ts] = ts[target].confidence(inputToROM)
+        return confDic
+      else:
+        return self.SupervisedEngine[target].confidence(inputToROM)
+    else: 
+      if type(self.SupervisedEngine) is list:
+        confDic = {}
+        for ts in self.SupervisedEngine:
+          confDic[ts] = ts.values()[0].confidence(inputToROM)
+        return confDic
+      else:
+        return self.SupervisedEngine.values()[0].confidence(inputToROM)
 
   def evaluate(self,request, target = None, timeInst = None):
     """
