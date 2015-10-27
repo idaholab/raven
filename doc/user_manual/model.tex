@@ -949,6 +949,8 @@ independent of the \xmlAttr{subType} specified:
 The types and meaning of the remaining sub-nodes depend on the sub-type
 specified in the attribute \xmlAttr{subType}.
 %
+Note that if an HistorySet is provided in the training step then a temporal ROM is created, i.e. a ROM that generates not a single value prediction of each element indicated in the  \xmlNode{Target} block but its full temporal profile.
+
 In the sections that follow, the specifications of each type are reported.
 %
 %%%%% ROM Model - NDspline  %%%%%%%
