@@ -427,7 +427,8 @@ class ROM(Dummy):
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
     
     else:
-      if type(trainingSet) is list or trainingSet.type in ['HistorySet']:
+      
+      if 'HistorySet' in str(type(trainingSet)).split('.'):
         
         self.SupervisedEngine = []
       
