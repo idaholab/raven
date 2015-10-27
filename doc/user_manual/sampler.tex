@@ -403,19 +403,19 @@ In addition, \xmlNode{sampler\textunderscore init} might contains the informatio
 An example of \xmlNode{dist\textunderscore init} node is provided below:
 
 \begin{lstlisting}[style=XML]
-<dist_init>
+<distInit>
     <distribution name= 'ND_dist_name'>
-         <initial_grid_disc>5</initial_grid_disc>
+         <initialGridDisc>5</initialGridDisc>
           <tolerance>0.2</tolerance>
      </distribution>
-  </dist_init>
+  </distInit>
 \end{lstlisting}
 
-In the \xmlNode{sampler\textunderscore init}  node it is possible to add also the subnode \xmlNode{global\_grid}.
-The \xmlNode{global\_grid} can be used in two cases:
+In the \xmlNode{sampler\textunderscore init}  node it is possible to add also the subnode \xmlNode{globalGrid}.
+The \xmlNode{globalGrid} can be used in two cases:
 \begin{itemize}
 \item 1D distributions: an identical grid that is associated to several distributions
-\item ND distribution: a grid associated to a single ND distribution. This is the case when a stratified sampling is performed on the CDF of an ND distribution: the  \xmlNode{global\_grid} is  shared among the variables associated to the Nd distribution
+\item ND distribution: a grid associated to a single ND distribution. This is the case when a stratified sampling is performed on the CDF of an ND distribution: the  \xmlNode{globalGrid} is  shared among the variables associated to the Nd distribution
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -472,14 +472,14 @@ to uniform or parameter-based probability density functions.
 \end{itemize}
 \vspace{-5mm}
 
-In the \textbf{MonteCarlo} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
+In the \textbf{MonteCarlo} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called \xmlNode{variable}. In addition, the settings for this sampler need to be specified in the \xmlNode{samplerInit} XML block:
 \begin{itemize}
-\item \xmlNode{sampler\textunderscore init},  \textit{\textbf{XML node, required parameter}}. In this xml-node,the following xml sub-nodes need to be specified:
+\item \xmlNode{samplerInit},  \textit{\textbf{XML node, required parameter}}. In this xml-node,the following xml sub-nodes need to be specified:
   \begin{itemize}
     \item \xmlNode{limit}, \textit{\textbf{integer,required field}}, number of MonteCarlo samples needs to be generated;
-    \item \xmlNode{initial\textunderscore seed}, \textit{\textbf{integer, optional field}}, initial seeding of random number generator
-    \item \xmlNode{reseed\_at\_each\_iteration},  \textit{\textbf{boolean/string(case insensitive), optional field}}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \default{False};
-    \item \xmlNode{dist\textunderscore init},  \textit{\textbf{integer, optional field}}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}).
+    \item \xmlNode{initialSeed}, \textit{\textbf{integer, optional field}}, initial seeding of random number generator
+    \item \xmlNode{reseedAtEachIteration},  \textit{\textbf{boolean/string(case insensitive), optional field}}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \default{False};
+    \item \xmlNode{distInit},  \textit{\textbf{integer, optional field}}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}).
   \end{itemize}
 \end{itemize}
 \begin{itemize}
@@ -500,17 +500,17 @@ Example:
 <Samplers>
   ...
   <MonteCarlo name='MCname'>
-    <sampler_init>
+    <samplerInit>
       <limit>10</limit>
-      <initial_seed>200286</initial_seed>
-      <reseed_at_each_iteration>false</reseed_at_each_iteration>
-      <dist_init>
+      <initialSeed>200286</initialSeed>
+      <reseedEachIteration>false</reseedEachIteration>
+      <distInit>
         <distribution name= 'ND_InverseWeight_P'>
-          <initial_grid_disc>10</initial_grid_disc>
+          <initialGridDisc>10</initialGridDisc>
           <tolerance>0.2</tolerance>
         </distribution>
-      </dist_init>
-    </sampler_init>
+      </distInit>
+    </samplerInit>
     <variable name='var1'>
       <distribution>aDistributionNameDefinedInDistributionBlock
       </distribution>
@@ -786,7 +786,7 @@ Example:
 \end{lstlisting}
 
 For N-dimensional  (ND) distributions, when the sampling is performed on a grid on a CDF  the user it is required to specify the same CDF grid for all the dimensions of the ND distribution.
-This is possible by defining a \xmlNode{global\_grid} node and associate such \xmlNode{global\_grid} to each variable belonging to the ND distribution as follows.
+This is possible by defining a \xmlNode{globalGrid} node and associate such \xmlNode{globalGrid} to each variable belonging to the ND distribution as follows.
 
 \begin{lstlisting}[style=XML,morekeywords={ND,grid}]
 <Samplers>
@@ -794,15 +794,15 @@ This is possible by defining a \xmlNode{global\_grid} node and associate such \x
   <Stratified name='StratifiedName'>
         <variable name='x0'>
             <distribution dim='1'>ND_InverseWeight_P</distribution>
-            <grid type='global_grid'>name_grid1</grid>
+            <grid type='globalGrid'>name_grid1</grid>
         </variable>
         <variable name='y0,z0'>
             <distribution dim='2'>ND_InverseWeight_P</distribution>
-            <grid type='global_grid'>name_grid1</grid>
+            <grid type='globalGrid'>name_grid1</grid>
         </variable>
-        <global_grid>
+        <globalGrid>
             <grid name='name_grid1' type='CDF' construction='custom'>0.1 1.0 0.2</grid>
-        </global_grid>
+        </globalGrid>
   </Stratified>
   ...
 </Samplers>
@@ -888,11 +888,11 @@ defined within a \xmlNode{ResponseSurfaceDesign} block.
 In this sub-node, the user needs to specify different settings depending on the
 algorithm being used:
  \begin{itemize}
-  \item \xmlNode{algorithm\_type}, \xmlDesc{string, required field}, this XML node
+  \item \xmlNode{algorithmType}, \xmlDesc{string, required field}, this XML node
     will contain the name of the algorithm to be used.
     Based on the chosen algorithm, other nodes need to be defined:
     \begin{itemize}
-      \item \xmlNode{algorithm\_type}\texttt{BoxBehnken}\xmlNode{algorithm\_type/}. If Box-Behnken
+      \item \xmlNode{algorithmType}\texttt{BoxBehnken}\xmlNode{algorithmType/}. If Box-Behnken
         is specified, the following additional node is recognized:
      \begin{itemize}
       \item \xmlNode{ncenters}, \xmlDesc{integer, optional field}, the
@@ -903,7 +903,7 @@ algorithm being used:
      \end{itemize}
      \nb In order to employ the ``Box-Behnken'' design, at least 3 variables
      must be used.
-     \item \xmlNode{algorithm\_type}\texttt{CentralComposite}\xmlNode{algorithm\_type/}. If
+     \item \xmlNode{algorithmType}\texttt{CentralComposite}\xmlNode{algorithmType/}. If
        Central Composite is specified, the following additional nodes will
        be recognized:
      \begin{itemize}
@@ -950,7 +950,7 @@ Example:
   ...
     <ResponseSurfaceDesign name='BoxBehnkenRespDesign'>
         <ResponseSurfaceDesignSettings>
-            <algorithm_type>BoxBehnken</algorithm_type>
+            <algorithmType>BoxBehnken</algorithmType>
             <ncenters>1</ncenters>
         </ResponseSurfaceDesignSettings>
         <variable name='var1' >
@@ -963,7 +963,7 @@ Example:
     </ResponseSurfaceDesign>
     <ResponseSurfaceDesign name='CentralCompositeRespDesign'>
         <ResponseSurfaceDesignSettings>
-            <algorithm_type>CentralComposite</algorithm_type>
+            <algorithmType>CentralComposite</algorithmType>
             <centers>1, 2</centers>
             <alpha>orthogonal</alpha>
             <face>circumscribed</face>
@@ -1052,18 +1052,18 @@ called\\\xmlNode{FactorialSettings}.
 In this sub-node, the user needs to specify different settings depending on the
 algorithm being used:
    \begin{itemize}
-    \item \xmlNode{algorithm\_type}, \xmlDesc{string, required field}, specifies the
+    \item \xmlNode{algorithmType}, \xmlDesc{string, required field}, specifies the
       algorithm to be used.
       %
       Based on the chosen algorithm, other nodes may be defined:
       \begin{itemize}
-        \item \xmlNode{algorithm\_type}\texttt{full}\xmlNode{algorithm\_type/}. Full factorial design.
+        \item \xmlNode{algorithmType}\texttt{full}\xmlNode{algorithmType/}. Full factorial design.
           If \texttt{full} is specified, no additional nodes are necessary.
           \\
           \nb The full factorial design does not have any limitations on the
           number of discretization bins that can be used in the \xmlNode{grid}
           XML node for each \xmlNode{variable} specified.
-        \item \xmlNode{algorithm\_type}\texttt{2levelFract}\xmlNode{algorithm\_type/}. Two-level
+        \item \xmlNode{algorithmType}\texttt{2levelFract}\xmlNode{algorithmType/}. Two-level
           Fractional-Factorial design.
           %
           If \\\texttt{2levelFract}  is specified, the following additional
@@ -1092,7 +1092,7 @@ algorithm being used:
           \nb The Two-levels Fractional-Factorial design is limited to 2
           discretization bins in the \xmlNode{grid} node for each
           \xmlNode{variable}.
-       \item \xmlNode{algorithm\_type}\texttt{pb}\xmlNode{algorithm\_type/}. Plackett-Burman design.
+       \item \xmlNode{algorithmType}\texttt{pb}\xmlNode{algorithmType/}. Plackett-Burman design.
          If \texttt{pb} is specified, no additional nodes are necessary.
          \\
          \nb The Plackett-Burman design does not have any limitations on the
@@ -1107,7 +1107,7 @@ Example:
   ...
   <FactorialDesign name='fullFactorial'>
     <FactorialSettings>
-      <algorithm_type>full</algorithm_type>
+      <algorithmType>full</algorithmType>
     </FactorialSettings>
     <variable name='var1' >
       <distribution>aDistributionNameDefinedInDistributionBlock1
@@ -1122,7 +1122,7 @@ Example:
   </FactorialDesign>
   <FactorialDesign name='2levelFractFactorial'>
     <FactorialSettings>
-      <algorithm_type>2levelFract</algorithm_type>
+      <algorithmType>2levelFract</algorithmType>
       <gen>a,b,ab</gen>
       <genMap>var1,var2,var3</genMap>
     </FactorialSettings>
@@ -1144,7 +1144,7 @@ Example:
   </FactorialDesign>
   <FactorialDesign name='pbFactorial'>
     <FactorialSettings>
-      <algorithm_type>pb</algorithm_type>
+      <algorithmType>pb</algorithmType>
     </FactorialSettings>
     <variable name='var1' >
       <distribution>aDistributionNameDefinedInDistributionBlock6
@@ -1226,7 +1226,7 @@ space.
 \begin{itemize}
   \itemsep0em
   \item \nameDescription
-  \item \xmlAttr{print\_end\_XML}, \xmlDesc{optional string/boolean attribute},
+  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
     controls the dumping of a ``summary'' of the DET performed into an external
     XML.
     %
@@ -1333,7 +1333,7 @@ For this reason, its specifications must be defined within a
 \begin{itemize}
   \itemsep0em
   \item \nameDescription
-  \item \xmlAttr{print\_end\_XML}, \xmlDesc{optional string/boolean attribute},
+  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
     controls the dumping of a ``summary'' of the DET performed into an external
     XML.
     %
@@ -1637,7 +1637,7 @@ the input space in proximity of the limit surface.
 \begin{itemize}
   \itemsep0em
   \item \nameDescription
-  \item \xmlAttr{print\_end\_XML}, \xmlDesc{optional string/boolean attribute},
+  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
     this attribute controls the dumping of a ``summary'' of the DET performed in
     to an external XML.
     %
@@ -1789,7 +1789,7 @@ For this reason, its specifications must be defined within a
 \begin{itemize}
   \itemsep0em
   \item \nameDescription
-  \item \xmlAttr{print\_end\_XML}, \xmlDesc{optional string/boolean attribute},
+  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
     this attribute controls the dumping of a ``summary'' of the DET performed in
     to an external XML.
     %

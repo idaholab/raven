@@ -14,7 +14,7 @@
 
   <Models>
     <PostProcessor name="test_stats" subType="ComparisonStatistics">
-      <kind bin_method="sturges">uniform_bins</kind>
+      <kind binMethod="sturges">uniformBins</kind>
       <compare>
         <data>fullprint_Pointset|outputs|normal1</data>
         <reference name="normal_20_3"/>
@@ -50,10 +50,10 @@
   <!--
     <Samplers>
       <MonteCarlo name="RAVENmc3">
-        <sampler_init>
+        <samplerInit>
           <limit>1</limit>
-          <initial_seed>1</initial_seed>
-        </sampler_init>
+          <initialSeed>1</initialSeed>
+        </samplerInit>
       </MonteCarlo>
     </Samplers>
   -->

@@ -49,11 +49,11 @@
   </Distributions>
 
   <Samplers>
-    <DynamicEventTree name="HybridDET_test" print_end_xml="true">
+    <DynamicEventTree name="HybridDET_test" printEndXmlSummary="true">
       <HybridSampler type="MonteCarlo">
-        <sampler_init>
+        <samplerInit>
           <limit>2</limit>
-        </sampler_init>
+        </samplerInit>
         <variable name="Auxiliary|testMCHybrid1|initial_value">
           <distribution>testHybridMonteCarloDist1</distribution>
         </variable>

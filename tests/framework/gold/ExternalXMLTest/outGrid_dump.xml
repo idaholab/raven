@@ -1,4 +1,4 @@
-<data name="outGrid_dump" type="Pointset"><input>VarGauss2,VarGauss1,VarTri1</input><output>OutputPlaceHolder</output><input_filename>outGrid_dump.csv</input_filename><metadata><SamplerType>array(u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid',
+<data name="outGrid_dump" type="Pointset"><input>VarGauss2,VarGauss1,VarTri1</input><output>OutputPlaceHolder</output><inputFilename>outGrid_dump.csv</inputFilename><metadata><SamplerType>array(u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid',
        u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid', u'Grid',
        u'Grid', u'Grid', u'Grid', u'Grid', 
       dtype='&lt;U4')</SamplerType><crowDist>array( u'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', u'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', u'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0',

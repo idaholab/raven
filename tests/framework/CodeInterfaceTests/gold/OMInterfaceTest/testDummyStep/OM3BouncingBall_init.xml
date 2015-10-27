@@ -7,45 +7,45 @@
   
   <ModelVariables>
 
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="0" classType="rSta" description="height of ball" endColumn="35" endLine="4" fileName="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="false" isProtected="false" isValueChangeable="true" name="h" startColumn="3" startLine="4" valueReference="1000" variability="continuous">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="0" classType="rSta" description="height of ball" endColumn="35" endLine="4" filename="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="false" isProtected="false" isValueChangeable="true" name="h" startColumn="3" startLine="4" valueReference="1000" variability="continuous">
   <Real fixed="false" start="3.88129795782" useNominal="false" useStart="true" />
   </ScalarVariable>
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="1" classType="rSta" description="velocity of ball" endColumn="28" endLine="5" fileName="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="false" isProtected="false" isValueChangeable="true" name="v" startColumn="3" startLine="5" valueReference="1001" variability="continuous">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="1" classType="rSta" description="velocity of ball" endColumn="28" endLine="5" filename="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="false" isProtected="false" isValueChangeable="true" name="v" startColumn="3" startLine="5" valueReference="1001" variability="continuous">
   <Real fixed="false" useNominal="false" useStart="false" />
   </ScalarVariable>
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="0" classType="rDer" description="height of ball" endColumn="35" endLine="4" fileName="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="false" isProtected="false" isValueChangeable="false" name="der(h)" startColumn="3" startLine="4" valueReference="1002" variability="continuous">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="0" classType="rDer" description="height of ball" endColumn="35" endLine="4" filename="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="false" isProtected="false" isValueChangeable="false" name="der(h)" startColumn="3" startLine="4" valueReference="1002" variability="continuous">
   <Real fixed="false" useNominal="false" useStart="false" />
   </ScalarVariable>
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="1" classType="rDer" description="velocity of ball" endColumn="28" endLine="5" fileName="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="false" isProtected="false" isValueChangeable="false" name="der(v)" startColumn="3" startLine="5" valueReference="1003" variability="continuous">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="1" classType="rDer" description="velocity of ball" endColumn="28" endLine="5" filename="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="false" isProtected="false" isValueChangeable="false" name="der(v)" startColumn="3" startLine="5" valueReference="1003" variability="continuous">
   <Real fixed="false" useNominal="false" useStart="false" />
   </ScalarVariable>
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="0" classType="rAlg" endColumn="13" endLine="8" fileName="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="v_new" startColumn="3" startLine="8" valueReference="1004" variability="discrete">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="0" classType="rAlg" endColumn="13" endLine="8" filename="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="v_new" startColumn="3" startLine="8" valueReference="1004" variability="discrete">
   <Real fixed="false" useNominal="false" useStart="false" />
   </ScalarVariable>
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="0" classType="rPar" description="coefficient of restitution" endColumn="52" endLine="2" fileName="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="false" isProtected="false" isValueChangeable="true" name="e" startColumn="3" startLine="2" valueReference="1005" variability="parameter">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="0" classType="rPar" description="coefficient of restitution" endColumn="52" endLine="2" filename="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="false" isProtected="false" isValueChangeable="true" name="e" startColumn="3" startLine="2" valueReference="1005" variability="parameter">
   <Real fixed="true" start="0.7" useNominal="false" useStart="true" />
   </ScalarVariable>
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="1" classType="rPar" description="gravity acceleration" endColumn="47" endLine="3" fileName="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="false" isProtected="false" isValueChangeable="true" name="g" startColumn="3" startLine="3" valueReference="1006" variability="parameter">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="1" classType="rPar" description="gravity acceleration" endColumn="47" endLine="3" filename="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="false" isProtected="false" isValueChangeable="true" name="g" startColumn="3" startLine="3" valueReference="1006" variability="parameter">
   <Real fixed="true" start="9.81" useNominal="false" useStart="true" />
   </ScalarVariable>
 
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="0" classType="iAlg" endColumn="14" endLine="9" fileName="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="foo" startColumn="3" startLine="9" valueReference="1007" variability="discrete">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="0" classType="iAlg" endColumn="14" endLine="9" filename="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="foo" startColumn="3" startLine="9" valueReference="1007" variability="discrete">
   <Integer fixed="false" useStart="false" />
   </ScalarVariable>
 
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="0" classType="bAlg" endColumn="50" endLine="18" fileName="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="$whenCondition1" startColumn="5" startLine="18" valueReference="1008" variability="discrete">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="0" classType="bAlg" endColumn="50" endLine="18" filename="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="$whenCondition1" startColumn="5" startLine="18" valueReference="1008" variability="discrete">
   <Boolean fixed="true" useStart="false" />
   </ScalarVariable>
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="1" classType="bAlg" endColumn="50" endLine="18" fileName="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="$whenCondition2" startColumn="5" startLine="18" valueReference="1009" variability="discrete">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="1" classType="bAlg" endColumn="50" endLine="18" filename="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="$whenCondition2" startColumn="5" startLine="18" valueReference="1009" variability="discrete">
   <Boolean fixed="true" useStart="false" />
   </ScalarVariable>
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="2" classType="bAlg" endColumn="0" endLine="0" fileName="" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="$whenCondition3" startColumn="0" startLine="0" valueReference="1010" variability="discrete">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="2" classType="bAlg" endColumn="0" endLine="0" filename="" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="$whenCondition3" startColumn="0" startLine="0" valueReference="1010" variability="discrete">
   <Boolean fixed="true" useStart="false" />
   </ScalarVariable>
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="3" classType="bAlg" description="true, if ball is flying" endColumn="55" endLine="6" fileName="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="flying" startColumn="3" startLine="6" valueReference="1011" variability="discrete">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="3" classType="bAlg" description="true, if ball is flying" endColumn="55" endLine="6" filename="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="flying" startColumn="3" startLine="6" valueReference="1011" variability="discrete">
   <Boolean fixed="false" start="true" useStart="true" />
   </ScalarVariable>
-  <ScalarVariable alias="noAlias" causality="internal" classIndex="4" classType="bAlg" endColumn="17" endLine="7" fileName="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="impact" startColumn="3" startLine="7" valueReference="1012" variability="discrete">
+  <ScalarVariable alias="noAlias" causality="internal" classIndex="4" classType="bAlg" endColumn="17" endLine="7" filename="C:/MinGW/msys/1.0/home/bobk/projects/raven/framework/CodeInterfaces/OpenModelica/BouncingBall.mo" fileWritable="true" isDiscrete="true" isProtected="false" isValueChangeable="false" name="impact" startColumn="3" startLine="7" valueReference="1012" variability="discrete">
   <Boolean fixed="false" useStart="false" />
   </ScalarVariable>
 

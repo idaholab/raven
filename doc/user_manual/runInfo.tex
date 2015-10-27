@@ -38,6 +38,15 @@ the settings of the calculation flow that is being performed through RAVEN:
 %this node could be omitted.
 %string from the \emph{WorkingDir}.
 
+%%%%%% REMOTE RUN COMMAND
+\item \xmlNode{RemoteRunCommand}, \xmlDesc{string, required field},
+  specifies the absolute or relative (with respect to the framework
+  directory) path to a command that can be used on a remote machine to
+  execute a command.  The command is passed in as the environmental
+  variable COMMAND.
+%
+\default{raven\_qsub\_command.sh}
+
 %%%%%% BATCH SIZE
 \item \xmlNode{batchSize}, \xmlDesc{integer, optional field},
   specifies the number of parallel runs executed simultaneously (e.g.,
@@ -100,6 +109,19 @@ specifies \texttt{NumThreads} $> 1$  and \texttt{NumMPI} $> 1$, then
 \texttt{batchSize}.
 %
 \default{1}
+
+%%%%%% internalParallel
+\item \xmlNode{internalParallel}, \xmlDesc{boolean, optional field}, is a boolean
+flag that controls the type of parallel implementation needs to be used for Internal 
+Objects (e.g. ROMs, External Models, PostProcessors, etc.). 
+If this flag is set to:
+\begin{itemize}
+ \item  \textbf{\texttt{False}}, the internal parallelism is employed using multi-threading (i.e. 1 processor, multiple threads);
+ \item  \textbf{\texttt{True}}, the internal parallelism is employed using a internally-developed multi-processor approach (i.e. \xmlNode{totalNumCoresUsed} processors, 1 single thread). This approach works for both Shared Memory Systems (e.g. PC, laptops, workstations, etc.) and Distributed Memory Machines (e.g. High Performance Computing Systems, etc.).
+\end{itemize}
+%
+\default{False}
+
 
 %%%%%% precommand
 \item \xmlNode{precommand}, \xmlDesc{string, optional field}, specifies
