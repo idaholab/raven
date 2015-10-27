@@ -7,7 +7,7 @@ rm -Rf FirstMQRun/
 #REQUIREMENT_TEST
 python ../../framework/Driver.py test_mpiqsub_local.xml
 
-sleep 2 #Wait for disk to propagate.
+sleep 20 #Wait for disk to propagate.
 lines=`ls FirstMQRun/*eqn.csv | wc -l`
 
 if test $lines -eq 6; then
@@ -21,7 +21,7 @@ rm -Rf FirstMRun/
 
 qsub -l select=6:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free -W block=true ./run_mpi_test.sh
 
-sleep 2 #Wait for disk to propagate.
+sleep 20 #Wait for disk to propagate.
 mlines=`ls FirstMRun/*eqn.csv | wc -l`
 
 if test $mlines -eq 6; then
@@ -35,7 +35,7 @@ rm -Rf FirstPRun/
 
 python ../../framework/Driver.py test_pbs.xml
 
-sleep 2 #Wait for disk to propagate.
+sleep 20 #Wait for disk to propagate.
 plines=`ls FirstPRun/*eqn.csv | wc -l`
 
 if test $plines -eq 6; then
@@ -54,7 +54,7 @@ rm -Rf InternalParallelExtModel/*.csv
 #REQUIREMENT_TEST
 python ../../../framework/Driver.py test_internal_parallel_extModel.xml
 
-sleep 2 #Wait for disk to propagate.
+sleep 20 #Wait for disk to propagate.
 cd InternalParallelExtModel/
 lines=`ls *.csv | wc -l`
 cd ..
@@ -75,7 +75,7 @@ rm -Rf InternalParallelScikit/*.csv
 #REQUIREMENT_TEST
 python ../../../framework/Driver.py test_internal_parallel_ROM_scikit.xml
 
-sleep 2 #Wait for disk to propagate.
+sleep 20 #Wait for disk to propagate.
 cd InternalParallelScikit/
 lines=`ls *.csv | wc -l`
 cd ..
@@ -94,7 +94,7 @@ rm -Rf InternalParallelPostProcessorLS/*.csv
 
 python ../../../framework/Driver.py test_internal_parallel_PP_LS.xml
 
-sleep 2 #Wait for disk to propagate.
+sleep 20 #Wait for disk to propagate.
 cd InternalParallelPostProcessorLS/
 lines=`ls *.csv | wc -l`
 cd ..
