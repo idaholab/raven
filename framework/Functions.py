@@ -42,7 +42,7 @@ class Function(BaseType):
     self.__inputFromWhat['dict']         = self.__inputFromDict
     self.__inputFromWhat['Data']         = self.__inputFromData
     self.printTag                        = 'FUNCTIONS'
-    
+
   def _readMoreXML(self,xmlNode):
     if 'file' in xmlNode.attrib.keys():
       self.functionFile = xmlNode.attrib['file']

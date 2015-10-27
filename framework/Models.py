@@ -317,7 +317,7 @@ class ROM(Dummy):
     self.howManyTargets            = 0          # how many targets?
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
-    
+
   def __getstate__(self):
     """
     Overwrite state (for pickle-ing)
@@ -338,7 +338,7 @@ class ROM(Dummy):
       targets = self.initializationOptionDict['Target'].split(',')
       self.howManyTargets = len(targets)
       self.SupervisedEngine = {}
-      
+
       for target in targets:
         self.initializationOptionDict['Target'] = target
         self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
@@ -409,19 +409,19 @@ class ROM(Dummy):
     """
     if type(self.SupervisedEngine) is list:
       for ts in self.SupervisedEngine:
-        for instrom in ts.values():  
-          instrom.reset() 
+        for instrom in ts.values():
+          instrom.reset()
     else:
-      for instrom in self.SupervisedEngine.values(): 
+      for instrom in self.SupervisedEngine.values():
         instrom.reset()
       self.amITrained   = False
 
   def addInitParams(self,originalDict):
     """the ROM setting parameters are added"""
     ROMdict = {}
-    for target, instrom in self.SupervisedEngine.items(): 
+    for target, instrom in self.SupervisedEngine.items():
       ROMdict[self.name + '|' + target] = instrom.returnInitialParameters()
-    for key in ROMdict.keys(): 
+    for key in ROMdict.keys():
       originalDict[key] = ROMdict[key]
 
   def train(self,trainingSet):
@@ -436,16 +436,16 @@ class ROM(Dummy):
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
-    
+
     else:
-      
+
       if 'HistorySet' in str(type(trainingSet)).split('.'):
-        
+
         self.SupervisedEngine = []
-      
+
         outKeys = trainingSet.getParaKeys('outputs')
         targets = self.initializationOptionDict['Target'].split(',')
-        
+
         # check that all histories have the same length
         tmp = trainingSet.getParametersValues('outputs')
         for t in tmp:
@@ -457,7 +457,7 @@ class ROM(Dummy):
 
         # train the ROM
         self.trainingSet = mathUtils.historySetWindow(trainingSet,numberOfTimeStep)
-        for ts in range(numberOfTimeStep):         
+        for ts in range(numberOfTimeStep):
           newRom = {}
           for target in targets:
             self.initializationOptionDict['Target'] = target
@@ -465,18 +465,18 @@ class ROM(Dummy):
           for instrom in newRom.values():
             instrom.train(self.trainingSet[ts])
             self.aimITrained = self.amITrained and instrom.amITrained
-          self.SupervisedEngine.append(newRom)  
-      
+          self.SupervisedEngine.append(newRom)
+
       else:
         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-        
-        if type(self.trainingSet) is dict:       
+
+        if type(self.trainingSet) is dict:
           self.amITrained = True
           for instrom in self.SupervisedEngine.values():
             instrom.train(self.trainingSet)
             self.aimITrained = self.amITrained and instrom.amITrained
           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
-      
+
 
   def confidence(self,request,target = None):
     """
@@ -487,7 +487,7 @@ class ROM(Dummy):
     @ In, target, string, optional, target name (by default the first target entered in the input file)
     """
     inputToROM = self._inputToInternal(request)
-    if target != None: 
+    if target != None:
       if type(self.SupervisedEngine) is list:
         confDic = {}
         for ts in self.SupervisedEngine:
@@ -495,7 +495,7 @@ class ROM(Dummy):
         return confDic
       else:
         return self.SupervisedEngine[target].confidence(inputToROM)
-    else: 
+    else:
       if type(self.SupervisedEngine) is list:
         confDic = {}
         for ts in self.SupervisedEngine:
@@ -511,12 +511,12 @@ class ROM(Dummy):
     @ In, target, string, optional, target name (by default the first target entered in the input file)
     """
     inputToROM = self._inputToInternal(request)
-    if target != None: 
+    if target != None:
       if timeInst == None:
         return self.SupervisedEngine[target].evaluate(inputToROM)
       else:
         return self.SupervisedEngine[timeInst][target].evaluate(inputToROM)
-    else: 
+    else:
       if timeInst == None:
         return self.SupervisedEngine.values()[0].evaluate(inputToROM)
       else:
@@ -529,14 +529,14 @@ class ROM(Dummy):
       targets = self.SupervisedEngine[0].keys()
       for target in targets:
         returnDict[target] = np.zeros(0)
-        
-      for ts in range(len(self.SupervisedEngine)):  
+
+      for ts in range(len(self.SupervisedEngine)):
         for target in targets:
-          returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))   
+          returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))
     else:
-      for target in self.SupervisedEngine.keys(): 
+      for target in self.SupervisedEngine.keys():
         returnDict[target] = self.evaluate(inRun,target)
-    
+
     return returnDict
 
   def run(self,Input,jobHandler):
