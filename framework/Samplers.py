@@ -400,7 +400,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for distrib in self.NDSamplingParams:
       if distrib in self.distributions2variablesMapping:
         params = self.NDSamplingParams[distrib]
-        temp = self.distributions2variablesMapping[distrib][0].keys()[0]
+        temp = utils.first(self.distributions2variablesMapping[distrib][0].keys())
         self.distDict[temp].updateRNGParam(params)
       else:
         self.raiseAnError(IOError,'Distribution "%s" specified in distInit block of sampler "%s" does not exist!' %(distrib,self.name))
@@ -724,7 +724,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = 0.0, 1.0
         transformMethod[varName.replace('<distribution>','')] = [self.distDict[varName].ppf]
     #moving forward building all the information set
-    self.axisName = self.distDict.keys()
+    self.axisName = list(self.distDict.keys())
     self.axisName.sort()
     # initialize LimitSurface PP
     self.limitSurfacePP._initFromDict({"name":self.name+"LSpp","parameters":[key.replace('<distribution>','') for key in self.axisName],"tolerance":self.tolerance,"side":"both","transformationMethods":transformMethod,"bounds":bounds})
@@ -776,7 +776,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     for key,value in self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).items():
       self.persistenceMatrix[key] += value
     # get the test matrices' dictionaries to test the error
-    testMatrixDict, oldTestMatrixDict = self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values(),self.oldTestMatrix.values()
+    testMatrixDict, oldTestMatrixDict = list(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values()),list(self.oldTestMatrix.values())
     # the first test matrices in the list are always represented by the coarse grid (if subGridTol activated) or the only grid available
     coarseGridTestMatix, coarseGridOldTestMatix = testMatrixDict.pop(0), oldTestMatrixDict.pop(0)
     # compute the Linf norm with respect the location of the LS
@@ -1298,7 +1298,7 @@ class Stratified(Grid):
         if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['dim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
           gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
           for distVarName in self.distributions2variablesMapping[distName]:
-            for kkey in distVarName.keys()[0].strip().split(','):
+            for kkey in utils.first(distVarName.keys()).strip().split(','):
               self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
           # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
@@ -2304,7 +2304,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       for treer in hybridTrees: # this needs to be solved
         for ending in treer.iterProvidedFunction(self._checkCompleteHistory):
           completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeid=ending.get('name'),serialize=False))
-          finishedHistNames.append(completedHistNames[-1].keys()[0])
+          finishedHistNames.append(utils.first(completedHistNames[-1].keys()))
       # assemble a dictionary
       if len(completedHistNames) > self.completedHistCnt:
         # sort the list of histories
@@ -2484,7 +2484,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         self._localInputAndChecksHybrid(xmlNode)
         for hybridsampler in self.hybridStrategyToApply.values(): hybridsampler._generateDistributions(distDict, {})
     DynamicEventTree.localInitialize(self)
-    if self.hybridDETstrategy == 2: self.actualHybridTree = self.TreeInfo.keys()[0]
+    if self.hybridDETstrategy == 2: self.actualHybridTree = utils.first(self.TreeInfo.keys())
     self._endJobRunnable    = sys.maxsize
 
   def generateInput(self,model,oldInput):

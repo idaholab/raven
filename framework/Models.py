@@ -453,7 +453,7 @@ class ROM(Dummy):
     """
     inputToROM = self._inputToInternal(request)
     if target != None: return self.SupervisedEngine[target].evaluate(inputToROM)
-    else             : return self.SupervisedEngine.values()[0].evaluate(inputToROM)
+    else             : return utils.first(self.SupervisedEngine.values()).evaluate(inputToROM)
 
   def __externalRun(self,inRun):
     returnDict = {}

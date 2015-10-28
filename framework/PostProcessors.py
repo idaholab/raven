@@ -412,7 +412,7 @@ class SafestPoint(BasePostProcessor):
     iterIndex = ravenArrayIterator(arrayIn=self.controllableSpace)
     while not iterIndex.finished:
       coordIndex = iterIndex.multiIndex[-1]
-      varName = self.controllableGrid.keys()[coordIndex]
+      varName = list(self.controllableGrid.keys())[coordIndex]
       notchPos = iterIndex.multiIndex[coordIndex]
       if self.gridInfo[varName][0] == 'CDF':
         valList = []
@@ -432,7 +432,7 @@ class SafestPoint(BasePostProcessor):
     iterIndex = ravenArrayIterator(arrayIn=self.nonControllableSpace)
     while not iterIndex.finished:
       coordIndex = iterIndex.multiIndex[-1]
-      varName = self.nonControllableGrid.keys()[coordIndex]
+      varName = list(self.nonControllableGrid.keys())[coordIndex]
       notchPos = iterIndex.multiIndex[coordIndex]
       if self.gridInfo[varName][0] == 'CDF':
         valList = []
@@ -1040,7 +1040,7 @@ class BasicStatistics(BasePostProcessor):
           self.calculated[targetP] = currentInput.getParam('output', targetP)
       inputDict['metadata'] = currentInput.getAllMetadata()
       # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
-      if inputDict['metadata'].keys().count('SamplerType') > 0: pass
+      if 'SamplerType' in inputDict['metadata'].keys(): pass
 
     return inputDict
 
@@ -1191,11 +1191,11 @@ class BasicStatistics(BasePostProcessor):
     # setting some convenience values
     parameterSet = list(set(list(self.parameters['targets'])))  # @Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
     N = [np.asarray(Input['targets'][targetP]).size for targetP in parameterSet]
-    if 'metadata' in Input.keys(): pbPresent = Input['metadata'].keys().count('ProbabilityWeight') > 0
+    if 'metadata' in Input.keys(): pbPresent = 'ProbabilityWeight' in Input['metadata'].keys()
     else                         : pbPresent = False
     if not pbPresent:
       if 'metadata' in Input.keys():
-        if Input['metadata'].keys().count('SamplerType') > 0:
+        if 'SamplerType' in Input['metadata'].keys():
           if Input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
         else: self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbweights = np.zeros(len(Input['targets'][self.parameters['targets'][0]]), dtype = np.float)
@@ -1638,7 +1638,7 @@ class LimitSurface(BasePostProcessor):
     self.ROM.reset()
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
-      if type(inp) in [str, bytes, unicode]: self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs!')
+      if type(inp).__name__ in ['str', 'bytes', 'unicode']: self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs!')
       if inp.type in ['PointSet', 'Point']: self.indexes = index
     if self.indexes == -1: self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a Point or PointSet as INPUT!!!!!!')
     else:
@@ -2240,7 +2240,7 @@ class TopologicalDecomposition(BasePostProcessor):
           inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
       inputDict['metadata'] = currentInput.getAllMetadata()
     # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
-    if inputDict['metadata'].keys().count('SamplerType') > 0: pass
+    if 'SamplerType' in inputDict['metadata'].keys(): pass
     return inputDict
 
   def _localReadMoreXML(self, xmlNode):
