@@ -16,7 +16,7 @@
 
   <Distributions>
       <MultivariateNormal name="MultivariateNormalReduction" method='pca'>
-          <ExternalXML node="reduction" xmlToLoad="ROM/reduction.xml"/>
+          <ExternalXML node="transformation" xmlToLoad="ROM/reduction.xml"/>
           <ExternalXML node="mu" xmlToLoad="ROM/mean.xml"/>
           <ExternalXML node="covariance" xmlToLoad="ROM/covariance.xml"/>
       </MultivariateNormal>
