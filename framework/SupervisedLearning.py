@@ -1044,6 +1044,57 @@ class MSR(NDinterpolatorRom):
                            '(Available options:', self.acceptedKernelParam,
                            '), however the kernel is ignored when using the',
                            self.partitionPredictor,'partition predictor.')
+    self.__resetLocal__()
+
+  def addInitParams(self,state):
+    # state = dict(self.__dict__)
+    # state.pop('_MSR__amsc')
+    # state.pop('kdTree')
+    ## Or
+    state = dict()
+    state['gradient']           = self.gradient
+    state['graph']              = self.graph
+    state['beta']               = self.beta
+    state['knn']                = self.knn
+    state['simplification']     = self.simplification
+    state['persistence']        = self.persistence
+    state['weighted']           = self.weighted
+    state['normalization']      = self.normalization
+    state['partitionPredictor'] = self.partitionPredictor
+    state['blending']           = self.blending
+    state['kernel']             = self.kernel
+    state['bandwidth']          = self.bandwidth
+    state['X']                  = self.X
+    state['Y']                  = self.Y
+
+  def __getstate__(self):
+    state = {}
+    self.addInitParams(state)
+    state['type'] = self.type
+    raise ValueError
+    return state
+
+  def __setstate__(self,newState):
+    self.__init__()
+    self.gradient           = newState.pop('gradient'          )
+    self.graph              = newState.pop('graph'             )
+    self.beta               = newState.pop('beta'              )
+    self.knn                = newState.pop('knn'               )
+    self.simplification     = newState.pop('simplification'    )
+    self.persistence        = newState.pop('persistence'       )
+    self.weighted           = newState.pop('weighted'          )
+    self.normalization      = newState.pop('normalization'     )
+    self.partitionPredictor = newState.pop('partitionPredictor')
+    self.blending           = newState.pop('blending'          )
+    self.kernel             = newState.pop('kernel'            )
+    self.bandwidth          = newState.pop('bandwidth'         )
+    self.type               = newState.pop('type'              )
+    self.X                  = newState.pop('X'                 )
+    self.Y                  = newState.pop('Y'                 )
+    self.kdTree             = None
+    self.__amsc             = None
+    self.__trainLocal__(self.X,self.Y)
+    raise ValueError
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -1258,7 +1309,6 @@ class MSR(NDinterpolatorRom):
           predictions[wx > maxWeights] = fx
           maxWeights[wx > maxWeights] = wx
         return predictions
-
     elif self.partitionPredictor == 'svm':
       partitions = self.__amsc.Partitions(self.simplification)
       labels = np.zeros(self.X.shape[0])
