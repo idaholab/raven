@@ -117,6 +117,7 @@ import os
 import copy
 import shutil
 import tempfile
+import utils
 import xml.etree.ElementTree as ET
 #from OMPython import OMCSession    # Get the library with Open Modelica Session (needed to run OM stuff)
 
@@ -244,7 +245,7 @@ class OpenModelicaInterface(CodeInterfaceBase):
     inputFile = open(sourceFileName)
     for line in inputFile:
       # Line ends with a comma followed by a newline
-      os.write(tempOutputFD, line.replace('"','').strip().strip(',') + '\n')
+      os.write(tempOutputFD, utils.toBytes(line.replace('"','').strip().strip(',') + '\n'))
     inputFile.close()
     os.close(tempOutputFD)
 
