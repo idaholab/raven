@@ -68,8 +68,10 @@
       <variable>T</variable>
       <variable>heatRem</variable>
     </ExternalModel>
-    <PostProcessor name="DataConversion" subType="DataConversion">
-
+    <PostProcessor name="HS_sampling" subType="DataConversion">
+      <operator>HistorySetSampling</operator>
+      <type>firstDerivative</type>
+      <pivotVar>t</pivotVar>
     </PostProcessor>
   </Models>
 
