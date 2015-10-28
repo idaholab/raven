@@ -1,0 +1,87 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir></WorkingDir>
+    <Sequence></Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="dridSample" pauseAtEnd="false">
+      <Input   class="DataObjects" type="PointSet"      >tmp</Input>
+      <Model   class="Models"      type="ExternalModel" >modelTH</Model>
+      <Sampler class="Samplers"    type="Grid"          >gridSampler</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >modelHistories</Output>
+    </MultiRun>
+    <PostProcess name="pth3" pauseAtEnd="false">
+      <Input  class="DataObjects" type="PointSet"      >modelHistories</Input>
+      <Model  class="Models"      type="PostProcessor" >DataConversion</Model>
+      <Output class="DataObjects" type="PointSet"      >PPHistories</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="modelHistories">
+      <Input>tSBO,tREC</Input>
+      <Output>t,P,T,heatRem</Output>
+    </HistorySet>
+    <HistorySet name="PPHistories">
+      <Input>tSBO,tREC</Input>
+      <Output>t,P,T,heatRem</Output>
+    </HistorySet>
+    <PointSet name="tmp">
+      <Input>tSBO,tREC</Input>
+      <Output>t,P,T,heatRem</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <Normal name="tSBO_dist">
+      <mean>100</mean>
+      <sigma>20</sigma>
+    </Normal>
+    <Normal name="tREC_dist">
+      <mean>200</mean>
+      <sigma>40</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="gridSampler">
+      <variable name="tSBO">
+        <distribution>tSBO_dist</distribution>
+        <grid construction="equal" steps="3" type="value">40.0 160.0</grid>
+      </variable>
+      <variable name="tREC">
+        <distribution>tREC_dist</distribution>
+        <grid construction="equal" steps="3" type="value">80.0 320.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Models>
+    <ExternalModel name="modelTH" ModuleToLoad="modelTH">
+      <variable>tSBO</variable>
+      <variable>tREC</variable>
+      <variable>t</variable>
+      <variable>P</variable>
+      <variable>T</variable>
+      <variable>heatRem</variable>
+    </ExternalModel>
+    <PostProcessor name="DataConversion" subType="DataConversion">
+
+    </PostProcessor>
+  </Models>
+
+  <OutStreamManager>
+    <Print name="printHistories">
+      <type>csv</type>
+      <source>modelHistories</source>
+    </Print>
+    <Print name="printPPHistories">
+      <type>csv</type>
+      <source>PPHistories</source>
+    </Print>
+  </OutStreamManager>
+
+</Simulation>
