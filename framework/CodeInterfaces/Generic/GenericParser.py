@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 import copy
-from utils import toBytes, toStrish, compare
+from utils import toStrish, compare
 
 class GenericParser():
   '''import the user-edited input file, build list of strings with replacable parts'''
@@ -46,7 +46,7 @@ class GenericParser():
       inputFile.close()
       for line in lines:
         while self.prefixKey in line and self.postfixKey in line:
-          self.segments[infileName].append(toBytes(seg))
+          self.segments[infileName].append(seg)
           start = line.find(self.prefixKey)
           end = line.find(self.postfixKey,start+1)
           var = line[start+len(self.prefixKey):end]
@@ -74,17 +74,17 @@ class GenericParser():
               else:
                 for formVal in self.acceptFormats.keys():
                   if formVal in varformat: self.formats[var][infileName ]=varformat,self.acceptFormats[formVal]; break
-          self.segments[infileName].append(toBytes(line[:start]))
-          self.segments[infileName].append(toBytes(var))
+          self.segments[infileName].append(line[:start])
+          self.segments[infileName].append(var)
           if var not in self.varPlaces.keys(): self.varPlaces[var] = {infileName:[len(self.segments[infileName])-1]}
           elif inputFile not in self.varPlaces[var].keys(): self.varPlaces[var][infileName]=[len(self.segments[infileName])-1]
           else: self.varPlaces[var][infileName].append(len(self.segments[infileName])-1)
-          #self.segments.append(toBytes(line[end+1:]))
+          #self.segments.append(line[end+1:])
           line=line[end+1:]
           seg = ''
         else:
           seg+=line
-      self.segments[infileName].append(toBytes(seg))
+      self.segments[infileName].append(seg)
 
   def modifyInternalDictionary(self,**Kwargs):
     '''
@@ -165,5 +165,5 @@ class GenericParser():
     #now just write the files.
     for f,inFile in enumerate(origFiles):
       outfile = inFiles[f]
-      outfile.writelines(toBytes(''.join(self.segments[inFile.getFilename()])))
+      outfile.writelines(''.join(self.segments[inFile.getFilename()]))
       outfile.close()
