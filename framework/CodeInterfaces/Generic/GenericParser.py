@@ -53,18 +53,18 @@ class GenericParser():
           if defaultDelim in var or formatDelim in var:
             optionalPos = [None]*2
             optionalPos[0], optionalPos[1] = var.find(defaultDelim), var.find(formatDelim)
-            if optionalPos[0] == -1 : optionalPos[0]  = sys.maxint
-            if optionalPos[1] == -1 : optionalPos[1] = sys.maxint
+            if optionalPos[0] == -1 : optionalPos[0]  = sys.maxsize
+            if optionalPos[1] == -1 : optionalPos[1] = sys.maxsize
             defval    = var[optionalPos[0]+1:min(optionalPos[1],len(var))] if optionalPos[0] < optionalPos[1] else var[min(optionalPos[0]+1,len(var)):len(var)]
             varformat = var[min(optionalPos[1]+1,len(var)):len(var)] if optionalPos[0] < optionalPos[1] else var[optionalPos[1]+1:min(optionalPos[0],len(var))]
             var = var[0:min(optionalPos)]
-            if var in self.defaults.keys() and optionalPos[0] != sys.maxint: print('multiple default values given for variable',var)
-            if var in self.formats.keys() and optionalPos[1] != sys.maxint: print('multiple format values given for variable',var)
+            if var in self.defaults.keys() and optionalPos[0] != sys.maxsize: print('multiple default values given for variable',var)
+            if var in self.formats.keys() and optionalPos[1] != sys.maxsize: print('multiple format values given for variable',var)
             #TODO allow the user to specify take-last or take-first?
-            if var not in self.defaults.keys() and optionalPos[0] != sys.maxint : self.defaults[var] = {}
-            if var not in self.formats.keys()  and optionalPos[1] != sys.maxint : self.formats[var ] = {}
-            if optionalPos[0] != sys.maxint: self.defaults[var][infileName]=defval
-            if optionalPos[1] != sys.maxint:
+            if var not in self.defaults.keys() and optionalPos[0] != sys.maxsize : self.defaults[var] = {}
+            if var not in self.formats.keys()  and optionalPos[1] != sys.maxsize : self.formats[var ] = {}
+            if optionalPos[0] != sys.maxsize: self.defaults[var][infileName]=defval
+            if optionalPos[1] != sys.maxsize:
               # check if the format is valid
               if not any(formVal in varformat for formVal in self.acceptFormats.keys()):
                 try              : int(varformat)
