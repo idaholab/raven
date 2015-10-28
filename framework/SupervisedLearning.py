@@ -68,7 +68,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
                          and printing messages
     @In, kwargs: an arbitrary list of kwargs
     """
-    self.printTag = 'SuperVised'
+    self.printTag = 'Supervised'
     self.messageHandler = messageHandler
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None: self.initOptionDict = kwargs
@@ -86,6 +86,34 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self.muAndSigmaFeatures = {}
     #these need to be declared in the child classes!!!!
     self.amITrained         = False
+
+  def addInitParams(self,tempDict):
+    tempDict['messageHandler'] = self.messageHandler
+    tempDict['printTag'] = self.printTag
+    tempDict['features'] = self.features
+    tempDict['target'] = self.target
+    tempDict['verbosity'] = self.verbosity
+    tempDict['amItrained'] = self.amITrained
+    tempDict['muAndSigmaFeatures'] = self.muAndSigmaFeatures
+    tempDict['returnType'] = self.returnType
+    tempDict['qualityEstType'] = self.qualityEstType
+    tempDict['ROMtype'] = self.ROMtype
+
+  def __getstate__(self):
+    state = {}
+    self.addInitParams(state)
+    return state
+
+  def __setstate__(self,newState):
+    self.features           = newState.pop('features'          )
+    self.target             = newState.pop('target'            )
+    self.verbosity          = newState.pop('verbosity'         )
+    self.amItrained         = newState.pop('amItrained'        )
+    self.muAndSigmaFeatures = newState.pop('muAndSigmaFeatures')
+    self.returnType         = newState.pop('returnType'        )
+    self.qualityEstType     = newState.pop('qualityEstType'    )
+    self.ROMtype            = newState.pop('ROMtype'           )
+    self.printTag           = newState.pop('printTag'          )
 
   def initialize(self,idict):
     pass #Overloaded by (at least) GaussPolynomialRom
@@ -1051,7 +1079,7 @@ class MSR(NDinterpolatorRom):
     # state.pop('_MSR__amsc')
     # state.pop('kdTree')
     ## Or
-    state = dict()
+    superVisedLearning.addInitParams(self,state)
     state['gradient']           = self.gradient
     state['graph']              = self.graph
     state['beta']               = self.beta
@@ -1070,13 +1098,10 @@ class MSR(NDinterpolatorRom):
   def __getstate__(self):
     state = {}
     self.addInitParams(state)
-    state['testMessage'] = self.messageHandler
-    #state['type'] = self.type
-    #raise ValueError
     return state
 
   def __setstate__(self,newState):
-    self.__init__(newState['testMessage'])
+    super(MSR,self).__setstate__(newState)
     self.gradient           = newState.pop('gradient'          )
     self.graph              = newState.pop('graph'             )
     self.beta               = newState.pop('beta'              )
@@ -1089,13 +1114,11 @@ class MSR(NDinterpolatorRom):
     self.blending           = newState.pop('blending'          )
     self.kernel             = newState.pop('kernel'            )
     self.bandwidth          = newState.pop('bandwidth'         )
-    #self.type               = newState.pop('type'              )
     self.X                  = newState.pop('X'                 )
     self.Y                  = newState.pop('Y'                 )
     self.kdTree             = None
     self.__amsc             = None
     self.__trainLocal__(self.X,self.Y)
-    #raise ValueError
 
   def __trainLocal__(self,featureVals,targetVals):
     """

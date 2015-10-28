@@ -309,7 +309,7 @@ class MultiRun(SingleRun):
             self.raiseADebug('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
         else:
           #add run to a pool that can be sent to the sampler later
-          self.failedRuns.append(copy.copy(finishedJob))
+          self.failedRuns.append(copy.deepcopy(finishedJob))
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
           self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
         for _ in range(min(jobHandler.howManyFreeSpots(),sampler.endJobRunnable())): # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
