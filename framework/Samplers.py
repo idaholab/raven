@@ -257,8 +257,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       maxDim=1
       listvar = self.distributions2variablesMapping[dist]
       for var in listvar:
-        if var.values()[0] > maxDim:
-          maxDim = var.values()[0]
+        if utils.first(var.values()) > maxDim:
+          maxDim = utils.first(var.values())
       self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
 
   def readSamplerInit(self,xmlNode):
@@ -1006,7 +1006,7 @@ class MonteCarlo(Sampler):
       for var in self.distributions2variablesMapping[dist]:
         if dim == 1:
           rvsnum = self.distDict[key].rvs()
-          varID  = var.keys()[0]
+          varID  = utils.first(var.keys())
           varDim = var[varID]
           for kkey in varID.strip().split(','):
             self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
@@ -1070,7 +1070,7 @@ class Grid(Sampler):
     grdInfo = self.gridEntity.returnParameter("gridInfo")
     for axis, value in grdInfo.items(): self.gridInfo[axis] = value[0]
     if len(self.toBeSampled.keys()) != len(grdInfo.keys()): self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
-    self.axisName = grdInfo.keys()
+    self.axisName = list(grdInfo.keys())
     self.axisName.sort()
 
   def localAddInitParams(self,tempDict):
