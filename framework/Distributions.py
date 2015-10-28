@@ -1493,7 +1493,7 @@ class MultivariateNormal(NDimensionalDistributions):
     self.rank = None             # the effective rank for the PCA analysis
     self.inputVariables = {}     # dict of input variable: {'model'::varName,'latent':varName}, 'model' indicates the varName are provided by models,
                                  # and 'latent' indicates the varName used in the reduced space
-    self.reduction = False       # flag for input reduction analysis
+    self.transformation = False       # flag for input transformation analysis
 
 
   def _readMoreXML(self,xmlNode):
@@ -1510,8 +1510,8 @@ class MultivariateNormal(NDimensionalDistributions):
       elif child.tag == 'covariance':
         covariance = [float(value) for value in child.text.split()]
         if 'type' in child.attrib.keys(): self.covarianceType = child.attrib['type']
-      elif child.tag == 'reduction':
-        self.reduction = True
+      elif child.tag == 'transformation':
+        self.transformation = True
         for childChild in child:
           if childChild.tag == 'rank':
             self.rank = int(childChild.text)
@@ -1584,7 +1584,7 @@ class MultivariateNormal(NDimensionalDistributions):
       self.raiseAnError(NotImplementedError,'ppf is not yet implemented for ' + self.method + ' method')
 
   def pdf(self,x):
-    if self.reduction:
+    if self.transformation:
       pdfValue = self.pdfInTransformedSpace(x)
       return pdfValue
     else:
@@ -1606,20 +1606,26 @@ class MultivariateNormal(NDimensionalDistributions):
       return self._distribution.pdfInTransformedSpace(coordinate)
 
   def cellIntegral(self,x,dx):
-    if self.method == 'pca':
-      self.raiseAnError(NotImplementedError,'cellIntegral not yet implemented for ' + self.method + ' method')
     coordinate = distribution1D.vectord_cxx(len(x))
     dxs        = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)):
       coordinate[i] = x[i]
       dxs[i]=dx[i]
-    return self._distribution.cellIntegral(coordinate,dxs)
+    if self.method == 'pca':
+      if self.transformation: self.raiseAWarning("The ProbabilityWeighted is computed on the reduced transformed space")
+      else: self.raiseAWarning("The ProbabilityWeighted is computed on the transformed space")
+      return self._distribution.cellProbabilityWeight(coordinate,dxs)
+    elif self.method == 'spline':
+      return self._distribution.cellIntegral(coordinate,dxs)
+    else:
+      self.raiseAnError(NotImplementedError,'cellIntegral not yet implemented for ' + self.method + ' method')
 
   def inverseMarginalDistribution (self, x, variable):
-    if self.method == 'pca':
-      self.raiseAnError(NotImplementedError,'inverseMarginalDistribution not yet implemented for ' + self.method + ' method')
-    if (x>0.0) and (x<1.0):
-      return self._distribution.inverseMarginal(x, variable)
+    if (x > 0.0) and (x < 1.0):
+      if self.method == 'pca':
+        return self._distribution.inverseMarginalForPCA(x)
+      elif self.method == 'spline':
+        return self._distribution.inverseMarginal(x, variable)
     else:
       self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x ' +str(x)+' outside [0.0,1.0]')
 
@@ -1641,10 +1647,10 @@ class MultivariateNormal(NDimensionalDistributions):
   def rvs(self,*args):
     if self.method == 'spline':
       return self._distribution.InverseCdf(random(),random())
-    # if no reduction, then return the coordinate for the original input parameters
-    # if there is a reduction, then return the coordinate in the reduced space
+    # if no transformation, then return the coordinate for the original input parameters
+    # if there is a transformation, then return the coordinate in the reduced space
     elif self.method == 'pca':
-      if self.reduction:
+      if self.transformation:
         return self._distribution.coordinateInTransformedSpace(self.rank)
       else:
         coordinate = self._distribution.coordinateInTransformedSpace(self.rank)

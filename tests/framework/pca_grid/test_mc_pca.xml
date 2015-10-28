@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>PCAReduction</WorkingDir>
+    <WorkingDir>mcPCA</WorkingDir>
     <Sequence>FirstMRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -11,7 +11,7 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="PCAReduction/lorentzAttractor_noK" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
       <variable>sigma</variable>
       <variable>rho</variable>
       <variable>beta</variable>
@@ -28,15 +28,15 @@
   <Distributions>
     <MultivariateNormal name='MultivariateNormalPCAReduction' method='pca'>
         <transformation>
-            <rank>2</rank>
+            <rank>3</rank>
             <!--variables type='latent'>x1,x2</variables-->
             <variables type='model'>x0,y0,z0</variables>
         </transformation>
-        <mu>0.0 60.0 60.0</mu>
+        <mu>0.0 1.0 2.0</mu>
         <covariance type="abs">
-            1.0       0.8      -0.5
-            0.8       1.0      0.3
-            -0.5  0.3  0.8
+            1.0       0.6      -0.4
+            0.6       1.0      0.2
+            -0.4      0.2      0.8
         </covariance>
     </MultivariateNormal>
   </Distributions>
@@ -46,6 +46,7 @@
       <samplerInit>
         <limit>20</limit>
         <initialSeed>1234</initialSeed>
+        <reseedEachIteration>True</reseedEachIteration>
       </samplerInit>
       <variable name="x1">
         <distribution dim="1">MultivariateNormalPCAReduction</distribution>
@@ -53,7 +54,10 @@
       <variable name="y1">
         <distribution dim="2">MultivariateNormalPCAReduction</distribution>
       </variable>
-      <latentVariables name='MultivariateNormalPCAReduction' type='pca'>x1,y1</latentVariables>
+      <variable name="z1">
+        <distribution dim="3">MultivariateNormalPCAReduction</distribution>
+      </variable>
+      <latentVariables name='MultivariateNormalPCAReduction' type='pca'>x1,y1,z1</latentVariables>
     </MonteCarlo>
   </Samplers>
 

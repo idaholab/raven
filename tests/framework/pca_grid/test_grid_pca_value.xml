@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>PCAReduction</WorkingDir>
-    <Sequence>FirstMRun,Dump</Sequence>
+    <WorkingDir>gridPCAValue</WorkingDir>
+    <Sequence>gridRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -11,7 +11,7 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="PCAReduction/lorentzAttractor_noK" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
       <variable>sigma</variable>
       <variable>rho</variable>
       <variable>beta</variable>
@@ -26,42 +26,44 @@
   </Models>
 
   <Distributions>
-    <MultivariateNormal name='MultivariateNormalPCAReduction' method='pca'>
+    <MultivariateNormal name='MVNDist' method='pca'>
         <transformation>
-            <rank>2</rank>
+            <rank>3</rank>
             <!--variables type='latent'>x1,x2</variables-->
             <variables type='model'>x0,y0,z0</variables>
         </transformation>
-        <mu>0.0 60.0 60.0</mu>
+        <mu>0.0 1.0 2.0</mu>
         <covariance type="abs">
-            1.0       0.8      -0.5
-            0.8       1.0      0.3
-            -0.5  0.3  0.8
+            1.0       0.6      -0.4
+            0.6       1.0      0.2
+            -0.4      0.2      0.8
         </covariance>
     </MultivariateNormal>
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="MC_external">
-      <samplerInit>
-        <limit>20</limit>
-        <initialSeed>1234</initialSeed>
-      </samplerInit>
+    <Grid name="myGrid">
       <variable name="x1">
-        <distribution dim="1">MultivariateNormalPCAReduction</distribution>
+        <distribution dim="1">MVNDist</distribution>
+        <grid construction="equal" steps="4" type="value">-4.0 4.0</grid>
       </variable>
       <variable name="y1">
-        <distribution dim="2">MultivariateNormalPCAReduction</distribution>
+        <distribution dim="2">MVNDist</distribution>
+        <grid construction="equal" steps="4" type="value">-4.0 4.0</grid>
       </variable>
-      <latentVariables name='MultivariateNormalPCAReduction' type='pca'>x1,y1</latentVariables>
-    </MonteCarlo>
+      <variable name="z1">
+        <distribution dim="3">MVNDist</distribution>
+        <grid construction="equal" steps="4" type="value">-4.0 4.0</grid>
+      </variable>
+      <latentVariables name='MVNDist' type='pca'>x1,y1,z1</latentVariables>
+    </Grid>
   </Samplers>
 
   <Steps>
-    <MultiRun name="FirstMRun">
+    <MultiRun name="gridRun">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
     </MultiRun>
     <IOStep name="Dump">
@@ -74,12 +76,13 @@
     <Print name="testPrintPointSet_dump">
       <type>csv</type>
       <source>testPrintPointSet</source>
+      <what>Input|x1,Input|y1,Input|z1,Input|x0,Input|y0,Input|z0,Output|x,Output|y,Output|z,Input|PointProbability,Input|ProbabilityWeight</what>
     </Print>
   </OutStreamManager>
 
   <DataObjects>
     <PointSet name="testPrintPointSet">
-      <Input>x0,y0,z0</Input>
+      <Input>x0,y0,z0,x1,y1,z1</Input>
       <Output>x,y,z</Output>
     </PointSet>
     <PointSet name="inputPlaceHolder">
