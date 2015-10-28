@@ -198,6 +198,14 @@
     required_libraries = 'amsc'
   [../]
 
+  [./parallel]
+    type = 'RavenFramework'
+    input = 'test_local_parallel.xml'
+    UnorderedCsv = 'data/outDataParallel.csv'
+    output = 'data/outDataParallel.xml'
+    required_libraries = 'amsc'
+  [../]
+
    #[./topology_MSR_failures]
    # type = 'RavenFramework'
    # input = 'test_MSR_failures.xml'
