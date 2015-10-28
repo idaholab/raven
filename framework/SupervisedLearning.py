@@ -178,8 +178,8 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 
   def returnInitialParameters(self):
     """override this method to return the fix set of parameters of the ROM"""
-    iniParDict = dict(self.initOptionDict.items() + {'returnType':self.__class__.returnType,'qualityEstType':self.__class__.qualityEstType,'Features':self.features,
-                                             'Target':self.target,'returnType':self.__class__.returnType}.items() + self.__returnInitialParametersLocal__().items())
+    iniParDict = dict(list(self.initOptionDict.items()) + list({'returnType':self.__class__.returnType,'qualityEstType':self.__class__.qualityEstType,'Features':self.features,
+                                             'Target':self.target,'returnType':self.__class__.returnType}.items()) + list(self.__returnInitialParametersLocal__().items()))
     return iniParDict
 
   def returnCurrentSetting(self):
@@ -460,7 +460,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     #check equality of point space
     fvs = []
     tvs=[]
-    sgs = self.sparseGrid.points()[:]
+    sgs = list(self.sparseGrid.points())
     missing=[]
     for pt in sgs:
       found,idx,point = utils.NDInArray(featureVals,pt)

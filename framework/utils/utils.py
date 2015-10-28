@@ -331,6 +331,14 @@ def first(c):
   """
   return next(iter(c))
 
+def iter_len(c):
+  """
+    Method to count the number of elements in an iterable.
+    @ In, c, the iterable
+    @ Out, the number of items in the first level of the iterable
+  """
+  return sum(1 for _ in c)
+
 def importFromPath(filename, printImporting = True):
   """
     Method to import a module from a given path

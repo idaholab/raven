@@ -364,7 +364,7 @@ class ROM(Dummy):
       self.initializationOptionDict['Target'] = target
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
     # extend the list of modules this ROM depen on
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0]),True)) - set(self.mods))
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     #restore targets to initialization option dict
     self.initializationOptionDict['Target'] = ','.join(targets)
@@ -380,7 +380,7 @@ class ROM(Dummy):
     else: options={}
     tree=self._localBuildPrintTree(options)
     msg=tree.stringNodeTree()
-    file(filenameLocal+'.xml','w').writelines(msg)
+    open(filenameLocal+'.xml','w').writelines(msg)
     self.raiseAMessage('ROM XML printed to "'+filenameLocal+'"')
 
   def _localBuildPrintTree(self,options=None):

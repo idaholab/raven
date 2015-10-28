@@ -1143,8 +1143,8 @@ class Grid(Sampler):
               distName = self.variables2distributionsMapping[varName]['name']
               NDcoordinate=[0]*len(self.distributions2variablesMapping[distName])
               for var in self.distributions2variablesMapping[distName]:
-                variable = var.keys()[0]
-                position = var.values()[0]
+                variable = utils.first(var.keys())
+                position = utils.first(var.values())
                 NDcoordinate[position-1] = float(coordinates[variable.strip()])
                 for key in variable.strip().split(','):
                   self.inputInfo['distributionName'][key] = self.toBeSampled[variable]
@@ -1178,8 +1178,8 @@ class Grid(Sampler):
             NDcoordinate=np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs=np.zeros(len(self.distributions2variablesMapping[distName]))
             for var in self.distributions2variablesMapping[distName]:
-              variable = var.keys()[0].strip()
-              position = var.values()[0]
+              variable = utils.first(var.keys()).strip()
+              position = utils.first(var.values())
               NDcoordinate[position-1] = coordinates[variable.strip()]
               if self.gridInfo[variable]=='CDF':
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
@@ -2789,7 +2789,7 @@ class SparseGridCollocation(Grid):
       if 'ROM' in key:
         for value in self.assemblerDict[key]: self.ROM = value[3]
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = SVLs[0] #often need only one
+    SVL = utils.first(SVLs) #often need only one
     self.features = SVL.features
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
@@ -2814,7 +2814,7 @@ class SparseGridCollocation(Grid):
 
     if self.writeOut != None:
       msg=self.sparseGrid.__csv__()
-      outFile=file(self.writeOut,'w')
+      outFile=open(self.writeOut,'w')
       outFile.writelines(msg)
       outFile.close()
 
@@ -2822,15 +2822,15 @@ class SparseGridCollocation(Grid):
     if self.restartData != None:
       inps = self.restartData.getInpParametersValues()
       #make reorder map
-      reordmap=list(inps.keys().index(i) for i in self.features)
+      reordmap=list(list(inps.keys()).index(i) for i in self.features)
       solns = list(v for v in inps.values())
       ordsolns = [solns[i] for i in reordmap]
       self.existing = zip(*ordsolns)
 
     self.limit=len(self.sparseGrid)
     self.raiseADebug('Size of Sparse Grid  :'+str(self.limit))
-    self.raiseADebug('Number from Restart :'+str(len(self.existing)))
-    self.raiseADebug('Number of Runs Needed :'+str(self.limit-len(self.existing)))
+    self.raiseADebug('Number from Restart :'+str(utils.iter_len(self.existing)))
+    self.raiseADebug('Number of Runs Needed :'+str(self.limit-utils.iter_len(self.existing)))
     self.raiseADebug('Finished sampler generation.')
 
     self.raiseADebug('indexset:',self.indexSet)
@@ -2977,7 +2977,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     #set a pointer to the GaussPolynomialROM object
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = SVLs[0] #sampler doesn't always care about which target
+    SVL = utils.first(SVLs) #sampler doesn't always care about which target
     self.features=SVL.features #the input space variables
     mpo = self.maxPolyOrder #save it to re-set it after calling generateQuadsAndPolys
     self._generateQuadsAndPolys(SVL) #lives in GaussPolynomialRom object
@@ -3328,7 +3328,7 @@ class Sobol(SparseGridCollocation):
     #make combination of ROMs that we need
     self.targets  = self.ROM.SupervisedEngine.keys()
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = SVLs[0]
+    SVL = utils.first(SVLs)
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
     features = SVL.features
@@ -3386,7 +3386,7 @@ class Sobol(SparseGridCollocation):
     #if tuple(newpt) not in existing:
     self.pointsToRun.append(tuple(newpt))
     #now do the rest
-    for combo,rom in self.ROMs.values()[0].items(): #each target is the same, so just for each combo
+    for combo,rom in utils.first(self.ROMs.values()).items(): #each target is the same, so just for each combo
       SG = rom.sparseGrid #they all should have the same sparseGrid
       SG._remap(combo)
       for l in range(len(SG)):
@@ -3400,8 +3400,8 @@ class Sobol(SparseGridCollocation):
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
     self.raiseADebug('Needed points: %i' %self.limit)
-    self.raiseADebug('From Restart : %i' %len(self.existing))
-    self.raiseADebug('Still Needed : %i' %(self.limit-len(self.existing)))
+    self.raiseADebug('From Restart : %i' %utils.iter_len(self.existing))
+    self.raiseADebug('Still Needed : %i' %(self.limit-utils.iter_len(self.existing)))
     initdict={'ROMs':None, #self.ROMs,
               'SG':self.SQs,
               'dists':self.distDict,
