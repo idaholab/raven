@@ -482,7 +482,7 @@ to uniform or parameter-based probability density functions.
 \item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
 %\item \textbf{limit}, \textit{required integer attribute}, number of MonteCarlo samples needs to be generated;
 %\item \textbf{initial\_seed}, \textit{optional integer attribute}, initial seeding of random number generator. \textit{Default = random seed};
-%\item \textbf{reseedAtEachIteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \textit{Default = False};
+%\item \textbf{reseedEachIteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \textit{Default = False};
 \end{itemize}
 \vspace{-5mm}
 
@@ -492,7 +492,7 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
   \begin{itemize}
     \item \xmlNode{limit}, \textit{\textbf{integer,required field}}, number of MonteCarlo samples needs to be generated;
     \item \xmlNode{initialSeed}, \textit{\textbf{integer, optional field}}, initial seeding of random number generator
-    \item \xmlNode{reseedAtEachIteration},  \textit{\textbf{boolean/string(case insensitive), optional field}}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \default{False};
+    \item \xmlNode{reseedEachIteration},  \textit{\textbf{boolean/string(case insensitive), optional field}}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \default{False};
     \item \xmlNode{distInit},  \textit{\textbf{integer, optional field}}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}).
   \end{itemize}
 \end{itemize}
