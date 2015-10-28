@@ -1070,12 +1070,13 @@ class MSR(NDinterpolatorRom):
   def __getstate__(self):
     state = {}
     self.addInitParams(state)
-    state['type'] = self.type
-    raise ValueError
+    state['testMessage'] = self.messageHandler
+    #state['type'] = self.type
+    #raise ValueError
     return state
 
   def __setstate__(self,newState):
-    self.__init__()
+    self.__init__(newState['testMessage'])
     self.gradient           = newState.pop('gradient'          )
     self.graph              = newState.pop('graph'             )
     self.beta               = newState.pop('beta'              )
@@ -1088,13 +1089,13 @@ class MSR(NDinterpolatorRom):
     self.blending           = newState.pop('blending'          )
     self.kernel             = newState.pop('kernel'            )
     self.bandwidth          = newState.pop('bandwidth'         )
-    self.type               = newState.pop('type'              )
+    #self.type               = newState.pop('type'              )
     self.X                  = newState.pop('X'                 )
     self.Y                  = newState.pop('Y'                 )
     self.kdTree             = None
     self.__amsc             = None
     self.__trainLocal__(self.X,self.Y)
-    raise ValueError
+    #raise ValueError
 
   def __trainLocal__(self,featureVals,targetVals):
     """
