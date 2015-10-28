@@ -1759,7 +1759,7 @@ class LimitSurface(BasePostProcessor):
       if exceptionGrid == None: return self.testMatrix
       else:
         returnDict = OrderedDict()
-        wantedKeys = self.testMatrix.keys()
+        wantedKeys = list(self.testMatrix.keys())
         wantedKeys.pop(wantedKeys.index(exceptionGrid))
         for key in wantedKeys: returnDict[key] = self.testMatrix[key]
         return returnDict
