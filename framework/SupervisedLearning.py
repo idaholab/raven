@@ -87,17 +87,17 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     #these need to be declared in the child classes!!!!
     self.amITrained         = False
 
-  def addInitParams(self,tempDict):
-    tempDict['messageHandler'] = self.messageHandler
-    tempDict['printTag'] = self.printTag
-    tempDict['features'] = self.features
-    tempDict['target'] = self.target
-    tempDict['verbosity'] = self.verbosity
-    tempDict['amITrained'] = self.amITrained
-    tempDict['muAndSigmaFeatures'] = self.muAndSigmaFeatures
-    tempDict['returnType'] = self.returnType
-    tempDict['qualityEstType'] = self.qualityEstType
-    tempDict['ROMtype'] = self.ROMtype
+  # def addInitParams(self,tempDict):
+  #   tempDict['messageHandler'] = self.messageHandler
+  #   tempDict['printTag'] = self.printTag
+  #   tempDict['features'] = self.features
+  #   tempDict['target'] = self.target
+  #   tempDict['verbosity'] = self.verbosity
+  #   tempDict['amITrained'] = self.amITrained
+  #   tempDict['muAndSigmaFeatures'] = self.muAndSigmaFeatures
+  #   tempDict['returnType'] = self.returnType
+  #   tempDict['qualityEstType'] = self.qualityEstType
+  #   tempDict['ROMtype'] = self.ROMtype
 
   # def __getstate__(self):
   #   state = {}
@@ -1074,65 +1074,15 @@ class MSR(NDinterpolatorRom):
                            self.partitionPredictor,'partition predictor.')
     self.__resetLocal__()
 
-  def addInitParams(self,state):
-    ## One could possibly do this automatically
-    # state = dict(self.__dict__)
-    # state.pop('_MSR__amsc')
-    # state.pop('kdTree')
-    ## Or
-    superVisedLearning.addInitParams(self,state)
-    state['gradient']           = self.gradient
-    state['graph']              = self.graph
-    state['beta']               = self.beta
-    state['knn']                = self.knn
-    state['simplification']     = self.simplification
-    state['persistence']        = self.persistence
-    state['weighted']           = self.weighted
-    state['normalization']      = self.normalization
-    state['partitionPredictor'] = self.partitionPredictor
-    state['blending']           = self.blending
-    state['kernel']             = self.kernel
-    state['bandwidth']          = self.bandwidth
-    state['X']                  = self.X
-    state['Y']                  = self.Y
-
   def __getstate__(self):
-    # state = super(MSR,self).__getstate__()
-    # state = superVisedLearning.__getstate__(self)
-    state = {}
-    self.addInitParams(state)
+    state = dict(self.__dict__)
+    state.pop('_MSR__amsc')
+    state.pop('kdTree')
     return state
 
   def __setstate__(self,newState):
-    # super(MSR,self).__setstate__(newState)
-    # superVisedLearning.__setstate__(self,newState)
-
-    ## superVisedLearning - base class stuff
-    self.features           = newState.pop('features'          )
-    self.target             = newState.pop('target'            )
-    self.verbosity          = newState.pop('verbosity'         )
-    self.amITrained         = newState.pop('amITrained'        )
-    self.muAndSigmaFeatures = newState.pop('muAndSigmaFeatures')
-    self.returnType         = newState.pop('returnType'        )
-    self.qualityEstType     = newState.pop('qualityEstType'    )
-    self.ROMtype            = newState.pop('ROMtype'           )
-    self.printTag           = newState.pop('printTag'          )
-
-    ## local class stuff
-    self.gradient           = newState.pop('gradient'          )
-    self.graph              = newState.pop('graph'             )
-    self.beta               = newState.pop('beta'              )
-    self.knn                = newState.pop('knn'               )
-    self.simplification     = newState.pop('simplification'    )
-    self.persistence        = newState.pop('persistence'       )
-    self.weighted           = newState.pop('weighted'          )
-    self.normalization      = newState.pop('normalization'     )
-    self.partitionPredictor = newState.pop('partitionPredictor')
-    self.blending           = newState.pop('blending'          )
-    self.kernel             = newState.pop('kernel'            )
-    self.bandwidth          = newState.pop('bandwidth'         )
-    self.X                  = newState.pop('X'                 )
-    self.Y                  = newState.pop('Y'                 )
+    for key, value in newState.iteritems():
+        setattr(self, key, value)
     self.kdTree             = None
     self.__amsc             = None
     self.__trainLocal__(self.X,self.Y)
