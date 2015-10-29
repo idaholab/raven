@@ -56,7 +56,7 @@ def checkForMissingModule(i,fv,ev):
   missing = []
   too_old = []
   if len(fv) > 0:
-    check = ';import sys; sys.exit(not '+fv+' >= "'+ev+'")'
+    check = ';import sys; import distutils.version; sys.exit(not distutils.version.LooseVersion('+fv+') >= distutils.version.LooseVersion("'+ev+'"))'
   else:
     check = ''
   if inPython3():
