@@ -118,6 +118,6 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     vppFiles = []
     for time in range(int(self.vectorPPDict['timeStep'][0])):
       files2Merge.append(os.path.join(workingDir,str(output+self.mooseVPPFile+("%04d" % (time+1))+'.csv')))
-      outputObj = MooseData.mooseData(files2Merge,workingDir,output)
+      outputObj = MooseData.mooseData(files2Merge,workingDir,output,self.mooseVPPFile)
       vppFiles.append(os.path.join(workingDir,str(outputObj.vppFiles)))
     return vppFiles
