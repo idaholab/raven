@@ -19,7 +19,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
-      <variable>o</variable>
+      <variable>X</variable>
       <variable>Y</variable>
       <variable>Z</variable>
     </ExternalModel>
