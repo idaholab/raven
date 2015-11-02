@@ -1192,10 +1192,13 @@ class Grid(Sampler):
               else:
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
                   dxs[position-1] = (coordinatesPlusOne[variable] - coordinatesMinusOne[variable])/2.0
+                  NDcoordinate[position-1] = coordinates[variable.strip()] - (coordinates[variable.strip()]-coordinatesMinusOne[variable])/2.0 + dxs[position-1]/2.0
                 if coordinatesMinusOne[variable] == -sys.maxsize:
-                  dxs[position-1] = coordinatesPlusOne[variable] - coordinates[variable.strip()]
+                  dxs[position-1] = (coordinatesPlusOne[variable] - coordinates[variable.strip()])/2.0
+                  NDcoordinate[position-1] = coordinatesPlusOne[variable] + dxs[position-1]/2.0
                 if coordinatesPlusOne[variable] == sys.maxsize:
-                  dxs[position-1] = coordinates[variable.strip()] - coordinatesMinusOne[variable]
+                  dxs[position-1] = (coordinates[variable.strip()] - coordinatesMinusOne[variable])/2.0
+                  NDcoordinate[position-1] = coordinatesPlusOne[variable] - + dxs[position-1]/2.0
             weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)
       newpoint = tuple(self.values[key] for key in self.values.keys())
       if newpoint not in self.existing:
