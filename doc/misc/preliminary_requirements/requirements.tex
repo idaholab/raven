@@ -70,6 +70,26 @@
 {Sequences of calculation are one of the main uses of RAVEN.  For example, a initial calculation can be used to generate data to train a ROM, and then later calculations can use the ROM for faster calculation.  As well, steps allow various post processing to be done.}
 {testLimitSurfacePostProcessor}
 
+\requirement{R14}{RAVEN must be able to run external codes in parallel on shared memory machines.}
+{Andrea Alfonsi}
+{RAVEN will run on shared memory machines, and should be able to run external codes in parallel on them.  This can be done by running multiple processes.}
+{test\_bison\_mc\_simple\_\&\_alias\_system}
+
+\requirement{R15}{RAVEN must be able to run external codes in parallel on distributed memory machines.}
+{Andrea Alfonsi}
+{RAVEN will run on distributed memory machines, and should be able to run external codes in parallel on them.  This can be done by running with mpiexec.}
+{cluster\_tests/test\_mpi}
+
+\requirement{R16}{RAVEN must be able to run internal models in parallel on shared memory machines.}
+{Andrea Alfonsi}
+{RAVEN will run on shared memory machines, and it would be useful to run internal codes in parallel on them.}
+{InternalParallelTest/ROMscikit}
+
+\requirement{R17}{RAVEN must be able to run internal models in parallel on distributed memory machines.}
+{Andrea Alfonsi}
+{RAVEN will run on distributed memory machines, and it would be useful to run internal codes in parallel on them.}
+{cluster\_tests/InternalParallel/test\_internal\_parallel\_ROM\_scikit}
+
 \end{description}
 
 \end{document}
