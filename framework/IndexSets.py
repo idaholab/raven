@@ -296,10 +296,10 @@ class AdaptiveSet(IndexSet):
     #need 0, first-order polynomial in each dimension to start predictions
     firstpoint    = [0]*self.N #mean point polynomial
     self.active   = [tuple(firstpoint)] #stores the polynomial indices being actively trained
-    #for i in range(self.N): #add first-order polynomial along each axis
-    #  pt = firstpoint[:]
-    #  pt[i]+=1
-    #  self.active.append(tuple(pt))
+    for i in range(self.N): #add first-order polynomial along each axis
+      pt = firstpoint[:]
+      pt[i]+=1
+      self.active.append(tuple(pt))
     self.history  = [] #list of tuples, index set point and its impact parameter
 
   def accept(self,pt):

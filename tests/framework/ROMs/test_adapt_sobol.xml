@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation verbosity='debug'>
+<Simulation verbosity='all'>
     <RunInfo>
         <WorkingDir>AdaptSobol</WorkingDir>
         <Sequence>make,train,print</Sequence>
@@ -34,8 +34,10 @@
 
     <Samplers>
         <AdaptiveSobol name="sobol">
-            <Convergence>1e-10</Convergence>
-            <maxSobolOrder>2</maxSobolOrder>
+            <Convergence>
+              <relTolerance>1e-10</relTolerance>
+              <maxSobolOrder>2</maxSobolOrder>
+            </Convergence>
             <variable name="x1"><distribution>UniDist</distribution></variable>
             <variable name="x2"><distribution>UniDist</distribution></variable>
             <variable name="x3"><distribution>UniDist</distribution></variable>
