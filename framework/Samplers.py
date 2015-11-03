@@ -791,23 +791,23 @@ class LimitSurfaceSearch(AdaptiveSampler):
       distance, _ = distanceTree.query(self.surfPoint)
       distance = np.multiply(distance,self.invPointPersistence)
 
-      # if self.generateCSVs and self.surfPoint is not None:
-      #   # DM: HACK until I figure out how to get the actual working directory
-      #   self.workingDir = os.path.abspath(os.curdir)
-      #   fout = open(os.path.join(self.workingDir,'scores_'
-      #                            + str(self.counter) + '.csv'), 'w')
-      #   sep = ''
-      #   for varName in axisNames:
-      #     fout.write(sep+varName)
-      #     sep = ','
-      #   fout.write(sep+'score\n')
-      #   for i in xrange(len(self.surfPoint)):
-      #     sep = ''
-      #     for varIndex, name in enumerate(axisNames):
-      #       fout.write(sep+str(self.surfPoint[i,varIndex]))
-      #       sep = ','
-      #     fout.write(sep+str(distance[i])+'\n')
-      #   fout.close()
+      if self.generateCSVs and self.surfPoint is not None:
+        # DM: HACK until I figure out how to get the actual working directory
+        self.workingDir = os.path.abspath(os.curdir)
+        fout = open(os.path.join(self.workingDir,'scores_'
+                                 + str(self.counter) + '.csv'), 'w')
+        sep = ''
+        for varName in axisNames:
+          fout.write(sep+varName)
+          sep = ','
+        fout.write(sep+'score\n')
+        for i in xrange(len(self.surfPoint)):
+          sep = ''
+          for varIndex, name in enumerate(axisNames):
+            fout.write(sep+str(self.surfPoint[i,varIndex]))
+            sep = ','
+          fout.write(sep+str(distance[i])+'\n')
+        fout.close()
 
       if np.max(distance)>0.0:
         for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
