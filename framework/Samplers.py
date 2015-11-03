@@ -132,9 +132,13 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.assemblerDict                  = {}                       # {'class':[['subtype','name',instance]]}
 
     #used for pca analysis
+    self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
+    self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
+    '''
     self.latentVariablesDict            = {}                       # regarding latent variables, for each variable 'distName', the following informations are included: {'distName':['latentVar1','latentVar2',...]}
     self.latentVariablesValues          = []                       # list of latent variable values
     self.latentType                     = ''                       # input latent variable type, i.e. 'pca'
+    '''
 
   def _localGenerateAssembler(self,initDict):
     """ see generateAssembler method """
@@ -242,10 +246,27 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
               self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
           else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available are: limit, initialSeed, reseedEachIteration and distInit!')
+      elif child.tag == "variablesTransformation":
+        transformationDict = {}
+        for childChild in child:
+          if childChild.tag == "latentVariables":
+            transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
+          elif childChild.tag == "manifestVariables":
+            transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
+          elif childChild.tag == "method":
+            self.transformationMethod[child.attrib['model']] = childChild.text
+        self.variablesTransformationDict[child.attrib['model']] = transformationDict
 
+
+      '''
       elif child.tag == "latentVariables":
         self.latentType = child.attrib['type']
         self.latentVariablesDict[child.attrib['name']] = list(inp.strip() for inp in child.text.strip().split(','))
+      elif child.tag == 'manifestVariables':
+        if childChild.attrib['type'] == 'model':
+          self.inputVariables['model'] = list(inp.strip() for inp in childChild.text.strip().split(','))
+      '''
+
 
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
@@ -269,6 +290,30 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         if var.values()[0] > maxDim:
           maxDim = var.values()[0]
       self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
+
+    #Checking the variables transformation
+    if self.variablesTransformationDict:
+      for key,varsDict in self.variablesTransformationDict.items():
+        listLatentElement = varsDict['latentVariables']
+        varName = [variables for variables in self.variables2distributionsMapping.keys() if listLatentElement[0] in set(variables.strip().split(','))]
+        if varName:
+          distName = self.variables2distributionsMapping[varName[0]]['name']
+        else:
+          self.raiseAnError(IOError, 'There is no distribution defined for variable ' + listLatentElement[0])
+        listElement = self.distributions2variablesMapping[distName]
+        totDim = 1
+        for var in listElement:
+          if var.values()[0] > totDim:
+            totDim = var.values()[0]
+        maxDim = len(listLatentElement)
+        if totDim != maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(totDim) + ' is not consistnet with the dimension (i.e. ' + str(maxDim) +') of latent variable')
+        tempListElement = {k:v for x in listElement for k,v in x.items()}
+        for var,dim in tempListElement.items():
+          if dim > maxDim:
+            self.raiseAnError(IOError, 'The input variable: ' + var + ' is associated with dimension ' + str(dim) + ' is exceed the dimension of latent variables in PCA analysis')
+          if listLatentElement[dim -1] not in set(var.strip().split(',')):
+            self.raiseAnError(IOError, 'The dim: ' + str(dim) + ' should be assigned to the latent variable: ' + listLatentElement[dim-1] + ', However, it is assigned to variable: ' + var)
+    '''
     #Checking the latent variables
     if self.latentType != None:
       for key in self.latentVariablesDict.keys():
@@ -286,7 +331,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.raiseAnError(IOError, 'The input variable: ' + var + ' is associated with dimension ' + str(dim) + ' is exceed the dimension of latent variables in PCA analysis')
           if listLatentElement[dim -1] not in set(var.strip().split(',')):
             self.raiseAnError(IOError, 'The dim: ' + str(dim) + ' should be assigned to the latent variable: ' + listLatentElement[dim-1] + ', However, it is assigned to variable: ' + var)
-
+    '''
 
   def readSamplerInit(self,xmlNode):
     """
@@ -472,18 +517,34 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     # add latent variables and original variables to self.inputInfo
-    if self.latentType == 'pca': self.pcaTransform()
+    if self.variablesTransformationDict:
+      for key,var in self.variablesTransformationDict.items():
+        if self.transformationMethod[key] == 'pca':
+          self.pcaTransform(var)
+        else:
+          self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[key] + ' method')
     # generate the function variable values
     for var in self.dependentSample.keys():
       test=self.funcDict[var].evaluate(var,self.values)
       self.values[var] = test
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 
-  def pcaTransform(self):
+  def pcaTransform(self,varsDict):
     """
     This method used to mapping latent variables to the model input variables
     both the latent variables and the model input variables will be stored in the dict: self.inputInfo['SampledVars']
+    @in varsDict, dictionary contains latent and manifest variables {'latentVariables':[latentVar1,latentVar2,...], 'manifestVariables':[var1,var2,...]}
     """
+    latentVariablesValues = []
+    for lvar in varsDict['latentVariables']:
+      for var,value in self.values.items():
+        if lvar == var:
+          latentVariablesValues.append(value)
+    manifestVariablesValues = self.distDict[varsDict['latentVariables'][0]].pcaInverseTransform(latentVariablesValues)
+    manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
+    self.values.update(manifestVariablesDict)
+
+    '''
     for key in self.latentVariablesDict.keys():
       latentVariablesValues = []
       for lvar in self.latentVariablesDict[key]:
@@ -492,6 +553,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             latentVariablesValues.append(value)
       varDict = self.distDict[self.latentVariablesDict[key][0]].pcaInverseTransform(latentVariablesValues)
       self.values.update(varDict)
+    '''
 
   @abc.abstractmethod
   def localGenerateInput(self,model,oldInput):

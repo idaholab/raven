@@ -1491,9 +1491,11 @@ class MultivariateNormal(NDimensionalDistributions):
     self.transformMatrix = None  # np.array stores the transform matrix
     self.dimension = None        # the dimension of given problem
     self.rank = None             # the effective rank for the PCA analysis
+    '''
     self.inputVariables = {}     # dict of input variable: {'model'::varName,'latent':varName}, 'model' indicates the varName are provided by models,
                                  # and 'latent' indicates the varName used in the reduced space
-    self.reduction = False       # flag for input reduction analysis
+    '''
+    self.transformation = False       # flag for input reduction analysis
 
 
   def _readMoreXML(self,xmlNode):
@@ -1510,14 +1512,11 @@ class MultivariateNormal(NDimensionalDistributions):
       elif child.tag == 'covariance':
         covariance = [float(value) for value in child.text.split()]
         if 'type' in child.attrib.keys(): self.covarianceType = child.attrib['type']
-      elif child.tag == 'reduction':
-        self.reduction = True
+      elif child.tag == 'transformation':
+        self.transformation = True
         for childChild in child:
           if childChild.tag == 'rank':
             self.rank = int(childChild.text)
-          elif childChild.tag == 'variables':
-            if childChild.attrib['type'] == 'model':
-              self.inputVariables['model'] = list(inp.strip() for inp in childChild.text.strip().split(','))
 
     if self.rank == None: self.rank = self.dimension
     self.mu = mu
@@ -1554,7 +1553,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     Transform latent parameters back to models' parameters
     @ x, input coordinate, list values for the latent variables
-    @ varDict, output dictionary, {'modelParameterName':value}, this will be assigned to self.inputInfor['SampledVars'] inside Samplers.
+    @ return the values of manifest variables with type of list
     """
     if self.method == 'spline':
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
@@ -1565,8 +1564,7 @@ class MultivariateNormal(NDimensionalDistributions):
         coordinate[i] = x[i]
       originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
       values = np.atleast_1d(originalCoordinate).tolist()
-      varDict = dict(zip(self.inputVariables['model'],values))
-      return varDict
+      return values
 
   def coordinateInTransformedSpace(self):
     """
@@ -1584,7 +1582,7 @@ class MultivariateNormal(NDimensionalDistributions):
       self.raiseAnError(NotImplementedError,'ppf is not yet implemented for ' + self.method + ' method')
 
   def pdf(self,x):
-    if self.reduction:
+    if self.transformation:
       pdfValue = self.pdfInTransformedSpace(x)
       return pdfValue
     else:
@@ -1641,10 +1639,10 @@ class MultivariateNormal(NDimensionalDistributions):
   def rvs(self,*args):
     if self.method == 'spline':
       return self._distribution.InverseCdf(random(),random())
-    # if no reduction, then return the coordinate for the original input parameters
-    # if there is a reduction, then return the coordinate in the reduced space
+    # if no transformation, then return the coordinate for the original input parameters
+    # if there is a transformation, then return the coordinate in the reduced space
     elif self.method == 'pca':
-      if self.reduction:
+      if self.transformation:
         return self._distribution.coordinateInTransformedSpace(self.rank)
       else:
         coordinate = self._distribution.coordinateInTransformedSpace(self.rank)

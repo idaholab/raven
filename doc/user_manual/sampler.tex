@@ -271,16 +271,21 @@ XML node and the requirements for other attributes change:
     \end{itemize}
 }
 
-\newcommand{\latentVariableDescription}[1]
+\newcommand{\variablesTransformationDescription}[1]
 {
     \begin{itemize}
-      \item \xmlNode{latentVariables}, \xmlDesc{comma separated string, optional field}, user-defined 
-      latent variables that are used for input reduction.This XML node is required when the user-defined 
-      a reduction in the \xmlNode{Distributions} block. The content will specify two attributes:
+      \item \xmlNode{variablesTransformation}, \xmlDesc{optional field}. This XML node accepts one attribute:
       \begin{itemize}
-        \item \xmlNode{name}, \xmlDesc{string, required field}, the name of distribution that is associated to these variables.
-        Its name needs to be contained in the \xmlNode{Distributions} block explained in sectioin 8.
-        \item \xmlNode{type}, \xmlDesc{string, required field}, the method that is used for the input reduction.
+        \item \xmlAttr{model}, \xmlDesc{required string attribute}, the name for the model defined in the XML node \xmlNode {Models}. 
+        This attribute indicates the \xmlNode{manifestVariables} defined in the subnode will be used by the \xmlAttr{model}.
+      \end{itemize}
+      In addition, this XML node also accepts three childen nodes:
+      \begin{itemize}
+        \item \xmlNode{latentVariables}, \xmlDesc{comma separated string, required field}, user-defined latent variables that 
+        are used for the variables transformation.
+        \item \xmlNode{manifestVariables}, \xmlDesc{comma separated string, required field}, user-defined manifest variables 
+        that are used by the \xmlAttr{model}.
+        \item \xmlNode{method}, \xmlDesc{string, required field}, the method that is used for the variables transformation.
       \end{itemize}
     \end{itemize}
 }
@@ -508,7 +513,7 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
 
 \assemblerDescription{MonteCarlo}
 \restartDescription{MonteCarlo}
-\latentVariableDescription{MonteCarlo}
+\variablesTransformationDescription{MonteCarlo}
 
 Example:
 \begin{lstlisting}[style=XML]

@@ -27,11 +27,9 @@
 
   <Distributions>
     <MultivariateNormal name='MultivariateNormalPCAReduction' method='pca'>
-        <reduction>
+        <transformation>
             <rank>2</rank>
-            <!--variables type='latent'>x1,x2</variables-->
-            <variables type='model'>x0,y0,z0</variables>
-        </reduction>
+        </transformation>
         <mu>0.0 60.0 60.0</mu>
         <covariance type="abs">
             1.0       0.8      -0.5
@@ -53,7 +51,11 @@
       <variable name="y1">
         <distribution dim="2">MultivariateNormalPCAReduction</distribution>
       </variable>
-      <latentVariables name='MultivariateNormalPCAReduction' type='pca'>x1,y1</latentVariables>
+      <variablesTransformation model="PythonModule">
+        <latentVariables>x1,y1</latentVariables>
+        <manifestVariables>x0,y0,z0</manifestVariables>
+        <method>pca</method>
+      </variablesTransformation>
     </MonteCarlo>
   </Samplers>
 

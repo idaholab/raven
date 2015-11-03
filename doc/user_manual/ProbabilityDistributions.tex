@@ -761,15 +761,11 @@ In RAVEN the MultivariateNormal distribution can be initialized through the foll
   \item \xmlNode{mu}, list of mean values of each dimension
   \item \xmlNode{covariance}, list of element values in the covariance matrix. There are two types of \xmlNode{covariance}, based on the \xmlAttr{type}:
   \begin{itemize}
-    \item \xmlAttr{type}, \xmlDesc{string, optional field}, specifies the type of covariance. Possible values for \xmlAttr{type} are \xmlString{abs} and \xmlString{rel}. \nb currently, method \xmlString{pca} can be combined with both types, and method \xmlString{spline} only accept the type \xmlString{abs}
+    \item \xmlAttr{type}, \xmlDesc{string, optional field}, specifies the type of covariance, the default \xmlAttr{type} is \xmlString{abs}. Possible values for \xmlAttr{type} are \xmlString{abs} and \xmlString{rel}. \nb \xmlString{abs} indicates the covariance is a normal covariance matrix, while \xmlString{rel} indicates the covariance is a relative covariance matrix. In addition, method \xmlString{pca} can be combined with both types, and method \xmlString{spline} only accept the type \xmlString{abs}
   \end{itemize}
-  \item \xmlNode{reduction}, \xmlDesc{XML node, optional field}, option to enable input parameter reduction using PCA approach. The content will specify two attributes:
+  \item \xmlNode{transformation}, \xmlDesc{XML node, optional field}, option to enable input parameter transformation using principal component analysis (PCA) approach. If this node is provided, PCA will be used to compute the principal components of input covariance matrix. The subnode \xmlNode{rank} is used to indicate the number of principal components that will be used for the input transformation. The content will specify one attribute:
   \begin{itemize}
-    \item \xmlAttr{rank}, \xmlDesc{positive integer, required field}, user-defined dimensionality reduction.
-    \item \xmlAttr{variables}, \xmlDesc{comma separated strings, required field},list of the names of input variables, the content of this XML node depends on the definition of the associated attributes:
-    \begin{itemize}
-      \item \xmlAttr{type}, \xmlDesc{required string attribute}, user-defined type for the list. \nb only \xmlString{model} is accepted now.
-    \end{itemize}
+    \item \xmlNode{rank}, \xmlDesc{positive integer, required field}, user-defined dimensionality reduction.
   \end{itemize}
 \end{itemize}
 
@@ -802,6 +798,10 @@ Example:
 </Distributions>
 \end{lstlisting}
 
+In the following, we defined a distribution with a transformation node using PCA method. The number of principal components is 
+defined in \xmlNode{rank}. In this distribution, PCA is employed to restruct the multivariate normal distribution. In addition, 
+the size of uncorrelated variables is also determined by \xmlNode{rank}. 
+
 \begin{lstlisting}[style=XML]
 <Distributions>
   ...
@@ -812,10 +812,9 @@ Example:
            0.7   1.0   0.4
            -0.2  0.4   1.0
         </covariance>
-        <reduction>
+        <transformation>
           <rank>2</rank>
-          <variables type="model">x1,y1</variables>
-        </reduction>
+        </transformation>
     </MultivariateNormal>
   ...
 </Distributions>
