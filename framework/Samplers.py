@@ -1051,8 +1051,8 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     self._addAssObject('ROM','n')
     self._addAssObject('Function','-n')
 
-    self.acceptedScoringParam = ['distance','straddle','distance_persistence','surface']
-    self.acceptedBatchParam = ['none','naive','batch_maxv','batch_maxp']
+    self.acceptedScoringParam = ['distance','distancePersistence']
+    self.acceptedBatchParam = ['none','naive','maxv','maxp']
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -1362,7 +1362,6 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
       #  clean
       if self.lastOutput.isItEmpty() and not self.limitSurfacePP.ROM.amITrained \
       or self.counter < self.trainSize:
-        self.raiseADebug('initial training')
         return ready
     #first evaluate the goal function on the newly sampled points and store them
     #  in mapping description self.functionValue RecontructEnding
@@ -1372,7 +1371,6 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     else:
       if not self.lastOutput.isItEmpty():
         self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
-    self.raiseADebug('Training finished')
     #copy the old solution (contained in the limit surface PP) for convergence
     # check
     np.copyto(self.oldTestMatrix,self.limitSurfacePP.getTestMatrix())
@@ -1424,7 +1422,6 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     #     fout.write(sep+str(evaluations[i])+'\n')
     #   fout.close()
 
-    self.raiseADebug('Prediction finished')
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys():
       indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
@@ -1433,12 +1430,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
 
     #index of last set of point tested and ready to perform the function
     #  evaluation
-    # DM: Test this is the same thing
     indexEnd  = len(self.limitSurfacePP.getFunctionValue()[axisNames[0]])-1
-    # DM: It looks the same to me.
-    # print('indexEnd (Dan)', indexEnd)
-    # indexEnd  = len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])-1
-    # print('indexEnd (Andrea)', indexEnd)
     tempDict  = {}
     for myIndex in range(indexLast+1,indexEnd+1):
       for key, value in self.limitSurfacePP.getFunctionValue().items():
@@ -1446,7 +1438,6 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
       if len(self.hangingPoints) > 0:
         # This line looks cute, but is hard to parse and does not appear to ever
         # be hit... What does it do?
-        print('DM: Never gets hit')
         self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in axisNames])).all(axis=1)][:]
     self.persistenceMatrix += self.limitSurfacePP.getTestMatrix()
     # test error
@@ -1559,7 +1550,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
         self.scores = distance
       else:
         self.scores = np.multiply(distance,self.invPointPersistence)
-    elif self.scoringMethod == 'surface':
+    elif self.scoringMethod == 'debug':
       self.scores = np.zeros(len(self.surfPoint))
       for i in xrange(len(self.listsurfPoint)):
         self.scores[i] = 1
@@ -1611,7 +1602,6 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
     #  variable
     axisNames = [key.replace('<distribution>','') for key in self.axisName]
 
-    self.raiseADebug('Generating input')
     if self.surfPoint is not None and len(self.surfPoint) > 0:
       if self.batchStrategy == 'none':
         self.ScoreCandidates()
@@ -1620,9 +1610,9 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
             self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[np.argmax(self.scores),varIndex]))
             self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
           varSet=True
-        else: self.raiseADebug('np.max(score)=0.0')
-
-      elif self.batchStrategy.startswith('batch'):
+        else:
+          self.raiseADebug('np.max(score)=0.0')
+      elif self.batchStrategy.startswith('max'):
         ########################################################################
         ## Initialize the queue with as many points as requested or as many as
         ## possible
@@ -1666,7 +1656,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
           thresholdLevel = self.threshold*(max(self.scores)-min(self.scores))+min(self.scores)
           # Sort the maxima based on decreasing function value, thus the top
           # candidate is the first element.
-          if self.batchStrategy.endswith('maxv'):
+          if self.batchStrategy.endswith('v'):
             sortedMaxima = sorted(maxIdxs, key=lambda idx: self.scores[idx], reverse=True)
           else:
           # Sort the maxima based on decreasing persistence value, thus the top
@@ -1704,76 +1694,7 @@ class LimitSurfaceBatchSearch(AdaptiveSampler):
           self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
-      elif self.batchStrategy == 'topology':
-        self.ScoreCandidates()
-        edges = []
-        bandPts = self.listsurfPoint+self.bandIndices
-        for i,iCoords in enumerate(bandPts):
-          for j in xrange(i+1, len(bandPts)):
-            jCoords = bandPts[j]
-            ijValidNeighbors = True
-            for d in xrange(len(jCoords)):
-              if abs(iCoords[d] - jCoords[d]) > 1:
-                ijValidNeighbors = False
-                break
-            if ijValidNeighbors:
-              edges.append((i,j))
-              edges.append((j,i))
 
-        names = [ name.encode('ascii', 'ignore') for name in axisNames]
-        names.append('score'.encode('ascii','ignore'))
-        amsc = AMSC_Object(X=np.array(self.surfPoint), Y=self.scores, w=None,
-                           names=names, graph='none',
-                           gradient='steepest', normalization='feature',
-                           persistence='difference', edges=edges, debug=False)
-        plevel = self.simplification*(max(self.scores)-min(self.scores))
-        partitions = amsc.StableManifolds(plevel)
-        mergeSequence = amsc.GetMergeSequence()
-        maxIdxs = list(set(partitions.keys()))
-
-        # Sort the maxima based on decreasing persistence value, thus the top
-        # candidate is the first element.
-        sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1],
-                              reverse=True)
-        if np.max(self.scores)>0.0:
-          count = 0
-          while count < len(sortedMaxima):
-            topIdx = sortedMaxima[count]
-            validMaximum = True
-            # print(topIdx, sortedMaxima)
-            for point in self.hangingPoints:
-              dist = 0
-              for varIndex, varName in enumerate(axisNames):
-                dist += (float(self.surfPoint[topIdx,varIndex])-float(point[varIndex]))**2
-              #TODO: remove hard-coded tolerance
-              if np.sqrt(dist) < 1e-6:
-                validMaximum = False
-                break
-            if validMaximum:
-              break
-            else:
-              count += 1
-
-          if count < len(sortedMaxima):
-            if count + 1 == 1:
-              suffix = 'st'
-            elif count + 1 == 2:
-              suffix = 'nd'
-            elif count + 1 == 3:
-              suffix = 'rd'
-            else:
-              suffix = 'th'
-            for varIndex, varName in enumerate(axisNames):
-              self.values[self.axisName[varIndex]] = float(self.surfPoint[topIdx,varIndex])
-              self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-            print(str(self.counter) + ': Selected ' + str(count+1) + suffix + ' highest point. ',self.values)
-            # print('\tTraining size', len(self.lastOutput))
-            # print('\tCandidate size', len(self.scores))
-            varSet=True
-          else:
-            self.raiseADebug('All local maxima have been submitted.')
-        else:
-          self.raiseADebug('Selected score <= 0.0')
     if not varSet:
       # Here we generate a random point
       self.MCSamples.append(self.counter)
