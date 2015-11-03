@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A simple example of the approximate Morse-Smale complex being used for
+     regression on a 2D function with one single global maximum. This example
+     should thoroughly test all of the features associated to the MSR. -->
+<Simulation  verbosity='silent'>
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel name='foo' subType='' ModuleToLoad = './testFunction'>
+      <variable>X</variable>
+      <variable>Y</variable>
+      <variable>Z</variable>
+    </ExternalModel>
+
+    <!-- Test all of the ways a user can screw up the input fields -->
+    <ROM name="invalidGraph" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <graph>invalid</graph>
+    </ROM>
+    <ROM name="invalidGradient" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <gradient>invalid</gradient>
+    </ROM>
+
+    <ROM name="invalidBetaNonNumeric" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <beta>invalid</beta>
+    </ROM>
+    <ROM name="invalidBetaLow" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <beta>0</beta>
+    </ROM>
+    <ROM name="invalidBetaHigh" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <beta>3</beta>
+    </ROM>
+    <ROM name="invalidBetaWarning" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <graph>approximate knn</graph>
+      <beta>-1</beta>
+    </ROM>
+    <ROM name="invalidBetaNonNumericWarning" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <graph>approximate knn</graph>
+      <beta>invalid</beta>
+    </ROM>
+
+    <ROM name="invalidPartitionPrediction" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <partitionPredictor>invalid</partitionPredictor>
+    </ROM>
+
+    <ROM name="invalidBandwidth" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <bandwidth>0</bandwidth>
+    </ROM>
+    <ROM name="invalidBandwidthNonNumeric" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <bandwidth>invalid</bandwidth>
+    </ROM>
+    <ROM name="invalidBandwidthWarning" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <partitionPredictor>svm</partitionPredictor>
+      <bandwidth>0</bandwidth>
+    </ROM>
+    <ROM name="invalidBandwidthNonNumericWarning" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <partitionPredictor>svm</partitionPredictor>
+      <bandwidth>invalid</bandwidth>
+    </ROM>
+
+    <ROM name="invalidKNN" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <knn>invalid</knn>
+    </ROM>
+
+    <ROM name="invalidSimplification" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <simplification>invalid</simplification>
+    </ROM>
+
+    <ROM name="invalidPersistence" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <persistence>invalid</persistence>
+    </ROM>
+
+    <ROM name="invalidKernel" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <partitionPredictor>kde</partitionPredictor>
+      <kernel>invalid</kernel>
+    </ROM>
+    <ROM name="invalidKernelWarning" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <partitionPredictor>svm</partitionPredictor>
+      <kernel>invalid</kernel>
+    </ROM>
+
+    <!-- The weighted version has not been implemented yet -->
+    <ROM name="invalidWeighted" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <weighted>invalid</weighted>
+    </ROM>
+
+  </Models>
+
+  <Distributions>
+    <Uniform name="smallUniformDist">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+    <Uniform name="largeUniformDist">
+      <lowerBound>-1000</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="gridSampler">
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+        <grid construction="equal" steps="20" type="value">2 3</grid>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+        <grid construction="equal" steps="20" type="value">-1000 1000</grid>
+      </variable>
+    </Grid>
+    <MonteCarlo name="mcSampler">
+      <sampler_init>
+        <limit>300</limit>
+        <initial_seed>888</initial_seed>
+      </sampler_init>
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime='1e-5'>
+      <Input   class="DataObjects" type="PointSet"     >dummyIN</Input>
+      <Model   class="Models"      type="ExternalModel">foo</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"   >mcSampler</Sampler>
+      <Output  class="DataObjects" type="PointSet"     >trainingData</Output>
+      <Output  class="OutStreamManager" type="Print"   >trainingData</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">invalidWeighted</Output>
+      <Output class="Models" type="ROM">KDE</Output>
+    </RomTrainer>
+  </Steps>
+
+  <OutStreamManager>
+    <!-- A csv file containing the output of the example -->
+    <Print name="trainingData">
+      <type>csv</type>
+      <source>trainingData</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <!-- The input PointSet object -->
+    <PointSet name="dummyIN">
+      <Input>X,Y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="trainingData">
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
