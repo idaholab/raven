@@ -641,7 +641,6 @@ class HDMRRom(GaussPolynomialRom):
       for request in requests:
         request=request.strip()
         newnode = TreeStructure.Node(request)
-        #node.appendBranch(newnode)
         if request.lower() in ['mean','expectedvalue']: newnode.setText(self.__mean__())
         elif request.lower() in ['variance']: newnode.setText(self.__variance__())
         elif request.lower() in ['indices']:
@@ -649,7 +648,7 @@ class HDMRRom(GaussPolynomialRom):
           vnode = TreeStructure.Node('total_variance')
           vnode.setText(totvar)
           newnode.appendBranch(vnode)
-          #split into two sets, significant and insignificat
+          #split into two sets, significant and insignificant
           entries = []
           insig = []
           for combo,sens in pcts.items():
@@ -671,7 +670,6 @@ class HDMRRom(GaussPolynomialRom):
           for combo,sens in insig:
             addSensBranch(combo,sens)
         elif request.lower() in ['numruns']:
-          print('\n\n\n\nHEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEERE\n\n\n')
           newnode.setText(self.numRuns)
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
