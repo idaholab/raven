@@ -82,19 +82,19 @@ def splitCommand(s):
   """
   n = 0
   retList = []
-  in_quote = False
+  inQuote = False
   buffer = ""
   while n < len(s):
     current = s[n]
-    if current in string.whitespace and not in_quote:
+    if current in string.whitespace and not inQuote:
       if len(buffer) > 0: #found end of command
         retList.append(buffer)
         buffer = ""
     elif current in "\"'":
-      if in_quote:
-        in_quote = False
+      if inQuote:
+        inQuote = False
       else:
-        in_quote = True
+        inQuote = True
     else:
       buffer = buffer + current
     n += 1
@@ -128,7 +128,7 @@ def createAndRunQSUB(simulation):
              "-l","place=free","-v",
              'COMMAND="python Driver.py '+
              " ".join(simulation.runInfoDict["SimulationFiles"])+'"',
-             os.path.join(frameworkDir,"raven_qsub_command.sh")]
+             simulation.runInfoDict['RemoteRunCommand']]
   #Change to frameworkDir so we find raven_qsub_command.sh
   os.chdir(frameworkDir)
   simulation.raiseAMessage(os.getcwd()+' '+str(command))
@@ -143,13 +143,13 @@ class MPISimulationMode(SimulationMode):
     self.__simulation = simulation
     self.messageHandler = simulation.messageHandler
     #Figure out if we are in PBS
-    self.__in_pbs = "PBS_NODEFILE" in os.environ
+    self.__inPbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
     self.__runQsub = False
     self.printTag = 'MPI SIMULATION MODE'
 
   def modifySimulation(self):
-    if self.__nodefile or self.__in_pbs:
+    if self.__nodefile or self.__inPbs:
       if not self.__nodefile:
         #Figure out number of nodes and use for batchsize
         nodefile = os.environ["PBS_NODEFILE"]
@@ -170,10 +170,10 @@ class MPISimulationMode(SimulationMode):
         #need to split node lines so that numMPI nodes are available per run
         workingDir = self.__simulation.runInfoDict['WorkingDir']
         for i in range(newBatchsize):
-          node_file = open(os.path.join(workingDir,"node_"+str(i)),"w")
+          nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
           for line in lines[i*numMPI:(i+1)*numMPI]:
-            node_file.write(line)
-          node_file.close()
+            nodeFile.write(line)
+          nodeFile.close()
         #then give each index a separate file.
         nodeCommand = "-f %BASE_WORKING_DIR%/node_%INDEX% "
       else:
@@ -201,11 +201,11 @@ class MPISimulationMode(SimulationMode):
   def doOverrideRun(self):
     # Check if the simulation has been run in PBS mode and if run QSUB
     # has been requested, in case, construct the proper command
-    return (not self.__in_pbs) and self.__runQsub
+    return (not self.__inPbs) and self.__runQsub
 
   def runOverride(self):
     #Check and see if this is being accidently run
-    assert self.__runQsub and not self.__in_pbs
+    assert self.__runQsub and not self.__inPbs
     createAndRunQSUB(self.__simulation)
 
 
@@ -286,15 +286,16 @@ class Simulation(MessageHandler.MessageUser):
     self.runInfoDict['SimulationFiles'   ] = []           #the xml input file
     self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaces
     self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
+    self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_qsub_command.sh')
     self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
     self.runInfoDict['NumMPI'            ] = 1            # the number of mpi process by run
     self.runInfoDict['NumThreads'        ] = 1            # Number of Threads by run
     self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threads by number of mpi)
     self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
+    self.runInfoDict['internalParallel'  ] = False        # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
     self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
     self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded
-    self.runInfoDict['numNode'           ] = 1            # number of nodes
     #self.runInfoDict['procByNode'        ] = 1            # number of processors by node
     self.runInfoDict['totalNumCoresUsed' ] = 1            # total number of cores used by driver
     self.runInfoDict['queueingSoftware'  ] = ''           # queueing software name
@@ -388,6 +389,47 @@ class Simulation(MessageHandler.MessageUser):
     path = os.path.normpath(self.runInfoDict['WorkingDir'])
     curfile.prependPath(path) #this respects existing path from the user input, if any
 
+  def ExternalXMLread(self,externalXMLFile,externalXMLNode,xmlFileName=None):
+    """
+    parses the external xml input file
+    @ In, externalXMLFile, the filename for the external xml file that will be loaded
+    @ In, externalXMLNode, decribes which node will be loaded to raven input file
+    @ In, xmlFileName, the raven input file name
+    @ Out, externalElemment, xml.etree.ElementTree object that will be added to the current tree of raven input
+    """
+    if '~' in externalXMLFile: externalXMLFile = os.path.expanduser(externalXMLFile)
+    if not os.path.isabs(externalXMLFile):
+      if xmlFileName == None:
+        self.raiseAnError(IOError,'Relative working directory requested but input xmlFileName is None.')
+      xmlDirectory = os.path.dirname(os.path.abspath(xmlFileName))
+      externalXMLFile = os.path.join(xmlDirectory,externalXMLFile)
+    if os.path.exists(externalXMLFile):
+      externalTree = ET.parse(externalXMLFile)
+      externalElement = externalTree.getroot()
+      if externalElement.tag != externalXMLNode:
+        self.raiseAnError(IOError,'The required node is: ' + externalXMLNode + 'is different from the provided external xml type: ' + externalElement.tag)
+    else:
+      self.raiseAnError(IOError,'The external xml input file ' + externalXMLFile + ' does not exist!')
+    return externalElement
+
+  def XMLpreprocess(self,xmlNode,xmlFileName=None):
+    """
+    Preprocess the xml input file, load external xml files into the main ET
+    @ In, xmlNode, xml.etree.ElementTree object, root element of RAVEN input file
+    @ In, xmlFileName, the raven input file name
+    """
+    self.verbosity = xmlNode.attrib.get('verbosity','all')
+    for element in xmlNode.iter():
+      for subElement in element:
+        if subElement.tag == 'ExternalXML':
+          self.raiseADebug('-'*2+' Loading external xml within block '+ element.tag+ ' for: {0:15}'.format(str(subElement.attrib['node']))+2*'-')
+          nodeName = subElement.attrib['node']
+          xmlToLoad = subElement.attrib['xmlToLoad'].strip()
+          newElement = self.ExternalXMLread(xmlToLoad,nodeName,xmlFileName)
+          element.append(newElement)
+          element.remove(subElement)
+          self.XMLpreprocess(xmlNode,xmlFileName)
+
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     """parses the xml input file, instances the classes need to represent all objects in the simulation"""
     self.verbosity = xmlNode.attrib.get('verbosity','all')
@@ -457,7 +499,8 @@ class Simulation(MessageHandler.MessageUser):
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
     self.jobHandler.initialize(self.runInfoDict,self.messageHandler)
-    self.printDicts()
+    # only print the dictionaries when the verbosity is set to debug
+    if self.verbosity == 'debug': self.printDicts()
     for stepName, stepInstance in self.stepsDict.items():
       self.checkStep(stepInstance,stepName)
 
@@ -497,25 +540,32 @@ class Simulation(MessageHandler.MessageUser):
       if element.tag in runInfoSkip:
         self.raiseAWarning("Skipped element ",element.tag)
       elif   element.tag == 'WorkingDir'        :
-        temp_name = element.text
-        if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
-        if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = temp_name
+        tempName = element.text
+        if '~' in tempName : tempName = os.path.expanduser(tempName)
+        if os.path.isabs(tempName):            self.runInfoDict['WorkingDir'        ] = tempName
         elif "runRelative" in element.attrib:
-          self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
+          self.runInfoDict['WorkingDir'        ] = os.path.abspath(tempName)
         else:
           if xmlFilename == None:
             self.raiseAnError(IOError,'Relative working directory requested but xmlFilename is None.')
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
-          raw_relative_working_dir = element.text.strip()
-          self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,raw_relative_working_dir)
+          rawRelativeWorkingDir = element.text.strip()
+          self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
+      elif element.tag == 'RemoteRunCommand'  :
+        tempName = element.text
+        if '~' in tempName : tempName = os.path.expanduser(tempName)
+        if os.path.isabs(tempName):
+          self.runInfoDict['RemoteRunCommand' ] = tempName
+        else:
+          self.runInfoDict['RemoteRunCommand' ] = os.path.abspath(os.path.join(self.runInfoDict['FrameworkDir'],tempName))
       elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
       elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'        ] = int(element.text)
-      elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
-      elif element.tag == 'totalNumCoresUsed' : self.runInfoDict['totalNumCoresUsed'   ] = int(element.text)
+      elif element.tag == 'totalNumCoresUsed' : self.runInfoDict['totalNumCoresUsed' ] = int(element.text)
       elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'            ] = int(element.text)
+      elif element.tag == 'internalParallel'  : self.runInfoDict['internalParallel'  ] = utils.interpretBoolean(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag == 'MaxLogFileSize'    : self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
       elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
@@ -564,22 +614,23 @@ class Simulation(MessageHandler.MessageUser):
     """utility function capable to print a summary of the dictionaries"""
     def __prntDict(Dict,msg):
       """utility function capable to print a dictionary"""
-      msg=''
       for key in Dict:
         msg+=key+'= '+str(Dict[key])+'\n'
-      msg=__prntDict(self.runInfoDict,msg)
-      msg=__prntDict(self.stepsDict,msg)
-      msg=__prntDict(self.dataDict,msg)
-      msg=__prntDict(self.samplersDict,msg)
-      msg=__prntDict(self.modelsDict,msg)
-      msg=__prntDict(self.testsDict,msg)
-      msg=__prntDict(self.filesDict,msg)
-      msg=__prntDict(self.dataBasesDict,msg)
-      msg=__prntDict(self.OutStreamManagerPlotDict,msg)
-      msg=__prntDict(self.OutStreamManagerPrintDict,msg)
-      msg=__prntDict(self.addWhatDict,msg)
-      msg=__prntDict(self.whichDict,msg)
-      self.raiseAMessage(msg)
+      return msg
+    msg=''
+    msg=__prntDict(self.runInfoDict,msg)
+    msg=__prntDict(self.stepsDict,msg)
+    msg=__prntDict(self.dataDict,msg)
+    msg=__prntDict(self.samplersDict,msg)
+    msg=__prntDict(self.modelsDict,msg)
+    msg=__prntDict(self.testsDict,msg)
+    msg=__prntDict(self.filesDict,msg)
+    msg=__prntDict(self.dataBasesDict,msg)
+    msg=__prntDict(self.OutStreamManagerPlotDict,msg)
+    msg=__prntDict(self.OutStreamManagerPrintDict,msg)
+    msg=__prntDict(self.addWhatDict,msg)
+    msg=__prntDict(self.whichDict,msg)
+    self.raiseAMessage(msg)
 
   def run(self):
     """run the simulation"""

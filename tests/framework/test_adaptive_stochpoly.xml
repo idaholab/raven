@@ -7,7 +7,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="make" verbosity="silent">
+    <MultiRun name="make" verbosity="silent" sleepTime='1e-4'>
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
       <Sampler class="Samplers" type="AdaptiveSparseGrid">SG</Sampler>
@@ -50,7 +50,7 @@
 
   <Models>
     <Dummy name="MyDummy" print="true" subType=""/>
-    <ExternalModel ModuleToLoad="AdaptiveStochasticPoly/polynomial" name="poly" subType="" verbosity="silent">
+    <ExternalModel ModuleToLoad="polynomial" name="poly" subType="" verbosity="silent">
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>ans</variable>
@@ -79,7 +79,7 @@
     <Print name="dump" verbosity="silent">
       <type>xml</type>
       <source>rom</source>
-      <what>mean,variance</what>
+      <what>all</what>
       <target>all</target>
     </Print>
     <Print name="data" verbosity="silent">

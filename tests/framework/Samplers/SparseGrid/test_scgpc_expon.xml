@@ -1,0 +1,96 @@
+<?xml version="1.0" ?>
+<Simulation printTimeStamps="false">
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>Emake,Etrain,Etest,Eprint</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Distributions>
+    <Exponential name="ExpDist">
+      <lambda>1.5</lambda>
+    </Exponential>
+  </Distributions>
+
+  <Samplers>
+    <SparseGridCollocation name="ESG" parallel="1">
+      <variable name="x1">
+        <distribution>ExpDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>ExpDist</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">EROM</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="polynomial" name="polynomial" subType="">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>ans</variable>
+    </ExternalModel>
+    <ROM name="EROM" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TensorProduct</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+      <Interpolation poly="Legendre" quad="Legendre" weight="1">x1</Interpolation>
+      <Interpolation poly="Legendre" quad="Legendre" weight="1">x2</Interpolation>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <MultiRun name="Emake" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">ESG</Sampler>
+      <Output class="DataObjects" type="PointSet">Esolns</Output>
+    </MultiRun>
+    <MultiRun name="Etest" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">EROM</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">ESG</Sampler>
+      <Output class="DataObjects" type="PointSet">Etests</Output>
+    </MultiRun>
+    <IOStep name="Eprint">
+      <Input class="DataObjects" type="PointSet">Etests</Input>
+      <Input class="Models" type="ROM">EROM</Input>
+      <Output class="OutStreamManager" type="Print">Edump</Output>
+      <Output class="OutStreamManager" type="Print">Edumprom</Output>
+    </IOStep>
+    <RomTrainer name="Etrain">
+      <Input class="DataObjects" type="PointSet">Esolns</Input>
+      <Output class="Models" type="ROM">EROM</Output>
+    </RomTrainer>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="Etests">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="Esolns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="Edump">
+      <type>csv</type>
+      <source>Etests</source>
+    </Print>
+    <Print name="Edumprom">
+      <type>xml</type>
+      <source>EROM</source>
+      <what>all</what>
+    </Print>
+  </OutStreamManager>
+
+</Simulation>

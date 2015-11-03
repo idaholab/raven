@@ -49,9 +49,9 @@
 
   <Samplers>
     <Stratified name="myLHS">
-      <sampler_init>
-        <initial_seed>1</initial_seed>
-      </sampler_init>
+      <samplerInit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
       <variable name="Components|pipe|Tw">
         <distribution>Gauss1</distribution>
         <grid construction="equal" steps="3" type="value">0.02 0.92</grid>

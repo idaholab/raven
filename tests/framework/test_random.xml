@@ -19,41 +19,41 @@
 
   <Samplers>
     <MonteCarlo name="MC1">
-      <sampler_init>
+      <samplerInit>
         <limit>3</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="simple_var">
         <distribution>simple</distribution>
       </variable>
     </MonteCarlo>
     <MonteCarlo name="MC2">
-      <sampler_init>
+      <samplerInit>
         <limit>3</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="simple_var">
         <distribution>simple</distribution>
       </variable>
     </MonteCarlo>
     <MonteCarlo name="MC3">
-      <sampler_init>
+      <samplerInit>
         <limit>3</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="simple_var">
         <distribution>simple</distribution>
       </variable>
     </MonteCarlo>
     <MonteCarlo name="MC4">
-      <sampler_init>
+      <samplerInit>
         <limit>3</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="simple_var">
         <distribution>simple</distribution>
       </variable>
     </MonteCarlo>
     <MonteCarlo name="MC5">
-      <sampler_init>
+      <samplerInit>
         <limit>3</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="simple_var">
         <distribution>simple</distribution>
       </variable>

@@ -1,0 +1,106 @@
+<Simulation verbosity="all">
+	
+
+<RunInfo>
+  <WorkingDir>limitSurfaceMultiGrid</WorkingDir>
+  <Sequence>GoalOrientedStep,dumpLSout</Sequence>
+  <batchSize>3250</batchSize>
+</RunInfo>
+
+<Steps>
+  <MultiRun name="GoalOrientedStep" pauseAtEnd='False'>
+    <Input   class="DataObjects"             type="Point"              >inputPlaceHolder</Input>
+    <Model   class="Models"                  type="ExternalModel"      >PythonModule</Model>
+    <Sampler class="Samplers"                type="LimitSurfaceSearch" >workshopAdaptive</Sampler>
+    <SolutionExport class="DataObjects"      type="PointSet"           >limitSurface</SolutionExport>
+    <Output  class="DataObjects"             type="PointSet"           >outAdaptive</Output>
+  </MultiRun>
+  <IOStep name="dumpLSout" pauseAtEnd="False">
+    <Input   class="DataObjects"             type="PointSet"           >limitSurface</Input>
+    <Output  class='OutStreamManager'        type='Print'              >limitSurfaceTwoIslandsCSV</Output>
+  </IOStep>
+</Steps>
+
+<DataObjects>
+    <Point name="inputPlaceHolder">
+        <Input>x1,x2</Input>
+        <Output>OutputPlaceHolder</Output>
+    </Point>
+    <PointSet name="outAdaptive">
+        <Input>x1,x2</Input>
+        <Output>y4,failure</Output>
+    </PointSet>
+    <PointSet name="limitSurface">
+        <Input>x1,x2</Input>
+        <Output>goalFunction</Output>
+    </PointSet>
+</DataObjects>
+
+
+<Distributions>
+    <Normal name='normal_trunc'>
+        <mean>0</mean>
+        <sigma>1</sigma>
+        <lowerBound>-1.5</lowerBound>
+        <upperBound>1.5</upperBound>
+    </Normal>
+    <Normal name='normal'>
+        <mean>0</mean>
+        <sigma>1</sigma>
+        <lowerBound>-1.5</lowerBound>
+        <upperBound>1.5</upperBound>
+    </Normal>
+</Distributions>
+
+
+<Samplers>
+  <LimitSurfaceSearch name = "workshopAdaptive">
+    <ROM              class = "Models"    type = "ROM"                 >AccelerationROM</ROM>
+    <Function         class = "Functions" type = "External"            >goalFunction</Function>
+    <TargetEvaluation class = "DataObjects"     type = "PointSet"  >outAdaptive</TargetEvaluation>
+     <Convergence limit = "50000" forceIteration = "False" weight = "CDF" persistence = "7" subGridTol="0.0001">0.0004</Convergence> 
+    <variable name = "x1"><distribution>normal_trunc</distribution></variable>
+    <variable name = "x2"><distribution>normal</distribution></variable>
+  </LimitSurfaceSearch>
+</Samplers>
+
+
+<Models>
+    <ExternalModel name="PythonModule" subType="" ModuleToLoad="twoIslandsModel">
+       <variable>x1</variable>
+       <variable>x2</variable>
+       <variable>y4</variable>
+       <variable>failure</variable>
+    </ExternalModel>
+    <ROM  name="AccelerationROM" subType="SciKitLearn">
+      <Features>x1,x2</Features>
+      <Target>goalFunction</Target>
+      <SKLtype>svm|SVC</SKLtype>
+      <kernel>rbf</kernel>
+      <gamma>10</gamma>
+      <tol>1e-5</tol>
+      <C>50</C>
+    </ROM>
+</Models>
+
+
+<Functions>
+    <External name="goalFunction" file= "limitSurfaceMultiGrid/goalFunctionTwoIslands">
+        <variable>x1</variable>
+        <variable>x2</variable>
+        <variable>y4</variable>
+        <variable>failure</variable>
+    </External>
+</Functions>
+
+
+<OutStreamManager> 
+  <Print name = "limitSurfaceTwoIslandsCSV">
+  	<type>csv</type>
+  	<source>limitSurface</source>
+  </Print>
+</OutStreamManager>
+
+
+
+</Simulation>

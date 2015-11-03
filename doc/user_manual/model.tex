@@ -889,7 +889,7 @@ algorithm representing the ROM that tunes itself to replicate those results.
 RAVEN supports several different types of ROMs, both internally developed and
 imported through an external library called ``scikit-learn''~\cite{SciKitLearn}.
 
-Currently in RAVEN, the ROMs are classified into 4 sub-types that, once chosen,
+Currently in RAVEN, the ROMs are classified into several sub-types that, once chosen,
 provide access to several different algorithms.
 %
 These sub-types are specified in the \xmlAttr{subType} attribute and should be
@@ -897,8 +897,10 @@ one of the following:
 \begin{itemize}
   \item \xmlString{NDspline}
   \item \xmlString{GaussPolynomialRom}
+  \item \xmlString{HDMRRom}
   \item \xmlString{NDinvDistWeight}
   \item \xmlString{SciKitLearn}
+  \item \xmlString{MSR}
 \end{itemize}
 
 \specBlock{a}{ROM}
@@ -910,7 +912,7 @@ one of the following:
   \itemsep0em
   \item \nameDescription
   \item \xmlAttr{subType}, \xmlDesc{required string attribute}, defines which of
-  the 4 sub-types should be used, choosing among the previously reported
+  the sub-types should be used, choosing among the previously reported
   types.
   %
   This choice conditions the subsequent the required and/or optional
@@ -1086,30 +1088,30 @@ Also, this ROM must be referenced in the SparseGridCollocation sampler in order 
 accurately produce the necessary sparse grid points to train this ROM.
 
 \textbf{Example:}
-\footnotesize
+{\footnotesize
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
-<Samplers>
-  ...
-  <SparseGridCollocation name="mySG" parallel="0">
-    <variable name="x1">
-      <distribution>myDist1</distribution>
-    </variable>
-    <variable name="x2">
-      <distribution>myDist2</distribution>
-    </variable>
-    <ROM class = 'Models' type = 'ROM' >myROM</ROM>
-  </SparseGridCollocation>
-  ...
-</Samplers>
-...
 <Simulation>
+  ...
+  <Samplers>
+    ...
+    <SparseGridCollocation name="mySG" parallel="0">
+      <variable name="x1">
+        <distribution>myDist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>myDist2</distribution>
+      </variable>
+      <ROM class = 'Models' type = 'ROM' >myROM</ROM>
+    </SparseGridCollocation>
+    ...
+  </Samplers>
   ...
   <Models>
     ...
     <ROM name='myRom' subType='GaussPolynomialRom'>
       <Target>ans</Target>
       <Features>x1,x2</Features>
-      <IndexSet>TD</IndexSet>
+      <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>4</PolynomialOrder>
       <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
       <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
@@ -1119,6 +1121,7 @@ accurately produce the necessary sparse grid points to train this ROM.
   ...
 </Simulation>
 \end{lstlisting}
+}
 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are \xmlString{mean} and \xmlString{variance}.
 
@@ -1152,7 +1155,7 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
   uncertainty in most models.
 
 \textbf{Example:}
-\footnotesize
+{\footnotesize
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
   <Samplers>
     ...
@@ -1182,8 +1185,142 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
     ...
   </Models>
 \end{lstlisting}
+}
 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are \xmlString{mean}, \xmlString{variance}, and \xmlString{indices}.  In the latter case, the total calculated variance is printed, followed by the percent of contributing variance for each existing subset of the input domain (the Sobol indices).
+
+%%%%% ROM Model - MSR  %%%%%%%
+\subsubsection{MSR}
+\label{subsubsec:MSR}
+The MSR sub-type contains a class of ROMs that perform a topological
+decomposition of the data into approximately monotonic regions and fits weighted
+linear patches to the identified monotonic regions of the input space. Query
+points have estimated probabilities that they belong to each cluster. These
+probabilities can eitehr be used to give a smooth, weighted prediction based on
+the associated linear models, or a hard classification to a particular local
+linear model which is then used for prediction. Currently, the probability
+prediction can be done using kernel density estimation (KDE) or through a
+one-versus-one support vector machine (SVM).
+%
+
+In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+be \xmlString{MSR} (see the associated example).
+%
+\subnodesIntro
+%
+\begin{itemize}
+  \item \xmlNode{persistence}, \xmlDesc{string, optional field}, specifies how
+  to define the hierarchical simplification by assigning a value to each local
+  minimum and maximum according to the one of the strategy options below:
+  \begin{itemize}
+    \item \texttt{difference} - The function value difference between the
+    extremum and its closest-valued neighboring saddle.
+    \item \texttt{probability} - The probability integral computed as the
+    sum of the probability of each point in a cluster divided by the count of
+    the cluster.
+    \item \texttt{count} - The count of points that flow to or from the
+    extremum.
+    % \item \xmlString{area} - The area enclosed by the manifold that flows to
+    % or from the extremum.
+  \end{itemize}
+  \default{\texttt{difference}}
+  \item \xmlNode{gradient}, \xmlDesc{string, optional field}, specifies the
+  method used for estimating the gradient, available options are:
+  \begin{itemize}
+    \item \texttt{steepest}
+    %\item \texttt{maxflow} \textit{(disabled)}
+  \end{itemize}
+  \default{\texttt{steepest}}
+  \item \xmlNode{simplification}, \xmlDesc{float, optional field}, specifies the
+  amount of noise reduction to apply before returning labels.
+  \default{0}
+  \item \xmlNode{graph} \xmlDesc{, string, optional field}, specifies the type
+  of neighborhood graph used in the algorithm, available options are:
+  \begin{itemize}
+    \item \texttt{beta skeleton}
+    \item \texttt{relaxed beta skeleton}
+    \item \texttt{approximate knn}
+    %\item \texttt{delaunay} \textit{(disabled)}
+  \end{itemize}
+  \default{\texttt{beta skeleton}}
+  \item \xmlNode{beta}, \xmlDesc{float in the range: (0,2], optional field}, is
+  only used when the \xmlNode{graph} is set to \texttt{beta skeleton} or
+  \texttt{relaxed beta skeleton}.
+  \default{1.0}
+  \item \xmlNode{knn}, \xmlDesc{integer, optional field}, is the number of
+  neighbors when using the \texttt{approximate knn} for the \xmlNode{graph}
+  sub-node and used to speed up the computation of other graphs by using the
+  approximate knn graph as a starting point for pruning. -1 means use a fully
+  connected graph.
+  \default{-1}
+  % \item \xmlNode{weighted}, \xmlDesc{boolean, optional}, a flag that specifies
+  % whether the regression models should be probability weighted.
+  % \default{False}
+  \item \xmlNode{partitionPredictor}, \xmlDesc{string, optional}, a flag that
+  specifies how the predictions for query point classification should be
+  performed. Available options are:
+  \begin{itemize}
+    \item \texttt{kde}
+    \item \texttt{svm}
+  \end{itemize}
+  \default{kde}
+  \item \xmlNode{smooth}, if this node is present, the ROM will blend the
+  estimates of all of the local linear models weighted by the probability the
+  query point is classified as belonging to that partition of the input space.
+  \item \xmlNode{kernel}, \xmlDesc{string, optional field}, this option is only
+  used when the \xmlNode{partitionPredictor} is set to \texttt{kde} and
+  specifies the type of kernel to use in the kernel density estimation.
+  Available options are:
+  \begin{itemize}
+    \item \texttt{uniform}
+    \item \texttt{triangular}
+    \item \texttt{gaussian}
+    \item \texttt{epanechnikov}
+    \item \texttt{biweight} or \texttt{quartic}
+    \item \texttt{triweight}
+    \item \texttt{tricube}
+    \item \texttt{cosine}
+    \item \texttt{logistic}
+    \item \texttt{silverman}
+    \item \texttt{exponential}
+  \end{itemize}
+  \default{gaussian}
+  \item \xmlNode{bandwidth}, \xmlDesc{float or string, optional field}, this
+  option is only used when the \xmlNode{partitionPredictor} is set to
+  \texttt{kde} and specifies the scale of the fall-off. A higher bandwidth
+  implies a smooother blending. If set to \texttt{variable}, then the bandwidth
+  will be set to the distance of the $k$-nearest neighbor of the query point
+  where $k$ is set by the \xmlNode{knn} parameter.
+  \default{1.}
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    </ROM>
+    <ROM name='aUserDefinedName' subType='MSR'>
+       <Features>var1,var2,var3</Features>
+       <Target>result1,result2</Target>
+       <!-- <weighted>true</weighted> -->
+       <simplification>0.0</simplification>
+       <persistence>difference</persistence>
+       <gradient>steepest</gradient>
+       <graph>beta skeleton</graph>
+       <beta>1</beta>
+       <knn>8</knn>
+       <partitionPredictor>kde</partitionPredictor>
+       <kernel>gaussian</kernel>
+       <smooth/>
+       <bandwidth>0.2</bandwidth>
+     </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
 
 %%%%% ROM Model - NDinvDistWeight  %%%%%%%
 \subsubsection{NDinvDistWeight}
@@ -1935,8 +2072,10 @@ parameter, $C$.
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, specifies the loss
   function to be used:
   \begin{itemize}
-    \item epsilon\_insensitive: equivalent to PA-I in the reference paper (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf).
-    \item squared\_epsilon\_insensitive: equivalent to PA-II in the reference paper (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf).
+    \item epsilon\_insensitive: equivalent to PA-I in the reference paper (http://jmlr.csail.mit.edu/papers/volume7
+    /crammer06a/crammer06a.pdf).
+    \item squared\_epsilon\_insensitive: equivalent to PA-II in the reference paper (http://jmlr.csail.mit.edu/papers
+    /volume7/crammer06a/crammer06a.pdf).
   \end{itemize}
   %
   \item \warmStartDescription{}
@@ -3674,8 +3813,10 @@ This XML node needs to contain the attributes:
   \item \xmlAttr{ModuleToLoad}, \xmlDesc{required string attribute}, file name
   with its absolute or relative path.
   %
-  \nb If a relative path is specified, it must be relative with respect to where
-  the user runs the code.
+  \nb If a relative path is specified, the code first checks relative
+  to the working directory, then it checks with respect to where the
+  user runs the code.  Using the relative path with respect to where the
+  code is run is not recommended.
   %
 \end{itemize}
 \vspace{-5mm}
@@ -4108,13 +4249,13 @@ There are four nodes that are used in the post-processor.
 
 \begin{itemize}
 \item \xmlNode{kind}: specifies information to use for comparing the
-  data that is provided.  This takes either uniform\_bins which makes
-  the bin width uniform or equal\_probability which makes the number
+  data that is provided.  This takes either uniformBins which makes
+  the bin width uniform or equalProbability which makes the number
   of counts in each bin equal.  It can take the following attributes:
   \begin{itemize}
-  \item \xmlAttr{num\_bins} which takes a number that directly
+  \item \xmlAttr{numBins} which takes a number that directly
     specifies the number of bins
-  \item \xmlAttr{bin\_method} which takes a string that specifies the
+  \item \xmlAttr{binMethod} which takes a string that specifies the
     method used to calculate the number of bins.  This can be either
     square-root or sturges.
   \end{itemize}
@@ -4193,7 +4334,7 @@ points to approximations in the calculation.
    <Models>
       ...
       <PostProcessor name="stat_stuff" subType="ComparisonStatistics">
-      <kind bin_method='sturges'>uniform_bins</kind>
+      <kind binMethod='sturges'>uniformBins</kind>
       <compare>
         <data>OriData|Output|tsin_TEMPERATURE</data>
         <reference name='normal_410_2' />
@@ -4204,7 +4345,7 @@ points to approximations in the calculation.
       </compare>
       </PostProcessor>
       <PostProcessor name="stat_stuff2" subType="ComparisonStatistics">
-        <kind num_bins="6">equal_probability</kind>
+        <kind numBins="6">equalProbability</kind>
         <compare>
           <data>OriData|Output|tsin_TEMPERATURE</data>
         </compare>
@@ -4547,8 +4688,9 @@ Section~\ref{sec:functions} for more details).
 \subsubsection{TopologicalDecomposition}
 \label{TopologicalDecomposition}
 The \textbf{TopologicalDecomposition} post-processor will compute an
-approximated hierarchical Morse-Smale complex and perform linear regression on
-each component.
+approximated hierarchical Morse-Smale complex which will add two columns to a
+dataset, namely \texttt{minLabel} and \texttt{maxLabel} that can be used to
+decompose a dataset.
 %
 
 In order to use the \textbf{TopologicalDecomposition} post-processor, the user

@@ -8,6 +8,17 @@ import os
 import subprocess
 import sys
 
+# Set this outside the class because the framework directory is constant for
+#  each instance of this Tester, and in addition, there is a problem with the
+#  path by the time you call it in __init__ that causes it to think its absolute
+#  path is somewhere under tests/framework.
+# Be aware that if this file changes its location, this variable should also be
+#  changed.
+myDir = os.path.dirname(os.path.realpath(__file__))
+RAVEN_DIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
+
+_missing_modules, _too_old_modules = RavenUtils.checkForMissingModules()
+
 class RavenFramework(Tester):
 
   @staticmethod
@@ -30,9 +41,9 @@ class RavenFramework(Tester):
     ravenflag = ''
     if self.specs['test_interface_only'].lower() == 'true': ravenflag = 'interfaceCheck '
     if RavenUtils.inPython3():
-      return "python3 ../../framework/Driver.py " + ravenflag + self.specs["input"]
+      return "python3 " + self.driver + " " + ravenflag + self.specs["input"]
     else:
-      return "python ../../framework/Driver.py " + ravenflag + self.specs["input"]
+      return "python " + self.driver + " " + ravenflag + self.specs["input"]
 
 
   def __init__(self, name, params):
@@ -44,9 +55,10 @@ class RavenFramework(Tester):
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
     self.specs['scale_refine'] = False
+    self.driver = os.path.join(RAVEN_DIR,'Driver.py')
 
   def checkRunnable(self, option):
-    missing,too_old = RavenUtils.checkForMissingModules()
+    missing,too_old = _missing_modules, _too_old_modules
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
@@ -73,7 +85,10 @@ class RavenFramework(Tester):
     return (True, '')
 
   def prepare(self):
-    self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
+    if self.specs['output'].strip() != '':
+      self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
+    else:
+      self.check_files = []
     for filename in self.check_files+self.csv_files+self.xml_files+self.ucsv_files:# + [os.path.join(self.specs['test_dir'],filename)  for filename in self.csv_files]:
       if os.path.exists(filename):
         os.remove(filename)
@@ -101,7 +116,6 @@ class RavenFramework(Tester):
     ucsv_same,ucsv_messages = ucsv_diff.diff()
     if not ucsv_same:
       return ucsv_messages,output
-    return ('',output)
 
     #xml
     if len(self.specs['xmlopts'])>0: xmlopts = self.specs['xmlopts'].split(' ')

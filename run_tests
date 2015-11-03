@@ -40,10 +40,9 @@ except:
     print("No raven_libs found and old version modules "+",".join(too_old))
 
 #add framework contrib path
-myPath = os.path.dirname(os.path.realpath(__file__))
-os.environ["PYTHONPATH"] = os.path.join(myPath,'framework','contrib') + os.pathsep + os.environ.get("PYTHONPATH","")
-
-print("PYTHONPATH="+os.environ["PYTHONPATH"])
+RAVEN_DIR = os.path.dirname(os.path.realpath(__file__))
+os.environ["PYTHONPATH"] = os.path.join(RAVEN_DIR,'framework','contrib') + os.pathsep + os.environ.get("PYTHONPATH","")
+#print("PYTHONPATH="+os.environ["PYTHONPATH"])
 
 coverage = False
 library_report = False

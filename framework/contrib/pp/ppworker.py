@@ -32,6 +32,14 @@ forums
 import sys
 import os
 import inspect
+frameworkFolder = os.path.realpath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())),"..",".."))
+if frameworkFolder not in sys.path: sys.path.insert(0, frameworkFolder)
+sys.path.append(os.path.join(frameworkFolder,'utils'))
+from utils import add_path_recursively, find_crow
+find_crow(frameworkFolder)
+add_path_recursively(os.path.join(frameworkFolder,'contrib'))
+
+
 #filepath = os.path.dirname(os.path.abspath(inspect.getsourcefile(lambda _: None)))
 #sys.path.append(os.path.abspath(os.path.join(filepath,'..'+os.path.sep+'..'+os.path.sep ,'utils')))
 #frameworkDir = os.path.abspath(os.path.join(filepath,'..'+os.path.sep+'..'+os.path.sep))
@@ -39,7 +47,8 @@ import inspect
 #add_path_recursively(frameworkDir)
 import StringIO
 #import dill as pickle
-import cPickle as pickle
+#import cPickle as pickle
+import pickle
 from serialization import cloudpickle
 import pptransport
 

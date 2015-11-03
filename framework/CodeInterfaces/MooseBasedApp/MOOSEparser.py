@@ -5,6 +5,7 @@ Created on Mar 25, 2013
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
+from macpath import split
 warnings.simplefilter('default',DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
@@ -16,7 +17,6 @@ from utils import toBytes, toStrish, compare
 
 class MOOSEparser():
   '''import the MOOSE input as xml tree, provide methods to add/change entries and print it back'''
-
   def __init__(self,inputFile):
     self.printTag = 'MOOSE_PARSER'
     if not os.path.exists(inputFile): raise IOError('not found MOOSE input file')
@@ -186,3 +186,27 @@ class MOOSEparser():
       del modiDictionaryList[i]['name']
       self.__modifyOrAdd(returnElement,name,modiDictionaryList[i])
     if save: return returnElement
+
+  def vectorPostProcessor(self):
+    """this method finds and process the vector post processor
+    @ In, None
+    @ Out, (found, vectorPPDict), tuple,
+    found: boolean for the presence of the vector PP
+    vectorPPDict: Dictionary for the properties related to the vector PP
+    """
+    vectorPPDict = {}
+    found = False
+    for child in self.root:
+      if 'DomainIntegral' in child.tag:
+        found = True
+        ''' Below are not necessarily at his stage but may be for future use
+        if 'radius_inner' in child.keys():
+          vectorPPDict['rings'] = child.attrib['radius_inner'].strip("'").strip().split(' ')
+        if 'integrals' in child.keys():
+          vectorPPDict['integrals'] = child.attrib['integrals'].strip("'").strip().split(' ')
+        '''
+      if 'Executioner' in child.tag:
+        if 'num_steps' in child.keys():
+          vectorPPDict['timeStep'] = child.attrib['num_steps'].strip("'").strip().split(' ') #TODO: define default num_steps in case it is not in moose input
+    return found, vectorPPDict
+

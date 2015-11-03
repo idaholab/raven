@@ -1,0 +1,5 @@
+<data name="testData2" type="Pointset">
+  <input>A,B</input>
+  <output>C</output>
+  <inputFilename>data2.csv</inputFilename>
+</data>

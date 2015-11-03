@@ -130,6 +130,8 @@
             </xsd:element>
             <xsd:element name="Sequence"           type="xsd:string"  minOccurs="1"/>
             <xsd:element name="batchSize"          type="xsd:integer" minOccurs="0" default="1"/>
+            <xsd:element name="RemoteRunCommand"   type="xsd:string"  minOccurs="0" default="raven_qsub_command.sh"/>
+            <xsd:element name="internalParallel"   type="RavenBool"   minOccurs="0" default="false"/>
             <xsd:element name="JobName"            type="xsd:string"  minOccurs="0"/>
             <xsd:element name="NumThreads"         type="xsd:integer" minOccurs="0" default="1"/>
             <xsd:element name="mode" minOccurs="0">
@@ -150,7 +152,6 @@
             <xsd:element name="deleteOutExtension" type="xsd:string"  minOccurs="0" default="None"/>
             <xsd:element name="delSucLogFiles"     type="RavenBool" minOccurs="0" default="false"/>
 
-            <xsd:element name="NumNode"          type="xsd:integer" minOccurs="0"/>
             <xsd:element name="queueingSoftware" type="xsd:string"  minOccurs="0" default="PBS PROFESSIONAL"/>
 
             <xsd:element name="expectedTime"     type="xsd:string"  minOccurs="0" default="None"/>
@@ -241,8 +242,8 @@
               <xsd:complexType>
                 <xsd:simpleContent>
                   <xsd:extension base='xsd:string'>
-                    <xsd:attribute name='num_bins' type='xsd:integer' use='required' />
-                    <xsd:attribute name='bin_method'  type='CompStatsBinMethod' use='required' />
+                    <xsd:attribute name='numBins' type='xsd:integer' use='required' />
+                    <xsd:attribute name='binMethod'  type='CompStatsBinMethod' use='required' />
                   </xsd:extension>
                 </xsd:simpleContent>
               </xsd:complexType>

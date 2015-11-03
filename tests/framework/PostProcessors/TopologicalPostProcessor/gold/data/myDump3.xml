@@ -1,0 +1,2 @@
+<data name="myDump3" type="Pointset"><input>Y,X</input><output>Z,maxLabel,minLabel</output><inputFilename>myDump3.csv</inputFilename><metadata><hierarchy>array([ 'Minima,0.973802,0,0 Minima,0.0312272,10,0 Minima,0.00469056,110,0 Minima,0.0719484,120,0 Maxima,0.973802,74,74 '], 
+      dtype='|S111')</hierarchy></metadata></data>
