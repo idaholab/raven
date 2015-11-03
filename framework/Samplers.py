@@ -1173,25 +1173,31 @@ class Grid(Sampler):
                 weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
         # ND variable
         else:
-          if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
+          if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instead of N
             distName = self.variables2distributionsMapping[varName]['name']
             NDcoordinate=np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs=np.zeros(len(self.distributions2variablesMapping[distName]))
             for var in self.distributions2variablesMapping[distName]:
               variable = var.keys()[0].strip()
               position = var.values()[0]
-              
+              #NDcoordinate[position-1] = coordinates[variable.strip()]
               if self.gridInfo[variable]=='CDF':
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
                   dxs[position-1] = (self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
-                      - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1))/2.0
-                   
+                                   - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1))/2.0
+                  tempDx = (self.distDict[variable].inverseMarginalDistribution(coordinates[variable.strip()],self.variables2distributionsMapping[variable]['dim']-1)
+                          - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1))/2.0
+                  NDcoordinate[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinates[variable.strip()] ,self.variables2distributionsMapping[variable]['dim']-1) - tempDx/2.0 + dxs[position-1]/2.0
                 if coordinatesMinusOne[variable] == -sys.maxsize:
-                  dxs[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1) - coordinates[variable.strip()]
-                  
+                  #dxs[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1) - coordinates[variable.strip()]
+                  dxs[position-1] = (self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
+                                   - self.distDict[variable].inverseMarginalDistribution(coordinates[variable.strip()],self.variables2distributionsMapping[variable]['dim']-1))/2.0
+                  NDcoordinate[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinates[variable.strip()] ,self.variables2distributionsMapping[variable]['dim']-1) + dxs[position-1]/2.0
                 if coordinatesPlusOne[variable] == sys.maxsize:
-                  dxs[position-1] = coordinates[variable.strip()] - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
-                   
+                  #dxs[position-1] = coordinates[variable.strip()] - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
+                  dxs[position-1] = (self.distDict[variable].inverseMarginalDistribution(coordinates[variable.strip()] ,self.variables2distributionsMapping[variable]['dim']-1) 
+                                   - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1))/2.0
+                  NDcoordinate[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinates[variable.strip()] ,self.variables2distributionsMapping[variable]['dim']-1) - dxs[position-1]/2.0
               else:
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
                   dxs[position-1] = (coordinatesPlusOne[variable] - coordinatesMinusOne[variable])/2.0
@@ -1202,7 +1208,10 @@ class Grid(Sampler):
                 if coordinatesPlusOne[variable] == sys.maxsize:
                   dxs[position-1] = (coordinates[variable.strip()] - coordinatesMinusOne[variable])/2.0
                   NDcoordinate[position-1] = coordinates[variable.strip()] - dxs[position-1]/2.0
+            print(self.distDict[varName].cdf(NDcoordinate))
             weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)
+            #print(str(NDcoordinate) + ' , ' + str(dxs))
+                  
       newpoint = tuple(self.values[key] for key in self.values.keys())
       if newpoint not in self.existing:
         found=True
