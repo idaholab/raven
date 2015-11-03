@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>circle</WorkingDir>
     <Sequence>sample,adapt,dump</Sequence>
-    <batchSize>4</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
@@ -22,9 +22,9 @@
     </MultiRun>
     <IOStep name="dump">
       <Input class="DataObjects" type="PointSet">limit_surface</Input>
-      <Output class="OutStreamManager" type="Print">greedyLS</Output>
+      <Output class="OutStreamManager" type="Print">greedy_d_ls</Output>
       <Input class="DataObjects" type="PointSet">response</Input>
-      <Output class="OutStreamManager" type="Print">greedyDump</Output>
+      <Output class="OutStreamManager" type="Print">greedy_d_samples</Output>
     </IOStep>
   </Steps>
 
@@ -72,7 +72,7 @@
       <scoring>distance</scoring>
       <batchStrategy>none</batchStrategy>
       <thickness>1</thickness>
-      <maxBatchSize>8</maxBatchSize>
+      <maxBatchSize>1</maxBatchSize>
       <variable name="x1"><distribution>uniform</distribution></variable>
       <variable name="x2"><distribution>uniform</distribution></variable>
     </LimitSurfaceBatchSearch>
@@ -103,11 +103,11 @@
   </Functions>
 
   <OutStreamManager>
-    <Print name="greedyLS">
+    <Print name="greedy_d_ls">
       <type>csv</type>
       <source>limit_surface</source>
     </Print>
-    <Print name="greedyDump">
+    <Print name="greedy_d_samples">
       <type>csv</type>
       <source>response</source>
     </Print>

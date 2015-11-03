@@ -1,0 +1,14 @@
+[Tests]
+ [./GreedyDistance]
+  type = 'RavenFramework'
+  input = 'test_greedy_d.xml'
+  xml = 'circle/greedy_d_samples.xml circle/greedy_d_ls.xml'
+  csv = 'circle/greedy_d_samples.csv circle/greedy_d_ls.csv'
+ [../]
+ [./GreedyDistancePersistence]
+  type = 'RavenFramework'
+  input = 'test_greedy_dp.xml'
+  xml = 'circle/greedy_dp_samples.xml circle/greedy_dp_ls.xml'
+  csv = 'circle/greedy_dp_samples.csv circle/greedy_dp_ls.csv'
+ [../]
+[]

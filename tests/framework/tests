@@ -456,7 +456,7 @@
   input = 'test_LHS_variables.xml'
   output = 'LHStestVariables/outLHS_dump.csv'
   csv = 'LHStestVariables/outLHS_dump.csv'
-  xmv = 'LHStestVariables/outLHS_dump.xml'
+  xml = 'LHStestVariables/outLHS_dump.xml'
  [../]
 
 []
