@@ -20,8 +20,8 @@
         <IOStep name='print'>
             <Input   class='DataObjects'      type='PointSet'>solns</Input>
             <Input   class='Models'      type='ROM'>rom</Input>
-            <Output  class='OutStreamManager' type='Print'       >dump</Output>
-            <Output  class='OutStreamManager' type='Print'       >dumprom</Output>
+            <Output  class='OutStreamManager' type='Print'       >maxruns_dump</Output>
+            <Output  class='OutStreamManager' type='Print'       >maxruns_dumprom</Output>
         </IOStep>
     </Steps>
 
@@ -36,11 +36,9 @@
         <AdaptiveSobol name="sobol">
             <Convergence>
               <relTolerance>1e-4</relTolerance>
-              <maxRuns>50</maxRuns>
+              <maxRuns>20</maxRuns>
               <maxSobolOrder>2</maxSobolOrder>
-              <progressParam>1</progressParam>
-              <logFile>states.txt</logFile>
-              <subsetVerbosity>notaverbosity</subsetVerbosity>
+              <progressParam>2.0</progressParam>
             </Convergence>
             <variable name="x1"><distribution>UniDist</distribution></variable>
             <variable name="x2"><distribution>UniDist</distribution></variable>
@@ -82,11 +80,11 @@
     </DataObjects>
 
     <OutStreamManager>
-        <Print name='dump'>
+        <Print name='maxruns_dump'>
             <type>csv</type>
             <source>solns</source>
         </Print>
-        <Print name='dumprom'>
+        <Print name='maxruns_dumprom'>
             <type>xml</type>
             <source>rom</source>
             <what>all</what>

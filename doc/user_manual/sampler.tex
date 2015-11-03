@@ -2102,27 +2102,40 @@ Note that the ROM specified for this sampler \emph{must} be an HDMRRom specified
 \end{itemize}
 
 In addition to the \xmlNode{variable} nodes, the main XML node
-\xmlNode{Adaptive Sobol} needs to contain two supplementary sub-nodes:
+\xmlNode{Adaptive Sobol} needs to contain the following supplementary sub-nodes:
 
 \begin{itemize}
-  \item \xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence
-    tolerance.  This is the relative tolerance for converging the variance of the response ROM.
+  \item \xmlNode{Convergence}, \xmlDesc{required node}, Convergence
+    properties.
+    This node contains the following properties that can be set by sub-nodes:
     %
     \begin{itemize}
-      \item \xmlAttr{maxRuns}, \xmlDesc{optional string attribute},
+      \item \xmlNode{relTolerance}, \xmlDesc{required float}, the relative tolerance to converge.
+        This will compare to the estimate of subset polynomial errors and additional subset polynomials over
+        the variance of the expansion so far to determine convergence.
+      \item \xmlNode{maxRuns}, \xmlDesc{optional integer field},
         a limit for the number of model calls.  Once this limit is reached, no additional subsets
         will be generated or considered; however, existing subsets will continue to be trained.  If not
         specified, no limit on solves is imposed.
+      \item \xmlNode{maxSobolOrder}, \xmlDesc{optional integer field},
+        the largest polynomials orders to use in subset GaussPolynomialRom objects.  If specified, polynomial
+        indices with a value larger than the value given will be rejected during adaptive construction.
+      \item \xmlNode{progressParam}, \xmlDesc{optional float field}, a favoritism parameter ranging between
+        0 and 2.  At 0, the algorithm will always prefer adding polynomials to adding new subsets in the HDMR
+        expansion.  At 2, the opposite is true.  Default is 1.
+      \item \xmlNode{logFile}, \xmlDesc{optional string field},
+        a file to which adaptive progress is recorded.  If specified, each adaptive step will trigger printing
+        progress to the file given, including the estimated error at the step, the next adaptive step to take,
+        the coefficient of each polynomial within each gPC expansion, and the actual and expected Sobol
+        sensitivities of each HDMR subset. Default is no printing.
+      \item \xmlNode{subsetVerbosity}, \xmlDesc{optional string field}, the verbosity for components
+        constructed during the adaptive HDMR process.  Options are \emph{silent}, \emph{quiet}, \emph{all}, or
+        \emph{debug}, in order of
+        verbosity.  If an invalid entry is provided, will resort to default.  Default is \emph{quiet}.
         %
     \end{itemize}
     In summary, this XML node contains the information that is needed in order
     to control this sampler's convergence criterion.
-  \item \xmlNode{maxSobolOrder}, \xmlDesc{optional field}, the maximum cardinality of subsets to consider when
-    performing the adaptive decomposition.  For example, for a model $f(a,b,c)$, a max Sobol order of 1
-    results in subsets $(a),(b),(c)$, while a max Sobol order of 2 additionally considers $(a,b), (a,c),
-    (b,c)$.  Experience has shown that many problems converge well with a max Sobol order of 2, which is the
-    default.
-
 \end{itemize}
   % Adaptive Sobol
   \assemblerDescription{Adaptive Sobol}
@@ -2146,8 +2159,14 @@ Example:
 <Samplers>
   ...
   <AdaptiveSobol name="AS" verbosity='debug'>
-    <Convergence maxRuns='100'>1e-7</Convergence>
-    <maxSobolOrder>3</maxSobolOrder>
+    <Convergence>
+      <relTolerance>1e-5</relTolerance>
+      <maxRuns>150</maxRuns>
+      <maxSobolOrder>3</maxSobolOrder>
+      <progressParam>1</progressParam>
+      <logFile>progress.txt</logFile>
+      <subsetVerbosity>silent</subsetVerbosity>
+    </Convergence>
     <variable name="x1">
       <distribution>UniDist</distribution>
     </variable>
