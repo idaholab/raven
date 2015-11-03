@@ -35,8 +35,9 @@
     <Samplers>
         <AdaptiveSobol name="sobol">
             <Convergence>
-              <relTolerance>1e-10</relTolerance>
+              <relTolerance>1e-4</relTolerance>
               <maxSobolOrder>2</maxSobolOrder>
+              <persistence>4</persistence>
             </Convergence>
             <variable name="x1"><distribution>UniDist</distribution></variable>
             <variable name="x2"><distribution>UniDist</distribution></variable>

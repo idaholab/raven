@@ -3524,6 +3524,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #identification
     self.type            = 'AdaptiveSobolSampler'
     self.printTag        = 'SAMPLER ADAPTIVE SOBOL'
+    self.stateCounter    = 0 #counts number of times adaptive step moves forward
 
     #input parameters
     self.maxSobolOrder   = None #largest dimensionality of a subset combination
@@ -3553,6 +3554,10 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.subsetExpImpact = {} #estimated impact on variance by subset combo
     self.done            = False #boolean to track if we've converged, or gone over limit
     self.distinctPoints  = set() #list of points needed to make this ROM, for counting purposes
+    self.curVariance     = {} #new variance for convergence
+    self.oldVariance     = {} #old variance for convergence
+    self.numConverged    = 0  #tracking for persistance
+    self.persistence     = 1  #set in input, the number of successive converges to require
 
     #attributes
     self.features        = None #ROM features of interest, also input variable list
@@ -3577,11 +3582,12 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     if conv is None: self.raiseAnError(IOError,'"Convergence" node not found in input!')
     #self.convType      = conv.get('target',None) #TODO not implemented
     for child in conv:
-      if child.tag=='relTolerance'   : self.convValue     = float(child.text)
-      elif child.tag == 'maxRuns'    : self.maxRuns       =   int(child.text)
-      elif child.tag=='maxSobolOrder': self.maxSobolOrder =   int(child.text)
-      #elif child.tag=='maxPolyOrder': self.maxPolyOrder  =   int(child.text)
-      elif child.tag=='progressParam': self.tweakParam    =   int(child.text)
+      if   child.tag =='relTolerance' : self.convValue     = float(child.text)
+      elif child.tag == 'maxRuns'     : self.maxRuns       =   int(child.text)
+      elif child.tag =='maxSobolOrder': self.maxSobolOrder =   int(child.text)
+      #elif child.tag=='maxPolyOrder' : self.maxPolyOrder  =   int(child.text)
+      elif child.tag =='progressParam': self.tweakParam    =   int(child.text)
+      elif child.tag =='persistence'  : self.persistence   =   int(child.text)
     if not 0 <= self.tweakParam <= 2:
       self.raiseAnError(IOError,'progressParam must be between 0 (only add polynomials) and 2 (only add subsets) (default 1).  Input value was',self.tweakParam,'!')
 
@@ -3626,6 +3632,9 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #set up the nominal point for a run
     #  Note: neededPoints is not going to be the main method for queuing points, but it will take priority.
     self.neededPoints = [tuple(self.references[var] for var in self.features)]
+    #DEBUG TOOL printing states
+    self.statesFile = file('states.txt','w')
+    self.statesFile.writelines('================== START ==================\n')
 
   def localStillReady(self,ready):
     """
@@ -3674,14 +3683,23 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         self._earlyExit()
         return False
       #update impact factors and global error estimate
-      which, todoSub = self._getLargestImpact()
-      self.raiseAMessage('Next highest impact is',which,todoSub)
-      self.raiseAMessage('Current estimated error is',self.error)
+      which, todoSub, poly = self._getLargestImpact()
+      #this overrides estimated remaining eror
+      #self.error = self._convergence()
+      self.raiseAMessage('Next is %6s %8s%12s' %(which,','.join(todoSub),str(poly)),'| Est. error: %1.4e' %self.error)
+      #TODO Debug tool
+      self._printState(which,todoSub,poly)
       #are we converged?
       if self.error < self.convValue:
+        #self.numConverged+=1
+        #self.raiseAMessage('Convergence achieved!  Persistance: %i/%i' %(self.numConverged,self.persistence))
+        #if self.numConverged >= self.persistence:
         self.raiseAMessage('Convergence achieved!  No new polynomials or subsets will be added...')
         self._earlyExit()
         return False
+      else:
+        #reset persistence counter
+        self.numConverged = 0
       #otherwise, we're not done...
       #we need a new subset-/poly-in-training
       if which == 'poly':
@@ -3692,7 +3710,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         self._retrieveNeededPoints(todoSub)
       elif which == 'subset':
         self._makeSubsetRom(todoSub)
-        for t in self.targets:
+        for t in self.targets: #necessary?
           self.ROMs[t][todoSub] = self.romShell[todoSub].SupervisedEngine[t]
         self.inTraining.append(('subset',todoSub,self.romShell[todoSub]))
         self._retrieveNeededPoints(todoSub)
@@ -3796,6 +3814,23 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       if pt[v] != self.references[var]: #we're outside the cut plane.
         return False
     return True #only if nothing outside the cut plane
+
+  def _convergence(self):
+    """
+    Checks convergence based on the requested metric.  For now that's just variance.
+    @ In, None
+    @Out, minimum relative convergence on variance
+    """
+    self.oldVariance = copy.deepcopy(self.curVariance) #TODO initialize, should be dicts
+    conv = {}
+    for t in self.targets:
+      self.curVariance[t] = 0
+      for subset,rom in self.useSet.items():
+        rom = rom[t]
+        self.curVariance[t]+=rom.__variance__()
+      conv[t] = abs(self.curVariance.get(t,1) - self.oldVariance.get(t,0))/self.curVariance.get(t,1)
+      self.raiseADebug('Convergence for %s is %1.3e' %(t,conv[t]))
+    return max(conv.values())
 
   def _expandCutPoint(self,subset,pt):
     """
@@ -3928,33 +3963,67 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     #track the total error while we do this
     self.error = 0
+    choiceList={'poly':{},'subset':{}} #TODO can be removed, for debugging
+    def write(kind):
+      if kind=='poly':
+        p=poly
+        subs = maxPolySubset
+        val = choiceList[kind][subs][1]
+      else:
+        p='()'
+        subs = maxSubset
+        val = choiceList[kind][subs]
+      ofile = file('choices.txt','a')
+      ofile.writelines('Chose %s %s,' %(kind+str(p),str(subs)))
+      ofile.writelines('%1.1e || ' %val)
+      for key,listing in choiceList.items():
+        ofile.writelines(key+': ')
+        for entry,value in listing.items():
+          if key=='poly':
+            ofile.writelines('%s%s,%1.1e' %(str(entry),str(value[0]),value[1]))
+          else:
+            ofile.writelines(str(entry)+',%1.1e' %value)
+        ofile.writelines(' || ')
+      ofile.writelines('\n')
+      ofile.close()
+
     #find most effective polynomial among existing subsets
     maxPolyImpact = 0
     maxPolySubset = None
+    poly = None
     for subset in self.useSet.keys():
-      imp =  self.samplers[subset]._findHighestImpactIndex(returnValue = True)[1]
+      pt,imp =  self.samplers[subset]._findHighestImpactIndex(returnValue = True)
+      imp = imp**self.tweakParam * (sum(self.subsetImpact[t][subset] for t in self.targets)/len(self.targets))**(2.-self.tweakParam)
+      if any(subset == s[1] for s in self.inTraining): continue
+      choiceList['poly'][subset] = (pt,imp)
       self.error+=imp
       if maxPolyImpact < imp:
-        maxPolyImpact = imp**self.tweakParam * (sum(self.subsetImpact[t][subset] for t in self.targets)/len(self.targets))**(2.-self.tweakParam)
+        maxPolyImpact = imp
         maxPolySubset = subset
+        poly = pt
     #consider potential subsets
     maxSubsetImpact = 0
     maxSubset = None
     for subset,expImp in self.subsetExpImpact.items():
-      #expImp = sum(expImp[t] for t in self.targets)/len(self.targets)
+      expImp = expImp**(2.-self.tweakParam)
       self.error+=expImp
+      if any(subset == s[1] for s in self.inTraining): continue
+      choiceList['subset'][subset] = expImp
+      #expImp = sum(expImp[t] for t in self.targets)/len(self.targets)
       if maxSubsetImpact < expImp:
-        maxSubsetImpact = expImp**(2.-self.tweakParam)
+        maxSubsetImpact = expImp
         maxSubset = subset
     #which one is more significant? Slightly favour polynomials as a tiebreaker
     if maxPolySubset is None and maxSubset is None:
       self.raiseAnError(RuntimeError,'No polynomials or subsets found to consider!')
     if maxPolyImpact >= maxSubsetImpact:
+      write('poly')
       self.raiseADebug('Most impactful is resolving subset',maxPolySubset)
-      return 'poly',maxPolySubset
+      return 'poly',maxPolySubset,poly
     else:
+      write('subset')
       self.raiseADebug('Most impactful is adding subset',maxSubset)
-      return 'subset',maxSubset
+      return 'subset',maxSubset,''
 
   def _makeCutDataObject(self,subset):
     """
@@ -4073,6 +4142,48 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #  #otherwise, stash the needed points
     #  self._retrieveNeededPoints(subset)
 
+  def _printState(self,which,todoSub,poly):
+    """
+    Debugging tool.  Prints status of adaptive steps.
+    @ In, None
+    @Out, None
+    """
+    #print status               12345678911234567892123456789312345678941234567895
+    self.stateCounter+=1
+    self.statesFile.writelines('==================== STEP %s ====================\n' %self.stateCounter)
+    self.statesFile.writelines('\n\nError: %1.9e\n' %self.error)
+    self.statesFile.writelines('Next: %6s %8s %12s\n' %(which,','.join(todoSub),str(poly)))
+    for sub in self.useSet.keys():
+      self.statesFile.writelines('-'*50)
+      self.statesFile.writelines('\nsubset %8s with impacts' %','.join(sub))
+      for t in self.targets:
+        self.statesFile.writelines(    ' [ %4s:%1.6e ] ' %(t,self.subsetImpact[t][sub]))
+      self.statesFile.writelines('\n')
+      self.statesFile.writelines('ESTABLISHED:\n')
+      self.statesFile.writelines('    %12s' %'polynomial')
+      for t in self.targets:
+        self.statesFile.writelines('  %12s' %t)
+      self.statesFile.writelines('\n')
+      for coeff in self.romShell[sub].SupervisedEngine.values()[0].polyCoeffDict.keys():
+        self.statesFile.writelines('    %12s' %','.join(str(c) for c in coeff))
+        for t in self.targets:
+          self.statesFile.writelines('  %1.6e' %self.romShell[sub].SupervisedEngine[t].polyCoeffDict[coeff])
+        self.statesFile.writelines('\n')
+      if any(sub==item[1] for item in self.inTraining): self.statesFile.writelines('TRAINING:\n')
+      for item in self.inTraining:
+        if sub == item[1]:
+          self.statesFile.writelines('    %12s %12s\n' %(sub,item[2]))
+      self.statesFile.writelines('EXPECTED:\n')
+      for poly in self.samplers[sub].expImpact.values()[0].keys():
+        self.statesFile.writelines('    %12s' %','.join(str(c) for c in poly))
+        self.statesFile.writelines('  %1.6e' %self.samplers[sub].expImpact[t][poly])
+        self.statesFile.writelines('\n')
+    self.statesFile.writelines('-'*50+'\n')
+    self.statesFile.writelines('EXPECTED SUBSETS\n')
+    for sub,val in self.subsetExpImpact.items():
+      self.statesFile.writelines('    %8s: %1.6e\n' %(','.join(sub),val))
+    self.statesFile.writelines('\n==================== END STEP ====================\n')
+
   def _retrieveNeededPoints(self,subset):
     """
     Get the batch of points needed by the subset sampler and transfer them to local variables
@@ -4107,11 +4218,11 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       #if point already sorted, don't re-do work
       if inp not in self.submittedNotCollected: continue
       #check through neededPoints to find subset that needed this point
-      self.raiseADebug('sorting:',inp)
+      self.raiseADebug('sorting:',inp,soln)
       for subset,needs in self.pointsNeeded.items():
         #check if point in cut for subset
         if self._checkCutPoint(subset,inp):
-          self.raiseADebug('...soring into',subset)
+          self.raiseADebug('...sorting into',subset)
           cutInp = self._extractCutPoint(subset,inp)
           self._addPointToDataObject(subset,cutInp)
           sampler = self.samplers[subset]

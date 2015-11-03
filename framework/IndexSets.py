@@ -263,6 +263,7 @@ class Custom(IndexSet):
     self.points=[]
     if len(points)>0:
       self.addPoints(points)
+      self.order()
 
   def addPoints(self,points):
     """
@@ -312,6 +313,7 @@ class AdaptiveSet(IndexSet):
       self.raiseAnError(KeyError,'Adaptive index set instructed to accept point',pt,'but point is not in active set!')
     self.active.remove(pt)
     self.points.append(pt)
+    self.order()
 
   def reject(self,pt):
     """

@@ -671,6 +671,7 @@ class HDMRRom(GaussPolynomialRom):
           for combo,sens in insig:
             addSensBranch(combo,sens)
         elif request.lower() in ['numruns']:
+          print('\n\n\n\nHEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEERE\n\n\n')
           newnode.setText(self.numRuns)
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
