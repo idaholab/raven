@@ -1021,9 +1021,10 @@ class LimitSurfaceBatchSearch(LimitSurfaceSearch):
                                      + child.text
                                      + ' into a meaningful integer')
         if self.maxBatchSize < 0:
-          self.raiseAnError(IOError, 'Requested an invalid maximum batch size: ',
+          self.raiseAWarning(IOError,'Requested an invalid maximum batch size: ',
                             self.maxBatchSize, '. This should be a '
-                            + 'non-negative integer value')
+                            + 'non-negative integer value. Defaulting to 0.')
+          self.maxBatchSize = 1
       if child.tag == "scoring":
         self.scoringMethod = child.text.encode('ascii')
         if self.scoringMethod not in self.acceptedScoringParam:
