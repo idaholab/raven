@@ -15,6 +15,7 @@
             <xsd:element name="FactorialDesign"          type="FactorialSampler"       minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="DynamicEventTree"         type="DETSampler"             minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="LimitSurfaceSearch"       type="LSSSampler"             minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="LimitSurfaceBatchSearch"  type="LSBSSampler"            minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdaptiveSparseGrid"       type="AdaptiveSGSampler"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdaptiveDynamicEventTree" type="AdaptiveDETSampler"     minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
@@ -217,6 +218,39 @@
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"      type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr"/>
+    </xsd:complexType>
+    <xsd:complexType name="LSBSSampler">
+        <xsd:sequence>
+            <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Function"         type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="Convergence"                      minOccurs="1" maxOccurs="unbounded">
+                <xsd:complexType mixed="true">
+                    <xsd:attribute name="limit"          type="xsd:integer"/>
+                    <xsd:attribute name="forceIteration" type="RavenBool"/>
+                    <xsd:attribute name="weight"         type="weightAttr"/>
+                    <xsd:attribute name="persistence"    type="xsd:integer"/>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="scoring"        type="xsd:string"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="batchStrategy"  type="xsd:string"   minOccurs="0" maxOccurs="1"/>
+            <!-- These two should be percentFloats, but I prefer to have my test
+                 actually test the boundary conditions, it looks better on code
+                 coverage, and it ensures the CODE itself is able to handle
+                 bad outputs, not some faceplate that sits on top and checks
+                 things before the code runs. As such these lines will remain
+                 here commented out until the XSD is a proper component of RAVEN,
+                 or dies the terrible death it deserves, whichever comes first -->
+            <!-- <xsd:element name="simplification" type="percentFloat" minOccurs="0" maxOccurs="1"/> -->
+            <!-- <xsd:element name="threshold"      type="percentFloat" minOccurs="0" maxOccurs="1"/> -->
+            <xsd:element name="simplification" type="xsd:float" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="threshold"      type="xsd:float" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="thickness"      type="xsd:integer"  minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="maxBatchSize"   type="xsd:integer"  minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="variable"       type="variableType" minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>

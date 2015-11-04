@@ -22,8 +22,8 @@
     </MultiRun>
     <IOStep name="dump">
       <Input class="DataObjects" type="PointSet">limit_surface</Input>
-      <Output class="OutStreamManager" type="Print">greedy_dp_ls</Output>
       <Input class="DataObjects" type="PointSet">response</Input>
+      <Output class="OutStreamManager" type="Print">greedy_dp_ls</Output>
       <Output class="OutStreamManager" type="Print">greedy_dp_samples</Output>
     </IOStep>
   </Steps>
