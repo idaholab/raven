@@ -3535,7 +3535,6 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.statesFile      = None #file to log the progression of the adaptive sampling
     self.subVerbosity    = 'quiet' #verbosity level for the ROMs, samplers, dataobjects created within this sampler
 
-
     #assembly objects
     self.solns           = None #solution database, PointSet data object
     self.ROM             = None #HDMR rom that will be constructed with the samples found here
@@ -3587,8 +3586,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       elif child.tag == 'maxRuns'        : self.maxRuns       =   int(child.text)
       elif child.tag == 'maxSobolOrder'  : self.maxSobolOrder =   int(child.text)
       #elif child.tag== 'maxPolyOrder'   : self.maxPolyOrder  =   int(child.text) #TODO someday maybe.
-      elif child.tag == 'progressParam'  : self.tweakParam    =   int(child.text)
-      elif child.tag == 'persistence'    : self.persistence   =   int(child.text)
+      elif child.tag == 'progressParam'  : self.tweakParam    = float(child.text)
       elif child.tag == 'logFile'        : self.statesFile    =  file(child.text,'w')
       elif child.tag == 'subsetVerbosity': self.subVerbosity  =       child.text.lower()
     if not 0 <= self.tweakParam <= 2:
@@ -3673,7 +3671,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         #remove this item from the training queue
         self.inTraining.remove(item)
       #are we at maxRuns?  If so, we need to be done.
-      if self.maxRuns is not None and len(self.distinctRuns)>self.maxRuns:
+      if self.maxRuns is not None and len(self.distinctPoints)>self.maxRuns:
         self.raiseAMessage('Maximum runs reached!  No new polynomials or subsets will be added...')
         self._earlyExit()
         return False
