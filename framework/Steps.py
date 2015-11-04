@@ -12,10 +12,17 @@ if not 'xrange' in dir(__builtins__): xrange = range
 #External Modules------------------------------------------------------------------------------------
 import time
 import abc
-import cPickle as pickle
+import sys
+if sys.version_info.major > 2:
+  import pickle
+else:
+  import cPickle as pickle
 import copy
 #import pickle as cloudpickle
-from serialization import cloudpickle
+if sys.version_info.major == 2:
+  from serialization import cloudpickle
+else:
+  print("cloud does not support python3")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------

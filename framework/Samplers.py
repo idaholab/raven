@@ -287,8 +287,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       maxDim=1
       listvar = self.distributions2variablesMapping[dist]
       for var in listvar:
-        if var.values()[0] > maxDim:
-          maxDim = var.values()[0]
+        if utils.first(var.values()) > maxDim:
+          maxDim = utils.first(var.values())
       self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
 
     #Checking the variables transformation
@@ -472,7 +472,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for distrib in self.NDSamplingParams:
       if distrib in self.distributions2variablesMapping:
         params = self.NDSamplingParams[distrib]
-        temp = self.distributions2variablesMapping[distrib][0].keys()[0]
+        temp = utils.first(self.distributions2variablesMapping[distrib][0].keys())
         self.distDict[temp].updateRNGParam(params)
       else:
         self.raiseAnError(IOError,'Distribution "%s" specified in distInit block of sampler "%s" does not exist!' %(distrib,self.name))
@@ -829,7 +829,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = 0.0, 1.0
         transformMethod[varName.replace('<distribution>','')] = [self.distDict[varName].ppf]
     #moving forward building all the information set
-    self.axisName = self.distDict.keys()
+    self.axisName = list(self.distDict.keys())
     self.axisName.sort()
     # initialize LimitSurface PP
     self.limitSurfacePP._initFromDict({"name":self.name+"LSpp","parameters":[key.replace('<distribution>','') for key in self.axisName],"tolerance":self.tolerance,"side":"both","transformationMethods":transformMethod,"bounds":bounds})
@@ -881,7 +881,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     for key,value in self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).items():
       self.persistenceMatrix[key] += value
     # get the test matrices' dictionaries to test the error
-    testMatrixDict, oldTestMatrixDict = self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values(),self.oldTestMatrix.values()
+    testMatrixDict, oldTestMatrixDict = list(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values()),list(self.oldTestMatrix.values())
     # the first test matrices in the list are always represented by the coarse grid (if subGridTol activated) or the only grid available
     coarseGridTestMatix, coarseGridOldTestMatix = testMatrixDict.pop(0), oldTestMatrixDict.pop(0)
     # compute the Linf norm with respect the location of the LS
@@ -1110,7 +1110,7 @@ class MonteCarlo(Sampler):
 
       if totDim == 1:
         for var in self.distributions2variablesMapping[dist]:
-          varID = var.keys()[0]
+          varID  = utils.first(var.keys())
           rvsnum = self.distDict[key].rvs()
           self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
           for kkey in varID.strip().split(','):
@@ -1123,7 +1123,7 @@ class MonteCarlo(Sampler):
           probabilityValue = self.distDict[key].pdf(coordinate)
           self.inputInfo['SampledVarsPb'][key] = probabilityValue
           for var in self.distributions2variablesMapping[dist]:
-            varID = var.keys()[0]
+            varID  = utils.first(var.keys())
             varDim = var[varID]
             for kkey in varID.strip().split(','):
               self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
@@ -1179,7 +1179,7 @@ class Grid(Sampler):
     grdInfo = self.gridEntity.returnParameter("gridInfo")
     for axis, value in grdInfo.items(): self.gridInfo[axis] = value[0]
     if len(self.toBeSampled.keys()) != len(grdInfo.keys()): self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
-    self.axisName = grdInfo.keys()
+    self.axisName = list(grdInfo.keys())
     self.axisName.sort()
 
   def localAddInitParams(self,tempDict):
@@ -1252,8 +1252,8 @@ class Grid(Sampler):
               distName = self.variables2distributionsMapping[varName]['name']
               NDcoordinate=[0]*len(self.distributions2variablesMapping[distName])
               for var in self.distributions2variablesMapping[distName]:
-                variable = var.keys()[0]
-                position = var.values()[0]
+                variable = utils.first(var.keys())
+                position = utils.first(var.values())
                 NDcoordinate[position-1] = float(coordinates[variable.strip()])
                 for key in variable.strip().split(','):
                   self.inputInfo['distributionName'][key] = self.toBeSampled[variable]
@@ -1287,8 +1287,8 @@ class Grid(Sampler):
             NDcoordinate=np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs=np.zeros(len(self.distributions2variablesMapping[distName]))
             for var in self.distributions2variablesMapping[distName]:
-              variable = var.keys()[0].strip()
-              position = var.values()[0]
+              variable = utils.first(var.keys()).strip()
+              position = utils.first(var.values())
               NDcoordinate[position-1] = coordinates[variable.strip()]
               if self.gridInfo[variable]=='CDF':
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
@@ -1407,7 +1407,7 @@ class Stratified(Grid):
         if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['dim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
           gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
           for distVarName in self.distributions2variablesMapping[distName]:
-            for kkey in distVarName.keys()[0].strip().split(','):
+            for kkey in utils.first(distVarName.keys()).strip().split(','):
               self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
           # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
@@ -2413,7 +2413,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       for treer in hybridTrees: # this needs to be solved
         for ending in treer.iterProvidedFunction(self._checkCompleteHistory):
           completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeid=ending.get('name'),serialize=False))
-          finishedHistNames.append(completedHistNames[-1].keys()[0])
+          finishedHistNames.append(utils.first(completedHistNames[-1].keys()))
       # assemble a dictionary
       if len(completedHistNames) > self.completedHistCnt:
         # sort the list of histories
@@ -2593,7 +2593,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         self._localInputAndChecksHybrid(xmlNode)
         for hybridsampler in self.hybridStrategyToApply.values(): hybridsampler._generateDistributions(distDict, {})
     DynamicEventTree.localInitialize(self)
-    if self.hybridDETstrategy == 2: self.actualHybridTree = self.TreeInfo.keys()[0]
+    if self.hybridDETstrategy == 2: self.actualHybridTree = utils.first(self.TreeInfo.keys())
     self._endJobRunnable    = sys.maxsize
 
   def generateInput(self,model,oldInput):
@@ -2898,7 +2898,7 @@ class SparseGridCollocation(Grid):
       if 'ROM' in key:
         for value in self.assemblerDict[key]: self.ROM = value[3]
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = SVLs[0] #often need only one
+    SVL = utils.first(SVLs) #often need only one
     self.features = SVL.features
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
@@ -2923,7 +2923,7 @@ class SparseGridCollocation(Grid):
 
     if self.writeOut != None:
       msg=self.sparseGrid.__csv__()
-      outFile=file(self.writeOut,'w')
+      outFile=open(self.writeOut,'w')
       outFile.writelines(msg)
       outFile.close()
 
@@ -2931,15 +2931,15 @@ class SparseGridCollocation(Grid):
     if self.restartData != None:
       inps = self.restartData.getInpParametersValues()
       #make reorder map
-      reordmap=list(inps.keys().index(i) for i in self.features)
+      reordmap=list(list(inps.keys()).index(i) for i in self.features)
       solns = list(v for v in inps.values())
       ordsolns = [solns[i] for i in reordmap]
       self.existing = zip(*ordsolns)
 
     self.limit=len(self.sparseGrid)
     self.raiseADebug('Size of Sparse Grid  :'+str(self.limit))
-    self.raiseADebug('Number from Restart :'+str(len(self.existing)))
-    self.raiseADebug('Number of Runs Needed :'+str(self.limit-len(self.existing)))
+    self.raiseADebug('Number from Restart :'+str(utils.iter_len(self.existing)))
+    self.raiseADebug('Number of Runs Needed :'+str(self.limit-utils.iter_len(self.existing)))
     self.raiseADebug('Finished sampler generation.')
 
     self.raiseADebug('indexset:',self.indexSet)
@@ -3086,7 +3086,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     #set a pointer to the GaussPolynomialROM object
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = SVLs[0] #sampler doesn't always care about which target
+    SVL = utils.first(SVLs) #sampler doesn't always care about which target
     self.features=SVL.features #the input space variables
     mpo = self.maxPolyOrder #save it to re-set it after calling generateQuadsAndPolys
     self._generateQuadsAndPolys(SVL) #lives in GaussPolynomialRom object
@@ -3437,7 +3437,7 @@ class Sobol(SparseGridCollocation):
     #make combination of ROMs that we need
     self.targets  = self.ROM.SupervisedEngine.keys()
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = SVLs[0]
+    SVL = utils.first(SVLs)
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
     features = SVL.features
@@ -3495,7 +3495,7 @@ class Sobol(SparseGridCollocation):
     #if tuple(newpt) not in existing:
     self.pointsToRun.append(tuple(newpt))
     #now do the rest
-    for combo,rom in self.ROMs.values()[0].items(): #each target is the same, so just for each combo
+    for combo,rom in utils.first(self.ROMs.values()).items(): #each target is the same, so just for each combo
       SG = rom.sparseGrid #they all should have the same sparseGrid
       SG._remap(combo)
       for l in range(len(SG)):
@@ -3509,8 +3509,8 @@ class Sobol(SparseGridCollocation):
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
     self.raiseADebug('Needed points: %i' %self.limit)
-    self.raiseADebug('From Restart : %i' %len(self.existing))
-    self.raiseADebug('Still Needed : %i' %(self.limit-len(self.existing)))
+    self.raiseADebug('From Restart : %i' %utils.iter_len(self.existing))
+    self.raiseADebug('Still Needed : %i' %(self.limit-utils.iter_len(self.existing)))
     initdict={'ROMs':None, #self.ROMs,
               'SG':self.SQs,
               'dists':self.distDict,
