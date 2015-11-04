@@ -22,9 +22,9 @@
     </MultiRun>
     <IOStep name="dump">
       <Input class="DataObjects" type="PointSet">limit_surface</Input>
-      <Output class="OutStreamManager" type="Print">maxP_d_ls</Output>
+      <Output class="OutStreamManager" type="Print">invalid_mbs_ls</Output>
       <Input class="DataObjects" type="PointSet">response</Input>
-      <Output class="OutStreamManager" type="Print">maxP_d_samples</Output>
+      <Output class="OutStreamManager" type="Print">invalid_mbs_samples</Output>
     </IOStep>
   </Steps>
 
@@ -103,11 +103,11 @@
   </Functions>
 
   <OutStreamManager>
-    <Print name="maxP_d_ls">
+    <Print name="invalid_mbs_ls">
       <type>csv</type>
       <source>limit_surface</source>
     </Print>
-    <Print name="maxP_d_samples">
+    <Print name="invalid_mbs_samples">
       <type>csv</type>
       <source>response</source>
     </Print>
