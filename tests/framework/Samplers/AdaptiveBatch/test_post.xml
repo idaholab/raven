@@ -71,7 +71,7 @@
       <!--<generateCSVs />-->
       <scoring>distance</scoring>
       <batchStrategy>maxP</batchStrategy>
-      <threshold>0.2</threshold>
+      <threshold>0.75</threshold>
       <thickness>1</thickness>
       <maxBatchSize>4</maxBatchSize>
       <variable name="x1"><distribution>uniform</distribution></variable>

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='silent'>
+<Simulation verbosity='quiet'>
   <RunInfo>
     <WorkingDir>circle</WorkingDir>
     <Sequence>sample,adapt,dump</Sequence>
@@ -22,9 +22,9 @@
     </MultiRun>
     <IOStep name="dump">
       <Input class="DataObjects" type="PointSet">limit_surface</Input>
-      <Output class="OutStreamManager" type="Print">post_ls</Output>
+      <Output class="OutStreamManager" type="Print">invalid_post_ls</Output>
       <Input class="DataObjects" type="PointSet">response</Input>
-      <Output class="OutStreamManager" type="Print">post_samples</Output>
+      <Output class="OutStreamManager" type="Print">invalid_post_samples</Output>
     </IOStep>
   </Steps>
 
@@ -71,7 +71,7 @@
       <!--<generateCSVs />-->
       <scoring>distance</scoring>
       <batchStrategy>maxP</batchStrategy>
-      <threshold>-0.2</threshold>
+      <threshold>-0.75</threshold>
       <thickness>1</thickness>
       <maxBatchSize>4</maxBatchSize>
       <variable name="x1"><distribution>uniform</distribution></variable>
@@ -104,11 +104,11 @@
   </Functions>
 
   <OutStreamManager>
-    <Print name="post_ls">
+    <Print name="invalid_post_ls">
       <type>csv</type>
       <source>limit_surface</source>
     </Print>
-    <Print name="post_samples">
+    <Print name="invalid_post_samples">
       <type>csv</type>
       <source>response</source>
     </Print>

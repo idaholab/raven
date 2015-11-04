@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='silent'>
+<Simulation verbosity='quiet'>
   <RunInfo>
     <WorkingDir>circle</WorkingDir>
     <Sequence>sample,adapt,dump</Sequence>
@@ -22,9 +22,9 @@
     </MultiRun>
     <IOStep name="dump">
       <Input class="DataObjects" type="PointSet">limit_surface</Input>
-      <Output class="OutStreamManager" type="Print">pre_ls</Output>
+      <Output class="OutStreamManager" type="Print">invalid_pre_ls</Output>
       <Input class="DataObjects" type="PointSet">response</Input>
-      <Output class="OutStreamManager" type="Print">pre_samples</Output>
+      <Output class="OutStreamManager" type="Print">invalid_pre_samples</Output>
     </IOStep>
   </Steps>
 
@@ -69,9 +69,9 @@
       <TargetEvaluation class="DataObjects" type="PointSet">response</TargetEvaluation>
       <Convergence forceIteration="False" limit="16" persistence="25" weight="value">9e-5</Convergence>
       <!--<generateCSVs />-->
-      <scoring>maxP</scoring>
-      <batchStrategy>none</batchStrategy>
-      <simplification>-0.2</simplification>
+      <scoring>distance</scoring>
+      <batchStrategy>maxP</batchStrategy>
+      <simplification>-0.5</simplification>
       <thickness>1</thickness>
       <maxBatchSize>4</maxBatchSize>
       <variable name="x1"><distribution>uniform</distribution></variable>
@@ -104,11 +104,11 @@
   </Functions>
 
   <OutStreamManager>
-    <Print name="pre_ls">
+    <Print name="invalid_pre_ls">
       <type>csv</type>
       <source>limit_surface</source>
     </Print>
-    <Print name="pre_samples">
+    <Print name="invalid_pre_samples">
       <type>csv</type>
       <source>response</source>
     </Print>

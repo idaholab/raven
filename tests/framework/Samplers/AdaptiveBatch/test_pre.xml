@@ -69,9 +69,9 @@
       <TargetEvaluation class="DataObjects" type="PointSet">response</TargetEvaluation>
       <Convergence forceIteration="False" limit="16" persistence="25" weight="value">9e-5</Convergence>
       <!--<generateCSVs />-->
-      <scoring>maxP</scoring>
-      <batchStrategy>none</batchStrategy>
-      <simplification>.2</simplification>
+      <scoring>distance</scoring>
+      <batchStrategy>maxP</batchStrategy>
+      <simplification>0.5</simplification>
       <thickness>1</thickness>
       <maxBatchSize>4</maxBatchSize>
       <variable name="x1"><distribution>uniform</distribution></variable>
