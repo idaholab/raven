@@ -193,14 +193,14 @@ XML node and the requirements for other attributes change:
         \begin{itemize}
           \item \xmlString{CDF}, the convergence is checked in terms
             of probability (Cumulative Distribution Function). From a practical point of view,
-            this means that full uncertain domain 
+            this means that full uncertain domain
             is discretized in a way that the probability volume of each cell is going to be equal to
            the tolerance specified in the body of the node \xmlNode{Convergence}
           \item \xmlString{value}, the convergence is checked on the
             hyper-volume in terms of variable values.From a practical point of view,
-            this means that full uncertain domain 
+            this means that full uncertain domain
             is discretized in a way that the ``volume'' fraction of each cell is going to be equal to
-           the tolerance specified in the body of the node \xmlNode{Convergence}. In other words, 
+           the tolerance specified in the body of the node \xmlNode{Convergence}. In other words,
            each cell volume is going to be equal to the total volume times the tolerance.
         \end{itemize}
         \default{CDF}.
@@ -212,14 +212,14 @@ XML node and the requirements for other attributes change:
         %
         \default{5}.
         \item \xmlAttr{subGridTol}, \xmlDesc{optional float attribute},
-            this attribute is used to activate the multi-grid approach (adaptive meshing) 
+            this attribute is used to activate the multi-grid approach (adaptive meshing)
             of the constructed evaluation grid (see attribute \xmlAttr{weight}).
             In case this attribute is specified, the final grid discretization (cell's ``volume content''
-             aka convergence confidence) is represented by the 
-            value here specified. The sampler converges on the initial coarse grid, defined by 
+             aka convergence confidence) is represented by the
+            value here specified. The sampler converges on the initial coarse grid, defined by
             the tolerance specified in the body of the node \xmlNode{Convergence}.
             When the Limit Surface has been identified on the coarse grid, the sampler starts
-            refining the grid until the ``volume content'' of each cell is equal to the value 
+            refining the grid until the ``volume content'' of each cell is equal to the value
             specified in this attribute (Multi-grid approach).
            \default{None}.
     \end{itemize}
@@ -1611,6 +1611,177 @@ def __residuumSign(self):
     return -1
 \end{lstlisting}
 
+\subsubsection{Limit Surface Batch Search}
+\label{subsubsubsec:LimitSurfaceBatchSearch}
+The \textbf{Limit Surface Batch Search} approach is very similar to the
+\textbf{Limit Surface Search} with the added benefit of being able to specify
+advanced criteria such as the querying points in a batch fashion and also being
+able to switch between different scoring functions. The addition of the ``batch''
+mode makes use of the topology of the scoring function's landscape restricted to
+the limit surface in order to select several points at a time before retraining
+the surrogate model.
+%
+
+\specBlock{a}{LimitSurfaceBatchSearch}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+
+\variableIntro{LimitSurfaceBatchSearch}
+
+\begin{itemize}
+    \item \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+      \item \functionDescription
+    \end{itemize}
+\end{itemize}
+
+In addition to the \xmlNode{variable} nodes, the main XML node
+\xmlNode{LimitSurfaceBatchSearch} may specify the following supplementary
+sub-nodes:
+
+\begin{itemize}
+  \item \convergenceDescription
+  \item \xmlNode{batchStrategy}, \xmlDesc{string, optional field}, defines how
+    points should be selected within a batch of size $n$ where $n$ is given by
+    the \xmlNode{maxBatchSize} parameter below.
+    Four options are available:
+    \begin{itemize}
+       \item \xmlString{none} If this is specified then the
+       \xmlNode{maxBatchSize} parameter below will be ignored and the
+       functionality will replicate the LimitSurfaceSearch, in that the limit
+       surface will be rebuilt and the points will be re-scored after each trial
+       is completed.
+       \item \xmlString{naive} The top $n$ candidates will be queued for
+       adaptive sampling before retraining the limit surface and re-scoring the
+       new candidate set.
+       \item \xmlString{maxP} The topology of the limit surface given the
+       scoring function values will be decomposed and the top $n$ highest
+       topologically persistent features (local maxima) will be queued for
+       adaptive sampling before retraining and re-scoring the new candidate set.
+       \item \xmlString{maxV} The topology of the limit surface given the
+       scoring function values will be decomposed and the top $n$ highest
+       topological features (local maxima) will be queued for adaptive sampling
+       before retraining and re-scoring the new candidate set.
+    \end{itemize}
+  \default{none}.
+  \item \xmlNode{maxBatchSize}, \xmlDesc{integer, optional field}, specifies
+  the number of points to select for adaptive sampling before retraining the
+  limit surface and re-scoring the candidates. This is the equivalent of the
+  $n$ parameter used in the \xmlNode{batchStrategy} description.
+  \default{1}.
+  \item \xmlNode{scoring}, \xmlDesc{string, optional field}, defines the scoring
+    function to use on the candidate limit surface points in order to select the
+    next adaptive point.
+    Two options are available:
+    \begin{itemize}
+       \item \xmlString{distance} will scoring the candidate points by their
+       distance to the closest realized point, in this way preference is given
+       to unexplored regions of the limit surface.
+       \item \xmlString{distancePersistence} augments the distance above by
+       multiplying it with the inverse persistence of a candidate point which
+       measures how many times the label of the candidate point has changed
+       throughout the lifespan of the algorithm.
+    \end{itemize}
+  \default{distancePersistence}.
+  \item \xmlNode{simplification}, \xmlDesc{float in the range [0,1], optional
+  field}, specifies the percent of the scoring function range (on the candidate
+  set) as the amount of topological simplification to do before extracting the
+  topological features from the candidate set (local maxima). This only applies
+  when the \xmlNode{batchStrategy} is set to \xmlString{maxP} or
+  \xmlString{maxV}. Thus, one may end up with a batch size less than that
+  specified by \xmlNode{maxBatchSize}.
+  \default{0}.
+  \item \xmlNode{thickness}, \xmlDesc{positive integer, optional field},
+  specifies how much the limit surface should be expanded (in terms of grid
+  distance) when constructing a candidate set. A value of 1 implies only the
+  points bounding the limit surface.
+  \default{1}.
+  \item \xmlNode{threshold}, \xmlDesc{float in the range [0,1], optional field},
+  once the candidates have been ranked and selected, before queueing them for
+  adaptive sampling, this value is used to threshold any points whose score is
+  less than this percentage of the scoring function range (on the candidate
+  set). Thus, one may end up with a batch size less than that specified by
+  \xmlNode{maxBatchSize}.
+  \default{0}.
+  % Limit Surface Batch Search Objects
+  \item \assemblerDescription{LimitSurfaceBatchSearch}
+    \begin{itemize}
+      \item \xmlNode{Function}, \xmlDesc{string, required field},  the
+        body of this XML block needs to contain the name of an external
+        function object defined within the \xmlNode{Functions} main block (see
+        Section~\ref{sec:functions}).
+        %
+        This object represents the boolean function that defines the transition
+        boundaries.
+        %
+        This function must implement a method called
+        \texttt{\_\_residuumSign(self)}, that returns either -1 or 1, depending
+        on the system conditions (see Section \ref{sec:functions}.
+      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
+        body of this XML node must contain the name of a ROM defined in the
+        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM
+        here specified is going to be used as ``acceleration model'' to speed up the
+        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM
+        input block (within the \xmlNode{Models} section) needs to match the name of the goal
+        \xmlNode{Function} (e.g. if the goal function is named ``transitionIdentifier'', the \xmlNode{Target} of the
+        ROM needs to report the same name: \xmlNode{Target}\textbf{transitionIdentifier}\xmlNode{Target}).
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The Limit Surface Search sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
+    \end{itemize}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
+<Samplers>
+  ...
+  <LimitSurfaceBatchSearch name='LSBSName'>
+    <ROM class='Models' type='ROM'>ROMname</ROM>
+    <Function class='Functions' type='External' >FunctionName</Function>
+    <TargetEvaluation class='DataObjects' type='PointSet'>DataName</TargetEvaluation>
+    <Convergence limit='3000'  forceIteration='False' weight='CDF'  subGridTol='1e-4' persistence='5'>
+      1e-2
+    </Convergence>
+    <scoring>distancePersistence</scoring>
+    <batchStrategy>maxP</batchStrategy>
+    <thickness>1</thickness>
+    <maxBatchSize>4</maxBatchSize>
+    <variable name='var1'>
+      <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution>
+    </variable>
+    <variable name='var2'>
+      <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution>
+    </variable>
+    <variable name='var3'>
+      <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
+    </variable>
+  </LimitSurfaceSearch>
+  ...
+</Samplers>
+\end{lstlisting}
+
+Associated External Python Module:
+\begin{lstlisting}[language=python]
+def __residuumSign(self):
+  if self.whatEverValue < self.OtherValue :
+    return  1
+  else:
+    return -1
+\end{lstlisting}
+
+
 %%% Adaptive Samplers: ADET
 \subsubsection{Adaptive Dynamic Event Tree}
 \label{subsubsubsec:ADET}
@@ -1885,7 +2056,7 @@ This sub-node needs to contain the following attribute:
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, type of
     pre-sampling strategy to be used.
     %
-    Up to now only one option is available: 
+    Up to now only one option is available:
     \begin{itemize}
       \item \xmlString{LimitSurface}. With this option, the epistemic variables here listed are going to be part of the LS search.
                                                         This means that the discretization of the domain of these variables is determined by the
@@ -1923,12 +2094,12 @@ Example:
           <distribution>
             aDistributionNameDefinedInDistributionBlock1
           </distribution>
-      </variable>   
+      </variable>
        <variable name = 'epistemicVar2'>
           <distribution>
             aDistributionNameDefinedInDistributionBlock2
           </distribution>
-      </variable>  
+      </variable>
     </HybridSampler>
     <variable name = 'var1'>
         <distribution>

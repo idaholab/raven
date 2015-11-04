@@ -967,7 +967,7 @@ class LimitSurfaceBatchSearch(LimitSurfaceSearch):
     self.printTag         = 'SAMPLER BATCH ADAPTIVE'
 
     self.scoringMethod    = 'distance'       # Name of the scoring method used
-    self.batchStrategy    = 'topology'       # Name of the batch strategy used
+    self.batchStrategy    = 'none'           # Name of the batch strategy used
     self.generateCSVs     = False            # Flag: should intermediate results
                                              #  be stored?
     self.toProcess        = []               # List of the top batchSize
