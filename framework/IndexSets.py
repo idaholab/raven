@@ -94,7 +94,7 @@ class IndexSet(MessageHandler.MessageUser):
     """
     return zip(*self.points)
 
-  def print(self):
+  def printOut(self):
     """
       Prints out the contents of the index set.
       @ In, None

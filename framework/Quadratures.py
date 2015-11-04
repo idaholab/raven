@@ -207,7 +207,7 @@ class SparseQuad(MessageHandler.MessageUser):
     return zip(*self.points())
 
   ##### PUBLIC MEMBERS #####
-  def print(self):
+  def printOut(self):
     """
       Prints the existing quadrature points.
       @ In, None
