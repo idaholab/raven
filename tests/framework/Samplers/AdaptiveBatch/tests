@@ -29,7 +29,7 @@
   xml = 'circle/maxV_d_samples.xml circle/maxV_d_ls.xml'
   csv = 'circle/maxV_d_samples.csv circle/maxV_d_ls.csv'
  [../]
- [./MaxPDistancePersistence]
+ [./MaxVDistancePersistence]
   type = 'RavenFramework'
   input = 'test_maxv_dp.xml'
   xml = 'circle/maxV_dp_samples.xml circle/maxV_dp_ls.xml'

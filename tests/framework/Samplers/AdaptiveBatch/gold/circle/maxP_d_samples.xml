@@ -1,4 +1,4 @@
-<data name="maxp_d_samples" type="Pointset"><input>x2,x1</input><output>y</output><inputFilename>maxp_d_samples.csv</inputFilename><metadata><subGridTol>array([  9.00000000e-05,   9.00000000e-05,   9.00000000e-05,
+<data name="maxP_d_samples" type="Pointset"><input>x2,x1</input><output>y</output><inputFilename>maxP_d_samples.csv</inputFilename><metadata><subGridTol>array([  9.00000000e-05,   9.00000000e-05,   9.00000000e-05,
          9.00000000e-05,   9.00000000e-05,   9.00000000e-05,
          9.00000000e-05,   9.00000000e-05,   9.00000000e-05,
          9.00000000e-05,   9.00000000e-05,   9.00000000e-05,
