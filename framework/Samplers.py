@@ -1198,19 +1198,20 @@ class Grid(Sampler):
                   dxs[position-1] = (self.distDict[variable].inverseMarginalDistribution(coordinates[variable.strip()] ,self.variables2distributionsMapping[variable]['dim']-1) 
                                    - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1))/2.0
                   NDcoordinate[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinates[variable.strip()] ,self.variables2distributionsMapping[variable]['dim']-1) - dxs[position-1]/2.0
+                
               else:
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
                   dxs[position-1] = (coordinatesPlusOne[variable] - coordinatesMinusOne[variable])/2.0
                   NDcoordinate[position-1] = coordinates[variable.strip()] - (coordinates[variable.strip()]-coordinatesMinusOne[variable])/2.0 + dxs[position-1]/2.0
                 if coordinatesMinusOne[variable] == -sys.maxsize:
-                  dxs[position-1] = (coordinatesPlusOne[variable] - coordinates[variable.strip()])/2.0
-                  NDcoordinate[position-1] = coordinates[variable.strip()] + dxs[position-1]/2.0
+                  dxs[position-1] = coordinates[variable.strip()] - self.distDict[varName].returnLowerBound(position-1)
+                  NDcoordinate[position-1] = (coordinates[variable.strip()] - self.distDict[varName].returnLowerBound(position-1))/2.0 #coordinates[variable.strip()] - (coordinatesPlusOne[variable] - coordinates[variable.strip()])/2.0 + dxs[position-1]/2.0
                 if coordinatesPlusOne[variable] == sys.maxsize:
-                  dxs[position-1] = (coordinates[variable.strip()] - coordinatesMinusOne[variable])/2.0
-                  NDcoordinate[position-1] = coordinates[variable.strip()] - dxs[position-1]/2.0
-            print(self.distDict[varName].cdf(NDcoordinate))
+                  dxs[position-1] = self.distDict[varName].returnUpperBound(position-1) - coordinates[variable.strip()] 
+                  NDcoordinate[position-1] = self.distDict[varName].returnUpperBound(position-1) + coordinates[variable.strip()] /2.0 # coordinates[variable.strip()] - (coordinates[variable.strip()] - coordinatesMinusOne[variable])/2.0 + dxs[position-1]/2.0
+
             weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)
-            #print(str(NDcoordinate) + ' , ' + str(dxs))
+            print(weight)
                   
       newpoint = tuple(self.values[key] for key in self.values.keys())
       if newpoint not in self.existing:

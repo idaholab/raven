@@ -34,50 +34,36 @@
       <mean>4</mean>
       <sigma>1</sigma>
     </Normal>
-    <NDInverseWeight name="ND_InverseWeight_P">
-      <p>3.0</p>
-      <dataFilename type="PDF">2DgaussianScatteredPDF.txt</dataFilename>
-      <workingDir>ND_test_Grid_cdf/</workingDir>
-    </NDInverseWeight>
-    <NDInverseWeight name="ND_InverseWeight_C">
-      <p>2.5</p>
-      <dataFilename type="CDF">2DgaussianScatteredCDF.txt</dataFilename>
-      <workingDir>ND_test_Grid_cdf/</workingDir>
-    </NDInverseWeight>
     <NDCartesianSpline name="ND_CartesianSpline_P">
       <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
-      <workingDir>ND_test_Grid_cdf/</workingDir>
-    </NDCartesianSpline>
-    <NDCartesianSpline name="ND_CartesianSpline_C">
-      <dataFilename type="CDF">2DgaussianCartesianCDF.txt</dataFilename>
       <workingDir>ND_test_Grid_cdf/</workingDir>
     </NDCartesianSpline>
   </Distributions>
 
   <Samplers>
     <Grid name="grid_CDF_SP">
-      <variable name="k0">
+      <!--variable name="k0">
         <distribution>k0_distrib</distribution>
-        <grid construction="custom" type="CDF">0.5 0.3</grid>
-      </variable>
-      <variable name="x0">
+        <grid construction="custom" type="value">3.0 4.0 5.0</grid>
+      </variable-->
+      <variable name="x0,k0">
         <distribution dim="1">ND_CartesianSpline_P</distribution>
-        <grid construction="custom" type="CDF">0.1 0.4</grid>
+        <grid construction="custom" type="CDF">0.1 0.3 0.6 0.8 0.99</grid>
       </variable>
       <variable name="y0,z0">
         <distribution dim="2">ND_CartesianSpline_P</distribution>
-        <grid construction="custom" type="CDF">0.2 0.5</grid>
+        <grid construction="custom" type="CDF">0.1 0.3 0.6 0.8 0.99</grid>
       </variable>
     </Grid>
   </Samplers>
 
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="1">
-      <Input class="Files" type="">lorentzAttractor.py</Input>
-      <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="Grid">grid_CDF_SP</Sampler>
-      <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
-      <Output class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
+      <Input   class="Files"            type="">lorentzAttractor.py</Input>
+      <Model   class="Models"           type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers"         type="Grid">grid_CDF_SP</Sampler>
+      <Output  class="DataObjects"      type="PointSet">testPrintPointSet</Output>
+      <Output  class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
     </MultiRun>
   </Steps>
 
