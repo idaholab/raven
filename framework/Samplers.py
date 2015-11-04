@@ -3656,6 +3656,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     if not ready: return ready
     #collect points that have been run
     self._sortNewPoints()
+    #check if there's any points to run.
     #do we still have points to run? then this while loop is skipped
     #use the while loop to find new needed points from new polys or subsets
     while sum(len(self.pointsNeeded[s]) for s in self.useSet.keys())+sum(len(self.pointsNeeded[s[1]]) for s in self.inTraining)<1:
@@ -3710,6 +3711,9 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         self.inTraining.append(('subset',todoSub,self.romShell[todoSub]))
         #get initial needed points and store them locally
         self._retrieveNeededPoints(todoSub)
+    #if all the points we need are currently submitted but not collected, we have no points to offer
+    if not self._havePointsToRun(): return False
+    #otherwise, we can submit points!
     return True
 
   def localGenerateInput(self,model,oldInput):
@@ -3733,8 +3737,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       found = False
       for sub in subsets:
         for p in self.pointsNeeded[sub]:
-          if p not in self.submittedNotCollected:
-            pt = self._expandCutPoint(sub,p)
+          pt = self._expandCutPoint(sub,p)
+          if pt not in self.submittedNotCollected:
             self.submittedNotCollected.append(pt)
             found = True
             break
@@ -4014,6 +4018,27 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     else:
       self.raiseADebug('Most impactful is adding subset',maxSubset)
       return 'subset',maxSubset,''
+
+  def _havePointsToRun(self):
+    """
+    Determines if there are points to submit to the jobHandler.
+    @ In, None
+    @Out, bool, true if there are points to run
+    """
+    #check if there's any subsets in the useSet that need points run, that haven't been queued
+    for subset in self.useSet.keys():
+      for pt in self.pointsNeeded[subset]:
+        if self._expandCutPoint(subset,pt) not in self.submittedNotCollected:
+          return True
+    #check if there's anything in training that needs points run, that haven't been queued
+    for item in self.inTraining:
+      subset = item[1]
+      for pt in self.pointsNeeded[subset]:
+        if self._expandCutPoint(subset,pt) not in self.submittedNotCollected:
+          return True
+    #if not, we have nothing to run.
+    return False
+
 
   def _makeCutDataObject(self,subset):
     """
