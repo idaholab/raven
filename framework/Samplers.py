@@ -3873,6 +3873,14 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     @ In, None
     @Out, None
     """
+    #remove unfinished subsets
+    toRemove = []
+    for subset in self.ROMs.values()[0]:
+      if subset not in self.useSet.keys():
+        toRemove.append(subset)
+    for subset in toRemove:
+      for t in self.targets:
+        del self.ROMs[t][subset]
     #finalize subsets
     for sub in self.useSet.keys():
       self._finalizeSubset(sub)
