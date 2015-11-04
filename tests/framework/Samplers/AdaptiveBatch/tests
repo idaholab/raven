@@ -35,4 +35,14 @@
   xml = 'circle/maxV_dp_samples.xml circle/maxV_dp_ls.xml'
   csv = 'circle/maxV_dp_samples.csv circle/maxV_dp_ls.csv'
  [../]
+ [./InvalidScoringStrategy]
+  type = 'RavenFramework'
+  input = 'test_invalid_score.xml'
+  xml = ''
+ [../]
+ [./InvalidBatchStrategy]
+  type = 'RavenFramework'
+  input = 'test_invalid_batch.xml'
+  xml = ''
+ [../]
 []
