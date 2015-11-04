@@ -1135,7 +1135,7 @@ class LimitSurfaceBatchSearch(LimitSurfaceSearch):
       self.bandIndices[gridID] = self.bandIndices[gridID].difference(listsurfPoints)
       self.bandIndices[gridID] = list(self.bandIndices[gridID])
       for coordinate in self.bandIndices[gridID]:
-        self.surfPoint[gridID] = np.vstack((self.surfPoint[gridID],self.limitSurfacePP.gridCoord[coordinate]))
+        self.surfPoint[gridID] = np.vstack((self.surfPoint[gridID],self.limitSurfacePP.gridCoord[gridID][coordinate]))
 
     # if not wasItReady and self.generateCSVs:
     #   # DM: HACK until I figure out how to get the actual working directory

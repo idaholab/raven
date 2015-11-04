@@ -47,6 +47,12 @@
   xml = 'circle/post_samples.xml circle/post_ls.xml'
   csv = 'circle/post_samples.csv circle/post_ls.csv'
  [../]
+ [./ThickenedBand]
+  type = 'RavenFramework'
+  input = 'test_thick.xml'
+  xml = 'circle/thick_samples.xml circle/thick_ls.xml'
+  csv = 'circle/thick_samples.csv circle/thick_ls.csv'
+ [../]
  [./InvalidPreRankingSimplification]
   type = 'RavenFramework'
   input = 'test_invalid_pre.xml'
@@ -74,5 +80,11 @@
   type = 'RavenFramework'
   input = 'test_invalid_batch.xml'
   xml = ''
+ [../]
+ [./InvalidThickness]
+  type = 'RavenFramework'
+  input = 'test_invalid_thick.xml'
+  xml = 'circle/invalid_thick_samples.xml circle/invalid_thick_ls.xml'
+  csv = 'circle/invalid_thick_samples.csv circle/invalid_thick_ls.csv'
  [../]
 []
