@@ -1155,7 +1155,7 @@ class Grid(Sampler):
                   self.inputInfo['distributionName'][key] = self.toBeSampled[variable]
                   self.inputInfo['distributionType'][key] = self.distDict[variable].type
                   self.values[key] = coordinates[variable]
-              #Fixme? this is the temporary solution -- congjian
+              # Based on the discussion with Diego, we will use the following to compute SampledVarsPb.
               self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinate)
         # Compute the ProbabilityWeight
         if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
@@ -1305,23 +1305,31 @@ class Stratified(Grid):
           for distVarName in self.distributions2variablesMapping[distName]:
             for kkey in distVarName.keys()[0].strip().split(','):
               self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
-              self.inputInfo['SampledVarsPb'][varName] = coordinate
+          # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
+          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
           weight *= upper - lower
       if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:   # 1D variable
         # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
         if self.gridInfo[varName] =='CDF':
-          ppfvalue, ppflower, ppfupper = self.distDict[varName].ppf(coordinate), self.distDict[varName].ppf(min(upper,lower)), self.distDict[varName].ppf(max(upper,lower))
+          ppfValue = self.distDict[varName].ppf(coordinate)
+          ppfLower = self.distDict[varName].ppf(min(upper,lower))
+          ppfUpper = self.distDict[varName].ppf(max(upper,lower))
+          weight *= self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
+          self.inputInfo['SampledVarsPb'][varName]  = self.distDict[varName].pdf(ppfValue)
+        elif self.gridInfo[varName] == 'value':
+          weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
+          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(coordinate)
         for kkey in varName.strip().split(','):
           self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
           self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
           if self.gridInfo[varName] =='CDF':
-            self.values[kkey], self.inputInfo['upper'][kkey], self.inputInfo['lower'][kkey], self.inputInfo['SampledVarsPb'][varName]  = ppfvalue, ppfupper, ppflower, coordinate
-            weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
+            self.values[kkey] = ppfValue
+            self.inputInfo['upper'][kkey] = ppfUpper
+            self.inputInfo['lower'][kkey] = ppfLower
           elif self.gridInfo[varName] =='value':
-            self.values[varName], self.inputInfo['upper'][kkey], self.inputInfo['lower'][kkey] = coordinate, max(upper,lower), min(upper,lower)
-            self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
-        if self.gridInfo[varName] =='CDF': weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
-        else                             : weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
+            self.values[kkey] = coordinate
+            self.inputInfo['upper'][kkey] = max(upper,lower)
+            self.inputInfo['lower'][kkey] = min(upper,lower)
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'

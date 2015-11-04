@@ -1,0 +1,118 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <!-- A simple example of the approximate Morse-Smale complex being used for
+       regression on a 2D function with one single global maximum. This example
+       should thoroughly test all of the features associated to the MSR. -->
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resampleSmoothExponential
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
+      <variable>X</variable>
+      <variable>Y</variable>
+      <variable>Z</variable>
+    </ExternalModel>
+    <ROM name="smoothExponential" subType="MSR">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <partitionPredictor>kde</partitionPredictor>
+      <kernel>exponential</kernel>
+      <smooth/>
+      <bandwidth>0.2</bandwidth>
+      <simplification>0.04</simplification>
+    </ROM>
+  </Models>
+
+  <Distributions>
+    <Uniform name="smallUniformDist">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+    <Uniform name="largeUniformDist">
+      <lowerBound>-1000</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>200</limit>
+        <initialSeed>888</initialSeed>
+      </samplerInit>
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+      </variable>
+    </MonteCarlo>
+    <Grid name="gridSampler">
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+        <grid construction="equal" steps="20" type="value">2 3</grid>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+        <grid construction="equal" steps="20" type="value">-1000 1000</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">foo</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">trainingData</Output>
+      <Output class="OutStreamManager" type="Print">trainingData</Output>
+    </MultiRun>
+    <MultiRun name="resampleSmoothExponential" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">smoothExponential</Model>
+      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outDataSmoothExponential</Output>
+      <Output class="OutStreamManager" type="Print">outDataSmoothExponential</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">smoothExponential</Output>
+    </RomTrainer>
+  </Steps>
+
+  <OutStreamManager>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outDataSmoothExponential">
+      <type>csv</type>
+      <source>outDataSmoothExponential</source>
+    </Print>
+    <Print name="trainingData">
+      <type>csv</type>
+      <source>trainingData</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <!-- The input PointSet object -->
+    <PointSet name="dummyIN">
+      <Input>X,Y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="trainingData">
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </PointSet>
+    <!-- The output PointSet objects -->
+    <PointSet name="outDataSmoothExponential">
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

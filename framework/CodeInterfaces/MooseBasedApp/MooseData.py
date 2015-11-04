@@ -3,10 +3,11 @@ import re
 import csv
 class mooseData:
   """   class that parses output of Moose Vector PP output files and reads in trip, minor block and write a csv file """
-  def __init__(self,filen,workingDir,outputFile):
+  def __init__(self,filen,workingDir,outputFile,integralName):
     self.vppFiles = []
     csvfiles = []
     csvreaders=[]
+    self.integralName = integralName.replace("_","")
     for i in range(len(filen)):
       csvfiles.append(open(filen[i],"r"))
       csvreaders.append(csv.DictReader(csvfiles[-1]))
@@ -37,7 +38,7 @@ class mooseData:
     for i in range(len(time)):
       for location in tempDict[time[i]].keys():
         for key in tempDict[time[i]][location].keys():
-          if 'J' in key:
+          if self.integralName[0] in key:
             sortedDict[location][time[i]] = tempDict[time[i]][location][key]
     # Below assumes that the location coordinates does not change in time.
     for location in sortedDict.keys():
