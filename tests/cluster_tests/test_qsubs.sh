@@ -127,6 +127,29 @@ cd ..
 # test parallel for internal Objects ENDED #
 ############################################
 
+################################
+# other parallel objects tests #
+################################
+
+cd AdaptiveSobol/
+rm -Rf workdir/*
+
+python ../../../framework/Driver.py test_adaptive_sobol_parallel.xml
+
+sleep 5
+cd workdir
+lines=`ls *.csv | wc -l`
+cd ..
+if test $lines -eq 12; then
+    echo PASS adaptiveSobol
+else
+    echo FAIL adaptiveSobol
+    num_fails=$(($num_fails+1))
+fi
+
+cd ..
+
+
 if test $num_fails -eq 0; then
     echo ALL PASSED
 else
