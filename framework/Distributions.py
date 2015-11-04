@@ -532,7 +532,6 @@ class Normal(BoostDistribution):
     @ Out float, norm
     """
     sv = str(scipy.__version__).split('.')
-    print('\n\n\n',sv,scipy,'\n\n\n')
     if int(sv[0])==0 and int(sv[1])==15:
       self.raiseAWarning('SciPy 0.15 detected!  In this version, the normalization factor for normal distributions was modified.')
       self.raiseAWarning('Using modified value...')
