@@ -8,21 +8,21 @@
 
     <Steps>
         <MultiRun name='make' pauseAtEnd='False'>
-            <Sampler class='Samplers'    type='AdaptiveSobol'>sobol</Sampler>
             <Input   class='DataObjects' type='PointSet'>dummyIN</Input>
             <Model   class='Models'      type='ExternalModel'>poly</Model>
+            <Sampler class='Samplers'    type='AdaptiveSobol'>sobol</Sampler>
             <Output  class='DataObjects' type='PointSet'>solns</Output>
         </MultiRun>
-        <RomTrainer name="train">
-          <Input class='DataObjects' type='PointSet'>solns</Input>
-          <Output class="Models" type="ROM">rom</Output>
-        </RomTrainer>
         <IOStep name='print'>
             <Input   class='DataObjects'      type='PointSet'>solns</Input>
             <Input   class='Models'      type='ROM'>rom</Input>
             <Output  class='OutStreamManager' type='Print'       >dump</Output>
             <Output  class='OutStreamManager' type='Print'       >dumprom</Output>
         </IOStep>
+        <RomTrainer name="train">
+          <Input class='DataObjects' type='PointSet'>solns</Input>
+          <Output class="Models" type="ROM">rom</Output>
+        </RomTrainer>
     </Steps>
 
     <Distributions>
@@ -40,7 +40,7 @@
               <maxSobolOrder>2</maxSobolOrder>
               <progressParam>1</progressParam>
               <logFile>states.txt</logFile>
-              <subsetVerbosity>notaverbosity</subsetVerbosity>
+              <subsetVerbosity>silent</subsetVerbosity>
             </Convergence>
             <variable name="x1"><distribution>UniDist</distribution></variable>
             <variable name="x2"><distribution>UniDist</distribution></variable>
