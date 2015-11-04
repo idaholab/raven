@@ -994,7 +994,7 @@ class LimitSurfaceBatchSearch(LimitSurfaceSearch):
     self.MCSamples        = []
 
     self.acceptedScoringParam = ['distance','distancePersistence']
-    self.acceptedBatchParam = ['none','naive','maxv','maxp']
+    self.acceptedBatchParam = ['none','naive','maxV','maxP']
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -1128,13 +1128,13 @@ class LimitSurfaceBatchSearch(LimitSurfaceSearch):
             offset[d] = 1
             if iCoords[d] - offset[d] > 0:
               newIndices.add(tuple(iCoords - offset))
-            if iCoords[d] + offset[d] < self.oldTestMatrix.shape[d]-1:
+            if iCoords[d] + offset[d] < self.oldTestMatrix[gridID].shape[d]-1:
               newIndices.add(tuple(iCoords + offset))
         self.bandIndices[gridID].update(newIndices)
       self.bandIndices[gridID] = self.bandIndices[gridID].difference(listsurfPoints)
       self.bandIndices[gridID] = list(self.bandIndices[gridID])
       for coordinate in self.bandIndices[gridID]:
-        self.surfPoint[gridID] = np.vstack((self.surfPoint[gridId],self.limitSurfacePP.gridCoord[coordinate]))
+        self.surfPoint[gridID] = np.vstack((self.surfPoint[gridID],self.limitSurfacePP.gridCoord[coordinate]))
 
     # if not wasItReady and self.generateCSVs:
     #   # DM: HACK until I figure out how to get the actual working directory
@@ -1267,10 +1267,19 @@ class LimitSurfaceBatchSearch(LimitSurfaceSearch):
         if len(self.toProcess) == 0:
           self.ScoreCandidates()
           edges = []
-          bandPts = self.listsurfPoint+self.bandIndices
-          for i,iCoords in enumerate(bandPts):
-            for j in xrange(i+1, len(bandPts)):
-              jCoords = bandPts[j]
+
+          flattenedSurfPoints = list()
+          flattenedBandPoints = list()
+          flattenedScores     = list()
+          for key in self.bandIndices.keys():
+            flattenedSurfPoints = flattenedSurfPoints + list(self.surfPoint[key])
+            flattenedScores = flattenedScores + list(self.scores[key])
+            flattenedBandPoints = flattenedBandPoints + self.listSurfPoint[key] + self.bandIndices[key]
+
+          flattenedSurfPoints = np.array(flattenedSurfPoints)
+          for i,iCoords in enumerate(flattenedBandPoints):
+            for j in xrange(i+1, len(flattenedBandPoints)):
+              jCoords = flattenedBandPoints[j]
               ijValidNeighbors = True
               for d in xrange(len(jCoords)):
                 if abs(iCoords[d] - jCoords[d]) > 1:
@@ -1280,42 +1289,32 @@ class LimitSurfaceBatchSearch(LimitSurfaceSearch):
                 edges.append((i,j))
                 edges.append((j,i))
 
-          # if self.generateCSVs:
-          #   # DM: HACK until I figure out how to get the actual working directory
-          #   self.workingDir = os.path.abspath(os.curdir)
-          #   fout = open(os.path.join(self.workingDir,'edges_'
-          #                            + str(self.counter) + '.csv'), 'w')
-          #   sep = ''
-          #   for edge in edges:
-          #     fout.write('%d,%d\n' % (edge[0],edge[1]))
-          #   fout.close()
-
           names = [ name.encode('ascii', 'ignore') for name in axisNames]
           names.append('score'.encode('ascii','ignore'))
-          amsc = AMSC_Object(X=np.array(self.surfPoint), Y=self.scores, w=None,
-                             names=names, graph='none',
+          amsc = AMSC_Object(X=flattenedSurfPoints, Y=flattenedScores,
+                             w=None, names=names, graph='none',
                              gradient='steepest', normalization='feature',
                              persistence='difference', edges=edges, debug=False)
-          plevel = self.simplification*(max(self.scores)-min(self.scores))
+          plevel = self.simplification*(max(flattenedScores)-min(flattenedScores))
           partitions = amsc.StableManifolds(plevel)
           mergeSequence = amsc.GetMergeSequence()
           maxIdxs = list(set(partitions.keys()))
 
-          thresholdLevel = self.threshold*(max(self.scores)-min(self.scores))+min(self.scores)
+          thresholdLevel = self.threshold*(max(flattenedScores)-min(flattenedScores))+min(flattenedScores)
           # Sort the maxima based on decreasing function value, thus the top
           # candidate is the first element.
-          if self.batchStrategy.endswith('v'):
-            sortedMaxima = sorted(maxIdxs, key=lambda idx: self.scores[idx], reverse=True)
+          if self.batchStrategy.endswith('V'):
+            sortedMaxima = sorted(maxIdxs, key=lambda idx: flattenedScores[idx], reverse=True)
           else:
           # Sort the maxima based on decreasing persistence value, thus the top
           # candidate is the first element.
             sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1], reverse=True)
           B = min(self.maxBatchSize,len(sortedMaxima))
           for idx in sortedMaxima[0:B]:
-            if self.scores[idx] >= thresholdLevel:
-              self.toProcess.append(self.surfPoint[idx,:])
+            if flattenedScores[idx] >= thresholdLevel:
+              self.toProcess.append(flattenedSurfPoints[idx,:])
           if len(self.toProcess) == 0:
-            self.toProcess.append(self.surfPoint[np.argmax(self.scores),:])
+            self.toProcess.append(flattenedSurfPoints[np.argmax(flattenedScores),:])
         ########################################################################
         ## Select one sample
         selectedPoint = self.toProcess.pop()

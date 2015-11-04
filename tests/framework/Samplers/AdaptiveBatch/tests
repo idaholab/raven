@@ -11,4 +11,28 @@
   xml = 'circle/greedy_dp_samples.xml circle/greedy_dp_ls.xml'
   csv = 'circle/greedy_dp_samples.csv circle/greedy_dp_ls.csv'
  [../]
+ [./MaxPDistance]
+  type = 'RavenFramework'
+  input = 'test_maxp_d.xml'
+  xml = 'circle/maxP_d_samples.xml circle/maxP_d_ls.xml'
+  csv = 'circle/maxP_d_samples.csv circle/maxP_d_ls.csv'
+ [../]
+ [./MaxPDistancePersistence]
+  type = 'RavenFramework'
+  input = 'test_maxp_dp.xml'
+  xml = 'circle/maxP_dp_samples.xml circle/maxP_dp_ls.xml'
+  csv = 'circle/maxP_dp_samples.csv circle/maxP_dp_ls.csv'
+ [../]
+ [./MaxVDistance]
+  type = 'RavenFramework'
+  input = 'test_maxv_d.xml'
+  xml = 'circle/maxV_d_samples.xml circle/maxV_d_ls.xml'
+  csv = 'circle/maxV_d_samples.csv circle/maxV_d_ls.csv'
+ [../]
+ [./MaxPDistancePersistence]
+  type = 'RavenFramework'
+  input = 'test_maxv_dp.xml'
+  xml = 'circle/maxV_dp_samples.xml circle/maxV_dp_ls.xml'
+  csv = 'circle/maxV_dp_samples.csv circle/maxV_dp_ls.csv'
+ [../]
 []
