@@ -1182,6 +1182,8 @@ class Grid(Sampler):
               position = var.values()[0]
               #NDcoordinate[position-1] = coordinates[variable.strip()]
               if self.gridInfo[variable]=='CDF':
+                print(self.distDict)
+                print(coordinates)
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
                   dxs[position-1] = (self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
                                    - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1))/2.0
