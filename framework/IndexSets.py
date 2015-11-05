@@ -325,7 +325,16 @@ class AdaptiveSet(IndexSet):
       self.raiseAnError(KeyError,'Adaptive index set instructed to reject point',pt,'but point is not in active set!')
     self.active.remove(pt)
 
-  def forward(self,pt,maxPoly=None):
+  def forward(self,maxPoly=None):
+    """
+    Check the upper neighbors of each point for indices to add.
+    @ In, maxPoly, integer, optional maximum value to have in any direction
+    @Out, None
+    """
+    for i in self.points:
+      self.forwardOne(i,maxPoly)
+
+  def forwardOne(self,pt,maxPoly=None):
     """
       Searches for new active points based on the point given and the established set.
       @ In, pt, tuple of int, the point to move forward from
@@ -341,6 +350,8 @@ class AdaptiveSet(IndexSet):
         if newpt[i]>maxPoly:
           continue
       if tuple(newpt) in self.active:
+        continue
+      if tuple(newpt) in self.points:
         continue
       #remove the candidate if not all of its predecessors are accepted.
       found=True

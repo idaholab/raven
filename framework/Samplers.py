@@ -2951,12 +2951,14 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.maxPolyOrder            = 0 #max size of polynomials to allow
     self.persistence             = 0 #number of forced iterations, default 2
     self.convType                = None #convergence criterion to use
+    self.logFile                 = None #file to print log to, optional
     #convergence/training tools
     self.expImpact               = {} #dict of potential included polynomials and their estimated impacts, [target][index]
     self.actImpact               = {} #dict of included polynomials and their current impact, [target][index] = impact
     self.sparseGrid              = None #current sparse grid
     self.oldSG                   = None #previously-accepted sparse grid
     self.error                   = 0  #estimate of percent of moment calculated so far
+    self.logCounter              = 0  #when printing the log, tracks the number of prints
     #solution storage
     self.existing                = {} #rolling list of sampled points
     self.neededPoints            = [] #queue of points to submit
@@ -2979,12 +2981,15 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     SparseGridCollocation.localInputAndChecks(self,xmlNode)
     if 'Convergence' not in list(c.tag for c in xmlNode): self.raiseAnError(IOError,'Convergence node not found in input!')
     convnode = xmlNode.find('Convergence')
+    logNode  = xmlNode.find('logFile')
     self.convType     = convnode.attrib['target']
     self.maxPolyOrder = int(convnode.attrib.get('maxPolyOrder',10))
     self.persistence  = int(convnode.attrib.get('persistence',2))
-    self.maxRuns     = convnode.attrib.get('maxRuns',None)
+    self.maxRuns      = convnode.attrib.get('maxRuns',None)
     self.convValue    = float(convnode.text)
-
+    if logNode is not None:
+      self.logFile = logNode.text
+      dummy = file(self.logFile,'w')
     if self.maxRuns is not None: self.maxRuns = int(self.maxRuns)
 
   def localInitialize(self):
@@ -3060,7 +3065,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       #update sparse grid and set active impacts
       self._updateQoI()
       #move the index set forward
-      self.indexSet.forward(self.indexSet.points[-1])
+      self.indexSet.forward(self.maxPolyOrder) #TODO removed self.indexSet.points[-1])
       #estimate impacts
       for pidx in self.indexSet.active:
         self._estimateImpact(pidx)
@@ -3069,6 +3074,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       for pidx in self.indexSet.active:
         self.error += max(self.expImpact[t][pidx] for t in self.targets)
       self.raiseAMessage('  estimated remaining error: %1.4e target error: %1.4e, runs: %i' %(self.error,self.convValue,len(self.pointsNeededToMakeROM)))
+      if self.logFile is not None:
+        self._printToLog()
       #if error small enough, converged!
       if abs(self.error) < self.convValue:
         done=True #we've converged!
@@ -3221,20 +3228,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if returnValue: return point,avg
     else: return point
 
-  def _findNewPolys(self):
-    """
-    Pushes the adaptive index set forward in polynomial space
-    @ In, None
-    @Out, None
-    """
-    #store the old rom, if we have it
-    if len(self.indexSet.points)>1:
-      self.oldSG = self.activeSGs[self.indexSet.newestPoint]
-    #get the active point with the biggest impact and make it permanent
-    point,impact = self.indexSet.expand()
-    # find the forward points of the most effective point
-    self.indexSet.forward(point,self.maxPolyOrder)
-
   def _integrateFunction(self,sg,r,i):
     """
       Uses the sparse grid sg to effectively integrate the r-th moment of the model.
@@ -3291,6 +3284,42 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     iset.addPoints(points)
     sparseGrid.initialize(self.features,iset,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
     return sparseGrid
+
+  def _printToLog(self):
+    """
+    Prints adaptive state of this sampler to the log file.
+    @ In, None
+    @Out, None
+    """
+    self.logCounter+=1
+    pl = 4*len(self.features)+1
+    f = file(self.logFile,'a')
+    f.writelines('===================== STEP %i =====================\n' %self.logCounter)
+    f.writelines('\nExisting indices:\n')
+    f.writelines('    {:^{}}:'.format('poly',pl))
+    for t in self.targets:
+      f.writelines('  {:<16}'.format(t))
+    f.writelines('\n')
+    for idx in self.indexSet.points:
+      f.writelines('    {:^{}}:'.format(idx,pl))
+      for t in self.targets:
+        f.writelines('  {:<9}'.format(self.actImpact[t][idx]))
+      f.writelines('\n')
+    f.writelines('\nPredicted indices:\n')
+    f.writelines('    {:^{}}:'.format('poly',pl))
+    for t in self.targets:
+      f.writelines('  {:<16}'.format(t))
+    f.writelines('\n')
+    for idx in self.expImpact.values()[0].keys():
+      f.writelines('    {:^{}}:'.format(idx,pl))
+      for t in self.targets:
+        f.writelines('  {:<9}'.format(self.expImpact[t][idx]))
+      f.writelines('\n')
+    f.writelines('\nStill in active:\n')
+    for idx in self.indexSet.active:
+      f.writelines('    {}\n'.format(idx))
+    f.writelines('===================== END STEP =====================\n')
+    f.close()
 
   def _updateExisting(self):
     """
@@ -4038,7 +4067,6 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
           return True
     #if not, we have nothing to run.
     return False
-
 
   def _makeCutDataObject(self,subset):
     """
