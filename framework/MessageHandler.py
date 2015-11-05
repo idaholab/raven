@@ -185,7 +185,7 @@ class MessageHandler(object):
       @ In, obj, preferably an object with a printTag method; otherwise, a string or an object
       @ Out, tag, string to print
     """
-    if type(obj) in [str,unicode]: return obj
+    if type(obj).__name__ in ['str','unicode']: return obj
     try: obj.printTag
     except AttributeError: tag = str(obj)
     else: tag = str(obj.printTag)

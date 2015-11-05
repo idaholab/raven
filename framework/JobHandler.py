@@ -28,8 +28,11 @@ import threading
 import utils
 from BaseClasses import BaseType
 # for internal parallel
-import pp
-import ppserver
+if sys.version_info.major == 2:
+  import pp
+  import ppserver
+else:
+  print("pp does not support python3")
 # end internal parallel module
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------

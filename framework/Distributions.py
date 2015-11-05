@@ -532,10 +532,12 @@ class Normal(BoostDistribution):
     @ Out float, norm
     """
     sv = str(scipy.__version__).split('.')
-    if int(sv[0])==0 and int(sv[1])<15:
-      return 1.0/np.sqrt(2.*np.pi)
-    else:
+    if int(sv[0])==0 and int(sv[1])==15:
+      self.raiseAWarning('SciPy 0.15 detected!  In this version, the normalization factor for normal distributions was modified.')
+      self.raiseAWarning('Using modified value...')
       return 1.0/np.sqrt(np.pi/2.)
+    else:
+      return 1.0/np.sqrt(2.*np.pi)
 
   def convertNormalToHermite(self,y):
     """Converts from distribution domain to standard Hermite [-inf,inf].
