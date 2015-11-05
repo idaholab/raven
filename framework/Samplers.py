@@ -3078,8 +3078,15 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self._printToLog()
       #if error small enough, converged!
       if abs(self.error) < self.convValue:
-        done=True #we've converged!
+        self.done = True
         self.converged = True
+        break
+      #if maxRuns reached, no more samples!
+      if len(self.pointsNeededToMakeROM) >= self.maxRuns:
+        self.raiseAMessage('Maximum runs reached!  No further polynomial will be added.')
+        self.done = True
+        self.converged = True
+        self.neededPoints=[]
         break
       #otherwise, not converged...
       #what if we have no polynomials to consider...
