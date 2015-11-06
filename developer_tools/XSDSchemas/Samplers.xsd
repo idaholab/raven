@@ -56,13 +56,13 @@
         </xsd:simpleContent>
     </xsd:complexType>
 
-    <xsd:complexType name="latentVariableType">
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:string">
-              <xsd:attribute name="name"  type="xsd:string" use="required"/>
-              <xsd:attribute name="type"  type="xsd:string" use="required"/>
-            </xsd:extension>
-        </xsd:simpleContent>
+    <xsd:complexType name="variablesTransformationType">
+        <xsd:all>
+          <xsd:element name="latentVariables" type="xsd:string" minOccurs="1"/>
+          <xsd:element name="manifestVariables" type="xsd:string" minOccurs="1"/>
+          <xsd:element name="method" type="xsd:string" minOccurs="1"/>
+        </xsd:all>
+        <xsd:attribute name="model"  type="xsd:string" use="required"/>
     </xsd:complexType>
 
     <xsd:complexType name="gridType">
@@ -97,7 +97,7 @@
             <xsd:element name="samplerInit" type="samplerInitType" minOccurs="1"/>
             <xsd:element name="variable"     type="variableType"    minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Restart"      type="AssemblerObjectType"   minOccurs="0"  maxOccurs="unbounded"/>
-            <xsd:element name="latentVariables" type="latentVariableType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>

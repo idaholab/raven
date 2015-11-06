@@ -533,10 +533,12 @@ class Normal(BoostDistribution):
     @ Out float, norm
     """
     sv = str(scipy.__version__).split('.')
-    if int(sv[0])==0 and int(sv[1])<15:
-      return 1.0/np.sqrt(2.*np.pi)
-    else:
+    if int(sv[0])==0 and int(sv[1])==15:
+      self.raiseAWarning('SciPy 0.15 detected!  In this version, the normalization factor for normal distributions was modified.')
+      self.raiseAWarning('Using modified value...')
       return 1.0/np.sqrt(np.pi/2.)
+    else:
+      return 1.0/np.sqrt(2.*np.pi)
 
   def convertNormalToHermite(self,y):
     """Converts from distribution domain to standard Hermite [-inf,inf].
@@ -1491,9 +1493,11 @@ class MultivariateNormal(NDimensionalDistributions):
     self.transformMatrix = None  # np.array stores the transform matrix
     self.dimension = None        # the dimension of given problem
     self.rank = None             # the effective rank for the PCA analysis
+    '''
     self.inputVariables = {}     # dict of input variable: {'model'::varName,'latent':varName}, 'model' indicates the varName are provided by models,
                                  # and 'latent' indicates the varName used in the reduced space
-    self.transformation = False       # flag for input transformation analysis
+    '''
+    self.transformation = False       # flag for input reduction analysis
 
 
   def _readMoreXML(self,xmlNode):
@@ -1515,9 +1519,6 @@ class MultivariateNormal(NDimensionalDistributions):
         for childChild in child:
           if childChild.tag == 'rank':
             self.rank = int(childChild.text)
-          elif childChild.tag == 'variables':
-            if childChild.attrib['type'] == 'model':
-              self.inputVariables['model'] = list(inp.strip() for inp in childChild.text.strip().split(','))
 
     if self.rank == None: self.rank = self.dimension
     self.mu = mu
@@ -1554,7 +1555,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     Transform latent parameters back to models' parameters
     @ x, input coordinate, list values for the latent variables
-    @ varDict, output dictionary, {'modelParameterName':value}, this will be assigned to self.inputInfor['SampledVars'] inside Samplers.
+    @ return the values of manifest variables with type of list
     """
     if self.method == 'spline':
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
@@ -1565,8 +1566,7 @@ class MultivariateNormal(NDimensionalDistributions):
         coordinate[i] = x[i]
       originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
       values = np.atleast_1d(originalCoordinate).tolist()
-      varDict = dict(zip(self.inputVariables['model'],values))
-      return varDict
+      return values
 
   def coordinateInTransformedSpace(self):
     """
