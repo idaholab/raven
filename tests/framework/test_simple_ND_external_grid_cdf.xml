@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version='1.0' ?>
 <Simulation>
   <RunInfo>
     <WorkingDir>ND_test_Grid_cdf</WorkingDir>
@@ -7,13 +7,13 @@
   </RunInfo>
 
   <Files>
-    <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
-    <Input name="TriangularExponential2D_scattered.txt" type="">TriangularExponential2D_scattered.txt</Input>
-    <Input name="TriangularExponential2D_cartesian.txt" type="">TriangularExponential2D_cartesian.txt</Input>
+    <Input name='lorentzAttractor.py' type=''>lorentzAttractor.py</Input>
+    <Input name='TriangularExponential2D_scattered.txt' type=''>TriangularExponential2D_scattered.txt</Input>
+    <Input name='TriangularExponential2D_cartesian.txt' type=''>TriangularExponential2D_cartesian.txt</Input>
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad='lorentzAttractor' name='PythonModule' subType=''>
       <variable>sigma</variable>
       <variable>rho</variable>
       <variable>beta</variable>
@@ -30,45 +30,41 @@
   </Models>
 
   <Distributions>
-    <Normal name="k0_distrib">
+    <Normal name='k0_distrib'>
       <mean>4</mean>
       <sigma>1</sigma>
     </Normal>
-    <NDCartesianSpline name="ND_CartesianSpline_P">
-      <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
+    <NDCartesianSpline name='ND_CartesianSpline_P'>
+      <dataFilename type='PDF'>2DgaussianCartesianPDF.txt</dataFilename>
       <workingDir>ND_test_Grid_cdf/</workingDir>
     </NDCartesianSpline>
   </Distributions>
 
   <Samplers>
-    <Grid name="grid_CDF_SP">
-      <!--variable name="k0">
-        <distribution>k0_distrib</distribution>
-        <grid construction="custom" type="value">3.0 4.0 5.0</grid>
-      </variable-->
-      <variable name="x0,k0">
-        <distribution dim="1">ND_CartesianSpline_P</distribution>
-        <grid construction="custom" type="CDF">0.1 0.3 0.6 0.8 0.99</grid>
+    <Grid name='grid_CDF_SP'>
+      <variable name='x0,k0'>
+        <distribution dim='1'>ND_CartesianSpline_P</distribution>
+        <grid construction='custom' type='CDF'>0.001 0.05 0.4 0.8 0.99</grid>
       </variable>
-      <variable name="y0,z0">
-        <distribution dim="2">ND_CartesianSpline_P</distribution>
-        <grid construction="custom" type="CDF">0.1 0.3 0.6 0.8 0.99</grid>
+      <variable name='y0,z0'>
+        <distribution dim='2'>ND_CartesianSpline_P</distribution>
+        <grid construction='custom' type='CDF'>0.001 0.2 0.4 0.8 0.99</grid>
       </variable>
     </Grid>
   </Samplers>
 
   <Steps>
-    <MultiRun name="FirstMRun" re-seeding="1">
-      <Input   class="Files"            type="">lorentzAttractor.py</Input>
-      <Model   class="Models"           type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers"         type="Grid">grid_CDF_SP</Sampler>
-      <Output  class="DataObjects"      type="PointSet">testPrintPointSet</Output>
-      <Output  class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
+    <MultiRun name='FirstMRun' re-seeding='1'>
+      <Input   class='Files'            type=''>lorentzAttractor.py</Input>
+      <Model   class='Models'           type='ExternalModel'>PythonModule</Model>
+      <Sampler class='Samplers'         type='Grid'>grid_CDF_SP</Sampler>
+      <Output  class='DataObjects'      type='PointSet'>testPrintPointSet</Output>
+      <Output  class='OutStreamManager' type='Print'>testPrintPointSet_dump</Output>
     </MultiRun>
   </Steps>
 
   <OutStreamManager>
-    <Print name="testPrintPointSet_dump">
+    <Print name='testPrintPointSet_dump'>
       <type>csv</type>
       <source>testPrintPointSet</source>
       <what>Input,Output,Input|ProbabilityWeight</what>
@@ -76,7 +72,7 @@
   </OutStreamManager>
 
   <DataObjects>
-    <PointSet name="testPrintPointSet">
+    <PointSet name='testPrintPointSet'>
       <Input>x0,y0,z0,k0</Input>
       <Output>x,y,z,k</Output>
     </PointSet>
