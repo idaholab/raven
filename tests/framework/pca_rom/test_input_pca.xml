@@ -1,19 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>ND_test_MC_MVN</WorkingDir>
-    <Sequence>FirstMRun</Sequence>
+    <WorkingDir>PCAReduction</WorkingDir>
+    <Sequence>FirstMRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
-    <Input name="covMatrix.txt" type="">covMatrix.txt</Input>
-    <Input name="CorrelationTest_print.csv" type="">CorrelationTest_print.csv</Input>
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="PCAReduction/lorentzAttractor_noK" name="PythonModule" subType="">
       <variable>sigma</variable>
       <variable>rho</variable>
       <variable>beta</variable>
@@ -25,18 +23,18 @@
       <variable>y0</variable>
       <variable>z0</variable>
     </ExternalModel>
-    <PostProcessor name="CorrelationTest" subType="BasicStatistics">
-      <what>all</what>
-      <parameters>x0,y0</parameters>
-    </PostProcessor>
   </Models>
 
-<Distributions>
-    <MultivariateNormal name='MultivariateNormal_test' method="spline">
-        <mu>0.0 60.0</mu>
-        <covariance>
-            1.0 0.8
-            0.8 1.0
+  <Distributions>
+    <MultivariateNormal name='MultivariateNormalPCAReduction' method='pca'>
+        <transformation>
+            <rank>2</rank>
+        </transformation>
+        <mu>0.0 60.0 60.0</mu>
+        <covariance type="abs">
+            1.0       0.8      -0.5
+            0.8       1.0      0.3
+            -0.5  0.3  0.8
         </covariance>
     </MultivariateNormal>
   </Distributions>
@@ -44,15 +42,20 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>3</limit>
+        <limit>20</limit>
         <initialSeed>1234</initialSeed>
       </samplerInit>
-      <variable name="x0">
-        <distribution dim="1">MultivariateNormal_test</distribution>
+      <variable name="x1">
+        <distribution dim="1">MultivariateNormalPCAReduction</distribution>
       </variable>
-      <variable name="y0,z0">
-        <distribution dim="2">MultivariateNormal_test</distribution>
+      <variable name="y1">
+        <distribution dim="2">MultivariateNormalPCAReduction</distribution>
       </variable>
+      <variablesTransformation model="PythonModule">
+        <latentVariables>x1,y1</latentVariables>
+        <manifestVariables>x0,y0,z0</manifestVariables>
+        <method>pca</method>
+      </variablesTransformation>
     </MonteCarlo>
   </Samplers>
 
@@ -62,13 +65,11 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
-      <Output class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
     </MultiRun>
-    <PostProcess name="PP">
+    <IOStep name="Dump">
       <Input class="DataObjects" type="PointSet">testPrintPointSet</Input>
-      <Model class="Models" type="PostProcessor">CorrelationTest</Model>
-      <Output class="Files" type="">CorrelationTest_print.csv</Output>
-    </PostProcess>
+      <Output class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
+    </IOStep>
   </Steps>
 
   <OutStreamManager>

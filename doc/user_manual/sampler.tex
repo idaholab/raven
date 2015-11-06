@@ -270,6 +270,25 @@ XML node and the requirements for other attributes change:
         of recalculating solutions.
     \end{itemize}
 }
+
+\newcommand{\variablesTransformationDescription}[1]
+{
+    \begin{itemize}
+      \item \xmlNode{variablesTransformation}, \xmlDesc{optional field}. This XML node accepts one attribute:
+      \begin{itemize}
+        \item \xmlAttr{model}, \xmlDesc{required string attribute}, the name for the model defined in the XML node \xmlNode {Models}. 
+        This attribute indicates the \xmlNode{manifestVariables} defined in the subnode will be used by the \xmlAttr{model}.
+      \end{itemize}
+      In addition, this XML node also accepts three childen nodes:
+      \begin{itemize}
+        \item \xmlNode{latentVariables}, \xmlDesc{comma separated string, required field}, user-defined latent variables that 
+        are used for the variables transformation.
+        \item \xmlNode{manifestVariables}, \xmlDesc{comma separated string, required field}, user-defined manifest variables 
+        that are used by the \xmlAttr{model}.
+        \item \xmlNode{method}, \xmlDesc{string, required field}, the method that is used for the variables transformation.
+      \end{itemize}
+    \end{itemize}
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The sampler is probably the most important entity in the RAVEN framework.
@@ -494,6 +513,7 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
 
 \assemblerDescription{MonteCarlo}
 \restartDescription{MonteCarlo}
+\variablesTransformationDescription{MonteCarlo}
 
 Example:
 \begin{lstlisting}[style=XML]
