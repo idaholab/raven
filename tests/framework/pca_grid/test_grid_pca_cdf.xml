@@ -29,8 +29,6 @@
     <MultivariateNormal name='MultivariateNormalPCA' method='pca'>
         <transformation>
             <rank>3</rank>
-            <!--variables type='latent'>x1,x2</variables-->
-            <variables type='model'>x0,y0,z0</variables>
         </transformation>
         <mu>0.0 1.0 2.0</mu>
         <covariance type="abs">
@@ -73,7 +71,11 @@
             9.968983970672826711e-01
         </grid>
       </variable>
-      <latentVariables name='MultivariateNormalPCA' type='pca'>x1,y1,z1</latentVariables>
+      <variablesTransformation model="PythonModule">
+        <latentVariables>x1,y1,z1</latentVariables>
+        <manifestVariables>x0,y0,z0</manifestVariables>
+        <method>pca</method>
+      </variablesTransformation>
     </Grid>
   </Samplers>
 
