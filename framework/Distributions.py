@@ -13,8 +13,9 @@ warnings.simplefilter('default',DeprecationWarning)
 import sys
 import numpy as np
 import scipy
+from scipy import linalg
 #from scipy.misc import factorial
-from math import gamma
+from math import gamma,sqrt
 import os
 import operator
 #External Modules End--------------------------------------------------------------------------------
@@ -1486,15 +1487,42 @@ class MultivariateNormal(NDimensionalDistributions):
     self.type = 'MultivariateNormal'
     self.mu  = None
     self.covariance = None
+    self.covarianceType = 'abs'  # abs: absolute covariance, rel: relative covariance matrix
+    self.method = 'pca'          # pca: using pca method to compute the pdf, and inverseCdf, another option is 'spline', i.e. using
+                                 # cartesian spline method to compute the pdf, cdf, inverseCdf, ...
+    self.transformMatrix = None  # np.array stores the transform matrix
+    self.dimension = None        # the dimension of given problem
+    self.rank = None             # the effective rank for the PCA analysis
+    '''
+    self.inputVariables = {}     # dict of input variable: {'model'::varName,'latent':varName}, 'model' indicates the varName are provided by models,
+                                 # and 'latent' indicates the varName used in the reduced space
+    '''
+    self.transformation = False       # flag for input reduction analysis
+
 
   def _readMoreXML(self,xmlNode):
-    NDimensionalDistributions._readMoreXML(self, xmlNode)
-    mu = xmlNode.find('mu')
-    if mu != None: self.mu = [float(i) for i in mu.text.split()]
-    else: self.raiseAnError(IOError,'<mu> parameter needed for MultivariateNormal Distributions!!!!')
-    covariance = xmlNode.find('covariance')
-    if covariance != None: self.covariance = [float(i) for i in covariance.text.split()]
-    else: self.raiseAnError(IOError,'<covariance> parameter needed for MultivariateNormal Distributions!!!!')
+    #NDimensionalDistributions._readMoreXML(self, xmlNode)
+    if xmlNode.attrib['method'] == 'pca':
+      self.method = 'pca'
+    elif xmlNode.attrib['method'] == 'spline':
+      self.method = 'spline'
+    else: self.raiseAnError(IOError,'The method attribute for the MultivariateNormal Distribution is not correct, choose "pca" or "spline"')
+    for child in xmlNode:
+      if child.tag == 'mu':
+        mu = [float(value) for value in child.text.split()]
+        self.dimension = len(mu)
+      elif child.tag == 'covariance':
+        covariance = [float(value) for value in child.text.split()]
+        if 'type' in child.attrib.keys(): self.covarianceType = child.attrib['type']
+      elif child.tag == 'transformation':
+        self.transformation = True
+        for childChild in child:
+          if childChild.tag == 'rank':
+            self.rank = int(childChild.text)
+
+    if self.rank == None: self.rank = self.dimension
+    self.mu = mu
+    self.covariance = covariance
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -1508,24 +1536,78 @@ class MultivariateNormal(NDimensionalDistributions):
     covariance = distribution1D.vectord_cxx(len(self.covariance))
     for i in range(len(self.covariance)):
       covariance[i] = self.covariance[i]
-    self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
+    if self.method == 'spline':
+      if self.covarianceType != 'abs': self.raiseAnError(IOError,'covariance with type ' + self.covariance + ' is not implemented for ' + self.method + ' method')
+      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
+    elif self.method == 'pca':
+      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
 
   def cdf(self,x):
-    coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    return self._distribution.Cdf(coordinate)
+    if self.method == 'spline':
+      coordinate = distribution1D.vectord_cxx(len(x))
+      for i in range(len(x)):
+        coordinate[i] = x[i]
+      return self._distribution.Cdf(coordinate)
+    elif self.method == 'pca':
+      self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
+
+  def pcaInverseTransform(self,x):
+    """
+    Transform latent parameters back to models' parameters
+    @ x, input coordinate, list values for the latent variables
+    @ return the values of manifest variables with type of list
+    """
+    if self.method == 'spline':
+      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
+    elif self.method == 'pca':
+      if len(x) != self.rank: self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is not consistent with the rank defined in <Distributions>')
+      coordinate = distribution1D.vectord_cxx(len(x))
+      for i in range(len(x)):
+        coordinate[i] = x[i]
+      originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
+      values = np.atleast_1d(originalCoordinate).tolist()
+      return values
+
+  def coordinateInTransformedSpace(self):
+    """
+      Return the coordinate in the transformed space
+    """
+    if self.method == 'spline':
+      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
+    elif self.method == 'pca':
+      return self._distribution.coordinateInTransformedSpace(self.rank)
 
   def ppf(self,x):
-    return self._distribution.InverseCdf(x,random())
+    if self.method == 'spline':
+      return self._distribution.InverseCdf(x,random())
+    else:
+      self.raiseAnError(NotImplementedError,'ppf is not yet implemented for ' + self.method + ' method')
 
   def pdf(self,x):
-    coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    return self._distribution.Pdf(coordinate)
+    if self.transformation:
+      pdfValue = self.pdfInTransformedSpace(x)
+      return pdfValue
+    else:
+      coordinate = distribution1D.vectord_cxx(len(x))
+      for i in range(len(x)):
+        coordinate[i] = x[i]
+      return self._distribution.Pdf(coordinate)
+
+  def pdfInTransformedSpace(self,x):
+    """
+      return the pdf of given coordinate in the transformed space
+    """
+    if self.method == 'spline':
+      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
+    elif self.method == 'pca':
+      coordinate = distribution1D.vectord_cxx(len(x))
+      for i in range(len(x)):
+        coordinate[i] = x[i]
+      return self._distribution.pdfInTransformedSpace(coordinate)
 
   def cellIntegral(self,x,dx):
+    if self.method == 'pca':
+      self.raiseAnError(NotImplementedError,'cellIntegral not yet implemented for ' + self.method + ' method')
     coordinate = distribution1D.vectord_cxx(len(x))
     dxs        = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)):
@@ -1534,6 +1616,8 @@ class MultivariateNormal(NDimensionalDistributions):
     return self._distribution.cellIntegral(coordinate,dxs)
 
   def inverseMarginalDistribution (self, x, variable):
+    if self.method == 'pca':
+      self.raiseAnError(NotImplementedError,'inverseMarginalDistribution not yet implemented for ' + self.method + ' method')
     if (x>0.0) and (x<1.0):
       return self._distribution.inverseMarginal(x, variable)
     else:
@@ -1555,7 +1639,18 @@ class MultivariateNormal(NDimensionalDistributions):
     self.raiseAnError(NotImplementedError,'untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    return self._distribution.InverseCdf(random(),random())
+    if self.method == 'spline':
+      return self._distribution.InverseCdf(random(),random())
+    # if no transformation, then return the coordinate for the original input parameters
+    # if there is a transformation, then return the coordinate in the reduced space
+    elif self.method == 'pca':
+      if self.transformation:
+        return self._distribution.coordinateInTransformedSpace(self.rank)
+      else:
+        coordinate = self._distribution.coordinateInTransformedSpace(self.rank)
+        return self._distribution.coordinateInverseTransformed(coordinate)
+    else:
+      self.raiseAnError(NotImplementedError,'rvs is not yet implemented for ' + self.method + ' method')
 
 
 __base                        = 'Distribution'
