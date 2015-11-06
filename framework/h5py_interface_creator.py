@@ -311,12 +311,12 @@ class hdf5Database(MessageHandler.MessageUser):
       groups.attrs[b'sourceType'] = b'Dictionary'
       # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
       if set(['inputSpaceParams']).issubset(set(source['name'].keys())):
-        groups.attrs[b'inputSpaceHeaders' ] = list(utils.toBytesIterative(source['name']['inputSpaceParams'].keys()))
-        groups.attrs[b'inputSpaceValues'  ] = list(utils.toBytesIterative(source['name']['inputSpaceParams'].values()))
+        groups.attrs[b'inputSpaceHeaders' ] = utils.toBytesIterative(list(source['name']['inputSpaceParams'].keys()))
+        groups.attrs[b'inputSpaceValues'  ] = utils.toBytesIterative(list(source['name']['inputSpaceParams'].values()))
       if set(['outputSpaceParams']).issubset(set(source['name'].keys())): outDict = source['name']['outputSpaceParams']
       else: outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'])
-      outHeaders = list(utils.toBytesIterative(outDict.keys()))
-      outValues  = list(utils.toBytesIterative(outDict.values()))
+      outHeaders = utils.toBytesIterative(list(outDict.keys()))
+      outValues  = utils.toBytesIterative(list(outDict.values()))
       groups.attrs[b'nParams'   ] = len(outHeaders)
       groups.attrs[b'outputSpaceHeaders'] = outHeaders
       groups.attrs[b'EndGroup'   ] = True

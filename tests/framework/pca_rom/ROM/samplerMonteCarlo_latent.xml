@@ -1,0 +1,163 @@
+<?xml version="1.0" ?> 
+<MonteCarlo name="MCExternal"> 
+  <samplerInit> 
+    <limit>10</limit>
+    <initialSeed>1234</initialSeed>
+    <reseedEachIteration>True</reseedEachIteration>
+  </samplerInit>
+  <variable name="xlatent_0">
+    <distribution dim="1">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_1">
+    <distribution dim="2">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_2">
+    <distribution dim="3">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_3">
+    <distribution dim="4">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_4">
+    <distribution dim="5">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_5">
+    <distribution dim="6">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_6">
+    <distribution dim="7">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_7">
+    <distribution dim="8">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_8">
+    <distribution dim="9">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_9">
+    <distribution dim="10">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_10">
+    <distribution dim="11">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_11">
+    <distribution dim="12">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_12">
+    <distribution dim="13">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_13">
+    <distribution dim="14">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_14">
+    <distribution dim="15">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_15">
+    <distribution dim="16">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_16">
+    <distribution dim="17">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_17">
+    <distribution dim="18">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_18">
+    <distribution dim="19">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_19">
+    <distribution dim="20">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_20">
+    <distribution dim="21">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_21">
+    <distribution dim="22">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_22">
+    <distribution dim="23">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_23">
+    <distribution dim="24">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_24">
+    <distribution dim="25">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_25">
+    <distribution dim="26">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_26">
+    <distribution dim="27">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_27">
+    <distribution dim="28">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_28">
+    <distribution dim="29">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_29">
+    <distribution dim="30">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_30">
+    <distribution dim="31">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_31">
+    <distribution dim="32">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_32">
+    <distribution dim="33">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_33">
+    <distribution dim="34">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_34">
+    <distribution dim="35">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_35">
+    <distribution dim="36">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_36">
+    <distribution dim="37">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_37">
+    <distribution dim="38">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_38">
+    <distribution dim="39">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_39">
+    <distribution dim="40">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_40">
+    <distribution dim="41">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_41">
+    <distribution dim="42">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_42">
+    <distribution dim="43">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_43">
+    <distribution dim="44">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_44">
+    <distribution dim="45">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_45">
+    <distribution dim="46">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_46">
+    <distribution dim="47">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_47">
+    <distribution dim="48">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_48">
+    <distribution dim="49">MultivariateNormalReduction</distribution>
+  </variable>
+  <variable name="xlatent_49">
+    <distribution dim="50">MultivariateNormalReduction</distribution>
+  </variable>
+  <variablesTransformation model="PythonModule">
+    <latentVariables>xlatent_0,xlatent_1,xlatent_2,xlatent_3,xlatent_4,xlatent_5,xlatent_6,xlatent_7,xlatent_8,xlatent_9,xlatent_10,xlatent_11,xlatent_12,xlatent_13,xlatent_14,xlatent_15,xlatent_16,xlatent_17,xlatent_18,xlatent_19,xlatent_20,xlatent_21,xlatent_22,xlatent_23,xlatent_24,xlatent_25,xlatent_26,xlatent_27,xlatent_28,xlatent_29,xlatent_30,xlatent_31,xlatent_32,xlatent_33,xlatent_34,xlatent_35,xlatent_36,xlatent_37,xlatent_38,xlatent_39,xlatent_40,xlatent_41,xlatent_42,xlatent_43,xlatent_44,xlatent_45,xlatent_46,xlatent_47,xlatent_48,xlatent_49</latentVariables>
+    <manifestVariables>x_0,x_1,x_2,x_3,x_4,x_5,x_6,x_7,x_8,x_9,x_10,x_11,x_12,x_13,x_14,x_15,x_16,x_17,x_18,x_19,x_20,x_21,x_22,x_23,x_24,x_25,x_26,x_27,x_28,x_29,x_30,x_31,x_32,x_33,x_34,x_35,x_36,x_37,x_38,x_39,x_40,x_41,x_42,x_43,x_44,x_45,x_46,x_47,x_48,x_49,x_50,x_51,x_52,x_53,x_54,x_55,x_56,x_57,x_58,x_59,x_60,x_61,x_62,x_63,x_64,x_65,x_66,x_67,x_68,x_69,x_70,x_71,x_72,x_73,x_74,x_75,x_76,x_77,x_78,x_79,x_80,x_81,x_82,x_83,x_84,x_85,x_86,x_87,x_88,x_89,x_90,x_91,x_92,x_93,x_94,x_95,x_96,x_97,x_98,x_99,x_100,x_101,x_102,x_103,x_104,x_105,x_106,x_107,x_108,x_109,x_110,x_111,x_112,x_113,x_114,x_115,x_116,x_117,x_118,x_119,x_120,x_121,x_122,x_123,x_124,x_125,x_126,x_127,x_128,x_129,x_130,x_131,x_132,x_133,x_134,x_135,x_136,x_137,x_138,x_139,x_140,x_141,x_142,x_143,x_144,x_145,x_146,x_147,x_148,x_149,x_150,x_151,x_152,x_153,x_154,x_155,x_156,x_157,x_158,x_159,x_160,x_161,x_162,x_163,x_164,x_165,x_166,x_167,x_168,x_169,x_170,x_171,x_172,x_173,x_174,x_175,x_176,x_177,x_178,x_179,x_180,x_181,x_182,x_183,x_184,x_185,x_186,x_187,x_188,x_189,x_190,x_191,x_192,x_193,x_194,x_195,x_196,x_197,x_198,x_199,x_200,x_201,x_202,x_203,x_204,x_205,x_206,x_207,x_208,x_209,x_210,x_211,x_212,x_213,x_214,x_215,x_216,x_217,x_218,x_219,x_220,x_221,x_222,x_223,x_224,x_225,x_226,x_227,x_228,x_229,x_230,x_231,x_232,x_233,x_234,x_235,x_236,x_237,x_238,x_239,x_240,x_241,x_242,x_243,x_244,x_245,x_246,x_247,x_248,x_249,x_250,x_251,x_252,x_253,x_254,x_255,x_256,x_257,x_258,x_259,x_260,x_261,x_262,x_263,x_264,x_265,x_266,x_267,x_268,x_269,x_270,x_271,x_272,x_273,x_274,x_275,x_276,x_277,x_278,x_279,x_280,x_281,x_282,x_283,x_284,x_285,x_286,x_287,x_288,x_289,x_290,x_291,x_292,x_293,x_294,x_295,x_296,x_297,x_298,x_299,x_300,x_301,x_302,x_303,x_304,x_305,x_306,x_307</manifestVariables>
+    <method>pca</method>
+  </variablesTransformation>
+</MonteCarlo>
