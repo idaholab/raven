@@ -1606,20 +1606,26 @@ class MultivariateNormal(NDimensionalDistributions):
       return self._distribution.pdfInTransformedSpace(coordinate)
 
   def cellIntegral(self,x,dx):
-    if self.method == 'pca':
-      self.raiseAnError(NotImplementedError,'cellIntegral not yet implemented for ' + self.method + ' method')
     coordinate = distribution1D.vectord_cxx(len(x))
     dxs        = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)):
       coordinate[i] = x[i]
       dxs[i]=dx[i]
-    return self._distribution.cellIntegral(coordinate,dxs)
+    if self.method == 'pca':
+      if self.transformation: self.raiseAWarning("The ProbabilityWeighted is computed on the reduced transformed space")
+      else: self.raiseAWarning("The ProbabilityWeighted is computed on the transformed space")
+      return self._distribution.cellProbabilityWeight(coordinate,dxs)
+    elif self.method == 'spline':
+      return self._distribution.cellIntegral(coordinate,dxs)
+    else:
+      self.raiseAnError(NotImplementedError,'cellIntegral not yet implemented for ' + self.method + ' method')
 
   def inverseMarginalDistribution (self, x, variable):
-    if self.method == 'pca':
-      self.raiseAnError(NotImplementedError,'inverseMarginalDistribution not yet implemented for ' + self.method + ' method')
-    if (x>0.0) and (x<1.0):
-      return self._distribution.inverseMarginal(x, variable)
+    if (x > 0.0) and (x < 1.0):
+      if self.method == 'pca':
+        return self._distribution.inverseMarginalForPCA(x)
+      elif self.method == 'spline':
+        return self._distribution.inverseMarginal(x, variable)
     else:
       self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x ' +str(x)+' outside [0.0,1.0]')
 
