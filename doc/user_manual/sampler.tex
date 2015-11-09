@@ -282,7 +282,7 @@ XML node and the requirements for other attributes change:
       In addition, this XML node also accepts three childen nodes:
       \begin{itemize}
         \item \xmlNode{latentVariables}, \xmlDesc{comma separated string, required field}, user-defined latent variables that 
-        are used for the variables transformation.
+        are used for the variables transformation. All the variables listed under this node should be also mentioned in \xmlNode{variable}.
         \item \xmlNode{manifestVariables}, \xmlDesc{comma separated string, required field}, user-defined manifest variables 
         that are used by the \xmlAttr{model}.
         \item \xmlNode{method}, \xmlDesc{string, required field}, the method that is used for the variables transformation.
@@ -511,9 +511,20 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
 \end{itemize}
 %\end{itemize}
 
+If the input parameters are correlated, the \textbf{MonteCarlo} sampling approach can be also used if the user specified a 
+multivariate distributions inside the \xmlNode{Distributions} (see Section \ref{subsec:NdDist}). Furthermore, if the 
+covariance matrix is provided and the input parameters is assumed to have the multivariate normal distribution, one can also use 
+\textbf{MonteCarlo} approach to sample the input parameters in the transformed space (aka subspace, reduced space). If this is 
+the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of 
+\xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node 
+\xmlNode{variablesTransformation} is also required for \textbf{MonteCarlo} sampling. This node is used to tranform the variables 
+specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by \xmlNode{manifestVariables}
+in the input space. The variables listed in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables
+listed in \xmlNode{manifestVariables} are used by the \xmlNode{Models}.
+
+\variablesTransformationDescription{MonteCarlo}
 \assemblerDescription{MonteCarlo}
 \restartDescription{MonteCarlo}
-\variablesTransformationDescription{MonteCarlo}
 
 Example:
 \begin{lstlisting}[style=XML]
@@ -579,6 +590,20 @@ Regarding the N-dimensional distributions, the user can specify for each dimensi
     \item \gridDescription
   \end{itemize}
 \end{itemize}
+ 
+If the input parameters are correlated, the \textbf{Grid} sampling approach can be also used if the user specified a 
+multivariate distributions inside the \xmlNode{Distributions} (see Section \ref{subsec:NdDist}). Furthermore, if the 
+covariance matrix is provided and the input parameters is assumed to have the multivariate normal distribution, one can also use 
+\textbf{Grid} approach to sample the input parameters in the transformed space (aka subspace, reduced space). This means one creates
+the grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is the case, the user needs to 
+provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions} 
+(more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also 
+required for \textbf{Grid} sampling. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the 
+transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed 
+in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables} 
+are used by the \xmlNode{Models}.
+
+\variablesTransformationDescription{Grid}
 
 \assemblerDescription{Grid}
 \restartDescription{Grid}

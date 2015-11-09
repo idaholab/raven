@@ -123,6 +123,7 @@
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="Restart"         type="AssemblerObjectType"   minOccurs="0"  maxOccurs="unbounded"/>
+            <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
