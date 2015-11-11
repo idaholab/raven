@@ -3068,6 +3068,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.oldSG                   = None #previously-accepted sparse grid
     self.error                   = 0  #estimate of percent of moment calculated so far
     self.logCounter              = 0  #when printing the log, tracks the number of prints
+    #convergence study
+    self.doingStudy              = False #true if convergenceStudy node defined for sampler
+    self.studyFileBase           = 'out_' #can be replaced in input, not used if not doingStudy
+    self.studyPoints             = [] #list of ints, runs at which to record a state
     #solution storage
     self.existing                = {} #rolling list of sampled points
     self.neededPoints            = [] #queue of points to submit
@@ -3091,14 +3095,30 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if 'Convergence' not in list(c.tag for c in xmlNode): self.raiseAnError(IOError,'Convergence node not found in input!')
     convnode = xmlNode.find('Convergence')
     logNode  = xmlNode.find('logFile')
+    studyNode = xmlNode.find('convergenceStudy')
     self.convType     = convnode.attrib['target']
     self.maxPolyOrder = int(convnode.attrib.get('maxPolyOrder',10))
     self.persistence  = int(convnode.attrib.get('persistence',2))
     self.maxRuns      = convnode.attrib.get('maxRuns',None)
     self.convValue    = float(convnode.text)
-    if logNode is not None:
-      self.logFile = logNode.text
+    if logNode      is not None: self.logFile = logNode.text
     if self.maxRuns is not None: self.maxRuns = int(self.maxRuns)
+    if studyNode    is not None:
+      self.doingStudy = True
+      self.studyPoints = studyNode.find('runStatePoints').text
+      filebaseNode = studyNode.find('baseFilename')
+      if filebaseNode is None:
+        self.raiseAWarning('No baseFilename specified in convergenceStudy node!  Using "%s"...' %self.studyFileBase)
+      else:
+        self.studyFileBase = studyNode.find('baseFilename').text
+      if self.studyPoints is None:
+        self.raiseAnError(IOError,'convergenceStudy node was included, but did not specify the runStatePoints node!')
+      else:
+        try:
+          self.studyPoints = list(int(i) for i in self.studyPoints.split(','))
+          self.studyPoints.sort()
+        except ValueError as e:
+          self.raiseAnError(IOError,'Convergence state point not recognizable as an integer!',e)
 
   def localInitialize(self):
     """Performs local initialization
@@ -3184,6 +3204,12 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.raiseAMessage('  estimated remaining error: %1.4e target error: %1.4e, runs: %i' %(self.error,self.convValue,len(self.pointsNeededToMakeROM)))
       if self.logFile is not None:
         self._printToLog()
+      #if doing a study and at a statepoint, record the statepoint
+      if self.doingStudy:
+        while len(self.studyPoints)>0 and len(self.pointsNeededToMakeROM) > self.studyPoints[0]:
+          self._writeConvergencePoint(self.studyPoints[0])
+          if len(self.studyPoints)>1: self.studyPoints=self.studyPoints[1:]
+          else: self.studyPoints = []
       #if error small enough, converged!
       if abs(self.error) < self.convValue:
         self.done = True
@@ -3222,6 +3248,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.jobHandler.terminateAll()
       self.neededPoints=[]
       self.done = True
+      if self.doingStudy and len(self.studyPoints)>0:
+        self.raiseAWarning('In the convergence study, the following numbers of runs were not reached:',self.studyPoints)
       return False
     #otherwise, we have points to run!
     return True
@@ -3319,17 +3347,18 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       #  for indices on axes -> otherwise, they tend to be over-emphasized
       self.expImpact[t][idx] = np.prod(np.power(np.array(predecessors[t]),1.0/len(predecessors[t])))
 
-  def _finalizeROM(self):
+  def _finalizeROM(self,rom=None):
     """
       Initializes final target ROM with necessary objects for training.
       @ In, None
       @ Out, None
     """
+    if rom == None: rom = self.ROM
     self.raiseADebug('No more samples to try! Declaring sampling complete.')
     #initialize final rom with final sparse grid and index set
     #self.sparseGrid = Quadratures.SparseQuad()
     #self.sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
-    for target,SVL in self.ROM.SupervisedEngine.items():
+    for target,SVL in rom.SupervisedEngine.items():
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.distDict,
                       'quads':self.quadDict,
@@ -3486,6 +3515,21 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       for t in self.targets:
         impact = self._convergence(poly,rom.SupervisedEngine[t],t)
         self.actImpact[t][poly] = impact
+
+  def _writeConvergencePoint(self,runPoint):
+    """
+    Writes XML out for this ROM at this point in the run
+    @ In, runPoint, int, the target runs for this statepoint
+    @Out, None
+    """
+    rom = copy.deepcopy(self.ROM)
+    self._finalizeROM(rom)
+    rom.train(self.solns)
+    fname = self.studyFileBase+str(runPoint)
+    options = {'filenameroot':fname, 'what':'all'}
+    rom.printXML(options)
+    self.raiseAMessage('Wrote state %i to %s' %(runPoint,fname))
+
 
 #
 #
