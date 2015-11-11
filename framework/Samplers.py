@@ -3528,7 +3528,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     fname = self.studyFileBase+str(runPoint)
     options = {'filenameroot':fname, 'what':'all'}
     rom.printXML(options)
-    self.raiseAMessage('Wrote state %i to %s' %(runPoint,fname))
+    self.raiseAMessage('Wrote state %i to %s.xml' %(runPoint,fname))
 
 
 #
