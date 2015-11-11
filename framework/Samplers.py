@@ -3522,13 +3522,13 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     @ In, runPoint, int, the target runs for this statepoint
     @Out, None
     """
+    fname = self.studyFileBase+str(runPoint)
+    self.raiseAMessage('Preparing to write state %i to %s.xml...' %(runPoint,fname))
     rom = copy.deepcopy(self.ROM)
     self._finalizeROM(rom)
     rom.train(self.solns)
-    fname = self.studyFileBase+str(runPoint)
     options = {'filenameroot':fname, 'what':'all'}
     rom.printXML(options)
-    self.raiseAMessage('Wrote state %i to %s.xml' %(runPoint,fname))
 
 
 #
