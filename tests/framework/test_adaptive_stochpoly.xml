@@ -36,7 +36,7 @@
 
   <Samplers>
     <AdaptiveSparseGrid name="SG" verbosity="debug">
-      <Convergence target="variance">1e-2</Convergence>
+      <Convergence target="variance">1e-9</Convergence>
       <variable name="x1">
         <distribution>UniDist</distribution>
       </variable>

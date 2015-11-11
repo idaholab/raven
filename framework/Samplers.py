@@ -2989,7 +2989,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.convValue    = float(convnode.text)
     if logNode is not None:
       self.logFile = logNode.text
-      dummy = file(self.logFile,'w')
     if self.maxRuns is not None: self.maxRuns = int(self.maxRuns)
 
   def localInitialize(self):
@@ -3082,7 +3081,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self.converged = True
         break
       #if maxRuns reached, no more samples!
-      if len(self.pointsNeededToMakeROM) >= self.maxRuns:
+      if self.maxRuns is not None and len(self.pointsNeededToMakeROM) >= self.maxRuns:
         self.raiseAMessage('Maximum runs reached!  No further polynomial will be added.')
         self.done = True
         self.converged = True
@@ -3193,12 +3192,23 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     @Out, None
     """
     for t in self.targets: self.expImpact[t][idx] = 1.
+    have = 0 #tracks the number of preceeding terms I have (e.g., terms on axes have less preceeding terms)
+    #create a list of actual impacts for predecessors of idx
+    predecessors = {}
+    for t in self.targets:
+      predecessors[t]=[]
     for i in range(len(self.features)):
       subidx = list(idx)
-      if subidx[i]>0: subidx[i] -= 1
-      else: continue #on an axis
-      for t in self.targets:
-        self.expImpact[t][idx] *= self.actImpact[t][tuple(subidx)]
+      if subidx[i]>0:
+        subidx[i] -= 1
+        for t in self.targets:
+          predecessors[t].append(self.actImpact[t][tuple(subidx)])
+      else: continue #on an axis or axial plane
+    #estimated impact is the product of the predecessor impacts raised to the power of the number of predecessors
+    for t in self.targets:
+      #raising each predecessor to teh power of hte predecessors makes a more fair order-of-magnitude comparison
+      #  for indices on axes -> otherwise, they tend to be over-emphasized
+      self.expImpact[t][idx] = np.prod(np.power(np.array(predecessors[t]),1.0/len(predecessors[t])))
 
   def _finalizeROM(self):
     """
@@ -3692,6 +3702,12 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     if not ready: return ready
     #collect points that have been run
     self._sortNewPoints()
+    #TODO check if all points collected for ANY subsets-in-training
+    #TODO   -> update those points as far as they can, until they have pointsNeeded again
+    #TODO   -> update exp. values at this point?
+    #TODO esp check if most impactful item is done:
+    #TODO   -> if it is done, update subsets, update exp values, find new highest one
+    #TODO while loop should surround individual subset training, not entire process!
     #check if there's any points to run.
     #do we still have points to run? then this while loop is skipped
     #use the while loop to find new needed points from new polys or subsets
@@ -3747,6 +3763,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         self.inTraining.append(('subset',todoSub,self.romShell[todoSub]))
         #get initial needed points and store them locally
         self._retrieveNeededPoints(todoSub)
+    #END while loop
     #if all the points we need are currently submitted but not collected, we have no points to offer
     if not self._havePointsToRun(): return False
     #otherwise, we can submit points!
