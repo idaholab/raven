@@ -3450,6 +3450,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     pl = 4*len(self.features)+1
     f = file(self.logFile,'a')
     f.writelines('===================== STEP %i =====================\n' %self.logCounter)
+    f.writelines('\nNumber of Runs: %i\n' %len(self.pointsNeededToMakeROM))
+    f.writelines('Error: %1.9e\n' %self.error)
+    f.writelines('Features: %s\n' %','.join(self.features))
     f.writelines('\nExisting indices:\n')
     f.writelines('    {:^{}}:'.format('poly',pl))
     for t in self.targets:
@@ -3470,9 +3473,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       for t in self.targets:
         f.writelines('  {:<9}'.format(self.expImpact[t][idx]))
       f.writelines('\n')
-    f.writelines('\nStill in active:\n')
-    for idx in self.indexSet.active:
-      f.writelines('    {}\n'.format(idx))
+    #f.writelines('\nStill in active:\n')
+    #for idx in self.indexSet.active:
+    #  f.writelines('    {}\n'.format(idx))
     f.writelines('===================== END STEP =====================\n')
     f.close()
 
