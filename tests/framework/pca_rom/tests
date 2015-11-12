@@ -6,13 +6,6 @@
   csv = 'PCAReduction/testPrintPointSet_dump.csv'
  [../]
 
- [./pcaExternalXML]
-  type = 'RavenFramework'
-  input = 'test_pca_externalXML.xml'
-  xml = 'pcaExternalXML/dump.xml'
-  csv = 'pcaExternalXML/dump.csv'
- [../]
-
  [./MVNAbs]
   type = 'RavenFramework'
   input = 'test_MVN_abs.xml'
