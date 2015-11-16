@@ -324,29 +324,29 @@ class GridEntity(GridBase):
     initDict        = initDictionary if initDictionary != None else {}
     computeCells    = bool(initDict.get('computeCells',False))
     self.constructTensor = bool(initDict['constructTensor']) if 'constructTensor' in initDict.keys() else False
-    if  len(self.gridInitDict.keys()) != 0: readKeys = self.gridInitDict.keys()
+    if  len(self.gridInitDict.keys()) != 0: readKeys = list(self.gridInitDict.keys())
     if initDict != None:
       if type(initDict).__name__ != "dict": self.raiseAnError(Exception,'The in argument is not a dictionary!')
-    if "dimensionNames" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"dimensionNames" key is not present in the initialization dictionary!')
-    if "lowerBounds" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"lowerBounds" key is not present in the initialization dictionary')
+    if "dimensionNames" not in list(initDict.keys())+readKeys: self.raiseAnError(Exception,'"dimensionNames" key is not present in the initialization dictionary!')
+    if "lowerBounds" not in list(initDict.keys())+readKeys: self.raiseAnError(Exception,'"lowerBounds" key is not present in the initialization dictionary')
     if "lowerBounds" not in readKeys:
       if type(initDict["lowerBounds"]).__name__ != "dict": self.raiseAnError(Exception,'The lowerBounds entry is not a dictionary')
-    if "upperBounds" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"upperBounds" key is not present in the initialization dictionary')
+    if "upperBounds" not in list(initDict.keys())+readKeys: self.raiseAnError(Exception,'"upperBounds" key is not present in the initialization dictionary')
     if "upperBounds" not in readKeys:
       if type(initDict["upperBounds"]).__name__ != "dict": self.raiseAnError(Exception,'The upperBounds entry is not a dictionary')
     if "transformationMethods" in initDict.keys(): self.gridContainer['transformationMethods'] = initDict["transformationMethods"]
     self.nVar                            = len(self.gridInitDict["dimensionNames"]) if "dimensionNames" in self.gridInitDict.keys() else len(initDict["dimensionNames"])
     self.gridContainer['dimensionNames'] = self.gridInitDict["dimensionNames"] if "dimensionNames" in self.gridInitDict.keys() else initDict["dimensionNames"]
-    upperkeys                            = self.gridInitDict["upperBounds"].keys() if "upperBounds" in self.gridInitDict.keys() else initDict["upperBounds"  ].keys()
-    lowerkeys                            = self.gridInitDict["lowerBounds"].keys() if "lowerBounds" in self.gridInitDict.keys() else initDict["lowerBounds"  ].keys()
+    upperkeys                            = list(self.gridInitDict["upperBounds"].keys() if "upperBounds" in self.gridInitDict.keys() else initDict["upperBounds"  ].keys())
+    lowerkeys                            = list(self.gridInitDict["lowerBounds"].keys() if "lowerBounds" in self.gridInitDict.keys() else initDict["lowerBounds"  ].keys())
     self.gridContainer['dimensionNames'].sort()
     upperkeys.sort()
     lowerkeys.sort()
     if upperkeys != lowerkeys != self.gridContainer['dimensionNames']: self.raiseAnError(Exception,'dimensionNames and keys in upperBounds and lowerBounds dictionaries do not correspond')
     self.gridContainer['bounds']["upperBounds" ] = self.gridInitDict["upperBounds"] if "upperBounds" in self.gridInitDict.keys() else initDict["upperBounds"]
     self.gridContainer['bounds']["lowerBounds"]  = self.gridInitDict["lowerBounds"] if "lowerBounds" in self.gridInitDict.keys() else initDict["lowerBounds"]
-    if "volumetricRatio" not in initDict.keys() and "stepLength" not in initDict.keys()+readKeys: self.raiseAnError(Exception,'"volumetricRatio" or "stepLength" key is not present in the initialization dictionary')
-    if "volumetricRatio"  in initDict.keys() and "stepLength" in initDict.keys()+readKeys: self.raiseAWarning('"volumetricRatio" and "stepLength" keys are both present! the "volumetricRatio" has priority!')
+    if "volumetricRatio" not in initDict.keys() and "stepLength" not in list(initDict.keys())+readKeys: self.raiseAnError(Exception,'"volumetricRatio" or "stepLength" key is not present in the initialization dictionary')
+    if "volumetricRatio"  in initDict.keys() and "stepLength" in list(initDict.keys())+readKeys: self.raiseAWarning('"volumetricRatio" and "stepLength" keys are both present! the "volumetricRatio" has priority!')
     if "volumetricRatio" in initDict.keys():
       self.volumetricRatio = initDict["volumetricRatio"]
       # build the step size in 0-1 range such as the differential volume is equal to the tolerance

@@ -264,8 +264,9 @@ class Dummy(Model):
     if len(myInput)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
     inputDict = self._inputToInternal(myInput[0])
     #test if all sampled variables are in the inputs category of the data
-    if set(list(Kwargs['SampledVars'].keys())+list(inputDict.keys())) != set(list(inputDict.keys())):
-      self.raiseAnError(IOError,'When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
+    # fixme? -congjian
+    #if set(list(Kwargs['SampledVars'].keys())+list(inputDict.keys())) != set(list(inputDict.keys())):
+    #  self.raiseAnError(IOError,'When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
     for key in Kwargs['SampledVars'].keys(): inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
     if any(None in val for val in inputDict.values()): self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
@@ -365,7 +366,7 @@ class ROM(Dummy):
       self.initializationOptionDict['Target'] = target
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
     # extend the list of modules this ROM depen on
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0]),True)) - set(self.mods))
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     #restore targets to initialization option dict
     self.initializationOptionDict['Target'] = ','.join(targets)
@@ -381,7 +382,7 @@ class ROM(Dummy):
     else: options={}
     tree=self._localBuildPrintTree(options)
     msg=tree.stringNodeTree()
-    file(filenameLocal+'.xml','w').writelines(msg)
+    open(filenameLocal+'.xml','w').writelines(msg)
     self.raiseAMessage('ROM XML printed to "'+filenameLocal+'"')
 
   def _localBuildPrintTree(self,options=None):
@@ -454,7 +455,7 @@ class ROM(Dummy):
     """
     inputToROM = self._inputToInternal(request)
     if target != None: return self.SupervisedEngine[target].evaluate(inputToROM)
-    else             : return self.SupervisedEngine.values()[0].evaluate(inputToROM)
+    else             : return utils.first(self.SupervisedEngine.values()).evaluate(inputToROM)
 
   def __externalRun(self,inRun):
     returnDict = {}
