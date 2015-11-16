@@ -7,16 +7,17 @@ def inPython3():
   return os.environ.get("CHECK_PYTHON3","0") == "1"
 
 modules_to_try = [("numpy",'numpy.version.version',"1.7"),
-                  ("h5py",'',''),
+                  ("h5py",'h5py.__version__','1.8.12'),
                   ("scipy",'scipy.__version__',"0.12"),
                   ("sklearn",'sklearn.__version__',"0.14"),
                   ("matplotlib",'matplotlib.__version__',"1.3")]
 
-def moduleReport(module):
+def moduleReport(module,version=''):
   """Checks if the module exists.
-  Returns (found_boolean,message)
+  Returns (found_boolean,message,version)
   The found_boolean is true if the module is found.
   The message will be the result of print(module)
+  The version is the version number or "NA" if not known.
   """
   if inPython3():
     python = 'python3'
@@ -25,22 +26,30 @@ def moduleReport(module):
   try:
     command = 'import '+module+';print('+module+')'
     output = subprocess.check_output([python,'-c',command])
-    return (True,output)
+    if len(version) > 0:
+      try:
+        command =  'import '+module+';print('+version+')'
+        found_version = subprocess.check_output([python,'-c',command]).strip()
+      except:
+        found_version = "NA"
+    else:
+      found_version = "NA"
+    return (True,output,found_version)
   except:
-    return (False,'Failed to find module '+module)
+    return (False,'Failed to find module '+module,"NA")
 
 def modulesReport():
   """Return a report on the modules.
-  Returns a list of [(module_name,found_boolean,message)]
+  Returns a list of [(module_name,found_boolean,message,version)]
   """
   report_list = []
   for i,fv,ev in modules_to_try:
-    found, message = moduleReport(i)
+    found, message, version = moduleReport(i,fv)
     if found:
       missing, too_old = checkForMissingModule(i,fv,ev)
     if len(too_old) > 0:
       message += " ".join(too_old)
-    report_list.append((i,found,message))
+    report_list.append((i,found,message, version))
   return report_list
 
 def checkForMissingModule(i,fv,ev):
