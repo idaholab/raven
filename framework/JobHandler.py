@@ -22,28 +22,31 @@ import sys
 import abc
 #import logging, logging.handlers
 import threading
+import platform
 
 class pickleSafeSubprocessPopen(subprocess.Popen):
   """
   Subclass of subprocess.Popen used internally to prevent _handle member from being pickled.  On
   Windows, _handle contains an operating system reference that throws an exception when deep copied.
   """
-  def __getstate__(self):
-    """
-    Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
-    which cannot be deep copied when non-None.
-    """
-    result = self.__dict__.copy()
-    del result['_handle']
-    return result
+  # Only define these methods on Windows to override deep copy/pickle
+  if platform.system() == 'Windows':
+    def __getstate__(self):
+      """
+      Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
+      which cannot be deep copied when non-None.
+      """
+      result = self.__dict__.copy()
+      del result['_handle']
+      return result
 
-  def __setstate__(self, d):
-    """
-    Used to load an object dictionary when unpickling.  Since member '_handle' could not be
-    deep copied, load it back as value None.
-    """
-    self.__dict__ = d
-    self._handle = None
+    def __setstate__(self, d):
+      """
+      Used to load an object dictionary when unpickling.  Since member '_handle' could not be
+      deep copied, load it back as value None.
+      """
+      self.__dict__ = d
+      self._handle = None
 
 #External Modules End--------------------------------------------------------------------------------
 
