@@ -13,7 +13,7 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="ND_test_MC_MVN/lorentzAttractor_noK" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
       <variable>sigma</variable>
       <variable>rho</variable>
       <variable>beta</variable>
@@ -32,21 +32,21 @@
   </Models>
 
 <Distributions>
-    <MultivariateNormal name='MultivariateNormal_test'>
+    <MultivariateNormal name='MultivariateNormal_test' method="spline">
         <mu>0.0 60.0</mu>
         <covariance>
-            1.0 0.2
-            0.2 1.0
+            1.0 0.8
+            0.8 1.0
         </covariance>
     </MultivariateNormal>
   </Distributions>
 
   <Samplers>
     <MonteCarlo name="MC_external">
-      <sampler_init>
+      <samplerInit>
         <limit>3</limit>
-        <initial_seed>1234</initial_seed>
-      </sampler_init>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
       <variable name="x0">
         <distribution dim="1">MultivariateNormal_test</distribution>
       </variable>

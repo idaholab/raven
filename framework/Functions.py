@@ -6,7 +6,10 @@ Created on Oct 20, 2014
 This module contains interfaces to import external functions
 """
 #for future compatibility with Python 3--------------------------------------------------------------
-
+from __future__ import division, print_function, absolute_import
+# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -27,8 +30,9 @@ class Function(BaseType):
   F(x)=0 where at least one of the component of the output space of a model (F is a vector as x)
   plus a series of inequality in the input space that are considered by the supportBoundingTest
   """
-  def __init__(self):
+  def __init__(self,runInfoDict):
     BaseType.__init__(self)
+    self.workingDir                      = runInfoDict['WorkingDir']
     self.__functionFile                  = ''                                # function file name
     self.__actionDictionary              = {}                                # action dictionary
     # dictionary of implemented actions
@@ -41,9 +45,10 @@ class Function(BaseType):
   def _readMoreXML(self,xmlNode):
     if 'file' in xmlNode.attrib.keys():
       self.functionFile = xmlNode.attrib['file']
-      if self.functionFile.endswith('.py') : moduleName = ''.join(self.functionFile.split('.')[:-1]) #remove the .py
-      else: moduleName = self.functionFile
-      importedModule = utils.importFromPath(moduleName,self.messageHandler.getDesiredVerbosity(self)>1)
+      # get the module to load and the filename without path
+      moduleToLoadString, self.functionFile = utils.identifyIfExternalModelExists(self, self.functionFile, self.workingDir)
+      # import the external function
+      importedModule = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
       if not importedModule: self.raiseAnError(IOError,'Failed to import the module '+moduleName+' supposed to contain the function: '+self.name)
       #here the methods in the imported file are brought inside the class
       for method in importedModule.__dict__.keys():
@@ -179,7 +184,9 @@ __knownTypes                = __interFaceDict.keys()
 def knownTypes():
   return __knownTypes
 
-def returnInstance(Type,caller):
+needsRunInfo = True
+
+def returnInstance(Type,runInfoDict, caller):
   """This function return an instance of the request model type"""
-  if Type in knownTypes():return __interFaceDict[Type]()
+  if Type in knownTypes():return __interFaceDict[Type](runInfoDict)
   else: caller.raiseAnError(NameError,'FUNCTIONS','not known '+__base+' type '+Type)

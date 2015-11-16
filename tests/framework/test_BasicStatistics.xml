@@ -16,7 +16,7 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="basicStatistics/basicStatisticsExternalModelTest" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="basicStatisticsExternalModelTest" name="PythonModule" subType="">
       <variable>x</variable>
       <variable>y</variable>
       <variable>z</variable>
@@ -82,9 +82,9 @@
 
   <Samplers>
     <MonteCarlo name="MC_external">
-      <sampler_init>
+      <samplerInit>
         <limit>4</limit>
-      </sampler_init>
+      </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
       </variable>

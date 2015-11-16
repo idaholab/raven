@@ -2,7 +2,7 @@
 <xsd:schema version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"  elementFormDefault="qualified">
 
     <xsd:complexType name="DistributionData">
-        <xsd:sequence>
+        <xsd:choice minOccurs="1"  maxOccurs="unbounded">
             <xsd:element name="Beta"          type="BetaDistribution"          minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Exponential"   type="ExponentialDistribution"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Gamma"         type="GammaDistribution"         minOccurs="0" maxOccurs="unbounded"/>
@@ -19,7 +19,7 @@
             <xsd:element name="NDInverseWeight"   type="NDInverseWeightDistribution"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="NDCartesianSpline" type="NDCartesianSplineDistribution" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="MultivariateNormal" type="MultivariateNormalDistribution" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
+        </xsd:choice>
     </xsd:complexType>
     <!-- *********************************************************************** -->
     <!--                              Distributions                              -->
@@ -167,7 +167,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="data_filenameType">
+    <xsd:complexType name="dataFilenameType">
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
                 <xsd:attribute name="type" type="typeAttr" use="required"/>
@@ -178,23 +178,48 @@
     <xsd:complexType name="NDInverseWeightDistribution">
         <xsd:all>
             <xsd:element name="p"             type="xsd:decimal"       minOccurs="1"/>
-            <xsd:element name="working_dir"   type="xsd:string"        minOccurs="1"/>
-            <xsd:element name="data_filename" type="data_filenameType" minOccurs="1"/>
+            <xsd:element name="workingDir"   type="xsd:string"        minOccurs="1"/>
+            <xsd:element name="dataFilename" type="dataFilenameType" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
     <xsd:complexType name="NDCartesianSplineDistribution">
         <xsd:all>
-            <xsd:element name="data_filename" type="data_filenameType" minOccurs="1"/>
-            <xsd:element name="working_dir"   type="xsd:string"        minOccurs="1"/>
+            <xsd:element name="dataFilename" type="dataFilenameType" minOccurs="1"/>
+            <xsd:element name="workingDir"   type="xsd:string"        minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
     <xsd:complexType name="MultivariateNormalDistribution">
         <xsd:all>
-            <xsd:element name="covariance"    type="floatList"         minOccurs="1"/>
+            <xsd:element name="covariance"    type="covarianceType"         minOccurs="1"/>
             <xsd:element name="mu"            type="floatList"         minOccurs="1"/>
+            <xsd:element name="transformation"     type="transformationType"     minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="method"  type="xsd:string"  use="required"/>
     </xsd:complexType>
+
+    <xsd:complexType name="covarianceType">
+        <xsd:simpleContent>
+            <xsd:extension base="floatList">
+                <xsd:attribute name="type" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="variablesType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="type" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="transformationType">
+      <xsd:all>
+        <xsd:element name="rank" type="xsd:positiveInteger" minOccurs="1"/>
+      </xsd:all>
+    </xsd:complexType>
+
 </xsd:schema>

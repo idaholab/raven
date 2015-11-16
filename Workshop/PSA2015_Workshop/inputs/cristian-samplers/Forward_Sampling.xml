@@ -59,7 +59,7 @@
   </Stratified>
   <ResponseSurfaceDesign name='DoESampler'>
     <ResponseSurfaceDesignSettings>
-      <algorithm_type>BoxBehnken</algorithm_type>
+      <algorithmType>BoxBehnken</algorithmType>
       <ncenters>1</ncenters>
     </ResponseSurfaceDesignSettings>
     <variable name='x1' >
@@ -85,7 +85,7 @@
     </variable>
   </ResponseSurfaceDesign>
   <MonteCarlo name='MCsampler'>
-    <sampler_init><limit>5000</limit></sampler_init>
+    <samplerInit><limit>5000</limit></samplerInit>
     <variable name='x1' >
       <distribution>x1_distrib</distribution>
     </variable>

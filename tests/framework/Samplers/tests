@@ -1,0 +1,8 @@
+[Tests]
+ [./Sobol]
+  type = 'RavenFramework'
+  input = 'test_sobol_sampler.xml'
+  xml = 'Sobol/dump.xml'
+  csv = 'Sobol/dump.csv'
+ [../]
+[]

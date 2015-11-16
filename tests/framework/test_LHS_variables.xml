@@ -1,0 +1,72 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+<!-- This test is used to prevent the issue number 319 -->
+  <RunInfo>
+    <WorkingDir>LHStestVariables</WorkingDir>
+    <Sequence>LHSTest</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+  </Models>
+
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Triangular name="DistTri1">
+      <apex>1</apex>
+      <min>-0.1</min>
+      <max>3</max>
+    </Triangular>
+  </Distributions>
+
+  <Samplers>
+    <Stratified name="LHS">
+      <samplerInit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="x1,x2,x3">
+        <distribution>DistTri1</distribution>
+        <grid construction="custom" type="value">0.02 0.5 0.6 0.8</grid>
+      </variable>
+      <variable name="y1,y2,y3">
+        <distribution>Gauss1</distribution>
+        <grid construction="equal" steps="3" type="value">0.02 0.92</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <OutStreamManager>
+    <Print name="outLHS_dump">
+      <type>csv</type>
+      <source>outLHS</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <PointSet name="outLHS">
+      <Input>x1,x2,x3,y1,y2,y3</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="dummyIN">
+      <Input>x1,x2,x3,y1,y2,y3</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Steps>
+    <MultiRun name="LHSTest">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="Stratified">LHS</Sampler>
+      <Output class="DataObjects" type="PointSet">outLHS</Output>
+      <Output class="OutStreamManager" type="Print">outLHS_dump</Output>
+    </MultiRun>
+  </Steps>
+
+</Simulation>

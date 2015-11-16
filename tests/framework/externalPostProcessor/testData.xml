@@ -1,5 +1,0 @@
-<data name="testData" type="Pointset">
-  <input>X,Y</input>
-  <output>Z</output>
-  <input_filename>data.csv</input_filename>
-</data>

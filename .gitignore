@@ -1,4 +1,5 @@
 .libs
+*.dylib
 *.la
 *.lo
 *.d
@@ -72,6 +73,7 @@ tests/framework/htmlcov/
 # hpc
 node_*[0-9]
 *.[oe][0-9][0-9][0-9][0-9][0-9]
+*.[oe][0-9][0-9][0-9][0-9][0-9][0-9]
 
 #OSX
 .DS_Store
