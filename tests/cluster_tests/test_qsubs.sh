@@ -104,6 +104,25 @@ fi
 
 cd ..
 
+cd InternalParallel/
+rm -Rf InternalParallelMSR/*.csv
+
+python ../../../framework/Driver.py test_internal_MSR.xml
+
+sleep 2 #Wait for disk to propagate.
+cd InternalParallelMSR/
+lines=`ls *.csv | wc -l`
+cd ..
+if test $lines -eq 1; then
+    echo PASS parallelMSR
+else
+    echo FAIL parallelMSR
+    num_fails=$(($num_fails+1))
+fi
+
+cd ..
+
+
 ############################################
 # test parallel for internal Objects ENDED #
 ############################################
