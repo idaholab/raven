@@ -1460,7 +1460,6 @@ class NDCartesianSpline(NDimensionalDistributions):
 
   def inverseMarginalDistribution (self, x, variable):
     if (x>=0.0) and (x<=1.0):
-      #print(str(x) + ',' + str(self._distribution.inverseMarginal(x, variable)))
       return self._distribution.inverseMarginal(x, variable)
     else:
       self.raiseAnError(ValueError,'NDCartesianSpline: inverseMarginalDistribution(x) with x ' +str(x)+' outside [0.0,1.0]')

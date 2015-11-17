@@ -40,11 +40,11 @@
 
   <Samplers>
     <Grid name="grid_CDF_SP">
-      <!—-variable name="k0">
+      <variable name="k0">
         <distribution>k0_distrib</distribution>
         <grid construction="custom" type="CDF">0.1 0.3 0.5 0.7 0.9</grid>
-      </variable—->
-      <variable name="x0,k0”>
+      </variable>
+      <variable name="x0">
         <distribution dim="1">ND_CartesianSpline_P</distribution>
         <grid construction="custom" type="CDF">0.1 0.3 0.5 0.7 0.9</grid>
       </variable>

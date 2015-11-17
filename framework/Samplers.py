@@ -1216,9 +1216,6 @@ class Grid(Sampler):
                   #NDcoordinate[position-1] = (self.distDict[varName].returnUpperBound(position-1) + coordinates[variable.strip()]) /2.0 # coordinates[variable.strip()] - (coordinates[variable.strip()] - coordinatesMinusOne[variable])/2.0 + dxs[position-1]/2.0
 
             weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)
-            #print(str(NDcoordinate[0]) + ' ' + str(NDcoordinate[1]))
-            #print(str(NDcoordinate) + ' ' + str(weight))
-            print(weight)
                   
       newpoint = tuple(self.values[key] for key in self.values.keys())
       if newpoint not in self.existing:
