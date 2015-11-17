@@ -1322,10 +1322,10 @@ class NDimensionalDistributions(Distribution):
 
   def getDimensionality(self):
     return  self._distribution.returnDimensionality()
-  
+
   def returnLowerBound(self, dimension):
     return self._distribution.returnLowerBound(dimension)
-  
+
   def returnUpperBound(self, dimension):
     return self._distribution.returnUpperBound(dimension)
 
