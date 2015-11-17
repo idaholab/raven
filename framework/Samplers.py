@@ -2849,7 +2849,7 @@ class SparseGridCollocation(Grid):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.existing       = []    #restart data points
-
+    self.dists          = {}    #Contains the instance of the distribution to be used. keys are the variable names
     self._addAssObject('ROM','1')
 
   def _localWhatDoINeed(self):
@@ -2894,6 +2894,19 @@ class SparseGridCollocation(Grid):
     @ In, None
     @ Out, None
     """
+    # Assign standard normal distribution for multivariateNormalDistribution.
+    standardNormal = Distributions.returnInstance('Normal',self)
+    standardNormal.mean = 0.0
+    standardNormal.sigma = 1.0
+    standardNormal.initializeDistribution() #FIXME no other distros have this...needed?
+    for varName in self.variables2distributionsMapping.keys():
+      if self.variables2distributionsMapping[varName]['totDim'] == 1:
+        self.dists[varName] =  self.distDict[varName]
+      elif self.variables2distributionsMapping[varName]['totDim'] > 1:
+        self.dists[varName] = standardNormal
+      else:
+        self.raiseAnError(IOError,"The dimensions for the input should be positive")
+
     for key in self.assemblerDict.keys():
       if 'ROM' in key:
         for value in self.assemblerDict[key]: self.ROM = value[3]
@@ -2912,14 +2925,18 @@ class SparseGridCollocation(Grid):
 
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType,self)
-    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+    #self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+    #sparse grid in the transformed space
+    self.indexSet.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
     if self.indexSet.type=='Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
 
     self.raiseADebug('Starting sparse grid generation...')
     self.sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
-    self.sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
+    #self.sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
+    #sparse grid in the transformed space
+    self.sparseGrid.initialize(self.features,self.indexSet,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
 
     if self.writeOut != None:
       msg=self.sparseGrid.__csv__()
@@ -2944,8 +2961,13 @@ class SparseGridCollocation(Grid):
 
     self.raiseADebug('indexset:',self.indexSet)
     for SVL in self.ROM.SupervisedEngine.values():
+      #SVL.initialize({'SG':self.sparseGrid,
+      #                'dists':self.distDict,
+      #                'quads':self.quadDict,
+      #                'polys':self.polyDict,
+      #                'iSet':self.indexSet})
       SVL.initialize({'SG':self.sparseGrid,
-                      'dists':self.distDict,
+                      'dists':self.dists,
                       'quads':self.quadDict,
                       'polys':self.polyDict,
                       'iSet':self.indexSet})
@@ -2981,11 +3003,19 @@ class SparseGridCollocation(Grid):
         self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1'}
     #establish all the right names for the desired types
     for varName,dat in self.gridInfo.items():
-      if dat['poly'] == 'DEFAULT': dat['poly'] = self.distDict[varName].preferredPolynomials
-      if dat['quad'] == 'DEFAULT': dat['quad'] = self.distDict[varName].preferredQuadrature
+      print("\n")
+      print(varName)
+      print(dat)
+      #if dat['poly'] == 'DEFAULT': dat['poly'] = self.distDict[varName].preferredPolynomials
+      #if dat['quad'] == 'DEFAULT': dat['quad'] = self.distDict[varName].preferredQuadrature
+      if dat['poly'] == 'DEFAULT': dat['poly'] = self.dists[varName].preferredPolynomials
+      if dat['quad'] == 'DEFAULT': dat['quad'] = self.dists[varName].preferredQuadrature
+      print(self.dists[varName])
+      print("\n")
       polyType=dat['poly']
       subType = None
-      distr = self.distDict[varName]
+      #distr = self.distDict[varName]
+      distr = self.dists[varName]
       if polyType == 'Legendre':
         if distr.type == 'Uniform':
           quadType=dat['quad']
@@ -2997,7 +3027,7 @@ class SparseGridCollocation(Grid):
       else:
         quadType=dat['quad']
       if quadType not in distr.compatibleQuadrature:
-        self.raiseAnError(IOError,' Quadrature type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
+        self.raiseAnError(IOError,' Quadrature type "',quadType,'" is not compatible with variable "',varName,'" distribution "',distr.type,'"')
 
       quad = Quadratures.returnInstance(quadType,self,Subtype=subType)
       quad.initialize(distr,self.messageHandler)
