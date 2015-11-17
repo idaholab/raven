@@ -1,12 +1,14 @@
 '''
-Created on Oct 26, 2015
+Created on Nov 16, 2015
 
 @author: Jong Suk Kim
 
 comments: Interface for Dymola Simulation
 
-Dymola (http://www.modelon.com/products/dymola/) is a commercial modeling and simulation environment
-based on the open 'Modelica' modeling language.
+Modelica is "a non-proprietary, object-oriented, equation-based language to conveniently model complex physical systems containing,
+e.g., mechanical, electrical, electronic, hydraulic, thermal, control, electric power or process-oriented subcomponents.
+Modelica models (with a file extension of .mo) are built, translated (compiled), and simulated in Dymola (http://www.modelon.com/products/dymola/),
+which is a commercial modeling and simulation environment based on the Modelica modeling language.
 This module provides an interface that allows RAVEN to utilize Modelica models built using Dymola.
 
 General flow:
@@ -45,10 +47,10 @@ equation
 end BouncingBall;
 --- END MODEL FILE ---
 
-When Dymola simulates this file it is read, and from it C code is generated and then built into a platform-specific
-executable that does the calculations. The input parameters from the model are written into a text file (by default
-dsin.txt). After the executable is generated it may be run multiple times (with Dymola license). There are several
-ways to vary input parameters:
+When a modelica model, e.g., BouncingBall model, is implemented in Dymola, the platform dependent C-code from a Modelica model
+and the corresponding executable code (i.e., by default dymosim.exe on the Windows operating system) are generated for simulation.
+A separate TEXT file (by default dsin.txt) containing model parameters and initial conditions are also generated as part of the build process.
+After the executable is generated, it may be run multiple times (with Dymola license). There are several ways to vary input parameters:
 
   1) Modify the model file and re-build the simulation executable.
   2) Change the value(s) in the 'text' input file generated as part of the model build process.
@@ -58,10 +60,10 @@ ways to vary input parameters:
 For RAVEN purposes, this interface code will use option (2). Variation of parameters may be done by editing the input
 file (dsin.txt) and then re-running the model executable (by default dymosim.exe).
 
-The executable (dymosim.exe) and initial file (dsin.txt) are generated after either translating or simulating the
-Modelica model (BouncingBall.mo) in Dymola (GUI or Shell). The output of the model is a binary file 'BouncingBall.mat'
-if the simulation is run in Dymola GUI. If the executable is trigged directly from a command prompt, the output file
-is always named as 'dsres.mat'.
+An executable (dymosim.exe) and a simulation initialization file (dsin.txt) can be generated after either translating or simulating the Modelica
+model (BouncingBall.mo) using the Dymola Graphical User Interface (GUI) or Dymola Application Programming Interface (API)-routines.
+The output of the model is a binary file 'BouncingBall.mat' if the simulation is run in Dymola GUI or by using Dymola API-routines.
+If the generated executable code is trigged directly from a command prompt, the output file is always named as 'dsres.mat'.
 
 To change the initial height of the bouncing ball to 5.0 in the above model, we need to read and modify its value
 from the 'dsin.txt,' and write it back to a different input file, e.g., DMdsin.txt. This .txt file can then be used
