@@ -193,8 +193,8 @@ def calculateStats(data):
   return ret
 
 def historySetWindow(vars,numberOfTimeStep):
-  """ 
-  Method do to compute 
+  """
+  Method do to compute
   @ In, vars is an historySet
   @ In, numberOfTimeStep, int, number of time samples of each history
   @ Out, outDic, dictionary, it contains the temporal slice of all histories
