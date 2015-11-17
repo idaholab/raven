@@ -1287,15 +1287,8 @@ class Grid(Sampler):
             NDcoordinate=np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs=np.zeros(len(self.distributions2variablesMapping[distName]))
             for var in self.distributions2variablesMapping[distName]:
-<<<<<<< HEAD
-              variable = var.keys()[0].strip()
-              position = var.values()[0]
-
-=======
               variable = utils.first(var.keys()).strip()
               position = utils.first(var.values())
-              NDcoordinate[position-1] = coordinates[variable.strip()]
->>>>>>> origin/devel
               if self.gridInfo[variable]=='CDF':
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
                   up   = self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable] ,self.variables2distributionsMapping[variable]['dim']-1)
