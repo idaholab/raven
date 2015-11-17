@@ -658,9 +658,10 @@ class StaticSampler(Sampler):
 #
 class AdaptiveSampler(Sampler):
   """This is a general adaptive sampler"""
-
-
-
+#
+#
+#
+#
 class LimitSurfaceSearch(AdaptiveSampler):
   """
   A sampler that will adaptively locate the limit surface of a given problem
@@ -760,7 +761,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       else: self.raiseAnError(RuntimeError,'Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
     #assembler node: Hidden from User
     # set subgrid
-    if self.subGridTol is None: self.subGridTol = self.tolerance
+    if self.subGridTol == None: self.subGridTol = self.tolerance
     if self.subGridTol > self.tolerance: self.raiseAnError(IOError,'The sub grid tolerance '+str(self.subGridTol)+' must be smaller than the tolerance: '+str(self.tolerance))
     if len(attribList)>0: self.raiseAnError(IOError,'There are unknown keywords in the convergence specifications: '+str(attribList))
 
@@ -850,8 +851,6 @@ class LimitSurfaceSearch(AdaptiveSampler):
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
     """
     self.raiseADebug('From method localStillReady...')
-    axisNames = [key.replace('<distribution>','') for key in self.axisName]
-
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
@@ -870,7 +869,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     #np.copyto(self.oldTestMatrix[self.name+"LSpp"],self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
 
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
-    self.surfPoint, evaluations, self.listSurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True, exceptionGrid=self.exceptionGrid, merge=False)
+    self.surfPoint, evaluations, listsurfPoints = self.limitSurfacePP.run(returnListSurfCoord = True, exceptionGrid=self.exceptionGrid, merge=False)
     self.raiseADebug('Limit Surface has been computed!')
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
@@ -905,7 +904,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.raiseAMessage('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
     #if the number of point on the limit surface is > than compute persistence
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
-    for gridID,listsurfPoint in self.listSurfPoint.items():
+    for gridID,listsurfPoint in listsurfPoints.items():
       if len(listsurfPoint)>0:
         self.invPointPersistence[gridID] = np.ones(len(listsurfPoint))
         if self.firstSurface == False:
@@ -929,8 +928,6 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # create values dictionary
     """compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
      check the points where the derivative probability is the lowest"""
-
-    axisNames = [key.replace('<distribution>','') for key in self.axisName]
 
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
@@ -961,7 +958,6 @@ class LimitSurfaceSearch(AdaptiveSampler):
         varSet=True
       else: self.raiseADebug('np.max(distance)=0.0')
     if not varSet:
-      self.MCSamples.append(self.counter)
       #here we are still generating the batch
       for key in self.distDict.keys():
         if self.toleranceWeight=='cdf':
@@ -1053,7 +1049,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     """generate representation of goal function"""
     pass
-
+#
+#
+#
+#
 class LimitSurfaceBatchSearch(LimitSurfaceSearch):
   """
   A sampler that will adaptively locate the limit surface of a given problem
