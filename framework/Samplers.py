@@ -2889,23 +2889,39 @@ class SparseGridCollocation(Grid):
         varName = child.attrib['name']
         self.axisName.append(varName)
 
+  def transformDistDict(self):
+    """
+    Performs distribution transformation
+    If the method 'pca' is used in the variables transformation (i.e. latentVariables to manifestVariables), the corrrelated variables
+    will be tranformed into uncorrelated variables with standard normal distributions. Thus, the dictionary of distributions will
+    be also transformed.
+    @ In, None
+    @ Out, distDicts: distribution dictionary {varName:DistributionObject}
+    """
+    # Generate a standard normal distribution, this is used to generate the sparse grid points and weights for multivariate normal
+    # distribution if PCA is used.
+    standardNormal = Distributions.Normal()
+    standardNormal.messageHandler = self.messageHandler
+    standardNormal.mean = 0.0
+    standardNormal.sigma = 1.0
+    standardNormal.initializeDistribution()
+    distDicts = {}
+    for varName in self.variables2distributionsMapping.keys():
+      distDicts[varName] = self.distDict[varName]
+    if self.variablesTransformationDict:
+      for key,varsDict in self.variablesTransformationDict.items():
+        if self.transformationMethod[key] == 'pca':
+          listVars = varsDict['latentVariables']
+          for var in listVars:
+            distDicts[var] = standardNormal
+    return distDicts
+
   def localInitialize(self):
     """Performs local initialization
     @ In, None
     @ Out, None
     """
-    # Assign standard normal distribution for multivariateNormalDistribution.
-    standardNormal = Distributions.returnInstance('Normal',self)
-    standardNormal.mean = 0.0
-    standardNormal.sigma = 1.0
-    standardNormal.initializeDistribution() #FIXME no other distros have this...needed?
-    for varName in self.variables2distributionsMapping.keys():
-      if self.variables2distributionsMapping[varName]['totDim'] == 1:
-        self.dists[varName] =  self.distDict[varName]
-      elif self.variables2distributionsMapping[varName]['totDim'] > 1:
-        self.dists[varName] = standardNormal
-      else:
-        self.raiseAnError(IOError,"The dimensions for the input should be positive")
+    self.dists = self.transformDistDict()
 
     for key in self.assemblerDict.keys():
       if 'ROM' in key:
@@ -2925,8 +2941,6 @@ class SparseGridCollocation(Grid):
 
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType,self)
-    #self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
-    #sparse grid in the transformed space
     self.indexSet.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
     if self.indexSet.type=='Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
@@ -2934,8 +2948,6 @@ class SparseGridCollocation(Grid):
     self.raiseADebug('Starting sparse grid generation...')
     self.sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
-    #self.sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
-    #sparse grid in the transformed space
     self.sparseGrid.initialize(self.features,self.indexSet,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
 
     if self.writeOut != None:
@@ -2961,11 +2973,6 @@ class SparseGridCollocation(Grid):
 
     self.raiseADebug('indexset:',self.indexSet)
     for SVL in self.ROM.SupervisedEngine.values():
-      #SVL.initialize({'SG':self.sparseGrid,
-      #                'dists':self.distDict,
-      #                'quads':self.quadDict,
-      #                'polys':self.polyDict,
-      #                'iSet':self.indexSet})
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.dists,
                       'quads':self.quadDict,
@@ -3003,18 +3010,10 @@ class SparseGridCollocation(Grid):
         self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1'}
     #establish all the right names for the desired types
     for varName,dat in self.gridInfo.items():
-      print("\n")
-      print(varName)
-      print(dat)
-      #if dat['poly'] == 'DEFAULT': dat['poly'] = self.distDict[varName].preferredPolynomials
-      #if dat['quad'] == 'DEFAULT': dat['quad'] = self.distDict[varName].preferredQuadrature
       if dat['poly'] == 'DEFAULT': dat['poly'] = self.dists[varName].preferredPolynomials
       if dat['quad'] == 'DEFAULT': dat['quad'] = self.dists[varName].preferredQuadrature
-      print(self.dists[varName])
-      print("\n")
       polyType=dat['poly']
       subType = None
-      #distr = self.distDict[varName]
       distr = self.dists[varName]
       if polyType == 'Legendre':
         if distr.type == 'Uniform':
@@ -3078,6 +3077,7 @@ class SparseGridCollocation(Grid):
             for key in varName.strip().split(','):
               self.values[key] = pt[v]
             NDcoordinates[self.variables2distributionsMapping[varName]['dim']-1] = pt[v]
+        print(NDcoordinates)
         for v,varName in enumerate(self.sparseGrid.varNames):
           if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
             self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
