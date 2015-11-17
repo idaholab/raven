@@ -14,7 +14,7 @@ from utils import printCsv, printCsvPart
 from scipy import interpolate
 from scipy.spatial import Delaunay
 import numpy as np
-import DataObjects
+import itertools
 
 def normal(x,mu=0.0,sigma=1.0):
   return (1.0/(sigma*math.sqrt(2*math.pi)))*math.exp(-(x - mu)**2/(2.0*sigma**2))
@@ -193,8 +193,12 @@ def calculateStats(data):
   return ret
 
 def historySetWindow(vars,numberOfTimeStep):
-  # vars is supposed to be an historySet
-  #newVars=DataObjects.PointSet()
+  """ 
+  Method do to compute 
+  @ In, vars is an historySet
+  @ In, numberOfTimeStep, int, number of time samples of each history
+  @ Out, outDic, dictionary, it contains the temporal slice of all histories
+  """
 
   outKeys = vars.getParaKeys('outputs')
   inpKeys = vars.getParaKeys('inputs')
@@ -203,9 +207,7 @@ def historySetWindow(vars,numberOfTimeStep):
 
   for t in range(numberOfTimeStep):
     newVars={}
-    for key in inpKeys:
-      newVars[key]=np.zeros(0)
-    for key in outKeys:
+    for key in inpKeys+outKeys:
       newVars[key]=np.zeros(0)
 
     hs = vars.getParametersValues('outputs')
