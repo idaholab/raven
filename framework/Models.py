@@ -28,6 +28,7 @@ import SupervisedLearning
 import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
+import mathUtils
 import TreeStructure
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
@@ -308,7 +309,7 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet','HistorySet']
 
   def __init__(self,runInfoDict):
     Dummy.__init__(self,runInfoDict)
@@ -338,11 +339,12 @@ class ROM(Dummy):
       targets = self.initializationOptionDict['Target'].split(',')
       self.howManyTargets = len(targets)
       self.SupervisedEngine = {}
+
       for target in targets:
         self.initializationOptionDict['Target'] = target
         self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-      #restore targets to initialization option dict
-      self.initializationOptionDict['Target'] = ','.join(targets)
+        #restore targets to initialization option dict
+        self.initializationOptionDict['Target'] = ','.join(targets)
 
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
@@ -361,6 +363,7 @@ class ROM(Dummy):
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
+
     for target in targets:
       self.initializationOptionDict['Target'] = target
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
@@ -405,34 +408,76 @@ class ROM(Dummy):
     @ In,  None
     @ Out, None
     """
-    for instrom in self.SupervisedEngine.values(): instrom.reset()
-    self.amITrained   = False
+    if type(self.SupervisedEngine) is list:
+      for ts in self.SupervisedEngine:
+        for instrom in ts.values():
+          instrom.reset()
+    else:
+      for instrom in self.SupervisedEngine.values():
+        instrom.reset()
+      self.amITrained   = False
 
   def addInitParams(self,originalDict):
     """the ROM setting parameters are added"""
     ROMdict = {}
-    for target, instrom in self.SupervisedEngine.items(): ROMdict[self.name + '|' + target] = instrom.returnInitialParameters()
-    for key in ROMdict.keys(): originalDict[key] = ROMdict[key]
+    for target, instrom in self.SupervisedEngine.items():
+      ROMdict[self.name + '|' + target] = instrom.returnInitialParameters()
+    for key in ROMdict.keys():
+      originalDict[key] = ROMdict[key]
 
   def train(self,trainingSet):
-    """Here we do the training of the ROM"""
-    """Fit the model according to the given training data.
-    @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
-    @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
-            are supposed to have weight one."""
+    """
+    train the ROM
+    @ In,  Dictionary, PointSet, or HistorySet: if an HistorySet is provided the a list of ROM is created in order to create a temporal-ROM
+    @ Out, None
+    """
     if type(trainingSet).__name__ == 'ROM':
       self.howManyTargets           = copy.deepcopy(trainingSet.howManyTargets)
       self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
+
     else:
-      self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-      self.amITrained = True
-      for instrom in self.SupervisedEngine.values():
-        instrom.train(self.trainingSet)
-        self.aimITrained = self.amITrained and instrom.amITrained
-      self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+
+      if 'HistorySet' in str(type(trainingSet)).split('.'):
+
+        self.SupervisedEngine = []
+
+        outKeys = trainingSet.getParaKeys('outputs')
+        targets = self.initializationOptionDict['Target'].split(',')
+
+        # check that all histories have the same length
+        tmp = trainingSet.getParametersValues('outputs')
+        for t in tmp:
+          if t==1:
+            numberOfTimeStep = len(tmp[t][outKeys[0]])
+          else:
+            if numberOfTimeStep != len(tmp[t][outKeys[0]]):
+              self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
+
+        # train the ROM
+        self.trainingSet = mathUtils.historySetWindow(trainingSet,numberOfTimeStep)
+        for ts in range(numberOfTimeStep):
+          newRom = {}
+          for target in targets:
+            self.initializationOptionDict['Target'] = target
+            newRom[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+          for instrom in newRom.values():
+            instrom.train(self.trainingSet[ts])
+            self.aimITrained = self.amITrained and instrom.amITrained
+          self.SupervisedEngine.append(newRom)
+
+      else:
+        self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
+
+        if type(self.trainingSet) is dict:
+          self.amITrained = True
+          for instrom in self.SupervisedEngine.values():
+            instrom.train(self.trainingSet)
+            self.aimITrained = self.amITrained and instrom.amITrained
+          self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+
 
   def confidence(self,request,target = None):
     """
@@ -443,22 +488,57 @@ class ROM(Dummy):
     @ In, target, string, optional, target name (by default the first target entered in the input file)
     """
     inputToROM = self._inputToInternal(request)
-    if target != None: return self.SupervisedEngine[target].confidence(inputToROM)
-    else             : return self.SupervisedEngine.values()[0].confidence(inputToROM)
+    if target != None:
+      if type(self.SupervisedEngine) is list:
+        confDic = {}
+        for ts in self.SupervisedEngine:
+          confDic[ts] = ts[target].confidence(inputToROM)
+        return confDic
+      else:
+        return self.SupervisedEngine[target].confidence(inputToROM)
+    else:
+      if type(self.SupervisedEngine) is list:
+        confDic = {}
+        for ts in self.SupervisedEngine:
+          confDic[ts] = ts.values()[0].confidence(inputToROM)
+        return confDic
+      else:
+        return self.SupervisedEngine.values()[0].confidence(inputToROM)
 
-  def evaluate(self,request, target = None):
+  def evaluate(self,request, target = None, timeInst = None):
     """
     when the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
     @ In, request, datatype, feature coordinates (request)
     @ In, target, string, optional, target name (by default the first target entered in the input file)
     """
     inputToROM = self._inputToInternal(request)
-    if target != None: return self.SupervisedEngine[target].evaluate(inputToROM)
-    else             : return utils.first(self.SupervisedEngine.values()).evaluate(inputToROM)
+
+    if target != None:
+      if timeInst == None:
+        return self.SupervisedEngine[target].evaluate(inputToROM)
+      else:
+        return self.SupervisedEngine[timeInst][target].evaluate(inputToROM)
+    else:
+      if timeInst == None:
+       return utils.first(self.SupervisedEngine.values()).evaluate(inputToROM)
+      else:
+        return self.SupervisedEngine[timeInst].values()[0].evaluate(inputToROM)
 
   def __externalRun(self,inRun):
     returnDict = {}
-    for target in self.SupervisedEngine.keys(): returnDict[target] = self.evaluate(inRun,target)
+
+    if type(self.SupervisedEngine) is list:
+      targets = self.SupervisedEngine[0].keys()
+      for target in targets:
+        returnDict[target] = np.zeros(0)
+
+      for ts in range(len(self.SupervisedEngine)):
+        for target in targets:
+          returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))
+    else:
+      for target in self.SupervisedEngine.keys():
+        returnDict[target] = self.evaluate(inRun,target)
+
     return returnDict
 
   def run(self,Input,jobHandler):
@@ -803,6 +883,7 @@ class Code(Model):
 #
 #
 #
+
 class Projector(Model):
   """Projector is a data manipulator"""
   @classmethod

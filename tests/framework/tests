@@ -452,6 +452,14 @@
   csv = 'NDGridPWvalue/testPrintPointSet_dump.csv'
  [../]
 
+
+  [./tRom]
+   type  = 'RavenFramework'
+   input = 'test_t_rom.xml'
+   output = 't_rom/PrintHistorySet_model.xml t_rom/PrintHistorySet_rom.xml'
+   csv = 't_rom/PrintHistorySet_rom_0.csv t_rom/PrintHistorySet_rom_1.csv t_rom/PrintHistorySet_rom_2.csv t_rom/PrintHistorySet_rom_3.csv t_rom/PrintHistorySet_rom_4.csv t_rom/PrintHistorySet_rom_5.csv t_rom/PrintHistorySet_rom_6.csv t_rom/PrintHistorySet_rom_7.csv'
+  [../]
+
  [./LHSVariables]
   type = 'RavenFramework'
   input = 'test_LHS_variables.xml'
