@@ -129,7 +129,7 @@
   type = 'RavenFramework'
   input = 'test_multi_target_rom.xml'
   output = ''
-  csv = 'test_rom_trainer/outputMontecarloMultiTargetRom_dump.csv test_rom_trainer/outputMontecarloMultiTargetRomND_dump.csv'
+  csv = 'test_rom_trainer/outputMontecarloMultiTargetRom_dump.csv test_rom_trainer/outputMontecarloMultiTargetRomND_dump.csv test_rom_trainer/outputMontecarlo_dump.csv'
   max_time = 1500
   rel_err = 0.001
  [../]
