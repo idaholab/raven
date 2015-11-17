@@ -62,7 +62,7 @@ elif library_report:
   #print(missing,too_old)
   report_list = RavenUtils.modulesReport()
   amsc_report = RavenUtils.moduleReport('amsc')
-  report_list.append(('amsc',amsc_report[0],amsc_report[1],"NA"))
+  report_list.append(('amsc',amsc_report[0],amsc_report[1],""))
   print("\nLibraries report:\n")
   for module, found, message, version in report_list:
     if found:
