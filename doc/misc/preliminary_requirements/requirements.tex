@@ -4,16 +4,9 @@
 
 \begin{document}
 
-\begin{description}
-\requirement{R1}{RAVEN must be able to parallelize running external codes.}
-{Manual 6.2 RunInfo: Input of Queue Modes}
-{RAVEN runs external codes, and sometimes they are not parallelized.  RAVEN will run faster if it can run multiple codes at the same time when multiple cores are available.  Even for parallelized codes it usually will be more efficient to run multiple instances in parallel than run one code parallelized.}
-{testLHSBisonParallel}
+\section{Risk Evaluation}
 
-\requirement{R2}{RAVEN must be able to provide external codes the files that are needed for their running.}
-{Manual 7 Files}
-{RAVEN runs external codes, and each instance may need a different input file that needs to be generated from the sampler choices.  RAVEN also may need to read the output files in. (possibly with application specific code that is user provided.)}
-{simple\_framework}
+\begin{description}
 
 \requirement{R3}{RAVEN must support 1-Dimensional probability distributions including generating random numbers from them.}
 {Manual 8.1 1-Dimensional Probability Distributions}
@@ -30,15 +23,16 @@
 {Once through samplers allow sampling strategies such as Grid sampling, Monte Carlo and Latin Hypercube sampling.  These samplers allow the analyses to be performed.}
 {testGrid}
 
+\end{description}
+
+\section{Risk Analysis}
+
+\begin{description}
+
 \requirement{R6}{RAVEN must support adaptive sampling that use already gathered samples to determine where to do new samples.}
 {Manual 9.3 Adaptive Samplers}
 {The adaptive samplers support sampling the input space, but in a more efficient manner.  One example of these samplers is a limit surface search.}
 {test\_Adaptive\_DynamicEventTreeRAVEN}
-
-\requirement{R7}{RAVEN must support storing and retrieving data in a HDF5 database.}
-{Manual 11 Databases}
-{RAVEN uses HDF5 databases to store inputs and results for simulations, as well as other auxiliary information.}
-{2steps\_same\_db}
 
 \requirement{R8}{RAVEN must support outputting data in CSV format.}
 {Manual 12.1 Printing system}
@@ -50,15 +44,41 @@
 {The user needs to be able to see the progress of the algorithms, and what the results are graphically.  As well, plots to be used in documentation and reports need to be outputted.  The plotting capability of RAVEN is used for this.}
 {test\_output}
 
-\requirement{R10}{RAVEN must be able to provide data to MOOSE based applications, and retrieve data if the application successfully completes.}
-{Manual 13.1 Code}
-{RAVEN uses external simulation software to calculate physical models.  RAVEN creates input files, calls the external code, and then reads in the results.}
-{testGridBison}
-
 \requirement{R11}{RAVEN must be able to generate Reduced Order Models from its data and use them to predict responses from a system.}
 {Manual 13.3 ROM}
 {Often the physical model is computationally expensive.  For some models the relevant output parameters can be captured by a much simpler model that can be quickly calculated.  This is the purpose for the Reduced order model.}
 {test\_rom\_trainer}
+
+\end{description}
+
+\section{Risk Mitigation}
+
+%\begin{description}
+
+%\end{description}
+
+\section{Infrastructure Support}
+
+\begin{description}
+\requirement{R1}{RAVEN must be able to parallelize running external codes.}
+{Manual 6.2 RunInfo: Input of Queue Modes}
+{RAVEN runs external codes, and sometimes they are not parallelized.  RAVEN will run faster if it can run multiple codes at the same time when multiple cores are available.  Even for parallelized codes it usually will be more efficient to run multiple instances in parallel than run one code parallelized.}
+{testLHSBisonParallel}
+
+\requirement{R2}{RAVEN must be able to provide external codes the files that are needed for their running.}
+{Manual 7 Files}
+{RAVEN runs external codes, and each instance may need a different input file that needs to be generated from the sampler choices.  RAVEN also may need to read the output files in. (possibly with application specific code that is user provided.)}
+{simple\_framework}
+
+\requirement{R7}{RAVEN must support storing and retrieving data in a HDF5 database.}
+{Manual 11 Databases}
+{RAVEN uses HDF5 databases to store inputs and results for simulations, as well as other auxiliary information.}
+{2steps\_same\_db}
+
+\requirement{R10}{RAVEN must be able to provide data to MOOSE based applications, and retrieve data if the application successfully completes.}
+{Manual 13.1 Code}
+{RAVEN uses external simulation software to calculate physical models.  RAVEN creates input files, calls the external code, and then reads in the results.}
+{testGridBison}
 
 \requirement{R12}{RAVEN must be able to provide data to a user provided python function, and retrieve the data from that.}
 {Manual 13.4 External Model}
@@ -69,7 +89,6 @@
 {Manual 15 Steps}
 {Sequences of calculation are one of the main uses of RAVEN.  For example, a initial calculation can be used to generate data to train a ROM, and then later calculations can use the ROM for faster calculation.  As well, steps allow various post processing to be done.}
 {testLimitSurfacePostProcessor}
-
 \requirement{R14}{RAVEN must be able to run external codes in parallel on shared memory machines.}
 {Andrea Alfonsi}
 {RAVEN will run on shared memory machines, and should be able to run external codes in parallel on them.  This can be done by running multiple processes.}
