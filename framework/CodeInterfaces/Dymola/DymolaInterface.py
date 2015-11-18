@@ -366,7 +366,7 @@ class DymolaInterface(CodeInterfaceBase):
 
       # Write the CSV file.
       with open(destFileName,"wb") as csvFile:
-        resultsWriter = csv.writer(csvFile, delimiter=str(u','), quotechar=str(u'"'))
+        resultsWriter = csv.writer(csvFile, lineterminator=str(u'\n'), delimiter=str(u','), quotechar=str(u'"'))
         resultsWriter.writerows(varNames)
         resultsWriter.writerows(varTrajectories)
     else:
