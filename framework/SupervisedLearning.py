@@ -294,8 +294,29 @@ class NDinterpolatorRom(superVisedLearning):
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.interpolator = None
+    self.featv        = None
+    self.targv        = None
     self.printTag = 'ND Interpolation ROM'
 
+
+  def __getstate__(self):
+    """
+    Overwrite state (for pickle-ing)
+    we do not pickle the HDF5 (C++) instance
+    but only the info to re-load it
+    """
+    # capture what is normally pickled
+    state = self.__dict__.copy()
+    a = state.pop("interpolator")
+    del a   
+    return state
+
+  def __setstate__(self, newstate):
+    self.__init__(self)
+    self.__dict__.update(newstate)
+    
+    self.__trainLocal__(self.featv,self.targv)
+    
   def __trainLocal__(self,featureVals,targetVals):
     """
     Perform training on samples in featureVals with responses y.
@@ -306,6 +327,7 @@ class NDinterpolatorRom(superVisedLearning):
     @Out, targetVals, array, shape = [n_samples], an array of output target
       associated with the corresponding points in featureVals
     """
+    self.featv, self.targv = featureVals,targetVals
     featv = interpolationND.vectd2d(featureVals[:][:])
     targv = interpolationND.vectd(targetVals)
     self.interpolator.fit(featv,targv)

@@ -7,6 +7,7 @@
     <Files>lorentzAttractor.py</Files>
     <Sequence>model_MRun,test_rom_trainer,ROM_MRun,plot_data</Sequence>
     <batchSize>1</batchSize>
+    <internalParallel>True</internalParallel>
 </RunInfo>
 
 
@@ -51,10 +52,12 @@
        <variable>y0</variable>
        <variable>z0</variable>
     </ExternalModel>
-    <ROM  name='t_ROM' subType='NDinvDistWeight'>
+    <ROM  name='t_ROM' subType='SciKitLearn'>
       <Features>x0,y0,z0</Features>
       <Target>time,x,y,z</Target>
-      <p>3</p>
+      <SKLtype>svm|LinearSVC</SKLtype>
+      <C>10.0</C>
+      <tol>0.0001</tol>
     </ROM>
 </Models>
 

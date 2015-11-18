@@ -318,6 +318,7 @@ class ROM(Dummy):
     self.howManyTargets            = 0          # how many targets?
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
+    self.numberOfTimeStep          = 1 
 
   def __getstate__(self):
     """
@@ -327,24 +328,39 @@ class ROM(Dummy):
     """
     # capture what is normally pickled
     state = self.__dict__.copy()
+    print(state)
     if not self.amITrained:
       a = state.pop("SupervisedEngine")
-      del a
+      del a   
     return state
 
   def __setstate__(self, newstate):
     self.__dict__.update(newstate)
+    print(self.amITrained)
     if not self.amITrained:
-      #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
-      targets = self.initializationOptionDict['Target'].split(',')
-      self.howManyTargets = len(targets)
-      self.SupervisedEngine = {}
+      if self.numberOfTimeStep > 1:
+        targets = self.initializationOptionDict['Target'].split(',')
+        self.howManyTargets = len(targets)
+        self.SupervisedEngine = []
+        for t in range(self.numberOfTimeStep):
+          tempSupervisedEngine = {}
+          for target in targets:
+            self.initializationOptionDict['Target'] = target
+            tempSupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+            self.initializationOptionDict['Target'] = ','.join(targets) 
+          self.SupervisedEngine.append(tempSupervisedEngine)     
+ 
+      else:
+        #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
+        targets = self.initializationOptionDict['Target'].split(',')
+        self.howManyTargets = len(targets)
+        self.SupervisedEngine = {}
 
-      for target in targets:
-        self.initializationOptionDict['Target'] = target
-        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-        #restore targets to initialization option dict
-        self.initializationOptionDict['Target'] = ','.join(targets)
+        for target in targets:
+          self.initializationOptionDict['Target'] = target
+          self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+          #restore targets to initialization option dict
+          self.initializationOptionDict['Target'] = ','.join(targets)
 
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
@@ -451,34 +467,35 @@ class ROM(Dummy):
         tmp = trainingSet.getParametersValues('outputs')
         for t in tmp:
           if t==1:
-            numberOfTimeStep = len(tmp[t][outKeys[0]])
+            self.numberOfTimeStep = len(tmp[t][outKeys[0]])
           else:
-            if numberOfTimeStep != len(tmp[t][outKeys[0]]):
+            if self.numberOfTimeStep != len(tmp[t][outKeys[0]]):
               self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
 
         # train the ROM
-        self.trainingSet = mathUtils.historySetWindow(trainingSet,numberOfTimeStep)
-        for ts in range(numberOfTimeStep):
+        self.amITrained = True 
+        self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
+        for ts in range(self.numberOfTimeStep):
           newRom = {}
+          tempinitializationOptionDict = copy.deepcopy(self.initializationOptionDict)
           for target in targets:
-            self.initializationOptionDict['Target'] = target
-            newRom[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+            tempinitializationOptionDict['Target'] = target
+            newRom[target] =  SupervisedLearning.returnInstance(self.subType,self,**tempinitializationOptionDict)
           for instrom in newRom.values():
             instrom.train(self.trainingSet[ts])
-            self.aimITrained = self.amITrained and instrom.amITrained
+            self.amITrained = self.amITrained and instrom.amITrained
           self.SupervisedEngine.append(newRom)
 
       else:
         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-
         if type(self.trainingSet) is dict:
           self.amITrained = True
           for instrom in self.SupervisedEngine.values():
             instrom.train(self.trainingSet)
-            self.aimITrained = self.amITrained and instrom.amITrained
+            self.amITrained = self.amITrained and instrom.amITrained
           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
 
-
+ 
   def confidence(self,request,target = None):
     """
     This is to get a value that is inversely proportional to the confidence that we have
@@ -512,11 +529,14 @@ class ROM(Dummy):
     @ In, target, string, optional, target name (by default the first target entered in the input file)
     """
     inputToROM = self._inputToInternal(request)
+    print(self.__dict__)
 
     if target != None:
       if timeInst == None:
         return self.SupervisedEngine[target].evaluate(inputToROM)
       else:
+        print(self.SupervisedEngine[timeInst][target])
+        print(inputToROM)
         return self.SupervisedEngine[timeInst][target].evaluate(inputToROM)
     else:
       if timeInst == None:
@@ -526,8 +546,7 @@ class ROM(Dummy):
 
   def __externalRun(self,inRun):
     returnDict = {}
-
-    if type(self.SupervisedEngine) is list:
+    if type(self.SupervisedEngine).__name__ == 'list':
       targets = self.SupervisedEngine[0].keys()
       for target in targets:
         returnDict[target] = np.zeros(0)
@@ -544,6 +563,7 @@ class ROM(Dummy):
   def run(self,Input,jobHandler):
     """This call run a ROM as a model"""
     inRun = self._manipulateInput(Input[0])
+    print
     jobHandler.submitDict['Internal']((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods)
 #
 #
