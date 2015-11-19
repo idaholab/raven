@@ -7,3 +7,5 @@
 *.out
 raven_user_manual.pdf
 *.toc
+doxygen/html/
+doxygen/latex/
