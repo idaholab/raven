@@ -385,6 +385,13 @@ class GaussPolynomialRom(NDinterpolatorRom):
     """
     pass
 
+  def __initLocal__(self):
+    """ Method used to add additional initialization features used by pickling
+    @ In, None
+    @ Out, None
+    """
+    pass
+
   def __init__(self,messageHandler,**kwargs):
     """Initializes class.
     @ In, kwargs, dict of XML inputs from ROM

@@ -335,7 +335,6 @@ class ROM(Dummy):
 
   def __setstate__(self, newstate):
     self.__dict__.update(newstate)
-    print(self.amITrained)
     if not self.amITrained:
       if self.numberOfTimeStep > 1:
         targets = self.initializationOptionDict['Target'].split(',')
@@ -423,7 +422,7 @@ class ROM(Dummy):
     @ In,  None
     @ Out, None
     """
-    if type(self.SupervisedEngine) is list:
+    if type(self.SupervisedEngine).__name__ == 'list':
       for ts in self.SupervisedEngine:
         for instrom in ts.values():
           instrom.reset()
@@ -443,7 +442,7 @@ class ROM(Dummy):
   def train(self,trainingSet):
     """
     train the ROM
-    @ In,  Dictionary, PointSet, or HistorySet: if an HistorySet is provided the a list of ROM is created in order to create a temporal-ROM
+    @In, trainingSet, dict or PointSet or HistorySet,: data used to train the ROM; if an HistorySet is provided the a list of ROM is created in order to create a temporal-ROM
     @ Out, None
     """
     if type(trainingSet).__name__ == 'ROM':
@@ -455,7 +454,7 @@ class ROM(Dummy):
 
     else:
 
-      if 'HistorySet' in str(type(trainingSet)).split('.'):
+      if 'HistorySet' in type(trainingSet).__name__:
 
         self.SupervisedEngine = []
 
@@ -526,16 +525,14 @@ class ROM(Dummy):
     when the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
     @ In, request, datatype, feature coordinates (request)
     @ In, target, string, optional, target name (by default the first target entered in the input file)
+    @ In, timeInst, element of the temporal ROM to evaluate
     """
     inputToROM = self._inputToInternal(request)
-    print(self.__dict__)
 
     if target != None:
       if timeInst == None:
         return self.SupervisedEngine[target].evaluate(inputToROM)
       else:
-        print(self.SupervisedEngine[timeInst][target])
-        print(inputToROM)
         return self.SupervisedEngine[timeInst][target].evaluate(inputToROM)
     else:
       if timeInst == None:
@@ -562,7 +559,6 @@ class ROM(Dummy):
   def run(self,Input,jobHandler):
     """This call run a ROM as a model"""
     inRun = self._manipulateInput(Input[0])
-    print
     jobHandler.submitDict['Internal']((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods)
 #
 #
