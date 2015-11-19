@@ -4,6 +4,7 @@ num_fails=0
 
 rm -Rf FirstMQRun/
 
+#REQUIREMENT_TEST
 python ../../framework/Driver.py test_mpiqsub_local.xml
 
 sleep 2 #Wait for disk to propagate.
@@ -50,6 +51,7 @@ fi
 cd InternalParallel/
 rm -Rf InternalParallelExtModel/*.csv
 
+#REQUIREMENT_TEST
 python ../../../framework/Driver.py test_internal_parallel_extModel.xml
 
 sleep 2 #Wait for disk to propagate.
@@ -70,6 +72,7 @@ cd ..
 cd InternalParallel/
 rm -Rf InternalParallelScikit/*.csv
 
+#REQUIREMENT_TEST
 python ../../../framework/Driver.py test_internal_parallel_ROM_scikit.xml
 
 sleep 2 #Wait for disk to propagate.

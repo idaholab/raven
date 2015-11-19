@@ -1,16 +1,19 @@
 [Tests]
  [./simple_framework]
-  type = 'RavenFramework'
-  input = 'test_simple.xml'
-  output = 'revirD_tset/FirstMRun/out~1~ideal_pump revirD_tset/FirstMRun/out~6~ideal_pump'
-  csv = 'revirD_tset/FirstMRun/out~6~ideal_pump.csv'
-  required_executable = '../../RAVEN-%METHOD%'
+   #REQUIREMENT_TEST
+   type = 'RavenFramework'
+   input = 'test_simple.xml'
+   output = 'revirD_tset/FirstMRun/out~1~ideal_pump revirD_tset/FirstMRun/out~6~ideal_pump'
+   csv = 'revirD_tset/FirstMRun/out~6~ideal_pump.csv'
+   required_executable = '../../RAVEN-%METHOD%'
  [../]
+
  [./2steps_same_db]
-  type = 'RavenFramework'
-  input = 'test_2steps_same_db.xml'
-  csv = 'test_2steps/fullprint_HistorySet_3.csv'
-  xml = 'test_2steps/fullprint_HistorySet.xml'
+   #REQUIREMENT_TEST
+   type = 'RavenFramework'
+   input = 'test_2steps_same_db.xml'
+   csv = 'test_2steps/fullprint_HistorySet_3.csv'
+   xml = 'test_2steps/fullprint_HistorySet.xml'
  [../]
 
  [./external_xml]
@@ -21,6 +24,7 @@
  [../]
 
  [./test_output]
+  #REQUIREMENT_TEST
   type = 'RavenFramework'
   input = 'test_output.xml'
   output = 'output_check/1-plot7_stem.png output_check/1-2DHistoryPlot_histogram.png output_check/1-test_line-line.png output_check/1-plot2_line-line.png output_check/1-plot4_scatter-scatter.png output_check/1-plot3_scatter-scatter.png output_check/1-plot9_stem.png output_check/1-plot8_stem.png output_check/1-plot7_stem.png output_check/1-plot6_histogram.png output_check/1-plot5_histogram.png output_check/1-plot11_step.png output_check/1-plot10_stem.png output_check/1-plot14_tri-surface-tri-surface.png output_check/1-plot13_surface-surface.png output_check/1-plot12_pseudocolor.png output_check/1-plot17_contour3D-filledContour3D.png output_check/1-plot16_contour-filledContour.png output_check/1-plot15_wireframe-wireframe.png output_check/1-plot18_scatter.png output_check/1-plot19_scatter.png output_check/1-plot20_scatter.png output_check/fullprint_history.csv output_check/fullprint_Pointset.csv output_check/fullprint_Point.csv output_check/testprint_selective_history.csv output_check/testprint_selective_Point.csv'
@@ -43,6 +47,7 @@
  [../]
 
  [./testAdaptiveDynamicEventTreeRAVEN]
+   #REQUIREMENT_TEST
   type = 'RavenFramework'
   input = 'test_adaptive_det_simple.xml'
   output = 'AdaptiveDET/limitSurfDump.csv AdaptiveDET/adaptiveOutsimpleDump.csv'
@@ -111,6 +116,7 @@
  [../]
 
 [./test_rom_trainer]
+  #REQUIREMENT_TEST
   type = 'RavenFramework'
   input = 'test_rom_trainer.xml'
   #skip = 'working in progress'
@@ -160,6 +166,7 @@
  [../]
 
  [./testGrid]
+  #REQUIREMENT_TEST
   type = 'RavenFramework'
   input = 'test_Grid_Sampler.xml'
   output = 'GridTest/outGrid_dump.csv'
@@ -207,6 +214,7 @@
 
 
  [./testExternalModel]
+  #REQUIREMENT_TEST
   type = 'RavenFramework'
   input = 'test_Lorentz.xml'
   output = 'externalModel/testPrintHistorySet_dump_0.csv externalModel/testPrintHistorySet_dump_1.csv externalModel/testPrintHistorySet_dump_2.csv externalModel/testPointSet_dump.csv'
@@ -232,6 +240,7 @@
  [../]
 
  [./testLimitSurfacePostProcessor]
+  #REQUIREMENT_TEST
   type = 'RavenFramework'
   input = 'test_LimitSurface.xml'
   output = 'limitSurface/LimitSurfaceNegative_dump.csv limitSurface/LimitSurfacePositiveNegative_dump.csv limitSurface/LimitSurfacePositive_dump.csv'
@@ -272,6 +281,7 @@
  [../]
 
  [./test_bison_mc_simple_&_alias_system]
+  #REQUIREMENT_TEST
   type = 'RavenFramework'
   input = 'test_bison_mc_simple.xml'
   output = 'MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
@@ -289,6 +299,7 @@
  [../]
 
  [./test_distributions]
+  #REQUIREMENT_TEST
   type = 'RavenPython'
   #python_command = python3
   input = '../../framework/TestDistributions.py'
@@ -296,6 +307,7 @@
  [../]
 
  [./test_iostep_load]
+   #REQUIREMENT_TEST
    type = 'RavenFramework'
    input = 'test_iostep_load.xml'
    output = 'test_iostep_load/reprint_HistorySet.csv test_iostep_load/reprint_history.csv'
@@ -350,6 +362,7 @@
  [../]
 
  [./ND_external_MC]
+  #REQUIREMENT_TEST
   type = 'RavenFramework'
   input = 'test_simple_ND_external_MC.xml'
   output = 'ND_test_MC/testPrintPointSet_dump.csv ND_test_MC/testPrintPointSet_dump.csv'

@@ -1,17 +1,18 @@
 [Tests]
 
  [./testGridBison]
-  type = 'RavenFramework'
-  input = 'test_Grid_Sampler_Bison.xml'
-  output = 'GridTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
-  csv = 'GridTestBison/CustomSampler/out~18~gap_perfect_transfer_test.csv GridTestBison/CustomSampler/out~17~gap_perfect_transfer_test.csv GridTestBison/outGrid_dump.csv'
-  max_time = 500
-  rel_err = 0.001
-  required_executable = '../../../../bison/bison-%METHOD%'
-  skip_if_env = BUILD_ROOT
-  #There is a problem in debug mode (possibly in bison) but this
-  # test often does not work in debug mode because of the problem.
-  method = 'devel opt'
+   #REQUIREMENT_TEST
+   type = 'RavenFramework'
+   input = 'test_Grid_Sampler_Bison.xml'
+   output = 'GridTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
+   csv = 'GridTestBison/CustomSampler/out~18~gap_perfect_transfer_test.csv GridTestBison/CustomSampler/out~17~gap_perfect_transfer_test.csv GridTestBison/outGrid_dump.csv'
+   max_time = 500
+   rel_err = 0.001
+   required_executable = '../../../../bison/bison-%METHOD%'
+   skip_if_env = BUILD_ROOT
+   #There is a problem in debug mode (possibly in bison) but this
+   # test often does not work in debug mode because of the problem.
+   method = 'devel opt'
  [../]
 
  [./testLHSBison]
@@ -26,6 +27,7 @@
  [../]
 
  [./testLHSBisonParallel]
+   #REQUIREMENT_TEST
   type = 'RavenFramework'
   input = 'test_LHS_Sampler_Bison_parallel.xml'
   output = 'LHStestBisonParallel/myLHS/out~1~gap_perfect_transfer_test LHStestBisonParallel/LHS_Bison_dump.csv'
