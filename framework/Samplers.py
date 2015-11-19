@@ -1451,17 +1451,19 @@ class Stratified(Grid):
             weight *= self.distDict[varName].cellIntegral(centerCoordinate,dxs)
             self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinate)
           else:
-            upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
-            lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
-            varCount += 1
-            coordinate = lower + (upper-lower)*Distributions.random()
-            gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
-            for distVarName in self.distributions2variablesMapping[distName]:
-              for kkey in utils.first(distVarName.keys()).strip().split(','):
-                self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
-            # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
-            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
-            weight *= max(upper,lower) - min(upper,lower)
+            if self.gridInfo[varName] == 'CDF':
+              upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
+              lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
+              varCount += 1
+              coordinate = lower + (upper-lower)*Distributions.random()
+              gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
+              for distVarName in self.distributions2variablesMapping[distName]:
+                for kkey in utils.first(distVarName.keys()).strip().split(','):
+                  self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
+              # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
+              self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
+              weight *= max(upper,lower) - min(upper,lower)
+            else: self.raiseAnError(IOError,"Since the globalGrid is defined, the Stratified Sampler is only working when the sampling is performed on a grid on a CDF. However, the user specifies the grid on " + self.gridInfo[varName])
 
       if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:   # 1D variable
         # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
