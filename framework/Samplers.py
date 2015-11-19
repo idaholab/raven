@@ -1410,7 +1410,6 @@ class Stratified(Grid):
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     weight = 1.0
     for varName in self.axisName:
-      print(varName)
       # new implementation for ND LHS
       if not "<distribution>" in varName:
         if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['dim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
