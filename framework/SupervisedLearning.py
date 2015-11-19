@@ -308,14 +308,14 @@ class NDinterpolatorRom(superVisedLearning):
     # capture what is normally pickled
     state = self.__dict__.copy()
     a = state.pop("interpolator")
-    del a     
+    del a
     return state
 
   def __setstate__(self, newstate):
     self.__dict__.update(newstate)
     self.__initLocal__()
     self.__trainLocal__(self.featv,self.targv)
-    
+
   def __trainLocal__(self,featureVals,targetVals):
     """
     Perform training on samples in featureVals with responses y.

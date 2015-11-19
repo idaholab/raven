@@ -318,7 +318,7 @@ class ROM(Dummy):
     self.howManyTargets            = 0          # how many targets?
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
-    self.numberOfTimeStep          = 1 
+    self.numberOfTimeStep          = 1
 
   def __getstate__(self):
     """
@@ -330,7 +330,7 @@ class ROM(Dummy):
     state = self.__dict__.copy()
     if not self.amITrained:
       a = state.pop("SupervisedEngine")
-      del a   
+      del a
     return state
 
   def __setstate__(self, newstate):
@@ -346,9 +346,9 @@ class ROM(Dummy):
           for target in targets:
             self.initializationOptionDict['Target'] = target
             tempSupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-            self.initializationOptionDict['Target'] = ','.join(targets) 
-          self.SupervisedEngine.append(tempSupervisedEngine)     
- 
+            self.initializationOptionDict['Target'] = ','.join(targets)
+          self.SupervisedEngine.append(tempSupervisedEngine)
+
       else:
         #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
         targets = self.initializationOptionDict['Target'].split(',')
@@ -472,7 +472,7 @@ class ROM(Dummy):
               self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
 
         # train the ROM
-        self.amITrained = True 
+        self.amITrained = True
         self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
         for ts in range(self.numberOfTimeStep):
           newRom = {}
@@ -494,7 +494,7 @@ class ROM(Dummy):
             self.amITrained = self.amITrained and instrom.amITrained
           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
 
- 
+
   def confidence(self,request,target = None):
     """
     This is to get a value that is inversely proportional to the confidence that we have
