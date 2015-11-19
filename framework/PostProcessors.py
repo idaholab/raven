@@ -1193,17 +1193,23 @@ class BasicStatistics(BasePostProcessor):
     N = [np.asarray(Input['targets'][targetP]).size for targetP in parameterSet]
     if 'metadata' in Input.keys(): pbPresent = 'ProbabilityWeight' in Input['metadata'].keys()
     else                         : pbPresent = False
+    if 'metadata' in Input.keys(): sampledVarsPbPresent = 'SampledVarsPb' in Input['metadata'].keys()
+    else                         : sampledVarsPbPresent = False
     if not pbPresent:
       if 'metadata' in Input.keys():
         if 'SamplerType' in Input['metadata'].keys():
           if Input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
-        else: self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+        else: self.raiseAWarning('BasicStatistics can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbWeights['realization'] = np.zeros(len(Input['targets'][self.parameters['targets'][0]]), dtype = np.float)
-      pbWeights['realization'][:] = 1.0 / pbWeights['realization'].size  # it was an Integer Division (1/integer) => 0!!!!!!!! Andrea
+      pbWeights['realization'][:] = 1.0 / pbWeights['realization'].size
     else: pbWeights['realization'] = Input['metadata']['ProbabilityWeight']
-
-    sumSquarePbWeights = np.sum(np.square(pbWeights['realization']))
-    sumPbWeights = np.sum(pbWeights['realization'])
+    if sampledVarsPbPresent:
+      pbWeights['SampledVarsPbWeight'] = {'SampledVarsPb':Input['metadata']['SampledVarsPb'],'sumSquareSampledVarsPb':{},'sumPbSampledVarsPb':{}}
+      for varKey in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys():
+        pbWeights['SampledVarsPbWeight']['sumSquareSampledVarsPb'][varKey] = np.sum(np.square(pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey]))   
+        pbWeights['SampledVarsPbWeight']['sumPbSampledVarsPb'][varKey]     = np.sum(np.square(pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey]))
+    sumPbWeights = np.sum(np.square(pbWeights['realization']))
+    unbiasedCorrection = (sumPbWeights - np.sum(np.square(pbWeights['realization'])) / sumPbWeights**2.0)
     # if here because the user could have overwritten the method through the external function
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
     expValues = np.zeros(len(parameterSet))
@@ -1215,21 +1221,21 @@ class BasicStatistics(BasePostProcessor):
       # sigma
       if what == 'sigma':
         for myIndex, targetP in enumerate(parameterSet):
-          outputDict[what][targetP] = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization'])/ (sumPbWeights - sumSquarePbWeights / sumPbWeights**2.0))
+          outputDict[what][targetP] = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization'])/ unbiasedCorrection)
           if (outputDict[what][targetP] == 0):
             self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
             outputDict[what][targetP] = np.Infinity
       # variance
       if what == 'variance':
         for myIndex, targetP in enumerate(parameterSet):
-          outputDict[what][targetP] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']) / (sumPbWeights - sumSquarePbWeights / sumPbWeights**2.0)
+          outputDict[what][targetP] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']) / unbiasedCorrection
           if (outputDict[what][targetP] == 0):
             self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
             outputDict[what][targetP] = np.Infinity
       # coefficient of variation (sigma/mu)
       if what == 'variationCoefficient':
         for myIndex, targetP in enumerate(parameterSet):
-          sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']) / (sumPbWeights - sumSquarePbWeights / sumPbWeights**2.0))
+          sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']) / unbiasedCorrection)
           if (outputDict['expectedValue'][targetP] == 0):
             self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient can not be calculated in PP: ' + self.name)
             outputDict['expectedValue'][targetP] = np.Infinity
@@ -1301,7 +1307,7 @@ class BasicStatistics(BasePostProcessor):
             self.SupervisedEngine[target] = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'linear_model|LinearRegression',
                                                                                                       'Features':','.join(self.sampled.keys()),
                                                                                                       'Target':target})
-            var = np.average((Input['targets'][target] - outputDict['expectedValue'][target]) ** 2, weights = pbWeights['realization']) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+            var = np.average((Input['targets'][target] - outputDict['expectedValue'][target]) ** 2, weights = pbWeights['realization']) / unbiasedCorrection
             if (var == 0):
               self.raiseAWarning('Sensitivity of a variable (' + target + ') with 0 variance is requested! in PP: ' + self.name)
             else:
@@ -1311,7 +1317,7 @@ class BasicStatistics(BasePostProcessor):
               outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
               features = self.sampled.keys()
               for index in range(len(features)):
-                sigma = np.sqrt(np.average((Input['targets'][features[index]] - expValues[parameterSet.index(features[index])]) ** 2, weights = pbWeights['realization']) / (sumPbWeights - sumSquarePbWeights / sumPbWeights))
+                sigma = np.sqrt(np.average((Input['targets'][features[index]] - expValues[parameterSet.index(features[index])]) ** 2, weights = pbWeights['realization']) / unbiasedCorrection)
                 outputDict[what][myIndex][index] = outputDict[what][myIndex][index] / sigma
             else:
               value = np.zeros(len(self.calculated.keys()))
@@ -1324,7 +1330,7 @@ class BasicStatistics(BasePostProcessor):
         covMatrix = self.covariance(feat, weights = pbWeights['realization'])
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
-          variance[myIndex] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+          variance[myIndex] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']) / unbiasedCorrection
         for myIndex in range(len(parameterSet)):
           if (variance[myIndex] == 0):
              self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
@@ -1337,7 +1343,7 @@ class BasicStatistics(BasePostProcessor):
         covMatrix = self.covariance(feat, weights = pbWeights['realization'])
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
-          variance[myIndex] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+          variance[myIndex] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']) / unbiasedCorrection
           if (variance[myIndex] is 0):
             self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
             variance[myIndex] = np.Infinity
