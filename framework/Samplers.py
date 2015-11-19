@@ -3077,7 +3077,6 @@ class SparseGridCollocation(Grid):
             for key in varName.strip().split(','):
               self.values[key] = pt[v]
             NDcoordinates[self.variables2distributionsMapping[varName]['dim']-1] = pt[v]
-        print(NDcoordinates)
         for v,varName in enumerate(self.sparseGrid.varNames):
           if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
             self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
@@ -3133,6 +3132,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     @ In, None
     @ Out, None
     """
+    self.dists = self.transformDistDict()
     #set a pointer to the end-product ROM
     self.ROM = self.assemblerDict['ROM'][0][3]
     #obtain the DataObject that contains evaluations of the model
@@ -3481,6 +3481,8 @@ class Sobol(SparseGridCollocation):
       @ In, None
       @ Out, None
     """
+    self.dists = self.transformDistDict()
+
     for key in self.assemblerDict.keys():
       if 'ROM' in key:
         indice = 0
