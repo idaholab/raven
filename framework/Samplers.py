@@ -1479,6 +1479,7 @@ class Stratified(Grid):
           self.inputInfo['SampledVarsPb'][varName]  = self.distDict[varName].pdf(ppfValue)
         elif self.gridInfo[varName] == 'value':
           coordinateCdf = self.distDict[varName].cdf(min(upper,lower)) + (self.distDict[varName].cdf(max(upper,lower))-self.distDict[varName].cdf(min(upper,lower)))*Distributions.random()
+          if coordinateCdf == 0.0: self.raiseAWarning(IOError,"\033[93m The grid lower bound and upper bound in value will generate ZERO cdf value!!! \033[0m")
           coordinate = self.distDict[varName].ppf(coordinateCdf)
           weight *= self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(coordinate)
