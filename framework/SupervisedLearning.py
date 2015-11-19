@@ -308,13 +308,12 @@ class NDinterpolatorRom(superVisedLearning):
     # capture what is normally pickled
     state = self.__dict__.copy()
     a = state.pop("interpolator")
-    del a   
+    del a     
     return state
 
   def __setstate__(self, newstate):
-    self.__init__(self)
     self.__dict__.update(newstate)
-    
+    self.__initLocal__()
     self.__trainLocal__(self.featv,self.targv)
     
   def __trainLocal__(self,featureVals,targetVals):
@@ -330,6 +329,7 @@ class NDinterpolatorRom(superVisedLearning):
     self.featv, self.targv = featureVals,targetVals
     featv = interpolationND.vectd2d(featureVals[:][:])
     targv = interpolationND.vectd(targetVals)
+
     self.interpolator.fit(featv,targv)
 
   def __confidenceLocal__(self,featureVals):
@@ -1430,6 +1430,9 @@ class NDinvDistWeight(NDinterpolatorRom):
     NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ND-INVERSEWEIGHT ROM'
     if not 'p' in self.initOptionDict.keys(): self.raiseAnError(IOError,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
+    self.__initLocal__()
+
+  def __initLocal__(self):
     self.interpolator = interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p']))
 
   def __resetLocal__(self):
