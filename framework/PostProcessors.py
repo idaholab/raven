@@ -1175,7 +1175,7 @@ class BasicStatistics(BasePostProcessor):
     """
     Input = self.inputToInternal(InputIn)
     outputDict = {}
-
+    pbWeights  = {'realization':None}
     if self.externalFunction:
       # there is an external function
       for what in self.methodsToRun:
@@ -1198,38 +1198,38 @@ class BasicStatistics(BasePostProcessor):
         if 'SamplerType' in Input['metadata'].keys():
           if Input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
         else: self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      pbweights = np.zeros(len(Input['targets'][self.parameters['targets'][0]]), dtype = np.float)
-      pbweights[:] = 1.0 / pbweights.size  # it was an Integer Division (1/integer) => 0!!!!!!!! Andrea
-    else: pbweights = Input['metadata']['ProbabilityWeight']
+      pbWeights['realization'] = np.zeros(len(Input['targets'][self.parameters['targets'][0]]), dtype = np.float)
+      pbWeights['realization'][:] = 1.0 / pbWeights['realization'].size  # it was an Integer Division (1/integer) => 0!!!!!!!! Andrea
+    else: pbWeights['realization'] = Input['metadata']['ProbabilityWeight']
 
-    sumSquarePbWeights = np.sum(np.square(pbweights))
-    sumPbWeights = np.sum(pbweights)
+    sumSquarePbWeights = np.sum(np.square(pbWeights['realization']))
+    sumPbWeights = np.sum(pbWeights['realization'])
     # if here because the user could have overwritten the method through the external function
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
     expValues = np.zeros(len(parameterSet))
     for myIndex, targetP in enumerate(parameterSet):
-      outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = pbweights)
+      outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = pbWeights['realization'])
       expValues[myIndex] = outputDict['expectedValue'][targetP]
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
       # sigma
       if what == 'sigma':
         for myIndex, targetP in enumerate(parameterSet):
-          outputDict[what][targetP] = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights))
+          outputDict[what][targetP] = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization'])/ (sumPbWeights - sumSquarePbWeights / sumPbWeights**2.0))
           if (outputDict[what][targetP] == 0):
             self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
             outputDict[what][targetP] = np.Infinity
       # variance
       if what == 'variance':
         for myIndex, targetP in enumerate(parameterSet):
-          outputDict[what][targetP] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+          outputDict[what][targetP] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']) / (sumPbWeights - sumSquarePbWeights / sumPbWeights**2.0)
           if (outputDict[what][targetP] == 0):
             self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
             outputDict[what][targetP] = np.Infinity
       # coefficient of variation (sigma/mu)
       if what == 'variationCoefficient':
         for myIndex, targetP in enumerate(parameterSet):
-          sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights))
+          sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']) / (sumPbWeights - sumSquarePbWeights / sumPbWeights**2.0))
           if (outputDict['expectedValue'][targetP] == 0):
             self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient can not be calculated in PP: ' + self.name)
             outputDict['expectedValue'][targetP] = np.Infinity
@@ -1238,11 +1238,11 @@ class BasicStatistics(BasePostProcessor):
       if what == 'kurtosis':
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent:
-            sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights))
+            sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']))
             if (sigma == 0):
               self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
               sigma = np.Infinity
-            outputDict[what][targetP] = np.average(((Input['targets'][targetP] - expValues[myIndex]) ** 4), weights = pbweights) / sigma ** 4
+            outputDict[what][targetP] = np.average(((Input['targets'][targetP] - expValues[myIndex]) ** 4), weights = pbWeights['realization']) / sigma ** 4
           else:
             if (N[myIndex] == 1):
               self.raiseAWarning('The number of samples is 1 for: ' + targetP + '! Please check your input in PP: ' + self.name)
@@ -1256,11 +1256,11 @@ class BasicStatistics(BasePostProcessor):
       if what == 'skewness':
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent:
-            sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights))
+            sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']))
             if (sigma == 0):
               self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
               sigma = np.Infinity
-            outputDict[what][targetP] = np.average((((Input['targets'][targetP] - expValues[myIndex]) / sigma) ** 3), weights = pbweights)
+            outputDict[what][targetP] = np.average((((Input['targets'][targetP] - expValues[myIndex]) / sigma) ** 3), weights = pbWeights['realization'])
           else:
             if (N[myIndex] == 1):
               self.raiseAWarning('The number of samples is 1 for: ' + targetP + '! Please check your input in PP: ' + self.name)
@@ -1287,12 +1287,12 @@ class BasicStatistics(BasePostProcessor):
       if what == 'covariance':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
         for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :] = Input['targets'][targetP][:]
-        outputDict[what] = self.covariance(feat, weights = pbweights)
+        outputDict[what] = self.covariance(feat, weights = pbWeights['realization'])
       # pearson matrix
       if what == 'pearson':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
         for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :] = Input['targets'][targetP][:]
-        outputDict[what] = self.corrCoeff(feat, weights = pbweights)  # np.corrcoef(feat)
+        outputDict[what] = self.corrCoeff(feat, weights = pbWeights['realization'])  # np.corrcoef(feat)
       # sensitivity matrix
       if what == 'sensitivity':
         if self.sampled:
@@ -1301,7 +1301,7 @@ class BasicStatistics(BasePostProcessor):
             self.SupervisedEngine[target] = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'linear_model|LinearRegression',
                                                                                                       'Features':','.join(self.sampled.keys()),
                                                                                                       'Target':target})
-            var = np.average((Input['targets'][target] - outputDict['expectedValue'][target]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+            var = np.average((Input['targets'][target] - outputDict['expectedValue'][target]) ** 2, weights = pbWeights['realization']) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
             if (var == 0):
               self.raiseAWarning('Sensitivity of a variable (' + target + ') with 0 variance is requested! in PP: ' + self.name)
             else:
@@ -1311,7 +1311,7 @@ class BasicStatistics(BasePostProcessor):
               outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
               features = self.sampled.keys()
               for index in range(len(features)):
-                sigma = np.sqrt(np.average((Input['targets'][features[index]] - expValues[parameterSet.index(features[index])]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights))
+                sigma = np.sqrt(np.average((Input['targets'][features[index]] - expValues[parameterSet.index(features[index])]) ** 2, weights = pbWeights['realization']) / (sumPbWeights - sumSquarePbWeights / sumPbWeights))
                 outputDict[what][myIndex][index] = outputDict[what][myIndex][index] / sigma
             else:
               value = np.zeros(len(self.calculated.keys()))
@@ -1321,10 +1321,10 @@ class BasicStatistics(BasePostProcessor):
       if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
         for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :] = Input['targets'][targetP][:]
-        covMatrix = self.covariance(feat, weights = pbweights)
+        covMatrix = self.covariance(feat, weights = pbWeights['realization'])
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
-          variance[myIndex] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+          variance[myIndex] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
         for myIndex in range(len(parameterSet)):
           if (variance[myIndex] == 0):
              self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
@@ -1334,10 +1334,10 @@ class BasicStatistics(BasePostProcessor):
       if what == 'NormalizedSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
         for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :] = Input['targets'][targetP][:]
-        covMatrix = self.covariance(feat, weights = pbweights)
+        covMatrix = self.covariance(feat, weights = pbWeights['realization'])
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
-          variance[myIndex] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbweights) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
+          variance[myIndex] = np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = pbWeights['realization']) / (sumPbWeights - sumSquarePbWeights / sumPbWeights)
           if (variance[myIndex] is 0):
             self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
             variance[myIndex] = np.Infinity
@@ -1425,7 +1425,7 @@ class BasicStatistics(BasePostProcessor):
       """
       X = np.array(feature, ndmin = 2, dtype = np.result_type(feature, np.float64))
       diff = np.zeros(feature.shape, dtype = np.result_type(feature, np.float64))
-      if weights != None: w = np.array(weights, ndmin = 1, dtype = np.float64)
+      if weights is not None: w = np.array(weights, ndmin = 1, dtype = np.float64)
       if X.shape[0] == 1: rowvar = 1
       if rowvar:
           N = X.shape[1]
@@ -1433,13 +1433,13 @@ class BasicStatistics(BasePostProcessor):
       else:
           N = X.shape[0]
           axis = 1
-      if weights != None:
+      if weights is not None:
           sumWeights = np.sum(weights)
           sumSquareWeights = np.sum(np.square(weights))
           diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = weights)).T
       else:
           diff = X - np.mean(X, axis = 1 - axis, keepdims = True)
-      if weights != None:
+      if weights is not None:
           if not self.biased: fact = float(sumWeights / ((sumWeights * sumWeights - sumSquareWeights)))
           else:               fact = float(1.0 / (sumWeights))
       else:
@@ -1449,10 +1449,10 @@ class BasicStatistics(BasePostProcessor):
           warnings.warn("Degrees of freedom <= 0", RuntimeWarning)
           fact = 0.0
       if not rowvar:
-        if weights != None: covMatrix = (np.dot(diff.T, w * diff) * fact).squeeze()
+        if weights is not None: covMatrix = (np.dot(diff.T, w * diff) * fact).squeeze()
         else:               covMatrix = (np.dot(diff.T, diff) * fact).squeeze()
       else:
-        if weights != None: covMatrix = (np.dot(w * diff, diff.T) * fact).squeeze()
+        if weights is not None: covMatrix = (np.dot(w * diff, diff.T) * fact).squeeze()
         else:               covMatrix = (np.dot(diff, diff.T) * fact).squeeze()
       return covMatrix
 
