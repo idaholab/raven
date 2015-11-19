@@ -1203,18 +1203,25 @@ class BasicStatistics(BasePostProcessor):
       pbWeights['realization'] = np.zeros(len(Input['targets'][self.parameters['targets'][0]]), dtype = np.float)
       pbWeights['realization'][:] = 1.0 / pbWeights['realization'].size
     else: pbWeights['realization'] = Input['metadata']['ProbabilityWeight']
+    pbWeights['SampledVarsPbWeight'] = {'SampledVarsPb':{},'unbiasedCorrection':{}}
     if sampledVarsPbPresent:
-      pbWeights['SampledVarsPbWeight'] = {'SampledVarsPb':Input['metadata']['SampledVarsPb'],'sumSquareSampledVarsPb':{},'sumPbSampledVarsPb':{}}
+      pbWeights['SampledVarsPbWeight']['SampledVarsPb'] = dict.fromkeys(Input['metadata']['SampledVarsPb'][0].keys(),np.zeros(len(Input['metadata']['SampledVarsPb'])))
+      for cnt in range(len(Input['metadata']['SampledVarsPb'])):
+        for varKey, value in Input['metadata']['SampledVarsPb'][cnt].items(): 
+          pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey][cnt] = value  
+      #pbWeights['SampledVarsPbWeight']['SampledVarsPb'] = Input['metadata']['SampledVarsPb']
       for varKey in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys():
-        pbWeights['SampledVarsPbWeight']['sumSquareSampledVarsPb'][varKey] = np.sum(np.square(pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey]))   
-        pbWeights['SampledVarsPbWeight']['sumPbSampledVarsPb'][varKey]     = np.sum(np.square(pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey]))
-    sumPbWeights = np.sum(np.square(pbWeights['realization']))
+        sumPbWeights = np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey])
+        pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey][:]/sumPbWeights
+        pbWeights['SampledVarsPbWeight']['unbiasedCorrection'][varKey]     = (sumPbWeights - np.sum(np.square(pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey])) / sumPbWeights**2.0)
+    sumPbWeights = np.sum(pbweights)
     unbiasedCorrection = (sumPbWeights - np.sum(np.square(pbWeights['realization'])) / sumPbWeights**2.0)
     # if here because the user could have overwritten the method through the external function
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
     expValues = np.zeros(len(parameterSet))
     for myIndex, targetP in enumerate(parameterSet):
-      outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = pbWeights['realization'])
+      relWeight = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+      outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = relWeight)
       expValues[myIndex] = outputDict['expectedValue'][targetP]
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
