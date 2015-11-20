@@ -2,7 +2,6 @@
  [./normal]
   type = 'RavenFramework'
   input = 'test_scgpc_normal.xml'
-  xml = 'scgpc/Ndumprom.xml'
   csv = 'scgpc/Ndump.csv'
  [../]
  
@@ -12,7 +11,7 @@
   csv = 'scgpcMVNUncorrelated/Ndump.csv'
  [../]
  
- [./normal]
+ [./MVNCorrelated]
   type = 'RavenFramework'
   input = 'test_scgpc_correlatedMVN.xml'
   csv = 'scgpcMVNCorrelated/Ndump.csv'
