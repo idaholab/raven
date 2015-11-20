@@ -1,0 +1,21 @@
+[Tests]
+ [./normal]
+  type = 'RavenFramework'
+  input = 'test_scgpc_normal.xml'
+  xml = 'scgpc/Ndumprom.xml'
+  csv = 'scgpc/Ndump.csv'
+ [../]
+ 
+ [./MVNUncorrelated]
+  type = 'RavenFramework'
+  input = 'test_scgpc_uncorrelatedMVN.xml'
+  csv = 'scgpcMVNUncorrelated/Ndump.csv'
+ [../]
+ 
+ [./normal]
+  type = 'RavenFramework'
+  input = 'test_scgpc_correlatedMVN.xml'
+  csv = 'scgpcMVNCorrelated/Ndump.csv'
+ [../]
+
+[]

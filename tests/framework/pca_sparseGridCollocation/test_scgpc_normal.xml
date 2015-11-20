@@ -1,0 +1,110 @@
+<?xml version="1.0" ?>
+<Simulation printTimeStamps="false">
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>Nmake,Nprint1,Ntrain,Ntest,Nprint2</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Distributions>
+    <Normal name="NormDist1">
+      <mean>2.0</mean>
+      <sigma>0.8</sigma>
+    </Normal>
+    <Normal name="NormDist2">
+      <mean>-1.0</mean>
+      <sigma>1.0</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <SparseGridCollocation name="NSG" parallel="1">
+      <variable name="x1">
+        <distribution>NormDist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>NormDist2</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">NROM</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="polynomial" name="polynomial" subType="">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>ans</variable>
+    </ExternalModel>
+    <ROM name="NROM" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TensorProduct</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+      <Interpolation poly="Hermite" quad="Hermite" weight="1">x1</Interpolation>
+      <Interpolation poly="Hermite" quad="Hermite" weight="1">x2</Interpolation>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <MultiRun name="Nmake" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">NSG</Sampler>
+      <Output class="DataObjects" type="PointSet">Nsolns</Output>
+    </MultiRun>
+    <IOStep name="Nprint1">
+      <Input class="DataObjects" type="PointSet">Nsolns</Input>
+      <Output class="OutStreamManager" type="Print">Ndump</Output>
+    </IOStep>
+    <MultiRun name="Ntest" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">NROM</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">NSG</Sampler>
+      <Output class="DataObjects" type="PointSet">Ntests</Output>
+    </MultiRun>
+    <IOStep name="Nprint2">
+      <Input class="DataObjects" type="PointSet">Ntests</Input>
+      <Input class="Models" type="ROM">NROM</Input>
+      <Output class="OutStreamManager" type="Print">ROMdump1</Output>
+      <Output class="OutStreamManager" type="Print">ROMdump2</Output>
+    </IOStep>
+    <RomTrainer name="Ntrain">
+      <Input class="DataObjects" type="PointSet">Nsolns</Input>
+      <Output class="Models" type="ROM">NROM</Output>
+    </RomTrainer>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="Ntests">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="Nsolns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="Ndump">
+      <type>csv</type>
+      <source>Nsolns</source>
+      <what>Input|x1,Input|x2,Output</what>
+    </Print>
+    <Print name="ROMdump1">
+      <type>csv</type>
+      <source>Ntests</source>
+    </Print>
+    <Print name="ROMdump2">
+      <type>xml</type>
+      <source>NROM</source>
+      <what>all</what>
+    </Print>
+  </OutStreamManager>
+
+</Simulation>
