@@ -344,7 +344,7 @@ class NDinterpolatorRom(superVisedLearning):
     """ Exposes access to the current settings of this ROM object """
     self.raiseAnError(NotImplementedError,'NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!')
 
-class GaussPolynomialRom(NDinterpolatorRom):
+class GaussPolynomialRom(superVisedLearning):
   def __confidenceLocal__(self,edict):
     """Require by inheritance, unused.
     @ In, None
@@ -430,7 +430,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance','numRuns']
+    canDo = ['mean','variance','numRuns','polyCoeffs']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
@@ -446,6 +446,16 @@ class GaussPolynomialRom(NDinterpolatorRom):
         elif request.lower() in ['numruns']:
           if self.numRuns!=None: newnode.setText(self.numRuns)
           else: newnode.setText(len(self.sparseGrid))
+        elif request.lower() in ['polycoeffs']:
+          vnode = TreeStructure.Node('inputVariables')
+          vnode.text = ','.join(self.features)
+          newnode.appendBranch(vnode)
+          keys = self.polyCoeffDict.keys()
+          keys.sort()
+          for key in keys:
+            cnode = TreeStructure.Node('-'.join(str(k) for k in key))
+            cnode.setText(self.polyCoeffDict[key])
+            newnode.appendBranch(cnode)
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
           newnode.setText('not found')
