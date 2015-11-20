@@ -414,10 +414,10 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
     self.numRuns       = None #number of runs to generate ROM; default is len(self.sparseGrid)
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
-    
+
     self.featv        = None
     self.targv        = None
-    
+
     for key,val in kwargs.items():
       if key=='IndexSet':self.indexSetType = val
       elif key=='IndexPoints':
