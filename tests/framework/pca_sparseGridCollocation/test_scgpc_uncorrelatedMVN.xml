@@ -58,26 +58,26 @@
       <Sampler class="Samplers" type="SparseGridCollocation">NSG</Sampler>
       <Output class="DataObjects" type="PointSet">Nsolns</Output>
     </MultiRun>
-    <IOStep name="Nprint1">
-      <Input class="DataObjects" type="PointSet">Nsolns</Input>
-      <Output class="OutStreamManager" type="Print">Ndump</Output>
-    </IOStep>
-    <RomTrainer name="Ntrain">
-      <Input class="DataObjects" type="PointSet">Nsolns</Input>
-      <Output class="Models" type="ROM">NROM</Output>
-    </RomTrainer>
     <MultiRun name="Ntest" pauseAtEnd="false">
       <Input class="DataObjects" type="PointSet">dummyINROM</Input>
       <Model class="Models" type="ROM">NROM</Model>
       <Sampler class="Samplers" type="SparseGridCollocation">NSG</Sampler>
       <Output class="DataObjects" type="PointSet">Ntests</Output>
     </MultiRun>
+    <IOStep name="Nprint1">
+      <Input class="DataObjects" type="PointSet">Nsolns</Input>
+      <Output class="OutStreamManager" type="Print">Ndump</Output>
+    </IOStep>
     <IOStep name="Nprint2">
       <Input class="DataObjects" type="PointSet">Ntests</Input>
       <Input class="Models" type="ROM">NROM</Input>
       <Output class="OutStreamManager" type="Print">ROMdump1</Output>
       <Output class="OutStreamManager" type="Print">ROMdump2</Output>
     </IOStep>
+    <RomTrainer name="Ntrain">
+      <Input class="DataObjects" type="PointSet">Nsolns</Input>
+      <Output class="Models" type="ROM">NROM</Output>
+    </RomTrainer>
   </Steps>
 
   <DataObjects>

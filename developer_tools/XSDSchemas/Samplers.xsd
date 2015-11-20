@@ -131,6 +131,7 @@
     <xsd:complexType name="SparseGridSampler">
         <xsd:sequence>
             <xsd:element name="variable"        type="variableType"          minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
             <!--xsd:element name="Distribution" type="variableType"          minOccurs="0" maxOccurs="unbounded"/-->
             <xsd:element name="ROM"             type="AssemblerObjectType"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Restart"         type="AssemblerObjectType"   minOccurs="0" maxOccurs="unbounded"/>
