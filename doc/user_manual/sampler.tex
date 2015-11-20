@@ -276,14 +276,14 @@ XML node and the requirements for other attributes change:
     \begin{itemize}
       \item \xmlNode{variablesTransformation}, \xmlDesc{optional field}. This XML node accepts one attribute:
       \begin{itemize}
-        \item \xmlAttr{model}, \xmlDesc{required string attribute}, the name for the model defined in the XML node \xmlNode {Models}. 
+        \item \xmlAttr{model}, \xmlDesc{required string attribute}, the name for the model defined in the XML node \xmlNode {Models}.
         This attribute indicates the \xmlNode{manifestVariables} defined in the subnode will be used by the \xmlAttr{model}.
       \end{itemize}
       In addition, this XML node also accepts three childen nodes:
       \begin{itemize}
-        \item \xmlNode{latentVariables}, \xmlDesc{comma separated string, required field}, user-defined latent variables that 
+        \item \xmlNode{latentVariables}, \xmlDesc{comma separated string, required field}, user-defined latent variables that
         are used for the variables transformation. All the variables listed under this node should be also mentioned in \xmlNode{variable}.
-        \item \xmlNode{manifestVariables}, \xmlDesc{comma separated string, required field}, user-defined manifest variables 
+        \item \xmlNode{manifestVariables}, \xmlDesc{comma separated string, required field}, user-defined manifest variables
         that are used by the \xmlAttr{model}.
         \item \xmlNode{method}, \xmlDesc{string, required field}, the method that is used for the variables transformation.
       \end{itemize}
@@ -511,13 +511,13 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
 \end{itemize}
 %\end{itemize}
 
-If the input parameters are correlated, the \textbf{MonteCarlo} sampling approach can be also used if the user specified a 
-multivariate distributions inside the \xmlNode{Distributions} (see Section \ref{subsec:NdDist}). Furthermore, if the 
-covariance matrix is provided and the input parameters is assumed to have the multivariate normal distribution, one can also use 
-\textbf{MonteCarlo} approach to sample the input parameters in the transformed space (aka subspace, reduced space). If this is 
-the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of 
-\xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node 
-\xmlNode{variablesTransformation} is also required for \textbf{MonteCarlo} sampling. This node is used to tranform the variables 
+If the input parameters are correlated, the \textbf{MonteCarlo} sampling approach can be also used if the user specified a
+multivariate distributions inside the \xmlNode{Distributions} (see Section \ref{subsec:NdDist}). Furthermore, if the
+covariance matrix is provided and the input parameters is assumed to have the multivariate normal distribution, one can also use
+\textbf{MonteCarlo} approach to sample the input parameters in the transformed space (aka subspace, reduced space). If this is
+the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of
+\xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node
+\xmlNode{variablesTransformation} is also required for \textbf{MonteCarlo} sampling. This node is used to tranform the variables
 specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by \xmlNode{manifestVariables}
 in the input space. The variables listed in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables
 listed in \xmlNode{manifestVariables} are used by the \xmlNode{Models}.
@@ -590,17 +590,17 @@ Regarding the N-dimensional distributions, the user can specify for each dimensi
     \item \gridDescription
   \end{itemize}
 \end{itemize}
- 
-If the input parameters are correlated, the \textbf{Grid} sampling approach can be also used if the user specified a 
-multivariate distributions inside the \xmlNode{Distributions} (see Section \ref{subsec:NdDist}). Furthermore, if the 
-covariance matrix is provided and the input parameters is assumed to have the multivariate normal distribution, one can also use 
+
+If the input parameters are correlated, the \textbf{Grid} sampling approach can be also used if the user specified a
+multivariate distributions inside the \xmlNode{Distributions} (see Section \ref{subsec:NdDist}). Furthermore, if the
+covariance matrix is provided and the input parameters is assumed to have the multivariate normal distribution, one can also use
 \textbf{Grid} approach to sample the input parameters in the transformed space (aka subspace, reduced space). This means one creates
-the grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is the case, the user needs to 
-provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions} 
-(more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also 
-required for \textbf{Grid} sampling. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the 
-transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed 
-in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables} 
+the grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is the case, the user needs to
+provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions}
+(more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also
+required for \textbf{Grid} sampling. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the
+transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed
+in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}.
 
 \variablesTransformationDescription{Grid}
@@ -1587,111 +1587,6 @@ In addition to the \xmlNode{variable} nodes, the main XML node
 
 \begin{itemize}
   \item \convergenceDescription
-
-  % Limit Surface Search Objects
-  \item \assemblerDescription{LimitSurfaceSearch}
-    \begin{itemize}
-      \item \xmlNode{Function}, \xmlDesc{string, required field},  the
-        body of this XML block needs to contain the name of an external
-        function object defined within the \xmlNode{Functions} main block (see
-        Section~\ref{sec:functions}).
-        %
-        This object represents the boolean function that defines the transition
-        boundaries.
-        %
-        This function must implement a method called
-        \texttt{\_\_residuumSign(self)}, that returns either -1 or 1, depending
-        on the system conditions (see Section \ref{sec:functions}.
-      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
-        body of this XML node must contain the name of a ROM defined in the
-        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM
-        here specified is going to be used as ``acceleration model'' to speed up the
-        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM
-        input block (within the \xmlNode{Models} section) needs to match the name of the goal
-        \xmlNode{Function} (e.g. if the goal function is named ``transitionIdentifier'', the \xmlNode{Target} of the
-        ROM needs to report the same name: \xmlNode{Target}\textbf{transitionIdentifier}\xmlNode{Target}).
-      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
-        represents the container where the system evaluations are stored.
-        %
-        From a practical point of view, this XML node must contain the name of
-        a data object defined in the \xmlNode{DataObjects} block (see
-        Section~\ref{sec:DataObjects}).
-        %
-        The Limit Surface Search sampling accepts ``DataObjects'' of type ``Point'' and
-        ``PointSet'' only.
-    \end{itemize}
-\end{itemize}
-
-Example:
-\begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
-<Samplers>
-  ...
-  <LimitSurfaceSearch name='LSSName'>
-    <ROM class='Models' type='ROM'>ROMname</ROM>
-    <Function class='Functions' type='External' >FunctionName</Function>
-    <TargetEvaluation class='DataObjects' type='PointSet'>DataName</TargetEvaluation>
-    <Convergence limit='3000'  forceIteration='False' weight='CDF'  subGridTol='1e-4' persistence='5'>
-      1e-2
-    </Convergence>
-    <variable name='var1'>
-      <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution>
-    </variable>
-    <variable name='var2'>
-      <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution>
-    </variable>
-    <variable name='var3'>
-      <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
-    </variable>
-  </LimitSurfaceSearch>
-  ...
-</Samplers>
-\end{lstlisting}
-
-Associated External Python Module:
-\begin{lstlisting}[language=python]
-def __residuumSign(self):
-  if self.whatEverValue < self.OtherValue :
-    return  1
-  else:
-    return -1
-\end{lstlisting}
-
-\subsubsection{Limit Surface Batch Search}
-\label{subsubsubsec:LimitSurfaceBatchSearch}
-The \textbf{Limit Surface Batch Search} approach is very similar to the
-\textbf{Limit Surface Search} with the added benefit of being able to specify
-advanced criteria such as the querying points in a batch fashion and also being
-able to switch between different scoring functions. The addition of the ``batch''
-mode makes use of the topology of the scoring function's landscape restricted to
-the limit surface in order to select several points at a time before retraining
-the surrogate model.
-%
-
-\specBlock{a}{LimitSurfaceBatchSearch}
-%
-\attrIntro
-
-\begin{itemize}
-  \itemsep0em
-  \item \nameDescription
-\end{itemize}
-
-\variableIntro{LimitSurfaceBatchSearch}
-
-\begin{itemize}
-    \item \variableChildrenIntro
-    \begin{itemize}
-      \item \distributionDescription
-      \item \functionDescription
-    \end{itemize}
-\end{itemize}
-
-In addition to the \xmlNode{variable} nodes, the main XML node
-\xmlNode{LimitSurfaceBatchSearch} may specify the following supplementary
-sub-nodes:
-
-\begin{itemize}
-  \item \convergenceDescription
   \item \xmlNode{batchStrategy}, \xmlDesc{string, optional field}, defines how
     points should be selected within a batch of size $n$ where $n$ is given by
     the \xmlNode{maxBatchSize} parameter below.
@@ -1753,9 +1648,9 @@ sub-nodes:
   less than this percentage of the scoring function range (on the candidate
   set). Thus, one may end up with a batch size less than that specified by
   \xmlNode{maxBatchSize}.
-  \default{0}.
-  % Limit Surface Batch Search Objects
-  \item \assemblerDescription{LimitSurfaceBatchSearch}
+  \default{0}
+  % Limit Surface Search Objects
+  \item \assemblerDescription{LimitSurfaceSearch}
     \begin{itemize}
       \item \xmlNode{Function}, \xmlDesc{string, required field},  the
         body of this XML block needs to contain the name of an external
@@ -1792,7 +1687,32 @@ Example:
 \begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
 <Samplers>
   ...
-  <LimitSurfaceBatchSearch name='LSBSName'>
+  <LimitSurfaceSearch name='LSSName'>
+    <ROM class='Models' type='ROM'>ROMname</ROM>
+    <Function class='Functions' type='External' >FunctionName</Function>
+    <TargetEvaluation class='DataObjects' type='PointSet'>DataName</TargetEvaluation>
+    <Convergence limit='3000'  forceIteration='False' weight='CDF'  subGridTol='1e-4' persistence='5'>
+      1e-2
+    </Convergence>
+    <variable name='var1'>
+      <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution>
+    </variable>
+    <variable name='var2'>
+      <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution>
+    </variable>
+    <variable name='var3'>
+      <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
+    </variable>
+  </LimitSurfaceSearch>
+  ...
+</Samplers>
+\end{lstlisting}
+
+Batch sampling Example:
+\begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
+<Samplers>
+  ...
+  <LimitSurfaceSearch name='LSBSName'>
     <ROM class='Models' type='ROM'>ROMname</ROM>
     <Function class='Functions' type='External' >FunctionName</Function>
     <TargetEvaluation class='DataObjects' type='PointSet'>DataName</TargetEvaluation>
@@ -1825,7 +1745,6 @@ def __residuumSign(self):
   else:
     return -1
 \end{lstlisting}
-
 
 %%% Adaptive Samplers: ADET
 \subsubsection{Adaptive Dynamic Event Tree}

@@ -16,7 +16,7 @@
     <MultiRun name="adapt">
       <Input class="DataObjects" type="PointSet">response</Input>
       <Model class="Models" type="ExternalModel">function</Model>
-      <Sampler class="Samplers" type="LimitSurfaceBatchSearch">adaptiveSearch</Sampler>
+      <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limit_surface</SolutionExport>
       <Output class="DataObjects" type="PointSet">response</Output>
     </MultiRun>
@@ -63,7 +63,7 @@
         <distribution>uniform</distribution>
       </variable>
     </MonteCarlo>
-    <LimitSurfaceBatchSearch name="adaptiveSearch">
+    <LimitSurfaceSearch name="adaptiveSearch">
       <ROM      class="Models"    type="ROM"     >mySVM</ROM>
       <Function class="Functions" type="External">label</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">response</TargetEvaluation>
@@ -76,7 +76,7 @@
       <maxBatchSize>4</maxBatchSize>
       <variable name="x1"><distribution>uniform</distribution></variable>
       <variable name="x2"><distribution>uniform</distribution></variable>
-    </LimitSurfaceBatchSearch>
+    </LimitSurfaceSearch>
   </Samplers>
 
   <Models>
