@@ -307,8 +307,9 @@ class NDinterpolatorRom(superVisedLearning):
     """
     # capture what is normally pickled
     state = self.__dict__.copy()
-    a = state.pop("interpolator")
-    del a
+    if 'interpolator' in state.keys():
+      a = state.pop("interpolator")
+      del a
     return state
 
   def __setstate__(self, newstate):
@@ -413,7 +414,10 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
     self.numRuns       = None #number of runs to generate ROM; default is len(self.sparseGrid)
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
-
+    
+    self.featv        = None
+    self.targv        = None
+    
     for key,val in kwargs.items():
       if key=='IndexSet':self.indexSetType = val
       elif key=='IndexPoints':
@@ -528,6 +532,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ In, featureVals, list, feature values
     @ In, targetVals, list, target values
     """
+    self.featv, self.targv = featureVals,targetVals
     self.polyCoeffDict={}
     #check equality of point space
     fvs = []
