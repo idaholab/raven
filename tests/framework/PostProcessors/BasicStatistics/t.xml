@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>/Users/alfoa/projects/raven/tests/framework/PostProcessors/BasicStatistics/basicStatsMonteCarloAnalytic</WorkingDir>
     <Sequence>SamplingMirrowModelMC,PP1mc</Sequence>
-    <batchSize>12</batchSize>
+    <batchSize>32</batchSize>
   </RunInfo>
 
   <Files>
@@ -36,7 +36,7 @@
 
   <Samplers>
     <MonteCarlo name="MC_external">
-      <samplerInit> <limit>400</limit> </samplerInit>
+      <samplerInit> <limit>50000</limit> </samplerInit>
       <variable name="x"> <distribution>x0_distrib</distribution> </variable>
       <variable name="y"> <distribution>y0_distrib</distribution> </variable>
     </MonteCarlo>
@@ -48,12 +48,12 @@
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputData</Output>
-      <Output class="OutStreamManager" type="Print">outputData_dump</Output>
     </MultiRun>
     <PostProcess name="PP1mc">
       <Input class="DataObjects" type="PointSet">outputData</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1mc.csv</Output>
+      <Output class="OutStreamManager" type="Print">outputData_dump</Output>
     </PostProcess>
   </Steps>
 
