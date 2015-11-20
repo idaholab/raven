@@ -1181,28 +1181,66 @@ class BasicStatistics(BasePostProcessor):
     """
     return np.sum(weights**p)
 
-  def __computeUnbiasedCorrection(self,order,weights):
+  def __computeUnbiasedCorrection(self,order,weightsOrN):
     """
      Compute unbiased correction given weights and momement order
      @ In, order, int, moment order
-     @ In, weights, array-like, weights
+     @ In, weightsOrN, array-like or int, if array-like -> weights else -> number of samples
      @ Out, corrFactor, float (order <=3) or tuple of floats (order ==4), the unbiased correction factor
     """
-    if order == 2:
-      v1Square, V2 = self.__computeVp(1, weights)**2.0, self.__computeVp(2, weights)
-      corrFactor   = v1Square/(v1Square-V2)
-    elif order == 3:
-      V1, v1Cubic, V2, V3 = self.__computeVp(1, weights), self.__computeVp(1, weights)**3.0, self.__computeVp(2, weights), self.__computeVp(3, weights)
-      corrFactor   =  v1Cubic/(v1Cubic-3.0*V2*V1+2.0*V3)
-    elif order == 4:
-      V1, v1Square, V2, V3, V4 = self.__computeVp(1, weights), self.__computeVp(1, weights)**2.0, self.__computeVp(2, weights), self.__computeVp(3, weights), self.__computeVp(4, weights)
-      numer1 = v1Square*(v1Square**2.0-3.0*v1Square*V2+2.0*V1*V3+3.0*V2**2.0-3.0*V4)
-      numer2 = 3.0*v1Square*(2.0*v1Square*V2-2.0*V1*V3-3.0*V2**2.0+3.0*V4)
-      denom = (v1Square-V2)*(v1Square**2.0-6.0*v1Square*V2+8.0*V1*V3+3.0*V2**2.0-6.0*V4)
-      corrFactor = numer1/denom ,numer2/denom
-    else: self.raiseAnError(RuntimeError,"computeUnbiasedCorrection is implemented for order <=4 only!")
+    if order > 4: self.raiseAnError(RuntimeError,"computeUnbiasedCorrection is implemented for order <=4 only!")
+    if type(weightsOrN).__name__ not in ['int','int8','int16','int64','int32']:
+      if order == 2:
+        V1, v1Square, V2 = self.__computeVp(1, weightsOrN), self.__computeVp(1, weightsOrN)**2.0, self.__computeVp(2, weightsOrN)
+        corrFactor   = V1/(v1Square-V2)
+      elif order == 3:
+        V1, v1Cubic, V2, V3 = self.__computeVp(1, weightsOrN), self.__computeVp(1, weightsOrN)**3.0, self.__computeVp(2, weightsOrN), self.__computeVp(3, weightsOrN)
+        corrFactor   =  v1Cubic/(v1Cubic-3.0*V2*V1+2.0*V3)
+      elif order == 4:
+        V1, v1Square, V2, V3, V4 = self.__computeVp(1, weightsOrN), self.__computeVp(1, weightsOrN)**2.0, self.__computeVp(2, weightsOrN), self.__computeVp(3, weightsOrN), self.__computeVp(4, weightsOrN)
+        numer1 = v1Square*(v1Square**2.0-3.0*v1Square*V2+2.0*V1*V3+3.0*V2**2.0-3.0*V4)
+        numer2 = 3.0*v1Square*(2.0*v1Square*V2-2.0*V1*V3-3.0*V2**2.0+3.0*V4)
+        denom = (v1Square-V2)*(v1Square**2.0-6.0*v1Square*V2+8.0*V1*V3+3.0*V2**2.0-6.0*V4)
+        corrFactor = numer1/denom ,numer2/denom
+    else:
+      if order == 2:
+        corrFactor   = weightsOrN/(weightsOrN-1)
+      elif order == 3:
+        corrFactor   = (weightsOrN**2.0)/((weightsOrN-1)*(weightsOrN-2))
+      elif order == 4:
+        corrFactor = (weightsOrN*(weightsOrN**2.0-2.0*weightsOrN+3.0))/((weightsOrN-1)*(weightsOrN-2)*(weightsOrN-3)),(3.0*weightsOrN*(2.0*weightsOrN-3.0))/((weightsOrN-1)*(weightsOrN-2)*(weightsOrN-3)) 
     return corrFactor 
+  
+  def _computeVariance(self,arrayIn,expValue,pbWeight=None):
+    if pbWeight is not None:
+      unbiasCorr = self.__computeUnbiasedCorrection(2,pbWeight) if not self.biased else 1.0
+      result = (1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**2,pbWeight))*unbiasCorr
+    else:
+      unbiasCorr = self.__computeUnbiasedCorrection(2,len(arrayIn)) if not self.biased else 1.0
+      result = np.average((arrayIn - expValue)**2)*unbiasCorr
+    return result    
 
+  def _computeKurtosis(self,arrayIn,expValue,pbWeight=None):
+    if pbWeight is not None:
+      unbiasCorr = self.__computeUnbiasedCorrection(4,pbWeight) if not self.biased else 1.0
+      result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**4,pbWeight))*unbiasCorr[0]-unbiasCorr[1]*((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**2,pbWeight)))**2.0)/self._computeVariance(arrayIn,expValue,pbWeight)**2.0
+    else:
+      unbiasCorr = self.__computeUnbiasedCorrection(4,len(arrayIn)) if not self.biased else 1.0
+      result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(self._computeVariance(arrayIn,expValue))**2.0
+    return result
+
+  def _computeSkewness(self,arrayIn,expValue,pbWeight=None):
+    if pbWeight is not None:
+      unbiasCorr = self.__computeUnbiasedCorrection(3,pbWeight) if not self.biased else 1.0
+      result = (1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**3,pbWeight))*unbiasCorr/(self._computeVariance(arrayIn,expValue,pbWeight))**1.5
+    else:
+      unbiasCorr = self.__computeUnbiasedCorrection(3,len(arrayIn)) if not self.biased else 1.0
+      result = ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**3)*unbiasCorr)/(self._computeVariance(arrayIn,expValue))**1.5
+    return result 
+  
+  def _computeSigma(self,arrayIn,expValue,pbWeight=None):
+    return np.sqrt(self._computeVariance(arrayIn,expValue,pbWeight))
+  
   def run(self, InputIn):
     """
      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
@@ -1225,7 +1263,6 @@ class BasicStatistics(BasePostProcessor):
             if len(outputDict[what].shape) != 2:     self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a 2D numpy.ndarray!!')
     # setting some convenience values
     parameterSet = list(set(list(self.parameters['targets'])))  # @Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
-    N = [np.asarray(Input['targets'][targetP]).size for targetP in parameterSet]
     if 'metadata' in Input.keys(): pbPresent = 'ProbabilityWeight' in Input['metadata'].keys()
     else                         : pbPresent = False
     if 'metadata' in Input.keys(): sampledVarsPbPresent = 'SampledVarsPb' in Input['metadata'].keys()
@@ -1249,44 +1286,37 @@ class BasicStatistics(BasePostProcessor):
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
     expValues = np.zeros(len(parameterSet))
     for myIndex, targetP in enumerate(parameterSet):
-      relWeight = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-      a = np.sum(np.dot(relWeight,Input['targets'][targetP]))
-      b = np.average(Input['targets'][targetP], weights = relWeight)
-      outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = relWeight)
+      if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+      else        : relWeight  = None
+      if relWeight is None: outputDict['expectedValue'][targetP] = np.mean(Input['targets'][targetP])
+      else                : outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = relWeight)
       expValues[myIndex] = outputDict['expectedValue'][targetP]
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
       # sigma
       if what == 'sigma':
-        for myIndex, targetP in enumerate(parameterSet):
-          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-          unbiasCorr = self.__computeUnbiasedCorrection(2,relWeight)
-          outputDict[what][targetP] = np.sqrt((self.__computeVp(1, relWeight)**-1.0)*np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = relWeight)*unbiasCorr)
-          a = np.sqrt(np.var(Input['targets'][targetP]))
-          b = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = relWeight))
-          f = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = pbWeights['realization']))
-          c = np.sqrt(np.dot((Input['targets'][targetP] - expValues[myIndex])**2,relWeight))
-          d = c*self.__computeVp(1, relWeight)**-1.0
-          e = d**unbiasCorr
-          aa = np.sqrt((self.__computeVp(1, relWeight)**-1.0)*np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = Input['metadata']['PointProbability'])*unbiasCorr)
+        for myIndex, targetP in enumerate(parameterSet):       
+          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+          else        : relWeight  = None
+          outputDict[what][targetP] = self._computeSigma(Input['targets'][targetP],expValues[myIndex],relWeight)
           if (outputDict[what][targetP] == 0):
             self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
             outputDict[what][targetP] = np.Infinity
       # variance
       if what == 'variance':
         for myIndex, targetP in enumerate(parameterSet):
-          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-          unbiasCorr = self.__computeUnbiasedCorrection(2,relWeight)
-          outputDict[what][targetP] = (self.__computeVp(1, relWeight)**-1.0)*np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = relWeight)*unbiasCorr
+          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+          else        : relWeight  = None
+          outputDict[what][targetP] = self._computeVariance(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
           if (outputDict[what][targetP] == 0):
             self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
             outputDict[what][targetP] = np.Infinity
       # coefficient of variation (sigma/mu)
       if what == 'variationCoefficient':
         for myIndex, targetP in enumerate(parameterSet):
-          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-          unbiasCorr = self.__computeUnbiasedCorrection(2,relWeight)
-          sigma = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex]) ** 2, weights = relWeight) / unbiasCorr)
+          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+          else        : relWeight  = None
+          sigma = self._computeSigma(Input['targets'][targetP],expValues[myIndex],relWeight)
           if (outputDict['expectedValue'][targetP] == 0):
             self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient can not be calculated in PP: ' + self.name)
             outputDict['expectedValue'][targetP] = np.Infinity
@@ -1294,20 +1324,27 @@ class BasicStatistics(BasePostProcessor):
       # kurtosis
       if what == 'kurtosis':
         for myIndex, targetP in enumerate(parameterSet):
-          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-          centralKurtosis = self.__computeVp(1, relWeight)**-1.0*np.average(((Input['targets'][targetP] - expValues[myIndex]) ** 4), weights = relWeight)
-          centralVariance = self.__computeVp(1, relWeight)**-1.0*np.average(((Input['targets'][targetP] - expValues[myIndex]) ** 2), weights = relWeight)
-          corr1,corr2 = self.__computeUnbiasedCorrection(4, relWeight)
-          outputDict[what][targetP] = -3.0 + centralKurtosis*corr1-corr2*centralVariance**2
+          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+          else        : relWeight  = None
+          outputDict[what][targetP] = self._computeKurtosis(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
       # skewness
       if what == 'skewness':
         for myIndex, targetP in enumerate(parameterSet):
-          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-          centralSkew = self.__computeVp(1, relWeight)**-1.0*np.average(((Input['targets'][targetP] - expValues[myIndex]) ** 3), weights = relWeight)
-          outputDict[what][targetP] = centralSkew*self.__computeUnbiasedCorrection(3, relWeight)
+          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+          else        : relWeight  = None
+          outputDict[what][targetP] = self._computeSkewness(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
       # median
       if what == 'median':
-        for targetP in parameterSet: outputDict[what][targetP] = np.median(Input['targets'][targetP])
+        if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+        else        : relWeight  = None
+        if pbPresent:
+          for targetP in parameterSet:
+            sortedPoints = sorted(zip(relWeight,Input['targets'][targetP]))
+            sortedWeights = [y for (y,x) in sorted(zip(relWeight,Input['targets'][targetP]))]
+            weightsCDF    = np.cumsum(sortedWeights)
+            outputDict[what][targetP] = sortedPoints[utils.find_le_index(weightsCDF,0.5)][-1]
+        else:
+          for targetP in parameterSet: outputDict[what][targetP] = np.median(Input['targets'][targetP])
       # percentile
       if what == 'percentile':
         outputDict.pop(what)
@@ -1347,8 +1384,7 @@ class BasicStatistics(BasePostProcessor):
               features = self.sampled.keys()
               for index in range(len(features)):
                 relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-                unbiasCorr = self.__computeUnbiasedCorrection(2,relWeight)
-                sigma = np.sqrt((self.__computeVp(1, relWeight)**-1.0)*np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = relWeight)*unbiasCorr)
+                sigma = self._computeSigma(Input['targets'][targetP],expValues[myIndex],relWeight)
                 outputDict[what][myIndex][index] = outputDict[what][myIndex][index] / sigma
             else:
               value = np.zeros(len(self.calculated.keys()))
