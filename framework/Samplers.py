@@ -815,7 +815,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         if self.maxBatchSize < 0:
           self.raiseAWarning(IOError,'Requested an invalid maximum batch size: ',
                             self.maxBatchSize, '. This should be a '
-                            + 'non-negative integer value. Defaulting to 0.')
+                            + 'non-negative integer value. Defaulting to 1.')
           self.maxBatchSize = 1
       if child.tag == "scoring":
         self.scoringMethod = child.text.encode('ascii')
@@ -1045,11 +1045,11 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # surface candidate set
     self.bandIndices = OrderedDict()
     for gridID,points in self.listSurfPoint.items():
-      self.listSurfPoint = set()
+      setSurfPoint = set()
       self.bandIndices[gridID] = set()
-      for listsurfPoint in points:
-        self.listSurfPoint.add(tuple(listsurfPoint))
-      newIndices = set(self.listSurfPoint)
+      for surfPoint in points:
+        setSurfPoint.add(tuple(surfPoint))
+      newIndices = set(setSurfPoint)
       for step in xrange(1,self.thickness):
         prevPoints = set(newIndices)
         newIndices = set()
@@ -1062,7 +1062,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
             if iCoords[d] + offset[d] < self.oldTestMatrix[gridID].shape[d]-1:
               newIndices.add(tuple(iCoords + offset))
         self.bandIndices[gridID].update(newIndices)
-      self.bandIndices[gridID] = self.bandIndices[gridID].difference(self.listSurfPoint)
+      self.bandIndices[gridID] = self.bandIndices[gridID].difference(setSurfPoint)
       self.bandIndices[gridID] = list(self.bandIndices[gridID])
       for coordinate in self.bandIndices[gridID]:
         self.surfPoint[gridID] = np.vstack((self.surfPoint[gridID],self.limitSurfacePP.gridCoord[gridID][coordinate]))
