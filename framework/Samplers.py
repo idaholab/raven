@@ -967,7 +967,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.inputInfo['SampledVarsPb'   ][key] = self.distDict[key].pdf(self.values[key])
     self.inputInfo['PointProbability'    ]      = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
-    self.inputInfo['ProbabilityWeight']         = 1.0
+    self.inputInfo['ProbabilityWeight']         = self.inputInfo['PointProbability']
     self.hangingPoints                          = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
     self.raiseADebug('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
     self.inputInfo['SamplerType'] = 'LimitSurfaceSearch'

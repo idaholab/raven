@@ -2,12 +2,13 @@
 <Simulation verbosity="all">
   <RunInfo>
     <WorkingDir>/Users/alfoa/projects/raven/tests/framework/PostProcessors/BasicStatistics/basicStatsMonteCarloAnalytic</WorkingDir>
-    <Sequence>SamplingMirrowModelMC,PP1mc</Sequence>
+    <Sequence>SamplingMirrowModelMC,PP1mc,SamplingMirrowModelGrid,PP1grid</Sequence>
     <batchSize>32</batchSize>
   </RunInfo>
 
   <Files>
     <Input name="output_basicStatistics_PP1mc.csv" type="">output_basicStatistics_PP1mc.csv</Input>
+    <Input name="output_basicStatistics_PP1grid.csv" type="">output_basicStatistics_PP1grid.csv</Input>
   </Files>
 
   <Models>
@@ -18,59 +19,96 @@
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
       <what>all</what>
-      <parameters>x1,x,y</parameters>
+      <parameters>x,y</parameters>
     </PostProcessor>
   </Models>
 
 
   <Distributions>
     <Normal name="x0_distrib">
-      <mean>1</mean>
-      <sigma>0.5</sigma>
+      <mean>100</mean>
+      <sigma>50.0</sigma>
     </Normal>
     <Normal name="y0_distrib">
-        <mean>2</mean>
-        <sigma>1.0</sigma>
+        <mean>100</mean>
+        <sigma>50.0</sigma>
     </Normal>
   </Distributions>
 
   <Samplers>
     <MonteCarlo name="MC_external">
-      <samplerInit> <limit>50000</limit> </samplerInit>
+      <samplerInit> <limit>10000</limit> </samplerInit>
       <variable name="x"> <distribution>x0_distrib</distribution> </variable>
       <variable name="y"> <distribution>y0_distrib</distribution> </variable>
+      <variable name="z"> <distribution>y0_distrib</distribution> </variable>
     </MonteCarlo>
+    <Grid name="Grid_external">
+      <variable name="x">
+        <distribution>x0_distrib</distribution>
+        <grid construction="equal" steps="120" type="value">0.0 200</grid>
+      </variable>
+      <variable name="y">
+        <distribution>y0_distrib</distribution>
+        <grid construction="equal" steps="120" type="value">0.0 200</grid>
+      </variable>
+    
+    </Grid>
   </Samplers>
 
   <Steps>
     <MultiRun name="SamplingMirrowModelMC" re-seeding="20021986">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="Point">inputPlaceHolder2</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="PointSet">outputData</Output>
+      <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+    </MultiRun>
+    <MultiRun name="SamplingMirrowModelGrid" re-seeding="20021986">
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">mirrowModel</Model>
+      <Sampler class="Samplers" type="Grid">Grid_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
     </MultiRun>
     <PostProcess name="PP1mc">
-      <Input class="DataObjects" type="PointSet">outputData</Input>
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1mc.csv</Output>
-      <Output class="OutStreamManager" type="Print">outputData_dump</Output>
+      <Output class="OutStreamManager" type="Print">outputDataMC_dump</Output>
+    </PostProcess>
+    <PostProcess name="PP1grid">
+      <Input class="DataObjects" type="PointSet">outputDataGrid</Input>
+      <Model class="Models" type="PostProcessor">analyticalTest</Model>
+      <Output class="Files" type="">output_basicStatistics_PP1grid.csv</Output>
+      <Output class="OutStreamManager" type="Print">outputDatagrid_dump</Output>
     </PostProcess>
   </Steps>
 
+
   <OutStreamManager>
-    <Print name="outputData_dump">
+    <Print name="outputDataMC_dump">
       <type>csv</type>
-      <source>outputData</source>
+      <source>outputDataMC</source>
+    </Print>
+    <Print name="outputDatagrid_dump">
+      <type>csv</type>
+      <source>outputDataGrid</source>
     </Print>
   </OutStreamManager>
 
   <DataObjects>
-    <PointSet name="outputData">
+    <PointSet name="outputDataMC">
+        <Input>x,y,z</Input>
+        <Output>x1</Output>
+    </PointSet>
+    <PointSet name="outputDataGrid">
         <Input>x,y</Input>
         <Output>x1</Output>
     </PointSet>
     <Point name="inputPlaceHolder">
         <Input>x,y</Input>
+        <Output>OutputPlaceHolder</Output>
+    </Point>
+        <Point name="inputPlaceHolder2">
+        <Input>x,y,z</Input>
         <Output>OutputPlaceHolder</Output>
     </Point>
   </DataObjects>

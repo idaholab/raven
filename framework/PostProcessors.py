@@ -1235,23 +1235,23 @@ class BasicStatistics(BasePostProcessor):
         if 'SamplerType' in Input['metadata'].keys():
           if Input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
         else: self.raiseAWarning('BasicStatistics can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      pbWeights['realization'] = np.zeros(len(Input['targets'][self.parameters['targets'][0]]), dtype = np.float)
-      pbWeights['realization'][:] = 1.0 / pbWeights['realization'].size
+      #pbWeights['realization'] = np.zeros(len(Input['targets'][self.parameters['targets'][0]]), dtype = np.float)
+      pbWeights['realization'] = np.asarray([1.0 / len(Input['targets'][self.parameters['targets'][0]])]*len(Input['targets'][self.parameters['targets'][0]]))
     else: pbWeights['realization'] = Input['metadata']['ProbabilityWeight']/np.sum(Input['metadata']['ProbabilityWeight'])
-    pbWeights['SampledVarsPbWeight'] = {'SampledVarsPb':{},'unbiasedCorrectionVariance':{}}
+    pbWeights['SampledVarsPbWeight'] = {'SampledVarsPb':{}}
     if sampledVarsPbPresent:
       pbWeights['SampledVarsPbWeight']['SampledVarsPb'] = dict.fromkeys(Input['metadata']['SampledVarsPb'][0].keys(),np.zeros(len(Input['metadata']['SampledVarsPb'])))
       for cnt in range(len(Input['metadata']['SampledVarsPb'])):
         for varKey, value in Input['metadata']['SampledVarsPb'][cnt].items(): pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey][cnt] = value  
       for varKey in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys():
         pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey])
-        pbWeights['SampledVarsPbWeight']['unbiasedCorrectionVariance'][varKey] = self.__computeUnbiasedCorrection(2,pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey])
-    unbiasedCorrectionVariance = self.__computeUnbiasedCorrection(2,pbWeights['realization'])
     # if here because the user could have overwritten the method through the external function
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
     expValues = np.zeros(len(parameterSet))
     for myIndex, targetP in enumerate(parameterSet):
       relWeight = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+      a = np.sum(np.dot(relWeight,Input['targets'][targetP]))
+      b = np.average(Input['targets'][targetP], weights = relWeight)
       outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = relWeight)
       expValues[myIndex] = outputDict['expectedValue'][targetP]
     for what in self.what:
@@ -1262,6 +1262,13 @@ class BasicStatistics(BasePostProcessor):
           relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
           unbiasCorr = self.__computeUnbiasedCorrection(2,relWeight)
           outputDict[what][targetP] = np.sqrt((self.__computeVp(1, relWeight)**-1.0)*np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = relWeight)*unbiasCorr)
+          a = np.sqrt(np.var(Input['targets'][targetP]))
+          b = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = relWeight))
+          f = np.sqrt(np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = pbWeights['realization']))
+          c = np.sqrt(np.dot((Input['targets'][targetP] - expValues[myIndex])**2,relWeight))
+          d = c*self.__computeVp(1, relWeight)**-1.0
+          e = d**unbiasCorr
+          aa = np.sqrt((self.__computeVp(1, relWeight)**-1.0)*np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = Input['metadata']['PointProbability'])*unbiasCorr)
           if (outputDict[what][targetP] == 0):
             self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
             outputDict[what][targetP] = np.Infinity
