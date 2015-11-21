@@ -1071,9 +1071,19 @@ class BasicStatistics(BasePostProcessor):
         self.what = child.text
         if self.what == 'all': self.what = self.acceptedCalcParam
         else:
+          toCompute = []
           for whatc in self.what.split(','):
-            if whatc not in self.acceptedCalcParam: self.raiseAnError(IOError, 'BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.acceptedCalcParam))
-          self.what = self.what.split(',')
+            toCompute.append(whatc.strip())
+            if whatc not in self.acceptedCalcParam: 
+              if whatc.split("_")[0] != 'percentile':self.raiseAnError(IOError, 'BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.acceptedCalcParam))
+              else:
+                # check if the percentile is correct
+                integerPercentile = utils.intConversion(whatc.split("_")[-1].replace("%",""))
+                if integerPercentile is None: self.raiseAnError(IOError,"Could not convert the inputted percentile. The percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
+                floatPercentile = utils.floatConversion(integerPercentile)
+                if floatPercentile < 1.0: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
+                if -float(integerPercentile)/floatPercentile + 1.0 > 0.0001: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
+          self.what = toCompute
       if child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
       if child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
       if child.tag == "biased"       :
@@ -1105,24 +1115,22 @@ class BasicStatistics(BasePostProcessor):
         output.setExtension(outputextension)
       if outputextension != 'csv': separator = ' '
       else                       : separator = ','
-      #basicStatFilename = os.path.join(self.__workingDir, output.base)#output[:output.rfind('.')] + '.' + outputextension)
       output.setPath(self.__workingDir)#, output.base)#output[:output.rfind('.')] + '.' + outputextension)
-      self.raiseADebug('BasicStatistics postprocessor: dumping output in file named ' + output.getAbsFile())
+      self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
-      output.write('BasicStatistics ' + separator + str(self.name) + os.linesep)
-      output.write('----------------' + separator + '-' * len(str(self.name)) + os.linesep)
-      for targetP in parameterSet:
-        self.raiseADebug('BasicStatistics postprocessor: writing variable ' + targetP)
-        output.write('Variable' + separator + targetP + os.linesep)
-        output.write('--------' + separator + '-' * len(targetP) + os.linesep)
-        for what in outputDict.keys():
-          if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-            self.raiseADebug('BasicStatistics postprocessor: writing variable ' + targetP + '. Parameter: ' + what)
-            output.write(what + separator + '%.8E' % outputDict[what][targetP] + os.linesep)
+      output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
+      quantitiesToWrite = {}
+      for what in outputDict.keys():
+        if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
+          if what not in quantitiesToWrite.keys():quantitiesToWrite[what] = [] 
+          for targetP in parameterSet:
+            quantitiesToWrite[what].append('%.8E' % copy.deepcopy(outputDict[what][targetP]))
+          output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
       maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
       for what in outputDict.keys():
         if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity']:
-          self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix ' + what)
+          self.raiseADebug('Writing parameter matrix ' + what)
+          output.write(os.linesep)
           output.write(what + os.linesep)
           if outputextension != 'csv': output.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep)
           else                       : output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
@@ -1132,7 +1140,8 @@ class BasicStatistics(BasePostProcessor):
         if what == 'sensitivity':
           if not self.sampled: self.raiseAWarning('No sampled Input variable defined in ' + str(self.name) + ' PP. The I/O Sensitivity Matrix wil not be calculated.')
           else:
-            self.raiseADebug('BasicStatistics postprocessor: writing parameter matrix ' + what)
+            output.write(os.linesep)
+            self.raiseADebug('Writing parameter matrix ' + what)
             output.write(what + os.linesep)
             calculatedSet = list(set(list(self.calculated)))
             sampledSet = list(set(list(self.sampled)))
@@ -1143,33 +1152,33 @@ class BasicStatistics(BasePostProcessor):
               else                       :
                 output.write(calculatedSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
       if self.externalFunction:
-        self.raiseADebug('BasicStatistics postprocessor: writing External Function results')
+        self.raiseADebug('Writing External Function results')
         output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
-        output.write('------------' + os.linesep)
+        output.write(os.linesep)
         for what in self.methodsToRun:
           if what not in self.acceptedCalcParam:
-            self.raiseADebug('BasicStatistics postprocessor: writing External Function parameter ' + what)
+            self.raiseADebug('Writing External Function parameter ' + what)
             output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
-    elif output.type == 'DataObjects':
-      self.raiseADebug('BasicStatistics postprocessor: dumping output in data object named ' + output.name)
+    elif output.type in ['PointSet','Point','History','HistorySet']:
+      self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
         if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
           for targetP in parameterSet:
-            self.raiseADebug('BasicStatistics postprocessor: dumping variable ' + targetP + '. Parameter: ' + what + '. Metadata name = ' + targetP + '|' + what)
-            output.updateMetadata(targetP + '|' + what, outputDict[what][targetP])
+            self.raiseADebug('Dumping variable ' + targetP + '. Parameter: ' + what + '. Metadata name = ' + targetP + '-' + what)
+            output.updateMetadata(targetP + '-' + what, outputDict[what][targetP])
         else:
           if what not in methodToTest:
-            self.raiseADebug('BasicStatistics postprocessor: dumping matrix ' + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets|' + what)
-            output.updateMetadata('targets|' + what, parameterSet)
-            output.updateMetadata(what, outputDict[what])
+            self.raiseADebug('Dumping matrix ' + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets-' + what)
+            output.updateMetadata('targets-' + what, parameterSet)
+            output.updateMetadata(what.replace("|","-"), outputDict[what])
       if self.externalFunction:
-        self.raiseADebug('BasicStatistics postprocessor: dumping External Function results')
+        self.raiseADebug('Dumping External Function results')
         for what in self.methodsToRun:
           if what not in self.acceptedCalcParam:
             output.updateMetadata(what, outputDict[what])
-            self.raiseADebug('BasicStatistics postprocessor: dumping External Function parameter ' + what)
-    elif output.type == 'HDF5' : self.raiseAWarning('BasicStatistics postprocessor: Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
-    else: self.raiseAnError(IOError, 'BasicStatistics postprocessor: Output type ' + str(output.type) + ' unknown.')
+            self.raiseADebug('Dumping External Function parameter ' + what)
+    elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
+    else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
   
   
   def __computeVp(self,p,weights):
@@ -1203,33 +1212,37 @@ class BasicStatistics(BasePostProcessor):
         denom = (v1Square-V2)*(v1Square**2.0-6.0*v1Square*V2+8.0*V1*V3+3.0*V2**2.0-6.0*V4)
         corrFactor = numer1/denom ,numer2/denom
     else:
-      if order == 2:
-        corrFactor   = weightsOrN/(weightsOrN-1)
-      elif order == 3:
-        corrFactor   = (weightsOrN**2.0)/((weightsOrN-1)*(weightsOrN-2))
-      elif order == 4:
-        corrFactor = (weightsOrN*(weightsOrN**2.0-2.0*weightsOrN+3.0))/((weightsOrN-1)*(weightsOrN-2)*(weightsOrN-3)),(3.0*weightsOrN*(2.0*weightsOrN-3.0))/((weightsOrN-1)*(weightsOrN-2)*(weightsOrN-3)) 
-    return corrFactor 
-  
-  def _computeVariance(self,arrayIn,expValue,pbWeight=None):
-    if pbWeight is not None:
-      unbiasCorr = self.__computeUnbiasedCorrection(2,pbWeight) if not self.biased else 1.0
-      result = (1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**2,pbWeight))*unbiasCorr
-    else:
-      unbiasCorr = self.__computeUnbiasedCorrection(2,len(arrayIn)) if not self.biased else 1.0
-      result = np.average((arrayIn - expValue)**2)*unbiasCorr
-    return result    
+      if   order == 2: corrFactor   = weightsOrN/(weightsOrN-1)
+      elif order == 3: corrFactor   = (weightsOrN**2.0)/((weightsOrN-1)*(weightsOrN-2))
+      elif order == 4: corrFactor = (weightsOrN*(weightsOrN**2.0-2.0*weightsOrN+3.0))/((weightsOrN-1)*(weightsOrN-2)*(weightsOrN-3)),(3.0*weightsOrN*(2.0*weightsOrN-3.0))/((weightsOrN-1)*(weightsOrN-2)*(weightsOrN-3)) 
+    return corrFactor   
 
   def _computeKurtosis(self,arrayIn,expValue,pbWeight=None):
+    """
+      Method to compute the Kurtosis (fisher) of an array of observations
+      @ In, arrayIn, array-like, the array of values from which the Kurtosis needs to be estimated
+      @ In, expValue, float, expected value of arrayIn
+      @ In, pbWeight, array-like, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used 
+      @ Out, result, float, the Kurtosis of the array of data
+    """
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(4,pbWeight) if not self.biased else 1.0
-      result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**4,pbWeight))*unbiasCorr[0]-unbiasCorr[1]*((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**2,pbWeight)))**2.0)/self._computeVariance(arrayIn,expValue,pbWeight)**2.0
+      if not self.biased: result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**4,pbWeight))*unbiasCorr[0]-unbiasCorr[1]*((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**2,pbWeight)))**2.0)/self._computeVariance(arrayIn,expValue,pbWeight)**2.0
+      else              : result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**4,pbWeight))*unbiasCorr)/self._computeVariance(arrayIn,expValue,pbWeight)**2.0
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(4,len(arrayIn)) if not self.biased else 1.0
-      result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(self._computeVariance(arrayIn,expValue))**2.0
+      if not self.biased: result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(self._computeVariance(arrayIn,expValue))**2.0
+      else              : result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr)/(self._computeVariance(arrayIn,expValue))**2.0 
     return result
 
   def _computeSkewness(self,arrayIn,expValue,pbWeight=None):
+    """
+      Method to compute the skewness of an array of observations
+      @ In, arrayIn, array-like, the array of values from which the skewness needs to be estimated
+      @ In, expValue, float, expected value of arrayIn
+      @ In, pbWeight, array-like, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used 
+      @ Out, result, float, the skewness of the array of data
+    """
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(3,pbWeight) if not self.biased else 1.0
       result = (1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**3,pbWeight))*unbiasCorr/(self._computeVariance(arrayIn,expValue,pbWeight))**1.5
@@ -1237,15 +1250,47 @@ class BasicStatistics(BasePostProcessor):
       unbiasCorr = self.__computeUnbiasedCorrection(3,len(arrayIn)) if not self.biased else 1.0
       result = ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**3)*unbiasCorr)/(self._computeVariance(arrayIn,expValue))**1.5
     return result 
-  
+
+  def _computeVariance(self,arrayIn,expValue,pbWeight=None):
+    """
+      Method to compute the Variance (fisher) of an array of observations
+      @ In, arrayIn, array-like, the array of values from which the Variance needs to be estimated
+      @ In, expValue, float, expected value of arrayIn
+      @ In, pbWeight, array-like, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used 
+      @ Out, result, float, the Variance of the array of data
+    """
+    if pbWeight is not None:
+      unbiasCorr = self.__computeUnbiasedCorrection(2,pbWeight) if not self.biased else 1.0
+      result = (1.0/self.__computeVp(1,pbWeight))*np.average((arrayIn - expValue)**2,weights= pbWeight)*unbiasCorr
+    else:
+      unbiasCorr = self.__computeUnbiasedCorrection(2,len(arrayIn)) if not self.biased else 1.0
+      result = np.average((arrayIn - expValue)**2)*unbiasCorr
+    return result  
+
   def _computeSigma(self,arrayIn,expValue,pbWeight=None):
+    """
+      Method to compute the sigma of an array of observations
+      @ In, arrayIn, array-like, the array of values from which the sigma needs to be estimated
+      @ In, expValue, float, expected value of arrayIn
+      @ In, pbWeight, array-like, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used 
+      @ Out, sigma, float, the sigma of the array of data
+    """
     return np.sqrt(self._computeVariance(arrayIn,expValue,pbWeight))
   
-  def _computeWeightedPercentile(self,arrayIn,pbWeight,percentile=0.5):
+  def _computeWeightedPercentile(self,arrayIn,pbWeight,percent=0.5):
+    """
+      Method to compute the weighted percentile in a array of data
+      @ In, arrayIn, array-like, the array of values from which the percentile needs to be estimated
+      @ In, pbWeight, array-like, the reliability weights that correspond to the values in 'array'
+      @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
+      @ Out, result, float, the percentile
+    """
     sortedPoints  = sorted(zip(pbWeight,arrayIn))
     sortedWeights = [y for (y,x) in sorted(zip(pbWeight,arrayIn))]
     weightsCDF    = np.cumsum(sortedWeights)
-    result = sortedPoints[utils.find_le_index(weightsCDF,percentile)][-1]
+    index = utils.find_le_index(weightsCDF,percent)
+    if index is not None: result = sortedPoints[utils.find_le_index(weightsCDF,percent)][-1]
+    else                : result = np.median(arrayIn)
     return result
 
   def run(self, InputIn):
@@ -1270,30 +1315,26 @@ class BasicStatistics(BasePostProcessor):
             if len(outputDict[what].shape) != 2:     self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a 2D numpy.ndarray!!')
     # setting some convenience values
     parameterSet = list(set(list(self.parameters['targets'])))  # @Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
-    if 'metadata' in Input.keys(): pbPresent = 'ProbabilityWeight' in Input['metadata'].keys()
-    else                         : pbPresent = False
-    if 'metadata' in Input.keys(): sampledVarsPbPresent = 'SampledVarsPb' in Input['metadata'].keys()
-    else                         : sampledVarsPbPresent = False
+    if 'metadata' in Input.keys(): pbPresent = 'ProbabilityWeight' in Input['metadata'].keys() if 'metadata' in Input.keys() else False
     if not pbPresent:
       if 'metadata' in Input.keys():
         if 'SamplerType' in Input['metadata'].keys():
           if Input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
         else: self.raiseAWarning('BasicStatistics can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      #pbWeights['realization'] = np.zeros(len(Input['targets'][self.parameters['targets'][0]]), dtype = np.float)
       pbWeights['realization'] = np.asarray([1.0 / len(Input['targets'][self.parameters['targets'][0]])]*len(Input['targets'][self.parameters['targets'][0]]))
     else: pbWeights['realization'] = Input['metadata']['ProbabilityWeight']/np.sum(Input['metadata']['ProbabilityWeight'])
-    pbWeights['SampledVarsPbWeight'] = {'SampledVarsPb':{}}
-    if sampledVarsPbPresent:
-      pbWeights['SampledVarsPbWeight']['SampledVarsPb'] = dict.fromkeys(Input['metadata']['SampledVarsPb'][0].keys(),np.zeros(len(Input['metadata']['SampledVarsPb'])))
-      for cnt in range(len(Input['metadata']['SampledVarsPb'])):
-        for varKey, value in Input['metadata']['SampledVarsPb'][cnt].items(): pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey][cnt] = value  
-      for varKey in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys():
-        pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPb'][varKey])
+#   This section should take the probability weight for each sampling variable 
+    pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
+    if 'metadata' in Input.keys():
+      for target in parameterSet:
+        if 'ProbabilityWeight_'+target in Input['metadata'].keys(): 
+          pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(Input['metadata']['ProbabilityWeight_'+target])
+          pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target])
     # if here because the user could have overwritten the method through the external function
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
     expValues = np.zeros(len(parameterSet))
     for myIndex, targetP in enumerate(parameterSet):
-      if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+      if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
       else        : relWeight  = None
       if relWeight is None: outputDict['expectedValue'][targetP] = np.mean(Input['targets'][targetP])
       else                : outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = relWeight)
@@ -1303,7 +1344,7 @@ class BasicStatistics(BasePostProcessor):
       # sigma
       if what == 'sigma':
         for myIndex, targetP in enumerate(parameterSet):       
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
           else        : relWeight  = None
           outputDict[what][targetP] = self._computeSigma(Input['targets'][targetP],expValues[myIndex],relWeight)
           if (outputDict[what][targetP] == 0):
@@ -1312,7 +1353,7 @@ class BasicStatistics(BasePostProcessor):
       # variance
       if what == 'variance':
         for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
           else        : relWeight  = None
           outputDict[what][targetP] = self._computeVariance(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
           if (outputDict[what][targetP] == 0):
@@ -1321,7 +1362,7 @@ class BasicStatistics(BasePostProcessor):
       # coefficient of variation (sigma/mu)
       if what == 'variationCoefficient':
         for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
           else        : relWeight  = None
           sigma = self._computeSigma(Input['targets'][targetP],expValues[myIndex],relWeight)
           if (outputDict['expectedValue'][targetP] == 0):
@@ -1331,34 +1372,35 @@ class BasicStatistics(BasePostProcessor):
       # kurtosis
       if what == 'kurtosis':
         for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
           else        : relWeight  = None
           outputDict[what][targetP] = self._computeKurtosis(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
       # skewness
       if what == 'skewness':
         for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
           else        : relWeight  = None
           outputDict[what][targetP] = self._computeSkewness(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
       # median
       if what == 'median':
         if pbPresent: 
           for targetP in parameterSet: 
-            relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-            outputDict[what][targetP] = self._computeWeightedPercentile(self,Input['targets'][targetP],relWeight,percentile=0.5)
+            relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+            outputDict[what][targetP] = self._computeWeightedPercentile(Input['targets'][targetP],relWeight,percent=0.5)
         else:
           for targetP in parameterSet: outputDict[what][targetP] = np.median(Input['targets'][targetP])
       # percentile
       if what.split("_")[0] == 'percentile':
         outputDict.pop(what)
-        if "_" not in what: whatPercentile = [what + '_5%', what + '_95%'] 
-        else              : whatPercentile = [what]
+        if "_" not in what: whatPercentile = [what + '_5', what + '_95'] 
+        else              : whatPercentile = [what.replace("%","")]
         for whatPerc in whatPercentile:
-          integerPercentile = int(whatPerc.split("_")[-1].replace("%",""))
           if whatPerc not in outputDict.keys(): outputDict[whatPerc] = {}
           for targetP in self.parameters['targets'  ]:
-            if targetP not in outputDict[whatPerc].keys() : outputDict[whatPerc][targetP] = np.percentile(Input['targets'][targetP], integerPercentile)
-
+            if targetP not in outputDict[whatPerc].keys() :
+              if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+              integerPercentile             = utils.intConversion(whatPerc.split("_")[-1].replace("%",""))
+              outputDict[whatPerc][targetP] = np.percentile(Input['targets'][targetP], integerPercentile) if not pbPresent else self._computeWeightedPercentile(Input['targets'][targetP],relWeight,percent=float(integerPercentile)/100.0)
       # cov matrix
       if what == 'covariance':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
@@ -1377,9 +1419,8 @@ class BasicStatistics(BasePostProcessor):
             self.SupervisedEngine[target] = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'linear_model|LinearRegression',
                                                                                                       'Features':','.join(self.sampled.keys()),
                                                                                                       'Target':target})
-            relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-            unbiasCorr = self.__computeUnbiasedCorrection(2,relWeight)
-            var = (self.__computeVp(1, relWeight)**-1.0)*np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = relWeight)*unbiasCorr
+            relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+            var = self._computeVariance(Input['targets'][targetP],expValues[parameterSet.index(target)],pbWeight=relWeight)
             if (var == 0): self.raiseAWarning('Sensitivity of a variable (' + target + ') with 0 variance is requested! in PP: ' + self.name)
             else         : self.SupervisedEngine[target].train(Input['targets'])
           for myIndex in range(len(self.calculated.keys())):
@@ -1387,8 +1428,8 @@ class BasicStatistics(BasePostProcessor):
               outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
               features = self.sampled.keys()
               for index in range(len(features)):
-                relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-                sigma = self._computeSigma(Input['targets'][targetP],expValues[myIndex],relWeight)
+                relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+                sigma = self._computeSigma(Input['targets'][targetP],expValues[parameterSet.index(target)],relWeight)
                 outputDict[what][myIndex][index] = outputDict[what][myIndex][index] / sigma
             else:
               value = np.zeros(len(self.calculated.keys()))
@@ -1401,24 +1442,22 @@ class BasicStatistics(BasePostProcessor):
         covMatrix = self.covariance(feat, weights = pbWeights['realization'])
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
-          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-          unbiasCorr = self.__computeUnbiasedCorrection(2,relWeight)
-          variance[myIndex] = (self.__computeVp(1, relWeight)**-1.0)*np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = relWeight)*unbiasCorr
+          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+          variance[myIndex] = self._computeVariance(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
         for myIndex in range(len(parameterSet)):
           if (variance[myIndex] == 0):
              self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
              variance[myIndex] = np.Infinity
           outputDict[what][myIndex] = covMatrix[myIndex, :] / (variance[myIndex])
-      # Normalizzate sensitivity matrix: linear regression slopes normalizited by the mean (% change)/(% change)
+      # Normalized sensitivity matrix: linear regression slopes normalized by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
         for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :] = Input['targets'][targetP][:]
         covMatrix = self.covariance(feat, weights = pbWeights['realization'])
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
-          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-          unbiasCorr = self.__computeUnbiasedCorrection(2,relWeight)
-          variance[myIndex] = (self.__computeVp(1, relWeight)**-1.0)*np.average((Input['targets'][targetP] - expValues[myIndex])**2, weights = relWeight)*unbiasCorr
+          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+          variance[myIndex] = self._computeVariance(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
           if (variance[myIndex] is 0):
             self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
             variance[myIndex] = np.Infinity
@@ -1495,14 +1534,17 @@ class BasicStatistics(BasePostProcessor):
 
   def covariance(self, feature, weights = None, rowvar = 1):
       """
-      This method calculates the covariance Matrix for the given data.
-      Unbiased unweighted covariance matrix, weights is None, bias is 0 (default)
-      Biased unweighted covariance matrix,   weights is None, bias is 1
-      Unbiased weighted covariance matrix,   weights is not None, bias is 0
-      Biased weighted covariance matrix,     weights is not None, bias is 1
-      can be calcuated depending on the selection of the inputs.
-      @Inputs  -> feature, weights, bias, rowvar
-      @Outputs -> covMatrix
+        This method calculates the covariance Matrix for the given data.
+        Unbiased unweighted covariance matrix, weights is None, bias is 0 (default)
+        Biased unweighted covariance matrix,   weights is None, bias is 1
+        Unbiased weighted covariance matrix,   weights is not None, bias is 0
+        Biased weighted covariance matrix,     weights is not None, bias is 1
+        can be calcuated depending on the selection of the inputs.
+        @ In,  feature, array-like, [#targets,#samples]  features' samples
+        @ In,  weights, array-like, optional, [#samples]  reliability weights. Default is None  
+        @ In,  rowvar, int, optional, If rowvar is non-zero, then each row represents a variable, 
+                                      with samples in the columns. Otherwise, the relationship is transposed. Default=1
+        @ Out, covMatrix, array-like, [#targets,#targets] the covariance matrix
       """
       X = np.array(feature, ndmin = 2, dtype = np.result_type(feature, np.float64))
       diff = np.zeros(feature.shape, dtype = np.result_type(feature, np.float64))
@@ -1531,19 +1573,34 @@ class BasicStatistics(BasePostProcessor):
           fact = 0.0
       if not rowvar:
         if weights is not None: covMatrix = (np.dot(diff.T, w * diff) * fact).squeeze()
-        else:               covMatrix = (np.dot(diff.T, diff) * fact).squeeze()
+        else:                   covMatrix = (np.dot(diff.T, diff) * fact).squeeze()
       else:
         if weights is not None: covMatrix = (np.dot(w * diff, diff.T) * fact).squeeze()
-        else:               covMatrix = (np.dot(diff, diff.T) * fact).squeeze()
+        else:                   covMatrix = (np.dot(diff, diff.T) * fact).squeeze()
       return covMatrix
 
   def corrCoeff(self, feature, weights = None, rowvar = 1):
+      """
+        This method calculates the correlation coefficient Matrix (pearson) for the given data.
+        Unbiased unweighted covariance matrix, weights is None, bias is 0 (default)
+        Biased unweighted covariance matrix,   weights is None, bias is 1
+        Unbiased weighted covariance matrix,   weights is not None, bias is 0
+        Biased weighted covariance matrix,     weights is not None, bias is 1
+        can be calcuated depending on the selection of the inputs.
+        @ In,  feature, array-like, [#targets,#samples]  features' samples
+        @ In,  weights, array-like, optional, [#samples]  reliability weights. Default is None  
+        @ In,  rowvar, int, optional, If rowvar is non-zero, then each row represents a variable, 
+                                      with samples in the columns. Otherwise, the relationship is transposed. Default=1
+        @ Out, corrMatrix, array-like, [#targets,#targets] the correlation matrix
+      """
       covM = self.covariance(feature, weights, rowvar)
-      try: d = np.diag(covM)
+      try: 
+        d = np.diag(covM)
+        corrMatrix = covM / np.sqrt(np.multiply.outer(d, d))
       except ValueError:  # scalar covariance
-      # nan if incorrect value (nan, inf, 0), 1 otherwise
-        return covM / covM
-      return covM / np.sqrt(np.multiply.outer(d, d))
+        # nan if incorrect value (nan, inf, 0), 1 otherwise
+        corrMatrix = covM / covM
+      return corrMatrix
 #
 #
 #

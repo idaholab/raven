@@ -1,8 +1,18 @@
 [Tests]
-  [./externalPostProcessor]
+  [./basicStatsGrid]
     type = 'RavenFramework'
-    input = 'test_externalPostProcessor.xml'
-    csv = 'externalPostProcessor/myDump.csv'
-    output = 'externalPostProcessor/myDump.xml'
+    input = 'test_BasicStatsGridAnalytic.xml'
+    UnorderedCsv = 'basicStatsGridAnalytic/outputDatagrid_dump.csv'
+    output = 'basicStatsGridAnalytic/outputDatagrid_dump.csv basicStatsGridAnalytic/outputDatagrid_dump.xml'
+    xml = 'basicStatsGridAnalytic/outputDatagrid_dump.xml'
+    rel_err = 1e-6
+  [../]
+  [./basicStatsMC]
+    type = 'RavenFramework'
+    input = 'test_BasicStatsMonteCarloAnalytic.xml'
+    UnorderedCsv = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.csv'
+    output = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.csv basicStatsMonteCarloAnalytic/outputDataMC_dump.xml'
+    xml = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.xml'
+    rel_err = 1e-6
   [../]
 []
