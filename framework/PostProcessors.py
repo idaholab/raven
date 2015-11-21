@@ -1241,6 +1241,13 @@ class BasicStatistics(BasePostProcessor):
   def _computeSigma(self,arrayIn,expValue,pbWeight=None):
     return np.sqrt(self._computeVariance(arrayIn,expValue,pbWeight))
   
+  def _computeWeightedPercentile(self,arrayIn,pbWeight,percentile=0.5):
+    sortedPoints  = sorted(zip(pbWeight,arrayIn))
+    sortedWeights = [y for (y,x) in sorted(zip(pbWeight,arrayIn))]
+    weightsCDF    = np.cumsum(sortedWeights)
+    result = sortedPoints[utils.find_le_index(weightsCDF,percentile)][-1]
+    return result
+
   def run(self, InputIn):
     """
      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
@@ -1335,26 +1342,23 @@ class BasicStatistics(BasePostProcessor):
           outputDict[what][targetP] = self._computeSkewness(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
       # median
       if what == 'median':
-        if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
-        else        : relWeight  = None
-        if pbPresent:
-          for targetP in parameterSet:
-            sortedPoints = sorted(zip(relWeight,Input['targets'][targetP]))
-            sortedWeights = [y for (y,x) in sorted(zip(relWeight,Input['targets'][targetP]))]
-            weightsCDF    = np.cumsum(sortedWeights)
-            outputDict[what][targetP] = sortedPoints[utils.find_le_index(weightsCDF,0.5)][-1]
+        if pbPresent: 
+          for targetP in parameterSet: 
+            relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPb'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPb'][targetP]
+            outputDict[what][targetP] = self._computeWeightedPercentile(self,Input['targets'][targetP],relWeight,percentile=0.5)
         else:
           for targetP in parameterSet: outputDict[what][targetP] = np.median(Input['targets'][targetP])
       # percentile
-      if what == 'percentile':
+      if what.split("_")[0] == 'percentile':
         outputDict.pop(what)
-        if what + '_5%'  not in outputDict.keys(): outputDict[what + '_5%'] = {}
-        if what + '_95%' not in outputDict.keys(): outputDict[what + '_95%'] = {}
-        for targetP in self.parameters['targets'  ]:
-          if targetP not in outputDict[what + '_5%'].keys():
-            outputDict[what + '_5%'][targetP] = np.percentile(Input['targets'][targetP], 5)
-          if targetP not in outputDict[what + '_95%'].keys():
-            outputDict[what + '_95%'][targetP] = np.percentile(Input['targets'][targetP], 95)
+        if "_" not in what: whatPercentile = [what + '_5%', what + '_95%'] 
+        else              : whatPercentile = [what]
+        for whatPerc in whatPercentile:
+          integerPercentile = int(whatPerc.split("_")[-1].replace("%",""))
+          if whatPerc not in outputDict.keys(): outputDict[whatPerc] = {}
+          for targetP in self.parameters['targets'  ]:
+            if targetP not in outputDict[whatPerc].keys() : outputDict[whatPerc][targetP] = np.percentile(Input['targets'][targetP], integerPercentile)
+
       # cov matrix
       if what == 'covariance':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
