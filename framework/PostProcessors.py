@@ -1074,7 +1074,7 @@ class BasicStatistics(BasePostProcessor):
           toCompute = []
           for whatc in self.what.split(','):
             toCompute.append(whatc.strip())
-            if whatc not in self.acceptedCalcParam: 
+            if whatc not in self.acceptedCalcParam:
               if whatc.split("_")[0] != 'percentile':self.raiseAnError(IOError, 'BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.acceptedCalcParam))
               else:
                 # check if the percentile is correct
@@ -1122,7 +1122,7 @@ class BasicStatistics(BasePostProcessor):
       quantitiesToWrite = {}
       for what in outputDict.keys():
         if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-          if what not in quantitiesToWrite.keys():quantitiesToWrite[what] = [] 
+          if what not in quantitiesToWrite.keys():quantitiesToWrite[what] = []
           for targetP in parameterSet:
             quantitiesToWrite[what].append('%.8E' % copy.deepcopy(outputDict[what][targetP]))
           output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
@@ -1179,8 +1179,8 @@ class BasicStatistics(BasePostProcessor):
             self.raiseADebug('Dumping External Function parameter ' + what)
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
-  
-  
+
+
   def __computeVp(self,p,weights):
     """
      Compute the sum of p-th power of weights
@@ -1214,15 +1214,15 @@ class BasicStatistics(BasePostProcessor):
     else:
       if   order == 2: corrFactor   = weightsOrN/(weightsOrN-1)
       elif order == 3: corrFactor   = (weightsOrN**2.0)/((weightsOrN-1)*(weightsOrN-2))
-      elif order == 4: corrFactor = (weightsOrN*(weightsOrN**2.0-2.0*weightsOrN+3.0))/((weightsOrN-1)*(weightsOrN-2)*(weightsOrN-3)),(3.0*weightsOrN*(2.0*weightsOrN-3.0))/((weightsOrN-1)*(weightsOrN-2)*(weightsOrN-3)) 
-    return corrFactor   
+      elif order == 4: corrFactor = (weightsOrN*(weightsOrN**2.0-2.0*weightsOrN+3.0))/((weightsOrN-1)*(weightsOrN-2)*(weightsOrN-3)),(3.0*weightsOrN*(2.0*weightsOrN-3.0))/((weightsOrN-1)*(weightsOrN-2)*(weightsOrN-3))
+    return corrFactor
 
   def _computeKurtosis(self,arrayIn,expValue,pbWeight=None):
     """
       Method to compute the Kurtosis (fisher) of an array of observations
       @ In, arrayIn, array-like, the array of values from which the Kurtosis needs to be estimated
       @ In, expValue, float, expected value of arrayIn
-      @ In, pbWeight, array-like, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used 
+      @ In, pbWeight, array-like, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, result, float, the Kurtosis of the array of data
     """
     if pbWeight is not None:
@@ -1232,7 +1232,7 @@ class BasicStatistics(BasePostProcessor):
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(4,len(arrayIn)) if not self.biased else 1.0
       if not self.biased: result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(self._computeVariance(arrayIn,expValue))**2.0
-      else              : result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr)/(self._computeVariance(arrayIn,expValue))**2.0 
+      else              : result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr)/(self._computeVariance(arrayIn,expValue))**2.0
     return result
 
   def _computeSkewness(self,arrayIn,expValue,pbWeight=None):
@@ -1240,7 +1240,7 @@ class BasicStatistics(BasePostProcessor):
       Method to compute the skewness of an array of observations
       @ In, arrayIn, array-like, the array of values from which the skewness needs to be estimated
       @ In, expValue, float, expected value of arrayIn
-      @ In, pbWeight, array-like, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used 
+      @ In, pbWeight, array-like, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, result, float, the skewness of the array of data
     """
     if pbWeight is not None:
@@ -1249,14 +1249,14 @@ class BasicStatistics(BasePostProcessor):
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(3,len(arrayIn)) if not self.biased else 1.0
       result = ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**3)*unbiasCorr)/(self._computeVariance(arrayIn,expValue))**1.5
-    return result 
+    return result
 
   def _computeVariance(self,arrayIn,expValue,pbWeight=None):
     """
       Method to compute the Variance (fisher) of an array of observations
       @ In, arrayIn, array-like, the array of values from which the Variance needs to be estimated
       @ In, expValue, float, expected value of arrayIn
-      @ In, pbWeight, array-like, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used 
+      @ In, pbWeight, array-like, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, result, float, the Variance of the array of data
     """
     if pbWeight is not None:
@@ -1265,18 +1265,18 @@ class BasicStatistics(BasePostProcessor):
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(2,len(arrayIn)) if not self.biased else 1.0
       result = np.average((arrayIn - expValue)**2)*unbiasCorr
-    return result  
+    return result
 
   def _computeSigma(self,arrayIn,expValue,pbWeight=None):
     """
       Method to compute the sigma of an array of observations
       @ In, arrayIn, array-like, the array of values from which the sigma needs to be estimated
       @ In, expValue, float, expected value of arrayIn
-      @ In, pbWeight, array-like, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used 
+      @ In, pbWeight, array-like, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, sigma, float, the sigma of the array of data
     """
     return np.sqrt(self._computeVariance(arrayIn,expValue,pbWeight))
-  
+
   def _computeWeightedPercentile(self,arrayIn,pbWeight,percent=0.5):
     """
       Method to compute the weighted percentile in a array of data
@@ -1323,11 +1323,11 @@ class BasicStatistics(BasePostProcessor):
         else: self.raiseAWarning('BasicStatistics can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbWeights['realization'] = np.asarray([1.0 / len(Input['targets'][self.parameters['targets'][0]])]*len(Input['targets'][self.parameters['targets'][0]]))
     else: pbWeights['realization'] = Input['metadata']['ProbabilityWeight']/np.sum(Input['metadata']['ProbabilityWeight'])
-#   This section should take the probability weight for each sampling variable 
+#   This section should take the probability weight for each sampling variable
     pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
     if 'metadata' in Input.keys():
       for target in parameterSet:
-        if 'ProbabilityWeight-'+target in Input['metadata'].keys(): 
+        if 'ProbabilityWeight-'+target in Input['metadata'].keys():
           pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(Input['metadata']['ProbabilityWeight-'+target])
           pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target])
     # if here because the user could have overwritten the method through the external function
@@ -1343,7 +1343,7 @@ class BasicStatistics(BasePostProcessor):
       if what not in outputDict.keys(): outputDict[what] = {}
       # sigma
       if what == 'sigma':
-        for myIndex, targetP in enumerate(parameterSet):       
+        for myIndex, targetP in enumerate(parameterSet):
           if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
           else        : relWeight  = None
           outputDict[what][targetP] = self._computeSigma(Input['targets'][targetP],expValues[myIndex],relWeight)
@@ -1383,8 +1383,8 @@ class BasicStatistics(BasePostProcessor):
           outputDict[what][targetP] = self._computeSkewness(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
       # median
       if what == 'median':
-        if pbPresent: 
-          for targetP in parameterSet: 
+        if pbPresent:
+          for targetP in parameterSet:
             relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
             outputDict[what][targetP] = self._computeWeightedPercentile(Input['targets'][targetP],relWeight,percent=0.5)
         else:
@@ -1392,7 +1392,7 @@ class BasicStatistics(BasePostProcessor):
       # percentile
       if what.split("_")[0] == 'percentile':
         outputDict.pop(what)
-        if "_" not in what: whatPercentile = [what + '_5', what + '_95'] 
+        if "_" not in what: whatPercentile = [what + '_5', what + '_95']
         else              : whatPercentile = [what.replace("%","")]
         for whatPerc in whatPercentile:
           if whatPerc not in outputDict.keys(): outputDict[whatPerc] = {}
@@ -1541,8 +1541,8 @@ class BasicStatistics(BasePostProcessor):
         Biased weighted covariance matrix,     weights is not None, bias is 1
         can be calcuated depending on the selection of the inputs.
         @ In,  feature, array-like, [#targets,#samples]  features' samples
-        @ In,  weights, array-like, optional, [#samples]  reliability weights. Default is None  
-        @ In,  rowvar, int, optional, If rowvar is non-zero, then each row represents a variable, 
+        @ In,  weights, array-like, optional, [#samples]  reliability weights. Default is None
+        @ In,  rowvar, int, optional, If rowvar is non-zero, then each row represents a variable,
                                       with samples in the columns. Otherwise, the relationship is transposed. Default=1
         @ Out, covMatrix, array-like, [#targets,#targets] the covariance matrix
       """
@@ -1588,13 +1588,13 @@ class BasicStatistics(BasePostProcessor):
         Biased weighted covariance matrix,     weights is not None, bias is 1
         can be calcuated depending on the selection of the inputs.
         @ In,  feature, array-like, [#targets,#samples]  features' samples
-        @ In,  weights, array-like, optional, [#samples]  reliability weights. Default is None  
-        @ In,  rowvar, int, optional, If rowvar is non-zero, then each row represents a variable, 
+        @ In,  weights, array-like, optional, [#samples]  reliability weights. Default is None
+        @ In,  rowvar, int, optional, If rowvar is non-zero, then each row represents a variable,
                                       with samples in the columns. Otherwise, the relationship is transposed. Default=1
         @ Out, corrMatrix, array-like, [#targets,#targets] the correlation matrix
       """
       covM = self.covariance(feature, weights, rowvar)
-      try: 
+      try:
         d = np.diag(covM)
         corrMatrix = covM / np.sqrt(np.multiply.outer(d, d))
       except ValueError:  # scalar covariance
