@@ -1007,10 +1007,6 @@ class BasicStatistics(BasePostProcessor):
     self.biased = False
     self.sampled = {}
     self.calculated = {}
-    self.__V1 = None
-    self.__V2 = None
-    self.__V3 = None
-    self.__V4 = None
 
   def inputToInternal(self, currentInp):
     """
