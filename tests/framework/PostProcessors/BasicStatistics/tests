@@ -15,4 +15,13 @@
     xml = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.xml'
     rel_err = 1e-6
   [../]
+ [./testBasicStatisticsGeneral]
+  type = 'RavenFramework'
+  input = 'test_BasicStatistics.xml'
+  output = 'basicStatisticsGeneral/PointSetPostProcTest_dump.csv basicStatisticsGeneral/output_basicStatistics_PP1.csv basicStatisticsGeneral/output_basicStatistics_PP2.csv basicStatisticsGeneral/PointSetPostProcTest_dump.xml basicStatisticsGeneral/output_basicStatistics_PP3.csv basicStatisticsGeneral/output_basicStatistics_PP4.csv basicStatisticsGeneral/output_basicStatistics_PP5.csv'
+  csv = 'basicStatisticsGeneral/PointSetPostProcTest_dump.csv'
+  xml = 'basicStatisticsGeneral/PointSetPostProcTest_dump.xml'
+  max_time = 500
+  rel_err = 0.001
+ [../]
 []

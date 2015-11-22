@@ -1301,7 +1301,7 @@ class BasicStatistics(BasePostProcessor):
     """
     Input = self.inputToInternal(InputIn)
     outputDict = {}
-    pbWeights  = {'realization':None}
+    pbWeights, pbPresent  = {'realization':None}, False
     if self.externalFunction:
       # there is an external function
       for what in self.methodsToRun:
@@ -1327,8 +1327,8 @@ class BasicStatistics(BasePostProcessor):
     pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
     if 'metadata' in Input.keys():
       for target in parameterSet:
-        if 'ProbabilityWeight_'+target in Input['metadata'].keys(): 
-          pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(Input['metadata']['ProbabilityWeight_'+target])
+        if 'ProbabilityWeight-'+target in Input['metadata'].keys(): 
+          pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(Input['metadata']['ProbabilityWeight-'+target])
           pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target])
     # if here because the user could have overwritten the method through the external function
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
