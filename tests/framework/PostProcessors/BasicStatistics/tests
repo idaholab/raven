@@ -15,6 +15,30 @@
     xml = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.xml'
     rel_err = 1e-6
   [../]
+  [./basicStatsStratified]
+    type = 'RavenFramework'
+    input = 'test_BasicStatsStratifiedAnalytic.xml'
+    UnorderedCsv = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.csv'
+    output = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.csv basicStatsStratifiedAnalytic/outputDataStratified_dump.xml'
+    xml = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.xml'
+    rel_err = 1e-6
+  [../]
+  [./basicStatsFactorial]
+    type = 'RavenFramework'
+    input = 'test_BasicStatsFactorialAnalytic.xml'
+    UnorderedCsv = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.csv basicStatsFactorialAnalytic/outputDatafullFactorial_dump.csv basicStatsFactorialAnalytic/outputDatapbFactorial_dump.csv'
+    output = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.csv basicStatsFactorialAnalytic/outputDatafullFactorial_dump.csv basicStatsFactorialAnalytic/outputDatapbFactorial_dump.csv basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.xml basicStatsFactorialAnalytic/outputDatafullFactorial_dump.xml'
+    xml = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.xml basicStatsFactorialAnalytic/outputDatafullFactorial_dump.xml basicStatsFactorialAnalytic/outputDatapbFactorial_dump.xml'
+    rel_err = 1e-6
+  [../]
+  [./basicStatsResponseSurfaceDoE]
+    type = 'RavenFramework'
+    input = 'test_BasicStatsResponseSurfaceDoEAnalytic.xml'
+    UnorderedCsv = 'basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.csv basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.csv'
+    output = 'basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.csv basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.csv basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.xml basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.xml'
+    xml = 'basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.xml basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.xml'
+    rel_err = 1e-3
+  [../]
  [./testBasicStatisticsGeneral]
   type = 'RavenFramework'
   input = 'test_BasicStatistics.xml'

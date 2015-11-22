@@ -1,0 +1,140 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>basicStatsResponseSurfaceDoEAnalytic</WorkingDir>
+    <Sequence>SamplingMirrowModelBoxBehnkenRespDesign,SamplingMirrowModelCentralCompositeRespDesign,PP1BoxBehnkenRespDesign,PP1CentralCompositeRespDesign</Sequence>
+    <batchSize>32</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="output_basicStatistics_PP1BoxBehnkenRespDesign.csv" type="">output_basicStatistics_PP1BoxBehnkenRespDesign.csv</Input>
+    <Input name="output_basicStatistics_PP1CentralCompositeRespDesign.csv" type="">output_basicStatistics_PP1CentralCompositeRespDesign.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>z</variable>
+      <variable>x1</variable>
+    </ExternalModel>
+    <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
+      <what>all</what>
+      <parameters>x,y,z</parameters>
+    </PostProcessor>
+  </Models>
+
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+
+    <ResponseSurfaceDesign name="BoxBehnkenRespDesign">
+      <ResponseSurfaceDesignSettings>
+        <algorithmType>BoxBehnken</algorithmType>
+        <ncenters>1</ncenters>
+      </ResponseSurfaceDesignSettings>
+      <variable name="x">
+        <distribution>x0_distrib</distribution>
+        <grid construction="custom" type="CDF">0.1 0.9</grid>
+      </variable>
+      <variable name="y">
+        <distribution>y0_distrib</distribution>
+        <grid construction="custom" type="CDF">0.1 0.9</grid>
+      </variable>
+      <variable name="z">
+        <distribution>z0_distrib</distribution>
+        <grid construction="custom" type="CDF">0.1 0.9</grid>
+      </variable>
+    </ResponseSurfaceDesign>
+    <ResponseSurfaceDesign name="CentralCompositeRespDesign">
+      <ResponseSurfaceDesignSettings>
+        <algorithmType>CentralComposite</algorithmType>
+        <centers>1,2</centers>
+        <alpha>orthogonal</alpha>
+        <face>circumscribed</face>
+      </ResponseSurfaceDesignSettings>
+      <variable name="x">
+        <distribution>x0_distrib</distribution>
+        <grid construction="custom" type="CDF">0.1 0.9</grid>
+      </variable>
+      <variable name="y">
+        <distribution>y0_distrib</distribution>
+        <grid construction="custom" type="CDF">0.1 0.9</grid>
+      </variable>
+      <variable name="z">
+        <distribution>z0_distrib</distribution>
+        <grid construction="custom" type="CDF">0.1 0.9</grid>
+      </variable>
+    </ResponseSurfaceDesign>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="SamplingMirrowModelBoxBehnkenRespDesign" re-seeding="20021986">
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">mirrowModel</Model>
+      <Sampler class="Samplers" type="Stratified">BoxBehnkenRespDesign</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataBoxBehnkenRespDesign</Output>
+    </MultiRun>
+    <MultiRun name="SamplingMirrowModelCentralCompositeRespDesign" re-seeding="20021986">
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">mirrowModel</Model>
+      <Sampler class="Samplers" type="Stratified">CentralCompositeRespDesign</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataCentralCompositeRespDesign</Output>
+    </MultiRun>
+    <PostProcess name="PP1BoxBehnkenRespDesign">
+      <Input class="DataObjects" type="PointSet">outputDataBoxBehnkenRespDesign</Input>
+      <Model class="Models" type="PostProcessor">analyticalTest</Model>
+      <Output class="Files" type="">output_basicStatistics_PP1BoxBehnkenRespDesign.csv</Output>
+      <Output class="DataObjects" type="PointSet">outputDataBoxBehnkenRespDesign</Output>
+      <Output class="OutStreamManager" type="Print">outputDataBoxBehnkenRespDesign_dump</Output>
+    </PostProcess>
+    <PostProcess name="PP1CentralCompositeRespDesign">
+      <Input class="DataObjects" type="PointSet">outputDataCentralCompositeRespDesign</Input>
+      <Model class="Models" type="PostProcessor">analyticalTest</Model>
+      <Output class="Files" type="">output_basicStatistics_PP1CentralCompositeRespDesign.csv</Output>
+      <Output class="DataObjects" type="PointSet">outputDataCentralCompositeRespDesign</Output>
+      <Output class="OutStreamManager" type="Print">outputDataCentralCompositeRespDesign_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="outputDataBoxBehnkenRespDesign_dump">
+      <type>csv</type>
+      <source>outputDataBoxBehnkenRespDesign</source>
+    </Print>
+    <Print name="outputDataCentralCompositeRespDesign_dump">
+      <type>csv</type>
+      <source>outputDataCentralCompositeRespDesign</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <PointSet name="outputDataBoxBehnkenRespDesign">
+        <Input>x,y,z</Input>
+        <Output>x1</Output>
+    </PointSet>
+    <PointSet name="outputDataCentralCompositeRespDesign">
+        <Input>x,y,z</Input>
+        <Output>x1</Output>
+    </PointSet>
+    <Point name="inputPlaceHolder">
+        <Input>x,y,z</Input>
+        <Output>OutputPlaceHolder</Output>
+    </Point>
+  </DataObjects>
+
+</Simulation>
