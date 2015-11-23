@@ -11,7 +11,7 @@ warnings.simplefilter('default', DeprecationWarning)
 #import sys
 import numpy as np
 #from sklearn import tree
-from scipy import spatial
+from scipy import spatial, interpolate
 #from scipy import integrate
 import os
 from glob import glob
@@ -1284,9 +1284,12 @@ class BasicStatistics(BasePostProcessor):
     sortedPoints  = sorted(zip(pbWeight,arrayIn))
     sortedWeights = [y for (y,x) in sorted(zip(pbWeight,arrayIn))]
     weightsCDF    = np.cumsum(sortedWeights)
-    index = utils.find_le_index(weightsCDF,percent)
-    if index is not None: result = sortedPoints[utils.find_le_index(weightsCDF,percent)][-1]
-    else                : result = np.median(arrayIn)
+    percentileFunction = interpolate.interp1d(weightsCDF,[i for i in range(len(arrayIn))],kind='nearest')
+    try:
+      index = int(percentileFunction(percent))
+      result = sortedPoints[utils.find_le_index(weightsCDF,percent)][-1]
+    except ValueError:
+      result = np.median(arrayIn)
     return result
 
   def run(self, InputIn):
