@@ -1184,7 +1184,7 @@ class BasicStatistics(BasePostProcessor):
      @ In, weights, array-like, weights
      @ Out, sum, float, the sum of p-th power of weights
     """
-    return np.sum(weights**p)
+    return np.sum(np.power(weights,p))
 
   def __computeUnbiasedCorrection(self,order,weightsOrN):
     """
@@ -1223,8 +1223,8 @@ class BasicStatistics(BasePostProcessor):
     """
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(4,pbWeight) if not self.biased else 1.0
-      if not self.biased: result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**4,pbWeight))*unbiasCorr[0]-unbiasCorr[1]*((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**2,pbWeight)))**2.0)/self._computeVariance(arrayIn,expValue,pbWeight)**2.0
-      else              : result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**4,pbWeight))*unbiasCorr)/self._computeVariance(arrayIn,expValue,pbWeight)**2.0
+      if not self.biased: result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr[0]-unbiasCorr[1]*np.power(((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,2.0),pbWeight))),2.0))/np.power(self._computeVariance(arrayIn,expValue,pbWeight),2.0)
+      else              : result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr)/np.power(self._computeVariance(arrayIn,expValue,pbWeight),2.0)
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(4,len(arrayIn)) if not self.biased else 1.0
       if not self.biased: result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(self._computeVariance(arrayIn,expValue))**2.0
@@ -1241,10 +1241,10 @@ class BasicStatistics(BasePostProcessor):
     """
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(3,pbWeight) if not self.biased else 1.0
-      result = (1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot((arrayIn - expValue)**3,pbWeight))*unbiasCorr/(self._computeVariance(arrayIn,expValue,pbWeight))**1.5
+      result = (1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,3.0),pbWeight))*unbiasCorr/np.power(self._computeVariance(arrayIn,expValue,pbWeight),1.5)
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(3,len(arrayIn)) if not self.biased else 1.0
-      result = ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**3)*unbiasCorr)/(self._computeVariance(arrayIn,expValue))**1.5
+      result = ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**3)*unbiasCorr)/np.power(self._computeVariance(arrayIn,expValue,pbWeight),1.5)
     return result
 
   def _computeVariance(self,arrayIn,expValue,pbWeight=None):

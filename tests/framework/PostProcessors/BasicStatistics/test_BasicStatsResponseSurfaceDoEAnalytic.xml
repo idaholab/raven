@@ -49,15 +49,15 @@
       </ResponseSurfaceDesignSettings>
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="custom" type="CDF">0.1 0.9</grid>
+        <grid construction="custom" type="value">0.3 0.9</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="custom" type="CDF">0.1 0.9</grid>
+        <grid construction="custom" type="value">0.3 0.9</grid>
       </variable>
       <variable name="z">
         <distribution>z0_distrib</distribution>
-        <grid construction="custom" type="CDF">0.1 0.9</grid>
+        <grid construction="custom" type="value">0.3 0.9</grid>
       </variable>
     </ResponseSurfaceDesign>
     <ResponseSurfaceDesign name="CentralCompositeRespDesign">
@@ -69,15 +69,15 @@
       </ResponseSurfaceDesignSettings>
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="custom" type="CDF">0.1 0.9</grid>
+        <grid construction="custom" type="value">0.0 1.0</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="custom" type="CDF">0.1 0.9</grid>
+        <grid construction="custom" type="value">0.0 1.0</grid>
       </variable>
       <variable name="z">
         <distribution>z0_distrib</distribution>
-        <grid construction="custom" type="CDF">0.1 0.9</grid>
+        <grid construction="custom" type="value">0.0 1.0</grid>
       </variable>
     </ResponseSurfaceDesign>
   </Samplers>

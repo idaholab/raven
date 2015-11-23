@@ -49,15 +49,15 @@
       </FactorialSettings>
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="20" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="20" type="value">0.0 1.0</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="20" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="20" type="value">0.0 1.0</grid>
       </variable>
       <variable name="z">
         <distribution>z0_distrib</distribution>
-        <grid construction="equal" steps="20" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="20" type="value">0.0 1.0</grid>
       </variable>
     </FactorialDesign>
     <FactorialDesign name="2levelFractFactorial">
@@ -68,15 +68,15 @@
       </FactorialSettings>
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="1" type="value">0.0 1.0</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="1" type="value">0.0 1.0</grid>
       </variable>
       <variable name="z">
         <distribution>z0_distrib</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="1" type="value">0.0 1.0</grid>
       </variable>
     </FactorialDesign>
     <FactorialDesign name="pbFactorial">
@@ -85,15 +85,15 @@
       </FactorialSettings>
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="1" type="value">0.0 1.0</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="1" type="value">0.0 1.0</grid>
       </variable>
       <variable name="z">
         <distribution>z0_distrib</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="1" type="value">0.0 1.0</grid>
       </variable>
     </FactorialDesign>
   
