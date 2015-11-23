@@ -3858,6 +3858,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     if not ready: return ready
     #collect points that have been run
     self._sortNewPoints()
+    #if starting set of points is not done, just return
+    if len(self.neededPoints)>0: return True
     #TODO check if all points collected for ANY subsets-in-training
     #TODO   -> update those points as far as they can, until they have pointsNeeded again
     #TODO   -> update exp. values at this point?
@@ -3867,7 +3869,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #check if there's any points to run.
     #do we still have points to run? then this while loop is skipped
     #use the while loop to find new needed points from new polys or subsets
-    while sum(len(self.pointsNeeded[s]) for s in self.useSet.keys())+sum(len(self.pointsNeeded[s[1]]) for s in self.inTraining)<1:
+    #while sum(len(self.pointsNeeded[s]) for s in self.useSet.keys())+sum(len(self.pointsNeeded[s[1]]) for s in self.inTraining)<1:
+    while sum(len(self.pointsNeeded[s[1]]) for s in self.inTraining)<1:
       #since we don't need any points to sample, we can train
       for item in self.inTraining:
         sub = item[1]
@@ -3894,7 +3897,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         return False
       #get next-most influential poly/subset to add, update global error estimate
       which, todoSub, poly = self._getLargestImpact()
-      self.raiseAMessage('Next is %6s %8s%12s' %(which,','.join(todoSub),str(poly)),'| Est. error: %1.4e' %self.error)
+      self.raiseAMessage('Next: %6s %8s%12s' %(which,','.join(todoSub),str(poly)),'| error: %1.4e' %self.error,'| runs: %i' %len(self.distinctPoints))
       if self.statesFile is not None: self._printState(which,todoSub,poly)
       #are we converged?
       if self.error < self.convValue:
@@ -4329,7 +4332,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     samp = returnInstance('AdaptiveSparseGrid',self)
     samp.messageHandler = self.messageHandler
     samp.verbosity      = verbosity
-    samp.doInParallel   = self.doInParallel
+    samp.doInParallel   = self.doInParallel #TODO can't be set by user.
     samp.jobHandler     = self.jobHandler
     samp.convType       = 'variance'
     samp.maxPolyOrder   = self.maxPolyOrder

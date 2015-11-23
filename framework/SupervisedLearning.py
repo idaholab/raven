@@ -453,7 +453,7 @@ class GaussPolynomialRom(superVisedLearning):
           keys = self.polyCoeffDict.keys()
           keys.sort()
           for key in keys:
-            cnode = TreeStructure.Node('-'.join(str(k) for k in key))
+            cnode = TreeStructure.Node('_'+'_'.join(str(k) for k in key)+'_')
             cnode.setText(self.polyCoeffDict[key])
             newnode.appendBranch(cnode)
         else:
