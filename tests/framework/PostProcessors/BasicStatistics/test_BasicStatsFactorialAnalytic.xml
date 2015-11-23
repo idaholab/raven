@@ -49,15 +49,15 @@
       </FactorialSettings>
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="20" type="value">0.0 1.0</grid>
+        <grid construction="equal" steps="15" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="20" type="value">0.0 1.0</grid>
+        <grid construction="equal" steps="15" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="z">
         <distribution>z0_distrib</distribution>
-        <grid construction="equal" steps="20" type="value">0.0 1.0</grid>
+        <grid construction="equal" steps="15" type="CDF">0.01 0.99</grid>
       </variable>
     </FactorialDesign>
     <FactorialDesign name="2levelFractFactorial">
