@@ -2,9 +2,7 @@
 ''' from wikipedia: dx/dt = sigma*(y-x)  ; dy/dt = x*(rho-z)-y  dz/dt = x*y-beta*z  ; '''
 
 import numpy as np
-#import pylab as pyl
-#import random
-#import mpl_toolkits.mplot3d.axes3d as p3
+
 
 def initialize(self,runInfoDict,inputFiles):
   self.sigma = 10.0
@@ -38,8 +36,5 @@ def run(self,Input):
     self.y[t+1]    = self.y[t] + (self.x[t]*(self.rho-self.z[t])-self.y[t]) * t_step
     self.z[t+1]    = self.z[t] + (self.x[t]*self.y[t]-self.beta*self.z[t]) * t_step
 
-    #self.ax.plot3D(self.x,self.y,self.z)
-
-    #pyl.savefig('test.png')
 
 

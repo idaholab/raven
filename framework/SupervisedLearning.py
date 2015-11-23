@@ -294,8 +294,8 @@ class NDinterpolatorRom(superVisedLearning):
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.interpolator = None
-    self.featv        = None
-    self.targv        = None
+    self.featv        = None  # list of feature variables
+    self.targv        = None  # list of target variables
     self.printTag = 'ND Interpolation ROM'
 
 
@@ -304,6 +304,8 @@ class NDinterpolatorRom(superVisedLearning):
     Overwrite state (for pickle-ing)
     we do not pickle the HDF5 (C++) instance
     but only the info to re-load it
+    @ In, None
+    @ Out, None
     """
     # capture what is normally pickled
     state = self.__dict__.copy()
@@ -313,6 +315,11 @@ class NDinterpolatorRom(superVisedLearning):
     return state
 
   def __setstate__(self, newstate):
+    """
+    Initialize the ROM with the data contained in newstate
+    @ In, newstate, dic, it contains all the information needed by the ROM to be initialized
+    @ Out, None
+    """
     self.__dict__.update(newstate)
     self.__initLocal__()
     self.__trainLocal__(self.featv,self.targv)
@@ -414,9 +421,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
     self.numRuns       = None #number of runs to generate ROM; default is len(self.sparseGrid)
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
-
-    self.featv        = None
-    self.targv        = None
+    self.featv        = None  # list of feature variables
+    self.targv        = None  # list of target variables
 
     for key,val in kwargs.items():
       if key=='IndexSet':self.indexSetType = val

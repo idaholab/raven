@@ -441,8 +441,8 @@ class ROM(Dummy):
 
   def train(self,trainingSet):
     """
-    train the ROM
-    @In, trainingSet, dict or PointSet or HistorySet,: data used to train the ROM; if an HistorySet is provided the a list of ROM is created in order to create a temporal-ROM
+    This function train the ROM
+    @ In, trainingSet, dict, PointSet, HistorySet,: data used to train the ROM; if an HistorySet is provided the a list of ROM is created in order to create a temporal-ROM
     @ Out, None
     """
     if type(trainingSet).__name__ == 'ROM':
@@ -453,14 +453,10 @@ class ROM(Dummy):
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
 
     else:
-
       if 'HistorySet' in type(trainingSet).__name__:
-
         self.SupervisedEngine = []
-
         outKeys = trainingSet.getParaKeys('outputs')
         targets = self.initializationOptionDict['Target'].split(',')
-
         # check that all histories have the same length
         tmp = trainingSet.getParametersValues('outputs')
         for t in tmp:
@@ -469,7 +465,6 @@ class ROM(Dummy):
           else:
             if self.numberOfTimeStep != len(tmp[t][outKeys[0]]):
               self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
-
         # train the ROM
         self.amITrained = True
         self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
@@ -483,7 +478,6 @@ class ROM(Dummy):
             instrom.train(self.trainingSet[ts])
             self.amITrained = self.amITrained and instrom.amITrained
           self.SupervisedEngine.append(newRom)
-
       else:
         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
         if type(self.trainingSet) is dict:
@@ -522,10 +516,11 @@ class ROM(Dummy):
 
   def evaluate(self,request, target = None, timeInst = None):
     """
-    when the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
+
+    When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
     @ In, request, datatype, feature coordinates (request)
     @ In, target, string, optional, target name (by default the first target entered in the input file)
-    @ In, timeInst, element of the temporal ROM to evaluate
+    @ In, timeInst, int, element of the temporal ROM to evaluate
     """
     inputToROM = self._inputToInternal(request)
 
@@ -541,12 +536,15 @@ class ROM(Dummy):
         return self.SupervisedEngine[timeInst].values()[0].evaluate(inputToROM)
 
   def __externalRun(self,inRun):
+    """
+    Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
+    @ In, inRun, datatype, feature coordinates
+    """
     returnDict = {}
     if type(self.SupervisedEngine).__name__ == 'list':
       targets = self.SupervisedEngine[0].keys()
       for target in targets:
         returnDict[target] = np.zeros(0)
-
       for ts in range(len(self.SupervisedEngine)):
         for target in targets:
           returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))

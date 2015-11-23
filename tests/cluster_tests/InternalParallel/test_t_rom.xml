@@ -48,18 +48,11 @@
        <variable>y0</variable>
        <variable>z0</variable>
     </ExternalModel>
-    <ROM  name='t_ROM' subType='SciKitLearn'>
-      <Features>x0,y0,z0</Features>
-      <Target>time,x,y,z</Target>
-      <SKLtype>svm|LinearSVC</SKLtype>
-      <C>10.0</C>
-      <tol>0.0001</tol>
-    </ROM>
-    <!--ROM  name='t_ROM' subType='NDinvDistWeight'>
+    <ROM  name='t_ROM' subType='NDinvDistWeight'>
       <Features>x0,y0,z0</Features>
       <Target>time,x,y,z</Target>
       <p>3</p>
-    </ROM-->      
+    </ROM>      
 </Models>
 
 
