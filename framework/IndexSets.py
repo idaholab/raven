@@ -307,7 +307,7 @@ class AdaptiveSet(IndexSet):
     """
     Indicates the provided point should be accepted from the active set to the use set
     @ In, pt, tuple(int), the polynomial index to accept
-    @Out, None
+    @ Out, None
     """
     if pt not in self.active:
       self.raiseAnError(KeyError,'Adaptive index set instructed to accept point',pt,'but point is not in active set!')
@@ -319,7 +319,7 @@ class AdaptiveSet(IndexSet):
     """
     Indicates the provided point should be accepted from the active set to the use set
     @ In, pt, tuple(int), the polynomial index to accept
-    @Out, None
+    @ Out, None
     """
     if pt not in self.active.keys():
       self.raiseAnError(KeyError,'Adaptive index set instructed to reject point',pt,'but point is not in active set!')
@@ -346,6 +346,8 @@ class AdaptiveSet(IndexSet):
     for i in range(self.N):
       newpt = list(pt)
       newpt[i]+=1
+      if tuple(newpt) in self.active:
+        continue
       if maxPoly != None:
         if newpt[i]>maxPoly:
           continue

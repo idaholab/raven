@@ -417,7 +417,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       Generates the distrbutions and functions.
       @ In, availDist, dict of distributions
       @ In, availDist, dict of functions
-      @Out, None
+      @ Out, None
     """
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
@@ -618,7 +618,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def handleFailedRuns(self,failedRuns):
     """Collects the failed runs from the Step and allows samples to handle them individually if need be.
     @ In, failedRuns, list of JobHandler.ExternalRunner objects
-    @Out, None
+    @ Out, None
     """
     self.raiseADebug('===============')
     self.raiseADebug('| RUN SUMMARY |')
@@ -642,7 +642,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def _localHandleFailedRuns(self,failedRuns):
     """Specialized method for samplers to handle failed runs.  Defaults to failing runs.
     @ In, failedRuns, list of JobHandler.ExternalRunner objects
-    @Out, None
+    @ Out, None
     """
     if len(failedRuns)>0:
       self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
@@ -1142,7 +1142,7 @@ class MonteCarlo(Sampler):
   def _localHandleFailedRuns(self,failedRuns):
     """Specialized method for samplers to handle failed runs.  Defaults to failing runs.
     @ In, failedRuns, list of JobHandler.ExternalRunner objects
-    @Out, None
+    @ Out, None
     """
     if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte Carlo sampling.')
 
@@ -1990,7 +1990,7 @@ class DynamicEventTree(Grid):
       Generates the distrbutions and functions.
       @ In, availDist, dict of distributions
       @ In, availDist, dict of functions
-      @Out, None
+      @ Out, None
     """
     Grid._generateDistributions(self,availableDist,availableFunc)
     for hybridsampler in self.hybridStrategyToApply.values(): hybridsampler._generateDistributions(availableDist,availableFunc)
@@ -2566,7 +2566,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       Generates the distrbutions and functions.
       @ In, availDist, dict of distributions
       @ In, availDist, dict of functions
-      @Out, None
+      @ Out, None
     """
     DynamicEventTree._generateDistributions(self,availableDist,availableFunc)
 
@@ -2862,7 +2862,7 @@ class SparseGridCollocation(Grid):
     This method is a local mirror of the general whatDoINeed method.
     It is implemented by the samplers that need to request special objects
     @ In , None, None
-    @ Out, needDict, list of objects needed
+    @ Out, dict, list of objects needed
     """
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
@@ -2870,7 +2870,7 @@ class SparseGridCollocation(Grid):
 
   def _localGenerateAssembler(self,initDict):
     """Generates the assembler.
-    @ In, initDict, dict of init objects
+    @ In, initDict, dictf init objects
     @ Out, None
     """
     Grid._localGenerateAssembler(self, initDict)
@@ -2959,7 +2959,7 @@ class SparseGridCollocation(Grid):
     """
       Builds the quadrature objects, polynomial objects, and importance weights for all
       the distributed variables.  Also sets maxPolyOrder.
-      @ In, SVL, one of the SupervisedEngine objects from the ROM
+      @ In, SVL, SupervisedEngine object, one of the SupervisedEngine objects from the ROM
       @ Out, None
     """
     ROMdata = SVL.interpolationInfo()
@@ -3017,8 +3017,8 @@ class SparseGridCollocation(Grid):
   def localGenerateInput(self,model,myInput):
     """
       Provide the next point in the sparse grid.
-      @ In, model, the model to evaluate
-      @ In, myInput, list of original inputs
+      @ In, model, Model, the model to evaluate
+      @ In, myInput, list(str), list of original inputs
       @ Out, None
     """
     found=False
@@ -3034,7 +3034,7 @@ class SparseGridCollocation(Grid):
         for v,varName in enumerate(self.sparseGrid.varNames):
           self.values[varName] = pt[v]
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-        self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+        self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['ProbabilityWeight'] = weight
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 #
@@ -3054,33 +3054,33 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.type                    = 'AdaptiveSparseGridSampler'
     self.printTag                = self.type
     #assembler objects
-    self.solns                   = None #TimePointSet of solutions -> assembled
-    self.ROM                     = None #eventual final ROM object
+    self.solns                   = None  #TimePointSet of solutions -> assembled
+    self.ROM                     = None  #eventual final ROM object
     #input parameters
-    self.maxPolyOrder            = 0 #max size of polynomials to allow
-    self.persistence             = 0 #number of forced iterations, default 2
+    self.maxPolyOrder            = 0    #max size of polynomials to allow
+    self.persistence             = 0    #number of forced iterations, default 2
     self.convType                = None #convergence criterion to use
     self.logFile                 = None #file to print log to, optional
     #convergence/training tools
-    self.expImpact               = {} #dict of potential included polynomials and their estimated impacts, [target][index]
-    self.actImpact               = {} #dict of included polynomials and their current impact, [target][index] = impact
+    self.expImpact               = {}   #dict of potential included polynomials and their estimated impacts, [target][index]
+    self.actImpact               = {}   #dict of included polynomials and their current impact, [target][index] = impact
     self.sparseGrid              = None #current sparse grid
     self.oldSG                   = None #previously-accepted sparse grid
-    self.error                   = 0  #estimate of percent of moment calculated so far
-    self.logCounter              = 0  #when printing the log, tracks the number of prints
+    self.error                   = 0    #estimate of percent of moment calculated so far
+    self.logCounter              = 0    #when printing the log, tracks the number of prints
     #convergence study
-    self.doingStudy              = False #true if convergenceStudy node defined for sampler
+    self.doingStudy              = False  #true if convergenceStudy node defined for sampler
     self.studyFileBase           = 'out_' #can be replaced in input, not used if not doingStudy
-    self.studyPoints             = [] #list of ints, runs at which to record a state
+    self.studyPoints             = []     #list of ints, runs at which to record a state
     #solution storage
-    self.existing                = {} #rolling list of sampled points
-    self.neededPoints            = [] #queue of points to submit
-    self.submittedNotCollected   = [] #list of points submitted but not yet collected and used
+    self.existing                = {}    #rolling list of sampled points
+    self.neededPoints            = []    #queue of points to submit
+    self.submittedNotCollected   = []    #list of points submitted but not yet collected and used
     self.pointsNeededToMakeROM   = set() #list of distinct points needed in this process
-    self.unfinished              = 0 #number of runs still running when convergence complete
-    self.batchDone               = True #flag for whether jobHandler has complete batch or not
+    self.unfinished              = 0     #number of runs still running when convergence complete
+    self.batchDone               = True  #flag for whether jobHandler has complete batch or not
     self.done                    = False #flipped when converged
-    self.newSolutionSizeShouldBe = None #used to track and debug intended size of solutions
+    self.newSolutionSizeShouldBe = None  #used to track and debug intended size of solutions
     self.inTraining              = set() #list of index set points for whom points are being run
 
     self._addAssObject('TargetEvaluation','1')
@@ -3171,6 +3171,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
       Determines what additional points are necessary for RAVEN to run.
       @ In, ready, bool, true if ready
+      @ In, skipJobHandlerCheck, optional bool, if true bypasses check on active runs in jobHandler
       @ Out, ready, bool, true if ready
     """
     #if we're done, be done
@@ -3257,8 +3258,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def localGenerateInput(self,model,myInput):
     """
       Generates an input. Parameters inherited.
-      @ In, model, unused
-      @ In, myInput, unused
+      @ In, model, Model, unused
+      @ In, myInput, list(str), unused
     """
     pt = self.neededPoints.pop() # [self.counter-1]
     self.submittedNotCollected.append(pt)
@@ -3270,10 +3271,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     """Performs actions after samples have been collected.
-    @ In, jobObject, the job that finished
-    @ In, model, the model that was run
-    @ In, myInput, the input used for the run
-    @Out, None
+    @ In, jobObject, External/InternalRunner object, the job that finished
+    @ In, model, Model object, the model that was run
+    @ In, myInput, list(str), the input used for the run
+    @ Out, None
     """
     #check if all sampling is done
     if self.jobHandler.isFinished(): self.batchDone = True
@@ -3282,8 +3283,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def _addNewPoints(self,SG=None):
     """
     Sort through sparse grid and add any new needed points
-    @ In, sparseGrid (optional), sparse grid to comb for new points
-    @Out, None
+    @ In, SG, SparseGrid (optional), sparse grid to comb for new points
+    @ Out, None
     """
     if SG is None: SG = self.sparseGrid
     for pt in SG.points()[:]:
@@ -3296,15 +3297,14 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
       Checks the convergence of the adaptive index set via one of several ways, currently "mean", "variance", or "coeffs",
       meaning the moment coefficients of the stochastic polynomial expansion.
-      @ In, poly, the polynomial index to check convergence for
-      @ In, rom, the GaussPolynomialROM object with respect to which we check convergence
-      @ In, target, target to check convergence with respect to
-      @ Out, estimated impact factor for this index set and sparse grid
+      @ In, poly, list(int), the polynomial index to check convergence for
+      @ In, rom, SupervisedEngine, the GaussPolynomialROM object with respect to which we check convergence
+      @ In, target, string, target to check convergence with respect to
+      @ Out, float, estimated impact factor for this index set and sparse grid
     """
     if self.convType.lower()=='variance':
       impact = rom.polyCoeffDict[poly]**2 / sum(rom.polyCoeffDict[p]**2 for p in rom.polyCoeffDict.keys())
     elif self.convType.lower()=='coeffs':
-      #TODO FIXME
       new = self._makeARom(sparseGrid,iset).SupervisedEngine[target]
       tot = 0 #for L2 norm of coeffs
       if self.oldSG != None:
@@ -3325,8 +3325,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def _estimateImpact(self,idx):
     """
     Estimates the impact of polynomial with index idx by considering the product of its predecessor impacts.
-    @ In, idx, tuple(int) polynomial index
-    @Out, None
+    @ In, idx, tuple(int), polynomial index
+    @ Out, None
     """
     for t in self.targets: self.expImpact[t][idx] = 1.
     have = 0 #tracks the number of preceeding terms I have (e.g., terms on axes have less preceeding terms)
@@ -3356,8 +3356,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if rom == None: rom = self.ROM
     self.raiseADebug('No more samples to try! Declaring sampling complete.')
     #initialize final rom with final sparse grid and index set
-    #self.sparseGrid = Quadratures.SparseQuad()
-    #self.sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
     for target,SVL in rom.SupervisedEngine.items():
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.distDict,
@@ -3369,8 +3367,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def _findHighestImpactIndex(self,returnValue=False):
     """
     Finds and returns the index with the highest average expected impact factor across all targets
-    @ In, None
-    @Out, idx, tuple(int) polynomial index with greatest expected effect
+    @ In, returnValue, bool optional, returns the value of the index if True
+    @ Out, idx, tuple(int) polynomial index with greatest expected effect
     """
     point = None
     avg = 0
@@ -3386,9 +3384,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def _integrateFunction(self,sg,r,i):
     """
       Uses the sparse grid sg to effectively integrate the r-th moment of the model.
-      @ In, sg, sparseGrid object
-      @ In, r, integer moment
-      @ In, i, index of target to evaluate
+      @ In, sg, SparseGrid, sparseGrid object
+      @ In, r, int, integer moment
+      @ In, i, int, index of target to evaluate
       @ Out, float, approximate integral
     """
     tot=0
@@ -3403,9 +3401,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
       Generates a GaussPolynomialRom object using the passed in sparseGrid and indexSet,
       otherwise fundamentally a copy of the end-target ROM.
-      @ In, grid, a sparseGrid object
-      @ In, inset, a indexSet object
-      @ Out, a GaussPolynomialROM object
+      @ In, grid, SparseGrid, sparseGrid
+      @ In, inset, IndexSet, indexSet
+      @ Out, GaussPolynomialROM object
     """
     #deepcopy prevents overwriting
     rom  = copy.deepcopy(self.ROM) #preserves interpolation requests via deepcopy
@@ -3429,8 +3427,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
       Generates a sparseGrid object using the self.indexSet adaptively established points
       as well as and additional points passed in (often the indexSet's adaptive points).
-      @ In, points, list of tuples
-      @ Out, sparseGrid object
+      @ In, points, list(tuple(int)), points
+      @ Out, SparseGrid
     """
     sparseGrid = Quadratures.SparseQuad()
     iset = IndexSets.returnInstance('Custom',self)
@@ -3500,9 +3498,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def _updateQoI(self):
     """
-    Updates ROMs for QoIs, as well as impact parameters and estimated error.
+    Updates Reduced Order Models (ROMs) for Quantities of Interest (QoIs), as well as impact parameters and estimated error.
     @ In, None
-    @Out, None
+    @ Out, None
     """
     #add active (finished) points to the sparse grid
     for active in list(self.inTraining):
@@ -3579,7 +3577,7 @@ class Sobol(SparseGridCollocation):
   def _localGenerateAssembler(self,initDict):
     """
       Used to obtain necessary objects.
-      @ In, initDict, dictionary of objects required to initialize
+      @ In, initDict, dict, dictionary of objects required to initialize
       @ Out, None
     """
     Grid._localGenerateAssembler(self, initDict)
@@ -3588,7 +3586,7 @@ class Sobol(SparseGridCollocation):
   def localInputAndChecks(self,xmlNode):
     """
       Extended readMoreXML after other objects are instantiated
-      @ In, xmlNode, xmlNode object whose head should be Sobol under Sampler.
+      @ In, xmlNode, xmlNode object, whose head should be Sobol under Sampler.
       @ Out, None
     """
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
@@ -3705,8 +3703,8 @@ class Sobol(SparseGridCollocation):
   def localGenerateInput(self,model,myInput):
     """
       Generates an input. Parameters inherited.
-      @ In, model, unused
-      @ In, myInput, unused
+      @ In, model, Model
+      @ In, myInput, list(str)
     """
     found=False
     while not found:
@@ -3720,7 +3718,7 @@ class Sobol(SparseGridCollocation):
       for v,varName in enumerate(self.distDict.keys()):
         self.values[varName] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-      self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+      self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight'] =  N/A
       self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
 #
@@ -3728,26 +3726,34 @@ class Sobol(SparseGridCollocation):
 #
 #
 class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
+  """
+  Adaptive Sobol sampler to obtain points adaptively for training a HDMR ROM.
+  """
   def __init__(self):
+    """
+    The constructor.
+    @ In, None
+    @ Out, None
+    """
     Sobol.__init__(self)
 
     #identification
     self.type            = 'AdaptiveSobolSampler'
     self.printTag        = 'SAMPLER ADAPTIVE SOBOL'
-    self.stateCounter    = 0 #counts number of times adaptive step moves forward
+    self.stateCounter    = 0       #counts number of times adaptive step moves forward
 
     #input parameters
-    self.maxSobolOrder   = None #largest dimensionality of a subset combination
-    #self.maxPolyOrder    = None #largest polynomial order to use in subset sparse grids #TODO maybe someday
-    self.maxRuns         = None #most runs to allow total before quitting
-    self.convValue       = None #value to converge adaptive sampling to
-    self.tweakParam      = 1.0 #ranges 0 (only polynomials) to 2 (only subsets)
-    self.statesFile      = None #file to log the progression of the adaptive sampling
+    self.maxSobolOrder   = None    #largest dimensionality of a subset combination
+    #self.maxPolyOrder    = None   #largest polynomial order to use in subset sparse grids #TODO maybe someday
+    self.maxRuns         = None    #most runs to allow total before quitting
+    self.convValue       = None    #value to converge adaptive sampling to
+    self.tweakParam      = 1.0     #ranges 0 (only polynomials) to 2 (only subsets)
+    self.statesFile      = None    #file to log the progression of the adaptive sampling
     self.subVerbosity    = 'quiet' #verbosity level for the ROMs, samplers, dataobjects created within this sampler
 
     #assembly objects
-    self.solns           = None #solution database, PointSet data object
-    self.ROM             = None #HDMR rom that will be constructed with the samples found here
+    self.solns           = None    #solution database, PointSet data object
+    self.ROM             = None    #HDMR rom that will be constructed with the samples found here
 
     #storage dictionaries
     self.ROMs            = {} #subset reduced-order models by target,subset: self.ROMs[target][subset]
@@ -3762,30 +3768,30 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.useSet          = {} #accepted subsets and the associated ROMs, as useSet[subset][target]
 
     #convergence parameters
-    self.subsetImpact    = {} #actual impact on variance by subset combo
-    self.subsetExpImpact = {} #estimated impact on variance by subset combo
+    self.subsetImpact    = {}    #actual impact on variance by subset combo
+    self.subsetExpImpact = {}    #estimated impact on variance by subset combo
     self.done            = False #boolean to track if we've converged, or gone over limit
     self.distinctPoints  = set() #list of points needed to make this ROM, for counting purposes
-    self.numConverged    = 0  #tracking for persistance
-    self.persistence     = 2  #set in input, the number of successive converges to require
+    self.numConverged    = 0     #tracking for persistance
+    self.persistence     = 2     #set in input, the number of successive converges to require
 
     #attributes
     self.features        = None #ROM features of interest, also input variable list
     self.targets         = None #ROM outputs of interest
 
     #point lists
-    self.existing        = {} #points from restart and calculations, and their solutions
-    self.sorted          = [] #points that have been sorted into appropriate objects
+    self.existing        = {}       #points from restart and calculations, and their solutions
+    self.sorted          = []       #points that have been sorted into appropriate objects
     self.submittedNotCollected = [] #list of points that have been generated but not collected
-    self.inTraining      = [] #usually just one tuple, unless multiple items in simultaneous training
+    self.inTraining      = []       #usually just one tuple, unless multiple items in simultaneous training
 
     self._addAssObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
     """
     Extended readMoreXML.
-    @ In, xmlNode, xmlNode with head AdaptiveSobol
-    @Out, None
+    @ In, xmlNode, xmlNode, with head AdaptiveSobol
+    @ Out, None
     """
     Sobol.localInputAndChecks(self,xmlNode)
     conv = xmlNode.find('Convergence')
@@ -3809,7 +3815,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     Initializes this sampler, building some starting subset roms for Sobol decomposition.
     @ In, None
-    @Out, None
+    @ Out, None
     """
     #set up assembly-based objects
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
@@ -3848,7 +3854,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     Determines if sampler is prepared to provide another input.  If not, and
     if jobHandler is finished, this will end sampling.
     @ In, ready, boolean
-    @Out, boolean
+    @ Out, boolean
     """
     #if we've already capped runs or are otherwise done, return False
     if self.done:
@@ -3931,9 +3937,9 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
   def localGenerateInput(self,model,oldInput):
     """
     Generates an input to be run.
-    @ In, model, the model to run
-    @ In, oldInput, the old input used
-    @Out, None
+    @ In, model, Model, the model to run
+    @ In, oldInput, list(str), the old input used
+    @ Out, None
     """
     #note: pointsNeeded is the collection of points needed by sampler,
     #      while neededPoints is just the reference point that needs running
@@ -3971,8 +3977,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     Adds a cut point to the data object for the subset sampler.
     @ In, subset, tuple(string), the cut point
-    @ In, point, the cut point to add
-    @Out, None
+    @ In, point, tuple(int), the cut point to add
+    @ Out, None
     """
     pointSet = self.samplers[subset].solns
     #first, check if the output is in the subset's existing solution set already
@@ -3991,8 +3997,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
   def _calcActualImpact(self,subset,target):
     """
     Calculates the total impact of the current set.
-    @ In, subset, new subset for which impact is considered
-    @Out, float, the "error" reduced by acquiring the new point
+    @ In, subset, tuple(str), new subset for which impact is considered
+    @ Out, float, the "error" reduced by acquiring the new point
     """
     #add the new term to the use set
     if subset not in self.useSet.keys(): self.useSet[subset] = {}
@@ -4010,8 +4016,9 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
   def _calcExpImpact(self,subset,target):
     """
     Estimates the importance (impact) of the subset, based on its predecessors
-    @ In, subset, the subset spanning the cut plane of interest
-    @Out, float, the expected impact
+    @ In, subset, tuple(str), the subset spanning the cut plane of interest
+    @ In, target, str, target to estimate impact for
+    @ Out, float, the expected impact
     """
     #estimate impact as the product of predecessors
     #TODO this could be improved for higher dimensions, ie s(a,b,c) = s(a)*s(b)*s(c) or s(a,b)*s(c) or ?
@@ -4030,7 +4037,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     Determines if a point is in the cut set for the features in the subset.
     @ In, subset, tuple(str), desired subset features
     @ In, pt, tuple(float), the full point
-    @Out, bool, True if pt only varies from reference in dimensions within the subset
+    @ Out, bool, True if pt only varies from reference in dimensions within the subset
     """
     for v,var in enumerate(self.features):
       if var in subset: continue #it's okay to vary if you're in the subset
@@ -4042,7 +4049,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     Checks convergence based on the requested metric.  For now that's just variance. Deprecated, but retained for future use.
     @ In, None
-    @Out, minimum relative convergence on variance
+    @ Out, float, minimum relative convergence on variance
     """
     self.oldVariance = copy.deepcopy(self.curVariance)
     conv = {}
@@ -4058,9 +4065,9 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
   def _expandCutPoint(self,subset,pt):
     """
     Takes a trimmed point from the cut plane and expands it to include the reference values.
-    @ In, subset, the subset describing this cut plane
-    @ In, pt, the trimmed cutpoint to expand
-    @Out, tuple(float), full expanded points
+    @ In, subset, tuple(str), the subset describing this cut plane
+    @ In, pt, tuple(float), the trimmed cutpoint to expand
+    @ Out, tuple(float), full expanded points
     """
     #initialize full point
     full = np.zeros(len(self.features))
@@ -4076,7 +4083,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     Trims the dimensionality of pt to the cut plane spanning subset
     @ In, subset, tuple(str), the cut plane to trim to
     @ In, pt, tuple(float), the point to extract
-    @Out, tuple(pt,vals), extracted point with cardinality equal to the subset cardinality
+    @ Out, tuple(pt,vals), extracted point with cardinality equal to the subset cardinality
     """
     #slightly faster all in one line.
     cutInp = tuple(pt[self.features.index(var)] for var in subset)
@@ -4087,7 +4094,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     In the event the sampler has to terminate before normal completion, this helps to assure
     a usable set of ROMs make it to the HDMR ROM.
     @ In, None
-    @Out, None
+    @ Out, None
     """
     #remove unfinished subsets
     toRemove = []
@@ -4109,7 +4116,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     Delivers necessary structures to the HDMRRom object
     @ In, None
-    @Out, None
+    @ Out, None
     """
     initDict = {'ROMs':None, # multitarget requires setting individually, below
                 'SG':self.SQs,
@@ -4124,6 +4131,11 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       self.ROM.SupervisedEngine[target].initialize(initDict)
 
   def _finalizeSubset(self,subset):
+    """
+    On completion, finalizes the subset by initializing the associated ROM.
+    @ In, subset, tuple(str), subset to finalize
+    @ Out, None
+    """
     sampler = self.samplers[subset]
     #add collected points to sampler's data object, just in case one's missing.  Could be optimized.
     for pt in self.pointsCollected[subset]:
@@ -4139,8 +4151,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
   def _generateSubsets(self,subset):
     """
     Returns a list of the possible subset combinations available, and estimates their impact
-    @ In, subset, the leading subset to add more subsets from
-    @Out, None
+    @ In, subset, tuple(str), the leading subset to add more subsets from
+    @ Out, None
     """
     #get length of subset
     l = len(subset)
@@ -4184,7 +4196,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     Looks through potential subsets and existing subsets for the most effective polynomial to add
     @ In, None
-    @Out, (str, tuple(str), item ), either 'poly' or 'subset' along with the corresponding subset and either the poly or ''
+    @ Out, (str, tuple(str), item ), either 'poly' or 'subset' along with the corresponding subset and either the poly or ''
     """
     #track the total error while we do this
     self.error = 0
@@ -4235,7 +4247,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     Determines if there are points to submit to the jobHandler.
     @ In, None
-    @Out, bool, true if there are points to run
+    @ Out, bool, true if there are points to run
     """
     #check if there's any subsets in the useSet that need points run, that haven't been queued
     for subset in self.useSet.keys():
@@ -4255,7 +4267,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     Creates a new PointSet dataobject for a cut subset
     @ In, subset, tuple(str), the subset to make the object for
-    @Out, dataObject
+    @ Out, dataObject
     """
     #create a new data ojbect
     dataObject = DataObjects.returnInstance('PointSet',self)
@@ -4277,9 +4289,9 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     Constructs a ROM for the given subset (but doesn't train it!).
     @ In, subset, tuple(string), subset for cut plane
-    @Out, GaussPolynomialROM object representing this cut plane (once it gets trained)
+    @ Out, GaussPolynomialROM object, representing this cut plane (once it gets trained)
     """
-    verbosity = self.subVerbosity #sets verbosity of created RAVEN objects #TODO make an input param someday
+    verbosity = self.subVerbosity #sets verbosity of created RAVEN objects
     SVL = self.ROM.SupervisedEngine.values()[0] #an example SVL for most parameters
     #replicate "normal" construction of the ROM
     distDict={}
@@ -4370,8 +4382,10 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
   def _printState(self,which,todoSub,poly):
     """
     Debugging tool.  Prints status of adaptive steps. Togglable in input by specifying logFile.
-    @ In, None
-    @Out, None
+    @ In, which, string, the type of the next addition to make by the adaptive sampler: poly, or subset
+    @ In, todoSub, tuple(str), the next subset that will be resolved as part of the adaptive sampling
+    @ In, poly, tuple(int), the polynomial within the next subset that will be added to resolve it
+    @ Out, None
     """
     #print status, including error; next step to make; and existing, training, and expected values
     self.stateCounter+=1
@@ -4419,7 +4433,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     Get the batch of points needed by the subset sampler and transfer them to local variables
     @ In, subset, tuple(str), cut plane dimensions
-    @Out, None
+    @ Out, None
     """
     sampler = self.samplers[subset]
     #collect all the points and store them locally, so we don't have to inquire the subset sampler
@@ -4440,7 +4454,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     Allocates points on cut planes to their respective adaptive sampling data objects.
     @ In, None
-    @Out, None
+    @ Out, None
     """
     #if there's no solutions in the set, no work to do
     if self.solns.isItEmpty(): return
@@ -4474,8 +4488,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
   def _updateSubset(self,subset):
     """
     Updates the index set for the subset, and updates estimated impacts
-    @ In, subset, the subset to advance
-    @Out, None
+    @ In, subset, tuple(str), the subset to advance
+    @ Out, None
     """
     if len(self.pointsNeeded[subset])<1:
       sampler = self.samplers[subset]

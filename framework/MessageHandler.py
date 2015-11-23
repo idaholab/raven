@@ -144,7 +144,7 @@ class MessageHandler(object):
     """
       Init of class
       @In, None
-      @Out, None
+      @ Out, None
     """
     self.starttime    = time.time()
     self.printTag     = 'MESSAGE HANDLER'

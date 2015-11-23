@@ -587,8 +587,8 @@ class JobHandler(MessageHandler.MessageUser):
     """
      Method to get the list of jobs that ended (list of objects)
      @ In, removeFinished, bool, optional, flag to control if the finished jobs need to be removed from the queue
-     @ In, prefix, if specified only collects finished runs with a particular prefix.
-     @ Out, finished, list, list of finished jobs (InternalRunner or ExternalRunner objects)
+     @ In, prefix, string, optional, if specified only collects finished runs with a particular prefix.
+     @ Out, list, list of finished jobs (InternalRunner or ExternalRunner objects)
     """
     finished = []
     for i in range(len(self.__running)):
@@ -685,4 +685,9 @@ class JobHandler(MessageHandler.MessageUser):
       if self.__running[i] is not None: self.__running[i].kill()
 
   def numRunning(self):
+    """
+    Returns the number of runs currently running.
+    @ In, None
+    @ Out, int, number of active runs
+    """
     return sum(run is not None for run in self.__running)
