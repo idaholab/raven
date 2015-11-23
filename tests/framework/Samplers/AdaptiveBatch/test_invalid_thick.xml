@@ -69,7 +69,7 @@
       <TargetEvaluation class="DataObjects" type="PointSet">response</TargetEvaluation>
       <Convergence forceIteration="False" limit="16" persistence="25" weight="value">9e-5</Convergence>
       <!--<generateCSVs />-->
-      <scoring>distance</scoring>
+      <scoring>distancePersistence</scoring>
       <batchStrategy>none</batchStrategy>
       <thickness>-4</thickness>
       <maxBatchSize>1</maxBatchSize>
