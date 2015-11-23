@@ -38,7 +38,6 @@ import SupervisedLearning
 import pyDOE as doe
 import Quadratures
 import OrthoPolynomials
-import SupervisedLearning
 import IndexSets
 import PostProcessors
 import MessageHandler
