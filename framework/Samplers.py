@@ -1362,21 +1362,20 @@ class Stratified(Grid):
     """
     Grid.localInitialize(self)
     self.limit = (self.pointByVar-1)
+    # For the multivariate normal distribtuion, if the user generates the grids on the transformed space, the user needs to provide the grid for each variables, no globalGrid is needed
     if self.variablesTransformationDict:
       tempFillingCheck = [[None]*(self.pointByVar-1)]*len(self.gridEntity.returnParameter("dimensionNames")) #for all variables
       self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
       for i in range(len(tempFillingCheck)): tempFillingCheck[i]  = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
-      cnt = 0
       mappingIdVarName = {}
-      for varName in self.axisName:
+      for cnt, varName in enumerate(self.axisName):
         mappingIdVarName[varName] = cnt
-        if len(mappingIdVarName.keys()) == len(self.axisName): break
-        cnt +=1
+    # For the multivariate normal, if the user wants to generate the grids based on joint distribution, the user needs to provide the globalGrid for all corresponding variables
     else:
       globGridsCount = {}
       dimInfo = self.gridEntity.returnParameter("dimInfo")
       for val in dimInfo.values():
-        if val[-1] != None and val[-1] not in globGridsCount.keys(): globGridsCount[val[-1]] = 0
+        if val[-1] is not None and val[-1] not in globGridsCount.keys(): globGridsCount[val[-1]] = 0
         globGridsCount[val[-1]] += 1
       diff = -sum(globGridsCount.values())+len(globGridsCount.keys())
       tempFillingCheck = [[None]*(self.pointByVar-1)]*(len(self.gridEntity.returnParameter("dimensionNames"))+diff) #for all variables
@@ -1441,7 +1440,7 @@ class Stratified(Grid):
               elif self.gridInfo[variable] == 'value':
                 dxs[position-1] = max(upper,lower) - min(upper,lower)
                 centerCoordinate[position-1] = (upper + lower)/2.0
-                coordinateCdf = self.distDict[variable].marginalCdf(lower,variable) + (self.distDict[variable].marginalCdf(upper,variable) - self.distDict[variable].marginalCdf(lower,variable))*Distributions.random()
+                coordinateCdf = self.distDict[variable].marginalCdf(lower) + (self.distDict[variable].marginalCdf(upper) - self.distDict[variable].marginalCdf(lower))*Distributions.random()
                 coordinate = self.distDict[variable].inverseMarginalDistribution(coordinateCdf,variable)
                 NDcoordinate[position-1] = coordinate
                 for kkey in variable.strip().split(','):

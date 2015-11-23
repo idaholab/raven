@@ -1620,13 +1620,12 @@ class MultivariateNormal(NDimensionalDistributions):
     else:
       self.raiseAnError(NotImplementedError,'cellIntegral not yet implemented for ' + self.method + ' method')
 
-  def marginalCdf (self, x, variable):
-    '''
-    calculate the marginal distribution for given variable
-    @ In, x:
-    @ In, variable: not used here since "PCA" method will treat all the variables the same, it will be used in other methods, currently not implemented
-    @ Out, the cdf value for given variable at coordinate x
-    '''
+  def marginalCdf (self, x):
+    """
+      Calculate the marginal distribution for given coordinate x
+      @ In, x, float, the coordinate for given marginal distribution
+      @ Out, self._distribution.marginalCdfForPCA(x), float, the marginal cdf value at coordinate x
+    """
     if self.method == 'pca':
       return self._distribution.marginalCdfForPCA(x)
     elif self.method == 'spline':
