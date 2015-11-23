@@ -723,7 +723,7 @@ class Code(Model):
     """
     Adds input edits besides the sampledVars to the inputInfo dictionary. Called by the sampler.
     @ In, inputInfo, dictionary object
-    @Out, None.
+    @ Out, None.
     """
     inputInfo['additionalEdits']=self.fargs
 
