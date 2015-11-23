@@ -47,7 +47,6 @@
  [../]
 
  [./testAdaptiveDynamicEventTreeRAVEN]
-   #REQUIREMENT_TEST
   type = 'RavenFramework'
   input = 'test_adaptive_det_simple.xml'
   output = 'AdaptiveDET/limitSurfDump.csv AdaptiveDET/adaptiveOutsimpleDump.csv'
@@ -231,6 +230,7 @@
  [../]
 
  [./testBasicStatistics]
+  #REQUIREMENT_TEST
   type = 'RavenFramework'
   input = 'test_BasicStatistics.xml'
   output = 'basicStatistics/PointSetPostProcTest_dump.csv basicStatistics/output_basicStatistics_PP1.csv basicStatistics/output_basicStatistics_PP2.csv basicStatistics/output_basicStatistics_PP3.csv basicStatistics/output_basicStatistics_PP4.csv basicStatistics/output_basicStatistics_PP5.csv'

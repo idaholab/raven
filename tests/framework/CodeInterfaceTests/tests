@@ -1,7 +1,6 @@
 [Tests]
 
  [./testGridBison]
-   #REQUIREMENT_TEST
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Bison.xml'
    output = 'GridTestBison/CustomSampler/out~1~gap_perfect_transfer_test'

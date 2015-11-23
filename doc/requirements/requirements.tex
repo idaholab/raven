@@ -2,6 +2,8 @@
 \usepackage{hyperref}
 \newcommand{\requirement}[5]{\item[Requirement: #1] #2 \\Source: #3\\Explanation: #4\\Regression Test(s): #5}
 
+\newcommand{\futurerequirement}[6]{\item[Future Requirement: #1 #6] #2 \\Source: #3\\Explanation: #4\\Regression Test(s): #5}
+
 \title{RAVEN Requirements}
 
 \begin{document}
@@ -13,7 +15,7 @@
 
 \requirement{R1-1}{RAVEN must support 1-Dimensional probability distributions including generating random numbers from them.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 8.1 1-Dimensional Probability Distributions}
-{RAVEN needs to create different parameters for the simulations that it runs.  For the non-adaptive sampling, probability distributions are used for this (including flat distributions).  In order to do this, the distributions need to be able to calculate things like PDFs and CDFs and inverse CDFs.}
+{RAVEN needs to create different parameters for the simulations that it runs.  For the non-adaptive sampling, the value of those parameters are generated according to their probability distributions functions (including uniform distributions).  In order to do this, the distributions need to be able to calculate things like PDFs and CDFs and inverse CDFs.}
 {test\_distributions}
 
 \requirement{R1-2}{RAVEN must support N-Dimensional probability distributions.  It must support multivariate normal distributions and distributions defined by tabular data.}
@@ -23,7 +25,7 @@
 
 \requirement{R1-3}{RAVEN must support a variety of samplers that use probability distributions to sample the input space.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 9.1 Once-through Samplers}
-{Once through samplers allow sampling strategies such as Grid sampling, Monte Carlo and Latin Hypercube sampling.  These samplers allow the analyses to be performed.}
+{Forward samplers allow sampling strategies such as Grid sampling, Monte Carlo and Latin Hypercube sampling.  These samplers allow the analyses to be performed.}
 {testGrid}
 
 \end{description}
@@ -34,12 +36,12 @@
 
 \requirement{R2-1}{RAVEN must support adaptive sampling that use already gathered samples to determine where to do new samples.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 9.3 Adaptive Samplers}
-{The adaptive samplers support sampling the input space, but in a more efficient manner.  One example of these samplers is a limit surface search.}
-{testAdaptiveDynamicEventTreeRAVEN}
+{The adaptive samplers support sampling the input space, but in a more efficient manner.  Examples of these samplers is limit surface search and adaptive stochastic collocation polynomial chaos.}
+{testLimitSurfacePostProcessor}
 
-\requirement{R2-2}{RAVEN must support outputting data in CSV format.}
+\requirement{R2-2}{RAVEN must support inputting/outputting data in CSV format.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 12.1 Printing system}
-{The user needs to be able to get the data and examine it and sometimes process it in other programs.  Outputting the data in CSV files allows this use to be done.}
+{The user needs to be able to get the data from other programs or to analyze it in other software.  Inputting/Outputting the data in CSV files allows this use to be done.}
 {test\_iostep\_load}
 
 \requirement{R2-3}{RAVEN must support generating plots from the data it generates.}
@@ -52,13 +54,30 @@
 {Often the physical model is computationally expensive.  For some models the relevant output parameters can be captured by a much simpler model that can be quickly calculated.  This is the purpose for the Reduced order model.}
 {test\_rom\_trainer}
 
+\requirement{R2-5}{RAVEN must be able to perform basic statistical analysis of generated data.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 13.5}
+{One of the main tasks of the RAVEN code is to assess to how the probabilistic distribution of the input parameters reflects in the figure of merits characterizing the system response.}
+{testBasicStatistics}
+
+\futurerequirement{R2-5}{RAVEN must be able to perform advanced post processing of generated data, using classical data mining methodologies}
+{available at task end}
+{Often engineers need to understand the system response to the variation of several parameters which mutually interacts. Such a scenario is of difficult interpretation and data mining algorithms help in this task.  Data mining methodologies include clustering, principal component analysis, etc.}
+{available at task end}
+{(Ongoing, finishing time 11/30/2015)}
+
+
 \end{description}
 
 \section{Risk Mitigation}
 
-%\begin{description}
+\begin{description}
 
-%\end{description}
+\futurerequirement{R3-1}{RAVEN must be able to choose the values of a set of parameters that minimize/maximize a goal function that depends on system output figure of merits and input parameters.}
+{available at task end}
+{Mitigation of risk is related to choose a set of operational or design parameters so that, in a probabilistic sense the risk driven goal function is minimized.}
+{available at task end}
+{(Ongoing, finishing time 09/30/2016)}
+\end{description}
 
 \section{Infrastructure Support}
 
@@ -68,20 +87,15 @@
 {RAVEN runs external codes, and sometimes they are not parallelized.  RAVEN will run faster if it can run multiple codes at the same time when multiple cores are available.  Even for parallelized codes it usually will be more efficient to run multiple instances in parallel than run one code parallelized.}
 {testLHSBisonParallel}
 
-\requirement{R4-2}{RAVEN must be able to provide external codes the files that are needed for their running.}
+\requirement{R4-2}{RAVEN must be able to run external codes by supplying them with the needed input files and collecting the output data.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 7 Files}
 {RAVEN runs external codes, and each instance may need a different input file that needs to be generated from the sampler choices.  RAVEN also may need to read the output files in. (possibly with application specific code that is user provided.)}
 {simple\_framework}
 
 \requirement{R4-3}{RAVEN must support storing and retrieving data in a HDF5 database.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 11 Databases}
-{RAVEN uses HDF5 databases to store inputs and results for simulations, as well as other auxiliary information.}
+{RAVEN uses HDF5 databases to store inputs and results for simulations, as well as other auxiliary information.  This allows using the data generated in sub-sequential steps.}
 {2steps\_same\_db}
-
-\requirement{R4-4}{RAVEN must be able to provide data to MOOSE based applications, and retrieve data if the application successfully completes.}
-{INL/EXT-15-34123 Rev 3 RAVEN User Manual 13.1 Code}
-{RAVEN uses external simulation software to calculate physical models.  RAVEN creates input files, calls the external code, and then reads in the results.}
-{testGridBison}
 
 \requirement{R4-5}{RAVEN must be able to provide data to a user provided python function, and retrieve the data from that.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 13.4 External Model}
@@ -91,7 +105,7 @@
 \requirement{R4-6}{RAVEN must be able to perform various calculation tasks, and transfer data to the next task.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 15 Steps}
 {Sequences of calculation are one of the main uses of RAVEN.  For example, a initial calculation can be used to generate data to train a ROM, and then later calculations can use the ROM for faster calculation.  As well, steps allow various post processing to be done.}
-{testLimitSurfacePostProcessor}
+{} %TODO
 
 \requirement{R4-7}{RAVEN must be able to run external codes in parallel on shared memory machines.}
 {Andrea Alfonsi}
