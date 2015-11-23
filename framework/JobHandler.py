@@ -22,31 +22,6 @@ import sys
 import abc
 #import logging, logging.handlers
 import threading
-import platform
-
-class pickleSafeSubprocessPopen(subprocess.Popen):
-  """
-  Subclass of subprocess.Popen used internally to prevent _handle member from being pickled.  On
-  Windows, _handle contains an operating system reference that throws an exception when deep copied.
-  """
-  # Only define these methods on Windows to override deep copy/pickle
-  if platform.system() == 'Windows':
-    def __getstate__(self):
-      """
-      Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
-      which cannot be deep copied when non-None.
-      """
-      result = self.__dict__.copy()
-      del result['_handle']
-      return result
-
-    def __setstate__(self, d):
-      """
-      Used to load an object dictionary when unpickling.  Since member '_handle' could not be
-      deep copied, load it back as value None.
-      """
-      self.__dict__ = d
-      self._handle = None
 
 #External Modules End--------------------------------------------------------------------------------
 
@@ -213,7 +188,7 @@ class ExternalRunner(MessageHandler.MessageUser):
     os.chdir(self.__workingDir)
     localenv = dict(os.environ)
     outFile = open(self.output,'w', self.bufsize)
-    self.__process = pickleSafeSubprocessPopen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
+    self.__process = utils.pickleSafeSubprocessPopen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
     os.chdir(oldDir)
 
   def kill(self):
@@ -506,7 +481,7 @@ class JobHandler(MessageHandler.MessageUser):
         #Next line is a direct execute of ppserver:
         #subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"])
-        pickleSafeSubprocessPopen(['ssh',nodeid,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        utils.pickleSafeSubprocessPopen(['ssh',nodeid,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         #ssh nodeid COMMAND='python ppserverScript -w stuff'
         # update list of servers
         ppservers.append(nodeid+":"+str(newPort))
