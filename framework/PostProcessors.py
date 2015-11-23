@@ -852,6 +852,20 @@ class ComparisonStatistics(BasePostProcessor):
 #
 #
 #
+
+class New_DataConversion(BasePostProcessor):
+  def __init__(self, messageHandler):
+  
+  def inputToInternal(self, currentInput):
+  
+  def initialize(self, runInfo, inputs, initDict):
+  
+  def _localReadMoreXML(self, xmlNode):
+  
+  def run(self, InputIn):
+  
+  def collectOutput(self, finishedjob, output):
+  
 class DataConversion(BasePostProcessor):
   """
   Class which converts dataObjects into dataObjects
