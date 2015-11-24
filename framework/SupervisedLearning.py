@@ -293,7 +293,7 @@ class NDinterpolatorRom(superVisedLearning):
     @In, kwargs: an arbitrary dictionary of keywords and values
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
-    self.interpolator = None
+    self.interpolator = None  # pointer to the C++ (crow) interpolator
     self.featv        = None  # list of feature variables
     self.targv        = None  # list of target variables
     self.printTag = 'ND Interpolation ROM'
