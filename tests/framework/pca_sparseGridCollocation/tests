@@ -17,4 +17,45 @@
   csv = 'scgpcMVNCorrelated/Ndump.csv'
  [../]
 
+ [./attenuCorrelation]
+  type = 'RavenFramework'
+  input = 'test_attenu_correlation.xml'
+  csv = 'attenuCorrelation/csv_database.csv'
+  xml = 'attenuCorrelation/stats_td1.xml'
+ [../]
+
+ [./attenuCorrelationMC]
+  type = 'RavenFramework'
+  input = 'test_attenu_correlation_mc.xml'
+  csv = 'attenuCorrelationMC/csv_database.csv'
+ [../]
+ 
+ [./polyCorrelation]
+  type = 'RavenFramework'
+  input = 'test_poly_correlation.xml'
+  csv = 'polyCorrelation/csv_database.csv'
+  xml = 'polyCorrelation/stats_td1.xml'
+ [../]
+
+ [./polyCorrelationMC]
+  type = 'RavenFramework'
+  input = 'test_poly_correlation_mc.xml'
+  csv = 'polyCorrelationMC/csv_database.csv'
+  xml = 'polyCorrelationMC/stats_td1.xml'
+ [../]
+
+ [./polyAnalyticalTest]
+  type = 'RavenFramework'
+  input = 'test_poly.xml'
+  csv = 'polynomial/csv_database.csv'
+  xml = 'polynomial/stats_td1.xml'
+ [../]
+
+ [./attenuationAnalyticalTest]
+  type = 'RavenFramework'
+  input = 'test_attenuation.xml'
+  csv = 'attenuation/csv_database.csv'
+  xml = 'attenuation/stats_td1.xml'
+ [../]
+
 []

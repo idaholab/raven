@@ -1,0 +1,113 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>attenuation</WorkingDir>
+    <batchSize>12</batchSize>
+    <Sequence>sample,train,print,stats</Sequence>
+  </RunInfo>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2,x3,x4,x5</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="collset">
+      <Input>x1,x2,x3,x4,x5,y1,y2,y3,y4,y5</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <MultivariateNormal name='MVNDist' method='pca'>
+        <transformation>
+            <rank>5</rank>
+        </transformation>
+        <mu>0.5 -0.4 0.3 -0.2 0.1</mu>
+        <covariance type="abs">
+            0.64 0    0    0    0 
+            0    0.49 0    0    0
+            0    0    0.09 0    0
+            0    0    0    0.16 0
+            0    0    0    0    0.25
+        </covariance>
+    </MultivariateNormal>
+  </Distributions>
+
+  <Samplers>
+    <SparseGridCollocation name="sc">
+      <variable name="y1">
+        <distribution dim="1">MVNDist</distribution>
+      </variable>
+      <variable name="y2">
+        <distribution dim="2">MVNDist</distribution>
+      </variable>
+      <variable name="y3">
+        <distribution dim="3">MVNDist</distribution>
+      </variable>
+      <variable name="y4">
+        <distribution dim="4">MVNDist</distribution>
+      </variable>
+      <variable name="y5">
+        <distribution dim="5">MVNDist</distribution>
+      </variable>
+      <variablesTransformation model="polynomial">
+        <latentVariables>y1,y2,y3,y4,y5</latentVariables>
+        <manifestVariables>x1,x2,x3,x4,x5</manifestVariables>
+        <method>pca</method>
+      </variablesTransformation>
+      <ROM class="Models" type="ROM">rom</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="poly.py" name="poly" subType="">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>x3</variable>
+      <variable>x4</variable>
+      <variable>x5</variable>
+      <variable>ans</variable>
+    </ExternalModel>
+    <ROM name="rom" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>y1,y2,y3,y4,y5</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-4">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Sampler class="Samplers" type="SparseGridCollocation">sc</Sampler>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Output class="DataObjects" type="PointSet">collset</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">collset</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">collset</Input>
+      <Output class="OutStreamManager" type="Print">csv_database</Output>
+    </IOStep>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreamManager" type="Print">stats_td1</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="csv_database">
+      <type>csv</type>
+      <source>collset</source>
+      <what>Input|x2,Input|x3,Input|x1,Input|x4,Input|x5,Output</what>
+    </Print>
+    <Print name="stats_td1">
+      <type>xml</type>
+      <source>rom</source>
+      <what>all</what>
+    </Print>
+  </OutStreamManager>
+
+</Simulation>
