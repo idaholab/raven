@@ -62,7 +62,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
   def __init__(self, messageHandler, **kwargs):
     """
-     constructor for unSupervisedLearning class. 
+     constructor for unSupervisedLearning class.
      @ In: messageHandler, Message handler object
      @ In: kwargs, arguments for the unsupervised learning algorithm
     """
@@ -166,7 +166,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     """
     Perform training...
     """
- 
+
   @abc.abstractmethod
   def __evaluateLocal__(self, featureVals):
     """
@@ -230,7 +230,7 @@ class SciKitLearn(unSupervisedLearning):
   #  availImpl['decomposition']['MiniBatchDictionaryLearning'] = (decomposition.MiniBatchDictionaryLearning, 'float')  # Mini-batch dictionary learning
   #  availImpl['decomposition']['fastica'                    ] = (decomposition.fastica                    , 'float')  # Perform Fast Independent Component Analysis.
   #  availImpl['decomposition']['dict_learning'              ] = (decomposition.dict_learning              , 'float')  # Solves a dictionary learning matrix factorization problem.
-  
+
   #  availImpl['covariance'] = {}  # Covariance Estimators
   #  availImpl['covariance']['EmpiricalCovariance'] = (covariance.EmpiricalCovariance, 'float')  # Maximum likelihood covariance estimator
   #  availImpl['covariance']['EllipticEnvelope'   ] = (covariance.EllipticEnvelope   , 'float')  # An object for detecting outliers in a Gaussian distributed dataset.
@@ -246,9 +246,9 @@ class SciKitLearn(unSupervisedLearning):
 
   def __init__(self, messageHandler, **kwargs):
     """
-     constructor for SciKitLearn class. 
+     constructor for SciKitLearn class.
      @ In: messageHandler, Message handler object
-     @ In: kwargs, arguments for the SciKitLearn algorithm    
+     @ In: kwargs, arguments for the SciKitLearn algorithm
     """
     unSupervisedLearning.__init__(self, messageHandler, **kwargs)
     self.printTag = 'SCIKITLEARN'
@@ -406,7 +406,7 @@ class SciKitLearn(unSupervisedLearning):
   def __confidenceLocal__(self):
     """
     This should return an estimation dictionary of the quality of the prediction.
-    @ Out, self.outputdict['confidence'], dictionary of the confidence metrics of the algorithms 
+    @ Out, self.outputdict['confidence'], dictionary of the confidence metrics of the algorithms
     """
     self.outputDict['confidence'] = {}
     if 'cluster' == self.SKLtype:

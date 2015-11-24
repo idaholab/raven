@@ -1285,7 +1285,7 @@ class OutStreamPlot(OutStreamManager):
                 if 'noClusters' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
                   clusterDict[pltindex]['noClusters'] = int(self.options['plotSettings']['plot'][pltindex].get('attributes', {})['noClusters'])
                   self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('noClusters')
-                else: 
+                else:
                   clusterDict[pltindex]['noClusters'] = np.amax(self.clusterValues[pltindex][1][0]) + 1
                 dataMiningPlotOptions.update(self.options['plotSettings']['plot'][pltindex].get('attributes', {}))
                 if   self.dim == 2: clusterDict[pltindex]['clusterValues'] = np.zeros(shape = (len(self.xValues[pltindex][key][xIndex]), 2))
@@ -1309,7 +1309,7 @@ class OutStreamPlot(OutStreamManager):
                 if 'noMixtures' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
                   clusterDict[pltindex]['noMixtures'] = int(self.options['plotSettings']['plot'][pltindex].get('attributes', {})['noMixtures'])
                   self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('noMixtures')
-                else: 
+                else:
                   clusterDict[pltindex]['noMixtures'] = np.amax(self.mixtureValues[pltindex][1][0]) + 1
                 if self.dim == 3: self.raiseAnError(IOError, 'SKLType Mixture Plots are only available in 2-Dimensions')
                 else: clusterDict[pltindex]['mixtureValues'] = np.zeros(shape = (len(self.xValues[pltindex][key][xIndex]), 2))

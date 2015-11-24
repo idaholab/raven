@@ -2547,7 +2547,7 @@ class DataMining(BasePostProcessor):
         for value in self.assemblerDict[key]:
           self.DataObjects.append(self.assemblerDict[key][indice][3])
           indice += 1
- 
+
   def _localReadMoreXML(self, xmlNode):
     """
       Method to read special input requuired for this post-processor
@@ -2655,7 +2655,7 @@ class DataMining(BasePostProcessor):
 
 
 
-  
+
 
 """
  Interface Dictionary (factory) (private)
@@ -2671,7 +2671,7 @@ __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
-__interFaceDict['DataMining'               ] = DataMining 
+__interFaceDict['DataMining'               ] = DataMining
 __knownTypes = __interFaceDict.keys()
 
 def knownTypes():

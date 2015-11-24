@@ -93,8 +93,8 @@ class Assembler(MessageHandler.MessageUser):
                 # optional
                     if tofto in testObjects.keys():
                         if testObjects[tofto] is not 0:
-	                        numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
-        	                if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
+                          numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
+                          if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
                 else:
                 # required
                     if tofto not in testObjects.keys(): self.raiseAnError(IOError,'Required object/s "'+tofto+'" not found. PostProcessor '+self.name + '!')
