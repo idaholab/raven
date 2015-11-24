@@ -230,15 +230,12 @@ class HyperbolicCross(IndexSet):
     #TODO if user has set max poly orders (levels), make it so you never use more
     #  - right now is only limited by the maximum overall level (and importance weight)
     target = (self.maxOrder+1)**(sum(self.impWeights)/max(1,float(len(self.impWeights))))
-    #target = self.maxOrder+1
     def rule(i):
       tot=1
       for e,val in enumerate(i):
         tot*=(val+1)**self.impWeights[e]
-        #tot*=val+1
       return tot<=target
     self.points = self.generateMultiIndex(len(distrList),rule)
-    #print(self)
 
 
 
