@@ -442,7 +442,7 @@ class ROM(Dummy):
   def train(self,trainingSet):
     """
     This function train the ROM
-    @ In, trainingSet, dict, PointSet, HistorySet,: data used to train the ROM; if an HistorySet is provided the a list of ROM is created in order to create a temporal-ROM
+    @ In, trainingSet, dict or PointSet or HistorySet, data used to train the ROM; if an HistorySet is provided the a list of ROM is created in order to create a temporal-ROM
     @ Out, None
     """
     if type(trainingSet).__name__ == 'ROM':
