@@ -947,6 +947,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     lastOutput should be present when the next point should be chosen on previous iteration and convergence checked
     lastOutput it is not considered to be present during the test performed for generating an input batch
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
+    @In ready, boolean, a boolean representing whether the caller is prepared for another input.
     """
     self.raiseADebug('From method localStillReady...')
     #test on what to do
@@ -1066,6 +1067,11 @@ class LimitSurfaceSearch(AdaptiveSampler):
     return ready
 
   def ScoreCandidates(self):
+    """compute the scores of the 'candidate set' which should be the currently
+    extracted limit surface.
+    @In, None
+    @Out, None
+    """
     # DM: This sequence gets used repetitively, so I am promoting it to its own
     #  variable
     axisNames = [key.replace('<distribution>','') for key in self.axisName]
@@ -1112,10 +1118,20 @@ class LimitSurfaceSearch(AdaptiveSampler):
                         + 'implemented yet')
 
   def localGenerateInput(self,model,oldInput):
-    # create values dictionary
-    """compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
-     check the points where the derivative probability is the lowest"""
+    """Function to select the next most informative point for refining the limit
+    surface search.
+    After this method is called, the self.inputInfo should be ready to be sent
+    to the model
+    @In model, Model, an instance of a model
+    @In oldInput, [], a list of the original needed inputs for the model (e.g.
+                      list of files, etc.)
+    @Out, None"""
+    # Alternatively, though I don't think we do this yet:
+    #  compute the direction normal to the surface, compute the derivative
+    #  normal to the surface of the probability, check the points where the
+    #  derivative probability is the lowest
 
+    # create values dictionary
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     self.raiseADebug('generating input')
