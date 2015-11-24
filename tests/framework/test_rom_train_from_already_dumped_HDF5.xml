@@ -24,7 +24,8 @@
     <ROM name="ROM1" subType="SciKitLearn">
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
       <Target>CladTempThreshold</Target>
-      <SKLtype>svm|LinearSVC</SKLtype>
+      <SKLtype>svm|SVR</SKLtype>
+      <kernel>linear</kernel>
       <C>1.0</C>
       <tol>0.0001</tol>
     </ROM>

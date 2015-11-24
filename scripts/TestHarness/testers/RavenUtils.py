@@ -29,12 +29,12 @@ def moduleReport(module,version=''):
     if len(version) > 0:
       try:
         command =  'import '+module+';print('+version+')'
-        found_version = subprocess.check_output([python,'-c',command]).strip()
+        foundVersion = subprocess.check_output([python,'-c',command]).strip()
       except:
-        found_version = "NA"
+        foundVersion = "NA"
     else:
-      found_version = "NA"
-    return (True,output,found_version)
+      foundVersion = "NA"
+    return (True,output,foundVersion)
   except:
     return (False,'Failed to find module '+module,"NA")
 
@@ -46,9 +46,9 @@ def modulesReport():
   for i,fv,ev in modules_to_try:
     found, message, version = moduleReport(i,fv)
     if found:
-      missing, too_old = checkForMissingModule(i,fv,ev)
-    if len(too_old) > 0:
-      message += " ".join(too_old)
+      missing, tooOld = checkForMissingModule(i,fv,ev)
+    if len(tooOld) > 0:
+      message += " ".join(tooOld)
     report_list.append((i,found,message, version))
   return report_list
 
@@ -59,11 +59,11 @@ def checkForMissingModule(i,fv,ev):
   fv: a function to try and find the version
   ev: expected version of the module as a string.  If less than, will
   stop because it is too old.
-  returns (missing, too_old) where if they are found is ([], []), but
+  returns (missing, tooOld) where if they are found is ([], []), but
   if they are missing or too old will put a error message in the result
   """
   missing = []
-  too_old = []
+  tooOld = []
   if len(fv) > 0:
     check = ';import sys; import distutils.version; sys.exit(not distutils.version.LooseVersion('+fv+') >= distutils.version.LooseVersion("'+ev+'"))'
   else:
@@ -81,22 +81,22 @@ def checkForMissingModule(i,fv,ev):
   else:
     result = subprocess.call([python,'-c','import '+i+check],stdout=suppressedOutput,stderr=suppressedOutput)
     if result != 0:
-      too_old.append(i+" should be at least version "+ev)
+      tooOld.append(i+" should be at least version "+ev)
   suppressedOutput.close()
-  return missing, too_old
+  return missing, tooOld
 
 
 def checkForMissingModules():
   """
   Looks for a list of modules, and the version numbers.
-  returns (missing, too_old) where if they are all found is ([], []), but
+  returns (missing, tooOld) where if they are all found is ([], []), but
   if they are missing or too old will put a error message in the result for
   each missing or too old module.
   """
   missing = []
-  too_old = []
+  tooOld = []
   for i,fv,ev in modules_to_try:
-    module_missing, module_too_old = checkForMissingModule(i, fv, ev)
-    missing.extend(module_missing)
-    too_old.extend(module_too_old)
-  return missing,too_old
+    moduleMissing, moduleTooOld = checkForMissingModule(i, fv, ev)
+    missing.extend(moduleMissing)
+    tooOld.extend(moduleTooOld)
+  return missing,tooOld
