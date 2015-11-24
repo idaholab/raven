@@ -124,7 +124,7 @@
   type = 'RavenFramework'
   input = 'test_multi_target_rom.xml'
   output = ''
-  csv = 'test_rom_trainer/outputMontecarloMultiTargetRom_dump.csv test_rom_trainer/outputMontecarloMultiTargetRomND_dump.csv'
+  csv = 'test_rom_trainer/outputMontecarloMultiTargetRom_dump.csv test_rom_trainer/outputMontecarloMultiTargetRomND_dump.csv test_rom_trainer/outputMontecarlo_dump.csv'
   max_time = 1500
   rel_err = 0.001
  [../]
@@ -437,6 +437,7 @@
    csv = 'RunFailures/MCdump.csv RunFailures/MCdumpC.csv'
  [../]
 
+
  [./NDGridProbabilityWeightCDF]
   type = 'RavenFramework'
   input = 'test_simple_ND_grid_probabilityWeight_cdf.xml'
@@ -456,7 +457,7 @@
   input = 'test_LHS_variables.xml'
   output = 'LHStestVariables/outLHS_dump.csv'
   csv = 'LHStestVariables/outLHS_dump.csv'
-  xmv = 'LHStestVariables/outLHS_dump.xml'
+  xml = 'LHStestVariables/outLHS_dump.xml'
  [../]
 
 []

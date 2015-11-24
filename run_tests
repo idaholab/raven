@@ -42,19 +42,19 @@ except:
 #add framework contrib path
 RAVEN_DIR = os.path.dirname(os.path.realpath(__file__))
 os.environ["PYTHONPATH"] = os.path.join(RAVEN_DIR,'framework','contrib') + os.pathsep + os.environ.get("PYTHONPATH","")
-#print("PYTHONPATH="+os.environ["PYTHONPATH"])
 
 coverage = False
 library_report = False
 for i in sys.argv:
   if i == "--check_coverage":
     coverage = True
-  elif i == "--library_report":
+  elif i == "--library_report" or i == "--library-report":
     library_report = True
 if coverage:
   from subprocess import call
   call(["./check_py_coverage.sh"])
 elif library_report:
+  print("PYTHONPATH="+os.environ["PYTHONPATH"])
   sys.path.append(os.path.join("scripts","TestHarness","testers"))
   sys.path.insert(0,os.path.join("framework","utils"))
   import RavenUtils,utils
@@ -62,24 +62,24 @@ elif library_report:
   #print(missing,too_old)
   report_list = RavenUtils.modulesReport()
   amsc_report = RavenUtils.moduleReport('amsc')
-  report_list.append(('amsc',amsc_report[0],amsc_report[1]))
+  report_list.append(('amsc',amsc_report[0],amsc_report[1],""))
   print("\nLibraries report:\n")
-  for module, found, message in report_list:
+  for module, found, message, version in report_list:
     if found:
-      print(module,message)
+      print(module,version,"\n",message)
     else:
       print(module+' not found\n')
   framework_dir = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]),"framework"))
   utils.find_crow(framework_dir)
   try:
     distribution1D = utils.find_distribution1D()
-    print("distribution1D",distribution1D)
+    print("distribution1D","\n",distribution1D)
     print()
   except:
     print("distribution1D not found\n")
   try:
     interpolationND = utils.find_interpolationND()
-    print("interpolationND",interpolationND)
+    print("interpolationND","\n",interpolationND)
   except:
     print("interpolationND not found\n")
 else:
