@@ -4,12 +4,14 @@
 
 <RunInfo>
     <WorkingDir>t_rom</WorkingDir>
-    <Files>lorentzAttractor.py</Files>
     <Sequence>model_MRun,test_rom_trainer,ROM_MRun,plot_data</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>True</internalParallel>
 </RunInfo>
 
+<Files>
+    <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
+</Files>
 
 <Steps>
     <MultiRun name='model_MRun'>
@@ -19,10 +21,6 @@
         <Output  class='DataObjects' type='HistorySet'    >HistorySet_model</Output>
         <Output  class='OutStreamManager' type='Print'    >PrintHistorySet_model</Output>
     </MultiRun>
-    <RomTrainer name='test_rom_trainer' verbosity='debug'>
-      <Input     class='DataObjects' type='HistorySet' >HistorySet_model</Input>
-      <Output    class='Models'      type='ROM'        >t_ROM</Output>
-    </RomTrainer>
     <MultiRun name='ROM_MRun'>
       <Input   class='DataObjects' type='Point'      >inputPlaceHolder</Input>
       <Model   class='Models'      type='ROM'        >t_ROM</Model>
@@ -36,6 +34,10 @@
       <Output  class='OutStreamManager' type='Plot'     >plot_ROM</Output>
       <Output  class='OutStreamManager' type='Plot'     >plot_model</Output>
     </IOStep>
+    <RomTrainer name='test_rom_trainer' verbosity='debug'>
+      <Input     class='DataObjects' type='HistorySet' >HistorySet_model</Input>
+      <Output    class='Models'      type='ROM'        >t_ROM</Output>
+    </RomTrainer>
 </Steps>
 
 

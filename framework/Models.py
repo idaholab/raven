@@ -322,9 +322,9 @@ class ROM(Dummy):
 
   def __getstate__(self):
     """
-    Overwrite state (for pickle-ing)
-    we do not pickle the HDF5 (C++) instance
-    but only the info to re-load it
+    This function return the state of the ROM
+    @ In, None
+    @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
     # capture what is normally pickled
     state = self.__dict__.copy()
@@ -334,6 +334,11 @@ class ROM(Dummy):
     return state
 
   def __setstate__(self, newstate):
+    """
+    Initialize the ROM with the data contained in newstate
+    @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
+    @ Out, None
+    """
     self.__dict__.update(newstate)
     if not self.amITrained:
       if self.numberOfTimeStep > 1:
