@@ -2,12 +2,11 @@
 <Simulation verbosity="all">
   <RunInfo>
     <WorkingDir>basicStatsFactorialAnalytic</WorkingDir>
-    <Sequence>SamplingMirrowModelFullFactactoorial,SamplingMirrowModel2levelFractFactorial,SamplingMirrowModelpbFactorial,PP1fullFactorial,PP12levelFractFactorial,PP1pbFactorial</Sequence>
+    <Sequence>SamplingMirrowModel2levelFractFactorial,SamplingMirrowModelpbFactorial,PP12levelFractFactorial,PP1pbFactorial</Sequence>
     <batchSize>32</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="output_basicStatistics_PP1fullFactorial.csv" type="">output_basicStatistics_PP1fullFactorial.csv</Input>
     <Input name="output_basicStatistics_PP12levelFractFactorial.csv" type="">output_basicStatistics_PP12levelFractFactorial.csv</Input>
     <Input name="output_basicStatistics_PP1pbFactorial.csv" type="">output_basicStatistics_PP1pbFactorial.csv</Input>
   </Files>
@@ -42,24 +41,6 @@
   </Distributions>
 
   <Samplers>
-  
-    <FactorialDesign name="fullFactorial">
-      <FactorialSettings>
-        <algorithmType>full</algorithmType>
-      </FactorialSettings>
-      <variable name="x">
-        <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="15" type="CDF">0.01 0.99</grid>
-      </variable>
-      <variable name="y">
-        <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="15" type="CDF">0.01 0.99</grid>
-      </variable>
-      <variable name="z">
-        <distribution>z0_distrib</distribution>
-        <grid construction="equal" steps="15" type="CDF">0.01 0.99</grid>
-      </variable>
-    </FactorialDesign>
     <FactorialDesign name="2levelFractFactorial">
       <FactorialSettings>
         <algorithmType>2levelFract</algorithmType>
@@ -100,12 +81,6 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="SamplingMirrowModelFullFactactoorial" re-seeding="20021986">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
-      <Model class="Models" type="ExternalModel">mirrowModel</Model>
-      <Sampler class="Samplers" type="Stratified">fullFactorial</Sampler>
-      <Output class="DataObjects" type="PointSet">outputDatafullFactorial</Output>
-    </MultiRun>
     <MultiRun name="SamplingMirrowModel2levelFractFactorial" re-seeding="20021986">
       <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
@@ -118,13 +93,6 @@
       <Sampler class="Samplers" type="Stratified">pbFactorial</Sampler>
       <Output class="DataObjects" type="PointSet">outputDatapbFactorial</Output>
     </MultiRun>
-    <PostProcess name="PP1fullFactorial">
-      <Input class="DataObjects" type="PointSet">outputDatafullFactorial</Input>
-      <Model class="Models" type="PostProcessor">analyticalTest</Model>
-      <Output class="Files" type="">output_basicStatistics_PP1fullFactorial.csv</Output>
-      <Output class="DataObjects" type="PointSet">outputDatafullFactorial</Output>
-      <Output class="OutStreamManager" type="Print">outputDatafullFactorial_dump</Output>
-    </PostProcess>
     <PostProcess name="PP12levelFractFactorial">
       <Input class="DataObjects" type="PointSet">outputData2levelFractFactorial</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
@@ -142,10 +110,6 @@
   </Steps>
 
   <OutStreamManager>
-    <Print name="outputDatafullFactorial_dump">
-      <type>csv</type>
-      <source>outputDatafullFactorial</source>
-    </Print>
     <Print name="outputData2levelFractFactorial_dump">
       <type>csv</type>
       <source>outputData2levelFractFactorial</source>
@@ -157,10 +121,6 @@
   </OutStreamManager>
 
   <DataObjects>
-    <PointSet name="outputDatafullFactorial">
-        <Input>x,y,z</Input>
-        <Output>x1</Output>
-    </PointSet>
     <PointSet name="outputData2levelFractFactorial">
         <Input>x,y,z</Input>
         <Output>x1</Output>

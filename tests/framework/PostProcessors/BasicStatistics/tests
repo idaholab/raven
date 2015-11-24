@@ -26,9 +26,9 @@
   [./basicStatsFactorial]
     type = 'RavenFramework'
     input = 'test_BasicStatsFactorialAnalytic.xml'
-    UnorderedCsv = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.csv basicStatsFactorialAnalytic/outputDatafullFactorial_dump.csv basicStatsFactorialAnalytic/outputDatapbFactorial_dump.csv'
-    output = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.csv basicStatsFactorialAnalytic/outputDatafullFactorial_dump.csv basicStatsFactorialAnalytic/outputDatapbFactorial_dump.csv basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.xml basicStatsFactorialAnalytic/outputDatafullFactorial_dump.xml'
-    xml = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.xml basicStatsFactorialAnalytic/outputDatafullFactorial_dump.xml basicStatsFactorialAnalytic/outputDatapbFactorial_dump.xml'
+    UnorderedCsv = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.csv basicStatsFactorialAnalytic/outputDatapbFactorial_dump.csv'
+    output = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.csv basicStatsFactorialAnalytic/outputDatapbFactorial_dump.csv basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.xml'
+    xml = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.xml basicStatsFactorialAnalytic/outputDatapbFactorial_dump.xml'
     rel_err = 1e-6
   [../]
   [./basicStatsResponseSurfaceDoE]
