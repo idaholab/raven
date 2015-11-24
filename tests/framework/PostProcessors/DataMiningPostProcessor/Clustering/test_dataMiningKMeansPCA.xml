@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>KMeansPCA</WorkingDir>
+    <Sequence>read_in_csv1,pp1,pp2</Sequence>
+    <batchSize>100</batchSize>
+  </RunInfo>
+  <Files>
+      <Input name="bisonDBCSV">./bisonDBCSV.csv</Input>
+      <Input name="outputBS.csv">./outputBS.csv</Input>
+  </Files>
+  <Steps>
+      <IOStep name='read_in_csv1'>
+          <Input    class = 'Files'             type = ''              >bisonDBCSV</Input>
+          <Output   class = 'DataObjects'       type = 'PointSet'      >bisonData</Output>
+      </IOStep>
+      <PostProcess name='pp1' pauseAtEnd = 'True'>
+          <Input    class = 'DataObjects'       type = 'PointSet'      >bisonData</Input>
+          <Model    class = 'Models'            type = 'PostProcessor' >KMeans1</Model>
+          <Output   class = 'OutStreamManager'  type = 'Plot'          >PlotKMeans1</Output>
+          <Output   class = 'OutStreamManager'  type = 'Plot'          >PlotAll</Output>
+          <Output   class = 'OutStreamManager'  type = 'Print'         >dump1</Output>
+      </PostProcess>
+      <PostProcess name='pp2' pauseAtEnd = 'True'>
+          <Input    class = 'DataObjects'       type = 'PointSet'      >bisonData</Input>
+          <Model    class = 'Models'            type = 'PostProcessor' >PCA1</Model>
+          <Output   class = 'OutStreamManager'  type = 'Plot'          >PlotPCA1</Output>
+       </PostProcess>
+    </Steps>
+    <DataObjects>
+        <PointSet name='bisonData'>
+            <Input>power_scalef,thermal_expansion,grainradius_scalef</Input>
+            <Output>max_stress,max_vonmises_stress,max_hoop_stress,avg_clad_temp,ave_temp_interior,
+                fis_gas_released,centerline_temp,midplane_hoop_stress_clad,midplane_hoop_strain_clad,
+                midplane_hoop_strain_fuel,midplane_vonmises_stress,rod_input_power,rod_total_power</Output>
+        </PointSet>
+    </DataObjects>
+    <Models>
+        <PostProcessor name='KMeans1' subType='DataMining'>
+            <KDD lib='SciKitLearn'>
+                <SKLtype>cluster|KMeans</SKLtype>
+                <Features>output</Features>
+                <n_clusters>3</n_clusters>
+                <tol>0.0001</tol>
+                <init>random</init>
+            </KDD>
+            <DataObject    class = 'DataObjects' type = 'PointSet'>bisonData</DataObject>
+        </PostProcessor>
+        <PostProcessor name='PCA1' subType='DataMining'>
+            <KDD lib='SciKitLearn'>
+                <Features>power_scalef,grainradius_scalef,thermal_expansion</Features>
+                <SKLtype>decomposition|PCA</SKLtype>
+                <n_components>2</n_components>
+            </KDD>
+            <DataObject    class = 'DataObjects' type = 'PointSet'>bisonData</DataObject>
+        </PostProcessor>
+     </Models>
+    <OutStreamManager>
+        <Print name = 'dump1'>
+            <type>csv</type>
+            <source>bisonData</source>
+        </Print>
+        <Plot dim="3" name="PlotKMeans1" verbosity="debug">
+            <plotSettings>
+                <plot>
+                    <type>dataMining</type>
+                    <SKLtype>cluster</SKLtype>
+                    <x>bisonData|Input|power_scalef</x>
+                    <y>bisonData|Input|grainradius_scalef</y>
+                    <z>bisonData|Input|thermal_expansion</z>
+                    <noClusters>3</noClusters>
+                    <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
+                    <kwargs>
+                    </kwargs>
+                </plot>
+                <xlabel>Power Scaling Factor</xlabel>
+                <ylabel>Grain Radius Factor</ylabel>
+                <zlabel>Thermal Expansion
+Factor</zlabel>
+            </plotSettings>
+            <actions>
+                <how>png</how>
+                <labelFormat><axis>z</axis><scilimits>(0,1)</scilimits></labelFormat>
+            </actions>
+        </Plot>
+        <Plot dim="2" name="PlotPCA1" overwrite="false" verbosity="debug">
+            <plotSettings>
+                <plot>
+                    <type>dataMining</type>
+                    <SKLtype>cluster</SKLtype>
+                    <x>bisonData|Output|PCA1PCAComponent1</x>
+                    <y>bisonData|Output|PCA1PCAComponent2</y>
+                    <noClusters>3</noClusters>
+                    <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
+                    <kwargs>
+                    </kwargs>
+                </plot>
+                <xlabel>PCAComponent1</xlabel>
+                <ylabel>PCAComponent2</ylabel>
+            </plotSettings>
+            <actions>
+                <how>png</how>
+            </actions>
+        </Plot>
+        <Plot dim="2" name="PlotAll" overwrite="false" verbosity="debug">
+            <plotSettings>
+                <gridSpace>5 1</gridSpace>
+                <plot>
+                    <type>dataMining</type>
+                    <SKLtype>cluster</SKLtype>
+                    <x>bisonData|Input|power_scalef</x>
+                    <y>bisonData|Output|midplane_vonmises_stress</y>
+                    <xlabel>Power Scaling Factor</xlabel>
+                    <ylabel>Midplane Von Mises
+Stress</ylabel>
+                    <noClusters>3</noClusters>
+                    <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
+                    <gridLocation>
+                        <x>0</x>
+                        <y>0 1</y>
+                    </gridLocation>
+                    <kwargs>
+                        <edgecolor>None</edgecolor>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>dataMining</type>
+                    <SKLtype>cluster</SKLtype>
+                    <x>bisonData|Input|grainradius_scalef</x>
+                    <y>bisonData|Output|midplane_vonmises_stress</y>
+                    <xlabel>Grain Radius Factor</xlabel>
+                    <ylabel>Midplane Von Mises
+Stress</ylabel>
+                    <noClusters>3</noClusters>
+                    <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
+                    <gridLocation>
+                        <x>2</x>
+                        <y>0 1</y>
+                    </gridLocation>
+                    <kwargs>
+                        <edgecolor>None</edgecolor>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>dataMining</type>
+                    <SKLtype>cluster</SKLtype>
+                    <x>bisonData|Input|thermal_expansion</x>
+                    <y>bisonData|Output|midplane_vonmises_stress</y>
+                    <xlabel>Thermal Expansion Factor</xlabel>
+                    <ylabel>Midplane Von Mises
+Stress</ylabel>
+                    <noClusters>3</noClusters>
+                    <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
+                    <gridLocation>
+                        <x>4</x>
+                        <y>0 1</y>
+                    </gridLocation>
+                    <range><xmin>9E-6</xmin><xmax>1.1E-5</xmax></range>
+                    <kwargs>
+                        <edgecolor>None</edgecolor>
+                    </kwargs>
+                </plot>
+            </plotSettings>
+            <actions>
+                <how>png</how>
+            </actions>
+        </Plot>
+     </OutStreamManager>
+</Simulation>
+

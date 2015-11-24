@@ -1,0 +1,67 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+    <RunInfo>
+        <WorkingDir>AffinityPropogation</WorkingDir>
+        <Sequence>readIn,AffinityBlobs,output</Sequence>
+        <batchSize>100</batchSize>
+    </RunInfo>
+    <Files>
+        <Input name="DataSetsFile">./DataSets.csv</Input>
+    </Files>
+    <Models>
+        <PostProcessor name='AffinityBlobs' subType='DataMining' verbosity = 'quiet'>
+            <KDD lib='SciKitLearn'>
+                <Features>x1,x2</Features>
+                <SKLtype>cluster|AffinityPropogation</SKLtype>
+                <damping>0.9</damping>
+                <preference>-200</preference>
+            </KDD>
+            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
+        </PostProcessor>
+    </Models>
+    <Steps>
+        <IOStep name='readIn' pauseAtEnd = 'True'>
+            <Input    class = 'Files'             type = ''             >DataSetsFile</Input>
+            <Output   class = 'DataObjects'       type = 'PointSet'     >DataSets</Output>
+        </IOStep>
+        <PostProcess name='AffinityBlobs' pauseAtEnd = 'True'>
+            <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
+            <Model   class = 'Models'            type = 'PostProcessor' >AffinityBlobs</Model>
+            <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
+        </PostProcess>
+        <IOStep name='output' pauseAtEnd = 'True'>
+            <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
+            <Output  class = 'OutStreamManager'  type = 'Plot'          >PlotAffinityBlobs</Output>
+        </IOStep>
+    </Steps>
+    <OutStreamManager>
+        <Print name = 'dummy'>
+            <type>csv</type>
+            <source>DataSets</source>
+        </Print>
+        <Plot dim="2" name="PlotAffinityBlobs" overwrite="false" >
+            <plotSettings>
+                <plot>
+                    <type>dataMining</type>
+                    <SKLtype>cluster</SKLtype>
+                    <x>DataSets|input|x1</x>
+                    <y>DataSets|input|x2</y>
+                    <clusterLabels>DataSets|Output|AffinityBlobsLabels</clusterLabels>
+                    <kwargs>
+                        <edgecolor>None</edgecolor>
+                    </kwargs>
+                </plot>
+            </plotSettings>
+            <actions>
+                <how>png</how>
+            </actions>
+        </Plot>
+   </OutStreamManager>
+    <DataObjects>
+        <PointSet name="DataSets">
+            <Input>x1,x2,y1,y2,z1,z2</Input>
+            <Output>Output</Output>
+        </PointSet>
+    </DataObjects>
+</Simulation>
+

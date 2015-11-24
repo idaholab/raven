@@ -127,6 +127,31 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     """
     self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]), np.std(values[names.index(feat)]))
 
+  def evaluate(self, edict):
+    """
+    Method to perform the evaluation of a point or a set of points through the previous trained unSuperVisedLearning algorithm
+    NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+    the interface with the kernels requires.
+    @ In, tdict, evaluation dictionary
+    @ Out, numpy array of evaluated points
+    """
+    if type(edict) != dict: self.raiseAnError(IOError, ' Method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    names, values = list(edict.keys()), list(edict.values())
+    for index in range(len(values)):
+      resp = self.checkArrayConsistency(values[index])
+      if not resp[0]: self.raiseAnError(IOError, ' In evaluate request for feature ' + names[index] + ':' + resp[1])
+    if self.labels in names:
+      self.labelValues = values[names.index(self.labels)]
+    # construct the evaluation matrix
+    featureValues = np.zeros(shape = (values[0].size, len(self.features)))
+    for cnt, feat in enumerate(self.features):
+      if feat not in names: self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the evaluate set')
+      else:
+        resp = self.checkArrayConsistency(values[names.index(feat)])
+        if not resp[0]: self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
+        featureValues[:, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])) / self.muAndSigmaFeatures[feat][1]
+    return self.__evaluateLocal__(featureValues)
+
   def confidence(self):
     """
     This call is used to get an estimate of the confidence in the prediction of the clusters.
@@ -140,6 +165,13 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
   def __trainLocal__(self):
     """
     Perform training...
+    """
+ 
+  @abc.abstractmethod
+  def __evaluateLocal__(self, featureVals):
+    """
+    @ In,  featureVals, 2-D numpy array [n_samples,n_features]
+    @ Out, targetVals , 1-D numpy array [n_samples]
     """
 
   @abc.abstractmethod
@@ -313,7 +345,7 @@ class SciKitLearn(unSupervisedLearning):
             self.precs_ = self.Method.precs_
             self.outputDict['outputs']['precs_'   ] = self.precs_
         if hasattr(self.Method, 'converged_') :
-            if not self.Method.converged_ : self.raiseAnError(RuntimeError, self.SKLtype + '|' + self.SKLsubType + ' did not converged. (from KDD->' + self.name + ')')
+            if not self.Method.converged_ : self.raiseAnError(RuntimeError, self.SKLtype + '|' + self.SKLsubType + ' did not converged. (from KDD->' + self.SKLsubType + ')')
             self.converged_ = self.Method.converged_
             self.outputDict['outputs']['converged'] = self.converged_
     elif 'manifold' == self.SKLtype:
@@ -354,6 +386,22 @@ class SciKitLearn(unSupervisedLearning):
             self.biClusters_ = self.Method.biClusters_
             self.outputDict['outputs']['biClusters'           ] = self.biClusters_
     '''
+
+  def __evaluateLocal__(self, featureVals):
+    """
+    Method to return labels of an already trained unSuperVised algorithm.
+    @ In: featureVals, feature values
+    @ Out: self.labels_, labels
+    """
+    self.normValues = featureVals
+    if hasattr(self.Method, 'predict'): self.labels_ = self.Method.predict(featureVals)
+    else                              : self.labels_ = self.Method.fit_predict(featureVals)
+    self.outputDict['outputs']['labels'] = self.labels_
+
+    if hasattr(self.Method, 'inertia_') :
+        self.inertia_ = self.Method.inertia_
+        self.outputDict['outputs']['inertia'] = self.inertia_
+    return self.labels_
 
   def __confidenceLocal__(self):
     """

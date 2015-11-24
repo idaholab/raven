@@ -1,0 +1,137 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+    <RunInfo>
+        <WorkingDir>MiniBatchKMeans</WorkingDir>
+        <Sequence>readIn,MiniBatchKMeansBlobs,MiniBatchKMeansCircles,MiniBatchKMeansMoons,output</Sequence>
+        <batchSize>100</batchSize>
+    </RunInfo>
+    <Files>
+        <Input name="DataSetsFile">./DataSets.csv</Input>
+    </Files>
+    <Models>
+        <PostProcessor name='MiniBatchKMeansBlobs' subType='DataMining' verbosity = 'quiet'>
+            <KDD lib='SciKitLearn'>
+                <Features>x1,x2</Features>
+                <SKLtype>cluster|MiniBatchKMeans</SKLtype>
+                <n_clusters>2</n_clusters>
+            </KDD>
+            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
+        </PostProcessor>
+        <PostProcessor name='MiniBatchKMeansCircles' subType='DataMining' verbosity = 'quiet'>
+            <KDD lib='SciKitLearn'>
+                <Features>y1,y2</Features>
+                <SKLtype>cluster|MiniBatchKMeans</SKLtype>
+                <n_clusters>2</n_clusters>
+            </KDD>
+            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
+        </PostProcessor>
+        <PostProcessor name='MiniBatchKMeansMoons' subType='DataMining' verbosity = 'quiet'>
+            <KDD lib='SciKitLearn'>
+                <Features>z1,z2</Features>
+                <SKLtype>cluster|MiniBatchKMeans</SKLtype>
+                <n_clusters>2</n_clusters>
+            </KDD>
+            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
+        </PostProcessor>
+    </Models>
+    <Steps>
+        <IOStep name='readIn' pauseAtEnd = 'True'>
+            <Input    class = 'Files'             type = ''             >DataSetsFile</Input>
+            <Output   class = 'DataObjects'       type = 'PointSet'     >DataSets</Output>
+        </IOStep>
+        <PostProcess name='MiniBatchKMeansBlobs' pauseAtEnd = 'True'>
+            <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
+            <Model   class = 'Models'            type = 'PostProcessor' >MiniBatchKMeansBlobs</Model>
+            <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
+        </PostProcess>
+        <PostProcess name='MiniBatchKMeansCircles' pauseAtEnd = 'True'>
+            <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
+            <Model   class = 'Models'            type = 'PostProcessor' >MiniBatchKMeansCircles</Model>
+            <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
+        </PostProcess>
+        <PostProcess name='MiniBatchKMeansMoons' pauseAtEnd = 'True'>
+            <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
+            <Model   class = 'Models'            type = 'PostProcessor' >MiniBatchKMeansMoons</Model>
+            <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
+        </PostProcess>
+        <IOStep name='output' pauseAtEnd = 'True'>
+            <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
+            <Output  class = 'OutStreamManager'  type = 'Plot'          >PlotMiniBatchKMeans</Output>
+        </IOStep>
+    </Steps>
+    <OutStreamManager>
+        <Print name = 'dummy'>
+            <type>csv</type>
+            <source>DataSets</source>
+        </Print>
+        <Plot dim="2" name="PlotMiniBatchKMeans" overwrite="false" >
+            <plotSettings>
+                <gridSpace>3 1</gridSpace>
+                <plot>
+                    <type>dataMining</type>
+                    <SKLtype>cluster</SKLtype>
+                    <x>DataSets|input|x1</x>
+                    <y>DataSets|input|x2</y>
+                    <clusterLabels>DataSets|Output|MiniBatchKMeansBlobsLabels</clusterLabels>
+                    <gridLocation>
+                        <x>0</x>
+                        <y>0</y>
+                    </gridLocation>
+                    <range>
+                        <xmin>-2</xmin><xmax>2</xmax>
+                        <ymin>-2</ymin><ymax>2</ymax>
+                    </range>
+                    <kwargs>
+                        <edgecolor>None</edgecolor>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>dataMining</type>
+                    <SKLtype>cluster</SKLtype>
+                    <x>DataSets|input|y1</x>
+                    <y>DataSets|input|y2</y>
+                    <clusterLabels>DataSets|Output|MiniBatchKMeansCirclesLabels</clusterLabels>
+                    <gridLocation>
+                        <x>1</x>
+                        <y>0</y>
+                    </gridLocation>
+                    <range>
+                        <xmin>-4</xmin><xmax>4</xmax>
+                        <ymin>-4</ymin><ymax>4</ymax>
+                    </range>
+                    <kwargs>
+                        <edgecolor>None</edgecolor>
+                    </kwargs>
+                </plot>
+                <plot>
+                    <type>dataMining</type>
+                    <SKLtype>cluster</SKLtype>
+                    <x>DataSets|input|z1</x>
+                    <y>DataSets|input|z2</y>
+                    <clusterLabels>DataSets|Output|MiniBatchKMeansMoonsLabels</clusterLabels>
+                    <gridLocation>
+                        <x>2</x>
+                        <y>0</y>
+                    </gridLocation>
+                    <range>
+                        <xmin>-4</xmin><xmax>4</xmax>
+                        <ymin>-4</ymin><ymax>4</ymax>
+                    </range>
+                    <kwargs>
+                        <edgecolor>None</edgecolor>
+                    </kwargs>
+                </plot>
+            </plotSettings>
+            <actions>
+                <how>png</how>
+            </actions>
+        </Plot>
+   </OutStreamManager>
+    <DataObjects>
+        <PointSet name="DataSets">
+            <Input>x1,x2,y1,y2,z1,z2</Input>
+            <Output>Output</Output>
+        </PointSet>
+    </DataObjects>
+</Simulation>
+
