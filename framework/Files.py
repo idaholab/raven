@@ -365,7 +365,7 @@ class File(BaseType):
     @ In,  mode, string (optional) the read-write mode according to python "file" method ('r','a','w','rw',etc) (default 'rw')
     @ Out, None
     """
-    if not self.isOpen(): self.__file = file(self.getAbsFile(),mode)
+    if not self.isOpen(): self.__file = open(self.getAbsFile(),mode)
     else: self.raiseAWarning('Tried to open',self.getFilename(),'but file already open!')
 
   def __iter__(self): #MIGHT NEED TO REMOVE

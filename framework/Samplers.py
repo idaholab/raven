@@ -133,6 +133,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.requiredAssObject              = (True,(['Restart','function'],['-n','-n']))
     self.assemblerDict                  = {}                       # {'class':[['subtype','name',instance]]}
 
+    #used for pca analysis
+    self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
+    self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
+    '''
+    self.latentVariablesDict            = {}                       # regarding latent variables, for each variable 'distName', the following informations are included: {'distName':['latentVar1','latentVar2',...]}
+    self.latentVariablesValues          = []                       # list of latent variable values
+    self.latentType                     = ''                       # input latent variable type, i.e. 'pca'
+    '''
+
   def _localGenerateAssembler(self,initDict):
     """ see generateAssembler method """
     availableDist = initDict['Distributions']
@@ -239,6 +248,27 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
               self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
           else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available are: limit, initialSeed, reseedEachIteration and distInit!')
+      elif child.tag == "variablesTransformation":
+        transformationDict = {}
+        for childChild in child:
+          if childChild.tag == "latentVariables":
+            transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
+          elif childChild.tag == "manifestVariables":
+            transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
+          elif childChild.tag == "method":
+            self.transformationMethod[child.attrib['model']] = childChild.text
+        self.variablesTransformationDict[child.attrib['model']] = transformationDict
+
+
+      '''
+      elif child.tag == "latentVariables":
+        self.latentType = child.attrib['type']
+        self.latentVariablesDict[child.attrib['name']] = list(inp.strip() for inp in child.text.strip().split(','))
+      elif child.tag == 'manifestVariables':
+        if childChild.attrib['type'] == 'model':
+          self.inputVariables['model'] = list(inp.strip() for inp in childChild.text.strip().split(','))
+      '''
+
 
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
@@ -259,9 +289,51 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       maxDim=1
       listvar = self.distributions2variablesMapping[dist]
       for var in listvar:
-        if var.values()[0] > maxDim:
-          maxDim = var.values()[0]
+        if utils.first(var.values()) > maxDim:
+          maxDim = utils.first(var.values())
       self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
+
+    #Checking the variables transformation
+    if self.variablesTransformationDict:
+      for key,varsDict in self.variablesTransformationDict.items():
+        listLatentElement = varsDict['latentVariables']
+        varName = [variables for variables in self.variables2distributionsMapping.keys() if listLatentElement[0] in set(variables.strip().split(','))]
+        if varName:
+          distName = self.variables2distributionsMapping[varName[0]]['name']
+        else:
+          self.raiseAnError(IOError, 'There is no distribution defined for variable ' + listLatentElement[0])
+        listElement = self.distributions2variablesMapping[distName]
+        totDim = 1
+        for var in listElement:
+          if var.values()[0] > totDim:
+            totDim = var.values()[0]
+        maxDim = len(listLatentElement)
+        if totDim != maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(totDim) + ' is not consistnet with the dimension (i.e. ' + str(maxDim) +') of latent variable')
+        tempListElement = {k:v for x in listElement for k,v in x.items()}
+        for var,dim in tempListElement.items():
+          if dim > maxDim:
+            self.raiseAnError(IOError, 'The input variable: ' + var + ' is associated with dimension ' + str(dim) + ' is exceed the dimension of latent variables in PCA analysis')
+          if listLatentElement[dim -1] not in set(var.strip().split(',')):
+            self.raiseAnError(IOError, 'The dim: ' + str(dim) + ' should be assigned to the latent variable: ' + listLatentElement[dim-1] + ', However, it is assigned to variable: ' + var)
+    '''
+    #Checking the latent variables
+    if self.latentType != None:
+      for key in self.latentVariablesDict.keys():
+        listLatentElement = self.latentVariablesDict[key]
+        listElement = self.distributions2variablesMapping[key]
+        totDim = 1
+        for var in listElement:
+          if var.values()[0] > totDim:
+            totDim = var.values()[0]
+        maxDim = len(listLatentElement)
+        if totDim != maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(totDim) + ' is not consistnet with the dimension (i.e. ' + str(maxDim) +') of latent variable')
+        tempListElement = {k:v for x in listElement for k,v in x.items()}
+        for var,dim in tempListElement.items():
+          if dim > maxDim:
+            self.raiseAnError(IOError, 'The input variable: ' + var + ' is associated with dimension ' + str(dim) + ' is exceed the dimension of latent variables in PCA analysis')
+          if listLatentElement[dim -1] not in set(var.strip().split(',')):
+            self.raiseAnError(IOError, 'The dim: ' + str(dim) + ' should be assigned to the latent variable: ' + listLatentElement[dim-1] + ', However, it is assigned to variable: ' + var)
+    '''
 
   def readSamplerInit(self,xmlNode):
     """
@@ -402,7 +474,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for distrib in self.NDSamplingParams:
       if distrib in self.distributions2variablesMapping:
         params = self.NDSamplingParams[distrib]
-        temp = self.distributions2variablesMapping[distrib][0].keys()[0]
+        temp = utils.first(self.distributions2variablesMapping[distrib][0].keys())
         self.distDict[temp].updateRNGParam(params)
       else:
         self.raiseAnError(IOError,'Distribution "%s" specified in distInit block of sampler "%s" does not exist!' %(distrib,self.name))
@@ -446,11 +518,44 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.inputInfo['prefix'] = str(self.counter)
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
+    # add latent variables and original variables to self.inputInfo
+    if self.variablesTransformationDict:
+      for key,var in self.variablesTransformationDict.items():
+        if self.transformationMethod[key] == 'pca':
+          self.pcaTransform(var)
+        else:
+          self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[key] + ' method')
     # generate the function variable values
     for var in self.dependentSample.keys():
       test=self.funcDict[var].evaluate(var,self.values)
       self.values[var] = test
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
+
+  def pcaTransform(self,varsDict):
+    """
+    This method used to mapping latent variables to the model input variables
+    both the latent variables and the model input variables will be stored in the dict: self.inputInfo['SampledVars']
+    @in varsDict, dictionary contains latent and manifest variables {'latentVariables':[latentVar1,latentVar2,...], 'manifestVariables':[var1,var2,...]}
+    """
+    latentVariablesValues = []
+    for lvar in varsDict['latentVariables']:
+      for var,value in self.values.items():
+        if lvar == var:
+          latentVariablesValues.append(value)
+    manifestVariablesValues = self.distDict[varsDict['latentVariables'][0]].pcaInverseTransform(latentVariablesValues)
+    manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
+    self.values.update(manifestVariablesDict)
+
+    '''
+    for key in self.latentVariablesDict.keys():
+      latentVariablesValues = []
+      for lvar in self.latentVariablesDict[key]:
+        for var,value in self.values.items():
+          if lvar == var:
+            latentVariablesValues.append(value)
+      varDict = self.distDict[self.latentVariablesDict[key][0]].pcaInverseTransform(latentVariablesValues)
+      self.values.update(varDict)
+    '''
 
   @abc.abstractmethod
   def localGenerateInput(self,model,oldInput):
@@ -728,7 +833,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = 0.0, 1.0
         transformMethod[varName.replace('<distribution>','')] = [self.distDict[varName].ppf]
     #moving forward building all the information set
-    self.axisName = self.distDict.keys()
+    self.axisName = list(self.distDict.keys())
     self.axisName.sort()
     # initialize LimitSurface PP
     self.limitSurfacePP._initFromDict({"name":self.name+"LSpp","parameters":[key.replace('<distribution>','') for key in self.axisName],"tolerance":self.tolerance,"side":"both","transformationMethods":transformMethod,"bounds":bounds})
@@ -780,7 +885,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     for key,value in self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).items():
       self.persistenceMatrix[key] += value
     # get the test matrices' dictionaries to test the error
-    testMatrixDict, oldTestMatrixDict = self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values(),self.oldTestMatrix.values()
+    testMatrixDict, oldTestMatrixDict = list(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values()),list(self.oldTestMatrix.values())
     # the first test matrices in the list are always represented by the coarse grid (if subGridTol activated) or the only grid available
     coarseGridTestMatix, coarseGridOldTestMatix = testMatrixDict.pop(0), oldTestMatrixDict.pop(0)
     # compute the Linf norm with respect the location of the LS
@@ -1007,23 +1112,27 @@ class MonteCarlo(Sampler):
       totDim = self.variables2distributionsMapping[key]['totDim']
       dist   = self.variables2distributionsMapping[key]['name']
 
-      for var in self.distributions2variablesMapping[dist]:
+      if totDim == 1:
+        for var in self.distributions2variablesMapping[dist]:
+          varID  = utils.first(var.keys())
+          rvsnum = self.distDict[key].rvs()
+          self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
+          for kkey in varID.strip().split(','):
+            self.values[kkey] = np.atleast_1d(rvsnum)[0]
+      elif totDim > 1:
         if dim == 1:
           rvsnum = self.distDict[key].rvs()
-          varID  = var.keys()[0]
-          varDim = var[varID]
-          for kkey in varID.strip().split(','):
-            self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
-            if totDim > 1:
-              coordinate=[];
-              for i in range(totDim):
-                coordinate.append(np.atleast_1d(rvsnum)[i])
-              self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(coordinate)
-            elif totDim == 1:
-              self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
-            else:
-              self.inputInfo['SampledVarsPb'][kkey] = 1.0
-      #else? #FIXME
+          coordinate = np.atleast_1d(rvsnum).tolist()
+          if len(coordinate) < totDim: self.raiseAnError(IOError,"The maximum dimension defined for variables drew the multivariate normal distribution is exceed the dimension used in Distribution (MultivariateNormal) ")
+          probabilityValue = self.distDict[key].pdf(coordinate)
+          self.inputInfo['SampledVarsPb'][key] = probabilityValue
+          for var in self.distributions2variablesMapping[dist]:
+            varID  = utils.first(var.keys())
+            varDim = var[varID]
+            for kkey in varID.strip().split(','):
+              self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
+      else:
+        self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
 
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
@@ -1075,7 +1184,7 @@ class Grid(Sampler):
     grdInfo = self.gridEntity.returnParameter("gridInfo")
     for axis, value in grdInfo.items(): self.gridInfo[axis] = value[0]
     if len(self.toBeSampled.keys()) != len(grdInfo.keys()): self.raiseAnError(IOError,'inconsistency between number of variables and grid specification')
-    self.axisName = grdInfo.keys()
+    self.axisName = list(grdInfo.keys())
     self.axisName.sort()
 
   def localAddInitParams(self,tempDict):
@@ -1148,8 +1257,8 @@ class Grid(Sampler):
               distName = self.variables2distributionsMapping[varName]['name']
               NDcoordinate=[0]*len(self.distributions2variablesMapping[distName])
               for var in self.distributions2variablesMapping[distName]:
-                variable = var.keys()[0]
-                position = var.values()[0]
+                variable = utils.first(var.keys())
+                position = utils.first(var.values())
                 NDcoordinate[position-1] = float(coordinates[variable.strip()])
                 for key in variable.strip().split(','):
                   self.inputInfo['distributionName'][key] = self.toBeSampled[variable]
@@ -1183,8 +1292,8 @@ class Grid(Sampler):
             NDcoordinate=np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs=np.zeros(len(self.distributions2variablesMapping[distName]))
             for var in self.distributions2variablesMapping[distName]:
-              variable = var.keys()[0].strip()
-              position = var.values()[0]
+              variable = utils.first(var.keys()).strip()
+              position = utils.first(var.values())
               NDcoordinate[position-1] = coordinates[variable.strip()]
               if self.gridInfo[variable]=='CDF':
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
@@ -1258,25 +1367,35 @@ class Stratified(Grid):
     """
     Grid.localInitialize(self)
     self.limit = (self.pointByVar-1)
-    globGridsCount = {}
-    dimInfo = self.gridEntity.returnParameter("dimInfo")
-    for val in dimInfo.values():
-      if val[-1] != None and val[-1] not in globGridsCount.keys(): globGridsCount[val[-1]] = 0
-      globGridsCount[val[-1]] += 1
-    diff = -sum(globGridsCount.values())+len(globGridsCount.keys())
-    tempFillingCheck = [[None]*(self.pointByVar-1)]*(len(self.gridEntity.returnParameter("dimensionNames"))+diff) #for all variables
+    # For the multivariate normal distribtuion, if the user generates the grids on the transformed space, the user needs to provide the grid for each variables, no globalGrid is needed
+    if self.variablesTransformationDict:
+      tempFillingCheck = [[None]*(self.pointByVar-1)]*len(self.gridEntity.returnParameter("dimensionNames")) #for all variables
+      self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
+      for i in range(len(tempFillingCheck)): tempFillingCheck[i]  = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
+      mappingIdVarName = {}
+      for cnt, varName in enumerate(self.axisName):
+        mappingIdVarName[varName] = cnt
+    # For the multivariate normal, if the user wants to generate the grids based on joint distribution, the user needs to provide the globalGrid for all corresponding variables
+    else:
+      globGridsCount = {}
+      dimInfo = self.gridEntity.returnParameter("dimInfo")
+      for val in dimInfo.values():
+        if val[-1] is not None and val[-1] not in globGridsCount.keys(): globGridsCount[val[-1]] = 0
+        globGridsCount[val[-1]] += 1
+      diff = -sum(globGridsCount.values())+len(globGridsCount.keys())
+      tempFillingCheck = [[None]*(self.pointByVar-1)]*(len(self.gridEntity.returnParameter("dimensionNames"))+diff) #for all variables
+      self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
+      for i in range(len(tempFillingCheck)): tempFillingCheck[i]  = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
+      cnt = 0
+      mappingIdVarName = {}
+      for varName in self.axisName:
+        if varName not in dimInfo.keys(): mappingIdVarName[varName] = cnt
+        else:
+          for addKey,value in dimInfo.items():
+            if value[1] == dimInfo[varName][1] and addKey not in mappingIdVarName.keys(): mappingIdVarName[addKey] = cnt
+        if len(mappingIdVarName.keys()) == len(self.axisName): break
+        cnt +=1
 
-    self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
-    for i in range(len(tempFillingCheck)): tempFillingCheck[i]  = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
-    cnt = 0
-    mappingIdVarName = {}
-    for varName in self.axisName:
-      if varName not in dimInfo.keys(): mappingIdVarName[varName] = cnt
-      else:
-        for addKey,value in dimInfo.items():
-          if value[1] == dimInfo[varName][1] and addKey not in mappingIdVarName.keys(): mappingIdVarName[addKey] = cnt
-      if len(mappingIdVarName.keys()) == len(self.axisName): break
-      cnt +=1
     for nPoint in range(self.pointByVar-1): self.sampledCoordinate[nPoint]= [tempFillingCheck[mappingIdVarName[varName]][nPoint] for varName in self.axisName]
     if self.restartData:
       self.counter+=len(self.restartData)
@@ -1295,29 +1414,78 @@ class Stratified(Grid):
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     weight = 1.0
     for varName in self.axisName:
-      upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
-      lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
-      coordinate = lower + (upper-lower)*Distributions.random()
-      varCount += 1
+      # new implementation for ND LHS
       if not "<distribution>" in varName:
         if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['dim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
-          gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
-          for distVarName in self.distributions2variablesMapping[distName]:
-            for kkey in distVarName.keys()[0].strip().split(','):
-              self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
-          # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
-          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
-          weight *= upper - lower
+          if self.variablesTransformationDict:
+            distName = self.variables2distributionsMapping[varName]['name']
+            for distVarName in self.distributions2variablesMapping[distName]:
+              for kkey in utils.first(distVarName.keys()).strip().split(','):
+                self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+                self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
+            NDcoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
+            dxs = np.zeros(len(self.distributions2variablesMapping[distName]))
+            centerCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
+            for var in self.distributions2variablesMapping[distName]:
+              # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+              variable = utils.first(var.keys()).strip()
+              position = utils.first(var.values())
+              upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]+1})[variable]
+              lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]})[variable]
+              varCount += 1
+              if self.gridInfo[variable] == 'CDF':
+                coordinate = lower + (upper-lower)*Distributions.random()
+                NDcoordinate[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinate,variable)
+                dxs[position-1] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)-self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
+                centerCoordinate[position-1] = (self.distDict[variable].inverseMarginalDistribution(upper,variable)+self.distDict[variable].inverseMarginalDistribution(lower,variable))/2.0
+                for kkey in variable.strip().split(','):
+                  self.values[kkey] = NDcoordinate[position-1]
+                  self.inputInfo['upper'][kkey] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)
+                  self.inputInfo['lower'][kkey] = self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
+              elif self.gridInfo[variable] == 'value':
+                dxs[position-1] = max(upper,lower) - min(upper,lower)
+                centerCoordinate[position-1] = (upper + lower)/2.0
+                coordinateCdf = self.distDict[variable].marginalCdf(lower) + (self.distDict[variable].marginalCdf(upper) - self.distDict[variable].marginalCdf(lower))*Distributions.random()
+                coordinate = self.distDict[variable].inverseMarginalDistribution(coordinateCdf,variable)
+                NDcoordinate[position-1] = coordinate
+                for kkey in variable.strip().split(','):
+                  self.values[kkey] = coordinate
+                  self.inputInfo['upper'][kkey] = max(upper,lower)
+                  self.inputInfo['lower'][kkey] = min(upper,lower)
+            weight *= self.distDict[varName].cellIntegral(centerCoordinate,dxs)
+            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinate)
+          else:
+            if self.gridInfo[varName] == 'CDF':
+              upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
+              lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
+              varCount += 1
+              coordinate = lower + (upper-lower)*Distributions.random()
+              gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
+              for distVarName in self.distributions2variablesMapping[distName]:
+                for kkey in utils.first(distVarName.keys()).strip().split(','):
+                  self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
+              # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
+              self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
+              weight *= max(upper,lower) - min(upper,lower)
+            else: self.raiseAnError(IOError,"Since the globalGrid is defined, the Stratified Sampler is only working when the sampling is performed on a grid on a CDF. However, the user specifies the grid on " + self.gridInfo[varName])
+
       if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:   # 1D variable
         # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+        upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
+        lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
+        varCount += 1
         if self.gridInfo[varName] =='CDF':
+          coordinate = lower + (upper-lower)*Distributions.random()
           ppfValue = self.distDict[varName].ppf(coordinate)
           ppfLower = self.distDict[varName].ppf(min(upper,lower))
           ppfUpper = self.distDict[varName].ppf(max(upper,lower))
           weight *= self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
           self.inputInfo['SampledVarsPb'][varName]  = self.distDict[varName].pdf(ppfValue)
         elif self.gridInfo[varName] == 'value':
-          weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
+          coordinateCdf = self.distDict[varName].cdf(min(upper,lower)) + (self.distDict[varName].cdf(max(upper,lower))-self.distDict[varName].cdf(min(upper,lower)))*Distributions.random()
+          if coordinateCdf == 0.0: self.raiseAWarning(IOError,"\033[93m The grid lower bound and upper bound in value will generate ZERO cdf value!!! \033[0m")
+          coordinate = self.distDict[varName].ppf(coordinateCdf)
+          weight *= self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(coordinate)
         for kkey in varName.strip().split(','):
           self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
@@ -1330,6 +1498,7 @@ class Stratified(Grid):
             self.values[kkey] = coordinate
             self.inputInfo['upper'][kkey] = max(upper,lower)
             self.inputInfo['lower'][kkey] = min(upper,lower)
+
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
@@ -2309,7 +2478,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       for treer in hybridTrees: # this needs to be solved
         for ending in treer.iterProvidedFunction(self._checkCompleteHistory):
           completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeid=ending.get('name'),serialize=False))
-          finishedHistNames.append(completedHistNames[-1].keys()[0])
+          finishedHistNames.append(utils.first(completedHistNames[-1].keys()))
       # assemble a dictionary
       if len(completedHistNames) > self.completedHistCnt:
         # sort the list of histories
@@ -2489,7 +2658,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         self._localInputAndChecksHybrid(xmlNode)
         for hybridsampler in self.hybridStrategyToApply.values(): hybridsampler._generateDistributions(distDict, {})
     DynamicEventTree.localInitialize(self)
-    if self.hybridDETstrategy == 2: self.actualHybridTree = self.TreeInfo.keys()[0]
+    if self.hybridDETstrategy == 2: self.actualHybridTree = utils.first(self.TreeInfo.keys())
     self._endJobRunnable    = sys.maxsize
 
   def generateInput(self,model,oldInput):
@@ -2794,7 +2963,7 @@ class SparseGridCollocation(Grid):
       if 'ROM' in key:
         for value in self.assemblerDict[key]: self.ROM = value[3]
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = SVLs[0] #often need only one
+    SVL = utils.first(SVLs) #often need only one
     self.features = SVL.features
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
@@ -2819,7 +2988,7 @@ class SparseGridCollocation(Grid):
 
     if self.writeOut != None:
       msg=self.sparseGrid.__csv__()
-      outFile=file(self.writeOut,'w')
+      outFile=open(self.writeOut,'w')
       outFile.writelines(msg)
       outFile.close()
 
@@ -2827,15 +2996,15 @@ class SparseGridCollocation(Grid):
     if self.restartData != None:
       inps = self.restartData.getInpParametersValues()
       #make reorder map
-      reordmap=list(inps.keys().index(i) for i in self.features)
+      reordmap=list(list(inps.keys()).index(i) for i in self.features)
       solns = list(v for v in inps.values())
       ordsolns = [solns[i] for i in reordmap]
       self.existing = zip(*ordsolns)
 
     self.limit=len(self.sparseGrid)
     self.raiseADebug('Size of Sparse Grid  :'+str(self.limit))
-    self.raiseADebug('Number from Restart :'+str(len(self.existing)))
-    self.raiseADebug('Number of Runs Needed :'+str(self.limit-len(self.existing)))
+    self.raiseADebug('Number from Restart :'+str(utils.iter_len(self.existing)))
+    self.raiseADebug('Number of Runs Needed :'+str(self.limit-utils.iter_len(self.existing)))
     self.raiseADebug('Finished sampler generation.')
 
     self.raiseADebug('indexset:',self.indexSet)
@@ -2998,7 +3167,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     #set a pointer to the GaussPolynomialROM object
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = SVLs[0] #sampler doesn't always care about which target
+    SVL = utils.first(SVLs) #sampler doesn't always care about which target
     self.features=SVL.features #the input space variables
     self.targets  = self.ROM.initializationOptionDict['Target'].split(',')
     for t in self.targets:
@@ -3412,7 +3581,7 @@ class Sobol(SparseGridCollocation):
     #make combination of ROMs that we need
     self.targets  = self.ROM.SupervisedEngine.keys()
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = SVLs[0]
+    SVL = utils.first(SVLs)
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
     features = SVL.features
@@ -3470,7 +3639,7 @@ class Sobol(SparseGridCollocation):
     self.pointsToRun.append(tuple(newpt))
     self.distinctPoints.add(tuple(newpt))
     #now do the rest
-    for combo,rom in self.ROMs.values()[0].items(): #each target is the same, so just for each combo
+    for combo,rom in utils.first(self.ROMs.values()).items(): #each target is the same, so just for each combo
       SG = rom.sparseGrid #they all should have the same sparseGrid
       SG._remap(combo)
       for l in range(len(SG)):
@@ -3485,8 +3654,8 @@ class Sobol(SparseGridCollocation):
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
     self.raiseADebug('Needed points: %i' %self.limit)
-    self.raiseADebug('From Restart : %i' %len(self.existing))
-    self.raiseADebug('Still Needed : %i' %(self.limit-len(self.existing)))
+    self.raiseADebug('From Restart : %i' %utils.iter_len(self.existing))
+    self.raiseADebug('Still Needed : %i' %(self.limit-utils.iter_len(self.existing)))
     initdict={'ROMs':None, #self.ROMs,
               'SG':self.SQs,
               'dists':self.distDict,
