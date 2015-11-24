@@ -296,7 +296,8 @@ class File(BaseType):
   def readline(self,mode='r',size=None):
     """
       Mimics the "readline" function of a python file object.
-      @ In, None
+      @ In, mode, string, the mode (r,a,w) with which to interact with the file
+      @ In, size, int, the number of bytes to read in, as per the Python file object
       @ Out, string, next line from file
     """
     if not self.isOpen(): self.open(mode)
