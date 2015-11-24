@@ -798,9 +798,9 @@ class ComparisonStatistics(BasePostProcessor):
 
   def processData(self, dataPull, data, methodInfo):
       ret = {}
-      try:
+      if hasattr(data,'tolist'):
         sortedData = data.tolist()
-      except:
+      else:
         sortedData = list(data)
       sortedData.sort()
       low = sortedData[0]
@@ -1021,8 +1021,9 @@ class BasicStatistics(BasePostProcessor):
     if type(currentInput) == dict:
       if 'targets' in currentInput.keys(): return currentInput
     inputDict = {'targets':{}, 'metadata':{}}
-    try: inType = currentInput.type
-    except:
+    if hasattr(currentInput,'type'):
+      inType = currentInput.type
+    else:
       if type(currentInput).__name__ == 'list'    : inType = 'list'
       else: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
     if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(inType,Files.File):
@@ -1606,9 +1607,11 @@ class LimitSurface(BasePostProcessor):
     if type(currentInp) == dict:
       if 'targets' in currentInput.keys(): return
     inputDict = {'targets':{}, 'metadata':{}}
-    #FIXME I don't think this try-catch is checking for files, HDF5 and dataobjects
-    try   : inType = currentInput.type
-    except: self.raiseAnError(IOError, self, 'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
+    #FIXME I don't think this is checking for files, HDF5 and dataobjects
+    if hasattr(currentInput,'type'):
+      inType = currentInput.type
+    else:
+      self.raiseAnError(IOError, self, 'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
     if isinstance(currentInp,Files.File):
       if currentInput.subtype == 'csv': pass
       #FIXME else?  This seems like hollow code right now.
