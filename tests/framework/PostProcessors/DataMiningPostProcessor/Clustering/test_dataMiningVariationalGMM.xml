@@ -27,15 +27,15 @@
             <Input    class = 'Files'             type = ''             >DataSetsFile</Input>
             <Output   class = 'DataObjects'       type = 'PointSet'     >DataSets</Output>
         </IOStep>
+        <IOStep name='output' pauseAtEnd = 'True'>
+            <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
+            <Output  class = 'OutStreamManager'  type = 'Plot'          >PlotVariationalGMMBlobs</Output>
+        </IOStep>
         <PostProcess name='VariationalGMMBlobs' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >VariationalGMMBlobs</Model>
             <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
-        <IOStep name='output' pauseAtEnd = 'True'>
-            <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
-            <Output  class = 'OutStreamManager'  type = 'Plot'          >PlotVariationalGMMBlobs</Output>
-        </IOStep>
     </Steps>
     <OutStreamManager>
         <Print name = 'dummy'>

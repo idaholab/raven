@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+    <RunInfo>
+        <WorkingDir>MultiDimensionalScaling</WorkingDir>
+        <Sequence>readIn,KMeans,PCAIris,output</Sequence>
+        <batchSize>100</batchSize>
+    </RunInfo>
+    <Files>
+        <Input name="DataSetsFile">./iris.csv</Input>
+    </Files>
+    <Models>
+        <PostProcessor name='KMeans' subType='DataMining'>
+            <KDD lib='SciKitLearn'>
+                <SKLtype>cluster|KMeans</SKLtype>
+                <Features>x1,x2,x3,x4</Features>
+                <n_clusters>3</n_clusters>
+                <tol>0.0001</tol>
+                <init>random</init>
+            </KDD>
+            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
+        </PostProcessor>
+        <PostProcessor name='PCA' subType='DataMining' verbosity = 'quiet'>
+            <KDD lib='SciKitLearn'>
+                <Features>x1,x2,x3,x4</Features>
+                <SKLtype>manifold|MDS</SKLtype>
+                <n_components>2</n_components>
+		<max_iter>10000</max_iter>
+            </KDD>
+            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
+        </PostProcessor>
+    </Models>
+    <Steps>
+        <IOStep name='readIn' pauseAtEnd = 'True'>
+            <Input    class = 'Files'             type = ''             >DataSetsFile</Input>
+            <Output   class = 'DataObjects'       type = 'PointSet'     >DataSets</Output>
+        </IOStep>
+        <IOStep name='output' pauseAtEnd = 'True'>
+            <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
+            <Output  class = 'OutStreamManager'  type = 'Plot'          >PlotIris</Output>
+        </IOStep>
+        <PostProcess name='KMeans' pauseAtEnd = 'True'>
+            <Input    class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
+            <Model    class = 'Models'            type = 'PostProcessor' >KMeans</Model>
+            <Output   class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
+        </PostProcess>
+        <PostProcess name='PCAIris' pauseAtEnd = 'True'>
+            <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
+            <Model   class = 'Models'            type = 'PostProcessor' >PCA</Model>
+            <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
+        </PostProcess>
+    </Steps>
+    <OutStreamManager>
+        <Print name = 'dummy'>
+            <type>csv</type>
+            <source>DataSets</source>
+        </Print>
+        <Plot dim="2" name="PlotIris" overwrite="false" verbosity="debug">
+            <plotSettings>
+                <plot>
+                    <type>dataMining</type>
+                    <SKLtype>cluster</SKLtype>
+                    <x>DataSets|Output|PCAEmbeddingVector1</x>
+                    <y>DataSets|Output|PCAEmbeddingVector2</y>
+                    <clusterLabels>DataSets|Input|labels</clusterLabels>
+                    <kwargs>
+                    </kwargs>
+                </plot>
+                <xlabel>PCAEmbeddingVector1</xlabel>
+                <ylabel>PCAEmbeddingVector2</ylabel>
+            </plotSettings>
+            <actions>
+                <how>png</how>
+            </actions>
+        </Plot>
+    </OutStreamManager>
+    <DataObjects>
+        <PointSet name="DataSets">
+            <Input>x1,x2,x3,x4,labels</Input>
+            <Output>Output</Output>
+        </PointSet>
+    </DataObjects>
+</Simulation>
+

@@ -40,6 +40,10 @@
             <Input    class = 'Files'             type = ''             >DataSetsFile</Input>
             <Output   class = 'DataObjects'       type = 'PointSet'     >DataSets</Output>
         </IOStep>
+        <IOStep name='output' pauseAtEnd = 'True'>
+            <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
+            <Output  class = 'OutStreamManager'  type = 'Plot'          >PlotMeanShift</Output>
+        </IOStep>
         <PostProcess name='MeanShiftBlobs' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >MeanShiftBlobs</Model>
@@ -55,10 +59,6 @@
             <Model   class = 'Models'            type = 'PostProcessor' >MeanShiftMoons</Model>
             <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
-        <IOStep name='output' pauseAtEnd = 'True'>
-            <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
-            <Output  class = 'OutStreamManager'  type = 'Plot'          >PlotMeanShift</Output>
-        </IOStep>
     </Steps>
     <OutStreamManager>
         <Print name = 'dummy'>
