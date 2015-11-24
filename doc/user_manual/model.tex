@@ -1195,10 +1195,14 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
 \end{lstlisting}
 }
 
-When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are
-\xmlString{mean}, \xmlString{variance}, \xmlString{numRuns}, and \xmlString{indices}.  In the latter
-case, the total calculated variance is printed, followed by the percent of contributing variance for
-each existing subset of the input domain (the Sobol indices).
+When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are:
+\begin{itemize}
+  \item \xmlString{mean}, the mean value of the ROM within the input space it was trained,
+  \item \xmlString{variance}, the variance of the ROM within the input space it was trained,
+  \item \xmlString{numRuns}, the number of distinct model runs required to construct the ROM,
+  \item \xmlString{indices}, the total variance and the percent contribution of each subset to the total
+    variance (the Sobol sensitivity indices).
+\end{itemize}
 
 %%%%% ROM Model - MSR  %%%%%%%
 \subsubsection{MSR}
