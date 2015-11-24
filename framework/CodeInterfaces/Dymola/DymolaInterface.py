@@ -1,5 +1,5 @@
 '''
-Created on Nov 16, 2015
+Created on Nov 24, 2015
 
 @author: Jong Suk Kim
 
@@ -92,17 +92,16 @@ import re
 import copy
 import numpy
 
-from six import string_types
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class DymolaInterface(CodeInterfaceBase):
-  '''Provides code to interface RAVEN to Dymola'''
+  """Provides code to interface RAVEN to Dymola"""
 
   def __init__(self):
-    '''Initializes the GenericCode Interface.
+    """Initializes the GenericCode Interface.
        @ In, None
        @Out, None
-    '''
+    """
 
   #  Generate the command to run Dymola. The form of the command is:
   #
@@ -116,16 +115,16 @@ class DymolaInterface(CodeInterfaceBase):
   #     <outputfile>     The simulation output, which is .mat file.
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
+    """See base class.  Collects all the clargs and the executable to produce the command-line call.
+       Returns tuple of commands and base file name for run.
+       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+       @ In, inputFiles, list, list of input files to be used for the run
+       @ In, executable, string, the executable name with absolute path
+       @ In, clargs, dictionary, command-line arguments to be used
+       @ In, fargs, dictionary, in-file changes to be made
+       @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
     """
-    See base class.  Collects all the clargs and the executable to produce the command-line call.
-    Returns tuple of commands and base file name for run.
-    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-    @ In, inputFiles, the input files to be used for the run
-    @ In, executable, the executable to be run
-    @ In, clargs, command-line arguments to be used
-    @ In, fargs, in-file changes to be made
-    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
-    """
+
     # Find the first file in the inputFiles that is a text file, which is what we need to work with.
     found = False
     for index, inputFile in enumerate(inputFiles):
@@ -144,17 +143,31 @@ class DymolaInterface(CodeInterfaceBase):
     return executeCommand, outputfile
 
   def _isValidInput(self, inputFile):
+    """Check if an input file is a text file, with an extension of .txt or .TXT.
+       @ In, inputFile, string, the file name to be checked
+       @out, boolean: 'True' if an input file has an extenstion of .txt or .TXT., otherwise 'False'.
+    """
+
     if inputFile.getExt() in ('txt', 'TXT'):
       return True
     return False
 
   def getInputExtension(self):
+    """Return a tuple of possible file extensions for a simulation initialization file (i.e., dsin.txt).
+       @out, tuple('txt', 'TXT')
+    """
+
     return ('txt', 'TXT')
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
-    '''Generate a new Dymola input file (txt format) from the original, changing parameters
+    """Generate a new Dymola input file (txt format) from the original, changing parameters
        as specified in Kwargs['SampledVars']
-    '''
+       @ In, currentInputFiles, list, list of current input files (input files from last this method call)
+       @ In, oriInputFiles, list, list of original input files
+       @ In, samplerType, string, sampler type (e.g., MonteCarlo, Adaptive, etc.). 'None' if no sampler has been used.
+       @ In, Kwargs, dictionary, dictionary of parameters. 
+
+    """
 
     # Start with the original input file, which we have to find first.
     found = False
@@ -185,7 +198,7 @@ class DymolaInterface(CodeInterfaceBase):
         varDict[key] = 1 if value else 0
       assert not isinstance(value, numpy.ndarray), ("Arrays must be split "
         "into scalars for the simulation initialization file.")
-      assert not isinstance(value, string_types), ("Strings cannot be "
+      assert not type(value).__name__ in ['str','bytes','unicode'], ("Strings cannot be "
         "used as values in the simulation initialization file.")
 
     # Aliases for some regular sub-expressions.
@@ -258,14 +271,15 @@ class DymolaInterface(CodeInterfaceBase):
     return newInputFiles
 
   def finalizeCodeOutput(self, command, output, workingDir):
-    '''Called by RAVEN to modify output files (if needed) so that they are in a proper form.
+    """Called by RAVEN to modify output files (if needed) so that they are in a proper form.
        In this case, the default .mat output needs to be converted to .csv output, which is the
        format that RAVEN can communicate with.
-       @ In, currentInputFiles, list, the current input files
-       @ In, output, string, the Output name root
-       @ In, workingDir, string, actual working dir
+       @ In, command, string, the command used to run the just ended job
+       @ In, output, string, the output name root
+       @ In, workingDir, string, current (actual) working directory
        @ Return is optional, in case the root of the output file gets changed as in this method.
-    '''
+    """
+
     self._vars = {}
     self._blocks = []
     self._namesData1 = []
