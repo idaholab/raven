@@ -165,8 +165,7 @@ class DymolaInterface(CodeInterfaceBase):
        @ In, currentInputFiles, list, list of current input files (input files from last this method call)
        @ In, oriInputFiles, list, list of original input files
        @ In, samplerType, string, sampler type (e.g., MonteCarlo, Adaptive, etc.). 'None' if no sampler has been used.
-       @ In, Kwargs, dictionary, dictionary of parameters. 
-
+       @ In, Kwargs, dictionary, dictionary of parameters.
     """
 
     # Start with the original input file, which we have to find first.
