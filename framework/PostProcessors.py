@@ -8,11 +8,8 @@ import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
-#import sys
 import numpy as np
-#from sklearn import tree
 from scipy import spatial, interpolate
-#from scipy import integrate
 import os
 from glob import glob
 import copy
@@ -1189,6 +1186,8 @@ class BasicStatistics(BasePostProcessor):
   def __computeUnbiasedCorrection(self,order,weightsOrN):
     """
      Compute unbiased correction given weights and momement order
+     Reference paper: 
+     Lorenzo Rimoldini, "Weighted skewness and kurtosis unbiased by sample size", http://arxiv.org/pdf/1304.6564.pdf
      @ In, order, int, moment order
      @ In, weightsOrN, array-like or int, if array-like -> weights else -> number of samples
      @ Out, corrFactor, float (order <=3) or tuple of floats (order ==4), the unbiased correction factor
