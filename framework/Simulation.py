@@ -431,8 +431,12 @@ class Simulation(MessageHandler.MessageUser):
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     """parses the xml input file, instances the classes need to represent all objects in the simulation"""
+    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity'],list(xmlNode.attrib.keys()))
+    if len(unknownAttribs) > 0:
+      errorMsg = 'The following attributes are unknown:'
+      for element in unknownAttribs: errorMsg += ' ' + element
+      self.raiseAnError(IOError,errorMsg)
     self.verbosity = xmlNode.attrib.get('verbosity','all')
-    if 'debug' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'"debug" attribute found, but has been deprecated.  Please change it to "verbosity."')
     if 'printTimeStamps' in xmlNode.attrib.keys():
       self.raiseADebug('Setting "printTimeStamps" to',xmlNode.attrib['printTimeStamps'])
       self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
