@@ -884,6 +884,11 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['ROM'       ][0]['type'        ] = ['ROM']
     cls.validateDict['ROM'       ][0]['required'    ] = False
     cls.validateDict['ROM'       ][0]['multiplicity'] = '1'
+    cls.validateDict['KDD'] = [cls.testDict.copy()]
+    cls.validateDict['KDD'       ][0]['class'       ] = 'Models'
+    cls.validateDict['KDD'       ][0]['type'        ] = ['KDD']
+    cls.validateDict['KDD'       ][0]['required'    ] = False
+    cls.validateDict['KDD'       ][0]['multiplicity'] = 'n'
 
   def __init__(self,runInfoDict):
     Model.__init__(self,runInfoDict)

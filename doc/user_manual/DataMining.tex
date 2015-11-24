@@ -1,0 +1,1102 @@
+\subsubsection{DataMining (\textit{aka: Knowledge Discovery in DataBases)}}
+\label{subsubsec:DataMining}
+
+Knowledge discovery in databases (KDD) is the process of discovering
+ useful knowledge from a collection of data.This widely used data 
+mining technique is a process that includes data preparation and 
+selection, data cleansing, incorporating prior knowledge on data 
+sets and interpreting accurate solutions from the observed results. 
+Major KDD application areas include marketing, fraud detection, 
+telecommunication and manufacturing.
+
+DataMining is the analysis step of the KDD process. The overall of 
+the data mining process is to extract information from a data set 
+and transform it into an understandable structure for further use.
+The actual data mining task is the 
+automatic or semi-automatic analysis of large quantities of data 
+to extract previously unknown, interesting patterns such as groups
+ of data records (cluster analysis), unusual records (anomaly 
+detection), and dependencies (association rule mining). 
+\\
+%
+In order to use the \textbf{DataMining} post-processor, the user
+needs to set the attribute \xmlAttr{subType}: \\ 
+\\
+\xmlNode{PostProcessor \xmlAttr{subType}=
+\xmlString{DataMiningPostProcessor}}. \\
+\\
+The following is a list of acceptable sub-nodes:
+\begin{itemize}
+  \item \xmlNode{KDD} \xmlDesc{string,required field}, the subnodes specifies
+  the necessary information for the algorithm to be used in the postprocessor.
+  the \xmlNode{KDD} has the required attribute: \xmlAttr{lib}, the name of the 
+  library the algorithm belongs to. Current algorithms applied in the KDD model
+  is based on SciKit-Learn library. Thus currently there is only one library:
+\begin{itemize}
+  \item \xmlString{SciKitLearn}
+\end{itemize}
+ \item \textbf{Assembler Objects} These objects are either required or optional
+  depending on the functionality of the dataMining PostProcessor.
+  %
+  The objects must be listed with a rigorous syntax that, except for the xml
+  node tag, is common among all the objects.
+  %
+  Each of these nodes must contain 2 attributes that are used to map those
+  within the simulation framework:
+   \begin{itemize}
+    \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
+    ``class'' of the listed object.
+    %
+    For example, it can be ``DataObjects,'' ``Models,'' etc.
+    \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
+    identifier or sub-type.
+    %
+    For example, it can be ``PointSet,'' ``ROM,'' etc.
+    %
+  \end{itemize}
+  The \textbf{DataMining} post-processor requires or optionally accepts the
+  following objects' types:
+  \begin{itemize}
+    \item \xmlNode{DataObject}, \xmlDesc{string, required field}, body of this xml
+    node must contain the name of a DataObject defined in the \xmlNode{DataObjects} block
+    (see section \ref{sec:DataObjects}).
+    %
+  \end{itemize}
+\end{itemize}
+
+The algorithm for the dataMining is chosen by the subnode 
+\xmlNode{SKLType} under the parent node \xmlNode{KDD}. The format is 
+same as in \ref{subsubsec:SciKitLearn}. However, for the completeness sake
+, it is repeated here.
+
+The data that are used in the training of the \textbf{DataMining} 
+postprocessor are suplied with subnode \xmlNode{Features} in the parent node
+ \xmlNode{KDD}.
+
+
+\begin{itemize}
+  \item \xmlNode{SKLtype}, \xmlDesc{vertical bar (\texttt{|}) separated string,
+  required field}, contains a string that represents the data mining algorithm
+  to be used.
+  %
+  As mentioned, its format is:\\
+  \xmlNode{SKLtype}\texttt{mainSKLclass|algorithm}\xmlNode{/SKLtype} where the
+  first word (before the ``\texttt{|}'' symbol) represents the main class of
+  algorithms, and the second word (after the ``\texttt{|}'' symbol) represents
+  the specific algorithm.
+  %
+  \item \xmlNode{Features}, \xmlDesc{string, required field}, defines the data
+  to be used for training the data mining algorithm. It can be:
+  \begin{itemize}
+	\item the name of the variable in the defined dataObject entity
+	\item the location (i.e. input or output). In this case the data mining
+        is applied to all the variables in the defined space.
+  \end{itemize} 
+\end{itemize}
+
+The \xmlNode{KDD} node can have either optional or required subnodes depending
+ on the dataMining algorithm used. The possible subnodes will be described seperately
+ for each algorithm below.
+
+All the available algorithms are described in the following sections.
+
+\paragraph{Gaussian mixture models}
+\label{paragraph:GMM}
+
+A Gaussian mixture model is a probabilistic model that assumes all
+ the data points are generated from a mixture of a finite number of
+ Gaussian distributions with unknown parameters.
+\\
+Scikit-learn implements different classes to estimate Gaussian 
+mixture models, that correspond to different estimation strategies,
+ detailed below.
+
+\subparagraph{ GMM classifier} \hfill
+\label{subparagraph:GMMClass}
+
+The GMM object implements the expectation-maximization (EM) 
+algorithm for fitting mixture-of-Gaussian models. The GMM comes with different options
+ to constrain the covariance of  the difference classes estimated: spherical, diagonal, tied or
+ full covariance.
+
+\skltype{Gaussian Mixture Model}{mixture|GMM}
+\begin{itemize}
+	\item \xmlNode{n\_components}, \xmlDesc{integer, optional
+field} Number of mixture components. \default{1}
+	\item \xmlNode{covariance\_type}, \xmlDesc{string, optional
+field}, describes the type of covariance parameters to use. 
+Must be one of ‘spherical’, ‘tied’, ‘diag’, ‘full’. \default{diag}
+	\item \xmlNode{random\_state}, \xmlDesc{integer seed or random
+ number generator instance, optional field},  A random number 
+generator instance \default{0 or None}
+	\item \xmlNode{min\_covar}, \xmlDesc{float, optional field},
+ Floor on the diagonal of the covariance matrix to prevent overfitting.
+ \default{1e-3}.
+	\item \xmlNode{thresh}, \xmlDesc{float, optional field}, 
+convergence threshold. \default{0.01}
+	\item \xmlNode{n\_iter}, \xmlDesc{integer, optional field},
+Number of EM iterations to perform. \default{100}
+	\item \xmlNode{n\_init}, \xmlDesc{integer, optional},
+Number of initializations to perform. the best results is kept. 
+\default{1}
+	\item \xmlNode{params}, \xmlDesc{string, optional field},
+ Controls which parameters are updated in the training process. 
+Can contain any combination of ‘w’ for weights, ‘m’ for means, and 
+‘c’ for covars. \default{‘wmc’}
+	\item \xmlNode{init\_params}, \xmlDesc{string, optional
+field}, Controls which parameters are updated in the initialization 
+process. Can contain any combination of ‘w’ for weights, ‘m’ for means,
+ and ‘c’ for covars. \default{‘wmc’}.
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+      <PostProcessor name='PostProcessorName' subType='DataMiningPostProcessor'>
+          <KDD lib='SciKitLearn'>
+              <Features>variableName</Features>
+              <SKLtype>mixture|GMM</SKLtype>
+              <n_components>2</n_components>
+              <covariance_type>spherical</covariance_type>
+          </KDD>
+          <DataObject    class = 'DataObjects' type = 'PointSet'>aDataObject</DataObject>
+      </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
+
+
+\subparagraph{ Dirichlet Process GMM Classifier (DPGMM)} \hfill
+\label{subparagraph:DPGMM}
+
+The DPGMM implements a variant of the Gaussian mixture model with
+ a variable (but bounded) number of components using the Dirichlet
+ Process. The API is identical to GMM. This class doesn’t require 
+the user to choose the number of components, and at the expense of
+ extra computational time the user only needs to specify a loose
+ upper bound on this number and a concentration parameter.
+
+\skltype{Dirichlet Process Gaussian Mixture Model}{mixture|DPGMM}
+\begin{itemize}
+	\item \xmlNode{n\_components}, \xmlDesc{integer, optional
+field} Number of mixture components. \default{1}
+	\item \xmlNode{covariance\_type}, \xmlDesc{string, optional
+field}, describes the type of covariance parameters to use. 
+Must be one of ‘spherical’, ‘tied’, ‘diag’, ‘full’. \default{diag}
+	\item \xmlNode{alpha}, \xmlDesc{float, optional field}, 
+represents the concentration parameter of the dirichlet process. 
+Intuitively, the Dirichlet Process is as likely to start a new cluster
+ for a point as it is to add that point to a cluster with alpha
+ elements. A higher alpha means more clusters, as the expected 
+number of clusters is ${\alpha*log(N)}$. \default{1}.
+	\item \xmlNode{thresh}, \xmlDesc{float, optional field}, 
+convergence threshold. \default{0.01}
+	\item \xmlNode{n\_iter}, \xmlDesc{integer, optional field},
+Number of EM iterations to perform. \default{100}
+	\item \xmlNode{params}, \xmlDesc{string, optional field},
+ Controls which parameters are updated in the training process. 
+Can contain any combination of ‘w’ for weights, ‘m’ for means, and 
+‘c’ for covars. \default{‘wmc’}
+	\item \xmlNode{init\_params}, \xmlDesc{string, optional
+field}, Controls which parameters are updated in the initialization 
+process. Can contain any combination of ‘w’ for weights, ‘m’ for means,
+ and ‘c’ for covars. \default{‘wmc’}.
+\end{itemize}
+
+\subparagraph{ Variational GMM Classifier (VBGMM)} \hfill
+\label{subparagraph:VBGMM}
+
+The VBGMM object implements a variant of the Gaussian mixture model
+ with variational inference algorithms. The API is identical to GMM.
+ It is essentially a middle-ground between GMM and DPGMM, as it has 
+some of the properties of the Dirichlet process.
+
+\skltype{Variational Gaussian Mixture Model}{mixture|VBGMM}
+\begin{itemize}
+	\item \xmlNode{n\_components}, \xmlDesc{integer, optional
+field} Number of mixture components. \default{1}
+	\item \xmlNode{covariance\_type}, \xmlDesc{string, optional
+field}, describes the type of covariance parameters to use. 
+Must be one of ‘spherical’, ‘tied’, ‘diag’, ‘full’. \default{diag}
+	\item \xmlNode{alpha}, \xmlDesc{float, optional field}, 
+represents the concentration parameter of the dirichlet process. 
+Intuitively, the Dirichlet Process is as likely to start a new cluster
+ for a point as it is to add that point to a cluster with alpha
+ elements. A higher alpha means more clusters, as the expected 
+number of clusters is ${\alpha*log(N)}$. \default{1}.
+\end{itemize}
+
+\paragraph{ Clustering }
+\label{paragraph:Clustering}
+
+Clustering of unlabeled data can be performed with this subType of
+ the DataMining PostProcessor. 
+
+An overwiev of the different clustering algorithms is given in 
+Table\ref{tab:clustering}. 
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Overview of Clustering Methods}
+  \label{tab:clustering}
+  \begin{tabular}{| L{2.5cm} | L{2.5cm} | L{2.5cm} | L{3.5cm} | L{2.75cm} |} \hline
+    {\bf Method name} & {\bf Parameters} & {\bf Scalability} & {\bf  
+Usecase} & {\bf Geometry (metric used)} \\ \hline
+    K-Means  & number of clusters & Very large n\_samples, medium 
+n\_clusters with MiniBatch code & General-purpose, even cluster size, 
+flat geometry, not too many clusters & Distances between points 
+ \\ \hline
+    Affinity propagation & damping, sample preference & Not scalable with 
+n\_samples & Many clusters, uneven cluster size, non-flat geometry & 
+Graph distance (e.g. nearest-neighbor graph)       \\ \hline
+    Mean-shift & bandwidth & Not scalable with n\_samples & Many clusters,
+ uneven cluster size, non-flat geometry & Distances between points \\ \hline
+    Spectral clustering & number of clusters & Medium n\_samples, small 
+n\_clusters & Few clusters, even cluster size, non-flat geometry & 
+Graph distance (e.g. nearest-neighbor graph)       \\ \hline
+    Ward hierarchical clustering & number of clusters & Large n\_samples 
+and n\_clusters & Many clusters, possibly connectivity constraints & 
+Distances between points       \\ \hline
+    Agglomerative clustering & number of clusters, linkage type, distance
+ & Large n\_samples and n\_clusters & Many clusters, possibly 
+connectivity constraints, non Euclidean distances & Any pairwise 
+distance       \\ \hline
+    DBSCAN & neighborhood size & Very large n\_samples, medium n\_clusters
+ & Non-flat geometry, uneven cluster sizes & Distances between nearest
+ points       \\ \hline
+    Gaussian mixtures & many & Not scalable & Flat geometry, good for
+ density estimation & Mahalanobis distances to centers       \\ \hline
+  \end{tabular}
+\end{table}
+
+\FloatBarrier
+
+\subparagraph{K-Means Clustering} \hfill
+\label{subparagraph:KMeans}
+
+The KMeans algorithm clusters data by trying to separate samples in n groups 
+of equal variance, minimizing a criterion known as the inertia or within-cluster 
+sum-of-squares. This algorithm requires the number of clusters to be specified.
+ It scales well to large number of samples and has been used across a large 
+range of application areas in many different fields
+
+\skltype{ K-Means Clustering}{cluster|KMeans}
+\begin{itemize}
+	\item \xmlNode{n\_clusters}, \xmlDesc{integer, optional field}
+The number of clusters to form as well as the number of centroids to 
+generate. \default{8}
+	\item \xmlNode{max\_iter}, \xmlDesc{integer, optional field},
+Maximum number of iterations of the k-means algorithm for a single run.
+\default{300}
+	\item \xmlNode{n\_init}, \xmlDesc{integer, optional field},
+Number of time the k-means algorithm will be run with different centroid
+ seeds. The final results will be the best output of n\_init consecutive
+ runs in terms of inertia. \default{3}
+	\item \xmlNode{init}, \xmlDesc{string, optional}, 
+Method for initialization, k-means++’, ‘random’ or an ndarray:
+		\begin{itemize}
+			\item ‘k-means++’ : selects initial cluster 
+centers for k-mean clustering in a smart way to speed up convergence. 
+			\item ‘random’: choose k observations (rows) at
+ random from data for the initial centroids.
+			\item If an ndarray is passed, it should be of
+ shape (n\_clusters, n\_features) and gives the initial centers.
+		\end{itemize}
+	\item \xmlNode{precompute\_distances}, \xmlDesc{boolean, optional
+field}, Precompute distances (if true faster but takes more memory).
+\default{true}
+	\item \xmlNode{tol}, \xmlDesc{float, optional field}, Relative 
+tolerance with regards to inertia to declare convergence. \default{1e-4} 
+	\item \xmlNode{n\_jobs}, \xmlDesc{integer, optional field}, The number 
+of jobs to use for the computation. This works by breaking down the pairwise
+ matrix into n jobs even slices and computing them in parallel. If -1 all CPUs
+ are used. If 1 is given, no parallel computing code is used at all, which is 
+useful for debugging. For n\_jobs below -1, (n\_cpus + 1 + n\_jobs) are used. Thus
+ for n\_jobs = -2, all CPUs but one are used. \default{1}
+	\item \xmlNode{random\_state}, \xmlDesc{integer or numpy.RandomState,
+ optional field} The generator used to initialize the centers. If an integer
+ is given, it fixes the seed. \default{the global numpy random number generator}.
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+      <PostProcessor name='PostProcessorName' subType='DataMiningPostProcessor'>
+          <KDD lib='SciKitLearn'>
+              <Features>variableName</Features>
+              <SKLtype>cluster|KMeans</SKLtype>
+              <n_clusters>2</n_clusters>
+              <tol>0.0001</tol>
+              <init>random</init>
+          </KDD>
+          <DataObject    class = 'DataObjects' type = 'PointSet'>aDataObject</DataObject>
+      </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
+
+
+\subparagraph{  Mini Batch K-Means } \hfill
+\label{subparagraph:MiniBatch}
+
+The MiniBatchKMeans is a variant of the KMeans algorithm which uses 
+mini-batches to reduce the computation time, while still attempting
+ to optimise the same objective function. Mini-batches are subsets of
+ the input data, randomly sampled in each training iteration.
+
+MiniBatchKMeans converges faster than KMeans, but the quality of the 
+results is reduced. In practice this difference in quality can be
+ quite small.
+
+\skltype{ Mini Batch K-Means Clustering}{cluster|MiniBatchKMeans}
+\begin{itemize}
+	\item \xmlNode{n\_clusters}, \xmlDesc{integer, optional field}
+The number of clusters to form as well as the number of centroids to 
+generate. \default{8}
+	\item \xmlNode{max\_iter}, \xmlDesc{integer, optional field},
+Maximum number of iterations of the k-means algorithm for a single run.
+\default{100}
+	\item \xmlNode{max\_no\_improvement}, \xmlDesc{integer, optional
+firld}, Control early stopping based on the consecutive number of mini
+ batches that does not yield an improvement on the smoothed inertia.
+To disable convergence detection based on inertia, set 
+max\_no\_improvement to None. \default{10}
+	\item \xmlNode{tol}, \xmlDesc{float, optional field}, Control
+ early stopping based on the relative center changes as measured by a 
+smoothed, variance-normalized of the mean center squared position changes.
+ This early stopping heuristics is closer to the one used for the batch
+ variant of the algorithms but induces a slight computational and memory 
+overhead over the inertia heuristic. To disable convergence detection 
+based on normalized center change, set tol to 0.0 (default). \default{0.0}
+	\item \xmlNode{batch\_size}, \xmlDesc{integer, optional field},
+Size of the mini batches. \default{100}
+	\item{init\_size}, \xmlDesc{integer, optional field}, Number of 
+samples to randomly sample for speeding up the initialization
+ (sometimes at the expense of accuracy): the only algorithm is initialized
+ by running a batch KMeans on a random subset of the data. 
+\textit{This needs to be larger than k.}, \default{3 * \xmlNode{batch\_size}}
+	\item \xmlNode{init}, \xmlDesc{string, optional}, 
+Method for initialization, k-means++’, ‘random’ or an ndarray:
+		\begin{itemize}
+			\item ‘k-means++’ : selects initial cluster 
+centers for k-mean clustering in a smart way to speed up convergence. 
+			\item ‘random’: choose k observations (rows) at
+ random from data for the initial centroids.
+			\item If an ndarray is passed, it should be of
+ shape (n\_clusters, n\_features) and gives the initial centers.
+		\end{itemize}
+	\item \xmlNode{precompute\_distances}, \xmlDesc{boolean, optional
+field}, Precompute distances (if true faster but takes more memory).
+\default{true}
+	\item \xmlNode{n\_init}, \xmlDesc{integer, optional field},
+Number of time the k-means algorithm will be run with different centroid
+ seeds. The final results will be the best output of n\_init consecutive
+ runs in terms of inertia. \default{3}
+	\item \xmlNode{compute\_labels}, \xmlDesc{boolean, optional field},
+Compute label assignment and inertia for the complete dataset once the
+ minibatch optimization has converged in fit. \default{True}
+	\item \xmlNode{random\_state}, \xmlDesc{integer or numpy.RandomState,
+ optional field} The generator used to initialize the centers. If an integer
+ is given, it fixes the seed. \default{the global numpy random number generator}.
+	\item{reassignment\_ratio}, \xmlNode{float, optional field}, Control 
+the fraction of the maximum number of counts for a center to be reassigned. 
+A higher value means that low count centers are more easily reassigned, which
+ means that the model will take longer to converge, but should converge in a 
+better clustering. \default{0.01}
+\end{itemize}
+
+\subparagraph{Affinity Propagation} \hfill
+\label{subparagraph:Affinity}
+
+AffinityPropagation creates clusters by sending messages between pairs of 
+samples until convergence. A dataset is then described using a small number 
+of exemplars, which are identified as those most representative of other 
+samples. The messages sent between pairs represent the suitability for one 
+sample to be the exemplar of the other, which is updated in response to the 
+values from other pairs. This updating happens iteratively until convergence,
+ at which point the final exemplars are chosen, and hence the final clustering
+ is given.
+
+\skltype{ AffinityPropogation Clustering}{cluster|AffinityPropogation}
+\begin{itemize}
+	\item \xmlNode{damping}, \xmlDesc{float, optional field}, Damping factor
+ between 0.5 and 1. \default{0.5}
+	\item \xmlNode{convergence\_iter}, \xmlDesc{integer, optional field}, 
+Number of iterations with no change in the number of estimated clusters that 
+stops the convergence. \default{15}
+	\item \xmlNode{max\_iter}, \xmlDesc{integer, optional field}, Maximum
+ number of iterations. \default{200}
+	\item \xmlNode{copy}, \xmlDesc{boolean, optional field}, Make a copy of 
+input data or not. \default{True}
+	\item \xmlNode{preference}, \xmlDesc{array-like, shape (n\_samples,) 
+or float, optional field}, Preferences for each point - points with larger 
+values of preferences are more likely to be chosen as exemplars. The number 
+of exemplars, ie of clusters, is influenced by the input preferences value. 
+\default{If the preferences are not passed as arguments, they will be set to the median of
+ the input similarities.}
+	\item \xmlNode{affinity}, \xmlDesc{string, optional field},Which affinity to use.
+ At the moment precomputed and euclidean are supported. euclidean uses the negative squared 
+euclidean distance between points. \default{``euclidean``}
+	\item \xmlNode{verbose}, \xmlDesc{boolean, optional field}, Whether to be verbose.
+\default{False}
+\end{itemize}
+
+\subparagraph{ Mean Shift } \hfill
+\label{subparagraph:MeanShift}
+
+MeanShift clustering aims to discover blobs in a smooth density of samples. It is
+ a centroid based algorithm, which works by updating candidates for centroids to be 
+the mean of the points within a given region. These candidates are then filtered in 
+a post-processing stage to eliminate near-duplicates to form the final set of centroids.
+
+\skltype{ Mean Shift Clustering}{cluster|MeanShift}
+\begin{itemize}
+	\item \xmlNode{bandwidth}, \xmlDesc{float, optional field}, Bandwidth used 
+in the RBF kernel. If not given, the bandwidth is estimated using 
+\textit{sklearn.cluster.estimate\_bandwidth}; see the documentation for that function for
+ hints on scalability.
+	\item \xmlNode{seeds}, \xmlDesc{array, shape=[n\_samples, n\_features], 
+optional field}, Seeds used to initialize kernels. If not set, the seeds are 
+calculated by \textit{clustering.get\_bin\_seeds} with bandwidth as the grid size and
+ default values for other parameters.
+	\item \xmlNode{bin\_seeding}, \xmlDesc{boolean, optional field}, If true,
+ initial kernel locations are not locations of all points, but rather the
+ location of the discretized version of points, where points are binned onto
+ a grid whose coarseness corresponds to the bandwidth. Setting this option 
+to True will speed up the algorithm because fewer seeds will be initialized.
+ \default{False} Ignored if seeds argument is not None.
+	\item \xmlNode{min\_bin\_freq}, \xmlDesc{integer, optional field}, 
+To speed up the algorithm, accept only those bins with at least min\_bin\_freq
+ points as seeds. \default{1}.
+	\item \xmlNode{cluster\_all}, \xmlDesc{boolean, optional field}, If true,
+ then all points are clustered, even those orphans that are not within any 
+kernel. Orphans are assigned to the nearest kernel. If false, then orphans 
+are given cluster label -1. \default{True}
+\end{itemize}
+
+
+\subparagraph{Spectral clustering} \hfill
+\label{subparagraph:Spectral}
+
+SpectralClustering does a low-dimension embedding of the affinity matrix between
+ samples, followed by a \textit{KMeans} in the low dimensional space. It is 
+especially efficient if the affinity matrix is sparse and the pyamg module is 
+installed.
+
+\skltype{Spectral Clustering}{cluster|Spectral}
+\begin{itemize}
+	\item \xmlNode{n\_clusters}, \xmlDesc{integer, optional field}, 
+	The dimension of the projection subspace.\default{8}
+	%
+	\item \xmlNode{affinity}, \xmlDesc{string, array-like or callable, optional
+	  field}, If a string, this may be one of:
+	\begin{itemize}
+		\item ‘nearest\_neighbors’,
+		\item ‘precomputed’,
+		\item ‘rbf’ or
+		\item one of the kernels supported by \textit{sklearn.metrics.pairwise\_kernels}.
+	\end{itemize}
+	Only kernels that produce similarity scores (non-negative values that increase 
+	with similarity) should be used. This property is not checked by the clustering
+	 algorithm. \default{‘rbf’}
+	%
+	\item \xmlNode{gamma}, \xmlDesc{float, optional field}, Scaling factor of RBF, 
+	polynomial, exponential $chi^2$ and sigmoid affinity kernel. 
+	Ignored for $affinity='nearest\_neighbors'$. \default{1.0}
+	%
+	\item \xmlNode{degree}, \xmlDesc{float, optional field}, Degree of the polynomial
+	 kernel. Ignored by other kernels. \default{3}
+	%
+	\item \xmlNode{coef0}, \xmlDesc{float, optional field}, Zero coefficient for 
+	polynomial and sigmoid kernels. Ignored by other kernels. \default{1}
+	%
+	\item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional field}, Number of neighbors 
+	to use when constructing the affinity matrix using the nearest neighbors method. 
+	Ignored for affinity='rbf'. \default{10}
+	%
+	\item \xmlNode{eigen\_solver} \xmlDesc{string, optional field},  The eigenvalue 
+	decomposition strategy to use:
+	\begin{itemize}
+		\item None,
+		\item ‘arpack’,
+		\item ‘lobpcg’, or
+		\item ‘amg’
+	\end{itemize}	
+	\nb{AMG requires pyamg to be installed. It can be faster on very large, sparse 
+	problems, but may also lead to instabilities}
+	%	
+	\item \xmlNode{random\_state}, \xmlDesc{integer seed, RandomState instance,
+	 or None, optional field}, A pseudo random number generator used for the 
+	initialization of the lobpcg eigen vectors decomposition when $eigen_solver == ‘amg’$
+	 and by the K-Means initialization. \default{None}
+	%
+	\item \xmlNode{n\_init}, \xmlDesc{integer, optional field}, Number of time the
+	 k-means algorithm will be run with different centroid seeds. The final results
+	 will be the best output of n\_init consecutive runs in terms of inertia.
+	\default{10}
+	%
+	\item \xmlNode{eigen\_tol}, \xmlDesc{float, optional field}, Stopping criterion
+	 for eigendecomposition of the Laplacian matrix when using arpack eigen\_solver.
+	\default{0.0}
+	%
+	\item \xmlNode{assign\_labels}, \xmlDesc{string, optional field}, The strategy to
+	use to assign labels in the embedding space. There are two ways to assign labels
+	after the laplacian embedding:
+	\begin{itemize}
+		\item ‘kmeans’,
+		\item ‘discretize’
+	\end{itemize}
+	 k-means can be applied and is a popular choice. But it can also be sensitive 
+	to initialization. Discretization is another approach which is less sensitive
+	 to random initialization. \default{‘kmeans’}
+	%
+	\item \xmlNode{kernel\_params}, \xmlDesc{dictionary of string to any, optional
+	 field}, Parameters (keyword arguments) and values for kernel passed as 
+	callable object. Ignored by other kernels. \default{None}
+\end{itemize}
+
+\textbf{Notes} \\
+If you have an affinity matrix, such as a distance matrix, for which 0 means identical 
+elements, and high values means very dissimilar elements, it can be transformed in a 
+similarity matrix that is well suited for the algorithm by applying the Gaussian
+ (RBF, heat) kernel:
+\begin{equation}
+np.exp(- X ** 2 / (2. * delta ** 2))
+\end{equation}
+Another alternative is to take a symmetric version of the k nearest neighbors 
+connectivity matrix of the points.
+If the \textit{pyamg} package is installed, it is used: this greatly speeds 
+up computation.
+
+\subparagraph{ DBSCAN Clustering } \hfill
+\label{subparagraph:DBSCAN}
+
+The Density-Based Spatial Clustering of Applications with Noise (DBSCAN)
+ algorithm views clusters as areas of high density separated by 
+areas of low density. Due to this rather generic view, clusters found by 
+DBSCAN can be any shape, as opposed to k-means which assumes that clusters
+ are convex shaped.
+
+\skltype{DBSCAN Clustering}{cluster|DBSCAN}
+\begin{itemize}
+	\item \xmlNode{eps}, \xmlDesc{float, optional field}, The maximum 
+	distance between two samples for them to be considered as in the
+	 same neighborhood. \default{0.5}
+	%
+	\item \xmlNode{min\_samples}, \xmlDesc{integer, optional field}, 
+	The number of samples in a neighborhood for a point to be 
+	considered as a core point. \default{5}
+	%
+	\item \xmlNode{metric}, \xmlDesc{string, or callable, optional field}
+	The metric to use when calculating distance between instances in
+	 a feature array. If metric is a string or callable, it must be one 
+	of the options allowed by \textit{metrics.pairwise.calculate\_distance}
+	 for its metric parameter. If metric is “precomputed”, X is assumed
+	 to be a distance matrix and must be square. \default{'ecleudian'}
+	%
+	\item \xmlNode{random\_state}, \xmlDesc{numpy.RandomState,
+	 optional field}, The generator used to initialize the centers. 
+	\default{numpy.random}.
+\end{itemize}
+
+\subparagraph{Clustering performance evaluation} \hfill
+\label{subparagraph:ClusterPerformance}
+
+Evaluating the performance of a clustering algorithm is not as trivial as 
+counting the number of errors or the precision and recall of a supervised
+ classification algorithm. In particular any evaluation metric should not
+ take the absolute values of the cluster labels into account but rather if
+ this clustering define separations of the data similar to some ground truth
+ set of classes or satisfying some assumption such that members belong to 
+the same class are more similar that members of different classes according 
+to some similarity metric.
+
+If the ground truth labels are not known, evaluation must be performed using
+ the model itself. The \textbf{Silhouette Coefficient} is an example of 
+such an evaluation, where a higher Silhouette Coefficient score relates to
+ a model with better defined clusters. The Silhouette Coefficient is defined
+ for each sample and is composed of two scores:
+\begin{enumerate}
+	\item The mean distance between a sample and all other points in the
+	 same class.
+	%
+	\item The mean distance between a sample and all other points in the
+	 next nearest cluster.
+\end{enumerate}
+
+The Silhoeutte Coefficient s for a single sample is then given as:
+\begin{equation}
+s = \frac{b - a}{max(a, b)}
+\end{equation}
+The Silhouette Coefficient for a set of samples is given as the mean of the
+ Silhouette Coefficient for each sample. In normal usage, the Silhouette
+ Coefficient is applied to the results of a cluster analysis.
+
+\begin{description}
+	\item[Advantages] \hfill \\
+	\begin{itemize}
+		\item The score is bounded between -1 for incorrect 
+		clustering and +1 for highly dense clustering. Scores around
+		 zero indicate overlapping clusters.
+		\item The score is higher when clusters are dense and well
+		 separated, which relates to a standard concept of a cluster.
+	\end{itemize}
+	\item[Drawbacks] \hfill \\
+	The Silhouette Coefficient is generally higher for convex clusters 
+	than other concepts of clusters, such as density based clusters like
+	 those obtained through DBSCAN.
+\end{description}
+
+\paragraph{Decomposing signals in components (matrix factorization problems)}
+\label{paragraph:Decomposing}
+\subparagraph{Principal component analysis (PCA)}
+\label{subparagraph:PCA}
+
+\begin{itemize}
+	\item \textbf{Exact PCA and probabilistic interpretation} \\
+	Linear Dimensionality reduction using Singular Value Decomposition of 
+	the data and keeping only the most significant singular vectors to
+	 project the data to a lower dimensional space.
+	\skltype{Exact PCA}{decomposition|PCA}
+	\begin{itemize}
+		\item \xmlNode{n\_components}, \xmlDesc{integer, None or String,
+		optional field}, Number of components to keep. if 
+		\item \xmlNode{n\_components} is not set all components are kept, 
+		\default{all components}
+		\item \xmlNode{copy}, \xmlDesc{boolean, optional field}, If False,
+		 data passed to fit are overwritten and running fit(X).transform(X)
+ 		will not yield the expected results, use fit\_transform(X) instead. 
+		\default{True}
+		\item \xmlNode{whiten}, \xmlDesc{boolean, optional field}, When True
+		the components\_ vectors are divided by n\_samples times singular
+		 values to ensure uncorrelated outputs with unit component-wise 
+		variances. Whitening will remove some information from the transformed
+		 signal (the relative variance scales of the components) but can
+		sometime improve the predictive accuracy of the downstream estimators
+		 by making there data respect some hard-wired assumptions. \default{False} 
+	\end{itemize}		
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+      <PostProcessor name='PostProcessorName' subType='DataMiningPostProcessor'>
+          <KDD lib='SciKitLearn'>
+              <Features>variable1,variable2,variable3, variable4,variable5</Features>
+              <SKLtype>decomposition|PCA</SKLtype>
+              <n_components>2</n_components>
+          </KDD>
+          <DataObject    class = 'DataObjects' type = 'PointSet'>aDataObject</DataObject>
+      </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
+
+
+	\item \textbf{Randomized {(Approximate)} PCA} \\
+	Linear Dimensionality reduction using Singular Value Decomposition of the data 
+	and keeping only the most significant singular vectors to project the data to a
+	 lower dimensional space.
+	\skltype{Randomized PCA}{decomposition|RandomizedPCA}
+	\begin{itemize}
+		\item \xmlNode{n\_components}, \xmlDesc{interger, None or String, 
+		optional field}, Number of components to keep. if n\_components is 
+		not set all components are kept.\default{all components}
+		\item \xmlNode{copy}, \xmlDesc{boolean, optional field}, If False,
+		 data passed to fit are overwritten and running fit(X).transform(X)
+ 		will not yield the expected results, use fit\_transform(X) instead. 
+		\default{True}
+		\item \xmlNode{iterated\_power}, \xmlDesc{integer, optional field}, 
+		Number of iterations for the power method. \default{3}
+		\item \xmlNode{whiten}, \xmlDesc{boolean, optional field}, When True
+		the components\_ vectors are divided by n\_samples times singular
+		 values to ensure uncorrelated outputs with unit component-wise 
+		variances. Whitening will remove some information from the transformed
+		 signal (the relative variance scales of the components) but can
+		sometime improve the predictive accuracy of the downstream estimators
+		 by making there data respect some hard-wired assumptions. \default{False} 
+		\item \xmlNode{random\_state}, \xmlDesc{int, or Random State instance 
+		or None, optional field}, Pseudo Random Number generator seed control.
+		 If None, use the numpy.random singleton. \default{None}
+	\end{itemize}
+	\item \textbf{Kernel PCA} \\
+	Non-linear dimensionality reduction through the use of kernels.
+	\skltype{Kernel PCA}{decomposition|KernelPCA}
+	\begin{itemize}
+		\item \xmlNode{n\_components}, \xmlDesc{interger, None or String, 
+		optional field}, Number of components to keep. if n\_components is 
+		not set all components are kept.\default{all components}
+		\item \xmlNode{kernel}, \xmlDesc{string, optional field}, name of 
+		the kernel to be used, options are:
+		\begin{itemize}
+			\item linear
+			\item poly 
+			\item rbf
+			\item sigmoid
+			\item cosine
+			\item precomputed
+		\end{itemize}
+		\default{linear}
+		\xmlNode{degree}, \xmlDesc{integer, optional field}, Degree for poly
+		 kernels, ignored by other kernels. \default{3}
+		\xmlNode{gamma}, \xmlDesc{float, optional field}, Kernel coefficient
+		 for rbf and poly kernels, ignored by other kernels. \default{1/n\_features}
+		\item \xmlNode{coef0}, \xmlDesc{float, optional field}, independent term in
+		 poly and sigmoig kernels, ignored by other kernels. 
+		\item \xmlNode{kernel\_params}, \xmlDesc{mapping of string to any, optional
+		 field}, Parameters (keyword arguments) and values for kernel passed as 
+		callable object. Ignored by other kernels. \default{3}
+		\item{alpha}, \xmlDesc{int, optional field}, Hyperparameter of the ridge 
+		regression that learns the inverse transform (when fit\_inverse\_transform=True).
+		\default{1.0}
+		\item \xmlNode{fit\_inverse\_transform}, \xmlDesc{bool, optional field}, 
+		Learn the inverse transform for non-precomputed kernels. (i.e. learn to find
+		 the pre-image of a point) \default{False} 
+		\item \xmlNode{eigen\_solver}, \xmlDesc{string, optional field}, Select eigensolver
+		 to use. If n\_components is much less than the number of training samples, 
+		arpack may be more efficient than the dense eigensolver. Options are:
+		\begin{itemize}
+			\item auto
+			\item dense
+			\item arpack
+		\end{itemize} \default{False} 
+		\item{tol}, \xmlDesc{float, optional field}, convergence tolerance for arpack. 
+		\default{0 (optimal value will be chosen by arpack)}
+		\item{max\_iter}, \xmlDesc{int, optional field}, maximum number of iterations 
+		for arpack. \default{None (optimal value will be chosen by arpack)}
+		\item \xmlNode{remove\_zero\_eig}, \xmlDesc{boolean, optional field}, If True,
+		 then all components with zero eigenvalues are removed, so that the number of
+		 components in the output may be < n\_components (and sometimes even zero due
+		 to numerical instability). When n\_components is None, this parameter is
+		 ignored and components with zero eigenvalues are removed regardless. \default{True}
+	\end{itemize}
+	\item \textbf{Sparse PCA} \\
+	Finds the set of sparse components that can optimally reconstruct the data. The amount 
+	of sparseness is controllable by the coefficient of the L1 penalty, given by the 
+	parameter alpha.
+	\skltype{Sparse PCA}{decomposition|SparsePCA}
+	\begin{itemize}
+		\item \xmlNode{n\_components}, \xmlDesc{integer, optional field}, Number of 
+		sparse atoms to extract. \default{None}
+		\item \xmlNode{alpha}, \xmlDesc{float, optional field}, Sparsity controlling
+		 parameter. Higher values lead to sparser components. \default{1.0}
+		\item \xmlNode{ridge\_alpha}, \xmlDesc{float, optional field}, Amount of ridge
+		 shrinkage to apply in order to improve conditioning when calling the transform
+		 method. \default{0.01}
+		\item \xmlNode{max\_iter}, \xmlDesc{float, optional field}, maximum number of 
+		iterations to perform. \default{1000}
+		\item \xmlNode{tol}, \xmlDesc{float, optional field}, convergence tolerance. 
+		\default{1E-08} 
+		\item \xmlNode{method}, \xmlDesc{string, optional field}, method to use, 
+		options are:
+		\begin{itemize}
+			\item lars: uses the least angle regression method to solve the lasso
+			 problem (linear\_model.lars\_path)
+			\item cd: uses the coordinate descent method to compute the Lasso 
+			solution (linear\_model.Lasso)
+		\end{itemize}
+		Lars will be faster if the estimated components are sparse. \default{lars}
+		\item \xmlNode{n\_jobs}, \xmlDesc{int, optional field}, number of parallel
+		 runs to run. \default{1}
+		\item \xmlNode{U\_init}, \xmlDesc{array of shape (n\_samples, n\_components)
+		, optional field}, Initial values for the loadings for warm restart scenarios
+		\default{None} 
+		\item \xmlNode{V\_init}, \xmlDesc{array of shape (n\_components, n\_features),
+		 optional field}, Initial values for the components for warm restart scenarios
+		\default{None} 
+		\item{verbose}, \xmlDesc{boolean, optional field}, Degree of verbosity of the
+		 printed output. \default{False} 
+		\item{random\_state}, \xmlDesc{int or Random State, optional field}, Pseudo 
+		number generator state used for random sampling. \default{None}
+	\end{itemize}
+	\item \textbf{Mini Batch Sparse PCA} \\
+	Finds the set of sparse components that can optimally reconstruct the data. The amount
+	 of sparseness is controllable by the coefficient of the L1 penalty, given by the 
+	parameter alpha.
+	\skltype{Mini Batch Sparse PCA}{decomposition|MiniBatchSparsePCA}
+	\begin{itemize}
+		\item \xmlNode{n\_components}, \xmlDesc{integer, optional field}, Number of
+		 sparse atoms to extract. \default{None}
+		\item \xmlNode{alpha}, \xmlDesc{float, optional field}, Sparsity controlling 
+		parameter. Higher values lead to sparser components. \default{1.0}
+		\item \xmlNode{ridge\_alpha}, \xmlDesc{float, optional field}, Amount of ridge
+		 shrinkage to apply in order to improve conditioning when calling the transform
+		 method. \default{0.01}
+		\item \xmlNode{n\_iter}, \xmlDesc{float, optional field}, number of iterations 
+		to perform per mini batch. \default{100}
+		\item \xmlNode{callback}, \xmlDesc{callable, optional field}, callable that 
+		gets invoked every five iterations. \default{None} 
+		\item \xmlNode{batch\_size}, \xmlDesc{int, optional field}, the number of 
+		features to take in each mini batch. \default{3} 
+		\item \xmlNode{verbose}, \xmlDesc{boolean, optional field}, Degree of verbosity
+		 of the printed output. \default{False} 
+		\item \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, whether to shuffle 
+		the data before splitting it in batches. \default{True}
+		\item \xmlNode{n\_jobs}, \xmlDesc{integer, optional field}, Parameters (keyword 
+		arguments) and values for kernel passed as callable object. Ignored by other 
+		kernels. \default{3}
+		\item \xmlNode{metho}, \xmlDesc{string, optional field}, method to use, 
+		options are:
+		\begin{itemize}
+			\item lars: uses the least angle regression method to solve the lasso
+			 problem (linear\_model.lars\_path),
+			\item cd: uses the coordinate descent method to compute the Lasso solution
+			 (linear\_model.Lasso)
+		\end{itemize}
+		Lars will be faster if the estimated components are sparse. \default{lars}
+		\item \xmlNode{random\_state}, \xmlDesc{integer or Random State, optional field},
+		 Pseudo number generator state used for random sampling. \default{None}
+	\end{itemize}	
+\end{itemize}
+
+\subparagraph{Truncated singular value decomposition} \hfil \\
+\label{subparagraph:TruncatedSVD}
+Dimensionality reduction using truncated SVD (aka LSA).
+\skltype{Truncated SVD}{decomposition|TruncatedSVD}
+\begin{itemize}
+	\item \xmlNode{n\_components}, \xmlDesc{integer, optional field}, Desired dimensionality 
+	of output data. Must be strictly less than the number of features. The default value is 
+	useful for visualisation. For LSA, a value of 100 is recommended. \default{2}
+	\item \xmlNode{algorithm}, \xmlDesc{string, optional field}, SVD solver to use:
+	\begin{itemize}
+		\item Randomized: randomized algorithm
+		\item Arpack: ARPACK wrapper in.
+	\end{itemize}
+	\default{Randomized}
+	\item \xmlNode{n\_iter}, \xmlDesc{float, optional field}, number of iterations andomized 
+	SVD solver. Not used by ARPACK. \default{5}
+	\item \xmlNode{random\_state}, \xmlDesc{int or Random State, optional field}, Pseudo number 
+	generator state used for random sampling. If not given, the numpy.random singleton is used.
+	\default{None}
+	\item \xmlNode{tol}, \xmlDesc{float, optional field}, Tolerance for ARPACK. 0 means machine 
+	precision. Ignored by randomized SVD solver. \default{0.0}
+\end{itemize}
+
+\subparagraph{Fast ICA} \hfil \\
+\label{subparagraph:FastICA}
+A fast algorithm for Independent Component Analysis.
+\skltype{Fast ICA}{decomposition|FastICA}
+\begin{itemize}
+	\item \xmlNode{n\_components}, \xmlDesc{integer, optional field}, Number of components to 
+	use. If none is passed, all are used. \default{None}
+	\item \xmlNode{algorithm}, \xmlDesc{string, optional field}, algorithm used in FastICA:
+	\begin{itemize}
+		\item parallel,
+		\item deflation.
+	\end{itemize}
+	\default{parallel}
+	\item \xmlNode{fun}, \xmlDesc{string or function, optional field}, The functional form of 
+	the G function used in the approximation to neg-entropy. Could be either:
+	\begin{itemize}
+		\item logcosh,
+		\item exp, or
+		\item cube.
+	\end{itemize}
+	One can also provide own function. It should return a tuple containing the value of the
+	 function, and of its derivative, in the point. \default{logcosh}
+	\item \xmlNode{fun\_args}, \xmlDesc{dictionary, optional field}, Arguments to send to the 
+	functional form. If empty and if fun=’logcosh’, fun\_args will take value {‘alpha’ : 1.0}.
+	\default{None}
+	\item \xmlNode{max\_iter}, \xmlDesc{float, optional field}, maximum number of iterations
+	 during fit. \default{200}
+	\item \xmlNode{tol}, \xmlDesc{float, optional field}, Tolerance on update at each iteration.
+	\default{0.0001}
+	\item \xmlNode{w\_init}, \xmlDesc{None or an (n\_components, n\_components) ndarray, 
+	optional field}, The mixing matrix to be used to initialize the algorithm. \default{None}
+	\item \xmlNode{randome\_state}, \xmlDesc{int or Random State, optional field}, Pseudo number
+	 generator state used for random sampling. \default{None}
+\end{itemize}
+
+\paragraph{Manifold learning}
+\label{paragraph:Manifold}
+A manifold is a topological space that resembles a Euclidean space locally at each point. Manifold 
+learning is an approach to non-linear dimensionality reduction. It assumes that the data of interest
+ lie on an embedded non-linear manifold within the higher-dimensional space. If this manifold is of
+ low dimension, data can be visualized in the low-dimensional space. Algorithms for this task are 
+based on the idea that the dimensionality of many data sets is only artificially high.
+\subparagraph{Isomap} \hfil \\
+\label{subparagraph:Isomap}
+Non-linear dimensionality reduction through Isometric Mapping (Isomap).
+\skltype{Isometric Mapping}{manifold|Isomap}
+\begin{itemize}
+	\item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional field}, Number of neighbors to 
+	consider for each point. \default{5}
+	\item \xmlNode{n\_components}, \xmlDesc{integer, optional field}, Number of coordinates to 
+	manifold. \default{2}
+	\item \xmlNode{eigen\_solver}, \xmlDesc{string, optional field}, eigen solver to use:
+	\begin{itemize}
+		\item auto: Attempt to choose the most efficient solver for the given problem,
+		\item arpack: Use Arnoldi decomposition to find the eigenvalues and eigenvectors
+		\item dense: Use a direct solver (i.e. LAPACK) for the eigenvalue decomposition
+	\end{itemize}
+	\default{auto}
+	\item \xmlNode{tol}, \xmlDesc{float, optional field}, Convergence tolerance passed to 
+	arpack or lobpcg. not used if eigen\_solver is ‘dense’. \default{0.0}
+	\item \xmlNode{max\_iter}, \xmlDesc{float, optional field}, Maximum number of iterations 
+	for the arpack solver. not used if eigen\_solver == ‘dense’. \default{None}
+	\item \xmlNode{path\_method}, \xmlDesc{string, optional field}, Method to use in finding
+	 shortest path. Could be either:
+	\begin{itemize}
+		\item Auto: attempt to choose the best algorithm
+		\item FW: Floyd-Warshall algorithm
+		\item D: Dijkstra algorithm with Fibonacci Heaps
+	\end{itemize}
+	\default{auto}
+	\item \xmlNode{neighbors\_algorithm}, \xmlDesc{string, optional field}, Algorithm to use
+	 for nearest neighbors search, passed to neighbors.NearestNeighbors instance.
+	\begin{itemize}
+		\item auto,
+		\item brute
+		\item kd\_tree
+		\item ball\_tree
+	\end{itemize}
+	\default{auto}
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+      <PostProcessor name='PostProcessorName' subType='DataMiningPostProcessor'>
+          <KDD lib='SciKitLearn'>
+              <Features>input</Features>
+              <SKLtype>manifold|Isomap</SKLtype>
+              <n_neighbors>5</n_neighbors>
+	      <n_components>3</n_components>
+	      <eigen_solver>arpack</eigen_solver>
+	      <neighbors_algorithm>kd_tree</neighbors_algorithm>
+            </KDD>
+          <DataObject    class = 'DataObjects' type = 'PointSet'>aDataObject</DataObject>
+      </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
+
+
+\subparagraph{Locally Linear Embedding} \hfil \\
+\label{subparagraph:LLE}
+\skltype{Locally Linear Embedding}{manifold|LocallyLinearEmbedding}
+\begin{itemize}
+	\item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional field}, Number of neighbors to 
+	consider for each point. \default{5}
+	\item \xmlNode{n\_components}, \xmlDesc{integer, optional field}, Number of coordinates to
+	 manifold. \default{2}
+	\item \xmlNode{reg}, \xmlDesc{float, optional field}, regularization constant, multiplies 
+	the trace of the local covariance matrix of the distances. \default{0.01}
+	\item \xmlNode{eigen\_solver}, \xmlDesc{string, optional field}, eigen solver to use:
+	\begin{itemize}
+		\item auto: Attempt to choose the most efficient solver for the given problem,
+		\item arpack: use arnoldi iteration in shift-invert mode.
+		\item dense: use standard dense matrix operations for the eigenvalue
+	\end{itemize}
+	\default{auto}
+	\item \xmlNode{tol}, \xmlDesc{float, optional field}, Convergence tolerance passed to arpack.
+	 not used if eigen\_solver is ‘dense’. \default{1E-06}
+	\item \xmlNode{max\_iter}, \xmlDesc{int, optional field}, Maximum number of iterations for the
+	 arpack solver. not used if eigen\_solver == ‘dense’. \default{100}
+	\item \xmlNode{method}, \xmlDesc{string, optional field}, Method to use. Could be either:
+	\begin{itemize}
+		\item Standard: use the standard locally linear embedding algorithm
+		\item hessian: use the Hessian eigenmap method
+		\item itsa: use local tangent space alignment algorithm
+	\end{itemize}
+	\default{standard}
+	\item \xmlNode{hessian\_tol}, \xmlDesc{float, optional field}, Tolerance for Hessian eigenmapping
+	 method. Only used if method == 'hessian' \default{0.0001}
+	\item \xmlNode{modified\_tol}, \xmlDesc{float, optional field}, Tolerance for modified LLE method.
+	 Only used if method == 'modified' \default{0.0001}
+	\item \xmlNode{neighbors\_algorithm}, \xmlDesc{string, optional field}, Algorithm to use for nearest
+	 neighbors search, passed to neighbors.NearestNeighbors instance.
+	\begin{itemize}
+		\item auto,
+		\item brute
+		\item kd\_tree
+		\item ball\_tree
+	\end{itemize}
+	\default{auto}
+	\item \xmlNode{random\_state}, \xmlDesc{int or numpy random state, optional field}, the generator 
+	or seed used to determine the starting vector for arpack iterations. \default{None}
+\end{itemize}
+\subparagraph{Spectral Embedding} \hfil \\
+\label{subparagraph:Spectral}
+Spectral embedding for non-linear dimensionality reduction, it forms an affinity matrix given by the
+ specified function and applies spectral decomposition to the corresponding graph laplacian. The resulting
+ transformation is given by the value of the eigenvectors for each data point
+\skltype{Spectral Embedding}{manifold|SpectralEmbedding}
+\begin{itemize}
+	\item \xmlNode{n\_components}, \xmlDesc{integer, optional field}, the dimension of projected 
+	sub-space. \default{2}
+	\item \xmlNode{eigen\_solver}, \xmlDesc{string, optional field}, the eigen value decomposition
+	 strategy to use:
+	\begin{itemize}
+		\item none,
+		\item arpack.
+		\item lobpcg,
+		\item amg
+	\end{itemize}
+	\default{none}
+	\item \xmlNode{random\_state}, \xmlDesc{integer or numpy random state, optional field}, A 
+	pseudo random number generator used for the initialization of the lobpcg eigen vectors 
+	decomposition when eigen\_solver == ‘amg. \default{None}
+	\item \xmlNode{affinity}, \xmlDesc{string or callable, optional field}, How to construct
+	 the affinity matrix:
+	\begin{itemize}
+		\item \textit{nearest\_neighbors} : construct affinity matrix by knn graph
+		\item \textit{rbf} : construct affinity matrix by rbf kernel
+		\item \textit{precomputed} : interpret X as precomputed affinity matrix
+		\item \textit{callable} : use passed in function as affinity the function takes
+		 in data matrix (n\_samples, n\_features) and return affinity matrix (n\_samples, n\_samples).
+	\end{itemize}
+	\default{nearest\_neighbor}
+	\item \xmlNode{gamma}, \xmlDesc{float, optional field}, Kernel coefficient for rbf kernel.
+	\default{None}
+	\item \xmlNode{n\_neighbors}, \xmlDesc{int, optional field}, Number of nearest neighbors for
+	 nearest\_neighbors graph building. \default{None}
+\end{itemize}
+
+\subparagraph{Multi-dimensional Scaling (MDS)} \hfil \\
+\label{subparagraph:MDS}
+
+\skltype{Multi Dimensional Scaling}{manifold|MDS} 
+\begin{itemize}
+	\item \xmlNode{metric}, \xmlDesc{boolean, optional field}, compute metric or nonmetric SMACOF
+	 (Scaling by Majorizing a Complicated Function) algorithm \default{True}
+	\item \xmlNode{n\_components}, \xmlDesc{integer, optional field}, number of dimension in 
+	which to immerse the similarities overridden if initial array is provided. \default{2}
+	\item \xmlNode{n\_init}, \xmlDesc{integer, optional field}, Number of time the smacof 
+	algorithm will be run with different initialisation. The final results will be the best
+	 output of the n\_init consecutive runs in terms of stress. \default{4}
+	\item \xmlNode{max\_iter}, \xmlDesc{integer, optional field}, Maximum number of iterations 
+	of the SMACOF algorithm for a single run \default{300}
+	\item \xmlNode{verbose}, \xmlDesc{integer, optional field}, level of verbosity \default{0}
+	\item \xmlNode{eps}, \xmlDesc{float, optional field}, relative tolerance with respect 
+	to stress to declare converge \default{1E-06}
+	\item \xmlNode{n\_jobs}, \xmlDesc{integer, optional field}, The number of jobs to use for 
+	the computation. This works by breaking down the pairwise matrix into n\_jobs even slices
+	 and computing them in parallel. If -1 all CPUs are used. If 1 is given, no parallel
+	 computing code is used at all, which is useful for debugging. For n\_jobs below -1, 
+	(n\_cpus + 1 + n\_jobs) are used. Thus for n\_jobs = -2, all CPUs but one are used.
+	\default{1}
+	\item \xmlNode{random\_state}, \xmlNode{integer or numpy random state, optional field}, 
+	The generator used to initialize the centers. If an integer is given, it fixes the seed. 
+	Defaults to the global numpy random number generator. \default{None} 
+	\item \xmlNode{dissimilarity}, \xmlDesc{string, optional field}, Which dissimilarity 
+	measure to use. Supported are ‘euclidean’ and ‘precomputed’. \default{euclidean}
+\end{itemize}

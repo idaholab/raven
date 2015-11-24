@@ -30,6 +30,7 @@ import MessageHandler
 import GridEntities
 import Files
 from RAVENiterators import ravenArrayIterator
+import unSupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -2466,6 +2467,196 @@ class TopologicalDecomposition(BasePostProcessor):
     self.raiseAMessage(output)
     return outputDict
 
+class DataMining(BasePostProcessor):
+  """
+    DataMiningPostProcessor class. It will apply the specified KDD algorithms in the models
+    to a dataset, each specified algorithm's output can be loaded to dataObject.
+  """
+  def __init__(self, messageHandler):
+    """
+    Constructor
+    @ In, messageHandler, message handler object.
+    """
+    BasePostProcessor.__init__(self, messageHandler)
+    self.printTag = 'POSTPROCESSOR DATAMINING'
+    self.algorithms = []  # A list of Algorithms objects that contain definitions for all the algorithms the user wants
+    self.requiredAssObject = (True, (['Label', 'DataObject'], ['-1', 'n']))  # The Label is optional for now....
+    self.initializationOptionDict = {}
+    self.clusterLabels = None
+    self.labelAlgorithms = []
+    self.DataObjects = []
+
+  def inputToInternal(self, currentInp):
+    """
+      Function to convert the received input into a format this object can
+      understand
+      @ In, currentInp: Some form of data object or list of data objects handed
+                        to the post-processor
+      @ Out, An input dictionary this object can process
+    """
+    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
+    if type(currentInp) == list: currentInput = currentInp[-1]
+    else                       : currentInput = currentInp
+    if type(currentInp) == dict:
+      if 'Features' in currentInput.keys(): return
+    inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
+    # FIXME I don't think this try-catch is checking for files, HDF5 and dataobjects
+    try   : inType = currentInput.type
+    except: self.raiseAnError(IOError, self, 'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
+    if isinstance(currentInp, Files.File):
+      if currentInput.subtype == 'csv': pass
+      # FIXME else?  This seems like hollow code right now.
+    if inType == 'HDF5': pass  # to be implemented
+    if inType in ['PointSet']:
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        for param in currentInput.getParaKeys('input'): inputDict['Features'][param] = currentInput.getParam('input', param)
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        for param in currentInput.getParaKeys('output'): inputDict['Features'][param] = currentInput.getParam('output', param)
+      elif self.initializationOptionDict['KDD']['Features'] == 'all':
+        for param in currentInput.getParaKeys('input') : inputDict['Features'][param] = currentInput.getParam('input', param)
+        for param in currentInput.getParaKeys('output'): inputDict['Features'][param] = currentInput.getParam('output', param)
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+        for param in currentInput.getParaKeys('input'):
+          if param in features: inputDict['Features'][param] = currentInput.getParam('input', param)
+        for param in currentInput.getParaKeys('output'):
+          if param in features: inputDict['Features'][param] = currentInput.getParam('output', param)
+
+      inputDict['metadata'] = currentInput.getAllMetadata()
+
+
+    return inputDict
+
+  def initialize(self, runInfo, inputs, initDict):
+    """
+     Method to initialize the DataMining pp.
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.__workingDir = runInfo['WorkingDir']
+    for key in self.assemblerDict.keys():
+      if 'Label' == key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.labelAlgorithms.append(self.assemblerDict[key][indice][3])
+          indice += 1
+      if 'DataObject' == key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.DataObjects.append(self.assemblerDict[key][indice][3])
+          indice += 1
+ 
+  def _localReadMoreXML(self, xmlNode):
+    """
+      Method to read special input requuired for this post-processor
+      @ In, xmlNode    : Xml element node
+      @ Out, None
+    """
+    for child in xmlNode:
+      # FIXME is there anything that is a float that will raise an exception for int?
+      if child.attrib:
+        self.initializationOptionDict[child.tag] = {}
+        self.initializationOptionDict[child.tag].update(child.attrib)
+      else:
+        try: self.initializationOptionDict[child.tag] = int(child.text)
+        except ValueError:
+          try: self.initializationOptionDict[child.tag] = float(child.text)
+          except ValueError: self.initializationOptionDict[child.tag] = child.text
+      if child.tag == 'KDD':
+        if child.attrib:
+          if 'lib' in child.attrib.keys():
+            self.Type = child.attrib.values()[0]
+            self.initializationOptionDict[child.tag].pop('lib')
+        for childChild in child:
+          if childChild.attrib:
+            self.initializationOptionDict[child.tag][childChild.tag] = {}
+            self.initializationOptionDict[child.tag][childChild.tag].update(childChild.attrib)
+          else:
+            try: self.initializationOptionDict[child.tag][childChild.tag] = int(childChild.text)
+            except ValueError:
+              try: self.initializationOptionDict[child.tag][childChild.tag] = float(childChild.text)
+              except ValueError: self.initializationOptionDict[child.tag][childChild.tag] = childChild.text
+
+    if self.Type: self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.Type, self, **self.initializationOptionDict['KDD'])
+    else        : self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
+
+  def run(self, InputIn):
+    """
+     This method executes the postprocessor action. In this case it loads the results to specified dataObject
+     @ In , InputIn, dictionary, dictionary of data to process
+     @ Out, dictionary, Dictionary containing the post-processed results
+    """
+    if len(self.DataObjects) is not 0:
+      if type(self.DataObjects) == list: dataObject = self.DataObjects[-1]
+      else                             : dataObject = self.DataObjects
+    else: dataObject = None
+    Input = self.inputToInternal(InputIn)
+
+    outputDict = {}
+    self.unSupervisedEngine.features = Input['Features']
+    if not self.unSupervisedEngine.amITrained:  self.unSupervisedEngine.train(Input['Features'])
+
+    self.unSupervisedEngine.confidence()
+    outputDict = self.unSupervisedEngine.outputDict
+    noClusters = 1
+    if 'cluster' == self.unSupervisedEngine.SKLtype:
+        if hasattr(self.unSupervisedEngine, 'labels_'):
+          self.clusterLabels = self.unSupervisedEngine.labels_
+          if dataObject:
+            dataObject.removeOutputValue(self.name+'Labels')
+            for i in range(len(self.clusterLabels)):
+              dataObject.updateOutputValue(self.name+'Labels', self.clusterLabels[i])
+        if hasattr(self.unSupervisedEngine, 'noClusters'): noClusters = self.unSupervisedEngine.noClusters
+        if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'): noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
+        for k in range(noClusters):
+          if hasattr(self.unSupervisedEngine, 'clusterCenters_'): clusterCenter = self.unSupervisedEngine.clusterCenters_[k]
+        if hasattr(self.unSupervisedEngine, 'inertia_') : inertia = self.unSupervisedEngine.inertia_
+    if 'bicluster' == self.unSupervisedEngine.SKLtype:
+        print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
+    if 'mixture' == self.unSupervisedEngine.SKLtype:
+        if   hasattr(self.unSupervisedEngine, 'covars_'): mixtureCovars = self.unSupervisedEngine.covars_
+        elif hasattr(self.unSupervisedEngine, 'precs_'): mixtureCovars = self.unSupervisedEngine.precs_
+        mixtureValues = self.unSupervisedEngine.normValues
+        mixtureMeans = self.unSupervisedEngine.means_
+        mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
+        if dataObject:
+          dataObject.removeOutputValue(self.name+'Labels')
+          for i in range(len(mixtureLabels)):
+            dataObject.updateOutputValue(self.name+'Labels', mixtureLabels[i])
+    if 'manifold' == self.unSupervisedEngine.SKLtype:
+        manifoldValues = self.unSupervisedEngine.normValues
+        if hasattr(self.unSupervisedEngine, 'embeddingVectors_'): embeddingVectors = self.unSupervisedEngine.embeddingVectors_
+        if hasattr(self.unSupervisedEngine, 'reconstructionError_'): reconstructionError = self.unSupervisedEngine.reconstructionError_
+        if   'transform'     in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
+        elif 'fit_transform' in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
+        if dataObject:
+          for i in range(len(embeddingVectors[0, :])):
+            dataObject.removeOutputValue(self.name+'EmbeddingVector' + str(i + 1))
+            for val in range(len(embeddingVectors[:, i])):
+              dataObject.updateOutputValue(self.name+'EmbeddingVector' + str(i + 1), embeddingVectors[val, i])
+    if 'decomposition' == self.unSupervisedEngine.SKLtype:
+        decompositionValues = self.unSupervisedEngine.normValues
+        if hasattr(self.unSupervisedEngine, 'noComponents_'): noComponents = self.unSupervisedEngine.noComponents_
+        if hasattr(self.unSupervisedEngine, 'components_'): components = self.unSupervisedEngine.components_
+        if hasattr(self.unSupervisedEngine, 'explainedVarianceRatio_'): explainedVarianceRatio = self.unSupervisedEngine.explainedVarianceRatio_
+        # SCORE method does not work for SciKit Learn 0.14
+        # if hasattr(self.unSupervisedEngine.Method, 'score'): score = self.unSupervisedEngine.Method.score(decompositionValues)
+        if   'transform'     in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.transform(decompositionValues)
+        elif 'fit_transform' in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
+        if dataObject:
+          for i in range(noComponents):
+            dataObject.removeOutputValue(self.name+'PCAComponent' + str(i + 1))
+            for val in range(len(components[:, i])):
+              dataObject.updateOutputValue(self.name+'PCAComponent' + str(i + 1), components[val, i])
+    return self.unSupervisedEngine.outputDict
+
+
+
+
+  
+
 """
  Interface Dictionary (factory) (private)
 """
@@ -2480,6 +2671,7 @@ __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
+__interFaceDict['DataMining'               ] = DataMining 
 __knownTypes = __interFaceDict.keys()
 
 def knownTypes():

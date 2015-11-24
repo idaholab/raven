@@ -280,6 +280,7 @@
       <xsd:enumeration value="tri-surface" />
       <xsd:enumeration value="contour3D" />
       <xsd:enumeration value="filledContour3D" />
+      <xsd:enumeration value="dataMining" />
     </xsd:restriction>
   </xsd:simpleType>
 
@@ -358,6 +359,10 @@
       <!-- type=tri-surface -->
       <xsd:element name="shade" type="RavenBool" minOccurs="0"/>
       <!-- type=contour3D, all are specified above -->
+      <!-- Added for the Datamining Plots -->
+      <xsd:element name="SKLtype"        type="xsd:string" minOccurs="0"/>
+      <xsd:element name="clusterLabels"  type="xsd:string" minOccurs="0"/>
+      <xsd:element name="mixtureLabels"  type="xsd:string" minOccurs="0"/>
     </xsd:all>
   </xsd:complexType>
 </xsd:schema>

@@ -140,7 +140,7 @@ class OutStreamPlot(OutStreamManager):
     self.type = 'OutStreamPlot'
     self.printTag = 'OUTSTREAM PLOT'
     # available 2D and 3D plot types
-    self.availableOutStreamTypes = {2:['scatter', 'line', 'histogram', 'stem', 'step', 'pseudocolor'],
+    self.availableOutStreamTypes = {2:['scatter', 'line', 'histogram', 'stem', 'step', 'pseudocolor', 'dataMining'],
                                     3:['scatter', 'line', 'stem', 'surface', 'wireframe', 'tri-surface',
                                        'contour', 'filledContour', 'contour3D', 'filledContour3D', 'histogram']}
     # default plot is 2D
@@ -169,6 +169,16 @@ class OutStreamPlot(OutStreamManager):
     self.actcm = None
     self.gridSpace = None
 
+    self.clusterLabels = None
+    self.clusterValues = None
+
+    # Gaussian Mixtures
+    self.mixtureLabels = None
+    self.mixtureValues = None
+    self.mixtureMeans = None
+    self.mixtureCovars = None
+
+
   #####################
   #  PRIVATE METHODS  #
   #####################
@@ -183,6 +193,10 @@ class OutStreamPlot(OutStreamManager):
     elif what == 'y'                : var = self.yCoordinates [where[0]][where[1]]
     elif what == 'z'                : var = self.zCoordinates [where[0]][where[1]]
     elif what == 'colorMap'         : var = self.colorMapCoordinates[where[0]][where[1]]
+    elif what == 'clusterLabels'    : var = self.clusterLabels[where[0]][where[1]]
+    elif what == 'mixtureLabels'    : var = self.mixtureLabels[where[0]][where[1]]
+    elif what == 'mixtureMeans'     : var = self.mixtureMeans[where[0]][where[1]]
+    elif what == 'mixtureCovars'    : var = self.mixtureCovars[where[0]][where[1]]
     # the variable can contain brackets {} (when the symbol "|" is present in the variable name),
     # for example DataName|Input|{RavenAuxiliary|variableName|initial_value} or it can look like DataName|Input|variableName
     if var != None:
@@ -229,11 +243,15 @@ class OutStreamPlot(OutStreamManager):
     self.xValues = []
     if self.yCoordinates : self.yValues = []
     if self.zCoordinates : self.zValues = []
+    if self.clusterLabels : self.clusterValues = []
+    if self.mixtureLabels : self.mixtureValues = []
     # if self.colorMapCoordinates[pltindex] != None: self.colorMapValues = []
     for pltindex in range(len(self.outStreamTypes)):
       self.xValues.append(None)
       if self.yCoordinates : self.yValues.append(None)
       if self.zCoordinates : self.zValues.append(None)
+      if self.clusterLabels : self.clusterValues.append(None)
+      if self.mixtureLabels : self.mixtureValues.append(None)
       if self.colorMapCoordinates[pltindex] != None: self.colorMapValues[pltindex] = None
     for pltindex in range(len(self.outStreamTypes)):
       if self.sourceData[pltindex].isItEmpty(): return False
@@ -241,6 +259,8 @@ class OutStreamPlot(OutStreamManager):
         self.xValues[pltindex] = {1:[]}
         if self.yCoordinates : self.yValues[pltindex] = {1:[]}
         if self.zCoordinates : self.zValues[pltindex] = {1:[]}
+        if self.clusterLabels : self.clusterValues[pltindex] = {1:[]}
+        if self.mixtureLabels : self.mixtureValues[pltindex] = {1:[]}
         if self.colorMapCoordinates[pltindex] != None: self.colorMapValues[pltindex] = {1:[]}
         for i in range(len(self.xCoordinates [pltindex])):
           xsplit = self.__splitVariableNames('x', (pltindex, i))
@@ -270,6 +290,24 @@ class OutStreamPlot(OutStreamManager):
               conarr = np.zeros(len(parame.keys()))
               for index in range(len(parame.values())): conarr[index] = parame.values()[index][0]
               self.zValues[pltindex][1].append(np.asarray(conarr))
+        if self.clusterLabels:
+          for i in range(len(self.clusterLabels [pltindex])):
+            clustersplit = self.__splitVariableNames('clusterLabels', (pltindex, i))
+            parame = self.sourceData[pltindex].getParam(clustersplit[1], clustersplit[2], nodeid = 'ending')
+            if type(parame) in [np.ndarray, c1darray]: self.clusterValues[pltindex][1].append(np.asarray(parame))
+            else:
+              conarr = np.zeros(len(parame.keys()))
+              for index in range(len(parame.values())): conarr[index] = parame.values()[index][0]
+              self.clusterValues[pltindex][1].append(np.asarray(conarr))
+        if self.mixtureLabels:
+          for i in range(len(self.mixtureLabels [pltindex])):
+            mixturesplit = self.__splitVariableNames('mixtureLabels', (pltindex, i))
+            parame = self.sourceData[pltindex].getParam(mixturesplit[1], mixturesplit[2], nodeid = 'ending')
+            if type(parame) in [np.ndarray, c1darray]: self.mixtureValues[pltindex][1].append(np.asarray(parame))
+            else:
+              conarr = np.zeros(len(parame.keys()))
+              for index in range(len(parame.values())): conarr[index] = parame.values()[index][0]
+              self.clusterValues[pltindex][1].append(np.asarray(conarr))
         if self.colorMapCoordinates[pltindex] != None:
           for i in range(len(self.colorMapCoordinates[pltindex])):
             zsplit = self.__splitVariableNames('colorMap', (pltindex, i))
@@ -338,6 +376,22 @@ class OutStreamPlot(OutStreamManager):
             else:
               for i in range(len(self.zValues[pltindex][key])):
                 if self.zValues[pltindex][key][i].size == 0: return False
+      if self.clusterLabels :
+        if len(self.clusterValues[pltindex].keys()) == 0: return False
+        else:
+          for key in self.clusterValues[pltindex].keys():
+            if len(self.clusterValues[pltindex][key]) == 0: return False
+            else:
+              for i in range(len(self.clusterValues[pltindex][key])):
+                if self.clusterValues[pltindex][key][i].size == 0: return False
+      if self.mixtureLabels :
+        if len(self.mixtureValues[pltindex].keys()) == 0: return False
+        else:
+          for key in self.mixtureValues[pltindex].keys():
+            if len(self.mixtureValues[pltindex][key]) == 0: return False
+            else:
+              for i in range(len(self.mixtureValues[pltindex][key])):
+                if self.mixtureValues[pltindex][key][i].size == 0: return False
       if self.colorMapCoordinates[pltindex] != None:
         if len(self.colorMapValues[pltindex].keys()) == 0: return False
         else:
@@ -357,12 +411,12 @@ class OutStreamPlot(OutStreamManager):
       if self.dim == 2:
         self.plt.gca().yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
         self.plt.gca().xaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
-        self.plt.ticklabel_format(**{'style':'sci', 'scilimits':(0, 0), 'useOffset':False, 'axis':'both'})
-        if self.dim == 3:
-          self.plt.figure().gca(projection = '3d').yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
-          self.plt.figure().gca(projection = '3d').xaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
-          self.plt.figure().gca(projection = '3d').zaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
-          self.plt3D.ticklabel_format(**{'style':'sci', 'scilimits':(0, 0), 'useOffset':False, 'axis':'both'})
+        self.plt.ticklabel_format(**{'style':'sci', 'scilimits':(0, 1), 'useOffset':False, 'axis':'both'})
+      if self.dim == 3:
+        #self.plt.figure().gca(projection = '3d').yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
+        #self.plt.figure().gca(projection = '3d').xaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
+        #self.plt.figure().gca(projection = '3d').zaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
+        self.plt3D.ticklabel_format(**{'style':'sci', 'scilimits':(0,1), 'useOffset':False, 'axis':'both'})
     if 'title'        not in self.options.keys():
       if self.dim == 2: self.plt.title(self.name, fontdict = {'verticalalignment':'baseline', 'horizontalalignment':'center'})
       if self.dim == 3: self.plt3D.set_title(self.name, fontdict = {'verticalalignment':'baseline', 'horizontalalignment':'center'})
@@ -538,9 +592,14 @@ class OutStreamPlot(OutStreamManager):
       self.colorMapCoordinates[pltindex] = None
       if 'y' in self.options['plotSettings']['plot'][pltindex].keys(): self.yCoordinates = []
       if 'z' in self.options['plotSettings']['plot'][pltindex].keys(): self.zCoordinates = []
+      if 'clusterLabels' in self.options['plotSettings']['plot'][pltindex].keys(): self.clusterLabels = []
+      if 'mixtureLabels' in self.options['plotSettings']['plot'][pltindex].keys(): self.mixtureLabels = []
+      if 'attributes' in self.options['plotSettings']['plot'][pltindex].keys():
+        if 'mixtureMeans' in self.options['plotSettings']['plot'][pltindex]['attributes'].keys(): self.mixtureMeans = []
+        if 'mixtureCovars' in self.options['plotSettings']['plot'][pltindex]['attributes'].keys(): self.mixtureCovars = []
       # if 'colorMap' in self.options['plotSettings']['plot'][pltindex].keys(): self.colorMapCoordinates = {}
     for pltindex in range(len(self.options['plotSettings']['plot'])):
-      self.xCoordinates .append(self.options['plotSettings']['plot'][pltindex]['x'].split(','))
+      self.xCoordinates.append(self.options['plotSettings']['plot'][pltindex]['x'].split(','))
       self.sourceName.append(self.xCoordinates [pltindex][0].split('|')[0].strip())
       if 'y' in self.options['plotSettings']['plot'][pltindex].keys():
         self.yCoordinates .append(self.options['plotSettings']['plot'][pltindex]['y'].split(','))
@@ -548,6 +607,12 @@ class OutStreamPlot(OutStreamManager):
       if 'z' in self.options['plotSettings']['plot'][pltindex].keys():
         self.zCoordinates .append(self.options['plotSettings']['plot'][pltindex]['z'].split(','))
         if self.zCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: self.raiseAnError(IOError, 'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got z_cord source is' + self.zCoordinates [pltindex][0].split('|')[0])
+      if 'clusterLabels' in self.options['plotSettings']['plot'][pltindex].keys():
+        self.clusterLabels .append(self.options['plotSettings']['plot'][pltindex]['clusterLabels'].split(','))
+        if self.clusterLabels [pltindex][0].split('|')[0] != self.sourceName[pltindex]: self.raiseAnError(IOError, 'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got clusterLabels source is' + self.clusterLabels [pltindex][0].split('|')[0])
+      if 'mixtureLabels' in self.options['plotSettings']['plot'][pltindex].keys():
+        self.mixtureLabels .append(self.options['plotSettings']['plot'][pltindex]['mixtureLabels'].split(','))
+        if self.mixtureLabels [pltindex][0].split('|')[0] != self.sourceName[pltindex]: self.raiseAnError(IOError, 'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got mixtureLabels source is' + self.mixtureLabels [pltindex][0].split('|')[0])
       if 'colorMap' in self.options['plotSettings']['plot'][pltindex].keys():
         self.colorMapCoordinates[pltindex] = self.options['plotSettings']['plot'][pltindex]['colorMap'].split(',')
         # self.colorMapCoordinates.append(self.options['plotSettings']['plot'][pltindex]['colorMap'].split(','))
@@ -564,6 +629,11 @@ class OutStreamPlot(OutStreamManager):
         elif self.options['plotSettings']['plot'][pltindex]['cmap'] is not 'None' and self.options['plotSettings']['plot'][pltindex]['cmap'] not in self.mpl.cm.datad.keys(): raise('ERROR. The colorMap you specified does not exist... Available are ' + str(self.mpl.cm.datad.keys()))
         if 'interpolationTypeBackUp' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] = 'nearest'
         elif self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] not in self.interpAvail: self.raiseAnError(IOError, 'surface interpolation (BackUp) unknown. Available are :' + str(self.interpAvail))
+      if 'attributes' in self.options['plotSettings']['plot'][pltindex].keys():
+        if 'mixtureMeans' in self.options['plotSettings']['plot'][pltindex]['attributes'].keys():
+          self.mixtureMeans.append(self.options['plotSettings']['plot'][pltindex]['attributes']['mixtureMeans'].split(','))
+        if 'mixtureCovars' in self.options['plotSettings']['plot'][pltindex]['attributes'].keys():
+          self.mixtureCovars.append(self.options['plotSettings']['plot'][pltindex]['attributes']['mixtureCovars'].split(','))
     self.numberAggregatedOS = len(self.options['plotSettings']['plot'])
     # initialize here the base class
     OutStreamManager.initialize(self, inDict)
@@ -598,7 +668,12 @@ class OutStreamPlot(OutStreamManager):
                 tempDict[subsubsub.tag] = {}
                 for subsubsubsub in subsubsub:
                   tempDict[subsubsub.tag][subsubsubsub.tag] = subsubsubsub.text.strip()
-              elif subsubsub.tag != 'kwargs': tempDict[subsubsub.tag] = subsubsub.text.strip()
+              elif subsubsub.tag == 'range':
+                tempDict[subsubsub.tag] = {}
+                for subsubsubsub in subsubsub:
+                  tempDict[subsubsub.tag][subsubsubsub.tag] = subsubsubsub.text.strip()
+              elif subsubsub.tag != 'kwargs':
+                tempDict[subsubsub.tag] = subsubsub.text.strip()
               else:
                 tempDict['attributes'] = {}
                 for sss in subsubsub: tempDict['attributes'][sss.tag] = sss.text.strip()
@@ -654,6 +729,8 @@ class OutStreamPlot(OutStreamManager):
     self.__executeActions()
     # start plotting.... we are here fort that...aren't we?
     # loop over the plots that need to be included in this figure
+    from copy import deepcopy
+    clusterDict = deepcopy(self.outStreamTypes)
     for pltindex in range(len(self.outStreamTypes)):
       if 'gridLocation' in self.options['plotSettings']['plot'][pltindex].keys():
         x = None
@@ -677,6 +754,28 @@ class OutStreamPlot(OutStreamManager):
       # If the number of plots to be shown in this figure > 1, hold the old ones (They are going to be shown together... because unity is much better than separation)
       if len(self.outStreamTypes) > 1: self.plt.hold(True)
       if 'gridSpace' in self.options['plotSettings'].keys():
+        self.plt.locator_params(axis = 'y', nbins = 4)
+        self.plt.ticklabel_format(**{'style':'sci', 'scilimits':(0, 1), 'useOffset':False, 'axis':'both'})
+        self.plt.locator_params(axis = 'x', nbins = 2)
+        self.plt.ticklabel_format(**{'style':'sci', 'scilimits':(0, 1), 'useOffset':False, 'axis':'both'})
+        if 'range' in self.options['plotSettings']['plot'][pltindex].keys():
+          axes_range = self.options['plotSettings']['plot'][pltindex]['range']
+          if self.dim == 2:
+            if 'ymin' in axes_range.keys(): self.plt.ylim(ymin = ast.literal_eval(axes_range['ymin']))
+            if 'ymax' in axes_range.keys(): self.plt.ylim(ymax = ast.literal_eval(axes_range['ymax']))
+            if 'xmin' in axes_range.keys(): self.plt.xlim(xmin = ast.literal_eval(axes_range['xmin']))
+            if 'xmax' in axes_range.keys(): self.plt.xlim(xmax = ast.literal_eval(axes_range['xmax']))
+          elif self.dim == 3:
+            if 'xmin' in axes_range.keys(): self.plt3D.set_xlim3d(xmin = ast.literal_eval(axes_range['xmin']))
+            if 'xmax' in axes_range.keys(): self.plt3D.set_xlim3d(xmax = ast.literal_eval(axes_range['xmax']))
+            if 'ymin' in axes_range.keys(): self.plt3D.set_ylim3d(ymin = ast.literal_eval(axes_range['ymin']))
+            if 'ymax' in axes_range.keys(): self.plt3D.set_ylim3d(ymax = ast.literal_eval(axes_range['ymax']))
+            if 'zmin' in axes_range.options['plotSettings']['plot'][pltindex].keys():
+              if 'zmax' not in axes_range.options['plotSettings'].keys(): self.raiseAWarning('zmin inputted but not zmax. zmin ignored! ')
+              else:self.plt3D.set_zlim(ast.literal_eval(axes_range['zmin']), ast.literal_eval(self.options['plotSettings']['zmax']))
+            if 'zmax' in axes_range.keys():
+              if 'zmin' not in axes_range.keys(): self.raiseAWarning('zmax inputted but not zmin. zmax ignored! ')
+              else:self.plt3D.set_zlim(ast.literal_eval(axes_range['zmin']), ast.literal_eval(axes_range['zmax']))
         if 'xlabel' not in self.options['plotSettings']['plot'][pltindex].keys():
           if self.dim == 2  : self.plt.xlabel('x')
           elif self.dim == 3: self.plt3D.set_xlabel('x')
@@ -1159,6 +1258,146 @@ class OutStreamPlot(OutStreamManager):
                   else:
                       self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
                       self.actcm.draw_all()
+      ########################
+      #   DataMining PLOT    #
+      ########################
+      elif self.outStreamTypes[pltindex] == 'dataMining':
+        colors = ['#88CCEE', '#DDCC77', '#AA4499', '#117733', '#332288', '#999933', '#44AA99', '#882255', '#CC6677', '#CD6677', '#DC6877', '#886677', '#AA6677', '#556677', '#CD7865']
+        if 's' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['s'] = '20'
+        if 'c' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['c'] = 'b'
+        if 'marker' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['marker'] = 'o'
+        if 'alpha' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['alpha'] = 'None'
+        if 'linewidths' not in self.options['plotSettings']['plot'][pltindex].keys():  self.options['plotSettings']['plot'][pltindex]['linewidths'] = 'None'
+        clusterDict[pltindex] = {}
+        for key in self.xValues[pltindex].keys():
+          for xIndex in range(len(self.xValues[pltindex][key])):
+            for yIndex in range(len(self.yValues[pltindex][key])):
+              dataMiningPlotOptions = {'s':ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),
+                                       'marker':(self.options['plotSettings']['plot'][pltindex]['marker']),
+                                       'alpha':ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),
+                                       'linewidths':ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths'])}
+              if self.colorMapCoordinates[pltindex] != None:
+                self.raiseAWarning('ColorMap values supplied, however DataMining plots do not use colorMap from input.')
+              if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
+                self.raiseAWarning('ColorSet supplied, however DataMining plots do not use color set from input.')
+              if 'cluster' == self.options['plotSettings']['plot'][pltindex]['SKLtype']:
+                # TODO: include the cluster Centers to the plot
+                if 'noClusters' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
+                  clusterDict[pltindex]['noClusters'] = int(self.options['plotSettings']['plot'][pltindex].get('attributes', {})['noClusters'])
+                  self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('noClusters')
+                else: 
+                  clusterDict[pltindex]['noClusters'] = np.amax(self.clusterValues[pltindex][1][0]) + 1
+                dataMiningPlotOptions.update(self.options['plotSettings']['plot'][pltindex].get('attributes', {}))
+                if   self.dim == 2: clusterDict[pltindex]['clusterValues'] = np.zeros(shape = (len(self.xValues[pltindex][key][xIndex]), 2))
+                elif self.dim == 3: clusterDict[pltindex]['clusterValues'] = np.zeros(shape = (len(self.xValues[pltindex][key][xIndex]), 3))
+                clusterDict[pltindex]['clusterValues'][:, 0] = self.xValues[pltindex][key][xIndex]
+                clusterDict[pltindex]['clusterValues'][:, 1] = self.yValues[pltindex][key][yIndex]
+                if self.dim == 2:
+                  for k, col in zip(range(clusterDict[pltindex]['noClusters']), colors):
+                    myMembers = self.clusterValues[pltindex][1][0] == k
+                    self.actPlot = self.plt.scatter(clusterDict[pltindex]['clusterValues'][myMembers, 0], clusterDict[pltindex]['clusterValues'][myMembers, 1] , color = col, **dataMiningPlotOptions)
+                elif self.dim == 3:
+                  dataMiningPlotOptions['rasterized'] = True
+                  for zIndex in range(len(self.zValues[pltindex][key])):
+                    clusterDict[pltindex]['clusterValues'][:, 2] = self.zValues[pltindex][key][zIndex]
+                  for k, col in zip(range(clusterDict[pltindex]['noClusters']), colors):
+                    myMembers = self.clusterValues[pltindex][1][0] == k
+                    self.actPlot = self.plt3D.scatter(clusterDict[pltindex]['clusterValues'][myMembers, 0], clusterDict[pltindex]['clusterValues'][myMembers, 1], clusterDict[pltindex]['clusterValues'][myMembers, 2], color = col, **dataMiningPlotOptions)
+              elif 'bicluster' == self.options['plotSettings']['plot'][pltindex]['SKLtype']:
+                self.raiseAnError(IOError, 'SKLType Bi-Cluster Plots are not implemented yet!..')
+              elif 'mixture' == self.options['plotSettings']['plot'][pltindex]['SKLtype']:
+                if 'noMixtures' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
+                  clusterDict[pltindex]['noMixtures'] = int(self.options['plotSettings']['plot'][pltindex].get('attributes', {})['noMixtures'])
+                  self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('noMixtures')
+                else: 
+                  clusterDict[pltindex]['noMixtures'] = np.amax(self.mixtureValues[pltindex][1][0]) + 1
+                if self.dim == 3: self.raiseAnError(IOError, 'SKLType Mixture Plots are only available in 2-Dimensions')
+                else: clusterDict[pltindex]['mixtureValues'] = np.zeros(shape = (len(self.xValues[pltindex][key][xIndex]), 2))
+                clusterDict[pltindex]['mixtureValues'][:, 0] = self.xValues[pltindex][key][xIndex]
+                clusterDict[pltindex]['mixtureValues'][:, 1] = self.yValues[pltindex][key][yIndex]
+                if 'mixtureCovars' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
+                  split = self.__splitVariableNames('mixtureCovars', (pltindex, 0))
+                  mixtureCovars = self.sourceData[pltindex].getParam(split[1], split[2], nodeid = 'ending')
+                  self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('mixtureCovars')
+                else: mixtureCovars = None
+                if 'mixtureMeans' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
+                  split = self.__splitVariableNames('mixtureMeans', (pltindex, 0))
+                  mixtureMeans = self.sourceData[pltindex].getParam(split[1], split[2], nodeid = 'ending')
+                  self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('mixtureMeans')
+                else: mixtureMeans = None
+                # mixtureCovars.reshape(3, 4)
+                # mixtureMeans.reshape(3, 4)
+                # for i, (mean, covar, col) in enumerate(zip(mixtureMeans, mixtureCovars, colors)):
+                for i, col in zip(range(clusterDict[pltindex]['noMixtures']), colors):
+                  if not np.any(self.mixtureValues[pltindex][1][0] == i):
+                      continue
+                  myMembers = self.mixtureValues[pltindex][1][0] == i
+#                  self.make_ellipses(mixtureCovars, mixtureMeans, i, col)
+                  self.actPlot = self.plt.scatter(clusterDict[pltindex]['mixtureValues'][myMembers, 0], clusterDict[pltindex]['mixtureValues'][myMembers, 1], color = col, **dataMiningPlotOptions)
+              elif 'manifold' == self.options['plotSettings']['plot'][pltindex]['SKLtype']:
+                if   self.dim == 2: manifoldValues = np.zeros(shape = (len(self.xValues[pltindex][key][xIndex]), 2))
+                elif self.dim == 3: manifoldValues = np.zeros(shape = (len(self.xValues[pltindex][key][xIndex]), 3))
+                manifoldValues[:, 0] = self.xValues[pltindex][key][xIndex]
+                manifoldValues[:, 1] = self.yValues[pltindex][key][yIndex]
+                if 'clusterLabels' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
+                  split = self.__splitVariableNames('clusterLabels', (pltindex, 0))
+                  clusterDict[pltindex]['clusterLabels'] = self.sourceData[pltindex].getParam(split[1], split[2], nodeid = 'ending')
+                  self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('clusterLabels')
+                else: clusterDict[pltindex]['clusterLabels'] = None
+                if 'noClusters' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
+                  clusterDict[pltindex]['noClusters'] = int(self.options['plotSettings']['plot'][pltindex].get('attributes', {})['noClusters'])
+                  self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('noClusters')
+                else:
+                  clusterDict[pltindex]['noClusters'] = np.amax(self.clusterValues[pltindex][1][0]) + 1
+                if self.clusterValues[pltindex][1][0] is not None:
+                  if   self.dim == 2:
+                    for k, col in zip(range(clusterDict[pltindex]['noClusters']), colors):
+                      myMembers = self.clusterValues[pltindex][1][0] == k
+                      self.actPlot = self.plt.scatter(manifoldValues[myMembers, 0], manifoldValues[myMembers, 1], color = col, **dataMiningPlotOptions)
+                  elif self.dim == 3:
+                    dataMiningPlotOptions['rasterized'] = True
+                    for zIndex in range(len(self.zValues[pltindex][key])):
+                      manifoldValues[:, 2] = self.zValues[pltindex][key][zIndex]
+                    for k, col in zip(range(clusterDict[pltindex]['noClusters']), colors):
+                      myMembers = self.clusterValues[pltindex][1][0] == k
+                      self.actPlot = self.plt3D.scatter(manifoldValues[myMembers, 0], manifoldValues[myMembers, 1], manifoldValues[myMembers, 2], color = col, **dataMiningPlotOptions)
+                else:
+                  if   self.dim == 2: self.actPlot = self.plt.scatter(manifoldValues[:, 0], manifoldValues[:, 1], **dataMiningPlotOptions)
+                  elif self.dim == 3:
+                    dataMiningPlotOptions['rasterized'] = True
+                    for zIndex in range(len(self.zValues[pltindex][key])):
+                      manifoldValues[:, 2] = self.zValues[pltindex][key][zIndex]
+                      self.actPlot = self.plt3D.scatter(manifoldValues[:, 0], manifoldValues[:, 1], manifoldValues[:, 2], **dataMiningPlotOptions)
+              elif 'decomposition' == self.options['plotSettings']['plot'][pltindex]['SKLtype']:
+                if   self.dim == 2: decompositionValues = np.zeros(shape = (len(self.xValues[pltindex][key][xIndex]), 2))
+                elif self.dim == 3: decompositionValues = np.zeros(shape = (len(self.xValues[pltindex][key][xIndex]), 3))
+                decompositionValues[:, 0] = self.xValues[pltindex][key][xIndex]
+                decompositionValues[:, 1] = self.yValues[pltindex][key][yIndex]
+                if 'noClusters' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
+                  clusterDict[pltindex]['noClusters'] = int(self.options['plotSettings']['plot'][pltindex].get('attributes', {})['noClusters'])
+                  self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('noClusters')
+                else:
+                  clusterDict[pltindex]['noClusters'] = np.amax(self.clusterValues[pltindex][1][0]) + 1
+                if self.clusterValues[pltindex][1][0] is not None:
+                  if self.dim == 2:
+                    for k, col in zip(range(clusterDict[pltindex]['noClusters']), colors):
+                      myMembers = self.clusterValues[pltindex][1][0] == k
+                      self.actPLot = self.plt.scatter(decompositionValues[myMembers, 0], decompositionValues[myMembers, 1], color = col, **dataMiningPlotOptions)
+                  elif self.dim == 3:
+                    dataMiningPlotOptions['rasterized'] = True
+                    for zIndex in range(len(self.zValues[pltindex][key])):
+                      decompositionValues[:, 2] = self.zValues[pltindex][key][zIndex]
+                    for k, col in zip(range(clusterDict[pltindex]['noClusters']), colors):
+                      myMembers = self.clusterValues[pltindex][1][0] == k
+                      self.actPlot = self.plt3D.scatter(decompositionValues[myMembers, 0], decompositionValues[myMembers, 1], decompositionValues[myMembers, 2], color = col, **dataMiningPlotOptions)
+                else:  # no ClusterLabels
+                  if self.dim == 2:
+                    self.actPLot = self.plt.scatter(decompositionValues[:, 0], decompositionValues[:, 1], **dataMiningPlotOptions)
+                  elif self.dim == 3:
+                    dataMiningPlotOptions['rasterized'] = True
+                    for zIndex in range(len(self.zValues[pltindex][key])):
+                      decompositionValues[:, 2] = self.zValues[pltindex][key][zIndex]
+                      self.actPlot = self.plt3D.scatter(decompositionValues[:, 0], decompositionValues[:, 1], decompositionValues[:, 2], **dataMiningPlotOptions)
       else:
         # Let's try to "write" the code for the plot on the fly
         self.raiseAWarning('Try to create a not-predifined plot of type ' + self.outStreamTypes[pltindex] + '. If it does not work check manual and/or relavite matplotlib method specification.')
