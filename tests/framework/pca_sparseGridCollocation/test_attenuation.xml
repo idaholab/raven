@@ -101,7 +101,7 @@
     <Print name="csv_database">
       <type>csv</type>
       <source>collset</source>
-      <what>Input|x2,Input|x3,Input|x1,Input|x4,Input|x5,Output</what>
+      <what>Input|x1,Input|x2,Input|x3,Input|x4,Input|x5,Output</what>
     </Print>
     <Print name="stats_td1">
       <type>xml</type>

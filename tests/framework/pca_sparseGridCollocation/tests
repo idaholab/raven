@@ -41,7 +41,6 @@
   type = 'RavenFramework'
   input = 'test_poly_correlation_mc.xml'
   csv = 'polyCorrelationMC/csv_database.csv'
-  xml = 'polyCorrelationMC/stats_td1.xml'
  [../]
 
  [./polyAnalyticalTest]
@@ -51,7 +50,7 @@
   xml = 'polynomial/stats_td1.xml'
  [../]
 
- [./attenuationAnalyticalTest]
+ [./attenuationTest]
   type = 'RavenFramework'
   input = 'test_attenuation.xml'
   csv = 'attenuation/csv_database.csv'
