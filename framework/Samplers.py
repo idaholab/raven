@@ -938,10 +938,6 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.persistenceMatrix[self.name+"LSpp"]  = np.zeros(matrixShape) #matrix that for each point of the testing grid tracks the persistence of the limit surface position
     self.oldTestMatrix[self.name+"LSpp"]      = np.zeros(matrixShape) #swap matrix fro convergence test
     self.hangingPoints                        = np.ndarray((0, self.nVar))
-    self.scores = np.zeros(matrixShape)            # Matrix that for each point
-                                                   #  of the testing grid tracks
-                                                   #  the score of the limit
-                                                   #  surface position
     self.raiseADebug('Initialization done')
 
   def localStillReady(self,ready): #,lastOutput=None
@@ -1087,10 +1083,20 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
         self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
 
-      maxDistance, maxGridId, maxId =  0.0, "", 0
       for key, value in self.invPointPersistence.items():
         if key != self.exceptionGrid and self.surfPoint[key] is not None:
           distance, _ = distanceTree.query(self.surfPoint[key])
+          # Different versions of scipy/numpy will yield different results on
+          # our various supported platforms. If things are this close, then it
+          # it is highly unlikely choosing one point over the other will affect
+          # us much, so limit the precision to allow the same results on older
+          # versions. Scale could be important, though, so normalize the
+          # distances first. Alternatively, we could force newer versions of
+          # these libraries, but since our own HPC does not yet support them,
+          # this should be acceptable, agreed? - DPM Nov. 23, 2015
+          maxDistance = max(distance)
+          if maxDistance != 0:
+            distance = np.round(distance/maxDistance,15)
           if self.scoringMethod == 'distance' or max(self.invPointPersistence) == 0:
             self.scores[key] = distance
           else:
@@ -1128,7 +1134,6 @@ class LimitSurfaceSearch(AdaptiveSampler):
             localMax = np.max(self.scores[key])
             if localMax > maxDistance:
               maxDistance, maxGridId, maxId  = localMax, key,  np.argmax(self.scores[key])
-
         if maxDistance > 0.0:
           for varIndex, _ in enumerate([key.replace('<distribution>','') for key in self.axisName]):
             self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
