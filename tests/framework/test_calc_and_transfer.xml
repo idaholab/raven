@@ -1,0 +1,133 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>calc_and_transfer</WorkingDir>
+    <Sequence>External_Model,MakeSet,TrainROM,NewHDF5,MakeROMSet,ComparisonStats</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="output.csv" type="">output.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="calc" name="Calc" subType="">
+      <variable>gauss</variable>
+      <variable>uniform</variable>
+      <variable>time</variable>
+      <variable>out1</variable>
+      <variable>out2</variable>
+    </ExternalModel>
+    <ROM name="ROM1" subType="SciKitLearn">
+      <Features>gauss,uniform,time</Features>
+      <Target>out1,out2</Target>
+      <SKLtype>svm|SVR</SKLtype>
+      <kernel>linear</kernel>
+      <C>10.0</C>
+      <tol>0.0001</tol>
+    </ROM>
+    <PostProcessor name="test_stats" subType="ComparisonStatistics">
+      <kind binMethod="sturges">uniformBins</kind>
+      <compare>
+        <data>RawPointSet|outputs|out1</data>
+        <data>ROM1PointSet|outputs|out1</data>
+      </compare>
+      <compare>
+        <data>RawPointSet|outputs|out2</data>
+        <data>ROM1PointSet|outputs|out2</data>
+      </compare>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="gauss">
+      <mean>2.0</mean>
+      <sigma>0.5</sigma>
+    </Normal>
+    <Uniform name="uniform">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="theMonteCarlo">
+      <samplerInit>
+        <limit>200</limit>
+      </samplerInit>
+      <variable name="gauss">
+        <distribution>gauss</distribution>
+      </variable>
+      <variable name="uniform">
+        <distribution>uniform</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreamManager>
+    <Print name="PrintRawPointSet">
+      <type>csv</type>
+      <source>RawPointSet</source>
+    </Print>
+    <Print name="PrintROM1PointSet">
+      <type>csv</type>
+      <source>ROM1PointSet</source>
+    </Print>
+  </OutStreamManager>
+
+  <Steps>
+    <MultiRun name="External_Model" re-seeding="200286">
+      <Input class="DataObjects" type="Point">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">Calc</Model>
+      <Sampler class="Samplers" type="MonteCarlo">theMonteCarlo</Sampler>
+      <Output class="Databases" type="HDF5">calc_and_transfer_database</Output>
+    </MultiRun>
+    <IOStep name="MakeSet">
+      <Input class="Databases" type="HDF5">calc_and_transfer_database</Input>
+      <Output class="DataObjects" type="PointSet">RawPointSet</Output>
+      <Output class="OutStreamManager" type="Print">PrintRawPointSet</Output>
+    </IOStep>
+    <RomTrainer name="TrainROM">
+      <Input class="DataObjects" type="PointSet">RawPointSet</Input>
+      <Output class="Models" type="ROM">ROM1</Output>
+    </RomTrainer>
+    <MultiRun name="NewHDF5">
+      <Input class="DataObjects" type="PointSet">RawPointSet</Input>
+      <Model class="Models" type="ROM">ROM1</Model>
+      <Sampler class="Samplers" type="MonteCarlo">theMonteCarlo</Sampler>
+      <Output class="Databases" type="HDF5">calc_and_transfer_database_rom</Output>
+    </MultiRun>
+    <IOStep name="MakeROMSet">
+      <Input class="Databases" type="HDF5">calc_and_transfer_database_rom</Input>
+      <Output class="DataObjects" type="PointSet">ROM1PointSet</Output>
+      <Output class="OutStreamManager" type="Print">PrintROM1PointSet</Output>
+    </IOStep>
+    <PostProcess name="ComparisonStats">
+      <Input class="DataObjects" type="PointSet">RawPointSet</Input>
+      <Input class="DataObjects" type="PointSet">ROM1PointSet</Input>
+      <Model class="Models" type="PostProcessor">test_stats</Model>
+      <Output class="Files" type="">output.csv</Output>
+    </PostProcess>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="calc_and_transfer_database" />
+    <HDF5 name="calc_and_transfer_database_rom" />
+  </Databases>
+
+  <DataObjects>
+    <Point name="inputHolder">
+      <Input>gauss, uniform</Input>
+      <Output>OutputPlaceHolder</Output>
+    </Point>
+    <PointSet name="RawPointSet">
+      <Input>gauss,uniform</Input>
+      <Output>time,out1,out2</Output>
+    </PointSet>
+    <PointSet name="ROM1PointSet">
+      <Input>gauss,uniform,time</Input>
+      <Output>out1,out2</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
+
