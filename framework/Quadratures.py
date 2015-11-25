@@ -173,9 +173,9 @@ class SparseQuad(MessageHandler.MessageUser):
     if len(oldNames)!=len(newNames): self.raiseAnError(KeyError,'Remap mismatch! Dimensions are not the same!')
     for name in oldNames:
       if name not in newNames: self.raiseAnError(KeyError,'Remap mismatch! '+name+' not found in original variables!')
-    wts = self.weights()
+    wts = list(self.weights())
     #split by columns (dim) instead of rows (points)
-    oldlists = self._xy()
+    oldlists = list(self._xy())
     #stash point lists by name
     oldDict = {}
     for n,name in enumerate(oldNames):
@@ -322,7 +322,7 @@ class SparseQuad(MessageHandler.MessageUser):
     """
     tot=np.zeros(len(idx),dtype=np.int64)
     for i,ix in enumerate(idx):
-      tot[i]=self.quadDict.values()[i].quadRule(ix)
+      tot[i]=list(self.quadDict.values())[i].quadRule(ix)
     return tot
 
   def points(self,n=None):
@@ -333,7 +333,7 @@ class SparseQuad(MessageHandler.MessageUser):
     if n==None:
       return self.SG.keys()
     else:
-      return self.SG.keys()[n]
+      return list(self.SG.keys())[n]
 
   def weights(self,n=None):
     """Either returns the list of weights, or the weight indexed at n, or the weight corresponding to point n.
@@ -344,7 +344,7 @@ class SparseQuad(MessageHandler.MessageUser):
       return self.SG.values()
     else:
       try: return self.SG[tuple(n)]
-      except TypeError:  return self.SG.values()[n]
+      except TypeError:  return list(self.SG.values())[n]
 
   def smarterMakeCoeffs(self):
     """Somewhat optimized method to create coefficients for each index set in the sparse grid approximation.

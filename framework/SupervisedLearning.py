@@ -213,8 +213,8 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 
   def returnInitialParameters(self):
     """override this method to return the fix set of parameters of the ROM"""
-    iniParDict = dict(self.initOptionDict.items() + {'returnType':self.__class__.returnType,'qualityEstType':self.__class__.qualityEstType,'Features':self.features,
-                                             'Target':self.target,'returnType':self.__class__.returnType}.items() + self.__returnInitialParametersLocal__().items())
+    iniParDict = dict(list(self.initOptionDict.items()) + list({'returnType':self.__class__.returnType,'qualityEstType':self.__class__.qualityEstType,'Features':self.features,
+                                             'Target':self.target,'returnType':self.__class__.returnType}.items()) + list(self.__returnInitialParametersLocal__().items()))
     return iniParDict
 
   def returnCurrentSetting(self):
@@ -296,8 +296,36 @@ class NDinterpolatorRom(superVisedLearning):
     @In, kwargs: an arbitrary dictionary of keywords and values
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
-    self.interpolator = None
+    self.interpolator = None  # pointer to the C++ (crow) interpolator
+    self.featv        = None  # list of feature variables
+    self.targv        = None  # list of target variables
     self.printTag = 'ND Interpolation ROM'
+
+
+  def __getstate__(self):
+    """
+    Overwrite state (for pickle-ing)
+    we do not pickle the HDF5 (C++) instance
+    but only the info to re-load it
+    @ In, None
+    @ Out, None
+    """
+    # capture what is normally pickled
+    state = self.__dict__.copy()
+    if 'interpolator' in state.keys():
+      a = state.pop("interpolator")
+      del a
+    return state
+
+  def __setstate__(self, newstate):
+    """
+    Initialize the ROM with the data contained in newstate
+    @ In, newstate, dic, it contains all the information needed by the ROM to be initialized
+    @ Out, None
+    """
+    self.__dict__.update(newstate)
+    self.__initLocal__()
+    self.__trainLocal__(self.featv,self.targv)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -309,8 +337,10 @@ class NDinterpolatorRom(superVisedLearning):
     @ Out, targetVals, array, shape = [n_samples], an array of output target
       associated with the corresponding points in featureVals
     """
+    self.featv, self.targv = featureVals,targetVals
     featv = interpolationND.vectd2d(featureVals[:][:])
     targv = interpolationND.vectd(targetVals)
+
     self.interpolator.fit(featv,targv)
 
   def __confidenceLocal__(self,featureVals):
@@ -366,6 +396,13 @@ class GaussPolynomialRom(NDinterpolatorRom):
     """
     pass
 
+  def __initLocal__(self):
+    """ Method used to add additional initialization features used by pickling
+    @ In, None
+    @ Out, None
+    """
+    pass
+
   def __init__(self,messageHandler,**kwargs):
     """Initializes class.
     @ In, kwargs, dict of XML inputs from ROM
@@ -387,6 +424,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
     self.numRuns       = None #number of runs to generate ROM; default is len(self.sparseGrid)
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
+    self.featv        = None  # list of feature variables
+    self.targv        = None  # list of target variables
 
     for key,val in kwargs.items():
       if key=='IndexSet':self.indexSetType = val
@@ -503,11 +542,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ In, targetVals, list, target values
     """
     self.raiseADebug('training',self.features,'->',self.target)
+    self.featv, self.targv = featureVals,targetVals
     self.polyCoeffDict={}
     #check equality of point space
     fvs = []
     tvs=[]
-    sgs = self.sparseGrid.points()[:]
+    sgs = list(self.sparseGrid.points())
     missing=[]
     for pt in sgs:
       found,idx,point = utils.NDInArray(featureVals,pt)
@@ -1423,6 +1463,9 @@ class NDinvDistWeight(NDinterpolatorRom):
     NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ND-INVERSEWEIGHT ROM'
     if not 'p' in self.initOptionDict.keys(): self.raiseAnError(IOError,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
+    self.__initLocal__()
+
+  def __initLocal__(self):
     self.interpolator = interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p']))
 
   def __resetLocal__(self):
