@@ -3200,12 +3200,12 @@ class SparseGridCollocation(Grid):
 
   def transformDistDict(self):
     """
-    Performs distribution transformation
-    If the method 'pca' is used in the variables transformation (i.e. latentVariables to manifestVariables), the corrrelated variables
-    will be tranformed into uncorrelated variables with standard normal distributions. Thus, the dictionary of distributions will
-    be also transformed.
-    @ In, None
-    @ Out, distDicts: distribution dictionary {varName:DistributionObject}
+      Performs distribution transformation
+      If the method 'pca' is used in the variables transformation (i.e. latentVariables to manifestVariables), the corrrelated variables
+      will be tranformed into uncorrelated variables with standard normal distributions. Thus, the dictionary of distributions will
+      be also transformed.
+      @ In, None
+      @ Out, distDicts, dict, distribution dictionary {varName:DistributionObject}
     """
     # Generate a standard normal distribution, this is used to generate the sparse grid points and weights for multivariate normal
     # distribution if PCA is used.
