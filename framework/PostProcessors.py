@@ -1075,7 +1075,7 @@ class BasicStatistics(BasePostProcessor):
                 integerPercentile = utils.intConversion(requestedPercentile.replace("%",""))
                 if integerPercentile is None: self.raiseAnError(IOError,"Could not convert the inputted percentile. The percentile needs to an integer between 1 and 100. Got "+requestedPercentile)
                 floatPercentile = utils.floatConversion(requestedPercentile.replace("%",""))
-                if floatPercentile < 1.0: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
+                if floatPercentile < 1.0 or floatPercentile > 100.0: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
                 if -float(integerPercentile)/floatPercentile + 1.0 > 0.0001: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
           self.what = toCompute
       if child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
@@ -1281,7 +1281,7 @@ class BasicStatistics(BasePostProcessor):
       @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
       @ Out, result, float, the percentile
     """
-    idxs                   = np.argsort(np.asarray(zip(pbWeight,arrayIn))[:,0])
+    idxs                   = np.argsort(np.asarray(zip(pbWeight,arrayIn))[:,1])
     sortedWeightsAndPoints = np.asarray(zip(pbWeight[idxs],arrayIn[idxs]))
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
     percentileFunction     = interpolate.interp1d(weightsCDF,[i for i in range(len(arrayIn))],kind='nearest')
