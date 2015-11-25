@@ -140,7 +140,10 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-        if values[names.index(feat)].size != featureValues[:,0].size: self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
+        if values[names.index(feat)].size != featureValues[:,0].size:
+          self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
+          self.raiseAWarning('target values:',values[names.index(feat)].size,tag='ERROR')
+          self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
@@ -247,7 +250,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 
     @In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
       an array of input feature values
-    @Out, targetVals, array, shape = [n_samples], an array of output target
+    @ Out, targetVals, array, shape = [n_samples], an array of output target
       associated with the corresponding points in featureVals
     """
 
@@ -331,7 +334,7 @@ class NDinterpolatorRom(superVisedLearning):
 
     @In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
       an array of input feature values
-    @Out, targetVals, array, shape = [n_samples], an array of output target
+    @ Out, targetVals, array, shape = [n_samples], an array of output target
       associated with the corresponding points in featureVals
     """
     self.featv, self.targv = featureVals,targetVals
@@ -462,7 +465,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
       Adds requested entries to XML node.
       @ In, node, XML node to which entries will be added
       @ In, options, dict (optional), list of requests and options
-      @Out, None
+      @ Out, None
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
@@ -538,6 +541,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     @ In, featureVals, list, feature values
     @ In, targetVals, list, target values
     """
+    self.raiseADebug('training',self.features,'->',self.target)
     self.featv, self.targv = featureVals,targetVals
     self.polyCoeffDict={}
     #check equality of point space
@@ -566,6 +570,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     for i in range(len(fvs)):
       translate[tuple(fvs[i])]=sgs[i]
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
+    #make polynomials
     for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
@@ -598,13 +603,21 @@ class GaussPolynomialRom(NDinterpolatorRom):
     """
       Checks poly coefficient dictionary for nonzero entries.
       @ In, tol, float(optional), the tolerance under which is zero (default 1e-12)
-      @Out, list(tuple), the indices and values of the nonzero coefficients
+      @ Out, list(tuple), the indices and values of the nonzero coefficients
     """
     data=[]
     for idx,val in self.polyCoeffDict.items():
       if round(val,11) !=0:
         data.append([idx,val])
     return data
+
+  def __variance__(self):
+    """returns the variance of the ROM.
+    @ In, None
+    @ Out, float, variance
+    """
+    mean = self.__evaluateMoment__(1)
+    return self.__evaluateMoment__(2) - mean*mean
 
   def __evaluateMoment__(self,r):
     """Use the ROM's built-in method to calculate moments.
@@ -699,18 +712,17 @@ class HDMRRom(GaussPolynomialRom):
       Adds requested entries to XML node.
       @ In, node, XML node to which entries will be added
       @ In, options, dict (optional), list of requests and options
-      @Out, None
+      @ Out, None
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance','indices']
+    canDo = ['mean','variance','indices','numRuns']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
       for request in requests:
         request=request.strip()
         newnode = TreeStructure.Node(request)
-        #node.appendBranch(newnode)
         if request.lower() in ['mean','expectedvalue']: newnode.setText(self.__mean__())
         elif request.lower() in ['variance']: newnode.setText(self.__variance__())
         elif request.lower() in ['indices']:
@@ -718,7 +730,7 @@ class HDMRRom(GaussPolynomialRom):
           vnode = TreeStructure.Node('total_variance')
           vnode.setText(totvar)
           newnode.appendBranch(vnode)
-          #split into two sets, significant and insignificat
+          #split into two sets, significant and insignificant
           entries = []
           insig = []
           for combo,sens in pcts.items():
@@ -739,6 +751,8 @@ class HDMRRom(GaussPolynomialRom):
             addSensBranch(combo,sens)
           for combo,sens in insig:
             addSensBranch(combo,sens)
+        elif request.lower() in ['numruns']:
+          newnode.setText(self.numRuns)
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
           newnode.setText('not found')
@@ -750,11 +764,12 @@ class HDMRRom(GaussPolynomialRom):
     @ Out, None
     """
     for key,value in idict.items():
-      if   key == 'ROMs' : self.ROMs       = value
-      elif key == 'dists': self.distDict   = value
-      elif key == 'quads': self.quads      = value
-      elif key == 'polys': self.polys      = value
-      elif key == 'refs' : self.references = value
+      if   key == 'ROMs'   : self.ROMs       = value
+      elif key == 'dists'  : self.distDict   = value
+      elif key == 'quads'  : self.quads      = value
+      elif key == 'polys'  : self.polys      = value
+      elif key == 'refs'   : self.references = value
+      elif key == 'numRuns': self.numRuns    = value
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -1133,7 +1148,7 @@ class MSR(NDinterpolatorRom):
 
     @In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
       an array of input feature values
-    @Out, targetVals, array, shape = [n_samples], an array of output target
+    @ Out, targetVals, array, shape = [n_samples], an array of output target
       associated with the corresponding points in featureVals
     """
 
@@ -1600,7 +1615,7 @@ class SciKitLearn(superVisedLearning):
 
     @In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
       an array of input feature values
-    @Out, targetVals, array, shape = [n_samples], an array of output target
+    @ Out, targetVals, array, shape = [n_samples], an array of output target
       associated with the corresponding points in featureVals
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
@@ -1633,7 +1648,7 @@ class SciKitLearn(superVisedLearning):
     After this method the ROM should be described only by the initial
     parameter settings
     @In None
-    @Out None
+    @ Out None
     """
     self.ROM = self.ROM.__class__(**self.initOptionDict)
 
@@ -1641,7 +1656,7 @@ class SciKitLearn(superVisedLearning):
     """
     Returns a dictionary with the parameters and their initial values
     @In None
-    @Out dictionary of parameter names and initial values
+    @ Out dictionary of parameter names and initial values
     """
     return self.ROM.get_params()
 
@@ -1649,7 +1664,7 @@ class SciKitLearn(superVisedLearning):
     """
     Returns a dictionary with the parameters and their current values
     @In None
-    @Out dictionary of parameter names and current values
+    @ Out dictionary of parameter names and current values
     """
     self.raiseADebug('here we need to collect some info on the ROM status')
     localInitParam = {}
@@ -1677,7 +1692,7 @@ def returnInstance(ROMclass,caller,**kwargs):
   @In caller: object that will share its messageHandler instance
   @In kwargs: a dictionary specifying the keywords and values needed to create
               the instance.
-  @Out an instance of a ROM
+  @ Out an instance of a ROM
   """
   try: return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
@@ -1687,7 +1702,7 @@ def returnClass(ROMclass,caller):
   This function return an instance of the request model type
   @In ROMclass: string representing the class to retrieve
   @In caller: object that will share its messageHandler instance
-  @Out the class definition of a ROM
+  @ Out the class definition of a ROM
   """
   try: return __interfaceDict[ROMclass]
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+ROMclass)

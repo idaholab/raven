@@ -90,7 +90,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                                 'ResponseSurfaceDesign',
                                                 'SparseGridCollocation',
                                                 'AdaptiveSparseGrid',
-                                                'Sobol']
+                                                'Sobol',
+                                                'AdaptiveSobol']
 
   @classmethod
   def generateValidateDict(cls):
@@ -456,7 +457,6 @@ class ROM(Dummy):
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
-
     else:
       if 'HistorySet' in type(trainingSet).__name__:
         self.SupervisedEngine = []
@@ -491,7 +491,6 @@ class ROM(Dummy):
             instrom.train(self.trainingSet)
             self.amITrained = self.amITrained and instrom.amITrained
           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
-
 
   def confidence(self,request,target = None):
     """
@@ -821,7 +820,7 @@ class Code(Model):
     """
     Adds input edits besides the sampledVars to the inputInfo dictionary. Called by the sampler.
     @ In, inputInfo, dictionary object
-    @Out, None.
+    @ Out, None.
     """
     inputInfo['additionalEdits']=self.fargs
 

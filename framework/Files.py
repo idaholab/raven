@@ -97,7 +97,7 @@ class File(BaseType):
   def __repr__(self):
     """Overwrite of string representation.
     @ In, None
-    @Out, string, full file path and name in string
+    @ Out, string, full file path and name in string
     """
     return "(FILE) "+self.getAbsFile()+" (END FILE)"
 
@@ -114,7 +114,7 @@ class File(BaseType):
   def getPath(self):
     """Retriever for path.
     @ In, None
-    @Out, string, path
+    @ Out, string, path
     """
     return self.__path
 
@@ -136,7 +136,7 @@ class File(BaseType):
   def setPath(self,path):
     """Sets the path to the file object.
     @ In, path, string, optional, path to set
-    @Out, None
+    @ Out, None
     """
     if self.isOpen(): self.raiseAnError('Tried to change the path of an open file: %s! Close it first.' %self.getAbsFile())
     if '~' in path: path = os.path.expanduser(path)
@@ -154,7 +154,7 @@ class File(BaseType):
   def setBase(self,base):
     """Sets the base name of the file.
     @ In, base, string, base to change file to
-    @Out, None
+    @ Out, None
     """
     if self.isOpen(): self.raiseAnError('Tried to change the base name of an open file: %s! Close it first.' %self.getAbsFile())
     self.__base = base
@@ -162,7 +162,7 @@ class File(BaseType):
   def setExt(self,ext):
     """Sets the extension of the file.
     @ In, ext, string, extension to change file to
-    @Out, None
+    @ Out, None
     """
     if self.isOpen(): self.raiseAnError('Tried to change the extension of an open file: %s! Close it first.' %self.getAbsFile())
     self.__ext = ext
@@ -172,7 +172,7 @@ class File(BaseType):
   def getFilename(self):
     """Retriever for full filename.
     @ In, None
-    @Out, string, filename
+    @ Out, string, filename
     """
     if self.__ext is not None: return '.'.join([self.__base,self.__ext])
     else: return self.__base
@@ -180,7 +180,7 @@ class File(BaseType):
   def getAbsFile(self):
     """Retriever for path/file.
     @ In, None
-    @Out, string, path/file
+    @ Out, string, path/file
     """
     return os.path.normpath(os.path.join(self.getPath(),self.getFilename()))
 
@@ -217,7 +217,7 @@ class File(BaseType):
   def setAbsFile(self,pathandfile):
     """Sets the path AND the filename.
     @ In, pathandfile, string, path to file and the filename itself in a single string
-    @Out, None
+    @ Out, None
     """
     if self.isOpen(): self.raiseAnError('Tried to change the path/name of an open file: %s! Close it first.' %self.getAbsFile())
     path,filename = os.path.split(pathandfile)
@@ -287,7 +287,7 @@ class File(BaseType):
     """
       Mimics the "read" function of a python file object.
       @ In, size, integer (optional), number of bytes to read
-      @Out, string, bytes read from file
+      @ Out, string, bytes read from file
     """
     if not self.isOpen(): self.open(mode)
     if size is None: return self.__file.read()
@@ -296,8 +296,9 @@ class File(BaseType):
   def readline(self,mode='r',size=None):
     """
       Mimics the "readline" function of a python file object.
-      @ In, None
-      @Out, string, next line from file
+      @ In, mode, string, the mode (r,a,w) with which to interact with the file
+      @ In, size, int, the number of bytes to read in, as per the Python file object
+      @ Out, string, next line from file
     """
     if not self.isOpen(): self.open(mode)
     if size is None: return self.__file.readline()
@@ -341,7 +342,7 @@ class File(BaseType):
       Mimics the "write" function of a python file object.
       @ In, string, the string to write to file
       @ In, overwrite, bool (optional), whether to overwrite the existing file if not open
-      @Out, None
+      @ Out, None
     """
     if not self.isOpen(): self.open('a' if not overwrite else 'w')
     self.__file.write(string)
@@ -391,7 +392,7 @@ class RAVENGenerated(File):
     @ In, messageHandler, MessageHandler object, message handler
     @ In, path, string (optional), path to file object
     @ In, subtype, string (optional), subtype for labeling
-    @Out, None
+    @ Out, None
     """
     self.messageHandler = messageHandler
     self.type = 'internal'
@@ -414,7 +415,7 @@ class CSV(RAVENGenerated):
     @ In, messageHandler, MessageHandler object, message handler
     @ In, path, string (optional), path to file object
     @ In, subtype, string (optional), subtype for labeling
-    @Out, None
+    @ Out, None
     """
     RAVENGenerated.initialize(self,filename,messageHandler,path,subtype)
     self.type='csv'

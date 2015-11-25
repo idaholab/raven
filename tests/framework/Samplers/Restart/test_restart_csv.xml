@@ -52,6 +52,25 @@
       </variable>
       <Restart class="DataObjects" type="PointSet">solns</Restart>
     </MonteCarlo>
+    <SparseGridCollocation name="sc1">
+      <variable name="x">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>u2</distribution>
+      </variable>
+      <ROM class='Models' type='ROM'>rom1</ROM>
+    </SparseGridCollocation>
+    <SparseGridCollocation name="sc2">
+      <variable name="x">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>u2</distribution>
+      </variable>
+      <ROM class='Models' type='ROM'>rom2</ROM>
+      <Restart class='DataObjects' type='PointSet'>csolns2</Restart>
+    </SparseGridCollocation>
   </Samplers>
 
   <Models>
@@ -62,6 +81,18 @@
       <variable>ans</variable>
       <variable>ans2</variable>
     </ExternalModel>
+    <ROM name='rom1' subType='GaussPolynomialRom'>
+        <Target>ans</Target>
+        <Features>x,y</Features>
+        <IndexSet>TotalDegree</IndexSet>
+        <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
+    <ROM name='rom2' subType='GaussPolynomialRom'>
+        <Target>ans</Target>
+        <Features>x,y</Features>
+        <IndexSet>TotalDegree</IndexSet>
+        <PolynomialOrder>2</PolynomialOrder>
+    </ROM>
   </Models>
 
   <DataObjects>

@@ -1246,7 +1246,7 @@ class OutStreamPrint(OutStreamManager):
         else: empty = False
         if not empty:
           try: self.sourceData[index].printCSV(dictOptions)
-          except AttributeError: self.raiseAnError(IOError, 'no implementation for source type ' + str(type(self.sourceData[index])) + ' and output type "csv"!')
+          except AttributeError as e: self.raiseAnError(IOError, 'no implementation for source type ' + str(type(self.sourceData[index])) + ' and output type "csv"!  Receieved error:',e)
       elif self.options['type'] == 'xml':
         if type(self.sourceData[index]) == DataObjects.Data: empty = self.sourceData[index].isItEmpty()
         else: empty = False
