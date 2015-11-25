@@ -35,7 +35,7 @@ def run(self,Input):
   self.time[0]= 0
 
   for t in range ( self.numberTimeSteps-1):
-    self.time[t+1] = self.time[t] + self.t_step
+    self.time[t+1] = self.time[t] + self.t_step*self.x02
     self.x[t+1]    = self.x[t] + (self.y[t]-self.x[t])*self.t_step
     self.y[t+1]    = self.y[t] + (self.x[t]*self.z[t]-self.y[t])*self.t_step
     self.z[t+1]    = self.z[t] + (self.x[t]*self.y[t]-self.z[t])*self.t_step

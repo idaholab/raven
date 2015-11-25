@@ -1,4 +1,4 @@
-<data name="SCdump1" type="Pointset"><input>x2,x1</input><output>ans2,ans</output><inputFilename>SCdump1.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+<data name="SCdump1" type="Pointset"><input>x2,x1</input><output>ans2,ans</output><inputFilename>SCdump1.csv</inputFilename><metadata><ProbabilityWeight-x2>array([ 0.25,  0.25,  0.25,  0.25,  0.25])</ProbabilityWeight-x2><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation', u'Sparse Grid Collocation',
        u'Sparse Grid Collocation'], 
       dtype='&lt;U23')</SamplerType><crowDist>array([ {u'x2': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}'},
@@ -8,6 +8,6 @@
        {u'x2': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}'}], dtype=object)</crowDist><SampledVars>array([{u'x2': 3.0, u'x1': 3.0}, {u'x2': 1.0, u'x1': 3.0},
        {u'x2': 5.0, u'x1': 3.0}, {u'x2': 3.0, u'x1': 1.0},
        {u'x2': 3.0, u'x1': 5.0}], dtype=object)</SampledVars><ProbabilityWeight>array([ 1.33333333,  0.66666667,  0.66666667,  0.66666667,  0.66666667])</ProbabilityWeight><prefix>array(['1', '2', '3', '4', '5'], 
-      dtype='|S1')</prefix><SampledVarsPb>array([{u'x2': 0.25, u'x1': 0.25}, {u'x2': 0.25, u'x1': 0.25},
+      dtype='|S1')</prefix><ProbabilityWeight-x1>array([ 0.25,  0.25,  0.25,  0.25,  0.25])</ProbabilityWeight-x1><SampledVarsPb>array([{u'x2': 0.25, u'x1': 0.25}, {u'x2': 0.25, u'x1': 0.25},
        {u'x2': 0.25, u'x1': 0.25}, {u'x2': 0.25, u'x1': 0.25},
        {u'x2': 0.25, u'x1': 0.25}], dtype=object)</SampledVarsPb><PointProbability>array([ 0.0625,  0.0625,  0.0625,  0.0625,  0.0625])</PointProbability></metadata></data>

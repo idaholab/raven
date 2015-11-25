@@ -1,4 +1,4 @@
-<data name="samples1D" type="Pointset"><input>x</input><output /><inputFilename>samples1D.csv</inputFilename><metadata><upper>array([{u'x': 1000.4000000000001}, {u'x': 1000.5000000000001},
+<data name="samples1D" type="Pointset"><input>x</input><output>OutputPlaceHolder</output><inputFilename>samples1D.csv</inputFilename><metadata><upper>array([{u'x': 1000.4000000000001}, {u'x': 1000.5000000000001},
        {u'x': 1000.2}, {u'x': 1000.9000000000002},
        {u'x': 1000.6000000000001}, {u'x': 1000.7000000000002},
        {u'x': 1000.3000000000001}, {u'x': 1000.8000000000002},
@@ -30,4 +30,4 @@
        {u'x': 'Uniform'}, {u'x': 'Uniform'}, {u'x': 'Uniform'},
        {u'x': 'Uniform'}, {u'x': 'Uniform'}, {u'x': 'Uniform'},
        {u'x': 'Uniform'}], dtype=object)</distributionName><SampledVarsPb>array([{'x': 1.0}, {'x': 1.0}, {'x': 1.0}, {'x': 1.0}, {'x': 1.0},
-       {'x': 1.0}, {'x': 1.0}, {'x': 1.0}, {'x': 1.0}, {'x': 1.0}], dtype=object)</SampledVarsPb></metadata></data>
+       {'x': 1.0}, {'x': 1.0}, {'x': 1.0}, {'x': 1.0}, {'x': 1.0}], dtype=object)</SampledVarsPb><ProbabilityWeight-x>array([ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1])</ProbabilityWeight-x></metadata></data>
