@@ -2922,7 +2922,7 @@ class SparseGridCollocation(Grid):
     This method is a local mirror of the general whatDoINeed method.
     It is implemented by the samplers that need to request special objects
     @ In , None, None
-    @ Out, dict, list of objects needed
+    @ Out, dict, dictionary of objects needed
     """
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
@@ -2930,7 +2930,7 @@ class SparseGridCollocation(Grid):
 
   def _localGenerateAssembler(self,initDict):
     """Generates the assembler.
-    @ In, initDict, dictf init objects
+    @ In, initDict, dict, init objects
     @ Out, None
     """
     Grid._localGenerateAssembler(self, initDict)
@@ -4002,22 +4002,22 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         return False
     return True #only if nothing outside the cut plane
 
-  def _convergence(self):
-    """
-    Checks convergence based on the requested metric.  For now that's just variance. Deprecated, but retained for future use.
-    @ In, None
-    @ Out, float, minimum relative convergence on variance
-    """
-    self.oldVariance = copy.deepcopy(self.curVariance)
-    conv = {}
-    for t in self.targets:
-      self.curVariance[t] = 0
-      for subset,rom in self.useSet.items():
-        rom = rom[t]
-        self.curVariance[t]+=rom.__variance__()
-      conv[t] = abs(self.curVariance.get(t,1) - self.oldVariance.get(t,0))/self.curVariance.get(t,1)
-      self.raiseADebug('Convergence for %s is %1.3e' %(t,conv[t]))
-    return max(conv.values())
+  #def _convergence(self):
+    #"""
+    #Checks convergence based on the requested metric.  For now that's just variance. Deprecated, but retained for future use.
+    #@ In, None
+    #@ Out, float, minimum relative convergence on variance
+    #"""
+    #self.oldVariance = copy.deepcopy(self.curVariance)
+    #conv = {}
+    #for t in self.targets:
+      #self.curVariance[t] = 0
+      #for subset,rom in self.useSet.items():
+        #rom = rom[t]
+        #self.curVariance[t]+=rom.__variance__()
+      #conv[t] = abs(self.curVariance.get(t,1) - self.oldVariance.get(t,0))/self.curVariance.get(t,1)
+      #self.raiseADebug('Convergence for %s is %1.3e' %(t,conv[t]))
+    #return max(conv.values())
 
   def _expandCutPoint(self,subset,pt):
     """
