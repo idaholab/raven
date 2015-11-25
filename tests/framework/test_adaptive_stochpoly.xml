@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>AdaptiveStochasticPoly</WorkingDir>
     <Sequence>make,train,print,print2</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>2</batchSize>
   </RunInfo>
 
   <Steps>
@@ -36,7 +36,7 @@
 
   <Samplers>
     <AdaptiveSparseGrid name="SG" verbosity="debug">
-      <Convergence target="coeffs">1e-2</Convergence>
+      <Convergence target="variance">1e-2</Convergence>
       <variable name="x1">
         <distribution>UniDist</distribution>
       </variable>
