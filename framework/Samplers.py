@@ -3171,6 +3171,7 @@ class SparseGridCollocation(Grid):
     #do a distributions check for ND
     #for dist in self.distDict.values():
     #  if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists not supported for this sampler (yet)!')
+    self.dists = self.transformDistDict()
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -3219,8 +3220,6 @@ class SparseGridCollocation(Grid):
     @ In, None
     @ Out, None
     """
-    self.dists = self.transformDistDict()
-
     for key in self.assemblerDict.keys():
       if 'ROM' in key:
         for value in self.assemblerDict[key]: self.ROM = value[3]
@@ -3446,7 +3445,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     @ In, None
     @ Out, None
     """
-    self.dists = self.transformDistDict()
     #set a pointer to the end-product ROM
     self.ROM = self.assemblerDict['ROM'][0][3]
     #obtain the DataObject that contains evaluations of the model
@@ -3835,6 +3833,7 @@ class Sobol(SparseGridCollocation):
     """
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
+    self.dists = self.transformDistDict()
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -3858,8 +3857,6 @@ class Sobol(SparseGridCollocation):
       @ In, None
       @ Out, None
     """
-    self.dists = self.transformDistDict()
-
     for key in self.assemblerDict.keys():
       if 'ROM' in key:
         indice = 0
@@ -4544,9 +4541,11 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     polyDict={}
     imptDict={}
     limit=0
+    dists = {}
     #make use of the keys to get the distributions, quadratures, polynomials, importances we want
     for c in subset:
       distDict[c] = self.distDict[c]
+      dists[c] = self.dists[c]
       quadDict[c] = self.quadDict[c]
       polyDict[c] = self.polyDict[c]
       imptDict[c] = self.importanceDict[c]
@@ -4594,6 +4593,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     samp.convType       = 'variance'
     samp.maxPolyOrder   = self.maxPolyOrder
     samp.distDict       = distDict
+    samp.dists          = dists
     samp.assemblerDict['ROM']              = [['','','',self.romShell[subset]]]
     soln = self._makeCutDataObject(subset)
     samp.assemblerDict['TargetEvaluation'] = [['','','',soln]]
