@@ -46,6 +46,7 @@ class IndexSet(MessageHandler.MessageUser):
     @ In, None, None
     @ Out, string, visual representation of index set
     """
+    if len(self.points)<1: return "Index set is empty!"
     msg='IndexSet Printout:\n'
     if len(self.points[0])==2: #graphical block visualization
       left=0
@@ -93,7 +94,7 @@ class IndexSet(MessageHandler.MessageUser):
     """
     return zip(*self.points)
 
-  def print(self):
+  def printOut(self):
     """
       Prints out the contents of the index set.
       @ In, None
@@ -262,6 +263,7 @@ class Custom(IndexSet):
     self.points=[]
     if len(points)>0:
       self.addPoints(points)
+      self.order()
 
   def addPoints(self,points):
     """
@@ -292,80 +294,36 @@ class AdaptiveSet(IndexSet):
     self.printTag = self.type
     self.N        = len(distrList)
     self.points   = [] #retained points in the index set
-    firstpoint    = tuple([0]*self.N)
-    self.active   = {firstpoint:None}
-    self.SGs     = {firstpoint:None}
+    #need 0, first-order polynomial in each dimension to start predictions
+    firstpoint    = [0]*self.N #mean point polynomial
+    self.active   = [tuple(firstpoint)] #stores the polynomial indices being actively trained
+    for i in range(self.N): #add first-order polynomial along each axis
+      pt = firstpoint[:]
+      pt[i]+=1
+      self.active.append(tuple(pt))
     self.history  = [] #list of tuples, index set point and its impact parameter
 
-  def setSG(self,point,SG):
+  def accept(self,pt):
     """
-      Sets the sparse grid for a point in the established or active set.
-      @ In, point, tuple of int, the point for which the sparseGrid corresponds
-      @ In, SG, sparseGrid object
-      @ Out, None
+    Indicates the provided point should be accepted from the active set to the use set
+    @ In, pt, tuple(int), the polynomial index to accept
+    @ Out, None
     """
-    if point in self.SGs.keys(): self.SGs[point]=SG
-    else: self.raiseAnError(KeyError,'Tried to set sparse grid',SG,'for point',point,'but it is not in active set!')
-
-  def setImpact(self,point,impact):
-    """
-      Sets the impact parameter for a point in the active set.
-      @ In, point, tuple of int, the point for which the sparseGrid corresponds
-      @ In, impact, float, the impact value for the point
-      @ Out, None
-    """
-    if point in self.active.keys(): self.active[point]=impact
-    else: self.raiseAnError(KeyError,'Tried to set impact',impact,'for point',point,'but it is not in active set!')
-
-  def checkImpacts(self):
-    """
-      Checks to assure all points have impact factors assigned.
-      @ In, None
-      @ Out, boolean, True if all assigned, False if any are not.
-    """
-    for key,impact in self.active.items():
-      if impact==None:return False
-    return True
-
-  def expand(self):
-    """
-      Method to accept the biggest-impact point to the established set.
-      @ In, None
-      @ Out, (tuple of int, float), biggest-impact point and its impact
-    """
-    #get the biggest helper
-    pt = self.getBiggestImpact()
-    impact = self.active[pt]
-    #stash this event in the history
-    msg=str(pt)+': '+str(impact)+' || '
-    for apt,imp in self.active.items():
-      msg+=str(apt)+': '+str(imp)+' | '
-    self.history.append(msg)
-    #make the largest-impact point permanent
+    if pt not in self.active:
+      self.raiseAnError(KeyError,'Adaptive index set instructed to accept point',pt,'but point is not in active set!')
+    self.active.remove(pt)
     self.points.append(pt)
-    self.newestPoint=pt
-    self.order() #sort it as partially increasing
-    #not an eligible bachelor anymore, so take him out of the active set.
-    del self.active[pt]
-    return pt,impact
+    self.order()
 
-  def getBiggestImpact(self):
+  def reject(self,pt):
     """
-      Algorithm to determine the point with the largest impact.
-      @ In, None
-      @ Out, tuple, the largest-impact point
+    Indicates the provided point should be accepted from the active set to the use set
+    @ In, pt, tuple(int), the polynomial index to accept
+    @ Out, None
     """
-    if not self.checkImpacts(): self.raiseAnError(ValueError,'Not all impacts have been set for active set!',self.active)
-    if len(self.active)<1: self.raiseAnError(ValueError,'No active points in dictionary; search for forward points!')
-    if len(self.active)==1: return self.active.keys()[0]
-    mx = -sys.float_info.max
-    mxkey=None
-    for key,val in self.active.items():
-      mx = max(abs(val),mx)
-      if abs(val)==mx: mxkey = key
-    self.raiseADebug('  biggest impact:',mxkey,mx)
-    if mxkey==None: return self.active.keys()[0] #special case
-    return mxkey
+    if pt not in self.active.keys():
+      self.raiseAnError(KeyError,'Adaptive index set instructed to reject point',pt,'but point is not in active set!')
+    self.active.remove(pt)
 
   def forward(self,pt,maxPoly=None):
     """
@@ -374,31 +332,27 @@ class AdaptiveSet(IndexSet):
       @ In, maxPoly, integer, optional maximum value to have in any direction
       @ Out, None
     """
+    #TODO generalize this not to refer to polys, if anything else ever wants to use these sets.
     #add one to each dimenssion, one at a time, as the potential candidates
     for i in range(self.N):
       newpt = list(pt)
       newpt[i]+=1
+      if tuple(newpt) in self.active:
+        continue
       if maxPoly != None:
         if newpt[i]>maxPoly:
-          self.raiseADebug('Rejecting',tuple(newpt),'for too high polynomial')
           continue
-      if tuple(newpt) in self.active.keys(): continue
-      #self.raiseADebug('    considering adding',newpt)
       #remove the candidate if not all of its predecessors are accepted.
       found=True
       for j in range(self.N):
         checkpt = newpt[:]
         if checkpt[j]==0:continue
         checkpt[j] -= 1
-        #self.raiseADebug('        checking subordinate point',checkpt)
         if tuple(checkpt) not in self.points:
           found=False
           break
       if found:
-        newpt=tuple(newpt)
-        #set up a holder for the impact parameter and sparse grid for this point
-        self.active[newpt]=None
-        self.SGs   [newpt]=None
+        self.active.append(tuple(newpt))
 
   def printOut(self):
     """
@@ -408,31 +362,10 @@ class AdaptiveSet(IndexSet):
     """
     self.raiseADebug('    Accepted Points:')
     for p in self.points:
-      self.raiseADebug('       ',p)#,'| %1.5e' %self.roms[p])
-    self.raiseADebug('    Active Set | Impact:')
-    for a,i in self.active.items():
-      self.raiseADebug('       ',a,'|',i)
-
-  def writeHistory(self):
-    """
-      Writes the chronological creation of this index set to file.
-      @ In, None
-      @ Out, None
-    """
-    msg = '\n'.join(self.history)
-    outFile = Files.returnInstance('RAVEN',self)
-    outFile.initialize('isethist.out',self.messageHandler)
-    outFile.writelines(msg)
-
-  def printHistory(self):
-    """
-      Prints the chronological creation of this index set to screen.
-      @ In, None
-      @ Out, None
-    """
-    self.raiseAMessage('Index Set Choice History:')
-    for h in self.history:
-      self.raiseAMessage('   ',h)
+      self.raiseADebug('       ',p)
+    self.raiseADebug('    Active Set')
+    for a in self.active:
+      self.raiseADebug('       ',a)
 
 
 """
