@@ -4155,31 +4155,33 @@ to compute many of the most important statistical quantities.
   %
   Currently the quantities available are:
   \begin{itemize}
-    \item \textbf{covariance matrix} -- covariance matrix
-    \item \textbf{NormalizedSensitivity} -- matrix of normalized sensitivity
+    \item \textbf{covariance}: covariance matrix
+    \item \textbf{NormalizedSensitivity}: matrix of normalized sensitivity
     coefficients
-    \item \textbf{VarianceDependentSensitivity} -- matrix of sensitivity coefficients dependent on the variance of the variables
-    \item \textbf{sensitivity} -- matrix of sensitivity coefficients of Output space to Input space
-    \item \textbf{pearson} -- matrix of sensitivity coefficients
-    \item \textbf{expectedValue} -- expected value or mean
-    \item \textbf{sigma} -- standard deviation
-    \item \textbf{variationCoefficient} -- coefficient of variation
+    \item \textbf{VarianceDependentSensitivity}: matrix of sensitivity coefficients dependent on the variance of the variables
+    \item \textbf{sensitivity}: matrix of sensitivity coefficients of output space to input space
+    \item \textbf{pearson}: matrix of correlation coefficients
+    \item \textbf{expectedValue}: expected value or mean
+    \item \textbf{sigma}: standard deviation
+    \item \textbf{variationCoefficient}: coefficient of variation
     (sigma/expected value)
-    \item \textbf{variance} --  variance
-    \item \textbf{skewness} -- skewness
-    \item \textbf{kurtois} -- kurtois
-    \item \textbf{median} -- median
-    \item \textbf{percentile} -- 95 percentile
+    \item \textbf{variance}:  variance
+    \item \textbf{skewness}: skewness
+    \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
+    \item \textbf{median}: median
+    \item \textbf{percentile}: the percentile. If this quantity is inputted as \textit{percentile} the $5\%$ and $95\%$ percentile(s) are going to be computed. 
+                               Otherwise the user can specify this quantity as \textit{percentile\_$X\%$}, where \textit{X} represents the requested 
+                               percentile (an integer value between 1 and 100).
     %
   \end{itemize}
    %
-  \nb If the weights are present in the system then weighted quantities are calcuated automatically.
+  \nb If the weights are present in the system then weighted quantities are calculated automatically.
   \\
   \\  If all the quantities need to be computed, the user can input in the body of
-  \xmlNode{what} the string ``all.''
+  \xmlNode{what} the string ``all''.
   %
   \item \xmlNode{biased}, \xmlDesc{string (boolean), optional field}, if \textit{True} biased
-  covariance and correlation coefficient matrix calucated, if \textit{False} unbiased.
+  quantities are going to be calculated, if \textit{False} unbiased.
   \default{False}
   %
   \item \xmlNode{parameters}, \xmlDesc{comma separated string, required field},
