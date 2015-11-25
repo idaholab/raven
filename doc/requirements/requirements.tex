@@ -59,7 +59,7 @@
 {One of the main tasks of the RAVEN code is to assess to how the probabilistic distribution of the input parameters reflects in the figure of merits characterizing the system response.}
 {testBasicStatistics}
 
-\futurerequirement{R2-5}{RAVEN must be able to perform advanced post processing of generated data, using classical data mining methodologies}
+\futurerequirement{R2-6}{RAVEN must be able to perform advanced post processing of generated data, using classical data mining methodologies}
 {available at task end}
 {Often engineers need to understand the system response to the variation of several parameters which mutually interacts. Such a scenario is of difficult interpretation and data mining algorithms help in this task.  Data mining methodologies include clustering, principal component analysis, etc.}
 {available at task end}
@@ -97,32 +97,32 @@
 {RAVEN uses HDF5 databases to store inputs and results for simulations, as well as other auxiliary information.  This allows using the data generated in sub-sequential steps.}
 {2steps\_same\_db}
 
-\requirement{R4-5}{RAVEN must be able to provide data to a user provided python function, and retrieve the data from that.}
+\requirement{R4-4}{RAVEN must be able to provide data to a user provided python function, and retrieve the data from that.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 13.4 External Model}
 {Sometimes all that is needed for the simulation is a function that can be calculated in Python.  The external model allows this.  This executes a python function to determine the result.}
 {testExternalModel}
 
-\requirement{R4-6}{RAVEN must be able to perform various calculation tasks, and transfer data to the next task.}
+\requirement{R4-5}{RAVEN must be able to perform various calculation tasks, and transfer data to the next task.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 15 Steps}
 {Sequences of calculation are one of the main uses of RAVEN.  For example, a initial calculation can be used to generate data to train a ROM, and then later calculations can use the ROM for faster calculation.  As well, steps allow various post processing to be done.}
 {calculate\_and\_transfer}
 
-\requirement{R4-7}{RAVEN must be able to run external codes in parallel on shared memory machines.}
+\requirement{R4-6}{RAVEN must be able to run external codes in parallel on shared memory machines.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 6.1 batchSize}
 {RAVEN will run on shared memory machines, and should be able to run external codes in parallel on them.  This can be done by running multiple processes.}
 {test\_bison\_mc\_simple\_\&\_alias\_system}
 
-\requirement{R4-8}{RAVEN must be able to run external codes in parallel on distributed memory machines.}
+\requirement{R4-7}{RAVEN must be able to run external codes in parallel on distributed memory machines.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 6.1 batchSize}
 {RAVEN will run on distributed memory machines, and should be able to run external codes in parallel on them.  This can be done by running with mpiexec.}
 {cluster\_tests/test\_mpi}
 
-\requirement{R4-9}{RAVEN must be able to run internal models in parallel on shared memory machines.}
+\requirement{R4-8}{RAVEN must be able to run internal models in parallel on shared memory machines.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 6.1 internalParallel}
 {RAVEN will run on shared memory machines, and it would be useful to run internal codes in parallel on them.}
 {InternalParallelTest/ROMscikit}
 
-\requirement{R4-10}{RAVEN must be able to run internal models in parallel on distributed memory machines.}
+\requirement{R4-9}{RAVEN must be able to run internal models in parallel on distributed memory machines.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 6.1 internalParallel}
 {RAVEN will run on distributed memory machines, and it would be useful to run internal codes in parallel on them.}
 {cluster\_tests/InternalParallel/test\_internal\_parallel\_ROM\_scikit}
