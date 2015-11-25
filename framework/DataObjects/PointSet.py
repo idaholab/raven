@@ -29,7 +29,12 @@ class PointSet(Data):
   PointSet is an object that stores multiple sets of inputs and outputs for a particular point in time!
   """
   def __init__(self):
+    """
+    @ In, None
+    @Out, None
+    """
     Data.__init__(self)
+    self.numAdditionalLoadPoints = 0 #if points are loaded into csv, this will help keep tally
     self.acceptHierarchy = True
 
   def addSpecializedReadingSettings(self):
@@ -58,7 +63,7 @@ class PointSet(Data):
     #example, if that list contains 10 csvs and 1 HDF5 (with 20
     #HistorySet), len(toLoadFromList) = 11 but the number of HistorySet
     #is actually 30.
-    lenMustHave = 0
+    lenMustHave = self.numAdditionalLoadPoints
     sourceType = self._toLoadFromList[-1].type
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
@@ -302,6 +307,9 @@ class PointSet(Data):
       myFile.write('\n')
       #Print values
       for j in range(len(next(iter(itertools.chain(inpValues,outValues))))):
+        #myFile.write(','.join(['{:.17f}'.format(item[j]) for item in itertools.chain(inpValues,outValues)]))
+        #str(item) can truncate the accuracy of the value.  However, we've lost that truncation before this point...
+        #  ...as shown by the line above.
         myFile.write(','.join([str(item[j]) for item in itertools.chain(inpValues,outValues)]))
         myFile.write('\n')
       myFile.close()
@@ -336,6 +344,8 @@ class PointSet(Data):
       lineList = line.rstrip().split(",")
       for i in range(len(inoutKeys)):
         inoutValues[i].append(utils.partialEval(lineList[i]))
+    #extend the expected size of this point set
+    self.numAdditionalLoadPoints = len(inoutValues[0]) #used in checkConsistency
     self._dataContainer['inputs'] = {}
     self._dataContainer['outputs'] = {}
     inoutDict = {}

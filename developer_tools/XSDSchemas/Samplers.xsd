@@ -17,6 +17,7 @@
             <xsd:element name="LimitSurfaceSearch"       type="LSSSampler"             minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdaptiveSparseGrid"       type="AdaptiveSGSampler"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdaptiveDynamicEventTree" type="AdaptiveDETSampler"     minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="AdaptiveSobol"            type="AdaptiveSobolSampler"   minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -38,6 +39,7 @@
             </xsd:element>
         </xsd:all>
     </xsd:complexType>
+
 
     <xsd:simpleType name="variableDistributionType">
         <xsd:restriction base="xsd:string"/>
@@ -247,6 +249,26 @@
         </xsd:sequence>
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
+    </xsd:complexType>
+    <xsd:complexType name="adaptiveSobolConvergence" mixed="true">
+      <xsd:sequence>
+        <xsd:element name="relTolerance"    type="xsd:float"   minOccurs="1" maxOccurs="unbounded"/>
+        <xsd:element name="maxRuns"         type="xsd:integer" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="maxSobolOrder"   type="xsd:integer" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="progressParam"   type="xsd:float"   minOccurs="0" maxOccurs="unbounded"/><!--should be from 0 to 2-->
+        <xsd:element name="logFile"         type="xsd:string"  minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="subsetVerbosity" type="verbosityAttr" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="AdaptiveSobolSampler">
+      <xsd:sequence>
+        <xsd:element name="Convergence"      type="adaptiveSobolConvergence" minOccurs="1" maxOccurs="unbounded"/>
+        <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
+        <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+        <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+      </xsd:sequence>
+      <xsd:attribute name="name"      type="xsd:string" use="required"/>
+      <xsd:attribute name="verbosity" type="verbosityAttr"/>
     </xsd:complexType>
     <xsd:complexType name="AdaptiveSGSampler">
         <xsd:sequence>

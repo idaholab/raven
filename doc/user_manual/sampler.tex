@@ -830,8 +830,11 @@ Example:
 </Samplers>
 \end{lstlisting}
 
-For N-dimensional  (ND) distributions, when the sampling is performed on a grid on a CDF  the user it is required to specify the same CDF grid for all the dimensions of the ND distribution.
-This is possible by defining a \xmlNode{globalGrid} node and associate such \xmlNode{globalGrid} to each variable belonging to the ND distribution as follows.
+For N-dimensional  (ND) distributions, there are two different approahes to perform the stratified sampling. In the first approach, 
+the subgroups is determined by the joint CDF of given multivariate distributions. If this approach is used, the sampling is performed 
+on a grid on a CDF, while the user is required to specify the same CDF grid for all the dimensions of the ND distribution.
+This is possible by defining a \xmlNode{globalGrid} node and associate such \xmlNode{globalGrid} to each variable belonging to the 
+ND distribution as follows.
 
 \begin{lstlisting}[style=XML,morekeywords={ND,grid}]
 <Samplers>
@@ -848,6 +851,81 @@ This is possible by defining a \xmlNode{globalGrid} node and associate such \xml
         <globalGrid>
             <grid name='name_grid1' type='CDF' construction='custom'>0.1 1.0 0.2</grid>
         </globalGrid>
+  </Stratified>
+  ...
+</Samplers>
+...
+\end{lstlisting}
+
+The second approach is different than the first approach. Like in the \textbf{Grid} sampling, if the covariance matrix is provided 
+and the input parameters is assumed to have the multivariate normal distribution, one can also use \textbf{Stratified} approach to 
+sample the input parameters in the transformed space (aka subspace, reduced space). This means one creates
+the grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is the case, the user needs to 
+provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions} 
+(more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also 
+required for \textbf{Stratified} sampler. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the 
+transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed 
+in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables} 
+are used by the \xmlNode{Models}. In addition, \xmlNode{globalGrid} will be not used for approach.
+
+\variablesTransformationDescription{Stratified}
+
+
+\begin{lstlisting}[style=XML,morekeywords={ND,grid}]
+...
+<Models>
+    ...
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
+        <variable>sigma</variable>
+        <variable>rho</variable>
+        <variable>beta</variable>
+        <variable>x</variable>
+        <variable>y</variable>
+        <variable>z</variable>
+        <variable>time</variable>
+        <variable>x0</variable>
+        <variable>y0</variable>
+        <variable>z0</variable>
+    </ExternalModel>
+    ...
+</Models>
+
+<Distributions>
+    ...
+    <MultivariateNormal name='MVNDist' method='pca'>
+        <transformation>
+            <rank>3</rank>
+        </transformation>
+        <mu>0.0 1.0 2.0</mu>
+        <covariance type="abs">
+            1.0       0.6      -0.4
+            0.6       1.0      0.2
+            -0.4      0.2      0.8
+        </covariance>
+    </MultivariateNormal>
+    ...
+</Distributions>
+
+<Samplers>
+  ...
+  <Stratified name='StratifiedName'>
+        <variable name='x0'>
+            <distribution dim='1'>MVNDist</distribution>
+            <grid type='CDF' construction='equal' steps='3'>0.1 0.9</grid>
+        </variable>
+        <variable name='y0'>
+            <distribution dim='2'>MVNDist</distribution>
+            <grid type='value' construction='equal' steps='3'>0.1 0.9</grid>
+        </variable>
+        <variable name='z0'>
+            <distribution dim='3'>MVNDist</distribution>
+            <grid type='CDF' construction='equal' steps='3'>0.2 0.8</grid>
+        </variable>
+        <variablesTransformation model="PythonModule">
+            <latentVariables>x1,y1,z1</latentVariables>
+            <manifestVariables>x0,y0,z0</manifestVariables>
+            <method>pca</method>
+        </variablesTransformation>
   </Stratified>
   ...
 </Samplers>
@@ -1546,6 +1624,7 @@ Currently, RAVEN provides support for the following adaptive algorithms:
   \item Adaptive Dynamic Event Tree
   \item Adaptive Hybrid Dynamic Event Tree
   \item Adaptive Sparse Grid
+  \item Adaptive Sobol Decomposition
 \end{itemize}
 
 In the following paragraphs, the input requirements and a small explanation of
@@ -2200,6 +2279,116 @@ Example:
     <ROM class = 'Models' type = 'ROM'>gausspolyrom</ROM>
     <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
   </AdaptiveSparseGrid>
+  ...
+</Samplers>
+\end{lstlisting}
+\subsubsection{Adaptive Sobol Decomposition}
+\label{subsubsubsec:AdaptiveSobol}
+The \textbf{Adaptive Sobol Decomposition} approach is an advanced methodology that decomposes an uncertainty
+space into subsets and adaptively includes the most influential ones.  For example, for a response function
+$f(a,b,c)$, the full list of subsets include $(a), (b), (c), (a,b), (a,c), (b,c), (a,b,c)$.  A Gauss Polynomial ROM is
+constructed for each included subset using the Adaptive Sparse Grid sampler.  The importance of each subset is
+estimated based on the importance of preceding subsets; that is, the impact of $(a,b)$ on the representation
+of $f$ is estimated using the impact of $(a)$ and $(b)$.  Because of the excellent performance of Gauss
+Polynomial ROMs for small-dimension spaces, this sampler used to construct an HDMR ROM can be very efficient.
+Note that the ROM specified for this sampler \emph{must} be an HDMRRom specified in the Models block.
+%
+
+\specBlock{an}{Adaptive Sobol}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+
+\variableIntro{Adaptive Sobol}
+
+\begin{itemize}
+  \item \variableDescription
+    \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+    \item \functionDescription
+    \end{itemize}
+\end{itemize}
+
+In addition to the \xmlNode{variable} nodes, the main XML node
+\xmlNode{AdaptiveSobol} needs to contain the following supplementary sub-nodes:
+
+\begin{itemize}
+  \item \xmlNode{Convergence}, \xmlDesc{required node}, Convergence
+    properties.
+    This node contains the following properties that can be set by sub-nodes:
+    %
+    \begin{itemize}
+      \item \xmlNode{relTolerance}, \xmlDesc{required float}, the relative tolerance to converge.
+        This will compare to the estimate of subset polynomial errors and additional subset polynomials over
+        the variance of the expansion so far to determine convergence.
+      \item \xmlNode{maxRuns}, \xmlDesc{optional integer field},
+        a limit for the number of model calls.  Once this limit is reached, no additional subsets
+        will be generated or considered; however, existing subsets will continue to be trained.  If not
+        specified, no limit on solves is imposed.
+      \item \xmlNode{maxSobolOrder}, \xmlDesc{optional integer field},
+        the largest polynomials orders to use in subset GaussPolynomialRom objects.  If specified, polynomial
+        indices with a value larger than the value given will be rejected during adaptive construction.
+      \item \xmlNode{progressParam}, \xmlDesc{optional float field}, a favoritism parameter ranging between
+        0 and 2.  At 0, the algorithm will always prefer adding polynomials to adding new subsets in the HDMR
+        expansion.  At 2, the opposite is true.  Default is 1.
+      \item \xmlNode{logFile}, \xmlDesc{optional string field},
+        a file to which adaptive progress is recorded.  If specified, each adaptive step will trigger printing
+        progress to the file given, including the estimated error at the step, the next adaptive step to take,
+        the coefficient of each polynomial within each gPC expansion, and the actual and expected Sobol
+        sensitivities of each HDMR subset. Default is no printing.
+      \item \xmlNode{subsetVerbosity}, \xmlDesc{optional string field}, the verbosity for components
+        constructed during the adaptive HDMR process.  Options are \emph{silent}, \emph{quiet}, \emph{all}, or
+        \emph{debug}, in order of
+        verbosity.  If an invalid entry is provided, will resort to default.  Default is \emph{quiet}.
+        %
+    \end{itemize}
+    In summary, this XML node contains the information that is needed in order
+    to control this sampler's convergence criterion.
+\end{itemize}
+  % Adaptive Sobol
+  \assemblerDescription{AdaptiveSobol}
+       \ROMDescription{AdaptiveSobol}
+        %
+        \begin{itemize}
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The Adaptive Sobol sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
+   % \end{itemize}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
+<Samplers>
+  ...
+  <AdaptiveSobol name="AS" verbosity='debug'>
+    <Convergence>
+      <relTolerance>1e-5</relTolerance>
+      <maxRuns>150</maxRuns>
+      <maxSobolOrder>3</maxSobolOrder>
+      <progressParam>1</progressParam>
+      <logFile>progress.txt</logFile>
+      <subsetVerbosity>silent</subsetVerbosity>
+    </Convergence>
+    <variable name="x1">
+      <distribution>UniDist</distribution>
+    </variable>
+    <variable name="x2">
+      <distribution>UniDist</distribution>
+    </variable>
+    <ROM class = 'Models' type = 'ROM'>hdmrrom</ROM>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
+  </AdaptiveSobol>
   ...
 </Samplers>
 \end{lstlisting}
