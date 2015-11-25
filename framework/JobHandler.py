@@ -418,7 +418,7 @@ class JobHandler(MessageHandler.MessageUser):
         # get localHost and servers
         localHostName, ppservers = self.__runRemoteListeningSockets(randomPort)
         self.raiseADebug("Local host is "+ localHostName)
-        if len(ppservers) == 1:
+        if len(ppservers) == 0:
           # we are in a single node
           self.ppserver = pp.Server(ncpus=len(availableNodes))
         else:
