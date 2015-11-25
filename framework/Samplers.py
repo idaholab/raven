@@ -39,7 +39,6 @@ import SupervisedLearning
 import pyDOE as doe
 import Quadratures
 import OrthoPolynomials
-import SupervisedLearning
 import IndexSets
 import Models
 import PostProcessors
@@ -1196,15 +1195,16 @@ class LimitSurfaceSearch(AdaptiveSampler):
       #here we are still generating the batch
       for key in self.distDict.keys():
         if self.toleranceWeight=='cdf':
-          self.values[key]                      = self.distDict[key].ppf(float(Distributions.random()))
+          self.values[key]                       = self.distDict[key].ppf(float(Distributions.random()))
         else:
-          self.values[key]                      = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
-        self.inputInfo['distributionName'][key] = self.toBeSampled[key]
-        self.inputInfo['distributionType'][key] = self.distDict[key].type
-        self.inputInfo['SampledVarsPb'   ][key] = self.distDict[key].pdf(self.values[key])
+          self.values[key]                       = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
+        self.inputInfo['distributionName'][key]  = self.toBeSampled[key]
+        self.inputInfo['distributionType'][key]  = self.distDict[key].type
+        self.inputInfo['SampledVarsPb'   ][key]  = self.distDict[key].pdf(self.values[key])
+        self.inputInfo['ProbabilityWeight-'+key] = self.distDict[key].pdf(self.values[key])
     self.inputInfo['PointProbability'    ]      = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
-    self.inputInfo['ProbabilityWeight']         = 1.0
+    self.inputInfo['ProbabilityWeight']         = self.inputInfo['PointProbability']
     self.hangingPoints                          = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
     self.raiseADebug('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
     self.inputInfo['SamplerType'] = 'LimitSurfaceSearch'
@@ -1506,18 +1506,24 @@ class Grid(Sampler):
           else:
             if self.gridInfo[varName]=='CDF':
               if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
                 weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
               if coordinatesMinusOne[varName] == -sys.maxsize:
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
                 weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
               if coordinatesPlusOne[varName] == sys.maxsize:
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
                 weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
             else:   # Value
               if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
                 weight *= self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
               if coordinatesMinusOne[varName] == -sys.maxsize:
                 weight *= self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
               if coordinatesPlusOne[varName] == sys.maxsize:
                 weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
         # ND variable
         else:
           if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
@@ -1543,6 +1549,7 @@ class Grid(Sampler):
                   dxs[position-1] = coordinatesPlusOne[variable] - coordinates[variable.strip()]
                 if coordinatesPlusOne[variable] == sys.maxsize:
                   dxs[position-1] = coordinates[variable.strip()] - coordinatesMinusOne[variable]
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(NDcoordinate,dxs)
             weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)
       newpoint = tuple(self.values[key] for key in self.values.keys())
       if newpoint not in self.existing:
@@ -1685,7 +1692,8 @@ class Stratified(Grid):
                   self.values[kkey] = coordinate
                   self.inputInfo['upper'][kkey] = max(upper,lower)
                   self.inputInfo['lower'][kkey] = min(upper,lower)
-            weight *= self.distDict[varName].cellIntegral(centerCoordinate,dxs)
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(centerCoordinate,dxs)
+            weight *= self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")]
             self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinate)
           else:
             if self.gridInfo[varName] == 'CDF':
@@ -1700,8 +1708,8 @@ class Stratified(Grid):
               # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
               self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
               weight *= max(upper,lower) - min(upper,lower)
+              self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = max(upper,lower) - min(upper,lower)
             else: self.raiseAnError(IOError,"Since the globalGrid is defined, the Stratified Sampler is only working when the sampling is performed on a grid on a CDF. However, the user specifies the grid on " + self.gridInfo[varName])
-
       if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:   # 1D variable
         # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
         upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
@@ -1713,12 +1721,14 @@ class Stratified(Grid):
           ppfLower = self.distDict[varName].ppf(min(upper,lower))
           ppfUpper = self.distDict[varName].ppf(max(upper,lower))
           weight *= self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
+          self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
           self.inputInfo['SampledVarsPb'][varName]  = self.distDict[varName].pdf(ppfValue)
         elif self.gridInfo[varName] == 'value':
           coordinateCdf = self.distDict[varName].cdf(min(upper,lower)) + (self.distDict[varName].cdf(max(upper,lower))-self.distDict[varName].cdf(min(upper,lower)))*Distributions.random()
-          if coordinateCdf == 0.0: self.raiseAWarning(IOError,"\033[93m The grid lower bound and upper bound in value will generate ZERO cdf value!!! \033[0m")
+          if coordinateCdf == 0.0: self.raiseAWarning(IOError,"The grid lower bound and upper bound in value will generate ZERO cdf value!!!")
           coordinate = self.distDict[varName].ppf(coordinateCdf)
           weight *= self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
+          self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(coordinate)
         for kkey in varName.strip().split(','):
           self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
@@ -3368,6 +3378,7 @@ class SparseGridCollocation(Grid):
             for key in varName.strip().split(','):
               self.values[key] = pt[v]
             self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
           # compute the SampledVarsPb for N-D distribution
           # Assume only one N-D distribution is associated with sparse grid collocation method
           elif self.variables2distributionsMapping[varName]['totDim'] > 1:
@@ -3377,7 +3388,7 @@ class SparseGridCollocation(Grid):
         for v,varName in enumerate(self.sparseGrid.varNames):
           if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
             self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
-
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
         self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['ProbabilityWeight'] = weight
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
@@ -3569,6 +3580,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+      self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
     self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
@@ -3782,7 +3794,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       for t in self.targets:
         impact = self._convergence(poly,rom.SupervisedEngine[t],t)
         self.actImpact[t][poly] = impact
-
 #
 #
 #
@@ -3970,6 +3981,7 @@ class Sobol(SparseGridCollocation):
       for v,varName in enumerate(self.distDict.keys()):
         self.values[varName] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
       self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight'] =  N/A
       self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'

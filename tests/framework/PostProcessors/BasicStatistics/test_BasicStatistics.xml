@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>basicStatistics</WorkingDir>
+    <WorkingDir>basicStatisticsGeneral</WorkingDir>
     <Sequence>FirstMRun,PP1,PP2,PP3,PP4,PP5</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -16,7 +16,7 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="basicStatisticsExternalModelTest" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="basicStatisticsGeneral/basicStatisticsExternalModelTest" name="PythonModule" subType="">
       <variable>x</variable>
       <variable>y</variable>
       <variable>z</variable>
@@ -60,7 +60,7 @@
   </Models>
 
   <Functions>
-    <External file="basicStatistics/testFunctionComputeProbability" name="testFunctionComputeProbability">
+    <External file="basicStatisticsGeneral/testFunctionComputeProbability" name="testFunctionComputeProbability">
       <variable>x01</variable>
     </External>
   </Functions>

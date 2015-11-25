@@ -95,7 +95,7 @@ cd ..
 cd AdaptiveSobol/
 rm -Rf workdir/*
 
-python ../../../framework/Driver.py test_adaptive_sobol_parallel.xml
+python ../../../framework/Driver.py test_adapt_sobol_parallel.xml
 
 sleep 5
 cd workdir

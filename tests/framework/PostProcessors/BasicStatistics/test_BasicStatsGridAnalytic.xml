@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>basicStatsGridAnalytic</WorkingDir>
+    <Sequence>SamplingMirrowModelGrid,PP1grid</Sequence>
+    <batchSize>32</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="output_basicStatistics_PP1grid.csv" type="">output_basicStatistics_PP1grid.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>x1</variable>
+    </ExternalModel>
+    <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
+      <what>all</what>
+      <parameters>x,y</parameters>
+    </PostProcessor>
+  </Models>
+
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Stratified name="Grid_external">
+      <variable name="x">
+        <distribution>x0_distrib</distribution>
+        <grid construction="equal" steps="500" type="CDF">0.0001 0.9999</grid>
+      </variable>
+      <variable name="y">
+        <distribution>y0_distrib</distribution>
+        <grid construction="equal" steps="500" type="CDF">0.0001 0.9999</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="SamplingMirrowModelGrid" re-seeding="20021986">
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">mirrowModel</Model>
+      <Sampler class="Samplers" type="Stratified">Grid_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
+    </MultiRun>
+    <PostProcess name="PP1grid">
+      <Input class="DataObjects" type="PointSet">outputDataGrid</Input>
+      <Model class="Models" type="PostProcessor">analyticalTest</Model>
+      <Output class="Files" type="">output_basicStatistics_PP1grid.csv</Output>
+      <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
+      <Output class="OutStreamManager" type="Print">outputDatagrid_dump</Output>
+    </PostProcess>
+  </Steps>
+
+
+  <OutStreamManager>
+    <Print name="outputDatagrid_dump">
+      <type>csv</type>
+      <source>outputDataGrid</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+      <Point name="inputPlaceHolder">
+          <Input>x,y</Input>
+          <Output>OutputPlaceHolder</Output>
+      </Point>
+    <PointSet name="outputDataGrid">
+        <Input>x,y</Input>
+        <Output>x1</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
