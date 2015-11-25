@@ -10,6 +10,8 @@ import sys, os
 from scipy.interpolate import Rbf, griddata
 import copy
 import inspect
+import subprocess
+import platform
 
 class Object(object):pass
 
@@ -533,8 +535,8 @@ def find_crow(framework_dir):
   except:
     ravenDir = os.path.dirname(framework_dir)
     #Add the module directory to the search path.
-    pmoduleDirs = [os.path.join(os.path.dirname(ravenDir),"crow","install"),
-                   os.path.join(ravenDir,"crow","install"),
+    pmoduleDirs = [os.path.join(ravenDir,"crow","install"),
+                   os.path.join(os.path.dirname(ravenDir),"crow","install"),
                    os.path.join(os.path.dirname(ravenDir),"crow","crow_modules"),
                    os.path.join(ravenDir,"crow","crow_modules")]
     for pmoduleDir in pmoduleDirs:
@@ -655,4 +657,31 @@ def NDInArray(findIn,val,tol=1e-12):
     found = False
     idx = val = None
   return found,idx,val
+
+
+class pickleSafeSubprocessPopen(subprocess.Popen):
+  """
+  Subclass of subprocess.Popen used internally to prevent _handle member from being pickled.  On
+  Windows, _handle contains an operating system reference that throws an exception when deep copied.
+  """
+  # Only define these methods on Windows to override deep copy/pickle (member may not exist on other
+  #   platforms.
+  if platform.system() == 'Windows':
+    def __getstate__(self):
+      """
+      Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
+      which cannot be deep copied when non-None.
+      """
+      result = self.__dict__.copy()
+      del result['_handle']
+      return result
+
+    def __setstate__(self, d):
+      """
+      Used to load an object dictionary when unpickling.  Since member '_handle' could not be
+      deep copied, load it back as value None.
+      @ In, d, dictionary object, previously stored namespace to restore
+      """
+      self.__dict__ = d
+      self._handle = None
 
