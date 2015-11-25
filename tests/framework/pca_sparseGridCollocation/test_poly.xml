@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>polynomial</WorkingDir>
-    <batchSize>12</batchSize>
+    <batchSize>1</batchSize>
     <Sequence>sample,train,print,stats</Sequence>
   </RunInfo>
 
