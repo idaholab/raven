@@ -79,15 +79,10 @@
   <Steps>
     <MultiRun name="sample" sleepTime="1e-4">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Sampler class="Samplers" type="SparseGridCollocation">sc</Sampler>
       <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">sc</Sampler>
       <Output class="DataObjects" type="PointSet">collset</Output>
-      <Output class="OutStreamManager" type="Print">csv_database</Output>
     </MultiRun>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="PointSet">collset</Input>
-      <Output class="Models" type="ROM">rom</Output>
-    </RomTrainer>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">collset</Input>
       <Output class="OutStreamManager" type="Print">csv_database</Output>
@@ -96,6 +91,10 @@
       <Input class="Models" type="ROM">rom</Input>
       <Output class="OutStreamManager" type="Print">stats_td1</Output>
     </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">collset</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
   </Steps>
 
   <OutStreamManager>
