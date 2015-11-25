@@ -207,7 +207,7 @@ class SparseQuad(MessageHandler.MessageUser):
     return zip(*self.points())
 
   ##### PUBLIC MEMBERS #####
-  def print(self):
+  def printOut(self):
     """
       Prints the existing quadrature points.
       @ In, None
@@ -263,7 +263,7 @@ class SparseQuad(MessageHandler.MessageUser):
       for j,cof in enumerate(self.c):
         idx = self.indexSet[j]
         m = self.quadRule(idx)+1
-        new = self.tensorGrid((m,idx))
+        new = self.tensorGrid(m,idx)
         for i in range(len(new[0])):
           newpt=tuple(new[0][i])
           newwt=new[1][i]*cof
@@ -287,14 +287,15 @@ class SparseQuad(MessageHandler.MessageUser):
     """
     numRunsNeeded=len(self.c)
     j=-1
+    prefix = 'sparseTensor_'
     while True:
-      finishedJobs = handler.getFinished()
+      finishedJobs = handler.getFinished(prefix=prefix) #FIXME this is by far the most expensive line in this method
       for job in finishedJobs:
         if job.getReturnCode() == 0:
           new = job.returnEvaluation()[1]
           for i in range(len(new[0])):
             newpt = tuple(new[0][i])
-            newwt = new[1][i]*float(str(job.identifier).replace("_tensor", ""))
+            newwt = new[1][i]*float(str(job.identifier).replace(prefix, ""))
             if newpt in self.SG.keys():
               self.SG[newpt]+= newwt
             else:
@@ -307,9 +308,12 @@ class SparseQuad(MessageHandler.MessageUser):
           cof=self.c[j]
           idx = self.indexSet[j]
           m=self.quadRule(idx)+1
-          handler.submitDict['Internal']((m,idx),self.tensorGrid,str(cof)+"_tensor",modulesToImport = self.mods)
+          handler.submitDict['Internal']((m,idx),self.tensorGrid,prefix+str(cof),modulesToImport = self.mods)
       else:
-        if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
+        if handler.isFinished() and len(handler.getFinishedNoPop())==0:break #FIXME this is significantly the second-most expensive line in this method
+      import time
+      time.sleep(0.005)
+
 
   def quadRule(self,idx):
     """Collects the cumulative effect of quadrature rules across the dimensions.i
@@ -369,19 +373,21 @@ class SparseQuad(MessageHandler.MessageUser):
     N=len(self.indexSet)
     self.c=np.zeros(N)
     i=-1
+    prefix = 'sparseGrid_'
     while True:
-      finishedJobs = handler.getFinished()
+      finishedJobs = handler.getFinished(prefix=prefix)
       for job in finishedJobs:
         if job.getReturnCode() == 0:
-          self.c[int(str(job.identifier).replace("_makeSingleCoeff", ""))]=job.returnEvaluation()[1]
+          self.c[int(str(job.identifier).replace(prefix, ""))]=job.returnEvaluation()[1]
         else:
           self.raiseAMessage('Sparse grid index '+job.identifier+' failed...')
       if i<N-1: #load new inputs, up to 100 at a time
         for k in range(min(handler.howManyFreeSpots(),N-1-i)):
           i+=1
-          handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,str(i)+"_makeSingleCoeff",modulesToImport = self.mods)
+          handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i),modulesToImport = self.mods)
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
+      #TODO optimize this with a sleep time
 
   def makeSingleCoeff(self,N,i,idx,iSet):
     """Batch-style algorithm to calculate a single coefficient
@@ -448,6 +454,8 @@ class QuadratureSet(MessageHandler.MessageUser):
     """
     pts,wts = self.rule(order,*self.params)
     pts = np.around(pts,decimals=15) #TODO helps with checking equivalence, might not be desirable
+    #NOTE: 10 is consistent with printed decimals, improving loading from CSV for example.  Large possible source
+    #      of roundoff errors here.
     return pts,wts
 
   def __eq__(self,other):
