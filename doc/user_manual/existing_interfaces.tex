@@ -4,9 +4,9 @@
 %%%%%% Generic  INTERFACE  %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Generic Interface}
-The GenericCode interface is meant to handle a wide variety of generic codes 
+The GenericCode interface is meant to handle a wide variety of generic codes
 that take take straightforward input files and produce output CSV files.  There are
-some limitations for this interface.  
+some limitations for this interface.
 If a code: \vspace{-20pt}
 \begin{itemize}
 \item accepts a keyword-based input file with no cross-dependent inputs,
@@ -17,10 +17,10 @@ the GenericCode interface should cover the code for RAVEN.
 
 If a code contains cross-dependent data, the generic interface is not able to
 edit the correct values.  For example, if a geometry-building script specifies
-inner\_radius, outer\_radius, and thickness, the generic interface cannot 
+inner\_radius, outer\_radius, and thickness, the generic interface cannot
 calculate the thickness given the outer and inner radius, or vice versa.
 
- An example of the code interface is shown here.  The input parameters are read 
+ An example of the code interface is shown here.  The input parameters are read
  from the input files \texttt{gen.one} and \texttt{gen.two} respectively.
  The code is run using \texttt{python}, so that is part of the \xmlNode{prepend} node.
  The command line entry to normally run the code is
@@ -42,7 +42,7 @@ Example:
     </Code>
 \end{lstlisting}
 
-If a code doesn't accept necessary Raven-editable auxiliary input files 
+If a code doesn't accept necessary Raven-editable auxiliary input files
 or output filenames through the command line, the GenericCode interface
 can also edit the input files and insert the filenames there.  For example,
 in the previous example, say instead of \texttt{-a gen.two} and \texttt{-o myOut}
@@ -96,7 +96,7 @@ auxfile = $RAVEN-two:3$
 case = $RAVEN-out:5|10$
 ...
 \end{lstlisting}
-Where, 
+Where,
 \begin{itemize}
   \item  \texttt{:}, in case the variable ``two'' is not defined in the RAVEN XML input file, the Parser, will replace it with the value ``3''.;
   \item  \texttt{|}, the value that is going to be replaced by the Generic Interface, will be left- justified with a string length of ``10'';
@@ -363,7 +363,7 @@ the .h5 extension (i.e. \texttt{Grid\_out.h5} and \texttt{MC\_out.h5}).
 \subsection{RELAP7 Interface}
 This section covers the input specifications for running RELAP7 through RAVEN.
 It is important to notice that this short explanation assumes that the reader already knows
-how to use the control logic system in RELAP7. 
+how to use the control logic system in RELAP7.
 Since the presence of the control logic system in RELAP7, this code interface is different with respect to the others
 and uses some special keyword available in RAVEN (see the following).
 
@@ -387,7 +387,7 @@ The RAVEN/RELAP7 interface recognizes as RELAP7 inputs the files with the extens
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
-For the \xmlNode{Models} block RELAP7 uses the RAVEN executable, since through this executable the stochastic 
+For the \xmlNode{Models} block RELAP7 uses the RAVEN executable, since through this executable the stochastic
 environment gets activated (possibility to sample parameters directly in the control logic system)
 %
 Here is a standard example of what can be used to use RELAP7 as the model:
@@ -430,15 +430,15 @@ def initial_function(monitored, controlled, auxiliary)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Samplers}
 In the \xmlNode{Samplers} block, all the variables that needs to be sampled must be specified.
-In case some of these variables are directly sampled in the Control Logic system, the 
-\xmlNode{variable} needs to be replaced with \xmlNode{Distribution}. In this way, RAVEN is able 
+In case some of these variables are directly sampled in the Control Logic system, the
+\xmlNode{variable} needs to be replaced with \xmlNode{Distribution}. In this way, RAVEN is able
 to understand which variables needs to be directly modified through input file (i.e. modifying the original
 input file *.i)  and which variables are going to be ``sampled'' through the control logic system.
 %
 For the example, we are performing Grid Sampling.
 %
 The global initial pressure wasn't specified in the control logic so it is going to be specified
-using the node \xmlNode{variable}. The ``pressureInPressurizer `` variable is instead sampled in the 
+using the node \xmlNode{variable}. The ``pressureInPressurizer `` variable is instead sampled in the
 control logic system; for this reason, it is going to be specified using the node  \xmlNode{Distribution}.
 %
 For example,
@@ -454,7 +454,7 @@ For example,
    <Distribution name="pressureInPressurizer">
       <distribution>Prim_Pres</distribution>
       <grid construction="equal" steps="10" type="CDF">0.0 1.0</grid>
-   </Distribution>  
+   </Distribution>
  </Grid>
 </Samplers>
 \end{lstlisting}
@@ -621,7 +621,7 @@ With this step, we need to import all the files needed for the simulation:
 \begin{itemize}
   \item MooseBasedApp YAML input file;
   \item eventual restart files (optional);
-  \item other auxiliary files (e.g., powerHistory tables, etc.). 
+  \item other auxiliary files (e.g., powerHistory tables, etc.).
 \end{itemize}
 \begin{lstlisting}[style=XML,morekeywords={name,class,type}]
     <Input   class='Files' type=''>mooseBasedApp.i</Input>
@@ -723,7 +723,7 @@ As listed before, this will create two DataObjects that can be used in sub-seque
 \subsubsection{OutStreamManager}
 As fully explained in section~\ref{sec:outstream}, if the user want to print out or plot the content of a \textbf{DataObjects},
 he needs to create an \textbf{OutStream} in the \xmlNode{OutStreamManager} XML block.
-\\As it shown in the example below, for MooseBasedApp (and any other Code interface that might use the symbol $|$ 
+\\As it shown in the example below, for MooseBasedApp (and any other Code interface that might use the symbol $|$
 for the Sampler's variable syntax), in the Plot \xmlNode{x} and \xmlNode{y} specification, the user needs to
 utilize curly brackets.
 \begin{lstlisting}[style=XML]
@@ -751,12 +751,12 @@ utilize curly brackets.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{MooseVPP Interface}
 
-The Moose Vector Post Processor is used mainly in the solid mechanics analysis. 
+The Moose Vector Post Processor is used mainly in the solid mechanics analysis.
 This interface loads the values of the vector ouput processor to a \xmlNode{DataObjects} object.
 
 To use this interface the [DomainIntegral] needs to be present in the MooseBasedApp's
  input file and the subnode \xmlNode{fileargs} should be defined in the subnode \xmlNode{Code} in
- the \xmlNode{Models} block of the RAVEN input file. The \xmlNode{fileargs} is required to have attributes with 
+ the \xmlNode{Models} block of the RAVEN input file. The \xmlNode{fileargs} is required to have attributes with
 the below specified values:
 
 \begin{itemize}
@@ -766,13 +766,13 @@ the below specified values:
 \end{itemize}
 
 This interface is actually identical to the MooseBasedApp interface, however there is
- few constraints on defining the output values of the post processor.  
+ few constraints on defining the output values of the post processor.
 The definition of these outputs in the \xmlNode{DataObjects} depends on the definition of
  the [DomainIntegral].
 
-The location of the value outputted is defined as \textit{ID\#} and the value is as 
+The location of the value outputted is defined as \textit{ID\#} and the value is as
 \textit{value\#}. The ''\#'' defines
-the number of the location. The example below contains 3 locations in the [DomainIntegral] 
+the number of the location. The example below contains 3 locations in the [DomainIntegral]
 where the values are outputted.
 
 %
@@ -807,10 +807,10 @@ Example:
 %%%%%% OPENMODELICA INTERFACE  %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{OpenModelica Interface}
-OpenModelica (\url{http://www.openmodelica.org}) is an open souce implementation of the Modelica simulation language.  Modelica is "a non-proprietary, 
-object-oriented, equation based language to conveniently model complex physical systems containing, e.g., mechanical, electrical, electronic, hydraulic, 
-thermal, control, electric power or process-oriented subcomponents."\footnote{\url{http://www.modelica.org}}.  Modelica models are specified in text files 
-with a file extension of .mo.  A standard Modelica example called BouncingBall which simulates the trajectory of an object falling in one dimension from a 
+OpenModelica (\url{http://www.openmodelica.org}) is an open souce implementation of the Modelica simulation language.  Modelica is "a non-proprietary,
+object-oriented, equation based language to conveniently model complex physical systems containing, e.g., mechanical, electrical, electronic, hydraulic,
+thermal, control, electric power or process-oriented subcomponents."\footnote{\url{http://www.modelica.org}}.  Modelica models are specified in text files
+with a file extension of .mo.  A standard Modelica example called BouncingBall which simulates the trajectory of an object falling in one dimension from a
 height is shown as an example:
 \begin{lstlisting}
 model BouncingBall
@@ -839,9 +839,9 @@ end BouncingBall;
 \end{lstlisting}
 
 \subsubsection{Files}
-An OpenModelica installation specific to the operating system is used to create a stand-alone executable program that performs the model calculations.  
-A separate XML file containing model parameters and initial conditions is also generated as part of the build process.  The RAVEN OpenModelica interface 
-modifies input parameters by changing copies of this file.  Both the executable and XML parameter file names must be provided to RAVEN.  In the case of 
+An OpenModelica installation specific to the operating system is used to create a stand-alone executable program that performs the model calculations.
+A separate XML file containing model parameters and initial conditions is also generated as part of the build process.  The RAVEN OpenModelica interface
+modifies input parameters by changing copies of this file.  Both the executable and XML parameter file names must be provided to RAVEN.  In the case of
 the BouncingBall model previously mentioned on the Windows operating system, the \textless Files\textgreater  specification would look like:
 \begin{lstlisting}[style=XML]
 <Files>
@@ -851,8 +851,8 @@ the BouncingBall model previously mentioned on the Windows operating system, the
 \end{lstlisting}
 \subsubsection{Models}
 OpenModelica models may provide simulation output in a number of formats.  The particular format used is specified during the model generation
-process.  RAVEN works best with Comma-Separated Value (CSV) files, which is one of the possible output format options.  Models are generated 
-using the OpenModelica Shell (OMS) command-line interface, which is part of the OpenModelica installation.  To generate an executable that provides 
+process.  RAVEN works best with Comma-Separated Value (CSV) files, which is one of the possible output format options.  Models are generated
+using the OpenModelica Shell (OMS) command-line interface, which is part of the OpenModelica installation.  To generate an executable that provides
 CSV-formatted output, use OMSl commands as follows:
 \lstset{
     frame=single,
@@ -891,8 +891,8 @@ The model executable is specified to RAVEN using the \textless Models\textgreate
 </Simulation>
 \end{lstlisting}
 \subsubsection{CSV Output}
-The CSV files produced by OpenModelica model executables require adjustment before it may be read by RAVEN. 
-The first few lines of original CSV output from the 
+The CSV files produced by OpenModelica model executables require adjustment before it may be read by RAVEN.
+The first few lines of original CSV output from the
 BouncingBall example is shown below:
 \begin{lstlisting}
 "time","h","v","der(h)","der(v)","v_new","foo","flying","impact",
@@ -901,19 +901,123 @@ BouncingBall example is shown below:
 \end{lstlisting}
 RAVEN will not properly read this file as-generated for two reasons:
 \begin{itemize}
-  \item The variable names in the first line are each enclosed in double-quotes. 
+  \item The variable names in the first line are each enclosed in double-quotes.
   \item Each line has a trailing comma.
 \end{itemize}
- The OpenModelica inteface will automatically remove the double-quotes and trailing commas through its implementation of the 
-finalizeCodeOutput function.  
+ The OpenModelica inteface will automatically remove the double-quotes and trailing commas through its implementation of the
+finalizeCodeOutput function.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% DYMOLA INTERFACE  %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dymola Interface}
+Modelica is "a non-proprietary, object-oriented, equation-based language to conveniently model complex physical systems containing, e.g., mechanical, electrical, electronic, hydraulic,
+thermal, control, electric power or process-oriented subcomponents."\footnote{\url{http://www.modelica.org}}.  Modelica models (with a file extension of .mo) are built, translated (compiled), and simulated in Dymola (http://www.modelon.com/p-
+roducts/dymola/), which is a commercial modeling and simulation environment based on the Modelica modeling language.
+A standard Modelica example called BouncingBall, which simulates the trajectory of an object falling in one dimension from a height, is shown as an example:
+\begin{lstlisting}
+model BouncingBall
+  parameter Real e=0.7 "coefficient of restitution";
+  parameter Real g=9.81 "gravity acceleration";
+  parameter Real hstart = 10 "height of ball at time zero";
+  parameter Real vstart = 0 "velocity of ball at time zero";
+  Real h(start=hstart,fixed=true) "height of ball";
+  Real v(start=vstart,fixed=true) "velocity of ball";
+  Boolean flying(start=true) "true, if ball is flying";
+  Boolean impact;
+  Real v_new;
+  Integer foo;
+
+equation
+  impact = h <= 0.0;
+  foo = if impact then 1 else 2;
+  der(v) = if flying then -g else 0;
+  der(h) = v;
+
+  when {h <= 0.0 and v <= 0.0,impact} then
+    v_new = if edge(impact) then -e*pre(v) else 0;
+    flying = v_new > 0;
+    reinit(v, v_new);
+  end when;
+
+  annotation (uses(Modelica(version="3.2.1")),
+    experiment(StopTime=10, Interval=0.1),
+    __Dymola_experimentSetupOutput);
+
+end BouncingBall;
+\end{lstlisting}
+
+\subsubsection{Files}
+When a modelica model, e.g., BouncingBall model, is implemented in Dymola, the platform dependent C-code from a Modelica model and the corresponding executable code
+(i.e., by default dymosim.exe on the Windows operating system) are generated for simulation.  After the executable is generated, it may be run multiple times (with Dymola license).
+A separate TEXT file (by default dsin.txt) containing model parameters and initial conditions are also generated as part of the build process.  The RAVEN Dymola interface
+modifies input parameters by changing copies of this file.  Both the executable and TEXT parameter file (or simulation initialization file) names must be provided to RAVEN.  In the case of
+the BouncingBall model previously mentioned on the Windows operating system, the \textless Files\textgreater  specification would look like:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='dsin.txt' type=''>dsin.txt</Input>
+</Files>
+\end{lstlisting}
+
+\subsubsection{Models}
+An executable (dymosim.exe) and a simulation initialization file (dsin.txt) can be generated after either translating or simulating the
+Modelica model (BouncingBall.mo) using the Dymola Graphical User Interface (GUI) or Dymola Application Programming Interface (API)-routines.
+To generate an executable and a simulation initialization file, use the Dymola API-routines (or Dymola GUI) to translate the model as follows:
+\lstset{
+    frame=single,
+    breaklines=true,
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}
+}
+\begin{enumerate}
+\item Change to the directory containing the .mo file to generate an executable.  In Dymola GUI, this corresponds to File/Change Directory in menus:
+\begin{lstlisting}
+>> cd("C:/msys64/home/KIMJ/projects/raven/framework/CodeInterfaces/Dymola");
+C:/msys64/home/KIMJ/projects/raven/framework/CodeInterfaces/Dymola
+ = true
+\end{lstlisting}
+\item Reads the specified file and displays its window.  In Dymola GUI, this corresponds to File/Open in the menus:
+\begin{lstlisting}
+>> openModel("BouncingBall.mo")
+ = true
+\end{lstlisting}
+\item Compile the model (with current settings), and create the model executable and the corresponding simulation initialization file.  In Dymola GUI, this corresponds to Translate Model in the menus:
+\begin{lstlisting}
+>> translateModel("BouncingBall");
+ = true
+\end{lstlisting}
+At this point the model executable and the simulation initialization file should have been created in the same directory as the original model file.
+Additionally, they could be created by simulating the model.  The following command corresponds to Simulate in the menus in Dymola GUI:
+\begin{lstlisting}
+>> simulateModel("BouncingBall", stopTime=10, numberOfIntervals=0, outputInterval=0.1, method="dassl", resultFile="BouncingBall");
+ = true
+\end{lstlisting}
+The file extension (.mat) is automatically added to a output file (resultFile), e.g., BouncingBall.mat.  If the generated executable code is triggered directly from a 
+command prompt, the output file is always named as "dsres.mat".
+\end{enumerate}
+The model executable is specified to RAVEN using the \textless Models\textgreater  section of the input file as follows:
+\begin{lstlisting}[style=XML]
+<Simulation>
+    ...
+  <Models>
+    <Code name="BouncingBall" subType = "Dymola">
+      <executable>dymosim.exe</executable>
+    </Code>
+  </Models>
+    ...
+</Simulation>
+\end{lstlisting}
+RAVEN works best with Comma-Separated Value (CSV) files.  Therefore, the default .mat output type needs to be converted to .csv output.
+The Dymola interface will automatically convert the .mat output to human-readable forms, i.e., .csv output, through its implementation of the finalizeCodeOutput function.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% MESH GENERATION COUPLED INTERFACES %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Mesh Generation Coupled Interfaces}
-Some software requires a provided mesh that requires a separate code run to generate.  
-In these cases, we use sampled geometric 
-variables to generate a new mesh for each perturbation of the original problem, then run the input with 
+Some software requires a provided mesh that requires a separate code run to generate.
+In these cases, we use sampled geometric
+variables to generate a new mesh for each perturbation of the original problem, then run the input with
 the remainder of the perturbed parameters and the perturbed mesh.  RAVEN currently provides two interfaces for
 this type of calculation, listed below.
 
@@ -922,24 +1026,24 @@ this type of calculation, listed below.
 Many MOOSE-based applications use Cubit (\url{https://cubit.sandia.gov}) to generate Exodus II files as
 geometry and meshing for calculations.  To use the developed interface, Cubit's
 bin directory must be added to the user's PYTHONPATH.  Input parameters for Cubit can be listed in a journal
-(\texttt{.jou}) file.  Parameter values 
-are typically hardcoded into the Cubit command syntax, but variables may be 
-predefined in a journal file through Aprepro syntax.  This is an example of a journal 
-file that generates a rectangle of given height and width, meshes it, defines its 
+(\texttt{.jou}) file.  Parameter values
+are typically hardcoded into the Cubit command syntax, but variables may be
+predefined in a journal file through Aprepro syntax.  This is an example of a journal
+file that generates a rectangle of given height and width, meshes it, defines its
 volume and sidesets, lists its element type, and writes it as an Exodus file:
 
-%Cubit (\url{https://cubit.sandia.gov}) is a toolkit developed at Sandia National 
-%Laboratory used to create two- and three-dimensional finite element meshes with 
-%various options for defining geometric properties as a part of the grid. It is 
-%capable of reading and writing a variety of standard mesh file types, including 
-%Genesis or Exodus II (*.e) files.  As MOOSE applications use Exodus II files for 
-%meshes and results, Cubit is commonly used to generate meshes for problems of 
-%interest.  Cubit commands are used to create the geometry, mesh the object, and 
-%identify volumes, sidesets, and nodesets for a mesh.  These commands may be 
-%placed in journal files (*.jou) to be used as input to Cubit.  Parameter values 
-%are typically hardcoded into the Cubit command syntax, but variables may be 
-%predefined in a journal file through Aprepro syntax.  An example of a journal 
-%file that generates a rectangle of given height and width, meshes it, defines its 
+%Cubit (\url{https://cubit.sandia.gov}) is a toolkit developed at Sandia National
+%Laboratory used to create two- and three-dimensional finite element meshes with
+%various options for defining geometric properties as a part of the grid. It is
+%capable of reading and writing a variety of standard mesh file types, including
+%Genesis or Exodus II (*.e) files.  As MOOSE applications use Exodus II files for
+%meshes and results, Cubit is commonly used to generate meshes for problems of
+%interest.  Cubit commands are used to create the geometry, mesh the object, and
+%identify volumes, sidesets, and nodesets for a mesh.  These commands may be
+%placed in journal files (*.jou) to be used as input to Cubit.  Parameter values
+%are typically hardcoded into the Cubit command syntax, but variables may be
+%predefined in a journal file through Aprepro syntax.  An example of a journal
+%file that generates a rectangle of given height and width, meshes it, defines its
 %volume and sidesets, lists its element type, and writes it as an Exodus file is given:
 
 \begin{lstlisting}
@@ -958,29 +1062,29 @@ Block all element type QUAD4
 export genesis {out_name} overwrite
 \end{lstlisting}
 
-The first three lines are the Aprepro variable definitions that RAVEN requires to 
-insert sampled variables.  All variables that RAVEN samples 
-need to be defined as Aprepro variables in the journal 
+The first three lines are the Aprepro variable definitions that RAVEN requires to
+insert sampled variables.  All variables that RAVEN samples
+need to be defined as Aprepro variables in the journal
 file.
-%These are typically geometric parameters, though almost anything that Cubit 
-%quantifies in a command may be defined as a variable and sampled through RAVEN 
-%such as internal mesh refinement values.  
-One essential caveat to running 
-this interface is that an Aprepro variable MUST be defined with the name "out\_name". 
-In order to run this script without RAVEN inserting the correct syntax for the 
-output file name and properly generate the Exodus file for a mesh, the output file 
-name is REQUIRED to be in both single and double quotation marks with the file 
-extension appended to the end of the file base name (e.g. '"output\_file.e"').  
+%These are typically geometric parameters, though almost anything that Cubit
+%quantifies in a command may be defined as a variable and sampled through RAVEN
+%such as internal mesh refinement values.
+One essential caveat to running
+this interface is that an Aprepro variable MUST be defined with the name "out\_name".
+In order to run this script without RAVEN inserting the correct syntax for the
+output file name and properly generate the Exodus file for a mesh, the output file
+name is REQUIRED to be in both single and double quotation marks with the file
+extension appended to the end of the file base name (e.g. '"output\_file.e"').
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Files}
-\xmlNode{Files} works the same as in other interfaces with name and type 
-attributes for each node entry.  The \xmlAttr{name} attribute is a user-chosen internal 
-name for the file contained in the node, and \xmlAttr{type} identifies which base-level 
-interface the file is used within.  \xmlNode{type} should only be specified for inputs 
-that RAVEN will perturb.  For Moose input files, \xmlNode{type} should be \xmlString{MooseInput} and for 
-Cubit journal files, the \xmlNode{type} should be \xmlString{CubitInput}.  The node should contain the 
-path to the file from the working directory.  The following is an example 
+\xmlNode{Files} works the same as in other interfaces with name and type
+attributes for each node entry.  The \xmlAttr{name} attribute is a user-chosen internal
+name for the file contained in the node, and \xmlAttr{type} identifies which base-level
+interface the file is used within.  \xmlNode{type} should only be specified for inputs
+that RAVEN will perturb.  For Moose input files, \xmlNode{type} should be \xmlString{MooseInput} and for
+Cubit journal files, the \xmlNode{type} should be \xmlString{CubitInput}.  The node should contain the
+path to the file from the working directory.  The following is an example
 of a typical \xmlNode{Files} block.
 
 \begin{lstlisting}[style=XML]
@@ -993,29 +1097,29 @@ of a typical \xmlNode{Files} block.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Models}
-A user provides paths to executables and aliases for sampled variables within the 
-\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes name and 
-subType.  Name identifies that particular \xmlNode{Code} model within RAVEN, and 
-subType specifies which code interface the model will use. The \xmlNode{executable} 
-block should contain the absolute or relative (with respect to the current working 
-directory) path to the MooseBasedApp that RAVEN will use to run generated input 
-files.  The absolute or relative path to the Cubit executable is specified within 
-\xmlNode{preexec}.  If the \xmlNode{preexec} block is not needed, the 
+A user provides paths to executables and aliases for sampled variables within the
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes name and
+subType.  Name identifies that particular \xmlNode{Code} model within RAVEN, and
+subType specifies which code interface the model will use. The \xmlNode{executable}
+block should contain the absolute or relative (with respect to the current working
+directory) path to the MooseBasedApp that RAVEN will use to run generated input
+files.  The absolute or relative path to the Cubit executable is specified within
+\xmlNode{preexec}.  If the \xmlNode{preexec} block is not needed, the
 MooseBasedApp interface is probably preferable to the Cubit-Moose interface.
 
-Aliases are defined by specifying the variable attribute in an \xmlNode{alias} node with 
-the internal RAVEN variable name chosen with the node containing the model 
-variable name.  The Cubit-Moose interface uses the same syntax as the 
-MooseBasedApp to refer to model variables, with pipes separating terms starting 
-with the highest YAML block going down to the individual parameter that RAVEN 
-will change.  To specify variables that are going to be used in the Cubit 
-journal file, the syntax is "Cubit|aprepro\_var".  The Cubit-Moose interface 
-will look for the Cubit tag in all variables passed to it and upon finding it, 
-send it to the Cubit interface.  If the model variable does not begin with \xmlString{Cubit}, 
-the variable MUST be specified in the MooseBasedApp input file.  While the model 
-variable names are not required to have aliases defined (the \xmlNode{alias} 
-blocks are optional), it is highly suggested to do so not only to ensure brevity 
-throughout the RAVEN input, but to easily identify where variables are being sent 
+Aliases are defined by specifying the variable attribute in an \xmlNode{alias} node with
+the internal RAVEN variable name chosen with the node containing the model
+variable name.  The Cubit-Moose interface uses the same syntax as the
+MooseBasedApp to refer to model variables, with pipes separating terms starting
+with the highest YAML block going down to the individual parameter that RAVEN
+will change.  To specify variables that are going to be used in the Cubit
+journal file, the syntax is "Cubit|aprepro\_var".  The Cubit-Moose interface
+will look for the Cubit tag in all variables passed to it and upon finding it,
+send it to the Cubit interface.  If the model variable does not begin with \xmlString{Cubit},
+the variable MUST be specified in the MooseBasedApp input file.  While the model
+variable names are not required to have aliases defined (the \xmlNode{alias}
+blocks are optional), it is highly suggested to do so not only to ensure brevity
+throughout the RAVEN input, but to easily identify where variables are being sent
 in the interface.
 
 An example \xmlNode{Models} block follows.
@@ -1034,10 +1138,10 @@ An example \xmlNode{Models} block follows.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Distributions}
-The \xmlNode{Distributions} block defines all distributions used to 
-sample variables in the current RAVEN run.  
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
 
-For all the possible distributions and their possible inputs please 
+For all the possible distributions and their possible inputs please
 refer to the Distributions chapter (see~\ref{sec:distributions}).
 %
 It is good practice to name the distribution something similar to what kind of
@@ -1048,18 +1152,18 @@ same kind of distributions but different input parameters.
 \paragraph{Samplers}
 The \xmlNode{Samplers} block defines the variables to be sampled.
 
-After defining a sampling scheme, the variables to be sampled and 
+After defining a sampling scheme, the variables to be sampled and
 their distributions are identified in the \xmlNode{variable} blocks.
-The name attribute in the \xmlNode{variable} block must either be the 
-full MooseBasedApp model variable name or the alias name specifed in 
-\xmlNode{Models}.  If the sampled variable is a geometric property 
-that will be used to generate a mesh with Cubit, remember the syntax for 
+The name attribute in the \xmlNode{variable} block must either be the
+full MooseBasedApp model variable name or the alias name specifed in
+\xmlNode{Models}.  If the sampled variable is a geometric property
+that will be used to generate a mesh with Cubit, remember the syntax for
 variables being passed to journal files (Cubit|aprepro\_var).
 
-For listings of available samplers 
+For listings of available samplers
 refer to the Samplers chapter (see~\ref{sec:Samplers}).
 
-See the following for an example of a grid based sampler for 
+See the following for an example of a grid based sampler for
 length and the bottom boundary condition (both of which have aliases
 defined in \xmlNode{Models}).
 
@@ -1080,24 +1184,24 @@ defined in \xmlNode{Models}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Steps,OutStreamManager,DataObjects}
-This interface's \xmlNode{Steps}, \xmlNode{OutStreamManager}, and 
-\xmlNode{DataObjects} blocks do not deviate significantly from 
-other interfaces' respective nodes.  Please refer to previous 
-entries for these blocks if needed. 
+This interface's \xmlNode{Steps}, \xmlNode{OutStreamManager}, and
+\xmlNode{DataObjects} blocks do not deviate significantly from
+other interfaces' respective nodes.  Please refer to previous
+entries for these blocks if needed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{File Cleanup}
 The Cubit-Moose interface automatically removes files that are commonly
-unwanted after the RAVEN run reaches completion. Cubit has been described as 
+unwanted after the RAVEN run reaches completion. Cubit has been described as
 "talkative" due to additional journal files with execution information
-being generated by the program after every completed journal file run.  
+being generated by the program after every completed journal file run.
 The quantity of these files can quickly become unwieldly if the working
 directory is not kept clean; thus these files are removed.  In addition, some users
 may wish to remove Exodus files after the RAVEN run is complete as
 the typical size of each file is quite large and it is assumed that any
 output quantities of interest will be collected by appropriate postprocessors
 and the OutStreamManager.  Exodus files are not automatically removed,
-but by using the \xmlNode{deleteOutExtension} node in \xmlNode{RunInfo}, one 
+but by using the \xmlNode{deleteOutExtension} node in \xmlNode{RunInfo}, one
 may specify the Exodus extension to save a fair amount of storage space
 after RAVEN completes a sequence. For example:
 
@@ -1111,11 +1215,11 @@ after RAVEN completes a sequence. For example:
 
 %%%%%%%%%% BISON MESH SCRIPT MOOSE INTERFACE %%%%%%%%%%
 \subsubsection{MooseBasedApp and Bison Mesh Script Interface}
-For BISON users, a Python mesh generation script is included in 
-the \%BISON\_DIR\%/tools/UO2/ directory.  This script generates 
-3D or 2D (RZ) meshes for nuclear fuel rods using Cubit with 
-templated commands.  The BISON Mesh Script (BMS) is capable of 
-generating rods with discrete fuel pellets of various size in 
+For BISON users, a Python mesh generation script is included in
+the \%BISON\_DIR\%/tools/UO2/ directory.  This script generates
+3D or 2D (RZ) meshes for nuclear fuel rods using Cubit with
+templated commands.  The BISON Mesh Script (BMS) is capable of
+generating rods with discrete fuel pellets of various size in
 assorted configurations.  To use this interface, Cubit's bin
 directory must be added to the user's PYTHONPATH.
 
@@ -1123,7 +1227,7 @@ directory must be added to the user's PYTHONPATH.
 \paragraph{Files}
 Similar to the Cubit-Moose interface, the BisonAndMesh interface
 requires users to specify all files required to run their input
-so that these file may be copied into the respective sequence's 
+so that these file may be copied into the respective sequence's
 working directory.  The user will give each file an internal
 RAVEN designation with the name attribute, and the MooseBasedApp
 and BISON Mesh Script inputs must be assigned their respective types
@@ -1239,10 +1343,10 @@ unwanted after the RAVEN run reaches completion. Cubit has been described as
 "talkative" due to additional journal files with execution information
 being generated by the program after every completed journal file run.
 The BISON Mesh Script creates a journal file to run with cubit after reading input parameters;
-so Cubit will generate its "redundant" journal files, and .pyc files will 
-litter the working directory as artifacts of the python mesh script 
-reading from the .py input files.  The quantity of these files can quickly 
-become unwieldly if the working directory is not kept clean, thus these 
+so Cubit will generate its "redundant" journal files, and .pyc files will
+litter the working directory as artifacts of the python mesh script
+reading from the .py input files.  The quantity of these files can quickly
+become unwieldly if the working directory is not kept clean, thus these
 files are removed.  Some users
 may wish to remove Exodus files after the RAVEN run is complete as
 the typical size of each file is quite large and it is assumed that any
