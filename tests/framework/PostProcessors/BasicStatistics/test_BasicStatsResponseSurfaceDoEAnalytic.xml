@@ -123,6 +123,10 @@
   </OutStreamManager>
 
   <DataObjects>
+      <Point name="inputPlaceHolder">
+          <Input>x,y,z</Input>
+          <Output>OutputPlaceHolder</Output>
+      </Point>
     <PointSet name="outputDataBoxBehnkenRespDesign">
         <Input>x,y,z</Input>
         <Output>x1</Output>
@@ -131,10 +135,6 @@
         <Input>x,y,z</Input>
         <Output>x1</Output>
     </PointSet>
-    <Point name="inputPlaceHolder">
-        <Input>x,y,z</Input>
-        <Output>OutputPlaceHolder</Output>
-    </Point>
   </DataObjects>
 
 </Simulation>

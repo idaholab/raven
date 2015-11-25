@@ -72,14 +72,15 @@
   </OutStreamManager>
 
   <DataObjects>
+      <Point name="inputPlaceHolder">
+          <Input>x,y</Input>
+          <Output>OutputPlaceHolder</Output>
+      </Point>
     <PointSet name="outputDataStratified">
         <Input>x,y</Input>
         <Output>x1</Output>
     </PointSet>
-    <Point name="inputPlaceHolder">
-        <Input>x,y</Input>
-        <Output>OutputPlaceHolder</Output>
-    </Point>
+
   </DataObjects>
 
 </Simulation>

@@ -1071,9 +1071,10 @@ class BasicStatistics(BasePostProcessor):
               if whatc.split("_")[0] != 'percentile':self.raiseAnError(IOError, 'BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.acceptedCalcParam))
               else:
                 # check if the percentile is correct
-                integerPercentile = utils.intConversion(whatc.split("_")[-1].replace("%",""))
-                if integerPercentile is None: self.raiseAnError(IOError,"Could not convert the inputted percentile. The percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
-                floatPercentile = utils.floatConversion(integerPercentile)
+                requestedPercentile = whatc.split("_")[-1]
+                integerPercentile = utils.intConversion(requestedPercentile.replace("%",""))
+                if integerPercentile is None: self.raiseAnError(IOError,"Could not convert the inputted percentile. The percentile needs to an integer between 1 and 100. Got "+requestedPercentile)
+                floatPercentile = utils.floatConversion(requestedPercentile.replace("%",""))
                 if floatPercentile < 1.0: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
                 if -float(integerPercentile)/floatPercentile + 1.0 > 0.0001: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
           self.what = toCompute
@@ -1186,7 +1187,7 @@ class BasicStatistics(BasePostProcessor):
   def __computeUnbiasedCorrection(self,order,weightsOrN):
     """
      Compute unbiased correction given weights and momement order
-     Reference paper: 
+     Reference paper:
      Lorenzo Rimoldini, "Weighted skewness and kurtosis unbiased by sample size", http://arxiv.org/pdf/1304.6564.pdf
      @ In, order, int, moment order
      @ In, weightsOrN, array-like or int, if array-like -> weights else -> number of samples
@@ -1196,7 +1197,7 @@ class BasicStatistics(BasePostProcessor):
     if type(weightsOrN).__name__ not in ['int','int8','int16','int64','int32']:
       if order == 2:
         V1, v1Square, V2 = self.__computeVp(1, weightsOrN), self.__computeVp(1, weightsOrN)**2.0, self.__computeVp(2, weightsOrN)
-        corrFactor   = V1/(v1Square-V2)
+        corrFactor   = v1Square/(v1Square-V2)
       elif order == 3:
         V1, v1Cubic, V2, V3 = self.__computeVp(1, weightsOrN), self.__computeVp(1, weightsOrN)**3.0, self.__computeVp(2, weightsOrN), self.__computeVp(3, weightsOrN)
         corrFactor   =  v1Cubic/(v1Cubic-3.0*V2*V1+2.0*V3)
@@ -1207,9 +1208,9 @@ class BasicStatistics(BasePostProcessor):
         denom = (v1Square-V2)*(v1Square**2.0-6.0*v1Square*V2+8.0*V1*V3+3.0*V2**2.0-6.0*V4)
         corrFactor = numer1/denom ,numer2/denom
     else:
-      if   order == 2: corrFactor   = weightsOrN/(weightsOrN-1)
-      elif order == 3: corrFactor   = (weightsOrN**2.0)/((weightsOrN-1)*(weightsOrN-2))
-      elif order == 4: corrFactor = (weightsOrN*(weightsOrN**2.0-2.0*weightsOrN+3.0))/((weightsOrN-1)*(weightsOrN-2)*(weightsOrN-3)),(3.0*weightsOrN*(2.0*weightsOrN-3.0))/((weightsOrN-1)*(weightsOrN-2)*(weightsOrN-3))
+      if   order == 2: corrFactor   = float(weightsOrN)/(float(weightsOrN)-1.0)
+      elif order == 3: corrFactor   = (float(weightsOrN)**2.0)/((float(weightsOrN)-1)*(float(weightsOrN)-2))
+      elif order == 4: corrFactor = (float(weightsOrN)*(float(weightsOrN)**2.0-2.0*float(weightsOrN)+3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3)),(3.0*float(weightsOrN)*(2.0*float(weightsOrN)-3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3))
     return corrFactor
 
   def _computeKurtosis(self,arrayIn,expValue,pbWeight=None):
@@ -1280,9 +1281,10 @@ class BasicStatistics(BasePostProcessor):
       @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
       @ Out, result, float, the percentile
     """
-    sortedWeightsAndPoints = np.sort(np.asarray(zip(pbWeight,arrayIn)),axis=0)
-    weightsCDF    = np.cumsum(sortedWeightsAndPoints[:,0])
-    percentileFunction = interpolate.interp1d(weightsCDF,[i for i in range(len(arrayIn))],kind='nearest')
+    idxs                   = np.argsort(np.asarray(zip(pbWeight,arrayIn))[:,0])
+    sortedWeightsAndPoints = np.asarray(zip(pbWeight[idxs],arrayIn[idxs]))
+    weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
+    percentileFunction     = interpolate.interp1d(weightsCDF,[i for i in range(len(arrayIn))],kind='nearest')
     try:
       index  = int(percentileFunction(percent))
       result = sortedWeightsAndPoints[index,1]
