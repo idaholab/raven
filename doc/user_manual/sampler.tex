@@ -274,9 +274,9 @@ XML node and the requirements for other attributes change:
 \newcommand{\variablesTransformationDescription}[1]
 {
     \begin{itemize}
-      \item \xmlNode{variablesTransformation}, \xmlDesc{optional field}. This XML node accepts one attribute:
+      \item \xmlNode{variablesTransformation}, \xmlDesc{optional field}. this xml node accepts one attribute:
       \begin{itemize}
-        \item \xmlAttr{model}, \xmlDesc{required string attribute}, the name for the model defined in the XML node \xmlNode {Models}.
+        \item \xmlAttr{model}, \xmlDesc{required string attribute}, the name for the model defined in the xml node \xmlNode {models}.
         This attribute indicates the \xmlNode{manifestVariables} defined in the subnode will be used by the \xmlAttr{model}.
       \end{itemize}
       In addition, this XML node also accepts three childen nodes:
@@ -285,7 +285,7 @@ XML node and the requirements for other attributes change:
         are used for the variables transformation. All the variables listed under this node should be also mentioned in \xmlNode{variable}.
         \item \xmlNode{manifestVariables}, \xmlDesc{comma separated string, required field}, user-defined manifest variables
         that are used by the \xmlAttr{model}.
-        \item \xmlNode{method}, \xmlDesc{string, required field}, the method that is used for the variables transformation.
+        \item \xmlNode{method}, \xmlDesc{string, required field}, the method that is used for the variables transformation. The currently available method is '\textbf{pca}'.
       \end{itemize}
     \end{itemize}
 }
@@ -660,7 +660,6 @@ variable providing an axis.  Along each axis, the points of evaluation correspon
 each dimension's quadrature is constructed as sampling points.  The number of necessary samples can be reduced by employing Smolyak-like sparse grid algorithms,
 which use reduced combinations of polynomial orders to reduce the necessary sampling space.  \specBlock{a}{SparseGridCollocation}.
 
-\nb{SparseGridCollocation requires uncorrelated input dimensions; thus, for the present, it is not compatible with NDDistribution objects.}
 \begin{itemize}
 \itemsep0em
 \item \nameDescription
@@ -702,6 +701,80 @@ Example:
 </Samplers>
 \end{lstlisting}
  \normalsize
+
+In general, \textbf{SparseGridCollocation} requires uncorrelated input parameters. If the input parameters are correlated, one can transform the 
+correlated parameters into uncorrelated parameters, the \textbf{SparseGridCollocation} can also be used with the uncorrelated parameters
+in the transformed space. Like in the \textbf{Grid} sampler, if the covariance matrix is provided 
+and the input parameters is assumed to have the multivariate normal distribution, the \textbf{SparseGridCollocation} can be used.
+This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is 
+the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} 
+of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node 
+\xmlNode{variablesTransformation} is also required for \textbf{SparseGridCollocation} sampler. This node is used to tranform 
+the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by 
+\xmlNode{manifestVariables} in the input space. The variables listed in \xmlNode{latentVariables} should be predefined 
+in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables} 
+are used by the \xmlNode{Models}.
+
+\variablesTransformationDescription{SparseGridCollocation}
+
+
+\begin{lstlisting}[style=XML,morekeywords={ND,grid}]
+...
+<Models>
+    ...
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
+        <variable>sigma</variable>
+        <variable>rho</variable>
+        <variable>beta</variable>
+        <variable>x</variable>
+        <variable>y</variable>
+        <variable>z</variable>
+        <variable>time</variable>
+        <variable>x0</variable>
+        <variable>y0</variable>
+        <variable>z0</variable>
+    </ExternalModel>
+    ...
+</Models>
+
+<Distributions>
+    ...
+    <MultivariateNormal name='MVNDist' method='pca'>
+        <transformation>
+            <rank>3</rank>
+        </transformation>
+        <mu>0.0 1.0 2.0</mu>
+        <covariance type="abs">
+            1.0       0.6      -0.4
+            0.6       1.0      0.2
+            -0.4      0.2      0.8
+        </covariance>
+    </MultivariateNormal>
+    ...
+</Distributions>
+
+<Samplers>
+  ...
+  <SparseGridCollocation name='SC'>
+        <variable name='x0'>
+            <distribution dim='1'>MVNDist</distribution>
+        </variable>
+        <variable name='y0'>
+            <distribution dim='2'>MVNDist</distribution>
+        </variable>
+        <variable name='z0'>
+            <distribution dim='3'>MVNDist</distribution>
+        </variable>
+        <variablesTransformation model="PythonModule">
+            <latentVariables>x1,y1,z1</latentVariables>
+            <manifestVariables>x0,y0,z0</manifestVariables>
+            <method>pca</method>
+        </variablesTransformation>
+  </SparseGridCollocation>
+  ...
+</Samplers>
+...
+\end{lstlisting}
 
  %%% Forward Samplers: Sobol
 \subsubsection{Sobol}
