@@ -3388,7 +3388,7 @@ class SparseGridCollocation(Grid):
         for v,varName in enumerate(self.sparseGrid.varNames):
           if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
             self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
-            self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
         self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['ProbabilityWeight'] = weight
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
@@ -3575,13 +3575,36 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, model, Model, unused
       @ In, myInput, list(str), unused
     """
+    # compute the maxDim in the given distribution
+    for key in self.variables2distributionsMapping.keys():
+      dist = self.variables2distributionsMapping[key]['name']
+      maxDim = 1
+      listvar = self.distributions2variablesMapping[dist]
+      for var in listvar:
+        if utils.first(var.values()) > maxDim:
+           maxDim = utils.first(var.values())
+    if maxDim > 1: NDcoordinates = [0]*maxDim
+
     pt = self.neededPoints.pop() # [self.counter-1]
     self.submittedNotCollected.append(pt)
     for v,varName in enumerate(self.sparseGrid.varNames):
-      self.values[varName] = pt[v]
-      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-      self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
-    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+      # compute the SampledVarsPb for 1-D distribution
+      if self.variables2distributionsMapping[varName]['totDim'] == 1:
+        for key in varName.strip().split(','):
+          self.values[key] = pt[v]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+        # compute the SampledVarsPb for N-D distribution
+        # Assume only one N-D distribution is associated with sparse grid collocation method
+      elif self.variables2distributionsMapping[varName]['totDim'] > 1:
+        for key in varName.strip().split(','):
+          self.values[key] = pt[v]
+        NDcoordinates[self.variables2distributionsMapping[varName]['dim']-1] = pt[v]
+    for v,varName in enumerate(self.sparseGrid.varNames):
+      if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
