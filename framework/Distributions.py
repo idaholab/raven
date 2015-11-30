@@ -1502,6 +1502,7 @@ class MultivariateNormal(NDimensionalDistributions):
     self.disttype = 'Continuous'
     self.compatibleQuadrature.append('Hermite')
     self.compatibleQuadrature.append('CDF')
+    self.compatibleQuadrature.append('ClenshawCurtis')
 
 
   def _readMoreXML(self,xmlNode):
