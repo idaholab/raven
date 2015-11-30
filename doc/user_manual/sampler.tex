@@ -274,9 +274,9 @@ XML node and the requirements for other attributes change:
 \newcommand{\variablesTransformationDescription}[1]
 {
     \begin{itemize}
-      \item \xmlNode{variablesTransformation}, \xmlDesc{optional field}. this xml node accepts one attribute:
+      \item \xmlNode{variablesTransformation}, \xmlDesc{optional field}. this XML node accepts one attribute:
       \begin{itemize}
-        \item \xmlAttr{model}, \xmlDesc{required string attribute}, the name for the model defined in the xml node \xmlNode {models}.
+        \item \xmlAttr{model}, \xmlDesc{required string attribute}, the name for the model defined in the XML node \xmlNode {Models}.
         This attribute indicates the \xmlNode{manifestVariables} defined in the subnode will be used by the \xmlAttr{model}.
       \end{itemize}
       In addition, this XML node also accepts three childen nodes:
@@ -703,9 +703,9 @@ Example:
  \normalsize
 
 In general, \textbf{SparseGridCollocation} requires uncorrelated input parameters. If the input parameters are correlated, one can transform the 
-correlated parameters into uncorrelated parameters, the \textbf{SparseGridCollocation} can also be used with the uncorrelated parameters
+correlated parameters into uncorrelated parameters; the \textbf{SparseGridCollocation} can also be used with the uncorrelated parameters
 in the transformed space. Like in the \textbf{Grid} sampler, if the covariance matrix is provided 
-and the input parameters is assumed to have the multivariate normal distribution, the \textbf{SparseGridCollocation} can be used.
+and the input parameters are assumed to have the multivariate normal distribution, the \textbf{SparseGridCollocation} can be used.
 This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is 
 the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} 
 of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node 

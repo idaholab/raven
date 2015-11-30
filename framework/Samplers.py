@@ -3178,10 +3178,11 @@ class SparseGridCollocation(Grid):
     """
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
-    #do a distributions check for ND
-    #for dist in self.distDict.values():
-    #  if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists not supported for this sampler (yet)!')
     self.dists = self.transformDistDict()
+    #Do a distributions check for ND
+    #This sampler only accept ND distributions with variable transformation defined in this sampler
+    for dist in self.dists.values():
+      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists contain the variables in the original input space are  not supported for this sampler!')
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -3333,7 +3334,7 @@ class SparseGridCollocation(Grid):
       else:
         quadType=dat['quad']
       if quadType not in distr.compatibleQuadrature:
-        self.raiseAnError(IOError,' Quadrature type "',quadType,'" is not compatible with variable "',varName,'" distribution "',distr.type,'"')
+        self.raiseAnError(IOError,'Quadrature type"',quadType,'"is not compatible with variable"',varName,'"distribution"',distr.type,'"')
 
       quad = Quadratures.returnInstance(quadType,self,Subtype=subType)
       quad.initialize(distr,self.messageHandler)
