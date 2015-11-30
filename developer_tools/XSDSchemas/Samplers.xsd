@@ -230,6 +230,21 @@
                     <xsd:attribute name="subGridTol"     type="xsd:float"/>
                 </xsd:complexType>
             </xsd:element>
+            <xsd:element name="scoring"        type="xsd:string"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="batchStrategy"  type="xsd:string"   minOccurs="0" maxOccurs="1"/>
+            <!-- These two should be percentFloats, but I prefer to have my test
+                 actually test the boundary conditions, it looks better on code
+                 coverage, and it ensures the CODE itself is able to handle
+                 bad outputs, not some faceplate that sits on top and checks
+                 things before the code runs. As such these lines will remain
+                 here commented out until the XSD is a proper component of RAVEN,
+                 or dies the terrible death it deserves, whichever comes first -->
+            <!-- <xsd:element name="simplification" type="percentFloat" minOccurs="0" maxOccurs="1"/> -->
+            <!-- <xsd:element name="threshold"      type="percentFloat" minOccurs="0" maxOccurs="1"/> -->
+            <xsd:element name="simplification" type="xsd:float" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="threshold"      type="xsd:float" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="thickness"      type="xsd:integer"  minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="maxBatchSize"   type="xsd:integer"  minOccurs="0" maxOccurs="1"/>
             <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name"      type="xsd:string" use="required"/>

@@ -1,0 +1,138 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>basicStatsFactorialAnalytic</WorkingDir>
+    <Sequence>SamplingMirrowModel2levelFractFactorial,SamplingMirrowModelpbFactorial,PP12levelFractFactorial,PP1pbFactorial</Sequence>
+    <batchSize>32</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="output_basicStatistics_PP12levelFractFactorial.csv" type="">output_basicStatistics_PP12levelFractFactorial.csv</Input>
+    <Input name="output_basicStatistics_PP1pbFactorial.csv" type="">output_basicStatistics_PP1pbFactorial.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>z</variable>
+      <variable>x1</variable>
+    </ExternalModel>
+    <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
+      <what>all</what>
+      <parameters>x,y,z</parameters>
+    </PostProcessor>
+  </Models>
+
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <FactorialDesign name="2levelFractFactorial">
+      <FactorialSettings>
+        <algorithmType>2levelFract</algorithmType>
+        <gen>a,b,ab</gen>
+        <genMap>x,y,z</genMap>
+      </FactorialSettings>
+      <variable name="x">
+        <distribution>x0_distrib</distribution>
+        <grid construction="equal" steps="1" type="value">0.0 1.0</grid>
+      </variable>
+      <variable name="y">
+        <distribution>y0_distrib</distribution>
+        <grid construction="equal" steps="1" type="value">0.0 1.0</grid>
+      </variable>
+      <variable name="z">
+        <distribution>z0_distrib</distribution>
+        <grid construction="equal" steps="1" type="value">0.0 1.0</grid>
+      </variable>
+    </FactorialDesign>
+    <FactorialDesign name="pbFactorial">
+      <FactorialSettings>
+        <algorithmType>pb</algorithmType>
+      </FactorialSettings>
+      <variable name="x">
+        <distribution>x0_distrib</distribution>
+        <grid construction="equal" steps="1" type="value">0.0 1.0</grid>
+      </variable>
+      <variable name="y">
+        <distribution>y0_distrib</distribution>
+        <grid construction="equal" steps="1" type="value">0.0 1.0</grid>
+      </variable>
+      <variable name="z">
+        <distribution>z0_distrib</distribution>
+        <grid construction="equal" steps="1" type="value">0.0 1.0</grid>
+      </variable>
+    </FactorialDesign>
+  
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="SamplingMirrowModel2levelFractFactorial" re-seeding="20021986">
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">mirrowModel</Model>
+      <Sampler class="Samplers" type="Stratified">2levelFractFactorial</Sampler>
+      <Output class="DataObjects" type="PointSet">outputData2levelFractFactorial</Output>
+    </MultiRun>
+    <MultiRun name="SamplingMirrowModelpbFactorial" re-seeding="20021986">
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">mirrowModel</Model>
+      <Sampler class="Samplers" type="Stratified">pbFactorial</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDatapbFactorial</Output>
+    </MultiRun>
+    <PostProcess name="PP12levelFractFactorial">
+      <Input class="DataObjects" type="PointSet">outputData2levelFractFactorial</Input>
+      <Model class="Models" type="PostProcessor">analyticalTest</Model>
+      <Output class="Files" type="">output_basicStatistics_PP12levelFractFactorial.csv</Output>
+      <Output class="DataObjects" type="PointSet">outputData2levelFractFactorial</Output>
+      <Output class="OutStreamManager" type="Print">outputData2levelFractFactorial_dump</Output>
+    </PostProcess>
+    <PostProcess name="PP1pbFactorial">
+      <Input class="DataObjects" type="PointSet">outputDatapbFactorial</Input>
+      <Model class="Models" type="PostProcessor">analyticalTest</Model>
+      <Output class="Files" type="">output_basicStatistics_PP1pbFactorial.csv</Output>
+      <Output class="DataObjects" type="PointSet">outputDatapbFactorial</Output>
+      <Output class="OutStreamManager" type="Print">outputDatapbFactorial_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="outputData2levelFractFactorial_dump">
+      <type>csv</type>
+      <source>outputData2levelFractFactorial</source>
+    </Print>
+    <Print name="outputDatapbFactorial_dump">
+      <type>csv</type>
+      <source>outputDatapbFactorial</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+      <Point name="inputPlaceHolder">
+          <Input>x,y,z</Input>
+          <Output>OutputPlaceHolder</Output>
+      </Point>
+    <PointSet name="outputData2levelFractFactorial">
+        <Input>x,y,z</Input>
+        <Output>x1</Output>
+    </PointSet>
+    <PointSet name="outputDatapbFactorial">
+        <Input>x,y,z</Input>
+        <Output>x1</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

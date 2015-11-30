@@ -95,18 +95,9 @@ cd ..
 cd AdaptiveSobol/
 rm -Rf workdir/*
 
-python ../../../framework/Driver.py test_adaptive_sobol_parallel.xml
+python ../../../framework/Driver.py test_adapt_sobol_parallel.xml
 
-sleep 5
-cd workdir
-lines=`ls *.csv | wc -l`
-cd ..
-if test $lines -eq 12; then
-    echo PASS adaptiveSobol
-else
-    echo FAIL adaptiveSobol
-    num_fails=$(($num_fails+1))
-fi
+wait_lines 'workdir/*.csv' 1 adaptiveSobol
 
 cd ..
 

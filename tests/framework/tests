@@ -222,14 +222,6 @@
   rel_err = 0.001
  [../]
 
- [./testBasicStatistics]
-  type = 'RavenFramework'
-  input = 'test_BasicStatistics.xml'
-  output = 'basicStatistics/PointSetPostProcTest_dump.csv basicStatistics/output_basicStatistics_PP1.csv basicStatistics/output_basicStatistics_PP2.csv basicStatistics/output_basicStatistics_PP3.csv basicStatistics/output_basicStatistics_PP4.csv basicStatistics/output_basicStatistics_PP5.csv'
-  csv = 'basicStatistics/PointSetPostProcTest_dump.csv'
-  max_time = 500
-  rel_err = 0.001
- [../]
 
  [./testLimitSurfacePostProcessor]
   type = 'RavenFramework'
@@ -451,6 +443,14 @@
   output = 'NDGridPWvalue/testPrintPointSet_dump.csv'
   csv = 'NDGridPWvalue/testPrintPointSet_dump.csv'
  [../]
+
+
+  [./tRom]
+   type  = 'RavenFramework'
+   input = 'test_t_rom.xml'
+   output = 't_rom/PrintHistorySet_model.xml t_rom/PrintHistorySet_rom.xml'
+   csv = 't_rom/PrintHistorySet_rom_0.csv t_rom/PrintHistorySet_rom_1.csv t_rom/PrintHistorySet_rom_2.csv t_rom/PrintHistorySet_rom_3.csv t_rom/PrintHistorySet_rom_4.csv t_rom/PrintHistorySet_rom_5.csv t_rom/PrintHistorySet_rom_6.csv t_rom/PrintHistorySet_rom_7.csv'
+  [../]
 
  [./LHSVariables]
   type = 'RavenFramework'
