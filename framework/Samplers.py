@@ -3262,7 +3262,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.error = 0
       for pidx in self.indexSet.active:
         self.error += max(self.expImpact[t][pidx] for t in self.targets)
-      self.raiseAMessage('  estimated remaining error: %1.4e target error: %1.4e, runs: %i' %(self.error,self.convValue,len(self.pointsNeededToMakeROM)))
+      #self.raiseAMessage('  estimated remaining error: %1.4e target error: %1.4e, runs: %i' %(self.error,self.convValue,len(self.pointsNeededToMakeROM)))
       if self.logFile is not None:
         self._printToLog()
       #if doing a study and at a statepoint, record the statepoint
@@ -3312,6 +3312,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       if self.doingStudy and len(self.studyPoints)>0:
         self.raiseAWarning('In the convergence study, the following numbers of runs were not reached:',self.studyPoints)
       return False
+    self.raiseAMessage('  Next: %s | error: %1.4e | runs: %i' %(str(idx),self.error,len(self.pointsNeededToMakeROM)))
     #otherwise, we have points to run!
     return True
 
