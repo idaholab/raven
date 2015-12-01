@@ -1,7 +1,7 @@
 [Tests]
  [./test_adaptive_sgc_pca]
   type = 'RavenFramework'
-  input = 'test_adaptive_sgc_pca.xml'
+  input = 'test_adaptive_sgc_pca_analytic.xml'
   csv = 'Adaptive/data.csv'
   xml = 'Adaptive/dump.xml'
  [../]
