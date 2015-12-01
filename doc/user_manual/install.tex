@@ -8,24 +8,38 @@ In the following sections, all the different installation procedures
 are reported.
 
 There are two main requirements to installing RAVEN, installing the
-RAVEN dependencies and installing RAVEN itself.  For some versions of
-OSX, there is a RAVEN complete package that combines theses steps.
+RAVEN dependencies (Section \ref{raven_dependencies}) and installing
+RAVEN itself (Section \ref{raven_installation}).  For some versions of
+OSX, there is a RAVEN complete package that combines theses steps
+(Section \ref{raven_complete}).
 
 For OSX it is recommended that the dependencies be installed with
-MiniConda.  For Linux, it is recommended that the distribution package
-manager be used if possible.
+Miniconda (Section \ref{miniconda}).  For Linux, it is recommended
+that the distribution package manager be used if possible (Section
+\ref{linux_package_manager}).
 
-There are several different ways of getting RAVEN.  They vary
-depending on how easy they are to use and how easy they are to develop
-with (these tend to be inversely correlated).
+There are several different ways of getting RAVEN as described in
+Section \ref{raven_installation}.  They vary depending on how easy
+they are to use and how easy they are to develop with (these tend to
+be inversely correlated).
+
+\newcommand{\goToRavenInstallation}{Now go on to Section \ref{raven_installation} for Raven installation.
+}
+
 
 \section{RAVEN Dependencies Installation}
+\label{raven_dependencies}
 
 There are several different ways to install the dependencies that
-RAVEN needs.  For OSX, Miniconda is recommended.  For Linux, the
-distribution's package manager is recommended.
+RAVEN needs.  For OSX, Xcode command line tools and XQuartz are
+needed, then Miniconda is recommended (Section
+\ref{osx_dependencies}).  If the MOOSE environment package is
+installed, Miniconda is recommended (Section \ref{miniconda_moose}) .
+For Linux, the distribution's package manager is recommended (Section
+\ref{linux_package_manager}).
 
 \subsection{Linux Package Manager}
+\label{linux_package_manager}
 
 If RAVEN is being installed on Linux, it is recommended that the
 distribution's package manager be used to install the dependencies.
@@ -52,6 +66,7 @@ sudo apt-get install texlive-latex-base texlive-extra-utils \
   texlive-latex-extra texlive-math-extra
 \end{lstlisting}
 
+\goToRavenInstallation
 
 \subsubsection{Fedora}
 
@@ -69,23 +84,31 @@ dnf install texlive texlive-subfigure texlive-stmaryrd \
   texlive-titlesec texlive-preprint
 \end{lstlisting}
 
+\goToRavenInstallation
+
 \subsection{OSX Dependencies}
+\label{osx_dependencies}
 
 For running OSX, there are two additional dependencies that need to be
 installed.  The first in the Xcode command line tools.  The second is
 XQuartz.  How to install these is explained at
 \url{http://mooseframework.org/getting-started/osx/}
 
+Next Miniconda can be used to install the rest of the dependencies
+(Section \ref{miniconda})
+
 %command line tools
 %x quartz
 
 \subsection{Miniconda}
+\label{miniconda}
 
 For OSX, the simplest and most robust way to install the RAVEN dependencies
 is with Miniconda.  The details of this vary depending what else is
 installed.
 
 \subsubsection{With MOOSE}
+\label{miniconda_moose}
 
 If running other MOOSE packages is needed, then MOOSE's MOOSE
 Environment package comes with miniconda and that should be used to
@@ -98,6 +121,8 @@ Then:
   conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
 \end{lstlisting}
 
+\goToRavenInstallation
+
 \subsubsection{Direct Miniconda}
 
 Miniconda can be directly installed using the instructions at: \url{http://conda.pydata.org/miniconda.html}
@@ -107,11 +132,13 @@ Then the packages RAVEN needs can be installed:
   conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
 \end{lstlisting}
 
+\goToRavenInstallation
+
 \subsubsection{With Miniconda package}
 
 For OSX Yosemite and OSX Mavericks there is a package available called
 raven\_miniconda.dmg The package includes both miniconda and the
-dependencies RAVEN needs.
+dependencies RAVEN needs.  Once this is installed you can go on to Section \ref{raven_installation} and install RAVEN.
 
 \subsection{Manual Dependency Install}
 
@@ -139,12 +166,32 @@ cd full_path_to_raven_distribution/raven/
 cd ..
 \end{lstlisting}
 
-\section{RAVEN Installation}
+\goToRavenInstallation
 
-Once the RAVEN dependencies have been installed, the rest of RAVEN can
-be installed.
+\section{RAVEN Installation}
+\label{raven_installation}
+
+Once the RAVEN dependencies have been installed (See Section
+\ref{raven_dependencies}), the rest of RAVEN can be installed.
+
+There are several different ways to get RAVEN.  There are trade offs
+between how easy it is to setup and how easy it is to develop with the
+method.  If you are using several MOOSE applications and want to share
+the MOOSE directory go to Section \ref{parallel_directory_git}.  If
+you want to do development on RAVEN and RAVEN is the only MOOSE
+application you are using or you don't mind having duplicate MOOSE
+directories, go to Section \ref{submodule_git}.  If you don't need to
+do RAVEN development but want to keep up with the latest version of
+RAVEN, the RAVEN Whole repository can be used as described in Section
+\ref{raven_whole_devel}.  If you don't need to do RAVEN development,
+and want to track a stable version of RAVEN, the RAVEN Whole
+repository with a stable branch can be used as described in Section
+\ref{raven_whole_stable}.  If git is not used, either the Source Code
+Package in Section \ref{raven_source_package} or if in OSX the
+complete package (Section \ref{raven_complete}) can be used.
 
 \subsection{Parallel Directory Git}
+\label{parallel_directory_git}
 
 This install method uses git to obtain the software, and the raven,
 crow, and moose directories are installed at the same level.  This is
@@ -169,6 +216,16 @@ git clone git@hpcgitlab.inl.gov:idaholab/crow.git
 git clone git@hpcgitlab.inl.gov:idaholab/raven.git
 \end{lstlisting}
 
+If RELAP-7 will be used, only IAPWS should be initialized instead of
+all the submodules:
+
+\begin{lstlisting}[language=bash]
+git clone git@hpcgitlab.inl.gov:idaholab/relap-7.git
+cd relap-7
+git submodule update --init contrib/iapws
+cd ..
+\end{lstlisting}
+
 Next the RAVEN modules should be compiled:
 
 \begin{lstlisting}[language=bash]
@@ -176,11 +233,27 @@ cd raven
 make framework_modules
 \end{lstlisting}
 
-Then the testing should be done:
+If RELAP-7 is used, the rest of raven can be compiled:
+
+\begin{lstlisting}[language=bash]
+#make sure you are in the raven directory
+make
+\end{lstlisting}
+
+
+Then the testing should be done.  If RELAP-7 is not used the framework
+tests should be run:
 
 \begin{lstlisting}[language=bash]
   ./run_framework_tests
 \end{lstlisting}
+
+If RELAP-7 is used, all the tests can be run:
+
+\begin{lstlisting}[language=bash]
+  ./run_tests
+\end{lstlisting}
+
 
 The output should describe why any tests failed.
 
@@ -206,6 +279,7 @@ To update the software, the git pull command can be used:
 \end{lstlisting}
 
 \subsection{Submodule Git}
+\label{submodule_git}
 
 This install method uses git to obtain the software and uses
 submodules to get Crow and MOOSE.  This can be used for RAVEN and Crow
@@ -254,6 +328,7 @@ be used:
 
 
 \subsection{RAVEN Whole Devel Branch}
+\label{raven_whole_devel}
 
 This install method uses git to get a custom repository that includes
 only the parts of Crow and MOOSE that are needed by RAVEN.
@@ -296,9 +371,10 @@ To update the software, the git pull command can be used:
 \end{lstlisting}
 
 \subsection{RAVEN Whole Stable Branch}
+\label{raven_whole_stable}
 
-This is the same as in the previous section, but after the clone
-command a stable branch is checked out:
+This is the same as in the previous Section \ref{raven_whole_devel},
+but after the clone command a stable branch is checked out:
 
 \begin{lstlisting}[language=bash]
   git clone git@hpcgitlab.inl.gov:cogljj/raven.git
@@ -311,6 +387,7 @@ branches are update less frequently, and input changes that would
 invalidate existing files are not allowed.
 
 \subsection{RAVEN Source Code Package}
+\label{raven_source_package}
 
 Untar the source install (if there is more than one version of the
 source tarball, the full filename will need to be used instead of *):
@@ -344,6 +421,7 @@ not available, or some of the test are not currently working.  The
 output will explain why each is skipped.
 
 \subsection{RAVEN Complete}
+\label{raven_complete}
 
 Open up the file \texttt{raven\_framework\_complete\_version.dmg}.
 %
