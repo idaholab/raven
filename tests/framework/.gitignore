@@ -33,3 +33,6 @@ CodeInterfaceTests/OMInterfaceTest/testDummyStep/rawout~*
 CodeInterfaceTests/RELAP5interfaceTest/testDummyStep/*~snc01.i
 Samplers/DynamicEventTrees/DETshort/DETrunTest/
 Samplers/DynamicEventTrees/HybridDynamicEventTree/HybridDETrunTest/
+CodeInterfaceTests/DMInterfaceTest/testDummyStep/*dsin.txt
+CodeInterfaceTests/DMInterfaceTest/testDummyStep/rawout~DM*dsin
+ROM/Sobol/states.txt
