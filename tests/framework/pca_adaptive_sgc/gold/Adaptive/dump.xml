@@ -1,0 +1,12 @@
+<ReducedOrderModel>
+  <ans2>
+    <mean>0.9</mean>
+    <variance>1.6465</variance>
+    <numRuns>19</numRuns>
+  </ans2>
+  <ans>
+    <mean>1.434</mean>
+    <variance>5.671249</variance>
+    <numRuns>19</numRuns>
+  </ans>
+</ReducedOrderModel>
