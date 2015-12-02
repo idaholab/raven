@@ -293,30 +293,7 @@ First RAVEN needs to be cloned, and then the submodules initialized.
   git submodule update --init crow moose
 \end{lstlisting}
 
-Next the RAVEN modules should be compiled:
-
-\begin{lstlisting}[language=bash]
-#make sure you are in the raven directory
-make framework_modules
-\end{lstlisting}
-
-Then the testing should be done:
-
-\begin{lstlisting}[language=bash]
-  ./run_framework_tests
-\end{lstlisting}
-
-The output should describe why any tests failed.
-
-At the end, there should be a line that looks similar to the output below:
-\begin{lstlisting}[language=bash]
-8 passed, 19 skipped, 0 pending, 0 failed
-\end{lstlisting}
-
-Normally there are skipped tests because either some of the codes are
-not available, or some of the test are not currently working.  The
-output will explain why each is skipped.
-
+Next follow the compilation and testing instructions in Section \ref{raven_compilation}.
 
 To update the software, the git pull and submodule update commands can
 be used:
@@ -340,29 +317,7 @@ First clone the RAVEN whole repository:
   cd raven
 \end{lstlisting}
 
-Next the RAVEN modules should be compiled:
-
-\begin{lstlisting}[language=bash]
-make framework_modules
-\end{lstlisting}
-
-Then the testing should be done:
-
-\begin{lstlisting}[language=bash]
-  ./run_framework_tests
-\end{lstlisting}
-
-The output should describe why any tests failed.
-
-At the end, there should be a line that looks similar to the output below:
-\begin{lstlisting}[language=bash]
-8 passed, 19 skipped, 0 pending, 0 failed
-\end{lstlisting}
-
-Normally there are skipped tests because either some of the codes are
-not available, or some of the test are not currently working.  The
-output will explain why each is skipped.
-
+Next follow the compilation and testing instructions in Section \ref{raven_compilation}.
 
 To update the software, the git pull command can be used:
 
@@ -396,11 +351,17 @@ source tarball, the full filename will need to be used instead of *):
 tar -xvzf raven_framework_*_source.tar.gz
 \end{lstlisting}
 
-Next the RAVEN modules should be compiled:
+Next follow the compilation and testing instructions in Section
+\ref{raven_compilation}.
+
+\subsection{RAVEN Compilation}
+\label{raven_compilation}
+
+The RAVEN modules should be compiled:
 
 \begin{lstlisting}[language=bash]
-  cd raven
-  make framework_modules
+#change into the raven directory if needed.
+make framework_modules
 \end{lstlisting}
 
 Then the testing should be done:
@@ -419,6 +380,7 @@ At the end, there should be a line that looks similar to the output below:
 Normally there are skipped tests because either some of the codes are
 not available, or some of the test are not currently working.  The
 output will explain why each is skipped.
+
 
 \subsection{RAVEN Complete}
 \label{raven_complete}
