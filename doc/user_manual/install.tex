@@ -116,9 +116,9 @@ install the RAVEN dependencies.
 
 Then:
 \begin{lstlisting}[language=bash]
-  sudo bash
-  #Set up http_proxy and https_proxy variables if needed
-  conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
+sudo bash
+#Set up http_proxy and https_proxy variables if needed
+conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
 \end{lstlisting}
 
 \goToRavenInstallation
@@ -129,7 +129,7 @@ Miniconda can be directly installed using the instructions at: \url{http://conda
 
 Then the packages RAVEN needs can be installed:
 \begin{lstlisting}[language=bash]
-  conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
+conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
 \end{lstlisting}
 
 \goToRavenInstallation
@@ -245,13 +245,13 @@ Then the testing should be done.  If RELAP-7 is not used the framework
 tests should be run:
 
 \begin{lstlisting}[language=bash]
-  ./run_framework_tests
+./run_framework_tests
 \end{lstlisting}
 
 If RELAP-7 is used, all the tests can be run:
 
 \begin{lstlisting}[language=bash]
-  ./run_tests
+./run_tests
 \end{lstlisting}
 
 
@@ -272,13 +272,13 @@ Section \ref{HowToRun}.
 To update the software, the git pull command can be used:
 
 \begin{lstlisting}[language=bash]
-  cd moose
-  git pull
-  #Possibly libmesh needs to be rebuilt at this point.
-  cd ../crow
-  git pull
-  cd ../raven
-  git pull
+cd moose
+git pull
+#Possibly libmesh needs to be rebuilt at this point.
+cd ../crow
+git pull
+cd ../raven
+git pull
 \end{lstlisting}
 
 \subsection{Submodule Git}
@@ -291,9 +291,9 @@ development.
 First RAVEN needs to be cloned, and then the submodules initialized.
 
 \begin{lstlisting}[language=bash]
-  git clone git@hpcgitlab.inl.gov:idaholab/raven.git
-  cd raven
-  git submodule update --init crow moose
+git clone git@hpcgitlab.inl.gov:idaholab/raven.git
+cd raven
+git submodule update --init crow moose
 \end{lstlisting}
 
 Next follow the compilation and testing instructions in Section \ref{raven_compilation}.
@@ -302,8 +302,8 @@ To update the software, the git pull and submodule update commands can
 be used:
 
 \begin{lstlisting}[language=bash]
-  git pull
-  git submodule update
+git pull
+git submodule update
 \end{lstlisting}
 
 
@@ -316,8 +316,8 @@ only the parts of Crow and MOOSE that are needed by RAVEN.
 First clone the RAVEN whole repository:
 
 \begin{lstlisting}[language=bash]
-  git clone git@hpcgitlab.inl.gov:cogljj/raven.git
-  cd raven
+git clone git@hpcgitlab.inl.gov:cogljj/raven.git
+cd raven
 \end{lstlisting}
 
 Next follow the compilation and testing instructions in Section \ref{raven_compilation}.
@@ -325,7 +325,7 @@ Next follow the compilation and testing instructions in Section \ref{raven_compi
 To update the software, the git pull command can be used:
 
 \begin{lstlisting}[language=bash]
-  git pull
+git pull
 \end{lstlisting}
 
 \subsection{RAVEN Whole Stable Branch}
@@ -335,9 +335,9 @@ This is the same as in the previous Section \ref{raven_whole_devel},
 but after the clone command a stable branch is checked out:
 
 \begin{lstlisting}[language=bash]
-  git clone git@hpcgitlab.inl.gov:cogljj/raven.git
-  cd raven
-  git checkout stable/2015_july
+git clone git@hpcgitlab.inl.gov:cogljj/raven.git
+cd raven
+git checkout stable/2015_july
 \end{lstlisting}
 
 The rest is the same as the RAVEN Whole devel branch.  The stable
@@ -370,7 +370,7 @@ make framework_modules
 Then the testing should be done:
 
 \begin{lstlisting}[language=bash]
-  ./run_framework_tests
+./run_framework_tests
 \end{lstlisting}
 
 The output should describe why any tests failed.
@@ -391,16 +391,16 @@ Section \ref{HowToRun}.
 \label{raven_complete}
 
 Open up the file \texttt{raven\_framework\_complete\_version.dmg}.
-%
+
 Next, Open up the \texttt{raven\_libs.pkg} inside, and install it.  If
 you get an error that the package is not signed, then Control click
 the package, and choose ``Open With'' and then Installer.
-%
+
 The files will be installed into \texttt{/opt/raven\_libs}.
-%
-Your \texttt{.bash\_profile} will be modified to source the
+
+Your \texttt{.bash\_profile} will be modified to source the\\
 \texttt{/opt/raven\_libs/environments/raven\_libs\_profile} file.
-%
+
 This file sets up the environment variables \texttt{PYTHONPATH} and
 \texttt{PATH} so that the \texttt{raven\_framework} command can be used.
 
