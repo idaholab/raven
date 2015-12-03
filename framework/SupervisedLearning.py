@@ -1672,6 +1672,13 @@ class SciKitLearn(superVisedLearning):
 #
 #
 #
+
+class ARMA(superVisedLearning):
+  """
+  Autoregressive Moving Average model for time series analysis. First train then evaluate. 
+  Specify a Fourier node if detrending by Fourier series is needed. 
+  """
+
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom
 __interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
@@ -1679,6 +1686,7 @@ __interfaceDict['SciKitLearn'         ] = SciKitLearn
 __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
 __interfaceDict['MSR'                 ] = MSR
+__interfaceDict['ARMA'                ] = ARMA
 __base                                  = 'superVisedLearning'
 
 # def addToInterfaceDict(newDict):
