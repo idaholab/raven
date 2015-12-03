@@ -440,7 +440,7 @@ def returnInstance(modelClass, caller, **kwargs):
   @In kwargs: a dictionary specifying the keywords and values needed to create
               the instance.
   @Out an instance of a Model
-  """  
+  """
   try: return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
   except KeyError: caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Not known ' + __base + ' type ' + str(modelClass))
 
