@@ -71,7 +71,6 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     # booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
-    # if 'Features' not in self.initOptionDict.keys(): self.raiseAnError(IOError, 'Feature names not provided.')
     if 'Labels'       in self.initOptionDict.keys():  # Labels are passed, if known appriori (optional), they used in quality estimate
       self.labels = self.initOptionDict['Labels'  ]
       self.initOptionDict.pop('Labels')
@@ -433,20 +432,24 @@ __interfaceDict = {}
 __interfaceDict['SciKitLearn'] = SciKitLearn
 __base = 'unSuperVisedLearning'
 
-def addKnownTypes(newDict):
-  for name, value in newDict.items():
-    __interfaceDict[name] = value
-    __knownTypes.append(name)
-
-def knownTypes():
-  return __knownTypes
-
 def returnInstance(modelClass, caller, **kwargs):
-  '''This function return an instance of the request model type'''
+  """
+  This function return an instance of the request model type
+  @In Modellass: string representing the instance to create
+  @In caller: object that will share its messageHandler instance
+  @In kwargs: a dictionary specifying the keywords and values needed to create
+              the instance.
+  @Out an instance of a Model
+  """  
   try: return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
   except KeyError: caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Not known ' + __base + ' type ' + str(modelClass))
 
 def returnClass(modelClass, caller):
-  '''This function return an instance of the request model type'''
+  """
+  This function return an instance of the request model type
+  @In Modelclass: string representing the class to retrieve
+  @In caller: object that will share its messageHandler instance
+  @Out the class definition of the Model
+  """
   try: return __interfaceDict[modelClass]
   except KeyError: caller.raiseanError(NameError, 'unSuperVisedLEarning', 'not known ' + __base + ' type ' + modelClass)

@@ -28,6 +28,7 @@
 	input  = 'test_dataMiningMiniBatchSparsePCA.xml'
         csv    = 'MiniBatchSparsePCA/dummy.csv'
 	output = 'MiniBatchSparsePCA/1-PlotIris_dataMining.png'
+        rel_err = 0.001
   [../] 
   [./TruncatedSVD]
 	type   = 'RavenFramework'
@@ -52,6 +53,7 @@
 	input  = 'test_dataMiningLocallyLinearEmbedding.xml'
         csv    = 'LocallyLinearEmbedding/dummy.csv'
 	output = 'LocallyLinearEmbedding/1-PlotIris_dataMining.png'
+	rel_err = 0.001
   [../] 
   [./SpectralEmbedding]
 	type   = 'RavenFramework'

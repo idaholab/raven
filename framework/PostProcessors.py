@@ -2484,30 +2484,25 @@ class DataMining(BasePostProcessor):
     self.initializationOptionDict = {}
     self.clusterLabels = None
     self.labelAlgorithms = []
-    self.DataObjects = []
+    self.dataObjects = []
 
   def inputToInternal(self, currentInp):
     """
       Function to convert the received input into a format this object can
       understand
-      @ In, currentInp: Some form of data object or list of data objects handed
+      @ In, currentInp, Some form of data object or list of data objects handed
                         to the post-processor
-      @ Out, An input dictionary this object can process
+      @ Out, inputdict, dict, An input dictionary this object can process
     """
-    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
     if type(currentInp) == dict:
       if 'Features' in currentInput.keys(): return
     inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
-    # FIXME I don't think this try-catch is checking for files, HDF5 and dataobjects
-    try   : inType = currentInput.type
-    except: self.raiseAnError(IOError, self, 'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
     if isinstance(currentInp, Files.File):
-      if currentInput.subtype == 'csv': pass
-      # FIXME else?  This seems like hollow code right now.
-    if inType == 'HDF5': pass  # to be implemented
-    if inType in ['PointSet']:
+      if currentInput.subtype == 'csv': self.raiseAnError(IOError, 'CSV File received as an input!')
+    if currentInput.type == 'HDF5': self.raiseAnError(IOError, 'HDF5 Object received as an input!')
+    if currentInput.type in ['PointSet']:
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         for param in currentInput.getParaKeys('input'): inputDict['Features'][param] = currentInput.getParam('input', param)
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
@@ -2545,7 +2540,7 @@ class DataMining(BasePostProcessor):
       if 'DataObject' == key:
         indice = 0
         for value in self.assemblerDict[key]:
-          self.DataObjects.append(self.assemblerDict[key][indice][3])
+          self.dataObjects.append(self.assemblerDict[key][indice][3])
           indice += 1
 
   def _localReadMoreXML(self, xmlNode):
@@ -2567,7 +2562,7 @@ class DataMining(BasePostProcessor):
       if child.tag == 'KDD':
         if child.attrib:
           if 'lib' in child.attrib.keys():
-            self.Type = child.attrib.values()[0]
+            self.type = child.attrib.values()[0]
             self.initializationOptionDict[child.tag].pop('lib')
         for childChild in child:
           if childChild.attrib:
@@ -2579,7 +2574,7 @@ class DataMining(BasePostProcessor):
               try: self.initializationOptionDict[child.tag][childChild.tag] = float(childChild.text)
               except ValueError: self.initializationOptionDict[child.tag][childChild.tag] = childChild.text
 
-    if self.Type: self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.Type, self, **self.initializationOptionDict['KDD'])
+    if self.type: self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else        : self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
 
   def run(self, InputIn):
@@ -2588,9 +2583,9 @@ class DataMining(BasePostProcessor):
      @ In , InputIn, dictionary, dictionary of data to process
      @ Out, dictionary, Dictionary containing the post-processed results
     """
-    if len(self.DataObjects) is not 0:
-      if type(self.DataObjects) == list: dataObject = self.DataObjects[-1]
-      else                             : dataObject = self.DataObjects
+    if len(self.dataObjects) is not 0:
+      if type(self.dataObjects) == list: dataObject = self.dataObjects[-1]
+      else                             : dataObject = self.dataObjects
     else: dataObject = None
     Input = self.inputToInternal(InputIn)
 

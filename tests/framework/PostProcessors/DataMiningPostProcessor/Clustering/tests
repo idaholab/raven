@@ -4,6 +4,7 @@
     	input  = 'test_dataMiningKMeansPCA.xml'
         csv    = 'KMeansPCA/dump1.csv'
 	output = 'KMeansPCA/1-PlotPCA1_dataMining.png KMeansPCA/1-PlotAll_dataMining-dataMining-dataMining.png'
+        rel_err = 0.001
   [../]
   [./MiniBatchKMeans]
 	type   = 'RavenFramework'
