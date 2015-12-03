@@ -9,7 +9,9 @@ are reported.
 
 There are two main requirements to installing RAVEN, installing the
 RAVEN dependencies (Section \ref{raven_dependencies}) and installing
-RAVEN itself (Section \ref{raven_installation}).  For some versions of
+RAVEN itself (Section \ref{raven_installation}).  For any particular
+installation, only one of the raven dependency procedures and one of
+the raven installation paths needs to be taken. For some versions of
 OSX, there is a RAVEN complete package that combines theses steps
 (Section \ref{raven_complete}).
 
@@ -32,7 +34,7 @@ be inversely correlated).
 
 There are several different ways to install the dependencies that
 RAVEN needs.  For OSX, Xcode command line tools and XQuartz are
-needed, then Miniconda is recommended (Section
+needed, and then Miniconda is recommended (Section
 \ref{osx_dependencies}).  If the MOOSE environment package is
 installed, Miniconda is recommended (Section \ref{miniconda_moose}) .
 For Linux, the distribution's package manager is recommended (Section
@@ -53,11 +55,6 @@ Install the dependencies using the command:
 sudo apt-get install libtool git python-dev swig g++ python3-dev \
  python-numpy python-sklearn python-h5py
 \end{lstlisting}
-
-%\maljdan{Somebody verify what \TeX packages are needed under Ubuntu
-%(These are what I manually installed according to my
-%\texttt{/var/lib/apt/extended\_states} file and things work fine).}
-% I verified it.  Josh
 
 Optionally, if you want to be able to edit and rebuild the manual, you can
 install \TeX~Live and its related packages:
@@ -165,6 +162,9 @@ cd full_path_to_raven_distribution/raven/
 ./raven_libs_script.sh
 cd ..
 \end{lstlisting}
+
+If the \texttt{raven\_libs\_script.sh} script is successful it will
+install the raven dependencies in \verb'~/raven_libs'
 
 \goToRavenInstallation
 
@@ -311,7 +311,9 @@ git submodule update
 \label{raven_whole_devel}
 
 This install method uses git to get a custom repository that includes
-only the parts of Crow and MOOSE that are needed by RAVEN.
+only the parts of Crow and MOOSE that are needed by RAVEN.  This
+repository is updated every time RAVEN or Crow or MOOSE are changed
+and the RAVEN framework tests pass.
 
 First clone the RAVEN whole repository:
 
@@ -341,7 +343,7 @@ git checkout stable/2015_july
 \end{lstlisting}
 
 The rest is the same as the RAVEN Whole devel branch.  The stable
-branches are update less frequently, and input changes that would
+branches are updated less frequently, and input changes that would
 invalidate existing files are not allowed.
 
 \subsection{RAVEN Source Code Package}
@@ -352,6 +354,7 @@ source tarball, the full filename will need to be used instead of *):
 
 \begin{lstlisting}[language=bash]
 tar -xvzf raven_framework_*_source.tar.gz
+cd raven
 \end{lstlisting}
 
 Next follow the compilation and testing instructions in Section
@@ -387,6 +390,9 @@ output will explain why each is skipped.
 If all the tests pass, you are ready to read about Running RAVEN in
 Section \ref{HowToRun}.
 
+If the tests did not pass, check Section
+\ref{troubleshooting_installation} on troubleshooting.
+
 \subsection{RAVEN Complete}
 \label{raven_complete}
 
@@ -405,6 +411,7 @@ This file sets up the environment variables \texttt{PYTHONPATH} and
 \texttt{PATH} so that the \texttt{raven\_framework} command can be used.
 
 \subsection{Troubleshooting the Installation}
+\label{troubleshooting_installation}
 
 Often the problems result from one or more of the libraries being
 incorrect or missing.  In the raven directory, the command:
