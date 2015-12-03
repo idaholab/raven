@@ -42,7 +42,8 @@
                 <Features>output</Features>
                 <n_clusters>3</n_clusters>
                 <tol>0.0001</tol>
-                <init>k-means++</init>
+		<random_state>1</random_state>
+                <init>random</init>
             </KDD>
             <DataObject    class = 'DataObjects' type = 'PointSet'>bisonData</DataObject>
         </PostProcessor>

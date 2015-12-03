@@ -14,6 +14,7 @@
                 <SKLtype>cluster|KMeans</SKLtype>
                 <Features>x1,x2,x3,x4</Features>
                 <n_clusters>3</n_clusters>
+		<random_state>1</random_state>
                 <tol>0.0001</tol>
                 <init>random</init>
             </KDD>
@@ -24,7 +25,7 @@
                 <Features>x1,x2,x3,x4</Features>
                 <SKLtype>decomposition|MiniBatchSparsePCA</SKLtype>
                 <n_components>2</n_components>
-		<random_state>0</random_state>
+		<random_state>1</random_state>
             </KDD>
             <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
         </PostProcessor>
