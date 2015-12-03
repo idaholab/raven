@@ -136,11 +136,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #used for pca analysis
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
     self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
-    '''
-    self.latentVariablesDict            = {}                       # regarding latent variables, for each variable 'distName', the following informations are included: {'distName':['latentVar1','latentVar2',...]}
-    self.latentVariablesValues          = []                       # list of latent variable values
-    self.latentType                     = ''                       # input latent variable type, i.e. 'pca'
-    '''
 
   def _localGenerateAssembler(self,initDict):
     """ see generateAssembler method """
@@ -259,17 +254,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.transformationMethod[child.attrib['model']] = childChild.text
         self.variablesTransformationDict[child.attrib['model']] = transformationDict
 
-
-      '''
-      elif child.tag == "latentVariables":
-        self.latentType = child.attrib['type']
-        self.latentVariablesDict[child.attrib['name']] = list(inp.strip() for inp in child.text.strip().split(','))
-      elif child.tag == 'manifestVariables':
-        if childChild.attrib['type'] == 'model':
-          self.inputVariables['model'] = list(inp.strip() for inp in childChild.text.strip().split(','))
-      '''
-
-
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
 
@@ -315,25 +299,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.raiseAnError(IOError, 'The input variable: ' + var + ' is associated with dimension ' + str(dim) + ' is exceed the dimension of latent variables in PCA analysis')
           if listLatentElement[dim -1] not in set(var.strip().split(',')):
             self.raiseAnError(IOError, 'The dim: ' + str(dim) + ' should be assigned to the latent variable: ' + listLatentElement[dim-1] + ', However, it is assigned to variable: ' + var)
-    '''
-    #Checking the latent variables
-    if self.latentType != None:
-      for key in self.latentVariablesDict.keys():
-        listLatentElement = self.latentVariablesDict[key]
-        listElement = self.distributions2variablesMapping[key]
-        totDim = 1
-        for var in listElement:
-          if var.values()[0] > totDim:
-            totDim = var.values()[0]
-        maxDim = len(listLatentElement)
-        if totDim != maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(totDim) + ' is not consistnet with the dimension (i.e. ' + str(maxDim) +') of latent variable')
-        tempListElement = {k:v for x in listElement for k,v in x.items()}
-        for var,dim in tempListElement.items():
-          if dim > maxDim:
-            self.raiseAnError(IOError, 'The input variable: ' + var + ' is associated with dimension ' + str(dim) + ' is exceed the dimension of latent variables in PCA analysis')
-          if listLatentElement[dim -1] not in set(var.strip().split(',')):
-            self.raiseAnError(IOError, 'The dim: ' + str(dim) + ' should be assigned to the latent variable: ' + listLatentElement[dim-1] + ', However, it is assigned to variable: ' + var)
-    '''
 
   def readSamplerInit(self,xmlNode):
     """
