@@ -1678,6 +1678,45 @@ class ARMA(superVisedLearning):
   Autoregressive Moving Average model for time series analysis. First train then evaluate. 
   Specify a Fourier node if detrending by Fourier series is needed. 
   """
+  def __init__(self,messageHandler,**kwargs):
+    """
+    A constructor that will appropriately intialize a supervised learning object
+    @In, messageHandler: a MessageHandler object in charge of raising errors,
+                         and printing messages
+    @In, kwargs: an arbitrary dictionary of keywords and values
+    """
+    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    self.interpolator = None
+    self.printTag = 'ARMA'
+    self.armaPara = {} 
+    if 'P' not in self.initOptionDict.keys(): self.initOptionDict['P'] = 3 
+    if 'Q' not in self.initOptionDict.keys(): self.initOptionDict['Q'] = 3 
+    
+    if 'Fourier' not in self.initOptionDict.keys():
+      self.hasFourierSeries = False
+    else:
+      self.hasFourierSeries = True
+      self.fourierPara = {}
+      temps = [float(temp) for temp in self.initOptionDict['Fourier'].split(',')]
+      self.initOptionDict['Fourier'] = temps
+          
+      NoBasePeriod = len(self.initOptionDict['Fourier'])
+      if 'FourierOrder' not in self.initOptionDict.keys():
+        self.initOptionDict['FourierOrder'] = {}
+        for basePeriod in self.initOptionDict['Fourier']:
+          self.initOptionDict['FourierOrder'][basePeriod] = 3
+      else:
+        temps = self.initOptionDict['FourierOrder'].split(',')
+        self.initOptionDict['FourierOrder'] = {}
+        for index, basePeriod in enumerate(self.initOptionDict['Fourier']):
+          self.initOptionDict['FourierOrder'][basePeriod] = int(temps[index])
+
+      if len(self.initOptionDict['Fourier']) != len(self.initOptionDict['FourierOrder']):
+        self.raiseAnError(ValueError, 'Length of FourierOrder should be ' + str(len(self.initOptionDict['Fourier'])))
+    
+    self.raiseADebug(self.initOptionDict)
+    self.raiseAnError(IOError,'testing')
+
 
 
   def __trainLocal__(self,featureVals,targetVals):
