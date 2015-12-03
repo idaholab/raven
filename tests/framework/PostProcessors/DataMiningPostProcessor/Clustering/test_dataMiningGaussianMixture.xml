@@ -14,6 +14,7 @@
                 <Features>x1,x2</Features>
                 <SKLtype>mixture|GMM</SKLtype>
                 <covariance_type>full</covariance_type>
+		<random_state>0</random_state>
                 <n_components>3</n_components>
                 <n_iter>10000</n_iter>
                 <init_params>wc</init_params>

@@ -2,46 +2,55 @@
   [./KMeansPCA]
     	type   = 'RavenFramework'
     	input  = 'test_dataMiningKMeansPCA.xml'
-	output = 'KMeansPCA/dump1.csv KMeansPCA/1-PlotPCA1_dataMining.png KMeansPCA/1-PlotAll_dataMining-dataMining-dataMining.png'
+        csv    = 'KMeansPCA/dump1.csv'
+	output = 'KMeansPCA/1-PlotPCA1_dataMining.png KMeansPCA/1-PlotAll_dataMining-dataMining-dataMining.png'
   [../]
   [./MiniBatchKMeans]
 	type   = 'RavenFramework'
 	input  = 'test_dataMiningMiniBatchKMeans.xml'
-	output = 'MiniBatchKMeans/dummy.csv MiniBatchKMeans/1-PlotMiniBatchKMeans_dataMining-dataMining-dataMining.png'
+        csv    = 'MiniBatchKMeans/dummy.csv'
+	output = 'MiniBatchKMeans/1-PlotMiniBatchKMeans_dataMining-dataMining-dataMining.png'
   [../] 
   [./MeanShift]
 	type   = 'RavenFramework'
 	input  = 'test_dataMiningMeanShift.xml'
-	output = 'MeanShift/dummy.csv MeanShift/1-PlotMeanShift_dataMining-dataMining-dataMining.png'
+        csv    = 'MeanShift/dummy.csv'
+	output = 'MeanShift/1-PlotMeanShift_dataMining-dataMining-dataMining.png'
   [../] 
   [./AffinityPropogation]
 	type   = 'RavenFramework'
 	input  = 'test_dataMiningAffinityPropogation.xml'
-	output = 'AffinityPropogation/dummy.csv AffinityPropogation/1-PlotAffinityBlobs_dataMining.png'
+        csv    = 'AffinityPropogation/dummy.csv'
+	output = 'AffinityPropogation/1-PlotAffinityBlobs_dataMining.png'
   [../] 
   [./DBSCAN]
 	type   = 'RavenFramework'
 	input  = 'test_dataMiningDBSCAN.xml'
-	output = 'DBSCAN/dummy.csv DBSCAN/1-PlotDBSCANBlobs_dataMining.png'
+        csv    = 'DBSCAN/dummy.csv'
+	output = 'DBSCAN/1-PlotDBSCANBlobs_dataMining.png'
   [../] 
   [./SpectralClustering]
 	type   = 'RavenFramework'
 	input  = 'test_dataMiningSpectralClustering.xml'
-	output = 'SpectralClustering/dummy.csv SpectralClustering/1-PlotSpectralBlobs_dataMining.png'
+        csv    = 'SpectralClustering/dummy.csv'
+	output = 'SpectralClustering/1-PlotSpectralBlobs_dataMining.png'
   [../] 
   [./GaussianMixture]
 	type   = 'RavenFramework'
 	input  = 'test_dataMiningGaussianMixture.xml'
-	output = 'GaussianMixture/dummy.csv GaussianMixture/1-PlotGaussianMixtureBlobs_dataMining.png'
+        csv    = 'GaussianMixture/dummy.csv'
+	output = 'GaussianMixture/1-PlotGaussianMixtureBlobs_dataMining.png'
   [../] 
   [./DirichletProcessGMM]
 	type   = 'RavenFramework'
 	input  = 'test_dataMiningDirichletProcessGMM.xml'
-	output = 'DirichletProcessGMM/dummy.csv DirichletProcessGMM/1-PlotDirichletProcessGMMBlobs_dataMining.png'
+        csv    = 'DirichletProcessGMM/dummy.csv'
+	output = 'DirichletProcessGMM/1-PlotDirichletProcessGMMBlobs_dataMining.png'
   [../] 
   [./VariationalGMM]
 	type   = 'RavenFramework'
 	input  = 'test_dataMiningVariationalGMM.xml'
-	output = 'VariationalGMM/dummy.csv VariationalGMM/1-PlotVariationalGMMBlobs_dataMining.png'
+        csv    = 'VariationalGMM/dummy.csv'
+	output = 'VariationalGMM/1-PlotVariationalGMMBlobs_dataMining.png'
   [../] 
 []

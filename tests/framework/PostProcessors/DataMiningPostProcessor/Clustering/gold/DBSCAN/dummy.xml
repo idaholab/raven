@@ -1,0 +1,1 @@
+<data name="dummy" type="Pointset"><input>y2,y1,x2,x1,z1,z2</input><output>Output,DBSCANBlobsLabels</output><inputFilename>dummy.csv</inputFilename></data>

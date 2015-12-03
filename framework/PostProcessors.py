@@ -2560,7 +2560,7 @@ class DataMining(BasePostProcessor):
         self.initializationOptionDict[child.tag] = {}
         self.initializationOptionDict[child.tag].update(child.attrib)
       else:
-        try: self.initializationOptionDict[child.tag] = int(child.text)
+        try: self.initializationOptionDict[child.tag] = utils.intConversion(child.text)
         except ValueError:
           try: self.initializationOptionDict[child.tag] = float(child.text)
           except ValueError: self.initializationOptionDict[child.tag] = child.text
