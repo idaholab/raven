@@ -1677,6 +1677,9 @@ class ARMA(superVisedLearning):
   """
   Autoregressive Moving Average model for time series analysis. First train then evaluate. 
   Specify a Fourier node if detrending by Fourier series is needed. 
+  
+  Time series Y: Y = X + \sum_{i}\sum_k [\delta_ki1*sin(2pi*k/basePeriod_i)+\delta_ki2*cos(2pi*k/basePeriod_i)]
+  ARMA series X: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
   """
   def __init__(self,messageHandler,**kwargs):
     """
@@ -1686,36 +1689,35 @@ class ARMA(superVisedLearning):
     @In, kwargs: an arbitrary dictionary of keywords and values
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
-    self.interpolator = None
     self.printTag = 'ARMA'
     self.armaPara = {} 
-    if 'P' not in self.initOptionDict.keys(): self.initOptionDict['P'] = 3 
-    if 'Q' not in self.initOptionDict.keys(): self.initOptionDict['Q'] = 3 
-    
+    self.armaPara['P'] = kwargs.get('P', 3)
+    self.armaPara['Q'] = kwargs.get('Q', 3)
+
     if 'Fourier' not in self.initOptionDict.keys():
       self.hasFourierSeries = False
     else:
       self.hasFourierSeries = True
       self.fourierPara = {}
       temps = [float(temp) for temp in self.initOptionDict['Fourier'].split(',')]
-      self.initOptionDict['Fourier'] = temps
+      self.fourierPara['basePeriod'] = temps
           
-      NoBasePeriod = len(self.initOptionDict['Fourier'])
       if 'FourierOrder' not in self.initOptionDict.keys():
-        self.initOptionDict['FourierOrder'] = {}
-        for basePeriod in self.initOptionDict['Fourier']:
-          self.initOptionDict['FourierOrder'][basePeriod] = 3
+        self.fourierPara['FourierOrder'] = {}
+        for basePeriod in self.fourierPara['basePeriod']:
+          self.fourierPara['FourierOrder'][basePeriod] = 3
       else:
         temps = self.initOptionDict['FourierOrder'].split(',')
-        self.initOptionDict['FourierOrder'] = {}
-        for index, basePeriod in enumerate(self.initOptionDict['Fourier']):
-          self.initOptionDict['FourierOrder'][basePeriod] = int(temps[index])
+        self.fourierPara['FourierOrder'] = {}
+        for index, basePeriod in enumerate(self.fourierPara['basePeriod']):
+          self.fourierPara['FourierOrder'][basePeriod] = int(temps[index])
 
-      if len(self.initOptionDict['Fourier']) != len(self.initOptionDict['FourierOrder']):
-        self.raiseAnError(ValueError, 'Length of FourierOrder should be ' + str(len(self.initOptionDict['Fourier'])))
+      if len(self.fourierPara['basePeriod']) != len(self.fourierPara['FourierOrder']):
+        self.raiseAnError(ValueError, 'Length of FourierOrder should be ' + str(len(self.fourierPara['basePeriod'])))
     
-    self.raiseADebug(self.initOptionDict)
-    self.raiseAnError(IOError,'testing')
+#     self.raiseADebug(self.armaPara)
+#     self.raiseADebug(self.fourierPara)
+#     self.raiseAnError(IOError,'testing')
 
 
 
