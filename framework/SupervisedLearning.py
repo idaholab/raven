@@ -1679,6 +1679,48 @@ class ARMA(superVisedLearning):
   Specify a Fourier node if detrending by Fourier series is needed. 
   """
 
+
+  def __trainLocal__(self,featureVals,targetVals):
+    """
+    Perform training on samples in featureVals with responses y.
+    For an one-class model, +1 or -1 is returned.
+
+    @In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+      an array of input feature values
+    @ Out, targetVals, array, shape = [n_samples], an array of output target
+      associated with the corresponding points in featureVals
+    """
+    pass
+
+  def __confidenceLocal__(self,featureVals):
+    """
+    This should return an estimation of the quality of the prediction.
+    This could be distance or probability or anything else, the type needs to be declared in the variable cls.qualityEstType
+    @ In, featureVals, 2-D numpy array [n_samples,n_features]
+    @ Out, float, the confidence
+    """
+    pass
+
+  def __evaluateLocal__(self,featureVals):
+    """
+    @ In,  featureVals, 2-D numpy array [n_samples,n_features]
+    @ Out, targetVals , 1-D numpy array [n_samples]
+    """
+    pass
+
+  def __resetLocal__(self,featureVals):
+    """After this method the ROM should be described only by the initial parameter settings"""
+    pass
+
+  def __returnInitialParametersLocal__(self):
+    """there are no possible default parameters to report"""
+    localInitParam = {}
+    return localInitParam
+
+  def __returnCurrentSettingLocal__(self):
+    """override this method to pass the set of parameters of the ROM that can change during simulation"""
+    pass
+
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom
 __interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
