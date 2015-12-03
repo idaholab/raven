@@ -18,6 +18,7 @@ from glob import glob
 import copy
 import math
 from collections import OrderedDict
+import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -853,18 +854,29 @@ class ComparisonStatistics(BasePostProcessor):
 #
 #
 
-class New_DataConversion(BasePostProcessor):
-  def __init__(self, messageHandler):
+class InterfacedPostProcessor(BasePostProcessor):
+  PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
   
-  def inputToInternal(self, currentInput):
+  def __init__(self, messageHandler):
+    BasePostProcessor.__init__(self, messageHandler)
+    self.methodToRun = None
   
   def initialize(self, runInfo, inputs, initDict):
-  
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+
   def _localReadMoreXML(self, xmlNode):
+    for child in xmlNode:
+      if child.tag == 'method':
+        self.methodToRun = child.text
+    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.subType,self)
   
   def run(self, InputIn):
+    return
   
   def collectOutput(self, finishedjob, output):
+    return
+  
+  
   
 class DataConversion(BasePostProcessor):
   """
@@ -2616,7 +2628,7 @@ __interFaceDict['SafestPoint'              ] = SafestPoint
 __interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
 __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
-__interFaceDict['DataConversion'           ] = DataConversion
+__interFaceDict['InterfacedPostProcessor'  ] = InterfacedPostProcessor
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics

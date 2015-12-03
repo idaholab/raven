@@ -184,7 +184,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def run(self,Input,jobHandler):
     """
     This call should be over loaded and should not return any results,
-    possible it places a run one of the jobhadler lists!!!
+    possible it places a run one of the jobhandler lists!!!
     @in inputs is a list containing whatever is passed with an input role in the step
     @in jobHandler an instance of jobhandler that might be possible used to append a job for parallel running
     """
@@ -522,7 +522,7 @@ class ExternalModel(Dummy):
   def _readMoreXML(self,xmlNode):
     """
     Function to read the peace of input belongs to this model
-    @ In, xmlTree object, xml node containg the peace of input that belongs to this model
+    @ In, xmlTree object, xml node containing the peace of input that belongs to this model
     """
     Model._readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys():
@@ -586,7 +586,7 @@ class ExternalModel(Dummy):
     """
     if finishedJob.returnEvaluation() == -1:
       #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
-      self.raiseAnError(RuntimeError,"No available Output to collect (Run probabably failed or is not finished yet)")
+      self.raiseAnError(RuntimeError,"No available Output to collect (Run probably failed or is not finished yet)")
     def typeMatch(var,varTypeStr):
       typeVar = type(var)
       return typeVar.__name__ == varTypeStr or \
