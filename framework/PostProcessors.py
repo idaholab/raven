@@ -1247,7 +1247,7 @@ class BasicStatistics(BasePostProcessor):
           else:
             if (N[myIndex] == 1):
               self.raiseAWarning('The number of samples is 1 for: ' + targetP + '! Please check your input in PP: ' + self.name)
-              N[myIndex] = no.Infinity
+              N[myIndex] = np.Infinity
             value = (np.asarray(Input['targets'][targetP]) - expValues[myIndex])
             if not np.any(value):
               self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
