@@ -49,8 +49,10 @@ class HistorySet(Data):
     """
     if self._dataParameters['hierarchical']: self._dataParameters['type'] = 'History'
     else: self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
-    try: sourceType = self._toLoadFromList[-1].type
-    except AttributeError: sourceType = None
+    if hasattr(self._toLoadFromList[-1],'type'):
+      sourceType = self._toLoadFromList[-1].type
+    else:
+      sourceType = None
     if('HDF5' == sourceType):
       self._dataParameters['type']      =  self.type
       self._dataParameters['filter'   ] = 'whole'

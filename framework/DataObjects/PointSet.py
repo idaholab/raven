@@ -46,8 +46,10 @@ class PointSet(Data):
     if self._dataParameters['hierarchical']: self._dataParameters['type'] = 'Point'
     # store the type into the _dataParameters dictionary
     else:                                   self._dataParameters['type'] = self.type
-    try: sourceType = self._toLoadFromList[-1].type
-    except AttributeError: sourceType = None
+    if hasattr(self._toLoadFromList[-1],'type'):
+      sourceType = self._toLoadFromList[-1].type
+    else:
+      sourceType = None
     if('HDF5' == sourceType):
       self._dataParameters['type']       = self.type
       self._dataParameters['HistorySet'] = self._toLoadFromList[-1].getEndingGroupNames()
@@ -264,6 +266,7 @@ class PointSet(Data):
         for item in outKeys[index]:
           myFile.write(',' + item)
         myFile.write('\n')
+        # maljdan: Generalized except caught
         try   : sizeLoop = outValues[index][0].size
         except: sizeLoop = inpValues[index][0].size
         for j in range(sizeLoop):

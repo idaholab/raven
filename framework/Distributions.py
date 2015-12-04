@@ -1498,6 +1498,11 @@ class MultivariateNormal(NDimensionalDistributions):
                                  # and 'latent' indicates the varName used in the reduced space
     '''
     self.transformation = False       # flag for input reduction analysis
+    # for sparse grid collocation
+    self.disttype = 'Continuous'
+    self.compatibleQuadrature.append('Hermite')
+    self.compatibleQuadrature.append('CDF')
+    self.compatibleQuadrature.append('ClenshawCurtis')
 
 
   def _readMoreXML(self,xmlNode):
@@ -1541,6 +1546,12 @@ class MultivariateNormal(NDimensionalDistributions):
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
     elif self.method == 'pca':
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
+      # for sparse grid collocation method
+      if self.transformation:
+        self.lowerBound = -sys.float_info.max
+        self.upperBound =  sys.float_info.max
+        self.preferredQuadrature  = 'Hermite'
+        self.preferredPolynomials = 'Hermite'
 
   def cdf(self,x):
     if self.method == 'spline':

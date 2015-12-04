@@ -187,9 +187,11 @@ class AMSC_Object(object):
       self.names.append('y')
 
     if normalization == 'feature':
+      # This doesn't work with one-dimensional arrays on older versions of
+      #  sklearn
       min_max_scaler = sklearn.preprocessing.MinMaxScaler()
-      self.Xnorm = min_max_scaler.fit_transform(self.X)
-      self.Ynorm = min_max_scaler.fit_transform(self.Y)
+      self.Xnorm = min_max_scaler.fit_transform(np.atleast_2d(self.X))
+      self.Ynorm = min_max_scaler.fit_transform(np.atleast_2d(self.Y))
     elif normalization == 'zscore':
       self.Xnorm = sklearn.preprocessing.scale(self.X, axis=0, with_mean=True,
                                                with_std=True, copy=True)
