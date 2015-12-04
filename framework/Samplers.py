@@ -136,6 +136,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #used for pca analysis
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
     self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
+    self.entitiesToRemove               = {}
 
   def _localGenerateAssembler(self,initDict):
     """ see generateAssembler method """
