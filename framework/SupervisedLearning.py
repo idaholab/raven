@@ -7,7 +7,6 @@ a sample is composed by (feature,label) that is easy translated in (input,output
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-from framework.Quadratures import CDFClenshawCurtis
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
