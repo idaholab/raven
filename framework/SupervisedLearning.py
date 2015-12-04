@@ -7,6 +7,7 @@ a sample is composed by (feature,label) that is easy translated in (input,output
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
+from framework.Quadratures import CDFClenshawCurtis
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -1698,6 +1699,7 @@ class ARMA(superVisedLearning):
       self.hasFourierSeries = False
     else:
       self.hasFourierSeries = True
+      # ADD self.fourier = INSTANCE_OF_LINEAR_REGRESSION_MODEL
       self.fourierPara = {}
       temps = [float(temp) for temp in self.initOptionDict['Fourier'].split(',')]
       self.fourierPara['basePeriod'] = temps
@@ -1719,7 +1721,14 @@ class ARMA(superVisedLearning):
 #     self.raiseADebug(self.fourierPara)
 #     self.raiseAnError(IOError,'testing')
 
-
+  def _localNormalizeData(self,values,names,feat):
+    """Overwrites default normalization procedure.
+    @ In, values, unused
+    @ In, names, unused
+    @ In, feat, feature to (not) normalize
+    @ Out, None
+    """
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -1731,7 +1740,29 @@ class ARMA(superVisedLearning):
     @ Out, targetVals, array, shape = [n_samples], an array of output target
       associated with the corresponding points in featureVals
     """
-    pass
+    
+#     self.raiseADebug('****************************************************************')
+#     self.raiseADebug(self.features)
+#     print(type(featureVals), featureVals.ndim)
+#     self.raiseADebug(self.target)
+#     print(type(targetVals), targetVals.ndim)
+#     print(np.pi)
+#     
+#     if self.hasFourierSeries:
+#       sinFeatureVals = GENERATE_SINUOIDES(targetVals)
+#       for i ... self.fourier.train()
+#       RESIDUDE = featureVals - self.fourier.run()
+#     else:
+#       RESIDUDE = featureVals
+#     
+#     GENERATE RESIDUE CDF
+#     TRAIN ARMA
+    # GENERATE RESIDUE
+    # 
+    
+    
+    
+    self.raiseAnError(IOError,'testing')
 
   def __confidenceLocal__(self,featureVals):
     """
