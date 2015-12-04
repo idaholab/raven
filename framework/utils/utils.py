@@ -46,6 +46,18 @@ def identifyIfExternalModelExists(caller, moduleIn, workingDir):
       else: caller.raiseAnError(IOError,'The path provided for the' + caller.type + ' named '+ caller.name +' does not exist!!! Got: ' + abspath + ' and ' + workingDirModule)
   return moduleToLoadString, filename
 
+def checkIfUnknowElementsinList(referenceList,listToTest):
+  """
+    Method to check if a list contains elements not contained in another
+    @ In, referenceList, list, reference list
+    @ In, listToTest, list, list to test
+    @ Out, unknownElements, list, list of elements of 'listToTest' not contained in 'referenceList'
+  """
+  unknownElements = []
+  for elem in listToTest:
+    if elem not in referenceList: unknownElements.append(elem)
+  return unknownElements
+
 
 def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   """
