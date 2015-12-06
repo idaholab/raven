@@ -136,11 +136,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #used for pca analysis
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
     self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
-    '''
-    self.latentVariablesDict            = {}                       # regarding latent variables, for each variable 'distName', the following informations are included: {'distName':['latentVar1','latentVar2',...]}
-    self.latentVariablesValues          = []                       # list of latent variable values
-    self.latentType                     = ''                       # input latent variable type, i.e. 'pca'
-    '''
+    self.entitiesToRemove               = {}
 
   def _localGenerateAssembler(self,initDict):
     """ see generateAssembler method """
@@ -185,7 +181,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     Assembler._readMoreXML(self,xmlNode)
     self._readMoreXMLbase(xmlNode)
     self.localInputAndChecks(xmlNode)
-
 
   def _readMoreXMLbase(self,xmlNode):
     """
@@ -259,17 +254,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.transformationMethod[child.attrib['model']] = childChild.text
         self.variablesTransformationDict[child.attrib['model']] = transformationDict
 
-
-      '''
-      elif child.tag == "latentVariables":
-        self.latentType = child.attrib['type']
-        self.latentVariablesDict[child.attrib['name']] = list(inp.strip() for inp in child.text.strip().split(','))
-      elif child.tag == 'manifestVariables':
-        if childChild.attrib['type'] == 'model':
-          self.inputVariables['model'] = list(inp.strip() for inp in childChild.text.strip().split(','))
-      '''
-
-
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
 
@@ -315,25 +299,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.raiseAnError(IOError, 'The input variable: ' + var + ' is associated with dimension ' + str(dim) + ' is exceed the dimension of latent variables in PCA analysis')
           if listLatentElement[dim -1] not in set(var.strip().split(',')):
             self.raiseAnError(IOError, 'The dim: ' + str(dim) + ' should be assigned to the latent variable: ' + listLatentElement[dim-1] + ', However, it is assigned to variable: ' + var)
-    '''
-    #Checking the latent variables
-    if self.latentType != None:
-      for key in self.latentVariablesDict.keys():
-        listLatentElement = self.latentVariablesDict[key]
-        listElement = self.distributions2variablesMapping[key]
-        totDim = 1
-        for var in listElement:
-          if var.values()[0] > totDim:
-            totDim = var.values()[0]
-        maxDim = len(listLatentElement)
-        if totDim != maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(totDim) + ' is not consistnet with the dimension (i.e. ' + str(maxDim) +') of latent variable')
-        tempListElement = {k:v for x in listElement for k,v in x.items()}
-        for var,dim in tempListElement.items():
-          if dim > maxDim:
-            self.raiseAnError(IOError, 'The input variable: ' + var + ' is associated with dimension ' + str(dim) + ' is exceed the dimension of latent variables in PCA analysis')
-          if listLatentElement[dim -1] not in set(var.strip().split(',')):
-            self.raiseAnError(IOError, 'The dim: ' + str(dim) + ' should be assigned to the latent variable: ' + listLatentElement[dim-1] + ', However, it is assigned to variable: ' + var)
-    '''
 
   def readSamplerInit(self,xmlNode):
     """
@@ -479,6 +444,20 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       else:
         self.raiseAnError(IOError,'Distribution "%s" specified in distInit block of sampler "%s" does not exist!' %(distrib,self.name))
 
+    # Store the transformation matrix in the metadata
+    if self.variablesTransformationDict:
+      self.entitiesToRemove = [] # This variable is used in order to make sure the transformation info is printed once in the output xml file.
+      for variable in self.variables2distributionsMapping.keys():
+        distName = self.variables2distributionsMapping[variable]['name']
+        dim      = self.variables2distributionsMapping[variable]['dim']
+        totDim   = self.variables2distributionsMapping[variable]['totDim']
+        if totDim > 1 and dim  == 1:
+          transformDict = {}
+          transformDict['type'] = self.distDict[variable.strip()].type
+          transformDict['transformationMatrix'] = self.distDict[variable.strip()].transformationMatrix()
+          self.inputInfo['transformation-'+distName] = transformDict
+          self.entitiesToRemove.append('transformation-'+distName)
+
   def localInitialize(self):
     """
     use this function to add initialization features to the derived class
@@ -505,15 +484,19 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def generateInput(self,model,oldInput):
     """
-    This method have to be overwrote to provide the specialization for the specific sampler
-    The model instance in might be needed since, especially for external codes,
-    only the code interface possesses the dictionary for reading the variable definition syntax
-    @in model   : it is the instance of a model
-    @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-    @return     : [] containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the intput the model
+      This method have to be overwrote to provide the specialization for the specific sampler
+      The model instance in might be needed since, especially for external codes,
+      only the code interface possesses the dictionary for reading the variable definition syntax
+      @ In model, model instance   : it is the instance of a model
+      @ In oldInput, list: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
+      @ Out return, list     : [] containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the intput the model
     """
     self.counter +=1                              #since we are creating the input for the next run we increase the counter and global counter
     self.auxcnt  +=1
+    #Fix-me, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
+    if self.counter >1:
+      for key in self.entitiesToRemove:
+        self.inputInfo.pop(key,None)
     if self.reseedAtEachIteration: Distributions.randomSeed(self.auxcnt-1)
     self.inputInfo['prefix'] = str(self.counter)
     model.getAdditionalInputEdits(self.inputInfo)
@@ -533,9 +516,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def pcaTransform(self,varsDict):
     """
-    This method used to mapping latent variables to the model input variables
-    both the latent variables and the model input variables will be stored in the dict: self.inputInfo['SampledVars']
-    @in varsDict, dictionary contains latent and manifest variables {'latentVariables':[latentVar1,latentVar2,...], 'manifestVariables':[var1,var2,...]}
+      This method used to mapping latent variables to the model input variables
+      both the latent variables and the model input variables will be stored in the dict: self.inputInfo['SampledVars']
+      @in varsDict, dict, dictionary contains latent and manifest variables {'latentVariables':[latentVar1,latentVar2,...], 'manifestVariables':[var1,var2,...]}
     """
     latentVariablesValues = []
     for lvar in varsDict['latentVariables']:
@@ -545,17 +528,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     manifestVariablesValues = self.distDict[varsDict['latentVariables'][0]].pcaInverseTransform(latentVariablesValues)
     manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
     self.values.update(manifestVariablesDict)
-
-    '''
-    for key in self.latentVariablesDict.keys():
-      latentVariablesValues = []
-      for lvar in self.latentVariablesDict[key]:
-        for var,value in self.values.items():
-          if lvar == var:
-            latentVariablesValues.append(value)
-      varDict = self.distDict[self.latentVariablesDict[key][0]].pcaInverseTransform(latentVariablesValues)
-      self.values.update(varDict)
-    '''
 
   @abc.abstractmethod
   def localGenerateInput(self,model,oldInput):
