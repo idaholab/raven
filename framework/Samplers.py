@@ -3420,8 +3420,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
     SparseGridCollocation.localInputAndChecks(self,xmlNode)
     if 'Convergence' not in list(c.tag for c in xmlNode): self.raiseAnError(IOError,'Convergence node not found in input!')
-    convnode = xmlNode.find('Convergence')
-    logNode  = xmlNode.find('logFile')
+    convnode  = xmlNode.find('Convergence')
+    logNode   = xmlNode.find('logFile')
     studyNode = xmlNode.find('convergenceStudy')
     self.convType     = convnode.attrib['target']
     self.maxPolyOrder = int(convnode.attrib.get('maxPolyOrder',10))
@@ -3443,9 +3443,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       else:
         try:
           self.studyPoints = list(int(i) for i in self.studyPoints.split(','))
-          self.studyPoints.sort()
         except ValueError as e:
           self.raiseAnError(IOError,'Convergence state point not recognizable as an integer!',e)
+        self.studyPoints.sort()
 
   def localInitialize(self):
     """Performs local initialization
@@ -3460,7 +3460,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = utils.first(SVLs) #sampler doesn't always care about which target
     self.features=SVL.features #the input space variables
-    self.targets  = self.ROM.initializationOptionDict['Target'].split(',') #the output space variables
+    self.targets = self.ROM.initializationOptionDict['Target'].split(',') #the output space variables
     #initialize impact dictionaries by target
     for t in self.targets:
       self.expImpact[t] = {}
@@ -3530,6 +3530,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.error = 0
       for pidx in self.indexSet.active:
         self.error += max(self.expImpact[t][pidx] for t in self.targets)
+      #if logging, print to file
       if self.logFile is not None:
         self._printToLog()
       #if doing a study and past a statepoint, record the statepoint
@@ -3633,7 +3634,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if self.convType.lower()=='variance':
       impact = rom.polyCoeffDict[poly]**2 / sum(rom.polyCoeffDict[p]**2 for p in rom.polyCoeffDict.keys())
     elif self.convType.lower()=='coeffs':
-      new = self._makeARom(sparseGrid,iset).SupervisedEngine[target]
+      new = self._makeARom(rom.sparseGrid,iset).SupervisedEngine[target]
       tot = 0 #for L2 norm of coeffs
       if self.oldSG != None:
         oSG,oSet = self._makeSparseQuad()
@@ -3801,9 +3802,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       for t in self.targets:
         f.writelines('  {:<9}'.format(self.expImpact[t][idx]))
       f.writelines('\n')
-    #f.writelines('\nStill in active:\n')
-    #for idx in self.indexSet.active:
-    #  f.writelines('    {}\n'.format(idx))
     f.writelines('===================== END STEP =====================\n')
     f.close()
 
@@ -4198,16 +4196,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self._sortNewPoints()
     #if starting set of points is not done, just return
     if len(self.neededPoints)>0: return True
-    #TODO check if all points collected for ANY subsets-in-training
-    #TODO   -> update those points as far as they can, until they have pointsNeeded again
-    #TODO   -> update exp. values at this point?
-    #TODO esp check if most impactful item is done:
-    #TODO   -> if it is done, update subsets, update exp values, find new highest one
-    #TODO while loop should surround individual subset training, not entire process!
-    #check if there's any points to run.
-    #do we still have points to run? then this while loop is skipped
-    #use the while loop to find new needed points from new polys or subsets
-    #while sum(len(self.pointsNeeded[s]) for s in self.useSet.keys())+sum(len(self.pointsNeeded[s[1]]) for s in self.inTraining)<1:
+    #look for any new points to run, if we don't have any
     while sum(len(self.pointsNeeded[s[1]]) for s in self.inTraining)<1:
       #since we don't need any points to sample, we can train
       for item in self.inTraining:

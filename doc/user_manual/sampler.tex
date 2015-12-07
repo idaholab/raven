@@ -2299,8 +2299,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
     The meaning of this tolerance depends on the \xmlAttr{target} attribute of this node.
     \begin{itemize}
       \item \xmlAttr{target}, \xmlDesc{required string attribute}, the metric for convergence.
-        Currently there are three metrics.  In order of strictness: \xmlString{mean}, which converges the sparse
-        quadrature integration of the first moment of the model; \xmlString{variance}, which
+        The following metrics are available: \xmlString{variance}, which
         converges the sparse quadrature integration of the second moment of the model; and
         \xmlString{coeffs}, which integrates the L2 norm of the coefficients of the polynomial
         moments from a GaussPolynomialRom construction using the sparse grid.

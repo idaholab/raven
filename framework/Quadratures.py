@@ -361,9 +361,8 @@ class SparseQuad(MessageHandler.MessageUser):
       for j in range(i+1,N):
         jdx = iSet[j]
         d = jdx-idx
-        #if pflag:self.raiseAWarning('checking',d)
         if all(np.logical_and(d>=0,d<=1)):
-          #TODO PROFILE ME
+          #TODO PROFILE ME -> it appears this is slightly faster than (-1)**sum(d)
           if sum(d) % 2 == 0:
             self.c[i] += 1
           else:

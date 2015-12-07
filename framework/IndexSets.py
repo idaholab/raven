@@ -351,9 +351,8 @@ class AdaptiveSet(IndexSet):
       if maxPoly != None:
         if newpt[i]>maxPoly:
           continue
-      if tuple(newpt) in self.active:
-        continue
-      if tuple(newpt) in self.points:
+      pt = tuple(newpt)
+      if pt in self.active or pt in self.points:
         continue
       #remove the candidate if not all of its predecessors are accepted.
       found=True
@@ -365,7 +364,7 @@ class AdaptiveSet(IndexSet):
           found=False
           break
       if found:
-        self.active.append(tuple(newpt))
+        self.active.append(pt)
 
   def printOut(self):
     """
