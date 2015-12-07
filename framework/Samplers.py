@@ -136,7 +136,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #used for pca analysis
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
     self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
-    self.entitiesToRemove               = {}
+    self.entitiesToRemove               = []                       # This variable is used in order to make sure the transformation info is printed once in the output xml file.
 
   def _localGenerateAssembler(self,initDict):
     """ see generateAssembler method """
@@ -446,7 +446,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     # Store the transformation matrix in the metadata
     if self.variablesTransformationDict:
-      self.entitiesToRemove = [] # This variable is used in order to make sure the transformation info is printed once in the output xml file.
+      self.entitiesToRemove = []
       for variable in self.variables2distributionsMapping.keys():
         distName = self.variables2distributionsMapping[variable]['name']
         dim      = self.variables2distributionsMapping[variable]['dim']
@@ -484,16 +484,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def generateInput(self,model,oldInput):
     """
-      This method have to be overwrote to provide the specialization for the specific sampler
+      This method has to be overwritten to provide the specialization for the specific sampler
       The model instance in might be needed since, especially for external codes,
       only the code interface possesses the dictionary for reading the variable definition syntax
-      @ In model, model instance   : it is the instance of a model
-      @ In oldInput, list: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-      @ Out return, list     : [] containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the intput the model
+      @ In, model, model instance, it is the instance of a RAVEN model
+      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
+      @ Out, model.createNewInput(...), list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
     """
     self.counter +=1                              #since we are creating the input for the next run we increase the counter and global counter
     self.auxcnt  +=1
-    #Fix-me, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
+    #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
     if self.counter >1:
       for key in self.entitiesToRemove:
         self.inputInfo.pop(key,None)
@@ -516,9 +516,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def pcaTransform(self,varsDict):
     """
-      This method used to mapping latent variables to the model input variables
+      This method is used to map latent variables with respect to the model input variables
       both the latent variables and the model input variables will be stored in the dict: self.inputInfo['SampledVars']
-      @in varsDict, dict, dictionary contains latent and manifest variables {'latentVariables':[latentVar1,latentVar2,...], 'manifestVariables':[var1,var2,...]}
+      @ In, varsDict, dict, dictionary contains latent and manifest variables {'latentVariables':[latentVar1,latentVar2,...], 'manifestVariables':[var1,var2,...]}
     """
     latentVariablesValues = []
     for lvar in varsDict['latentVariables']:
