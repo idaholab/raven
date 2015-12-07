@@ -2589,62 +2589,68 @@ class DataMining(BasePostProcessor):
     else: dataObject = None
     Input = self.inputToInternal(InputIn)
 
-    outputDict = {}
-    self.unSupervisedEngine.features = Input['Features']
-    if not self.unSupervisedEngine.amITrained:  self.unSupervisedEngine.train(Input['Features'])
-
-    self.unSupervisedEngine.confidence()
-    outputDict = self.unSupervisedEngine.outputDict
-    noClusters = 1
-    if 'cluster' == self.unSupervisedEngine.SKLtype:
-        if hasattr(self.unSupervisedEngine, 'labels_'):
-          self.clusterLabels = self.unSupervisedEngine.labels_
+    if self.type in ['SciKitLearn']: 
+      outputDict = {}
+      self.unSupervisedEngine.features = Input['Features']
+      if not self.unSupervisedEngine.amITrained:  self.unSupervisedEngine.train(Input['Features'])
+  
+      self.unSupervisedEngine.confidence()
+      outputDict = self.unSupervisedEngine.outputDict
+      noClusters = 1
+      if 'cluster' == self.unSupervisedEngine.SKLtype:
+          if hasattr(self.unSupervisedEngine, 'labels_'):
+            self.clusterLabels = self.unSupervisedEngine.labels_
+            if dataObject:
+              dataObject.removeOutputValue(self.name+'Labels')
+              for i in range(len(self.clusterLabels)):
+                dataObject.updateOutputValue(self.name+'Labels', self.clusterLabels[i])
+          if hasattr(self.unSupervisedEngine, 'noClusters'): noClusters = self.unSupervisedEngine.noClusters
+          if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'): noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
+          for k in range(noClusters):
+            if hasattr(self.unSupervisedEngine, 'clusterCenters_'): clusterCenter = self.unSupervisedEngine.clusterCenters_[k]
+          if hasattr(self.unSupervisedEngine, 'inertia_') : inertia = self.unSupervisedEngine.inertia_
+      if 'bicluster' == self.unSupervisedEngine.SKLtype:
+          print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
+      if 'mixture' == self.unSupervisedEngine.SKLtype:
+          if   hasattr(self.unSupervisedEngine, 'covars_'): mixtureCovars = self.unSupervisedEngine.covars_
+          elif hasattr(self.unSupervisedEngine, 'precs_'): mixtureCovars = self.unSupervisedEngine.precs_
+          mixtureValues = self.unSupervisedEngine.normValues
+          mixtureMeans = self.unSupervisedEngine.means_
+          mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
           if dataObject:
             dataObject.removeOutputValue(self.name+'Labels')
-            for i in range(len(self.clusterLabels)):
-              dataObject.updateOutputValue(self.name+'Labels', self.clusterLabels[i])
-        if hasattr(self.unSupervisedEngine, 'noClusters'): noClusters = self.unSupervisedEngine.noClusters
-        if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'): noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
-        for k in range(noClusters):
-          if hasattr(self.unSupervisedEngine, 'clusterCenters_'): clusterCenter = self.unSupervisedEngine.clusterCenters_[k]
-        if hasattr(self.unSupervisedEngine, 'inertia_') : inertia = self.unSupervisedEngine.inertia_
-    if 'bicluster' == self.unSupervisedEngine.SKLtype:
-        print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
-    if 'mixture' == self.unSupervisedEngine.SKLtype:
-        if   hasattr(self.unSupervisedEngine, 'covars_'): mixtureCovars = self.unSupervisedEngine.covars_
-        elif hasattr(self.unSupervisedEngine, 'precs_'): mixtureCovars = self.unSupervisedEngine.precs_
-        mixtureValues = self.unSupervisedEngine.normValues
-        mixtureMeans = self.unSupervisedEngine.means_
-        mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
-        if dataObject:
-          dataObject.removeOutputValue(self.name+'Labels')
-          for i in range(len(mixtureLabels)):
-            dataObject.updateOutputValue(self.name+'Labels', mixtureLabels[i])
-    if 'manifold' == self.unSupervisedEngine.SKLtype:
-        manifoldValues = self.unSupervisedEngine.normValues
-        if hasattr(self.unSupervisedEngine, 'embeddingVectors_'): embeddingVectors = self.unSupervisedEngine.embeddingVectors_
-        if hasattr(self.unSupervisedEngine, 'reconstructionError_'): reconstructionError = self.unSupervisedEngine.reconstructionError_
-        if   'transform'     in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
-        elif 'fit_transform' in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
-        if dataObject:
-          for i in range(len(embeddingVectors[0, :])):
-            dataObject.removeOutputValue(self.name+'EmbeddingVector' + str(i + 1))
-            for val in range(len(embeddingVectors[:, i])):
-              dataObject.updateOutputValue(self.name+'EmbeddingVector' + str(i + 1), embeddingVectors[val, i])
-    if 'decomposition' == self.unSupervisedEngine.SKLtype:
-        decompositionValues = self.unSupervisedEngine.normValues
-        if hasattr(self.unSupervisedEngine, 'noComponents_'): noComponents = self.unSupervisedEngine.noComponents_
-        if hasattr(self.unSupervisedEngine, 'components_'): components = self.unSupervisedEngine.components_
-        if hasattr(self.unSupervisedEngine, 'explainedVarianceRatio_'): explainedVarianceRatio = self.unSupervisedEngine.explainedVarianceRatio_
-        # SCORE method does not work for SciKit Learn 0.14
-        # if hasattr(self.unSupervisedEngine.Method, 'score'): score = self.unSupervisedEngine.Method.score(decompositionValues)
-        if   'transform'     in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.transform(decompositionValues)
-        elif 'fit_transform' in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
-        if dataObject:
-          for i in range(noComponents):
-            dataObject.removeOutputValue(self.name+'PCAComponent' + str(i + 1))
-            for val in range(len(components[:, i])):
-              dataObject.updateOutputValue(self.name+'PCAComponent' + str(i + 1), components[val, i])
+            for i in range(len(mixtureLabels)):
+              dataObject.updateOutputValue(self.name+'Labels', mixtureLabels[i])
+      if 'manifold' == self.unSupervisedEngine.SKLtype:
+          manifoldValues = self.unSupervisedEngine.normValues
+          if hasattr(self.unSupervisedEngine, 'embeddingVectors_'): embeddingVectors = self.unSupervisedEngine.embeddingVectors_
+          if hasattr(self.unSupervisedEngine, 'reconstructionError_'): reconstructionError = self.unSupervisedEngine.reconstructionError_
+          if   'transform'     in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
+          elif 'fit_transform' in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
+          if dataObject:
+            for i in range(len(embeddingVectors[0, :])):
+              dataObject.removeOutputValue(self.name+'EmbeddingVector' + str(i + 1))
+              for val in range(len(embeddingVectors[:, i])):
+                dataObject.updateOutputValue(self.name+'EmbeddingVector' + str(i + 1), embeddingVectors[val, i])
+      if 'decomposition' == self.unSupervisedEngine.SKLtype:
+          decompositionValues = self.unSupervisedEngine.normValues
+          if hasattr(self.unSupervisedEngine, 'noComponents_'): noComponents = self.unSupervisedEngine.noComponents_
+          if hasattr(self.unSupervisedEngine, 'components_'): components = self.unSupervisedEngine.components_
+          if hasattr(self.unSupervisedEngine, 'explainedVarianceRatio_'): explainedVarianceRatio = self.unSupervisedEngine.explainedVarianceRatio_
+          # SCORE method does not work for SciKit Learn 0.14
+          # if hasattr(self.unSupervisedEngine.Method, 'score'): score = self.unSupervisedEngine.Method.score(decompositionValues)
+          if   'transform'     in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.transform(decompositionValues)
+          elif 'fit_transform' in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
+          if dataObject:
+            for i in range(noComponents):
+              dataObject.removeOutputValue(self.name+'PCAComponent' + str(i + 1))
+              for val in range(len(components[:, i])):
+                dataObject.updateOutputValue(self.name+'PCAComponent' + str(i + 1), components[val, i])
+     
+    elif self.type in ['BasicStatistics']:
+      pass            
+                
+                
     return self.unSupervisedEngine.outputDict
 
 
