@@ -2290,7 +2290,7 @@ algorithm fails for the model $f(x)=x\cdot y$.
 \end{itemize}
 
 In addition to the \xmlNode{variable} nodes, the main XML node
-\xmlNode{Adaptive Sparse Grid} needs to contain the following supplementary sub-nodes:
+\xmlNode{AdaptiveSparseGrid} needs to contain the following supplementary sub-nodes:
 
 \begin{itemize}
   \item \xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence
@@ -2333,6 +2333,15 @@ In addition to the \xmlNode{variable} nodes, the main XML node
         if specified determines the base file name for the state point outputs.  If not specified, defaults to
         \xmlString{out\_}.
     \end{itemize}
+  \item \xmlNode{logFile}, \xmlDesc{optional node},
+    if included, the log file onto which the adaptive step progress can be printed.  The log includes the
+    values of included polynomial coefficients as well as the expected impacts of polynomial coefficients not
+    yet included.  This is different from
+    the convergenceStudy print, which will give statistical moments at certain steps.
+  \item \xmlNode{maxRuns}, \xmlDesc{optional node},
+    if included, the adaptive sampler will track the number of computational solves necessary to construct the
+    associated GaussPolynomialROM.  If at any point the number of solves exceeds the value given, it will not
+    initiate any additional solves, and will exit when existing solves finish.
 \end{itemize}
   % Adaptive Sparse Grid Objects
   %\assemblerDescription{Adaptive Sparse Grid}

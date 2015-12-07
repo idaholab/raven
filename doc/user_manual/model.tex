@@ -1127,8 +1127,8 @@ accurately produce the necessary sparse grid points to train this ROM.
 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are:
 \begin{itemize}
-  \item \xmlString{mean}, the mean value of the ROM within the input space it was trained,
-  \item \xmlString{variance}, the variance of the ROM within the input space it was trained,
+  \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
+  \item \xmlString{variance}, the variance of the ROM output within the input space it was trained,
   \item \xmlString{numRuns}, the number of distinct model runs required to construct the ROM,
   \item \xmlString{polyCoeffs}, the polynomial expansion coefficients (PCE moments) of the ROM.  These are
     listed by each polynomial combination, with the polynomial order tags listed in the order of the variables
@@ -1199,8 +1199,8 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are:
 \begin{itemize}
-  \item \xmlString{mean}, the mean value of the ROM within the input space it was trained,
-  \item \xmlString{variance}, the variance of the ROM within the input space it was trained,
+  \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
+  \item \xmlString{variance}, the variance of the ROM output within the input space it was trained,
   \item \xmlString{numRuns}, the number of distinct model runs required to construct the ROM,
   \item \xmlString{indices}, the total variance and the percent contribution of each subset to the total
     variance (the Sobol sensitivity indices).

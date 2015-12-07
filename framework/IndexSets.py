@@ -329,7 +329,7 @@ class AdaptiveSet(IndexSet):
     """
     Check the upper neighbors of each point for indices to add.
     @ In, maxPoly, integer, optional maximum value to have in any direction
-    @Out, None
+    @ Out, None
     """
     for i in self.points:
       self.forwardOne(i,maxPoly)
