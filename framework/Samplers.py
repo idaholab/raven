@@ -3371,10 +3371,10 @@ class SparseGridCollocation(Grid):
 class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def __init__(self):
     """
-    Default Constructor that will initialize member variables with reasonable
-    defaults or empty lists/dictionaries where applicable.
-    @ In, None
-    @ Out, None
+      Default Constructor that will initialize member variables with reasonable
+      defaults or empty lists/dictionaries where applicable.
+      @ In, None
+      @ Out, None
     """
     SparseGridCollocation.__init__(self)
     #identification
@@ -3414,9 +3414,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def localInputAndChecks(self,xmlNode):
     """
-    Reads in XML node
-    @ In, xmlNode, XML node, input xml
-    @ Out, None
+      Reads in XML node
+      @ In, xmlNode, XML node, input xml
+      @ Out, None
     """
     SparseGridCollocation.localInputAndChecks(self,xmlNode)
     if 'Convergence' not in list(c.tag for c in xmlNode): self.raiseAnError(IOError,'Convergence node not found in input!')
@@ -3449,8 +3449,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def localInitialize(self):
     """Performs local initialization
-    @ In, None
-    @ Out, None
+      @ In, None
+      @ Out, None
     """
     #set a pointer to the end-product ROM
     self.ROM = self.assemblerDict['ROM'][0][3]
@@ -3599,10 +3599,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     """Performs actions after samples have been collected.
-    @ In, jobObject, External/InternalRunner object, the job that finished
-    @ In, model, Model object, the model that was run
-    @ In, myInput, list(str), the input used for the run
-    @ Out, None
+      @ In, jobObject, External/InternalRunner object, the job that finished
+      @ In, model, Model object, the model that was run
+      @ In, myInput, list(str), the input used for the run
+      @ Out, None
     """
     #check if all sampling is done
     if self.jobHandler.isFinished(): self.batchDone = True
@@ -3611,9 +3611,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def _addNewPoints(self,SG=None):
     """
-    Sort through sparse grid and add any new needed points
-    @ In, SG, SparseGrid (optional), sparse grid to comb for new points
-    @ Out, None
+      Sort through sparse grid and add any new needed points
+      @ In, SG, SparseGrid (optional), sparse grid to comb for new points
+      @ Out, None
     """
     if SG is None: SG = self.sparseGrid
     for pt in SG.points()[:]:
@@ -3653,9 +3653,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def _estimateImpact(self,idx):
     """
-    Estimates the impact of polynomial with index idx by considering the product of its predecessor impacts.
-    @ In, idx, tuple(int), polynomial index
-    @ Out, None
+      Estimates the impact of polynomial with index idx by considering the product of its predecessor impacts.
+      @ In, idx, tuple(int), polynomial index
+      @ Out, None
     """
     #initialize
     for t in self.targets: self.expImpact[t][idx] = 1.
@@ -3696,10 +3696,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def _findHighestImpactIndex(self,returnValue=False):
     """
-    Finds and returns the index with the highest average expected impact factor across all targets
-    Can optionally return the value of the highest impact, as well.
-    @ In, returnValue, bool optional, returns the value of the index if True
-    @ Out, idx, tuple(int) polynomial index with greatest expected effect
+      Finds and returns the index with the highest average expected impact factor across all targets
+      Can optionally return the value of the highest impact, as well.
+      @ In, returnValue, bool optional, returns the value of the index if True
+      @ Out, tuple(int), polynomial index with greatest expected effect
     """
     point = None
     avg = 0
@@ -3771,9 +3771,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def _printToLog(self):
     """
-    Prints adaptive state of this sampler to the log file.
-    @ In, None
-    @Out, None
+      Prints adaptive state of this sampler to the log file.
+      @ In, None
+      @ Out, None
     """
     self.logCounter+=1
     pl = 4*len(self.features)+1
@@ -3826,9 +3826,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def _updateQoI(self):
     """
-    Updates Reduced Order Models (ROMs) for Quantities of Interest (QoIs), as well as impact parameters and estimated error.
-    @ In, None
-    @ Out, None
+      Updates Reduced Order Models (ROMs) for Quantities of Interest (QoIs), as well as impact parameters and estimated error.
+      @ In, None
+      @ Out, None
     """
     #add active (finished) points to the sparse grid
     for active in list(self.inTraining):
@@ -3847,9 +3847,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def _writeConvergencePoint(self,runPoint):
     """
-    Writes XML out for this ROM at this point in the run
-    @ In, runPoint, int, the target runs for this statepoint
-    @Out, None
+      Writes XML out for this ROM at this point in the run
+      @ In, runPoint, int, the target runs for this statepoint
+      @ Out, None
     """
     fname = self.studyFileBase+str(runPoint)
     self.raiseAMessage('Preparing to write state %i to %s.xml...' %(runPoint,fname))
