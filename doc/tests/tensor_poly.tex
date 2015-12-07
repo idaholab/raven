@@ -1,0 +1,67 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{amscd}
+\usepackage{amsfonts}
+\usepackage{graphicx}%
+\usepackage{fancyhdr}
+\usepackage{color}
+\usepackage{cite}
+
+%\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{authblk}
+\usepackage{physics}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\newcommand{\expv}[1]{\ensuremath{\mathbb{E}[ #1]}}
+\newcommand{\xs}[2]{\ensuremath{\Sigma_{#1}^{(#2)}}}
+\newcommand{\intO}{\ensuremath{\int\limits_{4\pi}}}
+\newcommand{\intnp}{\ensuremath{\int\limits_{-1}^1}}
+\newcommand{\intab}[1]{\ensuremath{\int\limits_{a_{#1}}^{b_#1}}}
+\newcommand{\intz}{\ensuremath{\int\limits_0^1}}
+\newcommand{\intf}{\ensuremath{\int\limits_{-\infty}^\infty}}
+\newcommand{\intzf}{\ensuremath{\int\limits_{0}^\infty}}
+\newcommand{\LargerCdot}{\raisebox{-0.25ex}{\scalebox{1.2}{$\cdot$}}}
+
+\textwidth6.6in
+\textheight9in
+
+
+\setlength{\topmargin}{0.3in} \addtolength{\topmargin}{-\headheight}
+\addtolength{\topmargin}{-\headsep}
+
+\setlength{\oddsidemargin}{0in}
+
+\oddsidemargin  0.0in \evensidemargin 0.0in \parindent0em
+
+%\pagestyle{fancy}\lhead{MATH 579 (UQ for PDEs)} \rhead{02/24/2014}
+%\chead{Project Proposal} \lfoot{} \rfoot{\bf \thepage} \cfoot{}
+
+
+\begin{document}
+
+\title{Polynomial Case}
+
+\author[]{Paul Talbot\thanks{talbotp@unm.edu}}
+\date{}
+\renewcommand\Authands{ and }
+\maketitle
+
+Tensor polynomial evaluation for quantity of interest $u$ with input parameters $Y=[y_1,\ldots,y_N]$:
+\begin{equation}
+u(Y) = \prod_{n=1}^N y_n+1.
+\end{equation}
+
+\section{Uniform}
+Let all $y_n$ be uniformly distributed between -1 and 1.  The first two statistical moments are:
+\subsection{mean}
+\begin{align}
+\text{mean}&=\int_{-1}^1 dY \rho(Y)u(Y),\\
+  &=\int_{-1}^1 dy_1\cdots\int_{-1}^1 dy_N \prod_{n=1}^N \frac{y_n+1}{2},\\
+  &=\left[ \int_{-1}^1 dy \frac{y_n+1}{2}\right]^N,
+\end{align}
+
+\end{document}
