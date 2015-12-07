@@ -3147,7 +3147,6 @@ class SparseGridCollocation(Grid):
     self.assemblerObjects={}    #dict of external objects required for assembly
     self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
     self.indexSetType   = None  #TP, TD, or HC; the type of index set to use
-    self.adaptive       = False #TODO
     self.polyDict       = {}    #varName-indexed dict of polynomial types
     self.quadDict       = {}    #varName-indexed dict of quadrature types
     self.importanceDict = {}    #varName-indexed dict of importance weights
@@ -3358,34 +3357,34 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.type                    = 'AdaptiveSparseGridSampler'
     self.printTag                = self.type
     #assembler objects
-    self.solns                   = None  #TimePointSet of solutions -> assembled
-    self.ROM                     = None  #eventual final ROM object
+    self.solns                   = None   #TimePointSet of solutions -> assembled
+    self.ROM                     = None   #eventual final ROM object
     #input parameters
-    self.maxPolyOrder            = 0    #max size of polynomials to allow
-    self.persistence             = 0    #number of forced iterations, default 2
-    self.convType                = None #convergence criterion to use
-    self.logFile                 = None #file to print log to, optional
+    self.maxPolyOrder            = 0      #max size of polynomials to allow
+    self.persistence             = 0      #number of forced iterations, default 2
+    self.convType                = None   #convergence criterion to use
+    self.logFile                 = None   #file to print log to, optional
     #convergence/training tools
-    self.expImpact               = {}   #dict of potential included polynomials and their estimated impacts, [target][index]
-    self.actImpact               = {}   #dict of included polynomials and their current impact, [target][index] = impact
-    self.sparseGrid              = None #current sparse grid
-    self.oldSG                   = None #previously-accepted sparse grid
-    self.error                   = 0    #estimate of percent of moment calculated so far
-    self.logCounter              = 0    #when printing the log, tracks the number of prints
+    self.expImpact               = {}     #dict of potential included polynomials and their estimated impacts, [target][index]
+    self.actImpact               = {}     #dict of included polynomials and their current impact, [target][index] = impact
+    self.sparseGrid              = None   #current sparse grid
+    self.oldSG                   = None   #previously-accepted sparse grid
+    self.error                   = 0      #estimate of percent of moment calculated so far
+    self.logCounter              = 0      #when printing the log, tracks the number of prints
     #convergence study
     self.doingStudy              = False  #true if convergenceStudy node defined for sampler
     self.studyFileBase           = 'out_' #can be replaced in input, not used if not doingStudy
     self.studyPoints             = []     #list of ints, runs at which to record a state
     #solution storage
-    self.existing                = {}    #rolling list of sampled points
-    self.neededPoints            = []    #queue of points to submit
-    self.submittedNotCollected   = []    #list of points submitted but not yet collected and used
-    self.pointsNeededToMakeROM   = set() #list of distinct points needed in this process
-    self.unfinished              = 0     #number of runs still running when convergence complete
-    self.batchDone               = True  #flag for whether jobHandler has complete batch or not
-    self.done                    = False #flipped when converged
-    self.newSolutionSizeShouldBe = None  #used to track and debug intended size of solutions
-    self.inTraining              = set() #list of index set points for whom points are being run
+    self.existing                = {}     #rolling list of sampled points
+    self.neededPoints            = []     #queue of points to submit
+    self.submittedNotCollected   = []     #list of points submitted but not yet collected and used
+    self.pointsNeededToMakeROM   = set()  #list of distinct points needed in this process
+    self.unfinished              = 0      #number of runs still running when convergence complete
+    self.batchDone               = True   #flag for whether jobHandler has complete batch or not
+    self.done                    = False  #flipped when converged
+    self.newSolutionSizeShouldBe = None   #used to track and debug intended size of solutions
+    self.inTraining              = set()  #list of index set points for whom points are being run
 
     self._addAssObject('TargetEvaluation','1')
 
@@ -3437,7 +3436,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = utils.first(SVLs) #sampler doesn't always care about which target
     self.features=SVL.features #the input space variables
-    self.targets  = self.ROM.initializationOptionDict['Target'].split(',')
+    self.targets  = self.ROM.initializationOptionDict['Target'].split(',') #the output space variables
+    #initialize impact dictionaries by target
     for t in self.targets:
       self.expImpact[t] = {}
       self.actImpact[t] = {}
@@ -3464,7 +3464,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #set up the already-existing solutions (and re-order the inputs appropriately)
     self._updateExisting()
 
-    #make the first sparse grid ('dummy' is an unneeded index set)
+    #make the first sparse grid
     self.sparseGrid = self._makeSparseQuad(self.indexSet.active)
 
     #set up the points we need RAVEN to run before we can continue
@@ -3497,22 +3497,22 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     while len(self.neededPoints)<1:
       #update sparse grid and set active impacts
       self._updateQoI()
-      #move the index set forward
-      self.indexSet.forward(self.maxPolyOrder) #TODO removed self.indexSet.points[-1])
-      #estimate impacts
+      #move the index set forward -> that is, find the potential new indices
+      self.indexSet.forward(self.maxPolyOrder)
+      #estimate impacts of all potential indices
       for pidx in self.indexSet.active:
         self._estimateImpact(pidx)
-      #check error convergence, using the worst from each target
+      #check error convergence, using the largest impact from each target
       self.error = 0
       for pidx in self.indexSet.active:
         self.error += max(self.expImpact[t][pidx] for t in self.targets)
-      #self.raiseAMessage('  estimated remaining error: %1.4e target error: %1.4e, runs: %i' %(self.error,self.convValue,len(self.pointsNeededToMakeROM)))
       if self.logFile is not None:
         self._printToLog()
-      #if doing a study and at a statepoint, record the statepoint
+      #if doing a study and past a statepoint, record the statepoint
       if self.doingStudy:
         while len(self.studyPoints)>0 and len(self.pointsNeededToMakeROM) > self.studyPoints[0]:
           self._writeConvergencePoint(self.studyPoints[0])
+          #remove the point
           if len(self.studyPoints)>1: self.studyPoints=self.studyPoints[1:]
           else: self.studyPoints = []
       #if error small enough, converged!
@@ -3544,10 +3544,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.raiseADebug('Index points in use, and their impacts:')
       for p in self.indexSet.points:
         self.raiseADebug('   ',p,list(self.actImpact[t][p] for t in self.targets))
-      #self.raiseADebug('Solution points collected:')
-      #for e,s in self.existing.items():
-      #  self.raiseADebug('   ',e,'|',s)
-      self.raiseADebug('Sparse grid size:',len(self.sparseGrid))
       self._finalizeROM()
       self.unfinished = self.jobHandler.numRunning()
       self.jobHandler.terminateAll()
@@ -3556,8 +3552,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       if self.doingStudy and len(self.studyPoints)>0:
         self.raiseAWarning('In the convergence study, the following numbers of runs were not reached:',self.studyPoints)
       return False
+    #if we got here, we still have points to run!
+    #print a status update...
     self.raiseAMessage('  Next: %s | error: %1.4e | runs: %i' %(str(idx),self.error,len(self.pointsNeededToMakeROM)))
-    #otherwise, we have points to run!
     return True
 
   def localGenerateInput(self,model,myInput):
@@ -3566,7 +3563,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, model, Model, unused
       @ In, myInput, list(str), unused
     """
-    pt = self.neededPoints.pop() # [self.counter-1]
+    pt = self.neededPoints.pop()
     self.submittedNotCollected.append(pt)
     for v,varName in enumerate(self.sparseGrid.varNames):
       self.values[varName] = pt[v]
@@ -3585,6 +3582,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #check if all sampling is done
     if self.jobHandler.isFinished(): self.batchDone = True
     else: self.batchDone = False
+    #batchDone is used to check if the sampler should find new points.
 
   def _addNewPoints(self,SG=None):
     """
@@ -3601,7 +3599,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def _convergence(self,poly,rom,target):
     """
-      Checks the convergence of the adaptive index set via one of several ways, currently "mean", "variance", or "coeffs",
+      Checks the convergence of the adaptive index set via one of several ways, currently "variance" or "coeffs",
       meaning the moment coefficients of the stochastic polynomial expansion.
       @ In, poly, list(int), the polynomial index to check convergence for
       @ In, rom, SupervisedEngine, the GaussPolynomialROM object with respect to which we check convergence
@@ -3634,6 +3632,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     @ In, idx, tuple(int), polynomial index
     @ Out, None
     """
+    #initialize
     for t in self.targets: self.expImpact[t][idx] = 1.
     have = 0 #tracks the number of preceeding terms I have (e.g., terms on axes have less preceeding terms)
     #create a list of actual impacts for predecessors of idx
@@ -3649,7 +3648,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       else: continue #on an axis or axial plane
     #estimated impact is the product of the predecessor impacts raised to the power of the number of predecessors
     for t in self.targets:
-      #raising each predecessor to teh power of hte predecessors makes a more fair order-of-magnitude comparison
+      #raising each predecessor to the power of the predecessors makes a more fair order-of-magnitude comparison
       #  for indices on axes -> otherwise, they tend to be over-emphasized
       self.expImpact[t][idx] = np.prod(np.power(np.array(predecessors[t]),1.0/len(predecessors[t])))
 
@@ -3673,6 +3672,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def _findHighestImpactIndex(self,returnValue=False):
     """
     Finds and returns the index with the highest average expected impact factor across all targets
+    Can optionally return the value of the highest impact, as well.
     @ In, returnValue, bool optional, returns the value of the index if True
     @ Out, idx, tuple(int) polynomial index with greatest expected effect
     """
@@ -3790,7 +3790,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, None
       @ Out, None
     """
-    #new: only append new points
+    #TODO: only append new points instead of resorting everyone
     if not self.solns.isItEmpty():
       inps = self.solns.getInpParametersValues()
       outs = self.solns.getOutParametersValues()
