@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>AdaptiveStochasticPoly</WorkingDir>
+    <WorkingDir>AdaptiveStochasticPolyVar</WorkingDir>
     <Sequence>make,train,print,print2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
