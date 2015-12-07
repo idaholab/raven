@@ -3423,7 +3423,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     convnode  = xmlNode.find('Convergence')
     logNode   = xmlNode.find('logFile')
     studyNode = xmlNode.find('convergenceStudy')
-    self.convType     = convnode.attrib['target']
+    self.convType     = convnode.attrib.get('target','variance')
     self.maxPolyOrder = int(convnode.attrib.get('maxPolyOrder',10))
     self.persistence  = int(convnode.attrib.get('persistence',2))
     self.maxRuns      = convnode.attrib.get('maxRuns',None)
@@ -3624,8 +3624,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
 
   def _convergence(self,poly,rom,target):
     """
-      Checks the convergence of the adaptive index set via one of several ways, currently "variance" or "coeffs",
-      meaning the moment coefficients of the stochastic polynomial expansion.
+      Checks the convergence of the adaptive index set via one of (someday) several ways, currently "variance"
       @ In, poly, list(int), the polynomial index to check convergence for
       @ In, rom, SupervisedEngine, the GaussPolynomialROM object with respect to which we check convergence
       @ In, target, string, target to check convergence with respect to
@@ -3633,21 +3632,22 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
     if self.convType.lower()=='variance':
       impact = rom.polyCoeffDict[poly]**2 / sum(rom.polyCoeffDict[p]**2 for p in rom.polyCoeffDict.keys())
-    elif self.convType.lower()=='coeffs':
-      new = self._makeARom(rom.sparseGrid,iset).SupervisedEngine[target]
-      tot = 0 #for L2 norm of coeffs
-      if self.oldSG != None:
-        oSG,oSet = self._makeSparseQuad()
-        old = self._makeARom(oSG,oSet).SupervisedEngine[target]
-      else: old=None
-      for coeff in new.polyCoeffDict.keys():
-        if old!=None and coeff in old.polyCoeffDict.keys():
-          n = new.polyCoeffDict[coeff]
-          o = old.polyCoeffDict[coeff]
-          tot+= (n - o)**2
-        else:
-          tot+= new.polyCoeffDict[coeff]**2
-      impact = np.sqrt(tot)
+    #FIXME 'coeffs' has to be updated to fit in the new rework before it can be used.
+#    elif self.convType.lower()=='coeffs':
+#      #new = self._makeARom(rom.sparseGrid,rom.indexSet).SupervisedEngine[target]
+#      tot = 0 #for L2 norm of coeffs
+#      if self.oldSG != None:
+#        oSG,oSet = self._makeSparseQuad()
+#        old = self._makeARom(oSG,oSet).SupervisedEngine[target]
+#      else: old=None
+#      for coeff in new.polyCoeffDict.keys():
+#        if old!=None and coeff in old.polyCoeffDict.keys():
+#          n = new.polyCoeffDict[coeff]
+#          o = old.polyCoeffDict[coeff]
+#          tot+= (n - o)**2
+#        else:
+#          tot+= new.polyCoeffDict[coeff]**2
+#      impact = np.sqrt(tot)
     else: self.raiseAnError(KeyError,'Unexpected convergence criteria:',self.convType)
     return impact
 

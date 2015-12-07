@@ -79,4 +79,11 @@
   xml = 'scgpc/Edumprom.xml'
   csv = 'scgpc/Edump.csv'
  [../]
+
+ [./AdaptiveOnVariance]
+   type = 'RavenFramework'
+   input = 'test_adaptive_stochpoly_var.xml'
+   xml = 'AdaptiveStochasticPolyVar/dump.xml'
+   csv = 'AdaptiveStochasticPolyVar/data.csv'
+ [../]
 []

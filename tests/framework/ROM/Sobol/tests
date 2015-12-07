@@ -1,4 +1,10 @@
 [Tests]
+ [./AdaptivesStochasticPolyVariance]
+   type = 'RavenFramework'
+   input = 'test_adaptive_stochpoly_var.xml'
+   xml = 'AdaptiveStochasticPolyVar/dump.xml'
+   csv = 'AdaptiveStochasticPolyVar/data.csv'
+ [../]
  [./AdaptiveSobol]
   type = 'RavenFramework'
   input = 'test_adapt_sobol.xml'
