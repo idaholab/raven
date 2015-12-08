@@ -1,31 +1,12 @@
 \documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
 \usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{amsthm}
-\usepackage{amscd}
 \usepackage{amsfonts}
 \usepackage{graphicx}%
-\usepackage{fancyhdr}
-\usepackage{color}
-\usepackage{cite}
-
-%\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage{authblk}
-\usepackage{physics}
 \usepackage{float}
-\usepackage{caption}
-\usepackage{subcaption}
 \usepackage{fullpage}
 \newcommand{\expv}[1]{\ensuremath{\mathbb{E}[ #1]}}
-\newcommand{\xs}[2]{\ensuremath{\Sigma_{#1}^{(#2)}}}
-\newcommand{\intO}{\ensuremath{\int\limits_{4\pi}}}
-\newcommand{\intnp}{\ensuremath{\int\limits_{-1}^1}}
-\newcommand{\intab}[1]{\ensuremath{\int\limits_{a_{#1}}^{b_#1}}}
-\newcommand{\intz}{\ensuremath{\int\limits_0^1}}
-\newcommand{\intf}{\ensuremath{\int\limits_{-\infty}^\infty}}
-\newcommand{\intzf}{\ensuremath{\int\limits_{0}^\infty}}
-\newcommand{\LargerCdot}{\raisebox{-0.25ex}{\scalebox{1.2}{$\cdot$}}}
+
 
 \textwidth6.6in
 \textheight9in
@@ -46,9 +27,8 @@
 
 \title{Tensor Polynomial Case}
 
-\author[]{Paul Talbot\thanks{talbotp@unm.edu}}
+\author{Paul Talbot\thanks{talbotp@unm.edu}}
 \date{}
-\renewcommand\Authands{ and }
 \maketitle
 
 Tensor polynomial evaluation for quantity of interest $u$ with input parameters $Y=[y_1,\ldots,y_N]$:
