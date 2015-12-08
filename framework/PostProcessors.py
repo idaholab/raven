@@ -2662,12 +2662,6 @@ class DataMining(BasePostProcessor):
         else:
           dataObject.updateOutputValue(keyP, self.unSupervisedEngine.outputDict[keyP])
         
-#       self.raiseAnError(IOError, '222222222222222')
-#       self.raiseADebug('$$$$$$$$$$$$$$$$$&&&&&&&&&&&&&&')
-#       self.raiseADebug(dataObject.getParaKeys('output'))         
-#       self.raiseADebug(self.dataObjects[-1].getParaKeys('output'))  
-#       self.raiseADebug(dataObject.getParam('output','v-expectedValue'))  
-#       self.raiseADebug(dataObject.name)
     return self.unSupervisedEngine.outputDict
 
 

@@ -478,10 +478,10 @@ class tBasicStatistics(unSupervisedLearning):
       else:
         for tar in self.method.parameters['targets']:
           if whatc == 'percentile':
-            self.outputDict[tar + '|' + whatc + '_5%'] = []
-            self.outputDict[tar + '|' + whatc + '_95%'] = []
+            self.outputDict[tar + '-' + whatc + '_5'] = []
+            self.outputDict[tar + '-' + whatc + '_95'] = []
           else:
-            self.outputDict[tar + '|' + whatc] = []
+            self.outputDict[tar + '-' + whatc] = []
     
     # converts Input (HistorySet) into InputV (dictionary)
     InputV = {}
@@ -514,10 +514,10 @@ class tBasicStatistics(unSupervisedLearning):
         else:        
           for tar in self.method.parameters['targets']:
             if whatc == 'percentile':
-              self.outputDict[tar + '|' + whatc + '_5%'].append(outp[whatc + '_5%'][tar])
-              self.outputDict[tar + '|' + whatc + '_95%'].append(outp[whatc + '_95%'][tar])
+              self.outputDict[tar + '-' + whatc + '_5'].append(outp[whatc + '_5%'][tar])
+              self.outputDict[tar + '-' + whatc + '_95'].append(outp[whatc + '_95%'][tar])
             else:
-              self.outputDict[tar + '|' + whatc].append(outp[whatc][tar])
+              self.outputDict[tar + '-' + whatc].append(outp[whatc][tar])
   
 #     self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
 #     self.raiseADebug(self.outputDict['v-sigma'][-1])
