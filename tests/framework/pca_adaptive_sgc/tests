@@ -1,0 +1,37 @@
+[Tests]
+ [./test_adaptive_sgc_pca_analytic]
+  type = 'RavenFramework'
+  input = 'test_adaptive_sgc_pca_analytic.xml'
+  UnorderedCsv = 'Adaptive/data.csv'
+  xml = 'Adaptive/dump.xml'
+ [../]
+ 
+ [./test_adaptive_sgc_attenuation]
+  type = 'RavenFramework'
+  input = 'test_adaptive_sgc_attenuation.xml'
+  UnorderedCsv = 'attenuation/csv_database.csv'
+  xml = 'attenuation/stats_td1.xml'
+ [../]
+ 
+ [./test_adaptive_sgc_attenu_correlation]
+  type = 'RavenFramework'
+  input = 'test_adaptive_sgc_attenu_correlation.xml'
+  UnorderedCsv = 'attenuCorrelation/csv_database.csv'
+  xml = 'attenuCorrelation/stats_td1.xml'
+ [../]
+
+ [./test_adaptive_sgc_poly_correlation]
+  type = 'RavenFramework'
+  input = 'test_adaptive_sgc_poly_correlation.xml'
+  UnorderedCsv = 'polyCorrelation/csv_database.csv'
+  xml = 'polyCorrelation/stats_td1.xml'
+ [../]
+
+ [./test_adaptive_sgc_poly_pca_analytic]
+  type = 'RavenFramework'
+  input = 'test_adaptive_sgc_poly_pca_analytic.xml'
+  UnorderedCsv = 'polynomial/csv_database.csv'
+  xml = 'polynomial/stats_td1.xml'
+ [../]
+
+[]

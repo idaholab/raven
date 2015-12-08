@@ -734,6 +734,12 @@ are used by the \xmlNode{Models}.
         <variable>y0</variable>
         <variable>z0</variable>
     </ExternalModel>
+    <ROM name="SCROM" subType="GaussPolynomialRom">
+        <Target>and</Target>
+        <Features>x1,y1,z1</Features>
+        <IndexSet>TensorProduct</IndexSet>
+        <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
     ...
 </Models>
 
@@ -770,6 +776,7 @@ are used by the \xmlNode{Models}.
             <manifestVariables>x0,y0,z0</manifestVariables>
             <method>pca</method>
         </variablesTransformation>
+        <ROM class = 'Models' type = 'ROM' >SCROM</ROM>
   </SparseGridCollocation>
   ...
 </Samplers>
@@ -2380,6 +2387,87 @@ Example:
   ...
 </Samplers>
 \end{lstlisting}
+
+Like in the \textbf{SparseGridCollocation} sampler, if the covariance matrix is provided 
+and the input parameters are assumed to have the multivariate normal distribution, the \textbf{AdaptiveSparseGrid} can be also used.
+This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is 
+the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} 
+of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node 
+\xmlNode{variablesTransformation} is also required for \textbf{AdaptiveSparseGrid} sampler. This node is used to tranform 
+the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by 
+\xmlNode{manifestVariables} in the input space. The variables listed in \xmlNode{latentVariables} should be predefined 
+in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables} 
+are used by the \xmlNode{Models}.
+
+\variablesTransformationDescription{AdaptiveSparseGrid}
+
+
+\begin{lstlisting}[style=XML,morekeywords={ND,grid}]
+...
+<Models>
+    ...
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
+        <variable>sigma</variable>
+        <variable>rho</variable>
+        <variable>beta</variable>
+        <variable>x</variable>
+        <variable>y</variable>
+        <variable>z</variable>
+        <variable>time</variable>
+        <variable>x0</variable>
+        <variable>y0</variable>
+        <variable>z0</variable>
+    </ExternalModel>
+    <ROM name="gausspolyrom" subType="GaussPolynomialRom">
+        <Target>ans</Target>
+        <Features>x1,y1,z1</Features>
+        <IndexSet>TensorProduct</IndexSet>
+        <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
+    ...
+</Models>
+
+<Distributions>
+    ...
+    <MultivariateNormal name='MVNDist' method='pca'>
+        <transformation>
+            <rank>3</rank>
+        </transformation>
+        <mu>0.0 1.0 2.0</mu>
+        <covariance type="abs">
+            1.0       0.6      -0.4
+            0.6       1.0      0.2
+            -0.4      0.2      0.8
+        </covariance>
+    </MultivariateNormal>
+    ...
+</Distributions>
+
+<Samplers>
+  ...
+  <AdaptiveSparseGrid name='ASC'>
+        <variable name='x0'>
+            <distribution dim='1'>MVNDist</distribution>
+        </variable>
+        <variable name='y0'>
+            <distribution dim='2'>MVNDist</distribution>
+        </variable>
+        <variable name='z0'>
+            <distribution dim='3'>MVNDist</distribution>
+        </variable>
+        <variablesTransformation model="PythonModule">
+            <latentVariables>x1,y1,z1</latentVariables>
+            <manifestVariables>x0,y0,z0</manifestVariables>
+            <method>pca</method>
+        </variablesTransformation>
+        <ROM class = 'Models' type = 'ROM'>gausspolyrom</ROM>
+        <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
+  </AdaptiveSparseGrid>
+  ...
+</Samplers>
+...
+\end{lstlisting}
+
 \subsubsection{Adaptive Sobol Decomposition}
 \label{subsubsubsec:AdaptiveSobol}
 The \textbf{Adaptive Sobol Decomposition} approach is an advanced methodology that decomposes an uncertainty
