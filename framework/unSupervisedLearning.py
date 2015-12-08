@@ -466,7 +466,6 @@ class tBasicStatistics(unSupervisedLearning):
 #     self.raiseADebug(self.biased)
 #     self.raiseADebug(self.method.what)
     inp = DataObjects.returnInstance('PointSet', self)
-    output = DataObjects.returnInstance('History', self)
     
     if 'Time' in Input.getParam('output',1).keys(): Time = Input.getParam('output',1)['Time']
     else: self.raiseAnError(ValueError, 'Time not found in input historyset')
@@ -490,29 +489,29 @@ class tBasicStatistics(unSupervisedLearning):
       for cnt, keyH in enumerate(historyKey):
         InputV[tar][:,cnt] = Input.getParam('output',keyH)[tar]
     
-    for tStep in [0,1,2,3,4]: #range(noTimeStep):    
+    for tStep in range(noTimeStep):    
       for tar in self.method.parameters['targets']:
         for cnt, keyH in enumerate(historyKey):
           inp.updateOutputValue(tar, InputV[tar][tStep,cnt])
-        self.raiseADebug(inp.getParam('output',tar))
+#         self.raiseADebug(inp.getParam('output',tar))
         
       outp = self.method.run(inp) 
       
-      for tar in self.method.parameters['targets']:
+      for tar in [-1]:#self.method.parameters['targets']:
         for whatc in self.method.what:
           if whatc == 'percentile':
             self.outputDict[tar + '-' + whatc + '_5%'].append(outp[whatc + '_5%'][tar])
             self.outputDict[tar + '-' + whatc + '_95%'].append(outp[whatc + '_95%'][tar])
           else:
             self.outputDict['-'.join([tar,whatc])].append(outp[whatc][tar])
+            self.raiseADebug(whatc+tar)
+            self.raiseADebug(outp[whatc][tar])
     
-    for keyP in self.outputDict.keys():
-      output.updateOutputValue(keyP, self.outputDict[keyP])
-    
-    self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-    self.raiseADebug(output.getParam('output','v-expectedValue'))  
+#     for keyP in self.outputDict.keys():
+#       output.updateOutputValue(keyP, self.outputDict[keyP])  
       
-    return output
+    return self.outputDict
+#     self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
 #     self.raiseADebug(self.outputDict.keys())
 #     self.raiseADebug(output.getParaKeys('output'))
 #     self.raiseADebug(InputV['v'].shape)
