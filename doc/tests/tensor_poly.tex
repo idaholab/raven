@@ -60,5 +60,27 @@ Let all $y_n$ be uniformly distributed between -1 and 1.  The first two statisti
   &= \left(\frac{4}{3}\right)^N-1.
 \end{align}
 
-
+\section{Tests using this model}
+\texttt{raven/tests/framework/Samplers/SparseGrid:}
+\begin{itemize}
+  \item uniform
+  \item uniform\_cc
+  \item normal
+  \item gamma
+  \item beta
+  \item betanorm
+  \item triangular
+  \item exponential
+\end{itemize}
+\texttt{raven/tests/framework/ROM/Sobol:}
+\begin{itemize}
+  \item AdaptiveSobol
+  \item AdaptiveSobolMaxRuns
+  \item AdaptiveSobolParallel
+\end{itemize}
+\texttt{raven/tests/framework:}
+\begin{itemize}
+  \item stochPolyPickleTest
+  \item stochPolyInterpTest
+\end{itemize}
 \end{document}
