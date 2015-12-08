@@ -2655,26 +2655,22 @@ class DataMining(BasePostProcessor):
      
     elif self.type in ['BasicStatistics']:
       self.unSupervisedEngine.run(Input)  
-      self.raiseADebug('1111111111111111111111111111111111111111111111')
-      self.raiseADebug(dataObject.name)
-      self.raiseADebug(self.unSupervisedEngine.outputDict.keys())
+#       self.raiseADebug('1111111111111111111111111111111111111111111111')
+#       self.raiseADebug(dataObject.name)
+#       self.raiseADebug(self.unSupervisedEngine.outputDict.keys())
 #       self.raiseADebug(self.unSupervisedEngine.outputDict['v-sigma'])
       
       for keyP in self.unSupervisedEngine.outputDict.keys():
-        self.raiseADebug(keyP)
+#         self.raiseADebug(keyP)
 #         self.raiseADebug(self.unSupervisedEngine.outputDict[keyP])
-        
         dataObject.updateOutputValue(keyP, self.unSupervisedEngine.outputDict[keyP])
         
-#       if len(self.dataObjects) is not 0:
-#         if type(self.dataObjects) == list: self.dataObjects[-1] = dataObject 
-#         else                             : self.dataObjects = dataObject 
 #       self.raiseAnError(IOError, '222222222222222')
-      self.raiseADebug('$$$$$$$$$$$$$$$$$&&&&&&&&&&&&&&')
-      self.raiseADebug(dataObject.getParaKeys('output'))         
+#       self.raiseADebug('$$$$$$$$$$$$$$$$$&&&&&&&&&&&&&&')
+#       self.raiseADebug(dataObject.getParaKeys('output'))         
 #       self.raiseADebug(self.dataObjects[-1].getParaKeys('output'))  
 #       self.raiseADebug(dataObject.getParam('output','v-expectedValue'))  
-      self.raiseADebug(dataObject.name)
+#       self.raiseADebug(dataObject.name)
     return self.unSupervisedEngine.outputDict
 
 

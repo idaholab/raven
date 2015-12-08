@@ -460,7 +460,7 @@ class tBasicStatistics(unSupervisedLearning):
     self.outputDict = {}
     
   def run(self, Input):
-    self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+#     self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
 #     self.raiseADebug(self.what)
 #     self.raiseADebug(self.parameters['targets'])
 #     self.raiseADebug(self.biased)
@@ -489,36 +489,44 @@ class tBasicStatistics(unSupervisedLearning):
       for cnt, keyH in enumerate(historyKey):
         InputV[tar][:,cnt] = Input.getParam('output',keyH)[tar]
     
+#     self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+#     self.raiseADebug(InputV['v'][-1,:])
+#     self.raiseADebug(InputV['impact'][-1,:])
+#     self.raiseAnError(IOError,'testing')
     for tStep in range(noTimeStep):    
       for tar in self.method.parameters['targets']:
         for cnt, keyH in enumerate(historyKey):
           inp.updateOutputValue(tar, InputV[tar][tStep,cnt])
 #         self.raiseADebug(inp.getParam('output',tar))
+      if tStep == noTimeStep-1:
+        self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+        self.raiseADebug(inp.getParam('output','v'))
+        self.raiseAnError(IOError,'testing')
         
       outp = self.method.run(inp) 
       
-      for tar in [-1]:#self.method.parameters['targets']:
+      for tar in self.method.parameters['targets']:
         for whatc in self.method.what:
           if whatc == 'percentile':
             self.outputDict[tar + '-' + whatc + '_5%'].append(outp[whatc + '_5%'][tar])
             self.outputDict[tar + '-' + whatc + '_95%'].append(outp[whatc + '_95%'][tar])
           else:
-            self.outputDict['-'.join([tar,whatc])].append(outp[whatc][tar])
-            self.raiseADebug(whatc+tar)
-            self.raiseADebug(outp[whatc][tar])
+            self.outputDict[tar + '-' + whatc].append(outp[whatc][tar])
     
 #     for keyP in self.outputDict.keys():
 #       output.updateOutputValue(keyP, self.outputDict[keyP])  
       
-    return self.outputDict
-#     self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+    
+    self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+    self.raiseADebug(self.outputDict['v-sigma'][-1])
 #     self.raiseADebug(self.outputDict.keys())
 #     self.raiseADebug(output.getParaKeys('output'))
 #     self.raiseADebug(InputV['v'].shape)
 #     self.raiseADebug(Input.getParaKeys('input'))
 #     self.raiseADebug(Input.getParaKeys('output'))
 #     self.raiseADebug(Input.getParam('output',1).keys())
-    
+    return self.outputDict
+  
   def __trainLocal__(self):
     pass
     
