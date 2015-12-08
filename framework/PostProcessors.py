@@ -2654,16 +2654,13 @@ class DataMining(BasePostProcessor):
                 dataObject.updateOutputValue(self.name+'PCAComponent' + str(i + 1), components[val, i])
      
     elif self.type in ['BasicStatistics']:
-      self.unSupervisedEngine.run(Input)  
-#       self.raiseADebug('1111111111111111111111111111111111111111111111')
-#       self.raiseADebug(dataObject.name)
-#       self.raiseADebug(self.unSupervisedEngine.outputDict.keys())
-#       self.raiseADebug(self.unSupervisedEngine.outputDict['v-sigma'])
-      
+      self.unSupervisedEngine.run(Input)    
       for keyP in self.unSupervisedEngine.outputDict.keys():
-#         self.raiseADebug(keyP)
-#         self.raiseADebug(self.unSupervisedEngine.outputDict[keyP])
-        dataObject.updateOutputValue(keyP, self.unSupervisedEngine.outputDict[keyP])
+        if keyP == 'metadata':
+          for keyM in self.unSupervisedEngine.outputDict[keyP].keys():
+            dataObject.updateMetadata(keyM, self.unSupervisedEngine.outputDict[keyP][keyM])
+        else:
+          dataObject.updateOutputValue(keyP, self.unSupervisedEngine.outputDict[keyP])
         
 #       self.raiseAnError(IOError, '222222222222222')
 #       self.raiseADebug('$$$$$$$$$$$$$$$$$&&&&&&&&&&&&&&')

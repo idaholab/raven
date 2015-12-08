@@ -451,7 +451,7 @@ class tBasicStatistics(unSupervisedLearning):
     if self.what == 'all': self.method.what = self.method.acceptedCalcParam
     else:
       for whatc in self.what.split(','):
-            if whatc not in self.method.acceptedCalcParam: self.raiseAnError(IOError, 'TDM-BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.acceptedCalcParam))
+            if whatc not in self.method.acceptedCalcParam: self.raiseAnError(IOError, 'TDM-BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.method.acceptedCalcParam))
       self.method.what = self.what.split(',')
     if self.parameters['targets']: self.method.parameters['targets'] = self.parameters['targets'].split(',')
     if self.methodsToRun: self.method.methodsToRun = self.methodsToRun.split(',')
@@ -460,11 +460,6 @@ class tBasicStatistics(unSupervisedLearning):
     self.outputDict = {}
     
   def run(self, Input):
-#     self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-#     self.raiseADebug(self.what)
-#     self.raiseADebug(self.parameters['targets'])
-#     self.raiseADebug(self.biased)
-#     self.raiseADebug(self.method.what)
         
     if 'Time' in Input.getParam('output',1).keys(): Time = Input.getParam('output',1)['Time']
     else: self.raiseAnError(ValueError, 'Time not found in input historyset')
@@ -473,58 +468,59 @@ class tBasicStatistics(unSupervisedLearning):
     noHistory = len(historyKey)
     noTimeStep = len(Time)
     
+    whatThatReturnsMatrix = ['pearson', 'covariance', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']
     self.outputDict['Time'] = Time
-    for tar in self.method.parameters['targets']:
-      for whatc in self.method.what:
-        if whatc == 'percentile':
-          self.outputDict[tar + '-' + whatc + '_5%'] = []
-          self.outputDict[tar + '-' + whatc + '_95%'] = []
-        else:
-          self.outputDict[tar + '-' + whatc] = []
+    if len(set(whatThatReturnsMatrix) & set(self.method.what)):
+      self.outputDict['metadata'] = {}
+    for whatc in self.method.what:
+      if whatc in whatThatReturnsMatrix:
+        self.outputDict['metadata']['targets|' + whatc]=[]
+      else:
+        for tar in self.method.parameters['targets']:
+          if whatc == 'percentile':
+            self.outputDict[tar + '|' + whatc + '_5%'] = []
+            self.outputDict[tar + '|' + whatc + '_95%'] = []
+          else:
+            self.outputDict[tar + '|' + whatc] = []
     
+    # converts Input (HistorySet) into InputV (dictionary)
     InputV = {}
     for tar in self.method.parameters['targets']:
       InputV[tar] = np.zeros(shape=(noTimeStep,noHistory))
       for cnt, keyH in enumerate(historyKey):
         InputV[tar][:,cnt] = Input.getParam('output',keyH)[tar]
-    
-#     self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-#     self.raiseADebug(InputV['v'][-1,:])
-#     self.raiseADebug(InputV['impact'][-1,:])
-#     self.raiseAnError(IOError,'testing')
+    if Input.getAllMetadata():
+      InputV['metadata'] = Input.getAllMetadata()
+
     inp = DataObjects.returnInstance('PointSet', self)
     for tStep in range(noTimeStep):    
+      # construct input PointSet for BasicStatistics postprocessor 
       inp.__init__()
+      if 'metadata' in InputV.keys():
+        for keyM in InputV['metadata'].keys():
+          inp.updateMetadata(keyM, InputV['metadata'][keyM])        
       for tar in self.method.parameters['targets']:
         for cnt, keyH in enumerate(historyKey):
           inp.updateOutputValue(tar, InputV[tar][tStep,cnt])
-#         self.raiseADebug(inp.getParam('output',tar))
-        self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-        self.raiseADebug(len(inp.getParam('output','v')))
-#         self.raiseAnError(IOError,'testing')
-        
+      
+      # run BasicStatistics postprocessor 
       outp = self.method.run(inp) 
       
-      for tar in self.method.parameters['targets']:
-        for whatc in self.method.what:
-          if whatc == 'percentile':
-            self.outputDict[tar + '-' + whatc + '_5%'].append(outp[whatc + '_5%'][tar])
-            self.outputDict[tar + '-' + whatc + '_95%'].append(outp[whatc + '_95%'][tar])
-          else:
-            self.outputDict[tar + '-' + whatc].append(outp[whatc][tar])
-    
-#     for keyP in self.outputDict.keys():
-#       output.updateOutputValue(keyP, self.outputDict[keyP])  
-      
-    
-    self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-    self.raiseADebug(self.outputDict['v-sigma'][-1])
-#     self.raiseADebug(self.outputDict.keys())
-#     self.raiseADebug(output.getParaKeys('output'))
-#     self.raiseADebug(InputV['v'].shape)
-#     self.raiseADebug(Input.getParaKeys('input'))
-#     self.raiseADebug(Input.getParaKeys('output'))
-#     self.raiseADebug(Input.getParam('output',1).keys())
+      # collect output from BasicStatistics postprocessor 
+      for whatc in self.method.what:
+        if whatc in whatThatReturnsMatrix:
+          self.outputDict['metadata']['targets|' + whatc].append(outp[whatc])
+#           self.outputDict['metadata']['targets|' + whatc][Time[tStep]]=outp[whatc]
+        else:        
+          for tar in self.method.parameters['targets']:
+            if whatc == 'percentile':
+              self.outputDict[tar + '|' + whatc + '_5%'].append(outp[whatc + '_5%'][tar])
+              self.outputDict[tar + '|' + whatc + '_95%'].append(outp[whatc + '_95%'][tar])
+            else:
+              self.outputDict[tar + '|' + whatc].append(outp[whatc][tar])
+  
+#     self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+#     self.raiseADebug(self.outputDict['v-sigma'][-1])
     return self.outputDict
   
   def __trainLocal__(self):
