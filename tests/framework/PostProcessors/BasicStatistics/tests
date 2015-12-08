@@ -1,0 +1,51 @@
+[Tests]
+  [./basicStatsGrid]
+    type = 'RavenFramework'
+    input = 'test_BasicStatsGridAnalytic.xml'
+    UnorderedCsv = 'basicStatsGridAnalytic/outputDatagrid_dump.csv'
+    output = 'basicStatsGridAnalytic/outputDatagrid_dump.csv basicStatsGridAnalytic/outputDatagrid_dump.xml'
+    xml = 'basicStatsGridAnalytic/outputDatagrid_dump.xml'
+    rel_err = 1e-6
+  [../]
+  [./basicStatsMC]
+    type = 'RavenFramework'
+    input = 'test_BasicStatsMonteCarloAnalytic.xml'
+    UnorderedCsv = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.csv'
+    output = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.csv basicStatsMonteCarloAnalytic/outputDataMC_dump.xml'
+    xml = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.xml'
+    rel_err = 1e-6
+  [../]
+  [./basicStatsStratified]
+    type = 'RavenFramework'
+    input = 'test_BasicStatsStratifiedAnalytic.xml'
+    UnorderedCsv = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.csv'
+    output = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.csv basicStatsStratifiedAnalytic/outputDataStratified_dump.xml'
+    xml = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.xml'
+    rel_err = 1e-6
+  [../]
+  [./basicStatsFactorial]
+    type = 'RavenFramework'
+    input = 'test_BasicStatsFactorialAnalytic.xml'
+    UnorderedCsv = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.csv basicStatsFactorialAnalytic/outputDatapbFactorial_dump.csv'
+    output = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.csv basicStatsFactorialAnalytic/outputDatapbFactorial_dump.csv basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.xml'
+    xml = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.xml basicStatsFactorialAnalytic/outputDatapbFactorial_dump.xml'
+    rel_err = 1e-6
+  [../]
+  [./basicStatsResponseSurfaceDoE]
+    type = 'RavenFramework'
+    input = 'test_BasicStatsResponseSurfaceDoEAnalytic.xml'
+    UnorderedCsv = 'basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.csv basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.csv'
+    output = 'basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.csv basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.csv basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.xml basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.xml'
+    xml = 'basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.xml basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.xml'
+    rel_err = 1e-3
+  [../]
+ [./testBasicStatisticsGeneral]
+  type = 'RavenFramework'
+  input = 'test_BasicStatistics.xml'
+  output = 'basicStatisticsGeneral/PointSetPostProcTest_dump.csv basicStatisticsGeneral/output_basicStatistics_PP1.csv basicStatisticsGeneral/output_basicStatistics_PP2.csv basicStatisticsGeneral/PointSetPostProcTest_dump.xml basicStatisticsGeneral/output_basicStatistics_PP3.csv basicStatisticsGeneral/output_basicStatistics_PP4.csv basicStatisticsGeneral/output_basicStatistics_PP5.csv'
+  csv = 'basicStatisticsGeneral/PointSetPostProcTest_dump.csv'
+  xml = 'basicStatisticsGeneral/PointSetPostProcTest_dump.xml'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+[]

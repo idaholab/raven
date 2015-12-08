@@ -31,9 +31,9 @@
        {u'y1': 1.8206571846361157, u'y0': 4.723217384596126, u'x0': 2.1174024660482664, u'x1': 3.022532525757038, u'z0': 2.479016478395184, u'z1': 1.3482292370170916}], dtype=object)</SampledVars><ProbabilityWeight>array([  1.25119622e-06,   1.73186245e-09,   2.45498520e-05,
          2.37185303e-06,   1.77703158e-10,   7.19401208e-05,
          3.08198355e-04,   2.25291429e-05])</ProbabilityWeight><prefix>array(['1', '2', '3', '4', '5', '6', '7', '8'], 
-      dtype='|S1')</prefix><PointProbability>array([  7.27878926e-06,   6.85623340e-09,   1.10428694e-04,
-         1.87677713e-05,   1.59230875e-09,   1.81122537e-04,
-         3.26544619e-04,   5.06321218e-05])</PointProbability><distributionType>array([ {u'y1': 'MultivariateNormal', u'x1': 'MultivariateNormal', u'z1': 'MultivariateNormal'},
+      dtype='|S1')</prefix><ProbabilityWeight-x1>array([  1.25119622e-06,   1.73186245e-09,   2.45498520e-05,
+         2.37185303e-06,   1.77703158e-10,   7.19401208e-05,
+         3.08198355e-04,   2.25291429e-05])</ProbabilityWeight-x1><distributionType>array([ {u'y1': 'MultivariateNormal', u'x1': 'MultivariateNormal', u'z1': 'MultivariateNormal'},
        {u'y1': 'MultivariateNormal', u'x1': 'MultivariateNormal', u'z1': 'MultivariateNormal'},
        {u'y1': 'MultivariateNormal', u'x1': 'MultivariateNormal', u'z1': 'MultivariateNormal'},
        {u'y1': 'MultivariateNormal', u'x1': 'MultivariateNormal', u'z1': 'MultivariateNormal'},
@@ -50,4 +50,6 @@
        {u'y1': 'MVNDist', u'x1': 'MVNDist', u'z1': 'MVNDist'}], dtype=object)</distributionName><SampledVarsPb>array([{'x1': 7.2787892641931105e-06}, {'x1': 6.856233397363008e-09},
        {'x1': 0.00011042869400371041}, {'x1': 1.876777132915061e-05},
        {'x1': 1.5923087452720386e-09}, {'x1': 0.00018112253749301614},
-       {'x1': 0.00032654461933221313}, {'x1': 5.063212184556065e-05}], dtype=object)</SampledVarsPb></metadata></data>
+       {'x1': 0.00032654461933221313}, {'x1': 5.063212184556065e-05}], dtype=object)</SampledVarsPb><PointProbability>array([  7.27878926e-06,   6.85623340e-09,   1.10428694e-04,
+         1.87677713e-05,   1.59230875e-09,   1.81122537e-04,
+         3.26544619e-04,   5.06321218e-05])</PointProbability></metadata></data>

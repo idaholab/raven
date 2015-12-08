@@ -1,0 +1,60 @@
+[Tests]
+ [./normal]
+  type = 'RavenFramework'
+  input = 'test_scgpc_normal.xml'
+  csv = 'scgpc/Ndump.csv'
+ [../]
+ 
+ [./MVNUncorrelated]
+  type = 'RavenFramework'
+  input = 'test_scgpc_uncorrelatedMVN.xml'
+  csv = 'scgpcMVNUncorrelated/Ndump.csv'
+ [../]
+ 
+ [./MVNCorrelated]
+  type = 'RavenFramework'
+  input = 'test_scgpc_correlatedMVN.xml'
+  csv = 'scgpcMVNCorrelated/Ndump.csv'
+ [../]
+
+ [./attenuCorrelation]
+  type = 'RavenFramework'
+  input = 'test_attenu_correlation.xml'
+  csv = 'attenuCorrelation/csv_database.csv'
+  xml = 'attenuCorrelation/stats_td1.xml'
+ [../]
+
+ [./attenuCorrelationMC]
+  type = 'RavenFramework'
+  input = 'test_attenu_correlation_mc.xml'
+  csv = 'attenuCorrelationMC/csv_database.csv'
+ [../]
+ 
+ [./polyCorrelation]
+  type = 'RavenFramework'
+  input = 'test_poly_correlation.xml'
+  csv = 'polyCorrelation/csv_database.csv'
+  xml = 'polyCorrelation/stats_td1.xml'
+ [../]
+
+ [./polyCorrelationMC]
+  type = 'RavenFramework'
+  input = 'test_poly_correlation_mc.xml'
+  csv = 'polyCorrelationMC/csv_database.csv'
+ [../]
+
+ [./polyAnalyticalTest]
+  type = 'RavenFramework'
+  input = 'test_poly.xml'
+  csv = 'polynomial/csv_database.csv'
+  xml = 'polynomial/stats_td1.xml'
+ [../]
+
+ [./attenuationTest]
+  type = 'RavenFramework'
+  input = 'test_attenuation.xml'
+  csv = 'attenuation/csv_database.csv'
+  xml = 'attenuation/stats_td1.xml'
+ [../]
+
+[]

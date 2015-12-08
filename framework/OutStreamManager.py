@@ -473,8 +473,8 @@ class OutStreamPlot(OutStreamManager):
         if 'fontdict' not in self.options[key].keys(): self.options[key]['fontdict'] = 'None'
         else:
           try:
-            self.options[key]['fontdict'] = ast.literal_eval(self.options[key]['fontdict'])
-            self.options[key]['fontdict'] = str(self.options[key]['fontdict'])
+            tempVar = ast.literal_eval(self.options[key]['fontdict'])
+            self.options[key]['fontdict'] = str(tempVar)
           except AttributeError: self.raiseAnError(TypeError, 'In ' + key + ' tag: can not convert the string "' + self.options[key]['fontdict'] + '" to a dictionary! Check syntax for python function ast.literal_eval')
         if self.dim == 2 :
           self.plt.text(float(self.options[key]['position'].split(',')[0]), float(self.options[key]['position'].split(',')[1]), self.options[key]['text'], fontdict = ast.literal_eval(self.options[key]['fontdict']), **self.options[key].get('attributes', {}))
@@ -1485,7 +1485,7 @@ class OutStreamPrint(OutStreamManager):
         else: empty = False
         if not empty:
           try: self.sourceData[index].printCSV(dictOptions)
-          except AttributeError: self.raiseAnError(IOError, 'no implementation for source type ' + str(type(self.sourceData[index])) + ' and output type "csv"!')
+          except AttributeError as e: self.raiseAnError(IOError, 'no implementation for source type ' + str(type(self.sourceData[index])) + ' and output type "csv"!  Receieved error:',e)
       elif self.options['type'] == 'xml':
         if type(self.sourceData[index]) == DataObjects.Data: empty = self.sourceData[index].isItEmpty()
         else: empty = False

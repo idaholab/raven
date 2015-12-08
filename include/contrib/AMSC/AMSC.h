@@ -271,6 +271,22 @@ class AMSC
    */
   std::map< std::string, std::vector<int> > GetPartitions(T persistence);
 
+  /**
+   * Returns a map where the key represent a maximum and the value is a list of
+   * associated indices from the input data
+   * @param persistence floating point value that optionally simplifies the
+   *        topological decomposition before fetching the indices.
+   */
+  std::map< int, std::vector<int> > GetStableManifolds(T persistence);
+
+  /**
+   * Returns a map where the key represent a minimum and the value is a list of
+   * associated indices from the input data
+   * @param persistence floating point value that optionally simplifies the
+   *        topological decomposition before fetching the indices.
+   */
+  std::map< int, std::vector<int> > GetUnstableManifolds(T persistence);
+
 //  std::string ComputeLinearRegressions(T persistence);
 
  private:

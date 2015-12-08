@@ -514,8 +514,8 @@ class tBasicStatistics(unSupervisedLearning):
         else:        
           for tar in self.method.parameters['targets']:
             if whatc == 'percentile':
-              self.outputDict[tar + '-' + whatc + '_5'].append(outp[whatc + '_5%'][tar])
-              self.outputDict[tar + '-' + whatc + '_95'].append(outp[whatc + '_95%'][tar])
+              self.outputDict[tar + '-' + whatc + '_5'].append(outp[whatc + '_5'][tar])
+              self.outputDict[tar + '-' + whatc + '_95'].append(outp[whatc + '_95'][tar])
             else:
               self.outputDict[tar + '-' + whatc].append(outp[whatc][tar])
   

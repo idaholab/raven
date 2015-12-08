@@ -97,15 +97,15 @@
     </PointSet>
     <PointSet name="TPsolns">
       <Input>x1,x2</Input>
-      <Output>ans</Output>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="TDsolns">
       <Input>x1,x2</Input>
-      <Output>ans</Output>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="HCsolns">
       <Input>x1,x2</Input>
-      <Output>ans</Output>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
   </DataObjects>
 

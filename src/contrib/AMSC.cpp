@@ -139,6 +139,10 @@ void AMSC<T>::computeNeighborhood(std::vector<int> &edgeIndices,
   graphAlgorithms["approximate knn"]       = ngl::getKNNGraph<T>;
   graphAlgorithms["beta skeleton"]         = ngl::getBSkeleton<T>;
   graphAlgorithms["relaxed beta skeleton"] = ngl::getRelaxedBSkeleton<T>;
+  //As it turns out, NGL's KNN graph assumes the input data is a KNN and so, is
+  // actually just a pass through method that passes every input edge. We can
+  // leverage this to accept "none" graphs.
+  graphAlgorithms["none"]                  = ngl::getKNNGraph<T>;
 
   if(graphAlgorithms.find(type) == graphAlgorithms.end())
   {
@@ -1529,12 +1533,14 @@ std::map< std::string, std::vector<int> > AMSC<T>::GetPartitions(T persistence)
     int minIdx = MinLabel(i,minP);
     int maxIdx = MaxLabel(i,minP);
 
-    while(minHierarchy[minIdx].persistence < persistence)
+    while(minHierarchy[minIdx].persistence < persistence
+          && minIdx != minHierarchy[minIdx].parent)
     {
       minIdx = minHierarchy[minIdx].parent;
     }
 
-    while(maxHierarchy[maxIdx].persistence < persistence)
+    while(maxHierarchy[maxIdx].persistence < persistence
+          && maxIdx != maxHierarchy[maxIdx].parent)
     {
       maxIdx = maxHierarchy[maxIdx].parent;
     }
@@ -1550,6 +1556,68 @@ std::map< std::string, std::vector<int> > AMSC<T>::GetPartitions(T persistence)
 
     if(i != minIdx && i != maxIdx)
       partitions[label].push_back(i);
+  }
+
+  return partitions;
+}
+
+template<typename T>
+std::map< int, std::vector<int> > AMSC<T>::GetStableManifolds(T persistence)
+{
+  T minP = SortedPersistences()[0];
+
+  std::map< int, std::vector<int> > partitions;
+  for(int i = 0; i < Size(); i++)
+  {
+    int minIdx = MinLabel(i,minP);
+    int maxIdx = MaxLabel(i,minP);
+
+    while(maxHierarchy[maxIdx].persistence < persistence
+          && maxIdx != maxHierarchy[maxIdx].parent)
+    {
+      maxIdx = maxHierarchy[maxIdx].parent;
+    }
+    if( partitions.find(maxIdx) == partitions.end())
+    {
+      partitions[maxIdx] = std::vector<int>();
+      partitions[maxIdx].push_back(minIdx);
+      partitions[maxIdx].push_back(maxIdx);
+    }
+
+    if(i != minIdx && i != maxIdx)
+      partitions[maxIdx].push_back(i);
+  }
+
+  return partitions;
+}
+
+template<typename T>
+std::map< int, std::vector<int> > AMSC<T>::GetUnstableManifolds(T persistence)
+{
+  T minP = SortedPersistences()[0];
+
+  std::map< int, std::vector<int> > partitions;
+  for(int i = 0; i < Size(); i++)
+  {
+    std::stringstream stream;
+    int minIdx = MinLabel(i,minP);
+    int maxIdx = MaxLabel(i,minP);
+
+    while(minHierarchy[minIdx].persistence < persistence
+          && minIdx != minHierarchy[minIdx].parent)
+    {
+      minIdx = minHierarchy[minIdx].parent;
+    }
+
+    if( partitions.find(minIdx) == partitions.end())
+    {
+      partitions[minIdx] = std::vector<int>();
+      partitions[minIdx].push_back(minIdx);
+      partitions[minIdx].push_back(maxIdx);
+    }
+
+    if(i != minIdx && i != maxIdx)
+      partitions[minIdx].push_back(i);
   }
 
   return partitions;

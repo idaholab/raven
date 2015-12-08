@@ -1,0 +1,165 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>t_rom</WorkingDir>
+    <Sequence>model_MRun,test_rom_trainer,ROM_MRun,plot_data</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>True</internalParallel>
+  </RunInfo>
+
+  <Files>
+    <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="model_MRun">
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Output class="DataObjects" type="HistorySet">HistorySet_model</Output>
+      <Output class="OutStreamManager" type="Print">PrintHistorySet_model</Output>
+    </MultiRun>
+    <MultiRun name="ROM_MRun">
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ROM">t_ROM</Model>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Output class="DataObjects" type="HistorySet">HistorySet_ROM</Output>
+      <Output class="OutStreamManager" type="Print">PrintHistorySet_rom</Output>
+    </MultiRun>
+    <IOStep name="plot_data">
+      <Input class="DataObjects" type="HistorySet">HistorySet_model</Input>
+      <Input class="DataObjects" type="HistorySet">HistorySet_ROM</Input>
+      <Output class="OutStreamManager" type="Plot">plot_ROM</Output>
+      <Output class="OutStreamManager" type="Plot">plot_model</Output>
+    </IOStep>
+    <RomTrainer name="test_rom_trainer" verbosity="debug">
+      <Input class="DataObjects" type="HistorySet">HistorySet_model</Input>
+      <Output class="Models" type="ROM">t_ROM</Output>
+    </RomTrainer>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="externalModel/lorentzAttractor" name="PythonModule" subType="">
+      <variable>sigma</variable>
+      <variable>rho</variable>
+      <variable>beta</variable>
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>z</variable>
+      <variable>time</variable>
+      <variable>x0</variable>
+      <variable>y0</variable>
+      <variable>z0</variable>
+    </ExternalModel>
+    <ROM name="t_ROM" subType="NDinvDistWeight">
+      <Features>x0,y0,z0</Features>
+      <Target>time,x,y,z</Target>
+      <p>3</p>
+    </ROM>
+  </Models>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+        <grid construction="custom" type="value">0.2 0.6</grid>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+        <grid construction="custom" type="value">0.5 0.2</grid>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+        <grid construction="custom" type="value">0.5 0.2</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreamManager>
+    <Print name="PrintHistorySet_model">
+      <type>csv</type>
+      <source>HistorySet_model</source>
+    </Print>
+    <Print name="PrintHistorySet_rom">
+      <type>csv</type>
+      <source>HistorySet_ROM</source>
+    </Print>
+    <Plot dim="3" name="plot_model" overwrite="False">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>HistorySet_model|Output|time</x>
+          <y>HistorySet_model|Output|x</y>
+          <z>HistorySet_model|Output|y</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+        <title>
+          <text>Sampled Input Space: Model</text>
+        </title>
+        <camera>
+          <elevation>34</elevation>
+          <azimuth>22</azimuth>
+        </camera>
+      </actions>
+    </Plot>
+    <Plot dim="3" name="plot_ROM" overwrite="False">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>HistorySet_ROM|Output|time</x>
+          <y>HistorySet_ROM|Output|x</y>
+          <z>HistorySet_ROM|Output|y</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+        <title>
+          <text>Sampled Input Space: ROM</text>
+        </title>
+        <camera>
+          <elevation>34</elevation>
+          <azimuth>22</azimuth>
+        </camera>
+      </actions>
+    </Plot>
+  </OutStreamManager>
+
+  <DataObjects>
+    <Point name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </Point>
+    <HistorySet name="HistorySet_model">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="HistorySet_ROM">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

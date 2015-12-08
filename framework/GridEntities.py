@@ -370,7 +370,7 @@ class GridEntity(GridBase):
                                                                  self.gridContainer['bounds']["upperBounds" ][varName],
                                                                  stepLength[varId][-1])
         else:
-          # DM: Enhancing readability of this conditional by using local
+          # maljdan: Enhancing readability of this conditional by using local
           # variables. This portion of the conditional is for evenly-spaced
           # grid cells. In the call to np.arange, if the one was to use ub as
           # the upper bound argument, then you are allowing room for round-off
@@ -831,10 +831,9 @@ class MultiGridEntity(GridBase):
                                          ex. {'dimName1':[methodToTransformCoordinate,*args]}
     @ Out, tuple or dict, coordinate, tuple containing the coordinates
     """
-    try:
-      multiDimNDIndex[0]/1
+    if isinstance(multiDimNDIndex[0], Number):
       level, multiDimIndex = self.multiGridIterator[0], multiDimNDIndex
-    except TypeError:
+    else:
       level, multiDimIndex = multiDimNDIndex[0], multiDimNDIndex[1]
     node = self.grid.find(self.mappingLevelName[level])
     return node.get('grid').returnCoordinateFromIndex(multiDimIndex, returnDict, recastMethods)
