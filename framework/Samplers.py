@@ -3479,7 +3479,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #create the index set
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance('AdaptiveSet',self)
-    #self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
     self.indexSet.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
     for pt in self.indexSet.active:
       self.inTraining.add(pt)
@@ -3712,7 +3711,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #initialize final rom with final sparse grid and index set
     for target,SVL in rom.SupervisedEngine.items():
       SVL.initialize({'SG':self.sparseGrid,
-                      #'dists':self.distDict,
                       'dists':self.dists,
                       'quads':self.quadDict,
                       'polys':self.polyDict,
@@ -3770,7 +3768,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     rom.messageHandler  = self.messageHandler
     for svl in rom.SupervisedEngine.values():
       svl.initialize({'SG'   :sg,
-                      #'dists':self.distDict,
                       'dists':self.dists,
                       'quads':self.quadDict,
                       'polys':self.polyDict,
@@ -3789,11 +3786,9 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
     sparseGrid = Quadratures.SparseQuad()
     iset = IndexSets.returnInstance('Custom',self)
-    #iset.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
     iset.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
     iset.addPoints(points)
-    #sparseGrid.initialize(self.features,iset,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
     sparseGrid.initialize(self.features,iset,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
     return sparseGrid
 
