@@ -465,8 +465,7 @@ class tBasicStatistics(unSupervisedLearning):
 #     self.raiseADebug(self.parameters['targets'])
 #     self.raiseADebug(self.biased)
 #     self.raiseADebug(self.method.what)
-    inp = DataObjects.returnInstance('PointSet', self)
-    
+        
     if 'Time' in Input.getParam('output',1).keys(): Time = Input.getParam('output',1)['Time']
     else: self.raiseAnError(ValueError, 'Time not found in input historyset')
         
@@ -493,15 +492,16 @@ class tBasicStatistics(unSupervisedLearning):
 #     self.raiseADebug(InputV['v'][-1,:])
 #     self.raiseADebug(InputV['impact'][-1,:])
 #     self.raiseAnError(IOError,'testing')
+    inp = DataObjects.returnInstance('PointSet', self)
     for tStep in range(noTimeStep):    
+      inp.__init__()
       for tar in self.method.parameters['targets']:
         for cnt, keyH in enumerate(historyKey):
           inp.updateOutputValue(tar, InputV[tar][tStep,cnt])
 #         self.raiseADebug(inp.getParam('output',tar))
-      if tStep == noTimeStep-1:
         self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-        self.raiseADebug(inp.getParam('output','v'))
-        self.raiseAnError(IOError,'testing')
+        self.raiseADebug(len(inp.getParam('output','v')))
+#         self.raiseAnError(IOError,'testing')
         
       outp = self.method.run(inp) 
       
