@@ -284,8 +284,9 @@
                     <xsd:attribute name="persistence"    type="xsd:integer"/>
                 </xsd:complexType>
             </xsd:element>
-            <xsd:element name="convergenceStudy" type="convergenceStudyType"/>
+            <xsd:element name="convergenceStudy" type="convergenceStudyType" minOccurs="0"/>
             <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
             <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>

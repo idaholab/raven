@@ -1,0 +1,103 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>Adaptive</WorkingDir>
+    <Sequence>make,train,print,print2</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="make" verbosity="silent" sleepTime='1e-4'>
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="AdaptiveSparseGrid">SG</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </MultiRun>
+    <IOStep name="print" verbosity="silent">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreamManager" type="Print">dump</Output>
+    </IOStep>
+    <IOStep name="print2" verbosity="silent">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="OutStreamManager" type="Print">data</Output>
+    </IOStep>
+    <RomTrainer name="train" verbosity="silent">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+  </Steps>
+  
+  <Distributions>
+    <MultivariateNormal name='MVNDist' method='pca'>
+        <transformation>
+            <rank>2</rank>
+        </transformation>
+        <mu>0.5 -0.4</mu>
+        <covariance type="abs">
+            0.64 0 
+            0    0.49
+        </covariance>
+    </MultivariateNormal>
+  </Distributions>
+
+  <Samplers>
+    <AdaptiveSparseGrid name="SG" verbosity="debug">
+      <Convergence target="variance">1e-4</Convergence>
+      <variable name="y1">
+        <distribution dim="1">MVNDist</distribution>
+      </variable>
+      <variable name="y2">
+        <distribution dim="2">MVNDist</distribution>
+      </variable>
+      <variablesTransformation model="polynomial">
+        <latentVariables>y1,y2</latentVariables>
+        <manifestVariables>x1,x2</manifestVariables>
+        <method>pca</method>
+      </variablesTransformation>
+      <ROM class="Models" type="ROM">rom</ROM>
+      <TargetEvaluation class="DataObjects" type="PointSet">solns</TargetEvaluation>
+    </AdaptiveSparseGrid>
+  </Samplers>
+
+
+  <Models>
+    <Dummy name="MyDummy" print="true" subType=""/>
+    <ExternalModel ModuleToLoad="polynomial" name="poly" subType="" verbosity="silent">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>ans</variable>
+      <variable>ans2</variable>
+    </ExternalModel>
+    <ROM name="rom" subType="GaussPolynomialRom" verbosity="silent">
+      <Target>ans,ans2</Target>
+      <Features>y1,y2</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>4</PolynomialOrder>
+    </ROM>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="solns">
+      <Input>x1,x2,y1,y2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="dump" verbosity="silent">
+      <type>xml</type>
+      <source>rom</source>
+      <what>all</what>
+      <target>all</target>
+    </Print>
+    <Print name="data" verbosity="silent">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+  </OutStreamManager>
+
+</Simulation>

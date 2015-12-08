@@ -3360,7 +3360,7 @@ class SparseGridCollocation(Grid):
         for v,varName in enumerate(self.sparseGrid.varNames):
           if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
             self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
-            self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
         self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['ProbabilityWeight'] = weight
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
@@ -3479,7 +3479,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #create the index set
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance('AdaptiveSet',self)
-    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+    self.indexSet.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
     for pt in self.indexSet.active:
       self.inTraining.add(pt)
       for t in self.targets:
@@ -3588,13 +3588,36 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, model, Model, unused
       @ In, myInput, list(str), unused
     """
+    # compute the maxDim in the given distribution
+    for key in self.variables2distributionsMapping.keys():
+      dist = self.variables2distributionsMapping[key]['name']
+      maxDim = 1
+      listvar = self.distributions2variablesMapping[dist]
+      for var in listvar:
+        if utils.first(var.values()) > maxDim:
+           maxDim = utils.first(var.values())
+    if maxDim > 1: NDcoordinates = [0]*maxDim
+
     pt = self.neededPoints.pop()
     self.submittedNotCollected.append(pt)
     for v,varName in enumerate(self.sparseGrid.varNames):
-      self.values[varName] = pt[v]
-      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-      self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
-    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+      # compute the SampledVarsPb for 1-D distribution
+      if self.variables2distributionsMapping[varName]['totDim'] == 1:
+        for key in varName.strip().split(','):
+          self.values[key] = pt[v]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+        # compute the SampledVarsPb for N-D distribution
+        # Assume only one N-D distribution is associated with sparse grid collocation method
+      elif self.variables2distributionsMapping[varName]['totDim'] > 1:
+        for key in varName.strip().split(','):
+          self.values[key] = pt[v]
+        NDcoordinates[self.variables2distributionsMapping[varName]['dim']-1] = pt[v]
+    for v,varName in enumerate(self.sparseGrid.varNames):
+      if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
@@ -3688,7 +3711,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #initialize final rom with final sparse grid and index set
     for target,SVL in rom.SupervisedEngine.items():
       SVL.initialize({'SG':self.sparseGrid,
-                      'dists':self.distDict,
+                      'dists':self.dists,
                       'quads':self.quadDict,
                       'polys':self.polyDict,
                       'iSet':self.indexSet,
@@ -3745,7 +3768,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     rom.messageHandler  = self.messageHandler
     for svl in rom.SupervisedEngine.values():
       svl.initialize({'SG'   :sg,
-                      'dists':self.distDict,
+                      'dists':self.dists,
                       'quads':self.quadDict,
                       'polys':self.polyDict,
                       'iSet' :iset
@@ -3763,10 +3786,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
     sparseGrid = Quadratures.SparseQuad()
     iset = IndexSets.returnInstance('Custom',self)
-    iset.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+    iset.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
     iset.addPoints(points)
-    sparseGrid.initialize(self.features,iset,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
+    sparseGrid.initialize(self.features,iset,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
     return sparseGrid
 
   def _printToLog(self):
