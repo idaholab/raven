@@ -1,0 +1,90 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{amscd}
+\usepackage{amsfonts}
+\usepackage{graphicx}%
+\usepackage{fancyhdr}
+\usepackage{color}
+\usepackage{cite}
+
+%\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{authblk}
+\usepackage{physics}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{fullpage}
+\newcommand{\expv}[1]{\ensuremath{\mathbb{E}[ #1]}}
+\newcommand{\xs}[2]{\ensuremath{\Sigma_{#1}^{(#2)}}}
+\newcommand{\intO}{\ensuremath{\int\limits_{4\pi}}}
+\newcommand{\intnp}{\ensuremath{\int\limits_{-1}^1}}
+\newcommand{\intab}[1]{\ensuremath{\int\limits_{a_{#1}}^{b_#1}}}
+\newcommand{\intz}{\ensuremath{\int\limits_0^1}}
+\newcommand{\intf}{\ensuremath{\int\limits_{-\infty}^\infty}}
+\newcommand{\intzf}{\ensuremath{\int\limits_{0}^\infty}}
+\newcommand{\LargerCdot}{\raisebox{-0.25ex}{\scalebox{1.2}{$\cdot$}}}
+
+\textwidth6.6in
+\textheight9in
+
+
+\setlength{\topmargin}{0.3in} \addtolength{\topmargin}{-\headheight}
+\addtolength{\topmargin}{-\headsep}
+
+\setlength{\oddsidemargin}{0in}
+
+\oddsidemargin  0.0in \evensidemargin 0.0in \parindent0em
+
+%\pagestyle{fancy}\lhead{MATH 579 (UQ for PDEs)} \rhead{02/24/2014}
+%\chead{Project Proposal} \lfoot{} \rfoot{\bf \thepage} \cfoot{}
+
+
+\begin{document}
+
+\title{1D Attenuation Case}
+
+\author[]{Paul Talbot\thanks{talbotp@unm.edu}}
+\date{}
+\renewcommand\Authands{ and }
+\maketitle
+
+Attenuation evaluation for quantity of interest $u$ with input parameters $Y=[y_1,\ldots,y_N]$:
+\begin{equation}
+u(Y) = \prod_{n=1}^N e^{-y_n/N}.
+\end{equation}
+This is the solution to the exit strength of a monodirectional, single-energy beam of neutral particles incident on a unit length material divided into $N$ sections with independently-varying absorption cross sections.  This test is useful for its analytic statistical moments as well as difficulty to represent accurately using polynomial representations.
+
+\section{Uniform}
+Let all $y_n$ be uniformly distributed between 0 and 1.  The first two statistical moments are:
+\subsection{mean}
+\begin{align}
+\expv{u(Y)} &=\int_{0}^1 dY \rho(Y)u(Y),\\
+  &=\int_{0}^1 dy_1\cdots\int_{0}^1 dy_N \prod_{n=1}^N \frac{e^{-y_n/N}}{2},\\
+  &=\left[ \int_{0}^1 dy \frac{1}{2}e^{-y/N}\right]^N,\\
+  &=\left[\frac{1}{2}\left(-Ne^{-y/N}\right)\bigg|_0^1\right]^N,\\
+  &=\left[\frac{N}{2}\left(1-e^{-1/N}\right)\right]^N.
+\end{align}
+\subsection{variance}
+\begin{align}
+\expv{u(Y)^2} &= \int_{0}^1 dY \rho(Y)u(Y),\\
+  &=\int_{0}^1 dy_1\cdots\int_{0}^1 dy_N \frac{1}{2^N} \left(\prod_{n=1}^N e^{-y_n/N}\right)^2,\\
+  &=\left[\frac{1}{2}\left(\int_{0}^1 dy\ e^{-2y/N} \right)\right]^N,\\
+  &=\left[\frac{1}{2}\left(\frac{N}{2}e^{-2y/N} \right)\bigg|_{0}^1 \right]^N,\\
+  &=\left[\frac{N}{4}\left(1-e^{-2/N}\right)\right]^N.\\
+\text{var}[u(Y)] &= \expv{u(Y)^2}-\expv{u(Y)}^2,\\
+  &= \left[\frac{N}{4}\left(1-e^{-2/N}\right)\right]^N - \left[\frac{N}{2}\left(1-e^{-1/N}\right)\right]^{2N}.
+\end{align}
+\subsection{values}
+\begin{table}[H]
+\centering
+\begin{tabular}{c|c|c}
+$N$ & mean & variance \\ \hline
+3  & 0.076875696691760276135 & 0.042692141294802908114\\
+5  & 0.019112640711428062993 & 0.011520078695574176371\\
+10 & 0.000594788019229837393 & 0.000364939262176318060\\
+\end{tabular}
+\end{table}
+\end{document}
