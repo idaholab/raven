@@ -20,6 +20,7 @@ unSuperVisedLearning: Include other algorithms, such as:
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
+from test.test_heapq import LenOnly
 warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -33,6 +34,8 @@ import abc
 #Internal Modules------------------------------------------------------------------------------------
 import utils
 import MessageHandler
+import PostProcessors #import returnFilterInterface
+import DataObjects
 #Internal Modules End--------------------------------------------------------------------------------
 
 class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
@@ -430,11 +433,106 @@ class SciKitLearn(unSupervisedLearning):
 #
 
 class tBasicStatistics(unSupervisedLearning):
-  
+  def __init__(self, messageHandler, **kwargs):
+    """
+    constructor for SciKitLearn class.
+    @ In: messageHandler, Message handler object
+    @ In: kwargs, arguments for the SciKitLearn algorithm
+    """
+    unSupervisedLearning.__init__(self, messageHandler, **kwargs)
+    self.printTag = 'BASICSTATISTICS-TIME'
+      
+    self.what = self.initOptionDict.get('what', 'all')
+    self.parameters = {}
+    self.parameters['targets'] = self.initOptionDict.get('parameters',[])
+    self.methodsToRun = self.initOptionDict.get('methodsToRun',[])
+    self.biased = self.initOptionDict.get('biased',False)
+    self.method = PostProcessors.returnInstance('BasicStatistics',self)
+    if self.what == 'all': self.method.what = self.method.acceptedCalcParam
+    else:
+      for whatc in self.what.split(','):
+            if whatc not in self.method.acceptedCalcParam: self.raiseAnError(IOError, 'TDM-BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.acceptedCalcParam))
+      self.method.what = self.what.split(',')
+    if self.parameters['targets']: self.method.parameters['targets'] = self.parameters['targets'].split(',')
+    if self.methodsToRun: self.method.methodsToRun = self.methodsToRun.split(',')
+    self.method.biased = self.biased
+    assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
+    self.outputDict = {}
+    
+  def run(self, Input):
+    self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+#     self.raiseADebug(self.what)
+#     self.raiseADebug(self.parameters['targets'])
+#     self.raiseADebug(self.biased)
+#     self.raiseADebug(self.method.what)
+    inp = DataObjects.returnInstance('PointSet', self)
+    output = DataObjects.returnInstance('History', self)
+    
+    if 'Time' in Input.getParam('output',1).keys(): Time = Input.getParam('output',1)['Time']
+    else: self.raiseAnError(ValueError, 'Time not found in input historyset')
+        
+    historyKey = Input.getOutParametersValues().keys()
+    noHistory = len(historyKey)
+    noTimeStep = len(Time)
+    
+    self.outputDict['Time'] = Time
+    for tar in self.method.parameters['targets']:
+      for whatc in self.method.what:
+        if whatc == 'percentile':
+          self.outputDict[tar + '-' + whatc + '_5%'] = []
+          self.outputDict[tar + '-' + whatc + '_95%'] = []
+        else:
+          self.outputDict[tar + '-' + whatc] = []
+    
+    InputV = {}
+    for tar in self.method.parameters['targets']:
+      InputV[tar] = np.zeros(shape=(noTimeStep,noHistory))
+      for cnt, keyH in enumerate(historyKey):
+        InputV[tar][:,cnt] = Input.getParam('output',keyH)[tar]
+    
+    for tStep in [0,1,2,3,4]: #range(noTimeStep):    
+      for tar in self.method.parameters['targets']:
+        for cnt, keyH in enumerate(historyKey):
+          inp.updateOutputValue(tar, InputV[tar][tStep,cnt])
+        self.raiseADebug(inp.getParam('output',tar))
+        
+      outp = self.method.run(inp) 
+      
+      for tar in self.method.parameters['targets']:
+        for whatc in self.method.what:
+          if whatc == 'percentile':
+            self.outputDict[tar + '-' + whatc + '_5%'].append(outp[whatc + '_5%'][tar])
+            self.outputDict[tar + '-' + whatc + '_95%'].append(outp[whatc + '_95%'][tar])
+          else:
+            self.outputDict['-'.join([tar,whatc])].append(outp[whatc][tar])
+    
+    for keyP in self.outputDict.keys():
+      output.updateOutputValue(keyP, self.outputDict[keyP])
+    
+    self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+    self.raiseADebug(output.getParam('output','v-expectedValue'))  
+      
+    return output
+#     self.raiseADebug(self.outputDict.keys())
+#     self.raiseADebug(output.getParaKeys('output'))
+#     self.raiseADebug(InputV['v'].shape)
+#     self.raiseADebug(Input.getParaKeys('input'))
+#     self.raiseADebug(Input.getParaKeys('output'))
+#     self.raiseADebug(Input.getParam('output',1).keys())
+    
+  def __trainLocal__(self):
+    pass
+    
+  def __evaluateLocal__(self, featureVals):
+    pass
+
+  def __confidenceLocal__(self):
+    pass
+    
 
 __interfaceDict = {}
 __interfaceDict['SciKitLearn'] = SciKitLearn
-__interfacEDict['BasicStatistics'] = tBasicStatistics
+__interfaceDict['BasicStatistics'] = tBasicStatistics
 __base = 'unSuperVisedLearning'
 
 def returnInstance(modelClass, caller, **kwargs):

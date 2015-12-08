@@ -2494,8 +2494,14 @@ class DataMining(BasePostProcessor):
                         to the post-processor
       @ Out, inputdict, dict, An input dictionary this object can process
     """
+    
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
+    
+    if self.type in ['BasicStatistics']: # for testing time dependent dm - BasicStatistics
+      return currentInput
+    
+    
     if type(currentInp) == dict:
       if 'Features' in currentInput.keys(): return
     inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
@@ -2648,8 +2654,15 @@ class DataMining(BasePostProcessor):
                 dataObject.updateOutputValue(self.name+'PCAComponent' + str(i + 1), components[val, i])
      
     elif self.type in ['BasicStatistics']:
-      pass            
-                
+      dataObject = self.unSupervisedEngine.run(Input)  
+      if len(self.dataObjects) is not 0:
+        if type(self.dataObjects) == list: self.dataObjects[-1] = dataObject 
+        else                             : self.dataObjects = dataObject 
+      
+      self.raiseADebug('$$$$$$$$$$$$$$$$$&&&&&&&&&&&&&&')
+      self.raiseADebug(dataObject.getParaKeys('output'))         
+#       self.raiseADebug(self.dataObjects[-1].getParaKeys('output'))  
+      self.raiseADebug(dataObject.getParam('output','v-expectedValue'))  
                 
     return self.unSupervisedEngine.outputDict
 
