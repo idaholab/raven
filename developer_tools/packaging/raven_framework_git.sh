@@ -46,6 +46,9 @@ cd crow
 git checkout $CROW_REV -- .
 
 cd $MAIN_DIR/raven/
+# Copy these because run_tests sometimes finds the crow tests.
+cp crow/scripts/TestHarness/testers/* scripts/TestHarness/testers/
+
 git clone --shared --no-checkout $PULL_DIRECTORY/moose
 cd moose
 git checkout $MOOSE_REV -- framework/scripts

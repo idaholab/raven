@@ -2297,7 +2297,7 @@ algorithm fails for the model $f(x)=x\cdot y$.
 \end{itemize}
 
 In addition to the \xmlNode{variable} nodes, the main XML node
-\xmlNode{Adaptive Sparse Grid} needs to contain two supplementary sub-nodes:
+\xmlNode{AdaptiveSparseGrid} needs to contain the following supplementary sub-nodes:
 
 \begin{itemize}
   \item \xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence
@@ -2306,11 +2306,10 @@ In addition to the \xmlNode{variable} nodes, the main XML node
     The meaning of this tolerance depends on the \xmlAttr{target} attribute of this node.
     \begin{itemize}
       \item \xmlAttr{target}, \xmlDesc{required string attribute}, the metric for convergence.
-        Currently there are three metrics.  In order of strictness: \xmlString{mean}, which converges the sparse
-        quadrature integration of the first moment of the model; \xmlString{variance}, which
-        converges the sparse quadrature integration of the second moment of the model; and
-        \xmlString{coeffs}, which integrates the L2 norm of the coefficients of the polynomial
-        moments from a GaussPolynomialRom construction using the sparse grid.
+        The following metrics are available: \xmlString{variance}, which
+        converges the sparse quadrature integration of the second moment of the model.%; and
+        %\xmlString{coeffs}, which integrates the L2 norm of the coefficients of the polynomial
+        %moments from a GaussPolynomialRom construction using the sparse grid.
         %
       \item \xmlAttr{maxPolyOrder}, \xmlDesc{optional integer attribute},
         limits the maximum size equivalent polynomial for any one dimension.
@@ -2324,6 +2323,32 @@ In addition to the \xmlNode{variable} nodes, the main XML node
     \end{itemize}
     In summary, this XML node contains the information that is needed in order
     to control this sampler's convergence criterion.
+  \item \xmlNode{convergenceStudy}, \xmlDesc{optional node},
+    if included, triggers writing state points at particular numbers of model solves for the purpose of
+    a convergence study.  The study is performed by writing XML output files as described in the
+    OutStreamManager for ROMs at the state points requested, using \xmlString{all} as the requested
+    \xmlNode{what} values.
+    The state points are identified when a certain
+    number of model runs is passed, as specified by the \xmlNode{runStatePoints} node.
+    This node has the following sub-nodes to define its parameters:
+    \begin{itemize}
+      \item \xmlNode{runStatePoints}, \xmlDesc{list of integers, required node},
+        lists the number of model runs at which state points should be written. Note that these will be
+        written when the requested number of runs is met or passed, so the actual value is often somewhat more
+        than the requested value, and the exact value will be listed in the XML output.
+      \item \xmlNode{baseFilename}, \xmlDesc{string, optional node},
+        if specified determines the base file name for the state point outputs.  If not specified, defaults to
+        \xmlString{out\_}.
+    \end{itemize}
+  \item \xmlNode{logFile}, \xmlDesc{optional node},
+    if included, the log file onto which the adaptive step progress can be printed.  The log includes the
+    values of included polynomial coefficients as well as the expected impacts of polynomial coefficients not
+    yet included.  This is different from
+    the convergenceStudy print, which will give statistical moments at certain steps.
+  \item \xmlNode{maxRuns}, \xmlDesc{optional node},
+    if included, the adaptive sampler will track the number of computational solves necessary to construct the
+    associated GaussPolynomialROM.  If at any point the number of solves exceeds the value given, it will not
+    initiate any additional solves, and will exit when existing solves finish.
 \end{itemize}
   % Adaptive Sparse Grid Objects
   %\assemblerDescription{Adaptive Sparse Grid}

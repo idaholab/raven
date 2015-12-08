@@ -1562,11 +1562,28 @@ class MultivariateNormal(NDimensionalDistributions):
     elif self.method == 'pca':
       self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
 
+  def transformationMatrix(self):
+    """
+      Return the transformation matrix from Crow
+      @ In, None
+      @ Out, L, array, the transformation matrix
+    """
+    if self.method == 'spline':
+      self.raiseAnError(NotImplementedError,' transformationMatrix is not yet implemented for ' + self.method + ' method')
+    elif self.method == 'pca':
+      matrixDim = self._distribution.getTransformationMatrixDimensions()
+      row = matrixDim[0]
+      column = matrixDim[1]
+      transformation = self._distribution.getTransformationMatrix()
+      # convert 1D vector to 2D array
+      L = np.atleast_1d(transformation).reshape(row,column)
+      return L
+
   def pcaInverseTransform(self,x):
     """
-    Transform latent parameters back to models' parameters
-    @ x, input coordinate, list values for the latent variables
-    @ return the values of manifest variables with type of list
+      Transform latent parameters back to models' parameters
+      @ In, x, list, input coordinate, list values for the latent variables
+      @ Out, values, list, return the values of manifest variables with type of list
     """
     if self.method == 'spline':
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
