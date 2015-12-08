@@ -451,7 +451,8 @@ class tBasicStatistics(unSupervisedLearning):
     if self.what == 'all': self.method.what = self.method.acceptedCalcParam
     else:
       for whatc in self.what.split(','):
-            if whatc not in self.method.acceptedCalcParam: self.raiseAnError(IOError, 'TDM-BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.method.acceptedCalcParam))
+            if whatc not in self.method.acceptedCalcParam: 
+              if whatc.split("_")[0] != 'percentile': self.raiseAnError(IOError, 'TDM-BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.method.acceptedCalcParam))
       self.method.what = self.what.split(',')
     if self.parameters['targets']: self.method.parameters['targets'] = self.parameters['targets'].split(',')
     if self.methodsToRun: self.method.methodsToRun = self.methodsToRun.split(',')
@@ -476,10 +477,13 @@ class tBasicStatistics(unSupervisedLearning):
       if whatc in whatThatReturnsMatrix:
         self.outputDict['metadata']['targets|' + whatc]=[]
       else:
-        for tar in self.method.parameters['targets']:
-          if whatc == 'percentile':
-            self.outputDict[tar + '-' + whatc + '_5'] = []
-            self.outputDict[tar + '-' + whatc + '_95'] = []
+        for tar in self.method.parameters['targets']:         
+          if whatc.split("_")[0] == 'percentile':
+            if "_" not in whatc: 
+              self.outputDict[tar + '-' + whatc + '_5'] = []
+              self.outputDict[tar + '-' + whatc + '_95'] = []
+            else:
+              self.outputDict[tar + '-' + whatc.replace('%','')] = []
           else:
             self.outputDict[tar + '-' + whatc] = []
     
@@ -513,9 +517,12 @@ class tBasicStatistics(unSupervisedLearning):
 #           self.outputDict['metadata']['targets|' + whatc][Time[tStep]]=outp[whatc]
         else:        
           for tar in self.method.parameters['targets']:
-            if whatc == 'percentile':
-              self.outputDict[tar + '-' + whatc + '_5'].append(outp[whatc + '_5'][tar])
-              self.outputDict[tar + '-' + whatc + '_95'].append(outp[whatc + '_95'][tar])
+            if whatc.split("_")[0] == 'percentile':
+              if "_" not in whatc: 
+                self.outputDict[tar + '-' + whatc + '_5'].append(outp[whatc + '_5'][tar])
+                self.outputDict[tar + '-' + whatc + '_95'].append(outp[whatc + '_95'][tar])
+              else:
+                self.outputDict[tar + '-' + whatc.replace('%','')].append(outp[whatc.replace('%','')][tar])
             else:
               self.outputDict[tar + '-' + whatc].append(outp[whatc][tar])
   
