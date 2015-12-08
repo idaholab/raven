@@ -35,7 +35,7 @@
 
   <Samplers>
     <AdaptiveSparseGrid name="sc">
-      <Convergence target="variance">1.0e-4</Convergence>
+      <Convergence target="variance">1.0e-2</Convergence>
       <variable name="y1">
         <distribution dim="1">MVNDist</distribution>
       </variable>

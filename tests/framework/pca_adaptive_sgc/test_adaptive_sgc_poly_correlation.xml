@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>polyCorrelation</WorkingDir>
-    <batchSize>1</batchSize>
+    <batchSize>4</batchSize>
     <Sequence>sample,train,print,stats</Sequence>
   </RunInfo>
 
@@ -35,7 +35,7 @@
 
   <Samplers>
     <AdaptiveSparseGrid name="asgc">
-      <Convergence target="variance">1.0e-4</Convergence>
+      <Convergence target="variance">1.0e-2</Convergence>
       <variable name="y1">
         <distribution dim="1">MVNDist</distribution>
       </variable>

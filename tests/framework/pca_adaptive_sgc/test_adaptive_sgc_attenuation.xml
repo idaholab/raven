@@ -35,7 +35,7 @@
 
   <Samplers>
     <AdaptiveSparseGrid name="asgc">
-      <Convergence target="variance">1.0e-8</Convergence>  
+      <Convergence target="variance">1.0e-2</Convergence>  
       <variable name="y1">
         <distribution dim="1">MVNDist</distribution>
       </variable>
@@ -74,7 +74,7 @@
       <Target>ans</Target>
       <Features>y1,y2,y3,y4,y5</Features>
       <IndexSet>TotalDegree</IndexSet>
-      <PolynomialOrder>5</PolynomialOrder>
+      <PolynomialOrder>3</PolynomialOrder>
     </ROM>
   </Models>
 
