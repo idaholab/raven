@@ -2792,7 +2792,10 @@ class DataMining(BasePostProcessor):
               dataObject.removeOutputValue(self.name+'PCAComponent' + str(i + 1))
               for val in range(len(components[:, i])):
                 dataObject.updateOutputValue(self.name+'PCAComponent' + str(i + 1), components[val, i])
-     
+    
+    # FIXME, time dependent BasisStatistics is now a library of KDD, and the codes are placed 
+    #        in the unSupervisedLearning module. 
+    #        Make changes if necessary. 
     elif self.type in ['BasicStatistics']:
       self.unSupervisedEngine.run(Input)    
       for keyP in self.unSupervisedEngine.outputDict.keys():

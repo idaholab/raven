@@ -432,6 +432,8 @@ class SciKitLearn(unSupervisedLearning):
 #
 #
 
+# FIXME, time dependent BasisStatistics is now a library of KDD. 
+#        Make changes if necessary. 
 class tBasicStatistics(unSupervisedLearning):
   def __init__(self, messageHandler, **kwargs):
     """
