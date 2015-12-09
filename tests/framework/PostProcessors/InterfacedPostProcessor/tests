@@ -1,0 +1,8 @@
+[Tests]
+  [./interfacedPostProcessor]
+    type   = 'RavenFramework'
+    input  = 'test_interfacedPP.xml'
+    csv    = 'externalPostProcessor/myDump.csv'
+    output = 'externalPostProcessor/myDump.xml'
+  [../]
+[]
