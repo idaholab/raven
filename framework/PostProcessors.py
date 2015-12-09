@@ -868,10 +868,11 @@ class InterfacedPostProcessor(BasePostProcessor):
     for child in xmlNode:
       if child.tag == 'method':
         self.methodToRun = child.text
-    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.subType,self)
+    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
   
   def run(self, InputIn):
-    return
+    outputDict = self.postProcessor.run(InputIn)
+    return outputDict
   
   def collectOutput(self, finishedjob, output):
     return

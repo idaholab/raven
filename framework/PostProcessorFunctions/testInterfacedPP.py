@@ -16,7 +16,7 @@ class testInterfacedPP(PostProcessorInterfaceBase):
   def __init__(self):
     self.testID = None
   
-  def run(self,Input,Param):
+  def run(self,Input):
     print('self.testID: ' + str(self.testID))
     return Input
   
