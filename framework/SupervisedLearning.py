@@ -1723,7 +1723,12 @@ class ARMA(superVisedLearning):
 
       if len(self.fourierPara['basePeriod']) != len(self.fourierPara['FourierOrder']):
         self.raiseAnError(ValueError, 'Length of FourierOrder should be ' + str(len(self.fourierPara['basePeriod'])))
-    
+      
+#       fourierInitDict = {}
+#       fourierInitDict['SKLtype'] = 'linear_model|LinearRegression'
+#       fourierInitDict['Features'] = self.features
+#       fourierInitDict['Target'] = self.target
+      self.fourierEngine = linear_model.LinearRegression()
 #     self.raiseADebug(self.armaPara)
 #     self.raiseADebug(self.fourierPara)
 #     self.raiseAnError(IOError,'testing')
@@ -1749,6 +1754,7 @@ class ARMA(superVisedLearning):
     """
     
     self.raiseADebug('****************************************************************')
+    self.raiseADebug(self.fourierEngine)
     self.raiseADebug(self.features)
     self.raiseADebug(type(featureVals), featureVals.ndim)
     self.raiseADebug(type(targetVals), targetVals.ndim)

@@ -539,7 +539,7 @@ class ROM(Dummy):
         return self.SupervisedEngine[timeInst][target].evaluate(inputToROM)
     else:
       if timeInst == None:
-       return utils.first(self.SupervisedEngine.values()).evaluate(inputToROM)
+        return utils.first(self.SupervisedEngine.values()).evaluate(inputToROM)
       else:
         return self.SupervisedEngine[timeInst].values()[0].evaluate(inputToROM)
 
