@@ -1504,6 +1504,11 @@ class MultivariateNormal(NDimensionalDistributions):
                                  # and 'latent' indicates the varName used in the reduced space
     '''
     self.transformation = False       # flag for input reduction analysis
+    # for sparse grid collocation
+    self.disttype = 'Continuous'
+    self.compatibleQuadrature.append('Hermite')
+    self.compatibleQuadrature.append('CDF')
+    self.compatibleQuadrature.append('ClenshawCurtis')
 
 
   def _readMoreXML(self,xmlNode):
@@ -1547,6 +1552,12 @@ class MultivariateNormal(NDimensionalDistributions):
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
     elif self.method == 'pca':
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
+      # for sparse grid collocation method
+      if self.transformation:
+        self.lowerBound = -sys.float_info.max
+        self.upperBound =  sys.float_info.max
+        self.preferredQuadrature  = 'Hermite'
+        self.preferredPolynomials = 'Hermite'
 
   def cdf(self,x):
     if self.method == 'spline':
@@ -1557,11 +1568,28 @@ class MultivariateNormal(NDimensionalDistributions):
     elif self.method == 'pca':
       self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
 
+  def transformationMatrix(self):
+    """
+      Return the transformation matrix from Crow
+      @ In, None
+      @ Out, L, array, the transformation matrix
+    """
+    if self.method == 'spline':
+      self.raiseAnError(NotImplementedError,' transformationMatrix is not yet implemented for ' + self.method + ' method')
+    elif self.method == 'pca':
+      matrixDim = self._distribution.getTransformationMatrixDimensions()
+      row = matrixDim[0]
+      column = matrixDim[1]
+      transformation = self._distribution.getTransformationMatrix()
+      # convert 1D vector to 2D array
+      L = np.atleast_1d(transformation).reshape(row,column)
+      return L
+
   def pcaInverseTransform(self,x):
     """
-    Transform latent parameters back to models' parameters
-    @ x, input coordinate, list values for the latent variables
-    @ return the values of manifest variables with type of list
+      Transform latent parameters back to models' parameters
+      @ In, x, list, input coordinate, list values for the latent variables
+      @ Out, values, list, return the values of manifest variables with type of list
     """
     if self.method == 'spline':
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
@@ -1625,6 +1653,17 @@ class MultivariateNormal(NDimensionalDistributions):
       return self._distribution.cellIntegral(coordinate,dxs)
     else:
       self.raiseAnError(NotImplementedError,'cellIntegral not yet implemented for ' + self.method + ' method')
+
+  def marginalCdf (self, x):
+    """
+      Calculate the marginal distribution for given coordinate x
+      @ In, x, float, the coordinate for given marginal distribution
+      @ Out, self._distribution.marginalCdfForPCA(x), float, the marginal cdf value at coordinate x
+    """
+    if self.method == 'pca':
+      return self._distribution.marginalCdfForPCA(x)
+    elif self.method == 'spline':
+      self.raiseAnError(NotImplementedError,'marginalCdf  not yet implemented for ' + self.method + ' method')
 
   def inverseMarginalDistribution (self, x, variable):
     if (x > 0.0) and (x < 1.0):

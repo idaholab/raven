@@ -15,7 +15,7 @@ import copy
 import abc
 import numpy as np
 import json
-from operator import mul
+from operator import mul,itemgetter
 from collections import OrderedDict
 from functools import reduce
 from scipy import spatial
@@ -33,16 +33,18 @@ import utils
 from BaseClasses import BaseType
 from Assembler import Assembler
 import Distributions
+import DataObjects
 import TreeStructure as ETS
 import SupervisedLearning
 import pyDOE as doe
 import Quadratures
 import OrthoPolynomials
-import SupervisedLearning
 import IndexSets
+import Models
 import PostProcessors
 import MessageHandler
 import GridEntities
+from AMSC_Object import AMSC_Object
 distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -134,11 +136,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #used for pca analysis
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
     self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
-    '''
-    self.latentVariablesDict            = {}                       # regarding latent variables, for each variable 'distName', the following informations are included: {'distName':['latentVar1','latentVar2',...]}
-    self.latentVariablesValues          = []                       # list of latent variable values
-    self.latentType                     = ''                       # input latent variable type, i.e. 'pca'
-    '''
+    self.entitiesToRemove               = []                       # This variable is used in order to make sure the transformation info is printed once in the output xml file.
 
   def _localGenerateAssembler(self,initDict):
     """ see generateAssembler method """
@@ -183,7 +181,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     Assembler._readMoreXML(self,xmlNode)
     self._readMoreXMLbase(xmlNode)
     self.localInputAndChecks(xmlNode)
-
 
   def _readMoreXMLbase(self,xmlNode):
     """
@@ -257,17 +254,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.transformationMethod[child.attrib['model']] = childChild.text
         self.variablesTransformationDict[child.attrib['model']] = transformationDict
 
-
-      '''
-      elif child.tag == "latentVariables":
-        self.latentType = child.attrib['type']
-        self.latentVariablesDict[child.attrib['name']] = list(inp.strip() for inp in child.text.strip().split(','))
-      elif child.tag == 'manifestVariables':
-        if childChild.attrib['type'] == 'model':
-          self.inputVariables['model'] = list(inp.strip() for inp in childChild.text.strip().split(','))
-      '''
-
-
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
 
@@ -313,25 +299,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.raiseAnError(IOError, 'The input variable: ' + var + ' is associated with dimension ' + str(dim) + ' is exceed the dimension of latent variables in PCA analysis')
           if listLatentElement[dim -1] not in set(var.strip().split(',')):
             self.raiseAnError(IOError, 'The dim: ' + str(dim) + ' should be assigned to the latent variable: ' + listLatentElement[dim-1] + ', However, it is assigned to variable: ' + var)
-    '''
-    #Checking the latent variables
-    if self.latentType != None:
-      for key in self.latentVariablesDict.keys():
-        listLatentElement = self.latentVariablesDict[key]
-        listElement = self.distributions2variablesMapping[key]
-        totDim = 1
-        for var in listElement:
-          if var.values()[0] > totDim:
-            totDim = var.values()[0]
-        maxDim = len(listLatentElement)
-        if totDim != maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(totDim) + ' is not consistnet with the dimension (i.e. ' + str(maxDim) +') of latent variable')
-        tempListElement = {k:v for x in listElement for k,v in x.items()}
-        for var,dim in tempListElement.items():
-          if dim > maxDim:
-            self.raiseAnError(IOError, 'The input variable: ' + var + ' is associated with dimension ' + str(dim) + ' is exceed the dimension of latent variables in PCA analysis')
-          if listLatentElement[dim -1] not in set(var.strip().split(',')):
-            self.raiseAnError(IOError, 'The dim: ' + str(dim) + ' should be assigned to the latent variable: ' + listLatentElement[dim-1] + ', However, it is assigned to variable: ' + var)
-    '''
 
   def readSamplerInit(self,xmlNode):
     """
@@ -415,7 +382,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       Generates the distrbutions and functions.
       @ In, availDist, dict of distributions
       @ In, availDist, dict of functions
-      @Out, None
+      @ Out, None
     """
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
@@ -477,6 +444,20 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       else:
         self.raiseAnError(IOError,'Distribution "%s" specified in distInit block of sampler "%s" does not exist!' %(distrib,self.name))
 
+    # Store the transformation matrix in the metadata
+    if self.variablesTransformationDict:
+      self.entitiesToRemove = []
+      for variable in self.variables2distributionsMapping.keys():
+        distName = self.variables2distributionsMapping[variable]['name']
+        dim      = self.variables2distributionsMapping[variable]['dim']
+        totDim   = self.variables2distributionsMapping[variable]['totDim']
+        if totDim > 1 and dim  == 1:
+          transformDict = {}
+          transformDict['type'] = self.distDict[variable.strip()].type
+          transformDict['transformationMatrix'] = self.distDict[variable.strip()].transformationMatrix()
+          self.inputInfo['transformation-'+distName] = transformDict
+          self.entitiesToRemove.append('transformation-'+distName)
+
   def localInitialize(self):
     """
     use this function to add initialization features to the derived class
@@ -503,15 +484,19 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def generateInput(self,model,oldInput):
     """
-    This method have to be overwrote to provide the specialization for the specific sampler
-    The model instance in might be needed since, especially for external codes,
-    only the code interface possesses the dictionary for reading the variable definition syntax
-    @in model   : it is the instance of a model
-    @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-    @return     : [] containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the intput the model
+      This method has to be overwritten to provide the specialization for the specific sampler
+      The model instance in might be needed since, especially for external codes,
+      only the code interface possesses the dictionary for reading the variable definition syntax
+      @ In, model, model instance, it is the instance of a RAVEN model
+      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
+      @ Out, model.createNewInput(...), list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
     """
     self.counter +=1                              #since we are creating the input for the next run we increase the counter and global counter
     self.auxcnt  +=1
+    #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
+    if self.counter >1:
+      for key in self.entitiesToRemove:
+        self.inputInfo.pop(key,None)
     if self.reseedAtEachIteration: Distributions.randomSeed(self.auxcnt-1)
     self.inputInfo['prefix'] = str(self.counter)
     model.getAdditionalInputEdits(self.inputInfo)
@@ -531,9 +516,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def pcaTransform(self,varsDict):
     """
-    This method used to mapping latent variables to the model input variables
-    both the latent variables and the model input variables will be stored in the dict: self.inputInfo['SampledVars']
-    @in varsDict, dictionary contains latent and manifest variables {'latentVariables':[latentVar1,latentVar2,...], 'manifestVariables':[var1,var2,...]}
+      This method is used to map latent variables with respect to the model input variables
+      both the latent variables and the model input variables will be stored in the dict: self.inputInfo['SampledVars']
+      @ In, varsDict, dict, dictionary contains latent and manifest variables {'latentVariables':[latentVar1,latentVar2,...], 'manifestVariables':[var1,var2,...]}
     """
     latentVariablesValues = []
     for lvar in varsDict['latentVariables']:
@@ -543,17 +528,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     manifestVariablesValues = self.distDict[varsDict['latentVariables'][0]].pcaInverseTransform(latentVariablesValues)
     manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
     self.values.update(manifestVariablesDict)
-
-    '''
-    for key in self.latentVariablesDict.keys():
-      latentVariablesValues = []
-      for lvar in self.latentVariablesDict[key]:
-        for var,value in self.values.items():
-          if lvar == var:
-            latentVariablesValues.append(value)
-      varDict = self.distDict[self.latentVariablesDict[key][0]].pcaInverseTransform(latentVariablesValues)
-      self.values.update(varDict)
-    '''
 
   @abc.abstractmethod
   def localGenerateInput(self,model,oldInput):
@@ -616,7 +590,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def handleFailedRuns(self,failedRuns):
     """Collects the failed runs from the Step and allows samples to handle them individually if need be.
     @ In, failedRuns, list of JobHandler.ExternalRunner objects
-    @Out, None
+    @ Out, None
     """
     self.raiseADebug('===============')
     self.raiseADebug('| RUN SUMMARY |')
@@ -640,7 +614,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def _localHandleFailedRuns(self,failedRuns):
     """Specialized method for samplers to handle failed runs.  Defaults to failing runs.
     @ In, failedRuns, list of JobHandler.ExternalRunner objects
-    @Out, None
+    @ Out, None
     """
     if len(failedRuns)>0:
       self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
@@ -648,6 +622,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #
 #
 #
+
 class StaticSampler(Sampler):
   """This is a general static, blind, once-through sampler"""
   pass
@@ -657,9 +632,11 @@ class StaticSampler(Sampler):
 #
 class AdaptiveSampler(Sampler):
   """This is a general adaptive sampler"""
-
-
-
+  pass
+#
+#
+#
+#
 class LimitSurfaceSearch(AdaptiveSampler):
   """
   A sampler that will adaptively locate the limit surface of a given problem
@@ -693,7 +670,37 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.errorTolerance      = 1.0              # initial error tolerance (number of points can change between iterations in LS search)
     self.jobHandler          = None             # jobHandler for generation of grid in parallel
     self.firstSurface        = True             # if first LS do not consider the invPointPersistence information (if true)
+    self.scoringMethod  = 'distancePersistence' # The scoring method to use
+    self.batchStrategy  = 'none'                # The batch strategy to use
+    # self.generateCSVs   = False                 # Flag: should intermediate
+    #                                             #  results be stored?
+    self.toProcess      = []                    # List of the top batchSize
+                                                #  candidates that will be
+                                                #  populated and depopulated
+                                                #  during subsequent calls of
+                                                #  localGenerateInput
+    self.maxBatchSize   = None                  # Maximum batch size, the top
+                                                #  candidates will be selected,
+                                                #  if there are more local
+                                                #  maxima than this value, then
+                                                #  we wiil only take the top
+                                                #  persistence ones, if there
+                                                #  are fewer, then we will only
+                                                #  grab that many and then force
+                                                #  an early update
+    self.thickness      = 0                      # Number of steps outward from
+                                                #  the extracted limit surface
+                                                #  to include in the candidate
+                                                #  set
+    self.simplification = 0                     # Pre-rank simpligication level
+                                                #  (% of range space)
+    self.threshold      = 0                     # Post-rank function value
+                                                #  cutoff (%  of range space)
     self.printTag            = 'SAMPLER ADAPTIVE'
+
+    self.acceptedScoringParam = ['distance','distancePersistence']
+    self.acceptedBatchParam = ['none','naive','maxV','maxP']
+
     self._addAssObject('TargetEvaluation','n')
     self._addAssObject('ROM','n')
     self._addAssObject('Function','-n')
@@ -763,6 +770,43 @@ class LimitSurfaceSearch(AdaptiveSampler):
     if self.subGridTol > self.tolerance: self.raiseAnError(IOError,'The sub grid tolerance '+str(self.subGridTol)+' must be smaller than the tolerance: '+str(self.tolerance))
     if len(attribList)>0: self.raiseAnError(IOError,'There are unknown keywords in the convergence specifications: '+str(attribList))
 
+    # Batch parameters
+    for child in xmlNode:
+      if child.tag == "generateCSVs" : self.generateCSVs = True
+      if child.tag == "batchStrategy":
+        self.batchStrategy = child.text.encode('ascii')
+        if self.batchStrategy not in self.acceptedBatchParam:
+          self.raiseAnError(IOError, 'Requested unknown batch strategy: ',
+                            self.batchStrategy, '. Available options: ',
+                            self.acceptedBatchParam)
+      if child.tag == "maxBatchSize":
+        try   : self.maxBatchSize = int(child.text)
+        except: self.raiseAnError(IOError, 'Failed to convert the maxBatchSize value: ' + child.text + ' into a meaningful integer')
+        if self.maxBatchSize < 0:
+          self.raiseAWarning(IOError,'Requested an invalid maximum batch size: ', self.maxBatchSize, '. This should be a non-negative integer value. Defaulting to 1.')
+          self.maxBatchSize = 1
+      if child.tag == "scoring":
+        self.scoringMethod = child.text.encode('ascii')
+        if self.scoringMethod not in self.acceptedScoringParam:
+          self.raiseAnError(IOError, 'Requested unknown scoring type: ', self.scoringMethod, '. Available options: ', self.acceptedScoringParam)
+      if child.tag == 'simplification':
+        try   : self.simplification = float(child.text)
+        except: self.raiseAnError(IOError, 'Failed to convert the simplification value: ' + child.text + ' into a meaningful number')
+        if self.simplification < 0 or self.simplification > 1:
+          self.raiseAWarning('Requested an invalid simplification level: ', self.simplification, '. Defaulting to 0.')
+          self.simplification = 0
+      if child.tag == 'thickness':
+        try   : self.thickness = int(child.text)
+        except: self.raiseAnError(IOError, 'Failed to convert the thickness value: ' + child.text +' into a meaningful integer')
+        if self.thickness < 0:
+          self.raiseAWarning('Requested an invalid thickness size: ', self.thickness, '. Defaulting to 0.')
+      if child.tag == 'threshold':
+        try   : self.threshold = float(child.text)
+        except: self.raiseAnError(IOError, 'Failed to convert the threshold value: ' + child.text + ' into a meaningful number')
+        if self.threshold < 0 or self.threshold > 1:
+          self.raiseAWarning('Requested an invalid threshold level: ', self.threshold, '. Defaulting to 0.')
+          self.threshold = 0
+
   def localAddInitParams(self,tempDict):
     """
     Appends a given dictionary with class specific member variables and their
@@ -775,6 +819,12 @@ class LimitSurfaceSearch(AdaptiveSampler):
     tempDict['Sub grid size'   ] = str(self.subGridTol)
     tempDict['Error Weight'    ] = str(self.toleranceWeight)
     tempDict['Persistence'     ] = str(self.repetition)
+    tempDict['batchStrategy'   ] = self.batchStrategy
+    tempDict['maxBatchSize'    ] = self.maxBatchSize
+    tempDict['scoring'         ] = str(self.scoringMethod)
+    tempDict['simplification'  ] = self.simplification
+    tempDict['thickness'       ] = self.thickness
+    tempDict['threshold'       ] = self.threshold
 
   def localAddCurrentSetting(self,tempDict):
     """
@@ -783,10 +833,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
     @ InOut, tempDict: The dictionary where we will add the parameters specific
                        to this Sampler and their associated values.
     """
-    if self.solutionExport!=None:
-      tempDict['The solution is exported in '    ] = 'Name: ' + self.solutionExport.name + 'Type: ' + self.solutionExport.type
-    if self.goalFunction!=None:
-      tempDict['The function used is '] = self.goalFunction.name
+    if self.solutionExport!=None: tempDict['The solution is exported in '    ] = 'Name: ' + self.solutionExport.name + 'Type: ' + self.solutionExport.type
+    if self.goalFunction!=None  : tempDict['The function used is '] = self.goalFunction.name
 
   def localInitialize(self,solutionExport=None):
     """
@@ -835,8 +883,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.limitSurfacePP._initFromDict({"name":self.name+"LSpp","parameters":[key.replace('<distribution>','') for key in self.axisName],"tolerance":self.tolerance,"side":"both","transformationMethods":transformMethod,"bounds":bounds})
     self.limitSurfacePP.assemblerDict = self.assemblerDict
     self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{'computeCells':self.tolerance != self.subGridTol})
-    self.persistenceMatrix[self.name+"LSpp"]  = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    self.oldTestMatrix[self.name+"LSpp"]      = np.zeros(self.limitSurfacePP.getTestMatrix().shape) #swap matrix fro convergence test
+    matrixShape = self.limitSurfacePP.getTestMatrix().shape
+    self.persistenceMatrix[self.name+"LSpp"]  = np.zeros(matrixShape) #matrix that for each point of the testing grid tracks the persistence of the limit surface position
+    self.oldTestMatrix[self.name+"LSpp"]      = np.zeros(matrixShape) #swap matrix fro convergence test
     self.hangingPoints                        = np.ndarray((0, self.nVar))
     self.raiseADebug('Initialization done')
 
@@ -846,28 +895,26 @@ class LimitSurfaceSearch(AdaptiveSampler):
     ready is returned
     lastOutput should be present when the next point should be chosen on previous iteration and convergence checked
     lastOutput it is not considered to be present during the test performed for generating an input batch
-    ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
+    ROM if passed in it is used to construct the test matrix otherwise the nearest neighbor value is used
+    @ In,  ready, boolean, a boolean representing whether the caller is prepared for another input.
+    @ Out, ready, boolean, a boolean representing whether the caller is prepared for another input.
     """
     self.raiseADebug('From method localStillReady...')
     #test on what to do
-    if ready      == False : return ready #if we exceeded the limit just return that we are done
+    if ready      == False: return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
       if self.lastOutput == None and self.limitSurfacePP.ROM.amITrained==False: return ready
     else:
       #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
       if self.lastOutput.isItEmpty() and self.limitSurfacePP.ROM.amITrained==False: return ready
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
-    if type(self.lastOutput) == dict:
-      self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
+    if type(self.lastOutput) == dict: self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     else:
       if not self.lastOutput.isItEmpty(): self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     self.raiseADebug('Classifier ' +self.name+' has been trained!')
     self.oldTestMatrix = copy.deepcopy(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid))    #copy the old solution (contained in the limit surface PP) for convergence check
-
-    #np.copyto(self.oldTestMatrix[self.name+"LSpp"],self.limitSurfacePP.getTestMatrix())    #copy the old solution (contained in the limit surface PP) for convergence check
-
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
-    self.surfPoint, evaluations, listsurfPoints = self.limitSurfacePP.run(returnListSurfCoord = True, exceptionGrid=self.exceptionGrid, merge=False)
+    self.surfPoint, evaluations, self.listSurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True, exceptionGrid=self.exceptionGrid, merge=False)
     self.raiseADebug('Limit Surface has been computed!')
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys(): indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
@@ -902,13 +949,13 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.raiseAMessage('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
     #if the number of point on the limit surface is > than compute persistence
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
-    for gridID,listsurfPoint in listsurfPoints.items():
+    for gridID,listsurfPoint in self.listSurfPoint.items():
       if len(listsurfPoint)>0:
         self.invPointPersistence[gridID] = np.ones(len(listsurfPoint))
         if self.firstSurface == False:
           for pointID, coordinate in enumerate(listsurfPoint): self.invPointPersistence[gridID][pointID]=abs(self.persistenceMatrix[gridID][tuple(coordinate)])
           maxPers = np.max(self.invPointPersistence[gridID])
-          self.invPointPersistence[gridID] = (maxPers-self.invPointPersistence[gridID])/maxPers
+          if maxPers != 0: self.invPointPersistence[gridID] = (maxPers-self.invPointPersistence[gridID])/maxPers
         else: self.firstSurface = False
         if self.solutionExport!=None:
           for varName in self.solutionExport.getParaKeys('inputs'):
@@ -918,56 +965,218 @@ class LimitSurfaceSearch(AdaptiveSampler):
                 for value in self.surfPoint[gridID][:,varIndex]: self.solutionExport.updateInputValue(varName,copy.copy(value))
           # to be fixed
           if cnt == 0: self.solutionExport.removeOutputValue(self.goalFunction.name)
-          for index in range(len(evaluations[gridID])): self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[gridID][index]))
+          for index in range(len(evaluations[gridID])):
+            self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[gridID][index]))
         cnt+=1
+
+    # Keep track of some extra points that we will add to thicken the limit
+    # surface candidate set
+    self.bandIndices = OrderedDict()
+    for gridID,points in self.listSurfPoint.items():
+      setSurfPoint = set()
+      self.bandIndices[gridID] = set()
+      for surfPoint in points: setSurfPoint.add(tuple(surfPoint))
+      newIndices = set(setSurfPoint)
+      for step in xrange(1,self.thickness):
+        prevPoints = set(newIndices)
+        newIndices = set()
+        for i,iCoords in enumerate(prevPoints):
+          for d in xrange(len(iCoords)):
+            offset = np.zeros(len(iCoords),dtype=int)
+            offset[d] = 1
+            if iCoords[d] - offset[d] > 0: newIndices.add(tuple(iCoords - offset))
+            if iCoords[d] + offset[d] < self.oldTestMatrix[gridID].shape[d]-1: newIndices.add(tuple(iCoords + offset))
+        self.bandIndices[gridID].update(newIndices)
+      self.bandIndices[gridID] = self.bandIndices[gridID].difference(setSurfPoint)
+      self.bandIndices[gridID] = list(self.bandIndices[gridID])
+      for coordinate in self.bandIndices[gridID]: self.surfPoint[gridID] = np.vstack((self.surfPoint[gridID],self.limitSurfacePP.gridCoord[gridID][coordinate]))
     return ready
 
-  def localGenerateInput(self,model,oldInput):
-    # create values dictionary
-    """compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
-     check the points where the derivative probability is the lowest"""
+  def scoreCandidates(self):
+    """compute the scores of the 'candidate set' which should be the currently
+    extracted limit surface.
+    @ In, None
+    @ Out, None
+    """
+    # DM: This sequence gets used repetitively, so I am promoting it to its own
+    #  variable
+    axisNames = [key.replace('<distribution>','') for key in self.axisName]
+    matrixShape = self.limitSurfacePP.getTestMatrix().shape
+    self.scores = OrderedDict()
+    if self.scoringMethod.startswith('distance'):
+      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[axisNames[0]])+len(self.hangingPoints[:,0]),len(self.axisName)))
+      for varIndex, name in enumerate(axisNames):
+        sampledMatrix[:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
+      distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
+      # The hanging point are added to the list of the already explored points
+      # so as not to pick the same when in parallel
+      for varIndex, _ in enumerate(axisNames):
+        self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
+        self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
 
+      for key, value in self.invPointPersistence.items():
+        if key != self.exceptionGrid and self.surfPoint[key] is not None:
+          distance, _ = distanceTree.query(self.surfPoint[key])
+          # Different versions of scipy/numpy will yield different results on
+          # our various supported platforms. If things are this close, then it
+          # it is highly unlikely choosing one point over the other will affect
+          # us much, so limit the precision to allow the same results on older
+          # versions. Scale could be important, though, so normalize the
+          # distances first. Alternatively, we could force newer versions of
+          # these libraries, but since our own HPC does not yet support them,
+          # this should be acceptable, agreed? - DPM Nov. 23, 2015
+          maxDistance = max(distance)
+          if maxDistance != 0:
+            distance = np.round(distance/maxDistance,15)
+          if self.scoringMethod == 'distance' or max(self.invPointPersistence) == 0:
+            self.scores[key] = distance
+          else:
+            self.scores[key] = np.multiply(distance,self.invPointPersistence[key])
+    elif self.scoringMethod == 'debug':
+      self.scores = OrderedDict()
+      for key, value in self.invPointPersistence.items():
+        self.scores[key] = np.zeros(len(self.surfPoint[key]))
+        for i in xrange(len(self.listsurfPoint)): self.scores[key][i] = 1
+    else:
+      self.raiseAnError(NotImplementedError,self.scoringMethod + ' scoring method is not implemented yet')
+
+  def localGenerateInput(self,model,oldInput):
+    """
+      Function to select the next most informative point for refining the limit
+      surface search.
+      After this method is called, the self.inputInfo should be ready to be sent
+      to the model
+      @ In model, Model, an instance of a model
+      @ In oldInput, [], a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ Out, None
+    """
+    #  Alternatively, though I don't think we do this yet:
+    #  compute the direction normal to the surface, compute the derivative
+    #  normal to the surface of the probability, check the points where the
+    #  derivative probability is the lowest
+
+    # create values dictionary
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     self.raiseADebug('generating input')
     varSet=False
-    if self.surfPoint is not None and len(self.surfPoint)>0:
-      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
-      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],self.hangingPoints[:,varIndex])
-      distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
-      #the hanging point are added to the list of the already explored points so not to pick the same when in //
-      #tempDict = {}
-      for varIndex, _ in enumerate([key.replace('<distribution>','') for key in self.axisName]):
-        #tempDict[varName]     = self.surfPoint[:,varIndex]
-        self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
-        self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
-      #distLast = np.sqrt(distLast)
-      maxDistance, maxGridId, maxId =  0.0, "", 0
-      for key, value in self.invPointPersistence.items():
-        if key != self.exceptionGrid and self.surfPoint[key] is not None:
-          distance, _ = distanceTree.query(self.surfPoint[key])
-          distance = np.multiply(distance,value)
-          localMax = np.max(distance)
-          if localMax > maxDistance: maxDistance, maxGridId, maxId  = localMax, key,  np.argmax(distance)
-      if maxDistance > 0.0:
-        for varIndex, _ in enumerate([key.replace('<distribution>','') for key in self.axisName]):
-          self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
+
+    # DM: This sequence gets used repetitively, so I am promoting it to its own
+    #  variable
+    axisNames = [key.replace('<distribution>','') for key in self.axisName]
+
+    if self.surfPoint is not None and len(self.surfPoint) > 0:
+      if self.batchStrategy == 'none':
+        self.scoreCandidates()
+        maxDistance, maxGridId, maxId =  0.0, "", 0
+        for key, value in self.invPointPersistence.items():
+          if key != self.exceptionGrid and self.surfPoint[key] is not None:
+            localMax = np.max(self.scores[key])
+            if localMax > maxDistance:
+              maxDistance, maxGridId, maxId  = localMax, key,  np.argmax(self.scores[key])
+        if maxDistance > 0.0:
+          for varIndex, _ in enumerate([key.replace('<distribution>','') for key in self.axisName]):
+            self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
+            self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+          varSet=True
+        else:
+          self.raiseADebug('Maximum score is 0.0')
+      elif self.batchStrategy.startswith('max'):
+        ########################################################################
+        ## Initialize the queue with as many points as requested or as many as
+        ## possible
+        if len(self.toProcess) == 0:
+          self.scoreCandidates()
+          edges = []
+
+          flattenedSurfPoints = list()
+          flattenedBandPoints = list()
+          flattenedScores     = list()
+          for key in self.bandIndices.keys():
+            flattenedSurfPoints = flattenedSurfPoints + list(self.surfPoint[key])
+            flattenedScores = flattenedScores + list(self.scores[key])
+            flattenedBandPoints = flattenedBandPoints + self.listSurfPoint[key] + self.bandIndices[key]
+
+          flattenedSurfPoints = np.array(flattenedSurfPoints)
+          for i,iCoords in enumerate(flattenedBandPoints):
+            for j in xrange(i+1, len(flattenedBandPoints)):
+              jCoords = flattenedBandPoints[j]
+              ijValidNeighbors = True
+              for d in xrange(len(jCoords)):
+                if abs(iCoords[d] - jCoords[d]) > 1:
+                  ijValidNeighbors = False
+                  break
+              if ijValidNeighbors:
+                edges.append((i,j))
+                edges.append((j,i))
+
+          names = [ name.encode('ascii', 'ignore') for name in axisNames]
+          names.append('score'.encode('ascii','ignore'))
+          amsc = AMSC_Object(X=flattenedSurfPoints, Y=flattenedScores,
+                             w=None, names=names, graph='none',
+                             gradient='steepest', normalization='feature',
+                             persistence='difference', edges=edges, debug=False)
+          plevel = self.simplification*(max(flattenedScores)-min(flattenedScores))
+          partitions = amsc.StableManifolds(plevel)
+          mergeSequence = amsc.GetMergeSequence()
+          maxIdxs = list(set(partitions.keys()))
+
+          thresholdLevel = self.threshold*(max(flattenedScores)-min(flattenedScores))+min(flattenedScores)
+          # Sort the maxima based on decreasing function value, thus the top
+          # candidate is the first element.
+          if self.batchStrategy.endswith('V'):
+            sortedMaxima = sorted(maxIdxs, key=lambda idx: flattenedScores[idx], reverse=True)
+          else:
+          # Sort the maxima based on decreasing persistence value, thus the top
+          # candidate is the first element.
+            sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1], reverse=True)
+          B = min(self.maxBatchSize,len(sortedMaxima))
+          for idx in sortedMaxima[0:B]:
+            if flattenedScores[idx] >= thresholdLevel:
+              self.toProcess.append(flattenedSurfPoints[idx,:])
+          if len(self.toProcess) == 0:
+            self.toProcess.append(flattenedSurfPoints[np.argmax(flattenedScores),:])
+        ########################################################################
+        ## Select one sample
+        selectedPoint = self.toProcess.pop()
+        for varIndex, varName in enumerate(axisNames):
+          self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
-      else: self.raiseADebug('np.max(distance)=0.0')
+      elif self.batchStrategy == 'naive':
+        ########################################################################
+        ## Initialize the queue with as many points as requested or as many as
+        ## possible
+        if len(self.toProcess) == 0:
+          self.scoreCandidates()
+          sortedIndices = sorted(range(len(self.scores)), key=lambda k: self.scores[k],reverse=True)
+          B = min(self.maxBatchSize,len(sortedIndices))
+          for idx in sortedIndices[0:B]:
+            self.toProcess.append(self.surfPoint[idx,:])
+          if len(self.toProcess) == 0:
+            self.toProcess.append(self.surfPoint[np.argmax(self.scores),:])
+        ########################################################################
+        ## Select one sample
+        selectedPoint = self.toProcess.pop()
+        for varIndex, varName in enumerate(axisNames):
+          self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
+          self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+        varSet=True
+
     if not varSet:
       #here we are still generating the batch
       for key in self.distDict.keys():
         if self.toleranceWeight=='cdf':
-          self.values[key]                      = self.distDict[key].ppf(float(Distributions.random()))
+          self.values[key]                       = self.distDict[key].ppf(float(Distributions.random()))
         else:
-          self.values[key]                      = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
-        self.inputInfo['distributionName'][key] = self.toBeSampled[key]
-        self.inputInfo['distributionType'][key] = self.distDict[key].type
-        self.inputInfo['SampledVarsPb'   ][key] = self.distDict[key].pdf(self.values[key])
+          self.values[key]                       = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
+        self.inputInfo['distributionName'][key]  = self.toBeSampled[key]
+        self.inputInfo['distributionType'][key]  = self.distDict[key].type
+        self.inputInfo['SampledVarsPb'   ][key]  = self.distDict[key].pdf(self.values[key])
+        self.inputInfo['ProbabilityWeight-'+key] = self.distDict[key].pdf(self.values[key])
     self.inputInfo['PointProbability'    ]      = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
-    self.inputInfo['ProbabilityWeight']         = 1.0
+    self.inputInfo['ProbabilityWeight']         = self.inputInfo['PointProbability']
     self.hangingPoints                          = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
     self.raiseADebug('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
     self.inputInfo['SamplerType'] = 'LimitSurfaceSearch'
@@ -1138,9 +1347,10 @@ class MonteCarlo(Sampler):
   def _localHandleFailedRuns(self,failedRuns):
     """Specialized method for samplers to handle failed runs.  Defaults to failing runs.
     @ In, failedRuns, list of JobHandler.ExternalRunner objects
-    @Out, None
+    @ Out, None
     """
     if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte Carlo sampling.')
+
 #
 #
 #
@@ -1268,18 +1478,24 @@ class Grid(Sampler):
           else:
             if self.gridInfo[varName]=='CDF':
               if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
                 weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
               if coordinatesMinusOne[varName] == -sys.maxsize:
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
                 weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
               if coordinatesPlusOne[varName] == sys.maxsize:
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
                 weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
             else:   # Value
               if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
                 weight *= self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
               if coordinatesMinusOne[varName] == -sys.maxsize:
                 weight *= self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
               if coordinatesPlusOne[varName] == sys.maxsize:
                 weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
         # ND variable
         else:
           if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instead of N
@@ -1321,6 +1537,8 @@ class Grid(Sampler):
                   NDcoordinate[position-1] = (self.distDict[varName].returnUpperBound(position-1) + (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0) /2.0
                   #dxs[position-1] = self.distDict[varName].returnUpperBound(position-1) - coordinates[variable.strip()]
                   #NDcoordinate[position-1] = (self.distDict[varName].returnUpperBound(position-1) + coordinates[variable.strip()]) /2.0 # coordinates[variable.strip()] - (coordinates[variable.strip()] - coordinatesMinusOne[variable])/2.0 + dxs[position-1]/2.0
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(NDcoordinate,dxs)
+
             weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)
 
       newpoint = tuple(self.values[key] for key in self.values.keys())
@@ -1379,25 +1597,35 @@ class Stratified(Grid):
     """
     Grid.localInitialize(self)
     self.limit = (self.pointByVar-1)
-    globGridsCount = {}
-    dimInfo = self.gridEntity.returnParameter("dimInfo")
-    for val in dimInfo.values():
-      if val[-1] != None and val[-1] not in globGridsCount.keys(): globGridsCount[val[-1]] = 0
-      globGridsCount[val[-1]] += 1
-    diff = -sum(globGridsCount.values())+len(globGridsCount.keys())
-    tempFillingCheck = [[None]*(self.pointByVar-1)]*(len(self.gridEntity.returnParameter("dimensionNames"))+diff) #for all variables
+    # For the multivariate normal distribtuion, if the user generates the grids on the transformed space, the user needs to provide the grid for each variables, no globalGrid is needed
+    if self.variablesTransformationDict:
+      tempFillingCheck = [[None]*(self.pointByVar-1)]*len(self.gridEntity.returnParameter("dimensionNames")) #for all variables
+      self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
+      for i in range(len(tempFillingCheck)): tempFillingCheck[i]  = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
+      mappingIdVarName = {}
+      for cnt, varName in enumerate(self.axisName):
+        mappingIdVarName[varName] = cnt
+    # For the multivariate normal, if the user wants to generate the grids based on joint distribution, the user needs to provide the globalGrid for all corresponding variables
+    else:
+      globGridsCount = {}
+      dimInfo = self.gridEntity.returnParameter("dimInfo")
+      for val in dimInfo.values():
+        if val[-1] is not None and val[-1] not in globGridsCount.keys(): globGridsCount[val[-1]] = 0
+        globGridsCount[val[-1]] += 1
+      diff = -sum(globGridsCount.values())+len(globGridsCount.keys())
+      tempFillingCheck = [[None]*(self.pointByVar-1)]*(len(self.gridEntity.returnParameter("dimensionNames"))+diff) #for all variables
+      self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
+      for i in range(len(tempFillingCheck)): tempFillingCheck[i]  = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
+      cnt = 0
+      mappingIdVarName = {}
+      for varName in self.axisName:
+        if varName not in dimInfo.keys(): mappingIdVarName[varName] = cnt
+        else:
+          for addKey,value in dimInfo.items():
+            if value[1] == dimInfo[varName][1] and addKey not in mappingIdVarName.keys(): mappingIdVarName[addKey] = cnt
+        if len(mappingIdVarName.keys()) == len(self.axisName): break
+        cnt +=1
 
-    self.sampledCoordinate = [[None]*len(self.axisName)]*(self.pointByVar-1)
-    for i in range(len(tempFillingCheck)): tempFillingCheck[i]  = Distributions.randomPermutation(list(range(self.pointByVar-1)),self) #pick a random interval sequence
-    cnt = 0
-    mappingIdVarName = {}
-    for varName in self.axisName:
-      if varName not in dimInfo.keys(): mappingIdVarName[varName] = cnt
-      else:
-        for addKey,value in dimInfo.items():
-          if value[1] == dimInfo[varName][1] and addKey not in mappingIdVarName.keys(): mappingIdVarName[addKey] = cnt
-      if len(mappingIdVarName.keys()) == len(self.axisName): break
-      cnt +=1
     for nPoint in range(self.pointByVar-1): self.sampledCoordinate[nPoint]= [tempFillingCheck[mappingIdVarName[varName]][nPoint] for varName in self.axisName]
     if self.restartData:
       self.counter+=len(self.restartData)
@@ -1416,29 +1644,81 @@ class Stratified(Grid):
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     weight = 1.0
     for varName in self.axisName:
-      upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
-      lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
-      coordinate = lower + (upper-lower)*Distributions.random()
-      varCount += 1
+      # new implementation for ND LHS
       if not "<distribution>" in varName:
         if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['dim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
-          gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
-          for distVarName in self.distributions2variablesMapping[distName]:
-            for kkey in utils.first(distVarName.keys()).strip().split(','):
-              self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
-          # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
-          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
-          weight *= upper - lower
+          if self.variablesTransformationDict:
+            distName = self.variables2distributionsMapping[varName]['name']
+            for distVarName in self.distributions2variablesMapping[distName]:
+              for kkey in utils.first(distVarName.keys()).strip().split(','):
+                self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+                self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
+            NDcoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
+            dxs = np.zeros(len(self.distributions2variablesMapping[distName]))
+            centerCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
+            for var in self.distributions2variablesMapping[distName]:
+              # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+              variable = utils.first(var.keys()).strip()
+              position = utils.first(var.values())
+              upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]+1})[variable]
+              lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]})[variable]
+              varCount += 1
+              if self.gridInfo[variable] == 'CDF':
+                coordinate = lower + (upper-lower)*Distributions.random()
+                NDcoordinate[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinate,variable)
+                dxs[position-1] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)-self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
+                centerCoordinate[position-1] = (self.distDict[variable].inverseMarginalDistribution(upper,variable)+self.distDict[variable].inverseMarginalDistribution(lower,variable))/2.0
+                for kkey in variable.strip().split(','):
+                  self.values[kkey] = NDcoordinate[position-1]
+                  self.inputInfo['upper'][kkey] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)
+                  self.inputInfo['lower'][kkey] = self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
+              elif self.gridInfo[variable] == 'value':
+                dxs[position-1] = max(upper,lower) - min(upper,lower)
+                centerCoordinate[position-1] = (upper + lower)/2.0
+                coordinateCdf = self.distDict[variable].marginalCdf(lower) + (self.distDict[variable].marginalCdf(upper) - self.distDict[variable].marginalCdf(lower))*Distributions.random()
+                coordinate = self.distDict[variable].inverseMarginalDistribution(coordinateCdf,variable)
+                NDcoordinate[position-1] = coordinate
+                for kkey in variable.strip().split(','):
+                  self.values[kkey] = coordinate
+                  self.inputInfo['upper'][kkey] = max(upper,lower)
+                  self.inputInfo['lower'][kkey] = min(upper,lower)
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(centerCoordinate,dxs)
+            weight *= self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")]
+            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinate)
+          else:
+            if self.gridInfo[varName] == 'CDF':
+              upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
+              lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
+              varCount += 1
+              coordinate = lower + (upper-lower)*Distributions.random()
+              gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
+              for distVarName in self.distributions2variablesMapping[distName]:
+                for kkey in utils.first(distVarName.keys()).strip().split(','):
+                  self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
+              # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
+              self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
+              weight *= max(upper,lower) - min(upper,lower)
+              self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = max(upper,lower) - min(upper,lower)
+            else: self.raiseAnError(IOError,"Since the globalGrid is defined, the Stratified Sampler is only working when the sampling is performed on a grid on a CDF. However, the user specifies the grid on " + self.gridInfo[varName])
       if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:   # 1D variable
         # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+        upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
+        lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
+        varCount += 1
         if self.gridInfo[varName] =='CDF':
+          coordinate = lower + (upper-lower)*Distributions.random()
           ppfValue = self.distDict[varName].ppf(coordinate)
           ppfLower = self.distDict[varName].ppf(min(upper,lower))
           ppfUpper = self.distDict[varName].ppf(max(upper,lower))
           weight *= self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
+          self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
           self.inputInfo['SampledVarsPb'][varName]  = self.distDict[varName].pdf(ppfValue)
         elif self.gridInfo[varName] == 'value':
-          weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
+          coordinateCdf = self.distDict[varName].cdf(min(upper,lower)) + (self.distDict[varName].cdf(max(upper,lower))-self.distDict[varName].cdf(min(upper,lower)))*Distributions.random()
+          if coordinateCdf == 0.0: self.raiseAWarning(IOError,"The grid lower bound and upper bound in value will generate ZERO cdf value!!!")
+          coordinate = self.distDict[varName].ppf(coordinateCdf)
+          weight *= self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
+          self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(coordinate)
         for kkey in varName.strip().split(','):
           self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
@@ -1451,6 +1731,7 @@ class Stratified(Grid):
             self.values[kkey] = coordinate
             self.inputInfo['upper'][kkey] = max(upper,lower)
             self.inputInfo['lower'][kkey] = min(upper,lower)
+
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
@@ -2002,7 +2283,7 @@ class DynamicEventTree(Grid):
       Generates the distrbutions and functions.
       @ In, availDist, dict of distributions
       @ In, availDist, dict of functions
-      @Out, None
+      @ Out, None
     """
     Grid._generateDistributions(self,availableDist,availableFunc)
     for hybridsampler in self.hybridStrategyToApply.values(): hybridsampler._generateDistributions(availableDist,availableFunc)
@@ -2578,7 +2859,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       Generates the distrbutions and functions.
       @ In, availDist, dict of distributions
       @ In, availDist, dict of functions
-      @Out, None
+      @ Out, None
     """
     DynamicEventTree._generateDistributions(self,availableDist,availableFunc)
 
@@ -2856,7 +3137,6 @@ class SparseGridCollocation(Grid):
     self.assemblerObjects={}    #dict of external objects required for assembly
     self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
     self.indexSetType   = None  #TP, TD, or HC; the type of index set to use
-    self.adaptive       = False #TODO
     self.polyDict       = {}    #varName-indexed dict of polynomial types
     self.quadDict       = {}    #varName-indexed dict of quadrature types
     self.importanceDict = {}    #varName-indexed dict of importance weights
@@ -2866,7 +3146,7 @@ class SparseGridCollocation(Grid):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.existing       = []    #restart data points
-
+    self.dists          = {}    #Contains the instance of the distribution to be used. keys are the variable names
     self._addAssObject('ROM','1')
 
   def _localWhatDoINeed(self):
@@ -2874,7 +3154,7 @@ class SparseGridCollocation(Grid):
     This method is a local mirror of the general whatDoINeed method.
     It is implemented by the samplers that need to request special objects
     @ In , None, None
-    @ Out, needDict, list of objects needed
+    @ Out, dict, dictionary of objects needed
     """
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
@@ -2882,14 +3162,16 @@ class SparseGridCollocation(Grid):
 
   def _localGenerateAssembler(self,initDict):
     """Generates the assembler.
-    @ In, initDict, dict of init objects
+    @ In, initDict, dict, init objects
     @ Out, None
     """
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
-    #do a distributions check for ND
-    for dist in self.distDict.values():
-      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists not supported for this sampler (yet)!')
+    self.dists = self.transformDistDict()
+    #Do a distributions check for ND
+    #This sampler only accept ND distributions with variable transformation defined in this sampler
+    for dist in self.dists.values():
+      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists contain the variables in the original input space are  not supported for this sampler!')
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -2905,6 +3187,33 @@ class SparseGridCollocation(Grid):
       elif child.tag == 'variable':
         varName = child.attrib['name']
         self.axisName.append(varName)
+
+  def transformDistDict(self):
+    """
+      Performs distribution transformation
+      If the method 'pca' is used in the variables transformation (i.e. latentVariables to manifestVariables), the corrrelated variables
+      will be tranformed into uncorrelated variables with standard normal distributions. Thus, the dictionary of distributions will
+      be also transformed.
+      @ In, None
+      @ Out, distDicts, dict, distribution dictionary {varName:DistributionObject}
+    """
+    # Generate a standard normal distribution, this is used to generate the sparse grid points and weights for multivariate normal
+    # distribution if PCA is used.
+    standardNormal = Distributions.Normal()
+    standardNormal.messageHandler = self.messageHandler
+    standardNormal.mean = 0.0
+    standardNormal.sigma = 1.0
+    standardNormal.initializeDistribution()
+    distDicts = {}
+    for varName in self.variables2distributionsMapping.keys():
+      distDicts[varName] = self.distDict[varName]
+    if self.variablesTransformationDict:
+      for key,varsDict in self.variablesTransformationDict.items():
+        if self.transformationMethod[key] == 'pca':
+          listVars = varsDict['latentVariables']
+          for var in listVars:
+            distDicts[var] = standardNormal
+    return distDicts
 
   def localInitialize(self):
     """Performs local initialization
@@ -2929,14 +3238,14 @@ class SparseGridCollocation(Grid):
 
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType,self)
-    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+    self.indexSet.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
     if self.indexSet.type=='Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
 
     self.raiseADebug('Starting sparse grid generation...')
     self.sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
-    self.sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
+    self.sparseGrid.initialize(self.features,self.indexSet,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
 
     if self.writeOut != None:
       msg=self.sparseGrid.__csv__()
@@ -2962,7 +3271,7 @@ class SparseGridCollocation(Grid):
     self.raiseADebug('indexset:',self.indexSet)
     for SVL in self.ROM.SupervisedEngine.values():
       SVL.initialize({'SG':self.sparseGrid,
-                      'dists':self.distDict,
+                      'dists':self.dists,
                       'quads':self.quadDict,
                       'polys':self.polyDict,
                       'iSet':self.indexSet})
@@ -2971,7 +3280,7 @@ class SparseGridCollocation(Grid):
     """
       Builds the quadrature objects, polynomial objects, and importance weights for all
       the distributed variables.  Also sets maxPolyOrder.
-      @ In, SVL, one of the SupervisedEngine objects from the ROM
+      @ In, SVL, SupervisedEngine object, one of the SupervisedEngine objects from the ROM
       @ Out, None
     """
     ROMdata = SVL.interpolationInfo()
@@ -2998,11 +3307,11 @@ class SparseGridCollocation(Grid):
         self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1'}
     #establish all the right names for the desired types
     for varName,dat in self.gridInfo.items():
-      if dat['poly'] == 'DEFAULT': dat['poly'] = self.distDict[varName].preferredPolynomials
-      if dat['quad'] == 'DEFAULT': dat['quad'] = self.distDict[varName].preferredQuadrature
+      if dat['poly'] == 'DEFAULT': dat['poly'] = self.dists[varName].preferredPolynomials
+      if dat['quad'] == 'DEFAULT': dat['quad'] = self.dists[varName].preferredQuadrature
       polyType=dat['poly']
       subType = None
-      distr = self.distDict[varName]
+      distr = self.dists[varName]
       if polyType == 'Legendre':
         if distr.type == 'Uniform':
           quadType=dat['quad']
@@ -3014,7 +3323,7 @@ class SparseGridCollocation(Grid):
       else:
         quadType=dat['quad']
       if quadType not in distr.compatibleQuadrature:
-        self.raiseAnError(IOError,' Quadrature type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
+        self.raiseAnError(IOError,'Quadrature type"',quadType,'"is not compatible with variable"',varName,'"distribution"',distr.type,'"')
 
       quad = Quadratures.returnInstance(quadType,self,Subtype=subType)
       quad.initialize(distr,self.messageHandler)
@@ -3029,8 +3338,8 @@ class SparseGridCollocation(Grid):
   def localGenerateInput(self,model,myInput):
     """
       Provide the next point in the sparse grid.
-      @ In, model, the model to evaluate
-      @ In, myInput, list of original inputs
+      @ In, model, Model, the model to evaluate
+      @ In, myInput, list(str), list of original inputs
       @ Out, None
     """
     found=False
@@ -3043,9 +3352,33 @@ class SparseGridCollocation(Grid):
         continue
       else:
         found=True
+        # compute the maxDim in the given distribution
+        for key in self.variables2distributionsMapping.keys():
+          dist = self.variables2distributionsMapping[key]['name']
+          maxDim = 1
+          listvar = self.distributions2variablesMapping[dist]
+          for var in listvar:
+            if utils.first(var.values()) > maxDim:
+              maxDim = utils.first(var.values())
+        if maxDim > 1: NDcoordinates = [0]*maxDim
+
         for v,varName in enumerate(self.sparseGrid.varNames):
-          self.values[varName] = pt[v]
-          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+          # compute the SampledVarsPb for 1-D distribution
+          if self.variables2distributionsMapping[varName]['totDim'] == 1:
+            for key in varName.strip().split(','):
+              self.values[key] = pt[v]
+            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+          # compute the SampledVarsPb for N-D distribution
+          # Assume only one N-D distribution is associated with sparse grid collocation method
+          elif self.variables2distributionsMapping[varName]['totDim'] > 1:
+            for key in varName.strip().split(','):
+              self.values[key] = pt[v]
+            NDcoordinates[self.variables2distributionsMapping[varName]['dim']-1] = pt[v]
+        for v,varName in enumerate(self.sparseGrid.varNames):
+          if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
+            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
         self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['ProbabilityWeight'] = weight
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
@@ -3056,46 +3389,86 @@ class SparseGridCollocation(Grid):
 class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def __init__(self):
     """
-    Default Constructor that will initialize member variables with reasonable
-    defaults or empty lists/dictionaries where applicable.
-    @ In, None
-    @ Out, None
+      Default Constructor that will initialize member variables with reasonable
+      defaults or empty lists/dictionaries where applicable.
+      @ In, None
+      @ Out, None
     """
     SparseGridCollocation.__init__(self)
-    self.type             = 'AdaptiveSparseGridSampler'
-    self.printTag         = self.type
-    self.solns            = None #TimePointSet of solutions -> assembled
-    self.ROM              = None #eventual final ROM object
-    self.activeSGs        = OrderedDict() #list of potential SGs
-    self.maxPolyOrder     = 0
-    self.persistence      = 0    #number of forced iterations, default 2
-    self.error            = 0    #estimate of percent of moment calculated so far
-    self.moment           = 0
-    self.oldSG            = None #previously-accepted sparse grid
-    self.convType         = None #convergence criterion to use
-    self.existing         = {}
-    self.batchDone        = True #flag for whether jobHandler has complete batch or not
+    #identification
+    self.type                    = 'AdaptiveSparseGridSampler'
+    self.printTag                = self.type
+    #assembler objects
+    self.solns                   = None   #TimePointSet of solutions -> assembled
+    self.ROM                     = None   #eventual final ROM object
+    #input parameters
+    self.maxPolyOrder            = 0      #max size of polynomials to allow
+    self.persistence             = 0      #number of forced iterations, default 2
+    self.convType                = None   #convergence criterion to use
+    self.logFile                 = None   #file to print log to, optional
+    #convergence/training tools
+    self.expImpact               = {}     #dict of potential included polynomials and their estimated impacts, [target][index]
+    self.actImpact               = {}     #dict of included polynomials and their current impact, [target][index] = impact
+    self.sparseGrid              = None   #current sparse grid
+    self.oldSG                   = None   #previously-accepted sparse grid
+    self.error                   = 0      #estimate of percent of moment calculated so far
+    self.logCounter              = 0      #when printing the log, tracks the number of prints
+    #convergence study
+    self.doingStudy              = False  #true if convergenceStudy node defined for sampler
+    self.studyFileBase           = 'out_' #can be replaced in input, not used if not doingStudy
+    self.studyPoints             = []     #list of ints, runs at which to record a state
+    #solution storage
+    self.existing                = {}     #rolling list of sampled points
+    self.neededPoints            = []     #queue of points to submit
+    self.submittedNotCollected   = []     #list of points submitted but not yet collected and used
+    self.pointsNeededToMakeROM   = set()  #list of distinct points needed in this process
+    self.unfinished              = 0      #number of runs still running when convergence complete
+    self.batchDone               = True   #flag for whether jobHandler has complete batch or not
+    self.done                    = False  #flipped when converged
+    self.newSolutionSizeShouldBe = None   #used to track and debug intended size of solutions
+    self.inTraining              = set()  #list of index set points for whom points are being run
 
     self._addAssObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
     """
-    Reads in XML node
-    @ In, xmlNode, XML node, input xml
-    @ Out, None
+      Reads in XML node
+      @ In, xmlNode, XML node, input xml
+      @ Out, None
     """
     SparseGridCollocation.localInputAndChecks(self,xmlNode)
     if 'Convergence' not in list(c.tag for c in xmlNode): self.raiseAnError(IOError,'Convergence node not found in input!')
-    convnode = xmlNode.find('Convergence')
-    self.convType     = convnode.attrib['target']
+    convnode  = xmlNode.find('Convergence')
+    logNode   = xmlNode.find('logFile')
+    studyNode = xmlNode.find('convergenceStudy')
+    self.convType     = convnode.attrib.get('target','variance')
     self.maxPolyOrder = int(convnode.attrib.get('maxPolyOrder',10))
     self.persistence  = int(convnode.attrib.get('persistence',2))
+    self.maxRuns      = convnode.attrib.get('maxRuns',None)
     self.convValue    = float(convnode.text)
+    if logNode      is not None: self.logFile = logNode.text
+    if self.maxRuns is not None: self.maxRuns = int(self.maxRuns)
+    if studyNode    is not None:
+      self.doingStudy = True
+      self.studyPoints = studyNode.find('runStatePoints').text
+      filebaseNode = studyNode.find('baseFilename')
+      if filebaseNode is None:
+        self.raiseAWarning('No baseFilename specified in convergenceStudy node!  Using "%s"...' %self.studyFileBase)
+      else:
+        self.studyFileBase = studyNode.find('baseFilename').text
+      if self.studyPoints is None:
+        self.raiseAnError(IOError,'convergenceStudy node was included, but did not specify the runStatePoints node!')
+      else:
+        try:
+          self.studyPoints = list(int(i) for i in self.studyPoints.split(','))
+        except ValueError as e:
+          self.raiseAnError(IOError,'Convergence state point not recognizable as an integer!',e)
+        self.studyPoints.sort()
 
-  def  localInitialize(self):
+  def localInitialize(self):
     """Performs local initialization
-    @ In, None
-    @ Out, None
+      @ In, None
+      @ Out, None
     """
     #set a pointer to the end-product ROM
     self.ROM = self.assemblerDict['ROM'][0][3]
@@ -3105,6 +3478,11 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = utils.first(SVLs) #sampler doesn't always care about which target
     self.features=SVL.features #the input space variables
+    self.targets = self.ROM.initializationOptionDict['Target'].split(',') #the output space variables
+    #initialize impact dictionaries by target
+    for t in self.targets:
+      self.expImpact[t] = {}
+      self.actImpact[t] = {}
     mpo = self.maxPolyOrder #save it to re-set it after calling generateQuadsAndPolys
     self._generateQuadsAndPolys(SVL) #lives in GaussPolynomialRom object
     self.maxPolyOrder = mpo #re-set it
@@ -3119,49 +3497,288 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #create the index set
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance('AdaptiveSet',self)
-    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+    self.indexSet.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
+    for pt in self.indexSet.active:
+      self.inTraining.add(pt)
+      for t in self.targets:
+        self.expImpact[t][pt] = 1.0 #dummy, just to help algorithm be consistent
 
     #set up the already-existing solutions (and re-order the inputs appropriately)
     self._updateExisting()
 
-    #make the first sparse grid ('dummy' is an unneeded index set)
-    self.sparseGrid,dummy = self._makeSparseQuad(self.indexSet.active.keys())
+    #make the first sparse grid
+    self.sparseGrid = self._makeSparseQuad(self.indexSet.active)
 
     #set up the points we need RAVEN to run before we can continue
-    self.neededPoints = []
-    self.pointsNeededToMakeROM = []
-    for pt in self.sparseGrid.points()[:]:
-      if pt not in self.pointsNeededToMakeROM:
-        self.pointsNeededToMakeROM.append(pt)
+    self.newSolutionSizeShouldBe = len(self.existing)
+    self._addNewPoints()
+
+  def localStillReady(self,ready,skipJobHandlerCheck=False):
+    """
+      Determines what additional points are necessary for RAVEN to run.
+      @ In, ready, bool, true if ready
+      @ In, skipJobHandlerCheck, optional bool, if true bypasses check on active runs in jobHandler
+      @ Out, ready, bool, true if ready
+    """
+    #if we're done, be done
+    if self.done: return False
+    #update existing solutions
+    self._updateExisting()
+    #if we're not ready elsewhere, just be not ready
+    if ready==False: return ready
+    #if we still have a list of points to sample, just keep on trucking.
+    if len(self.neededPoints)>0:
+      return True
+    #if points all submitted but not all done, not ready for now.
+    if (not self.batchDone) or (not skipJobHandlerCheck and not self.jobHandler.isFinished()):
+      return False
+    if len(self.existing) < self.newSolutionSizeShouldBe:
+      return False
+    #if no points to check right now, search for points to sample
+    #this should also mean the points for the poly-in-training are done
+    while len(self.neededPoints)<1:
+      #update sparse grid and set active impacts
+      self._updateQoI()
+      #move the index set forward -> that is, find the potential new indices
+      self.indexSet.forward(self.maxPolyOrder)
+      #estimate impacts of all potential indices
+      for pidx in self.indexSet.active:
+        self._estimateImpact(pidx)
+      #check error convergence, using the largest impact from each target
+      self.error = 0
+      for pidx in self.indexSet.active:
+        self.error += max(self.expImpact[t][pidx] for t in self.targets)
+      #if logging, print to file
+      if self.logFile is not None:
+        self._printToLog()
+      #if doing a study and past a statepoint, record the statepoint
+      if self.doingStudy:
+        while len(self.studyPoints)>0 and len(self.pointsNeededToMakeROM) > self.studyPoints[0]:
+          self._writeConvergencePoint(self.studyPoints[0])
+          #remove the point
+          if len(self.studyPoints)>1: self.studyPoints=self.studyPoints[1:]
+          else: self.studyPoints = []
+      #if error small enough, converged!
+      if abs(self.error) < self.convValue:
+        self.done = True
+        self.converged = True
+        break
+      #if maxRuns reached, no more samples!
+      if self.maxRuns is not None and len(self.pointsNeededToMakeROM) >= self.maxRuns:
+        self.raiseAMessage('Maximum runs reached!  No further polynomial will be added.')
+        self.done = True
+        self.converged = True
+        self.neededPoints=[]
+        break
+      #otherwise, not converged...
+      #what if we have no polynomials to consider...
+      if len(self.indexSet.active)<1:
+        self.raiseADebug('No new polynomials to consider!')
+        break
+      #find the highest overall impact to run next
+      idx = self._findHighestImpactIndex()
+      #add it to the training list, and append its points to the requested ones
+      self.inTraining.add(idx)
+      newSG = self._makeSparseQuad([idx])
+      self._addNewPoints(newSG)
+    #if we exited while loop without finding points, we must be done!
+    if len(self.neededPoints)<1:
+      self.converged = True
+      self.raiseADebug('Index points in use, and their impacts:')
+      for p in self.indexSet.points:
+        self.raiseADebug('   ',p,list(self.actImpact[t][p] for t in self.targets))
+      self._finalizeROM()
+      self.unfinished = self.jobHandler.numRunning()
+      self.jobHandler.terminateAll()
+      self.neededPoints=[]
+      self.done = True
+      if self.doingStudy and len(self.studyPoints)>0:
+        self.raiseAWarning('In the convergence study, the following numbers of runs were not reached:',self.studyPoints)
+      return False
+    #if we got here, we still have points to run!
+    #print a status update...
+    self.raiseAMessage('  Next: %s | error: %1.4e | runs: %i' %(str(idx),self.error,len(self.pointsNeededToMakeROM)))
+    return True
+
+  def localGenerateInput(self,model,myInput):
+    """
+      Generates an input. Parameters inherited.
+      @ In, model, Model, unused
+      @ In, myInput, list(str), unused
+    """
+    # compute the maxDim in the given distribution
+    for key in self.variables2distributionsMapping.keys():
+      dist = self.variables2distributionsMapping[key]['name']
+      maxDim = 1
+      listvar = self.distributions2variablesMapping[dist]
+      for var in listvar:
+        if utils.first(var.values()) > maxDim:
+           maxDim = utils.first(var.values())
+    if maxDim > 1: NDcoordinates = [0]*maxDim
+
+    pt = self.neededPoints.pop()
+    self.submittedNotCollected.append(pt)
+    for v,varName in enumerate(self.sparseGrid.varNames):
+      # compute the SampledVarsPb for 1-D distribution
+      if self.variables2distributionsMapping[varName]['totDim'] == 1:
+        for key in varName.strip().split(','):
+          self.values[key] = pt[v]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+        # compute the SampledVarsPb for N-D distribution
+        # Assume only one N-D distribution is associated with sparse grid collocation method
+      elif self.variables2distributionsMapping[varName]['totDim'] > 1:
+        for key in varName.strip().split(','):
+          self.values[key] = pt[v]
+        NDcoordinates[self.variables2distributionsMapping[varName]['dim']-1] = pt[v]
+    for v,varName in enumerate(self.sparseGrid.varNames):
+      if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['SamplerType'] = self.type
+
+  def localFinalizeActualSampling(self,jobObject,model,myInput):
+    """Performs actions after samples have been collected.
+      @ In, jobObject, External/InternalRunner object, the job that finished
+      @ In, model, Model object, the model that was run
+      @ In, myInput, list(str), the input used for the run
+      @ Out, None
+    """
+    #check if all sampling is done
+    if self.jobHandler.isFinished(): self.batchDone = True
+    else: self.batchDone = False
+    #batchDone is used to check if the sampler should find new points.
+
+  def _addNewPoints(self,SG=None):
+    """
+      Sort through sparse grid and add any new needed points
+      @ In, SG, SparseGrid (optional), sparse grid to comb for new points
+      @ Out, None
+    """
+    if SG is None: SG = self.sparseGrid
+    for pt in SG.points()[:]:
+      self.pointsNeededToMakeROM.add(pt) #sets won't store redundancies
       if pt not in self.neededPoints and pt not in self.existing.keys():
+        self.newSolutionSizeShouldBe+=1
         self.neededPoints.append(pt)
 
-  def _makeSparseQuad(self,points=[]):
+  def _convergence(self,poly,rom,target):
     """
-      Generates a sparseGrid object using the self.indexSet adaptively established points
-      as well as and additional points passed in (often the indexSet's adaptive points).
-      Also returns the index set used to generate the sparse grid.
-      @ In, points, list of tuples
-      @ Out, (sparseGrid, indexSet) object tuple
+      Checks the convergence of the adaptive index set via one of (someday) several ways, currently "variance"
+      @ In, poly, list(int), the polynomial index to check convergence for
+      @ In, rom, SupervisedEngine, the GaussPolynomialROM object with respect to which we check convergence
+      @ In, target, string, target to check convergence with respect to
+      @ Out, float, estimated impact factor for this index set and sparse grid
     """
-    sparseGrid = Quadratures.SparseQuad()
-    iset = IndexSets.returnInstance('Custom',self)
-    iset.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
-    iset.setPoints(self.indexSet.points)
-    iset.addPoints(points)
-    sparseGrid.initialize(self.features,iset,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
-    return sparseGrid,iset
+    if self.convType.lower()=='variance':
+      impact = rom.polyCoeffDict[poly]**2 / sum(rom.polyCoeffDict[p]**2 for p in rom.polyCoeffDict.keys())
+    #FIXME 'coeffs' has to be updated to fit in the new rework before it can be used.
+#    elif self.convType.lower()=='coeffs':
+#      #new = self._makeARom(rom.sparseGrid,rom.indexSet).SupervisedEngine[target]
+#      tot = 0 #for L2 norm of coeffs
+#      if self.oldSG != None:
+#        oSG,oSet = self._makeSparseQuad()
+#        old = self._makeARom(oSG,oSet).SupervisedEngine[target]
+#      else: old=None
+#      for coeff in new.polyCoeffDict.keys():
+#        if old!=None and coeff in old.polyCoeffDict.keys():
+#          n = new.polyCoeffDict[coeff]
+#          o = old.polyCoeffDict[coeff]
+#          tot+= (n - o)**2
+#        else:
+#          tot+= new.polyCoeffDict[coeff]**2
+#      impact = np.sqrt(tot)
+    else: self.raiseAnError(KeyError,'Unexpected convergence criteria:',self.convType)
+    return impact
+
+  def _estimateImpact(self,idx):
+    """
+      Estimates the impact of polynomial with index idx by considering the product of its predecessor impacts.
+      @ In, idx, tuple(int), polynomial index
+      @ Out, None
+    """
+    #initialize
+    for t in self.targets: self.expImpact[t][idx] = 1.
+    have = 0 #tracks the number of preceeding terms I have (e.g., terms on axes have less preceeding terms)
+    #create a list of actual impacts for predecessors of idx
+    predecessors = {}
+    for t in self.targets:
+      predecessors[t]=[]
+    for i in range(len(self.features)):
+      subidx = list(idx)
+      if subidx[i]>0:
+        subidx[i] -= 1
+        for t in self.targets:
+          predecessors[t].append(self.actImpact[t][tuple(subidx)])
+      else: continue #on an axis or axial plane
+    #estimated impact is the product of the predecessor impacts raised to the power of the number of predecessors
+    for t in self.targets:
+      #raising each predecessor to the power of the predecessors makes a more fair order-of-magnitude comparison
+      #  for indices on axes -> otherwise, they tend to be over-emphasized
+      self.expImpact[t][idx] = np.prod(np.power(np.array(predecessors[t]),1.0/len(predecessors[t])))
+
+  def _finalizeROM(self,rom=None):
+    """
+      Initializes final target ROM with necessary objects for training.
+      @ In, None
+      @ Out, None
+    """
+    if rom == None: rom = self.ROM
+    self.raiseADebug('No more samples to try! Declaring sampling complete.')
+    #initialize final rom with final sparse grid and index set
+    for target,SVL in rom.SupervisedEngine.items():
+      SVL.initialize({'SG':self.sparseGrid,
+                      'dists':self.dists,
+                      'quads':self.quadDict,
+                      'polys':self.polyDict,
+                      'iSet':self.indexSet,
+                      'numRuns':len(self.pointsNeededToMakeROM)-self.unfinished})
+
+  def _findHighestImpactIndex(self,returnValue=False):
+    """
+      Finds and returns the index with the highest average expected impact factor across all targets
+      Can optionally return the value of the highest impact, as well.
+      @ In, returnValue, bool optional, returns the value of the index if True
+      @ Out, tuple(int), polynomial index with greatest expected effect
+    """
+    point = None
+    avg = 0
+    for pt in self.expImpact.values()[0].keys():
+      new = sum(self.expImpact[t][pt] for t in self.targets)/len(self.targets)
+      if avg < new:
+        avg = new
+        point = pt
+    self.raiseADebug('Highest impact point is',point,'with expected average impact',avg)
+    if returnValue: return point,avg
+    else: return point
+
+  def _integrateFunction(self,sg,r,i):
+    """
+      Uses the sparse grid sg to effectively integrate the r-th moment of the model.
+      @ In, sg, SparseGrid, sparseGrid object
+      @ In, r, int, integer moment
+      @ In, i, int, index of target to evaluate
+      @ Out, float, approximate integral
+    """
+    tot=0
+    for n in range(len(sg)):
+      pt,wt = sg[n]
+      if pt not in self.existing.keys():
+        self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
+      tot+=self.existing[pt][i]**r*wt
+    return tot
 
   def _makeARom(self,grid,inset):
     """
       Generates a GaussPolynomialRom object using the passed in sparseGrid and indexSet,
       otherwise fundamentally a copy of the end-target ROM.
-      @ In, grid, a sparseGrid object
-      @ In, inset, a indexSet object
-      @ Out, a GaussPolynomialROM object
+      @ In, grid, SparseGrid, sparseGrid
+      @ In, inset, IndexSet, indexSet
+      @ Out, GaussPolynomialROM object
     """
     #deepcopy prevents overwriting
-    rom  = copy.deepcopy(self.ROM)
+    rom  = copy.deepcopy(self.ROM) #preserves interpolation requests via deepcopy
     sg   = copy.deepcopy(grid)
     iset = copy.deepcopy(inset)
     sg.messageHandler   = self.messageHandler
@@ -3169,7 +3786,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     rom.messageHandler  = self.messageHandler
     for svl in rom.SupervisedEngine.values():
       svl.initialize({'SG'   :sg,
-                      'dists':self.distDict,
+                      'dists':self.dists,
                       'quads':self.quadDict,
                       'polys':self.polyDict,
                       'iSet' :iset
@@ -3178,15 +3795,56 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     rom.train(self.solns)
     return rom
 
-  def _impactParameter(self,new,old):
+  def _makeSparseQuad(self,points=[]):
     """
-      Calculates the impact factor g_k based on the Ayres-Eaton 2015 paper model.
-      @ In, new, the new metric
-      @ In, old, the old metric
-      @ Out, the impact parameter
+      Generates a sparseGrid object using the self.indexSet adaptively established points
+      as well as and additional points passed in (often the indexSet's adaptive points).
+      @ In, points, list(tuple(int)), points
+      @ Out, SparseGrid
     """
-    if abs(old)>1e-14: return((new-old)/old)
-    else: return new
+    sparseGrid = Quadratures.SparseQuad()
+    iset = IndexSets.returnInstance('Custom',self)
+    iset.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
+    iset.setPoints(self.indexSet.points)
+    iset.addPoints(points)
+    sparseGrid.initialize(self.features,iset,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
+    return sparseGrid
+
+  def _printToLog(self):
+    """
+      Prints adaptive state of this sampler to the log file.
+      @ In, None
+      @ Out, None
+    """
+    self.logCounter+=1
+    pl = 4*len(self.features)+1
+    f = file(self.logFile,'a')
+    f.writelines('===================== STEP %i =====================\n' %self.logCounter)
+    f.writelines('\nNumber of Runs: %i\n' %len(self.pointsNeededToMakeROM))
+    f.writelines('Error: %1.9e\n' %self.error)
+    f.writelines('Features: %s\n' %','.join(self.features))
+    f.writelines('\nExisting indices:\n')
+    f.writelines('    {:^{}}:'.format('poly',pl))
+    for t in self.targets:
+      f.writelines('  {:<16}'.format(t))
+    f.writelines('\n')
+    for idx in self.indexSet.points:
+      f.writelines('    {:^{}}:'.format(idx,pl))
+      for t in self.targets:
+        f.writelines('  {:<9}'.format(self.actImpact[t][idx]))
+      f.writelines('\n')
+    f.writelines('\nPredicted indices:\n')
+    f.writelines('    {:^{}}:'.format('poly',pl))
+    for t in self.targets:
+      f.writelines('  {:<16}'.format(t))
+    f.writelines('\n')
+    for idx in self.expImpact.values()[0].keys():
+      f.writelines('    {:^{}}:'.format(idx,pl))
+      for t in self.targets:
+        f.writelines('  {:<9}'.format(self.expImpact[t][idx]))
+      f.writelines('\n')
+    f.writelines('===================== END STEP =====================\n')
+    f.close()
 
   def _updateExisting(self):
     """
@@ -3195,6 +3853,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, None
       @ Out, None
     """
+    #TODO: only append new points instead of resorting everyone
     if not self.solns.isItEmpty():
       inps = self.solns.getInpParametersValues()
       outs = self.solns.getOutParametersValues()
@@ -3206,173 +3865,42 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       outvals = zip(*list(v for v in outs.values()))
       self.existing = dict(zip(existinginps,outvals))
 
-  def _integrateFunction(self,sg,r,i):
+  def _updateQoI(self):
     """
-      Uses the sparse grid sg to effectively integrate the r-th moment of the model.
-      @ In, sg, sparseGrid object
-      @ In, r, integer moment
-      @ In, i, index of target to evaluate
-      @ Out, float, approximate integral
-    """
-    tot=0
-    for n in range(len(sg)):
-      pt,wt = sg[n]
-      if pt not in self.existing.keys(): self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
-      tot+=self.existing[pt][i]**r*wt
-    return tot
-
-  def _convergence(self,sparseGrid,iset,i):
-    """
-      Checks the convergence of the adaptive index set via one of several ways, currently "mean", "variance", or "coeffs",
-      meaning the moment coefficients of the stochastic polynomial expansion.
-      @ In, sparseGrid, sparseGrid object
-      @ In, iset, indexSet object
-      @ In, i, index of target to check convergence with respect to
-      @ Out, estimated impact factor for this index set and sparse grid
-    """
-    if self.convType.lower()=='mean':
-      new = self._integrateFunction(sparseGrid,1,i)
-      if self.oldSG!=None: old = self._integrateFunction(self.oldSG,1,i)
-      else: old = 0
-      impact = self._impactParameter(new,old)
-    elif self.convType.lower()=='variance':
-      new = self._integrateFunction(sparseGrid,2,i)
-      if self.oldSG!=None:
-        old = self._integrateFunction(self.oldSG,2,i)
-      else: old = 0
-      impact = self._impactParameter(new,old)
-    elif self.convType.lower()=='coeffs':
-      new = self._makeARom(sparseGrid,iset).SupervisedEngine.values()[i]
-      tot = 0 #for L2 norm of coeffs
-      if self.oldSG != None:
-        oSG,oSet = self._makeSparseQuad()
-        old = self._makeARom(oSG,oSet).SupervisedEngine.values()[i]
-      else: old=None
-      for coeff in new.polyCoeffDict.keys():
-        if old!=None and coeff in old.polyCoeffDict.keys():
-          n = new.polyCoeffDict[coeff]
-          o = old.polyCoeffDict[coeff]
-          tot+= (n - o)**2
-        else:
-          tot+= new.polyCoeffDict[coeff]**2
-      impact = np.sqrt(tot)
-    else: self.raiseAnError(KeyError,'Unexpected convergence criteria:',self.convType)
-    return impact
-
-  def localStillReady(self,ready):
-    """
-      Determines what additional points are necessary for RAVEN to run.
-      @ In, ready, bool, true if ready
-      @ Out, ready, bool, true if ready
-    """
-    #update existing solutions
-    self._updateExisting()
-    #if we're not ready elsewhere, just be not ready
-    if ready==False: return ready
-    #if we still have a list of points to sample, just keep on trucking.
-    if len(self.neededPoints)>0: return True
-    #if points all submitted but not all done, not ready for now.
-    if not self.batchDone:
-      return False
-    #if no points to check right now, search for points to sample
-    while len(self.neededPoints)<1:
-      self.raiseADebug('')
-      self.raiseADebug('Evaluating new points...')
-      #update QoIs and impact parameters
-      self.error=0
-      #re-evaluate impact of active set, since it could have changed
-      for active in self.indexSet.active.keys():
-        #create new SG using active point
-        sparseGrid,iset = self._makeSparseQuad(active)
-        #store it
-        self.activeSGs[active]=sparseGrid
-        #get impact from  convergence
-        avImpact = 0
-        for i,_ in enumerate(self.ROM.SupervisedEngine.keys()):
-          avImpact += self._convergence(sparseGrid,iset,i)
-        impact = avImpact/float(len(self.ROM.SupervisedEngine.keys()))
-        #stash the sparse grid, impact factor for future reference
-        self.indexSet.setSG(active,sparseGrid)
-        self.indexSet.setImpact(active,impact)
-        #the estimated error is the sum of all the impacts
-        self.error+=impact
-      self.raiseADebug('  estimated remaining error:',self.error)
-      self.raiseADebug('  target error:',self.convValue)
-      if abs(self.error)<self.convValue and len(self.indexSet.points)>self.persistence:
-        self.raiseADebug('converged estimated error:',self.error)
-        #clear the active index set
-        for key in self.indexSet.active.keys():
-          if self.indexSet.active[key]==None: del self.indexSet.active[key]
-        break
-      #if we're not converged...
-      self.raiseADebug('new iset:')
-      self.indexSet.printOut()
-      #store the old rom, if we have it
-      if len(self.indexSet.points)>1:
-        self.oldSG = self.activeSGs[self.indexSet.newestPoint]
-      #get the active point with the biggest impact and make him permanent
-      point,impact = self.indexSet.expand()
-      # find the forward points of the most effective point
-      self.indexSet.forward(point,self.maxPolyOrder)
-      #find the new points needed to evaluate, if any (there should be usually)
-      for point in self.indexSet.active.keys():
-        sparseGrid,dummy=self._makeSparseQuad(point)
-        for pt in sparseGrid.points()[:]:
-          if pt not in self.pointsNeededToMakeROM:
-            self.pointsNeededToMakeROM.append(pt)
-          if pt not in self.neededPoints and pt not in self.existing.keys():
-            self.neededPoints.append(pt)
-    #if we exited the while-loop searching for new points and there aren't any, we're done!
-    if len(self.neededPoints)==0:
-      self.indexSet.printOut()
-      self.finalizeROM()
-      return False
-    #otherwise, we have work to do.
-    return True
-
-  def finalizeROM(self):
-    """
-      Initializes final target ROM with necessary objects for training.
+      Updates Reduced Order Models (ROMs) for Quantities of Interest (QoIs), as well as impact parameters and estimated error.
       @ In, None
       @ Out, None
     """
-    self.raiseADebug('No more samples to try! Declaring sampling complete.')
-    #initialize final rom with final sparse grid and index set
-    self.sparseGrid = Quadratures.SparseQuad()
-    self.sparseGrid.initialize(self.features,self.indexSet,self.distDict,self.quadDict,self.jobHandler,self.messageHandler)
-    for SVL in self.ROM.SupervisedEngine.values():
-      SVL.initialize({'SG':self.sparseGrid,
-                      'dists':self.distDict,
-                      'quads':self.quadDict,
-                      'polys':self.polyDict,
-                      'iSet':self.indexSet,
-                      'numRuns':len(self.pointsNeededToMakeROM)})
-    self.indexSet.printHistory()
-    self.indexSet.writeHistory()
+    #add active (finished) points to the sparse grid
+    for active in list(self.inTraining):
+      #add point to index set
+      self.indexSet.accept(active)
+      self.sparseGrid = self._makeSparseQuad()
+      for t in self.targets:
+        del self.expImpact[t][active]
+      self.inTraining.remove(active)
+    #update all the impacts
+    rom = self._makeARom(self.sparseGrid,self.indexSet)
+    for poly in self.indexSet.points:
+      for t in self.targets:
+        impact = self._convergence(poly,rom.SupervisedEngine[t],t)
+        self.actImpact[t][poly] = impact
 
-  def localGenerateInput(self,model,myInput):
+  def _writeConvergencePoint(self,runPoint):
     """
-      Generates an input. Parameters inherited.
-      @ In, model, unused
-      @ In, myInput, unused
+      Writes XML out for this ROM at this point in the run
+      @ In, runPoint, int, the target runs for this statepoint
+      @ Out, None
     """
-    pt = self.neededPoints.pop() # [self.counter-1]
-    for v,varName in enumerate(self.sparseGrid.varNames):
-      self.values[varName] = pt[v]
-      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['SamplerType'] = self.type
+    fname = self.studyFileBase+str(runPoint)
+    self.raiseAMessage('Preparing to write state %i to %s.xml...' %(runPoint,fname))
+    rom = copy.deepcopy(self.ROM)
+    self._finalizeROM(rom)
+    rom.train(self.solns)
+    options = {'filenameroot':fname, 'what':'all'}
+    rom.printXML(options)
 
-  def localFinalizeActualSampling(self,jobObject,model,myInput):
-    """Performs actions after samples have been collected.
-    @ In, jobObject, the job that finished
-    @ In, model, the model that was run
-    @ In, myInput, the input used for the run
-    @Out, None
-    """
-    #check if all sampling is done
-    if self.jobHandler.isFinished(): self.batchDone = True
-    else: self.batchDone = False
+
 #
 #
 #
@@ -3401,6 +3929,7 @@ class Sobol(SparseGridCollocation):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.existing       = []
+    self.distinctPoints = set() #tracks distinct points used in creating this ROM
 
     self._addAssObject('ROM','1')
 
@@ -3417,16 +3946,17 @@ class Sobol(SparseGridCollocation):
   def _localGenerateAssembler(self,initDict):
     """
       Used to obtain necessary objects.
-      @ In, initDict, dictionary of objects required to initialize
+      @ In, initDict, dict, dictionary of objects required to initialize
       @ Out, None
     """
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
+    self.dists = self.transformDistDict()
 
   def localInputAndChecks(self,xmlNode):
     """
       Extended readMoreXML after other objects are instantiated
-      @ In, xmlNode, xmlNode object whose head should be Sobol under Sampler.
+      @ In, xmlNode, xmlNode object, whose head should be Sobol under Sampler.
       @ Out, None
     """
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
@@ -3509,8 +4039,8 @@ class Sobol(SparseGridCollocation):
     newpt = np.zeros(len(self.distDict))
     for v,var in enumerate(self.distDict.keys()):
       newpt[v] = self.references[var]
-    #if tuple(newpt) not in existing:
     self.pointsToRun.append(tuple(newpt))
+    self.distinctPoints.add(tuple(newpt))
     #now do the rest
     for combo,rom in utils.first(self.ROMs.values()).items(): #each target is the same, so just for each combo
       SG = rom.sparseGrid #they all should have the same sparseGrid
@@ -3522,6 +4052,7 @@ class Sobol(SparseGridCollocation):
           if var in combo: newpt[v] = pt[combo.index(var)]
           else: newpt[v] = self.references[var]
         newpt=tuple(newpt)
+        self.distinctPoints.add(newpt)
         if newpt not in self.pointsToRun:# and newpt not in existing: #the second half used to be commented...
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
@@ -3533,7 +4064,8 @@ class Sobol(SparseGridCollocation):
               'dists':self.distDict,
               'quads':self.quadDict,
               'polys':self.polyDict,
-              'refs':self.references}
+              'refs':self.references,
+              'numRuns':len(self.distinctPoints)}
     for target in self.targets:
       initdict['ROMs'] = self.ROMs[target]
       self.ROM.SupervisedEngine[target].initialize(initdict)
@@ -3541,8 +4073,8 @@ class Sobol(SparseGridCollocation):
   def localGenerateInput(self,model,myInput):
     """
       Generates an input. Parameters inherited.
-      @ In, model, unused
-      @ In, myInput, unused
+      @ In, model, Model
+      @ In, myInput, list(str)
     """
     found=False
     while not found:
@@ -3556,6 +4088,7 @@ class Sobol(SparseGridCollocation):
       for v,varName in enumerate(self.distDict.keys()):
         self.values[varName] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
       self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight'] =  N/A
       self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
@@ -3563,7 +4096,780 @@ class Sobol(SparseGridCollocation):
 #
 #
 #
+class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
+  """
+  Adaptive Sobol sampler to obtain points adaptively for training a HDMR ROM.
+  """
+  def __init__(self):
+    """
+    The constructor.
+    @ In, None
+    @ Out, None
+    """
+    Sobol.__init__(self)
 
+    #identification
+    self.type            = 'AdaptiveSobolSampler'
+    self.printTag        = 'SAMPLER ADAPTIVE SOBOL'
+    self.stateCounter    = 0       #counts number of times adaptive step moves forward
+
+    #input parameters
+    self.maxSobolOrder   = None    #largest dimensionality of a subset combination
+    #self.maxPolyOrder    = None   #largest polynomial order to use in subset sparse grids #TODO maybe someday
+    self.maxRuns         = None    #most runs to allow total before quitting
+    self.convValue       = None    #value to converge adaptive sampling to
+    self.tweakParam      = 1.0     #ranges 0 (only polynomials) to 2 (only subsets)
+    self.statesFile      = None    #file to log the progression of the adaptive sampling
+    self.subVerbosity    = 'quiet' #verbosity level for the ROMs, samplers, dataobjects created within this sampler
+
+    #assembly objects
+    self.solns           = None    #solution database, PointSet data object
+    self.ROM             = None    #HDMR rom that will be constructed with the samples found here
+
+    #storage dictionaries
+    self.ROMs            = {} #subset reduced-order models by target,subset: self.ROMs[target][subset]
+    self.SQs             = {} #stores sparse grid quadrature objects
+    self.samplers        = {} #stores adaptive sparse grid sampling objects
+    self.romShell        = {} #stores Model.ROM objects for each subset
+    self.iSets           = {} #adaptive index set objects by target,subset
+    self.pointsNeeded    = {} #by subset, the points needed for next step in adaptive SG sampler
+    self.pointsCollected = {} #by subset, the points collected for next stip in adaptive SG sampler
+    self.subsets         = {} #subset gPC ROMs to be used in full HDMR ROM that have at least started training
+    self.references      = {} #mean-value cut reference points by variable
+    self.useSet          = {} #accepted subsets and the associated ROMs, as useSet[subset][target]
+
+    #convergence parameters
+    self.subsetImpact    = {}    #actual impact on variance by subset combo
+    self.subsetExpImpact = {}    #estimated impact on variance by subset combo
+    self.done            = False #boolean to track if we've converged, or gone over limit
+    self.distinctPoints  = set() #list of points needed to make this ROM, for counting purposes
+    self.numConverged    = 0     #tracking for persistance
+    self.persistence     = 2     #set in input, the number of successive converges to require
+
+    #attributes
+    self.features        = None #ROM features of interest, also input variable list
+    self.targets         = None #ROM outputs of interest
+
+    #point lists
+    self.existing        = {}       #points from restart and calculations, and their solutions
+    self.sorted          = []       #points that have been sorted into appropriate objects
+    self.submittedNotCollected = [] #list of points that have been generated but not collected
+    self.inTraining      = []       #usually just one tuple, unless multiple items in simultaneous training
+
+    self._addAssObject('TargetEvaluation','1')
+
+  def localInputAndChecks(self,xmlNode):
+    """
+    Extended readMoreXML.
+    @ In, xmlNode, xmlNode, with head AdaptiveSobol
+    @ Out, None
+    """
+    Sobol.localInputAndChecks(self,xmlNode)
+    conv = xmlNode.find('Convergence')
+    if conv is None: self.raiseAnError(IOError,'"Convergence" node not found in input!')
+    #self.convType      = conv.get('target',None) #TODO not implemented.  Currently only does variance.
+    for child in conv:
+      if   child.tag == 'relTolerance'   : self.convValue     = float(child.text)
+      elif child.tag == 'maxRuns'        : self.maxRuns       =   int(child.text)
+      elif child.tag == 'maxSobolOrder'  : self.maxSobolOrder =   int(child.text)
+      #elif child.tag== 'maxPolyOrder'   : self.maxPolyOrder  =   int(child.text) #TODO someday maybe.
+      elif child.tag == 'progressParam'  : self.tweakParam    = float(child.text)
+      elif child.tag == 'logFile'        : self.statesFile    =  file(child.text,'w')
+      elif child.tag == 'subsetVerbosity': self.subVerbosity  =       child.text.lower()
+    if not 0 <= self.tweakParam <= 2:
+      self.raiseAnError(IOError,'progressParam must be between 0 (only add polynomials) and 2 (only add subsets) (default 1).  Input value was',self.tweakParam,'!')
+    if self.subVerbosity not in ['debug','all','quiet','silent']:
+      self.raiseAWarning('subsetVerbosity parameter not recognized:',self.subVerbosity,' -> continuing with "quiet"')
+      self.subVerbosity = 'quiet'
+
+  def localInitialize(self):
+    """
+    Initializes this sampler, building some starting subset roms for Sobol decomposition.
+    @ In, None
+    @ Out, None
+    """
+    #set up assembly-based objects
+    self.solns = self.assemblerDict['TargetEvaluation'][0][3]
+    self.ROM   = self.assemblerDict['ROM'][0][3]
+    SVLs = self.ROM.SupervisedEngine.values()
+    SVL = SVLs[0]
+    self.features = SVL.features
+    self.targets = self.ROM.initializationOptionDict['Target'].split(',')
+    for t in self.targets:
+      self.ROMs[t]            = {}
+      self.subsetImpact[t]    = {}
+    #generate quadratures and polynomials
+    self._generateQuadsAndPolys(SVL)
+    #set up reference case
+    for var,dist in self.distDict.items():
+      self.references[var] = dist.untruncatedMean()
+    #set up first subsets, the mono-dimensionals
+    self.firstCombos = list(itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in [0,1]))
+    for c in self.firstCombos[:]:
+      #already did reference case, so remove it
+      if len(c)<1:
+        self.firstCombos.remove(c)
+        continue
+      self._makeSubsetRom(c)
+      self.inTraining.append( ('poly',c,self.samplers[c]._findHighestImpactIndex()) )
+      #get the points needed to push this subset forward
+      self._retrieveNeededPoints(c)
+    #update the solution storage array
+    self._updateExisting()
+    #set up the nominal point for a run
+    #  Note: neededPoints is not going to be the main method for queuing points, but it will take priority.
+    self.neededPoints = [tuple(self.references[var] for var in self.features)]
+
+  def localStillReady(self,ready):
+    """
+    Determines if sampler is prepared to provide another input.  If not, and
+    if jobHandler is finished, this will end sampling.
+    @ In, ready, boolean
+    @ Out, boolean
+    """
+    #if we've already capped runs or are otherwise done, return False
+    if self.done:
+      self.raiseADebug('Sampler is already done; no more runs available.')
+      return False
+    #if for some reason we're not ready already, just return that
+    if not ready: return ready
+    #collect points that have been run
+    self._sortNewPoints()
+    #if starting set of points is not done, just return
+    if len(self.neededPoints)>0: return True
+    #look for any new points to run, if we don't have any
+    while sum(len(self.pointsNeeded[s[1]]) for s in self.inTraining)<1:
+      #since we don't need any points to sample, we can train
+      for item in self.inTraining:
+        sub = item[1]
+        # whether we were training a poly or a new subset, we need to update the subset
+        self._updateSubset(sub)
+      # now that we've updated the subsets, we can train them and update the actual and expected impacts
+      for item in self.inTraining:
+        sub = item[1]
+        #train it
+        self.samplers[sub]._finalizeROM()
+        self.romShell[sub].train(self.samplers[sub].solns)
+        #update the actual impacts
+        for t in self.targets:
+          self.subsetImpact[t][sub] = self._calcActualImpact(sub,t)
+          if sub in self.subsetExpImpact.keys(): del self.subsetExpImpact[sub]
+        #add new/update expected impacts of subsets
+        self._generateSubsets(sub)
+        #remove this item from the training queue
+        self.inTraining.remove(item)
+      #are we at maxRuns?  If so, we need to be done.
+      if self.maxRuns is not None and len(self.distinctPoints)>self.maxRuns:
+        self.raiseAMessage('Maximum runs reached!  No new polynomials or subsets will be added...')
+        self._earlyExit()
+        return False
+      #get next-most influential poly/subset to add, update global error estimate
+      which, todoSub, poly = self._getLargestImpact()
+      self.raiseAMessage('Next: %6s %8s%12s' %(which,','.join(todoSub),str(poly)),'| error: %1.4e' %self.error,'| runs: %i' %len(self.distinctPoints))
+      if self.statesFile is not None: self._printState(which,todoSub,poly)
+      #are we converged?
+      if self.error < self.convValue:
+        self.raiseAMessage('Convergence achieved!  No new polynomials or subsets will be added...')
+        self._earlyExit()
+        return False
+      #otherwise, we're not done...
+      #  -> use the information from _getLargestImpact to add either a poly or a subset
+      if which == 'poly':
+        self.inTraining.append(('poly',todoSub,self.samplers[todoSub]._findHighestImpactIndex()))
+        samp = self.samplers[todoSub]
+        #add the poly to the subset sampler's training queue
+        samp.inTraining.add(self.inTraining[-1][2])
+        #add new necessary points to subset sampler
+        samp._addNewPoints(samp._makeSparseQuad([self.inTraining[-1][2]]))
+        #get those new needed points and store them locally
+        self._retrieveNeededPoints(todoSub)
+      elif which == 'subset':
+        self._makeSubsetRom(todoSub)
+        for t in self.targets: #TODO might be redundant, if you're cleaning up code.
+          self.ROMs[t][todoSub] = self.romShell[todoSub].SupervisedEngine[t]
+        self.inTraining.append(('subset',todoSub,self.romShell[todoSub]))
+        #get initial needed points and store them locally
+        self._retrieveNeededPoints(todoSub)
+    #END while loop
+    #if all the points we need are currently submitted but not collected, we have no points to offer
+    if not self._havePointsToRun(): return False
+    #otherwise, we can submit points!
+    return True
+
+  def localGenerateInput(self,model,oldInput):
+    """
+    Generates an input to be run.
+    @ In, model, Model, the model to run
+    @ In, oldInput, list(str), the old input used
+    @ Out, None
+    """
+    #note: pointsNeeded is the collection of points needed by sampler,
+    #      while neededPoints is just the reference point that needs running
+    #if there's a point that THIS sampler needs, prioritize it
+    if len(self.neededPoints)>0:
+      pt = self.neededPoints.pop()
+    #otherwise, take from the highest-impact sampler's needed points
+    else:
+      #pointsNeeded is in order from least to most impactful, so list reverse of keys.
+      subsets = self.pointsNeeded.keys()
+      subsets.reverse()
+      #now they're in order of impact.  Look for the next point to run.
+      found = False
+      for sub in subsets:
+        for p in self.pointsNeeded[sub]:
+          pt = self._expandCutPoint(sub,p)
+          if pt not in self.submittedNotCollected:
+            self.submittedNotCollected.append(pt)
+            found = True
+            break
+        if found: break
+      if not found:
+        #this should not occur, but is a good sign something went wrong in developing.
+        self.raiseAnError(RuntimeError,'No point was found to generate!  This should not be possible...')
+    #add the number of necessary distinct points to a set (so no duplicates).
+    self.distinctPoints.add(pt)
+    #set up the run.
+    for v,varName in enumerate(self.features):
+      self.values[varName] = pt[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['SamplerType'] = 'Adaptive Sobol Sparse Grids'
+
+  def _addPointToDataObject(self,subset,point):
+    """
+    Adds a cut point to the data object for the subset sampler.
+    @ In, subset, tuple(string), the cut point
+    @ In, point, tuple(int), the cut point to add
+    @ Out, None
+    """
+    pointSet = self.samplers[subset].solns
+    #first, check if the output is in the subset's existing solution set already
+    if point in self.samplers[subset].existing.keys():
+      output = self.samplers[subset].existing[point]
+    #if not, get it locally, but it costs more because we have to expand the cut point
+    else:
+      output = self.existing[self._expandCutPoint(subset,point)]
+      self.samplers[subset].existing[point] = output
+    #add the point to the data set.
+    for v,var in enumerate(subset):
+      pointSet.updateInputValue(var,point[v])
+    for v,var in enumerate(self.targets):
+      pointSet.updateOutputValue(var,output[v])
+
+  def _calcActualImpact(self,subset,target):
+    """
+    Calculates the total impact of the current set.
+    @ In, subset, tuple(str), new subset for which impact is considered
+    @ Out, float, the "error" reduced by acquiring the new point
+    """
+    #add the new term to the use set
+    if subset not in self.useSet.keys(): self.useSet[subset] = {}
+    self.useSet[subset][target] = self.ROMs[target][subset]
+    #compute the impact as the contribution to the variance
+    totvar = 0
+    for s in self.useSet.keys():
+      totvar += self.ROMs[target][s].__variance__()
+    #avoid div by 0 error
+    if totvar > 0:
+      return self.ROMs[target][subset].__variance__()/totvar
+    else:
+      return self.ROMs[target][subset].__variance__()
+
+  def _calcExpImpact(self,subset,target):
+    """
+    Estimates the importance (impact) of the subset, based on its predecessors
+    @ In, subset, tuple(str), the subset spanning the cut plane of interest
+    @ In, target, str, target to estimate impact for
+    @ Out, float, the expected impact
+    """
+    #estimate impact as the product of predecessors
+    #TODO this could be improved for higher dimensions, ie s(a,b,c) = s(a)*s(b)*s(c) or s(a,b)*s(c) or ?
+    #for now, using product of all of the immediate predecessors, which seems to be an okay guess
+    impact = 1
+    for sub in self.useSet.keys():
+      #only use immediate predecessor
+      if len(sub)<len(subset)-1: continue
+      #use builtin set mechanics to figure out if "sub" is a subset of "subset"
+      if set(sub).issubset(set(subset)): #confusing naming!  if sub is a predecessor of subset...
+        impact*=self.subsetImpact[target][sub]
+    return impact
+
+  def _checkCutPoint(self,subset,pt):
+    """
+    Determines if a point is in the cut set for the features in the subset.
+    @ In, subset, tuple(str), desired subset features
+    @ In, pt, tuple(float), the full point
+    @ Out, bool, True if pt only varies from reference in dimensions within the subset
+    """
+    for v,var in enumerate(self.features):
+      if var in subset: continue #it's okay to vary if you're in the subset
+      if pt[v] != self.references[var]: #we're outside the cut plane.
+        return False
+    return True #only if nothing outside the cut plane
+
+  #def _convergence(self):
+    #"""
+    #Checks convergence based on the requested metric.  For now that's just variance. Deprecated, but retained for future use.
+    #@ In, None
+    #@ Out, float, minimum relative convergence on variance
+    #"""
+    #self.oldVariance = copy.deepcopy(self.curVariance)
+    #conv = {}
+    #for t in self.targets:
+      #self.curVariance[t] = 0
+      #for subset,rom in self.useSet.items():
+        #rom = rom[t]
+        #self.curVariance[t]+=rom.__variance__()
+      #conv[t] = abs(self.curVariance.get(t,1) - self.oldVariance.get(t,0))/self.curVariance.get(t,1)
+      #self.raiseADebug('Convergence for %s is %1.3e' %(t,conv[t]))
+    #return max(conv.values())
+
+  def _expandCutPoint(self,subset,pt):
+    """
+    Takes a trimmed point from the cut plane and expands it to include the reference values.
+    @ In, subset, tuple(str), the subset describing this cut plane
+    @ In, pt, tuple(float), the trimmed cutpoint to expand
+    @ Out, tuple(float), full expanded points
+    """
+    #initialize full point
+    full = np.zeros(len(self.features))
+    for v,var in enumerate(self.features):
+      #if it's a varying point (spanned by the subset), keep its value
+      if var in subset: full[v] = pt[subset.index(var)]
+      #else, use the reference value
+      else: full[v] = self.references[var]
+    return tuple(full)
+
+  def _extractCutPoint(self,subset,pt):
+    """
+    Trims the dimensionality of pt to the cut plane spanning subset
+    @ In, subset, tuple(str), the cut plane to trim to
+    @ In, pt, tuple(float), the point to extract
+    @ Out, tuple(pt,vals), extracted point with cardinality equal to the subset cardinality
+    """
+    #slightly faster all in one line.
+    cutInp = tuple(pt[self.features.index(var)] for var in subset)
+    return cutInp
+
+  def _earlyExit(self):
+    """
+    In the event the sampler has to terminate before normal completion, this helps to assure
+    a usable set of ROMs make it to the HDMR ROM.
+    @ In, None
+    @ Out, None
+    """
+    #remove unfinished subsets
+    toRemove = []
+    for subset in self.ROMs.values()[0]:
+      if subset not in self.useSet.keys():
+        toRemove.append(subset)
+    for subset in toRemove:
+      for t in self.targets:
+        del self.ROMs[t][subset]
+    #finalize subsets
+    for sub in self.useSet.keys():
+      self._finalizeSubset(sub)
+    #set completion trigger
+    self.done = True
+    #set up HDMRRom for training
+    self._finalizeROM()
+
+  def _finalizeROM(self):
+    """
+    Delivers necessary structures to the HDMRRom object
+    @ In, None
+    @ Out, None
+    """
+    initDict = {'ROMs':None, # multitarget requires setting individually, below
+                'SG':self.SQs,
+                'dists':self.distDict,
+                'quads':self.quadDict,
+                'polys':self.polyDict,
+                'refs':self.references,
+                'numRuns':len(self.distinctPoints)}
+    #initialize each HDMRRom object in the ROM
+    for target in self.targets:
+      initDict['ROMs'] = self.ROMs[target]
+      self.ROM.SupervisedEngine[target].initialize(initDict)
+
+  def _finalizeSubset(self,subset):
+    """
+    On completion, finalizes the subset by initializing the associated ROM.
+    @ In, subset, tuple(str), subset to finalize
+    @ Out, None
+    """
+    sampler = self.samplers[subset]
+    #add collected points to sampler's data object, just in case one's missing.  Could be optimized.
+    for pt in self.pointsCollected[subset]:
+      self._addPointToDataObject(subset,pt)
+    #finalize the subset ROM
+    sampler._finalizeROM()
+    #train the ROM
+    self.romShell[subset].train(sampler.solns)
+    #store rom in dedicated use set
+    for target in self.targets:
+      self.useSet[subset][target] = self.romShell[subset].SupervisedEngine[target]
+
+  def _generateSubsets(self,subset):
+    """
+    Returns a list of the possible subset combinations available, and estimates their impact
+    @ In, subset, tuple(str), the leading subset to add more subsets from
+    @ Out, None
+    """
+    #get length of subset
+    l = len(subset)
+    #we want all combinations of subsets using subset and adding only one more
+    #first, get all possible combinations of that length
+    #TODO this is wasteful, but I don't know a better way.
+    potential = itertools.combinations(self.features,l+1)
+    #if all the subset dimensions are in the potential, then it could possibly be used
+    #but don't include if it's already there, or if it's in training.
+    use = []
+    self.raiseADebug('Generating subsets on',subset,'...')
+    for p in potential:
+      if all(i in p for i in subset):
+        if p not in self.useSet.keys():
+          if p not in list(s[1] for s in self.inTraining):
+            use.append(p)
+    if len(use)<1:
+      self.raiseADebug('    no new potentials found.')
+      return
+    #now, look for ones that have all necessary subsets in the use set.
+    for p in use:
+      if len(p)>self.maxSobolOrder:
+        self.raiseADebug('        Discarded',p,'for too large subset cardinality.')
+        continue
+      #to be included, p needs all of its precedents of lower cardinality to be in the useSet already.
+      neededPrecedents = list(itertools.combinations(p,len(p)-1))
+      if all(c in self.useSet.keys() for c in neededPrecedents):
+        self.raiseADebug('  Adding subset:',p)
+        self._makeSubsetRom(p)
+        #get expected impact - the max impact among from the targets
+        self.subsetExpImpact[p] = max(abs(self._calcExpImpact(p,t)) for t in self.targets)
+    #now order the expected impacts so that lowest is first (-1 is highest)
+    toSort = zip(self.subsetExpImpact.keys(),self.subsetExpImpact.values())
+    toSort.sort(key=itemgetter(1))
+    #restore them to the ordered dict.
+    self.subsetExpImpact = OrderedDict()
+    for key, impact in toSort:
+      self.subsetExpImpact[key] = impact
+
+  def _getLargestImpact(self):
+    """
+    Looks through potential subsets and existing subsets for the most effective polynomial to add
+    @ In, None
+    @ Out, (str, tuple(str), item ), either 'poly' or 'subset' along with the corresponding subset and either the poly or ''
+    """
+    #track the total error while we do this
+    self.error = 0
+    #storage for most impactful polynomial: its impact, the subset it belongs to, and the polynomial index
+    maxPolyImpact = 0
+    maxPolySubset = None
+    poly = None
+    #find most effective polynomial among existing subsets
+    for subset in self.useSet.keys():
+      #if it's already in training, move along
+      if any(subset == s[1] for s in self.inTraining): continue
+      pt,imp =  self.samplers[subset]._findHighestImpactIndex(returnValue = True)
+      #apply tweaking parameter for favoring either polys or subsets
+      imp = imp**self.tweakParam * (sum(self.subsetImpact[t][subset] for t in self.targets)/len(self.targets))**(2.-self.tweakParam)
+      #update global estimated error
+      self.error+=imp
+      #update max if necessary
+      if maxPolyImpact < imp:
+        maxPolyImpact = imp
+        maxPolySubset = subset
+        poly = pt
+    #storage for the most impactful subset: its impact, and the subset
+    maxSubsetImpact = 0
+    maxSubset = None
+    #find the expected most effective subset among potential subsets
+    for subset,expImp in self.subsetExpImpact.items():
+      #if it's already in training, move along
+      if any(subset == s[1] for s in self.inTraining): continue
+      #apply favoring tweaking parameter
+      expImp = expImp**(2.-self.tweakParam)
+      #update global expected error remaining
+      self.error+=expImp
+      #update max if necessary
+      if maxSubsetImpact < expImp:
+        maxSubsetImpact = expImp
+        maxSubset = subset
+    #which champion (poly or subset) is more significant? Slightly favour polynomials as a tiebreaker
+    if maxPolySubset is None and maxSubset is None:
+      self.raiseAnError(RuntimeError,'No polynomials or subsets found to consider!')
+    if maxPolyImpact >= maxSubsetImpact:
+      self.raiseADebug('Most impactful is resolving subset',maxPolySubset)
+      return 'poly',maxPolySubset,poly
+    else:
+      self.raiseADebug('Most impactful is adding subset',maxSubset)
+      return 'subset',maxSubset,''
+
+  def _havePointsToRun(self):
+    """
+    Determines if there are points to submit to the jobHandler.
+    @ In, None
+    @ Out, bool, true if there are points to run
+    """
+    #check if there's any subsets in the useSet that need points run, that haven't been queued
+    for subset in self.useSet.keys():
+      for pt in self.pointsNeeded[subset]:
+        if self._expandCutPoint(subset,pt) not in self.submittedNotCollected:
+          return True
+    #check if there's anything in training that needs points run, that haven't been queued
+    for item in self.inTraining:
+      subset = item[1]
+      for pt in self.pointsNeeded[subset]:
+        if self._expandCutPoint(subset,pt) not in self.submittedNotCollected:
+          return True
+    #if not, we have nothing to run.
+    return False
+
+  def _makeCutDataObject(self,subset):
+    """
+    Creates a new PointSet dataobject for a cut subset
+    @ In, subset, tuple(str), the subset to make the object for
+    @ Out, dataObject
+    """
+    #create a new data ojbect
+    dataObject = DataObjects.returnInstance('PointSet',self)
+    dataObject.type ='PointSet'
+    #write xml to set up data object
+    #  -> name it the amalgamation of the subset parts
+    node = ET.Element('PointSet',{'name':'-'.join(subset),'verbosity':self.subVerbosity})
+    inp = ET.Element('Input')
+    inp.text = ','.join(s for s in subset)
+    node.append(inp)
+    out = ET.Element('Output')
+    out.text = ','.join(self.targets)
+    node.append(out)
+    #initialize the data object
+    dataObject.readXML(node,self.messageHandler)
+    return dataObject
+
+  def _makeSubsetRom(self,subset):
+    """
+    Constructs a ROM for the given subset (but doesn't train it!).
+    @ In, subset, tuple(string), subset for cut plane
+    @ Out, GaussPolynomialROM object, representing this cut plane (once it gets trained)
+    """
+    verbosity = self.subVerbosity #sets verbosity of created RAVEN objects
+    SVL = self.ROM.SupervisedEngine.values()[0] #an example SVL for most parameters
+    #replicate "normal" construction of the ROM
+    distDict={}
+    quadDict={}
+    polyDict={}
+    imptDict={}
+    limit=0
+    dists = {}
+    #make use of the keys to get the distributions, quadratures, polynomials, importances we want
+    for c in subset:
+      distDict[c] = self.distDict[c]
+      dists[c] = self.dists[c]
+      quadDict[c] = self.quadDict[c]
+      polyDict[c] = self.polyDict[c]
+      imptDict[c] = self.importanceDict[c]
+    #instantiate an adaptive index set for this ROM
+    iset = IndexSets.returnInstance('AdaptiveSet',self)
+    iset.initialize(distDict,imptDict,self.maxPolyOrder)
+    iset.verbosity=verbosity
+    #instantiate a sparse grid quadrature
+    self.SQs[subset] = Quadratures.SparseQuad()
+    self.SQs[subset].initialize(subset,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
+    #instantiate the SVLs.  Note that we need to call both __init__ and initialize with dictionaries.
+    for target in self.targets:
+      initDict = {'IndexSet'       : iset.type,
+                  'PolynomialOrder': SVL.maxPolyOrder,
+                  'Interpolation'  : SVL.itpDict,
+                  'Features'       : ','.join(subset),
+                  'Target'         : target}
+      self.ROMs[target][subset] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
+      initializeDict = {'SG'       : self.SQs[subset],
+                        'dists'    : distDict,
+                        'quads'    : quadDict,
+                        'polys'    : polyDict,
+                        'iSet'     : iset}
+      self.ROMs[target][subset].initialize(initializeDict)
+      self.ROMs[target][subset].verbosity = verbosity
+    #instantiate the shell ROM that contains the SVLs
+    #   NOTE: the shell is only needed so we can call the train method with a data object.
+    self.romShell[subset] = Models.returnInstance('ROM',{},self)
+    self.romShell[subset].subType = 'GaussPolynomialRom'
+    self.romShell[subset].messageHandler = self.messageHandler
+    self.romShell[subset].verbosity = verbosity
+    self.romShell[subset].initializationOptionDict['Target']=','.join(self.targets)
+    self.romShell[subset].initializationOptionDict['Features']=','.join(subset)
+    self.romShell[subset].initializationOptionDict['IndexSet']='TotalDegree'
+    self.romShell[subset].initializationOptionDict['PolynomialOrder']='1'
+    #coordinate SVLs
+    for t in self.targets:
+      self.romShell[subset].SupervisedEngine[t] = self.ROMs[t][subset]
+    #instantiate the adaptive sparse grid sampler for this rom
+    samp = returnInstance('AdaptiveSparseGrid',self)
+    samp.messageHandler = self.messageHandler
+    samp.verbosity      = verbosity
+    samp.doInParallel   = self.doInParallel #TODO can't be set by user.
+    samp.jobHandler     = self.jobHandler
+    samp.convType       = 'variance'
+    samp.maxPolyOrder   = self.maxPolyOrder
+    samp.distDict       = distDict
+    samp.dists          = dists
+    samp.assemblerDict['ROM']              = [['','','',self.romShell[subset]]]
+    soln = self._makeCutDataObject(subset)
+    samp.assemblerDict['TargetEvaluation'] = [['','','',soln]]
+    for var in subset: samp.axisName.append(var)
+    samp.localInitialize()
+    samp.printTag = 'ASG:('+','.join(subset)+')'
+    #propogate sparse grid back from sampler #TODO self.SQs might not really be necessary.
+    self.SQs[subset] = samp.sparseGrid
+    for target in self.targets:
+      self.ROMs[target][subset].sparseGrid  = samp.sparseGrid
+    self.samplers[subset] = samp
+    #initialize pointsNeeded and pointsCollected databases
+    self.pointsNeeded[subset] = []
+    self.pointsCollected[subset] = []
+    #sort already-solved points
+    for inp in self.sorted:
+      if self._checkCutPoint(subset,inp):
+        #get the solution
+        soln = self.existing[inp]
+        #get the cut point
+        cinp = self._extractCutPoint(subset,inp)
+        self.samplers[subset].existing[cinp] = soln
+        self.pointsCollected[subset].append(cinp)
+        self._addPointToDataObject(subset,cinp)
+    #get the points needed by the subset samplers and store them locally
+    self._retrieveNeededPoints(subset)
+    #advance the subset forward if it doesn't have needed points
+    if len(self.pointsNeeded[subset])<1:
+      self._updateSubset(subset)
+
+  def _printState(self,which,todoSub,poly):
+    """
+    Debugging tool.  Prints status of adaptive steps. Togglable in input by specifying logFile.
+    @ In, which, string, the type of the next addition to make by the adaptive sampler: poly, or subset
+    @ In, todoSub, tuple(str), the next subset that will be resolved as part of the adaptive sampling
+    @ In, poly, tuple(int), the polynomial within the next subset that will be added to resolve it
+    @ Out, None
+    """
+    #print status, including error; next step to make; and existing, training, and expected values
+    self.stateCounter+=1
+    self.statesFile.writelines('==================== STEP %s ====================\n' %self.stateCounter)
+    #write error, next adaptive move to make in this step
+    self.statesFile.writelines('\n\nError: %1.9e\n' %self.error)
+    self.statesFile.writelines('Next: %6s %8s %12s\n' %(which,','.join(todoSub),str(poly)))
+    #write a summary of the state of each subset sampler: existing points, training points, yet-to-try points, and their impacts on each target
+    for sub in self.useSet.keys():
+      self.statesFile.writelines('-'*50)
+      self.statesFile.writelines('\nsubset %8s with impacts' %','.join(sub))
+      for t in self.targets:
+        self.statesFile.writelines(    ' [ %4s:%1.6e ] ' %(t,self.subsetImpact[t][sub]))
+      self.statesFile.writelines('\n')
+      #existing polynomials
+      self.statesFile.writelines('ESTABLISHED:\n')
+      self.statesFile.writelines('    %12s' %'polynomial')
+      for t in self.targets:
+        self.statesFile.writelines('  %12s' %t)
+      self.statesFile.writelines('\n')
+      for coeff in self.romShell[sub].SupervisedEngine.values()[0].polyCoeffDict.keys():
+        self.statesFile.writelines('    %12s' %','.join(str(c) for c in coeff))
+        for t in self.targets:
+          self.statesFile.writelines('  %1.6e' %self.romShell[sub].SupervisedEngine[t].polyCoeffDict[coeff])
+        self.statesFile.writelines('\n')
+      #polynomials in training
+      if any(sub==item[1] for item in self.inTraining): self.statesFile.writelines('TRAINING:\n')
+      for item in self.inTraining:
+        if sub == item[1]:
+          self.statesFile.writelines('    %12s %12s\n' %(sub,item[2]))
+      #polynomials on the fringe that aren't being trained
+      self.statesFile.writelines('EXPECTED:\n')
+      for poly in self.samplers[sub].expImpact.values()[0].keys():
+        self.statesFile.writelines('    %12s' %','.join(str(c) for c in poly))
+        self.statesFile.writelines('  %1.6e' %self.samplers[sub].expImpact[t][poly])
+        self.statesFile.writelines('\n')
+    self.statesFile.writelines('-'*50+'\n')
+    #other subsets that haven't been started yet
+    self.statesFile.writelines('EXPECTED SUBSETS\n')
+    for sub,val in self.subsetExpImpact.items():
+      self.statesFile.writelines('    %8s: %1.6e\n' %(','.join(sub),val))
+    self.statesFile.writelines('\n==================== END STEP ====================\n')
+
+  def _retrieveNeededPoints(self,subset):
+    """
+    Get the batch of points needed by the subset sampler and transfer them to local variables
+    @ In, subset, tuple(str), cut plane dimensions
+    @ Out, None
+    """
+    sampler = self.samplers[subset]
+    #collect all the points and store them locally, so we don't have to inquire the subset sampler
+    while len(sampler.neededPoints)>0:
+      cutpt = sampler.neededPoints.pop()
+      fullPoint = self._expandCutPoint(subset,cutpt)
+      #if this point already in local existing, put it straight into collected and sampler existing
+      if fullPoint in self.existing.keys():
+        self.pointsCollected[subset].append(cutpt)
+        self._addPointToDataObject(subset,cutpt)
+        #add solutions, too
+        sampler.existing[cutpt] = self.existing[fullPoint]
+      #otherwise, this is a point that needs to be run!
+      else:
+        self.pointsNeeded[subset].append(cutpt)
+
+  def _sortNewPoints(self):
+    """
+    Allocates points on cut planes to their respective adaptive sampling data objects.
+    @ In, None
+    @ Out, None
+    """
+    #if there's no solutions in the set, no work to do
+    if self.solns.isItEmpty(): return
+    #update self.exisitng for adaptive sobol sampler (this class)
+    AdaptiveSparseGrid._updateExisting(self)
+    for inp,soln in self.existing.items():
+      #if point already sorted, don't re-do work
+      if inp not in self.submittedNotCollected: continue
+      #check through neededPoints to find subset that needed this point
+      self.raiseADebug('sorting:',inp,soln)
+      for subset,needs in self.pointsNeeded.items():
+        #check if point in cut for subset
+        if self._checkCutPoint(subset,inp):
+          self.raiseADebug('...sorting into',subset)
+          cutInp = self._extractCutPoint(subset,inp)
+          self._addPointToDataObject(subset,cutInp)
+          sampler = self.samplers[subset]
+          #if needed or not, still add it to the sampler's existing points
+          if cutInp not in sampler.existing.keys():
+            sampler.existing[cutInp] = soln
+          #check if it was requested
+          if cutInp in needs:
+            #if so, remove the point from Needed and into Collected
+            #  - add key if not existing
+            self.pointsNeeded[subset].remove(cutInp)
+          if subset not in self.pointsCollected.keys(): self.pointsCollected[subset] = []
+          self.pointsCollected[subset].append(cutInp)
+      self.sorted.append(inp)
+      self.submittedNotCollected.remove(inp)
+
+  def _updateSubset(self,subset):
+    """
+    Updates the index set for the subset, and updates estimated impacts
+    @ In, subset, tuple(str), the subset to advance
+    @ Out, None
+    """
+    if len(self.pointsNeeded[subset])<1:
+      sampler = self.samplers[subset]
+      #update the ROM with the new polynomial point
+      sampler._updateQoI()
+      #refresh the list of potential points in the index set
+      sampler.indexSet.forward(sampler.indexSet.points[-1])
+      #update estimated impacts
+      for pidx in sampler.indexSet.active:
+        sampler._estimateImpact(pidx)
+
+#
+#
+#
+#
 
 """
  Interface Dictionary (factory) (private)
@@ -3581,6 +4887,7 @@ __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
 __interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
 __interFaceDict['AdaptiveSparseGrid'      ] = AdaptiveSparseGrid
 __interFaceDict['Sobol'                   ] = Sobol
+__interFaceDict['AdaptiveSobol'           ] = AdaptiveSobol
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():

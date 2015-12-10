@@ -46,8 +46,10 @@ class Point(Data):
     """
     self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
     #The source is the last item we added, so use [-1]
-    try: sourceType = self._toLoadFromList[-1].type
-    except AttributeError: sourceType = None
+    if hasattr(self._toLoadFromList[-1], 'type'):
+      sourceType = self._toLoadFromList[-1].type
+    else:
+      sourceType = None
     if('HDF5' == sourceType):
       if(not self._dataParameters['history']): self.raiseAnError(IOError,'In order to create a Point data, history name must be provided')
       self._dataParameters['filter'] = 'whole'
