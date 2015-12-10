@@ -212,9 +212,7 @@
     </xsd:simpleType>
     <xsd:simpleType name="ASGConvTarget">
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="mean"/>
             <xsd:enumeration value="variance"/>
-            <xsd:enumeration value="coeffs"/>
         </xsd:restriction>
     </xsd:simpleType>
     <xsd:complexType name="LSSSampler">
@@ -271,6 +269,12 @@
       <xsd:attribute name="name"      type="xsd:string" use="required"/>
       <xsd:attribute name="verbosity" type="verbosityAttr"/>
     </xsd:complexType>
+    <xsd:complexType name="convergenceStudyType">
+        <xsd:sequence>
+            <xsd:element name="runStatePoints" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="baseFilename"   type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
     <xsd:complexType name="AdaptiveSGSampler">
         <xsd:sequence>
             <xsd:element name="Convergence"                      minOccurs="1" maxOccurs="unbounded">
@@ -280,7 +284,9 @@
                     <xsd:attribute name="persistence"    type="xsd:integer"/>
                 </xsd:complexType>
             </xsd:element>
+            <xsd:element name="convergenceStudy" type="convergenceStudyType" minOccurs="0"/>
             <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
             <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
         </xsd:sequence>
