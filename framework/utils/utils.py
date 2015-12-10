@@ -548,9 +548,7 @@ def find_crow(framework_dir):
     ravenDir = os.path.dirname(framework_dir)
     #Add the module directory to the search path.
     pmoduleDirs = [os.path.join(ravenDir,"crow","install"),
-                   os.path.join(os.path.dirname(ravenDir),"crow","install"),
-                   os.path.join(os.path.dirname(ravenDir),"crow","crow_modules"),
-                   os.path.join(ravenDir,"crow","crow_modules")]
+                   os.path.join(os.path.dirname(ravenDir),"crow","install")]
     if "CROW_DIR" in os.environ:
       pmoduleDirs.insert(0,os.path.join(os.environ["CROW_DIR"],"install"))
     for pmoduleDir in pmoduleDirs:
