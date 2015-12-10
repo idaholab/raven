@@ -1419,17 +1419,17 @@ class BasicStatistics(BasePostProcessor):
             self.SupervisedEngine[target] = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'linear_model|LinearRegression',
                                                                                                       'Features':','.join(self.sampled.keys()),
                                                                                                       'Target':target})
-            relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-            var = self._computeVariance(Input['targets'][targetP],expValues[parameterSet.index(target)],pbWeight=relWeight)
+            relWeight  = pbWeights['realization'] if target not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target]
+            var = self._computeVariance(Input['targets'][target],expValues[parameterSet.index(target)],pbWeight=relWeight)
             if (var == 0): self.raiseAWarning('Sensitivity of a variable (' + target + ') with 0 variance is requested! in PP: ' + self.name)
             else         : self.SupervisedEngine[target].train(Input['targets'])
           for myIndex in range(len(self.calculated.keys())):
             if self.SupervisedEngine[self.calculated.keys()[myIndex]].amITrained:
               outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
               features = self.sampled.keys()
-              for index in range(len(features)):
+              for index, targetP in enumerate(features):
                 relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-                sigma = self._computeSigma(Input['targets'][targetP],expValues[parameterSet.index(target)],relWeight)
+                sigma = self._computeSigma(Input['targets'][targetP],expValues[parameterSet.index(targetP)],relWeight)
                 outputDict[what][myIndex][index] = outputDict[what][myIndex][index] / sigma
             else:
               value = np.zeros(len(self.calculated.keys()))
