@@ -1710,16 +1710,14 @@ class ARMA(superVisedLearning):
       self.hasFourierSeries = True
       # ADD self.fourier = INSTANCE_OF_LINEAR_REGRESSION_MODEL
       self.fourierPara = {}
-      temps = [float(temp) for temp in self.initOptionDict['Fourier'].split(',')]
-      self.fourierPara['basePeriod'] = temps
-          
+      self.fourierPara['basePeriod'] = [float(temp) for temp in self.initOptionDict['Fourier'].split(',')]
+      
+      self.fourierPara['FourierOrder'] = {}           
       if 'FourierOrder' not in self.initOptionDict.keys():
-        self.fourierPara['FourierOrder'] = {}
         for basePeriod in self.fourierPara['basePeriod']:
           self.fourierPara['FourierOrder'][basePeriod] = 3
       else:
         temps = self.initOptionDict['FourierOrder'].split(',')
-        self.fourierPara['FourierOrder'] = {}
         for index, basePeriod in enumerate(self.fourierPara['basePeriod']):
           self.fourierPara['FourierOrder'][basePeriod] = int(temps[index])
 
@@ -1750,9 +1748,10 @@ class ARMA(superVisedLearning):
       associated with the corresponding points in featureVals
     """
     
-#     self.raiseADebug('****************************************************************')
-#     self.raiseADebug(self.features)
-#     print(type(featureVals), featureVals.ndim)
+    self.raiseADebug('****************************************************************')
+    self.raiseADebug(self.features)
+    self.raiseADebug(type(featureVals), featureVals.ndim)
+    self.raiseADebug(type(targetVals), targetVals.ndim)
 #     self.raiseADebug(self.target)
 #     print(type(targetVals), targetVals.ndim)
 #     print(np.pi)
