@@ -1432,7 +1432,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     NDimensionalDistributions.addInitParams(self, tempDict)
 
   def initializeDistribution(self):
-    self.raiseAMessage('====== BasicMultiDimensional NDCartesianSpline initialize Distribution ======')
+    self.raiseAMessage('BasicMultiDimensional NDCartesianSpline initialize Distribution')
     if self.functionType == 'CDF':
       self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),True)
     else:
@@ -1535,7 +1535,7 @@ class MultivariateNormal(NDimensionalDistributions):
     NDimensionalDistributions.addInitParams(self, tempDict)
 
   def initializeDistribution(self):
-    self.raiseAMessage('====== BasicMultiDimensional MultivariateNormal initialize distribution ======')
+    self.raiseAMessage('BasicMultiDimensional MultivariateNormal initialize distribution')
     mu = distribution1D.vectord_cxx(len(self.mu))
     for i in range(len(self.mu)):
       mu[i] = self.mu[i]

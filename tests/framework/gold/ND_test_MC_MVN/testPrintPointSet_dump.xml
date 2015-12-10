@@ -1,9 +1,8 @@
 <data name="testPrintPointSet_dump" type="Pointset"><input>y0,x0,z0</input><output>y,x,z</output><inputFilename>testPrintPointSet_dump.csv</inputFilename><metadata><SamplerType>array([u'MC', u'MC', u'MC'], 
       dtype='&lt;U2')</SamplerType><crowDist>array([ {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
        {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
-       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'}], dtype=object)</crowDist><SampledVars>array([ {u'y0': 59.35114135398323, u'x0': 0.54585762029184437, u'z0': 59.35114135398323},
-       {u'y0': 60.701311889314397, u'x0': 0.68582272381657328, u'z0': 60.701311889314397},
-       {u'y0': 60.462953474405907, u'x0': 1.1523316044621943, u'z0': 60.462953474405907}], dtype=object)</SampledVars><prefix>array(['1', '2', '3'], 
-      dtype='|S1')</prefix><SampledVarsPb>array([ {u'y0': 0.0444803108539681, u'x0': 0.0444803108539681, u'z0': 0.0444803108539681},
-       {u'y0': 0.20299106000248457, u'x0': 0.20299106000248457, u'z0': 0.20299106000248457},
-       {u'y0': 0.10192830821568667, u'x0': 0.10192830821568667, u'z0': 0.10192830821568667}], dtype=object)</SampledVarsPb><PointProbability>array([  8.80042085e-05,   8.36432182e-03,   1.05897193e-03])</PointProbability></metadata></data>
+       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'}], dtype=object)</crowDist><SampledVars>array([ {u'y0': 59.680027218584904, u'x0': -0.54072814173734063, u'z0': 59.680027218584904},
+       {u'y0': 61.111180700382953, u'x0': 0.88124045143491458, u'z0': 61.111180700382953},
+       {u'y0': 60.032658126965316, u'x0': 0.76109844401597337, u'z0': 60.032658126965316}], dtype=object)</SampledVars><prefix>array(['1', '2', '3'], 
+      dtype='|S1')</prefix><SampledVarsPb>array([{u'x0': 0.2251795179722282}, {u'x0': 0.14305942834438418},
+       {u'x0': 0.1252003610933935}], dtype=object)</SampledVarsPb><PointProbability>array([ 0.22517952,  0.14305943,  0.12520036])</PointProbability></metadata></data>
