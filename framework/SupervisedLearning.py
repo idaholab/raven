@@ -32,6 +32,7 @@ from collections import OrderedDict
 from scipy import spatial
 from sklearn.neighbors.kde import KernelDensity
 import math
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -1703,7 +1704,7 @@ class ARMA(superVisedLearning):
     self.armaPara = {} 
     self.armaPara['P'] = kwargs.get('P', 3)
     self.armaPara['Q'] = kwargs.get('Q', 3)
-
+    
     if 'Fourier' not in self.initOptionDict.keys():
       self.hasFourierSeries = False
     else:
@@ -1724,10 +1725,7 @@ class ARMA(superVisedLearning):
       if len(self.fourierPara['basePeriod']) != len(self.fourierPara['FourierOrder']):
         self.raiseAnError(ValueError, 'Length of FourierOrder should be ' + str(len(self.fourierPara['basePeriod'])))
       
-#       fourierInitDict = {}
-#       fourierInitDict['SKLtype'] = 'linear_model|LinearRegression'
-#       fourierInitDict['Features'] = self.features
-#       fourierInitDict['Target'] = self.target
+      
       self.fourierEngine = linear_model.LinearRegression()
 #     self.raiseADebug(self.armaPara)
 #     self.raiseADebug(self.fourierPara)
@@ -1752,12 +1750,17 @@ class ARMA(superVisedLearning):
     @ Out, targetVals, array, shape = [n_samples], an array of output target
       associated with the corresponding points in featureVals
     """
+    self.Time = copy.deepcopy(targetVals)
+    self.__generateFourier__()
+    
+    
     
     self.raiseADebug('****************************************************************')
     self.raiseADebug(self.fourierEngine)
     self.raiseADebug(self.features)
     self.raiseADebug(type(featureVals), featureVals.ndim)
     self.raiseADebug(type(targetVals), targetVals.ndim)
+    self.raiseADebug(self.Time.ndim)
 #     self.raiseADebug(self.target)
 #     print(type(targetVals), targetVals.ndim)
 #     print(np.pi)
@@ -1776,7 +1779,20 @@ class ARMA(superVisedLearning):
     
     
     
-    self.raiseAnError(IOError,'testing')
+#     self.raiseAnError(IOError,'testing')
+
+  def __generateFourier__(self):
+    Time = self.Time
+    
+    self.fourierPara['series']={}
+    for bp in self.fourierPara['basePeriod']:      
+      self.fourierPara['series'][bp] = np.zeros(shape=(Time.size,2))
+      self.fourierPara['series'][bp][:,0] = np.sin(2*np.pi/bp*Time)
+      self.fourierPara['series'][bp][:,1] = np.cos(2*np.pi/bp*Time)
+    
+    
+    
+    
 
   def __confidenceLocal__(self,featureVals):
     """
