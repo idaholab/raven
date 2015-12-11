@@ -1789,8 +1789,9 @@ class ARMA(superVisedLearning):
       self.fourierPara['series'][bp] = np.zeros(shape=(Time.size,2))
       self.fourierPara['series'][bp][:,0] = np.sin(2*np.pi/bp*Time)
       self.fourierPara['series'][bp][:,1] = np.cos(2*np.pi/bp*Time)
-    
-    
+      # For debug only
+      self.dataObject.updateOutputValue('f-' + str(int(bp)) + '-sin',self.fourierPara['series'][bp][:,0])
+      self.dataObject.updateOutputValue('f-' + str(int(bp)) + '-cos',self.fourierPara['series'][bp][:,1])
     
     
 

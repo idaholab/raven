@@ -492,6 +492,9 @@ class ROM(Dummy):
         if type(self.trainingSet) is dict:
           self.amITrained = True
           for instrom in self.SupervisedEngine.values():
+            #FIXME: This is added for ARMA testing only. Remove if a SingleRun can be used to run ARMA
+            if self.subType == 'ARMA': instrom.dataObject = trainingSet
+            #..End of FIXME
             instrom.train(self.trainingSet)
             self.amITrained = self.amITrained and instrom.amITrained
           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
