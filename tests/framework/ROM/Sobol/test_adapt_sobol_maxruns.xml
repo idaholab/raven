@@ -51,7 +51,7 @@
 
     <Models>
         <Dummy name="MyDummy" subType="" print="True"/>
-        <ExternalModel ModuleToLoad="./multi" name='poly' subType=''>
+        <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly" name='poly' subType=''>
           <variable>x1</variable>
           <variable>x2</variable>
           <variable>x3</variable>

@@ -2,20 +2,22 @@
 #* Simple analytic test ExternalModule *
 #***************************************
 #
+#  Combines both tensor_poly and attenuate for simple evaluation
+#
 import numpy as np
+import tensor_poly
+import attenuate
 
 def evaluate(inp):
-  return np.prod(list(1.+n for n in inp))
+  return tensor_poly.evaluate(inp)
 
 def evaluate2(inp):
-  if len(inp)>0: return np.exp(-sum(inp)/len(inp))
-  else: return 1.0
+  return attenuate.evaluate(inp)
 
 def run(self,Input):
   self.ans  = evaluate (Input.values())
   self.ans2 = evaluate2(Input.values())
 
 #
-# documentation for these tests can be found in raven/docs/tests/tensor_poly.tex
-#                                           and raven/docs/tests/attenuate.tex
+#  These tests have analytic mean and variance, documented in raven/doc/tests
 #
