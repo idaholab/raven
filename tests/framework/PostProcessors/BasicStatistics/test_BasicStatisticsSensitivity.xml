@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>basicStatsSensitivity</WorkingDir>
-    <batchSize>12</batchSize>
+    <batchSize>1</batchSize>
     <Sequence>sample,PP</Sequence>
   </RunInfo>
 
@@ -87,8 +87,8 @@
   <Steps>
     <MultiRun name="sample" sleepTime="1e-4">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Sampler class="Samplers" type="SparseGridCollocation">MC_external</Sampler>
       <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">collset</Output>
     </MultiRun>
     <PostProcess name="PP">
