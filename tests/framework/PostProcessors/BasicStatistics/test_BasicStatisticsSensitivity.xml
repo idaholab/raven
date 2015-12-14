@@ -1,0 +1,110 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>basicStatsSensitivity</WorkingDir>
+    <batchSize>1</batchSize>
+    <Sequence>sample,PP</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="output_basicStatistics.csv" type="">output_basicStatistics.csv</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2,x3,x4,x5</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="collset">
+      <Input>x1,x2,x3,x4,x5</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+  
+  <Distributions>
+    <Normal name="NDist1">
+      <mean>0.5</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+    <Normal name="NDist2">
+      <mean>-0.4</mean>
+      <sigma>1.8</sigma>
+    </Normal>
+    <Normal name="NDist3">
+      <mean>0.3</mean>
+      <sigma>3</sigma>
+    </Normal>
+    <Normal name="NDist4">
+      <mean>-0.2</mean>
+      <sigma>1.0</sigma>
+    </Normal>
+    <Normal name="NDist5">
+      <mean>0.1</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>1000</limit>
+        <initialSeed>1234</initialSeed>
+        <reseedEachIteration>True</reseedEachIteration>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>NDist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>NDist2</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>NDist3</distribution>
+      </variable>
+      <variable name="x4">
+        <distribution>NDist4</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution>NDist5</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="poly.py" name="poly" subType="">
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <variable>x3</variable>
+      <variable>x4</variable>
+      <variable>x5</variable>
+      <variable>ans</variable>
+    </ExternalModel>
+    <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
+      <what>sensitivity</what>
+      <parameters>ans,x1,x2,x3,x4,x5</parameters>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-4">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">collset</Output>
+    </MultiRun>
+    <PostProcess name="PP">
+      <Input class="DataObjects" type="PointSet">collset</Input>
+      <Model class="Models" type="PostProcessor">InputOutput</Model>
+      <Output class="Files" type="">output_basicStatistics.csv</Output>
+      <Output class="DataObjects" type="PointSet">collset</Output>
+      <Output class="OutStreamManager" type="Print">csv_database</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="csv_database">
+      <type>csv</type>
+      <source>collset</source>
+    </Print>
+  </OutStreamManager>
+
+</Simulation>
