@@ -1406,7 +1406,7 @@ class BasicStatistics(BasePostProcessor):
           outputDict[what][myIndex] = np.zeros(len(parameterSet))
           for cnt, param in enumerate(parameterSet): outputDict[what][myIndex][cnt] = regressorsByTarget[param]
           # to avoid numerical instabilities
-          outputDict[what][myIndex][np.absolute(outputDict[what][myIndex]) <= 1.e-17] = 0.0
+          # outputDict[what][myIndex][np.absolute(outputDict[what][myIndex]) <= 1.e-16] = 1.e-16
       # VarianceDependentSensitivity matrix
       if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
@@ -1524,23 +1524,23 @@ class BasicStatistics(BasePostProcessor):
       if X.shape[0] == 1: rowvar = 1
       if rowvar:
         N, featuresNumber, axis = X.shape[1], X.shape[0], 0
-        for myIndex in range(featuresNumber): w[myIndex,:] = weights[myIndex][:] if weights is not None else np.ones(len(w[myIndex,:]))[:]
+        for myIndex in range(featuresNumber): w[myIndex,:] = np.array(weights[myIndex], dtype = np.result_type(feature, np.float64))[:] if weights is not None else np.ones(len(w[myIndex,:]), dtype = np.result_type(feature, np.float64))[:]
       else:
         N, featuresNumber,axis = X.shape[0], X.shape[1], 1
-        for myIndex in range(featuresNumber): w[:,myIndex] = weights[myIndex][:] if weights is not None else np.ones(len(w[:,myIndex]))[:]
+        for myIndex in range(featuresNumber): w[:,myIndex] = np.array(weights[myIndex], dtype = np.result_type(feature, np.float64))[:] if weights is not None else np.ones(len(w[:,myIndex]), dtype = np.result_type(feature, np.float64))[:]
       if N <= 1:
         self.raiseAWarning("Degrees of freedom <= 0")
         return np.zeros((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
-      sumWeightsList, sumSquareWeightsList = np.zeros(featuresNumber), np.zeros(featuresNumber)
+      sumWeightsList, sumSquareWeightsList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64)), np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
       for myIndex in range(featuresNumber): sumWeightsList[myIndex], sumSquareWeightsList[myIndex] = np.sum(weights[myIndex][:]), np.sum(np.square(weights[myIndex][:]))
       diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = w)).T
-      factList = np.zeros(featuresNumber)
+      factList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
       if not self.biased: factList[:] = sumWeightsList[:] / ((sumWeightsList[:]**2.0 - sumSquareWeightsList[:]))
       else              : factList[:] = 1.0 / sumWeightsList[:]
       if not rowvar: covMatrix = (np.dot(diff.T, w * diff) * factList).squeeze()
       else         : covMatrix = (np.dot(w * diff, diff.T) * factList).squeeze()
       # to prevent numerical instability
-      covMatrix[np.absolute(covMatrix) <= 1.e-17] = 0.0
+      # covMatrix[np.absolute(covMatrix) <= 1.e-16] = 1.e-16
       return covMatrix
 
   def corrCoeff(self, feature, weights = None, rowvar = 1):
@@ -1565,7 +1565,7 @@ class BasicStatistics(BasePostProcessor):
         # nan if incorrect value (nan, inf, 0), 1 otherwise
         corrMatrix = covM / covM
       # to prevent numerical instability
-      corrMatrix[np.absolute(corrMatrix) <= 1.e-17] = 0.0
+      # corrMatrix[np.absolute(corrMatrix) <= 1.e-16] = 1.e-16
       return corrMatrix
 #
 #
