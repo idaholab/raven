@@ -1404,13 +1404,19 @@ class BasicStatistics(BasePostProcessor):
       # cov matrix
       if what == 'covariance':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
-        for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :] = Input['targets'][targetP][:]
-        outputDict[what] = self.covariance(feat, weights = pbWeights['realization'])
+        pbWeightsList = [None]*len(Input['targets'].keys())
+        for myIndex, targetP in enumerate(parameterSet): 
+          feat[myIndex, :] = Input['targets'][targetP][:]
+          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+        outputDict[what] = self.covariance(feat, weights = pbWeightsList)
       # pearson matrix
       if what == 'pearson':
-        feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
-        for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :] = Input['targets'][targetP][:]
-        outputDict[what] = self.corrCoeff(feat, weights = pbWeights['realization'])  # np.corrcoef(feat)
+        feat          = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
+        pbWeightsList = [None]*len(Input['targets'].keys())
+        for myIndex, targetP in enumerate(parameterSet): 
+          feat[myIndex, :] = Input['targets'][targetP][:]
+          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+        outputDict[what] = self.corrCoeff(feat, weights = pbWeightsList)  # np.corrcoef(feat)
       # sensitivity matrix
       if what == 'sensitivity':
         if self.sampled:
@@ -1438,8 +1444,11 @@ class BasicStatistics(BasePostProcessor):
       # VarianceDependentSensitivity matrix
       if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
-        for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :] = Input['targets'][targetP][:]
-        covMatrix = self.covariance(feat, weights = pbWeights['realization'])
+        pbWeightsList = [None]*len(Input['targets'].keys())
+        for myIndex, targetP in enumerate(parameterSet): 
+          feat[myIndex, :] = Input['targets'][targetP][:]
+          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+        covMatrix = self.covariance(feat, weights = pbWeightsList)
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
           relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
@@ -1452,7 +1461,10 @@ class BasicStatistics(BasePostProcessor):
       # Normalized sensitivity matrix: linear regression slopes normalized by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
-        for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :] = Input['targets'][targetP][:]
+        pbWeightsList = [None]*len(Input['targets'].keys())
+        for myIndex, targetP in enumerate(parameterSet): 
+          feat[myIndex, :] = Input['targets'][targetP][:]
+          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         covMatrix = self.covariance(feat, weights = pbWeights['realization'])
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
@@ -1541,27 +1553,32 @@ class BasicStatistics(BasePostProcessor):
         Biased weighted covariance matrix,     weights is not None, bias is 1
         can be calcuated depending on the selection of the inputs.
         @ In,  feature, array-like, [#targets,#samples]  features' samples
-        @ In,  weights, array-like, optional, [#samples]  reliability weights. Default is None
+        @ In,  weights, list of array-like, optional, [#targets,#samples]  reliability weights. Default is None
         @ In,  rowvar, int, optional, If rowvar is non-zero, then each row represents a variable,
                                       with samples in the columns. Otherwise, the relationship is transposed. Default=1
         @ Out, covMatrix, array-like, [#targets,#targets] the covariance matrix
       """
       X = np.array(feature, ndmin = 2, dtype = np.result_type(feature, np.float64))
       diff = np.zeros(feature.shape, dtype = np.result_type(feature, np.float64))
-      if weights is not None: w = np.array(weights, ndmin = 1, dtype = np.float64)
+      w    = np.zeros(feature.shape, dtype = np.result_type(feature, np.float64))
       if X.shape[0] == 1: rowvar = 1
-      if rowvar:
-          N = X.shape[1]
-          axis = 0
-      else:
-          N = X.shape[0]
-          axis = 1
-      if weights is not None:
-          sumWeights = np.sum(weights)
-          sumSquareWeights = np.sum(np.square(weights))
-          diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = weights)).T
-      else:
-          diff = X - np.mean(X, axis = 1 - axis, keepdims = True)
+      if rowvar: 
+        N, axis = X.shape[1], 0
+        for myIndex in range(N): w[:,myIndex] = weights[myIndex][:] if weights is not None else np.ones(len(w[:,myIndex]))[:]
+      else: 
+        N, axis = X.shape[0], 1
+        for myIndex in range(N): w[myIndex,:] = weights[myIndex][:] if weights is not None else np.ones(len(w[myIndex,:]))[:]
+      #if weights is not None: w = np.array(weights, ndmin = 1, dtype = np.float64)
+      sumWeights = np.sum(weights)
+      sumSquareWeights = np.sum(np.square(weights))
+      diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = w)).T
+      #unbiasCorr = self.__computeUnbiasedCorrection(2,pbWeight) if not self.biased else 1.0
+#       if weights is not None:
+#           sumWeights = np.sum(weights)
+#           sumSquareWeights = np.sum(np.square(weights))
+#           diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = w)).T
+#       else:
+#           diff = X - np.mean(X, axis = 1 - axis, keepdims = True)
       if weights is not None:
           if not self.biased: fact = float(sumWeights / ((sumWeights * sumWeights - sumSquareWeights)))
           else:               fact = float(1.0 / (sumWeights))
