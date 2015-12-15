@@ -1003,8 +1003,6 @@ class BasicStatistics(BasePostProcessor):
     self.printTag = 'POSTPROCESSOR BASIC STATISTIC'
     self.requiredAssObject = (True, (['Function'], [-1]))
     self.biased = False
-    self.sampled = {}
-    self.calculated = {}
 
   def inputToInternal(self, currentInp):
     """
@@ -1031,16 +1029,9 @@ class BasicStatistics(BasePostProcessor):
     if inType == 'HDF5': pass  # to be implemented
     if inType in ['PointSet']:
       for targetP in self.parameters['targets']:
-        if   targetP in currentInput.getParaKeys('input'):
-          inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
-          self.sampled[targetP] = currentInput.getParam('input' , targetP)
-        elif targetP in currentInput.getParaKeys('output'):
-          inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
-          self.calculated[targetP] = currentInput.getParam('output', targetP)
+        if   targetP in currentInput.getParaKeys('input') : inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
+        elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
       inputDict['metadata'] = currentInput.getAllMetadata()
-      # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
-      if 'SamplerType' in inputDict['metadata'].keys(): pass
-
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -1133,20 +1124,6 @@ class BasicStatistics(BasePostProcessor):
           for index in range(len(parameterSet)):
             if outputextension != 'csv': output.write(parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
             else                       : output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
-#         if what == 'sensitivity':
-#           if not self.sampled: self.raiseAWarning('No sampled Input variable defined in ' + str(self.name) + ' PP. The I/O Sensitivity Matrix wil not be calculated.')
-#           else:
-#             output.write(os.linesep)
-#             self.raiseADebug('Writing parameter matrix ' + what)
-#             output.write(what + os.linesep)
-#             calculatedSet = list(set(list(self.calculated)))
-#             sampledSet = list(set(list(self.sampled)))
-#             if outputextension != 'csv': output.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in sampledSet]) + os.linesep)
-#             else                       : output.write('matrix' + separator + ''.join([str(item) + separator for item in sampledSet]) + os.linesep)
-#             for index in range(len(calculatedSet)):
-#               if outputextension != 'csv': output.write(calculatedSet[index] + ' ' * (maxLength - len(calculatedSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
-#               else                       :
-#                 output.write(calculatedSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
       if self.externalFunction:
         self.raiseADebug('Writing External Function results')
         output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
@@ -1175,7 +1152,6 @@ class BasicStatistics(BasePostProcessor):
             self.raiseADebug('Dumping External Function parameter ' + what)
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
-
 
   def __computeVp(self,p,weights):
     """
@@ -1420,7 +1396,6 @@ class BasicStatistics(BasePostProcessor):
         outputDict[what] = self.corrCoeff(feat, weights = pbWeightsList)  # np.corrcoef(feat)
       # sensitivity matrix
       if what == 'sensitivity':
-
         for myIndex, target in enumerate(parameterSet):
           values, targetCoefs = list(Input['targets'].values()), list(Input['targets'].keys())
           values.pop(list(Input['targets'].keys()).index(target)), targetCoefs.pop(list(Input['targets'].keys()).index(target))
@@ -1517,17 +1492,6 @@ class BasicStatistics(BasePostProcessor):
       msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
         msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['sensitivity'][index]]) + os.linesep
-#       if not self.sampled: self.raiseAWarning('No sampled Input variable defined in ' + str(self.name) + ' PP. The I/O Sensitivity Matrix wil not be calculated.')
-#       else:
-#         msg += ' ' * maxLength + '*****************************' + os.linesep
-#         msg += ' ' * maxLength + '*    I/O   Sensitivity      *' + os.linesep
-#         msg += ' ' * maxLength + '*****************************' + os.linesep
-#         msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in self.sampled]) + os.linesep
-#         sigma = {}
-#         for indexCalculated in range(len(self.calculated.keys())):
-#           #variable = self.sampled.keys()[indexSampled]
-#           msg += self.calculated.keys()[indexCalculated] + ' ' * (maxLength) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['sensitivity'][indexCalculated]]) + os.linesep
-
     if self.externalFunction:
       msg += ' ' * maxLength + '+++++++++++++++++++++++++++++' + os.linesep
       msg += ' ' * maxLength + '+ OUTCOME FROM EXT FUNCTION +' + os.linesep
