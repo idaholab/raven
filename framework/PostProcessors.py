@@ -15,6 +15,7 @@ from glob import glob
 import copy
 import math
 from collections import OrderedDict
+from sklearn.linear_model import LinearRegression
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -1123,7 +1124,7 @@ class BasicStatistics(BasePostProcessor):
           output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
       maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
       for what in outputDict.keys():
-        if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity']:
+        if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity']:
           self.raiseADebug('Writing parameter matrix ' + what)
           output.write(os.linesep)
           output.write(what + os.linesep)
@@ -1132,20 +1133,20 @@ class BasicStatistics(BasePostProcessor):
           for index in range(len(parameterSet)):
             if outputextension != 'csv': output.write(parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
             else                       : output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
-        if what == 'sensitivity':
-          if not self.sampled: self.raiseAWarning('No sampled Input variable defined in ' + str(self.name) + ' PP. The I/O Sensitivity Matrix wil not be calculated.')
-          else:
-            output.write(os.linesep)
-            self.raiseADebug('Writing parameter matrix ' + what)
-            output.write(what + os.linesep)
-            calculatedSet = list(set(list(self.calculated)))
-            sampledSet = list(set(list(self.sampled)))
-            if outputextension != 'csv': output.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in sampledSet]) + os.linesep)
-            else                       : output.write('matrix' + separator + ''.join([str(item) + separator for item in sampledSet]) + os.linesep)
-            for index in range(len(calculatedSet)):
-              if outputextension != 'csv': output.write(calculatedSet[index] + ' ' * (maxLength - len(calculatedSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
-              else                       :
-                output.write(calculatedSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
+#         if what == 'sensitivity':
+#           if not self.sampled: self.raiseAWarning('No sampled Input variable defined in ' + str(self.name) + ' PP. The I/O Sensitivity Matrix wil not be calculated.')
+#           else:
+#             output.write(os.linesep)
+#             self.raiseADebug('Writing parameter matrix ' + what)
+#             output.write(what + os.linesep)
+#             calculatedSet = list(set(list(self.calculated)))
+#             sampledSet = list(set(list(self.sampled)))
+#             if outputextension != 'csv': output.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in sampledSet]) + os.linesep)
+#             else                       : output.write('matrix' + separator + ''.join([str(item) + separator for item in sampledSet]) + os.linesep)
+#             for index in range(len(calculatedSet)):
+#               if outputextension != 'csv': output.write(calculatedSet[index] + ' ' * (maxLength - len(calculatedSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
+#               else                       :
+#                 output.write(calculatedSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
       if self.externalFunction:
         self.raiseADebug('Writing External Function results')
         output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
@@ -1405,7 +1406,7 @@ class BasicStatistics(BasePostProcessor):
       if what == 'covariance':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
         pbWeightsList = [None]*len(Input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet): 
+        for myIndex, targetP in enumerate(parameterSet):
           feat[myIndex, :] = Input['targets'][targetP][:]
           pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         outputDict[what] = self.covariance(feat, weights = pbWeightsList)
@@ -1413,39 +1414,28 @@ class BasicStatistics(BasePostProcessor):
       if what == 'pearson':
         feat          = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
         pbWeightsList = [None]*len(Input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet): 
+        for myIndex, targetP in enumerate(parameterSet):
           feat[myIndex, :] = Input['targets'][targetP][:]
           pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         outputDict[what] = self.corrCoeff(feat, weights = pbWeightsList)  # np.corrcoef(feat)
       # sensitivity matrix
       if what == 'sensitivity':
-        if self.sampled:
-          self.SupervisedEngine = {}  # dict of ROM instances (== number of targets => keys are the targets)
-          for target in self.calculated:
-            self.SupervisedEngine[target] = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'linear_model|LinearRegression',
-                                                                                                      'Features':','.join(self.sampled.keys()),
-                                                                                                      'Target':target})
-            relWeight  = pbWeights['realization'] if target not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target]
-            var = self._computeVariance(Input['targets'][target],expValues[parameterSet.index(target)],pbWeight=relWeight)
-            if (var == 0): self.raiseAWarning('Sensitivity of a variable (' + target + ') with 0 variance is requested! in PP: ' + self.name)
-            else         : self.SupervisedEngine[target].train(Input['targets'])
-          for myIndex in range(len(self.calculated.keys())):
-            if self.SupervisedEngine[self.calculated.keys()[myIndex]].amITrained:
-              outputDict[what][myIndex] = self.SupervisedEngine[self.calculated.keys()[myIndex]].ROM.coef_
-              features = self.sampled.keys()
-              for index, targetP in enumerate(features):
-                relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-                sigma = self._computeSigma(Input['targets'][targetP],expValues[parameterSet.index(targetP)],relWeight)
-                outputDict[what][myIndex][index] = outputDict[what][myIndex][index] / sigma
-            else:
-              value = np.zeros(len(self.calculated.keys()))
-              for i in range(len(self.calculated.keys())): value[i] = np.Infinity
-              outputDict[what][myIndex] = value
+
+        for myIndex, target in enumerate(parameterSet):
+          values, targetCoefs = list(Input['targets'].values()), list(Input['targets'].keys())
+          values.pop(list(Input['targets'].keys()).index(target)), targetCoefs.pop(list(Input['targets'].keys()).index(target))
+          sampledMatrix = np.atleast_2d(np.asarray(values)).T
+          regressorsByTarget = dict(zip(targetCoefs, LinearRegression().fit(sampledMatrix, Input['targets'][target]).coef_))
+          regressorsByTarget[target] = 0.0
+          coefficients = LinearRegression().fit(sampledMatrix, Input['targets'][target]).coef_.tolist()
+          outputDict[what][myIndex] = np.zeros(len(parameterSet))
+          for cnt, param in enumerate(parameterSet):
+            outputDict[what][myIndex][cnt] = regressorsByTarget[param]
       # VarianceDependentSensitivity matrix
       if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
         pbWeightsList = [None]*len(Input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet): 
+        for myIndex, targetP in enumerate(parameterSet):
           feat[myIndex, :] = Input['targets'][targetP][:]
           pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         covMatrix = self.covariance(feat, weights = pbWeightsList)
@@ -1462,10 +1452,10 @@ class BasicStatistics(BasePostProcessor):
       if what == 'NormalizedSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
         pbWeightsList = [None]*len(Input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet): 
+        for myIndex, targetP in enumerate(parameterSet):
           feat[myIndex, :] = Input['targets'][targetP][:]
           pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        covMatrix = self.covariance(feat, weights = pbWeights['realization'])
+        covMatrix = self.covariance(feat, weights = pbWeightsList)
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
           relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
@@ -1521,16 +1511,22 @@ class BasicStatistics(BasePostProcessor):
       for index in range(len(parameterSet)):
         msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['NormalizedSensitivity'][index]]) + os.linesep
     if 'sensitivity' in outputDict.keys():
-      if not self.sampled: self.raiseAWarning('No sampled Input variable defined in ' + str(self.name) + ' PP. The I/O Sensitivity Matrix wil not be calculated.')
-      else:
-        msg += ' ' * maxLength + '*****************************' + os.linesep
-        msg += ' ' * maxLength + '*    I/O   Sensitivity      *' + os.linesep
-        msg += ' ' * maxLength + '*****************************' + os.linesep
-        msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in self.sampled]) + os.linesep
-        sigma = {}
-        for indexCalculated in range(len(self.calculated.keys())):
-          #variable = self.sampled.keys()[indexSampled]
-          msg += self.calculated.keys()[indexCalculated] + ' ' * (maxLength) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['sensitivity'][indexCalculated]]) + os.linesep
+      msg += ' ' * maxLength + '******************************' + os.linesep
+      msg += ' ' * maxLength + '*        Sensitivity         *' + os.linesep
+      msg += ' ' * maxLength + '******************************' + os.linesep
+      msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
+      for index in range(len(parameterSet)):
+        msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['sensitivity'][index]]) + os.linesep
+#       if not self.sampled: self.raiseAWarning('No sampled Input variable defined in ' + str(self.name) + ' PP. The I/O Sensitivity Matrix wil not be calculated.')
+#       else:
+#         msg += ' ' * maxLength + '*****************************' + os.linesep
+#         msg += ' ' * maxLength + '*    I/O   Sensitivity      *' + os.linesep
+#         msg += ' ' * maxLength + '*****************************' + os.linesep
+#         msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in self.sampled]) + os.linesep
+#         sigma = {}
+#         for indexCalculated in range(len(self.calculated.keys())):
+#           #variable = self.sampled.keys()[indexSampled]
+#           msg += self.calculated.keys()[indexCalculated] + ' ' * (maxLength) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['sensitivity'][indexCalculated]]) + os.linesep
 
     if self.externalFunction:
       msg += ' ' * maxLength + '+++++++++++++++++++++++++++++' + os.linesep
@@ -1562,38 +1558,23 @@ class BasicStatistics(BasePostProcessor):
       diff = np.zeros(feature.shape, dtype = np.result_type(feature, np.float64))
       w    = np.zeros(feature.shape, dtype = np.result_type(feature, np.float64))
       if X.shape[0] == 1: rowvar = 1
-      if rowvar: 
-        N, axis = X.shape[1], 0
-        for myIndex in range(N): w[:,myIndex] = weights[myIndex][:] if weights is not None else np.ones(len(w[:,myIndex]))[:]
-      else: 
-        N, axis = X.shape[0], 1
-        for myIndex in range(N): w[myIndex,:] = weights[myIndex][:] if weights is not None else np.ones(len(w[myIndex,:]))[:]
-      #if weights is not None: w = np.array(weights, ndmin = 1, dtype = np.float64)
-      sumWeights = np.sum(weights)
-      sumSquareWeights = np.sum(np.square(weights))
+      if rowvar:
+        N, featuresNumber, axis = X.shape[1], X.shape[0], 0
+        for myIndex in range(featuresNumber): w[myIndex,:] = weights[myIndex][:] if weights is not None else np.ones(len(w[myIndex,:]))[:]
+      else:
+        N, featuresNumber,axis = X.shape[0], X.shape[1], 1
+        for myIndex in range(featuresNumber): w[:,myIndex] = weights[myIndex][:] if weights is not None else np.ones(len(w[:,myIndex]))[:]
+      if N <= 1:
+        self.raiseAWarning("Degrees of freedom <= 0")
+        return np.zeros((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
+      sumWeightsList, sumSquareWeightsList = np.zeros(featuresNumber), np.zeros(featuresNumber)
+      for myIndex in range(featuresNumber): sumWeightsList[myIndex], sumSquareWeightsList[myIndex] = np.sum(weights[myIndex][:]), np.sum(np.square(weights[myIndex][:]))
       diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = w)).T
-      #unbiasCorr = self.__computeUnbiasedCorrection(2,pbWeight) if not self.biased else 1.0
-#       if weights is not None:
-#           sumWeights = np.sum(weights)
-#           sumSquareWeights = np.sum(np.square(weights))
-#           diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = w)).T
-#       else:
-#           diff = X - np.mean(X, axis = 1 - axis, keepdims = True)
-      if weights is not None:
-          if not self.biased: fact = float(sumWeights / ((sumWeights * sumWeights - sumSquareWeights)))
-          else:               fact = float(1.0 / (sumWeights))
-      else:
-          if not self.biased: fact = float(1.0 / (N - 1))
-          else:               fact = float(1.0 / N)
-      if fact <= 0:
-          warnings.warn("Degrees of freedom <= 0", RuntimeWarning)
-          fact = 0.0
-      if not rowvar:
-        if weights is not None: covMatrix = (np.dot(diff.T, w * diff) * fact).squeeze()
-        else:                   covMatrix = (np.dot(diff.T, diff) * fact).squeeze()
-      else:
-        if weights is not None: covMatrix = (np.dot(w * diff, diff.T) * fact).squeeze()
-        else:                   covMatrix = (np.dot(diff, diff.T) * fact).squeeze()
+      factList = np.zeros(featuresNumber)
+      if not self.biased: factList[:] = sumWeightsList[:] / ((sumWeightsList[:]**2.0 - sumSquareWeightsList[:]))
+      else              : factList[:] = 1.0 / sumWeightsList[:]
+      if not rowvar: covMatrix = (np.dot(diff.T, w * diff) * factList).squeeze()
+      else         : covMatrix = (np.dot(w * diff, diff.T) * factList).squeeze()
       return covMatrix
 
   def corrCoeff(self, feature, weights = None, rowvar = 1):
