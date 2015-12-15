@@ -33,6 +33,7 @@ from scipy import spatial
 from sklearn.neighbors.kde import KernelDensity
 import math
 import copy
+import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -1751,31 +1752,69 @@ class ARMA(superVisedLearning):
       associated with the corresponding points in featureVals
     """
     self.Time = copy.deepcopy(targetVals)
+    self.TimeSeriesDatabase = featureVals
     self.__generateFourier__()
     
+    temp = {}
+    for bp in self.fourierPara['FourierOrder'].keys():
+      temp[bp] = range(1,self.fourierPara['FourierOrder'][bp]+1)    
+    fourOrders = list(itertools.product(*temp.values()))
     
+    criterionBest = np.inf
+    self.fourierResult={}
+    self.fourierResult['basePeriod'] = self.fourierPara['basePeriod']
+    self.fourierResult['residues'] = 0
+    self.fourierResult['fSeries'] = []
+    self.fourierResult['fOrder'] = []    
+    for fOrder in fourOrders: 
+      fSeries = np.zeros(shape=(self.Time.size,2*sum(fOrder)))
+      indexTemp = 0
+      for index,bp in enumerate(self.fourierPara['FourierOrder'].keys()):
+        fSeries[:,indexTemp:indexTemp+fOrder[index]*2] = self.fourierPara['series'][bp][:,0:fOrder[index]*2]
+        indexTemp += fOrder[index]*2
+      self.fourierEngine.fit(fSeries,self.TimeSeriesDatabase)
+      
+      r = (self.fourierEngine.predict(fSeries)-self.TimeSeriesDatabase)**2
+      if r.size > 1:    r = sum(r)
+      r = r/self.Time.size
+      criterionCurrent = self.__computeAICorBIC(r,noPara=sum(fOrder)*2,type='None',obj='min')
+      if  criterionCurrent< criterionBest:
+        self.fourierResult['fOrder'] = fOrder
+        self.fourierResult['fSeries'] = fSeries
+        self.fourierResult['residues'] = r
+        criterionBest = criterionCurrent 
+#         self.raiseADebug(r, self.__computeAICorBIC(r,noPara=sum(fOrder)*2,type='AIC',obj='min'), criterionBest)
+      
+#       self.raiseADebug(r, criterionCurrent, criterionBest)
     
+    self.fourierEngine.fit(self.fourierResult['fSeries'],self.TimeSeriesDatabase)
+    self.raiseADebug(self.fourierResult['fOrder'], self.fourierResult['residues'])      
+    
+    self.armaPara['rSeries'] = self.fourierEngine.predict(self.fourierResult['fSeries']) - self.TimeSeriesDatabase
+    
+    # For debug only
     self.raiseADebug('****************************************************************')
+    for index,feat in enumerate(self.features):
+      temp = self.fourierEngine.predict(self.fourierResult['fSeries'])
+      self.raiseADebug(index,feat)
+      self.dataObject.updateOutputValue('fTrend-' + feat, temp[:,index])
+      self.dataObject.updateOutputValue(feat + '-deTrend', self.armaPara['rSeries'][:,index])
+    
+    self.raiseADebug(np.mean(self.armaPara['rSeries']))
+#     r = (self.TimeSeriesDatabase - np.mean(self.TimeSeriesDatabase))**2
+#     if r.size > 1:    r = sum(r)
+#     r = r/self.Time.size
+#     self.raiseADebug(r)
+    
     self.raiseADebug(self.fourierEngine)
     self.raiseADebug(self.features)
-    self.raiseADebug(type(featureVals), featureVals.ndim)
-    self.raiseADebug(type(targetVals), targetVals.ndim)
+    self.raiseADebug(type(featureVals), featureVals.shape)
+    self.raiseADebug(type(targetVals), targetVals.shape)
     self.raiseADebug(self.Time.ndim)
-#     self.raiseADebug(self.target)
-#     print(type(targetVals), targetVals.ndim)
-#     print(np.pi)
-#     
-#     if self.hasFourierSeries:
-#       sinFeatureVals = GENERATE_SINUOIDES(targetVals)
-#       for i ... self.fourier.train()
-#       RESIDUDE = featureVals - self.fourier.run()
-#     else:
-#       RESIDUDE = featureVals
-#     
-#     GENERATE RESIDUE CDF
-#     TRAIN ARMA
-    # GENERATE RESIDUE
-    # 
+
+
+
+
     
     
     
@@ -1785,15 +1824,26 @@ class ARMA(superVisedLearning):
     Time = self.Time
     
     self.fourierPara['series']={}
-    for bp in self.fourierPara['basePeriod']:      
-      self.fourierPara['series'][bp] = np.zeros(shape=(Time.size,2))
-      self.fourierPara['series'][bp][:,0] = np.sin(2*np.pi/bp*Time)
-      self.fourierPara['series'][bp][:,1] = np.cos(2*np.pi/bp*Time)
-      # For debug only
-      self.dataObject.updateOutputValue('f-' + str(int(bp)) + '-sin',self.fourierPara['series'][bp][:,0])
-      self.dataObject.updateOutputValue('f-' + str(int(bp)) + '-cos',self.fourierPara['series'][bp][:,1])
+    for bp in self.fourierPara['basePeriod']:
+      self.fourierPara['series'][bp] = np.zeros(shape=(Time.size,2*self.fourierPara['FourierOrder'][bp]))
+      for orderBp in range(self.fourierPara['FourierOrder'][bp]):       
+        self.fourierPara['series'][bp][:,2*orderBp] = np.sin(2*np.pi*(orderBp+1)/bp*Time)
+        self.fourierPara['series'][bp][:,2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/bp*Time)
+        # For debug only
+        vName = 'f-' + str(int(bp)) + '-' + str(int(orderBp+1)) + '-sin'
+        self.dataObject.updateOutputValue(vName,self.fourierPara['series'][bp][:,2*orderBp])
+        vName = 'f-' + str(int(bp)) + '-' + str(int(orderBp+1)) + '-cos'
+        self.dataObject.updateOutputValue(vName,self.fourierPara['series'][bp][:,2*orderBp+1])
     
-    
+  def __computeAICorBIC(self,maxL,noPara,type,obj='max'):
+    if obj == 'min':        flag = -1
+    else:                   flag = 1
+    if type == 'BIC':
+      return -2*flag*np.log(maxL)+noPara*np.log(self.Time.size)
+    elif type == 'AIC':
+      return -2*flag*np.log(maxL)+noPara*2
+    else:
+      return maxL
 
   def __confidenceLocal__(self,featureVals):
     """
