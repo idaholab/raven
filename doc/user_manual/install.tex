@@ -135,7 +135,16 @@ conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
 
 For OSX Yosemite and OSX Mavericks there is a package available called
 raven\_miniconda.dmg The package includes both miniconda and the
-dependencies RAVEN needs.  Once this is installed you can go on to Section \ref{raven_installation} and install RAVEN.
+dependencies RAVEN needs.
+
+The files will be installed into \texttt{/opt/raven\_libs}.
+
+Your \texttt{.bash\_profile} will be modified to source
+the\\ \texttt{/opt/raven\_libs/environments/raven\_libs\_profile}
+file.  This needs to be sourced.  Reopening the terminal will put the
+correct Miniconda python in the path.
+
+Once this is installed you can go on to Section \ref{raven_installation} and install RAVEN.
 
 \subsection{Manual Dependency Install}
 
@@ -407,11 +416,12 @@ the package, and choose ``Open With'' and then Installer.
 
 The files will be installed into \texttt{/opt/raven\_libs}.
 
-Your \texttt{.bash\_profile} will be modified to source the\\
-\texttt{/opt/raven\_libs/environments/raven\_libs\_profile} file.
-
-This file sets up the environment variables \texttt{PYTHONPATH} and
-\texttt{PATH} so that the \texttt{raven\_framework} command can be used.
+Your \texttt{.bash\_profile} will be modified to source
+the\\ \texttt{/opt/raven\_libs/environments/raven\_libs\_profile}
+file.  This file sets up the environment variables \texttt{PYTHONPATH}
+and \texttt{PATH} so that the \texttt{raven\_framework} command can be
+used.  The \texttt{.bash\_profile} needs to be sourced.  Reopening the
+terminal will source it and put the executable in the path.
 
 \subsection{Troubleshooting the Installation}
 \label{troubleshooting_installation}
