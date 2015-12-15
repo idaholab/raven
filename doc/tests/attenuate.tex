@@ -1,45 +1,18 @@
-\documentclass[11pt]{article}
-\usepackage[utf8]{inputenc}
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{graphicx}
-\usepackage{float}
-\usepackage{fullpage}
-\newcommand{\expv}[1]{\ensuremath{\mathbb{E}[ #1]}}
-
-
-\textwidth6.6in
-\textheight9in
-
-
-\setlength{\topmargin}{0.3in} \addtolength{\topmargin}{-\headheight}
-\addtolength{\topmargin}{-\headsep}
-
-\setlength{\oddsidemargin}{0in}
-
-\oddsidemargin  0.0in \evensidemargin 0.0in \parindent0em
-
-%\pagestyle{fancy}\lhead{MATH 579 (UQ for PDEs)} \rhead{02/24/2014}
-%\chead{Project Proposal} \lfoot{} \rfoot{\bf \thepage} \cfoot{}
-
-
-\begin{document}
-
-\title{1D Attenuation Case}
-
-\author{Paul Talbot\thanks{talbotp@unm.edu}}
-\date{}
-\maketitle
+\section{Attenuation}
+Associated external model: \texttt{attenuate.py}
 
 Attenuation evaluation for quantity of interest $u$ with input parameters $Y=[y_1,\ldots,y_N]$:
 \begin{equation}
 u(Y) = \prod_{n=1}^N e^{-y_n/N}.
 \end{equation}
-This is the solution to the exit strength of a monodirectional, single-energy beam of neutral particles incident on a unit length material divided into $N$ sections with independently-varying absorption cross sections.  This test is useful for its analytic statistical moments as well as difficulty to represent accurately using polynomial representations.
+This is the solution to the exit strength of a monodirectional, single-energy beam of neutral particles
+incident on a unit length material divided into $N$ sections with independently-varying absorption cross
+sections.  This test is useful for its analytic statistical moments as well as difficulty to represent 
+exactly using polynomial representations.
 
-\section{Uniform}
+\subsection{Uniform}
 Let all $y_n$ be uniformly distributed between 0 and 1.  The first two statistical moments are:
-\subsection{mean}
+\subsubsection{mean}
 \begin{align}
 \expv{u(Y)} &=\int_{0}^1 dY \rho(Y)u(Y),\\
   &=\int_{0}^1 dy_1\cdots\int_{0}^1 dy_N \prod_{n=1}^N \frac{e^{-y_n/N}}{2},\\
@@ -47,7 +20,7 @@ Let all $y_n$ be uniformly distributed between 0 and 1.  The first two statistic
   &=\left[\frac{1}{2}\left(-Ne^{-y/N}\right)\bigg|_0^1\right]^N,\\
   &=\left[\frac{N}{2}\left(1-e^{-1/N}\right)\right]^N.
 \end{align}
-\subsection{variance}
+\subsubsection{variance}
 \begin{align}
 \expv{u(Y)^2} &= \int_{0}^1 dY \rho(Y)u(Y),\\
   &=\int_{0}^1 dy_1\cdots\int_{0}^1 dy_N \frac{1}{2^N} \left(\prod_{n=1}^N e^{-y_n/N}\right)^2,\\
@@ -57,7 +30,7 @@ Let all $y_n$ be uniformly distributed between 0 and 1.  The first two statistic
 \text{var}[u(Y)] &= \expv{u(Y)^2}-\expv{u(Y)}^2,\\
   &= \left[\frac{N}{4}\left(1-e^{-2/N}\right)\right]^N - \left[\frac{N}{2}\left(1-e^{-1/N}\right)\right]^{2N}.
 \end{align}
-\subsection{values}
+\subsubsection{values}
 \begin{table}[H]
 \centering
 \begin{tabular}{c|c|c}
@@ -68,11 +41,3 @@ $N$ & mean & variance \\ \hline
 \end{tabular}
 \end{table}
 
-\section{Tests using this model}
-\texttt{raven/tests/framework/ROM/Sobol:}
-\begin{itemize}
-  \item AdaptiveSobol
-  \item AdaptiveSobolMaxRuns
-  \item AdaptiveSobolParallel
-\end{itemize}
-\end{document}
