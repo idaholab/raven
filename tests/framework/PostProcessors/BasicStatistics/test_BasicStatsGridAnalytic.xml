@@ -15,10 +15,11 @@
       <variable>x</variable>
       <variable>y</variable>
       <variable>x1</variable>
+      <variable>y1</variable>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
       <what>all</what>
-      <parameters>x,y</parameters>
+      <parameters>x,y,x1,y1</parameters>
     </PostProcessor>
   </Models>
 
@@ -35,23 +36,23 @@
   </Distributions>
 
   <Samplers>
-    <Stratified name="Grid_external">
+    <Grid name="Grid_external">
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="500" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="30" type="CDF">0.0001 0.9999</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="500" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="30" type="CDF">0.0001 0.9999</grid>
       </variable>
-    </Stratified>
+    </Grid>
   </Samplers>
 
   <Steps>
     <MultiRun name="SamplingMirrowModelGrid" re-seeding="20021986">
       <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
-      <Sampler class="Samplers" type="Stratified">Grid_external</Sampler>
+      <Sampler class="Samplers" type="Grid">Grid_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
     </MultiRun>
     <PostProcess name="PP1grid">
@@ -78,7 +79,7 @@
       </Point>
     <PointSet name="outputDataGrid">
         <Input>x,y</Input>
-        <Output>x1</Output>
+        <Output>x1,y1</Output>
     </PointSet>
   </DataObjects>
 
