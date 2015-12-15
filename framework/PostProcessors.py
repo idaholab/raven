@@ -1404,8 +1404,9 @@ class BasicStatistics(BasePostProcessor):
           regressorsByTarget[target] = 0.0
           coefficients = LinearRegression().fit(sampledMatrix, Input['targets'][target]).coef_.tolist()
           outputDict[what][myIndex] = np.zeros(len(parameterSet))
-          for cnt, param in enumerate(parameterSet):
-            outputDict[what][myIndex][cnt] = regressorsByTarget[param]
+          for cnt, param in enumerate(parameterSet): outputDict[what][myIndex][cnt] = regressorsByTarget[param]
+          # to avoid numerical instabilities
+          outputDict[what][myIndex][np.absolute(outputDict[what][myIndex]) <= 1.e-17] = 0.0
       # VarianceDependentSensitivity matrix
       if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
@@ -1538,6 +1539,8 @@ class BasicStatistics(BasePostProcessor):
       else              : factList[:] = 1.0 / sumWeightsList[:]
       if not rowvar: covMatrix = (np.dot(diff.T, w * diff) * factList).squeeze()
       else         : covMatrix = (np.dot(w * diff, diff.T) * factList).squeeze()
+      # to prevent numerical instability
+      covMatrix[np.absolute(covMatrix) <= 1.e-17] = 0.0
       return covMatrix
 
   def corrCoeff(self, feature, weights = None, rowvar = 1):
@@ -1561,6 +1564,8 @@ class BasicStatistics(BasePostProcessor):
       except ValueError:  # scalar covariance
         # nan if incorrect value (nan, inf, 0), 1 otherwise
         corrMatrix = covM / covM
+      # to prevent numerical instability
+      corrMatrix[np.absolute(corrMatrix) <= 1.e-17] = 0.0
       return corrMatrix
 #
 #
