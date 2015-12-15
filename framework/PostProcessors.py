@@ -1440,7 +1440,6 @@ class BasicStatistics(BasePostProcessor):
             variance[myIndex] = np.Infinity
         for myIndex in range(len(parameterSet)):
           outputDict[what][myIndex] = ((covMatrix[myIndex, :] / variance) * expValues) / expValues[myIndex]
-
     # print on screen
     self.raiseADebug('BasicStatistics ' + str(self.name) + 'pp outputs')
     methodToTest = []
