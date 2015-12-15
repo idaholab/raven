@@ -7,13 +7,13 @@
       <variables>x1
         <sensitivity>0.244421621975</sensitivity>
       </variables>
-      <variables>x4
-        <sensitivity>0.244421621975</sensitivity>
-      </variables>
       <variables>x2
         <sensitivity>0.244421621975</sensitivity>
       </variables>
       <variables>x3
+        <sensitivity>0.244421621975</sensitivity>
+      </variables>
+      <variables>x4
         <sensitivity>0.244421621975</sensitivity>
       </variables>
       <variables>x1,x2
@@ -22,10 +22,10 @@
       <variables>x1,x3
         <sensitivity>0.00381776999038</sensitivity>
       </variables>
-      <variables>x2,x3
+      <variables>x1,x4
         <sensitivity>0.00381776999038</sensitivity>
       </variables>
-      <variables>x1,x4
+      <variables>x2,x3
         <sensitivity>0.00381776999038</sensitivity>
       </variables>
       <variables>x3,x4
@@ -54,19 +54,19 @@
       <variables>x4
         <sensitivity>0.236842105263</sensitivity>
       </variables>
-      <variables>x2,x4
-        <sensitivity>0.00877192982456</sensitivity>
-      </variables>
       <variables>x1,x2
         <sensitivity>0.00877192982456</sensitivity>
       </variables>
       <variables>x1,x3
         <sensitivity>0.00877192982456</sensitivity>
       </variables>
+      <variables>x1,x4
+        <sensitivity>0.00877192982456</sensitivity>
+      </variables>
       <variables>x2,x3
         <sensitivity>0.00877192982456</sensitivity>
       </variables>
-      <variables>x1,x4
+      <variables>x2,x4
         <sensitivity>0.00877192982456</sensitivity>
       </variables>
       <variables>x3,x4

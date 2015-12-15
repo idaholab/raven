@@ -7,13 +7,13 @@
       <variables>x1
         <sensitivity>0.250912608218</sensitivity>
       </variables>
-      <variables>x4
-        <sensitivity>0.250304202739</sensitivity>
-      </variables>
       <variables>x2
         <sensitivity>0.250304202739</sensitivity>
       </variables>
       <variables>x3
+        <sensitivity>0.250304202739</sensitivity>
+      </variables>
+      <variables>x4
         <sensitivity>0.250304202739</sensitivity>
       </variables>
       <variables>x1,x2
