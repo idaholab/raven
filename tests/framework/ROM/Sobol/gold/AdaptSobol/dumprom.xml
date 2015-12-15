@@ -1,76 +1,76 @@
 <ReducedOrderModel>
   <ans2>
-    <mean>1.04243584789</mean>
-    <variance>0.0924576583143</variance>
+    <mean>0.612877777441</mean>
+    <variance>0.00787177846894</variance>
     <indices>
-      <total_variance>0.0924576583143</total_variance>
+      <total_variance>0.00787177846894</total_variance>
       <variables>x1
-        <sensitivity>0.229103846905</sensitivity>
+        <sensitivity>0.244421621975</sensitivity>
       </variables>
       <variables>x4
-        <sensitivity>0.229103846905</sensitivity>
+        <sensitivity>0.244421621975</sensitivity>
       </variables>
       <variables>x2
-        <sensitivity>0.229103846905</sensitivity>
+        <sensitivity>0.244421621975</sensitivity>
       </variables>
       <variables>x3
-        <sensitivity>0.229103846905</sensitivity>
+        <sensitivity>0.244421621975</sensitivity>
       </variables>
       <variables>x1,x2
-        <sensitivity>0.0142995926396</sensitivity>
+        <sensitivity>0.00381776999038</sensitivity>
       </variables>
       <variables>x1,x3
-        <sensitivity>0.0142995926396</sensitivity>
+        <sensitivity>0.00381776999038</sensitivity>
       </variables>
       <variables>x2,x3
-        <sensitivity>0.0142995926396</sensitivity>
+        <sensitivity>0.00381776999038</sensitivity>
       </variables>
       <variables>x1,x4
-        <sensitivity>0.0142995926396</sensitivity>
+        <sensitivity>0.00381776999038</sensitivity>
       </variables>
       <variables>x3,x4
-        <sensitivity>0.0142995926396</sensitivity>
+        <sensitivity>0.00381776999038</sensitivity>
       </variables>
       <variables>x2,x4
-        <sensitivity>0.0120866491832</sensitivity>
+        <sensitivity>0.00322466214867</sensitivity>
       </variables>
     </indices>
     <numRuns>41</numRuns>
   </ans2>
   <ans>
-    <mean>1.0</mean>
-    <variance>2.0</variance>
+    <mean>5.0625</mean>
+    <variance>4.0078125</variance>
     <indices>
-      <total_variance>2.0</total_variance>
+      <total_variance>4.0078125</total_variance>
       <variables>x1
-        <sensitivity>0.166666666667</sensitivity>
-      </variables>
-      <variables>x4
-        <sensitivity>0.166666666667</sensitivity>
+        <sensitivity>0.236842105263</sensitivity>
       </variables>
       <variables>x2
-        <sensitivity>0.166666666667</sensitivity>
+        <sensitivity>0.236842105263</sensitivity>
       </variables>
       <variables>x3
-        <sensitivity>0.166666666667</sensitivity>
+        <sensitivity>0.236842105263</sensitivity>
+      </variables>
+      <variables>x4
+        <sensitivity>0.236842105263</sensitivity>
       </variables>
       <variables>x2,x4
-        <sensitivity>0.0555555555556</sensitivity>
+        <sensitivity>0.00877192982456</sensitivity>
       </variables>
       <variables>x1,x2
-        <sensitivity>0.0555555555556</sensitivity>
+        <sensitivity>0.00877192982456</sensitivity>
       </variables>
       <variables>x1,x3
-        <sensitivity>0.0555555555556</sensitivity>
+        <sensitivity>0.00877192982456</sensitivity>
       </variables>
       <variables>x2,x3
-        <sensitivity>0.0555555555556</sensitivity>
+        <sensitivity>0.00877192982456</sensitivity>
       </variables>
       <variables>x1,x4
-        <sensitivity>0.0555555555556</sensitivity>
+        <sensitivity>0.00877192982456</sensitivity>
       </variables>
       <variables>x3,x4
-        <sensitivity>0.0555555555556</sensitivity>
+        <sensitivity>0.00877192982456</sensitivity>
       </variables>
     </indices>
     <numRuns>41</numRuns>

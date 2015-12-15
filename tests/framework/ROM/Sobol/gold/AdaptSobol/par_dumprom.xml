@@ -1,42 +1,51 @@
 <ReducedOrderModel>
   <ans2>
-    <mean>1.04171006339</mean>
-    <variance>0.0835056600213</variance>
+    <mean>0.61285033268</mean>
+    <variance>0.00766813941663</variance>
     <indices>
-      <total_variance>0.0835056600213</total_variance>
+      <total_variance>0.00766813941663</total_variance>
       <variables>x1
-        <sensitivity>0.253664304793</sensitivity>
+        <sensitivity>0.250912608218</sensitivity>
       </variables>
       <variables>x4
-        <sensitivity>0.251221434931</sensitivity>
+        <sensitivity>0.250304202739</sensitivity>
       </variables>
       <variables>x2
-        <sensitivity>0.251221434931</sensitivity>
+        <sensitivity>0.250304202739</sensitivity>
       </variables>
       <variables>x3
-        <sensitivity>0.251221434931</sensitivity>
+        <sensitivity>0.250304202739</sensitivity>
       </variables>
       <variables>x1,x2
-        <sensitivity>-0.00244286986223</sensitivity>
+        <sensitivity>-0.000608405478561</sensitivity>
       </variables>
       <variables>x1,x3
-        <sensitivity>-0.00244286986223</sensitivity>
+        <sensitivity>-0.000608405478561</sensitivity>
       </variables>
       <variables>x1,x4
-        <sensitivity>-0.00244286986223</sensitivity>
+        <sensitivity>-0.000608405478561</sensitivity>
       </variables>
       <variables>x2,x3
-        <sensitivity>0.0</sensitivity>
+        <sensitivity>-7.23919430975e-15</sensitivity>
+      </variables>
+      <variables>x2,x4
+        <sensitivity>-7.23919430975e-15</sensitivity>
+      </variables>
+      <variables>x3,x4
+        <sensitivity>-7.23919430975e-15</sensitivity>
       </variables>
     </indices>
     <numRuns>11</numRuns>
   </ans2>
   <ans>
-    <mean>1.0</mean>
-    <variance>1.33333333333</variance>
+    <mean>5.0625</mean>
+    <variance>3.796875</variance>
     <indices>
-      <total_variance>1.33333333333</total_variance>
+      <total_variance>3.796875</total_variance>
       <variables>x4
+        <sensitivity>0.25</sensitivity>
+      </variables>
+      <variables>x1
         <sensitivity>0.25</sensitivity>
       </variables>
       <variables>x2
@@ -45,20 +54,23 @@
       <variables>x3
         <sensitivity>0.25</sensitivity>
       </variables>
-      <variables>x1
-        <sensitivity>0.25</sensitivity>
-      </variables>
       <variables>x1,x2
-        <sensitivity>8.32667268469e-16</sensitivity>
+        <sensitivity>9.35694137626e-16</sensitivity>
       </variables>
       <variables>x1,x3
-        <sensitivity>8.32667268469e-16</sensitivity>
+        <sensitivity>9.35694137626e-16</sensitivity>
       </variables>
       <variables>x1,x4
-        <sensitivity>8.32667268469e-16</sensitivity>
+        <sensitivity>0.0</sensitivity>
       </variables>
       <variables>x2,x3
-        <sensitivity>-1.66533453694e-16</sensitivity>
+        <sensitivity>9.35694137626e-16</sensitivity>
+      </variables>
+      <variables>x2,x4
+        <sensitivity>0.0</sensitivity>
+      </variables>
+      <variables>x3,x4
+        <sensitivity>0.0</sensitivity>
       </variables>
     </indices>
     <numRuns>11</numRuns>

@@ -28,8 +28,8 @@
 
     <Distributions>
         <Uniform name="UniDist">
-            <lowerBound>-1</lowerBound>
-            <upperBound> 1</upperBound>
+            <lowerBound>0</lowerBound>
+            <upperBound>1</upperBound>
         </Uniform>
     </Distributions>
 
