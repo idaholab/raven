@@ -1777,7 +1777,7 @@ class ARMA(superVisedLearning):
       r = (self.fourierEngine.predict(fSeries)-self.TimeSeriesDatabase)**2
       if r.size > 1:    r = sum(r)
       r = r/self.Time.size
-      criterionCurrent = self.__computeAICorBIC(r,noPara=sum(fOrder)*2,type='None',obj='min')
+      criterionCurrent = self.__computeAICorBIC(r,noPara=sum(fOrder)*2,cType='None',obj='min')
       if  criterionCurrent< criterionBest:
         self.fourierResult['fOrder'] = fOrder
         self.fourierResult['fSeries'] = fSeries
@@ -1835,12 +1835,12 @@ class ARMA(superVisedLearning):
         vName = 'f-' + str(int(bp)) + '-' + str(int(orderBp+1)) + '-cos'
         self.dataObject.updateOutputValue(vName,self.fourierPara['series'][bp][:,2*orderBp+1])
     
-  def __computeAICorBIC(self,maxL,noPara,type,obj='max'):
+  def __computeAICorBIC(self,maxL,noPara,cType,obj='max'):
     if obj == 'min':        flag = -1
     else:                   flag = 1
-    if type == 'BIC':
+    if cType == 'BIC':
       return -2*flag*np.log(maxL)+noPara*np.log(self.Time.size)
-    elif type == 'AIC':
+    elif cType == 'AIC':
       return -2*flag*np.log(maxL)+noPara*2
     else:
       return maxL
