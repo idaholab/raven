@@ -1535,7 +1535,7 @@ class BasicStatistics(BasePostProcessor):
       for myIndex in range(featuresNumber): sumWeightsList[myIndex], sumSquareWeightsList[myIndex] = np.sum(weights[myIndex][:]), np.sum(np.square(weights[myIndex][:]))
       diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = w)).T
       factList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
-      if not self.biased: factList[:] = sumWeightsList[:] / ((sumWeightsList[:]**2.0 - sumSquareWeightsList[:]))
+      if not self.biased: factList[:] = sumWeightsList[:] / ((sumWeightsList[:]*sumWeightsList[:] - sumSquareWeightsList[:]))
       else              : factList[:] = 1.0 / sumWeightsList[:]
       if not rowvar: covMatrix = (np.dot(diff.T, w * diff) * factList).squeeze()
       else         : covMatrix = (np.dot(w * diff, diff.T) * factList).squeeze()
