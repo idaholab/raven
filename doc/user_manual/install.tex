@@ -102,7 +102,7 @@ Next Miniconda can be used to install the rest of the dependencies
 
 For OSX, the simplest and most robust way to install the RAVEN dependencies
 is with Miniconda.  The details of this vary depending what else is
-installed.
+installed.  Only one of the following subsections should be used.
 
 \subsubsection{With MOOSE}
 \label{miniconda_moose}
@@ -116,7 +116,11 @@ Then:
 sudo bash
 #Set up http_proxy and https_proxy variables if needed
 conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
+exit #exit from root
 \end{lstlisting}
+
+Don't install the RAVEN Miniconda package with the MOOSE Environment
+package, they conflict.
 
 \goToRavenInstallation
 
@@ -135,7 +139,8 @@ conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
 
 For OSX Yosemite and OSX Mavericks there is a package available called
 raven\_miniconda.dmg The package includes both miniconda and the
-dependencies RAVEN needs.
+dependencies RAVEN needs.  This package should not be used if the
+MOOSE Environment package is installed.
 
 The files will be installed into \texttt{/opt/raven\_libs}.
 
