@@ -103,7 +103,7 @@ class AMSC_Object(object):
 
   def __init__(self, X, Y, w=None, names=None, graph='beta skeleton',
                gradient='steepest', knn=-1, beta=1.0, normalization=None,
-               persistence='difference', debug=False):
+               persistence='difference', edges=None, debug=False):
     """ Initialization method that takes at minimum a set of input points and
         corresponding output responses.
         @ In, X, an m-by-n array of values specifying m n-dimensional samples
@@ -118,7 +118,7 @@ class AMSC_Object(object):
           be y
         @ In, graph, an optional string specifying the type of neighborhood
           graph to use. Default is 'beta skeleton,' but other valid types are:
-          'delaunay,' 'relaxed beta skeleton,' or 'approximate knn'
+          'delaunay,' 'relaxed beta skeleton,' 'none', or 'approximate knn'
         @ In, gradient, an optional string specifying the type of gradient
           estimator
           to use. Currently the only available option is 'steepest'
@@ -144,6 +144,10 @@ class AMSC_Object(object):
           valued neighboring saddle, 'probability' will augment this value by
           multiplying the probability of the extremum and its saddle, and count
           will make the larger point counts more persistent.
+        @ In, edges, an optional list of custom edges to use as a starting point
+          for pruning, or in place of a computed graph.
+        @ In, debug, an optional boolean flag for whether debugging output
+          should be enabled.
     """
     super(AMSC_Object,self).__init__()
 
@@ -182,17 +186,20 @@ class AMSC_Object(object):
         self.names.append('x%d' % d)
       self.names.append('y')
 
-    self.Xnorm = np.array(self.X)
-    self.Ynorm = np.array(self.Y)
     if normalization == 'feature':
+      # This doesn't work with one-dimensional arrays on older versions of
+      #  sklearn
       min_max_scaler = sklearn.preprocessing.MinMaxScaler()
-      self.Xnorm = min_max_scaler.fit_transform(self.X)
-      self.Ynorm = min_max_scaler.fit_transform(self.Y)
+      self.Xnorm = min_max_scaler.fit_transform(np.atleast_2d(self.X))
+      self.Ynorm = min_max_scaler.fit_transform(np.atleast_2d(self.Y))
     elif normalization == 'zscore':
       self.Xnorm = sklearn.preprocessing.scale(self.X, axis=0, with_mean=True,
                                                with_std=True, copy=True)
       self.Ynorm = sklearn.preprocessing.scale(self.Y, axis=0, with_mean=True,
                                                with_std=True, copy=True)
+    else:
+      self.Xnorm = np.array(self.X)
+      self.Ynorm = np.array(self.Y)
 
     if knn <= 0:
       knn = len(self.Xnorm)-1
@@ -200,29 +207,32 @@ class AMSC_Object(object):
     if debug:
       sys.stderr.write('Graph Preparation: ')
       start = time.clock()
-    knnAlgorithm = sklearn.neighbors.NearestNeighbors(n_neighbors=knn,
-                                                      algorithm='kd_tree')
-    knnAlgorithm.fit(self.Xnorm)
-    edges = knnAlgorithm.kneighbors(self.Xnorm, return_distance=False)
-    if debug:
-      end = time.clock()
-      sys.stderr.write('%f s\n' % (end-start))
-    #  print(edges.shape)
 
-    edgesToPrune = []
-    pairs = []                                # prevent duplicates with this guy
-    for e1 in xrange(0,edges.shape[0]):
-      for col in xrange(0,edges.shape[1]):
-        e2 = edges.item(e1,col)
-        if e1 != e2:
-          pairs.append((e1,e2))
+    if edges is None:
+      knnAlgorithm = sklearn.neighbors.NearestNeighbors(n_neighbors=knn,
+                                                        algorithm='kd_tree')
+      knnAlgorithm.fit(self.Xnorm)
+      edges = knnAlgorithm.kneighbors(self.Xnorm, return_distance=False)
+      if debug:
+        end = time.clock()
+        sys.stderr.write('%f s\n' % (end-start))
+      #  print(edges.shape)
+
+      pairs = []                                # prevent duplicates with this guy
+      for e1 in xrange(0,edges.shape[0]):
+        for col in xrange(0,edges.shape[1]):
+          e2 = edges.item(e1,col)
+          if e1 != e2:
+            pairs.append((e1,e2))
+    else:
+      pairs = edges
 
     # As seen here:
     #  http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
     seen = set()
     pairs = [ x for x in pairs if not (x in seen or x[::-1] in seen
                                        or seen.add(x))]
-
+    edgesToPrune = []
     for edge in pairs:
       edgesToPrune.append(edge[0])
       edgesToPrune.append(edge[1])
@@ -234,6 +244,7 @@ class AMSC_Object(object):
     #  preliminaryEdges[i] = int(edge)
 
     if debug:
+      end = time.clock()
       sys.stderr.write('%f s\n' % (end-start))
       sys.stderr.write('Decomposition: ')
       start = time.clock()
@@ -304,6 +315,32 @@ class AMSC_Object(object):
       minMax = tuple(map(int,strMinMax.split(',')))
       tupleKeyedPartitions[minMax] = indices
     return tupleKeyedPartitions
+
+  def StableManifolds(self,persistence=None):
+    """ Returns the partitioned data based on a specified persistence level.
+        @ In, persistence, a floating point value specifying the size of the
+          smallest feature we want to track. Default = None means consider all
+          features.
+        @ Out, a dictionary lists where each key is a integer specifying
+          the index of the maximum. Each entry will hold a list of indices
+          specifying points that are associated to this maximum.
+    """
+    if persistence is None:
+      persistence = self.persistence
+    return self.__amsc.GetStableManifolds(persistence)
+
+  def UnstableManifolds(self,persistence=None):
+    """ Returns the partitioned data based on a specified persistence level.
+        @ In, persistence, a floating point value specifying the size of the
+          smallest feature we want to track. Default = None means consider all
+          features.
+        @ Out, a dictionary lists where each key is a integer specifying
+          the index of the minimum. Each entry will hold a list of indices
+          specifying points that are associated to this minimum.
+    """
+    if persistence is None:
+      persistence = self.persistence
+    return self.__amsc.GetUnstableManifolds(persistence)
 
   def SegmentFitCoefficients(self):
     """ Returns a dictionary keyed off the min-max index pairs defining

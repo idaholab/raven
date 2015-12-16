@@ -28,6 +28,7 @@ import SupervisedLearning
 import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
+import mathUtils
 import TreeStructure
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
@@ -89,7 +90,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                                 'ResponseSurfaceDesign',
                                                 'SparseGridCollocation',
                                                 'AdaptiveSparseGrid',
-                                                'Sobol']
+                                                'Sobol',
+                                                'AdaptiveSobol']
 
   @classmethod
   def generateValidateDict(cls):
@@ -267,7 +269,8 @@ class Dummy(Model):
     #if set(list(Kwargs['SampledVars'].keys())+list(inputDict.keys())) != set(list(inputDict.keys())):
     #  self.raiseAnError(IOError,'When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
     for key in Kwargs['SampledVars'].keys(): inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
-    if any(None in val for val in inputDict.values()): self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
+    for val in inputDict.values():
+      if val is None: self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
     return [(inputDict)],copy.deepcopy(Kwargs)
@@ -286,13 +289,16 @@ class Dummy(Model):
     jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods)
 
   def collectOutput(self,finishedJob,output):
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(AttributeError,"No available Output to collect (Run probabably is not finished yet)")
+    if finishedJob.returnEvaluation() == -1: self.raiseAnError(AttributeError,"No available Output to collect")
     evaluation = finishedJob.returnEvaluation()
     if type(evaluation[1]).__name__ == "tuple": outputeval = evaluation[1][0]
     else                                      : outputeval = evaluation[1]
     exportDict = {'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.returnMetadata()}
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
+      if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict['inputSpaceParams'].keys()) + list(exportDict['outputSpaceParams'].keys()))):
+        missingParameters = set(output.getParaKeys('inputs') + output.getParaKeys('outputs')) - set(list(exportDict['inputSpaceParams'].keys()) + list(exportDict['outputSpaceParams'].keys()))
+        self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
       for key in exportDict['inputSpaceParams' ] :
         if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
       for key in exportDict['outputSpaceParams'] :
@@ -308,7 +314,7 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet','HistorySet']
 
   def __init__(self,runInfoDict):
     Dummy.__init__(self,runInfoDict)
@@ -317,12 +323,13 @@ class ROM(Dummy):
     self.howManyTargets            = 0          # how many targets?
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
+    self.numberOfTimeStep          = 1
 
   def __getstate__(self):
     """
-    Overwrite state (for pickle-ing)
-    we do not pickle the HDF5 (C++) instance
-    but only the info to re-load it
+    This function return the state of the ROM
+    @ In, None
+    @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
     # capture what is normally pickled
     state = self.__dict__.copy()
@@ -332,17 +339,36 @@ class ROM(Dummy):
     return state
 
   def __setstate__(self, newstate):
+    """
+    Initialize the ROM with the data contained in newstate
+    @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
+    @ Out, None
+    """
     self.__dict__.update(newstate)
     if not self.amITrained:
-      #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
-      targets = self.initializationOptionDict['Target'].split(',')
-      self.howManyTargets = len(targets)
-      self.SupervisedEngine = {}
-      for target in targets:
-        self.initializationOptionDict['Target'] = target
-        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-      #restore targets to initialization option dict
-      self.initializationOptionDict['Target'] = ','.join(targets)
+      if self.numberOfTimeStep > 1:
+        targets = self.initializationOptionDict['Target'].split(',')
+        self.howManyTargets = len(targets)
+        self.SupervisedEngine = []
+        for t in range(self.numberOfTimeStep):
+          tempSupervisedEngine = {}
+          for target in targets:
+            self.initializationOptionDict['Target'] = target
+            tempSupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+            self.initializationOptionDict['Target'] = ','.join(targets)
+          self.SupervisedEngine.append(tempSupervisedEngine)
+
+      else:
+        #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
+        targets = self.initializationOptionDict['Target'].split(',')
+        self.howManyTargets = len(targets)
+        self.SupervisedEngine = {}
+
+        for target in targets:
+          self.initializationOptionDict['Target'] = target
+          self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+          #restore targets to initialization option dict
+          self.initializationOptionDict['Target'] = ','.join(targets)
 
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
@@ -361,6 +387,7 @@ class ROM(Dummy):
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
+
     for target in targets:
       self.initializationOptionDict['Target'] = target
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
@@ -382,7 +409,7 @@ class ROM(Dummy):
     tree=self._localBuildPrintTree(options)
     msg=tree.stringNodeTree()
     open(filenameLocal+'.xml','w').writelines(msg)
-    self.raiseAMessage('ROM XML printed to "'+filenameLocal+'"')
+    self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
 
   def _localBuildPrintTree(self,options=None):
     node = TreeStructure.Node('ReducedOrderModel')
@@ -405,21 +432,29 @@ class ROM(Dummy):
     @ In,  None
     @ Out, None
     """
-    for instrom in self.SupervisedEngine.values(): instrom.reset()
-    self.amITrained   = False
+    if type(self.SupervisedEngine).__name__ == 'list':
+      for ts in self.SupervisedEngine:
+        for instrom in ts.values():
+          instrom.reset()
+    else:
+      for instrom in self.SupervisedEngine.values():
+        instrom.reset()
+      self.amITrained   = False
 
   def addInitParams(self,originalDict):
     """the ROM setting parameters are added"""
     ROMdict = {}
-    for target, instrom in self.SupervisedEngine.items(): ROMdict[self.name + '|' + target] = instrom.returnInitialParameters()
-    for key in ROMdict.keys(): originalDict[key] = ROMdict[key]
+    for target, instrom in self.SupervisedEngine.items():
+      ROMdict[self.name + '|' + target] = instrom.returnInitialParameters()
+    for key in ROMdict.keys():
+      originalDict[key] = ROMdict[key]
 
   def train(self,trainingSet):
-    """Here we do the training of the ROM"""
-    """Fit the model according to the given training data.
-    @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
-    @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
-            are supposed to have weight one."""
+    """
+    This function train the ROM
+    @ In, trainingSet, dict or PointSet or HistorySet, data used to train the ROM; if an HistorySet is provided the a list of ROM is created in order to create a temporal-ROM
+    @ Out, None
+    """
     if type(trainingSet).__name__ == 'ROM':
       self.howManyTargets           = copy.deepcopy(trainingSet.howManyTargets)
       self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
@@ -427,12 +462,39 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
     else:
-      self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-      self.amITrained = True
-      for instrom in self.SupervisedEngine.values():
-        instrom.train(self.trainingSet)
-        self.aimITrained = self.amITrained and instrom.amITrained
-      self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+      if 'HistorySet' in type(trainingSet).__name__:
+        self.SupervisedEngine = []
+        outKeys = trainingSet.getParaKeys('outputs')
+        targets = self.initializationOptionDict['Target'].split(',')
+        # check that all histories have the same length
+        tmp = trainingSet.getParametersValues('outputs')
+        for t in tmp:
+          if t==1:
+            self.numberOfTimeStep = len(tmp[t][outKeys[0]])
+          else:
+            if self.numberOfTimeStep != len(tmp[t][outKeys[0]]):
+              self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
+        # train the ROM
+        self.amITrained = True
+        self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
+        for ts in range(self.numberOfTimeStep):
+          newRom = {}
+          tempinitializationOptionDict = copy.deepcopy(self.initializationOptionDict)
+          for target in targets:
+            tempinitializationOptionDict['Target'] = target
+            newRom[target] =  SupervisedLearning.returnInstance(self.subType,self,**tempinitializationOptionDict)
+          for instrom in newRom.values():
+            instrom.train(self.trainingSet[ts])
+            self.amITrained = self.amITrained and instrom.amITrained
+          self.SupervisedEngine.append(newRom)
+      else:
+        self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
+        if type(self.trainingSet) is dict:
+          self.amITrained = True
+          for instrom in self.SupervisedEngine.values():
+            instrom.train(self.trainingSet)
+            self.amITrained = self.amITrained and instrom.amITrained
+          self.raiseADebug('add self.amITrained to currentParamters','FIXME')
 
   def confidence(self,request,target = None):
     """
@@ -443,22 +505,61 @@ class ROM(Dummy):
     @ In, target, string, optional, target name (by default the first target entered in the input file)
     """
     inputToROM = self._inputToInternal(request)
-    if target != None: return self.SupervisedEngine[target].confidence(inputToROM)
-    else             : return self.SupervisedEngine.values()[0].confidence(inputToROM)
+    if target != None:
+      if type(self.SupervisedEngine) is list:
+        confDic = {}
+        for ts in self.SupervisedEngine:
+          confDic[ts] = ts[target].confidence(inputToROM)
+        return confDic
+      else:
+        return self.SupervisedEngine[target].confidence(inputToROM)
+    else:
+      if type(self.SupervisedEngine) is list:
+        confDic = {}
+        for ts in self.SupervisedEngine:
+          confDic[ts] = ts.values()[0].confidence(inputToROM)
+        return confDic
+      else:
+        return self.SupervisedEngine.values()[0].confidence(inputToROM)
 
-  def evaluate(self,request, target = None):
+  def evaluate(self,request, target = None, timeInst = None):
     """
-    when the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
+
+    When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
     @ In, request, datatype, feature coordinates (request)
     @ In, target, string, optional, target name (by default the first target entered in the input file)
+    @ In, timeInst, int, element of the temporal ROM to evaluate
     """
     inputToROM = self._inputToInternal(request)
-    if target != None: return self.SupervisedEngine[target].evaluate(inputToROM)
-    else             : return utils.first(self.SupervisedEngine.values()).evaluate(inputToROM)
+
+    if target != None:
+      if timeInst == None:
+        return self.SupervisedEngine[target].evaluate(inputToROM)
+      else:
+        return self.SupervisedEngine[timeInst][target].evaluate(inputToROM)
+    else:
+      if timeInst == None:
+       return utils.first(self.SupervisedEngine.values()).evaluate(inputToROM)
+      else:
+        return self.SupervisedEngine[timeInst].values()[0].evaluate(inputToROM)
 
   def __externalRun(self,inRun):
+    """
+    Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
+    @ In, inRun, datatype, feature coordinates
+    """
     returnDict = {}
-    for target in self.SupervisedEngine.keys(): returnDict[target] = self.evaluate(inRun,target)
+    if type(self.SupervisedEngine).__name__ == 'list':
+      targets = self.SupervisedEngine[0].keys()
+      for target in targets:
+        returnDict[target] = np.zeros(0)
+      for ts in range(len(self.SupervisedEngine)):
+        for target in targets:
+          returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))
+    else:
+      for target in self.SupervisedEngine.keys():
+        returnDict[target] = self.evaluate(inRun,target)
+
     return returnDict
 
   def run(self,Input,jobHandler):
@@ -723,7 +824,7 @@ class Code(Model):
     """
     Adds input edits besides the sampledVars to the inputInfo dictionary. Called by the sampler.
     @ In, inputInfo, dictionary object
-    @Out, None.
+    @ Out, None.
     """
     inputInfo['additionalEdits']=self.fargs
 
@@ -803,6 +904,7 @@ class Code(Model):
 #
 #
 #
+
 class Projector(Model):
   """Projector is a data manipulator"""
   @classmethod

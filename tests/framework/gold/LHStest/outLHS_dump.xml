@@ -7,11 +7,11 @@
        {u'VarGauss2': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0}', u'VarGauss1': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'VarTri1': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}'},
        {u'VarGauss2': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0}', u'VarGauss1': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}', u'VarTri1': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}'}], dtype=object)</crowDist><SampledVars>array([ {u'VarGauss2': 0.6558075046488367, u'VarGauss1': 0.0, u'VarTri1': 0.5415259109423001},
        {u'VarGauss2': 0.6306859374050182, u'VarGauss1': 0.0, u'VarTri1': 0.6749706007657956},
-       {u'VarGauss2': 0.6457244236085874, u'VarGauss1': 0.0, u'VarTri1': 0.4811387988855076}], dtype=object)</SampledVars><ProbabilityWeight>array([ 0.,  0.,  0.])</ProbabilityWeight><prefix>array(['1', '2', '3'], 
+       {u'VarGauss2': 0.6457244236085874, u'VarGauss1': 0.0, u'VarTri1': 0.4811387988855076}], dtype=object)</SampledVars><ProbabilityWeight-VarGauss2>array([ 0.01,  0.01,  0.01])</ProbabilityWeight-VarGauss2><ProbabilityWeight-VarGauss1>array([ 0.,  0.,  0.])</ProbabilityWeight-VarGauss1><ProbabilityWeight-VarTri1>array([ 0.03812317,  0.09384164,  0.10134897])</ProbabilityWeight-VarTri1><prefix>array(['1', '2', '3'], 
       dtype='|S1')</prefix><PointProbability>array([ 0.,  0.,  0.])</PointProbability><distributionType>array([ {u'VarGauss2': 'Normal', u'VarGauss1': 'Normal', u'VarTri1': 'Triangular'},
        {u'VarGauss2': 'Normal', u'VarGauss1': 'Normal', u'VarTri1': 'Triangular'},
        {u'VarGauss2': 'Normal', u'VarGauss1': 'Normal', u'VarTri1': 'Triangular'}], dtype=object)</distributionType><distributionName>array([{u'VarGauss2': 'Gauss2', u'VarGauss1': 'Gauss1', u'VarTri1': 'DistTri1'},
        {u'VarGauss2': 'Gauss2', u'VarGauss1': 'Gauss1', u'VarTri1': 'DistTri1'},
        {u'VarGauss2': 'Gauss2', u'VarGauss1': 'Gauss1', u'VarTri1': 'DistTri1'}], dtype=object)</distributionName><SampledVarsPb>array([ {'VarGauss2': 0.6974219389267693, 'VarGauss1': 0.0, 'VarTri1': 0.37626153134445744},
        {'VarGauss2': 0.6594306641204649, 'VarGauss1': 0.0, 'VarTri1': 0.4545282115928419},
-       {'VarGauss2': 0.6822404233520998, 'VarGauss1': 0.0, 'VarTri1': 0.34084387031408064}], dtype=object)</SampledVarsPb></metadata></data>
+       {'VarGauss2': 0.6822404233520998, 'VarGauss1': 0.0, 'VarTri1': 0.34084387031408064}], dtype=object)</SampledVarsPb><ProbabilityWeight>array([ 0.,  0.,  0.])</ProbabilityWeight></metadata></data>

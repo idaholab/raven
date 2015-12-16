@@ -27,7 +27,6 @@
   input = 'test_rom.xml'
   output = 'ROM/testPrintPointSet_dump.csv ROM/testPrintPointSet_dump.csv'
   csv = 'ROM/testPrintPointSet_dump.csv ROM/testPrintPointSet_dump.csv'
-  xml = 'ROM/testPrintPointSet_dump.xml ROM/testPrintPointSet_dump.xml'
  [../]
 
 []

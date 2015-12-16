@@ -58,6 +58,7 @@ def compareStringsWithFloats(a,b,num_tol = 1e-10):
   """
   if a == b:
     return (True,"Strings Match")
+  if a is None or b is None: return (False,"One of the strings contain a None")
   aList = splitIntoParts(a)
   bList = splitIntoParts(b)
   if len(aList) != len(bList):

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation verbosity='all'>
+    <RunInfo>
+        <WorkingDir>AdaptSobol</WorkingDir>
+        <Sequence>make,train,print</Sequence>
+        <batchSize>1</batchSize>
+    </RunInfo>
+
+    <Steps>
+        <MultiRun name='make' pauseAtEnd='False'>
+            <Input   class='DataObjects' type='PointSet'>dummyIN</Input>
+            <Model   class='Models'      type='ExternalModel'>poly</Model>
+            <Sampler class='Samplers'    type='AdaptiveSobol'>sobol</Sampler>
+            <Output  class='DataObjects' type='PointSet'>solns</Output>
+        </MultiRun>
+        <IOStep name='print'>
+            <Input   class='DataObjects'      type='PointSet'>solns</Input>
+            <Input   class='Models'      type='ROM'>rom</Input>
+            <Output  class='OutStreamManager' type='Print'       >maxruns_dump</Output>
+            <Output  class='OutStreamManager' type='Print'       >maxruns_dumprom</Output>
+        </IOStep>
+        <RomTrainer name="train">
+          <Input class='DataObjects' type='PointSet'>solns</Input>
+          <Output class="Models" type="ROM">rom</Output>
+        </RomTrainer>
+    </Steps>
+
+    <Distributions>
+        <Uniform name="UniDist">
+            <lowerBound>-1</lowerBound>
+            <upperBound> 1</upperBound>
+        </Uniform>
+    </Distributions>
+
+    <Samplers>
+        <AdaptiveSobol name="sobol">
+            <Convergence>
+              <relTolerance>1e-4</relTolerance>
+              <maxRuns>20</maxRuns>
+              <maxSobolOrder>2</maxSobolOrder>
+              <progressParam>2.0</progressParam>
+            </Convergence>
+            <variable name="x1"><distribution>UniDist</distribution></variable>
+            <variable name="x2"><distribution>UniDist</distribution></variable>
+            <variable name="x3"><distribution>UniDist</distribution></variable>
+            <variable name="x4"><distribution>UniDist</distribution></variable>
+            <ROM class = 'Models' type = 'ROM'>rom</ROM>
+            <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
+        </AdaptiveSobol>
+    </Samplers>
+
+    <Models>
+        <Dummy name="MyDummy" subType="" print="True"/>
+        <ExternalModel ModuleToLoad="./multi" name='poly' subType=''>
+          <variable>x1</variable>
+          <variable>x2</variable>
+          <variable>x3</variable>
+          <variable>x4</variable>
+          <variable>ans</variable>
+          <variable>ans2</variable>
+        </ExternalModel>
+        <ROM name='rom' subType='HDMRRom'>
+            <SobolOrder>2</SobolOrder>
+            <Target>ans,ans2</Target>
+            <Features>x1,x2,x3,x4</Features>
+            <IndexSet>HyperbolicCross</IndexSet>
+            <PolynomialOrder>2</PolynomialOrder>
+        </ROM>
+    </Models>
+
+    <DataObjects>
+        <PointSet name="dummyIN">
+            <Input>x1,x2,x3,x4</Input>
+            <Output>OutputPlaceHolder</Output>
+        </PointSet>
+        <PointSet name='solns'>
+            <Input>x1,x2,x3,x4</Input>
+            <Output>ans,ans2</Output>
+        </PointSet>
+    </DataObjects>
+
+    <OutStreamManager>
+        <Print name='maxruns_dump'>
+            <type>csv</type>
+            <source>solns</source>
+        </Print>
+        <Print name='maxruns_dumprom'>
+            <type>xml</type>
+            <source>rom</source>
+            <what>all</what>
+        </Print>
+    </OutStreamManager>
+</Simulation>

@@ -629,7 +629,7 @@ class hdf5Database(MessageHandler.MessageUser):
     for i in xrange(len(self.allGroupPaths)):
       listStrW = self.allGroupPaths[i].split("/")
       try: listStrW.remove("")
-      except: pass
+      except ValueError: pass
       if listStrW[len(listStrW)-1] == name:
         found = True
         path  = self.allGroupPaths[i]
@@ -661,13 +661,12 @@ class hdf5Database(MessageHandler.MessageUser):
         if back < 0: back = 0
         i=0
         #Question, should all the "" be removed, or just the first?
-        try: listPath.remove("")
-        except ValueError:  pass #Not found.
+        listPath = list(filter(None,listPath))
         # Find the paths for the completed history
         while (i <= back):
           pathW = ''
           for j in xrange(len(listPath) - i):
-            if listPath[j] != "": pathW = pathW + "/" + listPath[j]
+            pathW = pathW + "/" + listPath[j]
           if pathW != "":  whereList.append(pathW)
           mylist = whereList[i].split("/")
           nameList.append(mylist[len(mylist)-1])
@@ -737,14 +736,12 @@ class hdf5Database(MessageHandler.MessageUser):
           whereList = []
           nameList  = []
           i=0
-          try: listPath.remove("")
-          except ValueError: pass #don't remove if not found.
+          listPath = list(filter(None,listPath))
           # Find the paths for the completed history
           while (i < back):
             pathW = ''
             for j in xrange(len(listPath) - i):
-              if listPath[j] != "":
-                pathW = pathW + "/" + listPath[j]
+              pathW = pathW + '/' + listPath[j]
             if pathW != "":
               whereList.append(pathW)
             mylist = whereList[i].split("/")
