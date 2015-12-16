@@ -2582,7 +2582,7 @@ class DataMining(BasePostProcessor):
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
     self.raiseADebug(str(finishedjob.returnEvaluation()))
     dataMineDict = finishedjob.returnEvaluation()[1]
-    for key in dataMineDict['output']: 
+    for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
         if key == param: output.removeOutputValue(key)
       for value in dataMineDict['output'][key]: output.updateOutputValue(key, copy.copy(value))

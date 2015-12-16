@@ -446,7 +446,7 @@ def returnInstance(modelClass, caller, **kwargs):
   @In, caller, object, object that will share its messageHandler instance
   @In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
   @Out, object,  an instance of a Model
-  """  
+  """
   try: return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
   except KeyError: caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Not known ' + __base + ' type ' + str(modelClass))
 
