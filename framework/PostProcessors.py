@@ -1406,7 +1406,7 @@ class BasicStatistics(BasePostProcessor):
           outputDict[what][myIndex] = np.zeros(len(parameterSet))
           for cnt, param in enumerate(parameterSet): outputDict[what][myIndex][cnt] = regressorsByTarget[param]
           # to avoid numerical instabilities
-          # outputDict[what][myIndex][np.absolute(outputDict[what][myIndex]) <= 1.e-16] = 1.e-16
+          outputDict[what][myIndex][np.absolute(outputDict[what][myIndex]) <= 1.e-15] = 1.e-15
       # VarianceDependentSensitivity matrix
       if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
