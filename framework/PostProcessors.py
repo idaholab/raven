@@ -2480,7 +2480,7 @@ class DataMining(BasePostProcessor):
     BasePostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
     self.algorithms = []  # A list of Algorithms objects that contain definitions for all the algorithms the user wants
-    self.requiredAssObject = (True, (['Label', 'DataObject'], ['-1', 'n']))  # The Label is optional for now....
+    self.requiredAssObject = (True, (['Label'], ['-1']))  # The Label is optional for now....
     self.initializationOptionDict = {}
     self.clusterLabels = None
     self.labelAlgorithms = []
@@ -2534,19 +2534,14 @@ class DataMining(BasePostProcessor):
     for key in self.assemblerDict.keys():
       if 'Label' == key:
         indice = 0
-        for value in self.assemblerDict[key]:
+        for _ in self.assemblerDict[key]:
           self.labelAlgorithms.append(self.assemblerDict[key][indice][3])
-          indice += 1
-      if 'DataObject' == key:
-        indice = 0
-        for value in self.assemblerDict[key]:
-          self.dataObjects.append(self.assemblerDict[key][indice][3])
           indice += 1
 
   def _localReadMoreXML(self, xmlNode):
     """
       Method to read special input requuired for this post-processor
-      @ In, xmlNode    : Xml element node
+      @ In, xmlNode, Xml element node
       @ Out, None
     """
     for child in xmlNode:
@@ -2577,11 +2572,26 @@ class DataMining(BasePostProcessor):
     if self.type: self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else        : self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
 
+  def collectOutput(self, finishedjob, output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob, jobhandler object, A JobHandler object that is in charge of running this post-processor
+      @ In, output, object, The object where we want to place our computed results
+      @ Out, None
+    """
+    if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
+    self.raiseADebug(str(finishedjob.returnEvaluation()))
+    dataMineDict = finishedjob.returnEvaluation()[1]
+    for key in dataMineDict['output']: 
+      for param in output.getParaKeys('output'):
+        if key == param: output.removeOutputValue(key)
+      for value in dataMineDict['output'][key]: output.updateOutputValue(key, copy.copy(value))
+
   def run(self, InputIn):
     """
      This method executes the postprocessor action. In this case it loads the results to specified dataObject
-     @ In , InputIn, dictionary, dictionary of data to process
-     @ Out, dictionary, Dictionary containing the post-processed results
+     @ In , InputIn, dict, dictionary of data to process
+     @ Out, outputdict, dict, dictionary containing the post-processed results
     """
     if len(self.dataObjects) is not 0:
       if type(self.dataObjects) == list: dataObject = self.dataObjects[-1]
@@ -2594,15 +2604,12 @@ class DataMining(BasePostProcessor):
     if not self.unSupervisedEngine.amITrained:  self.unSupervisedEngine.train(Input['Features'])
 
     self.unSupervisedEngine.confidence()
-    outputDict = self.unSupervisedEngine.outputDict
+    outputDict['output'] = {}
     noClusters = 1
     if 'cluster' == self.unSupervisedEngine.SKLtype:
         if hasattr(self.unSupervisedEngine, 'labels_'):
           self.clusterLabels = self.unSupervisedEngine.labels_
-          if dataObject:
-            dataObject.removeOutputValue(self.name+'Labels')
-            for i in range(len(self.clusterLabels)):
-              dataObject.updateOutputValue(self.name+'Labels', self.clusterLabels[i])
+        outputDict['output'][self.name+'Labels'] = self.clusterLabels;
         if hasattr(self.unSupervisedEngine, 'noClusters'): noClusters = self.unSupervisedEngine.noClusters
         if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'): noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
         for k in range(noClusters):
@@ -2616,21 +2623,15 @@ class DataMining(BasePostProcessor):
         mixtureValues = self.unSupervisedEngine.normValues
         mixtureMeans = self.unSupervisedEngine.means_
         mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
-        if dataObject:
-          dataObject.removeOutputValue(self.name+'Labels')
-          for i in range(len(mixtureLabels)):
-            dataObject.updateOutputValue(self.name+'Labels', mixtureLabels[i])
+        outputDict['output'][self.name+'Labels'] = mixtureLabels
     if 'manifold' == self.unSupervisedEngine.SKLtype:
         manifoldValues = self.unSupervisedEngine.normValues
         if hasattr(self.unSupervisedEngine, 'embeddingVectors_'): embeddingVectors = self.unSupervisedEngine.embeddingVectors_
         if hasattr(self.unSupervisedEngine, 'reconstructionError_'): reconstructionError = self.unSupervisedEngine.reconstructionError_
         if   'transform'     in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
         elif 'fit_transform' in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
-        if dataObject:
-          for i in range(len(embeddingVectors[0, :])):
-            dataObject.removeOutputValue(self.name+'EmbeddingVector' + str(i + 1))
-            for val in range(len(embeddingVectors[:, i])):
-              dataObject.updateOutputValue(self.name+'EmbeddingVector' + str(i + 1), embeddingVectors[val, i])
+        for i in range(len(embeddingVectors[0, :])):
+          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
     if 'decomposition' == self.unSupervisedEngine.SKLtype:
         decompositionValues = self.unSupervisedEngine.normValues
         if hasattr(self.unSupervisedEngine, 'noComponents_'): noComponents = self.unSupervisedEngine.noComponents_
@@ -2640,17 +2641,9 @@ class DataMining(BasePostProcessor):
         # if hasattr(self.unSupervisedEngine.Method, 'score'): score = self.unSupervisedEngine.Method.score(decompositionValues)
         if   'transform'     in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.transform(decompositionValues)
         elif 'fit_transform' in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
-        if dataObject:
-          for i in range(noComponents):
-            dataObject.removeOutputValue(self.name+'PCAComponent' + str(i + 1))
-            for val in range(len(components[:, i])):
-              dataObject.updateOutputValue(self.name+'PCAComponent' + str(i + 1), components[val, i])
-    return self.unSupervisedEngine.outputDict
-
-
-
-
-
+        for i in range(noComponents):
+          outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
+    return outputDict
 
 """
  Interface Dictionary (factory) (private)

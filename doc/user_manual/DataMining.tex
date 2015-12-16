@@ -32,35 +32,8 @@ The following is a list of acceptable sub-nodes:
   the \xmlNode{KDD} has the required attribute: \xmlAttr{lib}, the name of the 
   library the algorithm belongs to. Current algorithms applied in the KDD model
   is based on SciKit-Learn library. Thus currently there is only one library:
-\begin{itemize}
-  \item \xmlString{SciKitLearn}
-\end{itemize}
- \item \textbf{Assembler Objects} These objects are either required or optional
-  depending on the functionality of the dataMining PostProcessor.
-  %
-  The objects must be listed with a rigorous syntax that, except for the xml
-  node tag, is common among all the objects.
-  %
-  Each of these nodes must contain 2 attributes that are used to map those
-  within the simulation framework:
-   \begin{itemize}
-    \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
-    ``class'' of the listed object.
-    %
-    For example, it can be ``DataObjects,'' ``Models,'' etc.
-    \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
-    identifier or sub-type.
-    %
-    For example, it can be ``PointSet,'' ``ROM,'' etc.
-    %
-  \end{itemize}
-  The \textbf{DataMining} post-processor requires or optionally accepts the
-  following objects' types:
   \begin{itemize}
-    \item \xmlNode{DataObject}, \xmlDesc{string, required field}, body of this xml
-    node must contain the name of a DataObject defined in the \xmlNode{DataObjects} block
-    (see section \ref{sec:DataObjects}).
-    %
+    \item \xmlString{SciKitLearn}
   \end{itemize}
 \end{itemize}
 
@@ -162,7 +135,6 @@ process. Can contain any combination of ‘w’ for weights, ‘m’ for means,
               <n_components>2</n_components>
               <covariance_type>spherical</covariance_type>
           </KDD>
-          <DataObject    class = 'DataObjects' type = 'PointSet'>aDataObject</DataObject>
       </PostProcessor>
     ...
   <Models>
@@ -337,7 +309,6 @@ useful for debugging. For n\_jobs below -1, (n\_cpus + 1 + n\_jobs) are used. Th
               <tol>0.0001</tol>
               <init>random</init>
           </KDD>
-          <DataObject    class = 'DataObjects' type = 'PointSet'>aDataObject</DataObject>
       </PostProcessor>
     ...
   <Models>
@@ -697,7 +668,6 @@ The Silhouette Coefficient for a set of samples is given as the mean of the
               <SKLtype>decomposition|PCA</SKLtype>
               <n_components>2</n_components>
           </KDD>
-          <DataObject    class = 'DataObjects' type = 'PointSet'>aDataObject</DataObject>
       </PostProcessor>
     ...
   <Models>
@@ -981,7 +951,6 @@ Non-linear dimensionality reduction through Isometric Mapping (Isomap).
 	      <eigen_solver>arpack</eigen_solver>
 	      <neighbors_algorithm>kd_tree</neighbors_algorithm>
             </KDD>
-          <DataObject    class = 'DataObjects' type = 'PointSet'>aDataObject</DataObject>
       </PostProcessor>
     ...
   <Models>

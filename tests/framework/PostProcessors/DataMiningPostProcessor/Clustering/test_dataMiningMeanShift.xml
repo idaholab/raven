@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
     <RunInfo>
+        <parallelPython>true</parallelPython>
         <WorkingDir>MeanShift</WorkingDir>
         <Sequence>readIn,MeanShiftBlobs,MeanShiftCircles,MeanShiftMoons,output</Sequence>
         <batchSize>100</batchSize>
@@ -23,7 +24,6 @@
                 <SKLtype>cluster|MeanShift</SKLtype>
                 <bin_seeding>True</bin_seeding>
             </KDD>
-            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
         </PostProcessor>
         <PostProcessor name='MeanShiftMoons' subType='DataMining' verbosity = 'quiet'>
             <KDD lib='SciKitLearn'>
@@ -31,7 +31,6 @@
                 <SKLtype>cluster|MeanShift</SKLtype>
                 <bin_seeding>True</bin_seeding>
             </KDD>
-            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
         </PostProcessor>
 
     </Models>
@@ -47,16 +46,19 @@
         <PostProcess name='MeanShiftBlobs' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >MeanShiftBlobs</Model>
+            <Output  class = 'DataObjects'       type = 'PointSet'      >DataSets</Output>
             <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
         <PostProcess name='MeanShiftCircles' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >MeanShiftCircles</Model>
+            <Output  class = 'DataObjects'       type = 'PointSet'      >DataSets</Output>
             <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
         <PostProcess name='MeanShiftMoons' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >MeanShiftMoons</Model>
+            <Output  class = 'DataObjects'       type = 'PointSet'      >DataSets</Output>
             <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
     </Steps>

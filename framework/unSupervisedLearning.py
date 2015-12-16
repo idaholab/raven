@@ -63,8 +63,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
   def __init__(self, messageHandler, **kwargs):
     """
      constructor for unSupervisedLearning class.
-     @ In: messageHandler, Message handler object
-     @ In: kwargs, arguments for the unsupervised learning algorithm
+     @ In, messageHandler, objcet, Message handler object
+     @ In, kwargs, dict, arguments for the unsupervised learning algorithm
     """
     self.printTag = 'unSupervised'
     self.messageHandler = messageHandler
@@ -91,7 +91,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       Method to perform the training of the unSuperVisedLearning algorithm
       NB.the unSuperVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires. So far the base class will do the translation into numpy
-      @ In, tdict, training dictionary
+      @ In, tdict, dictionary, training dictionary
       @ Out, None
     """
     if type(tdict) != dict: self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
@@ -119,9 +119,9 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     """
     Method to normalize data based on the mean and standard deviation.  If undesired for a particular algorithm,
     this method can be overloaded to simply pass.
-    @ In, values, list of feature values (from tdict)
-    @ In, names, names of features (from tdict)
-    @ In, feat, list of features (from Model)
+    @ In, values, list,  list of feature values (from tdict)
+    @ In, names,  list,  names of features (from tdict)
+    @ In, feat, list, list of features (from Model)
     @ Out, None
     """
     self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]), np.std(values[names.index(feat)]))
@@ -131,8 +131,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     Method to perform the evaluation of a point or a set of points through the previous trained unSuperVisedLearning algorithm
     NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
     the interface with the kernels requires.
-    @ In, tdict, evaluation dictionary
-    @ Out, numpy array of evaluated points
+    @ In, tdict, dict, evaluation dictionary
+    @ Out, ...., numpy array,  array of evaluated points
     """
     if type(edict) != dict: self.raiseAnError(IOError, ' Method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values = list(edict.keys()), list(edict.values())
@@ -155,6 +155,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     """
     This call is used to get an estimate of the confidence in the prediction of the clusters.
     The base class self.confidence checks if the clusters are already evaluated (trained) then calls the local confidence
+    @ In, none
+    @ Out, none
     """
     if self.amITrained: return self.__confidenceLocal__()
     else:               self.raiseAnError(IOError, ' The confidence check is performed before evaluating the clusters.')
@@ -164,6 +166,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
   def __trainLocal__(self):
     """
     Perform training...
+    @ In, none
+    @ Out, none
     """
 
   @abc.abstractmethod
@@ -177,6 +181,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
   def __confidenceLocal__(self):
     """
     This should return an estimation of the quality of the prediction.
+    @ In, none
+    @ Out, none
      """
 #
 #
@@ -246,8 +252,8 @@ class SciKitLearn(unSupervisedLearning):
   def __init__(self, messageHandler, **kwargs):
     """
      constructor for SciKitLearn class.
-     @ In: messageHandler, Message handler object
-     @ In: kwargs, arguments for the SciKitLearn algorithm
+     @ In, messageHandler, object, Message handler object
+     @ In, kwargs, dict, arguments for the SciKitLearn algorithm
     """
     unSupervisedLearning.__init__(self, messageHandler, **kwargs)
     self.printTag = 'SCIKITLEARN'
@@ -289,8 +295,8 @@ class SciKitLearn(unSupervisedLearning):
   def __trainLocal__(self):
     """
     Perform training on samples in self.normValues: array, shape = [n_samples, n_features] or [n_samples, n_samples]
-    Return:
-    self.labels_   : array, shape = [n_samples]
+    @ In, none
+    @ out, none
     """
     if hasattr(self.Method, 'bandwidth'):  # set bandwidth for MeanShift clustering
       self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
@@ -389,8 +395,8 @@ class SciKitLearn(unSupervisedLearning):
   def __evaluateLocal__(self, featureVals):
     """
     Method to return labels of an already trained unSuperVised algorithm.
-    @ In: featureVals, feature values
-    @ Out: self.labels_, labels
+    @ In, featureVals, array, feature values
+    @ Out, self.labels_, array, labels
     """
     self.normValues = featureVals
     if hasattr(self.Method, 'predict'): self.labels_ = self.Method.predict(featureVals)
@@ -405,7 +411,8 @@ class SciKitLearn(unSupervisedLearning):
   def __confidenceLocal__(self):
     """
     This should return an estimation dictionary of the quality of the prediction.
-    @ Out, self.outputdict['confidence'], dictionary of the confidence metrics of the algorithms
+    @ In, none
+    @ Out, self.outputdict['confidence'], dict, dictionary of the confidence metrics of the algorithms
     """
     self.outputDict['confidence'] = {}
     if 'cluster' == self.SKLtype:
@@ -435,11 +442,10 @@ __base = 'unSuperVisedLearning'
 def returnInstance(modelClass, caller, **kwargs):
   """
   This function return an instance of the request model type
-  @In Modellass: string representing the instance to create
-  @In caller: object that will share its messageHandler instance
-  @In kwargs: a dictionary specifying the keywords and values needed to create
-              the instance.
-  @Out an instance of a Model
+  @In, modelClass, string, representing the instance to create
+  @In, caller, object, object that will share its messageHandler instance
+  @In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
+  @Out, object,  an instance of a Model
   """  
   try: return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
   except KeyError: caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Not known ' + __base + ' type ' + str(modelClass))
@@ -447,9 +453,9 @@ def returnInstance(modelClass, caller, **kwargs):
 def returnClass(modelClass, caller):
   """
   This function return an instance of the request model type
-  @In Modelclass: string representing the class to retrieve
-  @In caller: object that will share its messageHandler instance
-  @Out the class definition of the Model
+  @In, modelClass, string, representing the class to retrieve
+  @In, caller, object, object that will share its messageHandler instance
+  @Out, the class definition of the Model
   """
   try: return __interfaceDict[modelClass]
   except KeyError: caller.raiseanError(NameError, 'unSuperVisedLEarning', 'not known ' + __base + ' type ' + modelClass)

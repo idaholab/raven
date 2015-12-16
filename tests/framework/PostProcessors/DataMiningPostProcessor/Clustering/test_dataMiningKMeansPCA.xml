@@ -17,6 +17,7 @@
       <PostProcess name='pp1' pauseAtEnd = 'True'>
           <Input    class = 'DataObjects'       type = 'PointSet'      >bisonData</Input>
           <Model    class = 'Models'            type = 'PostProcessor' >KMeans1</Model>
+          <Output  class = 'DataObjects'       type = 'PointSet'      >bisonData</Output>
           <Output   class = 'OutStreamManager'  type = 'Plot'          >PlotKMeans1</Output>
           <Output   class = 'OutStreamManager'  type = 'Plot'          >PlotAll</Output>
           <Output   class = 'OutStreamManager'  type = 'Print'         >dump1</Output>
@@ -24,6 +25,7 @@
       <PostProcess name='pp2' pauseAtEnd = 'True'>
           <Input    class = 'DataObjects'       type = 'PointSet'      >bisonData</Input>
           <Model    class = 'Models'            type = 'PostProcessor' >PCA1</Model>
+          <Output  class = 'DataObjects'       type = 'PointSet'      >bisonData</Output>
           <Output   class = 'OutStreamManager'  type = 'Plot'          >PlotPCA1</Output>
        </PostProcess>
     </Steps>
@@ -42,9 +44,9 @@
                 <Features>output</Features>
                 <n_clusters>3</n_clusters>
                 <tol>0.0001</tol>
+                <random_state>1</random_state>
                 <init>k-means++</init>
             </KDD>
-            <DataObject    class = 'DataObjects' type = 'PointSet'>bisonData</DataObject>
         </PostProcessor>
         <PostProcessor name='PCA1' subType='DataMining'>
             <KDD lib='SciKitLearn'>
@@ -52,7 +54,6 @@
                 <SKLtype>decomposition|PCA</SKLtype>
                 <n_components>2</n_components>
             </KDD>
-            <DataObject    class = 'DataObjects' type = 'PointSet'>bisonData</DataObject>
         </PostProcessor>
      </Models>
     <OutStreamManager>
