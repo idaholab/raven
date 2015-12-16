@@ -14,6 +14,7 @@
                 <SKLtype>cluster|KMeans</SKLtype>
                 <Features>x1,x2,x3,x4</Features>
                 <n_clusters>3</n_clusters>
+		<random_state>1</random_state>
                 <tol>0.0001</tol>
                 <init>k-menas++</init>
                 <random_state>1</random_state>
