@@ -16,7 +16,7 @@
                 <n_clusters>3</n_clusters>
 		<random_state>1</random_state>
                 <tol>0.0001</tol>
-                <init>k-menas++</init>
+                <init>k-means++</init>
                 <random_state>1</random_state>
             </KDD>
         </PostProcessor>
