@@ -1540,7 +1540,7 @@ class BasicStatistics(BasePostProcessor):
       if not rowvar: covMatrix = (np.dot(diff.T, w * diff) * factList).squeeze()
       else         : covMatrix = (np.dot(w * diff, diff.T) * factList).squeeze()
       # to prevent numerical instability
-      # covMatrix[np.absolute(covMatrix) <= 1.e-16] = 1.e-16
+      covMatrix[np.absolute(covMatrix) <= 1.e-15] = 1.e-15
       return covMatrix
 
   def corrCoeff(self, feature, weights = None, rowvar = 1):
@@ -1565,7 +1565,7 @@ class BasicStatistics(BasePostProcessor):
         # nan if incorrect value (nan, inf, 0), 1 otherwise
         corrMatrix = covM / covM
       # to prevent numerical instability
-      # corrMatrix[np.absolute(corrMatrix) <= 1.e-16] = 1.e-16
+      corrMatrix[np.absolute(corrMatrix) <= 1.e-15] = 1.e-15
       return corrMatrix
 #
 #
