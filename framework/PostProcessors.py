@@ -1537,8 +1537,8 @@ class BasicStatistics(BasePostProcessor):
       factList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
       if not self.biased: factList[:] = sumWeightsList[:] / ((sumWeightsList[:]*sumWeightsList[:] - sumSquareWeightsList[:]))
       else              : factList[:] = 1.0 / sumWeightsList[:]
-      if not rowvar: covMatrix = (np.dot(diff.T, w * diff) * factList).squeeze()
-      else         : covMatrix = (np.dot(w * diff, diff.T) * factList).squeeze()
+      if not rowvar: covMatrix = (np.multiply(np.dot(diff.T, np.multiply(w, diff)), factList)).squeeze()
+      else         : covMatrix = (np.multiply(np.dot(np.multiply(w, diff), diff.T), factList)).squeeze()
       # to prevent numerical instability
       #covMatrix[np.absolute(covMatrix) <= 1.e-15] = 1.e-15
       return covMatrix
