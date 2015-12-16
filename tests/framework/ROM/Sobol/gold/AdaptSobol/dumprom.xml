@@ -4,10 +4,10 @@
     <variance>0.00787177846894</variance>
     <indices>
       <total_variance>0.00787177846894</total_variance>
-      <variables>x1
+      <variables>x2
         <sensitivity>0.244421621975</sensitivity>
       </variables>
-      <variables>x2
+      <variables>x1
         <sensitivity>0.244421621975</sensitivity>
       </variables>
       <variables>x3

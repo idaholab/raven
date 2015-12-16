@@ -78,6 +78,7 @@ def compareStringsWithFloats(a,b,num_tol = 1e-10):
         return (False,"Numeric Mismatch of '"+aPart+"' and '"+bPart+"'")
   return (True, "Strings Match Floatwise")
 
+
 def compare_element(a,b,*args,**kwargs):
   """ Compares two element trees and returns (same,message)
   where same is true if they are the same,
@@ -86,10 +87,10 @@ def compare_element(a,b,*args,**kwargs):
   a: the first element tree
   b: the second element tree
   accepted args:
-    <none implemented>
+    'unordered': indicate test does not require ordered CSV
   accepted kwargs:
     path: a string to describe where the element trees are located (mainly
-  used recursively)
+          used recursively)
   """
   same = True
   message = []
@@ -103,21 +104,17 @@ def compare_element(a,b,*args,**kwargs):
     print_args.extend(args)
     args_expanded = " ".join([str(x) for x in print_args])
     message.append(args_expanded)
-  #we need to compare tag, text, attributes, and child nodes
-  #compare the tag
   if a.tag != b.tag:
     same = False
     fail_message("mismatch tags ",a.tag,b.tag)
   else:
     path += a.tag + "/"
-  #compare the text
   if a.text != b.text:
     succeeded, note = compareStringsWithFloats(a.text, b.text)
     if not succeeded:
       same = False
       fail_message(note)
       return (same, message)
-  #compare attributes
   different_keys = set(a.keys()).symmetric_difference(set(b.keys()))
   same_keys = set(a.keys()).intersection(set(b.keys()))
   if len(different_keys) != 0:
@@ -127,16 +124,18 @@ def compare_element(a,b,*args,**kwargs):
     if a.attrib[key] != b.attrib[key]:
       same = False
       fail_message("mismatch attribute ",key,a.attrib[key],b.attrib[key])
-  #compare children
   if len(a) != len(b):
     same = False
     fail_message("mismatch number of children ",len(a),len(b))
   else:
     if a.tag == b.tag:
       for i in range(len(a)):
-        for j in range(len(b)):
-          (same_child,message_child) = compare_element(a[i],b[j],*options,path=path)
-          if same_child: break
+        if 'unordered' in options:
+          for j in range(len(b)):
+            (same_child,message_child) = compare_element(a[i],b[j],*options,path=path)
+            if same_child: break
+        else:
+          (same_child,message_child) = compare_element(a[i],b[i],*options,path=path)
         same = same and same_child
         message.extend(message_child)
   return (same,message)
@@ -159,7 +158,9 @@ class XMLDiff:
     """ Create an XMLDiff class
     test_dir: the directory where the test takes place
     out_files: the files to be compared.  They will be in test_dir + out_files
-    and test_dir + gold + out_files
+               and test_dir + gold + out_files
+    args: other arguments that may be included:
+          - 'unordered': indicates unordered sorting
     """
     self.__out_files = out_files
     self.__messages = ""
