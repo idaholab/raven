@@ -42,6 +42,9 @@
               <logFile>states.txt</logFile>
               <subsetVerbosity>silent</subsetVerbosity>
             </Convergence>
+            <convergenceStudy>
+              <runStatePoints>10,20,30</runStatePoints>
+            </convergenceStudy>
             <variable name="x1"><distribution>UniDist</distribution></variable>
             <variable name="x2"><distribution>UniDist</distribution></variable>
             <variable name="x3"><distribution>UniDist</distribution></variable>

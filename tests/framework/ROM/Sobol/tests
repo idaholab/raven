@@ -2,7 +2,7 @@
  [./AdaptiveSobol]
   type = 'RavenFramework'
   input = 'test_adapt_sobol.xml'
-  xml = 'AdaptSobol/dumprom.xml'
+  xml = 'AdaptSobol/dumprom.xml AdaptSobol/out_10.xml AdaptSobol/out_20.xml AdaptSobol/out_30.xml'
   UnorderedCsv = 'AdaptSobol/dump.csv'
  [../]
  [./AdaptiveSobolMaxRuns]
