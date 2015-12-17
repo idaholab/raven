@@ -46,6 +46,18 @@ def identifyIfExternalModelExists(caller, moduleIn, workingDir):
       else: caller.raiseAnError(IOError,'The path provided for the' + caller.type + ' named '+ caller.name +' does not exist!!! Got: ' + abspath + ' and ' + workingDirModule)
   return moduleToLoadString, filename
 
+def checkIfUnknowElementsinList(referenceList,listToTest):
+  """
+    Method to check if a list contains elements not contained in another
+    @ In, referenceList, list, reference list
+    @ In, listToTest, list, list to test
+    @ Out, unknownElements, list, list of elements of 'listToTest' not contained in 'referenceList'
+  """
+  unknownElements = []
+  for elem in listToTest:
+    if elem not in referenceList: unknownElements.append(elem)
+  return unknownElements
+
 
 def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   """
@@ -536,9 +548,9 @@ def find_crow(framework_dir):
     ravenDir = os.path.dirname(framework_dir)
     #Add the module directory to the search path.
     pmoduleDirs = [os.path.join(ravenDir,"crow","install"),
-                   os.path.join(os.path.dirname(ravenDir),"crow","install"),
-                   os.path.join(os.path.dirname(ravenDir),"crow","crow_modules"),
-                   os.path.join(ravenDir,"crow","crow_modules")]
+                   os.path.join(os.path.dirname(ravenDir),"crow","install")]
+    if "CROW_DIR" in os.environ:
+      pmoduleDirs.insert(0,os.path.join(os.environ["CROW_DIR"],"install"))
     for pmoduleDir in pmoduleDirs:
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)

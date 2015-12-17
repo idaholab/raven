@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>AdaptiveStochasticPoly</WorkingDir>
+    <WorkingDir>Adaptive</WorkingDir>
     <Sequence>make,train,print,print2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -26,27 +26,39 @@
       <Output class="Models" type="ROM">rom</Output>
     </RomTrainer>
   </Steps>
-
+  
   <Distributions>
-    <Uniform name="UniDist">
-      <lowerBound>-1</lowerBound>
-      <upperBound>1</upperBound>
-    </Uniform>
+    <MultivariateNormal name='MVNDist' method='pca'>
+        <transformation>
+            <rank>2</rank>
+        </transformation>
+        <mu>0.5 -0.4</mu>
+        <covariance type="abs">
+            0.64 0 
+            0    0.49
+        </covariance>
+    </MultivariateNormal>
   </Distributions>
 
   <Samplers>
     <AdaptiveSparseGrid name="SG" verbosity="debug">
-      <Convergence target="variance">1e-2</Convergence>
-      <variable name="x1">
-        <distribution>UniDist</distribution>
+      <Convergence target="variance">1e-4</Convergence>
+      <variable name="y1">
+        <distribution dim="1">MVNDist</distribution>
       </variable>
-      <variable name="x2">
-        <distribution>UniDist</distribution>
+      <variable name="y2">
+        <distribution dim="2">MVNDist</distribution>
       </variable>
+      <variablesTransformation model="polynomial">
+        <latentVariables>y1,y2</latentVariables>
+        <manifestVariables>x1,x2</manifestVariables>
+        <method>pca</method>
+      </variablesTransformation>
       <ROM class="Models" type="ROM">rom</ROM>
       <TargetEvaluation class="DataObjects" type="PointSet">solns</TargetEvaluation>
     </AdaptiveSparseGrid>
   </Samplers>
+
 
   <Models>
     <Dummy name="MyDummy" print="true" subType=""/>
@@ -58,9 +70,9 @@
     </ExternalModel>
     <ROM name="rom" subType="GaussPolynomialRom" verbosity="silent">
       <Target>ans,ans2</Target>
-      <Features>x1,x2</Features>
+      <Features>y1,y2</Features>
       <IndexSet>TotalDegree</IndexSet>
-      <PolynomialOrder>1</PolynomialOrder>
+      <PolynomialOrder>4</PolynomialOrder>
     </ROM>
   </Models>
 
@@ -70,7 +82,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="solns">
-      <Input>x1,x2</Input>
+      <Input>x1,x2,y1,y2</Input>
       <Output>ans,ans2</Output>
     </PointSet>
   </DataObjects>

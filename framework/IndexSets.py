@@ -231,7 +231,7 @@ class HyperbolicCross(IndexSet):
     #  - right now is only limited by the maximum overall level (and importance weight)
     target = (self.maxOrder+1)**(sum(self.impWeights)/max(1,float(len(self.impWeights))))
     def rule(i):
-      tot=1;
+      tot=1
       for e,val in enumerate(i):
         tot*=(val+1)**self.impWeights[e]
       return tot<=target
@@ -325,7 +325,16 @@ class AdaptiveSet(IndexSet):
       self.raiseAnError(KeyError,'Adaptive index set instructed to reject point',pt,'but point is not in active set!')
     self.active.remove(pt)
 
-  def forward(self,pt,maxPoly=None):
+  def forward(self,maxPoly=None):
+    """
+    Check the upper neighbors of each point for indices to add.
+    @ In, maxPoly, integer, optional maximum value to have in any direction
+    @ Out, None
+    """
+    for i in self.points:
+      self.forwardOne(i,maxPoly)
+
+  def forwardOne(self,pt,maxPoly=None):
     """
       Searches for new active points based on the point given and the established set.
       @ In, pt, tuple of int, the point to move forward from
@@ -342,6 +351,9 @@ class AdaptiveSet(IndexSet):
       if maxPoly != None:
         if newpt[i]>maxPoly:
           continue
+      pt = tuple(newpt)
+      if pt in self.active or pt in self.points:
+        continue
       #remove the candidate if not all of its predecessors are accepted.
       found=True
       for j in range(self.N):
@@ -352,7 +364,7 @@ class AdaptiveSet(IndexSet):
           found=False
           break
       if found:
-        self.active.append(tuple(newpt))
+        self.active.append(pt)
 
   def printOut(self):
     """
