@@ -188,6 +188,8 @@ class ExternalRunner(MessageHandler.MessageUser):
     os.chdir(self.__workingDir)
     localenv = dict(os.environ)
     outFile = open(self.output,'w', self.bufsize)
+    print("aaaaaaaaaa " + self.__workingDir)
+    print("self.command " + self.command)
     self.__process = utils.pickleSafeSubprocessPopen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
     os.chdir(oldDir)
 
