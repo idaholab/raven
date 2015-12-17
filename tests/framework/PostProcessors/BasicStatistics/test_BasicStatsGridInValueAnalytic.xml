@@ -28,10 +28,14 @@
     <Normal name="x0_distrib">
       <mean>1.</mean>
       <sigma>.5</sigma>
+      <lowerBound>-2.0</lowerBound>
+      <upperBound>4.0</upperBound>
     </Normal>
     <Normal name="y0_distrib">
       <mean>1.</mean>
       <sigma>.6</sigma>
+      <lowerBound>-2.0</lowerBound>
+      <upperBound>4.0</upperBound>
     </Normal>
   </Distributions>
 
@@ -39,11 +43,11 @@
     <Grid name="Grid_external">
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="100" type="value">-1 1</grid>
+        <grid construction="equal" steps="50" type="value">-2 4</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="100" type="value">-1 1</grid>
+        <grid construction="equal" steps="40" type="value">-2 4</grid>
       </variable>
     </Grid>
   </Samplers>
