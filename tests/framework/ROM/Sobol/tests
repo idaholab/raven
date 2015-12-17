@@ -2,19 +2,19 @@
  [./AdaptiveSobol]
   type = 'RavenFramework'
   input = 'test_adapt_sobol.xml'
-  UnorderedXml = 'AdaptSobol/dumprom.xml'      #analytic
+  UnorderedXml = 'AdaptSobol/dumprom.xml'      #analytic, "Attenuation"
   UnorderedCsv = 'AdaptSobol/dump.csv'         #consistency
  [../]
  [./AdaptiveSobolMaxRuns]
   type = 'RavenFramework'
   input = 'test_adapt_sobol_maxruns.xml'
-  xml = 'AdaptSobol/maxruns_dumprom.xml'       #analytic
+  xml = 'AdaptSobol/maxruns_dumprom.xml'       #analytic, "Attenuation"
   UnorderedCsv = 'AdaptSobol/maxruns_dump.csv' #consistency
  [../]
  [./AdaptiveSobolParallel]
   type = 'RavenFramework'
   input = 'test_adapt_sobol_parallel.xml'
-  xml = 'AdaptSobol/par_dumprom.xml'           #analytic
+  xml = 'AdaptSobol/par_dumprom.xml'           #analytic, "Attenuation"
   UnorderedCsv = 'AdaptSobol/par_dump.csv'     #consistency
   [../]
 []
