@@ -2,7 +2,7 @@
 <Simulation verbosity="silent">
     <RunInfo>
         <WorkingDir>LocallyLinearEmbedding</WorkingDir>
-        <Sequence>readIn,KMeans,PCAIris,output</Sequence>
+        <Sequence>readIn,PCAIris,output</Sequence>
         <batchSize>1</batchSize>
     </RunInfo>
     <Files>
@@ -59,11 +59,11 @@
         <Plot dim="2" name="PlotIris" overwrite="false" verbosity="debug">
             <plotSettings>
                 <plot>
-                    <type>dataMining</type>
+                    <type>scatter</type>
                     <SKLtype>cluster</SKLtype>
                     <x>DataSets|Output|PCAEmbeddingVector1</x>
                     <y>DataSets|Output|PCAEmbeddingVector2</y>
-                    <clusterLabels>DataSets|Input|labels</clusterLabels>
+                    <!-- clusterLabels>DataSets|Input|labels</clusterLabels -->
                     <kwargs>
                     </kwargs>
                 </plot>
