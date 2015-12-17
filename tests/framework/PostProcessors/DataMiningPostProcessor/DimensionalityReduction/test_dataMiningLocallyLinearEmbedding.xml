@@ -43,7 +43,6 @@
             <Input    class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model    class = 'Models'            type = 'PostProcessor' >KMeans</Model>
             <Output  class = 'DataObjects'       type = 'PointSet'      >DataSets</Output>
-            <Output   class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
         <PostProcess name='PCAIris' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
