@@ -43,7 +43,7 @@
                 <SKLtype>cluster|KMeans</SKLtype>
                 <Features>output</Features>
                 <n_clusters>3</n_clusters>
-                <tol>0.0001</tol>
+                <tol>1E-10</tol>
                 <random_state>1</random_state>
                 <init>k-means++</init>
             </KDD>
