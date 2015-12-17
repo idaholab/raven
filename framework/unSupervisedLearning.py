@@ -472,18 +472,20 @@ class tBasicStatistics(unSupervisedLearning):
     noHistory = len(historyKey)
     noTimeStep = len(Time)
     
+    parameterSet = list(set(list(self.method.parameters['targets'])))  # This is to keep consistent with BasicStatistics PP
+    
     whatThatReturnsMatrix = ['pearson', 'covariance', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']
     if len(set(whatThatReturnsMatrix) & set(self.method.what)):
-      pass # FIXED Place holder. self.outputDict['metadata'] = {}
+      pass # FIXED Place holder for meta data. self.outputDict['metadata'] = {}
     for whatc in self.method.what:
       if whatc in whatThatReturnsMatrix:
-        for tar1 in self.method.parameters['targets']:
-          for tar2 in self.method.parameters['targets']:
+        for tar1 in parameterSet:
+          for tar2 in parameterSet:
             self.outputDict[whatc + '-' + tar1 + '-' + tar2] = []
             
 #         self.outputDict['metadata']['targets-' + whatc] = []
       else:
-        for tar in self.method.parameters['targets']:         
+        for tar in parameterSet:         
           if whatc.split("_")[0] == 'percentile':
             if "_" not in whatc: 
               self.outputDict[tar + '-' + whatc + '_5'] = []
@@ -495,7 +497,7 @@ class tBasicStatistics(unSupervisedLearning):
     
     # Converts Input (HistorySet) into InputV (dictionary)
     InputV = {}
-    for tar in self.method.parameters['targets']:
+    for tar in parameterSet:
       InputV[tar] = np.zeros(shape=(noTimeStep,noHistory))
       for cnt, keyH in enumerate(historyKey):
         InputV[tar][:,cnt] = Input.getParam('output',keyH)[tar]
@@ -509,7 +511,7 @@ class tBasicStatistics(unSupervisedLearning):
       if 'metadata' in InputV.keys():
         for keyM in InputV['metadata'].keys():
           inp.updateMetadata(keyM, InputV['metadata'][keyM])        
-      for tar in self.method.parameters['targets']:
+      for tar in parameterSet:
         for cnt, keyH in enumerate(historyKey):
           inp.updateOutputValue(tar, InputV[tar][tStep,cnt])
       
@@ -522,8 +524,8 @@ class tBasicStatistics(unSupervisedLearning):
           if whatc == 'sensitivity':
             pass #FIXME. To be implemented
           else:
-            for index1,tar1 in enumerate(self.method.parameters['targets']):
-              for index2,tar2 in enumerate(self.method.parameters['targets']):
+            for index1,tar1 in enumerate(parameterSet):
+              for index2,tar2 in enumerate(parameterSet):
                 if whatc in ['pearson', 'covariance']:
                   self.outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1,index2])
                 elif whatc in ['NormalizedSensitivity', 'VarianceDependentSensitivity']:
@@ -531,7 +533,7 @@ class tBasicStatistics(unSupervisedLearning):
                                                                           
 #           self.outputDict['metadata']['targets-' + whatc].append(outp[whatc])
         else:        
-          for tar in self.method.parameters['targets']:
+          for tar in parameterSet:
             if whatc.split("_")[0] == 'percentile':
               if "_" not in whatc: 
                 self.outputDict[tar + '-' + whatc + '_5'].append(outp[whatc + '_5'][tar])
