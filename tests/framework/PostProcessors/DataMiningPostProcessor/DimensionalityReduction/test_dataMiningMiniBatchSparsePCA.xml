@@ -15,7 +15,7 @@
                 <Features>x1,x2,x3,x4</Features>
                 <n_clusters>3</n_clusters>
 		<random_state>1</random_state>
-                <tol>0.0001</tol>
+                <tol>1E-10</tol>
                 <init>k-means++</init>
                 <random_state>1</random_state>
             </KDD>
@@ -26,6 +26,7 @@
                 <SKLtype>decomposition|MiniBatchSparsePCA</SKLtype>
                 <n_components>2</n_components>
                 <random_state>1</random_state>
+                <shuffle>false</shuffle>
             </KDD>
         </PostProcessor>
     </Models>
