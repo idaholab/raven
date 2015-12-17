@@ -1401,8 +1401,7 @@ class BasicStatistics(BasePostProcessor):
           values.pop(list(Input['targets'].keys()).index(target)), targetCoefs.pop(list(Input['targets'].keys()).index(target))
           sampledMatrix = np.atleast_2d(np.asarray(values)).T
           regressorsByTarget = dict(zip(targetCoefs, LinearRegression().fit(sampledMatrix, Input['targets'][target]).coef_))
-          regressorsByTarget[target] = 0.0
-          coefficients = LinearRegression().fit(sampledMatrix, Input['targets'][target]).coef_.tolist()
+          regressorsByTarget[target] = 1.0
           outputDict[what][myIndex] = np.zeros(len(parameterSet))
           for cnt, param in enumerate(parameterSet): outputDict[what][myIndex][cnt] = regressorsByTarget[param]
           # to avoid numerical instabilities
