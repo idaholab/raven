@@ -466,18 +466,22 @@ class tBasicStatistics(unSupervisedLearning):
         
     if 'Time' in Input.getParam('output',1).keys(): Time = Input.getParam('output',1)['Time']
     else: self.raiseAnError(ValueError, 'Time not found in input historyset')
-        
+    self.outputDict['Time'] = Time
+    
     historyKey = Input.getOutParametersValues().keys()
     noHistory = len(historyKey)
     noTimeStep = len(Time)
     
     whatThatReturnsMatrix = ['pearson', 'covariance', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']
-    self.outputDict['Time'] = Time
     if len(set(whatThatReturnsMatrix) & set(self.method.what)):
-      self.outputDict['metadata'] = {}
+      pass # FIXED Place holder. self.outputDict['metadata'] = {}
     for whatc in self.method.what:
       if whatc in whatThatReturnsMatrix:
-        self.outputDict['metadata']['targets|' + whatc]=[]
+        for tar1 in self.method.parameters['targets']:
+          for tar2 in self.method.parameters['targets']:
+            self.outputDict[whatc + '-' + tar1 + '-' + tar2] = []
+            
+#         self.outputDict['metadata']['targets-' + whatc] = []
       else:
         for tar in self.method.parameters['targets']:         
           if whatc.split("_")[0] == 'percentile':
@@ -489,7 +493,7 @@ class tBasicStatistics(unSupervisedLearning):
           else:
             self.outputDict[tar + '-' + whatc] = []
     
-    # converts Input (HistorySet) into InputV (dictionary)
+    # Converts Input (HistorySet) into InputV (dictionary)
     InputV = {}
     for tar in self.method.parameters['targets']:
       InputV[tar] = np.zeros(shape=(noTimeStep,noHistory))
@@ -497,11 +501,11 @@ class tBasicStatistics(unSupervisedLearning):
         InputV[tar][:,cnt] = Input.getParam('output',keyH)[tar]
     if Input.getAllMetadata():
       InputV['metadata'] = Input.getAllMetadata()
-
+    
     inp = DataObjects.returnInstance('PointSet', self)
     for tStep in range(noTimeStep):    
       # construct input PointSet for BasicStatistics postprocessor 
-      inp.__init__()
+      inp.__init__() # Reset the inp at each time step
       if 'metadata' in InputV.keys():
         for keyM in InputV['metadata'].keys():
           inp.updateMetadata(keyM, InputV['metadata'][keyM])        
@@ -515,8 +519,17 @@ class tBasicStatistics(unSupervisedLearning):
       # collect output from BasicStatistics postprocessor 
       for whatc in self.method.what:
         if whatc in whatThatReturnsMatrix:
-          self.outputDict['metadata']['targets|' + whatc].append(outp[whatc])
-#           self.outputDict['metadata']['targets|' + whatc][Time[tStep]]=outp[whatc]
+          if whatc == 'sensitivity':
+            pass #FIXME. To be implemented
+          else:
+            for index1,tar1 in enumerate(self.method.parameters['targets']):
+              for index2,tar2 in enumerate(self.method.parameters['targets']):
+                if whatc in ['pearson', 'covariance']:
+                  self.outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1,index2])
+                elif whatc in ['NormalizedSensitivity', 'VarianceDependentSensitivity']:
+                  self.outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1][index2])
+                                                                          
+#           self.outputDict['metadata']['targets-' + whatc].append(outp[whatc])
         else:        
           for tar in self.method.parameters['targets']:
             if whatc.split("_")[0] == 'percentile':
