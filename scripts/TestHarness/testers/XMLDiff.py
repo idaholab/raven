@@ -87,10 +87,10 @@ def compare_element(a,b,*args,**kwargs):
   a: the first element tree
   b: the second element tree
   accepted args:
-    <none implemented>
+    'unordered': indicate test does not require ordered CSV
   accepted kwargs:
     path: a string to describe where the element trees are located (mainly
-  used recursively)
+          used recursively)
   """
   same = True
   message = []
@@ -130,7 +130,12 @@ def compare_element(a,b,*args,**kwargs):
   else:
     if a.tag == b.tag:
       for i in range(len(a)):
-        (same_child,message_child) = compare_element(a[i],b[i],*options,path=path)
+        if 'unordered' in options:
+          for j in range(len(b)):
+            (same_child,message_child) = compare_element(a[i],b[j],*options,path=path)
+            if same_child: break
+        else:
+          (same_child,message_child) = compare_element(a[i],b[i],*options,path=path)
         same = same and same_child
         message.extend(message_child)
   return (same,message)
@@ -153,7 +158,9 @@ class XMLDiff:
     """ Create an XMLDiff class
     test_dir: the directory where the test takes place
     out_files: the files to be compared.  They will be in test_dir + out_files
-    and test_dir + gold + out_files
+               and test_dir + gold + out_files
+    args: other arguments that may be included:
+          - 'unordered': indicates unordered sorting
     """
     self.__out_files = out_files
     self.__messages = ""

@@ -2,19 +2,20 @@
  [./AdaptiveSobol]
   type = 'RavenFramework'
   input = 'test_adapt_sobol.xml'
-  xml = 'AdaptSobol/dumprom.xml AdaptSobol/out_10.xml AdaptSobol/out_20.xml AdaptSobol/out_30.xml'
-  UnorderedCsv = 'AdaptSobol/dump.csv'
+  UnorderedXml = 'AdaptSobol/dumprom.xml'                                     #analytic, "Attenuation"
+  xml = 'AdaptSobol/out_10.xml AdaptSobol/out_20.xml AdaptSobol/out_30.xml'   #consistency, convergence process
+  UnorderedCsv = 'AdaptSobol/dump.csv'                                        #consistency, quadrature points and solns
  [../]
  [./AdaptiveSobolMaxRuns]
   type = 'RavenFramework'
   input = 'test_adapt_sobol_maxruns.xml'
-  xml = 'AdaptSobol/maxruns_dumprom.xml'
-  UnorderedCsv = 'AdaptSobol/maxruns_dump.csv'
+  xml = 'AdaptSobol/maxruns_dumprom.xml'       #analytic, "Attenuation"
+  UnorderedCsv = 'AdaptSobol/maxruns_dump.csv' #consistency
  [../]
  [./AdaptiveSobolParallel]
   type = 'RavenFramework'
   input = 'test_adapt_sobol_parallel.xml'
-  xml = 'AdaptSobol/par_dumprom.xml'
-  UnorderedCsv = 'AdaptSobol/par_dump.csv'
+  xml = 'AdaptSobol/par_dumprom.xml'           #analytic, "Attenuation"
+  UnorderedCsv = 'AdaptSobol/par_dump.csv'     #consistency
   [../]
 []
