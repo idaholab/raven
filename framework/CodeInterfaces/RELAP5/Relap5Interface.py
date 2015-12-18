@@ -35,12 +35,9 @@ class Relap5(CodeInterfaceBase):
     outputfile = 'out~'+inputFiles[index].getBase()
     if clargs: addflags = clargs['text']
     else     : addflags = ''
-    print("aaaaaagagjgajahgjlhaglaga")
     commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + ' -r ' + outputfile  + '.r' + addflags
     commandToRun = commandToRun.replace("\n"," ")
     commandToRun  = re.sub("\s\s+" , " ", commandToRun )
-    print(commandToRun)
-    print(repr(commandToRun))
     executeCommand = [('parallel',commandToRun)]
     return executeCommand,outputfile
 
@@ -100,7 +97,6 @@ class Relap5(CodeInterfaceBase):
     newInputFiles = copy.deepcopy(currentInputFiles)
     newInputFiles[index].setBase(Kwargs['prefix']+'~'+currentInputFiles[index].getBase())
     parser.printInput(newInputFiles[index])
-    print("new input files " + str(newInputFiles))
     return newInputFiles
 
   def pointSamplerForRELAP5(self,**Kwargs):
