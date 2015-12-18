@@ -12,6 +12,7 @@ def splitIntoParts(s):
   returns a list where the even indexs are string and the odd
   indexs are floating point number strings.
   """
+  s = s.replace("\t\n"," ")
   return float_re.split(s)
 
 def short_text(a,b):
