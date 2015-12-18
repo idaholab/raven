@@ -548,7 +548,7 @@ class tBasicStatistics(unSupervisedLearning):
     return self.outputDict
   
   def __trainLocal__(self):
-    pass
+    pass # BasicStatics doesn't need train. 
     
   def __evaluateLocal__(self, featureVals):
     pass
