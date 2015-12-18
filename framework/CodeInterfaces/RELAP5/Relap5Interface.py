@@ -100,6 +100,7 @@ class Relap5(CodeInterfaceBase):
     newInputFiles = copy.deepcopy(currentInputFiles)
     newInputFiles[index].setBase(Kwargs['prefix']+'~'+currentInputFiles[index].getBase())
     parser.printInput(newInputFiles[index])
+    print("new input files " + str(newInputFiles))
     return newInputFiles
 
   def pointSamplerForRELAP5(self,**Kwargs):
