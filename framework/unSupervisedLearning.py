@@ -476,7 +476,7 @@ class tBasicStatistics(unSupervisedLearning):
     
     whatThatReturnsMatrix = ['pearson', 'covariance', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']
     if len(set(whatThatReturnsMatrix) & set(self.method.what)):
-      pass # FIXED Place holder for meta data. self.outputDict['metadata'] = {}
+      pass # FIXME Place holder for meta data. self.outputDict['metadata'] = {}
     for whatc in self.method.what:
       if whatc in whatThatReturnsMatrix:
         for tar1 in parameterSet:
@@ -499,8 +499,12 @@ class tBasicStatistics(unSupervisedLearning):
     InputV = {}
     for tar in parameterSet:
       InputV[tar] = np.zeros(shape=(noTimeStep,noHistory))
-      for cnt, keyH in enumerate(historyKey):
-        InputV[tar][:,cnt] = Input.getParam('output',keyH)[tar]
+      if tar in Input.getParaKeys('input'):
+        for cnt, keyH in enumerate(historyKey):
+          InputV[tar][:,cnt] = Input.getParam('input',keyH)[tar]
+      else:
+        for cnt, keyH in enumerate(historyKey):
+          InputV[tar][:,cnt] = Input.getParam('output',keyH)[tar]
     if Input.getAllMetadata():
       InputV['metadata'] = Input.getAllMetadata()
     
@@ -511,7 +515,7 @@ class tBasicStatistics(unSupervisedLearning):
       if 'metadata' in InputV.keys():
         for keyM in InputV['metadata'].keys():
           inp.updateMetadata(keyM, InputV['metadata'][keyM])        
-      for tar in parameterSet:
+      for tar in parameterSet:        
         for cnt, keyH in enumerate(historyKey):
           inp.updateOutputValue(tar, InputV[tar][tStep,cnt])
       
@@ -521,15 +525,13 @@ class tBasicStatistics(unSupervisedLearning):
       # collect output from BasicStatistics postprocessor 
       for whatc in self.method.what:
         if whatc in whatThatReturnsMatrix:
-          if whatc == 'sensitivity':
-            pass #FIXME. To be implemented
-          else:
-            for index1,tar1 in enumerate(parameterSet):
-              for index2,tar2 in enumerate(parameterSet):
-                if whatc in ['pearson', 'covariance']:
-                  self.outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1,index2])
-                elif whatc in ['NormalizedSensitivity', 'VarianceDependentSensitivity']:
-                  self.outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1][index2])
+          for index1,tar1 in enumerate(parameterSet):
+            for index2,tar2 in enumerate(parameterSet):
+#               if whatc == 'sensitivity': self.raiseAnError(IOError,'sensitivity')
+              if whatc in ['pearson', 'covariance']:
+                self.outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1,index2])
+              elif whatc in ['sensitivity','NormalizedSensitivity', 'VarianceDependentSensitivity']:
+                self.outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1][index2])
                                                                           
 #           self.outputDict['metadata']['targets-' + whatc].append(outp[whatc])
         else:        
