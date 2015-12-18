@@ -3614,9 +3614,9 @@
   3434    *                                                                                                             
   3435    . end                                                                                                         
 0RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- semiscale test (s-nc-01), case no. 4 (1)                                         15/12/17     08:11:23      
+ semiscale test (s-nc-01), case no. 4 (1)                                         15/12/18     09:59:58      
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- semiscale test (s-nc-01), case no. 4 (1)                                         15/12/17     08:11:23      
+ semiscale test (s-nc-01), case no. 4 (1)                                         15/12/18     09:59:58      
 0Processing type is new     
 +                                       problem option is stdy-st 
 0inp-chk, run option is run.    
@@ -8370,12 +8370,12 @@
 0$$$$$$$$ For Hydro System 2 (1-step) the BPLU parameters are:    3    1
 0$$$$$$$$ For Hydro System 2 (2-step) the BPLU parameters are:    8    5
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- semiscale test (s-nc-01), case no. 4 (1)                                         15/12/17     08:11:23      
+ semiscale test (s-nc-01), case no. 4 (1)                                         15/12/18     09:59:58      
 0MAJOR EDIT !!!time=   0.00000000     sec, M. Edit # =         1
 0 attempted adv: tot.=        0 edit=        0  min.dt=  0.00000     sec  last dt= 5.000000E-02 sec  ms.red=    0.00000     kg
    repeated adv: tot.=        0 edit=        0  max.dt=  0.00000     sec  crnt.dt=  0.00000     sec  tot.ms=    233.414     kg
  successful adv: tot.=        0 edit=        0  avg.dt=  0.00000     sec  err.est=  0.00000          m.ratn=    0.00000    
-  requested adv: tot.=        0 edit=        0  req.dt= 5.000000E-02 sec      cpu= 0.640040E-01 sec    time=    0.00000     sec
+  requested adv: tot.=        0 edit=        0  req.dt= 5.000000E-02 sec      cpu= 0.680030E-01 sec    time=    0.00000     sec
    kinetics adv: tot.=        0 ksub=        0  kin.dt=  0.00000     sec
 0Solver cycles=, scycles=              0
  The trip times listed below are the times that trips would have been activated 
@@ -9092,7 +9092,7 @@
  690-000000   1.0000       0.0000       0.0000       0.00       0.00       0.00       0.00       0.00       0.00     0      0      0
  691-000000   1.0000       0.0000       0.0000       0.00       0.00       0.00       0.00       0.00       0.00     0      0      0
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- semiscale test (s-nc-01), case no. 4 (1)                                         15/12/17     08:11:23      
+ semiscale test (s-nc-01), case no. 4 (1)                                         15/12/18     09:59:58      
 0 HEAT STRUCTURE OUTPUT +++time=     0.00000     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -9219,7 +9219,7 @@
  6701-007  left  602-050000  386.484  -90.416      -167.76       0.0000     0.00   2     680.49       0.0000      4.44800E-12   350.85
            right 800-010000  303.871   90.416       112.70       0.0000     0.00   0     27.801    
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- semiscale test (s-nc-01), case no. 4 (1)                                         15/12/17     08:11:23      
+ semiscale test (s-nc-01), case no. 4 (1)                                         15/12/18     09:59:58      
 0 HEAT STRUCTURE OUTPUT +++time=     0.00000     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -9636,14 +9636,14 @@ MINOR EDIT time=  4.90000000E+02 adv= 10460 M.Ed. Lines    50
    480.000       0.0000       0.0000       23622.    
    490.000       0.0000       0.0000       24011.    
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- semiscale test (s-nc-01), case no. 4 (1)                                         15/12/17     08:11:23      
+ semiscale test (s-nc-01), case no. 4 (1)                                         15/12/18     09:59:58      
 0MAJOR EDIT !!!time=   500.000000     sec, M. Edit # =         2
 0 attempted adv: tot.=    10660 edit=    10660  min.dt= 1.562500E-03 sec  last dt= 5.000000E-02 sec  ms.red=   0.404200     kg
    repeated adv: tot.=      650 edit=      650  max.dt= 5.000000E-02 sec  crnt.dt=  1.30153     sec  tot.ms=    233.043     kg
  successful adv: tot.=    10010 edit=    10010  avg.dt= 4.995005E-02 sec  err.est= 1.251410E-07      m.rato=   1.731687E-03
-  requested adv: tot.=     9999 edit=     9999  req.dt= 5.000000E-02 sec      cpu=  11.9087     sec    time=    500.000     sec
+  requested adv: tot.=     9999 edit=     9999  req.dt= 5.000000E-02 sec      cpu=  11.9367     sec    time=    500.000     sec
    kinetics adv: tot.=        0 ksub=        0  kin.dt=  0.00000     sec
-0Solver cycles=, scycles=        1099200
+0Solver cycles=, scycles=        1101559
  The trip times listed below are the times that trips would have been activated 
  if their activation had not been suppressed by steady state mode
 0Trip number, trip time (sec)
@@ -10714,7 +10714,7 @@ MINOR EDIT time=  4.90000000E+02 adv= 10460 M.Ed. Lines    50
  690-000000         0      0         0      0
  691-000000         0      0         0      0
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- semiscale test (s-nc-01), case no. 4 (1)                                         15/12/17     08:11:23      
+ semiscale test (s-nc-01), case no. 4 (1)                                         15/12/18     09:59:58      
 0 HEAT STRUCTURE OUTPUT +++time=     500.000     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -10841,7 +10841,7 @@ MINOR EDIT time=  4.90000000E+02 adv= 10460 M.Ed. Lines    50
  6701-007  left  602-050000  386.229  -90.321      -167.58       0.0000     0.00  10     36094.       0.0000     -0.18596       350.69
            right 800-010000  303.858   90.136       112.36       0.0000     0.00   0     27.801    
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- semiscale test (s-nc-01), case no. 4 (1)                                         15/12/17     08:11:23      
+ semiscale test (s-nc-01), case no. 4 (1)                                         15/12/18     09:59:58      
 0 HEAT STRUCTURE OUTPUT +++time=     500.000     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -11258,14 +11258,14 @@ MINOR EDIT time=  9.90000000E+02 adv= 22001 M.Ed. Lines   100
    980.000       0.0000       0.0000       32170.    
    990.000       0.0000       0.0000       32076.    
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- semiscale test (s-nc-01), case no. 4 (1)                                         15/12/17     08:11:23      
+ semiscale test (s-nc-01), case no. 4 (1)                                         15/12/18     09:59:58      
 0MAJOR EDIT !!!time=   1000.00000     sec, M. Edit # =         3
 0 attempted adv: tot.=    22230 edit=    11570  min.dt= 5.000000E-02 sec  last dt= 5.000000E-02 sec  ms.red=   0.336407     kg
    repeated adv: tot.=     2220 edit=     1570  max.dt= 5.000000E-02 sec  crnt.dt= 0.208201     sec  tot.ms=    232.649     kg
  successful adv: tot.=    20010 edit=    10000  avg.dt= 5.000000E-02 sec  err.est= 4.086330E-07      m.rato=   1.441245E-03
-  requested adv: tot.=    19999 edit=    10000  req.dt= 5.000000E-02 sec      cpu=  24.8456     sec    time=    1000.00     sec
+  requested adv: tot.=    19999 edit=    10000  req.dt= 5.000000E-02 sec      cpu=  24.9256     sec    time=    1000.00     sec
    kinetics adv: tot.=        0 ksub=        0  kin.dt=  0.00000     sec
-0Solver cycles=, scycles=        2274016
+0Solver cycles=, scycles=        2279662
  The trip times listed below are the times that trips would have been activated 
  if their activation had not been suppressed by steady state mode
 0Trip number, trip time (sec)
@@ -12336,7 +12336,7 @@ MINOR EDIT time=  9.90000000E+02 adv= 22001 M.Ed. Lines   100
  690-000000         0      0         0      0
  691-000000         0      0         0      0
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- semiscale test (s-nc-01), case no. 4 (1)                                         15/12/17     08:11:23      
+ semiscale test (s-nc-01), case no. 4 (1)                                         15/12/18     09:59:58      
 0 HEAT STRUCTURE OUTPUT +++time=     1000.00     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -12463,7 +12463,7 @@ MINOR EDIT time=  9.90000000E+02 adv= 22001 M.Ed. Lines   100
  6701-007  left  602-050000  387.215 -9.30120E-02 -0.17257       0.0000     0.00   9     1.7333       0.0000       91.209       351.32
            right 800-010000  303.910   91.302       113.81       0.0000     0.00   0     27.801    
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
- semiscale test (s-nc-01), case no. 4 (1)                                         15/12/17     08:11:23      
+ semiscale test (s-nc-01), case no. 4 (1)                                         15/12/18     09:59:58      
 0 HEAT STRUCTURE OUTPUT +++time=     1000.00     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -12635,6 +12635,6 @@ MINOR EDIT time=  1.00000000E+03 adv= 22230 M.Ed. Lines   101
                                         sum          
    1000.00       0.0000       0.0000       31987.    
 
- Final time=    1000.00     sec   advancements attempted=    22230   kinetics advancements=        0   clock cycles:       24838630
+ Final time=    1000.00     sec   advancements attempted=    22230   kinetics advancements=        0   clock cycles:       24944461
 
  Transient terminated by end of time step cards.
