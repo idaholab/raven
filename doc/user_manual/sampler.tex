@@ -1140,9 +1140,7 @@ algorithm being used:
 \end{itemize}
 \end{itemize}
 
-If the input parameters are correlated, the \textbf{ResponseSurfaceDesign} sampling approach can be also used if the user specified a
-multivariate distributions inside the \xmlNode{Distributions} (see Section \ref{subsec:NdDist}). Furthermore, if the
-covariance matrix is provided and the input parameters is assumed to have the multivariate normal distribution, one can use
+Furthermore, if the covariance matrix is provided and the input parameters is assumed to have the multivariate normal distribution, one can use
 \textbf{ResponseSurfaceDesign} approach to sample the input parameters in the transformed space (aka subspace, reduced space).
 In this case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions}
 (more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also
@@ -1190,6 +1188,22 @@ Example:
         <!-- N.B. at least 2 variables need to inputted
                 in order to employ this algorithm
          -->
+    </ResponseSurfaceDesign>
+    <ResponseSurfaceDesign name='transformedSpaceSampling'>
+        <ResponseSurfaceDesignSettings>
+            <algorithmType>BoxBehnken</algorithmType>
+            <ncenters>1</ncenters>
+        </ResponseSurfaceDesignSettings>
+        <variable name='var1' >
+            <distribution >Gauss1</distribution>
+           <grid type='CDF' construction='custom'  >0.2 0.8</grid>
+        </variable>
+        ...
+        <variablesTransformation model="givenModel">
+          <latentVariables>var1,...</latentVariables>
+          <manifestVariables>...</manifestVariables>
+          <method>pca</method>
+        </variablesTransformation>
     </ResponseSurfaceDesign>
   ...
 </Samplers>
