@@ -2,7 +2,6 @@
  [./pcaResponseSurface]
   type = 'RavenFramework'
   input = 'test_pca_responseSurface.xml'
-  output = 'responseSurfacePCA/BoxBehnkenRespDesign_dump.csv responseSurfacePCA/CentralCompositeRespDesign_dump.csv'
   csv = 'responseSurfacePCA/BoxBehnkenRespDesign_dump.csv responseSurfacePCA/CentralCompositeRespDesign_dump.csv'
   max_time = 500
   rel_err = 0.001
