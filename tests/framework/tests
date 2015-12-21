@@ -1,4 +1,12 @@
 [Tests]
+ [./pcaResponseSurface]
+  type = 'RavenFramework'
+  input = 'test_pca_responseSurface.xml'
+  csv = 'responseSurfacePCA/BoxBehnkenRespDesign_dump.csv responseSurfacePCA/CentralCompositeRespDesign_dump.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
  [./simple_framework]
   type = 'RavenFramework'
   input = 'test_simple.xml'
