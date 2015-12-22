@@ -1775,11 +1775,12 @@ class ARMA(superVisedLearning):
 #     J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios," 
 #     Applied Energy, 87(2010) 843-855
     self.__generateResCDF__()
-    self.armaPara['rSeriesNorm'] = self.__normalizedRes__(self.armaPara['rSeries'])
+    self.__getRCDF__(0,5)
     
+    self.armaPara['rSeriesNorm'] = self.__normalizeRes__(self.armaPara['rSeries'])
     
     # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
-    
+    self.__trainARMA__()
     
     
     
@@ -1788,9 +1789,11 @@ class ARMA(superVisedLearning):
     
     # For debug only; This part of code shall be in RUN method
     self.raiseADebug('****************************************************************')
-    self.raiseADebug(self.normTransEngine.cdf(0),self.normTransEngine.cdf(-1e10),self.normTransEngine.cdf(1e10))
-    self.raiseADebug(self.normTransEngine.ppf(0.5),self.normTransEngine.ppf(1e-10),self.normTransEngine.ppf(0.99999999))
+#     self.raiseADebug(self.normTransEngine.cdf(0),self.normTransEngine.cdf(-1e10),self.normTransEngine.cdf(1e10))
+#     self.raiseADebug(self.normTransEngine.ppf(0.5),self.normTransEngine.ppf(1e-10),self.normTransEngine.ppf(0.99999999))
 #     self.raiseAnError(IOError, 'testNormTransEngine')
+    self.armaPara['rDenorm'] = self.__denormalizeRes__(self.armaPara['rSeriesNorm'])
+    self.dataObject.updateOutputValue('rDenorm', self.armaPara['rDenorm'][:,0])
     self.dataObject.updateOutputValue('rSeriesNorm', self.armaPara['rSeriesNorm'][:,0])
     for index,feat in enumerate(self.features):
       temp = self.fourierEngine.predict(self.fourierResult['fSeries'])
@@ -1846,6 +1849,7 @@ class ARMA(superVisedLearning):
     self.fourierEngine.fit(self.fourierResult['fSeries'],self.TimeSeriesDatabase)
     
   def __trainARMA__(self):
+    # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
     self.armaResult = {}
     self.armaResult['pOrder'] = 0
     self.armaResult['qOrder'] = 0
@@ -1873,7 +1877,9 @@ class ARMA(superVisedLearning):
 #       self.raiseADebug(binEdges.shape)
 #       self.raiseADebug(rCdf.shape)
 #       self.raiseAnError(IOError, '__generateResCDF__')
-      
+#     self.raiseADebug(delta, rCdf[-1])
+#     self.raiseAnError(IOError, '__generateResCDF__')
+     
       self.armaNormPara['rCDF'][d] = {}
       self.armaNormPara['rCDF'][d]['bins'] = copy.deepcopy(binEdges)
       self.armaNormPara['rCDF'][d]['binsMax'] = max(binEdges)
@@ -1883,11 +1889,6 @@ class ARMA(superVisedLearning):
       self.armaNormPara['rCDF'][d]['CDFMin'] = min(rCdf)
       self.armaNormPara['rCDF'][d]['binSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in binEdges])
       self.armaNormPara['rCDF'][d]['cdfSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in rCdf])
-  
-#     For debug only
-#     self.raiseADebug(delta, rCdf[-1])
-#     self.raiseAnError(IOError, 'testCDF')
-
   
   def __getRCDF__(self,d,x):
     if x < self.armaNormPara['rCDF'][d]['binsMin']:
@@ -1899,17 +1900,50 @@ class ARMA(superVisedLearning):
       X = self.armaNormPara['rCDF'][d]['bins'][ind]
       Y = self.armaNormPara['rCDF'][d]['CDF'][ind]
       x1, x2 = min(X.T), max(X.T)
-      if X[0,0] <= X[0,1]:                  y1, y2 = Y[0,0], Y[0,1]
-      else:                                 y1, y2 = Y[0,1], Y[0,0]
-      y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
+      if X[0,0] <= X[0,1]:                  
+        x1, x2 = X[0,0], X[0,1]
+        y1, y2 = Y[0,0], Y[0,1]
+      else:                                 
+        x1, x2 = X[0,1], X[0,0]
+        y1, y2 = Y[0,1], Y[0,0]
+      
+      if x1 == x2:
+        y = (y1+y2)/2.0
+      else:
+        y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
        
 #     self.raiseADebug(ind)
 #     self.raiseADebug(X,x1,x2,x)
 #     self.raiseADebug(Y,y1,y2,y)
 #     self.raiseAnError(IOError, '__getRCDF__')
-    return y[0]
+    return y
+  
+  def __getRInvCDF__(self,d,x):      
+    if x < 0 or x > 1:    self.raiseAnError(ValueError, 'Input to __getRInvCDF__ is not in unit interval' )
+    elif x <= self.armaNormPara['rCDF'][d]['CDFMin']:
+      y = self.armaNormPara['rCDF'][d]['bins'][0]
+    elif x >= self.armaNormPara['rCDF'][d]['CDFMax']:
+      y = self.armaNormPara['rCDF'][d]['bins'][-1]
+    else:
+      ind = self.armaNormPara['rCDF'][d]['cdfSearchEng'].kneighbors(x, return_distance=False)
+      X = self.armaNormPara['rCDF'][d]['CDF'][ind]
+      Y = self.armaNormPara['rCDF'][d]['bins'][ind]
+      x1, x2 = min(X.T), max(X.T)
+      if X[0,0] <= X[0,1]:                  
+        x1, x2 = X[0,0], X[0,1]
+        y1, y2 = Y[0,0], Y[0,1]
+      else:                                 
+        x1, x2 = X[0,1], X[0,0]
+        y1, y2 = Y[0,1], Y[0,0]
+      
+      if x1 == x2:
+        y = (y1+y2)/2.0
+      else:
+        y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)    
     
-  def __normalizedRes__(self,Res):
+    return y
+  
+  def __normalizeRes__(self,Res):
     normRes = np.zeros(shape=Res.shape)
 #     self.raiseADebug(self.armaPara['rSeries'].shape[1],self.armaPara['rSeries'].shape[0])
     for n1 in range(Res.shape[0]):
@@ -1928,6 +1962,15 @@ class ARMA(superVisedLearning):
 #           self.raiseADebug(temp)
 #           self.raiseAnError(IOError, '__normalizedRes__')
     return normRes
+  
+  def __denormalizeRes__(self,normRes):
+    Res = np.zeros(shape=normRes.shape)
+    for n1 in range(normRes.shape[0]):
+      for n2 in range(normRes.shape[1]):        
+        temp = self.normTransEngine.cdf(normRes[n1, n2])      
+        Res[n1,n2] = self.__getRInvCDF__(n2, temp)        
+        
+    return Res
   
   def __generateFourier__(self):
     Time = self.Time
