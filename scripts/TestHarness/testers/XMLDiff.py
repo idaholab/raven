@@ -146,7 +146,8 @@ def compare_element(a,b,*args,**kwargs):
             same = False
         else:
           (same_child,message_child) = compare_element(a[i],b[i],*options,path=path)
-          found.append((a[i],b[i]))
+          if same_child: found.append((a[i],b[i]))
+          same = same and same_child
       #prune matches from trees
       for children in found:
         a.remove(children[0])
