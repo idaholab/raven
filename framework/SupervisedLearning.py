@@ -7,6 +7,8 @@ a sample is composed by (feature,label) that is easy translated in (input,output
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
+from numpy import average
+from crow_modules.distribution1Dpy2 import CDF
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -40,6 +42,7 @@ import itertools
 import utils
 import MessageHandler
 import TreeStructure
+import Distributions
 interpolationND = utils.find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -1705,6 +1708,7 @@ class ARMA(superVisedLearning):
     self.armaPara = {} 
     self.armaPara['P'] = kwargs.get('P', 3)
     self.armaPara['Q'] = kwargs.get('Q', 3)
+    self.armaPara['dimension'] = len(self.features)
     
     if 'Fourier' not in self.initOptionDict.keys():
       self.hasFourierSeries = False
@@ -1728,6 +1732,12 @@ class ARMA(superVisedLearning):
       
       
       self.fourierEngine = linear_model.LinearRegression()
+    
+    # Instantiate a normal distribution for data conversion
+    self.normTransEngine = Distributions.returnInstance('Normal',self)
+    self.normTransEngine.mean, self.normTransEngine.sigma = 0, 1
+    self.normTransEngine.upperBoundUsed, self.normTransEngine.lowerBoundUsed = False, False
+    self.normTransEngine.initializeDistribution()
 #     self.raiseADebug(self.armaPara)
 #     self.raiseADebug(self.fourierPara)
 #     self.raiseAnError(IOError,'testing')
@@ -1753,8 +1763,56 @@ class ARMA(superVisedLearning):
     """
     self.Time = copy.deepcopy(targetVals)
     self.TimeSeriesDatabase = featureVals
-    self.__generateFourier__()
     
+    # Fit fourier seires
+    if self.hasFourierSeries:
+      self.__trainFourier__()   
+      self.armaPara['rSeries'] = self.fourierEngine.predict(self.fourierResult['fSeries']) - self.TimeSeriesDatabase
+    else:
+      self.armaPara['rSeries'] = self.TimeSeriesDatabase
+    
+#     Transform data to obatain normal distrbuted series. See 
+#     J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios," 
+#     Applied Energy, 87(2010) 843-855
+    self.__generateResCDF__()
+    self.armaPara['rSeriesNorm'] = self.__normalizedRes__(self.armaPara['rSeries'])
+    
+    
+    # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
+    
+    
+    
+    
+    
+    
+    
+    # For debug only; This part of code shall be in RUN method
+    self.raiseADebug('****************************************************************')
+    self.raiseADebug(self.normTransEngine.cdf(0),self.normTransEngine.cdf(-1e10),self.normTransEngine.cdf(1e10))
+    self.raiseADebug(self.normTransEngine.ppf(0.5),self.normTransEngine.ppf(1e-10),self.normTransEngine.ppf(0.99999999))
+#     self.raiseAnError(IOError, 'testNormTransEngine')
+    self.dataObject.updateOutputValue('rSeriesNorm', self.armaPara['rSeriesNorm'][:,0])
+    for index,feat in enumerate(self.features):
+      temp = self.fourierEngine.predict(self.fourierResult['fSeries'])
+      self.raiseADebug(index,feat)
+      self.dataObject.updateOutputValue('fTrend-' + feat, temp[:,index])
+      self.dataObject.updateOutputValue(feat + '-deTrend', self.armaPara['rSeries'][:,index])
+    ##########################################################################################
+    
+#     self.raiseADebug(np.mean(self.armaPara['rSeries']))
+#     r = (self.TimeSeriesDatabase - np.mean(self.TimeSeriesDatabase))**2
+#     if r.size > 1:    r = sum(r)
+#     r = r/self.Time.size
+#     self.raiseADebug(r)
+    
+    self.raiseADebug(self.fourierEngine)
+    self.raiseADebug(self.features)
+    self.raiseADebug(type(featureVals), featureVals.shape)
+    self.raiseADebug(type(targetVals), targetVals.shape)
+    self.raiseADebug(self.Time.ndim)
+
+  def __trainFourier__(self):
+    self.__generateFourier__()    
     temp = {}
     for bp in self.fourierPara['FourierOrder'].keys():
       temp[bp] = range(1,self.fourierPara['FourierOrder'][bp]+1)    
@@ -1766,6 +1824,7 @@ class ARMA(superVisedLearning):
     self.fourierResult['residues'] = 0
     self.fourierResult['fSeries'] = []
     self.fourierResult['fOrder'] = []    
+      
     for fOrder in fourOrders: 
       fSeries = np.zeros(shape=(self.Time.size,2*sum(fOrder)))
       indexTemp = 0
@@ -1783,43 +1842,93 @@ class ARMA(superVisedLearning):
         self.fourierResult['fSeries'] = fSeries
         self.fourierResult['residues'] = r
         criterionBest = criterionCurrent 
-#         self.raiseADebug(r, self.__computeAICorBIC(r,noPara=sum(fOrder)*2,type='AIC',obj='min'), criterionBest)
-      
-#       self.raiseADebug(r, criterionCurrent, criterionBest)
     
     self.fourierEngine.fit(self.fourierResult['fSeries'],self.TimeSeriesDatabase)
-    self.raiseADebug(self.fourierResult['fOrder'], self.fourierResult['residues'])      
     
-    self.armaPara['rSeries'] = self.fourierEngine.predict(self.fourierResult['fSeries']) - self.TimeSeriesDatabase
+  def __trainARMA__(self):
+    self.armaResult = {}
+    self.armaResult['pOrder'] = 0
+    self.armaResult['qOrder'] = 0
+    self.armaResult['Phi'] = np.zeros(shape=(1,self.armaPara['dimension']))
+    self.armaResult['Theta'] = np.zeros(shape=(1,self.armaPara['dimension']))
     
-    # For debug only
-    self.raiseADebug('****************************************************************')
-    for index,feat in enumerate(self.features):
-      temp = self.fourierEngine.predict(self.fourierResult['fSeries'])
-      self.raiseADebug(index,feat)
-      self.dataObject.updateOutputValue('fTrend-' + feat, temp[:,index])
-      self.dataObject.updateOutputValue(feat + '-deTrend', self.armaPara['rSeries'][:,index])
     
-    self.raiseADebug(np.mean(self.armaPara['rSeries']))
-#     r = (self.TimeSeriesDatabase - np.mean(self.TimeSeriesDatabase))**2
-#     if r.size > 1:    r = sum(r)
-#     r = r/self.Time.size
-#     self.raiseADebug(r)
+  def __generateResCDF__(self):
+    self.armaNormPara = {}
+    self.armaNormPara['rCDF'] = {}
+    num_bins = [5000]*self.armaPara['dimension']
     
-    self.raiseADebug(self.fourierEngine)
-    self.raiseADebug(self.features)
-    self.raiseADebug(type(featureVals), featureVals.shape)
-    self.raiseADebug(type(targetVals), targetVals.shape)
-    self.raiseADebug(self.Time.ndim)
+    for d in range(self.armaPara['dimension']):
+      counts, binEdges = np.histogram(self.armaPara['rSeries'][:,d], bins = num_bins[d], normed = True)
+      Delta = np.zeros(shape=(num_bins[d],1))
+      for n in range(num_bins[d]):
+        Delta[n,0] = binEdges[n+1]-binEdges[n]
+      delta = average(Delta)       
+      temp = np.cumsum(counts)*delta
+      rCdf = np.zeros(shape=binEdges.shape)
+      rCdf[1:] = temp
+      rCdf[0] = temp[0] # To avoid numerical issues
+      
+#       self.raiseADebug(temp, rCdf)      
+#       self.raiseADebug(binEdges.shape)
+#       self.raiseADebug(rCdf.shape)
+#       self.raiseAnError(IOError, '__generateResCDF__')
+      
+      self.armaNormPara['rCDF'][d] = {}
+      self.armaNormPara['rCDF'][d]['bins'] = copy.deepcopy(binEdges)
+      self.armaNormPara['rCDF'][d]['binsMax'] = max(binEdges)
+      self.armaNormPara['rCDF'][d]['binsMin'] = min(binEdges)
+      self.armaNormPara['rCDF'][d]['CDF'] = copy.deepcopy(rCdf)
+      self.armaNormPara['rCDF'][d]['CDFMax'] = max(rCdf)
+      self.armaNormPara['rCDF'][d]['CDFMin'] = min(rCdf)
+      self.armaNormPara['rCDF'][d]['binSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in binEdges])
+      self.armaNormPara['rCDF'][d]['cdfSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in rCdf])
+  
+#     For debug only
+#     self.raiseADebug(delta, rCdf[-1])
+#     self.raiseAnError(IOError, 'testCDF')
 
-
-
-
+  
+  def __getRCDF__(self,d,x):
+    if x < self.armaNormPara['rCDF'][d]['binsMin']:
+      y = self.armaNormPara['rCDF'][d]['CDF'][0]
+    elif x > self.armaNormPara['rCDF'][d]['binsMax']:
+      y = self.armaNormPara['rCDF'][d]['CDF'][-1]
+    else:
+      ind = self.armaNormPara['rCDF'][d]['binSearchEng'].kneighbors(x, return_distance=False)
+      X = self.armaNormPara['rCDF'][d]['bins'][ind]
+      Y = self.armaNormPara['rCDF'][d]['CDF'][ind]
+      x1, x2 = min(X.T), max(X.T)
+      if X[0,0] <= X[0,1]:                  y1, y2 = Y[0,0], Y[0,1]
+      else:                                 y1, y2 = Y[0,1], Y[0,0]
+      y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
+       
+#     self.raiseADebug(ind)
+#     self.raiseADebug(X,x1,x2,x)
+#     self.raiseADebug(Y,y1,y2,y)
+#     self.raiseAnError(IOError, '__getRCDF__')
+    return y[0]
     
-    
-    
-#     self.raiseAnError(IOError,'testing')
+  def __normalizedRes__(self,Res):
+    normRes = np.zeros(shape=Res.shape)
+#     self.raiseADebug(self.armaPara['rSeries'].shape[1],self.armaPara['rSeries'].shape[0])
+    for n1 in range(Res.shape[0]):
+      for n2 in range(Res.shape[1]):
+#         temp = self.__getRCDF__(0,5)
+#         self.raiseADebug(n1,n2)
+        temp = self.__getRCDF__(n2,Res[n1,n2])
+#         self.raiseADebug(temp, type(temp))
+#         self.raiseAnError(IOError, 'testingARMAFITTING')
+        normRes[n1,n2] = self.normTransEngine.ppf(temp)
+#         self.raiseADebug(self.normTransEngine.ppf(temp))
+#         self.raiseAnError(IOError, '__trainLocal__')
 
+#         if abs(self.armaPara['rSeriesNorm'][n1,n2]) > 10:
+#           self.raiseADebug(n1,n2,self.armaPara['rSeries'][n1,n2])
+#           self.raiseADebug(temp)
+#           self.raiseAnError(IOError, '__normalizedRes__')
+    return normRes
+  
   def __generateFourier__(self):
     Time = self.Time
     
