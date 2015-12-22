@@ -4,7 +4,10 @@ import xml.etree.ElementTree as ET
 
 num_tol = 1e-10 #effectively zero for our purposes
 
-float_re = re.compile(" *([-+]?(?:\d*[.])?\d+(?:[eE][+-]\d+)?)")
+#A float consists of possibly a + or -, followed possibly by some digits
+# followed by one of ( digit. | .digit | or digit) possibly followed by some
+# more digits possibly followed by an exponent
+float_re = re.compile("([-+]?\d*(?:(?:\d[.])|(?:[.]\d)|(?:\d))\d*(?:[eE][+-]\d+)?)")
 
 def splitIntoParts(s):
   """Splits the string into floating parts and not float parts
@@ -12,7 +15,6 @@ def splitIntoParts(s):
   returns a list where the even indexs are string and the odd
   indexs are floating point number strings.
   """
-  s = s.replace("\t\n"," ")
   return float_re.split(s)
 
 def short_text(a,b):
@@ -66,8 +68,8 @@ def compareStringsWithFloats(a,b,num_tol = 1e-10, zero_threshold = sys.float_inf
   if len(aList) != len(bList):
     return (False,"Different numbers of float point numbers")
   for i in range(len(aList)):
-    aPart = aList[i]
-    bPart = bList[i]
+    aPart = aList[i].strip()
+    bPart = bList[i].strip()
     if i % 2 == 0:
       #In string
       if aPart != bPart:
