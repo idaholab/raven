@@ -748,6 +748,7 @@ class HDMRRom(GaussPolynomialRom):
               entries.append((combo,sens))
             else:
               insig.append((combo,sens))
+          entries.sort(key=itemgetter(0))
           entries.sort(key=itemgetter(1),reverse=True)
           insig.sort(key=itemgetter(0))
           def addSensBranch(combo,sens):
