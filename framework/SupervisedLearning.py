@@ -32,6 +32,7 @@ from operator import itemgetter
 from collections import OrderedDict
 
 from scipy import spatial
+from scipy import optimize
 from sklearn.neighbors.kde import KernelDensity
 import math
 import copy
@@ -1850,12 +1851,22 @@ class ARMA(superVisedLearning):
     
   def __trainARMA__(self):
     # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
+    # Data series to this function has been normalized so that it is standard gaussian
     self.armaResult = {}
     self.armaResult['pOrder'] = 0
     self.armaResult['qOrder'] = 0
     self.armaResult['Phi'] = np.zeros(shape=(1,self.armaPara['dimension']))
     self.armaResult['Theta'] = np.zeros(shape=(1,self.armaPara['dimension']))
     
+    self.__computeARMALikelihood__([0.1,0.2,0.3,0.4,0.5,1], *[2,3])
+    
+    p = 1
+    q = 1
+    
+    rOpt = {}
+    rOpt = optimize.fmin(self.__computeARMALikelihood__,[0.0,0.0,0.1], args=(p,q) )    
+#     xopt, fopt = optimize.fmin(self.__computeARMALikelihood__,[0.0,0.0,0.0,0.0,0.0,1], args=(p,q) )
+    self.raiseADebug(rOpt)
     
   def __generateResCDF__(self):
     self.armaNormPara = {}
@@ -1986,6 +1997,84 @@ class ARMA(superVisedLearning):
         self.dataObject.updateOutputValue(vName,self.fourierPara['series'][bp][:,2*orderBp])
         vName = 'f-' + str(int(bp)) + '-' + str(int(orderBp+1)) + '-cos'
         self.dataObject.updateOutputValue(vName,self.fourierPara['series'][bp][:,2*orderBp+1])
+    
+  def __computeARMALikelihood__(self,x,*args):
+    if len(args) != 2: 
+      self.raiseAnError(ValueError, 'args to __computeARMALikelihood__ should have exactly 2 elements')
+    
+    p,q = args[0],args[1]
+    N = self.armaPara['dimension']
+    if len(x) != N**2*(p+q+1):
+      self.raiseAnError(ValueError, 'input to __computeARMALikelihood__ has wrong dimension')
+    
+    Phi = {}
+    for i in range(1,p+1):
+      Phi[i] = np.zeros(shape=(N,N))
+      for n in range(N):
+        Phi[i][n,:] = x[N**2*(i-1)+n*N:N**2*(i-1)+(n+1)*N]
+      
+    Theta = {}
+    for j in range(1,q+1):
+      Theta[j] = np.zeros(shape=(N,N))
+      for n in range(N):
+        Theta[j][n,:] = x[N**2*(p+j-1)+n*N:N**2*(p+j-1)+(n+1)*N]
+    
+    Cov = np.zeros(shape=(N,N))
+    for n in range(N):
+      Cov[n,:] = x[N**2*(p+q)+n*N:N**2*(p+q)+(n+1)*N]
+    for n1 in range(N):
+      for n2 in range(N):
+        if Cov[n1,n2] <0: 
+          return sys.float_info.max
+#           self.raiseAnError(ValueError, 'input (Cov) to __computeARMALikelihood__ has wrong values')
+    w, v = np.linalg.eig(Cov)
+    for n in range(N):
+      if w[n] <=0:
+        return sys.float_info.max
+    CovInv = np.linalg.inv(Cov)
+#         self.raiseAnError(ValueError, 'input (Cov) to __computeARMALikelihood__ has wrong values')
+    
+#     self.raiseADebug(Phi,Theta,Cov)
+    
+#     self.raiseAnError(IOError, '__computeARMALikelihood__')
+    
+    d = self.armaPara['rSeriesNorm']
+    noTimeStep = d.shape[0]  
+    alpha = np.zeros(shape=d.shape)
+    L = -N*noTimeStep/2.0*np.log(2*np.pi) - noTimeStep/2.0*np.log(np.linalg.det(Cov))
+#     self.raiseADebug(-N*noTimeStep/2.0*np.log(2*np.pi),noTimeStep/2.0*np.log(np.linalg.det(Cov)),Cov,CovInv)
+#     self.raiseADebug(L)
+    for t in range(noTimeStep):      
+      if t < p or t < q:
+        alpha[t,:] = d[t,:]
+        for i in range(1,min(p,t)+1):
+          alpha[t,:] -= np.dot(Phi[i],d[t-i,:])
+        for j in range(1,min(q,t)+1):
+          alpha[t,:] -= np.dot(Theta[j],alpha[t-j,:])
+      else:
+        alpha[t,:] = d[t,:]
+        for i in range(1,p+1):
+#           self.raiseADebug(alpha[t,:])
+          alpha[t,:] -= np.dot(Phi[i],d[t-i,:])
+        for j in range(1,q+1):
+#           self.raiseADebug(alpha[t,:])
+          alpha[t,:] -= np.dot(Theta[j],alpha[t-j,:])
+        
+      L -= 1/2.0*np.dot(np.dot(alpha[t,:].T,CovInv),alpha[t,:])
+    
+    
+#     self.raiseADebug('************** __computeARMALikelihood__ **************')
+#     self.raiseADebug(d[0:10])
+#     self.raiseADebug(Phi,Theta)
+#     self.raiseADebug(alpha[0:10])
+    self.raiseADebug('Likelihood', L, 'meanError', np.sqrt(np.dot(alpha.T,alpha))[0,0])
+#     self.raiseADebug(x)
+#     self.raiseADebug(max(alpha))
+#     self.raiseAnError(IOError, '__computeARMALikelihood__')
+    return -L
+    
+      
+    
     
   def __computeAICorBIC(self,maxL,noPara,cType,obj='max'):
     if obj == 'min':        flag = -1
