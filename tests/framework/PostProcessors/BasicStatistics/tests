@@ -48,4 +48,11 @@
   max_time = 500
   rel_err = 0.001
  [../]
+ [./testBasicStatisticsSensitivity]
+  type = 'RavenFramework'
+  input = 'test_BasicStatisticsSensitivity.xml'
+  output = 'basicStatsSensitivity/csv_database.csv basicStatsSensitivity/output_basicStatistics.csv'
+  csv = 'basicStatsSensitivity/csv_database.csv'
+  xml = 'basicStatsSensitivity/csv_database.xml'
+ [../]
 []
