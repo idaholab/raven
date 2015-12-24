@@ -29,6 +29,7 @@ class RavenFramework(Tester):
     params.addParam('csv','',"List of csv files to check")
     params.addParam('UnorderedCsv','',"List of unordered csv files to check")
     params.addParam('xml','',"List of xml files to check")
+    params.addParam('UnorderedXml','',"List of unordered xml files to check")
     params.addParam('xmlopts','',"Options for xml checking")
     params.addParam('rel_err','','Relative Error for csv files or floats in xml ones')
     params.addParam('required_executable','','Skip test if this executable is not found')
@@ -52,6 +53,7 @@ class RavenFramework(Tester):
     self.csv_files = self.specs['csv'].split(" ") if len(self.specs['csv']) > 0 else []
     self.xml_files = self.specs['xml'].split(" ") if len(self.specs['xml']) > 0 else []
     self.ucsv_files = self.specs['UnorderedCsv'].split(" ") if len(self.specs['UnorderedCsv']) > 0 else []
+    self.uxml_files = self.specs['UnorderedXml'].split(" ") if len(self.specs['UnorderedXml']) > 0 else []
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
@@ -90,7 +92,7 @@ class RavenFramework(Tester):
       self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
     else:
       self.check_files = []
-    for filename in self.check_files+self.csv_files+self.xml_files+self.ucsv_files:# + [os.path.join(self.specs['test_dir'],filename)  for filename in self.csv_files]:
+    for filename in self.check_files+self.csv_files+self.xml_files+self.ucsv_files+self.uxml_files:# + [os.path.join(self.specs['test_dir'],filename)  for filename in self.csv_files]:
       if os.path.exists(filename):
         os.remove(filename)
 
@@ -127,4 +129,12 @@ class RavenFramework(Tester):
     (xml_same,xml_messages) = xml_diff.diff()
     if not xml_same:
       return (xml_messages,output)
+
+    #unordered xml
+    uxmlopts = xmlopts + ['unordered']
+    uxml_diff = XMLDiff(self.specs['test_dir'],self.uxml_files,*uxmlopts)
+    (uxml_same,uxml_messages) = uxml_diff.diff()
+    if not uxml_same:
+      return (uxml_messages,output)
+
     return ('',output)

@@ -10,6 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 import relapdata
+import re
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Relap5(CodeInterfaceBase):
@@ -34,11 +35,10 @@ class Relap5(CodeInterfaceBase):
     outputfile = 'out~'+inputFiles[index].getBase()
     if clargs: addflags = clargs['text']
     else     : addflags = ''
-    executeCommand = [('parallel',executable \
-                     + ' -i ' + inputFiles[index].getFilename() \
-                     + ' -o ' + os.path.join(inputFiles[index].getPath(), inputFiles[index].getBase() + '.o') \
-                     + ' -r ' + os.path.join(inputFiles[index].getPath(), inputFiles[index].getBase() + '.r') \
-                     + addflags)]
+    commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + ' -r ' + outputfile  + '.r' + addflags
+    commandToRun = commandToRun.replace("\n"," ")
+    commandToRun  = re.sub("\s\s+" , " ", commandToRun )
+    executeCommand = [('parallel',commandToRun)]
     return executeCommand,outputfile
 
   def finalizeCodeOutput(self,command,output,workingDir):
@@ -68,7 +68,9 @@ class Relap5(CodeInterfaceBase):
     """
     from  __builtin__ import any as b_any
     errorWord = "Transient terminated by end of time step cards"
-    return not b_any(errorWord in x.strip() for x in open(os.path.join(workingDir,output+'.o'),"r").readlines())
+    try   : outputToRead = open(os.path.join(workingDir,output+'.o'),"r")
+    except: return True
+    return not b_any(errorWord in x.strip() for x in outputToRead.readlines())
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''
