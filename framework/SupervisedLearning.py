@@ -1858,15 +1858,34 @@ class ARMA(superVisedLearning):
     self.armaResult['Phi'] = np.zeros(shape=(1,self.armaPara['dimension']))
     self.armaResult['Theta'] = np.zeros(shape=(1,self.armaPara['dimension']))
     
-    self.__computeARMALikelihood__([0.1,0.2,0.3,0.4,0.5,1], *[2,3])
+#     self.__computeARMALikelihood__([0.1,0.2,0.3,0.4,0.5,1], *[2,3])
     
-    p = 1
-    q = 1
+    P = self.armaPara['P']
+    Q = self.armaPara['Q']
     
-    rOpt = {}
-    rOpt = optimize.fmin(self.__computeARMALikelihood__,[0.0,0.0,0.1], args=(p,q) )    
+    criterionBest = np.inf
+    for p in range(1,P+1):
+      for q in range(1,Q+1):        
+        init = [0.0]*(p+q)*self.armaPara['dimension']**2
+        init_S = np.identity(self.armaPara['dimension'])
+        for n1 in range(self.armaPara['dimension']):
+          for n2 in range(self.armaPara['dimension']):
+            init.append(init_S[n1,n2])
+        
+        rOpt = {}
+        rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)    
 #     xopt, fopt = optimize.fmin(self.__computeARMALikelihood__,[0.0,0.0,0.0,0.0,0.0,1], args=(p,q) )
-    self.raiseADebug(rOpt)
+        self.raiseADebug(rOpt[0], rOpt[1])
+        
+        criterionCurrent = self.__computeAICorBIC(self.armaResult['sigHat'],noPara=p+q,cType='AIC',obj='min')
+        if criterionCurrent< criterionBest:
+          self.armaResult['P'] = p
+          self.armaResult['Q'] = q
+          self.armaResult['param'] = rOpt[0]
+          criterionBest = criterionCurrent 
+          self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'])
+          
+    self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'])
     
   def __generateResCDF__(self):
     self.armaNormPara = {}
@@ -2062,12 +2081,17 @@ class ARMA(superVisedLearning):
         
       L -= 1/2.0*np.dot(np.dot(alpha[t,:].T,CovInv),alpha[t,:])
     
-    
+    sigHat = np.sqrt(np.dot(alpha.T,alpha))
+    while sigHat.size > 1:
+      sigHat = sum(sigHat)
+      sigHat = sum(sigHat.T)
+      
+    self.armaResult['sigHat'] = sigHat[0,0]
 #     self.raiseADebug('************** __computeARMALikelihood__ **************')
 #     self.raiseADebug(d[0:10])
 #     self.raiseADebug(Phi,Theta)
 #     self.raiseADebug(alpha[0:10])
-    self.raiseADebug('Likelihood', L, 'meanError', np.sqrt(np.dot(alpha.T,alpha))[0,0])
+    self.raiseADebug('p',p,'q',q,'L', L, 'sigHat', sigHat[0,0])
 #     self.raiseADebug(x)
 #     self.raiseADebug(max(alpha))
 #     self.raiseAnError(IOError, '__computeARMALikelihood__')
