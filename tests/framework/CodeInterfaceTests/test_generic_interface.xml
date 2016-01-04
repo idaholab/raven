@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="debug">
   <RunInfo>
     <JobName>testGenericCodeInterface</JobName>
     <Sequence>sample</Sequence>
@@ -10,6 +10,7 @@
   <Files>
     <Input name="gen.one" type="">gen.one</Input>
     <Input name="gen.two" type="">gen.two</Input>
+    <Input name="mesh"    type="">dummy.e</Input>
   </Files>
 
   <Models>
@@ -51,6 +52,7 @@
     <MultiRun name="sample">
       <Input class="Files" type="">gen.one</Input>
       <Input class="Files" type="">gen.two</Input>
+      <Input class="Files" type="">mesh</Input>
       <Model class="Models" type="Code">poly</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">samples</Output>
