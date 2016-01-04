@@ -15,7 +15,7 @@
  [./AdaptiveSobolParallel]
   type = 'RavenFramework'
   input = 'test_adapt_sobol_parallel.xml'
-  xml = 'AdaptSobol/par_dumprom.xml'           #analytic, "Attenuation"
+  UnorderedXml = 'AdaptSobol/par_dumprom.xml'           #analytic, "Attenuation"
   UnorderedCsv = 'AdaptSobol/par_dump.csv'     #consistency
   [../]
 []
