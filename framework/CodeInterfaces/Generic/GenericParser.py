@@ -138,6 +138,9 @@ class GenericParser():
     @Out, None.
     '''
     #get the right IO names put in
+    print ('incheck')
+    for i in inFiles:
+      print (i)
     case = 'out~'+inFiles[0].getBase() #FIXME the first entry? This is bad! Forces order somewhere in input file
     def getFileWithExtension(fileList,ext):
       '''

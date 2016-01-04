@@ -9,7 +9,7 @@
 
   <Files>
     <Input name="gen.one" type="">gen.one</Input>
-    <Input name="gen.two" type="">gen.two</Input>
+    <Input name="inp.two" type="">inp.two</Input>
     <Input name="mesh"    type="">dummy.e</Input>
   </Files>
 
@@ -50,8 +50,8 @@
 
   <Steps>
     <MultiRun name="sample">
+      <Input class="Files" type="">inp.two</Input>
       <Input class="Files" type="">gen.one</Input>
-      <Input class="Files" type="">gen.two</Input>
       <Input class="Files" type="">mesh</Input>
       <Model class="Models" type="Code">poly</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
