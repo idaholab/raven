@@ -2,6 +2,13 @@ import numpy as np
 import os
 
 def eval(x,y,z):
+  """
+    Performs evaluations.
+    @ In, x, float, scalar
+    @ In, y, float, scalar
+    @ In, z, float, scalar
+    @ Out, list(float), input values and output value
+  """
   dat=[]
   c = 0
   for i in [0.3,0.5,0.7,1.0]:
@@ -11,6 +18,13 @@ def eval(x,y,z):
   return dat
 
 def run(xin,yin,out):
+  """
+    Running interface for RAVEN.
+    @ In, xin, str, filename for input containing x and z
+    @ In, yin, str, filename for input containing y
+    @ In, out, str, output file base name
+    @ Out, None
+  """
   inx = file(xin,'r')
   iny = file(yin,'r')
   if not os.path.isfile('dummy.e'):
