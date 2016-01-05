@@ -3934,6 +3934,8 @@ class Sobol(SparseGridCollocation):
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
     self.dists = self.transformDistDict()
+    for dist in self.dists.values():
+      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists contain the variables in the original input space are  not supported for this sampler!')
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -3983,7 +3985,7 @@ class Sobol(SparseGridCollocation):
       imptDict={}
       limit=0
       for c in combo:
-        distDict[c]=self.distDict[c]
+        distDict[c]=self.dists[c]
         quadDict[c]=self.quadDict[c]
         polyDict[c]=self.polyDict[c]
         imptDict[c]=self.importanceDict[c]
@@ -4013,13 +4015,13 @@ class Sobol(SparseGridCollocation):
       self.existing = zip(*list(v for v in inps.values()))
     #make combined sparse grids
     self.references={}
-    for var,dist in self.distDict.items():
+    for var,dist in self.dists.items():
       self.references[var]=dist.untruncatedMean()
-    std = self.distDict.keys()
+    std = self.dists.keys()
     self.pointsToRun=[]
     #make sure reference case gets in there
-    newpt = np.zeros(len(self.distDict))
-    for v,var in enumerate(self.distDict.keys()):
+    newpt = np.zeros(len(self.dists))
+    for v,var in enumerate(self.dists.keys()):
       newpt[v] = self.references[var]
     self.pointsToRun.append(tuple(newpt))
     self.distinctPoints.add(tuple(newpt))
@@ -4043,7 +4045,7 @@ class Sobol(SparseGridCollocation):
     self.raiseADebug('Still Needed : %i' %(self.limit-utils.iter_len(self.existing)))
     initdict={'ROMs':None, #self.ROMs,
               'SG':self.SQs,
-              'dists':self.distDict,
+              'dists':self.dists,
               'quads':self.quadDict,
               'polys':self.polyDict,
               'refs':self.references,
@@ -4066,14 +4068,37 @@ class Sobol(SparseGridCollocation):
         self.counter+=1
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
-      else: found=True
-      for v,varName in enumerate(self.distDict.keys()):
-        self.values[varName] = pt[v]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
-      self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-      #self.inputInfo['ProbabilityWeight'] =  N/A
-      self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
+      else:
+        found=True
+        # compute the maxDim in the given distribution
+        for key in self.variables2distributionsMapping.keys():
+          dist = self.variables2distributionsMapping[key]['name']
+          maxDim = 1
+          listvar = self.distributions2variablesMapping[dist]
+          for var in listvar:
+            if utils.first(var.values()) > maxDim:
+              maxDim = utils.first(var.values())
+        if maxDim > 1: NDcoordinates = [0]*maxDim
+
+        for v,varName in enumerate(self.dists.keys()):
+          # compute the SampledVarsPb for 1-D distribution
+          if self.variables2distributionsMapping[varName]['totDim'] == 1:
+            for key in varName.strip().split(','):
+              self.values[key] = pt[v]
+            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+          # compute the SampledVarsPb for N-D distribution
+          # Assume only one N-D distribution is associated with sparse grid collocation method
+          elif self.variables2distributionsMapping[varName]['totDim'] > 1:
+            for key in varName.strip().split(','):
+              self.values[key] = pt[v]
+            NDcoordinates[self.variables2distributionsMapping[varName]['dim']-1] = pt[v]
+        for v,varName in enumerate(self.dists.keys()):
+          if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
+            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+        self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
 #
 #
 #
