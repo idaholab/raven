@@ -1865,8 +1865,10 @@ class ARMA(superVisedLearning):
     Q = self.armaPara['Q']
     
     criterionBest = np.inf
-    for p in range(1,P+1):
-      for q in range(1,Q+1):        
+    for p in range(0,P+1):
+      for q in range(0,Q+1):  
+        if p is 0 and q is 0:
+          continue      
         init = [0.0]*(p+q)*self.armaPara['dimension']**2
         init_S = np.identity(self.armaPara['dimension'])
         for n1 in range(self.armaPara['dimension']):
@@ -2126,6 +2128,11 @@ class ARMA(superVisedLearning):
     @ Out, targetVals , 1-D numpy array [n_samples]
     """
     pass
+  
+    # FIXME. To prevent the model from performing colectOutput, which is not suitable for ARMA
+    # Use OutStreamPrint as output of ARMA model to prevent the model from performing colectOutput, which is not suitable for ARMA
+#     self.raiseAnError(ValueError, '__evaluateLocal__')
+    # end of FIXME
 
   def __resetLocal__(self,featureVals):
     """After this method the ROM should be described only by the initial parameter settings"""
