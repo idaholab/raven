@@ -1321,13 +1321,25 @@ class NDimensionalDistributions(Distribution):
   ######
 
   def getDimensionality(self):
-    return  self._distribution.returnDimensionality()
+    return self._distribution.returnDimensionality()
 
   def returnLowerBound(self, dimension):
-    return self._distribution.returnLowerBound(dimension)
+    """
+    Function that return the lower bound of the distribution for a particular dimension
+    @ In, dimension, int, dimension considered
+    @ Out, value, float, lower bound of the distribution
+    """
+    value = self._distribution.returnLowerBound(dimension)
+    return value
 
   def returnUpperBound(self, dimension):
-    return self._distribution.returnUpperBound(dimension)
+    """
+    Function that return the upper bound of the distribution for a particular dimension
+    @ In, dimension, int, dimension considered
+    @ Out, value, float, upper bound of the distribution
+    """
+    value = self._distribution.returnUpperBound(dimension)
+    return value
 
 class NDInverseWeight(NDimensionalDistributions):
 
