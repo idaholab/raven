@@ -126,15 +126,19 @@ class GenericCodeInterface(CodeInterfaceBase):
     import GenericParser
     indexes=[]
     infiles=[]
+    origfiles=[]
     #FIXME possible danger here from reading binary files
     for index,inputFile in enumerate(currentInputFiles):
       if inputFile.getExt() in self.getInputExtension():
         indexes.append(index)
         infiles.append(inputFile)
+    for index,inputFile in enumerate(origInputFiles):
+      if inputFile.getExt() in self.getInputExtension():
+        origfiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles)
     parser.modifyInternalDictionary(**Kwargs)
     newInFiles = copy.deepcopy(currentInputFiles)
     for i in indexes:
       newInFiles[i].setBase(Kwargs['prefix']+'~'+newInFiles[i].getBase())
-    parser.writeNewInput(newInFiles,origInputFiles)
+    parser.writeNewInput(newInFiles,origfiles)
     return newInFiles
