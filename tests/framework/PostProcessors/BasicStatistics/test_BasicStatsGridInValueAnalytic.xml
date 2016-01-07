@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <RunInfo>
-    <WorkingDir>basicStatsGridAnalytic</WorkingDir>
+    <WorkingDir>basicStatsGridInValueAnalytic</WorkingDir>
     <Sequence>SamplingMirrowModelGrid,PP1grid</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>30</batchSize>
   </RunInfo>
 
   <Files>
@@ -18,7 +18,7 @@
       <variable>y1</variable>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
+      <what>covariance,pearson,sensitivity,VarianceDependentSensitivity,NormalizedSensitivity</what>
       <parameters>x,y,x1,y1</parameters>
     </PostProcessor>
   </Models>
@@ -28,10 +28,14 @@
     <Normal name="x0_distrib">
       <mean>1.</mean>
       <sigma>.5</sigma>
+      <lowerBound>-2.0</lowerBound>
+      <upperBound>4.0</upperBound>
     </Normal>
     <Normal name="y0_distrib">
       <mean>1.</mean>
-      <sigma>.5</sigma>
+      <sigma>.6</sigma>
+      <lowerBound>-2.0</lowerBound>
+      <upperBound>4.0</upperBound>
     </Normal>
   </Distributions>
 
@@ -39,11 +43,11 @@
     <Grid name="Grid_external">
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="10" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="50" type="value">-2 4</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="10" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="40" type="value">-2 4</grid>
       </variable>
     </Grid>
   </Samplers>
