@@ -452,8 +452,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, None
     @ Out, integer, size of first output element
     """
-    if len(self._dataParameters['outParam']) == 0: return 0
-    else: return self.sizeData('output',keyword=self._dataParameters['outParam'][0])[self._dataParameters['outParam'][0]]
+    if len(self._dataParameters['outParam']) == 0:
+      return 0
+    else:
+      if self.type != "HistorySet":
+        return self.sizeData('output',keyword=self._dataParameters['outParam'][0])[self._dataParameters['outParam'][0]]
+      else:
+        return self.sizeData('output',keyword=1)[1]
 
   def sizeData(self,typeVar,keyword=None,nodeid=None,serialize=False):
     """

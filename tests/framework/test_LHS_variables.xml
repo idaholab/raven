@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
-<!-- This test is used to prevent the issue #319 -->
 <Simulation verbosity="debug">
+<!-- This test is used to prevent the issue number 319 -->
   <RunInfo>
     <WorkingDir>LHStestVariables</WorkingDir>
     <Sequence>LHSTest</Sequence>

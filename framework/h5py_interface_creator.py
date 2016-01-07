@@ -311,12 +311,12 @@ class hdf5Database(MessageHandler.MessageUser):
       groups.attrs[b'sourceType'] = b'Dictionary'
       # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
       if set(['inputSpaceParams']).issubset(set(source['name'].keys())):
-        groups.attrs[b'inputSpaceHeaders' ] = list(utils.toBytesIterative(source['name']['inputSpaceParams'].keys()))
-        groups.attrs[b'inputSpaceValues'  ] = list(utils.toBytesIterative(source['name']['inputSpaceParams'].values()))
+        groups.attrs[b'inputSpaceHeaders' ] = utils.toBytesIterative(list(source['name']['inputSpaceParams'].keys()))
+        groups.attrs[b'inputSpaceValues'  ] = utils.toBytesIterative(list(source['name']['inputSpaceParams'].values()))
       if set(['outputSpaceParams']).issubset(set(source['name'].keys())): outDict = source['name']['outputSpaceParams']
       else: outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'])
-      outHeaders = list(utils.toBytesIterative(outDict.keys()))
-      outValues  = list(utils.toBytesIterative(outDict.values()))
+      outHeaders = utils.toBytesIterative(list(outDict.keys()))
+      outValues  = utils.toBytesIterative(list(outDict.values()))
       groups.attrs[b'nParams'   ] = len(outHeaders)
       groups.attrs[b'outputSpaceHeaders'] = outHeaders
       groups.attrs[b'EndGroup'   ] = True
@@ -629,7 +629,7 @@ class hdf5Database(MessageHandler.MessageUser):
     for i in xrange(len(self.allGroupPaths)):
       listStrW = self.allGroupPaths[i].split("/")
       try: listStrW.remove("")
-      except: pass
+      except ValueError: pass
       if listStrW[len(listStrW)-1] == name:
         found = True
         path  = self.allGroupPaths[i]
@@ -661,13 +661,12 @@ class hdf5Database(MessageHandler.MessageUser):
         if back < 0: back = 0
         i=0
         #Question, should all the "" be removed, or just the first?
-        try: listPath.remove("")
-        except ValueError:  pass #Not found.
+        listPath = list(filter(None,listPath))
         # Find the paths for the completed history
         while (i <= back):
           pathW = ''
           for j in xrange(len(listPath) - i):
-            if listPath[j] != "": pathW = pathW + "/" + listPath[j]
+            pathW = pathW + "/" + listPath[j]
           if pathW != "":  whereList.append(pathW)
           mylist = whereList[i].split("/")
           nameList.append(mylist[len(mylist)-1])
@@ -737,14 +736,12 @@ class hdf5Database(MessageHandler.MessageUser):
           whereList = []
           nameList  = []
           i=0
-          try: listPath.remove("")
-          except ValueError: pass #don't remove if not found.
+          listPath = list(filter(None,listPath))
           # Find the paths for the completed history
           while (i < back):
             pathW = ''
             for j in xrange(len(listPath) - i):
-              if listPath[j] != "":
-                pathW = pathW + "/" + listPath[j]
+              pathW = pathW + '/' + listPath[j]
             if pathW != "":
               whereList.append(pathW)
             mylist = whereList[i].split("/")

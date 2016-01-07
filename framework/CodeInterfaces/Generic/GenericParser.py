@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 import copy
-from utils import toBytes, toStrish, compare
+from utils import toStrish, compare
 
 class GenericParser():
   '''import the user-edited input file, build list of strings with replacable parts'''
@@ -46,25 +46,25 @@ class GenericParser():
       inputFile.close()
       for line in lines:
         while self.prefixKey in line and self.postfixKey in line:
-          self.segments[infileName].append(toBytes(seg))
+          self.segments[infileName].append(seg)
           start = line.find(self.prefixKey)
           end = line.find(self.postfixKey,start+1)
           var = line[start+len(self.prefixKey):end]
           if defaultDelim in var or formatDelim in var:
             optionalPos = [None]*2
             optionalPos[0], optionalPos[1] = var.find(defaultDelim), var.find(formatDelim)
-            if optionalPos[0] == -1 : optionalPos[0]  = sys.maxint
-            if optionalPos[1] == -1 : optionalPos[1] = sys.maxint
+            if optionalPos[0] == -1 : optionalPos[0]  = sys.maxsize
+            if optionalPos[1] == -1 : optionalPos[1] = sys.maxsize
             defval    = var[optionalPos[0]+1:min(optionalPos[1],len(var))] if optionalPos[0] < optionalPos[1] else var[min(optionalPos[0]+1,len(var)):len(var)]
             varformat = var[min(optionalPos[1]+1,len(var)):len(var)] if optionalPos[0] < optionalPos[1] else var[optionalPos[1]+1:min(optionalPos[0],len(var))]
             var = var[0:min(optionalPos)]
-            if var in self.defaults.keys() and optionalPos[0] != sys.maxint: print('multiple default values given for variable',var)
-            if var in self.formats.keys() and optionalPos[1] != sys.maxint: print('multiple format values given for variable',var)
+            if var in self.defaults.keys() and optionalPos[0] != sys.maxsize: print('multiple default values given for variable',var)
+            if var in self.formats.keys() and optionalPos[1] != sys.maxsize: print('multiple format values given for variable',var)
             #TODO allow the user to specify take-last or take-first?
-            if var not in self.defaults.keys() and optionalPos[0] != sys.maxint : self.defaults[var] = {}
-            if var not in self.formats.keys()  and optionalPos[1] != sys.maxint : self.formats[var ] = {}
-            if optionalPos[0] != sys.maxint: self.defaults[var][infileName]=defval
-            if optionalPos[1] != sys.maxint:
+            if var not in self.defaults.keys() and optionalPos[0] != sys.maxsize : self.defaults[var] = {}
+            if var not in self.formats.keys()  and optionalPos[1] != sys.maxsize : self.formats[var ] = {}
+            if optionalPos[0] != sys.maxsize: self.defaults[var][infileName]=defval
+            if optionalPos[1] != sys.maxsize:
               # check if the format is valid
               if not any(formVal in varformat for formVal in self.acceptFormats.keys()):
                 try              : int(varformat)
@@ -74,17 +74,20 @@ class GenericParser():
               else:
                 for formVal in self.acceptFormats.keys():
                   if formVal in varformat: self.formats[var][infileName ]=varformat,self.acceptFormats[formVal]; break
-          self.segments[infileName].append(toBytes(line[:start]))
-          self.segments[infileName].append(toBytes(var))
-          if var not in self.varPlaces.keys(): self.varPlaces[var] = {infileName:[len(self.segments[infileName])-1]}
-          elif inputFile not in self.varPlaces[var].keys(): self.varPlaces[var][infileName]=[len(self.segments[infileName])-1]
-          else: self.varPlaces[var][infileName].append(len(self.segments[infileName])-1)
-          #self.segments.append(toBytes(line[end+1:]))
+          self.segments[infileName].append(line[:start])
+          self.segments[infileName].append(var)
+          if var not in self.varPlaces.keys():
+            self.varPlaces[var] = {infileName:[len(self.segments[infileName])-1]}
+          elif infileName not in self.varPlaces[var].keys():
+            self.varPlaces[var][infileName]=[len(self.segments[infileName])-1]
+          else:
+            self.varPlaces[var][infileName].append(len(self.segments[infileName])-1)
+          #self.segments.append(line[end+1:])
           line=line[end+1:]
           seg = ''
         else:
           seg+=line
-      self.segments[infileName].append(toBytes(seg))
+      self.segments[infileName].append(seg)
 
   def modifyInternalDictionary(self,**Kwargs):
     '''
@@ -125,7 +128,7 @@ class GenericParser():
                 else: self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
             else: self.segments[inputFile][place] = self.defaults[var][inputFile]
           elif var in iovars: continue #this gets handled in writeNewInput
-          else: raise IOError('Variable '+var+' was not sampled and no default given!')
+          else: raise IOError('Generic Parser: Variable '+var+' was not sampled and no default given!')
 
   def writeNewInput(self,inFiles,origFiles):
     '''
@@ -135,7 +138,8 @@ class GenericParser():
     @Out, None.
     '''
     #get the right IO names put in
-    case = 'out~'+inFiles[0].getBase()
+    case = 'out~'+inFiles[0].getBase() #FIXME the first entry? This is bad! Forces order somewhere in input file
+    # however, I can't seem to generate an error with this, so maybe it's okay
     def getFileWithExtension(fileList,ext):
       '''
       Just a script to get the file with extension ext from the fileList.
@@ -165,5 +169,5 @@ class GenericParser():
     #now just write the files.
     for f,inFile in enumerate(origFiles):
       outfile = inFiles[f]
-      outfile.writelines(toBytes(''.join(self.segments[inFile.getFilename()])))
+      outfile.writelines(''.join(self.segments[inFile.getFilename()]))
       outfile.close()

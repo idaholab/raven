@@ -5,6 +5,7 @@
    csv = 'grid/testTPSG.csv grid/testTDSG.csv grid/testHCSG.csv'
  [../]
 
+ #index set tests
  [./tensorProductGrid]
    type = 'RavenFramework'
    input = 'test_index_TP.xml'
@@ -31,6 +32,7 @@
    csv = 'grid/Adump.csv'
  [../]
 
+ #ROM tests
  [./uniform]
   type = 'RavenFramework'
   input = 'test_scgpc_uniform.xml'
@@ -78,5 +80,12 @@
   input = 'test_scgpc_expon.xml'
   xml = 'scgpc/Edumprom.xml'
   csv = 'scgpc/Edump.csv'
+ [../]
+
+ [./AdaptiveOnVariance]
+   type = 'RavenFramework'
+   input = 'test_adaptive_stochpoly_var.xml'
+   xml = 'AdaptiveStochasticPolyVar/dump.xml'
+   csv = 'AdaptiveStochasticPolyVar/data.csv'
  [../]
 []

@@ -37,6 +37,7 @@ import sys
 import numpy as np
 import time
 import os
+import collections
 
 ####################################################
 # This is tenuous at best, if the the directory structure of RAVEN changes, this
@@ -102,7 +103,7 @@ class AMSC_Object(object):
 
   def __init__(self, X, Y, w=None, names=None, graph='beta skeleton',
                gradient='steepest', knn=-1, beta=1.0, normalization=None,
-               persistence='difference', debug=False):
+               persistence='difference', edges=None, debug=False):
     """ Initialization method that takes at minimum a set of input points and
         corresponding output responses.
         @ In, X, an m-by-n array of values specifying m n-dimensional samples
@@ -117,7 +118,7 @@ class AMSC_Object(object):
           be y
         @ In, graph, an optional string specifying the type of neighborhood
           graph to use. Default is 'beta skeleton,' but other valid types are:
-          'delaunay,' 'relaxed beta skeleton,' or 'approximate knn'
+          'delaunay,' 'relaxed beta skeleton,' 'none', or 'approximate knn'
         @ In, gradient, an optional string specifying the type of gradient
           estimator
           to use. Currently the only available option is 'steepest'
@@ -143,6 +144,10 @@ class AMSC_Object(object):
           valued neighboring saddle, 'probability' will augment this value by
           multiplying the probability of the extremum and its saddle, and count
           will make the larger point counts more persistent.
+        @ In, edges, an optional list of custom edges to use as a starting point
+          for pruning, or in place of a computed graph.
+        @ In, debug, an optional boolean flag for whether debugging output
+          should be enabled.
     """
     super(AMSC_Object,self).__init__()
 
@@ -181,17 +186,20 @@ class AMSC_Object(object):
         self.names.append('x%d' % d)
       self.names.append('y')
 
-    self.Xnorm = np.array(self.X)
-    self.Ynorm = np.array(self.Y)
     if normalization == 'feature':
+      # This doesn't work with one-dimensional arrays on older versions of
+      #  sklearn
       min_max_scaler = sklearn.preprocessing.MinMaxScaler()
-      self.Xnorm = min_max_scaler.fit_transform(self.X)
-      self.Ynorm = min_max_scaler.fit_transform(self.Y)
+      self.Xnorm = min_max_scaler.fit_transform(np.atleast_2d(self.X))
+      self.Ynorm = min_max_scaler.fit_transform(np.atleast_2d(self.Y))
     elif normalization == 'zscore':
       self.Xnorm = sklearn.preprocessing.scale(self.X, axis=0, with_mean=True,
                                                with_std=True, copy=True)
       self.Ynorm = sklearn.preprocessing.scale(self.Y, axis=0, with_mean=True,
                                                with_std=True, copy=True)
+    else:
+      self.Xnorm = np.array(self.X)
+      self.Ynorm = np.array(self.Y)
 
     if knn <= 0:
       knn = len(self.Xnorm)-1
@@ -199,29 +207,32 @@ class AMSC_Object(object):
     if debug:
       sys.stderr.write('Graph Preparation: ')
       start = time.clock()
-    knnAlgorithm = sklearn.neighbors.NearestNeighbors(n_neighbors=knn,
-                                                      algorithm='kd_tree')
-    knnAlgorithm.fit(self.Xnorm)
-    edges = knnAlgorithm.kneighbors(self.Xnorm, return_distance=False)
-    if debug:
-      end = time.clock()
-      sys.stderr.write('%f s\n' % (end-start))
-    #  print(edges.shape)
 
-    edgesToPrune = []
-    pairs = []                                # prevent duplicates with this guy
-    for e1 in xrange(0,edges.shape[0]):
-      for col in xrange(0,edges.shape[1]):
-        e2 = edges.item(e1,col)
-        if e1 != e2:
-          pairs.append((e1,e2))
+    if edges is None:
+      knnAlgorithm = sklearn.neighbors.NearestNeighbors(n_neighbors=knn,
+                                                        algorithm='kd_tree')
+      knnAlgorithm.fit(self.Xnorm)
+      edges = knnAlgorithm.kneighbors(self.Xnorm, return_distance=False)
+      if debug:
+        end = time.clock()
+        sys.stderr.write('%f s\n' % (end-start))
+      #  print(edges.shape)
+
+      pairs = []                                # prevent duplicates with this guy
+      for e1 in xrange(0,edges.shape[0]):
+        for col in xrange(0,edges.shape[1]):
+          e2 = edges.item(e1,col)
+          if e1 != e2:
+            pairs.append((e1,e2))
+    else:
+      pairs = edges
 
     # As seen here:
     #  http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
     seen = set()
     pairs = [ x for x in pairs if not (x in seen or x[::-1] in seen
                                        or seen.add(x))]
-
+    edgesToPrune = []
     for edge in pairs:
       edgesToPrune.append(edge[0])
       edgesToPrune.append(edge[1])
@@ -233,6 +244,7 @@ class AMSC_Object(object):
     #  preliminaryEdges[i] = int(edge)
 
     if debug:
+      end = time.clock()
       sys.stderr.write('%f s\n' % (end-start))
       sys.stderr.write('Decomposition: ')
       start = time.clock()
@@ -303,6 +315,32 @@ class AMSC_Object(object):
       minMax = tuple(map(int,strMinMax.split(',')))
       tupleKeyedPartitions[minMax] = indices
     return tupleKeyedPartitions
+
+  def StableManifolds(self,persistence=None):
+    """ Returns the partitioned data based on a specified persistence level.
+        @ In, persistence, a floating point value specifying the size of the
+          smallest feature we want to track. Default = None means consider all
+          features.
+        @ Out, a dictionary lists where each key is a integer specifying
+          the index of the maximum. Each entry will hold a list of indices
+          specifying points that are associated to this maximum.
+    """
+    if persistence is None:
+      persistence = self.persistence
+    return self.__amsc.GetStableManifolds(persistence)
+
+  def UnstableManifolds(self,persistence=None):
+    """ Returns the partitioned data based on a specified persistence level.
+        @ In, persistence, a floating point value specifying the size of the
+          smallest feature we want to track. Default = None means consider all
+          features.
+        @ Out, a dictionary lists where each key is a integer specifying
+          the index of the minimum. Each entry will hold a list of indices
+          specifying points that are associated to this minimum.
+    """
+    if persistence is None:
+      persistence = self.persistence
+    return self.__amsc.GetUnstableManifolds(persistence)
 
   def SegmentFitCoefficients(self):
     """ Returns a dictionary keyed off the min-max index pairs defining
@@ -815,6 +853,39 @@ class AMSC_Object(object):
       return []
     return self.Y[indices]
 
+  def GetLabel(self, indices=None, applyFilters=False):
+    """ Returns the label pair indices requested by the user
+        @ In, indices, a list of non-negative integers specifying the
+          row indices to return
+        @ In, applyFilters, a boolean specifying whether data filters should be
+          used to prune the results
+        @ Out, a list of integer 2-tuples specifying the minimum and maximum
+          index of the specified rows.
+    """
+    if indices is None:
+      indices = list(xrange(0,self.GetSampleSize()))
+    elif isinstance(indices,collections.Iterable):
+      indices = sorted(list(set(indices)))
+    else:
+      indices = [indices]
+
+    if applyFilters:
+      indices = self.GetMask(indices)
+    if len(indices) == 0:
+      return []
+    partitions = self.__amsc.GetPartitions(self.persistence)
+    labels = self.X.shape[0]*[None]
+    for strMinMax in partitions.keys():
+      partIndices = partitions[strMinMax]
+      label = tuple(map(int,strMinMax.split(',')))
+      for idx in np.intersect1d(partIndices,indices):
+        labels[idx] = label
+
+    labels = np.array(labels)
+    if len(indices) == 1:
+      return labels[indices][0]
+    return labels[indices]
+
   def GetWeights(self, indices=None, applyFilters=False):
     """ Returns the weights requested by the user
         @ In, indices, a list of non-negative integers specifying the
@@ -835,6 +906,30 @@ class AMSC_Object(object):
     if len(indices) == 0:
       return []
     return self.w[indices]
+
+  def Predict(self, x, key):
+    """ Returns the predicted response of x given a model index
+        @ In, x, a list of input values matching the dimensionality of the
+          input space
+        @ In, key, a 2-tuple specifying a min-max id pair used for determining
+          which model is being used for prediction
+        @ Out, a predicted response value for the given input point
+    """
+    partitions = self.Partitions(self.persistence)
+    beta_hat = self.segmentFits[key][1:]
+    y_intercept = self.segmentFits[key][0]
+    # beta_hat = self.segmentFits[key][:]
+    # y_intercept = 0
+
+    ## Debug statement to ensure that the appropriate model is being evaluated
+    # return self.segmentFits.keys().index(key)*np.ones(x.shape[0])
+    if len(x.shape) == 1:
+      return x.dot(beta_hat) + y_intercept
+    else:
+      predictions = []
+      for xi in x:
+        predictions.append(xi.dot(beta_hat) + y_intercept)
+      return predictions
 
   def PredictY(self,indices=None, fit='linear',applyFilters=False):
     """ Returns the predicted output values requested by the user
@@ -881,8 +976,7 @@ class AMSC_Object(object):
     indices = np.array(sorted(list(set(indices))))
     return predictedY[indices]
 
-  def Residuals(self,indices=None, fit='linear', signed=False,
-                applyFilters=False):
+  def Residuals(self,indices=None,fit='linear',signed=False,applyFilters=False):
     """ Returns the residual between the output data and the predicted output
         values requested by the user
         @ In, indices, a list of non-negative integers specifying the
@@ -919,45 +1013,6 @@ class AMSC_Object(object):
     #     residuals[i] *= w[i]
 
     return residuals
-
-  def GetColors(self):
-    """ Returns a dictionary of colors where the keys specify Morse-Smale
-        segment min-max integer index pairs, unstable/ascending manifold minima
-        integer indices, and stable/descending manifold maxima integer indices.
-        The values are hex strings specifying unique colors for each different
-        type of segment.
-        @ Out, a dictionary specifying unique colors for each Morse-Smale
-          segment, stable/descending manifold, and unstable/ascending manifold.
-    """
-    partitions = self.Partitions(self.persistence)
-    partColors = {}
-    for i,key in enumerate(partitions.keys()):
-      partColors[key] = self.colorList[(i % len(self.colorList))]
-
-    for i,key in enumerate(partitions.keys()):
-      minKey = key[0]
-      maxKey = key[1]
-      if minKey not in partColors.keys():
-        partColors[minKey] = self.colorList2[(i % len(self.colorList2))]
-      if maxKey not in partColors.keys():
-        partColors[maxKey] = self.colorList3[(i % len(self.colorList3))]
-
-    return partColors
-
-  def GetSelectedExtrema(self):
-    """ Returns the extrema highlighted as being selected in an attached UI
-        @ Out, a list of non-negative integer indices specifying the extrema
-          selected.
-    """
-    return self.selectedExtrema
-
-  def GetSelectedSegments(self):
-    """ Returns the Morse-Smale segments highlighted as being selected in an
-        attached UI
-        @ Out, a list of non-negative integer index pairs specifying the min-max
-          pairs associated to the selected Morse-Smale segments.
-    """
-    return self.selectedSegments
 
   def FitsSynced(self):
     """ Returns whether the segment and extremum fits are built for the
@@ -1049,90 +1104,6 @@ class AMSC_Object(object):
     self.selectedExtrema = list(set(self.selectedExtrema))
 
     # self.sigSelectionChanged.emit()
-
-  def ClearFilter(self):
-    """ Erases all currently set filters on any dimension.
-    """
-    self.filters = {}
-    # self.sigSelectionChanged.emit()
-
-  def SetFilter(self,name,bounds):
-    """ Sets the bounds of the selected dimension as a filter
-        @ In, name, a string denoting the variable to which this filter will be
-          applied.
-        @ In, bounds, a list of two values specifying a lower and upper bound on
-          the dimension specified by name.
-    """
-    if bounds is None:
-      self.filters.pop(name,None)
-    else:
-      self.filters[name] = bounds
-      print(name, bounds)
-    # self.sigSelectionChanged.emit()
-
-  def GetFilter(self,name):
-    """ Returns the currently set filter for a particular dimension specified.
-        @ In, name, a string denoting the variable for which one wants to
-          retrieve filtered information.
-    """
-    if name in self.filters.keys():
-      return self.filters[name]
-    else:
-      return None
-
-  def Select(self, idx):
-    """ Add a segment or extremum to the list of currently selected items
-        @ In, either an non-negative integer or a 2-tuple of non-negative
-          integers specifying the index of an extremum or a min-max index pair.
-    """
-    if isinstance(idx,int):
-      if idx not in self.selectedExtrema:
-        self.selectedExtrema.append(idx)
-    else:
-      if idx not in self.sectedSegments:
-        self.selectedSegments.append(idx)
-
-      # self.sigSelectionChanged.emit()
-
-  def Deselect(self, idx):
-    """ Remove a segment or extremum from the list of currently selected items
-        @ In, either an non-negative integer or a 2-tuple of non-negative
-          integers specifying the index of an extremum or a min-max index pair.
-    """
-    if isinstance(idx,int):
-      if idx in self.selectedExtrema:
-        self.selectedExtrema.remove(idx)
-    else:
-      if idx in self.sectedSegments:
-        self.selectedSegments.remove(idx)
-
-      # self.sigSelectionChanged.emit()
-
-  def ClearSelection(self):
-    """ Empties the list of selected items.
-    """
-    self.selectedSegments = []
-    self.selectedExtrema = []
-    # self.sigSelectionChanged.emit()
-
-  def GetSelectedIndices(self,segmentsOnly=True):
-    """ Returns a mixed list of extremum indices and min-max index pairs
-        specifying all of the segments selected.
-        @ In, segmentsOnly, a boolean variable that will filter the results to
-          only return min-max index pairs.
-        @ Out, a list of non-negative integers and 2-tuples consisting of
-          non-negative integers.
-    """
-    partitions = self.Partitions(self.persistence)
-    indices = []
-    for extPair,indexSet in partitions.iteritems():
-      if extPair in self.selectedSegments \
-      or extPair[0] in self.selectedExtrema \
-      or extPair[1] in self.selectedExtrema:
-        indices.extend(indexSet)
-
-    indices = self.GetMask(indices)
-    return list(indices)
 
   def GetSampleSize(self):
     """ Returns the number of samples in the input data

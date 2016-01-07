@@ -1,0 +1,93 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>PCAReduction</WorkingDir>
+    <Sequence>FirstMRun,Dump</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="PCAReduction/lorentzAttractor_noK" name="PythonModule" subType="">
+      <variable>sigma</variable>
+      <variable>rho</variable>
+      <variable>beta</variable>
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>z</variable>
+      <variable>time</variable>
+      <variable>x0</variable>
+      <variable>y0</variable>
+      <variable>z0</variable>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <MultivariateNormal name='MultivariateNormalPCAReduction' method='pca'>
+        <transformation>
+            <rank>2</rank>
+        </transformation>
+        <mu>0.0 60.0 60.0</mu>
+        <covariance type="abs">
+            1.0       0.8      -0.5
+            0.8       1.0      0.3
+            -0.5  0.3  0.8
+        </covariance>
+    </MultivariateNormal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>20</limit>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution dim="1">MultivariateNormalPCAReduction</distribution>
+      </variable>
+      <variable name="y1">
+        <distribution dim="2">MultivariateNormalPCAReduction</distribution>
+      </variable>
+      <variablesTransformation model="PythonModule">
+        <latentVariables>x1,y1</latentVariables>
+        <manifestVariables>x0,y0,z0</manifestVariables>
+        <method>pca</method>
+      </variablesTransformation>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
+    </MultiRun>
+    <IOStep name="Dump">
+      <Input class="DataObjects" type="PointSet">testPrintPointSet</Input>
+      <Output class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="testPrintPointSet_dump">
+      <type>csv</type>
+      <source>testPrintPointSet</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <PointSet name="testPrintPointSet">
+      <Input>x0,y0,z0</Input>
+      <Output>x,y,z</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

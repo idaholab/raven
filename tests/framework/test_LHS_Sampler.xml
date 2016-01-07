@@ -86,7 +86,7 @@
     </PointSet>
     <PointSet name="samples1D">
       <Input>x</Input>
-      <Output>y</Output>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
   </DataObjects>
 

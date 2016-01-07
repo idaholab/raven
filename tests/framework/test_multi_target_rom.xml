@@ -34,7 +34,8 @@
     <ROM name="ROM1" subType="SciKitLearn">
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
       <Target>CladTempThreshold,UpperPlenumEnergy</Target>
-      <SKLtype>svm|LinearSVC</SKLtype>
+      <SKLtype>svm|SVR</SKLtype>
+      <kernel>linear</kernel>
       <C>10.0</C>
       <tol>0.0001</tol>
     </ROM>
@@ -88,6 +89,8 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmcCode3</Sampler>
       <Output class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_MULTI_ROM_TRAINER</Output>
+      <Output class="DataObjects" type="PointSet">outputMontecarlo</Output>
+      <Output class="OutStreamManager" type="Print">outputMontecarlo_dump</Output>
     </MultiRun>
     <MultiRun name="rom_MC" re-seeding="200286">
       <Input class="DataObjects" type="Point">data_for_sampling_empty_at_begin</Input>
@@ -133,6 +136,10 @@
   </Steps>
 
   <OutStreamManager>
+    <Print name="outputMontecarlo_dump">
+      <type>csv</type>
+      <source>outputMontecarlo</source>
+    </Print>
     <Print name="outputMontecarloMultiTargetRom_dump">
       <type>csv</type>
       <source>outputMontecarloRom</source>
@@ -171,6 +178,13 @@
       <Output>OutputPlaceHolder</Output>
     </Point>
     <PointSet name="Pointset_from_database_for_rom_trainer">
+      <options>
+        <inputRow>2</inputRow>
+      </options>
+      <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Output>CladTempThreshold,UpperPlenumEnergy</Output>
+    </PointSet>
+    <PointSet name="outputMontecarlo">
       <options>
         <inputRow>2</inputRow>
       </options>

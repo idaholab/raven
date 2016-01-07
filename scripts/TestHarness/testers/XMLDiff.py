@@ -1,8 +1,18 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
-import sys,os
+import sys,os,re
 import xml.etree.ElementTree as ET
 
 num_tol = 1e-10 #effectively zero for our purposes
+
+float_re = re.compile("([-+]?(?:\d*[.])?\d+(?:[eE][+-]\d+)?)")
+
+def splitIntoParts(s):
+  """Splits the string into floating parts and not float parts
+  s: the string
+  returns a list where the even indexs are string and the odd
+  indexs are floating point number strings.
+  """
+  return float_re.split(s)
 
 def short_text(a,b):
   """Returns a short portion of the text that shows the first difference
@@ -37,6 +47,38 @@ def short_text(a,b):
   return prefix+a[start:first_diff+half_display]+" "+prefix+b[start:first_diff+half_display]
 
 
+def compareStringsWithFloats(a,b,num_tol = 1e-10):
+  """ Compares two strings that have floats inside them.  This searches for
+  floating point numbers, and compares them with a numeric tolerance.
+  a: first string to use
+  b: second string to use
+  num_tol: the numerical tolerance.
+  Return (succeeded, note) where succeeded is a boolean that is true if the
+  strings match, and note is a comment on the comparison.
+  """
+  if a == b:
+    return (True,"Strings Match")
+  if a is None or b is None: return (False,"One of the strings contain a None")
+  aList = splitIntoParts(a)
+  bList = splitIntoParts(b)
+  if len(aList) != len(bList):
+    return (False,"Different numbers of float point numbers")
+  for i in range(len(aList)):
+    aPart = aList[i]
+    bPart = bList[i]
+    if i % 2 == 0:
+      #In string
+      if aPart != bPart:
+        return (False,"Mismatch of "+short_text(aPart,bPart))
+    else:
+      #In number
+      aFloat = float(aPart)
+      bFloat = float(bPart)
+      if abs(aFloat - bFloat) > num_tol:
+        return (False,"Numeric Mismatch of '"+aPart+"' and '"+bPart+"'")
+  return (True, "Strings Match Floatwise")
+
+
 def compare_element(a,b,*args,**kwargs):
   """ Compares two element trees and returns (same,message)
   where same is true if they are the same,
@@ -45,15 +87,17 @@ def compare_element(a,b,*args,**kwargs):
   a: the first element tree
   b: the second element tree
   accepted args:
-    <none implemented>
+    'unordered': indicate test does not require ordered CSV
   accepted kwargs:
     path: a string to describe where the element trees are located (mainly
-  used recursively)
+          used recursively)
   """
   same = True
   message = []
   options = args
   path = kwargs.get('path','')
+  counter = kwargs.get('counter',0)
+
   def fail_message(*args):
     """ adds the fail message to the list
     args: The arguments to the fail message (will be converted with str())
@@ -62,27 +106,18 @@ def compare_element(a,b,*args,**kwargs):
     print_args.extend(args)
     args_expanded = " ".join([str(x) for x in print_args])
     message.append(args_expanded)
+
   if a.tag != b.tag:
     same = False
     fail_message("mismatch tags ",a.tag,b.tag)
   else:
     path += a.tag + "/"
   if a.text != b.text:
-    if isANumber(a.text) and isANumber(b.text): #special treatment
-      va=float(a.text)
-      vb=float(b.text)
-      if abs(va) < num_tol: va=0
-      if abs(vb) < num_tol: vb=0
-      valtest = abs(va-vb)
-      if vb!=0: valtest /= vb
-      if valtest > num_tol:
-        same=False
-        fail_message("mismatch text value ",repr(a.text),repr(b.text),'rel. diff',valtest)
-        return (same,message)
-    else:
+    succeeded, note = compareStringsWithFloats(a.text, b.text)
+    if not succeeded:
       same = False
-      fail_message("mismatch text ",short_text(a.text,b.text))
-      return (same,message)
+      fail_message(note)
+      return (same, message)
   different_keys = set(a.keys()).symmetric_difference(set(b.keys()))
   same_keys = set(a.keys()).intersection(set(b.keys()))
   if len(different_keys) != 0:
@@ -97,10 +132,32 @@ def compare_element(a,b,*args,**kwargs):
     fail_message("mismatch number of children ",len(a),len(b))
   else:
     if a.tag == b.tag:
+      #find all matching XML paths
+      #WARNING: this will mangle the XML, so other testing should happen above this!
+      found=[]
       for i in range(len(a)):
-        (same_child,message_child) = compare_element(a[i],b[i],*options,path=path)
-        same = same and same_child
-        message.extend(message_child)
+        if 'unordered' in options:
+          for j in range(len(b)):
+            (same_child,message_child) = compare_element(a[i],b[j],*options,counter=counter+1,path=path)
+            if same_child:
+              found.append((a[i],b[i]))
+              break
+          if not same_child:
+            same = False
+        else:
+          (same_child,message_child) = compare_element(a[i],b[i],*options,path=path)
+          if same_child: found.append((a[i],b[i]))
+          same = same and same_child
+      #prune matches from trees
+      for children in found:
+        a.remove(children[0])
+        b.remove(children[1])
+      #once all pruning done, error on any remaining structure
+      if counter==0: #on head now, recursion is finished
+        if len(a)>0:
+          message.append('Branches in gold not matching test...\n'+ET.tostring(a))
+        if len(b)>0:
+          message.append('Branches in test not matching gold...\n'+ET.tostring(b))
   return (same,message)
 
 def isANumber(x):
@@ -121,7 +178,9 @@ class XMLDiff:
     """ Create an XMLDiff class
     test_dir: the directory where the test takes place
     out_files: the files to be compared.  They will be in test_dir + out_files
-    and test_dir + gold + out_files
+               and test_dir + gold + out_files
+    args: other arguments that may be included:
+          - 'unordered': indicates unordered sorting
     """
     self.__out_files = out_files
     self.__messages = ""

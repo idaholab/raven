@@ -1,0 +1,105 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>LHSuncorrelated</WorkingDir>
+    <Sequence>LHSRun,Dump,PP</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  
+  <Files>
+    <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
+    <Input name="output_basicStatistics.csv" type="">output_basicStatistics.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
+      <variable>sigma</variable>
+      <variable>rho</variable>
+      <variable>beta</variable>
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>z</variable>
+      <variable>time</variable>
+      <variable>x0</variable>
+      <variable>y0</variable>
+      <variable>z0</variable>
+    </ExternalModel>
+    <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
+      <what>all</what>
+      <parameters>x,y,z</parameters>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="N1">
+      <mean>1.0</mean>
+      <sigma>2.0</sigma>
+    </Normal>
+    <Normal name="N2">
+      <mean>2.0</mean>
+      <sigma>1.0</sigma>
+    </Normal>
+    <Normal name="N3">
+      <mean>3.0</mean>
+      <sigma>0.8</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Stratified name="LHStest">
+      <samplerInit>
+        <initialSeed>10311986</initialSeed>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>N1</distribution>
+        <grid construction="equal" steps="10" type="CDF">0.001 0.999</grid>
+      </variable>
+      <variable name="y0">
+        <distribution>N2</distribution>
+        <grid construction="equal" steps="10" type="CDF">0.001 0.999</grid>
+      </variable>
+      <variable name="z0">
+        <distribution>N3</distribution>
+        <grid construction="equal" steps="10" type="CDF">0.001 0.999</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+  
+  <Steps>
+    <MultiRun name="LHSRun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="Stratified">LHStest</Sampler>
+      <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
+    </MultiRun>
+    <IOStep name="Dump">
+      <Input class="DataObjects" type="PointSet">testPrintPointSet</Input>
+      <Output class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
+    </IOStep>
+    <PostProcess name="PP">
+      <Input class="DataObjects" type="PointSet">testPrintPointSet</Input>
+      <Model class="Models" type="PostProcessor">InputOutput</Model>
+      <Output class="Files" type="">output_basicStatistics.csv</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="testPrintPointSet_dump">
+      <type>csv</type>
+      <source>testPrintPointSet</source>
+      <what>Input|x0,Input|y0,Input|z0,Output|x,Output|y,Output|z,Input|PointProbability,Input|ProbabilityWeight</what>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <PointSet name="testPrintPointSet">
+      <Input>x0,y0,z0</Input>
+      <Output>x,y,z</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

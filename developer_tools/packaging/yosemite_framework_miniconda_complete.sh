@@ -24,7 +24,7 @@ mkdir -p $HOME/raven_libs/root/opt/raven_libs/environments
 PROFILE_FILE=$HOME/raven_libs/root/opt/raven_libs/environments/raven_libs_profile
 cat - > $PROFILE_FILE << RAVEN_PROFILE
 export PYTHONPATH="/opt/raven_libs/lib/python2.7/site-packages/:\$PYTHONPATH"
-export PATH="\$PATH:/opt/raven_libs/bin"
+export PATH="/opt/raven_libs/bin:\$PATH"
 RAVEN_PROFILE
 
 chmod +x $PROFILE_FILE
@@ -37,13 +37,13 @@ chmod +x $HOME/raven_libs/scripts/preflight
 
 cat - > $HOME/raven_libs/scripts/postinstall <<POSTINSTALL
 #!/bin/bash
-echo Running Raven libs postinstall 
+echo Running Raven libs postinstall
 echo HOME = \$HOME
-if grep '. /opt/raven_libs/environments/raven_libs_profile'  \$HOME/.bash_profile; then echo Already sourcing /opt/raven_libs/environments/raven_libs_profile; else  
+if grep '. /opt/raven_libs/environments/raven_libs_profile'  \$HOME/.bash_profile; then echo Already sourcing /opt/raven_libs/environments/raven_libs_profile; else
 cat - >> \$HOME/.bash_profile <<EOF
 #source raven libs environment
 if [ -f /opt/raven_libs/environments/raven_libs_profile ]; then
-        . /opt/raven_libs/environments/raven_libs_profile 
+        . /opt/raven_libs/environments/raven_libs_profile
 fi
 EOF
 fi

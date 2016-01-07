@@ -31,12 +31,12 @@
     </PostProcessor>
   </Models>
 
-  <Distributions>
-    <MultivariateNormal name="MultivariateNormal_test">
-      <mu>0.0 60.0</mu>
-      <covariance>
-            1.0 0.2
-            0.2 1.0
+<Distributions>
+    <MultivariateNormal name='MultivariateNormal_test' method="spline">
+        <mu>0.0 60.0</mu>
+        <covariance>
+            1.0 0.8
+            0.8 1.0
         </covariance>
     </MultivariateNormal>
   </Distributions>

@@ -1,0 +1,26 @@
+<ReducedOrderModel>
+  <ans2>
+    <mean>1.0</mean>
+    <variance>0.666666666667</variance>
+    <numRuns>7</numRuns>
+    <polyCoeffs>
+      <inputVariables>x1,x2</inputVariables>
+      <_0_0_>1.0</_0_0_>
+      <_0_1_>0.57735026919</_0_1_>
+      <_1_0_>0.57735026919</_1_0_>
+      <_2_0_>-8.32667268469e-16</_2_0_>
+    </polyCoeffs>
+  </ans2>
+  <ans>
+    <mean>1.33333333333</mean>
+    <variance>0.755555555556</variance>
+    <numRuns>7</numRuns>
+    <polyCoeffs>
+      <inputVariables>x1,x2</inputVariables>
+      <_0_0_>1.33333333333</_0_0_>
+      <_0_1_>0.57735026919</_0_1_>
+      <_1_0_>0.57735026919</_1_0_>
+      <_2_0_>0.298142397</_2_0_>
+    </polyCoeffs>
+  </ans>
+</ReducedOrderModel>
