@@ -3168,7 +3168,8 @@ class SparseGridCollocation(Grid):
         varName = '<distribution>'+child.attrib['name']
       elif child.tag == 'variable':
         varName = child.attrib['name']
-        self.axisName.append(varName)
+        if varName not in self.dependentSample.keys():
+          self.axisName.append(varName)
 
   def transformDistDict(self):
     """
