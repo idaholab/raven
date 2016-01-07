@@ -1531,7 +1531,13 @@ class BasicStatistics(BasePostProcessor):
         self.raiseAWarning("Degrees of freedom <= 0")
         return np.zeros((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
       sumWeightsList, sumSquareWeightsList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64)), np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
-      for myIndex in range(featuresNumber): sumWeightsList[myIndex], sumSquareWeightsList[myIndex] = np.sum(weights[myIndex][:]), np.sum(np.square(weights[myIndex][:]))
+      productWeights = np.ones(len(weights[0]))
+      for myIndex in range(featuresNumber):
+        productWeights[:] = weights[myIndex][:]*weights[myIndex][:]
+      for myIndex in range(featuresNumber): 
+        sumWeightsList[myIndex], sumSquareWeightsList[myIndex] = np.sum(weights[myIndex][:]), np.sum(np.square(weights[myIndex][:]))
+        sumWeightsList[myIndex], sumSquareWeightsList[myIndex] = np.sum(productWeights[:]), np.sum(np.square(productWeights[:]))
+
       diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = w)).T
       # I personally think this approach could be correct. I did not cranch the equations since I di not have time so I am not 100% sure. Andrea
       factList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
