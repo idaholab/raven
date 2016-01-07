@@ -418,6 +418,12 @@
    output = 'RedundantInputs/sc_out.xml'
    csv = 'RedundantInputs/sc_out.csv'
  [../]
+ [./redundantInputsSobol]
+   type = 'RavenFramework'
+   input = 'test_redundant_sobol.xml'
+   output = 'RedundantInputs/hdmr_out.xml'
+   csv = 'RedundantInputs/hdmr_out.csv'
+ [../]
 
  [./dataObject_metadata]
    type = 'RavenFramework'
