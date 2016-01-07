@@ -462,7 +462,28 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
     else:
-      if 'HistorySet' in type(trainingSet).__name__:
+      if self.subType == 'ARMA':
+        localInput = {}
+        if type(trainingSet)!=dict:
+          for entries in trainingSet.getParaKeys('inputs' ):
+            if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('input' ,1)[entries]))
+            else:                      localInput[entries] = None
+          for entries in trainingSet.getParaKeys('outputs'):
+            if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('output',1)[entries]))
+            else:                      localInput[entries] = None
+        
+        self.trainingSet = copy.copy(localInput)
+        if type(self.trainingSet) is dict:
+          self.amITrained = True
+          for instrom in self.SupervisedEngine.values():
+            #FIXME: This is added for ARMA testing only. Remove if a SingleRun can be used to run ARMA
+            if self.subType == 'ARMA': instrom.dataObject = trainingSet
+            #..End of FIXME
+            instrom.train(self.trainingSet)
+            self.amITrained = self.amITrained and instrom.amITrained
+          self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+      
+      elif 'HistorySet' in type(trainingSet).__name__:
         self.SupervisedEngine = []
         outKeys = trainingSet.getParaKeys('outputs')
         targets = self.initializationOptionDict['Target'].split(',')
@@ -492,9 +513,6 @@ class ROM(Dummy):
         if type(self.trainingSet) is dict:
           self.amITrained = True
           for instrom in self.SupervisedEngine.values():
-            #FIXME: This is added for ARMA testing only. Remove if a SingleRun can be used to run ARMA
-            if self.subType == 'ARMA': instrom.dataObject = trainingSet
-            #..End of FIXME
             instrom.train(self.trainingSet)
             self.amITrained = self.amITrained and instrom.amITrained
           self.raiseADebug('add self.amITrained to currentParamters','FIXME')

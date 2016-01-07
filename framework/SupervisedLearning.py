@@ -1740,6 +1740,10 @@ class ARMA(superVisedLearning):
     self.normTransEngine.mean, self.normTransEngine.sigma = 0, 1
     self.normTransEngine.upperBoundUsed, self.normTransEngine.lowerBoundUsed = False, False
     self.normTransEngine.initializeDistribution()
+    
+    # Instantiate a normal distribution for time series synthesis
+    self.normEvaluateEngine = copy.deepcopy(self.normTransEngine)
+    
 #     self.raiseADebug(self.armaPara)
 #     self.raiseADebug(self.fourierPara)
 #     self.raiseAnError(IOError,'testing')
@@ -1769,7 +1773,8 @@ class ARMA(superVisedLearning):
     # Fit fourier seires
     if self.hasFourierSeries:
       self.__trainFourier__()   
-      self.armaPara['rSeries'] = self.fourierEngine.predict(self.fourierResult['fSeries']) - self.TimeSeriesDatabase
+      self.fourierResult['predict'] = self.fourierEngine.predict(self.fourierResult['fSeries'])
+      self.armaPara['rSeries'] = self.TimeSeriesDatabase - self.fourierResult['predict']
     else:
       self.armaPara['rSeries'] = self.TimeSeriesDatabase
     
@@ -1786,14 +1791,9 @@ class ARMA(superVisedLearning):
     
     
     
-    
-    
-    
-    # For debug only; This part of code shall be in RUN method
+  # For debug only; 
     self.raiseADebug('****************************************************************')
-#     self.raiseADebug(self.normTransEngine.cdf(0),self.normTransEngine.cdf(-1e10),self.normTransEngine.cdf(1e10))
-#     self.raiseADebug(self.normTransEngine.ppf(0.5),self.normTransEngine.ppf(1e-10),self.normTransEngine.ppf(0.99999999))
-#     self.raiseAnError(IOError, 'testNormTransEngine')
+    
     self.armaPara['rDenorm'] = self.__denormalizeRes__(self.armaPara['rSeriesNorm'])
     self.dataObject.updateOutputValue('rDenorm', self.armaPara['rDenorm'][:,0])
     self.dataObject.updateOutputValue('rSeriesNorm', self.armaPara['rSeriesNorm'][:,0])
@@ -1802,7 +1802,11 @@ class ARMA(superVisedLearning):
       self.raiseADebug(index,feat)
       self.dataObject.updateOutputValue('fTrend-' + feat, temp[:,index])
       self.dataObject.updateOutputValue(feat + '-deTrend', self.armaPara['rSeries'][:,index])
+
     ##########################################################################################
+    
+    
+
     
 #     self.raiseADebug(np.mean(self.armaPara['rSeries']))
 #     r = (self.TimeSeriesDatabase - np.mean(self.TimeSeriesDatabase))**2
@@ -1841,7 +1845,7 @@ class ARMA(superVisedLearning):
       r = (self.fourierEngine.predict(fSeries)-self.TimeSeriesDatabase)**2
       if r.size > 1:    r = sum(r)
       r = r/self.Time.size
-      criterionCurrent = self.__computeAICorBIC(r,noPara=sum(fOrder)*2,cType='None',obj='min')
+      criterionCurrent = r #self.__computeAICorBIC(r,noPara=sum(fOrder)*2,cType='None',obj='min')
       if  criterionCurrent< criterionBest:
         self.fourierResult['fOrder'] = fOrder
         self.fourierResult['fSeries'] = fSeries
@@ -1854,11 +1858,14 @@ class ARMA(superVisedLearning):
     # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
     # Data series to this function has been normalized so that it is standard gaussian
     self.armaResult = {}
-    self.armaResult['pOrder'] = 0
-    self.armaResult['qOrder'] = 0
-    self.armaResult['Phi'] = np.zeros(shape=(1,self.armaPara['dimension']))
-    self.armaResult['Theta'] = np.zeros(shape=(1,self.armaPara['dimension']))
     
+    # debug
+#     self.armaResult['P'] = 1
+#     self.armaResult['Q'] = 2
+# #     self.armaResult['param'] = np.array([ 0.14297215, 0.61549212, 0.17641951, 1.14150839, 0.49531792, 0.09461218, 0.03503024])
+#     self.armaResult['param'] = np.array([ 0.96718524, 0.31626198, 0.05267314, 0.03503809])    
+#     return 1
+#     
 #     self.__computeARMALikelihood__([0.1,0.2,0.3,0.4,0.5,1], *[2,3])
     
     P = self.armaPara['P']
@@ -1872,23 +1879,24 @@ class ARMA(superVisedLearning):
         init = [0.0]*(p+q)*self.armaPara['dimension']**2
         init_S = np.identity(self.armaPara['dimension'])
         for n1 in range(self.armaPara['dimension']):
-          for n2 in range(self.armaPara['dimension']):
-            init.append(init_S[n1,n2])
+          init.append(init_S[n1,n1])
         
         rOpt = {}
         rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)    
-#     xopt, fopt = optimize.fmin(self.__computeARMALikelihood__,[0.0,0.0,0.0,0.0,0.0,1], args=(p,q) )
-        self.raiseADebug(rOpt[0], rOpt[1])
         
-        criterionCurrent = self.__computeAICorBIC(self.armaResult['sigHat'],noPara=p+q,cType='AIC',obj='min')
+        tmp = (p+q)*self.armaPara['dimension']**2/self.Time.size
+        criterionCurrent = self.__computeAICorBIC(self.armaResult['sigHat'],noPara=tmp,cType='BIC',obj='min')
         if criterionCurrent< criterionBest:
           self.armaResult['P'] = p
           self.armaResult['Q'] = q
           self.armaResult['param'] = rOpt[0]
           criterionBest = criterionCurrent 
-          self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'])
+        
+        # Debug  
+        self.raiseADebug(p,q,rOpt[0], rOpt[1], self.armaResult['sigHat'], criterionCurrent)  
+        self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'],criterionBest)
           
-    self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'])
+    self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'],criterionBest)
     
   def __generateResCDF__(self):
     self.armaNormPara = {}
@@ -2020,15 +2028,7 @@ class ARMA(superVisedLearning):
         vName = 'f-' + str(int(bp)) + '-' + str(int(orderBp+1)) + '-cos'
         self.dataObject.updateOutputValue(vName,self.fourierPara['series'][bp][:,2*orderBp+1])
     
-  def __computeARMALikelihood__(self,x,*args):
-    if len(args) != 2: 
-      self.raiseAnError(ValueError, 'args to __computeARMALikelihood__ should have exactly 2 elements')
-    
-    p,q = args[0],args[1]
-    N = self.armaPara['dimension']
-    if len(x) != N**2*(p+q+1):
-      self.raiseAnError(ValueError, 'input to __computeARMALikelihood__ has wrong dimension')
-    
+  def __armaParamAssemb__(self,x,p,q,N):  
     Phi = {}
     for i in range(1,p+1):
       Phi[i] = np.zeros(shape=(N,N))
@@ -2041,24 +2041,29 @@ class ARMA(superVisedLearning):
       for n in range(N):
         Theta[j][n,:] = x[N**2*(p+j-1)+n*N:N**2*(p+j-1)+(n+1)*N]
     
-    Cov = np.zeros(shape=(N,N))
+    Cov = np.identity(N)
     for n in range(N):
-      Cov[n,:] = x[N**2*(p+q)+n*N:N**2*(p+q)+(n+1)*N]
+      Cov[n,n] = x[N**2*(p+q)+n]
+      
+    return Phi, Theta, Cov
+    
+  def __computeARMALikelihood__(self,x,*args):
+    if len(args) != 2: 
+      self.raiseAnError(ValueError, 'args to __computeARMALikelihood__ should have exactly 2 elements')
+    
+    p,q = args[0],args[1]
+    N = self.armaPara['dimension']
+    if len(x) != N**2*(p+q)+N:
+      self.raiseAnError(ValueError, 'input to __computeARMALikelihood__ has wrong dimension')
+    
+    Phi, Theta, Cov = self.__armaParamAssemb__(x,p,q,N)
+    
     for n1 in range(N):
       for n2 in range(N):
         if Cov[n1,n2] <0: 
           return sys.float_info.max
-#           self.raiseAnError(ValueError, 'input (Cov) to __computeARMALikelihood__ has wrong values')
-    w, v = np.linalg.eig(Cov)
-    for n in range(N):
-      if w[n] <=0:
-        return sys.float_info.max
     CovInv = np.linalg.inv(Cov)
-#         self.raiseAnError(ValueError, 'input (Cov) to __computeARMALikelihood__ has wrong values')
-    
-#     self.raiseADebug(Phi,Theta,Cov)
-    
-#     self.raiseAnError(IOError, '__computeARMALikelihood__')
+
     
     d = self.armaPara['rSeriesNorm']
     noTimeStep = d.shape[0]  
@@ -2066,37 +2071,23 @@ class ARMA(superVisedLearning):
     L = -N*noTimeStep/2.0*np.log(2*np.pi) - noTimeStep/2.0*np.log(np.linalg.det(Cov))
 #     self.raiseADebug(-N*noTimeStep/2.0*np.log(2*np.pi),noTimeStep/2.0*np.log(np.linalg.det(Cov)),Cov,CovInv)
 #     self.raiseADebug(L)
-    for t in range(noTimeStep):      
-      if t < p or t < q:
-        alpha[t,:] = d[t,:]
-        for i in range(1,min(p,t)+1):
-          alpha[t,:] -= np.dot(Phi[i],d[t-i,:])
-        for j in range(1,min(q,t)+1):
-          alpha[t,:] -= np.dot(Theta[j],alpha[t-j,:])
-      else:
-        alpha[t,:] = d[t,:]
-        for i in range(1,p+1):
-#           self.raiseADebug(alpha[t,:])
-          alpha[t,:] -= np.dot(Phi[i],d[t-i,:])
-        for j in range(1,q+1):
-#           self.raiseADebug(alpha[t,:])
-          alpha[t,:] -= np.dot(Theta[j],alpha[t-j,:])
-        
+    for t in range(noTimeStep):
+      alpha[t,:] = d[t,:]
+      for i in range(1,min(p,t)+1):
+        alpha[t,:] -= np.dot(Phi[i],d[t-i,:])
+      for j in range(1,min(q,t)+1):
+        alpha[t,:] -= np.dot(Theta[j],alpha[t-j,:])
       L -= 1/2.0*np.dot(np.dot(alpha[t,:].T,CovInv),alpha[t,:])
-    
-    sigHat = np.sqrt(np.dot(alpha.T,alpha))
+                
+    sigHat = np.dot(alpha.T,alpha)
     while sigHat.size > 1:
       sigHat = sum(sigHat)
       sigHat = sum(sigHat.T)
+    sigHat = sigHat / noTimeStep
       
     self.armaResult['sigHat'] = sigHat[0,0]
 #     self.raiseADebug('************** __computeARMALikelihood__ **************')
-#     self.raiseADebug(d[0:10])
-#     self.raiseADebug(Phi,Theta)
-#     self.raiseADebug(alpha[0:10])
-    self.raiseADebug('p',p,'q',q,'L', L, 'sigHat', sigHat[0,0])
-#     self.raiseADebug(x)
-#     self.raiseADebug(max(alpha))
+#     self.raiseADebug('p',p,'q',q,'L', L, 'sigHat', sigHat[0,0])
 #     self.raiseAnError(IOError, '__computeARMALikelihood__')
     return -L
     
@@ -2107,9 +2098,13 @@ class ARMA(superVisedLearning):
     if obj == 'min':        flag = -1
     else:                   flag = 1
     if cType == 'BIC':
-      return -2*flag*np.log(maxL)+noPara*np.log(self.Time.size)
+#       self.raiseADebug('sig',maxL,-1*flag*np.log(maxL))
+#       self.raiseADebug('noPara',noPara)
+#       self.raiseADebug(-1*flag*np.log(maxL)+noPara*np.log(self.Time.size))
+#       self.raiseAnError(IOError, 'ARMA/__computeAICorBIC')
+      return -1*flag*np.log(maxL)+noPara*np.log(self.Time.size)
     elif cType == 'AIC':
-      return -2*flag*np.log(maxL)+noPara*2
+      return -1*flag*np.log(maxL)+noPara*2
     else:
       return maxL
 
@@ -2127,12 +2122,84 @@ class ARMA(superVisedLearning):
     @ In,  featureVals, 2-D numpy array [n_samples,n_features]
     @ Out, targetVals , 1-D numpy array [n_samples]
     """
-    pass
-  
-    # FIXME. To prevent the model from performing colectOutput, which is not suitable for ARMA
-    # Use OutStreamPrint as output of ARMA model to prevent the model from performing colectOutput, which is not suitable for ARMA
-#     self.raiseAnError(ValueError, '__evaluateLocal__')
+    # FIXME. The use of dataobject is to prevent the model from performing colectOutput, which is not suitable for ARMA
     # end of FIXME
+    p = self.armaResult['P'] 
+    q = self.armaResult['Q']
+    N = self.armaPara['dimension'] 
+    Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],p,q,N)
+    sig = np.zeros(shape=(1,N))
+    for n in range(N):
+      sig[0,n] = np.sqrt(Cov[n,n])
+    
+    # debug
+    self.raiseADebug('p', p, 'q', q)
+    self.raiseADebug('Phi',Phi)
+    self.raiseADebug('Theta',Theta)
+    self.raiseADebug('sig',sig)
+    
+    noTimeStep = len(self.Time)
+    tSeriesNorm = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
+    tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
+    
+    for t in range(noTimeStep):
+      for n in range(N):
+        tSeriesNoise[t,n] = self.normEvaluateEngine.rvs()*sig[0,n]
+    
+    # debug
+    self.raiseADebug('mean', np.mean(tSeriesNoise), 'std', np.std(tSeriesNoise))
+    
+    for t in range(noTimeStep):
+      for i in range(1,min(p,t)+1):
+        tSeriesNorm[t,:] += np.dot(tSeriesNorm[t-i,:],Phi[i])
+      for j in range(1,min(q,t)+1):
+        tSeriesNorm[t,:] += np.dot(tSeriesNoise[t-j,:],Theta[j])
+      tSeriesNorm[t,:] += tSeriesNoise[t,:]
+    
+    # debug
+    self.raiseADebug('mean', np.mean(tSeriesNorm), 'std', np.std(tSeriesNorm))
+    
+    
+    tSeries = self.__denormalizeRes__(tSeriesNorm)
+    
+    # debug
+    self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
+#     self.raiseAnError(IOError, 'ARMA/__evaluateLocal__')
+    
+    # Add fourier trends
+    if self.hasFourierSeries:
+      tSeries += self.fourierResult['predict']
+    
+    # Ensure positivity --- FIXME
+    tSeries = np.absolute(tSeries)
+        
+    # For debug only; This part of code shall be in RUN method
+    self.raiseADebug('****************************************************************')
+    self.raiseADebug(self.dataObject.getInpParametersValues().keys(),self.dataObject.getOutParametersValues().keys())
+
+    for key in self.dataObject.getParaKeys('inputs'):
+      self.dataObject.updateInputValue(key,0)
+    
+    self.dataObject.updateOutputValue(self.target,self.Time)
+    
+    for key in self.features:
+#       self.dataObject.updateOutputValue(key,self.armaPara['rDenorm'][:,0])
+      self.dataObject.updateOutputValue(key,tSeries[:,0])
+    
+    self.dataObject.updateOutputValue('rDenorm', self.armaPara['rDenorm'][:,0])
+    self.dataObject.updateOutputValue('rSeriesNorm', self.armaPara['rSeriesNorm'][:,0])
+    for index,feat in enumerate(self.features):
+      temp = self.fourierEngine.predict(self.fourierResult['fSeries'])
+      self.raiseADebug(index,feat)
+      self.dataObject.updateOutputValue('fTrend-' + feat, temp[:,index])
+      self.dataObject.updateOutputValue(feat + '-deTrend', self.armaPara['rSeries'][:,index])
+      
+    self.raiseADebug(self.dataObject.getInpParametersValues().keys(),self.dataObject.getOutParametersValues().keys())
+#     self.raiseADebug()
+#     self.raiseAnError(IOError,'SuperVisedLearning/__evaluateLocal__')
+    ##########################################################################################
+  
+  
 
   def __resetLocal__(self,featureVals):
     """After this method the ROM should be described only by the initial parameter settings"""
