@@ -1531,17 +1531,35 @@ class BasicStatistics(BasePostProcessor):
       if N <= 1:
         self.raiseAWarning("Degrees of freedom <= 0")
         return np.zeros((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
-      sumWeightsList, sumSquareWeightsList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64)), np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
-      for myIndex in range(featuresNumber): sumWeightsList[myIndex], sumSquareWeightsList[myIndex] = np.sum(weights[myIndex][:]), np.sum(np.square(weights[myIndex][:]))
+      #sumWeightsList, sumSquareWeightsList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64)), np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
+      #sumWeights, sumSquareWeights = 0.0, 0.0
+      #productWeights = np.ones(len(weights[0]), dtype = np.result_type(feature, np.float64))
+      #for myIndex in range(featuresNumber): productWeights[:] = weights[myIndex][:]*weights[myIndex][:]
+      #productWeights[:] = productWeights[:]/np.sum(productWeights[:])
+      #for myIndex in range(featuresNumber):
+      #  sumWeightsList[myIndex], sumSquareWeightsList[myIndex] = np.sum(weights[myIndex][:]), np.sum(np.square(weights[myIndex][:]))
+      #sumWeights, sumSquareWeights = np.sum(productWeights[:]), np.sum(np.square(productWeights[:]))
+      factList = np.ones((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
+      for myIndex in range(featuresNumber):
+        if not self.biased: factList[myIndex,myIndex] = self.__computeUnbiasedCorrection(2,weights[myIndex][:])
+        else              : factList[myIndex,myIndex] = 1.0/np.sum(weights[myIndex][:])
+        for myIndexTwo in range(featuresNumber):
+          if myIndex != myIndexTwo:
+            productWeights = weights[myIndex][:]*weights[myIndexTwo][:]
+            if not self.biased: factList[myIndex,myIndexTwo] = self.__computeUnbiasedCorrection(2,productWeights/np.sum(productWeights))
+            else              : factList[myIndex,myIndexTwo] = 1.0/np.sum(productWeights)
+      print(factList)
       diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = w)).T
-      factList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
-      if not self.biased: factList[:] = sumWeightsList[:] / ((sumWeightsList[:]**2.0 - sumSquareWeightsList[:]))
-      else              : factList[:] = 1.0 / sumWeightsList[:]
-      if not rowvar: covMatrix = (np.dot(diff.T, w * diff) * factList).squeeze()
-      else         : covMatrix = (np.dot(w * diff, diff.T) * factList).squeeze()
+      # I personally think this approach could be correct. I did not cranch the equations since I di not have time so I am not 100% sure. Andrea
+      #factList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
+      #if not self.biased: factList[:] = sumWeightsList[:] / ((sumWeightsList[:]*sumWeightsList[:] - sumSquareWeightsList[:]))
+      #else              : factList[:] = 1.0 / sumWeightsList[:]
+      if not rowvar: covMatrix = (np.multiply(np.dot(diff.T, np.multiply(w, diff)), factList)).squeeze()
+      else         : covMatrix = (np.multiply(np.dot(np.multiply(w, diff), diff.T), factList)).squeeze()
       # to prevent numerical instability
-      covMatrix[np.absolute(covMatrix) <= 1.e-15] = 1.e-15
+      #covMatrix[np.absolute(covMatrix) <= 1.e-15] = 1.e-15
       return covMatrix
+
 
   def corrCoeff(self, feature, weights = None, rowvar = 1):
       """
@@ -1565,7 +1583,6 @@ class BasicStatistics(BasePostProcessor):
         # nan if incorrect value (nan, inf, 0), 1 otherwise
         corrMatrix = covM / covM
       # to prevent numerical instability
-      corrMatrix[np.absolute(corrMatrix) <= 1.e-15] = 1.e-15
       return corrMatrix
 #
 #
