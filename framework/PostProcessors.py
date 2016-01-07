@@ -2603,6 +2603,7 @@ class DataMining(BasePostProcessor):
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
     
+    # FIXME this is temporal codes
     if self.type in ['BasicStatistics']: # for testing time dependent dm - BasicStatistics
       return currentInput
     
@@ -2769,7 +2770,7 @@ class DataMining(BasePostProcessor):
             dataObject.updateMetadata(keyM, self.unSupervisedEngine.outputDict[keyP][keyM])
         else:
           dataObject.updateOutputValue(keyP, self.unSupervisedEngine.outputDict[keyP])
-        
+
     return self.unSupervisedEngine.outputDict
 
 
