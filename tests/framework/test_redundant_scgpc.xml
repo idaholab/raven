@@ -90,20 +90,12 @@
       <Input>a,b,c,d,e</Input>
       <Output>f,g,h</Output>
     </PointSet>
-    <PointSet name="gridset">
-      <Input>a,b,c,d,e</Input>
-      <Output>f,g,h</Output>
-    </PointSet>
   </DataObjects>
 
   <OutStreamManager>
     <Print name="sc_out">
       <type>csv</type>
       <source>scset</source>
-    </Print>
-    <Print name="grid_out">
-      <type>csv</type>
-      <source>gridset</source>
     </Print>
   </OutStreamManager>
 
