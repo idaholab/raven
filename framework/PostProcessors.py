@@ -1544,9 +1544,9 @@ class BasicStatistics(BasePostProcessor):
         else              : factList[myIndex,myIndex] = 1.0/np.sum(weights[myIndex][:])
         for myIndexTwo in range(featuresNumber):
           if myIndex != myIndexTwo:
-            productWeights = weights[myIndex][:]*weights[myIndexTwo][:]
-            if not self.biased: factList[myIndex,myIndexTwo] = self.__computeUnbiasedCorrection(2,productWeights/np.sum(productWeights))
-            else              : factList[myIndex,myIndexTwo] = 1.0/np.sum(productWeights)
+            sumWeights = weights[myIndex][:]+weights[myIndexTwo][:]
+            if not self.biased: factList[myIndex,myIndexTwo] = self.__computeUnbiasedCorrection(2,sumWeights/np.sum(sumWeights))
+            else              : factList[myIndex,myIndexTwo] = 1.0/np.sum(sumWeights)
       print(factList)
       diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = w)).T
       # I personally think this approach could be correct. I did not cranch the equations since I di not have time so I am not 100% sure. Andrea

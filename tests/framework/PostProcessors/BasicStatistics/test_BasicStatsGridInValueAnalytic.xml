@@ -18,7 +18,7 @@
       <variable>y1</variable>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <what>covariance,pearson,sensitivity,VarianceDependentSensitivity,NormalizedSensitivity</what>
+      <what>covariance,pearson,sensitivity,VarianceDependentSensitivity,NormalizedSensitivity,variance</what>
       <parameters>x,y,x1,y1</parameters>
     </PostProcessor>
   </Models>
