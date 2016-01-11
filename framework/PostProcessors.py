@@ -2604,7 +2604,7 @@ class DataMining(BasePostProcessor):
     else                       : currentInput = currentInp
     
     # FIXME this is temporal codes
-    if self.type in ['BasicStatistics']: # for testing time dependent dm - BasicStatistics
+    if self.type in ['BasicStatistics', 'tSciKitLearn']: # for testing time dependent dm - BasicStatistics and time dependent clustering
       return currentInput
     
     
@@ -2770,7 +2770,11 @@ class DataMining(BasePostProcessor):
             dataObject.updateMetadata(keyM, self.unSupervisedEngine.outputDict[keyP][keyM])
         else:
           dataObject.updateOutputValue(keyP, self.unSupervisedEngine.outputDict[keyP])
-
+    
+    elif self.type in ['tSciKitLearn']:
+      self.unSupervisedEngine.run(Input) 
+      pass
+    
     return self.unSupervisedEngine.outputDict
 
 
