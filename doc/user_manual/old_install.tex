@@ -1,0 +1,305 @@
+\section{Installation}
+The installation of the RAVEN code is a straightforward procedure; depending on the usage purpose
+and machine architecture, the installation process slightly differs. \\In the following sections, all the different
+installation procedures are reported.
+
+\subsection{Framework Source Install}
+
+\subsubsection{Unpacking The Source}
+
+Untar the source install (if there is more than one version of the
+source tarball, the full filename will need to be used instead of *):
+
+\begin{lstlisting}[language=bash]
+tar -xvzf raven_framework_*_source.tar.gz
+\end{lstlisting}
+
+\subsubsection{Dependencies}
+\label{raven_dependencies}
+RAVEN has a number of dependencies that must be installed before it can be used,
+the recommended minimum versions are:
+
+\begin{enumerate}
+\item numpy-1.7.0
+\item hdf5-1.8.12
+\item Cython-0.18
+\item h5py-2.2.1
+\item scipy-0.12.0
+\item scikit-learn-0.14.1
+\item matplotlib-1.4.0
+\end{enumerate}
+
+Older versions may work, but it is highly recommended to use these
+minimum versions.  For newer version of Fedora and Ubuntu, these (or
+newer) are available in the distribution repositories.  For OSX
+Yosemite, there is a package that can be used called
+raven\_libs\_version.dmg For OSX Yosemite and OSX Mavericks there is a
+package available called raven\_miniconda.dmg
+%
+You may install these dependencies yourself, or by running the
+\texttt{raven\_libs\_script.sh} script provided within the RAVEN distribution:
+
+%\maljdan{Do we still have the trunk directory?} \alfoa{No}
+\begin{lstlisting}[language=bash]
+#Only use raven_libs_script.sh if other methods don't work
+cd full_path_to_raven_distribution/raven/
+./raven_libs_script.sh
+cd ..
+\end{lstlisting}
+
+\subsubsection{Compilation}
+
+First, the RAVEN modules must be compiled. This can be done either
+with the makefile or python setup.
+
+Using the Makefile:
+\begin{lstlisting}[language=bash]
+cd raven/
+make framework_modules
+\end{lstlisting}
+
+Using the setup.py files:
+\begin{lstlisting}[language=bash]
+cd raven/crow/
+python setup.py build_ext build install \
+--install-platlib=`pwd`/install
+cd ..
+python setup.py build_ext build  install \
+--install-platlib=`pwd`/src/contrib
+\end{lstlisting}
+
+\subsubsection{Running the Test Suite}
+
+Next, the tests should be run:
+
+\begin{lstlisting}[language=bash]
+#cd into the raven directory if needed
+./run_framework_tests
+\end{lstlisting}
+
+The output should describe why any tests failed.
+%
+At the end, there should be a line that looks similar to the output below:
+\begin{lstlisting}[language=bash]
+8 passed, 19 skipped, 0 pending, 0 failed
+\end{lstlisting}
+
+Normally there are skipped tests because either some of the codes are
+not available, or some of the test are not currently working.  The
+output will explain why each is skipped.
+
+\subsection{Ubuntu Framework Install}
+
+Ubuntu versions before 14.04 do not have new enough libraries, and so
+some of them will have to be installed manually, or with the
+\verb'raven_libs_script.sh'
+
+\subsubsection{Dependencies}
+Install the dependencies using the command:
+
+\begin{lstlisting}[language=bash]
+sudo apt-get install libtool git python-dev swig g++ python3-dev \
+ python-numpy python-sklearn python-h5py
+\end{lstlisting}
+
+%\maljdan{Somebody verify what \TeX packages are needed under Ubuntu
+%(These are what I manually installed according to my
+%\texttt{/var/lib/apt/extended\_states} file and things work fine).}
+% I verified it.  Josh
+
+Optionally, if you want to be able to edit and rebuild the manual, you can
+install \TeX~Live and its related packages:
+\begin{lstlisting}[language=bash]
+sudo apt-get install texlive-latex-base texlive-extra-utils \
+  texlive-latex-extra texlive-math-extra
+\end{lstlisting}
+
+\subsubsection{Installation}
+Untar the binary (if there is more than one version of the
+binary, the full filename will need to be used instead of *):
+
+\begin{lstlisting}[language=bash]
+tar -xvzf raven_framework_*_ubuntu.tar.gz
+\end{lstlisting}
+
+\subsubsection{Running the Test Suite}
+Run the tests:
+
+\begin{lstlisting}[language=bash]
+cd raven/
+./run_framework_tests
+\end{lstlisting}
+
+The output should describe why any tests failed.
+%
+At the end, there should be a line that looks similar to the output below:
+\begin{lstlisting}[language=bash]
+8 passed, 19 skipped, 0 pending, 0 failed
+\end{lstlisting}
+
+Normally there are skipped tests because either some of the codes are
+not available, or some of the test are not currently working.  The
+output will explain why each is skipped.
+
+\subsection{Fedora Framework Install}
+
+Fedora versions before 21 do not have new enough libraries, and so
+some of them will have to be installed manually, or with the
+\verb'raven_libs_script.sh'
+
+\subsubsection{Dependencies}
+Install the dependencies:
+
+\begin{lstlisting}[language=bash]
+yum install swig libtool gcc-c++ python-devel python3-devel \
+ numpy h5py scipy python-scikit-learn python-matplotlib-qt4
+\end{lstlisting}
+
+Optionally, if you want to be able to edit and rebuild the manual, you can
+install \TeX~Live and its related packages:
+\begin{lstlisting}[language=bash]
+yum install texlive texlive-subfigure texlive-stmaryrd \
+  texlive-titlesec texlive-preprint
+\end{lstlisting}
+
+\subsubsection{Installation}
+Untar the binary (if there is more than one version of the
+binary, the full filename will need to be used instead of *):
+
+\begin{lstlisting}[language=bash]
+tar -xvzf raven_framework_*_fedora.tar.gz
+\end{lstlisting}
+
+\subsubsection{Running The Test Suite}
+Run the tests:
+
+\begin{lstlisting}[language=bash]
+cd raven/
+./run_framework_tests
+\end{lstlisting}
+
+The output should describe why any tests failed.
+%
+At the end, there should be a line that looks similar to the output below:
+\begin{lstlisting}[language=bash]
+8 passed, 19 skipped, 0 pending, 0 failed
+\end{lstlisting}
+
+Normally there are skipped tests because either some of the codes are
+not available, or some of the test are not currently working.  The
+output will explain why each is skipped.
+
+\subsection{OSX Framework Install}
+
+Open up the file \texttt{raven\_framework\_complete\_version.dmg}.
+%
+Next, Open up the \texttt{raven\_libs.pkg} inside, and install it.  If
+you get an error that the package is not signed, then Control click
+the package, and choose ``Open With'' and then Installer.
+%
+The files will be installed into \texttt{/opt/raven\_libs}.
+%
+Your \texttt{.bash\_profile} will be modified to source the
+\texttt{/opt/raven\_libs/environments/raven\_libs\_profile} file.
+%
+This file sets up the environment variables \texttt{PYTHONPATH} and
+\texttt{PATH} so that the \texttt{raven\_framework} command can be used.
+
+\subsection{MOOSE and RAVEN Source Install}
+
+\subsubsection{MOOSE, RELAP-7, and Other Dependencies}
+First, MOOSE should be installed.  Follow the instructions for MOOSE listed
+here: \url{http://mooseframework.org/getting-started/}.
+
+Next, if the portion of RAVEN in \texttt{C++} is desired, RELAP-7 needs to be installed.
+%
+Follow the RELAP-7 instructions available at \url{https://hpcgitlab.inl.gov/idaholab/relap-7}
+
+Ensure that MOOSE and RELAP-7 are installed in the same directory level.
+
+Once any proxy variables are setup (such as \texttt{http\_proxy} and
+\texttt{https\_proxy}) and the moose dependencies are setup, the
+commands are roughly:
+
+\begin{lstlisting}[language=bash]
+git clone https://github.com/idaholab/moose.git
+cd  moose/scripts
+./update_and_rebuild_libmesh.sh
+cd ../../
+git clone git@hpcgitlab.inl.gov:idaholab/relap-7.git
+cd relap-7
+git submodule update --init contrib/iapws
+cd ..
+\end{lstlisting}
+
+Compiling MOOSE is optional.  If only the MOOSE source code is needed for
+RAVEN, then the following can be used instead:
+
+\begin{lstlisting}[language=bash]
+git clone https://github.com/idaholab/moose.git
+cd moose
+git submodule init libmesh
+git submodule update libmesh
+cd ..
+\end{lstlisting}
+
+\subsubsection{Obtaining CROW and RAVEN}
+Then clone CROW and RAVEN:
+
+\begin{lstlisting}[language=bash]
+git clone git@hpcgitlab.inl.gov:idaholab/crow.git
+git clone git@hpcgitlab.inl.gov:idaholab/raven.git
+\end{lstlisting}
+
+Install the RAVEN dependencies via one of the methods mentioned for
+the RAVEN framework (see Section \ref{raven_dependencies}).  Some of
+the moose framework setup methods will already include the raven
+dependencies.
+
+\subsubsection{Compilation}
+%\maljdan{Do they need to build CROW first?} \alfoa{No.Crow is compiled and distributed in \texttt{raven\_libs\_framework\_and\_crow.dmg}} \cogljj{No, crow is compiled when raven is}
+
+Then compile RAVEN:
+
+\begin{lstlisting}[language=bash]
+cd raven
+make
+\end{lstlisting}
+
+Note that if there are multiple processors available, \texttt{make} can accept a \texttt{-j} option that specifies the number of processors to use, so if there are eight processors available the following will run faster:
+
+\begin{lstlisting}[language=bash]
+make -j8
+\end{lstlisting}
+
+
+\subsubsection{Running The Test Suite}
+Then run the tests:
+
+\begin{lstlisting}[language=bash]
+./run_tests
+\end{lstlisting}
+
+The output should describe why any tests failed.
+%
+At the end, there should be a line that looks similar to the output below:
+\begin{lstlisting}[language=bash]
+8 passed, 19 skipped, 0 pending, 0 failed
+\end{lstlisting}
+
+Normally there are skipped tests because either some of the codes are
+not available, or some of the test are not currently working.  The
+output will explain why each is skipped.
+
+\subsection{Troubleshooting the Installation}
+
+Often the problems result from one or more of the libraries being
+incorrect or missing.  In the raven directory, the command:
+
+\begin{lstlisting}[language=bash]
+./run_tests --library_report
+\end{lstlisting}
+can be used to check if all the libraries are available, and which
+ones are being used.  If amsc, distribution1D or interpolationND are
+missing, then the RAVEN modules need to be compiled or recompiled.
+Otherwise, the RAVEN dependencies need to be fixed.
