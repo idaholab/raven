@@ -23,7 +23,7 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     self._readMoreXML(xmlNode)
     
   def _readMoreXML(self,xmlNode):
-    pass
+    self._readMoreXML(xmlNode)
     
   def run(self):
     return

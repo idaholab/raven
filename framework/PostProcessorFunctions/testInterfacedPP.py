@@ -17,7 +17,6 @@ class testInterfacedPP(PostProcessorInterfaceBase):
     self.testID = None
   
   def run(self,Input):
-    print('self.testID: ' + str(self.testID))
     return Input
   
   def finalizeOutput(self,output):
@@ -25,5 +24,7 @@ class testInterfacedPP(PostProcessorInterfaceBase):
   
   def _readMoreXML(self,xmlNode):
     for child in xmlNode:
-      if child == 'testID':
+      if child.tag == 'testID':
         self.testID = child.text
+    
+    

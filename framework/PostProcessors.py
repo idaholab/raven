@@ -866,6 +866,7 @@ class InterfacedPostProcessor(BasePostProcessor):
       if child.tag == 'method':
         self.methodToRun = child.text
     self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
+    self.postProcessor._readMoreXML(xmlNode)
   
   def run(self, InputIn):
     outputDict = self.postProcessor.run(InputIn)
