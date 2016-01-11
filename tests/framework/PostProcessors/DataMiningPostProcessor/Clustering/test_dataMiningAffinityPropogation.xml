@@ -3,7 +3,7 @@
     <RunInfo>
         <WorkingDir>AffinityPropogation</WorkingDir>
         <Sequence>readIn,AffinityBlobs,output</Sequence>
-        <batchSize>100</batchSize>
+        <batchSize>1</batchSize>
     </RunInfo>
     <Files>
         <Input name="DataSetsFile">./DataSets.csv</Input>
@@ -13,8 +13,10 @@
             <KDD lib='SciKitLearn'>
                 <Features>x1,x2</Features>
                 <SKLtype>cluster|AffinityPropogation</SKLtype>
-                <damping>0.9</damping>
-                <preference>-200</preference>
+                <damping>0.5</damping>
+                <max_iter>2000</max_iter>
+                <convergence_iter>20</convergence_iter>
+                <!--preference>-200</preference-->
             </KDD>
         </PostProcessor>
     </Models>
