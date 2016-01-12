@@ -22,7 +22,7 @@ class testInterfacedPP(PostProcessorInterfaceBase):
   def finalizeOutput(self,output):
     return output
   
-  def _readMoreXML(self,xmlNode):
+  def readMoreXML(self,xmlNode):
     for child in xmlNode:
       if child.tag == 'testID':
         self.testID = child.text

@@ -30,6 +30,7 @@ __moduleImportedList = []
 '''
  Interface Dictionary (factory) (private)
 '''
+
 __base                          = 'PostProcessor'
 __interFaceDict                 = {}
 for moduleIndex in range(len(__moduleInterfaceList)):

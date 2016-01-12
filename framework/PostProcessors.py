@@ -866,16 +866,21 @@ class InterfacedPostProcessor(BasePostProcessor):
       if child.tag == 'method':
         self.methodToRun = child.text
     self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
-    self.postProcessor._readMoreXML(xmlNode)
+    self.postProcessor.readMoreXML(xmlNode)
   
   def run(self, InputIn):
     outputDict = self.postProcessor.run(InputIn)
     return outputDict
   
   def collectOutput(self, finishedjob, output):
-    return
-  
-  
+    if 'finalizeOutput' in dir(self.postProcessor):
+      out = self.postProcessor.finalizeOutput(output)
+      return out
+    else:
+      return output
+    
+  def finalizeOutput(self, output):
+    return output
   
 class DataConversion(BasePostProcessor):
   """
