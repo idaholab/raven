@@ -27,6 +27,7 @@ import MessageHandler
 import GridEntities
 import Files
 from RAVENiterators import ravenArrayIterator
+import unSupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -2606,6 +2607,184 @@ class TopologicalDecomposition(BasePostProcessor):
     self.raiseAMessage(output)
     return outputDict
 
+class DataMining(BasePostProcessor):
+  """
+    DataMiningPostProcessor class. It will apply the specified KDD algorithms in the models
+    to a dataset, each specified algorithm's output can be loaded to dataObject.
+  """
+  def __init__(self, messageHandler):
+    """
+    Constructor
+    @ In, messageHandler, message handler object.
+    """
+    BasePostProcessor.__init__(self, messageHandler)
+    self.printTag = 'POSTPROCESSOR DATAMINING'
+    self.algorithms = []  # A list of Algorithms objects that contain definitions for all the algorithms the user wants
+    self.requiredAssObject = (True, (['Label'], ['-1']))  # The Label is optional for now....
+    self.initializationOptionDict = {}
+    self.clusterLabels = None
+    self.labelAlgorithms = []
+    self.dataObjects = []
+
+  def inputToInternal(self, currentInp):
+    """
+      Function to convert the received input into a format this object can
+      understand
+      @ In, currentInp, Some form of data object or list of data objects handed
+                        to the post-processor
+      @ Out, inputdict, dict, An input dictionary this object can process
+    """
+    if type(currentInp) == list: currentInput = currentInp[-1]
+    else                       : currentInput = currentInp
+    if type(currentInp) == dict:
+      if 'Features' in currentInput.keys(): return
+    inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
+    if isinstance(currentInp, Files.File):
+      if currentInput.subtype == 'csv': self.raiseAnError(IOError, 'CSV File received as an input!')
+    if currentInput.type == 'HDF5': self.raiseAnError(IOError, 'HDF5 Object received as an input!')
+    if currentInput.type in ['PointSet']:
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        for param in currentInput.getParaKeys('input'): inputDict['Features'][param] = currentInput.getParam('input', param)
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        for param in currentInput.getParaKeys('output'): inputDict['Features'][param] = currentInput.getParam('output', param)
+      elif self.initializationOptionDict['KDD']['Features'] == 'all':
+        for param in currentInput.getParaKeys('input') : inputDict['Features'][param] = currentInput.getParam('input', param)
+        for param in currentInput.getParaKeys('output'): inputDict['Features'][param] = currentInput.getParam('output', param)
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+        for param in currentInput.getParaKeys('input'):
+          if param in features: inputDict['Features'][param] = currentInput.getParam('input', param)
+        for param in currentInput.getParaKeys('output'):
+          if param in features: inputDict['Features'][param] = currentInput.getParam('output', param)
+
+      inputDict['metadata'] = currentInput.getAllMetadata()
+
+
+    return inputDict
+
+  def initialize(self, runInfo, inputs, initDict):
+    """
+     Method to initialize the DataMining pp.
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.__workingDir = runInfo['WorkingDir']
+    for key in self.assemblerDict.keys():
+      if 'Label' == key:
+        indice = 0
+        for _ in self.assemblerDict[key]:
+          self.labelAlgorithms.append(self.assemblerDict[key][indice][3])
+          indice += 1
+
+  def _localReadMoreXML(self, xmlNode):
+    """
+      Method to read special input requuired for this post-processor
+      @ In, xmlNode, Xml element node
+      @ Out, None
+    """
+    for child in xmlNode:
+      # FIXME is there anything that is a float that will raise an exception for int?
+      if child.attrib:
+        self.initializationOptionDict[child.tag] = {}
+        self.initializationOptionDict[child.tag].update(child.attrib)
+      else:
+        try: self.initializationOptionDict[child.tag] = utils.intConversion(child.text)
+        except ValueError:
+          try: self.initializationOptionDict[child.tag] = float(child.text)
+          except ValueError: self.initializationOptionDict[child.tag] = child.text
+      if child.tag == 'KDD':
+        if child.attrib:
+          if 'lib' in child.attrib.keys():
+            self.type = child.attrib.values()[0]
+            self.initializationOptionDict[child.tag].pop('lib')
+        for childChild in child:
+          if childChild.attrib:
+            self.initializationOptionDict[child.tag][childChild.tag] = {}
+            self.initializationOptionDict[child.tag][childChild.tag].update(childChild.attrib)
+          else:
+            try: self.initializationOptionDict[child.tag][childChild.tag] = int(childChild.text)
+            except ValueError:
+              try: self.initializationOptionDict[child.tag][childChild.tag] = float(childChild.text)
+              except ValueError: self.initializationOptionDict[child.tag][childChild.tag] = childChild.text
+
+    if self.type: self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
+    else        : self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
+
+  def collectOutput(self, finishedjob, output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob, jobhandler object, A JobHandler object that is in charge of running this post-processor
+      @ In, output, object, The object where we want to place our computed results
+      @ Out, None
+    """
+    if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
+    self.raiseADebug(str(finishedjob.returnEvaluation()))
+    dataMineDict = finishedjob.returnEvaluation()[1]
+    for key in dataMineDict['output']:
+      for param in output.getParaKeys('output'):
+        if key == param: output.removeOutputValue(key)
+      for value in dataMineDict['output'][key]: output.updateOutputValue(key, copy.copy(value))
+
+  def run(self, InputIn):
+    """
+     This method executes the postprocessor action. In this case it loads the results to specified dataObject
+     @ In , InputIn, dict, dictionary of data to process
+     @ Out, outputdict, dict, dictionary containing the post-processed results
+    """
+    if len(self.dataObjects) is not 0:
+      if type(self.dataObjects) == list: dataObject = self.dataObjects[-1]
+      else                             : dataObject = self.dataObjects
+    else: dataObject = None
+    Input = self.inputToInternal(InputIn)
+
+    outputDict = {}
+    self.unSupervisedEngine.features = Input['Features']
+    if not self.unSupervisedEngine.amITrained:  self.unSupervisedEngine.train(Input['Features'])
+
+    self.unSupervisedEngine.confidence()
+    outputDict['output'] = {}
+    noClusters = 1
+    if 'cluster' == self.unSupervisedEngine.SKLtype:
+        if hasattr(self.unSupervisedEngine, 'labels_'):
+          self.clusterLabels = self.unSupervisedEngine.labels_
+        outputDict['output'][self.name+'Labels'] = self.clusterLabels;
+        if hasattr(self.unSupervisedEngine, 'noClusters'): noClusters = self.unSupervisedEngine.noClusters
+        if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'): noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
+        for k in range(noClusters):
+          if hasattr(self.unSupervisedEngine, 'clusterCenters_'): clusterCenter = self.unSupervisedEngine.clusterCenters_[k]
+        if hasattr(self.unSupervisedEngine, 'inertia_') : inertia = self.unSupervisedEngine.inertia_
+    if 'bicluster' == self.unSupervisedEngine.SKLtype:
+        print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
+    if 'mixture' == self.unSupervisedEngine.SKLtype:
+        if   hasattr(self.unSupervisedEngine, 'covars_'): mixtureCovars = self.unSupervisedEngine.covars_
+        elif hasattr(self.unSupervisedEngine, 'precs_'): mixtureCovars = self.unSupervisedEngine.precs_
+        mixtureValues = self.unSupervisedEngine.normValues
+        mixtureMeans = self.unSupervisedEngine.means_
+        mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
+        outputDict['output'][self.name+'Labels'] = mixtureLabels
+    if 'manifold' == self.unSupervisedEngine.SKLtype:
+        manifoldValues = self.unSupervisedEngine.normValues
+        if hasattr(self.unSupervisedEngine, 'embeddingVectors_'): embeddingVectors = self.unSupervisedEngine.embeddingVectors_
+        if hasattr(self.unSupervisedEngine, 'reconstructionError_'): reconstructionError = self.unSupervisedEngine.reconstructionError_
+        if   'transform'     in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
+        elif 'fit_transform' in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
+        for i in range(len(embeddingVectors[0, :])):
+          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
+    if 'decomposition' == self.unSupervisedEngine.SKLtype:
+        decompositionValues = self.unSupervisedEngine.normValues
+        if hasattr(self.unSupervisedEngine, 'noComponents_'): noComponents = self.unSupervisedEngine.noComponents_
+        if hasattr(self.unSupervisedEngine, 'components_'): components = self.unSupervisedEngine.components_
+        if hasattr(self.unSupervisedEngine, 'explainedVarianceRatio_'): explainedVarianceRatio = self.unSupervisedEngine.explainedVarianceRatio_
+        # SCORE method does not work for SciKit Learn 0.14
+        # if hasattr(self.unSupervisedEngine.Method, 'score'): score = self.unSupervisedEngine.Method.score(decompositionValues)
+        if   'transform'     in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.transform(decompositionValues)
+        elif 'fit_transform' in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
+        for i in range(noComponents):
+          outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
+    return outputDict
+
 """
  Interface Dictionary (factory) (private)
 """
@@ -2620,6 +2799,7 @@ __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
+__interFaceDict['DataMining'               ] = DataMining
 __knownTypes = __interFaceDict.keys()
 
 def knownTypes():

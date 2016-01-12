@@ -76,9 +76,12 @@ class GenericParser():
                   if formVal in varformat: self.formats[var][infileName ]=varformat,self.acceptFormats[formVal]; break
           self.segments[infileName].append(line[:start])
           self.segments[infileName].append(var)
-          if var not in self.varPlaces.keys(): self.varPlaces[var] = {infileName:[len(self.segments[infileName])-1]}
-          elif inputFile not in self.varPlaces[var].keys(): self.varPlaces[var][infileName]=[len(self.segments[infileName])-1]
-          else: self.varPlaces[var][infileName].append(len(self.segments[infileName])-1)
+          if var not in self.varPlaces.keys():
+            self.varPlaces[var] = {infileName:[len(self.segments[infileName])-1]}
+          elif infileName not in self.varPlaces[var].keys():
+            self.varPlaces[var][infileName]=[len(self.segments[infileName])-1]
+          else:
+            self.varPlaces[var][infileName].append(len(self.segments[infileName])-1)
           #self.segments.append(line[end+1:])
           line=line[end+1:]
           seg = ''
@@ -125,7 +128,7 @@ class GenericParser():
                 else: self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
             else: self.segments[inputFile][place] = self.defaults[var][inputFile]
           elif var in iovars: continue #this gets handled in writeNewInput
-          else: raise IOError('Variable '+var+' was not sampled and no default given!')
+          else: raise IOError('Generic Parser: Variable '+var+' was not sampled and no default given!')
 
   def writeNewInput(self,inFiles,origFiles):
     '''
@@ -135,7 +138,8 @@ class GenericParser():
     @Out, None.
     '''
     #get the right IO names put in
-    case = 'out~'+inFiles[0].getBase()
+    case = 'out~'+inFiles[0].getBase() #FIXME the first entry? This is bad! Forces order somewhere in input file
+    # however, I can't seem to generate an error with this, so maybe it's okay
     def getFileWithExtension(fileList,ext):
       '''
       Just a script to get the file with extension ext from the fileList.
