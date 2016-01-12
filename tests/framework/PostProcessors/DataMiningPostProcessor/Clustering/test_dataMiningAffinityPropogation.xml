@@ -13,10 +13,10 @@
             <KDD lib='SciKitLearn'>
                 <Features>x1,x2</Features>
                 <SKLtype>cluster|AffinityPropogation</SKLtype>
-                <damping>0.5</damping>
+                <damping>0.99</damping>
                 <max_iter>2000</max_iter>
                 <convergence_iter>20</convergence_iter>
-                <!--preference>-200</preference-->
+                <preference>-50</preference>
             </KDD>
         </PostProcessor>
     </Models>
