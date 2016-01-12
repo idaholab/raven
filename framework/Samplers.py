@@ -3168,7 +3168,8 @@ class SparseGridCollocation(Grid):
         varName = '<distribution>'+child.attrib['name']
       elif child.tag == 'variable':
         varName = child.attrib['name']
-        self.axisName.append(varName)
+        if varName not in self.dependentSample.keys():
+          self.axisName.append(varName)
 
   def transformDistDict(self):
     """
@@ -3934,21 +3935,6 @@ class Sobol(SparseGridCollocation):
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
     self.dists = self.transformDistDict()
-
-  def localInputAndChecks(self,xmlNode):
-    """
-      Extended readMoreXML after other objects are instantiated
-      @ In, xmlNode, xmlNode object, whose head should be Sobol under Sampler.
-      @ Out, None
-    """
-    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
-    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
-    for child in xmlNode:
-      if child.tag == 'Distribution':
-        varName = '<distribution>'+child.attrib['name']
-      elif child.tag == 'variable':
-        varName = child.attrib['name']
-        self.axisName.append(varName)
 
   def localInitialize(self):
     """

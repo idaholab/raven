@@ -1,0 +1,1 @@
+<data name="dummy" type="Pointset"><input>x2,x3,labels,x1,x4</input><output>Output,PCAPCAComponent1,KMeansLabels,PCAPCAComponent2</output><inputFilename>dummy.csv</inputFilename></data>
