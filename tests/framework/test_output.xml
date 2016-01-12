@@ -101,6 +101,12 @@
           <type>line</type>
           <x>stories|Output|time</x>
           <y>stories|Output|sine</y>
+          <range>
+         	 <xmin>0</xmin>
+	          <ymin>0</ymin>
+        	  <xmax>1</xmax>
+	          <ymax>1</ymax>
+	  </range>
           <kwargs>
             <color>blue</color>
             <label>time sine</label>
@@ -112,6 +118,12 @@
           <y>stories|Output|sine</y>
           <colorMap>stories|Output|square</colorMap>
           <cmap>gist_ncar</cmap>
+          <range>
+         	 <xmin>0</xmin>
+	          <ymin>0</ymin>
+        	  <xmax>1</xmax>
+	          <ymax>1</ymax>
+	  </range>
           <kwargs>
         </kwargs>
         </plot>
@@ -121,12 +133,6 @@
         <figureProperties>
           <frameon>true</frameon>
         </figureProperties>
-        <range>
-          <xmin>0</xmin>
-          <ymin>0</ymin>
-          <xmax>1</xmax>
-          <ymax>1</ymax>
-        </range>
         <labelFormat>
           <style>sci</style>
         </labelFormat>
@@ -163,6 +169,14 @@
           <x>stories|Input|var1</x>
           <z>stories|Input|var2</z>
           <y>stories|Output|square</y>
+        <range>
+          <xmin>0</xmin>
+          <ymin>1</ymin>
+          <zmin>0</zmin>
+          <xmax>1</xmax>
+          <ymax>2</ymax>
+          <zmax>2</zmax>
+        </range>
           <kwargs>
             <color>black</color>
             <label>square</label>
@@ -175,6 +189,14 @@
           <z>stories|Output|square</z>
           <colorMap>stories|Output|cosine</colorMap>
           <cmap>rainbow</cmap>
+        <range>
+          <xmin>0</xmin>
+          <ymin>1</ymin>
+          <zmin>0</zmin>
+          <xmax>1</xmax>
+          <ymax>2</ymax>
+          <zmax>2</zmax>
+        </range>
           <kwargs>
             <color>green</color>
             <label>square cosine</label>
@@ -186,14 +208,6 @@
         <title>
           <text> </text>
         </title>
-        <range>
-          <xmin>0</xmin>
-          <ymin>1</ymin>
-          <zmin>0</zmin>
-          <xmax>1</xmax>
-          <ymax>2</ymax>
-          <zmax>2</zmax>
-        </range>
         <labelFormat>
           <style>sci</style>
         </labelFormat>
