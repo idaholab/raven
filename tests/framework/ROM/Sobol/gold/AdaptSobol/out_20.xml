@@ -1,78 +1,78 @@
 <ReducedOrderModel>
   <ans2>
     <mean>0.612853900845</mean>
-    <variance>0.00768602528029</variance>
-    <indices>
-      <total_variance>0.00768602528029</total_variance>
+    <approx_variance>0.00768602528029</approx_variance>
+    <impacts>
+      <approx_tot_variance>0.00768602528029</approx_tot_variance>
       <variables>x1
-        <sensitivity>0.250328718816</sensitivity>
+        <impact_param>0.250328718816</impact_param>
       </variables>
       <variables>x2
-        <sensitivity>0.250328718816</sensitivity>
+        <impact_param>0.250328718816</impact_param>
       </variables>
       <variables>x3
-        <sensitivity>0.250328718816</sensitivity>
+        <impact_param>0.250328718816</impact_param>
       </variables>
       <variables>x4
-        <sensitivity>0.250328718816</sensitivity>
+        <impact_param>0.250328718816</impact_param>
       </variables>
       <variables>x1,x3
-        <sensitivity>0.00330259466314</sensitivity>
-      </variables>
-      <variables>x1,x2
-        <sensitivity>-0.000850872641649</sensitivity>
-      </variables>
-      <variables>x1,x4
-        <sensitivity>-0.000850872641649</sensitivity>
-      </variables>
-      <variables>x2,x3
-        <sensitivity>-0.000850872641649</sensitivity>
-      </variables>
-      <variables>x3,x4
-        <sensitivity>-0.000850872641649</sensitivity>
+        <impact_param>0.00330259466314</impact_param>
       </variables>
       <variables>x2,x4
-        <sensitivity>-0.00121397936158</sensitivity>
+        <impact_param>-0.00121397936158</impact_param>
       </variables>
-    </indices>
+      <variables>x1,x2
+        <impact_param>-0.000850872641649</impact_param>
+      </variables>
+      <variables>x1,x4
+        <impact_param>-0.000850872641649</impact_param>
+      </variables>
+      <variables>x2,x3
+        <impact_param>-0.000850872641649</impact_param>
+      </variables>
+      <variables>x3,x4
+        <impact_param>-0.000850872641649</impact_param>
+      </variables>
+    </impacts>
     <numRuns>21</numRuns>
   </ans2>
   <ans>
     <mean>5.0625</mean>
-    <variance>3.83203125</variance>
-    <indices>
-      <total_variance>3.83203125</total_variance>
+    <approx_variance>3.83203125</approx_variance>
+    <impacts>
+      <approx_tot_variance>3.83203125</approx_tot_variance>
       <variables>x1
-        <sensitivity>0.247706422018</sensitivity>
+        <impact_param>0.247706422018</impact_param>
       </variables>
       <variables>x2
-        <sensitivity>0.247706422018</sensitivity>
+        <impact_param>0.247706422018</impact_param>
       </variables>
       <variables>x3
-        <sensitivity>0.247706422018</sensitivity>
+        <impact_param>0.247706422018</impact_param>
       </variables>
       <variables>x4
-        <sensitivity>0.247706422018</sensitivity>
+        <impact_param>0.247706422018</impact_param>
       </variables>
       <variables>x1,x3
-        <sensitivity>0.00917431192661</sensitivity>
+        <impact_param>0.00917431192661</impact_param>
       </variables>
       <variables>x1,x2
-        <sensitivity>0.0</sensitivity>
+        <impact_param>0.0</impact_param>
       </variables>
       <variables>x1,x4
-        <sensitivity>9.2710978774e-16</sensitivity>
+        <impact_param>9.2710978774e-16</impact_param>
       </variables>
       <variables>x2,x3
-        <sensitivity>0.0</sensitivity>
+        <impact_param>0.0</impact_param>
       </variables>
       <variables>x2,x4
-        <sensitivity>1.85421957548e-15</sensitivity>
+        <impact_param>1.85421957548e-15</impact_param>
       </variables>
       <variables>x3,x4
-        <sensitivity>9.2710978774e-16</sensitivity>
+        <impact_param>9.2710978774e-16</impact_param>
       </variables>
-    </indices>
+    </impacts>
     <numRuns>21</numRuns>
   </ans>
 </ReducedOrderModel>
