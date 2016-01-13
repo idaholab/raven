@@ -27,7 +27,7 @@
       <xsd:element name="title"               type="titleType" minOccurs="0"/>
       <xsd:element name="labelFormat"         type="labelFormatType" minOccurs="0"/>
       <xsd:element name="figureProperties"    type="figurePropertiesType" minOccurs="0"/>
-      <xsd:element name="range"               type="rangeType" minOccurs="0"/>
+      <!-- xsd:element name="range"               type="rangeType" minOccurs="0"/ -->
       <xsd:element name="camera"              type="cameraType" minOccurs="0"/>
       <xsd:element name="scale"               type="scaleType" minOccurs="0"/>
       <xsd:element name="addText"             type="titleType" minOccurs="0"/>
@@ -128,7 +128,8 @@
         </xsd:simpleType>
       </xsd:element>
       <!-- How do we do a tuple in XSD? An integer list will be unbounded -->
-      <xsd:element name="scilimits" type="intList" minOccurs="0"/>
+      <!-- xsd:element name="scilimits" type="intList" minOccurs="0"/ -->
+      <xsd:element name="scilimits" type="xsd:string" minOccurs="0"/>
       <xsd:element name="useOffset" minOccurs="0">
         <xsd:simpleType>
           <xsd:union memberTypes="xsd:float RavenBool" />
@@ -280,6 +281,7 @@
       <xsd:enumeration value="tri-surface" />
       <xsd:enumeration value="contour3D" />
       <xsd:enumeration value="filledContour3D" />
+      <xsd:enumeration value="dataMining" />
     </xsd:restriction>
   </xsd:simpleType>
 
@@ -315,6 +317,7 @@
       <xsd:element name="zlabel"    type="xsd:string" minOccurs="0"/>
       <xsd:element name="colorMap"  type="xsd:string" minOccurs="0"/>
       <xsd:element name="gridLocation" type="gridLocationType" minOccurs="0"/>
+      <xsd:element name="range"     type="rangeType" minOccurs="0"/>
       <xsd:element name="kwargs" type="kwargsType" minOccurs="0"/>
       <!-- type=scatter -->
       <xsd:element name="s" type="xsd:integer" minOccurs="0"/>
@@ -358,6 +361,11 @@
       <!-- type=tri-surface -->
       <xsd:element name="shade" type="RavenBool" minOccurs="0"/>
       <!-- type=contour3D, all are specified above -->
+      <!-- Added for the Datamining Plots -->
+      <xsd:element name="SKLtype"        type="xsd:string" minOccurs="0"/>
+      <xsd:element name="noClusters"     type="xsd:integer" minOccurs="0"/>
+      <xsd:element name="clusterLabels"  type="xsd:string" minOccurs="0"/>
+      <xsd:element name="mixtureLabels"  type="xsd:string" minOccurs="0"/>
     </xsd:all>
   </xsd:complexType>
 </xsd:schema>
