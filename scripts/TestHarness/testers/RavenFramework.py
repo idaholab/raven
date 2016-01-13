@@ -31,12 +31,11 @@ class RavenFramework(Tester):
     params.addParam('xml','',"List of xml files to check")
     params.addParam('UnorderedXml','',"List of unordered xml files to check")
     params.addParam('xmlopts','',"Options for xml checking")
-    params.addParam('rel_err','','Relative Error for csv files or floats in xml ones')
+    params.addParam('rel_err','','Relative Error for csv files')
     params.addParam('required_executable','','Skip test if this executable is not found')
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
     params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
-    params.addParam('zero_threshold',sys.float_info.min*4.0,'if a float is, in absolute value, below this threshold no comparison is performed')
     return params
 
   def getCommand(self, options):
@@ -121,11 +120,9 @@ class RavenFramework(Tester):
       return ucsv_messages,output
 
     #xml
-    xmlopts = {}
-    if len(self.specs["rel_err"]) > 0: xmlopts['rel_err'] = float(self.specs["rel_err"])
-    xmlopts['zero_threshold'] = float(self.specs["zero_threshold"])
-    if len(self.specs['xmlopts'])>0: xmlopts['xmlopts'] = self.specs['xmlopts'].split(' ')
-    xml_diff = XMLDiff(self.specs['test_dir'],self.xml_files,**xmlopts)
+    if len(self.specs['xmlopts'])>0: xmlopts = self.specs['xmlopts'].split(' ')
+    else: xmlopts=[]
+    xml_diff = XMLDiff(self.specs['test_dir'],self.xml_files,*xmlopts)
     (xml_same,xml_messages) = xml_diff.diff()
     if not xml_same:
       return (xml_messages,output)

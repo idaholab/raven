@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 
 num_tol = 1e-10 #effectively zero for our purposes
 
-float_re = re.compile(" *([-+]?(?:\d*[.])?\d+(?:[eE][+-]\d+)?)")
+float_re = re.compile("([-+]?(?:\d*[.])?\d+(?:[eE][+-]\d+)?)")
 
 def splitIntoParts(s):
   """Splits the string into floating parts and not float parts
@@ -47,13 +47,12 @@ def short_text(a,b):
   return prefix+a[start:first_diff+half_display]+" "+prefix+b[start:first_diff+half_display]
 
 
-def compareStringsWithFloats(a,b,num_tol = 1e-10, zero_threshold = sys.float_info.min*4.0):
+def compareStringsWithFloats(a,b,num_tol = 1e-10):
   """ Compares two strings that have floats inside them.  This searches for
   floating point numbers, and compares them with a numeric tolerance.
   a: first string to use
   b: second string to use
   num_tol: the numerical tolerance.
-  zero_thershold: if a float is, in absolute value, below this threshold no comparison is performed
   Return (succeeded, note) where succeeded is a boolean that is true if the
   strings match, and note is a comment on the comparison.
   """
@@ -75,11 +74,8 @@ def compareStringsWithFloats(a,b,num_tol = 1e-10, zero_threshold = sys.float_inf
       #In number
       aFloat = float(aPart)
       bFloat = float(bPart)
-      aFloat = aFloat if abs(aFloat) > zero_threshold else 0.0
-      bFloat = bFloat if abs(bFloat) > zero_threshold else 0.0
       if abs(aFloat - bFloat) > num_tol:
         return (False,"Numeric Mismatch of '"+aPart+"' and '"+bPart+"'")
-
   return (True, "Strings Match Floatwise")
 
 
@@ -98,12 +94,9 @@ def compare_element(a,b,*args,**kwargs):
   """
   same = True
   message = []
-  options = kwargs
+  options = args
   path = kwargs.get('path','')
-<<<<<<< HEAD
-=======
   counter = kwargs.get('counter',0)
->>>>>>> devel
 
   def fail_message(*args):
     """ adds the fail message to the list
@@ -120,7 +113,7 @@ def compare_element(a,b,*args,**kwargs):
   else:
     path += a.tag + "/"
   if a.text != b.text:
-    succeeded, note = compareStringsWithFloats(a.text, b.text, float(options.get("rel_err",1.e-10)), float(options.get("zero_threshold",sys.float_info.min*4.0)))
+    succeeded, note = compareStringsWithFloats(a.text, b.text)
     if not succeeded:
       same = False
       fail_message(note)
@@ -143,12 +136,6 @@ def compare_element(a,b,*args,**kwargs):
       #WARNING: this will mangle the XML, so other testing should happen above this!
       found=[]
       for i in range(len(a)):
-<<<<<<< HEAD
-        options["path"] = path
-        (same_child,message_child) = compare_element(a[i],b[i],**options)
-        same = same and same_child
-        message.extend(message_child)
-=======
         if 'unordered' in options:
           for j in range(len(b)):
             (same_child,message_child) = compare_element(a[i],b[j],*options,counter=counter+1,path=path)
@@ -171,7 +158,6 @@ def compare_element(a,b,*args,**kwargs):
           message.append('Branches in gold not matching test...\n'+ET.tostring(a))
         if len(b)>0:
           message.append('Branches in test not matching gold...\n'+ET.tostring(b))
->>>>>>> devel
   return (same,message)
 
 def isANumber(x):
@@ -188,7 +174,7 @@ def isANumber(x):
 class XMLDiff:
   """ XMLDiff is used for comparing a bunch of xml files.
   """
-  def __init__(self, test_dir, out_files,**kwargs):
+  def __init__(self, test_dir, out_files,*args):
     """ Create an XMLDiff class
     test_dir: the directory where the test takes place
     out_files: the files to be compared.  They will be in test_dir + out_files
@@ -200,7 +186,7 @@ class XMLDiff:
     self.__messages = ""
     self.__same = True
     self.__test_dir = test_dir
-    self.__options = kwargs
+    self.__options = args
 
   def diff(self):
     """ Run the comparison.
@@ -231,7 +217,7 @@ class XMLDiff:
           files_read = False
           self.__messages += 'Exception reading file '+gold_filename+': '+str(e.args)
         if files_read:
-          same,messages = compare_element(test_root, gold_root,**self.__options)
+          same,messages = compare_element(test_root, gold_root,*self.__options)
           if not same:
             self.__same = False
             separator = "\n"+" "*4
@@ -243,4 +229,3 @@ class XMLDiff:
       self.__messages = self.__messages.replace('[','(')
       self.__messages = self.__messages.replace(']',')')
     return (self.__same,self.__messages)
-
