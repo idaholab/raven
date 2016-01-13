@@ -32,9 +32,7 @@
     <DataObjects>
         <PointSet name='bisonData'>
             <Input>power_scalef,thermal_expansion,grainradius_scalef</Input>
-            <Output>max_stress,max_vonmises_stress,max_hoop_stress,avg_clad_temp,ave_temp_interior,
-                fis_gas_released,centerline_temp,midplane_hoop_stress_clad,midplane_hoop_strain_clad,
-                midplane_hoop_strain_fuel,midplane_vonmises_stress,rod_input_power,rod_total_power</Output>
+        <Output>midplane_hoop_stress_clad,fis_gas_released,midplane_hoop_strain_clad,max_hoop_stress,ave_temp_interior,avg_clad_temp,max_stress,centerline_temp,midplane_vonmises_stress,max_vonmises_stress,rod_input_power,rod_total_power,midplane_hoop_strain_fuel</Output>
         </PointSet>
     </DataObjects>
     <Models>
@@ -46,6 +44,7 @@
                 <tol>1E-10</tol>
                 <random_state>1</random_state>
                 <init>k-means++</init>
+                <precompute_distances>True</precompute_distances>
             </KDD>
         </PostProcessor>
         <PostProcessor name='PCA1' subType='DataMining'>
