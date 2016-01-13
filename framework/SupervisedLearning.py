@@ -751,7 +751,7 @@ class HDMRRom(GaussPolynomialRom):
             else:
               insig.append((combo,sens))
           entries.sort(key=itemgetter(0))
-          entries.sort(key=itemgetter(1),reverse=True)
+          entries.sort(key=lambda x: abs(x[1]),reverse=True)
           insig.sort(key=itemgetter(0))
           def addSensBranch(combo,sens):
             snode = TreeStructure.Node('variables')
