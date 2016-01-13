@@ -4285,7 +4285,6 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
           #remove the point
           if len(self.studyPoints)>1: self.studyPoints=self.studyPoints[1:]
           else: self.studyPoints = []
-          #TODO FIXME XXX WORKING ON
       #are we converged?
       if self.error < self.convValue:
         self.raiseAMessage('Convergence achieved!  No new polynomials or subsets will be added...')
