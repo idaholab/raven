@@ -308,6 +308,10 @@ XML node and the requirements for other attributes change:
       \item \xmlNode{baseFilename}, \xmlDesc{string, optional node},
         if specified determines the base file name for the state point outputs.  If not specified, defaults to
         \xmlString{out\_}.
+      \item \xmlNode{pickle}, \xmlDesc{no text, optional node},
+        if this node is included, serialized (pickled) versions of the ROM at each of the run states is also
+        created in the working directory, with the format \texttt{<baseFilename><numRuns>.pk}, such as
+        \texttt{out\_100.pk}.
     \end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
