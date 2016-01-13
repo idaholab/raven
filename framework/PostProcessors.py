@@ -2693,12 +2693,25 @@ class DataMining(BasePostProcessor):
     """
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
     self.raiseADebug(str(finishedjob.returnEvaluation()))
-    dataMineDict = finishedjob.returnEvaluation()[1]
-    for key in dataMineDict['output']:
-      for param in output.getParaKeys('output'):
-        if key == param: output.removeOutputValue(key)
-      for value in dataMineDict['output'][key]: output.updateOutputValue(key, copy.copy(value))
-
+    
+    if self.type in ['SciKitLearn']:
+      dataMineDict = finishedjob.returnEvaluation()[1]
+      for key in dataMineDict['output']:
+        for param in output.getParaKeys('output'):
+          if key == param: output.removeOutputValue(key)
+        for value in dataMineDict['output'][key]: output.updateOutputValue(key, copy.copy(value))
+      
+    elif self.type in ['temporalBasicStatistics']:
+      bsDict = finishedjob.returnEvaluation()[1]
+      for keyP in bsDict.keys():
+        if keyP == 'metadata':
+          for keyM in bsDict[keyP].keys():
+            output.updateMetadata(keyM, bsDict[keyP][keyM])
+        else:
+          output.updateOutputValue(keyP, bsDict[keyP])  
+      
+      
+      
   def run(self, InputIn):
     """
      This method executes the postprocessor action. In this case it loads the results to specified dataObject
@@ -2762,14 +2775,9 @@ class DataMining(BasePostProcessor):
     #        Make changes if necessary. 
     elif self.type in ['temporalBasicStatistics']:
       self.unSupervisedEngine.run(Input)    
-      for keyP in self.unSupervisedEngine.outputDict.keys():
-        if keyP == 'metadata':
-          for keyM in self.unSupervisedEngine.outputDict[keyP].keys():
-            dataObject.updateMetadata(keyM, self.unSupervisedEngine.outputDict[keyP][keyM])
-        else:
-          dataObject.updateOutputValue(keyP, self.unSupervisedEngine.outputDict[keyP])
-    
-    elif self.type in ['tSciKitLearn']:
+      outputDict = self.unSupervisedEngine.outputDict
+      
+    elif self.type in ['temporalSciKitLearn']:
       self.unSupervisedEngine.run(Input) 
       pass
     

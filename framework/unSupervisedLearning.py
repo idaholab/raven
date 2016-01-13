@@ -568,7 +568,7 @@ class tBasicStatistics(unSupervisedLearning):
 
 __interfaceDict = {}
 __interfaceDict['SciKitLearn'] = SciKitLearn
-__interfaceDict['BasicStatistics'] = tBasicStatistics
+__interfaceDict['temporalBasicStatistics'] = tBasicStatistics
 __base = 'unSuperVisedLearning'
 
 def returnInstance(modelClass, caller, **kwargs):
