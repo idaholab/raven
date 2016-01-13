@@ -10,21 +10,17 @@ import os
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import numpy as np
 
-
 class testInterfacedPP(PostProcessorInterfaceBase):
   
-  def __init__(self):
-    self.testID = None
+  def initialize(self):
+    self.inputFormat  = 'HistorySet'
+    self.outputFormat = 'HistorySet'
   
   def run(self,Input):
+    output
     return Input
-  
-  def finalizeOutput(self,output):
-    return output
   
   def readMoreXML(self,xmlNode):
     for child in xmlNode:
       if child.tag == 'testID':
-        self.testID = child.text
-    
-    
+        self.testID = child.text 

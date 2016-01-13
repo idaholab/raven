@@ -868,19 +868,38 @@ class InterfacedPostProcessor(BasePostProcessor):
     self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
     self.postProcessor.readMoreXML(xmlNode)
   
-  def run(self, InputIn):
-    outputDict = self.postProcessor.run(InputIn)
-    return outputDict
+  def run(self, InputIn):   
+    inInputDic,inOutputDic = restructureInput(InputIn) 
+    outInputDic,outOutputDic = self.postProcessor.run(inInputDic,inOutputDic)  
+    self.postProcessor.checkGeneratedDicts(outInputDic,outOutputDic)  
+    return outInputDic,outOutputDic
   
   def collectOutput(self, finishedjob, output):
-    if 'finalizeOutput' in dir(self.postProcessor):
-      out = self.postProcessor.finalizeOutput(output)
-      return out
-    else:
-      return output
+    if finishedjob.returnEvaluation() == -1: 
+      self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
+    evaluation = finishedJob.returnEvaluation()
+    exportDict = {'inputSpaceParams':evaluation[0],'outputSpaceParams':evaluation[1],'metadata':finishedJob.returnMetadata()}
+
+    if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict['inputSpaceParams'].keys()) + list(exportDict['outputSpaceParams'].keys()))):
+      missingParameters = set(output.getParaKeys('inputs') + output.getParaKeys('outputs')) - set(list(exportDict['inputSpaceParams'].keys()) + list(exportDict['outputSpaceParams'].keys()))
+      self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
+    for key in exportDict['inputSpaceParams' ]:
+      if key in output.getParaKeys('inputs'): 
+        output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
+    for key in exportDict['outputSpaceParams']:
+      if key in output.getParaKeys('outputs'): 
+        output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
+    for key in exportDict['metadata']: 
+      output.updateMetadata(key,exportDict['metadata'][key]) 
+
     
-  def finalizeOutput(self, output):
-    return output
+  def restructureInput(self,input):
+    # this function restructure the input (dataObject) into inputDic (dictionary)   
+    inInputDic  = copy.deepcopy(input.getOutParametersValues())
+    inOutputDic = copy.deepcopy(input.getInpParametersValues())
+    return inInputDic,inOutputDic 
+  
+  
   
 class DataConversion(BasePostProcessor):
   """
@@ -2085,7 +2104,7 @@ class LimitSurface(BasePostProcessor):
       @ In, output: The object where we want to place our computed results
       @ Out, None
     """
-    if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
+    if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
     self.raiseADebug(str(finishedjob.returnEvaluation()))
     limitSurf = finishedjob.returnEvaluation()[1]
     if limitSurf[0] is not None:
