@@ -1860,11 +1860,22 @@ class ARMA(superVisedLearning):
     self.armaResult = {}
     
     # debug
-#     self.armaResult['P'] = 1
-#     self.armaResult['Q'] = 2
-# #     self.armaResult['param'] = np.array([ 0.14297215, 0.61549212, 0.17641951, 1.14150839, 0.49531792, 0.09461218, 0.03503024])
-#     self.armaResult['param'] = np.array([ 0.96718524, 0.31626198, 0.05267314, 0.03503809])    
-#     return 1
+    self.armaResult['P'] = 1
+    self.armaResult['Q'] = 2
+#     self.armaResult['param'] = np.array([ 0.14297215, 0.61549212, 0.17641951, 1.14150839, 0.49531792, 0.09461218, 0.03503024])
+    self.armaResult['param'] = np.array([ 0.96718524, 0.31626198, 0.05267314, 0.03503809])    
+    p = self.armaResult['P'] 
+    q = self.armaResult['Q']
+    N = self.armaPara['dimension'] 
+    Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],p,q,N)
+    sig = np.zeros(shape=(1,N))
+    for n in range(N):
+      sig[0,n] = np.sqrt(Cov[n,n])      
+    self.armaResult['Phi'] = Phi
+    self.armaResult['Theta'] = Theta
+    self.armaResult['sig'] = sig
+    return 1
+    # end of debug
 #     
 #     self.__computeARMALikelihood__([0.1,0.2,0.3,0.4,0.5,1], *[2,3])
     
@@ -1897,6 +1908,18 @@ class ARMA(superVisedLearning):
         self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'],criterionBest)
           
     self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'],criterionBest)
+    
+    # sving training results
+    p = self.armaResult['P'] 
+    q = self.armaResult['Q']
+    N = self.armaPara['dimension'] 
+    Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],p,q,N)
+    sig = np.zeros(shape=(1,N))
+    for n in range(N):
+      sig[0,n] = np.sqrt(Cov[n,n])      
+    self.armaResult['Phi'] = Phi
+    self.armaResult['Theta'] = Theta
+    self.armaResult['sig'] = sig
     
   def __generateResCDF__(self):
     self.armaNormPara = {}
@@ -2127,10 +2150,14 @@ class ARMA(superVisedLearning):
     p = self.armaResult['P'] 
     q = self.armaResult['Q']
     N = self.armaPara['dimension'] 
-    Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],p,q,N)
-    sig = np.zeros(shape=(1,N))
-    for n in range(N):
-      sig[0,n] = np.sqrt(Cov[n,n])
+    Phi = self.armaResult['Phi']
+    Theta = self.armaResult['Theta']
+    sig =self.armaResult['sig'] 
+        
+#     self.__armaParamAssemb__(self.armaResult['param'],p,q,N)
+#     sig = np.zeros(shape=(1,N))
+#     for n in range(N):
+#       sig[0,n] = np.sqrt(Cov[n,n])
     
     # debug
     self.raiseADebug('p', p, 'q', q)
