@@ -17,7 +17,6 @@
                 <tol>0.0001</tol>
                 <init>random</init>
             </KDD>
-            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
         </PostProcessor>
         <PostProcessor name='PCA' subType='DataMining' verbosity = 'quiet'>
             <KDD lib='SciKitLearn'>
@@ -25,7 +24,6 @@
                 <SKLtype>decomposition|PCA</SKLtype>
                 <n_components>2</n_components>
             </KDD>
-            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
         </PostProcessor>
     </Models>
     <Steps>
@@ -40,11 +38,13 @@
         <PostProcess name='KMeans' pauseAtEnd = 'True'>
             <Input    class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model    class = 'Models'            type = 'PostProcessor' >KMeans</Model>
+            <Output  class = 'DataObjects'       type = 'PointSet'      >DataSets</Output>
             <Output   class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
         <PostProcess name='PCAIris' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >PCA</Model>
+            <Output  class = 'DataObjects'       type = 'PointSet'      >DataSets</Output>
             <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
     </Steps>

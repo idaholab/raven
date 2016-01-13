@@ -15,7 +15,6 @@
                 <SKLtype>cluster|MiniBatchKMeans</SKLtype>
                 <n_clusters>2</n_clusters>
             </KDD>
-            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
         </PostProcessor>
         <PostProcessor name='MiniBatchKMeansCircles' subType='DataMining' verbosity = 'quiet'>
             <KDD lib='SciKitLearn'>
@@ -23,7 +22,6 @@
                 <SKLtype>cluster|MiniBatchKMeans</SKLtype>
                 <n_clusters>2</n_clusters>
             </KDD>
-            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
         </PostProcessor>
         <PostProcessor name='MiniBatchKMeansMoons' subType='DataMining' verbosity = 'quiet'>
             <KDD lib='SciKitLearn'>
@@ -31,7 +29,6 @@
                 <SKLtype>cluster|MiniBatchKMeans</SKLtype>
                 <n_clusters>2</n_clusters>
             </KDD>
-            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
         </PostProcessor>
     </Models>
     <Steps>
@@ -46,16 +43,19 @@
         <PostProcess name='MiniBatchKMeansBlobs' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >MiniBatchKMeansBlobs</Model>
+            <Output  class = 'DataObjects'       type = 'PointSet'      >DataSets</Output>
             <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
         <PostProcess name='MiniBatchKMeansCircles' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >MiniBatchKMeansCircles</Model>
+            <Output  class = 'DataObjects'       type = 'PointSet'      >DataSets</Output>
             <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
         <PostProcess name='MiniBatchKMeansMoons' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >MiniBatchKMeansMoons</Model>
+            <Output  class = 'DataObjects'       type = 'PointSet'      >DataSets</Output>
             <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
     </Steps>

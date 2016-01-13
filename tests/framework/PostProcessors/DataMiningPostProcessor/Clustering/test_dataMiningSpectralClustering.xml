@@ -3,7 +3,7 @@
     <RunInfo>
         <WorkingDir>SpectralClustering</WorkingDir>
         <Sequence>readIn,SpectralBlobs,output</Sequence>
-        <batchSize>100</batchSize>
+        <batchSize>1</batchSize>
     </RunInfo>
     <Files>
         <Input name="DataSetsFile">./DataSets.csv</Input>
@@ -13,10 +13,9 @@
             <KDD lib='SciKitLearn'>
                 <Features>x1,x2</Features>
                 <SKLtype>cluster|SpectralClustering</SKLtype>
-                <eigen_solver>arpack</eigen_solver>
-                <affinity>nearest_neighbors</affinity>
+                <!--eigen_solver>arpack</eigen_solver>
+                <affinity>nearest_neighbors</affinity-->
             </KDD>
-            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
         </PostProcessor>
 
     </Models>
@@ -32,6 +31,7 @@
         <PostProcess name='SpectralBlobs' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >SpectralBlobs</Model>
+            <Output  class = 'DataObjects'       type = 'PointSet'      >DataSets</Output>
             <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
     </Steps>

@@ -412,6 +412,18 @@
    output = 'RedundantInputs/mc_out.xml RedundantInputs/grid_out.xml'
    csv = 'RedundantInputs/mc_out.csv RedundantInputs/grid_out.csv'
  [../]
+ [./redundantInputsSCgPC]
+   type = 'RavenFramework'
+   input = 'test_redundant_scgpc.xml'
+   output = 'RedundantInputs/sc_out.xml'
+   csv = 'RedundantInputs/sc_out.csv'
+ [../]
+ [./redundantInputsSobol]
+   type = 'RavenFramework'
+   input = 'test_redundant_sobol.xml'
+   output = 'RedundantInputs/hdmr_out.xml'
+   csv = 'RedundantInputs/hdmr_out.csv'
+ [../]
 
  [./dataObject_metadata]
    type = 'RavenFramework'

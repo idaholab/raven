@@ -42,6 +42,7 @@
   output = 'LHStestFerret/myLHS/out~1~simple_diffusion'
   csv = 'LHStestFerret/myLHS/out~1~simple_diffusion.csv'
   required_executable = '../../../../ferret/ferret-%METHOD%'
+  skip = "Has not been updated for new ferret"
  [../]
 
  [./RELAP5interfaceTestNoExecutable]

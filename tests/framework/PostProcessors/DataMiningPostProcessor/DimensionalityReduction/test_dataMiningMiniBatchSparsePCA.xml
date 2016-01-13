@@ -3,7 +3,7 @@
     <RunInfo>
         <WorkingDir>MiniBatchSparsePCA</WorkingDir>
         <Sequence>readIn,KMeans,PCAIris,output</Sequence>
-        <batchSize>100</batchSize>
+        <batchSize>1</batchSize>
     </RunInfo>
     <Files>
         <Input name="DataSetsFile">./iris.csv</Input>
@@ -15,19 +15,19 @@
                 <Features>x1,x2,x3,x4</Features>
                 <n_clusters>3</n_clusters>
 		<random_state>1</random_state>
-                <tol>0.0001</tol>
-                <init>random</init>
+                <tol>1E-10</tol>
+                <init>k-means++</init>
+                <random_state>1</random_state>
             </KDD>
-            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
         </PostProcessor>
         <PostProcessor name='PCA' subType='DataMining' verbosity = 'quiet'>
             <KDD lib='SciKitLearn'>
                 <Features>x1,x2,x3,x4</Features>
                 <SKLtype>decomposition|MiniBatchSparsePCA</SKLtype>
                 <n_components>2</n_components>
-		<random_state>1</random_state>
+                <random_state>1</random_state>
+                <shuffle>false</shuffle>
             </KDD>
-            <DataObject    class = 'DataObjects' type = 'PointSet'>DataSets</DataObject>
         </PostProcessor>
     </Models>
     <Steps>
@@ -42,11 +42,12 @@
         <PostProcess name='KMeans' pauseAtEnd = 'True'>
             <Input    class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model    class = 'Models'            type = 'PostProcessor' >KMeans</Model>
-            <Output   class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
+            <Output  class = 'DataObjects'       type = 'PointSet'      >DataSets</Output>
         </PostProcess>
         <PostProcess name='PCAIris' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'PointSet'      >DataSets</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >PCA</Model>
+            <Output  class = 'DataObjects'       type = 'PointSet'      >DataSets</Output>
             <Output  class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
         </PostProcess>
     </Steps>
