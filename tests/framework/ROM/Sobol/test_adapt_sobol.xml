@@ -44,6 +44,7 @@
             </Convergence>
             <convergenceStudy>
               <runStatePoints>10,20,30</runStatePoints>
+              <pickle/>
             </convergenceStudy>
             <variable name="x1"><distribution>UniDist</distribution></variable>
             <variable name="x2"><distribution>UniDist</distribution></variable>

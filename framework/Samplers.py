@@ -26,6 +26,9 @@ from math import ceil
 from collections import OrderedDict
 from sklearn import neighbors
 from sklearn.utils.extmath import cartesian
+
+if sys.version_info.major > 2: import pickle
+else: import cPickle as pickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -3400,6 +3403,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.doingStudy              = False  #true if convergenceStudy node defined for sampler
     self.studyFileBase           = 'out_' #can be replaced in input, not used if not doingStudy
     self.studyPoints             = []     #list of ints, runs at which to record a state
+    self.studyPickle             = False  #if true, dumps ROM to pickle at each step
     #solution storage
     self.existing                = {}     #rolling list of sampled points
     self.neededPoints            = []     #queue of points to submit
@@ -3435,6 +3439,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.doingStudy = True
       self.studyPoints = studyNode.find('runStatePoints').text
       filebaseNode = studyNode.find('baseFilename')
+      self.studyPickle = studyNode.find('pickle') is not None
       if filebaseNode is None:
         self.raiseAWarning('No baseFilename specified in convergenceStudy node!  Using "%s"...' %self.studyFileBase)
       else:
@@ -3538,6 +3543,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       if self.doingStudy:
         while len(self.studyPoints)>0 and len(self.pointsNeededToMakeROM) > self.studyPoints[0]:
           self._writeConvergencePoint(self.studyPoints[0])
+          if self.studyPickle: self._writePickle(self.studyPoints[0])
           #remove the point
           if len(self.studyPoints)>1: self.studyPoints=self.studyPoints[1:]
           else: self.studyPoints = []
@@ -3883,6 +3889,18 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     options = {'filenameroot':fname, 'what':'all'}
     rom.printXML(options)
 
+  def _writePickle(self,runPoint):
+    """
+      Writes pickle for this ROM at this point in the run
+      @ In, runPoint, int, the target runs for this statepoint
+      @ Out, None
+    """
+    fname = self.studyFileBase+str(runPoint)
+    self.raiseAMessage('Writing ROM at state %i to %s.pk...' %(runPoint,fname))
+    rom = copy.deepcopy(self.ROM)
+    self._finalizeROM(rom)
+    rom.train(self.solns)
+    pickle.dump(rom,file(fname+'.pk','w'))
 
 #
 #
@@ -4115,9 +4133,10 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.persistence     = 2     #set in input, the number of successive converges to require
 
     #convergence study
-    self.doingStudy              = False  #true if convergenceStudy node defined for sampler
-    self.studyFileBase           = 'out_' #can be replaced in input, not used if not doingStudy
-    self.studyPoints             = []     #list of ints, runs at which to record a state
+    self.doingStudy      = False  #true if convergenceStudy node defined for sampler
+    self.studyFileBase   = 'out_' #can be replaced in input, not used if not doingStudy
+    self.studyPoints     = []     #list of ints, runs at which to record a state
+    self.studyPickle     = False  #if true, creates a pickle of rom at statepoints
 
     #attributes
     self.features        = None #ROM features of interest, also input variable list
@@ -4159,6 +4178,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       self.doingStudy = True
       self.studyPoints = studyNode.find('runStatePoints').text
       filebaseNode = studyNode.find('baseFilename')
+      self.studyPickle = studyNode.find('pickle') is not None
       if filebaseNode is None:
         self.raiseAWarning('No baseFilename specified in convergenceStudy node!  Using "%s"...' %self.studyFileBase)
       else:
@@ -4261,6 +4281,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       if self.doingStudy:
         while len(self.studyPoints)>0 and len(self.distinctPoints) > self.studyPoints[0]:
           self._writeConvergencePoint(self.studyPoints[0])
+          if self.studyPickle: self._writePickle(self.studyPoints[0])
           #remove the point
           if len(self.studyPoints)>1: self.studyPoints=self.studyPoints[1:]
           else: self.studyPoints = []
@@ -4404,23 +4425,6 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       if pt[v] != self.references[var]: #we're outside the cut plane.
         return False
     return True #only if nothing outside the cut plane
-
-  #def _convergence(self):
-    #"""
-    #Checks convergence based on the requested metric.  For now that's just variance. Deprecated, but retained for future use.
-    #@ In, None
-    #@ Out, float, minimum relative convergence on variance
-    #"""
-    #self.oldVariance = copy.deepcopy(self.curVariance)
-    #conv = {}
-    #for t in self.targets:
-      #self.curVariance[t] = 0
-      #for subset,rom in self.useSet.items():
-        #rom = rom[t]
-        #self.curVariance[t]+=rom.__variance__()
-      #conv[t] = abs(self.curVariance.get(t,1) - self.oldVariance.get(t,0))/self.curVariance.get(t,1)
-      #self.raiseADebug('Convergence for %s is %1.3e' %(t,conv[t]))
-    #return max(conv.values())
 
   def _expandCutPoint(self,subset,pt):
     """
@@ -4593,8 +4597,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     for subset,expImp in self.subsetExpImpact.items():
       #if it's already in training, move along
       if any(subset == s[1] for s in self.inTraining): continue
-      #apply favoring tweaking parameter
-      expImp = expImp**(2.-self.tweakParam)
+      #apply favoring tweaking parameter - take abs() to assure fair comparison
+      expImp = abs(expImp)**(2.-self.tweakParam)
       #update global expected error remaining
       self.error+=expImp
       #update max if necessary
@@ -4881,6 +4885,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     for sub in self.useSet.keys():
       self._finalizeSubset(sub)
     AdaptiveSparseGrid._writeConvergencePoint(self,runPoint)
+
+
 #
 #
 #
