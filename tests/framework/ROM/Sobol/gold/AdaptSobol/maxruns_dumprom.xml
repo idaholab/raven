@@ -19,9 +19,6 @@
       <variables>x2,x4
         <impact_param>0.00330619616928</impact_param>
       </variables>
-      <variables>x1,x4
-        <impact_param>-0.000851800525133</impact_param>
-      </variables>
       <variables>x1,x2
         <impact_param>-0.00121530321587</impact_param>
       </variables>
@@ -33,6 +30,9 @@
       </variables>
       <variables>x3,x4
         <impact_param>-0.00121530321587</impact_param>
+      </variables>
+      <variables>x1,x4
+        <impact_param>-0.000851800525133</impact_param>
       </variables>
     </impacts>
     <numRuns>21</numRuns>
