@@ -570,6 +570,14 @@ class ROM(Dummy):
     @ In, inRun, datatype, feature coordinates
     """
     returnDict = {}
+    
+    if self.subType == 'ARMA':
+      eval = self.evaluate(inRun,self.SupervisedEngine.keys()[0])
+      returnDict['Time'] = eval[:,0]
+      for index,key in enumerate(self.initializationOptionDict['Features'].split(',')):
+        returnDict[key] = eval[:,index+1]
+      return returnDict
+        
     if type(self.SupervisedEngine).__name__ == 'list':
       targets = self.SupervisedEngine[0].keys()
       for target in targets:

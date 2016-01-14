@@ -2159,14 +2159,16 @@ class ARMA(superVisedLearning):
 #     for n in range(N):
 #       sig[0,n] = np.sqrt(Cov[n,n])
     
-    # debug
-    self.raiseADebug('p', p, 'q', q)
-    self.raiseADebug('Phi',Phi)
-    self.raiseADebug('Theta',Theta)
-    self.raiseADebug('sig',sig)
+#     # debug
+#     self.raiseADebug('p', p, 'q', q)
+#     self.raiseADebug('Phi',Phi)
+#     self.raiseADebug('Theta',Theta)
+#     self.raiseADebug('sig',sig)
+#     # end of debug
     
     noTimeStep = len(self.Time)
     tSeriesNorm = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
+    tSeriesNorm[0,:] = self.armaPara['rSeriesNorm'][0,:]
     tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
     
     for t in range(noTimeStep):
@@ -2174,7 +2176,7 @@ class ARMA(superVisedLearning):
         tSeriesNoise[t,n] = self.normEvaluateEngine.rvs()*sig[0,n]
     
     # debug
-    self.raiseADebug('mean', np.mean(tSeriesNoise), 'std', np.std(tSeriesNoise))
+#     self.raiseADebug('mean', np.mean(tSeriesNoise), 'std', np.std(tSeriesNoise))
     
     for t in range(noTimeStep):
       for i in range(1,min(p,t)+1):
@@ -2184,14 +2186,12 @@ class ARMA(superVisedLearning):
       tSeriesNorm[t,:] += tSeriesNoise[t,:]
     
     # debug
-    self.raiseADebug('mean', np.mean(tSeriesNorm), 'std', np.std(tSeriesNorm))
+#     self.raiseADebug('mean', np.mean(tSeriesNorm), 'std', np.std(tSeriesNorm))
     
     
     tSeries = self.__denormalizeRes__(tSeriesNorm)
     
-    # debug
-    self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
-#     self.raiseAnError(IOError, 'ARMA/__evaluateLocal__')
+
     
     # Add fourier trends
     if self.hasFourierSeries:
@@ -2200,32 +2200,39 @@ class ARMA(superVisedLearning):
     # Ensure positivity --- FIXME
     tSeries = np.absolute(tSeries)
         
+    # debug
+    self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
+        
     # For debug only; This part of code shall be in RUN method
-    self.raiseADebug('****************************************************************')
-    self.raiseADebug(self.dataObject.getInpParametersValues().keys(),self.dataObject.getOutParametersValues().keys())
+#     self.raiseADebug('****************************************************************')
+#     self.raiseADebug(self.dataObject.getInpParametersValues().keys(),self.dataObject.getOutParametersValues().keys())
 
-    for key in self.dataObject.getParaKeys('inputs'):
-      self.dataObject.updateInputValue(key,0)
+#     for key in self.dataObject.getParaKeys('inputs'):
+#       self.dataObject.updateInputValue(key,0)
+#     
+#     self.dataObject.updateOutputValue(self.target,self.Time)
     
-    self.dataObject.updateOutputValue(self.target,self.Time)
-    
-    for key in self.features:
-#       self.dataObject.updateOutputValue(key,self.armaPara['rDenorm'][:,0])
-      self.dataObject.updateOutputValue(key,tSeries[:,0])
-    
-    self.dataObject.updateOutputValue('rDenorm', self.armaPara['rDenorm'][:,0])
-    self.dataObject.updateOutputValue('rSeriesNorm', self.armaPara['rSeriesNorm'][:,0])
-    for index,feat in enumerate(self.features):
-      temp = self.fourierEngine.predict(self.fourierResult['fSeries'])
-      self.raiseADebug(index,feat)
-      self.dataObject.updateOutputValue('fTrend-' + feat, temp[:,index])
-      self.dataObject.updateOutputValue(feat + '-deTrend', self.armaPara['rSeries'][:,index])
+#     for key in self.features:
+# #       self.dataObject.updateOutputValue(key,self.armaPara['rDenorm'][:,0])
+#       self.dataObject.updateOutputValue(key,tSeries[:,0])
+#     
+#     self.dataObject.updateOutputValue('rDenorm', self.armaPara['rDenorm'][:,0])
+#     self.dataObject.updateOutputValue('rSeriesNorm', self.armaPara['rSeriesNorm'][:,0])
+#     for index,feat in enumerate(self.features):
+#       temp = self.fourierEngine.predict(self.fourierResult['fSeries'])
+#       self.raiseADebug(index,feat)
+#       self.dataObject.updateOutputValue('fTrend-' + feat, temp[:,index])
+#       self.dataObject.updateOutputValue(feat + '-deTrend', self.armaPara['rSeries'][:,index])
       
-    self.raiseADebug(self.dataObject.getInpParametersValues().keys(),self.dataObject.getOutParametersValues().keys())
+#     self.raiseADebug(self.dataObject.getInpParametersValues().keys(),self.dataObject.getOutParametersValues().keys())
 #     self.raiseADebug()
 #     self.raiseAnError(IOError,'SuperVisedLearning/__evaluateLocal__')
     ##########################################################################################
   
+    eval = np.zeros(shape=[noTimeStep,N+1])
+    eval[:,0] = self.Time
+    eval[:,1:] = tSeries
+    return eval
   
 
   def __resetLocal__(self,featureVals):
