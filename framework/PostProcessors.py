@@ -869,7 +869,7 @@ class InterfacedPostProcessor(BasePostProcessor):
     self.postProcessor.readMoreXML(xmlNode)
   
   def run(self, InputIn):   
-    inInputDic,inOutputDic = restructureInput(InputIn) 
+    inInputDic,inOutputDic = self.restructureInput(InputIn) 
     outInputDic,outOutputDic = self.postProcessor.run(inInputDic,inOutputDic)  
     self.postProcessor.checkGeneratedDicts(outInputDic,outOutputDic)  
     return outInputDic,outOutputDic
@@ -877,26 +877,26 @@ class InterfacedPostProcessor(BasePostProcessor):
   def collectOutput(self, finishedjob, output):
     if finishedjob.returnEvaluation() == -1: 
       self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
-    evaluation = finishedJob.returnEvaluation()
-    exportDict = {'inputSpaceParams':evaluation[0],'outputSpaceParams':evaluation[1],'metadata':finishedJob.returnMetadata()}
-
-    if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict['inputSpaceParams'].keys()) + list(exportDict['outputSpaceParams'].keys()))):
-      missingParameters = set(output.getParaKeys('inputs') + output.getParaKeys('outputs')) - set(list(exportDict['inputSpaceParams'].keys()) + list(exportDict['outputSpaceParams'].keys()))
-      self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
+    evaluation = finishedjob.returnEvaluation()
+    if type(evaluation[1]).__name__ == "tuple": 
+      outputeval = evaluation[1][0]
+    else:
+      outputeval = evaluation[1]
+    exportDict = {'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedjob.returnMetadata()}
     for key in exportDict['inputSpaceParams' ]:
       if key in output.getParaKeys('inputs'): 
         output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
     for key in exportDict['outputSpaceParams']:
       if key in output.getParaKeys('outputs'): 
         output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
-    for key in exportDict['metadata']: 
-      output.updateMetadata(key,exportDict['metadata'][key]) 
+#    for key in exportDict['metadata']: 
+#      output.updateMetadata(key,exportDict['metadata'][key]) 
 
     
   def restructureInput(self,input):
-    # this function restructure the input (dataObject) into inputDic (dictionary)   
-    inInputDic  = copy.deepcopy(input.getOutParametersValues())
-    inOutputDic = copy.deepcopy(input.getInpParametersValues())
+    # this function restructure the input (dataObject) into inputDic (dictionary)  
+    inInputDic  = copy.deepcopy(input[0].getOutParametersValues())
+    inOutputDic = copy.deepcopy(input[0].getInpParametersValues())
     return inInputDic,inOutputDic 
   
   

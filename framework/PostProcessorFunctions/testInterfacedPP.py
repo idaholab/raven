@@ -16,9 +16,8 @@ class testInterfacedPP(PostProcessorInterfaceBase):
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'HistorySet'
   
-  def run(self,Input):
-    output
-    return Input
+  def run(self,inInputDic,inOutputDic):   
+    return inInputDic,inOutputDic
   
   def readMoreXML(self,xmlNode):
     for child in xmlNode:

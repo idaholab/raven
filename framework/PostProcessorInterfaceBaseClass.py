@@ -24,11 +24,11 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
   def readMoreXML(self,xmlNode):
     pass
     
-  def run(self):
+  def run(self,inInputDic,inOutputDic):
     pass
   
   def checkGeneratedDicts(self,inputDic,outputDic):
-    if checkInputFormat(inputDic) and checkOutputFormat(outputDic):
+    if self.checkInputFormat(inputDic) and self.checkOutputFormat(outputDic):
       return True
   
   def checkOutputFormat(self,outputDic):
@@ -47,8 +47,6 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
               outcome = outcome and True
             else:
               outcome = outcome and False
-        if outcome==False:
-          self.raiseAnError("Interfaced Post-Processor: output type is not consistent with ")
       else: # self.outputFormat == 'PointSet or self.outputFormat == 'PointSet':
         for key in outputDic:
           if isinstance(key.value,np.ndarray):
@@ -56,11 +54,7 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
           else:
             outcome = outcome and False
     else:
-      outcome = False
-    
-    if outcome==False:
-      self.raiseAnError("Interfaced Post-Processor: output type is not a dictionary")
-    
+      outcome = False  
     return outcome
   
   def checkInputFormat(self,inputDic):
@@ -75,5 +69,5 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
           outcome = outcome and False         
     else:
       outcome = False
-    if outcome==False:
-      self.raiseAnError("Interfaced Post-Processor: output type is not a dictionary")
+      
+    return outcome
