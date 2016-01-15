@@ -852,24 +852,52 @@ class ComparisonStatistics(BasePostProcessor):
 #
 
 class InterfacedPostProcessor(BasePostProcessor):
+  """
+  This class allows to interface a general-purpose post-processor created ad-hoc by the user.
+  While the ExternalPostProcessor is designed for analysis-dependent cases, the InterfacedPostProcessor is designed more generic cases
+  The InterfacedPostProcessor parses (see PostProcessorInterfaces.py) and uses only the functions contained in the raven/framework/PostProcessorFunctions folder
+  The base class for the InterfacedPostProcessor that the user has to inherit to develop its own InterfacedPostProcessor is specified 
+  in PostProcessorInterfaceBase.py
+  """  
+  
   PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
   
   def __init__(self, messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
     BasePostProcessor.__init__(self, messageHandler)
     self.methodToRun = None
   
   def initialize(self, runInfo, inputs, initDict):
+    """
+     Method to initialize the Interfaced Post-processor
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.postProcessor.initialize()
 
   def _localReadMoreXML(self, xmlNode):
+    """
+      Function that reads elements this post-processor will use
+      @ In, xmlNode, Xml element node
+      @ Out, None
+    """
     for child in xmlNode:
       if child.tag == 'method':
         self.methodToRun = child.text
     self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
     self.postProcessor.readMoreXML(xmlNode)
   
-  def run(self, InputIn):   
+  def run(self, InputIn):
+    """
+     This method executes the interfaced  post-processor action. 
+     @ In , InputIn, dictionary, dictionary of data to process
+     @ Out, dictionary, Dictionary containing the post-processed results
+    """   
     inputDic= self.inputToInternal(InputIn) 
     outputDic = self.postProcessor.run(inputDic) 
     if self.postProcessor.checkGeneratedDicts(outputDic):  
@@ -879,6 +907,12 @@ class InterfacedPostProcessor(BasePostProcessor):
 
   
   def collectOutput(self, finishedjob, output):
+    """
+      Function that fills the computed data into the output dataObject
+      @ In, finishedJob: A JobHandler object that is in charge of running this post-processor
+      @ In, output: The dataObject where we want to place our computed results
+      @ Out, None
+    """
     if finishedjob.returnEvaluation() == -1: 
       self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
     evaluation = finishedjob.returnEvaluation()[1]
@@ -907,6 +941,12 @@ class InterfacedPostProcessor(BasePostProcessor):
  
  
   def inputToInternal(self,input):  
+    """
+      Function to convert the received input into a format this object can
+      understand
+      @ In, input     : data object handed to the post-processor
+      @ Out, inputDict: a dictionary this object can process
+    """
     inputDict = {'data':{}, 'metadata':{}}
     metadata = []    
     if type(input) == dict:

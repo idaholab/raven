@@ -21,7 +21,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
 
   def run(self,Input,Param):
     """
-     This function does things.
+     This function does things and stuff.
      @ In : inputDict
      @ Out: outputDict
     """
@@ -40,10 +40,12 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     for child in xmlNode:
       if child.tag == 'samplingType':
         self.samplingType = child.text
-      if child.tag == 'numberOfSamples':
+      elif child.tag == 'numberOfSamples':
         self.numberOfSamples = child.text
-      if child.tag == 'tolerance':
+      elif child.tag == 'tolerance':
         self.tolerance = child.text
+      else:
+        self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2HS')
         
   def timeSeriesFilter(timeID, vars, filterType, filterValue):
     """ This function sample a multi-variate temporal function
