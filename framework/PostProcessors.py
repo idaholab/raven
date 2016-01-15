@@ -860,6 +860,7 @@ class InterfacedPostProcessor(BasePostProcessor):
   
   def initialize(self, runInfo, inputs, initDict):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.postProcessor.initialize()
 
   def _localReadMoreXML(self, xmlNode):
     for child in xmlNode:
@@ -870,9 +871,11 @@ class InterfacedPostProcessor(BasePostProcessor):
   
   def run(self, InputIn):   
     inputDic= self.inputToInternal(InputIn) 
-    outputDic = self.postProcessor.run(inputDic)  
-    self.postProcessor.checkGeneratedDicts(outputDic)  
-    return outputDic
+    outputDic = self.postProcessor.run(inputDic) 
+    if self.postProcessor.checkGeneratedDicts(outputDic):  
+      return outputDic
+    else:
+      self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor: function has generated a not valid output dictionary')
 
   
   def collectOutput(self, finishedjob, output):
@@ -890,13 +893,17 @@ class InterfacedPostProcessor(BasePostProcessor):
           output.updateInputValue(key,exportDict['inputSpaceParams'][hist][key])
         for key in listOutputParams:
           output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][key])
+        for key in exportDict['metadata'][0]:
+          output.updateMetadata(key,exportDict['metadata'][0][key])
       else:   
         for key in exportDict['inputSpaceParams']:
           if key in output.getParaKeys('inputs'): 
             output.updateInputValue(key,exportDict['inputSpaceParams'][key])
         for key in exportDict['outputSpaceParams']:
           if key in output.getParaKeys('outputs'):
-            output.updateOutputValue(key,exportDict['outputSpaceParams'][key])       
+            output.updateOutputValue(key,exportDict['outputSpaceParams'][key])          
+        for key in exportDict['metadata'][0]:
+          output.updateMetadata(key,exportDict['metadata'][0][key])
  
  
   def inputToInternal(self,input):  

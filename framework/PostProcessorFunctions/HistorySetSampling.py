@@ -15,6 +15,9 @@ import numpy as np
 
 class HistorySetSampling(PostProcessorInterfaceBase):
 
+  def initialize(self):
+    self.inputFormat  = 'HistorySet'
+    self.outputFormat = 'HistorySet'
 
   def run(self,Input,Param):
     """
@@ -22,7 +25,6 @@ class HistorySetSampling(PostProcessorInterfaceBase):
      @ In : inputDict
      @ Out: outputDict
     """
-  
     for i in Input:
       for histID in i.getParametersValues('output'):
         if samplingType == 'uniform' or samplingType == 'firstDerivative' or samplingType == 'secondDerivative':
@@ -34,7 +36,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
         for key in tempData:
           i.updateOutputValue(key,tempData[key])
 
-  def _readMoreXML(self,xmlNode):
+  def readMoreXML(self,xmlNode):
     for child in xmlNode:
       if child.tag == 'samplingType':
         self.samplingType = child.text

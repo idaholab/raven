@@ -9,9 +9,11 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import abc
 import os
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from cached_ndarray import c1darray
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -28,40 +30,42 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     pass
   
   def checkGeneratedDicts(self,outputDic):
-    #if self.checkInputFormat(inputDic) and self.checkOutputFormat(outputDic):
-    return True
+    if self.checkOutputFormat(outputDic['data']['input']) and self.checkOutputFormat(outputDic['data']['output']):
+      return True
+    else:
+      return False
   
   def checkOutputFormat(self,outputDic):
     """ This function check that the generated output dictionary is built accordingly to outputFormat
     """
-    outcome = True    
-    if outputDic is dict:
+    outcome = True  
+    if isinstance(outputDic,dict):
       if self.outputFormat == 'HistorySet' or self.outputFormat == 'History': 
         for key in outputDic:
-          if type(key.value) is dict:
+          if isinstance(outputDic[key],dict):
             outcome = outcome and True
           else:
             outcome = outcome and False
-          for keys in key:
-            if isinstance(keys.value,np.ndarray):
+          for keys in outputDic[key]:
+            if isinstance(outputDic[key][keys],(np.ndarray,c1darray)):
               outcome = outcome and True
             else:
               outcome = outcome and False
-      else: # self.outputFormat == 'PointSet or self.outputFormat == 'PointSet':
+      else: 
         for key in outputDic:
-          if isinstance(key.value,np.ndarray):
+          if isinstance(outputDic[key],np.ndarray):
             outcome = outcome and True
           else:
             outcome = outcome and False
     else:
-      outcome = False  
+      outcome = outcome and False  
     return outcome
   
   def checkInputFormat(self,inputDic):
     """ This function check that the generated input dictionary is built accordingly to outputFormat
     """
     outcome = True    
-    if inputDic is dict: 
+    if isinstance(inputDic,dict): 
       for key in inputDic:
         if isinstance(key.value,np.ndarray):
           outcome = outcome and True
@@ -69,5 +73,4 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
           outcome = outcome and False         
     else:
       outcome = False
-      
     return outcome
