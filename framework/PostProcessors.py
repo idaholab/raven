@@ -887,13 +887,13 @@ class InterfacedPostProcessor(BasePostProcessor):
     for hist in exportDict['inputSpaceParams']:
       if type(exportDict['inputSpaceParams'].values()[0]).__name__ == "dict":
         for key in listInputParms:
-          output.updateInputValue(key,exportDict['inputSpaceParams' ][hist][key])
+          output.updateInputValue(key,exportDict['inputSpaceParams'][hist][key])
         for key in listOutputParams:
-          output.updateOutputValue(key,exportDict['inputSpaceParams' ][hist][key])
+          output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][key])
       else:   
         for key in exportDict['inputSpaceParams']:
           if key in output.getParaKeys('inputs'): 
-            output.updateInputValue(key,exportDict['inputSpaceParams' ][key])
+            output.updateInputValue(key,exportDict['inputSpaceParams'][key])
         for key in exportDict['outputSpaceParams']:
           if key in output.getParaKeys('outputs'):
             output.updateOutputValue(key,exportDict['outputSpaceParams'][key])       
