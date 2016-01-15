@@ -47,8 +47,8 @@ def modulesReport():
     found, message, version = moduleReport(i,fv)
     if found:
       missing, tooOld = checkForMissingModule(i,fv,ev)
-    if len(tooOld) > 0:
-      message += " ".join(tooOld)
+      if len(tooOld) > 0:
+        message += " ".join(tooOld)
     report_list.append((i,found,message, version))
   return report_list
 

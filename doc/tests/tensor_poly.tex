@@ -8,7 +8,7 @@ u(Y) = \prod_{n=1}^N y_n+1.
 This test is specifically useful for its analytic statistical moments.  It is used as a benchmark in
 \cite{ayreseaton2015}.
 
-\subsection{Uniform}
+\subsection{Uniform, (-1,1)}
 Let all $y_n$ be uniformly distributed between -1 and 1.  The first two statistical moments are:
 
 \subsubsection{mean}
@@ -18,7 +18,7 @@ Let all $y_n$ be uniformly distributed between -1 and 1.  The first two statisti
   &=\left[ \int_{-1}^1 dy \frac{y+1}{2}\right]^N,\\
   &=\left[\frac{1}{2}\left(\frac{y^2}{2}+y\right)\bigg|_{-1}^1\right]^N, \notag \\
   &=\left[\frac{2}{2}\right]^N, \notag \\
-  &=1. \notag 
+  &=1. \notag
 \end{align}
 
 \subsubsection{variance}
@@ -33,6 +33,57 @@ Let all $y_n$ be uniformly distributed between -1 and 1.  The first two statisti
   &= \left(\frac{4}{3}\right)^N-1.
 \end{align}
 
+\subsubsection{numeric values}
+Some numeric values for the mean and variance are listed below for several input cardinalities $N$.
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{c|c|c}
+    $N$ & mean & variance \\ \hline
+    2 & 1.0 & 0.77777777777 \\
+    4 & 1.0 & 2.16049382716 \\
+    6 & 1.0 & 4.61865569273
+  \end{tabular}
+\end{table}
+
+\subsection{Uniform, (0,1)}
+Let all $y_n$ be uniformly distributed between 0 and 1.  The first two statistical moments are:
+
+\subsubsection{mean}
+\begin{align}
+\expv{u(Y)} &=\int_{0}^1 dY \rho(Y)u(Y),\\
+  &=\int_{0}^1 dy_1\cdots\int_{0}^1 dy_N \prod_{n=1}^N y_n+1,\\
+  &=\left[ \int_{0}^1 dy y+1\right]^N,\\
+  &=\left[\left(\frac{y^2}{2}+y\right)\bigg|_{0}^1\right]^N,\\
+  &=\left[\frac{3}{2}\right]^N.
+\end{align}
+
+\subsubsection{variance}
+\begin{align}
+\text{var}[u(Y)]=\expv{(u(Y)-\expv{u(Y)})^2} &= \int_{-\infty}^\infty dY \rho(Y)(u(Y)-\expv{u(Y)})^2,\notag \\
+  &=\int_{-\infty}^\infty dy_1 (1/\sqrt{2 \pi \sigma_{y_1}}e^{-\frac{(y_1-\mu_{y_1})^2}{2\sigma_{y_1}^2}}), \notag \\
+  &\cdots\int_{-\infty}^\infty dy_N  (1/\sqrt{2 \pi \sigma_{y_N}}e^{-\frac{(y_N-\mu_{y_N})^2}{2\sigma_{y_N}^2}})(\prod_{n=1}^N (y_n+1-\expv{u(Y)})^2,\\
+  &=\prod_{n=1}^5{[(1+\mu_{y_n})^2+\sigma_{y_n}^2]} - [\prod_{n=1}^5{(\mu_{y_n}+1)}]^2. \notag
+\end{align}
+\subsubsection{numeric values}
+For example, for given mean $\mu = [0.5, -0.4, 0.3, -0.2, 0.1]$, and covariance
+\begin{equation}
+\Sigma =
+\begin{pmatrix}
+0.64 & 0 & 0 & 0 & 0 \\
+0 & 0.49 & 0 & 0 & 0 \\
+0 & 0 & 0.09 & 0 & 0 \\
+0 & 0 & 0 & 0.16 & 0 \\
+0 & 0 & 0 & 0 & 0.25 \\
+\end{pmatrix}
+\end{equation}
+The mean and variance can computed using previous equation, and the results are:
+\begin{equation}
+\expv{u(Y)} = 1.0296
+\end{equation}
+\begin{equation}
+\text{var}{u(Y)} = 4.047085600000002
+\end{equation}
+
 \subsection{Multivariate Normal}
 Let $Y$ be $N$-dimensional, and have a multivariate normal distribution:
 \begin{equation}
@@ -46,13 +97,13 @@ with $N$-dimensional mean vector $\mu=[\mu_{y_1},\mu_{y_2},\ldots,\mu_{y_N}]$, a
 To be simplicity, we assume there are no correlations between the input parameters. Then, the covariance matrix can be written
 as:
 \begin{equation}
-\Sigma = 
-\begin{pmatrix} 
-\sigma_{y_1}^2 & 0 &\ldots & 0 \\ 
-0 & \sigma_{y_2}^2 &\ldots & 0 \\ 
-\vdots &\vdots &\ddots & \vdots \\ 
-0 & 0 & \ldots & \sigma_{y_N}^2\\ 
-\end{pmatrix} 
+\Sigma =
+\begin{pmatrix}
+\sigma_{y_1}^2 & 0 &\ldots & 0 \\
+0 & \sigma_{y_2}^2 &\ldots & 0 \\
+\vdots &\vdots &\ddots & \vdots \\
+0 & 0 & \ldots & \sigma_{y_N}^2\\
+\end{pmatrix}
 \end{equation}
 where $\sigma_{y_i}^2 = Cov[y_i,y_i]$, for $i = 1,2,\ldots,N$. Based on this assumption, the first two statistical moments are:
 
@@ -60,32 +111,28 @@ where $\sigma_{y_i}^2 = Cov[y_i,y_i]$, for $i = 1,2,\ldots,N$. Based on this ass
 \begin{align}
 \expv{u(Y)} &=\int_{-\infty}^\infty dY \rho(Y)u(Y),\notag \\
   &=\int_{-\infty}^\infty dy_1 (1/\sqrt{2 \pi \sigma_{y_1}}e^{-\frac{(y_1-\mu_{y_1})^2}{2\sigma_{y_1}^2}})\cdots\int_{-\infty}^\infty dy_N (1/\sqrt{2 \pi \sigma_{y_N}}e^{-\frac{(y_N-\mu_{y_N})^2}{2\sigma_{y_N}^2}})\prod_{n=1}^N (y_n+1),\\
-  &=\prod_{n=1}^5{(\mu_{y_n}+1)}.\notag 
+  &=\prod_{n=1}^5{(\mu_{y_n}+1)}.\notag
 \end{align}
 
 \subsubsection{variance}
 \begin{align}
-\text{var}[u(Y)]=\expv{(u(Y)-\expv{u(Y)})^2} &= \int_{-\infty}^\infty dY \rho(Y)(u(Y)-\expv{u(Y)})^2,\notag \\
-  &=\int_{-\infty}^\infty dy_1 (1/\sqrt{2 \pi \sigma_{y_1}}e^{-\frac{(y_1-\mu_{y_1})^2}{2\sigma_{y_1}^2}}), \notag \\
-  &\cdots\int_{-\infty}^\infty dy_N  (1/\sqrt{2 \pi \sigma_{y_N}}e^{-\frac{(y_N-\mu_{y_N})^2}{2\sigma_{y_N}^2}})(\prod_{n=1}^N (y_n+1-\expv{u(Y)})^2,\\
-  &=\prod_{n=1}^5{[(1+\mu_{y_n})^2+\sigma_{y_n}^2]} - [\prod_{n=1}^5{(\mu_{y_n}+1)}]^2. \notag
+\expv{u(Y)^2} &= \int_{0}^1 dY \rho(Y)u(Y),\\
+  &=\int_{0}^1 dy_1\cdots\int_{0}^1 dy_N \left(\prod_{n=1}^N y_n+1\right)^2,\\
+  &=\left[\left(\int_{0}^1 dy\ y^2+2y+1 \right)\right]^N,\\
+  &=\left[\left(\frac{y^3}{3}+y^2+y \right)\bigg|_{0}^1 \right]^N,\\
+  &=\left(\frac{7}{3}\right)^N.\\
+\text{var}[u(Y)] &= \expv{u(Y)^2}-\expv{u(Y)}^2,\\
+  &= \left(\frac{7}{3}\right)^N-\left(\frac{3}{2}\right)^N.
 \end{align}
+
 \subsubsection{numeric values}
-For example, for given mean $\mu = [0.5, -0.4, 0.3, -0.2, 0.1]$, and covariance 
-\begin{equation}
-\Sigma = 
-\begin{pmatrix} 
-0.64 & 0 & 0 & 0 & 0 \\ 
-0 & 0.49 & 0 & 0 & 0 \\ 
-0 & 0 & 0.09 & 0 & 0 \\ 
-0 & 0 & 0 & 0.16 & 0 \\ 
-0 & 0 & 0 & 0 & 0.25 \\ 
-\end{pmatrix} 
-\end{equation}
-The mean and variance can computed using previous equation, and the results are:
-\begin{equation}
-\expv{u(Y)} = 1.0296
-\end{equation}
-\begin{equation}
-\text{var}{u(Y)} = 4.047085600000002
-\end{equation}
+Some numeric values for the mean and variance are listed below for several input cardinalities $N$.
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{c|c|c}
+    $N$ & mean & variance \\ \hline
+    2 & 2.25      & 0.38194444444 \\
+    4 & 5.0625    & 4.01306905864 \\
+    6 & 11.390625 & 31.6377499009
+  \end{tabular}
+\end{table}
