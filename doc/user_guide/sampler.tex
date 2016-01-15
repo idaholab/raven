@@ -1,0 +1,2606 @@
+\section{Samplers}
+\label{sec:Samplers}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% If you are confused by the input of this document, please make sure you see
+% these defined commands first. There is no point writing the same thing over
+% and over and over and over and over again, so these will help us reduce typos,
+% by just editing a template sentence or paragraph.
+\renewcommand{\nameDescription}
+{
+  \xmlAttr{name},
+  \xmlDesc{required string attribute}, user-defined name of this sampler.
+  \nb As with other objects, this identifier can be used to reference this
+  specific entity from other input blocks in the XML.
+}
+\renewcommand{\specBlock}[2]
+{
+  The specifications of this sampler must be defined within #1 \xmlNode{#2} XML
+  block.
+}
+\newcommand{\variableChildIntro}
+{
+ This \xmlNode{variable} recognizes the following child node:
+}
+
+\newcommand{\variableChildrenIntro}
+{
+  This \xmlNode{variable} recognizes the following child nodes:
+}
+
+\newcommand{\variableIntro}[1]
+{
+  In the \xmlNode{#1} input block, the user
+  needs to specify the variables to sample.
+  %
+  As already mentioned, these variables are specified within consecutive
+  \xmlNode{variable} XML blocks:
+}
+
+\newcommand{\constructionGridDescriptionOnlyCustom}
+{
+Based on the \xmlAttr{construction} type, the content of the \xmlNode{grid}
+XML node and the requirements for other attributes change. In this case, only the following is available:
+\begin{itemize}
+  \item \xmlAttr{construction}\textbf{\texttt{=}}\xmlString{custom}.
+    The grid will be directly specified by the user.
+    This construction type requires that the \xmlNode{grid} node contains
+    the actual mesh bins.
+    For example, if the grid \xmlAttr{type} is \xmlString{CDF}, in the body
+    of \xmlNode{grid}, the user will specify the CDF probability thresholds
+    (nodalization in probability).
+      All the bins are checked against the associated
+      \xmlNode{distribution} bounds.
+      If one or more of them falls outside the distribution's bounds, the
+      code will raise an error.
+      No additional attributes are needed.
+\end{itemize}
+}
+
+\newcommand{\constructionGridDescription}
+{
+Based on the \xmlAttr{construction} type, the content of the \xmlNode{grid}
+XML node and the requirements for other attributes change:
+\begin{itemize}
+  \item \xmlAttr{construction}\textbf{\texttt{=}}\xmlString{equal}.
+    The grid is going to be constructed equally-spaced
+    (\xmlAttr{type}\textbf{\texttt{=}}\xmlString{value}) or equally probable
+    (\xmlAttr{type}\textbf{\texttt{=}}\xmlString{CDF}).
+    This construction type requires the definition of additional attributes:
+      \begin{itemize}
+         \item \xmlAttr{steps}, \xmlDesc{required integer attribute}, number
+           of equally spaced/probable discretization steps.
+      \end{itemize}
+      This construction type requires that the content of the \xmlNode{grid}
+      node represents the lower and upper bounds (either
+      in probability or value). Two values need to be specified; the lowest one
+     will be considered as the $lowerBound$, the largest, the $upperBound$.
+      The lower and upper bounds are checked against the associated
+      \xmlNode{distribution} bounds.
+      If one or both of them falls outside the distribution's bounds, the
+      code will raise an error.
+      The $stepSize$ is determined as follows:
+      \\ $stepSize=(upperBound - lowerBound)/steps$
+  \item \xmlAttr{construction}\textbf{\texttt{=}}\xmlString{custom}.
+    The grid will be directly specified by the user.
+    No additional attributes are needed.
+    This construction type requires that the \xmlNode{grid} node contains
+    the actual mesh bins.
+    For example, if the grid \xmlAttr{type} is \xmlString{CDF}, in the body
+    of \xmlNode{grid}, the user will specify the CDF probability thresholds
+    (nodalization in probability).
+      All the bins are checked against the associated
+      \xmlNode{distribution} bounds.
+      If one or more of them falls outside the distribution's bounds, the
+      code will raise an error.
+\end{itemize}
+}
+\newcommand{\variableDescription}
+{
+  \xmlNode{variable}, \xmlDesc{XML node,
+  required parameter} will specify one attribute:
+  \begin{itemize}
+    \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
+      of this variable.
+  \end{itemize}
+}
+
+\newcommand{\distributionDescription}
+{
+  \xmlNode{distribution}, \xmlDesc{string,
+  required field}, name of the distribution that is associated to this variable.
+  Its name needs to be contained in the \xmlNode{Distributions} block explained
+  in Section \ref{sec:distributions}. \nb{Alternatively, this node must be ommitted
+  if the \xmlNode{function} node is supplied.}
+}
+\newcommand{\functionDescription}
+{
+  \xmlNode{function}, \xmlDesc{string, required field}, name of the function that
+  defines the calculation of this variable from other distributed variables.  Its name
+  needs to be contained in the \xmlNode{Functions} block explained in Section
+  \ref{sec:functions}.  \nb{Alternatively, this node must be ommitted
+  if the \xmlNode{distribution} node is supplied.}
+}
+
+
+
+
+\newcommand{\gridDescriptionOnlyCustom}
+{
+  \xmlNode{grid}, \xmlDesc{space separated floats, required
+  field}, the content of this XML node depends on the definition of the
+  associated attributes:
+  \begin{itemize}
+  \itemsep0em
+    \item \xmlAttr{type}, \xmlDesc{required string attribute}, user-defined
+      discretization metric type: 1) \xmlString{CDF}, the grid will be
+      specified based on cumulative distribution function probability
+      thresholds, and 2) \xmlString{value}, the grid will be provided
+      using variable values.
+    \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how
+      the grid needs to be constructed, independent of its type (i.e.
+      \xmlString{CDF} or \xmlString{value}).
+  \end{itemize}
+  \constructionGridDescriptionOnlyCustom
+  \nb{The \xmlNode{grid} node is only required if a \xmlNode{distribution}
+  node is supplied.  In the case of a \xmlNode{function} node, no grid
+  information is requested.}
+}
+
+
+
+\newcommand{\gridDescription}
+{
+  \xmlNode{grid}, \xmlDesc{space separated floats, required
+  field}, the content of this XML node depends on the definition of the
+  associated attributes:
+  \begin{itemize}
+  \itemsep0em
+    \item \xmlAttr{type}, \xmlDesc{required string attribute}, user-defined
+      discretization metric type: 1) \xmlString{CDF}, the grid will be
+      specified based on cumulative distribution function probability
+      thresholds, and 2) \xmlString{value}, the grid will be provided
+      using variable values.
+    \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how
+      the grid needs to be constructed, independent of its type (i.e.
+      \xmlString{CDF} or \xmlString{value}).
+  \end{itemize}
+  \constructionGridDescription
+  \nb{The \xmlNode{grid} node is only required if a \xmlNode{distribution}
+  node is supplied.  In the case of a \xmlNode{function} node, no grid
+  information is requested.}
+}
+
+\newcommand{\convergenceDescription}
+{
+\xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence
+    tolerance.
+    %
+    The meaning of this tolerance depends on the definition of other attributes
+    that might be defined in this XML node:
+    \begin{itemize}
+      \item \xmlAttr{limit}, \xmlDesc{optional integer attribute}, the
+        maximum number of adaptive samples (iterations).
+        %
+        \default{infinite}.
+      \item \xmlAttr{forceIteration}, \xmlDesc{optional boolean attribute},
+        this attribute controls if at least a number of iterations equal to
+        \textbf{limit} must be performed.
+        %
+        \default{False}.
+      \item \xmlAttr{weight}, \xmlDesc{optional string attribute (case insensitive)}, defines on
+        what the convergence check needs to be performed.
+        \begin{itemize}
+          \item \xmlString{CDF}, the convergence is checked in terms
+            of probability (Cumulative Distribution Function). From a practical point of view,
+            this means that full uncertain domain
+            is discretized in a way that the probability volume of each cell is going to be equal to
+           the tolerance specified in the body of the node \xmlNode{Convergence}
+          \item \xmlString{value}, the convergence is checked on the
+            hyper-volume in terms of variable values.From a practical point of view,
+            this means that full uncertain domain
+            is discretized in a way that the ``volume'' fraction of each cell is going to be equal to
+           the tolerance specified in the body of the node \xmlNode{Convergence}. In other words,
+           each cell volume is going to be equal to the total volume times the tolerance.
+        \end{itemize}
+        \default{CDF}.
+      \item \xmlAttr{persistence}, \xmlDesc{optional integer attribute},
+        offers an additional convergence check.
+        %
+        It represents the number of times the computed error needs to be
+        below the inputted tolerance before convergence is reported.
+        %
+        \default{5}.
+        \item \xmlAttr{subGridTol}, \xmlDesc{optional float attribute},
+            this attribute is used to activate the multi-grid approach (adaptive meshing)
+            of the constructed evaluation grid (see attribute \xmlAttr{weight}).
+            In case this attribute is specified, the final grid discretization (cell's ``volume content''
+             aka convergence confidence) is represented by the
+            value here specified. The sampler converges on the initial coarse grid, defined by
+            the tolerance specified in the body of the node \xmlNode{Convergence}.
+            When the Limit Surface has been identified on the coarse grid, the sampler starts
+            refining the grid until the ``volume content'' of each cell is equal to the value
+            specified in this attribute (Multi-grid approach).
+           \default{None}.
+    \end{itemize}
+    In summary, this XML node contains the information that is needed in order
+    to control this sampler's convergence criterion.
+}
+
+\newcommand{\assemblerDescription}[1] %%NOTE this only applies to the adaptive sampler.  Why is it a newcommand? %%
+{
+  \textbf{Assembler Objects} These objects are either required or optional
+    depending on the functionality of the #1 Sampler.
+    %
+    The objects must be listed with a rigorous syntax that, except for the XML
+    node tag, is common among all the objects.
+    %
+    Each of these nodes must contain 2 attributes that are used to identify them
+    within the simulation framework:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
+        ``class'' of the listed object.
+        %
+        For example, it can be \xmlString{Models}, \xmlString{Functions}, etc.
+      \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
+        identifier or sub-type.
+        %
+        For example, it can be \xmlString{ROM}, \xmlString{External}, etc.
+    \end{itemize}
+    The \textbf{#1} approach requires or optionally accepts the
+    following object types:
+
+}
+\newcommand{\ROMDescription}[1]
+{
+    \begin{itemize}
+      \item \xmlNode{ROM}, \xmlDesc{string, required field}, the
+        body of this XML node must contain the name of an appropriate ROM defined in the
+        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}).
+    \end{itemize}
+}
+
+\newcommand{\restartDescription}[1]
+{
+    \begin{itemize}
+      \item \xmlNode{Restart}, \xmlDesc{string, optional field}, the
+        body of this XML node must contain the name of an appropriate \textbf{PointSet} defined in the
+        \xmlNode{DataObjects} block (see Section~\ref{subsec:models_ROM}).  It is used as a
+        ``restart'' tool, where it accepts pre-existing solutions in the PointSet instead
+        of recalculating solutions.
+    \end{itemize}
+}
+
+\newcommand{\variablesTransformationDescription}[1]
+{
+    \begin{itemize}
+      \item \xmlNode{variablesTransformation}, \xmlDesc{optional field}. this XML node accepts one attribute:
+      \begin{itemize}
+        \item \xmlAttr{model}, \xmlDesc{required string attribute}, the name for the model defined in the XML node \xmlNode {Models}.
+        This attribute indicates the \xmlNode{manifestVariables} defined in the subnode will be used by the \xmlAttr{model}.
+      \end{itemize}
+      In addition, this XML node also accepts three childen nodes:
+      \begin{itemize}
+        \item \xmlNode{latentVariables}, \xmlDesc{comma separated string, required field}, user-defined latent variables that
+        are used for the variables transformation. All the variables listed under this node should be also mentioned in \xmlNode{variable}.
+        \item \xmlNode{manifestVariables}, \xmlDesc{comma separated string, required field}, user-defined manifest variables
+        that are used by the \xmlAttr{model}.
+        \item \xmlNode{method}, \xmlDesc{string, required field}, the method that is used for the variables transformation. The currently available method is '\textbf{pca}'.
+      \end{itemize}
+    \end{itemize}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The sampler is probably the most important entity in the RAVEN framework.
+%
+It performs the driving of the specific sampling strategy and, hence, determines
+the effectiveness of the analysis, from both an accuracy and computational point
+of view.
+%
+The samplers, that are available in RAVEN, can be categorized into three main
+classes:
+\begin{itemize}
+\item \textbf{Forward} (see Section~\ref{subsec:onceThroughSamplers})
+\item \textbf{Dynamic Event Tree (DET)} (see Section~\ref{subsec:DETSamplers})
+\item \textbf{Adaptive} (see Section~\ref{subsec:AdaptSamplers})
+\end{itemize}
+Before analyzing each sampler in detail, it is important to mention that each
+type has a similar syntax to input the variables to be ``sampled''.
+%
+In the example below, the variable \xmlString{variableName} is going to be
+sampled by the Sampler \xmlString{whatever} using the distribution named\\
+\xmlString{aDistribution}.
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Samplers>
+    ...
+    <WhatEverSampler name='whatever'>
+      ...
+     <variable name='variableName'>
+       ...
+       <distribution>aDistribution</distribution>
+       ...
+     </variable>
+      ...
+    </WhatEverSampler>
+    ...
+  </Samplers>
+  ...
+</Simulation>
+\end{lstlisting}
+
+As reported in section \ref{sec:existingInterface}, the variable naming syntax,
+for external driven codes, depends on the way the ``code interface'' has been
+implemented.
+%
+For example, if the code has an input structure like the one reported below (YAML), the
+variable name might be\xmlString{I-Level|II-Level|variable}.
+%
+In this way, the relative code interface (and input parser) will know which
+variable needs to be perturbed and the ``recipe'' to access it.
+%
+As reported in \ref{sec:existingInterface}, its syntax is chosen by the
+developer of the ``code interface'' and is implemented in the interface only
+(no modifications are needed in the RAVEN code).
+
+%\maljdan{Where does this type of input come from? Should the user care?}
+%\alfoa{Dan, this is an example (in this case, a YAML structure)}
+
+Example YAML based Input:
+\begin{lstlisting}
+[I-Level]
+  [./II-Level]
+    variable = xxx
+  [../]
+[]
+\end{lstlisting}
+
+Example XML block to define the variables and associated distributions:
+\begin{lstlisting}[style=XML]
+<variable name='I-Level|II-Level|variable'>
+  <distribution>exampleDistribution</distribution>
+</variable>
+\end{lstlisting}
+
+If the variable is associated to a multi-dimensional ND distribution, it is needed to specify which dimension of the ND distribution is associated to such variable. An example is shown below: the variable  ``variableX'' is associated to the third dimension of the ND distribution ``NDdistribution''.
+
+\begin{lstlisting}[style=XML]
+<variable name='variableX'>
+     <distribution dim='3'>NDdistribution</distribution>
+</variable>
+\end{lstlisting}
+
+For most codes, it is prudent that there are no redundant inputs; however there are
+cases where this is not reality.  For example, if there is a variable \xmlString{inner\_radius} and
+a variable \xmlString{outer\_radius}, there may be a third variable \xmlString{thickness} that
+is actually derived from the previous two, as \xmlString{thickness} = \xmlString{outer\_radius} - \xmlString{inner\_radius}.
+RAVEN supports this type of redundant input through a Function entity.  In this case,
+instead of a \xmlNode{distribution} node in the \xmlNode{variable} block, there is a
+\xmlNode{Function} node, specifying the name of the function (defined in the \xmlNode{Functions} block).
+In order to work properly, this function must have a method that is identical to the variable name
+that returns a single python float object.  For example,
+\begin{lstlisting}[style=XML]
+...
+<Functions>
+  <External name='torus_calcs' file='torus_calcs.py'>
+    <variable>outer_radius</variable>
+    <variable>inner_radius</variable>
+  </External>
+<Functions>
+...
+<Samplers>
+  <WhatEverSampler name='myExampleSampler'>
+    <variable name='inner_radius'>
+      <distribution>inner_dist</distribution>
+    </variable>
+    <variable name='outer_radius'>
+      <distribution>outer_dist</distribution>
+    </variable>
+    <variable name='thickness'>
+      <Function>torus_calcs</Function>
+    </variable>
+  </WhatEverSampler>
+</Samplers>
+\end{lstlisting}
+The corresponding function file \xmlString{torus\_calcs.py} needs the following method:
+\begin{lstlisting}
+def thickness(self):
+  return self.outer_radius - self.inner_radius
+\end{lstlisting}
+The \xmlString{thickness} parameter will still be treated as an input for the sake of csv
+printing and DataObjects storage.
+
+In the sampler class a special node exists: the \xmlNode{sampler\textunderscore init} node.
+This node contains specific parameters that characterize each particular sampler.
+In addition, \xmlNode{sampler\textunderscore init} might contain the information regarding the random generator function for each $N$-Dimensional distribution (specified in the \xmlNode{dist\textunderscore init} node):
+\begin{itemize}
+\item initial\textunderscore grid\textunderscore disc
+\item tolerance
+\end{itemize}
+
+An example of \xmlNode{dist\textunderscore init} node is provided below:
+
+\begin{lstlisting}[style=XML]
+<distInit>
+    <distribution name= 'ND_dist_name'>
+         <initialGridDisc>5</initialGridDisc>
+          <tolerance>0.2</tolerance>
+     </distribution>
+  </distInit>
+\end{lstlisting}
+
+In the \xmlNode{sampler\textunderscore init}  node it is possible to add also the subnode \xmlNode{globalGrid}.
+The \xmlNode{globalGrid} can be used in two cases:
+\begin{itemize}
+\item 1D distributions: an identical grid that is associated to several distributions
+\item ND distribution: a grid associated to a single ND distribution. This is the case when a stratified sampling is performed on the CDF of an ND distribution: the  \xmlNode{globalGrid} is  shared among the variables associated to the Nd distribution
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%      Forward Samplers      %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Forward Samplers}
+\label{subsec:onceThroughSamplers}
+The Forward sampler category collects all the strategies that perform the
+sampling of the input space without exploiting, through dynamic learning
+approaches, the information made available from the outcomes of calculations
+previously performed (adaptive sampling) and the common system evolution
+(patterns) that different sampled calculations can generate in the phase space
+(dynamic event tree).
+%
+In the RAVEN framework, five different “Forward” samplers
+are available:
+\begin{itemize}
+\item \textbf{Monte Carlo (MC)}
+\item \textbf{Stratified}
+\item \textbf{Grid Based}
+\item \textbf{Sparse Grid Collocation}
+\item \textbf{Sobol Decomposition}
+\item \textbf{Response Surface Design of Experiment}
+\item \textbf{Factorial Design of Experiment}
+\end{itemize}
+
+From a practical point of view, these sampling strategies represent different
+ways to explore the input space.
+%
+In the following paragraphs, the input requirements and a small explanation of
+the different sampling methodologies are reported.
+
+
+%%% Forward Samplers: MonteCarlo
+\subsubsection{Monte Carlo}
+\label{subsubsubsec:MC}
+The \textbf{Monte-Carlo} sampling approach is one of the most well-known and
+widely used approaches to perform exploration of the input space.
+%
+The main idea behind MonteCarlo sampling is to  randomly perturbate the input space according
+to uniform or parameter-based probability density functions.
+%
+
+\specBlock{a}{MonteCarlo}
+%
+\attrsIntro
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+%\item \textbf{limit}, \textit{required integer attribute}, number of MonteCarlo samples needs to be generated;
+%\item \textbf{initial\_seed}, \textit{optional integer attribute}, initial seeding of random number generator. \textit{Default = random seed};
+%\item \textbf{reseedEachIteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \textit{Default = False};
+\end{itemize}
+\vspace{-5mm}
+
+In the \textbf{MonteCarlo} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called \xmlNode{variable}. In addition, the settings for this sampler need to be specified in the \xmlNode{samplerInit} XML block:
+\begin{itemize}
+\item \xmlNode{samplerInit},  \textit{\textbf{XML node, required parameter}}. In this xml-node,the following xml sub-nodes need to be specified:
+  \begin{itemize}
+    \item \xmlNode{limit}, \textit{\textbf{integer,required field}}, number of MonteCarlo samples needs to be generated;
+    \item \xmlNode{initialSeed}, \textit{\textbf{integer, optional field}}, initial seeding of random number generator
+    \item \xmlNode{reseedEachIteration},  \textit{\textbf{boolean/string(case insensitive), optional field}}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \default{False};
+    \item \xmlNode{distInit},  \textit{\textbf{integer, optional field}}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}).
+  \end{itemize}
+\end{itemize}
+\begin{itemize}
+\item \variableDescription
+ \variableChildrenIntro
+ \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+  \end{itemize}
+\end{itemize}
+%\end{itemize}
+
+If the input parameters are correlated, the \textbf{MonteCarlo} sampling approach can be also used if the user specified a
+multivariate distributions inside the \xmlNode{Distributions} (see Section \ref{subsec:NdDist}). Furthermore, if the
+covariance matrix is provided and the input parameters is assumed to have the multivariate normal distribution, one can also use
+\textbf{MonteCarlo} approach to sample the input parameters in the transformed space (aka subspace, reduced space). If this is
+the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of
+\xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node
+\xmlNode{variablesTransformation} is also required for \textbf{MonteCarlo} sampling. This node is used to tranform the variables
+specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by \xmlNode{manifestVariables}
+in the input space. The variables listed in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables
+listed in \xmlNode{manifestVariables} are used by the \xmlNode{Models}.
+
+\variablesTransformationDescription{MonteCarlo}
+\assemblerDescription{MonteCarlo}
+\restartDescription{MonteCarlo}
+
+Example:
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+  <MonteCarlo name='MCname'>
+    <samplerInit>
+      <limit>10</limit>
+      <initialSeed>200286</initialSeed>
+      <reseedEachIteration>false</reseedEachIteration>
+      <distInit>
+        <distribution name= 'ND_InverseWeight_P'>
+          <initialGridDisc>10</initialGridDisc>
+          <tolerance>0.2</tolerance>
+        </distribution>
+      </distInit>
+    </samplerInit>
+    <variable name='var1'>
+      <distribution>aDistributionNameDefinedInDistributionBlock
+      </distribution>
+    </variable>
+  </MonteCarlo>
+  ...
+</Samplers>
+\end{lstlisting}
+
+%%% Forward Samplers: Grid
+\subsubsection{Grid}
+\label{subsubsubsec:Grid}
+The \textbf{Grid} sampling approach is probably the simplest exploration
+approach that can be employed to explore an uncertain domain.
+%
+The idea is to construct an $N$-dimensional grid where each dimension is
+represented by one uncertain variable.
+%
+This approach performs the sampling at each node of the grid.
+%
+The sampling of the grid consists in evaluating the answer of the system under
+all possible combinations among the different variables' values with respect to
+a predefined discretization metric.
+%
+In RAVEN two discretization metrics are available: 1) cumulative distribution
+function, and 2) value.
+%
+Thus, the grid meshing can be input via probability or variable values.
+%
+Regarding the N-dimensional distributions, the user can specify for each dimension the type of grid to be used (i.e., value or CDF). Note the discretization of the CDF, only for the grid sampler, is performed on the marginal distribution for the specific variable considered.
+
+\specBlock{a}{Grid}
+%
+\attrIntro
+\begin{itemize}
+\itemsep0em
+\item \nameDescription
+\end{itemize}
+\variableIntro{Grid}
+\begin{itemize}
+\item \variableDescription
+ \variableChildrenIntro
+ \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+    \item \gridDescription
+  \end{itemize}
+\end{itemize}
+
+If the input parameters are correlated, the \textbf{Grid} sampling approach can be also used if the user specified a
+multivariate distributions inside the \xmlNode{Distributions} (see Section \ref{subsec:NdDist}). Furthermore, if the
+covariance matrix is provided and the input parameters is assumed to have the multivariate normal distribution, one can also use
+\textbf{Grid} approach to sample the input parameters in the transformed space (aka subspace, reduced space). This means one creates
+the grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is the case, the user needs to
+provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions}
+(more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also
+required for \textbf{Grid} sampling. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the
+transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed
+in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
+are used by the \xmlNode{Models}.
+
+\variablesTransformationDescription{Grid}
+
+\assemblerDescription{Grid}
+\restartDescription{Grid}
+
+Example:
+\begin{lstlisting}[style=XML,morekeywords={construction,steps,lowerBound,upperBound}]
+<Samplers>
+  ...
+  <Grid name='Gridname'>
+    <variable name='var1'>
+      <distribution>aDistributionNameDefinedInDistributionBlock1
+      </distribution>
+      <grid type='value' construction='equal' steps='100' >0.2 10</grid>
+    </variable>
+    <variable name='var2'>
+      <distribution>aDistributionNameDefinedInDistributionBlock2
+      </distribution>
+      <grid type='CDF' construction='equal' steps='5' >0.2 0.8</grid>
+    </variable>
+    <variable name='var3'>
+      <distribution>aDistributionNameDefinedInDistributionBlock3
+      </distribution>
+      <grid type='value' construction='equal' steps='100' >0.2 21.0</grid>
+    </variable>
+    <variable name='var4'>
+      <distribution>aDistributionNameDefinedInDistributionBlock4
+      </distribution>
+      <grid type='CDF' construction='equal' steps='5' >0.2 1.0</grid>
+    </variable>
+    <variable name='var5'>
+      <distribution>aDistributionNameDefinedInDistributionBlock5
+      </distribution>
+      <grid type='value' construction='custom'>0.2 0.5 10.0</grid>
+    </variable>
+    <variable name='var6'>
+      <distribution>aDistributionNameDefinedInDistributionBlock6
+      </distribution>
+      <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
+    </variable>
+  </Grid>
+  ...
+</Samplers>
+\end{lstlisting}
+
+%%% Forward Samplers: Sparse Grid Collocation
+\subsubsection{Sparse Grid Collocation}
+%\talbpaul{Work in progress.}
+%\senrs{Assembler section updated}
+\label{subsubsubsec:SparseGridCollocation}
+\textbf{Sparse Grid Collocation} builds on generic \textbf{Grid} sampling by selecting evaluation points based on characteristic quadratures as part of
+stochastic collocation for generalized polynomial chaos uncertainty quantification.  In collocation you construct an N-dimensional grid, with each uncertain
+variable providing an axis.  Along each axis, the points of evaluation correspond to quadrature points necessary to integrate polynomials
+(see \ref{subsubsec:GaussPolynomialRom}).  In the simplest (and most  naive) case, a N-Dimensional tensor product of all possible combinations of points from
+each dimension's quadrature is constructed as sampling points.  The number of necessary samples can be reduced by employing Smolyak-like sparse grid algorithms,
+which use reduced combinations of polynomial orders to reduce the necessary sampling space.  \specBlock{a}{SparseGridCollocation}.
+
+\begin{itemize}
+\itemsep0em
+\item \nameDescription
+\item \xmlAttr{parallel}, \xmlDesc{optional string attribute}, option to disable parallel construction of the sparse grid.  Because of increasing computational expense with increasing input space dimension, RAVEN will default to parallel construction of the sparse grid. %\talbpaul{Is this what we want?}
+\item \xmlAttr{outfile}, \xmlDesc{optional string attribute}, option to allow the generated sparse grid points and weights to be printed to a file with the given name.
+\default{True}
+\end{itemize}
+\variableIntro{SparseGridCollocation}
+\begin{itemize}
+\item \variableDescription
+ In the variable node, the following xml-node needs to be specified:
+ \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+ \end{itemize} \end{itemize}
+Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}).
+
+  % Assembler Objects
+  \assemblerDescription{SparseGridCollocation}
+  \ROMDescription{SparseGridCollocation}
+  \restartDescription{SparseGridCollocation}
+
+\footnotesize
+\begin{lstlisting}[style=XML]
+Example:
+<Samplers>
+  ...
+  <SparseGridCollocation name="mySG" parallel="0">
+    <variable name="x1">
+      <distribution>myDist1</distribution>
+    </variable>
+    <variable name="x2">
+      <distribution>myDist2</distribution>
+    </variable>
+    <ROM class = 'Models' type = 'ROM' >SCROM</ROM>
+    <Restart class = 'DataObjects' type = 'PointSet' >solns</Restart>
+  </SparseGridCollocation>
+  ...
+</Samplers>
+\end{lstlisting}
+ \normalsize
+
+In general, \textbf{SparseGridCollocation} requires uncorrelated input parameters. If the input parameters are correlated, one can transform the 
+correlated parameters into uncorrelated parameters; the \textbf{SparseGridCollocation} can also be used with the uncorrelated parameters
+in the transformed space. Like in the \textbf{Grid} sampler, if the covariance matrix is provided 
+and the input parameters are assumed to have the multivariate normal distribution, the \textbf{SparseGridCollocation} can be used.
+This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is 
+the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} 
+of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node 
+\xmlNode{variablesTransformation} is also required for \textbf{SparseGridCollocation} sampler. This node is used to tranform 
+the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by 
+\xmlNode{manifestVariables} in the input space. The variables listed in \xmlNode{latentVariables} should be predefined 
+in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables} 
+are used by the \xmlNode{Models}.
+
+\variablesTransformationDescription{SparseGridCollocation}
+
+
+\begin{lstlisting}[style=XML,morekeywords={ND,grid}]
+...
+<Models>
+    ...
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
+        <variable>sigma</variable>
+        <variable>rho</variable>
+        <variable>beta</variable>
+        <variable>x</variable>
+        <variable>y</variable>
+        <variable>z</variable>
+        <variable>time</variable>
+        <variable>x0</variable>
+        <variable>y0</variable>
+        <variable>z0</variable>
+    </ExternalModel>
+    <ROM name="SCROM" subType="GaussPolynomialRom">
+        <Target>and</Target>
+        <Features>x1,y1,z1</Features>
+        <IndexSet>TensorProduct</IndexSet>
+        <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
+    ...
+</Models>
+
+<Distributions>
+    ...
+    <MultivariateNormal name='MVNDist' method='pca'>
+        <transformation>
+            <rank>3</rank>
+        </transformation>
+        <mu>0.0 1.0 2.0</mu>
+        <covariance type="abs">
+            1.0       0.6      -0.4
+            0.6       1.0      0.2
+            -0.4      0.2      0.8
+        </covariance>
+    </MultivariateNormal>
+    ...
+</Distributions>
+
+<Samplers>
+  ...
+  <SparseGridCollocation name='SC'>
+        <variable name='x0'>
+            <distribution dim='1'>MVNDist</distribution>
+        </variable>
+        <variable name='y0'>
+            <distribution dim='2'>MVNDist</distribution>
+        </variable>
+        <variable name='z0'>
+            <distribution dim='3'>MVNDist</distribution>
+        </variable>
+        <variablesTransformation model="PythonModule">
+            <latentVariables>x1,y1,z1</latentVariables>
+            <manifestVariables>x0,y0,z0</manifestVariables>
+            <method>pca</method>
+        </variablesTransformation>
+        <ROM class = 'Models' type = 'ROM' >SCROM</ROM>
+  </SparseGridCollocation>
+  ...
+</Samplers>
+...
+\end{lstlisting}
+
+ %%% Forward Samplers: Sobol
+\subsubsection{Sobol}
+%\senrs{Assembler section updated}
+\label{subsubsubsec:SobolSampler}
+The \textbf{Sobol} sampler uses high-density model reduction (HDMR) a.k.a. Sobol decomposition to approximate a function as the sum of increasing-complexity
+interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At
+order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions
+of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos
+(see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.  This Sobol sampler uses the associated HDMRRom
+(see \ref{subsubsec:HDMRRom}) to determine at what points the input space need be evaluated.
+
+\nb{Sobol sampler relies on SparseGridCollocation, which requires uncorrelated input dimensions; thus, for the present,
+it is not compatible with NDDistribution objects.}
+\begin{itemize}
+\itemsep0em
+\item \nameDescription
+\item \xmlAttr{parallel}, \xmlDesc{optional string attribute}, option to disable parallel construction of the sparse grid.  Because of increasing computational expense with increasing input space dimension, RAVEN will default to parallel construction of the sparse grid.
+\default{True}
+\end{itemize}
+\variableIntro{Sobol}
+\begin{itemize}
+\item \variableDescription
+ In the variable node, the following xml-node needs to be specified:
+ \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+ \end{itemize} \end{itemize}
+Because of the tight coupling between the Sobol sampler and the HDMRRom, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, Sobol order, and importance weights to use in each dimension (see \ref{subsubsec:HDMRRom}).
+
+  % Assembler Objects
+  \assemblerDescription{Sobol}
+  \ROMDescription{Sobol}
+  \restartDescription{Sobol}
+
+\footnotesize
+\begin{lstlisting}[style=XML]
+Example:
+<Samplers>
+  ...
+  <Sobol name="mySobol" parallel="0">
+    <variable name="x1">
+      <distribution>myDist1</distribution>
+    </variable>
+    <variable name="x2">
+      <distribution>myDist2</distribution>
+    </variable>
+    <ROM class = 'Models' type = 'ROM' >myHDMR</ROM>
+  </Sobol>
+  ...
+</Samplers>
+\end{lstlisting}
+ \normalsize
+
+%%% Forward Samplers: Stratified
+\subsubsection{Stratified}
+\label{subsubsubsec:Stratified}
+The \textbf{Stratified} sampling approach is a method for the exploration of the
+input space that consists of dividing the uncertain domain into subgroups before
+sampling.
+%
+In the ``stratified'' sampling, these subgroups must be:
+\begin{itemize}
+ \item mutually exclusive: every element in the population must be assigned to
+   only one stratum (subgroup);
+ \item collectively exhaustive: no population element can be excluded.
+\end{itemize}
+
+Then simple random sampling or systematic sampling is applied within each
+stratum.
+%
+It is worthwhile to note that the well-known Latin hypercube sampling represents
+a specialized version of the stratified approach, when the domain strata are
+constructed in equally-probable CDF bins.
+
+\specBlock{a}{Stratified}
+%
+\attrIntro
+\begin{itemize}
+\itemsep0em
+\item \nameDescription
+\end{itemize}
+\variableIntro{Stratified}
+\begin{itemize}
+\item \variableDescription
+ \variableChildrenIntro
+ \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+    \item \gridDescription
+  \end{itemize}
+\end{itemize}
+
+As one can see, the input specifications for the \textbf{Stratified} sampler are
+similar to that of the \textbf{Grid} sampler.
+%
+It is important to mention again that for each zone (grid mesh) only a point,
+randomly selected, is picked and not all the nodal combinations (like in the
+\textbf{Grid} sampling).
+
+\assemblerDescription{Stratified}
+\restartDescription{Stratified}
+
+Example:
+\begin{lstlisting}[style=XML,morekeywords={construction,steps,lowerBound,upperBound}]
+<Samplers>
+  ...
+  <Stratified name='StratifiedName'>
+    <variable name='var1'>
+      <distribution>aDistributionNameDefinedInDistributionBlock1
+      </distribution>
+      <grid type='CDF' construction='equal' steps='5' >0.2 0.8</grid>
+    </variable>
+    <variable name='var2'>
+      <distribution>aDistributionNameDefinedInDistributionBlock2
+      </distribution>
+      <grid type='value' construction='equal' steps='100' >0.2 21.0</grid>
+    </variable>
+    <variable name='var3'>
+      <distribution>aDistributionNameDefinedInDistributionBlock3
+      </distribution>
+      <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
+    </variable>
+  </Stratified>
+  ...
+</Samplers>
+\end{lstlisting}
+
+For N-dimensional  (ND) distributions, there are two different approahes to perform the stratified sampling. In the first approach, 
+the subgroups is determined by the joint CDF of given multivariate distributions. If this approach is used, the sampling is performed 
+on a grid on a CDF, while the user is required to specify the same CDF grid for all the dimensions of the ND distribution.
+This is possible by defining a \xmlNode{globalGrid} node and associate such \xmlNode{globalGrid} to each variable belonging to the 
+ND distribution as follows.
+
+\begin{lstlisting}[style=XML,morekeywords={ND,grid}]
+<Samplers>
+  ...
+  <Stratified name='StratifiedName'>
+        <variable name='x0'>
+            <distribution dim='1'>ND_InverseWeight_P</distribution>
+            <grid type='globalGrid'>name_grid1</grid>
+        </variable>
+        <variable name='y0,z0'>
+            <distribution dim='2'>ND_InverseWeight_P</distribution>
+            <grid type='globalGrid'>name_grid1</grid>
+        </variable>
+        <globalGrid>
+            <grid name='name_grid1' type='CDF' construction='custom'>0.1 1.0 0.2</grid>
+        </globalGrid>
+  </Stratified>
+  ...
+</Samplers>
+...
+\end{lstlisting}
+
+The second approach is different than the first approach. Like in the \textbf{Grid} sampling, if the covariance matrix is provided 
+and the input parameters is assumed to have the multivariate normal distribution, one can also use \textbf{Stratified} approach to 
+sample the input parameters in the transformed space (aka subspace, reduced space). This means one creates
+the grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is the case, the user needs to 
+provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions} 
+(more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also 
+required for \textbf{Stratified} sampler. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the 
+transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed 
+in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables} 
+are used by the \xmlNode{Models}. In addition, \xmlNode{globalGrid} will be not used for approach.
+
+\variablesTransformationDescription{Stratified}
+
+
+\begin{lstlisting}[style=XML,morekeywords={ND,grid}]
+...
+<Models>
+    ...
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
+        <variable>sigma</variable>
+        <variable>rho</variable>
+        <variable>beta</variable>
+        <variable>x</variable>
+        <variable>y</variable>
+        <variable>z</variable>
+        <variable>time</variable>
+        <variable>x0</variable>
+        <variable>y0</variable>
+        <variable>z0</variable>
+    </ExternalModel>
+    ...
+</Models>
+
+<Distributions>
+    ...
+    <MultivariateNormal name='MVNDist' method='pca'>
+        <transformation>
+            <rank>3</rank>
+        </transformation>
+        <mu>0.0 1.0 2.0</mu>
+        <covariance type="abs">
+            1.0       0.6      -0.4
+            0.6       1.0      0.2
+            -0.4      0.2      0.8
+        </covariance>
+    </MultivariateNormal>
+    ...
+</Distributions>
+
+<Samplers>
+  ...
+  <Stratified name='StratifiedName'>
+        <variable name='x0'>
+            <distribution dim='1'>MVNDist</distribution>
+            <grid type='CDF' construction='equal' steps='3'>0.1 0.9</grid>
+        </variable>
+        <variable name='y0'>
+            <distribution dim='2'>MVNDist</distribution>
+            <grid type='value' construction='equal' steps='3'>0.1 0.9</grid>
+        </variable>
+        <variable name='z0'>
+            <distribution dim='3'>MVNDist</distribution>
+            <grid type='CDF' construction='equal' steps='3'>0.2 0.8</grid>
+        </variable>
+        <variablesTransformation model="PythonModule">
+            <latentVariables>x1,y1,z1</latentVariables>
+            <manifestVariables>x0,y0,z0</manifestVariables>
+            <method>pca</method>
+        </variablesTransformation>
+  </Stratified>
+  ...
+</Samplers>
+...
+\end{lstlisting}
+
+%%% Forward Samplers: Response Surface Design
+\subsubsection{Response Surface Design}
+\label{subsubsubsec:RespSurfDOE}
+The \textbf{Response Surface Design}, or Response Surface Modeling (RSM),
+approach is one of the most common Design of Experiment (DOE) methodologies
+currently in use.
+%
+It explores the relationships between several explanatory variables and one or
+more response variables.
+%
+The main idea of RSM is to use a sequence of designed experiments to obtain an
+optimal response.
+%
+RAVEN currently employs two different algorithms that can be classified within
+this family of methods:
+\begin{itemize}
+ \item \textbf{Box-Behnken}: This methodology aims to achieve the following
+  goals:
+  \begin{itemize}
+    \item Each factor, or independent variable, is placed at one of three
+      equally spaced values, usually coded as -1, 0, +1. (At least three levels
+      are needed for the following goal);
+    \item The design should be sufficient to fit a quadratic model, that is, one
+      squared term per factor and the products of any two factors;
+    \item The ratio of the number of experimental points to the number of
+      coefficients in the quadratic model should be reasonable (in fact, their
+      designs keep it in the range of 1.5 to 2.6);
+    \item The estimation variance should more or less depend only on the
+      distance from the center (this is achieved exactly for the designs with 4
+      and 7 factors), and should not vary too much inside the smallest
+      (hyper)cube containing the experimental points.
+  \end{itemize}
+  Each design can be thought of as a combination of a two-level (full or
+  fractional) factorial design with an incomplete block design.
+  In each block, a certain number of factors are put through all combinations
+  for the factorial design, while the other factors are kept at the central
+  values.
+ \item \textbf{Central Composite}: This design consists of three distinct sets
+  of experimental runs:
+  \begin{itemize}
+    \item A factorial (perhaps fractional) design in the factors are studied,
+      each having two levels;
+    \item A set of center points, experimental runs whose values of each factor
+      are the medians of the values used in the factorial portion.
+      This point is often replicated in order to improve the precision of the
+      experiment;
+    \item A set of axial points, experimental runs identical to the centre
+      points except for one factor, which will take on values both below and
+      above the median of the two factorial levels, and typically both outside
+      their range.
+      All factors are varied in this way.
+  \end{itemize}
+  This methodology is useful for building a second order (quadratic) model for
+  the response variable without needing to use a complete three-level factorial
+  experiment.
+\end{itemize}
+All the parameters, needed for setting up the algorithms reported above, must be
+defined within a \xmlNode{ResponseSurfaceDesign} block.
+%
+\attrIntro
+\begin{itemize}
+\itemsep0em
+\item \nameDescription
+\end{itemize}
+
+\variableIntro{ResponseSurfaceDesign}
+\begin{itemize}
+\item \variableDescription
+ \variableChildrenIntro
+ \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+     \item \gridDescriptionOnlyCustom
+     \nb{Only the construction ``custom'' is available. In the \xmlNode{grid} body only the lower and upper bounds can be inputted (2 numbers only).}
+ \end{itemize}
+\item \xmlNode{ResponseSurfaceDesignSettings}, \xmlDesc{required},
+In this sub-node, the user needs to specify different settings depending on the
+algorithm being used:
+ \begin{itemize}
+  \item \xmlNode{algorithmType}, \xmlDesc{string, required field}, this XML node
+    will contain the name of the algorithm to be used.
+    Based on the chosen algorithm, other nodes need to be defined:
+    \begin{itemize}
+      \item \xmlNode{algorithmType}\texttt{BoxBehnken}\xmlNode{algorithmType/}. If Box-Behnken
+        is specified, the following additional node is recognized:
+     \begin{itemize}
+      \item \xmlNode{ncenters}, \xmlDesc{integer, optional field}, the
+        number of center points to include in the box.
+        If this parameter is not specified, then a pre-determined number of
+        points are automatically included.
+        \default{Automatic Generation}.
+     \end{itemize}
+     \nb In order to employ the ``Box-Behnken'' design, at least 3 variables
+     must be used.
+     \item \xmlNode{algorithmType}\texttt{CentralComposite}\xmlNode{algorithmType/}. If
+       Central Composite is specified, the following additional nodes will
+       be recognized:
+     \begin{itemize}
+      \item \xmlNode{centers}, \xmlDesc{comma separated integers, optional
+        field}, the number of center points to be included.
+        This block needs to contain 2 integers values separated by a comma.
+        The first entry represents the number of centers to be added for the
+        factorial block; the second one is the one for the star block.
+        \default{4,4}.
+      \item \xmlNode{alpha}, \xmlDesc{string, optional field}, in this node,
+        the user decides how an $\alpha$ factor needs to be determined.
+        Two options are available:
+        \begin{description}
+          \item[\texttt{orthogonal}] for orthogonal design.
+          \item[\texttt{rotatable}] for rotatable design.
+        \end{description}
+        \default{orthogonal}.
+      \item \xmlNode{face}, \xmlDesc{string, optional field}, in this node,
+        the user defines how faces should be constructed.
+        Three options are available:
+        \begin{description}
+          \item[\texttt{circumscribed}] for circumscribed facing
+          \item[\texttt{inscribed}] for inscribed facing
+          \item[\texttt{faced}] for faced facing.
+        \end{description}
+        \default{circumscribed}.
+     \end{itemize}
+  \end{itemize}
+  \nb In order to employ the ``Central Composite'' design, at least 2
+  variables must be used.
+\end{itemize}
+\end{itemize}
+
+Furthermore, if the covariance matrix is provided and the input parameters are assumed to have a multivariate normal distribution, one can use
+\textbf{ResponseSurfaceDesign} approach to sample the input parameters in the transformed space (aka subspace, reduced space).
+In this case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions}
+(more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also
+required for \textbf{ResponseSurfaceDesign} sampling. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the
+transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed
+in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
+are used by the \xmlNode{Models}.
+
+\variablesTransformationDescription{ResponseSurfaceDesign}
+%\maljdan{Is it weird that one of these uses ncenters and the other uses centers?}
+%\alfoa{The names of those parameters are different in order to avoid confusion, since the meaning (and the way ) to input them is different}
+
+%\maljdan{This is the first example where type is an attribute and a node...This
+%is confusing.}
+%\alfoa{Changed.}
+
+Example:
+\begin{lstlisting}[style=XML,morekeywords={}]
+<Samplers>
+  ...
+    <ResponseSurfaceDesign name='BoxBehnkenRespDesign'>
+        <ResponseSurfaceDesignSettings>
+            <algorithmType>BoxBehnken</algorithmType>
+            <ncenters>1</ncenters>
+        </ResponseSurfaceDesignSettings>
+        <variable name='var1' >
+            <distribution >Gauss1</distribution>
+           <grid type='CDF' construction='custom'  >0.2 0.8</grid>
+        </variable>
+        <!-- N.B. at least 3 variables need to inputted
+                in order to employ this algorithm
+         -->
+    </ResponseSurfaceDesign>
+    <ResponseSurfaceDesign name='CentralCompositeRespDesign'>
+        <ResponseSurfaceDesignSettings>
+            <algorithmType>CentralComposite</algorithmType>
+            <centers>1, 2</centers>
+            <alpha>orthogonal</alpha>
+            <face>circumscribed</face>
+        </ResponseSurfaceDesignSettings>
+        <variable name='var4' >
+            <distribution >Gauss1</distribution>
+            <grid type='CDF' construction='custom'  >0.2 0.8</grid>
+        </variable>
+        <!-- N.B. at least 2 variables need to inputted
+                in order to employ this algorithm
+         -->
+    </ResponseSurfaceDesign>
+    <ResponseSurfaceDesign name='transformedSpaceSampling'>
+        <ResponseSurfaceDesignSettings>
+            <algorithmType>BoxBehnken</algorithmType>
+            <ncenters>1</ncenters>
+        </ResponseSurfaceDesignSettings>
+        <variable name='var1' >
+            <distribution >Gauss1</distribution>
+           <grid type='CDF' construction='custom'  >0.2 0.8</grid>
+        </variable>
+        ...
+        <variablesTransformation model="givenModel">
+          <latentVariables>var1,...</latentVariables>
+          <manifestVariables>...</manifestVariables>
+          <method>pca</method>
+        </variablesTransformation>
+    </ResponseSurfaceDesign>
+  ...
+</Samplers>
+\end{lstlisting}
+
+%%% Forward Samplers: Factorial Design
+\subsubsection{Factorial Design}
+\label{subsubsubsec:FactorialDOE}
+The \textbf{Factorial Design} method is an important method to determine the
+effects of multiple variables on a response.
+%
+A factorial design can reduce the number of samples one has to perform by
+studying multiple factors simultaneously.
+%
+Additionally, it can be used to find both main effects (from each independent
+factor) and interaction effects (when both factors must be used to explain the
+outcome).
+%
+A factorial design tests all possible conditions.
+%
+Because factorial designs can lead to a large number of trials, which can
+become expensive and time-consuming, they are best used for small numbers of
+variables with only a few domain discretizations (1 to 3).
+%
+Factorial designs work well when interactions between variables are strong and
+important and where every variable contributes significantly.
+%
+RAVEN currently employs three different algorithms that can be classified within
+this family of techniques:
+\begin{itemize}
+  \item \textbf{General Full Factorial} explores the input space by
+    investigating all possible combinations of a set of factors (variables).
+  \item \textbf{2-Level Fractional-Factorial} consists of a carefully chosen
+    subset (fraction) of the experimental runs of a full factorial design.
+    %
+    The subset is chosen so as to exploit the sparsity-of-effects principle
+    exposing information about the most important features of the problem
+    studied, while using a fraction of the effort of a full factorial design in
+    terms of experimental runs and resources.
+  \item \textbf{Plackett-Burman} identifies the most important factors early in
+    the experimentation phase when complete knowledge about the system is
+    usually unavailable.
+    %
+    It is an efficient screening method for identifying the active factors
+    (variables) using as few samples as possible.
+    %
+    In Plackett-Burman designs, main effects have a complicated confounding
+    relationship with two-factor interactions.
+    %
+    Therefore, these designs should be used to study main effects when it can be
+    assumed that two-way interactions are negligible.
+\end{itemize}
+All the parameters needed for setting up the algorithms reported above must be
+defined within a \xmlNode{FactorialDesign} block.
+%
+\attrIntro
+\begin{itemize}
+\itemsep0em
+\item \nameDescription
+\end{itemize}
+\variableIntro{FactorialDesign}
+\begin{itemize}
+  \item \variableDescription
+    \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+      \item \functionDescription
+      \item \gridDescription
+    \end{itemize}
+\end{itemize}
+
+The main \xmlNode{FactorialDesign} block needs to contain an additional sub-node
+called\\\xmlNode{FactorialSettings}.
+%
+In this sub-node, the user needs to specify different settings depending on the
+algorithm being used:
+   \begin{itemize}
+    \item \xmlNode{algorithmType}, \xmlDesc{string, required field}, specifies the
+      algorithm to be used.
+      %
+      Based on the chosen algorithm, other nodes may be defined:
+      \begin{itemize}
+        \item \xmlNode{algorithmType}\texttt{full}\xmlNode{algorithmType/}. Full factorial design.
+          If \texttt{full} is specified, no additional nodes are necessary.
+          \\
+          \nb The full factorial design does not have any limitations on the
+          number of discretization bins that can be used in the \xmlNode{grid}
+          XML node for each \xmlNode{variable} specified.
+        \item \xmlNode{algorithmType}\texttt{2levelFract}\xmlNode{algorithmType/}. Two-level
+          Fractional-Factorial design.
+          %
+          If \\\texttt{2levelFract}  is specified, the following additional
+          nodes must be specified:
+          \begin{itemize}
+            \item \xmlNode{gen}, \xmlDesc{space separated strings, required
+              field}, specifies the confounding mapping.
+              %
+              For instance, in this block the user defines the decisions on a
+              fraction of the full-factorial by allowing some of the factor main
+              effects to be compounded with other factor interaction effects.
+              %\maljdan{compounded?} \alfoa{Right Dan.}
+              %
+              This is done by defining an alias structure that defines,
+              symbolically, these interactions.
+              %
+              These alias structures are written like “C = AB” or “I = ABC”, or
+              “AB = CD”, etc.
+              %
+              These define how a column is related to the others.
+            \item \xmlNode{genMap}, \xmlDesc{space separated strings, required
+              field}, defines the mapping between the \xmlNode{gen} symbolic
+              aliases and the variables that have been inputted in the
+              \xmlNode{FactorialDesign} main block.
+          \end{itemize}
+          \nb The Two-levels Fractional-Factorial design is limited to 2
+          discretization bins in the \xmlNode{grid} node for each
+          \xmlNode{variable}.
+       \item \xmlNode{algorithmType}\texttt{pb}\xmlNode{algorithmType/}. Plackett-Burman design.
+         If \texttt{pb} is specified, no additional nodes are necessary.
+         \\
+         \nb The Plackett-Burman design does not have any limitations on the
+         number of discretization bins allowed in the \xmlNode{grid} node for
+         each \xmlNode{variable}.
+      \end{itemize}
+
+  \end{itemize}
+Example:
+\begin{lstlisting}[style=XML,morekeywords={construction,upperBound,steps}]
+<Samplers>
+  ...
+  <FactorialDesign name='fullFactorial'>
+    <FactorialSettings>
+      <algorithmType>full</algorithmType>
+    </FactorialSettings>
+    <variable name='var1' >
+      <distribution>aDistributionNameDefinedInDistributionBlock1
+      </distribution>
+      <grid type='value' construction='custom' >0.02 0.03 0.5</grid>
+    </variable>
+    <variable name='var2' >
+      <distribution>aDistributionNameDefinedInDistributionBlock2
+      </distribution>
+      <grid type='CDF' construction='custom'>0.5 0.7 1.0</grid>
+    </variable>
+  </FactorialDesign>
+  <FactorialDesign name='2levelFractFactorial'>
+    <FactorialSettings>
+      <algorithmType>2levelFract</algorithmType>
+      <gen>a,b,ab</gen>
+      <genMap>var1,var2,var3</genMap>
+    </FactorialSettings>
+    <variable name='var1' >
+      <distribution>aDistributionNameDefinedInDistributionBlock3
+      </distribution>
+      <grid type='value' construction='custom' >0.02 0.5</grid>
+    </variable>
+    <variable name='var2' >
+      <distribution>aDistributionNameDefinedInDistributionBlock
+      </distribution>
+      <grid type='CDF' construction='custom'>0.5 1.0</grid>
+    </variable>
+    <variable name='var3'>
+      <distribution>aDistributionNameDefinedInDistributionBlock5
+      </distribution>
+      <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
+    </variable>
+  </FactorialDesign>
+  <FactorialDesign name='pbFactorial'>
+    <FactorialSettings>
+      <algorithmType>pb</algorithmType>
+    </FactorialSettings>
+    <variable name='var1' >
+      <distribution>aDistributionNameDefinedInDistributionBlock6
+      </distribution>
+      <grid type='value' construction='custom' >0.02 0.5</grid>
+    </variable>
+    <variable name='VarGauss2' >
+      <distribution>aDistributionNameDefinedInDistributionBlock7
+      </distribution>
+      <grid type='CDF' construction='custom'>0.5 1.0</grid>
+    </variable>
+  </FactorialDesign>
+  ...
+</Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Dynamic Event Tree Samplers %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dynamic Event Tree (DET) Samplers}
+\label{subsec:DETSamplers}
+The \textbf{Dynamic Event Tree} methodologies are designed to take the timing of
+events explicitly into account, which can become very important especially when
+uncertainties in complex phenomena are considered.
+%
+Hence, the main idea of this methodology is to let a system code determine the
+pathway of an accident scenario within a probabilistic environment.
+%
+In this family of methods, a continuous monitoring of the system evolution in
+the phase space is needed.
+%
+In order to use the DET-based methods, the generic driven code needs to have, at
+least, an internal trigger system and, consequently, a ``restart'' capability.
+%
+In the RAVEN framework, 4 different DET samplers are available:
+\begin{itemize}
+\item \textbf{Dynamic Event Tree (DET)}
+\item \textbf{Hybrid Dynamic Event Tree (HDET)}
+\item \textbf{Adaptive Dynamic Event Tree (ADET)}
+\item \textbf{Adaptive Hybrid Dynamic Event Tree (AHDET)}
+\end{itemize}
+
+The ADET and the AHDET methodologies represent a hybrid between the DET/HDET and adaptive sampling
+approaches.
+%
+For this reason, its input requirements are reported in the Adaptive Samplers'
+section (\ref{subsec:AdaptSamplers}).
+
+%%%%%%%%% Dynamic Event Tree Samplers: Dynamic Event Tree
+\subsubsection{Dynamic Event Tree}
+\label{subsubsubsec:DET}
+The \textbf{Dynamic Event Tree} sampling approach is a sampling strategy that is
+designed to take the timing of events, in transient/accident scenarios,
+explicitly into account.
+%
+From an application point of view, an $N$-Dimensional grid is built on the CDF
+space.
+%
+A single simulation is spawned and a set of triggers is added to the system code
+control logic.
+%
+Every time a trigger is activated (one of the CDF thresholds in the grid is
+exceeded), a new set of simulations (branches) is spawned.
+%
+Each branch carries its conditional probability.
+%
+In the RAVEN code, the triggers are defined by specifying a grid using a
+predefined discretization metric in the mode input space.
+%
+RAVEN provides two discretization metrics: 1) CDF, and 2) value.
+%
+Thus, the trigger thresholds can be entered either in probability or value
+space.
+%
+
+\specBlock{a}{DynamicEventTree}
+%
+\attrsIntro
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
+    controls the dumping of a ``summary'' of the DET performed into an external
+    XML.
+    %
+    \default{False}.
+  \item \xmlAttr{maxSimulationTime}, \xmlDesc{optional float attribute}, this
+    attribute controls the maximum ``mission'' time of the simulation
+    underneath.
+    %
+    \default{None}.
+\end{itemize}
+\variableIntro{DynamicEventTree}
+\begin{itemize}
+\item \variableDescription
+  \variableChildrenIntro
+  \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+    \item \gridDescription
+  \end{itemize}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+  <DynamicEventTree name='DETname'>
+    <variable name='var1'>
+      <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution>
+      <grid type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid>
+    </variable>
+    <variable name='var2'>
+      <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution>
+      <grid type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>
+    </variable>
+    <variable name='var3'>
+      <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
+      <grid type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>
+    </variable>
+    <variable name='var4'>
+      <distribution>aDistributionNameDefinedInDistributionBlock4 </distribution>
+      <grid type='CDF' construction='equal' steps='5' upperBound='1.0'>0.2</grid>
+    </variable>
+    <variable name='var5'>
+      <distribution>aDistributionNameDefinedInDistributionBlock5 </distribution>
+      <grid type='value' construction='custom'>0.2 0.5 10.0</grid>
+    </variable>
+    <variable name='var6'>
+      <distribution>aDistributionNameDefinedInDistributionBlock6 </distribution>
+      <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
+    </variable>
+  </DynamicEventTree>
+  ...
+</Samplers>
+\end{lstlisting}
+
+%%%%%%%%% Dynamic Event Tree Samplers: Hybrid Dynamic Event Tree
+\subsubsection{Hybrid Dynamic Event Tree}
+\label{subsubsubsec:HDET}
+The \textbf{Hybrid Dynamic Event Tree} sampling approach is a sampling strategy
+that represents an evolution of the Dynamic Event Tree method for the
+simultaneous exploration of the epistemic and aleatory uncertain space.
+%
+In similar approaches, the uncertainties are generally treated by employing a
+Monte-Carlo sampling approach (epistemic) and DET methodology (aleatory).
+%
+The HDET methodology, developed within the RAVEN code, can reproduce the
+capabilities employed by this approach, but provides additional sampling
+strategies to the user.
+%
+The epistemic or epistemic-like uncertainties can be sampled through the
+following strategies:
+
+\begin{itemize}
+  \item Monte-Carlo;
+  \item Grid sampling;
+  \item Stratified (e.g., Latin Hyper Cube).
+\end{itemize}
+
+From a practical point of view, the user defines the parameters that need to be
+sampled by one or more different approaches.
+%
+The HDET module samples those parameters creating an $N$-dimensional grid
+characterized by all the possible combinations of the input space coordinates
+coming from the different sampling strategies.
+%
+Each coordinate in the input space represents a separate and parallel standard
+DET exploration of the uncertain domain.
+%
+The HDET methodology allows the user to explore the uncertain domain
+employing the best approach for each variable kind.
+%
+The addition of a grid sampling strategy among the usable approaches allows the
+user to perform a discrete parametric study under aleatory and epistemic
+uncertainties.
+
+Regarding the input requirements, the HDET sampler is a ``sub-type'' of the\\
+\xmlNode{DynamicEventTree} sampler.
+%
+For this reason, its specifications must be defined within a
+\xmlNode{DynamicEventTree} block.
+%
+\attrsIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
+    controls the dumping of a ``summary'' of the DET performed into an external
+    XML.
+    %
+    \default{False}.
+  \item \xmlAttr{maxSimulationTime}, \xmlDesc{optional float attribute}, this
+    attribute controls the maximum ``mission'' time of the simulation
+    underneath.
+    %
+    \default{None}.
+\end{itemize}
+
+\variableIntro{DynamicEventTree}
+
+\begin{itemize}
+  \item \variableDescription
+  \variableChildrenIntro
+  \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+    \item \gridDescription
+  \end{itemize}
+\end{itemize}
+
+In order to activate the \textbf{Hybrid Dynamic Event Tree}  sampler, the main
+\xmlNode{DynamicEventTree} block needs to contain, at least, an additional
+sub-node called \xmlNode{HybridSampler}.
+%
+As already mentioned, the user can combine the Monte-Carlo, Stratified, and Grid
+approaches in order to create a ``pre-sampling'' $N$-dimensional grid, from
+whose nodes a standard DET method is employed.
+%
+For this reason, the user can specify a maximum of three
+\xmlNode{HybridSampler} sub-nodes (i.e. one for each of the available
+Forward samplers).
+%
+This sub-node needs to contain the following attribute:
+\begin{itemize}
+  \item \xmlAttr{type}, \xmlDesc{required string attribute}, type of
+    pre-sampling strategy to be used.
+    %
+    Available options are \xmlString{MonteCarlo}, \xmlString{Grid}, and
+    \xmlString{Stratified}.
+ \end{itemize}
+
+Independent of the type of ``pre-sampler'' that has been specified, the
+\xmlNode{HybridSampler} must contain the variables that need to be sampled.
+%
+As already mentioned, these variables are specified within consecutive
+\xmlNode{variable} XML blocks:
+
+\begin{itemize}
+  \item \variableDescription
+    \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+      \item \functionDescription
+    \end{itemize}
+ \end{itemize}
+
+If a pre-sampling strategy \xmlAttr{type} is either \xmlString{Grid} or
+\xmlString{Stratified}, within the \xmlNode{variable} blocks, the user needs to
+specify the sub-node \xmlNode{grid}.
+%
+As with the standard DET, the content of this XML node depends on the definition
+of the associated attributes:
+\begin{itemize}
+\itemsep0em
+\item \xmlAttr{type}, \xmlDesc{required string attribute}, user-defined
+  discretization metric type:
+  \begin{itemize}
+    \item \xmlString{CDF}, the grid is going to be specified based on the
+      cumulative distribution function probability thresholds
+    \item \xmlString{value}, the grid is going to be provided using variable
+      values.
+  \end{itemize}
+  \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how the
+    grid needs to be constructed, independent of its type (i.e. \xmlString{CDF}
+    or \xmlString{value}).
+\end{itemize}
+\constructionGridDescription
+
+Example:
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+  <DynamicEventTree name='HybridDETname' print_end_XML="True">
+    <HybridSampler type='MonteCarlo' limit='2'>
+      <variable name='var1' >
+        <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution>
+      </variable>
+      <variable name='var2' >
+        <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution>
+        <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
+      </variable>
+    </HybridSampler>
+    <HybridSampler type='Grid'>
+      <!-- Point sampler way (directly sampling the variable) -->
+      <variable name='var3' >
+        <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
+        <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
+      </variable>
+      <variable name='var4' >
+        <distribution>aDistributionNameDefinedInDistributionBlock4 </distribution>
+        <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
+      </variable>
+    </HybridSampler>
+    <HybridSampler type='Stratified'>
+      <!-- Point sampler way (directly sampling the variable ) -->
+      <variable name='var5' >
+        <distribution>aDistributionNameDefinedInDistributionBlock5 </distribution>
+        <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
+      </variable>
+      <variable name='var6' >
+        <distribution>aDistributionNameDefinedInDistributionBlock6 </distribution>
+        <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
+      </variable>
+    </HybridSampler>
+    <!-- DYNAMIC EVENT TREE INPUT (it goes outside an inner block like HybridSamplerSettings) -->
+      <Distribution name='dist7'>
+        <distribution>aDistributionNameDefinedInDistributionBlock7 </distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+      </Distribution>
+  </DynamicEventTree>
+  ...
+</Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Adaptive Samplers %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Adaptive Samplers}
+\label{subsec:AdaptSamplers}
+The Adaptive Samplers' family provides the possibility to perform smart sampling
+(also known as adaptive sampling) as an alternative to classical “Forward”
+techniques.
+%
+The motivation is that system simulations are often computationally expensive,
+time-consuming, and high dimensional with respect to the number of input
+parameters.
+%
+Thus, exploring the space of all possible simulation outcomes is infeasible
+using finite computing resources.
+%
+During simulation-based probabilistic risk analysis, it is important to discover
+the relationship between a potentially large number of input parameters and the
+output of a simulation using as few simulation trials as possible.
+
+The description above characterizes a typical context for performing adaptive
+sampling where a few observations are obtained from the simulation, a reduced
+order model (ROM) is built to represent the simulation space, and new samples
+are selected based on the model constructed.
+%
+The reduced order model (see section \ref{subsec:models_ROM}) is then updated
+based on the simulation results of the sampled points.
+%
+In this way, an attempt is made to gain the most information possible with a
+small number of carefully selected sample points, limiting the number of
+expensive trials needed to understand features of the system space.
+%
+
+Currently, RAVEN provides support for the following adaptive algorithms:
+
+\begin{itemize}
+  \item Limit Surface Search
+  \item Adaptive Dynamic Event Tree
+  \item Adaptive Hybrid Dynamic Event Tree
+  \item Adaptive Sparse Grid
+  \item Adaptive Sobol Decomposition
+\end{itemize}
+
+In the following paragraphs, the input requirements and a small explanation of
+the different sampling methods are reported.
+
+%%% Adaptive Samplers: Adaptive Sampling for Limit Surface search
+\subsubsection{Limit Surface Search}
+\label{subsubsubsec:LimitSurfaceSearch}
+The \textbf{Limit Surface Search} approach is an advanced methodology that employs
+a smart sampling around transition zones that determine a change in the status
+of the system (limit surface).
+%
+To perform such sampling, RAVEN uses ROMs for predicting, in the input space,
+the location(s) of these transitions, in order to accelerate the exploration of
+the input space in proximity of the limit surface.
+%
+
+\specBlock{an}{LimitSurfaceSearch}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+
+\variableIntro{LimitSurfaceSearch}
+
+\begin{itemize}
+    \item \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+      \item \functionDescription
+    \end{itemize}
+\end{itemize}
+
+In addition to the \xmlNode{variable} nodes, the main XML node
+\xmlNode{Adaptive} needs to contain two supplementary sub-nodes:
+
+\begin{itemize}
+  \item \convergenceDescription
+  \item \xmlNode{batchStrategy}, \xmlDesc{string, optional field}, defines how
+    points should be selected within a batch of size $n$ where $n$ is given by
+    the \xmlNode{maxBatchSize} parameter below.
+    Four options are available:
+    \begin{itemize}
+       \item \xmlString{none} If this is specified then the
+       \xmlNode{maxBatchSize} parameter below will be ignored and the
+       functionality will replicate the LimitSurfaceSearch, in that the limit
+       surface will be rebuilt and the points will be re-scored after each trial
+       is completed.
+       \item \xmlString{naive} The top $n$ candidates will be queued for
+       adaptive sampling before retraining the limit surface and re-scoring the
+       new candidate set.
+       \item \xmlString{maxP} The topology of the limit surface given the
+       scoring function values will be decomposed and the top $n$ highest
+       topologically persistent features (local maxima) will be queued for
+       adaptive sampling before retraining and re-scoring the new candidate set.
+       \item \xmlString{maxV} The topology of the limit surface given the
+       scoring function values will be decomposed and the top $n$ highest
+       topological features (local maxima) will be queued for adaptive sampling
+       before retraining and re-scoring the new candidate set.
+    \end{itemize}
+  \default{none}.
+  \item \xmlNode{maxBatchSize}, \xmlDesc{integer, optional field}, specifies
+  the number of points to select for adaptive sampling before retraining the
+  limit surface and re-scoring the candidates. This is the equivalent of the
+  $n$ parameter used in the \xmlNode{batchStrategy} description.
+  \default{1}.
+  \item \xmlNode{scoring}, \xmlDesc{string, optional field}, defines the scoring
+    function to use on the candidate limit surface points in order to select the
+    next adaptive point.
+    Two options are available:
+    \begin{itemize}
+       \item \xmlString{distance} will scoring the candidate points by their
+       distance to the closest realized point, in this way preference is given
+       to unexplored regions of the limit surface.
+       \item \xmlString{distancePersistence} augments the distance above by
+       multiplying it with the inverse persistence of a candidate point which
+       measures how many times the label of the candidate point has changed
+       throughout the lifespan of the algorithm.
+    \end{itemize}
+  \default{distancePersistence}.
+  \item \xmlNode{simplification}, \xmlDesc{float in the range [0,1], optional
+  field}, specifies the percent of the scoring function range (on the candidate
+  set) as the amount of topological simplification to do before extracting the
+  topological features from the candidate set (local maxima). This only applies
+  when the \xmlNode{batchStrategy} is set to \xmlString{maxP} or
+  \xmlString{maxV}. Thus, one may end up with a batch size less than that
+  specified by \xmlNode{maxBatchSize}.
+  \default{0}.
+  \item \xmlNode{thickness}, \xmlDesc{positive integer, optional field},
+  specifies how much the limit surface should be expanded (in terms of grid
+  distance) when constructing a candidate set. A value of 1 implies only the
+  points bounding the limit surface.
+  \default{1}.
+  \item \xmlNode{threshold}, \xmlDesc{float in the range [0,1], optional field},
+  once the candidates have been ranked and selected, before queueing them for
+  adaptive sampling, this value is used to threshold any points whose score is
+  less than this percentage of the scoring function range (on the candidate
+  set). Thus, one may end up with a batch size less than that specified by
+  \xmlNode{maxBatchSize}.
+  \default{0}
+  % Limit Surface Search Objects
+  \item \assemblerDescription{LimitSurfaceSearch}
+    \begin{itemize}
+      \item \xmlNode{Function}, \xmlDesc{string, required field},  the
+        body of this XML block needs to contain the name of an external
+        function object defined within the \xmlNode{Functions} main block (see
+        Section~\ref{sec:functions}).
+        %
+        This object represents the boolean function that defines the transition
+        boundaries.
+        %
+        This function must implement a method called
+        \texttt{\_\_residuumSign(self)}, that returns either -1 or 1, depending
+        on the system conditions (see Section \ref{sec:functions}.
+      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
+        body of this XML node must contain the name of a ROM defined in the
+        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM
+        here specified is going to be used as ``acceleration model'' to speed up the
+        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM
+        input block (within the \xmlNode{Models} section) needs to match the name of the goal
+        \xmlNode{Function} (e.g. if the goal function is named ``transitionIdentifier'', the \xmlNode{Target} of the
+        ROM needs to report the same name: \xmlNode{Target}\textbf{transitionIdentifier}\xmlNode{Target}).
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The Limit Surface Search sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
+    \end{itemize}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
+<Samplers>
+  ...
+  <LimitSurfaceSearch name='LSSName'>
+    <ROM class='Models' type='ROM'>ROMname</ROM>
+    <Function class='Functions' type='External' >FunctionName</Function>
+    <TargetEvaluation class='DataObjects' type='PointSet'>DataName</TargetEvaluation>
+    <Convergence limit='3000'  forceIteration='False' weight='CDF'  subGridTol='1e-4' persistence='5'>
+      1e-2
+    </Convergence>
+    <variable name='var1'>
+      <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution>
+    </variable>
+    <variable name='var2'>
+      <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution>
+    </variable>
+    <variable name='var3'>
+      <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
+    </variable>
+  </LimitSurfaceSearch>
+  ...
+</Samplers>
+\end{lstlisting}
+
+Batch sampling Example:
+\begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
+<Samplers>
+  ...
+  <LimitSurfaceSearch name='LSBSName'>
+    <ROM class='Models' type='ROM'>ROMname</ROM>
+    <Function class='Functions' type='External' >FunctionName</Function>
+    <TargetEvaluation class='DataObjects' type='PointSet'>DataName</TargetEvaluation>
+    <Convergence limit='3000'  forceIteration='False' weight='CDF'  subGridTol='1e-4' persistence='5'>
+      1e-2
+    </Convergence>
+    <scoring>distancePersistence</scoring>
+    <batchStrategy>maxP</batchStrategy>
+    <thickness>1</thickness>
+    <maxBatchSize>4</maxBatchSize>
+    <variable name='var1'>
+      <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution>
+    </variable>
+    <variable name='var2'>
+      <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution>
+    </variable>
+    <variable name='var3'>
+      <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
+    </variable>
+  </LimitSurfaceSearch>
+  ...
+</Samplers>
+\end{lstlisting}
+
+Associated External Python Module:
+\begin{lstlisting}[language=python]
+def __residuumSign(self):
+  if self.whatEverValue < self.OtherValue :
+    return  1
+  else:
+    return -1
+\end{lstlisting}
+
+%%% Adaptive Samplers: ADET
+\subsubsection{Adaptive Dynamic Event Tree}
+\label{subsubsubsec:ADET}
+The \textbf{Adaptive Dynamic Event Tree} approach is an advanced methodology
+employing a smart sampling around transition zones that determine a change in
+the status of the system (limit surface), using the support of a Dynamic Event
+Tree methodology.
+%
+The main idea of the application of the previously explained adaptive sampling
+approach to the DET comes from the observation that the DET, when evaluated from
+a limit surface perspective, is intrinsically adaptive.
+%
+For this reason, it appears natural to use the DET approach to perform a
+goal-function oriented pre-sampling of the input space.
+
+RAVEN uses ROMs for predicting, in the input space,
+the location(s) of these transitions, in order to accelerate the exploration of
+the input space in proximity of the limit surface.
+
+\specBlock{an}{AdaptiveDynamicEventTree}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
+    this attribute controls the dumping of a ``summary'' of the DET performed in
+    to an external XML.
+    %
+    \default{False}.
+  \item \xmlAttr{maxSimulationTime}, \xmlDesc{optional float attribute}, this
+    attribute controls the maximum ``mission'' time of the simulation
+    underneath.
+    %
+    \default{None}.
+  \item \xmlAttr{mode}, \xmlDesc{optional string attribute}, controls when the
+    adaptive search needs to begin.
+    %
+    Two options are available:
+    \begin{itemize}
+       \item \xmlString{post}, if this option is activated, the sampler first
+         performs a standard Dynamic Event Tree analysis. At end of it, it uses
+         the outcomes to start the adaptive search in conjunction with the DET
+         support.
+       \item \xmlString{online}, if this option is activated, the adaptive
+         search starts at the beginning, during the initial standard Dynamic
+         Event Tree analysis.
+         %
+         Whenever a transition is detected, the
+         \textbf{Adaptive Dynamic Event Tree} starts its goal-oriented search
+         using the DET as support;
+    \end{itemize}
+      \default{post}.
+  \item \xmlAttr{updateGrid}, \xmlDesc{optional boolean attribute}, if true,
+    each adaptive request is going to update the meshing of the initial DET
+    grid.
+    %
+    \default{True}.
+\end{itemize}
+\variableIntro{AdaptiveDynamicEventTree}
+\begin{itemize}
+\item \variableDescription
+  \variableChildrenIntro
+ \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+    \item \gridDescription
+  \end{itemize}
+\end{itemize}
+
+ In addition to the \xmlNode{variable} nodes, the main
+\xmlNode{AdaptiveDynamicEventTree} node needs to contain two supplementary
+sub-nodes:
+
+\begin{itemize}
+  \item \convergenceDescription
+  % Assembler Objects
+  \item \assemblerDescription{AdaptiveDynamicEventTree}
+    \begin{itemize}
+      \item \xmlNode{Function}, \xmlDesc{string, required field},  the
+        body of this XML block needs to contain the name of an external
+        function object defined within the \xmlNode{Functions} main block (see
+        Section~\ref{sec:functions}).
+        %
+        This object represents the boolean function that defines the transition
+        boundaries.
+        %
+        This function must implement a method called
+        \texttt{\_\_residuumSign(self)}, that returns either -1 or 1, depending
+        on the system conditions (see Section \ref{sec:functions}.
+      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
+        body of this XML node must contain the name of a ROM defined in the
+        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM
+        here specified is going to be used as ``acceleration model'' to speed up the
+        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM
+        input block (within the \xmlNode{Models} section) needs to match the name of the goal
+        \xmlNode{Function} (e.g. if the goal function is named ``transitionIdentifier'', the \xmlNode{Target} of the
+        ROM needs to report the same name: \xmlNode{Target}\textbf{transitionIdentifier}\xmlNode{Target}).
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The adaptive sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
+    \end{itemize}
+\end{itemize}
+
+
+Example:
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+  <AdaptiveDynamicEventTree name = 'AdaptiveName'>
+    <ROM class = 'Models' type = 'ROM'ROMname</ROM>
+    <Function class = 'Functions' type = 'External'>FunctionName</Function>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>DataName</TargetEvaluation>
+    <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'CDF' subGriTol='''1e-5' persistence = '5'>
+      1e-2
+    </Convergence>
+    <variable name = 'var1'>
+        <distribution>
+         aDistributionNameDefinedInDistributionBlock1
+        </distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+    </variable>
+    <variable name = 'var2'>
+        <distribution>
+          aDistributionNameDefinedInDistributionBlock2
+        </distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+    </variable>
+    <variable name = 'var3'>
+        <distribution>
+          aDistributionNameDefinedInDistributionBlock3
+        </distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+    </variable>
+  </AdaptiveDynamicEventTree>
+  ...
+</Samplers>
+\end{lstlisting}
+
+Associated External Python Module:
+\begin{lstlisting}[language=python]
+def __residuumSign(self):
+  if self.whatEverValue < self.OtherValue:
+    return  1
+  else:
+    return -1
+\end{lstlisting}
+
+
+%%% Adaptive Samplers: AHDET
+\subsubsection{Adaptive Hybrid Dynamic Event Tree}
+\label{subsubsubsec:AHDET}
+The \textbf{Adaptive Hybrid Dynamic Event Tree} approach is an advanced methodology
+employing a smart sampling around transition zones that determine a change in
+the status of the system (limit surface), using the support of the Hybrid Dynamic Event
+Tree methodology. Practically, this methodology represents a conjunction between the previously
+described Adaptive DET and the Hybrid DET method for the treatment of the epistemic variables.
+
+Regarding the input requirements, the AHDET sampler is a ``sub-type'' of the\\
+\xmlNode{AdaptiveDynamicEventTree} sampler.
+%
+For this reason, its specifications must be defined within a
+\xmlNode{AdaptiveDynamicEventTree} block.
+
+\specBlock{an}{AdaptiveDynamicEventTree}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
+    this attribute controls the dumping of a ``summary'' of the DET performed in
+    to an external XML.
+    %
+    \default{False}.
+  \item \xmlAttr{maxSimulationTime}, \xmlDesc{optional float attribute}, this
+    attribute controls the maximum ``mission'' time of the simulation
+    underneath.
+    %
+    \default{None}.
+  \item \xmlAttr{mode}, \xmlDesc{optional string attribute}, controls when the
+    adaptive search needs to begin.
+    %
+    Two options are available:
+    \begin{itemize}
+       \item \xmlString{post}, if this option is activated, the sampler first
+         performs a standard Dynamic Event Tree analysis. At end of it, it uses
+         the outcomes to start the adaptive search in conjunction with the DET
+         support.
+       \item \xmlString{online}, if this option is activated, the adaptive
+         search starts at the beginning, during the initial standard Dynamic
+         Event Tree analysis.
+         %
+         Whenever a transition is detected, the
+         \textbf{Adaptive Dynamic Event Tree} starts its goal-oriented search
+         using the DET as support;
+    \end{itemize}
+      \default{post}.
+  \item \xmlAttr{updateGrid}, \xmlDesc{optional boolean attribute}, if true,
+    each adaptive request is going to update the meshing of the initial DET
+    grid.
+    %
+    \default{True}.
+\end{itemize}
+
+\variableIntro{AdaptiveDynamicEventTree}
+\begin{itemize}
+\item \variableDescription
+  \variableChildrenIntro
+ \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+    \item \gridDescription
+  \end{itemize}
+\end{itemize}
+
+In addition to the \xmlNode{variable} nodes, the main
+\xmlNode{AdaptiveDynamicEventTree} node needs to contain two supplementary
+sub-nodes:
+
+\begin{itemize}
+  \item \convergenceDescription
+  % Assembler Objects
+  \item \assemblerDescription{AdaptiveDynamicEventTree}
+    \begin{itemize}
+      \item \xmlNode{Function}, \xmlDesc{string, required field},  the
+        body of this XML block needs to contain the name of an external
+        function object defined within the \xmlNode{Functions} main block (see
+        Section~\ref{sec:functions}).
+        %
+        This object represents the boolean function that defines the transition
+        boundaries.
+        %
+        This function must implement a method called
+        \texttt{\_\_residuumSign(self)}, that returns either -1 or 1, depending
+        on the system conditions (see Section \ref{sec:functions}.
+      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
+        body of this XML node must contain the name of a ROM defined in the
+        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}). The ROM
+        here specified is going to be used as ``acceleration model'' to speed up the
+        convergence of the sampling strategy. The \xmlNode{Target} XML node in the ROM
+        input block (within the \xmlNode{Models} section) needs to match the name of the goal
+        \xmlNode{Function} (e.g. if the goal function is named ``transitionIdentifier'', the \xmlNode{Target} of the
+        ROM needs to report the same name: \xmlNode{Target}\textbf{transitionIdentifier}\xmlNode{Target}).
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The adaptive sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
+    \end{itemize}
+\end{itemize}
+
+As it can be noticed, the basic specifications of the Adaptive Hybrid Dynamic Event Tree
+method are consistent with the ones for the ADET methodology.
+In order to activate the \textbf{Adaptive Hybrid Dynamic Event Tree}  sampler, the main
+\xmlNode{AdaptiveDynamicEventTree} block needs to contain an additional
+sub-node called \xmlNode{HybridSampler}.
+This sub-node needs to contain the following attribute:
+\begin{itemize}
+  \item \xmlAttr{type}, \xmlDesc{required string attribute}, type of
+    pre-sampling strategy to be used.
+    %
+    Up to now only one option is available:
+    \begin{itemize}
+      \item \xmlString{LimitSurface}. With this option, the epistemic variables here listed are going to be part of the LS search.
+                                                        This means that the discretization of the domain of these variables is determined by the
+                                                        \xmlNode{Convergece} node.
+    \end{itemize}
+ \end{itemize}
+Independent of the type of HybridSampler that has been specified, the
+\xmlNode{HybridSampler} must contain the variables that need to be sampled.
+%
+As already mentioned, these variables are specified within consecutive
+\xmlNode{variable} XML blocks:
+\begin{itemize}
+  \item \variableDescription
+    \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+      \item \functionDescription
+    \end{itemize}
+ \end{itemize}
+
+
+Example:
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+  <AdaptiveDynamicEventTree name = 'AdaptiveName'>
+    <ROM class = 'Models' type = 'ROM'ROMname</ROM>
+    <Function class = 'Functions' type = 'External'>FunctionName</Function>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>DataName</TargetEvaluation>
+    <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'CDF' subGriTol='''1e-5' persistence = '5'>
+      1e-2
+    </Convergence>
+    <HybridSampler type='LimitSurface'>
+       <variable name = 'epistemicVar1'>
+          <distribution>
+            aDistributionNameDefinedInDistributionBlock1
+          </distribution>
+      </variable>
+       <variable name = 'epistemicVar2'>
+          <distribution>
+            aDistributionNameDefinedInDistributionBlock2
+          </distribution>
+      </variable>
+    </HybridSampler>
+    <variable name = 'var1'>
+        <distribution>
+         aDistributionNameDefinedInDistributionBlock3
+        </distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+    </variable>
+    <variable name = 'var2'>
+        <distribution>
+          aDistributionNameDefinedInDistributionBlock4
+        </distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+    </variable>
+    <variable name = 'var3'>
+        <distribution>
+          aDistributionNameDefinedInDistributionBlock5
+        </distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+    </variable>
+
+  </AdaptiveDynamicEventTree>
+  ...
+</Samplers>
+\end{lstlisting}
+
+Associated External Python Module:
+\begin{lstlisting}[language=python]
+def __residuumSign(self):
+  if self.whatEverValue < self.OtherValue:
+    return  1
+  else:
+    return -1
+\end{lstlisting}
+
+
+%%% Adaptive Samplers: Adaptive Sparse Grid Collocation
+\subsubsection{Adaptive Sparse Grid}
+\label{subsubsubsec:AdaptiveSparseGrid}
+The \textbf{Adaptive Sparse Grid} approach is an advanced methodology that employs
+an intelligent search for the most suitable sparse grid quadrature to characterize a model.
+%
+To perform such sampling, RAVEN adaptively builds an index set and generates sparse grids
+in a similar manner to Sparse Grid Collocation samplers.  In each iterative step, the adaptive
+index set determines the next possible quadrature orders to add in each dimension, and
+determines the index set point that would offer the largest impact to one of the convergence
+metrics.  This process continues until the total impact of all the potential index set points is
+less than tolerance.  For many models, this function converges after fewer runs than a traditional
+Sparse Grid Collocation sampling.  However, it should be noted that this algorithm fails
+in the event that the partial derivative of the response surface with respect to any single
+input dimension is zero at the origin of the input domain.  For example, the adaptive
+algorithm fails for the model $f(x)=x\cdot y$.
+%
+
+\specBlock{an}{Adaptive Sparse Grid}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+
+\variableIntro{Adaptive Sparse Grid}
+
+\begin{itemize}
+  \item \variableDescription
+    \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+    \item \functionDescription
+    \end{itemize}
+\end{itemize}
+
+In addition to the \xmlNode{variable} nodes, the main XML node
+\xmlNode{AdaptiveSparseGrid} needs to contain the following supplementary sub-nodes:
+
+\begin{itemize}
+  \item \xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence
+    tolerance.
+    %
+    The meaning of this tolerance depends on the \xmlAttr{target} attribute of this node.
+    \begin{itemize}
+      \item \xmlAttr{target}, \xmlDesc{required string attribute}, the metric for convergence.
+        The following metrics are available: \xmlString{variance}, which
+        converges the sparse quadrature integration of the second moment of the model.%; and
+        %\xmlString{coeffs}, which integrates the L2 norm of the coefficients of the polynomial
+        %moments from a GaussPolynomialRom construction using the sparse grid.
+        %
+      \item \xmlAttr{maxPolyOrder}, \xmlDesc{optional integer attribute},
+        limits the maximum size equivalent polynomial for any one dimension.
+        %
+        \default{10}.
+      \item \xmlAttr{persistence}, \xmlDesc{optional integer attribute}, defines the number of
+        index set points that are required to be found before calculation can exit.  Setting this to a higher
+        value can help if the adaptive process is not finding significant indices on its own.
+        %
+        \default{2}.
+    \end{itemize}
+    In summary, this XML node contains the information that is needed in order
+    to control this sampler's convergence criterion.
+  \item \xmlNode{convergenceStudy}, \xmlDesc{optional node},
+    if included, triggers writing state points at particular numbers of model solves for the purpose of
+    a convergence study.  The study is performed by writing XML output files as described in the
+    OutStreamManager for ROMs at the state points requested, using \xmlString{all} as the requested
+    \xmlNode{what} values.
+    The state points are identified when a certain
+    number of model runs is passed, as specified by the \xmlNode{runStatePoints} node.
+    This node has the following sub-nodes to define its parameters:
+    \begin{itemize}
+      \item \xmlNode{runStatePoints}, \xmlDesc{list of integers, required node},
+        lists the number of model runs at which state points should be written. Note that these will be
+        written when the requested number of runs is met or passed, so the actual value is often somewhat more
+        than the requested value, and the exact value will be listed in the XML output.
+      \item \xmlNode{baseFilename}, \xmlDesc{string, optional node},
+        if specified determines the base file name for the state point outputs.  If not specified, defaults to
+        \xmlString{out\_}.
+    \end{itemize}
+  \item \xmlNode{logFile}, \xmlDesc{optional node},
+    if included, the log file onto which the adaptive step progress can be printed.  The log includes the
+    values of included polynomial coefficients as well as the expected impacts of polynomial coefficients not
+    yet included.  This is different from
+    the convergenceStudy print, which will give statistical moments at certain steps.
+  \item \xmlNode{maxRuns}, \xmlDesc{optional node},
+    if included, the adaptive sampler will track the number of computational solves necessary to construct the
+    associated GaussPolynomialROM.  If at any point the number of solves exceeds the value given, it will not
+    initiate any additional solves, and will exit when existing solves finish.
+\end{itemize}
+  % Adaptive Sparse Grid Objects
+  %\assemblerDescription{Adaptive Sparse Grid}
+  %\ROMDescription{Adaptive Sparse Grid}
+  \assemblerDescription{Adaptive Sparse Grid}
+       \ROMDescription{Adaptive Sparse Grid}
+        %
+        \begin{itemize}
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The Adaptive Sparse Grid sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
+   % \end{itemize}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
+<Samplers>
+  ...
+  <AdaptiveSparseGrid name="ASG" verbosity='debug'>
+    <Convergence target='coeffs'>1e-2</Convergence>
+    <variable name="x1">
+      <distribution>UniDist</distribution>
+    </variable>
+    <variable name="x2">
+      <distribution>UniDist</distribution>
+    </variable>
+    <ROM class = 'Models' type = 'ROM'>gausspolyrom</ROM>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
+  </AdaptiveSparseGrid>
+  ...
+</Samplers>
+\end{lstlisting}
+
+Like in the \textbf{SparseGridCollocation} sampler, if the covariance matrix is provided 
+and the input parameters are assumed to have the multivariate normal distribution, the \textbf{AdaptiveSparseGrid} can be also used.
+This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is 
+the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} 
+of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node 
+\xmlNode{variablesTransformation} is also required for \textbf{AdaptiveSparseGrid} sampler. This node is used to tranform 
+the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by 
+\xmlNode{manifestVariables} in the input space. The variables listed in \xmlNode{latentVariables} should be predefined 
+in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables} 
+are used by the \xmlNode{Models}.
+
+\variablesTransformationDescription{AdaptiveSparseGrid}
+
+
+\begin{lstlisting}[style=XML,morekeywords={ND,grid}]
+...
+<Models>
+    ...
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
+        <variable>sigma</variable>
+        <variable>rho</variable>
+        <variable>beta</variable>
+        <variable>x</variable>
+        <variable>y</variable>
+        <variable>z</variable>
+        <variable>time</variable>
+        <variable>x0</variable>
+        <variable>y0</variable>
+        <variable>z0</variable>
+    </ExternalModel>
+    <ROM name="gausspolyrom" subType="GaussPolynomialRom">
+        <Target>ans</Target>
+        <Features>x1,y1,z1</Features>
+        <IndexSet>TensorProduct</IndexSet>
+        <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
+    ...
+</Models>
+
+<Distributions>
+    ...
+    <MultivariateNormal name='MVNDist' method='pca'>
+        <transformation>
+            <rank>3</rank>
+        </transformation>
+        <mu>0.0 1.0 2.0</mu>
+        <covariance type="abs">
+            1.0       0.6      -0.4
+            0.6       1.0      0.2
+            -0.4      0.2      0.8
+        </covariance>
+    </MultivariateNormal>
+    ...
+</Distributions>
+
+<Samplers>
+  ...
+  <AdaptiveSparseGrid name='ASC'>
+        <variable name='x0'>
+            <distribution dim='1'>MVNDist</distribution>
+        </variable>
+        <variable name='y0'>
+            <distribution dim='2'>MVNDist</distribution>
+        </variable>
+        <variable name='z0'>
+            <distribution dim='3'>MVNDist</distribution>
+        </variable>
+        <variablesTransformation model="PythonModule">
+            <latentVariables>x1,y1,z1</latentVariables>
+            <manifestVariables>x0,y0,z0</manifestVariables>
+            <method>pca</method>
+        </variablesTransformation>
+        <ROM class = 'Models' type = 'ROM'>gausspolyrom</ROM>
+        <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
+  </AdaptiveSparseGrid>
+  ...
+</Samplers>
+...
+\end{lstlisting}
+
+\subsubsection{Adaptive Sobol Decomposition}
+\label{subsubsubsec:AdaptiveSobol}
+The \textbf{Adaptive Sobol Decomposition} approach is an advanced methodology that decomposes an uncertainty
+space into subsets and adaptively includes the most influential ones.  For example, for a response function
+$f(a,b,c)$, the full list of subsets include $(a), (b), (c), (a,b), (a,c), (b,c), (a,b,c)$.  A Gauss Polynomial ROM is
+constructed for each included subset using the Adaptive Sparse Grid sampler.  The importance of each subset is
+estimated based on the importance of preceding subsets; that is, the impact of $(a,b)$ on the representation
+of $f$ is estimated using the impact of $(a)$ and $(b)$.  Because of the excellent performance of Gauss
+Polynomial ROMs for small-dimension spaces, this sampler used to construct an HDMR ROM can be very efficient.
+Note that the ROM specified for this sampler \emph{must} be an HDMRRom specified in the Models block.
+%
+
+\specBlock{an}{Adaptive Sobol}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+
+\variableIntro{Adaptive Sobol}
+
+\begin{itemize}
+  \item \variableDescription
+    \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+    \item \functionDescription
+    \end{itemize}
+\end{itemize}
+
+In addition to the \xmlNode{variable} nodes, the main XML node
+\xmlNode{AdaptiveSobol} needs to contain the following supplementary sub-nodes:
+
+\begin{itemize}
+  \item \xmlNode{Convergence}, \xmlDesc{required node}, Convergence
+    properties.
+    This node contains the following properties that can be set by sub-nodes:
+    %
+    \begin{itemize}
+      \item \xmlNode{relTolerance}, \xmlDesc{required float}, the relative tolerance to converge.
+        This will compare to the estimate of subset polynomial errors and additional subset polynomials over
+        the variance of the expansion so far to determine convergence.
+      \item \xmlNode{maxRuns}, \xmlDesc{optional integer field},
+        a limit for the number of model calls.  Once this limit is reached, no additional subsets
+        will be generated or considered; however, existing subsets will continue to be trained.  If not
+        specified, no limit on solves is imposed.
+      \item \xmlNode{maxSobolOrder}, \xmlDesc{optional integer field},
+        the largest polynomials orders to use in subset GaussPolynomialRom objects.  If specified, polynomial
+        indices with a value larger than the value given will be rejected during adaptive construction.
+      \item \xmlNode{progressParam}, \xmlDesc{optional float field}, a favoritism parameter ranging between
+        0 and 2.  At 0, the algorithm will always prefer adding polynomials to adding new subsets in the HDMR
+        expansion.  At 2, the opposite is true.  Default is 1.
+      \item \xmlNode{logFile}, \xmlDesc{optional string field},
+        a file to which adaptive progress is recorded.  If specified, each adaptive step will trigger printing
+        progress to the file given, including the estimated error at the step, the next adaptive step to take,
+        the coefficient of each polynomial within each gPC expansion, and the actual and expected Sobol
+        sensitivities of each HDMR subset. Default is no printing.
+      \item \xmlNode{subsetVerbosity}, \xmlDesc{optional string field}, the verbosity for components
+        constructed during the adaptive HDMR process.  Options are \emph{silent}, \emph{quiet}, \emph{all}, or
+        \emph{debug}, in order of
+        verbosity.  If an invalid entry is provided, will resort to default.  Default is \emph{quiet}.
+        %
+    \end{itemize}
+    In summary, this XML node contains the information that is needed in order
+    to control this sampler's convergence criterion.
+\end{itemize}
+  % Adaptive Sobol
+  \assemblerDescription{AdaptiveSobol}
+       \ROMDescription{AdaptiveSobol}
+        %
+        \begin{itemize}
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The Adaptive Sobol sampling accepts ``DataObjects'' of type ``Point'' and
+        ``PointSet'' only.
+   % \end{itemize}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML,morekeywords={class,limit,subGridTol,weight,persistence}]
+<Samplers>
+  ...
+  <AdaptiveSobol name="AS" verbosity='debug'>
+    <Convergence>
+      <relTolerance>1e-5</relTolerance>
+      <maxRuns>150</maxRuns>
+      <maxSobolOrder>3</maxSobolOrder>
+      <progressParam>1</progressParam>
+      <logFile>progress.txt</logFile>
+      <subsetVerbosity>silent</subsetVerbosity>
+    </Convergence>
+    <variable name="x1">
+      <distribution>UniDist</distribution>
+    </variable>
+    <variable name="x2">
+      <distribution>UniDist</distribution>
+    </variable>
+    <ROM class = 'Models' type = 'ROM'>hdmrrom</ROM>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>solns</TargetEvaluation>
+  </AdaptiveSobol>
+  ...
+</Samplers>
+\end{lstlisting}

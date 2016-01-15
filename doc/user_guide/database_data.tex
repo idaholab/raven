@@ -1,0 +1,334 @@
+\section{DataObjects}
+\label{sec:DataObjects}
+
+As seen in the previous chapters, different entities in the RAVEN
+code interact with each other in order to create, ideally, an infinite number of
+different calculation flows.
+%
+These interactions are made possible through a data handling system that each
+entity understands.
+%
+This system, neglecting the grammar imprecision, is called the ``DataObjects''
+system.
+
+The \xmlNode{DataObjects} tag is a container of data objects of various types that can
+be constructed during the execution of a particular calculation flow.
+%
+These data objects can be used as input or output for a particular
+\textbf{Model} (see Roles' meaning in section \ref{sec:models}), etc.
+%
+Currently, RAVEN supports 4 different data types, each with a particular
+conceptual meaning.
+%
+These data types are instantiated as sub-nodes in the \xmlNode{DataObjects} block of
+an input file:
+\begin{itemize}
+  \item \xmlNode{Point}, as the name suggests, describes the state of the
+  system at a certain point (e.g. in time).
+  %
+  In other words, it can be considered a mapping between a set of parameters
+  in the input space and the resulting outcomes in the output space at a
+  particular point in the phase space (e.g. in time).
+  %
+  \item \xmlNode{PointSet} is a collection of individual \textit{Point}
+  objects.
+  %
+  It can be considered a mapping between multiple sets of parameters in the
+  input space and the resulting sets of outcomes in the output space at a
+  particular point (e.g. in time).
+  %
+  \item \xmlNode{History} describes the temporal evolution of the state of the
+  system within a certain input domain.
+  %
+  \item \xmlNode{HistorySet} is a collection of individual \textit{History}
+  objects.
+  %
+  It can be considered a mapping between multiple sets of parameters in the
+  input space and the resulting sets of temporal evolutions in the output
+  space.
+  %
+\end{itemize}
+
+As noted above, each data object represents a mapping between a set of
+parameters and the resulting outcomes.
+%
+The data objects are defined within the main XML block called \xmlNode{DataObjects}:
+\begin{lstlisting}[style=XML]
+<Simulation>
+   ...
+  <DataObjects>
+    <Point name='***'>...</Point>
+    <PointSet name='***'>...</PointSet>
+    <History name='***'>...</History>
+    <HistorySet name='***'>...</HistorySet>
+  </DataObjects>
+   ...
+</Simulation>
+\end{lstlisting}
+
+Independent of the type of data, the respective XML node has the following
+available attributes:
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, is a user-defined
+  identifier for this data object.
+    %
+  \nb As with other objects, this name can be used to refer to this specific
+  entity from other input blocks in the XML.
+  %
+%  % Regarding the time attribute, we need to take a better decision... Now it is very confusing.
+%  \item \xmlAttr{time}, \xmlDesc{optional float or string attribute}, time
+%    attribute.
+%    %
+%    Here, the user can specify either the time (value) at which the outcomes
+%    need to be taken (History-like object, it represents the time from which the
+%    outcomes' evolution need to be tracked) or a string  that can be either
+%    ``end'', at the end of the history, or ``all'', consider.
+%    %
+%    \default{random seed};
+%  \item \xmlAttr{inputTs}, \xmlDesc{optional integer attribute}, used to
+%  specify at which ``time step'' the input space needs to be retrieved.
+%  %
+%  \nb If the user wants to take conditions from the end of the simulation, s/he
+%  can directly input ``-1.''
+%  %
+%  \default{0}
+%  \item \xmlAttr{operator}, \xmlDesc{optional string attribute}, is aimed at
+%  performing simple operations on the data to be stored.
+%  %
+%  %
+%  The 3 options currently available are:
+%  \begin{itemize}
+%    \item \xmlString{max}
+%    \item \xmlString{min}
+%    \item \xmlString{average}
+%  \end{itemize}
+%  %
+%  \default{None}
+
+  \item \xmlAttr{historyName}, \xmlDesc{optional string attribute}, in the case  the
+   ``DataObject'' type is either a \textit{Point} or an
+  \textit{History}, this XML node contains the name of the associated history needs to be placed in.
+  \\\nb This attribute is a required parameter when the  \xmlNode{Point} or \xmlNode{History}
+   types are constructed from a Database (e.g.HDF5).
+
+  \item \xmlAttr{hierarchical}, \xmlDesc{optional boolean attribute}, if True
+  this data object will be constructed, if possible, in a hierarchical fashion.
+  %
+  \default{False}
+\end{itemize}
+\vspace{-5mm}
+In each XML node (e.g. \xmlNode{Point} or \xmlNode{HistorySet}), the user
+needs to specify the following sub-nodes:
+\begin{itemize}
+  \item \xmlNode{Input}, \xmlDesc{comma separated string, required field} lists
+  the input parameters to which this data is connected.
+  %
+  \item \xmlNode{Output}, \xmlDesc{comma separated string, required field} lists
+  the output parameters to which this data is connected.
+  %
+\end{itemize}
+
+In addition to the XML nodes \xmlNode{Input} and \xmlNode{Output} explained above, the user
+can optionally specify a XML node named  \xmlNode{options}. The  \xmlNode{options} node can
+contain the following optional XML sub-nodes:
+
+\begin{itemize}
+  \item \xmlNode{inputRow}, \xmlDesc{integer, optional field}, used to
+       specify  the row (in the CSV file or HDF5 table) from which the input space
+      needs to be retrieved (e.g. the time-step);
+  %
+  \item \xmlNode{outputRow}, \xmlDesc{integer, optional field}, used to
+       specify  the row (in the CSV file or HDF5 table) from which the output space
+      needs to be retrieved (e.g. the time-step). If this node is inputted, the nodes
+       \xmlNode{operator} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
+     \\\nb This XML node is available for DataObjects of type \xmlNode{Point} and \xmlNode{PointSet} only;
+  %
+  \item \xmlNode{operator}, \xmlDesc{string, optional field}, is aimed to perform
+       simple operations on the data to be stored.
+       The 3 options currently available are:
+       \begin{itemize}
+          \item \xmlString{max}
+          \item \xmlString{min}
+          \item \xmlString{average}
+       \end{itemize}
+       If this node is inputted, the nodes
+       \xmlNode{outputRow} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
+       \\\nb This XML node is available for DataObjects of type \xmlNode{Point} and \xmlNode{PointSet} only;
+  %
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field} the name of
+    the parameter whose values need to be used as reference for the values
+    specified in the XML nodes \xmlNode{inputPivotValue},
+    \xmlNode{outputPivotValue}, or \xmlNode{inputPivotValue} (if inputted).
+    This field can be used, for example, if the driven code output file uses  a
+    different name for the variable ``time'' or to specify a different reference
+    parameter (e.g. PRESSURE). Default value is \xmlString{time}.
+    \\\nb The variable specified here should be monotonic; the code does not
+    check for eventual oscillation and is going to take the first occurance for
+    the values specified in the XML nodes \xmlNode{inputPivotValue},
+    \xmlNode{outputPivotValue}, and  \xmlNode{inputPivotValue};
+  %
+  \item \xmlNode{inputPivotValue}, \xmlDesc{float, optional field}, the value of the \xmlNode{pivotParameter} at which the input space needs to be retrieved
+    If this node is inputted, the node  \xmlNode{inputRow} can not be inputted (mutually exclusive).
+    %
+  \item \xmlNode{outputPivotValue}. This node can be either a float or a list of floats, depending on the type of DataObjects:
+   \begin{itemize}
+      \item if \xmlNode{History} or \xmlNode{HistorySet},\xmlNode{outputPivotValue}, \xmlDesc{list of floats, optional field},  list of values of the
+                          \xmlNode{pivotParameter} at which the output space needs to be retrieved;
+      \item if \xmlNode{Point} or \xmlNode{PointSet},\xmlNode{outputPivotValue}, \xmlDesc{float, optional field},  the value of the \xmlNode{pivotParameter}
+         at which the output space needs to be retrieved. If this node is inputted, the node  \xmlNode{outputRow} can not be inputted (mutually exclusive);
+   \end{itemize}
+  %
+  It needs to be noticed that if the optional nodes in the block \xmlNode{options} are not inputted, the following default are applied:
+    \begin{itemize}
+       \item the Input space is retrieved from the first row in the CSVs files or HDF5 tables (if the parameters specified are not among the variables sampled by RAVEN);
+       \item  the output space defaults are as follows:
+       \begin{itemize}
+           \item if \xmlNode{Point} or \xmlNode{PointSet}, the output space is retrieved from the last row in the CSVs files or HDF5 tables;
+           \item if \xmlNode{History} or \xmlNode{HistorySet}, the output space is represented by all the rows found in  the CSVs or HDF5 tables.
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\begin{lstlisting}[style=XML,morekeywords={inputTs,operator,hierarchical,name,history}]
+  <DataObjects>
+    <PointSet name='outTPS1'>
+      <options>
+       <inputRow>1</inputRow>
+       <outputRow>-1</outputRow>
+      </options>
+      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </PointSet>
+    <PointSet name='outTPS2'>
+        <options>
+            <inputPivotValue>0.00011</inputPivotValue>
+            <pivotParameter>time</pivotParameter>
+            <outputPivotValue>0.00012345</outputPivotValue>
+        </options>
+        <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </PointSet>
+    <Point name='outTP'>
+        <options>
+            <inputRow>-1</inputRow>
+            <operator>max</operator>
+        </options>
+        <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </Point>
+    <HistorySet name='stories1'>
+        <options>
+            <inputRow>1</inputRow>
+        </options>
+      <Input>pipe_Area,pipe_Dh</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </HistorySet>
+    <HistorySet name='stories2'>
+        <options>
+            <inputRow>-1</inputRow>
+            <pivotParameter>time</pivotParameter>
+            <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
+        </options>
+        <Input>pipe_Area,pipe_Dh</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </HistorySet>
+    <History name='hst1'>
+        <options>
+            <inputRow>1</inputRow>
+        </options>
+        <Input>pipe_Area,pipe_Dh</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </History>
+    <History name='hst2'>
+        <options>
+            <inputRow>-1</inputRow>
+            <pivotParameter>time</pivotParameter>
+            <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
+        </options>
+        <Input>pipe_Area,pipe_Dh</Input>
+        <Output>pipe_Hw,pipe_Tw,time</Output>
+    </History>
+  </DataObjects>
+\end{lstlisting}
+
+\section{Databases}
+\label{sec:Databases}
+The RAVEN framework provides the capability to store and retrieve data to/from
+an external database.
+%
+Currently RAVEN has support for only a database type called \textbf{HDF5}.
+%
+This database, depending on the data format it is receiving, will organize
+itself in a ``parallel'' or ``hierarchical'' fashion.
+%
+The user can create as many database objects as needed.
+%
+The Database objects are defined within the main XML block called
+\xmlNode{Databases}:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Databases>
+    ...
+    <HDF5 name="aDatabaseName1"/>
+    <HDF5 name="aDatabaseName2"/>
+    ...
+  </Databases>
+  ...
+</Simulation>
+\end{lstlisting}
+The specifications of each Database of type HDF5 needs to be defined within the
+XML block \xmlNode{HDF5}, that recognizes the following attributes:
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, a user-defined
+  identifier of this object.
+  %
+  \nb As with other objects, this is name can be used to reference this specific
+  entity from other input blocks in the XML.
+  \item \xmlAttr{directory}, \xmlDesc{optional string attribute}, this attribute
+  can be used to specify a particular directory path where the database will be
+  created, if no \textit{filename} is specified, or where to find an already
+  existing one if \textit{filename} is provided.
+%  \item \xmlAttr{directory}, \xmlDesc{optional string attribute}, this attribute
+%  can be used to specify a particular directory path where to create the
+%  database, if no \textit{filename} is specified, or from where open an already
+%  existing one, if \textit{filename} is provided. \maljdan{Huh?}
+  %
+  \default{workingDir/framework/DatabaseStorage}.  The \xmlNode{workingDir} is
+   the one defined within the \xmlNode{RunInfo} XML block (see Section~\ref{sec:RunInfo}).
+  \item \xmlAttr{filename}, \xmlDesc{optional string attribute}, specifies the
+  filename of an HDF5 that already exists in the \xmlAttr{directory}.
+  %
+  This is the only way to let RAVEN know that an HDF5 should be opened and not
+  overwritten.
+  %
+  \nb When this attribute is not specified, the newer database filename will be
+  named \texttt{name}.h5, where \textit{name} corresponds to the \xmlAttr{name}
+  attribute of this object.
+  %
+  \default{None}
+  \item \xmlAttr{compression}, \xmlDesc{optional string attribute}, compression
+  algorithm to be used.
+  %
+  Available are:
+  \begin{itemize}
+    \item \xmlString{gzip}, best where portability is required.
+    %
+    Good compression, moderate speed.
+    %
+    \item \xmlString{lzf}, Low to moderate compression, very fast.
+    %
+  \end{itemize}
+  \default{None}
+\end{itemize}
+
+\begin{lstlisting}[style=XML,morekeywords={directory,filename}]
+<Databases>
+  <HDF5 name="aDatabaseName1" directory=''path_to_a_dir'' compression=''lzf''/>
+  <HDF5 name="aDatabaseName2" filename=''aDatabaseName2.h5''/>
+</Databases>
+\end{lstlisting}

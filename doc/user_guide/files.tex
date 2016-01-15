@@ -1,0 +1,47 @@
+\section{Files}
+\label{sec:files}
+
+The \xmlNode{Files} block defines any files that might be needed within
+the RAVEN run.  This could include inputs to the Model, pickled ROM files,
+or CSV files for postprocessors, to name a few.
+%
+Each entry in the \xmlNode{Files} block is a tag with the file type.  Files
+given through the input XML at this point are all \xmlNode{Input} type.
+Each \xmlNode{Input} node has the following attributes:
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
+  of the file.  This does not need to be the actual filename; this is the name
+  by which RAVEN will identify the file.
+  %
+  \nb As with other objects, this name can be used to refer to this
+  specific entity from other input blocks in the XML.
+  %
+  \item \xmlAttr{type}, \xmlDesc{optional string attribute}, a type label
+  for this file.  While RAVEN does not directly make use of file types, 
+  they are available in the CodeInterface as identifiers.  If not provided,
+  the type will be stored as python \texttt{None} type.
+  %
+
+  \item \xmlAttr{perturbable}, \xmlDesc{optional boolean attribute}, flag
+  to indicate whether a file can be perturbed or not. RAVEN does not
+  directly use this attribute, but it is availabe in the CodeInterface.
+  If not provided, defaults to True.
+  %
+\end{itemize}
+\vspace{-5mm}
+For example, if the files \texttt{templateInput.i, materials.i, history.i, mesh.e}
+ are required to run a Model, the \xmlNode{Files} block might appear as:
+\begin{lstlisting}[style=XML,morekeywords={name,file}] %moreemph={name,file}]
+<Simulation>
+  ...
+  <Files>
+    <Input name='main' type='maininput'>templateInput.i</Input>
+    <Input name='mat'  type='mtlinput' >materials.i</Input>
+    <Input name='hist' type='histinput'>history.i</Input>
+    <Input name='mesh' type='mesh' perturbable='false'>mesh.e</Input>
+  </Files>
+   ...
+</Simulation>
+\end{lstlisting}
