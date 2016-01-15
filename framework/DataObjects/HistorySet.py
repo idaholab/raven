@@ -105,9 +105,9 @@ class HistorySet(Data):
       @ In, value, newer value
       @ Out, None
     """
-    if (not isinstance(value,(float,int,bool,np.ndarray))):
+    if (not isinstance(value,(float,int,bool,np.ndarray,c1darray))):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array (dim 1) or a single value for method <_updateSpecializedInputValue>. Got type ' + str(type(value)))
-    if isinstance(value,np.ndarray):
+    if isinstance(value,(np.ndarray,c1darray)):
       if value.size != 1: self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
 
     if options and self._dataParameters['hierarchical']:

@@ -869,35 +869,49 @@ class InterfacedPostProcessor(BasePostProcessor):
     self.postProcessor.readMoreXML(xmlNode)
   
   def run(self, InputIn):   
-    inInputDic,inOutputDic = self.restructureInput(InputIn) 
-    outInputDic,outOutputDic = self.postProcessor.run(inInputDic,inOutputDic)  
-    self.postProcessor.checkGeneratedDicts(outInputDic,outOutputDic)  
-    return outInputDic,outOutputDic
+    inputDic= self.inputToInternal(InputIn) 
+    outputDic = self.postProcessor.run(inputDic)  
+    self.postProcessor.checkGeneratedDicts(outputDic)  
+    return outputDic
+
   
   def collectOutput(self, finishedjob, output):
     if finishedjob.returnEvaluation() == -1: 
       self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
-    evaluation = finishedjob.returnEvaluation()
-    if type(evaluation[1]).__name__ == "tuple": 
-      outputeval = evaluation[1][0]
-    else:
-      outputeval = evaluation[1]
-    exportDict = {'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedjob.returnMetadata()}
-    for key in exportDict['inputSpaceParams' ]:
-      if key in output.getParaKeys('inputs'): 
-        output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
-    for key in exportDict['outputSpaceParams']:
-      if key in output.getParaKeys('outputs'): 
-        output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
-#    for key in exportDict['metadata']: 
-#      output.updateMetadata(key,exportDict['metadata'][key]) 
+    evaluation = finishedjob.returnEvaluation()[1]
+    exportDict = {'inputSpaceParams':evaluation['data']['input'],'outputSpaceParams':evaluation['data']['output'],'metadata':evaluation['metadata']}
 
+    listInputParms   = output.getParaKeys('inputs')
+    listOutputParams = output.getParaKeys('outputs')
     
-  def restructureInput(self,input):
-    # this function restructure the input (dataObject) into inputDic (dictionary)  
-    inInputDic  = copy.deepcopy(input[0].getOutParametersValues())
-    inOutputDic = copy.deepcopy(input[0].getInpParametersValues())
-    return inInputDic,inOutputDic 
+    for hist in exportDict['inputSpaceParams']:
+      if type(exportDict['inputSpaceParams'].values()[0]).__name__ == "dict":
+        for key in listInputParms:
+          output.updateInputValue(key,exportDict['inputSpaceParams' ][hist][key])
+        for key in listOutputParams:
+          output.updateOutputValue(key,exportDict['inputSpaceParams' ][hist][key])
+      else:   
+        for key in exportDict['inputSpaceParams']:
+          if key in output.getParaKeys('inputs'): 
+            output.updateInputValue(key,exportDict['inputSpaceParams' ][key])
+        for key in exportDict['outputSpaceParams']:
+          if key in output.getParaKeys('outputs'):
+            output.updateOutputValue(key,exportDict['outputSpaceParams'][key])       
+ 
+ 
+  def inputToInternal(self,input):  
+    inputDict = {'data':{}, 'metadata':{}}
+    metadata = []    
+    if type(input) == dict:
+      return input
+    else:
+      inputDict['data']['input']  = input[0].getInpParametersValues()
+      inputDict['data']['output'] = input[0].getOutParametersValues()
+    for item in input: 
+      metadata.append(item.getAllMetadata())   
+    metadata.append(item.getAllMetadata())
+    inputDict['metadata']=metadata
+    return inputDict 
   
   
   

@@ -24,12 +24,12 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
   def readMoreXML(self,xmlNode):
     pass
     
-  def run(self,inInputDic,inOutputDic):
+  def run(self,inputDic):
     pass
   
-  def checkGeneratedDicts(self,inputDic,outputDic):
-    if self.checkInputFormat(inputDic) and self.checkOutputFormat(outputDic):
-      return True
+  def checkGeneratedDicts(self,outputDic):
+    #if self.checkInputFormat(inputDic) and self.checkOutputFormat(outputDic):
+    return True
   
   def checkOutputFormat(self,outputDic):
     """ This function check that the generated output dictionary is built accordingly to outputFormat
