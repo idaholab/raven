@@ -2,7 +2,7 @@
   [./interfacedPostProcessor]
     type   = 'RavenFramework'
     input  = 'test_interfacedPP.xml'
-    csv    = 'externalPostProcessor/myDump.csv'
-    output = 'externalPostProcessor/myDump.xml'
+    csv    = 'interfacedPostProcessor/PrintPPHistorySet_dump_0.csv'
+    output = 'interfacedPostProcessor/PrintPPHistorySet_dump.xml’
   [../]
 []
