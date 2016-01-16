@@ -8,7 +8,7 @@ u(Y) = \prod_{n=1}^N y_n+1.
 This test is specifically useful for its analytic statistical moments.  It is used as a benchmark in
 \cite{ayreseaton2015}.
 
-\subsection{Uniform}
+\subsection{Uniform, (-1,1)}
 Let all $y_n$ be uniformly distributed between -1 and 1.  The first two statistical moments are:
 
 \subsubsection{mean}
@@ -33,3 +33,49 @@ Let all $y_n$ be uniformly distributed between -1 and 1.  The first two statisti
   &= \left(\frac{4}{3}\right)^N-1.
 \end{align}
 
+\subsubsection{numeric values}
+Some numeric values for the mean and variance are listed below for several input cardinalities $N$.
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{c|c|c}
+    $N$ & mean & variance \\ \hline
+    2 & 1.0 & 0.77777777777 \\
+    4 & 1.0 & 2.16049382716 \\
+    6 & 1.0 & 4.61865569273
+  \end{tabular}
+\end{table}
+
+\subsection{Uniform, (0,1)}
+Let all $y_n$ be uniformly distributed between 0 and 1.  The first two statistical moments are:
+
+\subsubsection{mean}
+\begin{align}
+\expv{u(Y)} &=\int_{0}^1 dY \rho(Y)u(Y),\\
+  &=\int_{0}^1 dy_1\cdots\int_{0}^1 dy_N \prod_{n=1}^N y_n+1,\\
+  &=\left[ \int_{0}^1 dy y+1\right]^N,\\
+  &=\left[\left(\frac{y^2}{2}+y\right)\bigg|_{0}^1\right]^N,\\
+  &=\left[\frac{3}{2}\right]^N.
+\end{align}
+
+\subsubsection{variance}
+\begin{align}
+\expv{u(Y)^2} &= \int_{0}^1 dY \rho(Y)u(Y),\\
+  &=\int_{0}^1 dy_1\cdots\int_{0}^1 dy_N \left(\prod_{n=1}^N y_n+1\right)^2,\\
+  &=\left[\left(\int_{0}^1 dy\ y^2+2y+1 \right)\right]^N,\\
+  &=\left[\left(\frac{y^3}{3}+y^2+y \right)\bigg|_{0}^1 \right]^N,\\
+  &=\left(\frac{7}{3}\right)^N.\\
+\text{var}[u(Y)] &= \expv{u(Y)^2}-\expv{u(Y)}^2,\\
+  &= \left(\frac{7}{3}\right)^N-\left(\frac{3}{2}\right)^N.
+\end{align}
+
+\subsubsection{numeric values}
+Some numeric values for the mean and variance are listed below for several input cardinalities $N$.
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{c|c|c}
+    $N$ & mean & variance \\ \hline
+    2 & 2.25      & 0.38194444444 \\
+    4 & 5.0625    & 4.01306905864 \\
+    6 & 11.390625 & 31.6377499009
+  \end{tabular}
+\end{table}

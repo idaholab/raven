@@ -26,6 +26,9 @@ from math import ceil
 from collections import OrderedDict
 from sklearn import neighbors
 from sklearn.utils.extmath import cartesian
+
+if sys.version_info.major > 2: import pickle
+else: import cPickle as pickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -3168,7 +3171,8 @@ class SparseGridCollocation(Grid):
         varName = '<distribution>'+child.attrib['name']
       elif child.tag == 'variable':
         varName = child.attrib['name']
-        self.axisName.append(varName)
+        if varName not in self.dependentSample.keys():
+          self.axisName.append(varName)
 
   def transformDistDict(self):
     """
@@ -3399,6 +3403,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.doingStudy              = False  #true if convergenceStudy node defined for sampler
     self.studyFileBase           = 'out_' #can be replaced in input, not used if not doingStudy
     self.studyPoints             = []     #list of ints, runs at which to record a state
+    self.studyPickle             = False  #if true, dumps ROM to pickle at each step
     #solution storage
     self.existing                = {}     #rolling list of sampled points
     self.neededPoints            = []     #queue of points to submit
@@ -3434,6 +3439,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       self.doingStudy = True
       self.studyPoints = studyNode.find('runStatePoints').text
       filebaseNode = studyNode.find('baseFilename')
+      self.studyPickle = studyNode.find('pickle') is not None
       if filebaseNode is None:
         self.raiseAWarning('No baseFilename specified in convergenceStudy node!  Using "%s"...' %self.studyFileBase)
       else:
@@ -3537,6 +3543,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       if self.doingStudy:
         while len(self.studyPoints)>0 and len(self.pointsNeededToMakeROM) > self.studyPoints[0]:
           self._writeConvergencePoint(self.studyPoints[0])
+          if self.studyPickle: self._writePickle(self.studyPoints[0])
           #remove the point
           if len(self.studyPoints)>1: self.studyPoints=self.studyPoints[1:]
           else: self.studyPoints = []
@@ -3703,7 +3710,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
   def _finalizeROM(self,rom=None):
     """
       Initializes final target ROM with necessary objects for training.
-      @ In, None
+      @ In, rom, optional GaussPolynomailROM object, the rom to initialize, defaults to target rom
       @ Out, None
     """
     if rom == None: rom = self.ROM
@@ -3882,6 +3889,18 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     options = {'filenameroot':fname, 'what':'all'}
     rom.printXML(options)
 
+  def _writePickle(self,runPoint):
+    """
+      Writes pickle for this ROM at this point in the run
+      @ In, runPoint, int, the target runs for this statepoint
+      @ Out, None
+    """
+    fname = self.studyFileBase+str(runPoint)
+    self.raiseAMessage('Writing ROM at state %i to %s.pk...' %(runPoint,fname))
+    rom = copy.deepcopy(self.ROM)
+    self._finalizeROM(rom)
+    rom.train(self.solns)
+    pickle.dump(rom,file(fname+'.pk','w'))
 
 #
 #
@@ -3934,21 +3953,6 @@ class Sobol(SparseGridCollocation):
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
     self.dists = self.transformDistDict()
-
-  def localInputAndChecks(self,xmlNode):
-    """
-      Extended readMoreXML after other objects are instantiated
-      @ In, xmlNode, xmlNode object, whose head should be Sobol under Sampler.
-      @ Out, None
-    """
-    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
-    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
-    for child in xmlNode:
-      if child.tag == 'Distribution':
-        varName = '<distribution>'+child.attrib['name']
-      elif child.tag == 'variable':
-        varName = child.attrib['name']
-        self.axisName.append(varName)
 
   def localInitialize(self):
     """
@@ -4128,6 +4132,12 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.numConverged    = 0     #tracking for persistance
     self.persistence     = 2     #set in input, the number of successive converges to require
 
+    #convergence study
+    self.doingStudy      = False  #true if convergenceStudy node defined for sampler
+    self.studyFileBase   = 'out_' #can be replaced in input, not used if not doingStudy
+    self.studyPoints     = []     #list of ints, runs at which to record a state
+    self.studyPickle     = False  #if true, creates a pickle of rom at statepoints
+
     #attributes
     self.features        = None #ROM features of interest, also input variable list
     self.targets         = None #ROM outputs of interest
@@ -4148,6 +4158,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     Sobol.localInputAndChecks(self,xmlNode)
     conv = xmlNode.find('Convergence')
+    studyNode = xmlNode.find('convergenceStudy')
     if conv is None: self.raiseAnError(IOError,'"Convergence" node not found in input!')
     #self.convType      = conv.get('target',None) #TODO not implemented.  Currently only does variance.
     for child in conv:
@@ -4163,6 +4174,23 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     if self.subVerbosity not in ['debug','all','quiet','silent']:
       self.raiseAWarning('subsetVerbosity parameter not recognized:',self.subVerbosity,' -> continuing with "quiet"')
       self.subVerbosity = 'quiet'
+    if studyNode is not None:
+      self.doingStudy = True
+      self.studyPoints = studyNode.find('runStatePoints').text
+      filebaseNode = studyNode.find('baseFilename')
+      self.studyPickle = studyNode.find('pickle') is not None
+      if filebaseNode is None:
+        self.raiseAWarning('No baseFilename specified in convergenceStudy node!  Using "%s"...' %self.studyFileBase)
+      else:
+        self.studyFileBase = studyNode.find('baseFilename').text
+      if self.studyPoints is None:
+        self.raiseAnError(IOError,'convergenceStudy node was included, but did not specify the runStatePoints node!')
+      else:
+        try:
+          self.studyPoints = list(int(i) for i in self.studyPoints.split(','))
+        except ValueError as e:
+          self.raiseAnError(IOError,'Convergence state point not recognizable as an integer!',e)
+        self.studyPoints.sort()
 
   def localInitialize(self):
     """
@@ -4249,6 +4277,14 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       which, todoSub, poly = self._getLargestImpact()
       self.raiseAMessage('Next: %6s %8s%12s' %(which,','.join(todoSub),str(poly)),'| error: %1.4e' %self.error,'| runs: %i' %len(self.distinctPoints))
       if self.statesFile is not None: self._printState(which,todoSub,poly)
+      #if doing a study and past a statepoint, record the statepoint
+      if self.doingStudy:
+        while len(self.studyPoints)>0 and len(self.distinctPoints) > self.studyPoints[0]:
+          self._writeConvergencePoint(self.studyPoints[0])
+          if self.studyPickle: self._writePickle(self.studyPoints[0])
+          #remove the point
+          if len(self.studyPoints)>1: self.studyPoints=self.studyPoints[1:]
+          else: self.studyPoints = []
       #are we converged?
       if self.error < self.convValue:
         self.raiseAMessage('Convergence achieved!  No new polynomials or subsets will be added...')
@@ -4389,23 +4425,6 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         return False
     return True #only if nothing outside the cut plane
 
-  #def _convergence(self):
-    #"""
-    #Checks convergence based on the requested metric.  For now that's just variance. Deprecated, but retained for future use.
-    #@ In, None
-    #@ Out, float, minimum relative convergence on variance
-    #"""
-    #self.oldVariance = copy.deepcopy(self.curVariance)
-    #conv = {}
-    #for t in self.targets:
-      #self.curVariance[t] = 0
-      #for subset,rom in self.useSet.items():
-        #rom = rom[t]
-        #self.curVariance[t]+=rom.__variance__()
-      #conv[t] = abs(self.curVariance.get(t,1) - self.oldVariance.get(t,0))/self.curVariance.get(t,1)
-      #self.raiseADebug('Convergence for %s is %1.3e' %(t,conv[t]))
-    #return max(conv.values())
-
   def _expandCutPoint(self,subset,pt):
     """
     Takes a trimmed point from the cut plane and expands it to include the reference values.
@@ -4453,15 +4472,19 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       self._finalizeSubset(sub)
     #set completion trigger
     self.done = True
+    #note any missing statepoints if doing convergence study
+    if self.doingStudy and len(self.studyPoints)>0:
+      self.raiseAWarning('In the convergence study, the following numbers of runs were not reached:',self.studyPoints)
     #set up HDMRRom for training
     self._finalizeROM()
 
-  def _finalizeROM(self):
+  def _finalizeROM(self,rom=None):
     """
     Delivers necessary structures to the HDMRRom object
-    @ In, None
+    @ In, rom, optional HDMRRom object, rom to finalize before training, defaults to target rom
     @ Out, None
     """
+    if rom == None: rom = self.ROM
     initDict = {'ROMs':None, # multitarget requires setting individually, below
                 'SG':self.SQs,
                 'dists':self.distDict,
@@ -4471,8 +4494,12 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
                 'numRuns':len(self.distinctPoints)}
     #initialize each HDMRRom object in the ROM
     for target in self.targets:
-      initDict['ROMs'] = self.ROMs[target]
-      self.ROM.SupervisedEngine[target].initialize(initDict)
+      initDict['ROMs'] = copy.deepcopy(self.ROMs[target])
+      #remove unfinished subsets
+      for subset in self.ROMs.values()[0]:
+        if subset not in self.useSet.keys():
+          del initDict['ROMs'][subset]
+      rom.SupervisedEngine[target].initialize(initDict)
 
   def _finalizeSubset(self,subset):
     """
@@ -4569,8 +4596,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     for subset,expImp in self.subsetExpImpact.items():
       #if it's already in training, move along
       if any(subset == s[1] for s in self.inTraining): continue
-      #apply favoring tweaking parameter
-      expImp = expImp**(2.-self.tweakParam)
+      #apply favoring tweaking parameter - take abs() to assure fair comparison
+      expImp = abs(expImp)**(2.-self.tweakParam)
       #update global expected error remaining
       self.error+=expImp
       #update max if necessary
@@ -4847,6 +4874,17 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       #update estimated impacts
       for pidx in sampler.indexSet.active:
         sampler._estimateImpact(pidx)
+
+  def _writeConvergencePoint(self,runPoint):
+    """
+      Writes XML out for this ROM at this point in the run
+      @ In, runPoint, int, the target runs for this statepoint
+      @ Out, None
+    """
+    for sub in self.useSet.keys():
+      self._finalizeSubset(sub)
+    AdaptiveSparseGrid._writeConvergencePoint(self,runPoint)
+
 
 #
 #
