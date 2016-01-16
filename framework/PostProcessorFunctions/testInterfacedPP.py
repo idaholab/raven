@@ -16,8 +16,8 @@ class testInterfacedPP(PostProcessorInterfaceBase):
       - initialize
       - run
       - readMoreXML
-  """ 
-      
+  """
+
   def initialize(self):
     """
      Method to initialize the Interfaced Post-processor
@@ -27,13 +27,13 @@ class testInterfacedPP(PostProcessorInterfaceBase):
     """
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'HistorySet'
-  
-  def run(self,inputDic): 
+
+  def run(self,inputDic):
     """
     This method is transparent: it passes the inputDic directly as output
-    """ 
+    """
     return inputDic
-  
+
   def readMoreXML(self,xmlNode):
     """
       Function that reads elements this post-processor will use
@@ -42,4 +42,4 @@ class testInterfacedPP(PostProcessorInterfaceBase):
     """
     for child in xmlNode:
       if child.tag == 'testID':
-        self.testID = child.text 
+        self.testID = child.text

@@ -18,29 +18,29 @@ import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
-  
+
   def initialize(self):
     self.inputFormat  = None
     self.outputFormat = None
 
   def readMoreXML(self,xmlNode):
     pass
-    
+
   def run(self,inputDic):
     pass
-  
+
   def checkGeneratedDicts(self,outputDic):
     if self.checkOutputFormat(outputDic['data']['input']) and self.checkOutputFormat(outputDic['data']['output']):
       return True
     else:
       return False
-  
+
   def checkOutputFormat(self,outputDic):
     """ This function check that the generated output dictionary is built accordingly to outputFormat
     """
-    outcome = True  
+    outcome = True
     if isinstance(outputDic,dict):
-      if self.outputFormat == 'HistorySet' or self.outputFormat == 'History': 
+      if self.outputFormat == 'HistorySet' or self.outputFormat == 'History':
         for key in outputDic:
           if isinstance(outputDic[key],dict):
             outcome = outcome and True
@@ -51,26 +51,26 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
               outcome = outcome and True
             else:
               outcome = outcome and False
-      else: 
+      else:
         for key in outputDic:
           if isinstance(outputDic[key],np.ndarray):
             outcome = outcome and True
           else:
             outcome = outcome and False
     else:
-      outcome = outcome and False  
+      outcome = outcome and False
     return outcome
-  
+
   def checkInputFormat(self,inputDic):
     """ This function check that the generated input dictionary is built accordingly to outputFormat
     """
-    outcome = True    
-    if isinstance(inputDic,dict): 
+    outcome = True
+    if isinstance(inputDic,dict):
       for key in inputDic:
         if isinstance(key.value,np.ndarray):
           outcome = outcome and True
         else:
-          outcome = outcome and False         
+          outcome = outcome and False
     else:
       outcome = False
     return outcome

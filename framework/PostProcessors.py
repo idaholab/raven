@@ -857,12 +857,12 @@ class InterfacedPostProcessor(BasePostProcessor):
   This class allows to interface a general-purpose post-processor created ad-hoc by the user.
   While the ExternalPostProcessor is designed for analysis-dependent cases, the InterfacedPostProcessor is designed more generic cases
   The InterfacedPostProcessor parses (see PostProcessorInterfaces.py) and uses only the functions contained in the raven/framework/PostProcessorFunctions folder
-  The base class for the InterfacedPostProcessor that the user has to inherit to develop its own InterfacedPostProcessor is specified 
+  The base class for the InterfacedPostProcessor that the user has to inherit to develop its own InterfacedPostProcessor is specified
   in PostProcessorInterfaceBase.py
-  """  
-  
+  """
+
   PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
-  
+
   def __init__(self, messageHandler):
     """
      Constructor
@@ -870,7 +870,7 @@ class InterfacedPostProcessor(BasePostProcessor):
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.methodToRun = None
-  
+
   def initialize(self, runInfo, inputs, initDict):
     """
      Method to initialize the Interfaced Post-processor
@@ -892,21 +892,21 @@ class InterfacedPostProcessor(BasePostProcessor):
         self.methodToRun = child.text
     self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
     self.postProcessor.readMoreXML(xmlNode)
-  
+
   def run(self, InputIn):
     """
-     This method executes the interfaced  post-processor action. 
+     This method executes the interfaced  post-processor action.
      @ In , InputIn, dictionary, dictionary of data to process
      @ Out, dictionary, Dictionary containing the post-processed results
-    """   
-    inputDic= self.inputToInternal(InputIn) 
-    outputDic = self.postProcessor.run(inputDic) 
-    if self.postProcessor.checkGeneratedDicts(outputDic):  
+    """
+    inputDic= self.inputToInternal(InputIn)
+    outputDic = self.postProcessor.run(inputDic)
+    if self.postProcessor.checkGeneratedDicts(outputDic):
       return outputDic
     else:
       self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor: function has generated a not valid output dictionary')
 
-  
+
   def collectOutput(self, finishedjob, output):
     """
       Function that fills the computed data into the output dataObject
@@ -914,14 +914,14 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ In, output: The dataObject where we want to place our computed results
       @ Out, None
     """
-    if finishedjob.returnEvaluation() == -1: 
+    if finishedjob.returnEvaluation() == -1:
       self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
     evaluation = finishedjob.returnEvaluation()[1]
     exportDict = {'inputSpaceParams':evaluation['data']['input'],'outputSpaceParams':evaluation['data']['output'],'metadata':evaluation['metadata']}
 
     listInputParms   = output.getParaKeys('inputs')
     listOutputParams = output.getParaKeys('outputs')
-    
+
     for hist in exportDict['inputSpaceParams']:
       if type(exportDict['inputSpaceParams'].values()[0]).__name__ == "dict":
         for key in listInputParms:
@@ -930,18 +930,18 @@ class InterfacedPostProcessor(BasePostProcessor):
           output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][key])
         for key in exportDict['metadata'][0]:
           output.updateMetadata(key,exportDict['metadata'][0][key])
-      else:   
+      else:
         for key in exportDict['inputSpaceParams']:
-          if key in output.getParaKeys('inputs'): 
+          if key in output.getParaKeys('inputs'):
             output.updateInputValue(key,exportDict['inputSpaceParams'][key])
         for key in exportDict['outputSpaceParams']:
           if key in output.getParaKeys('outputs'):
-            output.updateOutputValue(key,exportDict['outputSpaceParams'][key])          
+            output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
         for key in exportDict['metadata'][0]:
           output.updateMetadata(key,exportDict['metadata'][0][key])
- 
- 
-  def inputToInternal(self,input):  
+
+
+  def inputToInternal(self,input):
     """
       Function to convert the received input into a format this object can
       understand
@@ -949,20 +949,20 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ Out, inputDict: a dictionary this object can process
     """
     inputDict = {'data':{}, 'metadata':{}}
-    metadata = []    
+    metadata = []
     if type(input) == dict:
       return input
     else:
       inputDict['data']['input']  = input[0].getInpParametersValues()
       inputDict['data']['output'] = input[0].getOutParametersValues()
-    for item in input: 
-      metadata.append(item.getAllMetadata())   
+    for item in input:
+      metadata.append(item.getAllMetadata())
     metadata.append(item.getAllMetadata())
     inputDict['metadata']=metadata
-    return inputDict 
-  
-  
-  
+    return inputDict
+
+
+
 class DataConversion(BasePostProcessor):
   """
   Class which converts dataObjects into dataObjects
@@ -977,14 +977,14 @@ class DataConversion(BasePostProcessor):
     self.inObj = None
     self.workingDir = None
     self.printTag = 'POSTPROCESSOR DATA_CONVERSION'
-    
+
     self.operator = None
     self.sampling = {}
-    
+
     self.requiredAssObject = (True, (['Function'], [-1]))
     self.externalFunction  = []                             #Pointer to an external Function
-    
-    
+
+
   def inputToInternal(self, currentInput):
     """
      Method to convert an input object into the internal format that is understandable by this pp.
@@ -1002,7 +1002,7 @@ class DataConversion(BasePostProcessor):
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     #self.externalFunction = self.assemblerDict['Function'][0][3]
-  
+
   def _localReadMoreXML(self, xmlNode):
     """
     Function to read the portion of the xml input that belongs to this specialized class
@@ -1019,30 +1019,30 @@ class DataConversion(BasePostProcessor):
         self.sampling['pivot']      = child.text
         self.sampling['type'] = child.attrib['type']
         if self.operator == 'HS2HS':
-          if self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative': 
+          if self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative':
             self.sampling['interp'] = child.attrib['interp']
-            self.sampling['numSamples'] = float(child.attrib['numSamples']) 
+            self.sampling['numSamples'] = float(child.attrib['numSamples'])
           elif self.sampling['type'] == 'filteredFirstDerivative' or self.sampling['type'] == 'filteredSecondDerivative':
             self.sampling['tolerance']  = float(child.attrib['tolerance'])
-        elif self.operator == 'HS2PS': 
-          if self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative':  
+        elif self.operator == 'HS2PS':
+          if self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative':
             self.sampling['interp'] = child.attrib['interp']
-            self.sampling['numSamples'] = child.attrib['numSamples'] 
+            self.sampling['numSamples'] = child.attrib['numSamples']
             self.sampling['frame']     = child.attrib['frame']
           elif self.sampling['type'] == 'min' or self.sampling['type'] == 'max':
             pass
           elif self.sampling['type'] == 'value':
             self.sampling['varValue']     = float(child.attrib['varValue'])
-          elif self.sampling['type'] == 'average': 
+          elif self.sampling['type'] == 'average':
             self.sampling['timeID']     = child.attrib['timeID']
-          else:  
+          else:
             self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2PS (valid are uniform, firstDerivative, secondDerivative, min, max, average and value)')
-      elif child.tag == 'Function': 
+      elif child.tag == 'Function':
         if self.operator == 'filter':
           pass # read Function node
       else:
         self.raiseAnError(IOError, 'DataConversion Post-Processor: node ' + str(self.operator) + ' is not valid')
-        
+
 
   def run(self, InputIn):
     """
@@ -1051,21 +1051,21 @@ class DataConversion(BasePostProcessor):
      @ Out, dictionary, Dictionary containing the evaluated data
     """
     Input = self.inputToInternal(InputIn)
-     
+
     if self.operator == 'HS2HS':
-      for i in Input:      
-        for histID in i.getParametersValues('output'):     
-          if self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative': 
-            tempData = mathUtils.varsTimeInterp(self.sampling['numSamples'], self.sampling['pivot'], i.getParametersValues('output')[histID], self.sampling['type'],self.sampling['interp'])    
+      for i in Input:
+        for histID in i.getParametersValues('output'):
+          if self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative':
+            tempData = mathUtils.varsTimeInterp(self.sampling['numSamples'], self.sampling['pivot'], i.getParametersValues('output')[histID], self.sampling['type'],self.sampling['interp'])
           elif self.sampling['type'] == 'filteredFirstDerivative' or self.sampling['type'] == 'filteredSecondDerivative':
             tempData = mathUtils.timeSeriesFilter(self.sampling['pivot'], i.getParametersValues('output')[histID], self.sampling['type'], self.sampling['tolerance'])
-          else:  
-            self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2HS') 
+          else:
+            self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2HS')
           for key in tempData:
-            i.updateOutputValue(key,tempData[key]) 
-    
+            i.updateOutputValue(key,tempData[key])
+
     elif self.operator == 'HS2PS':
-      if   self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative':       
+      if   self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative':
         self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not yet implemented for HS2PS')
       elif self.sampling['type'] == 'min' or self.sampling['type'] == 'max' or self.sampling['type'] == 'value':
         for key in outputDict:
@@ -1078,15 +1078,15 @@ class DataConversion(BasePostProcessor):
     elif self.operator == 'filter':
       self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not yet implemented for HS2PS')
     else:
-      self.raiseAnError(IOError, 'DataConversion Post-Processor: ' + str(self.operator) + '  is not valid (available: HS2HS,HS2PS and filter)')        
-                  
+      self.raiseAnError(IOError, 'DataConversion Post-Processor: ' + str(self.operator) + '  is not valid (available: HS2HS,HS2PS and filter)')
+
   def collectOutput(self, finishedjob, output):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob: A JobHandler object that is in charge of running this post-processor
       @ In, output: The object where we want to place our computed results
-      @ Out, None  
-    """                                 
+      @ Out, None
+    """
 #
 #
 #

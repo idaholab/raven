@@ -28,7 +28,7 @@ for dirr,_,_ in os.walk(startDir):
 __moduleImportedList = []
 
 '''
- Interfaced Post Processor 
+ Interfaced Post Processor
  Here all the Interfaced Post-Processors located in the raven/framework/PostProcessorFunctions folder are parsed and their instance is returned
 '''
 
@@ -43,12 +43,12 @@ __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():
   """ This function returns the types of interfaced post-processors available
-  """ 
+  """
   return __knownTypes
 
 def returnPostProcessorInterface(Type,caller):
   """ This function returns interfaced post-processors interface
-  """ 
+  """
   if Type not in knownTypes():
     caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
   return __interFaceDict[Type]()
