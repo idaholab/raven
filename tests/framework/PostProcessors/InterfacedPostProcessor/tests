@@ -5,4 +5,10 @@
     csv    = 'interfacedPostProcessor/PrintPPHistorySet_dump_0.csv'
     output = 'interfacedPostProcessor/PrintPPHistorySet_dump.xml'
   [../]
+  [./interfacedPostProcessorParallel]
+    type   = 'RavenFramework'
+    input  = 'test_interfacedPP_parallel.xml'
+    csv    = 'interfacedPostProcessorParallel/PrintPPHistorySet_dump_0.csv'
+    output = 'interfacedPostProcessorParallel/PrintPPHistorySet_dump.xml'
+  [../]
 []
