@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>basicStatsGridAnalytic</WorkingDir>
     <Sequence>SamplingMirrowModelGrid,PP1grid</Sequence>
-    <batchSize>32</batchSize>
+    <batchSize>8</batchSize>
   </RunInfo>
 
   <Files>
@@ -18,7 +18,7 @@
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
       <what>all</what>
-      <parameters>x,y</parameters>
+      <parameters>x,y,x1</parameters>
     </PostProcessor>
   </Models>
 
@@ -38,7 +38,7 @@
     <Grid name="Grid_external">
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="50" type="CDF">1e-5 0.99999</grid>
+        <grid construction="equal" steps="50" type="CDF">0.001349898 0.998650102</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
