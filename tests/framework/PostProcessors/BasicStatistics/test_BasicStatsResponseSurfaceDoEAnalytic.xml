@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>basicStatsResponseSurfaceDoEAnalytic</WorkingDir>
     <Sequence>SamplingMirrowModelBoxBehnkenRespDesign,SamplingMirrowModelCentralCompositeRespDesign,PP1BoxBehnkenRespDesign,PP1CentralCompositeRespDesign</Sequence>
-    <batchSize>32</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>

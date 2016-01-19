@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>basicStatsGridAnalytic</WorkingDir>
     <Sequence>SamplingMirrowModelGrid,PP1grid</Sequence>
-    <batchSize>8</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -38,11 +38,11 @@
     <Grid name="Grid_external">
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="50" type="CDF">0.001349898 0.998650102</grid>
+        <grid construction="equal" steps="20" type="CDF">0.001349898 0.998650102</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="50" type="value">-0.5 2.5</grid>
+        <grid construction="equal" steps="20" type="value">-0.5 2.5</grid>
       </variable>
     </Grid>
   </Samplers>
