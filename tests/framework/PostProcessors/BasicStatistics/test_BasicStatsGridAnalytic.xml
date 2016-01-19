@@ -35,16 +35,16 @@
   </Distributions>
 
   <Samplers>
-    <Stratified name="Grid_external">
+    <Grid name="Grid_external">
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="500" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="100" type="CDF">1e-5 0.99999</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="500" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="50" type="value">-0.5 2.5</grid>
       </variable>
-    </Stratified>
+    </Grid>
   </Samplers>
 
   <Steps>
