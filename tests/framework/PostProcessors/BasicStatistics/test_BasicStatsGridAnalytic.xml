@@ -38,7 +38,7 @@
     <Grid name="Grid_external">
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="100" type="CDF">1e-5 0.99999</grid>
+        <grid construction="equal" steps="50" type="CDF">1e-5 0.99999</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
@@ -51,7 +51,7 @@
     <MultiRun name="SamplingMirrowModelGrid" re-seeding="20021986">
       <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
-      <Sampler class="Samplers" type="Stratified">Grid_external</Sampler>
+      <Sampler class="Samplers" type="Grid">Grid_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
     </MultiRun>
     <PostProcess name="PP1grid">
