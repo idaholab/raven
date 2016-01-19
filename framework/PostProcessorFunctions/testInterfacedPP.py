@@ -11,7 +11,7 @@ from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import numpy as np
 
 class testInterfacedPP(PostProcessorInterfaceBase):
-  """ This function represents the most basic interfaced post-processor
+  """ This class represents the most basic interfaced post-processor
       This class inherits form the base class PostProcessorInterfaceBase and it contains the three methods that need to be implemented:
       - initialize
       - run
@@ -22,12 +22,12 @@ class testInterfacedPP(PostProcessorInterfaceBase):
     """
      Method to initialize the Interfaced Post-processor
      @ In, None,
-     @ In, None,
+     @ Out, None,
 
     """
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
-    #self.outputFormat = 'HistorySet'
+    self.outputFormat = 'HistorySet'
 
   def run(self,inputDic):
     """
