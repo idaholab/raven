@@ -17,7 +17,7 @@
       <variable>x1</variable>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
+      <what>expectedValue,sigma,variance,kurtosis,percentile_10%,percentile_99%,variationCoefficient,skewness,median</what>
       <parameters>x,y,x1</parameters>
     </PostProcessor>
   </Models>
