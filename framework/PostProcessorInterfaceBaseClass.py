@@ -55,7 +55,7 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
      Method to check that dictionary generated in def run(self, inputDic) is consistent
      @ In, outputDic, dictionary
-     @ Out, boolean, 
+     @ Out, boolean,
     """
     if self.checkOutputFormat(outputDic['data']['input']) and self.checkOutputFormat(outputDic['data']['output']):
       return True
@@ -98,7 +98,7 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
      @ In, outputDic, dictionary
      @ Out, boolean, outcome
     """
-    
+
     outcome = True
     if isinstance(inputDic,dict):
       for key in inputDic:
